@@ -1,1 +1,4 @@
 node_modules
+grammar/.antlr
+*.interp
+*.tokens
