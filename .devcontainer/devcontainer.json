@@ -14,7 +14,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-vscode.makefile-tools"
 			]
 		}
 	}
