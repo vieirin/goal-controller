@@ -15,7 +15,8 @@
 		"vscode": {
 			"extensions": [
 				"eamodio.gitlens",
-				"ms-vscode.makefile-tools"
+				"ms-vscode.makefile-tools",
+				"mike-lischke.vscode-antlr4"
 			]
 		}
 	}

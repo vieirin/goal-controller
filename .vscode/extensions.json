@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "mike-lischke.vscode-antlr4",
+        "ms-vscode.makefile-tools",
+        "eamodio.gitlens"
+    ]
+}
