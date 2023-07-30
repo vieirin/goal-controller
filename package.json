@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
+    "@types/node": "^20.4.5",
+    "minimatch": "^9.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },

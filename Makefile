@@ -5,6 +5,6 @@ export PATH=$PATH:/usr/local/bin/:./node_modules/.bin/:/bin
 grammar:
 	antlr4 -Dlanguage=TypeScript grammar/Hello.g4 && mv grammar/*.ts src/antlr
 
-start: 
+run: 
 	ts-node src/index.ts
 
