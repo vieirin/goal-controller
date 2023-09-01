@@ -3,8 +3,8 @@ export PATH=$PATH:/usr/local/bin/:./node_modules/.bin/:/bin
 .PHONY: grammar
 
 grammar:
-	antlr4 -Dlanguage=TypeScript grammar/Hello.g4 && mv grammar/*.ts src/antlr
+	antlr4 -Dlanguage=TypeScript grammar/Goal.g4 && mv grammar/*.ts src/antlr
 
-run: 
-	ts-node src/index.ts
+run: grammar
+	ts-node src/index.ts $(ARGS)
 
