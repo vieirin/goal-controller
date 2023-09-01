@@ -1,27 +1,46 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
-import Goal from './antlr/GoalLexer';
-import GoalParser, { ExprContext, IStarTypeContext, RtContext } from './antlr/GoalParser';
-import GoalListener from './antlr/GoalListener';
+import RTRegex from './antlr/RTRegexLexer';
+import RTRegexParser, {
+  ExprContext,
+  GDecisionMakingContext,
+  GIdContext,
+  RtContext,
+  WordContext,
+} from './antlr/RTRegexParser';
+import RTRegexListener from './antlr/RTRegexListener';
 
-export const getGoalTokens = (input: string) => {
-    const chars = new CharStream(input); // replace this with a FileStream as required
-    const lexer = new Goal(chars);
-    const tokens = new CommonTokenStream(lexer);
-    const parser = new GoalParser(tokens);
-    const tree = parser.rt();
-    let id = ""
-    let type = ""
+export const getGoalDetail = ({
+  goalText,
+}: {
+  goalText: string;
+}): {
+  id: string;
+  goalName: string | null;
+  decisionMaking: { decision: string[] } | null;
+} => {
+  const chars = new CharStream(goalText); // replace this with a FileStream as required
+  const lexer = new RTRegex(chars);
+  const tokens = new CommonTokenStream(lexer);
+  const parser = new RTRegexParser(tokens);
+  const tree = parser.rt();
+  let id: string = '';
+  let goalName: string | null = null;
+  let decisionMaking: { decision: string[] } | null = null;
 
-    class MyTreeWalker extends GoalListener {
-        enterExpr = (ctx: ExprContext) => {
-        }
-        exitRt = (ctx: RtContext) => {
-            console.log(ctx.getText())
-            console.log(ctx.expr().UUID_V4().getText())
-            console.log(ctx.expr().iStarType()?.getText())
-        }
-    }
+  class MyTreeWalker extends RTRegexListener {
+    exitGId = (ctx: GIdContext) => {
+      id = ctx.id().getText();
+    };
+    exitWord = (ctx: WordContext) => {
+      goalName = ctx.WORD().getText();
+    };
+    exitGDecisionMaking = (ctx: GDecisionMakingContext) => {
+      decisionMaking = { decision: ctx.expr().getText().split(',') };
+    };
+  }
 
-    const walker = new MyTreeWalker();
-    ParseTreeWalker.DEFAULT.walk(walker, tree);
-}
+  const walker = new MyTreeWalker();
+  ParseTreeWalker.DEFAULT.walk(walker, tree);
+
+  return { id, goalName, decisionMaking };
+};

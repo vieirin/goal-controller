@@ -17,7 +17,8 @@
 			"extensions": [
 				"eamodio.gitlens",
 				"ms-vscode.makefile-tools",
-				"mike-lischke.vscode-antlr4"
+				"mike-lischke.vscode-antlr4",
+				"yoavbls.pretty-ts-errors"
 			]
 		}
 	}
