@@ -53,8 +53,8 @@ export interface CustomProperties {
   customProperties: {
     Description: '';
     root?: string;
-    component?: string;
-    receives?: string;
+    cost: string;
+    utility: string;
   };
 }
 
@@ -69,7 +69,10 @@ export type GoalNode = {
   name: string | null;
   decisionMaking: { decision: string[] } | null;
   children?: GoalNode[];
-  customProperties: Record<string, string>;
+  customProperties: { utility: string; cost: string } & Record<
+    string,
+    string | number
+  >;
 };
 
 export type GoalTree = GoalNode[];

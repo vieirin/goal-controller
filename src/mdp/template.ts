@@ -1,4 +1,7 @@
-const egdeMDPTemplate = () => {
+import { GoalTree } from '../ObjectiveTree/types';
+import { rewardsMapping } from '../ObjectiveTree/utils';
+
+export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
   return `mdp
 const double p2 = 0.9;
 const double p3_1 = 0.9;
@@ -139,32 +142,35 @@ formula G0_achieved = (G1a_achieved | G1b_achieved) & (G6a_achieved | G6b_achiev
 formula G1a_achieved = G2_achieved & (G3a_achieved | G3b_achieved) & (G4a_achieved | G4b_achieved) & G5_achieved;
 formula G1b_achieved = G3b_achieved;
 
-rewards "utility"
-  [success] G0_achieved : 20;
-  [success] G1a_achieved : 12;
-  [success] G1b_achieved : 0;
-  [success] G2_achieved : 10;
-  [success] G3a_achieved : 6;
-  [success] G3b_achieved : 5;
-  [success] G4a_achieved : 7;
-  [success] G4b_achieved : 2;
-  [success] G5_achieved : 6;
-  [success] G6a_achieved : 10;
-  [success] G6b_achieved : 6;
-endrewards
+${rewards({
+  type: 'utility',
+  goalRewards: rewardsMapping({ type: 'utility', tree: gm }),
+})}
 
-rewards "cost"
-  [success] G0_achieved : 0;
-  [success] G1a_achieved : 0;
-  [success] G1b_achieved : 0;
-  [success] G2_achieved : 5;
-  [success] G3a_achieved : 3;
-  [success] G3b_achieved : 12;
-  [success] G4a_achieved : 4;
-  [success] G4b_achieved : 2;
-  [success] G5_achieved : 5;
-  [success] G6a_achieved : 3;
-  [success] G6b_achieved : 2;
-endrewards
+${rewards({
+  type: 'cost',
+  goalRewards: rewardsMapping({ type: 'cost', tree: gm }),
+})}
 `;
+};
+
+export type Reward = { goalId: string } & (
+  | { utility: number }
+  | { cost: number }
+);
+const rewards = ({
+  type,
+  goalRewards: goalUtilities,
+}: {
+  type: 'utility' | 'cost';
+  goalRewards: Reward[];
+}) => {
+  return `rewards "${type}"
+${goalUtilities
+  .map((reward) => {
+    const value = 'utility' in reward ? reward.utility : reward.cost;
+    return `  [success] ${reward.goalId}_achieved : ${value};`;
+  })
+  .join('\n')}
+endrewards`;
 };

@@ -31,10 +31,10 @@ export const getGoalDetail = ({
 
   class RTNotationTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
-      id = ctx.id().getText();
+      id = `${ctx._t.text}${ctx.id().getText()}`;
     };
     exitGIdContinued = (ctx: GIdContinuedContext) => {
-      id = ctx.id().getText();
+      id = `${ctx._t.text}${ctx.id().getText()}`;
     };
     exitWord = (ctx: WordContext) => {
       goalName = ctx.WORD().getText();
