@@ -29,7 +29,7 @@ export const getGoalDetail = ({
   let goalName: string | null = null;
   let decisionMaking: { decision: string[] } | null = null;
 
-  class MyTreeWalker extends RTRegexListener {
+  class RTNotationTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
       id = ctx.id().getText();
     };
@@ -44,8 +44,10 @@ export const getGoalDetail = ({
     };
   }
 
-  const walker = new MyTreeWalker();
+  const walker = new RTNotationTreeWalker();
   ParseTreeWalker.DEFAULT.walk(walker, tree);
+
   const goalSanitizedName = goalName ?? '';
+
   return { id, goalName: goalSanitizedName.trim(), decisionMaking };
 };

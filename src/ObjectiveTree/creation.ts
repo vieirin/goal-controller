@@ -1,4 +1,4 @@
-import { getGoalDetail } from '../grammerExample';
+import { getGoalDetail } from '../GoalParser';
 import {
   Actor,
   GoalNode,
