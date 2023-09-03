@@ -32,6 +32,6 @@ SKIPP: 'skip';
 X: 'X';
 NEWLINE: [\r\n]+;
 word: WORD;
-WORD: [A-Za-z-]+;
+WORD: [A-Za-z- ]+;
 WS: [\t]+ -> skip;
 fragment DIGIT: [0-9];
