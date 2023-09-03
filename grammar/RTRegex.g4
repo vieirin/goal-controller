@@ -10,7 +10,7 @@ rt: expr EOF # printExpr | EOF # blank;
 
 expr:
 	t = ('G' | 'T') id					# gId
-	| t = ('G' | 'T') id expr			# gId2
+	| t = ('G' | 'T') id expr			# gIdContinued
 	| t = ('G' | 'T') id ',' expr		# gArgs
 	| '[' expr ']'						# notationStart
 	| 'DM(' expr ')'					# gDecisionMaking

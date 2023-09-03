@@ -8,3 +8,6 @@ grammar:
 run: grammar
 	ts-node src/index.ts $(ARGS)
 
+exec: 
+	ts-node src/index.ts ./examples/successDM.txt
+

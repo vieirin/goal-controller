@@ -173,14 +173,14 @@ export default class RTRegexParser extends Parser {
 				break;
 			case 2:
 				{
-				localctx = new GId2Context(this, localctx);
+				localctx = new GIdContinuedContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 17;
-				(localctx as GId2Context)._t = this._input.LT(1);
+				(localctx as GIdContinuedContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
 				if(!(_la===13 || _la===14)) {
-				    (localctx as GId2Context)._t = this._errHandler.recoverInline(this);
+				    (localctx as GIdContinuedContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
 					this._errHandler.reportMatch(this);
@@ -765,6 +765,35 @@ export class GRetryContext extends ExprContext {
 		}
 	}
 }
+export class GIdContinuedContext extends ExprContext {
+	public _t!: Token;
+	constructor(parser: RTRegexParser, ctx: ExprContext) {
+		super(parser, ctx.parentCtx, ctx.invokingState);
+		super.copyFrom(ctx);
+	}
+	public id(): IdContext {
+		return this.getTypedRuleContext(IdContext, 0) as IdContext;
+	}
+	public expr(): ExprContext {
+		return this.getTypedRuleContext(ExprContext, 0) as ExprContext;
+	}
+	public GOAL(): TerminalNode {
+		return this.getToken(RTRegexParser.GOAL, 0);
+	}
+	public TASK(): TerminalNode {
+		return this.getToken(RTRegexParser.TASK, 0);
+	}
+	public enterRule(listener: RTRegexListener): void {
+	    if(listener.enterGIdContinued) {
+	 		listener.enterGIdContinued(this);
+		}
+	}
+	public exitRule(listener: RTRegexListener): void {
+	    if(listener.exitGIdContinued) {
+	 		listener.exitGIdContinued(this);
+		}
+	}
+}
 export class GArgsContext extends ExprContext {
 	public _t!: Token;
 	constructor(parser: RTRegexParser, ctx: ExprContext) {
@@ -832,35 +861,6 @@ export class NameContinuedContext extends ExprContext {
 	public exitRule(listener: RTRegexListener): void {
 	    if(listener.exitNameContinued) {
 	 		listener.exitNameContinued(this);
-		}
-	}
-}
-export class GId2Context extends ExprContext {
-	public _t!: Token;
-	constructor(parser: RTRegexParser, ctx: ExprContext) {
-		super(parser, ctx.parentCtx, ctx.invokingState);
-		super.copyFrom(ctx);
-	}
-	public id(): IdContext {
-		return this.getTypedRuleContext(IdContext, 0) as IdContext;
-	}
-	public expr(): ExprContext {
-		return this.getTypedRuleContext(ExprContext, 0) as ExprContext;
-	}
-	public GOAL(): TerminalNode {
-		return this.getToken(RTRegexParser.GOAL, 0);
-	}
-	public TASK(): TerminalNode {
-		return this.getToken(RTRegexParser.TASK, 0);
-	}
-	public enterRule(listener: RTRegexListener): void {
-	    if(listener.enterGId2) {
-	 		listener.enterGId2(this);
-		}
-	}
-	public exitRule(listener: RTRegexListener): void {
-	    if(listener.exitGId2) {
-	 		listener.exitGId2(this);
 		}
 	}
 }

@@ -4,6 +4,8 @@ import RTRegexParser, {
   ExprContext,
   GDecisionMakingContext,
   GIdContext,
+  GIdContinuedContext,
+  IdContext,
   RtContext,
   WordContext,
 } from './antlr/RTRegexParser';
@@ -29,6 +31,9 @@ export const getGoalDetail = ({
 
   class MyTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
+      id = ctx.id().getText();
+    };
+    exitGIdContinued = (ctx: GIdContinuedContext) => {
       id = ctx.id().getText();
     };
     exitWord = (ctx: WordContext) => {
