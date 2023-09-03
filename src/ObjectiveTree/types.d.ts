@@ -71,3 +71,5 @@ export type GoalNode = {
   children?: GoalNode[];
   customProperties: Record<string, string>;
 };
+
+export type GoalTree = GoalNode[];

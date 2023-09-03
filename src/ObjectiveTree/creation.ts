@@ -2,6 +2,7 @@ import { getGoalDetail } from '../GoalParser';
 import {
   Actor,
   GoalNode,
+  GoalTree,
   Link,
   Model,
   Node,
@@ -123,7 +124,7 @@ const nodeToTree = ({
   };
 };
 
-export const convertToTree = ({ model }: { model: Model }) => {
+export const convertToTree = ({ model }: { model: Model }): GoalTree => {
   return (
     model.actors
       .map((actor) => {
@@ -140,6 +141,6 @@ export const convertToTree = ({ model }: { model: Model }) => {
         });
       })
       // filter undefined trees (those without a root node)
-      .filter((tree) => tree)
+      .filter((node): node is GoalNode => !!node)
   );
 };

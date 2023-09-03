@@ -1,5 +1,6 @@
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
+import { printTree } from './ObjectiveTree/printTree';
 import { GoalNode } from './ObjectiveTree/types';
 
 if (!process.argv.length) {
@@ -10,17 +11,4 @@ if (!process.argv.length) {
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
 
-console.log(tree);
-let level = 2;
-let children = tree[0]?.children;
-while ((children?.length ?? 0) > 0) {
-  let newChildren: GoalNode[] = [];
-  console.log('=== children ===', { level });
-  children?.forEach((element) => {
-    console.log(element);
-    if (element.children) {
-      newChildren = [...newChildren, ...element.children];
-    }
-  });
-  children = [...newChildren];
-}
+printTree(tree);
