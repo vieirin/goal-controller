@@ -52,7 +52,7 @@ export interface Diagram extends CustomProperties {
 export interface CustomProperties {
   customProperties: {
     Description: '';
-    root?: boolean;
+    root?: string;
     component?: string;
     receives?: string;
   };
@@ -69,4 +69,5 @@ export type GoalNode = {
   name: string | null;
   decisionMaking: { decision: string[] } | null;
   children?: GoalNode[];
+  customProperties: Record<string, string>;
 };

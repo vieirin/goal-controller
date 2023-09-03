@@ -9,7 +9,7 @@ const validateModel = ({ model }: { model: Model }) => {
         if (hasRoot && node.customProperties.root) {
           return false;
         }
-        return node.customProperties.root || hasRoot;
+        return !!node.customProperties.root || hasRoot;
       }, false)
     )
     // reduce the actors array to "are all actors valid?"

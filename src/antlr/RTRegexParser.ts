@@ -26,16 +26,18 @@ export default class RTRegexParser extends Parser {
 	public static readonly T__6 = 7;
 	public static readonly T__7 = 8;
 	public static readonly T__8 = 9;
-	public static readonly FLOAT = 10;
-	public static readonly SEQ = 11;
-	public static readonly INT = 12;
-	public static readonly TASK = 13;
-	public static readonly GOAL = 14;
-	public static readonly SKIPP = 15;
-	public static readonly X = 16;
-	public static readonly NEWLINE = 17;
-	public static readonly WORD = 18;
-	public static readonly WS = 19;
+	public static readonly DIGIT_SUBID = 10;
+	public static readonly FLOAT = 11;
+	public static readonly SEQ = 12;
+	public static readonly INT = 13;
+	public static readonly TASK = 14;
+	public static readonly GOAL = 15;
+	public static readonly SKIPP = 16;
+	public static readonly X = 17;
+	public static readonly NEWLINE = 18;
+	public static readonly WORD = 19;
+	public static readonly SUBID = 20;
+	public static readonly WS = 21;
 	public static readonly EOF = Token.EOF;
 	public static readonly RULE_rt = 0;
 	public static readonly RULE_expr = 1;
@@ -46,20 +48,22 @@ export default class RTRegexParser extends Parser {
                                                             "'DM('", "')'", 
                                                             "':'", "'@'", 
                                                             "'try('", "'?'", 
-                                                            null, "';'", 
-                                                            "'#'", "'T'", 
-                                                            "'G'", "'skip'", 
-                                                            "'X'" ];
+                                                            null, null, 
+                                                            "';'", "'#'", 
+                                                            "'T'", "'G'", 
+                                                            "'skip'", "'X'" ];
 	public static readonly symbolicNames: (string | null)[] = [ null, null, 
                                                              null, null, 
                                                              null, null, 
                                                              null, null, 
                                                              null, null, 
+                                                             "DIGIT_SUBID", 
                                                              "FLOAT", "SEQ", 
                                                              "INT", "TASK", 
                                                              "GOAL", "SKIPP", 
                                                              "X", "NEWLINE", 
-                                                             "WORD", "WS" ];
+                                                             "WORD", "SUBID", 
+                                                             "WS" ];
 	// tslint:disable:no-trailing-whitespace
 	public static readonly ruleNames: string[] = [
 		"rt", "expr", "id", "word",
@@ -90,9 +94,9 @@ export default class RTRegexParser extends Parser {
 			case 4:
 			case 6:
 			case 8:
-			case 13:
 			case 14:
 			case 15:
+			case 16:
 				localctx = new PrintExprContext(this, localctx);
 				this.enterOuterAlt(localctx, 1);
 				{
@@ -160,7 +164,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 15;
 				(localctx as GIdContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===13 || _la===14)) {
+				if(!(_la===14 || _la===15)) {
 				    (localctx as GIdContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -179,7 +183,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 17;
 				(localctx as GIdContinuedContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===13 || _la===14)) {
+				if(!(_la===14 || _la===15)) {
 				    (localctx as GIdContinuedContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -200,7 +204,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 21;
 				(localctx as GArgsContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===13 || _la===14)) {
+				if(!(_la===14 || _la===15)) {
 				    (localctx as GArgsContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -337,7 +341,7 @@ export default class RTRegexParser extends Parser {
 						this.state = 57;
 						(localctx as GTimeContext)._op = this._input.LT(1);
 						_la = this._input.LA(1);
-						if(!(_la===11 || _la===12)) {
+						if(!(_la===12 || _la===13)) {
 						    (localctx as GTimeContext)._op = this._errHandler.recoverInline(this);
 						}
 						else {
@@ -390,7 +394,7 @@ export default class RTRegexParser extends Parser {
 		let localctx: IdContext = new IdContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 4, RTRegexParser.RULE_id);
 		try {
-			this.state = 71;
+			this.state = 72;
 			this._errHandler.sync(this);
 			switch ( this._interp.adaptivePredict(this._input, 4, this._ctx) ) {
 			case 1:
@@ -416,6 +420,13 @@ export default class RTRegexParser extends Parser {
 				this.match(RTRegexParser.X);
 				}
 				break;
+			case 4:
+				this.enterOuterAlt(localctx, 4);
+				{
+				this.state = 71;
+				this.match(RTRegexParser.DIGIT_SUBID);
+				}
+				break;
 			}
 		}
 		catch (re) {
@@ -439,7 +450,7 @@ export default class RTRegexParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 73;
+			this.state = 74;
 			this.match(RTRegexParser.WORD);
 			}
 		}
@@ -477,29 +488,30 @@ export default class RTRegexParser extends Parser {
 		return true;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,19,76,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,21,77,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,3,0,13,8,0,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,52,8,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,63,8,1,10,1,12,1,66,9,1,1,2,1,2,1,2,1,
-	2,3,2,72,8,2,1,3,1,3,1,3,0,1,2,4,0,2,4,6,0,2,1,0,13,14,1,0,11,12,85,0,12,
-	1,0,0,0,2,51,1,0,0,0,4,71,1,0,0,0,6,73,1,0,0,0,8,9,3,2,1,0,9,10,5,0,0,1,
-	10,13,1,0,0,0,11,13,5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,0,0,14,
-	15,6,1,-1,0,15,16,7,0,0,0,16,52,3,4,2,0,17,18,7,0,0,0,18,19,3,4,2,0,19,
-	20,3,2,1,11,20,52,1,0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,1,0,0,24,
-	25,3,2,1,10,25,52,1,0,0,0,26,27,5,2,0,0,27,28,3,2,1,0,28,29,5,3,0,0,29,
-	52,1,0,0,0,30,31,5,4,0,0,31,32,3,2,1,0,32,33,5,5,0,0,33,52,1,0,0,0,34,35,
-	5,6,0,0,35,36,3,6,3,0,36,37,3,2,1,7,37,52,1,0,0,0,38,39,5,6,0,0,39,40,3,
-	6,3,0,40,41,5,0,0,1,41,52,1,0,0,0,42,43,5,8,0,0,43,44,3,2,1,0,44,45,5,5,
-	0,0,45,46,5,9,0,0,46,47,3,2,1,0,47,48,5,6,0,0,48,49,3,2,1,3,49,52,1,0,0,
-	0,50,52,5,15,0,0,51,14,1,0,0,0,51,17,1,0,0,0,51,21,1,0,0,0,51,26,1,0,0,
-	0,51,30,1,0,0,0,51,34,1,0,0,0,51,38,1,0,0,0,51,42,1,0,0,0,51,50,1,0,0,0,
-	52,64,1,0,0,0,53,54,10,5,0,0,54,55,5,1,0,0,55,63,3,2,1,6,56,57,10,2,0,0,
-	57,58,7,1,0,0,58,63,3,2,1,3,59,60,10,4,0,0,60,61,5,7,0,0,61,63,5,10,0,0,
-	62,53,1,0,0,0,62,56,1,0,0,0,62,59,1,0,0,0,63,66,1,0,0,0,64,62,1,0,0,0,64,
-	65,1,0,0,0,65,3,1,0,0,0,66,64,1,0,0,0,67,72,5,10,0,0,68,69,5,10,0,0,69,
-	72,5,16,0,0,70,72,5,16,0,0,71,67,1,0,0,0,71,68,1,0,0,0,71,70,1,0,0,0,72,
-	5,1,0,0,0,73,74,5,18,0,0,74,7,1,0,0,0,5,12,51,62,64,71];
+	2,1,2,3,2,73,8,2,1,3,1,3,1,3,0,1,2,4,0,2,4,6,0,2,1,0,14,15,1,0,12,13,87,
+	0,12,1,0,0,0,2,51,1,0,0,0,4,72,1,0,0,0,6,74,1,0,0,0,8,9,3,2,1,0,9,10,5,
+	0,0,1,10,13,1,0,0,0,11,13,5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,0,
+	0,14,15,6,1,-1,0,15,16,7,0,0,0,16,52,3,4,2,0,17,18,7,0,0,0,18,19,3,4,2,
+	0,19,20,3,2,1,11,20,52,1,0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,1,0,
+	0,24,25,3,2,1,10,25,52,1,0,0,0,26,27,5,2,0,0,27,28,3,2,1,0,28,29,5,3,0,
+	0,29,52,1,0,0,0,30,31,5,4,0,0,31,32,3,2,1,0,32,33,5,5,0,0,33,52,1,0,0,0,
+	34,35,5,6,0,0,35,36,3,6,3,0,36,37,3,2,1,7,37,52,1,0,0,0,38,39,5,6,0,0,39,
+	40,3,6,3,0,40,41,5,0,0,1,41,52,1,0,0,0,42,43,5,8,0,0,43,44,3,2,1,0,44,45,
+	5,5,0,0,45,46,5,9,0,0,46,47,3,2,1,0,47,48,5,6,0,0,48,49,3,2,1,3,49,52,1,
+	0,0,0,50,52,5,16,0,0,51,14,1,0,0,0,51,17,1,0,0,0,51,21,1,0,0,0,51,26,1,
+	0,0,0,51,30,1,0,0,0,51,34,1,0,0,0,51,38,1,0,0,0,51,42,1,0,0,0,51,50,1,0,
+	0,0,52,64,1,0,0,0,53,54,10,5,0,0,54,55,5,1,0,0,55,63,3,2,1,6,56,57,10,2,
+	0,0,57,58,7,1,0,0,58,63,3,2,1,3,59,60,10,4,0,0,60,61,5,7,0,0,61,63,5,11,
+	0,0,62,53,1,0,0,0,62,56,1,0,0,0,62,59,1,0,0,0,63,66,1,0,0,0,64,62,1,0,0,
+	0,64,65,1,0,0,0,65,3,1,0,0,0,66,64,1,0,0,0,67,73,5,11,0,0,68,69,5,11,0,
+	0,69,73,5,17,0,0,70,73,5,17,0,0,71,73,5,10,0,0,72,67,1,0,0,0,72,68,1,0,
+	0,0,72,70,1,0,0,0,72,71,1,0,0,0,73,5,1,0,0,0,74,75,5,19,0,0,75,7,1,0,0,
+	0,5,12,51,62,64,72];
 
 	private static __ATN: ATN;
 	public static get _ATN(): ATN {
@@ -876,6 +888,9 @@ export class IdContext extends ParserRuleContext {
 	}
 	public X(): TerminalNode {
 		return this.getToken(RTRegexParser.X, 0);
+	}
+	public DIGIT_SUBID(): TerminalNode {
+		return this.getToken(RTRegexParser.DIGIT_SUBID, 0);
 	}
     public get ruleIndex(): number {
     	return RTRegexParser.RULE_id;
