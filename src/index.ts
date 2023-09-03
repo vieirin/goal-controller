@@ -1,7 +1,6 @@
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
 import { printTree } from './ObjectiveTree/printTree';
-import { GoalNode } from './ObjectiveTree/types';
 
 if (!process.argv.length) {
   console.error('missing file param');
