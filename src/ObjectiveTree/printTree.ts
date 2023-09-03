@@ -13,6 +13,7 @@ export const printTree = (tree: GoalNode[]) => {
         newChildren = [...newChildren, ...element.children];
       }
     });
+    level += 1;
     children = [...newChildren];
   }
 };
