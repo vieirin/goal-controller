@@ -192,9 +192,7 @@ export const convertToTree = ({ model }: { model: Model }) => {
     model.actors
       .map((actor) => {
         // find root node
-        const rootNode = actor.nodes.find(
-          (item) => item.customProperties.selected
-        );
+        const rootNode = actor.nodes.find((item) => item.customProperties.root);
         if (!rootNode) {
           return undefined;
         }

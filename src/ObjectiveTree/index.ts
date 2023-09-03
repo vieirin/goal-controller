@@ -6,10 +6,10 @@ const validateModel = ({ model }: { model: Model }) => {
     .map((item) =>
       // check in node list if there are more than one root
       item.nodes.reduce((hasRoot, node) => {
-        if (hasRoot && node.customProperties.selected) {
+        if (hasRoot && node.customProperties.root) {
           return false;
         }
-        return node.customProperties.selected || hasRoot;
+        return node.customProperties.root || hasRoot;
       }, false)
     )
     // reduce the actors array to "are all actors valid?"

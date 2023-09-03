@@ -52,7 +52,7 @@ export interface Diagram extends CustomProperties {
 export interface CustomProperties {
   customProperties: {
     Description: '';
-    selected?: boolean;
+    root?: boolean;
     component?: string;
     receives?: string;
   };
