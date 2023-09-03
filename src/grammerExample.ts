@@ -46,6 +46,6 @@ export const getGoalDetail = ({
 
   const walker = new MyTreeWalker();
   ParseTreeWalker.DEFAULT.walk(walker, tree);
-
-  return { id, goalName, decisionMaking };
+  const goalSanitizedName = goalName ?? '';
+  return { id, goalName: goalSanitizedName.trim(), decisionMaking };
 };
