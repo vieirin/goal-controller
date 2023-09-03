@@ -74,6 +74,8 @@ const nodeChildren = ({
         links: links,
       });
 
+      const { alt, root, ...customProperties } = node.customProperties;
+
       return {
         id,
         name: goalName,
@@ -83,7 +85,11 @@ const nodeChildren = ({
         relationToParent: relations[0],
         relationToChildren: relation,
         children: granChildren,
-        customProperties: node.customProperties,
+        customProperties: {
+          ...customProperties,
+          alt: alt === 'true' || false,
+          root: root === 'true' || undefined,
+        },
       };
     })
     .filter((n): n is GoalNode => !!n);
@@ -110,7 +116,7 @@ const nodeToTree = ({
   const { id, goalName, decisionMaking } = getGoalDetail({
     goalText: node.text,
   });
-
+  const { alt, root, ...customProperties } = node.customProperties;
   return {
     decisionMaking: decisionMaking,
     id,
@@ -120,7 +126,11 @@ const nodeToTree = ({
     relationToParent: null,
     type: convertIstarType({ type: node.type }),
     children,
-    customProperties: node.customProperties,
+    customProperties: {
+      ...customProperties,
+      alt: alt === 'true' || false,
+      root: root === 'true' || undefined,
+    },
   };
 };
 

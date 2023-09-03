@@ -12,10 +12,10 @@
       "nodes": [
         {
           "id": "5c89c3c7-07b1-4387-9176-fe211a4bc9d2",
-          "text": "G1: Maintain Patient Room",
+          "text": "G0: Maintain Patient Room",
           "type": "istar.Goal",
-          "x": 334,
-          "y": 136,
+          "x": 401,
+          "y": 138,
           "customProperties": {
             "Description": "",
             "root": "true"
@@ -325,7 +325,7 @@
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sun, 03 Sep 2023 02:17:46 GMT",
+  "saveDate": "Sun, 03 Sep 2023 18:56:40 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,

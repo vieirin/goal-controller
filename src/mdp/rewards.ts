@@ -1,7 +1,8 @@
-import { Reward } from '../mdp/template';
-import { GoalTree } from './types';
+import { GoalTree } from '../ObjectiveTree/types';
 
-export const rewardsMapping = <T extends 'utility' | 'cost'>({
+type Reward = { goalId: string } & ({ utility: number } | { cost: number });
+
+const rewardsMapping = <T extends 'utility' | 'cost'>({
   type,
   tree,
 }: {
@@ -29,4 +30,21 @@ export const rewardsMapping = <T extends 'utility' | 'cost'>({
       return childrenRewards;
     }) ?? []
   );
+};
+
+export const rewards = ({
+  type,
+  gm,
+}: {
+  type: 'utility' | 'cost';
+  gm: GoalTree;
+}) => {
+  return `rewards "${type}"
+${rewardsMapping({ type, tree: gm })
+  .map((reward) => {
+    const value = 'utility' in reward ? reward.utility : reward.cost;
+    return `  [success] ${reward.goalId}_achieved : ${value};`;
+  })
+  .join('\n')}
+endrewards`;
 };

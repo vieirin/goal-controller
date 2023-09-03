@@ -1,5 +1,6 @@
 import { GoalTree } from '../ObjectiveTree/types';
-import { rewardsMapping } from '../ObjectiveTree/utils';
+import { goalFormulaes } from './formulas';
+import { rewards } from './rewards';
 
 export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
   return `mdp
@@ -138,39 +139,16 @@ module Turn
 endmodule
 
 
-formula G0_achieved = (G1a_achieved | G1b_achieved) & (G6a_achieved | G6b_achieved);
-formula G1a_achieved = G2_achieved & (G3a_achieved | G3b_achieved) & (G4a_achieved | G4b_achieved) & G5_achieved;
-formula G1b_achieved = G3b_achieved;
+${goalFormulaes({ gm }).join('\n')} 
 
 ${rewards({
   type: 'utility',
-  goalRewards: rewardsMapping({ type: 'utility', tree: gm }),
+  gm,
 })}
 
 ${rewards({
   type: 'cost',
-  goalRewards: rewardsMapping({ type: 'cost', tree: gm }),
+  gm,
 })}
 `;
-};
-
-export type Reward = { goalId: string } & (
-  | { utility: number }
-  | { cost: number }
-);
-const rewards = ({
-  type,
-  goalRewards: goalUtilities,
-}: {
-  type: 'utility' | 'cost';
-  goalRewards: Reward[];
-}) => {
-  return `rewards "${type}"
-${goalUtilities
-  .map((reward) => {
-    const value = 'utility' in reward ? reward.utility : reward.cost;
-    return `  [success] ${reward.goalId}_achieved : ${value};`;
-  })
-  .join('\n')}
-endrewards`;
 };

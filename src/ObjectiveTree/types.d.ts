@@ -54,6 +54,7 @@ export interface CustomProperties {
     Description: '';
     root?: string;
     cost: string;
+    alt?: string;
     utility: string;
   };
 }
@@ -69,10 +70,12 @@ export type GoalNode = {
   name: string | null;
   decisionMaking: { decision: string[] } | null;
   children?: GoalNode[];
-  customProperties: { utility: string; cost: string } & Record<
-    string,
-    string | number
-  >;
+  customProperties: {
+    utility: string;
+    cost: string;
+    alt: boolean;
+    root: boolean | undefined;
+  } & Record<string, string | number | boolean | undefined>;
 };
 
 export type GoalTree = GoalNode[];

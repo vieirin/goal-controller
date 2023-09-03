@@ -1,6 +1,6 @@
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
-import { printTree } from './ObjectiveTree/printTree';
+import { goalFormulaes } from './mdp/formulas';
 import { egdeMDPTemplate } from './mdp/template';
 
 if (!process.argv.length) {
@@ -11,6 +11,6 @@ if (!process.argv.length) {
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
 
-printTree(tree);
+// printTree(tree);
 
 console.log(egdeMDPTemplate({ gm: tree }));
