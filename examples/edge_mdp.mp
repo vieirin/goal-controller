@@ -1,20 +1,15 @@
-import { GoalTree } from '../ObjectiveTree/types';
-import { goalVariables } from './changeMgmt';
-import { goalFormulaes } from './formulas';
-import { rewards } from './rewards';
+mdp
 
-export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
-  return `mdp
-const double p2 = 0.9;
-const double p3_1 = 0.9;
-const double p3_2 = 0.9;
-const double p4_1 = 0.9;
-const double p4_2 = 0.9;
-const double p5 = 0.9;
-const double p6_1 = 0.9;
-const double p6_2 = 0.9;
-  
-  
+  const double p2 = 0.9;
+  const double p3_1 = 0.9;
+  const double p3_2 = 0.9;
+  const double p4_1 = 0.9;
+  const double p4_2 = 0.9;
+  const double p5 = 0.9;
+  const double p6_1 = 0.9;
+  const double p6_2 = 0.9;
+
+
 module GoalController
   G2_pursued : [0..1] init 0; // goal g2 is: 0 - not pursued, 1 - pursued
   G3_pursued : [0..2] init 0; // goal g3 is: 0 - not pursued, 1 - pursued as variant 1, 2 - pursued as variant 2
@@ -67,14 +62,33 @@ module GoalController
 endmodule
 
 formula G1_achieved_or_pursued = 
-              (G2_achieved | G2_pursued>0) & 
-              (G3a_achieved | G3b_achieved | G3_pursued>0) & 
-              (G4a_achieved | G4b_achieved | G4_pursued>0) & 
-              (G5_achieved | G5_pursued>0);
+             (G2_achieved | G2_pursued>0) & 
+             (G3a_achieved | G3b_achieved | G3_pursued>0) & 
+             (G4a_achieved | G4b_achieved | G4_pursued>0) & 
+             (G5_achieved | G5_pursued>0);
 
 module ChangeMgmt
   // variables required for each goal g1, g2, ... with its variants 1, 2, 3, ...ble::
-${goalVariables({ gm })}
+  G2_achievable: bool init true;
+  G2_achieved: bool init false;
+
+  G3a_achievable : bool init true; 
+  G3b_achievable : bool init true; 
+  G3a_achieved : bool init false; 
+  G3b_achieved : bool init false; 
+
+  G4a_achievable : bool init true; 
+  G4b_achievable : bool init true; 
+  G4a_achieved : bool init false; 
+  G4b_achieved : bool init false;
+
+  G5_achievable: bool init true;
+  G5_achieved: bool init false;
+  
+  G6a_achievable : bool init true; 
+  G6b_achievable : bool init true; 
+  G6a_achieved : bool init false; 
+  G6b_achieved : bool init false;
 
   step : [0..7] init 0; 
   fail : bool init false;
@@ -121,16 +135,34 @@ module Turn
 endmodule
 
 
-${goalFormulaes({ gm }).join('\n')} 
+formula G0_achieved = (G1a_achieved | G1b_achieved) & (G6a_achieved | G6b_achieved);
+formula G1a_achieved = G2_achieved & (G3a_achieved | G3b_achieved) & (G4a_achieved | G4b_achieved) & G5_achieved;
+formula G1b_achieved = G3b_achieved;
 
-${rewards({
-  type: 'utility',
-  gm,
-})}
+rewards "utility"
+  [success] G0_achieved : 20;
+  [success] G1a_achieved : 12;
+  [success] G1b_achieved : 0;
+  [success] G2_achieved : 10;
+  [success] G3a_achieved : 6;
+  [success] G3b_achieved : 5;
+  [success] G4a_achieved : 7;
+  [success] G4b_achieved : 2;
+  [success] G5_achieved : 6;
+  [success] G6a_achieved : 10;
+  [success] G6b_achieved : 6;
+endrewards
 
-${rewards({
-  type: 'cost',
-  gm,
-})}
-`;
-};
+rewards "cost"
+  [success] G0_achieved : 0;
+  [success] G1a_achieved : 0;
+  [success] G1b_achieved : 0;
+  [success] G2_achieved : 5;
+  [success] G3a_achieved : 3;
+  [success] G3b_achieved : 12;
+  [success] G4a_achieved : 4;
+  [success] G4b_achieved : 2;
+  [success] G5_achieved : 5;
+  [success] G6a_achieved : 3;
+  [success] G6b_achieved : 2;
+endrewards

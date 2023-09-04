@@ -1,5 +1,6 @@
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
+import { goalVariables } from './mdp/changeMgmt';
 import { goalFormulaes } from './mdp/formulas';
 import { egdeMDPTemplate } from './mdp/template';
 
@@ -14,3 +15,5 @@ const tree = convertToTree({ model });
 // printTree(tree);
 
 console.log(egdeMDPTemplate({ gm: tree }));
+
+// console.log(goalVariables({ gm: tree }));

@@ -19,6 +19,7 @@
   "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
     "@types/lodash": "^4.14.197",
+    "@types/lodash.groupby": "^4.6.7",
     "@types/lodash.mergewith": "^4.6.7",
     "@types/node": "^20.5.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
@@ -38,6 +39,7 @@
   "dependencies": {
     "antlr4": "^4.13.0",
     "lodash": "^4.17.21",
+    "lodash.groupby": "^4.6.0",
     "lodash.mergewith": "^4.6.2"
   }
 }
