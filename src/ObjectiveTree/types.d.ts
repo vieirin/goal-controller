@@ -56,6 +56,7 @@ export interface CustomProperties {
     cost: string;
     alt?: string;
     utility: string;
+    dependsOn?: string;
   };
 }
 
@@ -76,6 +77,7 @@ export type GoalNode = {
     cost: string;
     alt: boolean;
     root: boolean | undefined;
+    dependsOn: string;
   } & Record<string, string | number | boolean | undefined>;
 };
 

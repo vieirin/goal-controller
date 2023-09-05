@@ -1,6 +1,6 @@
 import { GoalNode, GoalTree } from './types';
 
-const allGoals = ({
+export const allGoals = ({
   gm,
   preferVariant = true,
 }: {

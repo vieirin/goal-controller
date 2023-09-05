@@ -93,6 +93,7 @@ const nodeChildren = ({
         }),
         customProperties: {
           ...customProperties,
+          dependsOn: customProperties.dependsOn ?? '',
           alt: nodeAlt,
           root: root === 'true' || undefined,
         },
@@ -134,6 +135,7 @@ const nodeToTree = ({
     children,
     customProperties: {
       ...customProperties,
+      dependsOn: customProperties.dependsOn ?? '',
       alt: alt === 'true' || false,
       root: root === 'true' || undefined,
     },

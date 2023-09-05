@@ -1,6 +1,6 @@
 import { GoalTree } from '../ObjectiveTree/types';
 import { goalVariables, outcomes, lastStep } from './changeMgmt';
-import { goalFormulaes } from './formulas';
+import { dependencyFormulaes, goalFormulaes } from './formulas';
 import { rewards } from './rewards';
 
 export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
@@ -66,11 +66,8 @@ module GoalController
   [controller_done] t & (n=5) -> 1:(n'=0);
 endmodule
 
-formula G1_achieved_or_pursued = 
-              (G2_achieved | G2_pursued>0) & 
-              (G3a_achieved | G3b_achieved | G3_pursued>0) & 
-              (G4a_achieved | G4b_achieved | G4_pursued>0) & 
-              (G5_achieved | G5_pursued>0);
+${dependencyFormulaes({ gm })}
+
 
 module ChangeMgmt
   // variables required for each goal g1, g2, ... with its variants 1, 2, 3, ...ble::
