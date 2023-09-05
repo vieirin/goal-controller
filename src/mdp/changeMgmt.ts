@@ -1,5 +1,5 @@
 import { groupBy } from 'lodash';
-import { GoalNode, GoalTree } from '../ObjectiveTree/types';
+import { GoalTree } from '../ObjectiveTree/types';
 import { goalRootId, leafGoals } from '../ObjectiveTree/utils';
 
 const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>
@@ -77,11 +77,9 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
 
       if (hasVariants) {
         if (!nonVariantGoal.length) {
-          const goalsWithVariantsAtTheEnd = [...variants];
-
           const transitionSentences = [
             initialSentence,
-            ...goalsWithVariantsAtTheEnd.map((goal, i) => {
+            ...variants.map((goal, i) => {
               const [id, subId] = [...goal.id.slice(-2)];
               const subIdNumber = alphabet.indexOf(subId) + 1;
               const pVar = `p${id}_${subIdNumber}`;

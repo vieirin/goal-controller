@@ -1,4 +1,4 @@
-// Generated from grammar/RTRegex.g4 by ANTLR 4.13.0
+// Generated from grammar/RTRegex.g4 by ANTLR 4.13.1
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
 import {
