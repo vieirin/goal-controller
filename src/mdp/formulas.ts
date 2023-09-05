@@ -171,9 +171,9 @@ export const dependencyFormulaes = ({ gm }: TemplateProps) => {
                     `(${[
                       ids.map((id) => `${id}`).join(separator('or')),
                       `${rootId}_pursued > 0`,
-                    ].join(separator('or'))});`
+                    ].join(separator('or'))})`
                 ),
-              ].join(`${separator(rootLevel.relation)}\n${' '.repeat(14)}`)}`;
+              ].join(`${separator(rootLevel.relation)}\n${' '.repeat(14)}`)};`;
     }
   );
 

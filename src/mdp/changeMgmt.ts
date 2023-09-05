@@ -7,7 +7,7 @@ const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>
 
 export const goalVariables = ({ gm }: { gm: GoalTree }) => {
   const goalGroups = leavesGrouppedGoals({ gm });
-  const variableLines = Object.entries(goalGroups).map(([goal, variants]) => {
+  const variableLines = Object.entries(goalGroups).map(([_, variants]) => {
     return variants
       .map((variant) => [
         `${variant.id}_achievable: bool init true;`,
