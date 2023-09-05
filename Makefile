@@ -13,6 +13,6 @@ grammar:
 run: grammar
 	ts-node src/index.ts $(ARGS)
 
-exec: node_modules
+exec: node_modules grammar
 	ts-node src/index.ts ./examples/edgeModel.txt 
 

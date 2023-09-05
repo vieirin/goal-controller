@@ -13,4 +13,4 @@ const tree = convertToTree({ model });
 // printTree(tree);
 
 console.log(egdeMDPTemplate({ gm: tree }));
-egdeMDPTemplate({ gm: tree });
+// egdeMDPTemplate({ gm: tree });

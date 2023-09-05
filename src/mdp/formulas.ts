@@ -154,7 +154,6 @@ const goalDependencyFormula = ({ gm }: TemplateProps) => {
 
 export const dependencyFormulaes = ({ gm }: TemplateProps) => {
   const dependencyFormula = goalDependencyFormula({ gm });
-  console.log(dependencyFormula[0].rootLevel);
   const dependency = dependencyFormula.map(
     ({ underLevel, rootLevel, formulatedGoal }) => {
       return `formula ${goalRootId({

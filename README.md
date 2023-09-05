@@ -1,12 +1,18 @@
 # goal-controller
 
-
 ### FAQ
 
-#### I can't push to repo from the devcontainer
+> #### How to execute this repo?
 
-A: Make sure you have you github key in your ssh-agent more in: 
+##### Alternative 1: VScode integrated environment (Recommended)
 
-- https://www.howtogeek.com/devops/what-is-ssh-agent-forwarding-and-how-do-you-use-it/
-- https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials
+1. Open the repo on a new VSCode window
+1. Make sure you have docker installed
+1. Install the [devcontainer](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension, more info about it [here](https://code.visualstudio.com/docs/devcontainers/containers)
+1. A dialog will ask you to reopen the repo in a container, accept it and wait for the build to finish
+1. Once inside the dev container environment, hit `make exec` in the terminal to exec the translator
 
+##### Alternative 2: Run manually from any terminal
+
+1. install antlr4 by running: `pip install antlr4-tools`
+2. run `make exec` in the project's root
