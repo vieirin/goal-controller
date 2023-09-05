@@ -70,6 +70,7 @@ export type GoalNode = {
   name: string | null;
   decisionMaking: { decision: string[] } | null;
   children?: GoalNode[];
+  variantOf?: string;
   customProperties: {
     utility: string;
     cost: string;

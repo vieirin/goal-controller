@@ -1,5 +1,5 @@
 import { GoalTree } from '../ObjectiveTree/types';
-import { goalVariables } from './changeMgmt';
+import { goalVariables, outcomes, lastStep } from './changeMgmt';
 import { goalFormulaes } from './formulas';
 import { rewards } from './rewards';
 
@@ -76,38 +76,17 @@ module ChangeMgmt
   // variables required for each goal g1, g2, ... with its variants 1, 2, 3, ...ble::
 ${goalVariables({ gm })}
 
-  step : [0..7] init 0; 
+  step : [0..${lastStep({ gm }) + 3}] init 0; 
   fail : bool init false;
 
-  // outcomes of pursuing goal 2
-  [] !t & !fail & step=0 & G2_pursued=0 -> 1:(step'=1);
-  [] !t & !fail & step=0 & G2_pursued>0 -> p2:(G2_achieved'=true)&(step'=1) + (1-p2):(G2_achievable'=false)&(fail'=true)&(step'=1);
+${outcomes({ gm })}
 
-  // outcomes of pursuing goal 3
-  [] !t & !fail & step=1 & G3_pursued=0 -> 1:(step'=2);
-  [] !t & !fail & step=1 & G3_pursued=1 -> p3_1:(G3a_achieved'=true)&(step'=2) + (1-p3_1):(G3a_achievable'=false)&(fail'=true)&(step'=2);
-  [] !t & !fail & step=1 & G3_pursued=2 -> p3_2:(G3b_achieved'=true)&(step'=2) + (1-p3_2):(G3b_achievable'=false)&(fail'=true)&(step'=2);
-
-  // outcomes of pursuing goal 4
-  [] !t & !fail & step=2 & G4_pursued=0 -> 1:(step'=3);
-  [] !t & !fail & step=2 & G4_pursued=1 -> p4_1:(G4a_achieved'=true)&(step'=3) + (1-p4_1):(G4a_achievable'=false)&(fail'=true)&(step'=3);
-  [] !t & !fail & step=2 & G4_pursued=2 -> p4_2:(G4b_achieved'=true)&(step'=3) + (1-p4_2):(G4b_achievable'=false)&(fail'=true)&(step'=3);
-
-  // outcomes of pursuing goal 2
-  [] !t & !fail & step=3 & G5_pursued=0 -> 1:(step'=4);
-  [] !t & !fail & step=3 & G5_pursued>0 -> p5:(G5_achieved'=true)&(step'=4) + (1-p5):(G5_achievable'=false)&(fail'=true)&(step'=4);
-  
-  // outcomes of pursuing goal 11
-  [] !t & !fail & step=4 & G6_pursued=0 -> 1:(step'=5);
-  [] !t & !fail & step=4 & G6_pursued=1 -> p6_1:(G6a_achieved'=true)&(step'=5) + (1-p6_1):(G6a_achievable'=false)&(fail'=true)&(step'=5);
-  [] !t & !fail & step=4 & G6_pursued=2 -> p6_2:(G6b_achieved'=true)&(step'=5) + (1-p6_2):(G6b_achievable'=false)&(fail'=true)&(step'=5);
-
-// Plan failure: inform Turn module and reset counter
+  // Plan failure: inform Turn module and reset counter
   [changeMgmt_done] !t & fail -> 1:(fail'=false) & (step'=0); 
 
   // done
-  [success] !t & !fail & step=5 -> (step'=step+1);
-  [end] !t & step=6 -> (step'=6);
+  [success] !t & !fail & step=${lastStep({ gm }) + 1} -> (step'=step+1);
+  [end] !t & step=${lastStep({ gm }) + 2} -> (step'=${lastStep({ gm }) + 2});
 
   // return to step 0
   //[controller_done] true -> 1:(step'=0);

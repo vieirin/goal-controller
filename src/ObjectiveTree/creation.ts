@@ -29,9 +29,9 @@ const nodeChildren = ({
   actor: Actor;
   links: Link[];
   id?: string;
-}): [GoalNode[] | undefined, Relation] => {
+}): [GoalNode[], Relation] => {
   if (!id) {
-    return [undefined, 'none'];
+    return [[], 'none'];
   }
   const nodeLinks = links.filter((link) => link.target === id);
 
@@ -75,7 +75,7 @@ const nodeChildren = ({
       });
 
       const { alt, root, ...customProperties } = node.customProperties;
-
+      const nodeAlt = alt === 'true' || false;
       return {
         id,
         name: goalName,
@@ -84,10 +84,16 @@ const nodeChildren = ({
         type: convertIstarType({ type: node.type }),
         relationToParent: relations[0],
         relationToChildren: relation,
-        children: granChildren,
+        children: granChildren.map((granChild) => {
+          // if the parent is alternative, then its children must be marked as their variant
+          if (nodeAlt) {
+            return { ...granChild, variantOf: granChild.id.slice(0, 2) };
+          }
+          return { ...granChild };
+        }),
         customProperties: {
           ...customProperties,
-          alt: alt === 'true' || false,
+          alt: nodeAlt,
           root: root === 'true' || undefined,
         },
       };
