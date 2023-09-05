@@ -65,7 +65,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
 
   let step = 0;
   return Object.entries(goalGroups)
-    .map(([goalId, goals]) => {
+    .map(([goalGroupId, goals]) => {
       const variants = goals.filter((goal) => !!goal.variantOf);
       const nonVariantGoal = goals.filter((goal) => !goal.variantOf);
       const innerStep = step;
@@ -73,7 +73,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
 
       const hasVariants = variants.length;
       const nextStep = innerStep + 1;
-      const initialSentence = `${goalId}_pursued=0 -> 1:(step'=${nextStep});`;
+      const initialSentence = `${goalGroupId}_pursued=0 -> 1:(step'=${nextStep});`;
 
       if (hasVariants) {
         if (!nonVariantGoal.length) {
@@ -83,7 +83,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
               const [id, subId] = [...goal.id.slice(-2)];
               const subIdNumber = alphabet.indexOf(subId) + 1;
               const pVar = `p${id}_${subIdNumber}`;
-              return `${goalId}_pursued=${i + 1} -> ${pVar}:(${
+              return `${goalGroupId}_pursued=${i + 1} -> ${pVar}:(${
                 goal.id
               }_achieved'=true)&(step'=${nextStep}) + (1-${pVar}):(${
                 goal.id
@@ -92,13 +92,13 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
           ];
 
           return templateGoalOutcome({
-            goalId,
+            goalId: goalGroupId,
             transitionSentences,
             step: innerStep,
           });
         } else {
           throw new Error(
-            `Goal (${goalId}) has variants and non variants goals groupped, invalid syntax, check the following goals: (${goals.map(
+            `Goal (${goalGroupId}) has variants and non variants goals groupped, invalid syntax, check the following goals: (${goals.map(
               (id) => id
             )})`
           );
@@ -106,15 +106,15 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
       }
 
       if (!hasVariants && goals.length === 1) {
-        const pVar = `p${goalId.slice(-1)}`;
+        const pVar = `p${goalGroupId.slice(-1)}`;
 
         const transitionSentences = [
           initialSentence,
-          `${goalId}_pursued>0 -> ${pVar}:(${goalId}_achieved'=true)&(step'=${nextStep}) + (1-${pVar}):(${goalId}_achievable'=false)&(fail'=true)&(step'=${nextStep});`,
+          `${goalGroupId}_pursued>0 -> ${pVar}:(${goalGroupId}_achieved'=true)&(step'=${nextStep}) + (1-${pVar}):(${goalGroupId}_achievable'=false)&(fail'=true)&(step'=${nextStep});`,
         ];
 
         return templateGoalOutcome({
-          goalId,
+          goalId: goalGroupId,
           transitionSentences,
           step: innerStep,
         });
@@ -122,7 +122,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
         throw new Error(
           `Goal variable should be a leaf, got (${goals
             .map((id) => id)
-            .join(',')}) as non-variant goals for (${goalId})`
+            .join(',')}) as non-variant goals for (${goalGroupId})`
         );
       }
     })
