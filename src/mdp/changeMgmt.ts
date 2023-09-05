@@ -1,11 +1,8 @@
 import { groupBy } from 'lodash';
 import { GoalTree } from '../ObjectiveTree/types';
-import { goalRootId, leafGoals } from '../ObjectiveTree/utils';
+import { leavesGrouppedGoals } from './common';
 
-const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>
-  groupBy(leafGoals({ gm }), goalRootId);
-
-export const goalVariables = ({ gm }: { gm: GoalTree }) => {
+export const goalMgmtVariables = ({ gm }: { gm: GoalTree }) => {
   const goalGroups = leavesGrouppedGoals({ gm });
   const variableLines = Object.entries(goalGroups).map(([_, variants]) => {
     return variants

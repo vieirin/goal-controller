@@ -1,7 +1,10 @@
 import { GoalNode, GoalTree, Relation } from '../ObjectiveTree/types';
 import { allGoals, goalRootId } from '../ObjectiveTree/utils';
 
-type NodeOrChildProps = { node: GoalNode | undefined; appendAchieve?: boolean };
+type NodeOrChildProps = {
+  node: GoalNode | undefined;
+  appendAchieve?: boolean;
+};
 const alternativeChildrenFormula = ({
   node,
   appendAchieve = true,

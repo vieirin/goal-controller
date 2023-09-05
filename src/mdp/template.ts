@@ -1,6 +1,7 @@
 import { GoalTree } from '../ObjectiveTree/types';
-import { goalVariables, outcomes, lastStep } from './changeMgmt';
+import { goalMgmtVariables, outcomes, lastStep } from './changeMgmt';
 import { dependencyFormulaes, goalFormulaes } from './formulas';
+import { goalControllerVariables, goalVariablesLength } from './goalController';
 import { rewards } from './rewards';
 
 export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
@@ -16,13 +17,10 @@ const double p6_2 = 0.9;
   
   
 module GoalController
-  G2_pursued : [0..1] init 0; // goal g2 is: 0 - not pursued, 1 - pursued
-  G3_pursued : [0..2] init 0; // goal g3 is: 0 - not pursued, 1 - pursued as variant 1, 2 - pursued as variant 2
-  G4_pursued : [0..2] init 0; // goal g4 is: 0 - not pursued, 1 - pursued as variant 1, 2 - pursued as variant 2
-  G5_pursued : [0..1] init 0; // goal g5 is: 0 - not pursued, 1 - pursued
-  G6_pursued : [0..2] init 0; // goal g6 is: 0 - not pursued, 1 - pursued as variant 1, 2 - pursued as variant 2
-
-  n : [0..5] init 0; // goal counter
+  ${goalControllerVariables({ gm })}
+  // old
+  
+  n : [0..${goalVariablesLength({ gm })}] init 0; // goal counter
 
   // block of commands for the selecting the way in which goal g2 is pursued
   // - If the goal was achieved _or_ is unachievable in any of the potential variants, then don't pursue it
@@ -71,7 +69,7 @@ ${dependencyFormulaes({ gm })}
 
 module ChangeMgmt
   // variables required for each goal g1, g2, ... with its variants 1, 2, 3, ...ble::
-${goalVariables({ gm })}
+${goalMgmtVariables({ gm })}
 
   step : [0..${lastStep({ gm }) + 3}] init 0; 
   fail : bool init false;
