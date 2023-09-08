@@ -17,4 +17,11 @@ export const separator = (relation: Relation | null) => {
   }
 };
 
-export const negate = (s: string) => (s ? `!${s}` : s);
+export const formulaForGoal = (goalId: string) =>
+  `${goalRootId({ id: goalId })}_achieved_or_pursued`;
+
+export const not = (s: string) => (s ? `!${s}` : s);
+export const parenthesis = (s: string) => (s ? `(${s})` : s);
+export const achieved = (goalId: string) => `${goalId}_achieved`;
+export const achievable = (goalId: string) => `${goalId}_achievable`;
+export const pursued = (goalId: string) => `${goalId}_pursued`;
