@@ -1,6 +1,6 @@
 import { groupBy } from 'lodash';
 import { goalRootId, leafGoals } from '../ObjectiveTree/utils';
-import { GoalTree, Relation } from '../ObjectiveTree/types';
+import { GoalTree, Model, Relation } from '../ObjectiveTree/types';
 
 export type GrouppedGoals = ReturnType<typeof leavesGrouppedGoals>;
 export const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>
@@ -25,3 +25,4 @@ export const parenthesis = (s: string) => (s ? `(${s})` : s);
 export const achieved = (goalId: string) => `${goalId}_achieved`;
 export const achievable = (goalId: string) => `${goalId}_achievable`;
 export const pursued = (goalId: string) => `${goalId}_pursued`;
+export const greaterThan = (goal: string, than: number) => `${goal}>${than}`;

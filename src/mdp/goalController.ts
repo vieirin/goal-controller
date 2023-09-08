@@ -10,6 +10,7 @@ import {
 } from './common';
 import { conditionalTree } from './conditionalTree';
 import { dependency } from './controler/dependency';
+import { variantsPursue } from './controler/pursue';
 import { variantsSkip } from './controler/skip';
 
 const controllerVariables = ({ gm }: { gm: GoalTree }) =>
@@ -64,16 +65,19 @@ export const goalTransitions = ({ gm }: { gm: GoalTree }) => {
             .filter(Boolean)
             .join(separator('or'))
         ),
-        // pursueDefault: [
-        //   not(achieved(condition.goal)),
-        //   not(achievable(condition.goal)),
-        //   dependency({ condition, negateItems: false, sep: 'and' }),
-        // ].join(separator('and')),
+        pursueDefault: [
+          not(achieved(condition.goal)),
+          achievable(condition.goal),
+          dependency({ condition, negateItems: false, sep: 'or' }),
+        ]
+          .filter(Boolean)
+          .join(separator('and')),
       };
     }
 
     return {
       skip: variantsSkip({ conditions }),
+      pursueDefault: variantsPursue({ conditions }),
     };
   });
   console.log(conds);

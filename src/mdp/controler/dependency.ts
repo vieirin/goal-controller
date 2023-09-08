@@ -3,6 +3,7 @@ import { Relation } from '../../ObjectiveTree/types';
 import {
   achieved,
   formulaForGoal,
+  greaterThan,
   not,
   parenthesis,
   pursued,
@@ -29,7 +30,7 @@ export const dependency = ({
 
   const { goal } = depends;
   return parenthesis(
-    [achieved(goal), pursued(goal)]
+    [achieved(goal), greaterThan(pursued(goal), 0)]
       .map((item) => (negateItems ? not(item) : item))
       .join(separator(sep))
   );

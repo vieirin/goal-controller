@@ -2,36 +2,36 @@ import { ConditionDependency } from '../../ObjectiveTree/dependencyResolver';
 import { achievable, achieved, not, parenthesis, separator } from '../common';
 import { dependency } from './dependency';
 
-const skipAchieved = (goalIds: string[]) =>
-  goalIds.map(achieved).join(separator('or'));
+const pursueAchieved = (goalIds: string[]) =>
+  not(parenthesis(goalIds.map(achieved).join(separator('or'))));
 
-const skipAchievable = (conditions: ConditionDependency[]) => {
+const pursueAchievable = (conditions: ConditionDependency[]) => {
   return parenthesis(
     conditions
       .map((condition) => {
-        const defaultSentence = not(achievable(condition.goal));
+        const defaultSentence = achievable(condition.goal);
         if (condition.depends) {
           return parenthesis(
             [
               defaultSentence,
-              not(dependency({ condition, negateItems: false, sep: 'or' })),
-            ].join(separator('or'))
+              dependency({ condition, negateItems: false, sep: 'or' }),
+            ].join(separator('and'))
           );
         }
         return defaultSentence;
       })
-      .join(separator('and'))
+      .join(separator('or'))
   );
 };
 
-export const variantsSkip = ({
+export const variantsPursue = ({
   conditions,
 }: {
   conditions: ConditionDependency[];
 }) => {
   const goalIds = conditions.map(({ goal }) => goal);
 
-  return parenthesis(
-    [skipAchieved(goalIds), skipAchievable(conditions)].join(separator('or'))
+  return [pursueAchieved(goalIds), pursueAchievable(conditions)].join(
+    separator('and')
   );
 };
