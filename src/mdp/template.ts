@@ -1,7 +1,11 @@
 import { GoalTree } from '../ObjectiveTree/types';
 import { goalMgmtVariables, outcomes, lastStep } from './changeMgmt';
 import { dependencyFormulaes, goalFormulaes } from './formulas';
-import { goalControllerVariables, goalVariablesLength } from './goalController';
+import {
+  goalControllerVariables,
+  goalTransitions,
+  goalVariablesLength,
+} from './goalController';
 import { rewards } from './rewards';
 
 export const egdeMDPTemplate = ({ gm }: { gm: GoalTree }) => {
@@ -22,6 +26,7 @@ module GoalController
   
   n : [0..${goalVariablesLength({ gm })}] init 0; // goal counter
 
+  ${goalTransitions({ gm })}
   // block of commands for the selecting the way in which goal g2 is pursued
   // - If the goal was achieved _or_ is unachievable in any of the potential variants, then don't pursue it
   [G2_skip] t & (n=0) & (G2_achieved | !G2_achievable) -> 1:(G2_pursued'=0)&(n'=1); 

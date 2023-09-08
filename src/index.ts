@@ -10,7 +10,5 @@ if (!process.argv.length) {
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
 
-// printTree(tree);
-
-console.log(egdeMDPTemplate({ gm: tree }));
-// egdeMDPTemplate({ gm: tree });
+// console.log(egdeMDPTemplate({ gm: tree }));
+egdeMDPTemplate({ gm: tree });

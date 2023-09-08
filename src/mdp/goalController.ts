@@ -1,5 +1,8 @@
-import { GoalTree } from '../ObjectiveTree/types';
-import { leavesGrouppedGoals } from './common';
+import { ConditionDependency } from '../ObjectiveTree/dependencyResolver';
+import { GoalNode, GoalTree } from '../ObjectiveTree/types';
+import { allGoalsMap, goalRootId, isVariant } from '../ObjectiveTree/utils';
+import { leavesGrouppedGoals, negate, separator } from './common';
+import { conditionalTree } from './conditionalTree';
 
 const controllerVariables = ({ gm }: { gm: GoalTree }) =>
   Object.entries(leavesGrouppedGoals({ gm })).map(([goalGroup, variants]) => {
@@ -16,7 +19,6 @@ const controllerVariables = ({ gm }: { gm: GoalTree }) =>
 
 export const goalControllerVariables = ({ gm }: { gm: GoalTree }) => {
   const variables = controllerVariables({ gm });
-  console.log(variables);
   return variables
     .map(
       (v) =>
@@ -37,3 +39,48 @@ export const goalControllerVariables = ({ gm }: { gm: GoalTree }) => {
 
 export const goalVariablesLength = ({ gm }: { gm: GoalTree }) =>
   controllerVariables({ gm }).length;
+
+const dependency = (condition: ConditionDependency) => {
+  const { depends } = condition;
+  console.log(condition);
+  if (!depends) {
+    return '';
+  }
+  if (!condition.isVariant) {
+    if (!depends.isFormula) {
+      return `(${depends.goal}_achieved | ${depends.goal}_pursued>0)`;
+    }
+
+    return `${goalRootId({ id: depends.goal })}_achieved_or_pursued`;
+  }
+  return '';
+};
+
+const skipAchieved = (goalIds: string[]) =>
+  goalIds.map((id) => `${id}_achieved`).join(separator('or'));
+const skipAchievable = (goalIds: string[]) =>
+  goalIds.map((id) => `${id}_achievable`);
+
+export const goalTransitions = ({ gm }: { gm: GoalTree }) => {
+  const goalConditions = conditionalTree({ gm });
+  const conds = goalConditions.map((conditions) => {
+    const isVariant = conditions.length > 1;
+    if (!isVariant) {
+      const condition = conditions[0];
+      return {
+        skip: `(${[
+          `${condition.goal}_achieved`,
+          `!${condition.goal}_achievable`,
+          negate(dependency(condition)),
+        ]
+          .filter(Boolean)
+          .join(separator('or'))})`,
+      };
+    }
+    const goalIds = conditions.map(({ goal }) => goal);
+    return {
+      skip: `(${skipAchieved(goalIds)})`,
+    };
+  });
+  console.log(conds);
+};

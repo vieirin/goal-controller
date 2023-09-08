@@ -1,6 +1,6 @@
 import { GoalNode, GoalTree } from './types';
 
-export const allGoals = ({
+export const allGoalsList = ({
   gm,
   preferVariant = true,
 }: {
@@ -10,7 +10,7 @@ export const allGoals = ({
   const all = gm?.flatMap((node): GoalNode[] => {
     if (node.children?.length) {
       const children = node.children;
-      return [node, ...(allGoals({ gm: children, preferVariant }) ?? [])];
+      return [node, ...(allGoalsList({ gm: children, preferVariant }) ?? [])];
     }
     return [node];
   });
@@ -34,9 +34,23 @@ export const allGoals = ({
   return unique;
 };
 
+export const allGoalsMap = ({
+  gm,
+  preferVariant = true,
+}: {
+  gm: GoalTree | undefined;
+  preferVariant?: boolean;
+}) => {
+  return new Map(
+    allGoalsList({ gm, preferVariant }).map((goal) => [goal.id, goal])
+  );
+};
+
 export const goalRootId = ({ id }: { id: string }) => id.slice(0, 2);
 
 export const leafGoals = ({ gm }: { gm: GoalTree | undefined }) => {
-  const leaves = allGoals({ gm })?.filter((goal) => !goal.children?.length);
+  const leaves = allGoalsList({ gm })?.filter((goal) => !goal.children?.length);
   return leaves;
 };
+
+export const isVariant = ({ variantOf }: GoalNode): boolean => !!variantOf;

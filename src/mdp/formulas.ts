@@ -1,5 +1,6 @@
-import { GoalNode, GoalTree, Relation } from '../ObjectiveTree/types';
-import { allGoals, goalRootId } from '../ObjectiveTree/utils';
+import { GoalNode, GoalTree } from '../ObjectiveTree/types';
+import { allGoalsList, goalRootId } from '../ObjectiveTree/utils';
+import { separator } from './common';
 
 type NodeOrChildProps = {
   node: GoalNode | undefined;
@@ -105,7 +106,7 @@ const goalDependency = ({
 const goalsWithDependency = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
   const dependency = goalDependency({ gm });
 
-  const matchedGoals = allGoals({ gm }).filter(({ id }) =>
+  const matchedGoals = allGoalsList({ gm }).filter(({ id }) =>
     dependency.map(({ id }) => id).includes(id)
   );
 
@@ -125,17 +126,6 @@ const goalsWithDependency = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
 const goalTreeFormula = ({ gm }: TemplateProps) => {
   const goalsToFormulate = goalsWithFormula({ gm });
   return treeFormula({ goalsToFormulate });
-};
-
-const separator = (relation: Relation | null) => {
-  switch (relation) {
-    case 'or':
-      return ' | ';
-    case 'and':
-      return ' & ';
-    default:
-      throw new Error(`Relation "${relation}" not allowed`);
-  }
 };
 
 export const goalFormulaes = ({ gm }: TemplateProps) => {

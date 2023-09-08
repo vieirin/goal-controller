@@ -21,6 +21,37 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
   }
 };
 
+const createNode = ({
+  node,
+  relation,
+  children,
+}: {
+  node: Node;
+  relation: Relation;
+  children: GoalNode[];
+}): GoalNode => {
+  // Other RT properties should be added here
+  const { id, goalName, decisionMaking } = getGoalDetail({
+    goalText: node.text,
+  });
+  const { alt, root, ...customProperties } = node.customProperties;
+  return {
+    decisionMaking: decisionMaking,
+    id,
+    name: goalName,
+    iStarId: node.id,
+    relationToChildren: relation,
+    relationToParent: null,
+    type: convertIstarType({ type: node.type }),
+    children,
+    customProperties: {
+      ...customProperties,
+      dependsOn: customProperties.dependsOn ?? '',
+      alt: alt === 'true' || false,
+      root: root === 'true' || undefined,
+    },
+  };
+};
 const nodeChildren = ({
   actor,
   id,
@@ -76,14 +107,9 @@ const nodeChildren = ({
 
       const { alt, root, ...customProperties } = node.customProperties;
       const nodeAlt = alt === 'true' || false;
-      return {
-        id,
-        name: goalName,
-        decisionMaking,
-        iStarId: node.id,
-        type: convertIstarType({ type: node.type }),
-        relationToParent: relations[0],
-        relationToChildren: relation,
+      return createNode({
+        node,
+        relation,
         children: granChildren.map((granChild) => {
           // if the parent is alternative, then its children must be marked as their variant
           if (nodeAlt) {
@@ -91,13 +117,7 @@ const nodeChildren = ({
           }
           return { ...granChild };
         }),
-        customProperties: {
-          ...customProperties,
-          dependsOn: customProperties.dependsOn ?? '',
-          alt: nodeAlt,
-          root: root === 'true' || undefined,
-        },
-      };
+      });
     })
     .filter((n): n is GoalNode => !!n);
 
@@ -119,27 +139,7 @@ const nodeToTree = ({
     links: iStarLinks,
   });
 
-  // Other RT properties should be added here
-  const { id, goalName, decisionMaking } = getGoalDetail({
-    goalText: node.text,
-  });
-  const { alt, root, ...customProperties } = node.customProperties;
-  return {
-    decisionMaking: decisionMaking,
-    id,
-    name: goalName,
-    iStarId: node.id,
-    relationToChildren: relation,
-    relationToParent: null,
-    type: convertIstarType({ type: node.type }),
-    children,
-    customProperties: {
-      ...customProperties,
-      dependsOn: customProperties.dependsOn ?? '',
-      alt: alt === 'true' || false,
-      root: root === 'true' || undefined,
-    },
-  };
+  return createNode({ node, children, relation });
 };
 
 export const convertToTree = ({ model }: { model: Model }): GoalTree => {
