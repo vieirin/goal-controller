@@ -24,7 +24,7 @@ const pursueAchievable = (conditions: ConditionDependency[]) => {
   );
 };
 
-export const variantsPursue = ({
+export const variantsPursueDefault = ({
   conditions,
 }: {
   conditions: ConditionDependency[];
@@ -34,4 +34,26 @@ export const variantsPursue = ({
   return [pursueAchieved(goalIds), pursueAchievable(conditions)].join(
     separator('and')
   );
+};
+
+export const variantsPursue = ({
+  conditions,
+}: {
+  conditions: ConditionDependency[];
+}) => {
+  const goalIds = conditions.map(({ goal }) => goal);
+  return [
+    ...conditions.map((condition) => {
+      return {
+        variant: condition.goal,
+        sentence: [
+          pursueAchieved(goalIds),
+          achievable(condition.goal),
+          dependency({ condition, negateItems: false, sep: 'and' }),
+        ]
+          .filter(Boolean)
+          .join(separator('and')),
+      };
+    }),
+  ];
 };

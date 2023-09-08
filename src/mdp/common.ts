@@ -22,7 +22,14 @@ export const formulaForGoal = (goalId: string) =>
 
 export const not = (s: string) => (s ? `!${s}` : s);
 export const parenthesis = (s: string) => (s ? `(${s})` : s);
+
 export const achieved = (goalId: string) => `${goalId}_achieved`;
 export const achievable = (goalId: string) => `${goalId}_achievable`;
 export const pursued = (goalId: string) => `${goalId}_pursued`;
+export const pursue = (goalId: string) => `${goalId}_pursue`;
+export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
+export const skip = (goalId: string) => `${goalId}_skip`;
+
+export const equals = (operand: string, value: string | number) =>
+  `${operand}=${value}`;
 export const greaterThan = (goal: string, than: number) => `${goal}>${than}`;

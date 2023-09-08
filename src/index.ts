@@ -1,3 +1,4 @@
+import { writeFile } from 'fs';
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
 import { egdeMDPTemplate } from './mdp/template';
@@ -11,4 +12,10 @@ const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
 
 // console.log(egdeMDPTemplate({ gm: tree }));
-egdeMDPTemplate({ gm: tree });
+
+writeFile('output/edge.mp', egdeMDPTemplate({ gm: tree }), function (err) {
+  if (err) {
+    return console.log(err);
+  }
+  console.log('The file was saved!');
+});

@@ -11,7 +11,7 @@ import {
 } from '../common';
 
 export const dependency = ({
-  condition,
+  condition: { depends },
   negateItems,
   sep,
 }: {
@@ -19,7 +19,6 @@ export const dependency = ({
   negateItems: boolean;
   sep: Relation;
 }) => {
-  const { depends } = condition;
   if (!depends) {
     return '';
   }
