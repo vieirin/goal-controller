@@ -1,10 +1,12 @@
 import { groupBy } from 'lodash';
-import { GoalTree } from '../ObjectiveTree/types';
-import { leavesGrouppedGoals } from './common';
+import { GrouppedGoals } from './common';
 
-export const goalMgmtVariables = ({ gm }: { gm: GoalTree }) => {
-  const goalGroups = leavesGrouppedGoals({ gm });
-  const variableLines = Object.entries(goalGroups).map(([_, variants]) => {
+export const goalMgmtVariables = ({
+  grouppedGoals,
+}: {
+  grouppedGoals: GrouppedGoals;
+}) => {
+  const variableLines = Object.entries(grouppedGoals).map(([_, variants]) => {
     return variants
       .map((variant) => [
         `${variant.id}_achievable: bool init true;`,
@@ -57,19 +59,18 @@ ${transitionSentences
   )
   .join('\n')}`;
 
-export const outcomes = ({ gm }: { gm: GoalTree }) => {
-  const goalGroups = leavesGrouppedGoals({ gm });
-
-  let step = 0;
-  return Object.entries(goalGroups)
-    .map(([goalGroupId, goals]) => {
+export const outcomes = ({
+  grouppedGoals,
+}: {
+  grouppedGoals: GrouppedGoals;
+}) => {
+  return Object.entries(grouppedGoals)
+    .map(([goalGroupId, goals], step) => {
       const variants = goals.filter((goal) => !!goal.variantOf);
       const nonVariantGoal = goals.filter((goal) => !goal.variantOf);
-      const innerStep = step;
-      step++;
 
       const hasVariants = variants.length;
-      const nextStep = innerStep + 1;
+      const nextStep = step + 1;
       const initialSentence = `${goalGroupId}_pursued=0 -> 1:(step'=${nextStep});`;
 
       if (hasVariants) {
@@ -91,7 +92,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
           return templateGoalOutcome({
             goalId: goalGroupId,
             transitionSentences,
-            step: innerStep,
+            step,
           });
         } else {
           throw new Error(
@@ -113,7 +114,7 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
         return templateGoalOutcome({
           goalId: goalGroupId,
           transitionSentences,
-          step: innerStep,
+          step,
         });
       } else {
         throw new Error(
@@ -124,9 +125,4 @@ export const outcomes = ({ gm }: { gm: GoalTree }) => {
       }
     })
     .join('\n\n');
-};
-
-export const lastStep = ({ gm }: { gm: GoalTree }) => {
-  const goalGroups = leavesGrouppedGoals({ gm });
-  return Object.keys(goalGroups).length - 1;
 };

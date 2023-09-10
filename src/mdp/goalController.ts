@@ -5,7 +5,7 @@ import {
   achievable,
   achieved,
   equals,
-  leavesGrouppedGoals,
+  GrouppedGoals,
   not,
   parenthesis,
   pursue,
@@ -19,8 +19,12 @@ import { dependency } from './controler/dependency';
 import { variantsPursue, variantsPursueDefault } from './controler/pursue';
 import { variantsSkip } from './controler/skip';
 
-const controllerVariables = ({ gm }: { gm: GoalTree }) =>
-  Object.entries(leavesGrouppedGoals({ gm })).map(([goalGroup, variants]) => {
+const controllerVariables = ({
+  grouppedGoals,
+}: {
+  grouppedGoals: GrouppedGoals;
+}) =>
+  Object.entries(grouppedGoals).map(([goalGroup, variants]) => {
     if (variants.every((v) => !!v.variantOf)) {
       return { variable: goalGroup, variants: variants.length };
     }
@@ -32,9 +36,12 @@ const controllerVariables = ({ gm }: { gm: GoalTree }) =>
     );
   });
 
-export const goalControllerVariables = ({ gm }: { gm: GoalTree }) => {
-  const variables = controllerVariables({ gm });
-  return variables
+export const goalControllerVariables = ({
+  grouppedGoals,
+}: {
+  grouppedGoals: GrouppedGoals;
+}) =>
+  controllerVariables({ grouppedGoals })
     .map(
       (v) =>
         `${v.variable}_pursued : [0..${v.variants ?? 1}] init 0; // goal ${
@@ -49,10 +56,6 @@ export const goalControllerVariables = ({ gm }: { gm: GoalTree }) => {
     )
     .map((v) => `  ${v}`)
     .join('\n');
-};
-
-export const goalVariablesLength = ({ gm }: { gm: GoalTree }) =>
-  controllerVariables({ gm }).length;
 
 const goalConditions = ({
   conditions,
@@ -144,8 +147,14 @@ const goalSentence = ({
     sentence,
   })} -> ${update({ rootGoal, update: { n, goalValue } })};`;
 
-export const goalTransitions = ({ gm }: { gm: GoalTree }) => {
-  const conditions = conditionalTree({ gm });
+export const goalTransitions = ({
+  grouppedGoals,
+  gm,
+}: {
+  grouppedGoals: GrouppedGoals;
+  gm: GoalTree;
+}) => {
+  const conditions = conditionalTree({ grouppedGoals, gm });
   const conditionSentences = goalConditions({ conditions });
 
   const sentences = conditionSentences.map(({ rootGoal, sentences }, n) => {

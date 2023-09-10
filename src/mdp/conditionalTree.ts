@@ -1,10 +1,14 @@
 import { resolveDependency } from '../ObjectiveTree/dependencyResolver';
 import { GoalTree } from '../ObjectiveTree/types';
-import { leavesGrouppedGoals } from './common';
+import { GrouppedGoals } from './common';
 
-export const conditionalTree = ({ gm }: { gm: GoalTree }) => {
-  const grouppedGoals = leavesGrouppedGoals({ gm });
-
+export const conditionalTree = ({
+  grouppedGoals,
+  gm,
+}: {
+  grouppedGoals: GrouppedGoals;
+  gm: GoalTree;
+}) => {
   return Object.values(grouppedGoals).map((variants) =>
     variants.map((variant) => resolveDependency({ gm, goal: variant }))
   );

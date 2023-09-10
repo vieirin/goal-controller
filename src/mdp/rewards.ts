@@ -1,4 +1,5 @@
 import { GoalTree } from '../ObjectiveTree/types';
+import { achieved } from './common';
 
 type Reward = { goalId: string } & ({ utility: number } | { cost: number });
 
