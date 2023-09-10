@@ -1,6 +1,12 @@
 import { GoalNode, GoalTree } from '../ObjectiveTree/types';
 import { allGoalsList, goalRootId } from '../ObjectiveTree/utils';
-import { separator } from './common';
+import {
+  achieved,
+  achievedOrPursued,
+  greaterThan,
+  pursued,
+  separator,
+} from './common';
 
 type NodeOrChildProps = {
   node: GoalNode | undefined;
@@ -17,7 +23,7 @@ const alternativeChildrenFormula = ({
         if (child.children?.length) {
           const ids = child.children
             .map((granChildren) => granChildren.id)
-            .map((id) => `${id}${appendAchieve ? '_achieved' : ''}`);
+            .map((id) => `${appendAchieve ? achieved(id) : ''}`);
 
           return {
             ids,
@@ -39,7 +45,7 @@ const nonAlternativeChildrenFormula = ({
       node?.children
         ?.filter((child) => !child.customProperties.alt)
         .map((child) => child.id)
-        .map((id) => `${id}${appendAchieve ? '_achieved' : ''}`) ?? [],
+        .map((id) => `${appendAchieve ? achieved(id) : ''}`) ?? [],
     relation: node?.relationToChildren ?? null,
   };
 };
@@ -131,7 +137,7 @@ const goalTreeFormula = ({ gm }: TemplateProps) => {
 export const goalFormulaes = ({ gm }: TemplateProps) => {
   const treeFormula = goalTreeFormula({ gm });
   return treeFormula.map(({ underLevel, rootLevel, formulatedGoal }) => {
-    return `formula ${formulatedGoal}_achieved = ${[
+    return `formula ${achieved(formulatedGoal)} = ${[
       ...underLevel.map(
         (elem) => `(${elem.ids.join(separator(elem.relation))})`
       ),
@@ -149,21 +155,24 @@ export const dependencyFormulaes = ({ gm }: TemplateProps) => {
   const dependencyFormula = goalDependencyFormula({ gm });
   const dependency = dependencyFormula.map(
     ({ underLevel, rootLevel, formulatedGoal }) => {
-      return `formula ${goalRootId({
-        id: formulatedGoal,
-      })}_achieved_or_pursued = 
+      return `formula ${achievedOrPursued(
+        goalRootId({
+          id: formulatedGoal,
+        })
+      )} = 
               ${[
                 ...rootLevel.ids.map(
                   (id) =>
-                    `(${[`${id}_achieved`, `${id}_pursued>0`].join(
-                      separator('or')
-                    )})`
+                    `(${[
+                      `${achieved(id)}`,
+                      `${greaterThan(achieved(id), 0)}`,
+                    ].join(separator('or'))})`
                 ),
                 ...underLevel.map(
                   ({ rootId, ids }) =>
                     `(${[
                       ids.map((id) => `${id}`).join(separator('or')),
-                      `${rootId}_pursued > 0`,
+                      `${pursued(rootId)} > 0`,
                     ].join(separator('or'))})`
                 ),
               ].join(`${separator(rootLevel.relation)}\n${' '.repeat(14)}`)};`;

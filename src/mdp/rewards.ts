@@ -43,7 +43,7 @@ export const rewards = ({
 ${rewardsMapping({ type, tree: gm })
   .map((reward) => {
     const value = 'utility' in reward ? reward.utility : reward.cost;
-    return `  [success] ${reward.goalId}_achieved : ${value};`;
+    return `  [success] ${achieved(reward.goalId)}: ${value};`;
   })
   .join('\n')}
 endrewards`;
