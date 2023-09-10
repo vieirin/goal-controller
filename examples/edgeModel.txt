@@ -18,7 +18,9 @@
           "y": 107,
           "customProperties": {
             "Description": "",
-            "root": "true"
+            "root": "true",
+            "utility": "20",
+            "cost": "0"
           }
         },
         {
@@ -47,9 +49,9 @@
         },
         {
           "id": "d426586c-5c01-494d-913d-44bd3bc88b87",
-          "text": "G1: Alternative",
+          "text": "G1: Clean",
           "type": "istar.Goal",
-          "x": 378,
+          "x": 377,
           "y": 166,
           "customProperties": {
             "Description": "",
@@ -108,7 +110,7 @@
           "id": "3ee6af3e-19c7-4b8f-916a-eb75f0fcca32",
           "text": "G3a: Perform vacuum cleaning",
           "type": "istar.Goal",
-          "x": 335,
+          "x": 334,
           "y": 358,
           "customProperties": {
             "Description": "",
@@ -131,7 +133,7 @@
           "id": "8f02f844-35e1-40fc-b2d1-aa7581f71196",
           "text": "G3b: Peform expedite vaccum cleaning",
           "type": "istar.Goal",
-          "x": 488,
+          "x": 487,
           "y": 340,
           "customProperties": {
             "Description": "",
@@ -180,7 +182,7 @@
           "text": "G5: replace furniture",
           "type": "istar.Goal",
           "x": 867,
-          "y": 302,
+          "y": 301,
           "customProperties": {
             "Description": "",
             "utility": "6",
@@ -195,91 +197,91 @@
   "dependencies": [],
   "links": [
     {
-      "id": "ec72f65e-4973-4b97-b75e-9dbda7a1a4b9",
+      "id": "5859bea7-3ffc-470f-8e22-ce371b503653",
       "type": "istar.AndRefinementLink",
       "source": "d426586c-5c01-494d-913d-44bd3bc88b87",
       "target": "5c89c3c7-07b1-4387-9176-fe211a4bc9d2"
     },
     {
-      "id": "f4332560-db31-4e9c-b202-65231529969f",
+      "id": "f114b482-2f88-49f2-ad3e-34dbe917c3a3",
       "type": "istar.OrRefinementLink",
       "source": "37f2be2b-3746-4ba1-9c06-a2675de87629",
       "target": "d426586c-5c01-494d-913d-44bd3bc88b87"
     },
     {
-      "id": "50dc02ae-0b8e-45ef-a739-716000903083",
+      "id": "ac992e9a-3c62-469f-af31-7dfdd2d2a31d",
       "type": "istar.OrRefinementLink",
       "source": "6d81bc57-ffc1-40c6-92bb-d78d10d7faf7",
       "target": "d426586c-5c01-494d-913d-44bd3bc88b87"
     },
     {
-      "id": "8285f502-60b3-44de-8351-2c50caf41d92",
+      "id": "2d34833c-d324-452b-b935-e541a376cc30",
       "type": "istar.AndRefinementLink",
       "source": "b5f217ea-6197-49e0-a990-3eaaa1072161",
       "target": "5c89c3c7-07b1-4387-9176-fe211a4bc9d2"
     },
     {
-      "id": "01e210d4-46d0-44ae-bdec-5efddb2d9731",
+      "id": "936b5367-e022-4ac3-bee7-63426e787e27",
       "type": "istar.OrRefinementLink",
       "source": "1fd32f8c-13d5-4368-9d85-2c8882d46208",
       "target": "b5f217ea-6197-49e0-a990-3eaaa1072161"
     },
     {
-      "id": "39f5086f-662d-4a72-bd46-4dfc9d8fe0cc",
+      "id": "be014866-3060-41db-a86c-60cf9cea6186",
       "type": "istar.OrRefinementLink",
       "source": "416e4d53-7b52-442a-bdbb-3e75d657d8bb",
       "target": "b5f217ea-6197-49e0-a990-3eaaa1072161"
     },
     {
-      "id": "bf837554-de40-4bdd-95e5-d292b6a53efb",
+      "id": "a97008f3-15cf-492e-8142-16d528ce2ca8",
       "type": "istar.AndRefinementLink",
       "source": "7b08427e-8450-410a-a715-cab73d373cfb",
       "target": "37f2be2b-3746-4ba1-9c06-a2675de87629"
     },
     {
-      "id": "00c757f0-bd00-445c-ab1d-bc15263de22e",
+      "id": "78d02ecc-b597-44c0-ba55-21bd1198c8e8",
       "type": "istar.AndRefinementLink",
       "source": "04c2c20e-e94b-423e-83eb-45c1976dbd51",
       "target": "37f2be2b-3746-4ba1-9c06-a2675de87629"
     },
     {
-      "id": "cf8ee776-6151-409c-a28c-7bb2fd364d6a",
+      "id": "11be5a00-a9c9-46b6-bf37-91f21154c748",
       "type": "istar.OrRefinementLink",
       "source": "3ee6af3e-19c7-4b8f-916a-eb75f0fcca32",
       "target": "04c2c20e-e94b-423e-83eb-45c1976dbd51"
     },
     {
-      "id": "41b41772-af35-4248-b29f-e073c723727b",
+      "id": "7f4e548e-7bed-422a-b8d3-fe47c49c5c20",
       "type": "istar.OrRefinementLink",
       "source": "8f02f844-35e1-40fc-b2d1-aa7581f71196",
       "target": "04c2c20e-e94b-423e-83eb-45c1976dbd51"
     },
     {
-      "id": "6fef1f99-4dc7-4b91-81de-257114c1378f",
+      "id": "0b065237-c936-4725-85f1-45a85c2671fd",
       "type": "istar.AndRefinementLink",
       "source": "8f02f844-35e1-40fc-b2d1-aa7581f71196",
       "target": "6d81bc57-ffc1-40c6-92bb-d78d10d7faf7"
     },
     {
-      "id": "dda2805d-bbfd-410c-99bf-0b29c3d36f04",
+      "id": "62f0d0f4-1220-4c8a-84c5-d2c176a3b854",
       "type": "istar.AndRefinementLink",
       "source": "a983c840-52e5-4a07-8285-d9bd9d2af932",
       "target": "37f2be2b-3746-4ba1-9c06-a2675de87629"
     },
     {
-      "id": "08ccc08b-9d27-4e96-bad2-9be46c3386bc",
+      "id": "cdaaf8dc-117f-4661-8ba4-da376db32e7a",
       "type": "istar.OrRefinementLink",
       "source": "240ffd80-5ef8-4395-a758-eca94abf7328",
       "target": "a983c840-52e5-4a07-8285-d9bd9d2af932"
     },
     {
-      "id": "7c8602f4-ba3b-46a2-be8f-322c8bfb149d",
+      "id": "6621f823-c45d-4bbf-b132-5b928fabf8e9",
       "type": "istar.OrRefinementLink",
       "source": "a42ee193-291b-4961-ae4a-86e6b9c25d78",
       "target": "a983c840-52e5-4a07-8285-d9bd9d2af932"
     },
     {
-      "id": "c51af03a-ad0d-4208-b4e8-a9f1c1584eac",
+      "id": "c9f6f61b-a21f-43bf-ba56-55604567ee6a",
       "type": "istar.AndRefinementLink",
       "source": "aae1de99-c957-4554-bf80-d98b3a8b43c0",
       "target": "37f2be2b-3746-4ba1-9c06-a2675de87629"
@@ -322,7 +324,7 @@
       "width": 109.125,
       "height": 41.2265625
     },
-    "50dc02ae-0b8e-45ef-a739-716000903083": {
+    "ac992e9a-3c62-469f-af31-7dfdd2d2a31d": {
       "vertices": [
         {
           "x": 520,
@@ -333,7 +335,7 @@
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Tue, 05 Sep 2023 02:39:45 GMT",
+  "saveDate": "Fri, 08 Sep 2023 14:29:59 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,
