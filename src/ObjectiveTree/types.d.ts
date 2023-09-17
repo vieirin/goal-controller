@@ -77,8 +77,9 @@ export type GoalNode = {
     cost: string;
     alt: boolean;
     root: boolean | undefined;
-    dependsOn: string;
-  } & Record<string, string | number | boolean | undefined>;
+    dependsOn: string[];
+    [k: string]: any;
+  };
 };
 
 export type GoalTree = GoalNode[];

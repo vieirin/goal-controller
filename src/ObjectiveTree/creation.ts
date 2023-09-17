@@ -1,3 +1,4 @@
+import { cond } from 'lodash';
 import { getGoalDetail } from '../GoalParser';
 import {
   Actor,
@@ -21,6 +22,18 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
   }
 };
 
+const parseDependsOn = ({
+  dependsOn,
+}: {
+  dependsOn: string;
+}): Array<string> => {
+  if (!dependsOn) {
+    return [];
+  }
+  const parsedDependency = dependsOn.split(',');
+  return parsedDependency.map((d) => d.trim());
+};
+
 const createNode = ({
   node,
   relation,
@@ -35,6 +48,7 @@ const createNode = ({
     goalText: node.text,
   });
   const { alt, root, ...customProperties } = node.customProperties;
+
   return {
     decisionMaking: decisionMaking,
     id,
@@ -46,7 +60,9 @@ const createNode = ({
     children,
     customProperties: {
       ...customProperties,
-      dependsOn: customProperties.dependsOn ?? '',
+      dependsOn: parseDependsOn({
+        dependsOn: customProperties.dependsOn ?? '',
+      }),
       alt: alt === 'true' || false,
       root: root === 'true' || undefined,
     },

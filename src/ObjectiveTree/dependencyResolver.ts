@@ -2,10 +2,10 @@ import { GoalNode, GoalTree } from './types';
 import { allGoalsMap } from './utils';
 
 type GoalId = string;
-type Dependency = {
+export type Dependency = {
   goal: string;
   isFormula?: boolean;
-  depends: Dependency | null;
+  depends: Array<Dependency | null>;
 };
 const resolve = ({
   allMap,
@@ -19,14 +19,16 @@ const resolve = ({
     return null;
   }
   const isFormula = (targetDependency.children?.length ?? 0) > 0;
-
+  const dependencies = targetDependency.customProperties.dependsOn;
   return {
     goal: targetDependency.id,
     isFormula,
-    depends: resolve({
-      allMap,
-      target: targetDependency.customProperties.dependsOn,
-    }),
+    depends: dependencies.map((dependency) =>
+      resolve({
+        allMap,
+        target: dependency,
+      })
+    ),
   };
 };
 
@@ -39,12 +41,16 @@ export const resolveDependency = ({
   goal: GoalNode;
 }): ConditionDependency => {
   const allGoals = allGoalsMap({ gm });
+  const dependencies = goal.customProperties.dependsOn;
+
   return {
     goal: goal.id,
     isVariant: !!goal.variantOf,
-    depends: resolve({
-      allMap: allGoals,
-      target: goal.customProperties.dependsOn,
-    }),
+    depends: dependencies.map((dependency) =>
+      resolve({
+        allMap: allGoals,
+        target: dependency,
+      })
+    ),
   };
 };

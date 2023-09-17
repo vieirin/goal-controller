@@ -1,5 +1,5 @@
 import { GoalNode, GoalTree } from '../ObjectiveTree/types';
-import { allGoalsList, goalRootId } from '../ObjectiveTree/utils';
+import { allGoalsList, allGoalsMap, goalRootId } from '../ObjectiveTree/utils';
 import {
   achieved,
   achievedOrPursued,
@@ -98,23 +98,24 @@ const goalDependency = ({
     gm?.map((node) => {
       const dependency = node.customProperties.dependsOn;
       const childrenWithFormula = goalDependency({ gm: node.children });
-      if (!dependency) {
+      if (!dependency.length) {
         return [...(childrenWithFormula ?? [])];
       }
 
       return [
-        ...[{ id: dependency, dependant: node.id }],
+        ...dependency.map((dep) => ({ id: dep, dependant: node.id })),
         ...(childrenWithFormula ?? []),
       ];
     }) ?? []
   ).flat();
 };
+
 const goalsWithDependency = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
   const dependency = goalDependency({ gm });
-
-  const matchedGoals = allGoalsList({ gm }).filter(({ id }) =>
-    dependency.map(({ id }) => id).includes(id)
-  );
+  const allGoals = allGoalsMap({ gm });
+  const matchedGoals = dependency
+    .map((dep) => allGoals.get(dep.id))
+    .filter((v): v is GoalNode => Boolean(v));
 
   if (matchedGoals.length != dependency.length) {
     throw new Error(

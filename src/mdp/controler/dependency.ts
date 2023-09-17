@@ -1,4 +1,7 @@
-import { ConditionDependency } from '../../ObjectiveTree/dependencyResolver';
+import {
+  ConditionDependency,
+  Dependency,
+} from '../../ObjectiveTree/dependencyResolver';
 import { Relation } from '../../ObjectiveTree/types';
 import {
   achieved,
@@ -10,12 +13,12 @@ import {
   separator,
 } from '../common';
 
-export const dependency = ({
-  condition: { depends },
+const _dependency = ({
+  depends,
   negateItems,
   sep,
 }: {
-  condition: ConditionDependency;
+  depends: Dependency;
   negateItems: boolean;
   sep: Relation;
 }) => {
@@ -33,4 +36,22 @@ export const dependency = ({
       .map((item) => (negateItems ? not(item) : item))
       .join(separator(sep))
   );
+};
+
+export const dependency = ({
+  condition: { depends },
+  negateItems,
+  sep,
+}: {
+  condition: ConditionDependency;
+  negateItems: boolean;
+  sep: Relation;
+}) => {
+  const dep = depends
+    .filter((d): d is Dependency => Boolean(d))
+    .map((dep) => _dependency({ depends: dep, negateItems, sep }));
+
+  const joinedDep = dep.join(separator('and'));
+
+  return dep.length > 1 ? parenthesis(joinedDep) : joinedDep;
 };

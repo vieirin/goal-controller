@@ -26,7 +26,8 @@ export const parenthesis = (s: string) => (s ? `(${s})` : s);
 export const achieved = (goalId: string) => `${goalId}_achieved`;
 export const achievable = (goalId: string) => `${goalId}_achievable`;
 export const pursued = (goalId: string) => `${goalId}_pursued`;
-export const achievedOrPursued= (goalId:string) => pursued(`${achieved(goalId)}_or_`)
+export const achievedOrPursued = (goalId: string) =>
+  pursued(`${achieved(goalId)}_or`);
 export const pursue = (goalId: string) => `${goalId}_pursue`;
 export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
 export const skip = (goalId: string) => `${goalId}_skip`;
