@@ -1,0 +1,407 @@
+{
+  "actors": [
+    {
+      "id": "d970c3bd-8b30-413d-90ac-4e4394c91e36",
+      "text": "Actor",
+      "type": "istar.Actor",
+      "x": 40,
+      "y": 224,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "5afd7119-9072-455f-a9aa-0e0671c69192",
+          "text": "G1: Provide health support",
+          "type": "istar.Goal",
+          "x": 364,
+          "y": 250,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "39d52b63-7073-4f64-b07a-9b5bc3ce747a",
+          "text": "G2: Provide automated support",
+          "type": "istar.Goal",
+          "x": 260,
+          "y": 307,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "caf356b1-d64c-460a-81d8-442b9cd53932",
+          "text": "G4: Get vital params",
+          "type": "istar.Goal",
+          "x": 118,
+          "y": 366,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "1468b64a-5cfb-45cd-8a4a-7a80059754a3",
+          "text": "G5: Analyse data",
+          "type": "istar.Goal",
+          "x": 272,
+          "y": 370,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "10220693-e159-431a-a010-062d2539e319",
+          "text": "G6: Enact treatment",
+          "type": "istar.Goal",
+          "x": 376,
+          "y": 371,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "64d2173b-8089-46e0-97a2-b34af85847e5",
+          "text": "G3: Provide self-diagnosed support",
+          "type": "istar.Goal",
+          "x": 512,
+          "y": 302,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "c8ae74fc-c1e7-4601-ac82-bcfc0b863e13",
+          "text": "T1: Alarm service",
+          "type": "istar.Task",
+          "x": 627,
+          "y": 368,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "7bcf2e71-3fe7-44cf-b476-efda6705d1a5",
+          "text": "T1.1: Alarm service 1",
+          "type": "istar.Task",
+          "x": 560,
+          "y": 427,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "385ded7f-1ab9-4edb-8c8f-108d215504b9",
+          "text": "T1.2: Alarm Service 2",
+          "type": "istar.Task",
+          "x": 698,
+          "y": 431,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "0640968f-385b-4fb1-9f87-866ce788f682",
+          "text": "G7: Administer medicine",
+          "type": "istar.Goal",
+          "x": 375,
+          "y": 478,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "d4bbf37c-6c43-4267-862b-9d09e5a04104",
+          "text": "G8: Send alarm",
+          "type": "istar.Goal",
+          "x": 568,
+          "y": 481,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "d8737419-5679-4d00-b07f-8b249e3a7941",
+          "text": "T1: Drug service",
+          "type": "istar.Task",
+          "x": 377,
+          "y": 528,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "181c4b32-1266-4bc3-be7f-9df392a133db",
+          "text": "T1.1: Change drug",
+          "type": "istar.Task",
+          "x": 325,
+          "y": 615,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "43f84f1a-7323-4056-a868-1267ac0393ab",
+          "text": "T1.2: Change dose",
+          "type": "istar.Task",
+          "x": 443,
+          "y": 622,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "487d6fc7-6f97-499f-89f1-7900cd7cd61e",
+          "text": "T1: Alarm service",
+          "type": "istar.Task",
+          "x": 603,
+          "y": 542,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "aa8c9171-63db-4ccc-a283-7e0548a05b41",
+          "text": "T1.1: Alarm service 1",
+          "type": "istar.Task",
+          "x": 566.5,
+          "y": 618,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "2dcfd4fa-beb3-40dd-bb74-2e66d93617c2",
+          "text": "T1.2: Alarm service 2",
+          "type": "istar.Task",
+          "x": 652,
+          "y": 598,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "77734550-8e0a-4585-bde7-c582f518230e",
+          "text": "T1.3: Alarm service 3",
+          "type": "istar.Task",
+          "x": 737,
+          "y": 580,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "3e0d66ed-fa57-4c5d-b04f-1084de18262d",
+          "text": "T1: Get vital params",
+          "type": "istar.Task",
+          "x": 40,
+          "y": 451,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "8aa616c8-25c9-4cd2-8aa2-4c78a744bea6",
+          "text": "T1: Medical service",
+          "type": "istar.Task",
+          "x": 213,
+          "y": 450,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "257bd082-fb16-4c93-9438-327649436b62",
+          "text": "T1.1: Medical service 1",
+          "type": "istar.Task",
+          "x": 83,
+          "y": 516,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "6e0a1350-b65e-496e-ac9c-46e90e497411",
+          "text": "T1.2: Medical service 2",
+          "type": "istar.Task",
+          "x": 177,
+          "y": 518,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "bbbaee63-5452-4790-9bde-767c3912f63c",
+          "text": "T1.3: Medical service 3",
+          "type": "istar.Task",
+          "x": 273,
+          "y": 518,
+          "customProperties": {
+            "Description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "91985d5b-f43b-4513-a46c-66b90f1441a6",
+      "type": "istar.OrRefinementLink",
+      "source": "caf356b1-d64c-460a-81d8-442b9cd53932",
+      "target": "39d52b63-7073-4f64-b07a-9b5bc3ce747a"
+    },
+    {
+      "id": "a5aa6249-c107-450e-9a54-e7d01182cfc6",
+      "type": "istar.OrRefinementLink",
+      "source": "1468b64a-5cfb-45cd-8a4a-7a80059754a3",
+      "target": "39d52b63-7073-4f64-b07a-9b5bc3ce747a"
+    },
+    {
+      "id": "6d6a615c-f655-4ff3-9c04-219496b83bb9",
+      "type": "istar.OrRefinementLink",
+      "source": "10220693-e159-431a-a010-062d2539e319",
+      "target": "39d52b63-7073-4f64-b07a-9b5bc3ce747a"
+    },
+    {
+      "id": "4bc52988-26bd-498e-86a9-3df643265e86",
+      "type": "istar.OrRefinementLink",
+      "source": "39d52b63-7073-4f64-b07a-9b5bc3ce747a",
+      "target": "5afd7119-9072-455f-a9aa-0e0671c69192"
+    },
+    {
+      "id": "ee4b2947-7b21-4c4f-81d5-d8ea8f2f9ec0",
+      "type": "istar.OrRefinementLink",
+      "source": "64d2173b-8089-46e0-97a2-b34af85847e5",
+      "target": "5afd7119-9072-455f-a9aa-0e0671c69192"
+    },
+    {
+      "id": "9e23e520-735f-43d7-84ea-be1db0a0d450",
+      "type": "istar.AndRefinementLink",
+      "source": "c8ae74fc-c1e7-4601-ac82-bcfc0b863e13",
+      "target": "64d2173b-8089-46e0-97a2-b34af85847e5"
+    },
+    {
+      "id": "f8220ffc-d350-435a-82e1-77962c792775",
+      "type": "istar.OrRefinementLink",
+      "source": "7bcf2e71-3fe7-44cf-b476-efda6705d1a5",
+      "target": "c8ae74fc-c1e7-4601-ac82-bcfc0b863e13"
+    },
+    {
+      "id": "3060b8cf-9797-4878-93c7-490cdc47e84e",
+      "type": "istar.OrRefinementLink",
+      "source": "385ded7f-1ab9-4edb-8c8f-108d215504b9",
+      "target": "c8ae74fc-c1e7-4601-ac82-bcfc0b863e13"
+    },
+    {
+      "id": "27515b09-5879-4f3c-8451-f87a1b6e96a0",
+      "type": "istar.OrRefinementLink",
+      "source": "0640968f-385b-4fb1-9f87-866ce788f682",
+      "target": "10220693-e159-431a-a010-062d2539e319"
+    },
+    {
+      "id": "88c892e4-8042-4f59-8d1e-01c606e1a5c6",
+      "type": "istar.OrRefinementLink",
+      "source": "d4bbf37c-6c43-4267-862b-9d09e5a04104",
+      "target": "10220693-e159-431a-a010-062d2539e319"
+    },
+    {
+      "id": "64f71b4b-3cd8-454c-86ba-26c48a9bf6fa",
+      "type": "istar.AndRefinementLink",
+      "source": "d8737419-5679-4d00-b07f-8b249e3a7941",
+      "target": "0640968f-385b-4fb1-9f87-866ce788f682"
+    },
+    {
+      "id": "18aa58ed-5cc6-4731-b694-39cd8f75dfe3",
+      "type": "istar.OrRefinementLink",
+      "source": "181c4b32-1266-4bc3-be7f-9df392a133db",
+      "target": "d8737419-5679-4d00-b07f-8b249e3a7941"
+    },
+    {
+      "id": "1835595b-f5d5-45bb-bb8f-f9d0dd17de37",
+      "type": "istar.OrRefinementLink",
+      "source": "43f84f1a-7323-4056-a868-1267ac0393ab",
+      "target": "d8737419-5679-4d00-b07f-8b249e3a7941"
+    },
+    {
+      "id": "6f892479-f589-48bf-a392-9cd5beac15f8",
+      "type": "istar.AndRefinementLink",
+      "source": "487d6fc7-6f97-499f-89f1-7900cd7cd61e",
+      "target": "d4bbf37c-6c43-4267-862b-9d09e5a04104"
+    },
+    {
+      "id": "0bbe97d1-c6a8-4f6c-9154-34c165a1f1d5",
+      "type": "istar.OrRefinementLink",
+      "source": "aa8c9171-63db-4ccc-a283-7e0548a05b41",
+      "target": "487d6fc7-6f97-499f-89f1-7900cd7cd61e"
+    },
+    {
+      "id": "d629db5e-89f4-46d2-80d9-7e771afe87df",
+      "type": "istar.OrRefinementLink",
+      "source": "2dcfd4fa-beb3-40dd-bb74-2e66d93617c2",
+      "target": "487d6fc7-6f97-499f-89f1-7900cd7cd61e"
+    },
+    {
+      "id": "2677f5a2-bf0a-4293-953e-0326715c80fd",
+      "type": "istar.OrRefinementLink",
+      "source": "77734550-8e0a-4585-bde7-c582f518230e",
+      "target": "487d6fc7-6f97-499f-89f1-7900cd7cd61e"
+    },
+    {
+      "id": "1ad30492-13e5-4ca7-af82-5767e6b33792",
+      "type": "istar.AndRefinementLink",
+      "source": "3e0d66ed-fa57-4c5d-b04f-1084de18262d",
+      "target": "caf356b1-d64c-460a-81d8-442b9cd53932"
+    },
+    {
+      "id": "9ff23b41-1f6a-4819-9ee8-81f9dbdbab24",
+      "type": "istar.AndRefinementLink",
+      "source": "8aa616c8-25c9-4cd2-8aa2-4c78a744bea6",
+      "target": "1468b64a-5cfb-45cd-8a4a-7a80059754a3"
+    },
+    {
+      "id": "0bf307ad-8d74-493a-8612-4d25be3e4424",
+      "type": "istar.OrRefinementLink",
+      "source": "257bd082-fb16-4c93-9438-327649436b62",
+      "target": "8aa616c8-25c9-4cd2-8aa2-4c78a744bea6"
+    },
+    {
+      "id": "902394b8-b77f-4512-891c-cd27d6c62d5c",
+      "type": "istar.OrRefinementLink",
+      "source": "6e0a1350-b65e-496e-ac9c-46e90e497411",
+      "target": "8aa616c8-25c9-4cd2-8aa2-4c78a744bea6"
+    },
+    {
+      "id": "0dd71341-097a-4bc8-bf95-1fadc81dc708",
+      "type": "istar.OrRefinementLink",
+      "source": "bbbaee63-5452-4790-9bde-767c3912f63c",
+      "target": "8aa616c8-25c9-4cd2-8aa2-4c78a744bea6"
+    }
+  ],
+  "display": {
+    "39d52b63-7073-4f64-b07a-9b5bc3ce747a": {
+      "width": 129.203125,
+      "height": 40.2265625
+    },
+    "64d2173b-8089-46e0-97a2-b34af85847e5": {
+      "width": 142.203125,
+      "height": 47.2265625
+    },
+    "0640968f-385b-4fb1-9f87-866ce788f682": {
+      "width": 115.203125,
+      "height": 39.2265625
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Wed, 04 Oct 2023 00:24:51 GMT",
+  "diagram": {
+    "width": 1124,
+    "height": 700,
+    "name": "Welcome Model",
+    "customProperties": {
+      "Description": "Welcome to the piStar tool version 2.1.0, released on November, 2021! This model describes some of the recent improvements in the tool. Click on the purple elements for further info.\n\nFor help using this tool, please check the Help menu above"
+    }
+  }
+}
