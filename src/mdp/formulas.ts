@@ -45,7 +45,7 @@ const nonAlternativeChildrenFormula = ({
       node?.children
         ?.filter((child) => !child.customProperties.alt)
         .map((child) => child.id)
-        .map((id) => `${appendAchieve ? achieved(id) : ''}`) ?? [],
+        .map((id) => `${appendAchieve ? achieved(id) : id}`) ?? [],
     relation: node?.relationToChildren ?? null,
   };
 };
@@ -166,7 +166,7 @@ export const dependencyFormulaes = ({ gm }: TemplateProps) => {
                   (id) =>
                     `(${[
                       `${achieved(id)}`,
-                      `${greaterThan(achieved(id), 0)}`,
+                      `${greaterThan(pursued(id), 0)}`,
                     ].join(separator('or'))})`
                 ),
                 ...underLevel.map(

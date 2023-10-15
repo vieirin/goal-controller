@@ -10,7 +10,7 @@ const skipAchievable = (conditions: ConditionDependency[]) => {
     conditions
       .map((condition) => {
         const defaultSentence = not(achievable(condition.goal));
-        if (condition.depends) {
+        if (condition.depends.length) {
           return parenthesis(
             [
               defaultSentence,
@@ -30,7 +30,6 @@ export const variantsSkip = ({
   conditions: ConditionDependency[];
 }) => {
   const goalIds = conditions.map(({ goal }) => goal);
-
   return parenthesis(
     [skipAchieved(goalIds), skipAchievable(conditions)].join(separator('or'))
   );

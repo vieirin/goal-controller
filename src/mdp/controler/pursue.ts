@@ -10,7 +10,7 @@ const pursueAchievable = (conditions: ConditionDependency[]) => {
     conditions
       .map((condition) => {
         const defaultSentence = achievable(condition.goal);
-        if (condition.depends) {
+        if (condition.depends.length) {
           return parenthesis(
             [
               defaultSentence,

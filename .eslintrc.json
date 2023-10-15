@@ -9,6 +9,7 @@
     "sourceType": "module"
   },
   "rules": {
+    "no-console": "error",
     "jsx-quotes": ["error", "prefer-single"],
     "prettier/prettier": "error"
   }
