@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
+)
 
 func main() {
-	fmt.Println("hello world")
+	goalModel.Process("../examples/edgeModel.txt")
 }
