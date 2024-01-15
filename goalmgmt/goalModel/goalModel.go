@@ -18,6 +18,8 @@ type GoalNode struct {
 	Cost        int
 	Utility     int
 	Alternative bool
+	Children    []GoalNode
+	Relation    string
 }
 
 func getCostAndUtility(iStarNode data.Element) (int, int) {
@@ -40,8 +42,64 @@ func getCostAndUtility(iStarNode data.Element) (int, int) {
 
 	return utility, cost
 }
-func createNode(iStarNode data.Element) GoalNode {
+
+func findLinkForNode(links []data.Link, nodeId string) []data.Link {
+	targetLinks := []data.Link{}
+	for _, link := range links {
+		if link.Target == nodeId {
+			targetLinks = append(targetLinks, link)
+		}
+	}
+	return targetLinks
+}
+
+func convertIStarRelation(iStarRelation string) string {
+	switch iStarRelation {
+	case "istar.AndRefinementLink":
+		return "and"
+	case "istar.OrRefinementLink":
+		return "or"
+	default:
+		return "none"
+	}
+}
+
+func getChildrenRelation(links []data.Link) string {
+	relation := "none"
+	for _, link := range links {
+		if relation == "none" {
+			relation = convertIStarRelation(link.Type)
+		} else {
+			// check if all relations are the same when
+			// looking at the children connected by this link
+			nextRelation := convertIStarRelation(link.Type)
+			if nextRelation != relation {
+				log.Fatalf("Unmatched relation, all children elem needs to have the same relation of the first child. Expected [%s], got [%s]", relation, nextRelation)
+			}
+			relation = nextRelation
+		}
+	}
+	return relation
+}
+
+func nodeChildren(iStarNode data.Element, mappedNodes map[string]data.Element, links []data.Link) ([]GoalNode, string) {
+	linksForNode := findLinkForNode(links, iStarNode.ID)
+	if len(linksForNode) == 0 {
+		return []GoalNode{}, ""
+	}
+
+	relation := getChildrenRelation(linksForNode)
+	children := []GoalNode{}
+	for _, link := range linksForNode {
+		elem := mappedNodes[link.Source]
+		children = append(children, createNode(elem, mappedNodes, links))
+	}
+	return children, relation
+}
+
+func createNode(iStarNode data.Element, mappedNodes map[string]data.Element, links []data.Link) GoalNode {
 	utility, cost := getCostAndUtility(iStarNode)
+	children, relation := nodeChildren(iStarNode, mappedNodes, links)
 	return GoalNode{
 		IsRoot:      iStarNode.CustomProperties.Root == "true",
 		GoalTitle:   iStarNode.Text,
@@ -49,33 +107,43 @@ func createNode(iStarNode data.Element) GoalNode {
 		Utility:     utility,
 		Cost:        cost,
 		Alternative: iStarNode.CustomProperties.Alt == "true",
+		Children:    children,
+		Relation:    relation,
 	}
 }
 
-func loadGoalModel(file []byte) {
+func mapNodes(actor data.Actor) map[string]data.Element {
+	mappedNodes := map[string]data.Element{}
+	for _, node := range actor.Nodes {
+		mappedNodes[node.ID] = node
+	}
+	return mappedNodes
+}
+
+func loadGoalModel(file []byte) *GoalNode {
 	var model data.GoalModel
 	err := json.Unmarshal(file, &model)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil
 	}
 	if len(model.Actors) > 1 {
 		log.Fatal("Only a single actor is allowed")
-		return
+		return nil
 	}
 	actor := model.Actors[0]
-	nodes := []GoalNode{}
-	for _, node := range actor.Nodes {
-		nodes = append(nodes, createNode(node))
-	}
-	fmt.Println(nodes)
+	mappedNodes := mapNodes(actor)
+	root := actor.Nodes[0]
+	node := createNode(root, mappedNodes, model.Links)
+
+	return &node
 }
 
-func Process(filename string) {
+func Process(filename string) *GoalNode {
 	modelFile, err := os.ReadFile(filename)
 	if err != nil {
-		return
+		return nil
 	}
 
-	loadGoalModel(modelFile)
+	return loadGoalModel(modelFile)
 }

@@ -15,21 +15,24 @@ type Element struct {
 		DependsOn   string `json:"dependsOn"`
 	} `json:"customProperties,omitempty"`
 }
+type Link struct {
+	ID     string `json:"id"`
+	Type   string `json:"type"`
+	Source string `json:"source"`
+	Target string `json:"target"`
+}
+
+type Actor struct {
+	Element
+	Nodes []Element `json:"nodes"`
+}
 
 type GoalModel struct {
-	Actors []struct {
-		Element
-		Nodes []Element `json:"nodes"`
-	} `json:"actors"`
+	Actors       []Actor   `json:"actors"`
 	Orphans      []Element `json:"orphans"`
 	Dependencies []Element `json:"dependencies"`
-	Links        []struct {
-		ID     string `json:"id"`
-		Type   string `json:"type"`
-		Source string `json:"source"`
-		Target string `json:"target"`
-	} `json:"links"`
-	Display map[string]struct {
+	Links        []Link    `json:"links"`
+	Display      map[string]struct {
 		Width    float64 `json:"width"`
 		Height   float64 `json:"height"`
 		Vertices []struct {
