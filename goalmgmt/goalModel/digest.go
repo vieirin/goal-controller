@@ -10,18 +10,6 @@ import (
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel/data"
 )
 
-type GoalNode struct {
-	IsRoot      bool
-	GoalTitle   string
-	GoalId      string
-	IStarID     string
-	Cost        int
-	Utility     int
-	Alternative bool
-	Children    []GoalNode
-	Relation    string
-}
-
 func getCostAndUtility(iStarNode data.Element) (int, int) {
 	utility, cost := 0, 0
 	var err error
@@ -139,7 +127,7 @@ func loadGoalModel(file []byte) *GoalNode {
 	return &node
 }
 
-func Process(filename string) *GoalNode {
+func Digest(filename string) *GoalNode {
 	modelFile, err := os.ReadFile(filename)
 	if err != nil {
 		return nil
