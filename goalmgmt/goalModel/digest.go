@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel/data"
 )
@@ -91,6 +92,7 @@ func createNode(iStarNode data.Element, mappedNodes map[string]data.Element, lin
 	return GoalNode{
 		IsRoot:      iStarNode.CustomProperties.Root == "true",
 		GoalTitle:   iStarNode.Text,
+		GoalId:      strings.Split(iStarNode.Text, ":")[0],
 		IStarID:     iStarNode.ID,
 		Utility:     utility,
 		Cost:        cost,

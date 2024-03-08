@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
+	"github.com/vieirin/goal-controller/goalmgmt/manager"
 )
 
 func main() {
@@ -13,7 +13,9 @@ func main() {
 		log.Fatal("Could not load model")
 		return
 	}
-	goals := modelTree.SequenceGoals()
-	fmt.Println(goals)
+	goals := modelTree.AllGoals()
+	manager.CreateControllerStateMachine(goals)
+
 	return
+
 }
