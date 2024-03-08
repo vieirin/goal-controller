@@ -1,5 +1,7 @@
 package goalModel
 
+import "maps"
+
 type GoalNode struct {
 	IsRoot      bool
 	GoalTitle   string
@@ -18,11 +20,11 @@ type SequenceNode struct {
 	Node         *GoalNode
 }
 
-func (g *GoalNode) AllGoals() []GoalNode {
-	goals := []GoalNode{*g}
+func (g *GoalNode) AllGoals() map[string]GoalNode {
+	goals := map[string]GoalNode{g.GoalId: *g}
 	for _, goal := range g.Children {
 		childrenGoals := goal.AllGoals()
-		goals = append(goals, childrenGoals...)
+		maps.Copy(goals, childrenGoals)
 	}
 
 	return goals
