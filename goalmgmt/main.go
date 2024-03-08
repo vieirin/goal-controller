@@ -30,9 +30,10 @@ func main() {
 	stateMachine := manager.CreateControllerStateMachine(goals)
 	stateString := stateMachine.GetStateString(stateFile.Header)
 
-	initialState := stateFile.StateLines[stateString]
+	initialState := stateFile.StateMaps.StateToLine[stateString]
 	// fmt.Println(controllerFile.TransitionMap)
-	controllerFile.SequenceForInitialState(initialState)
+	plannedSequence := controllerFile.SequenceForInitialState(initialState)
+	stateFile.StatesMapFromSequence(plannedSequence)
 	return
 
 }

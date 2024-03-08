@@ -2,7 +2,6 @@ package prism
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -67,7 +66,7 @@ func ProcessControllerFile(path string) (*ControllerFile, error) {
 	}, nil
 }
 
-func (c ControllerFile) SequenceForInitialState(initialState string) {
+func (c ControllerFile) SequenceForInitialState(initialState string) []Transition {
 	sequence := []Transition{}
 
 	last := Transition{next: "-1"}
@@ -76,9 +75,10 @@ func (c ControllerFile) SequenceForInitialState(initialState string) {
 		sequence = append(sequence, transition)
 		last = transition
 	}
-	fmt.Print(initialState, " -> ")
-	for _, elem := range sequence {
-		fmt.Print(elem.next, " -> ")
-	}
-	fmt.Println()
+	// fmt.Print(initialState, " -> ")
+	// for _, elem := range sequence {
+	// 	fmt.Print(elem.next, " -> ")
+	// }
+	// fmt.Println()
+	return sequence
 }

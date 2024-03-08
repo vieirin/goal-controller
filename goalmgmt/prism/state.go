@@ -2,23 +2,32 @@ package prism
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
 
+type StateMap struct {
+	StateToLine map[string]string
+	LineToState map[string]string
+}
 type StateFile struct {
-	Header     string
-	StateLines map[string]string
+	Header    string
+	StateMaps StateMap
 }
 
-func transformStateLineInMap(stateLines []string) map[string]string {
-	stateMap := map[string]string{}
+func transformStateLineInMap(stateLines []string) StateMap {
+	stateToLine := map[string]string{}
+	lineToState := map[string]string{}
 	for _, line := range stateLines {
 		splittedLine := strings.Split(line, ":")
 		lineNumber, state := splittedLine[0], splittedLine[1]
-		stateMap[state] = lineNumber
+		stateToLine[state] = lineNumber
+		lineToState[lineNumber] = state
 	}
-	return stateMap
+	return StateMap{
+		StateToLine: stateToLine, LineToState: lineToState,
+	}
 }
 
 func ProcessStateFile(path string) (*StateFile, error) {
@@ -43,7 +52,17 @@ func ProcessStateFile(path string) (*StateFile, error) {
 	}
 
 	return &StateFile{
-		Header:     header,
-		StateLines: transformStateLineInMap(stateLines),
+		Header:    header,
+		StateMaps: transformStateLineInMap(stateLines),
 	}, nil
+}
+
+func (s *StateFile) StatesMapFromSequence(transitionSequence []Transition) {
+	stateSequence := []string{}
+	for _, transition := range transitionSequence {
+		stateSequence = append(stateSequence, s.StateMaps.LineToState[transition.next])
+	}
+	for i, elem := range stateSequence {
+		fmt.Println(transitionSequence[i].next, elem)
+	}
 }
