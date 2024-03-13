@@ -57,12 +57,10 @@ func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) Controlle
 
 }
 
-func (c ControllerStateMachine) GetStateString(header string) string {
+func (c ControllerStateMachine) GetStateString(header []string) string {
 	stateString := []string{}
-	header = strings.Replace(header, "(", "", 1)
-	header = strings.Replace(header, ")", "", 1)
-	headerStates := strings.Split(header, ",")
-	for _, state := range headerStates {
+
+	for _, state := range header {
 		goalState := strings.Split(state, "_")
 		if len(goalState) == 1 {
 			// handle system variables
@@ -91,5 +89,5 @@ func (c ControllerStateMachine) GetStateString(header string) string {
 		}
 	}
 
-	return "(" + strings.Join(stateString, ",") + ")"
+	return strings.Join(stateString, ",")
 }

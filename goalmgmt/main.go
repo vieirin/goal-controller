@@ -16,12 +16,12 @@ func main() {
 		return
 	}
 
-	stateFile, err := prism.ProcessStateFile("./states/states.sta")
+	stateFile, err := prism.ProcessStateFile("./states/state_list")
 	if err != nil {
 		log.Fatal("Could not load states file")
 	}
 
-	controllerFile, err := prism.ProcessControllerFile("./states/controller.txt")
+	controllerFile, err := prism.ProcessControllerFile("./states/adv.tra")
 	if err != nil {
 		log.Fatal("Could not load controller file")
 	}
@@ -35,7 +35,7 @@ func main() {
 	plannedSequence := controllerFile.SequenceForInitialState(initialState)
 
 	fmt.Println("initial state", initialState)
-	stateFile.StatesMapFromSequence(plannedSequence)
+	stateFile.StatesMapFromSequence(stateFile.Header, plannedSequence)
 	return
 
 }
