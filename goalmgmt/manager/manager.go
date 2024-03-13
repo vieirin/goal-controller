@@ -14,6 +14,10 @@ type GoalStateMachine struct {
 	Achieved   bool
 }
 
+func (g GoalStateMachine) Pursue() bool {
+	return true
+}
+
 func transformGoalIntoStateMachine(goal goalModel.GoalNode) GoalStateMachine {
 	return GoalStateMachine{
 		ID:         goal.GoalId,

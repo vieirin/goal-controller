@@ -70,10 +70,13 @@ func (c ControllerFile) SequenceForInitialState(initialState string) []Transitio
 	sequence := []Transition{}
 
 	last := Transition{next: "-1"}
-	for transition := c.TransitionMap[initialState][0]; transition.next != last.next; transition = c.TransitionMap[transition.next][0] {
+	for transition := c.TransitionMap[initialState][0]; transition.next != last.next; {
 		// decide how to handle different probabilities, currently picking the first elem in the array
 		sequence = append(sequence, transition)
 		last = transition
+		if _, ok := c.TransitionMap[transition.next]; ok {
+			transition = c.TransitionMap[transition.next][0]
+		}
 	}
 	// fmt.Print(initialState, " -> ")
 	// for _, elem := range sequence {

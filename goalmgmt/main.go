@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
@@ -31,8 +32,9 @@ func main() {
 	stateString := stateMachine.GetStateString(stateFile.Header)
 
 	initialState := stateFile.StateMaps.StateToLine[stateString]
-	// fmt.Println(controllerFile.TransitionMap)
 	plannedSequence := controllerFile.SequenceForInitialState(initialState)
+
+	fmt.Println("initial state", initialState)
 	stateFile.StatesMapFromSequence(plannedSequence)
 	return
 
