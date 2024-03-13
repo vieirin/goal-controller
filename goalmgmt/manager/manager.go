@@ -2,20 +2,36 @@ package manager
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
+	"github.com/vieirin/goal-controller/goalmgmt/prism"
 )
+
+var goalProbabilities = map[string]float64{
+	"G2":  0.9,
+	"G3a": 0.9,
+	"G3b": 0.9,
+	"G4a": 0,
+	"G5":  0.9,
+	"G6a": 0.9,
+	"G6b": 0.9,
+}
 
 type GoalStateMachine struct {
 	ID         string
 	Pursued    int
 	Achievable bool
 	Achieved   bool
+	isVariant  bool
+	children   []goalModel.GoalNode
 }
 
 func (g GoalStateMachine) Pursue() bool {
-	return true
+	// Generate a random number between 0.0 and 1.0
+	randomNumber := rand.Float64()
+	return randomNumber <= goalProbabilities[g.ID]
 }
 
 func transformGoalIntoStateMachine(goal goalModel.GoalNode) GoalStateMachine {
@@ -24,6 +40,8 @@ func transformGoalIntoStateMachine(goal goalModel.GoalNode) GoalStateMachine {
 		Pursued:    0,
 		Achievable: true,
 		Achieved:   false,
+		isVariant:  goal.Alternative,
+		children:   goal.Children,
 	}
 }
 
@@ -33,20 +51,43 @@ type controllerInternalState struct {
 	fail bool
 	t    bool
 }
+type VariantInfo struct {
+	variantRootId string
+	variants      map[string]*GoalStateMachine
+}
 type ControllerStateMachine struct {
-	goals         map[string]GoalStateMachine
+	goals         map[string]*GoalStateMachine
+	variants      map[string]*VariantInfo
 	internalState controllerInternalState
 }
 
+func variantGoals(goals map[string]*GoalStateMachine) map[string]*VariantInfo {
+	variants := map[string]*VariantInfo{}
+	for goalId, goal := range goals {
+		if goal.isVariant {
+			variantChildren := map[string]*GoalStateMachine{}
+			for _, child := range goal.children {
+				variantChildren[child.GoalId] = goals[goalId]
+			}
+			variants[goalId] = &VariantInfo{
+				variantRootId: goalId,
+				variants:      variantChildren,
+			}
+		}
+	}
+	return variants
+}
+
 func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) ControllerStateMachine {
-	stateGoals := map[string]GoalStateMachine{}
+	stateGoals := map[string]*GoalStateMachine{}
 	for id, goal := range goals {
 		transformedGoal := transformGoalIntoStateMachine(goal)
-		stateGoals[id] = transformedGoal
+		stateGoals[id] = &transformedGoal
 	}
 
 	return ControllerStateMachine{
-		goals: stateGoals,
+		goals:    stateGoals,
+		variants: variantGoals(stateGoals),
 		internalState: controllerInternalState{
 			n:    0,
 			step: 0,
@@ -57,7 +98,7 @@ func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) Controlle
 
 }
 
-func (c ControllerStateMachine) GetStateString(header []string) string {
+func (c *ControllerStateMachine) GetStateString(header []string) string {
 	stateString := []string{}
 
 	for _, state := range header {
@@ -81,7 +122,21 @@ func (c ControllerStateMachine) GetStateString(header []string) string {
 		goal := c.goals[goalId]
 		switch state_desc {
 		case "pursued":
-			stateString = append(stateString, fmt.Sprintf("%d", goal.Pursued))
+			if variant, ok := c.variants[goalId]; ok {
+				hasBeenPursued := false
+				for childVariant := range variant.variants {
+					fmt.Println("p", c.goals[childVariant].Pursued)
+					if pursed := c.goals[childVariant].Pursued; pursed != 0 {
+						stateString = append(stateString, fmt.Sprintf("%d", pursed))
+						hasBeenPursued = true
+					}
+				}
+				if !hasBeenPursued {
+					stateString = append(stateString, "0")
+				}
+			} else {
+				stateString = append(stateString, fmt.Sprintf("%d", goal.Pursued))
+			}
 		case "achievable":
 			stateString = append(stateString, fmt.Sprintf("%t", goal.Achievable))
 		case "achieved":
@@ -90,4 +145,57 @@ func (c ControllerStateMachine) GetStateString(header []string) string {
 	}
 
 	return strings.Join(stateString, ",")
+}
+
+// 1 => a, 2 => b ...
+func getVariantName(variant int) string {
+	asciiCode := 96 + variant
+	variantName := string(rune(asciiCode))
+	return variantName
+}
+
+func (c *ControllerStateMachine) getGoalForVariant(goalId string, variant int) *GoalStateMachine {
+	goalIdWithVariant := goalId + getVariantName(variant)
+	var goal *GoalStateMachine
+	// some goals may have variants so we try it first
+	if maybeGoalWithVariant, ok := c.goals[goalIdWithVariant]; ok {
+		goal = maybeGoalWithVariant
+	} else {
+		goal = c.goals[goalId]
+	}
+	return goal
+}
+
+func (c *ControllerStateMachine) Execute(executionPlan []prism.PlanItem) {
+	c.internalState.step = 0
+
+	for _, goalPlan := range executionPlan {
+		goal := c.getGoalForVariant(goalPlan.GoalId, goalPlan.Variant)
+		pursueResult := goal.Pursue()
+		fmt.Println(goal.ID, pursueResult)
+		if pursueResult {
+			// perform effects for when it succeds
+			goal.Pursued = goalPlan.Variant
+			goal.Achieved = true
+		} else {
+			// perform effects for when it fails
+			goal.Achievable = false
+			c.internalState.fail = true
+			// we shouldn't peform new goals until a new plan is defined
+			break
+		}
+		c.internalState.step++
+	}
+
+	if !c.internalState.fail && c.internalState.step == len(executionPlan) {
+		fmt.Println("Success")
+		c.internalState.step++
+	}
+
+	if c.internalState.step == len(executionPlan)+1 {
+		fmt.Println("Should send signal to stop")
+	}
+
+	c.internalState.fail = false
+	c.internalState.t = true
 }

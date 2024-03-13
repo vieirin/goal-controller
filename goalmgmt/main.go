@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
 	"github.com/vieirin/goal-controller/goalmgmt/manager"
@@ -16,12 +17,12 @@ func main() {
 		return
 	}
 
-	stateFile, err := prism.ProcessStateFile("./states/state_list")
+	stateFile, err := prism.ProcessStateFile("./states/states.sta")
 	if err != nil {
 		log.Fatal("Could not load states file")
 	}
 
-	controllerFile, err := prism.ProcessControllerFile("./states/adv.tra")
+	controllerFile, err := prism.ProcessControllerFile("./states/controller.txt")
 	if err != nil {
 		log.Fatal("Could not load controller file")
 	}
@@ -30,12 +31,29 @@ func main() {
 
 	stateMachine := manager.CreateControllerStateMachine(goals)
 	stateString := stateMachine.GetStateString(stateFile.Header)
+	fmt.Println("initial state", stateString)
 
 	initialState := stateFile.StateMaps.StateToLine[stateString]
 	plannedSequence := controllerFile.SequenceForInitialState(initialState)
 
-	fmt.Println("initial state", initialState)
-	stateFile.StatesMapFromSequence(stateFile.Header, plannedSequence)
-	return
+	executionPlan := stateFile.PlanFromTransitionSequence(stateFile.Header, plannedSequence)
+
+	// transition
+	stateMachine.Execute(executionPlan)
+
+	stateString = stateMachine.GetStateString(stateFile.Header)
+
+	nextState := stateFile.StateMaps.StateToLine[stateString]
+	state := strings.Split(stateString, ",")
+	fmt.Println(stateString)
+	for i, head := range stateFile.Header {
+		fmt.Print(head, " ")
+		fmt.Print(state[i])
+		fmt.Println()
+	}
+	fmt.Printf("n", nextState)
+
+	// plannedSequence = controllerFile.SequenceForInitialState(nextState)
+	// executionPlan = stateFile.PlanFromTransitionSequence(stateFile.Header, plannedSequence)
 
 }

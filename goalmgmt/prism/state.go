@@ -3,7 +3,9 @@ package prism
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -62,45 +64,73 @@ func ProcessStateFile(path string) (*StateFile, error) {
 	}, nil
 }
 
-func (s *StateFile) StatesMapFromSequence(header []string, transitionSequence []Transition) {
-	stateSequence := []map[string]string{}
+// return an array where each line has a decoded state for a given state
+// given a transition sequence 1114 -> 34664, then
+// [
+//
+//	{G2_achievable:true G2_achieved:false ... fail:false n:5 step:0 t:true}, // line 1114 as a decoded state map
+//	{G2_achievable:true G2_achieved:false ... fail:false n:5 step:0 t:true} // line 34664 as a decoded state map
+//
+// ]
+func (s *StateFile) stateSequence(header []string, transitionSequence []Transition) []map[string]string {
+	stateSeq := []map[string]string{}
 	for _, transition := range transitionSequence {
 		itemMap := map[string]string{}
+		// split line for transition.next in its commas then align header and states array
 		states := strings.Split(s.StateMaps.LineToState[transition.next], ",")
+
+		// header: ["G2_pursued", "G3_pursued", "G4_pursued", "G5_pursued", "G6_pursued", ...]
+		// states: ["1", "1", "1", "0", "0", "0", ...]
+		// itemMap: {G2_pursued: "1", G3_pursued: "1", G4_pursued: "1", G5_pursued: "0", ...}
 		for i, headerName := range header {
 			itemMap[headerName] = states[i]
 		}
-		stateSequence = append(stateSequence, itemMap)
+		stateSeq = append(stateSeq, itemMap)
 	}
-	// for i, elem := range stateSequence {
-	// 	fmt.Println(transitionSequence[i].next, elem)
-	// }
+	return stateSeq
+}
 
-	// statemachine.transition()
-	plan := []string{}
-	for _, state := range stateSequence {
-		if isPlanningStep := state["n"] == "5"; !isPlanningStep {
-			continue
-		}
+func printStateSequence(transitionSequence []Transition, sequence []map[string]string) {
+	for i, transition := range transitionSequence {
+		fmt.Println(transition.next, sequence[i])
+	}
+}
 
-		if inChangeMode := state["t"] == "false"; inChangeMode {
-			continue
-		}
+type PlanItem struct {
+	GoalId  string
+	Variant int
+}
 
-		for _, headerName := range header {
-			value := state[headerName]
+func (s *StateFile) PlanFromTransitionSequence(header []string, transitionSequence []Transition) []PlanItem {
+	stateSeq := s.stateSequence(header, transitionSequence)
+	// printStateSequence(transitionSequence, stateSeq)
 
-			splittedKey := strings.Split(headerName, "_")
-			if len(splittedKey) > 1 {
-				if splittedKey[1] == "pursued" && value != "0" {
-					fmt.Println(state)
-					plan = append(plan, splittedKey[0]+"_"+value)
+	plan := []PlanItem{}
+	for i, state := range stateSeq {
+		// stop at line right before t == "false" for extracting planning
+		// this is where the goalMgmt has ended its turn in prism model and where the planing is ready
+		// to be read
+		if i < len(stateSeq)-1 && stateSeq[i+1]["t"] == "false" {
+			for _, headerName := range header {
+				value := state[headerName]
+				// variables become an array like
+				// ["G2", "PURSUED"], ["n"]
+				splittedKey := strings.Split(headerName, "_")
+				if len(splittedKey) > 1 {
+					// variables pursued with value != 0 are appended to the plan
+					if splittedKey[1] == "pursued" && value != "0" {
+						goalId := splittedKey[0]
+						variant, err := strconv.Atoi(value)
+						if err != nil {
+							log.Fatal("Expected pursued value to be a number, goalId: ", goalId)
+						}
+						plan = append(plan, PlanItem{GoalId: goalId, Variant: variant})
+					}
 				}
 			}
+			break
 		}
-		plan = append(plan, " ")
 	}
 
-	fmt.Println(plan)
-
+	return plan
 }
