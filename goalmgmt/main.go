@@ -46,12 +46,13 @@ func main() {
 		// state string representing the whole system state
 		stateString := stateMachine.GetStateString(stateFile.Header)
 
+		// find number line related to the given controller state
 		state := stateFile.StateMaps.StateToLine[stateString]
 		if state == "" {
 			log.Fatal("Could not find state in state map:", stateString)
 			break
 		}
-		debugState(stateFile.Header, stateString)
+		// debugState(stateFile.Header, stateString)
 
 		// get sequence of states for a given state
 		plannedSequence := controllerFile.SequenceForInitialState(state)

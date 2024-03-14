@@ -101,6 +101,7 @@ func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) Controlle
 
 }
 
+// create state string following the order defined by the header
 func (c *ControllerStateMachine) GetStateString(header []string) string {
 	stateString := []string{}
 	for _, state := range header {
@@ -146,6 +147,8 @@ func getVariantName(variant int) string {
 	return variantName
 }
 
+// returns a goal object for a given goalId and a variant
+// handles the case where the goal is or isn't a variant
 func (c *ControllerStateMachine) getGoalForVariant(goalId string, variant int) *GoalStateMachine {
 	goalIdWithVariant := goalId + getVariantName(variant)
 	var goal *GoalStateMachine
@@ -161,16 +164,16 @@ func (c *ControllerStateMachine) getGoalForVariant(goalId string, variant int) *
 func (c *ControllerStateMachine) Execute(executionPlan []prism.PlanItem) {
 	c.internalState.step = 0
 
-	for _, goalPlan := range executionPlan {
-		goal := c.getGoalForVariant(goalPlan.GoalId, goalPlan.Variant)
+	for _, goalInPlan := range executionPlan {
+		goal := c.getGoalForVariant(goalInPlan.GoalId, goalInPlan.Variant)
 		pursueResult := goal.Pursue()
 		fmt.Println(goal.ID, pursueResult)
 
 		// Pursuing effects
-		goal.Pursued = goalPlan.Variant
+		goal.Pursued = goalInPlan.Variant
 		// update variant with last pursued goal
-		if variant, ok := c.variants[goalPlan.GoalId]; ok {
-			variant.lastPursued = goalPlan.Variant
+		if variant, isVariant := c.variants[goalInPlan.GoalId]; isVariant {
+			variant.lastPursued = goalInPlan.Variant
 		}
 
 		if pursueResult {
