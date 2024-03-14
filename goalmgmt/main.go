@@ -10,6 +10,17 @@ import (
 	"github.com/vieirin/goal-controller/goalmgmt/prism"
 )
 
+func debugState(header []string, stateString string) {
+	stateSplit := strings.Split(stateString, ",")
+	fmt.Println(stateString)
+	for i, head := range header {
+		fmt.Print(head, " ")
+		fmt.Print(stateSplit[i])
+		fmt.Println()
+	}
+
+}
+
 func main() {
 	modelTree := goalModel.Digest("../examples/edgeModel.txt")
 	if modelTree == nil {
@@ -30,30 +41,29 @@ func main() {
 	goals := modelTree.AllGoals()
 
 	stateMachine := manager.CreateControllerStateMachine(goals)
-	stateString := stateMachine.GetStateString(stateFile.Header)
-	fmt.Println("initial state", stateString)
 
-	initialState := stateFile.StateMaps.StateToLine[stateString]
-	plannedSequence := controllerFile.SequenceForInitialState(initialState)
+	for {
+		// state string representing the whole system state
+		stateString := stateMachine.GetStateString(stateFile.Header)
 
-	executionPlan := stateFile.PlanFromTransitionSequence(stateFile.Header, plannedSequence)
+		state := stateFile.StateMaps.StateToLine[stateString]
+		if state == "" {
+			log.Fatal("Could not find state in state map:", stateString)
+			break
+		}
+		debugState(stateFile.Header, stateString)
 
-	// transition
-	stateMachine.Execute(executionPlan)
+		// get sequence of states for a given state
+		plannedSequence := controllerFile.SequenceForInitialState(state)
 
-	stateString = stateMachine.GetStateString(stateFile.Header)
+		// trace execution plan from transition sequence
+		executionPlan := stateFile.PlanFromTransitionSequence(stateFile.Header, plannedSequence)
 
-	nextState := stateFile.StateMaps.StateToLine[stateString]
-	state := strings.Split(stateString, ",")
-	fmt.Println(stateString)
-	for i, head := range stateFile.Header {
-		fmt.Print(head, " ")
-		fmt.Print(state[i])
-		fmt.Println()
+		// Execute plan
+		fmt.Println("==========")
+		fmt.Println("Executing")
+		fmt.Println("exec plan", executionPlan)
+		stateMachine.Execute(executionPlan)
 	}
-	fmt.Printf("n", nextState)
-
-	// plannedSequence = controllerFile.SequenceForInitialState(nextState)
-	// executionPlan = stateFile.PlanFromTransitionSequence(stateFile.Header, plannedSequence)
 
 }

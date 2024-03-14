@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strings"
 
@@ -14,8 +15,9 @@ var goalProbabilities = map[string]float64{
 	"G3a": 0.9,
 	"G3b": 0.9,
 	"G4a": 0,
+	"G4b": 0.9,
 	"G5":  0.9,
-	"G6a": 0.9,
+	"G6a": 0,
 	"G6b": 0.9,
 }
 
@@ -53,6 +55,7 @@ type controllerInternalState struct {
 }
 type VariantInfo struct {
 	variantRootId string
+	lastPursued   int
 	variants      map[string]*GoalStateMachine
 }
 type ControllerStateMachine struct {
@@ -100,7 +103,6 @@ func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) Controlle
 
 func (c *ControllerStateMachine) GetStateString(header []string) string {
 	stateString := []string{}
-
 	for _, state := range header {
 		goalState := strings.Split(state, "_")
 		if len(goalState) == 1 {
@@ -123,17 +125,7 @@ func (c *ControllerStateMachine) GetStateString(header []string) string {
 		switch state_desc {
 		case "pursued":
 			if variant, ok := c.variants[goalId]; ok {
-				hasBeenPursued := false
-				for childVariant := range variant.variants {
-					fmt.Println("p", c.goals[childVariant].Pursued)
-					if pursed := c.goals[childVariant].Pursued; pursed != 0 {
-						stateString = append(stateString, fmt.Sprintf("%d", pursed))
-						hasBeenPursued = true
-					}
-				}
-				if !hasBeenPursued {
-					stateString = append(stateString, "0")
-				}
+				stateString = append(stateString, fmt.Sprintf("%d", variant.lastPursued))
 			} else {
 				stateString = append(stateString, fmt.Sprintf("%d", goal.Pursued))
 			}
@@ -173,9 +165,16 @@ func (c *ControllerStateMachine) Execute(executionPlan []prism.PlanItem) {
 		goal := c.getGoalForVariant(goalPlan.GoalId, goalPlan.Variant)
 		pursueResult := goal.Pursue()
 		fmt.Println(goal.ID, pursueResult)
+
+		// Pursuing effects
+		goal.Pursued = goalPlan.Variant
+		// update variant with last pursued goal
+		if variant, ok := c.variants[goalPlan.GoalId]; ok {
+			variant.lastPursued = goalPlan.Variant
+		}
+
 		if pursueResult {
 			// perform effects for when it succeds
-			goal.Pursued = goalPlan.Variant
 			goal.Achieved = true
 		} else {
 			// perform effects for when it fails
@@ -184,6 +183,7 @@ func (c *ControllerStateMachine) Execute(executionPlan []prism.PlanItem) {
 			// we shouldn't peform new goals until a new plan is defined
 			break
 		}
+
 		c.internalState.step++
 	}
 
@@ -194,8 +194,9 @@ func (c *ControllerStateMachine) Execute(executionPlan []prism.PlanItem) {
 
 	if c.internalState.step == len(executionPlan)+1 {
 		fmt.Println("Should send signal to stop")
+		log.Fatal("STOP SIGNAL")
 	}
 
 	c.internalState.fail = false
-	c.internalState.t = true
+	c.internalState.step = 0
 }

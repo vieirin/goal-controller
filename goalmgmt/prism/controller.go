@@ -2,7 +2,6 @@ package prism
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -71,7 +70,6 @@ func (c ControllerFile) SequenceForInitialState(initialState string) []Transitio
 	sequence := []Transition{{next: initialState}}
 
 	last := Transition{next: "-1"}
-	fmt.Println(initialState)
 	for transition := c.TransitionMap[initialState][0]; transition.next != last.next; {
 		// decide how to handle different probabilities, currently picking the first elem in the array
 		sequence = append(sequence, transition)
