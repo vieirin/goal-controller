@@ -20,7 +20,7 @@ ${goalControllerVariables({ grouppedGoals })}
 
 ${goalTransitions({ gm, grouppedGoals })}
   // Controller done
-  [controller_done] t & (n=5) -> 1:(n'=0);
+  [controller_done] t & (n=${goalsLength}) -> 1:(n'=0);
 endmodule`;
 };
 
