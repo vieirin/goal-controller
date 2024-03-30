@@ -1,6 +1,6 @@
 import { groupBy } from 'lodash';
+import { GoalTree, Relation } from '../ObjectiveTree/types';
 import { goalRootId, leafGoals } from '../ObjectiveTree/utils';
-import { GoalTree, Model, Relation } from '../ObjectiveTree/types';
 
 export type GrouppedGoals = ReturnType<typeof leavesGrouppedGoals>;
 export const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>

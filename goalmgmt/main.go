@@ -54,7 +54,7 @@ func main() {
 		}
 		// debugState(stateFile.Header, stateString)
 
-		// get sequence of states for a given state
+		// get sequence of transitions for a given state
 		plannedSequence := controllerFile.SequenceForInitialState(state)
 
 		// trace execution plan from transition sequence

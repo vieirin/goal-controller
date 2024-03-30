@@ -10,7 +10,6 @@ if (!process.argv.length) {
 
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
-
 // console.log(egdeMDPTemplate({ gm: tree }));
 
 writeFile('output/edge.mp', egdeMDPTemplate({ gm: tree }), function (err) {

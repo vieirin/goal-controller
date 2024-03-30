@@ -1,5 +1,5 @@
 import { GoalNode, GoalTree } from '../ObjectiveTree/types';
-import { allGoalsList, allGoalsMap, goalRootId } from '../ObjectiveTree/utils';
+import { allGoalsMap, goalRootId } from '../ObjectiveTree/utils';
 import {
   achieved,
   achievedOrPursued,

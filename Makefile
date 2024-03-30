@@ -9,8 +9,8 @@ grammar:
 	antlr4 -Dlanguage=TypeScript grammar/RTRegex.g4 && mv grammar/*.ts src/antlr
 
 run: grammar
-	ts-node src/index.ts $(ARGS)
+	yarn run ts-node src/index.ts $(ARGS)
 
 exec: node_modules grammar
-	ts-node src/index.ts ./examples/edgeModel.txt 
+	yarn run ts-node -- src/index.ts ./examples/edgeModel.txt 
 
