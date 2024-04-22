@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/vieirin/goal-controller/goalmgmt/goalModel"
@@ -22,18 +23,24 @@ func debugState(header []string, stateString string) {
 }
 
 func main() {
-	modelTree := goalModel.Digest("../examples/edgeModel.txt")
+	argsWithoutProg := os.Args[1:]
+	if len(argsWithoutProg) != 3 {
+		log.Fatal("Usage: goalmgmt <model.txt> <statesMap.sta> <controllerTransitions.txt>")
+		return
+	}
+
+	modelTree := goalModel.Digest(argsWithoutProg[0])
 	if modelTree == nil {
 		log.Fatal("Could not load model")
 		return
 	}
 
-	stateFile, err := prism.ProcessStateFile("./states/states.sta")
+	stateFile, err := prism.ProcessStateFile(argsWithoutProg[1])
 	if err != nil {
 		log.Fatal("Could not load states file")
 	}
 
-	controllerFile, err := prism.ProcessControllerFile("./states/controller.txt")
+	controllerFile, err := prism.ProcessControllerFile(argsWithoutProg[2])
 	if err != nil {
 		log.Fatal("Could not load controller file")
 	}
