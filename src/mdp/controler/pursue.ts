@@ -42,8 +42,10 @@ export const variantsPursue = ({
   conditions: ConditionDependency[];
 }) => {
   const goalIds = conditions.map(({ goal }) => goal);
+
   return [
     ...conditions.map((condition) => {
+      console.log(pursueAchieved(goalIds));
       return {
         variant: condition.goal,
         sentence: [
