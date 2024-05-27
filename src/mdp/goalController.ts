@@ -16,6 +16,8 @@ import {
 } from './common';
 import { conditionalTree } from './conditionalTree';
 import { dependency } from './controler/dependency';
+import { variantsPursue, variantsPursueDefault } from './controler/pursue';
+import { variantsSkip } from './controler/skip';
 
 const controllerVariables = ({
   grouppedGoals,
@@ -58,41 +60,57 @@ export const goalControllerVariables = ({
 const goalConditions = ({
   conditions,
 }: {
-  conditions: ConditionDependency[];
+  conditions: ConditionDependency[][];
 }) =>
-  conditions.map((condition) => {
-    const goal = condition.goal;
-    return {
-      rootGoal: goalRootId({ id: goal }),
-      sentences: {
-        skip: parenthesis(
-          [
-            achieved(goal),
-            not(achievable(goal)),
-            not(dependency({ condition, negateItems: false, sep: 'or' })),
-          ]
-            .filter(Boolean)
-            .join(separator('or'))
-        ),
-        pursueDefault: [
-          not(achieved(goal)),
-          achievable(goal),
-          dependency({ condition, negateItems: false, sep: 'or' }),
-        ]
-          .filter(Boolean)
-          .join(separator('and')),
-        pursueVariant: {
-          variant: goal,
-          sentence: [
+  conditions.map((goalConditions) => {
+    const isVariant = goalConditions.length > 1;
+    if (!isVariant) {
+      const condition = goalConditions[0];
+      const goal = condition.goal;
+      return {
+        rootGoal: goalRootId({ id: goal }),
+        sentences: {
+          skip: parenthesis(
+            [
+              achieved(goal),
+              not(achievable(goal)),
+              not(dependency({ condition, negateItems: false, sep: 'or' })),
+            ]
+              .filter(Boolean)
+              .join(separator('or'))
+          ),
+          pursueDefault: [
             not(achieved(goal)),
             achievable(goal),
             dependency({ condition, negateItems: false, sep: 'or' }),
           ]
             .filter(Boolean)
             .join(separator('and')),
+          pursueVariants: [
+            {
+              variant: goal,
+              sentence: [
+                not(achieved(goal)),
+                achievable(goal),
+                dependency({ condition, negateItems: false, sep: 'or' }),
+              ]
+                .filter(Boolean)
+                .join(separator('and')),
+            },
+          ],
         },
+      };
+    }
+
+    return {
+      hasVariant: true,
+      rootGoal: goalRootId({ id: goalConditions[0].goal }),
+      sentences: {
+        skip: variantsSkip({ conditions: goalConditions }),
+        pursueDefault: variantsPursueDefault({ conditions: goalConditions }),
+        pursueVariants: variantsPursue({ conditions: goalConditions }),
       },
-    };
+    } as const;
   });
 
 const startCondition = ({ n }: { n: number }) => `t & (n=${n})`;
@@ -155,14 +173,19 @@ export const goalTransitions = ({
     sentence: sentences.pursueDefault,
     n,
   })}
-  ${goalSentence({
-    state: pursue(sentences.pursueVariant.variant),
-    rootGoal,
-    n,
-    sentence: sentences.pursueVariant.sentence,
-    goalValue: 1,
-  })}
-`;
+${sentences.pursueVariants
+  .map(({ sentence, variant }, i) => {
+    return goalSentence({
+      state: pursue(variant),
+      rootGoal,
+      n,
+      sentence,
+      goalValue: i + 1,
+    });
+  })
+  .map((s) => `  ${s}`)
+  .join('\n')}
+  `;
   });
   return sentences.join('\n\n');
 };

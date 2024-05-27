@@ -46,7 +46,9 @@ export const allGoalsMap = ({
   );
 };
 
-export const goalRootId = ({ id }: { id: string }) => id.slice(0, 3);
+export const goalRootId = ({ id }: { id: string }) => {
+  return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 1) + 1);
+};
 
 export const leafGoals = ({ gm }: { gm: GoalTree | undefined }) => {
   const leaves = allGoalsList({ gm })?.filter((goal) => !goal.children?.length);

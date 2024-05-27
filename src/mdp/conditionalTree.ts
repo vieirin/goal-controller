@@ -9,7 +9,7 @@ export const conditionalTree = ({
   grouppedGoals: GrouppedGoals;
   gm: GoalTree;
 }) => {
-  return Object.values(grouppedGoals).flatMap((variants) =>
+  return Object.values(grouppedGoals).map((variants) =>
     variants.map((variant) => resolveDependency({ gm, goal: variant }))
   );
 };
