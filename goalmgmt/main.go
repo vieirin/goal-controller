@@ -25,7 +25,7 @@ func debugState(header []string, stateString string) {
 func main() {
 	argsWithoutProg := os.Args[1:]
 	if len(argsWithoutProg) != 3 {
-		log.Fatal("Usage: goalmgmt <model.txt> <statesMap.sta> <controllerTransitions.txt>")
+		log.Fatal("Usage: goalmgmt <model.txt> <statesMap.sta> <controllerTransitions.tra>")
 		return
 	}
 
