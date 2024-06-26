@@ -87,7 +87,6 @@ func CreateControllerStateMachine(goals map[string]goalModel.GoalNode) Controlle
 			t:    true,
 		},
 	}
-
 }
 
 // create state string following the order defined by the header
