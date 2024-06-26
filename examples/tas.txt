@@ -1,0 +1,293 @@
+{
+  "actors": [
+    {
+      "id": "831620ba-bda2-4425-a58d-64ef6952db56",
+      "text": "TAS",
+      "type": "istar.Actor",
+      "x": 138,
+      "y": 45,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "c49b9dd9-27ba-4e4a-a946-c51977504312",
+          "text": "G1: Provide Health Support",
+          "type": "istar.Goal",
+          "x": 450,
+          "y": 45,
+          "customProperties": {
+            "root": "true"
+          }
+        },
+        {
+          "id": "aa54afa1-7f6a-44dc-8e25-555533321b60",
+          "text": "G2: Provide Automated Health Support",
+          "type": "istar.Goal",
+          "x": 335,
+          "y": 149,
+          "customProperties": {
+            "Description": "",
+            "panic_button_triggered": "true"
+          }
+        },
+        {
+          "id": "e2bf1d13-02a5-484a-af45-d1fcfad78276",
+          "text": "G3: Provide self-diagnosed support",
+          "type": "istar.Goal",
+          "x": 587,
+          "y": 146,
+          "customProperties": {
+            "Description": "",
+            "panic_button_triggered": "false"
+          }
+        },
+        {
+          "id": "031c45ab-b3f9-4120-ac0b-1a000703c6bb",
+          "text": "G4: Get vital params",
+          "type": "istar.Goal",
+          "x": 226,
+          "y": 283,
+          "customProperties": {
+            "Description": "",
+            "alt": "true"
+          }
+        },
+        {
+          "id": "9de696c1-b92b-4d56-8d86-707d48ac4188",
+          "text": "G5: Analyse data",
+          "type": "istar.Goal",
+          "x": 355,
+          "y": 284,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "4f2710c7-5379-4269-8757-27966a6b349d",
+          "text": "G6: Enact Treatment",
+          "type": "istar.Goal",
+          "x": 486,
+          "y": 283,
+          "customProperties": {
+            "Description": "",
+            "Patient_OK": "false"
+          }
+        },
+        {
+          "id": "160d1a31-9055-4a5e-9a81-f92e0d74eb61",
+          "text": "G7: Administer medicine",
+          "type": "istar.Goal",
+          "x": 447,
+          "y": 349,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "bee27194-5cd7-4efd-a69f-785836f396c4",
+          "text": "G8: Send alarm",
+          "type": "istar.Goal",
+          "x": 570,
+          "y": 355,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "bdff7f46-ba56-4057-a2e7-edd018d864d7",
+          "text": "G9: Drug Service",
+          "type": "istar.Goal",
+          "x": 452,
+          "y": 431,
+          "customProperties": {
+            "Description": "",
+            "alt": "true"
+          }
+        },
+        {
+          "id": "1f08a306-fa00-4b35-b8af-97c090feb4be",
+          "text": "G9a: Change Drug",
+          "type": "istar.Goal",
+          "x": 392,
+          "y": 505,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "365938fd-a84f-46f8-acf4-e7cd9eaa9271",
+          "text": "G9b: Change Dose",
+          "type": "istar.Goal",
+          "x": 523,
+          "y": 504,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "df20a8d5-ecc3-425b-adc7-e97169cc17fc",
+          "text": "G12: Send alarm",
+          "type": "istar.Goal",
+          "x": 636,
+          "y": 267,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "64a6f439-994b-4441-b232-95c5cf0e3bdc",
+          "text": "G4b: Get reduced params",
+          "type": "istar.Goal",
+          "x": 277,
+          "y": 376,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "168318be-a1a9-4e67-810a-af55b9da8214",
+          "text": "G4a: Get full params",
+          "type": "istar.Goal",
+          "x": 138,
+          "y": 378,
+          "customProperties": {
+            "Description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "6608c983-1150-4354-bc3d-b16ad96162e3",
+      "type": "istar.OrRefinementLink",
+      "source": "aa54afa1-7f6a-44dc-8e25-555533321b60",
+      "target": "c49b9dd9-27ba-4e4a-a946-c51977504312"
+    },
+    {
+      "id": "e9b5d13b-01ef-4c09-b1de-1241975fd0dd",
+      "type": "istar.OrRefinementLink",
+      "source": "e2bf1d13-02a5-484a-af45-d1fcfad78276",
+      "target": "c49b9dd9-27ba-4e4a-a946-c51977504312"
+    },
+    {
+      "id": "5452c735-3d90-4cf0-9ddf-4e61f7cb81a0",
+      "type": "istar.AndRefinementLink",
+      "source": "031c45ab-b3f9-4120-ac0b-1a000703c6bb",
+      "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
+    },
+    {
+      "id": "ed6d8159-dda0-47f4-a26d-bbe46486981e",
+      "type": "istar.AndRefinementLink",
+      "source": "9de696c1-b92b-4d56-8d86-707d48ac4188",
+      "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
+    },
+    {
+      "id": "2d080d16-98fc-4591-a118-ed1be1ef6a99",
+      "type": "istar.AndRefinementLink",
+      "source": "4f2710c7-5379-4269-8757-27966a6b349d",
+      "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
+    },
+    {
+      "id": "805044d4-c91f-4fa4-bba5-06679baeb59e",
+      "type": "istar.AndRefinementLink",
+      "source": "160d1a31-9055-4a5e-9a81-f92e0d74eb61",
+      "target": "4f2710c7-5379-4269-8757-27966a6b349d"
+    },
+    {
+      "id": "b4bc108d-a069-458e-ac9b-4d4d06b03f0e",
+      "type": "istar.AndRefinementLink",
+      "source": "bee27194-5cd7-4efd-a69f-785836f396c4",
+      "target": "4f2710c7-5379-4269-8757-27966a6b349d"
+    },
+    {
+      "id": "a299f5c9-6444-4a57-8087-e5d6d238faef",
+      "type": "istar.OrRefinementLink",
+      "source": "1f08a306-fa00-4b35-b8af-97c090feb4be",
+      "target": "bdff7f46-ba56-4057-a2e7-edd018d864d7"
+    },
+    {
+      "id": "e92f2404-dadd-4a52-873a-31716fdbcddc",
+      "type": "istar.OrRefinementLink",
+      "source": "365938fd-a84f-46f8-acf4-e7cd9eaa9271",
+      "target": "bdff7f46-ba56-4057-a2e7-edd018d864d7"
+    },
+    {
+      "id": "13ba152d-e801-486d-a117-699f146cb82d",
+      "type": "istar.AndRefinementLink",
+      "source": "bdff7f46-ba56-4057-a2e7-edd018d864d7",
+      "target": "160d1a31-9055-4a5e-9a81-f92e0d74eb61"
+    },
+    {
+      "id": "a7306332-f846-4a6f-b3a9-16f921a21a8a",
+      "type": "istar.AndRefinementLink",
+      "source": "df20a8d5-ecc3-425b-adc7-e97169cc17fc",
+      "target": "e2bf1d13-02a5-484a-af45-d1fcfad78276"
+    },
+    {
+      "id": "f98b171b-d65e-4791-af2b-7560fc9e5c82",
+      "type": "istar.OrRefinementLink",
+      "source": "168318be-a1a9-4e67-810a-af55b9da8214",
+      "target": "031c45ab-b3f9-4120-ac0b-1a000703c6bb"
+    },
+    {
+      "id": "563a01c0-5566-413a-a74b-7455032bebad",
+      "type": "istar.OrRefinementLink",
+      "source": "64a6f439-994b-4441-b232-95c5cf0e3bdc",
+      "target": "031c45ab-b3f9-4120-ac0b-1a000703c6bb"
+    }
+  ],
+  "display": {
+    "c49b9dd9-27ba-4e4a-a946-c51977504312": {
+      "width": 149.703125,
+      "height": 69.046875
+    },
+    "aa54afa1-7f6a-44dc-8e25-555533321b60": {
+      "width": 134.703125,
+      "height": 64.046875
+    },
+    "e2bf1d13-02a5-484a-af45-d1fcfad78276": {
+      "width": 168.703125,
+      "height": 61.546875
+    },
+    "031c45ab-b3f9-4120-ac0b-1a000703c6bb": {
+      "backgroundColor": "#5DD9FA"
+    },
+    "160d1a31-9055-4a5e-9a81-f92e0d74eb61": {
+      "width": 107.703125,
+      "height": 42.546875
+    },
+    "bdff7f46-ba56-4057-a2e7-edd018d864d7": {
+      "backgroundColor": "#5DD9FA"
+    },
+    "64a6f439-994b-4441-b232-95c5cf0e3bdc": {
+      "width": 119.609375,
+      "height": 57.046875
+    },
+    "168318be-a1a9-4e67-810a-af55b9da8214": {
+      "width": 109.609375,
+      "height": 54.546875
+    },
+    "e92f2404-dadd-4a52-873a-31716fdbcddc": {
+      "vertices": [
+        {
+          "x": 533,
+          "y": 492
+        }
+      ]
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Wed, 26 Jun 2024 13:08:18 GMT",
+  "diagram": {
+    "width": 1000,
+    "height": 700,
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}
