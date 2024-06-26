@@ -17,7 +17,9 @@
           "x": 450,
           "y": 45,
           "customProperties": {
-            "root": "true"
+            "root": "true",
+            "utility": "8",
+            "cost": "10"
           }
         },
         {
@@ -162,79 +164,79 @@
   "dependencies": [],
   "links": [
     {
-      "id": "6608c983-1150-4354-bc3d-b16ad96162e3",
+      "id": "a80b6597-ce4b-47dd-a1ab-9048b175ca5d",
       "type": "istar.OrRefinementLink",
       "source": "aa54afa1-7f6a-44dc-8e25-555533321b60",
       "target": "c49b9dd9-27ba-4e4a-a946-c51977504312"
     },
     {
-      "id": "e9b5d13b-01ef-4c09-b1de-1241975fd0dd",
+      "id": "61337c28-0427-449e-9a24-97bd9e35c2e2",
       "type": "istar.OrRefinementLink",
       "source": "e2bf1d13-02a5-484a-af45-d1fcfad78276",
       "target": "c49b9dd9-27ba-4e4a-a946-c51977504312"
     },
     {
-      "id": "5452c735-3d90-4cf0-9ddf-4e61f7cb81a0",
+      "id": "91d6554a-67ca-45a3-a37e-2d03e889fd70",
       "type": "istar.AndRefinementLink",
       "source": "031c45ab-b3f9-4120-ac0b-1a000703c6bb",
       "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
     },
     {
-      "id": "ed6d8159-dda0-47f4-a26d-bbe46486981e",
+      "id": "2639edcc-791c-4b2e-a62b-3a709c49bd43",
       "type": "istar.AndRefinementLink",
       "source": "9de696c1-b92b-4d56-8d86-707d48ac4188",
       "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
     },
     {
-      "id": "2d080d16-98fc-4591-a118-ed1be1ef6a99",
+      "id": "60b3a0a2-d6d2-42fc-a4c6-ca6384cbe832",
       "type": "istar.AndRefinementLink",
       "source": "4f2710c7-5379-4269-8757-27966a6b349d",
       "target": "aa54afa1-7f6a-44dc-8e25-555533321b60"
     },
     {
-      "id": "805044d4-c91f-4fa4-bba5-06679baeb59e",
+      "id": "5bfc8e8b-864d-49c0-85a3-94690ebafb3f",
       "type": "istar.AndRefinementLink",
       "source": "160d1a31-9055-4a5e-9a81-f92e0d74eb61",
       "target": "4f2710c7-5379-4269-8757-27966a6b349d"
     },
     {
-      "id": "b4bc108d-a069-458e-ac9b-4d4d06b03f0e",
+      "id": "0d18a258-9a31-4367-bdc0-312740afa025",
       "type": "istar.AndRefinementLink",
       "source": "bee27194-5cd7-4efd-a69f-785836f396c4",
       "target": "4f2710c7-5379-4269-8757-27966a6b349d"
     },
     {
-      "id": "a299f5c9-6444-4a57-8087-e5d6d238faef",
+      "id": "24c573cb-a07a-4264-82fa-1826c7e6e7d8",
       "type": "istar.OrRefinementLink",
       "source": "1f08a306-fa00-4b35-b8af-97c090feb4be",
       "target": "bdff7f46-ba56-4057-a2e7-edd018d864d7"
     },
     {
-      "id": "e92f2404-dadd-4a52-873a-31716fdbcddc",
+      "id": "e9ba9bc2-d6b5-4a69-9a89-53ec05ef4691",
       "type": "istar.OrRefinementLink",
       "source": "365938fd-a84f-46f8-acf4-e7cd9eaa9271",
       "target": "bdff7f46-ba56-4057-a2e7-edd018d864d7"
     },
     {
-      "id": "13ba152d-e801-486d-a117-699f146cb82d",
+      "id": "4719e95d-ce05-419c-8cc7-bbc8bb3fb778",
       "type": "istar.AndRefinementLink",
       "source": "bdff7f46-ba56-4057-a2e7-edd018d864d7",
       "target": "160d1a31-9055-4a5e-9a81-f92e0d74eb61"
     },
     {
-      "id": "a7306332-f846-4a6f-b3a9-16f921a21a8a",
+      "id": "ae8b938e-3156-4ba4-a6e6-77d335947029",
       "type": "istar.AndRefinementLink",
       "source": "df20a8d5-ecc3-425b-adc7-e97169cc17fc",
       "target": "e2bf1d13-02a5-484a-af45-d1fcfad78276"
     },
     {
-      "id": "f98b171b-d65e-4791-af2b-7560fc9e5c82",
+      "id": "e1dc60c1-9107-41a7-8325-1c1ed2b8f54c",
       "type": "istar.OrRefinementLink",
       "source": "168318be-a1a9-4e67-810a-af55b9da8214",
       "target": "031c45ab-b3f9-4120-ac0b-1a000703c6bb"
     },
     {
-      "id": "563a01c0-5566-413a-a74b-7455032bebad",
+      "id": "900885a6-f664-43b8-b1dd-7128ebf7cb12",
       "type": "istar.OrRefinementLink",
       "source": "64a6f439-994b-4441-b232-95c5cf0e3bdc",
       "target": "031c45ab-b3f9-4120-ac0b-1a000703c6bb"
@@ -271,7 +273,7 @@
       "width": 109.609375,
       "height": 54.546875
     },
-    "e92f2404-dadd-4a52-873a-31716fdbcddc": {
+    "e9ba9bc2-d6b5-4a69-9a89-53ec05ef4691": {
       "vertices": [
         {
           "x": 533,
@@ -282,7 +284,7 @@
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Wed, 26 Jun 2024 13:08:18 GMT",
+  "saveDate": "Wed, 26 Jun 2024 13:36:01 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,
