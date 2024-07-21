@@ -4,9 +4,11 @@ import { goalRootId } from '../ObjectiveTree/utils';
 import {
   achievable,
   achieved,
+  AND,
   equals,
   GrouppedGoals,
   not,
+  OR,
   parenthesis,
   pursue,
   pursued,
@@ -71,31 +73,31 @@ const goalConditions = ({
         rootGoal: goalRootId({ id: goal }),
         sentences: {
           skip: parenthesis(
-            [
-              achieved(goal),
-              not(achievable(goal)),
-              not(dependency({ condition, negateItems: false, sep: 'or' })),
-            ]
-              .filter(Boolean)
-              .join(separator('or'))
+            OR(
+              [
+                achieved(goal),
+                not(achievable(goal)),
+                not(dependency({ condition, negateItems: false, sep: 'or' })),
+              ].filter(Boolean)
+            )
           ),
-          pursueDefault: [
-            not(achieved(goal)),
-            achievable(goal),
-            dependency({ condition, negateItems: false, sep: 'or' }),
-          ]
-            .filter(Boolean)
-            .join(separator('and')),
+          pursueDefault: AND(
+            [
+              not(achieved(goal)),
+              achievable(goal),
+              dependency({ condition, negateItems: false, sep: 'or' }),
+            ].filter(Boolean)
+          ),
           pursueVariants: [
             {
               variant: goal,
-              sentence: [
-                not(achieved(goal)),
-                achievable(goal),
-                dependency({ condition, negateItems: false, sep: 'or' }),
-              ]
-                .filter(Boolean)
-                .join(separator('and')),
+              sentence: AND(
+                [
+                  not(achieved(goal)),
+                  achievable(goal),
+                  dependency({ condition, negateItems: false, sep: 'or' }),
+                ].filter(Boolean)
+              ),
             },
           ],
         },

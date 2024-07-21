@@ -32,6 +32,9 @@ export const pursue = (goalId: string) => `${goalId}_pursue`;
 export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
 export const skip = (goalId: string) => `${goalId}_skip`;
 
+export const OR = (elements: string[]) => elements.join(separator('or'));
+export const AND = (elements: string[]) => elements.join(separator('or'));
+
 export const equals = (operand: string, value: string | number) =>
   `${operand}=${value}`;
 export const greaterThan = (goal: string, than: number) => `${goal}>${than}`;
