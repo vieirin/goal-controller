@@ -57,11 +57,17 @@ export interface CustomProperties {
     alt?: string;
     utility: string;
     dependsOn?: string;
+    variables?: string;
+    uniqueChoice?: string;
   };
 }
 
 export type Relation = 'or' | 'and' | 'none';
 export type Type = 'goal' | 'task';
+export type Decision = {
+  decisionVars: { variable: string; space: number }[];
+  hasDecision: boolean;
+};
 export type GoalNode = {
   iStarId: id;
   id: string;
@@ -78,8 +84,9 @@ export type GoalNode = {
     alt: boolean;
     root: boolean | undefined;
     dependsOn: string[];
+    uniqueChoice: boolean;
     [k: string]: any;
   };
-};
+} & Decision;
 
 export type GoalTree = GoalNode[];

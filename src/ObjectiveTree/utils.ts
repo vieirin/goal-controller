@@ -1,6 +1,6 @@
 import { GoalNode, GoalTree } from './types';
 
-const allGoalsList = ({
+export const allGoalsList = ({
   gm,
   preferVariant = true,
 }: {
@@ -56,3 +56,20 @@ export const leafGoals = ({ gm }: { gm: GoalTree | undefined }) => {
 };
 
 export const isVariant = ({ variantOf }: GoalNode): boolean => !!variantOf;
+
+export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
+  if (arrays.length === 0) {
+    yield [];
+    return;
+  }
+
+  const [first, ...rest] = arrays;
+  for (const item of first) {
+    if (rest.length === 0) {
+      yield [item];
+    }
+    for (const subProduct of cartesianProduct(...rest)) {
+      yield [item, ...subProduct];
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { writeFile } from 'fs';
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
-import { egdeMDPTemplate } from './mdp/template';
+import { edgeDTMCTemplate } from './dtmc/template';
 
 if (!process.argv.length) {
   console.error('missing file param');
@@ -10,9 +10,9 @@ if (!process.argv.length) {
 
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
-// console.log(egdeMDPTemplate({ gm: tree }));
+console.log(edgeDTMCTemplate({ gm: tree }));
 
-writeFile('output/edge.mp', egdeMDPTemplate({ gm: tree }), function (err) {
+writeFile('output/edge.mp', edgeDTMCTemplate({ gm: tree }), function (err) {
   if (err) {
     return console.log(err);
   }

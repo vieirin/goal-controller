@@ -1,0 +1,210 @@
+dtmc
+
+
+//we encode states in which the controller make a specific decision with 
+//variables
+//For instance, G0 can be pursued or skipped whenever goal=0, i.e., the GM
+//investigates G0
+//We therefore add decision variables that depend on some (i) internal variables in the system
+//whose values the GM can access, (ii) estimates about variables in the system and environment
+//that the GM has some kind of information on, and (iii) information about previsously
+//pursued, chosen and achieved goals. The designers have to determine, which variables they want
+//to be present in the decision making for pursuing or skipping G0.
+//
+//Let's assume, that we want to make this decision based on some variable called 'time' in the
+//system. Let's further assume that 'time' goes from 0..9
+//We use the following variables to represent these system states: 
+const int decision_G0_0;
+const int decision_G0_1;
+const int decision_G0_2;
+const int decision_G0_3;
+const int decision_G0_4;
+const int decision_G0_5;
+const int decision_G0_6;
+const int decision_G0_7;
+const int decision_G0_8;
+const int decision_G0_9;
+//when we want to simulate or model check the model, we need to set values for these constants
+//One configuration for all constants represents one specific controller. 
+//All possible configurations (2^9) represent all possible controllers.
+
+//In general, we propose the following syntax for decision variables:
+//decision_X_Y_Z where X is the problem to be decided (e.g., G0), Y and Z are 
+//the variables this decision is made on. 
+//In general, any finite number of variables is allowed for Y and Z! The designers just need to 
+//watch out not to unnecessarily blow up the state space or search space!
+const int decision_X_Y_Z;
+const int decision_2_4_3;
+//when we want to simulate or model check, it might be easier to set values to these decision variables
+//when synthesising the model. We can do so by assigning a value directly:
+//const int decision_X_Y_Z = 5;
+
+//Once we want to use EvoChecker to perform an explorative search through all possible
+//controllers, we encode possible decision in the EvoChecker syntax:
+//EvoChecker syntax
+//evolve int decision_1_3_2 : [0..5];
+//Here, the decision can have any value from 0..5. 
+
+module GoalManager
+  goal : [0..8] init 0;
+  G0_pursued : [0..1] init 0;
+  G1_pursued : [0..2] init 0;
+  G2_pursued : [0..1] init 0;
+  G3_pursued : [0..1] init 0;
+  G3_chosen  : [0..2] init 0;
+  G4_pursued : [0..1] init 0;
+  G5_pursued : [0..2] init 0;
+  G6_pursued : [0..1] init 0;
+  G7_pursued : [0..1] init 0;
+  G8_pursued : [0..1] init 0;
+
+//Here you can see an example on how to encode the decision for G0
+  //G0
+  //Now we need to check what the controller decided: Is the decision variable for this state 0, we skip
+  //otherwise we pursue. 
+  //we need to add a guard to match each decision variable with the correct system state, i.e., 
+  //decision_G0_0 should only be used when time=0
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_0=1 & time=0 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_1=1 & time=1 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_2=1 & time=2 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_3=1 & time=3 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_4=1 & time=4 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_5=1 & time=5 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_6=1 & time=6 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_7=1 & time=7 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_8=1 & time=8 -> (G0_pursued'=1) & (goal'=1);
+  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_9=1 & time=9 -> (G0_pursued'=1) & (goal'=1);
+
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_0=0 & time=0 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_1=0 & time=1 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_2=0 & time=2 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_3=0 & time=3 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_4=0 & time=4 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_5=0 & time=5 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_6=0 & time=6 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_7=0 & time=7 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_8=0 & time=8 -> true;
+  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_9=0 & time=9 -> true;
+  [achievedG0] turn=0 & goal=0 -> true;
+
+  //G1
+  [pursueG1_2] turn=0 & goal=1 & G1_pursued=0 & G2_achieved=0 -> (G1_pursued'=1) & (goal'=2);
+  [pursueG1_3] turn=0 & goal=1 & G1_pursued=0 & G3_achieved=0 -> (G1_pursued'=2) & (goal'=3);
+  [skipG1] turn=0 & goal=1 & G1_pursued=0 & !(G2_achieved>0 & G3_achieved>0) -> (goal'=0) & (G0_pursued'=0);
+  [achievedG1] turn=0 & goal=1 -> (goal'=0);
+
+  //G2
+  [pursueG2] turn=0 & goal=2 & G2_pursued=0 & G2_achieved=0 -> (G2_pursued'=1);
+  [skipG2] turn=0 & goal=2 & G2_pursued=0 & G2_achieved=0 -> (goal'=1) & (G1_pursued'=0);
+  [tryG2] turn=0 & goal=2 & G2_pursued=1 -> (G2_pursued'=0);
+  [achievedG2] turn=0 & goal=2 -> (goal'=1) & (G1_pursued'=0); 
+
+  //G3
+  [pursueG3] turn=0 & goal=3 & G3_pursued=0 & G3_achieved=0 & G3_chosen=0 -> (G3_pursued'=1);
+  [pursueG3] turn=0 & goal=3 & G3_pursued=0 & G3_achieved=0 & G3_chosen=1 & G4_achieved=0 -> (G3_pursued'=1) & (goal'=4);
+  [pursueG3] turn=0 & goal=3 & G3_pursued=0 & G3_achieved=0 & G3_chosen=2 & G5_achieved=0 -> (G3_pursued'=1) & (goal'=5);
+  [skipG3] turn=0 & goal=3 & G3_pursued=0 -> (goal'=1) & (G1_pursued'=0);
+  [chooseG3_4] turn=0 & goal=3 & G3_pursued=1 & G3_chosen=0 -> (G3_chosen'=1) & (goal'=4);
+  [chooseG3_5] turn=0 & goal=3 & G3_pursued=1 & G3_chosen=0 -> (G3_chosen'=2) & (goal'=5);
+  [achievedG3] turn=0 & goal=3 -> (goal'=1) & (G1_pursued'=0);
+
+  //G4
+  [pursueG4_6] turn=0 & goal=4 & G4_pursued=0 & G6_achieved=0 -> (G4_pursued'=1) & (goal'=6);
+  [pursueG4_7] turn=0 & goal=4 & G4_pursued=0 & G7_achieved=0 -> (G4_pursued'=2) & (goal'=7);
+  [skipG4] turn=0 & goal=4 & G4_pursued=0 & !(G6_achieved>0 & G7_achieved>0) -> (goal'=3) & (G3_pursued'=0);
+  [achievedG4] turn=0 & goal=4 -> (goal'=3);
+
+  //G5
+  [pursueG5A] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 & G2_achieved=1 -> (G5_pursued'=1);
+  [pursueG5B] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 & G8_achieved=0 -> (G5_pursued'=2) & (goal'=8);
+  [skipG5] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 -> (goal'=3) & (G3_pursued'=0);
+  [tryG5A] turn=0 & goal=5 & G5_pursued=1 -> (G5_pursued'=0);
+  [achievedG5] turn=0 & goal=5 -> (goal'=3);  
+  [achievedG5B] turn=0 & goal=5 & G5B_achieved=0 -> true;  
+
+  //G6
+  [pursueG6] turn=0 & goal=6 & G6_pursued=0 & G6_achieved=0 & G2_achieved=1 -> (G6_pursued'=1);
+  [skipG6] turn=0 & goal=6 & G6_pursued=0 & G6_achieved=0 -> (goal'=4) & (G4_pursued'=0);
+  [tryG6] turn=0 & goal=6 & G6_pursued=1 -> (G6_pursued'=0);
+  [achievedG6] turn=0 & goal=6 -> (goal'=4) & (G4_pursued'=0); 
+
+  //G7
+  [pursueG7] turn=0 & goal=7 & G7_pursued=0 & G8_achieved=0 -> (G7_pursued'=1) & (goal'=8);
+  [skipG7] turn=0 & goal=7 & G7_pursued=0 & G8_achieved=0 -> (goal'=4);
+  [achievedG7] turn=0 & goal=7 -> (goal'=4) & (G4_pursued'=0);
+
+  //G8
+  [pursueG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 -> (G8_pursued'=1);
+  [skipG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 & G7_pursued=1 -> (goal'=7) & (G7_pursued'=0);
+  [skipG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 & G5_pursued=2 -> (goal'=5) & (G5_pursued'=0);
+  [tryG8] turn=0 & goal=8 & G8_pursued=1 -> (G8_pursued'=0);
+  [achievedG8] turn=0 & goal=8 & G7_pursued=1 -> (goal'=7); 
+  [achievedG8] turn=0 & goal=8 & G5_pursued=2 -> (goal'=5); 
+
+
+
+endmodule
+
+module ChangeManager
+  G0_achieved : [0..1] init 0;
+  G1_achieved : [0..1] init 0;
+  G2_achieved : [0..1] init 0;
+  G2_achievable_estimate: [0..1] init 1;
+  G3_achieved : [0..1] init 0;
+  G4_achieved : [0..1] init 0;
+  G5_achieved : [0..1] init 0;
+  G5A_achieved : [0..1] init 0;
+  G5B_achieved : [0..1] init 0;
+  G5A_achievable_estimate: [0..1] init 1;
+  G5B_achievable_estimate: [0..1] init 1;
+  G6_achieved : [0..1] init 0;
+  G6_achievable_estimate: [0..1] init 1;
+  G7_achieved : [0..1] init 0;
+  G8_achieved : [0..1] init 0;
+  G8_achievable_estimate: [0..1] init 1;
+
+  [achievedG0] G1_achieved>0 -> (G0_achieved'=1);
+  [achievedG1] G2_achieved>0 & G3_achieved>0 -> (G1_achieved'=1);
+  [tryG2] true -> (G2_achieved'=G2_achievable_actual) & (G2_achievable_estimate'=G2_achievable_actual);
+  [achievedG2] G2_achieved>0 -> (G2_achieved'=1);
+  [achievedG3] (G4_achieved>0 & G3_chosen=1) | (G5_achieved>0 & G3_chosen=2) -> (G3_achieved'=1);
+  [achievedG4] G6_achieved>0 & G7_achieved>0 -> (G4_achieved'=1);
+  [achievedG5] G5A_achieved>0 | G5B_achieved>0 -> (G5_achieved'=1);
+  [achievedG5B] G8_achieved>0 -> (G5B_achieved'=1);
+  [tryG5A] true -> (G5A_achieved'=G5A_achievable_actual) & (G5A_achievable_estimate'=G5A_achievable_actual);
+  [tryG6] true -> (G6_achieved'=G6_achievable_actual) & (G6_achievable_estimate'=G6_achievable_actual);
+  [achievedG6] G6_achieved>0 -> (G6_achieved'=1);
+  [achievedG7] G8_achieved>0 -> (G7_achieved'=1);
+  [achievedG8] G8_achieved>0 -> (G8_achieved'=1);
+  [tryG8] true -> (G8_achieved'=G8_achievable_actual) & (G8_achievable_estimate'=G8_achievable_actual);
+
+  [doSth] true -> true;
+
+
+endmodule
+
+module System
+  G2_achievable_actual: [0..1] init 1;
+  G5A_achievable_actual: [0..1] init 1;
+  G6_achievable_actual: [0..1] init 1;
+  G8_achievable_actual: [0..1] init 1;
+
+
+  time : [0..9] init 0;
+  [doSth] true -> true; 
+endmodule
+
+module Turn
+  turn : [0..2] init 0;
+  [tryG2] turn=0 -> (turn'=1);
+  [tryG5A] turn=0 -> (turn'=1);
+  [tryG6] turn=0 -> (turn'=1);
+  [tryG8] turn=0 -> (turn'=1);
+
+ //sth happening in the ChangeManager
+  [] turn=1 -> (turn'=2);
+  //sth happening in the System
+  [doSth] turn=2 -> (turn'=0);
+
+endmodule
+

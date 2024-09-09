@@ -1,10 +1,13 @@
 import { groupBy } from 'lodash';
 import { GoalTree, Relation } from '../ObjectiveTree/types';
-import { goalRootId, leafGoals } from '../ObjectiveTree/utils';
+import { allGoalsList, goalRootId, leafGoals } from '../ObjectiveTree/utils';
 
 export type GrouppedGoals = ReturnType<typeof leavesGrouppedGoals>;
 export const leavesGrouppedGoals = ({ gm }: { gm: GoalTree }) =>
   groupBy(leafGoals({ gm }), goalRootId);
+
+export const grouppedGoals = ({ gm }: { gm: GoalTree }) =>
+  groupBy(allGoalsList({ gm }), goalRootId);
 
 export const separator = (relation: Relation | null) => {
   switch (relation) {

@@ -1,4 +1,3 @@
-import { cond } from 'lodash';
 import { getGoalDetail } from '../GoalParser';
 import {
   Actor,
@@ -34,6 +33,30 @@ const parseDependsOn = ({
   return parsedDependency.map((d) => d.trim());
 };
 
+const parseDecision = ({
+  decision,
+}: {
+  decision: string | undefined;
+}): { variable: string; space: number }[] => {
+  if (!decision) {
+    return [];
+  }
+  const parsedDecision = decision.split(',').map((d) => d.split(':'));
+  parsedDecision.forEach((d) => {
+    if (d.length !== 2) {
+      throw new Error(`[INVALID DECISION]: ${decision}`);
+    }
+    if (isNaN(parseInt(d[1]))) {
+      throw new Error(`[INVALID DECISION]: ${decision}`);
+    }
+  });
+
+  return parsedDecision.map((d) => ({
+    variable: d[0].trim(),
+    space: parseInt(d[1]),
+  }));
+};
+
 const createNode = ({
   node,
   relation,
@@ -47,7 +70,9 @@ const createNode = ({
   const { id, goalName, decisionMaking } = getGoalDetail({
     goalText: node.text,
   });
-  const { alt, root, ...customProperties } = node.customProperties;
+  const { alt, root, uniqueChoice, ...customProperties } =
+    node.customProperties;
+  const decisionVars = parseDecision({ decision: customProperties.variables });
 
   return {
     decisionMaking: decisionMaking,
@@ -58,13 +83,16 @@ const createNode = ({
     relationToParent: null,
     type: convertIstarType({ type: node.type }),
     children,
+    decisionVars: decisionVars,
+    hasDecision: decisionVars.length > 0,
     customProperties: {
       ...customProperties,
       dependsOn: parseDependsOn({
         dependsOn: customProperties.dependsOn ?? '',
       }),
-      alt: alt === 'true' || false,
-      root: root === 'true' || undefined,
+      alt: alt?.toLowerCase() === 'true' || false,
+      root: root?.toLowerCase() === 'true' || undefined,
+      uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
     },
   };
 };

@@ -6,14 +6,18 @@ const validateModel = ({ model }: { model: Model }) => {
     .map((item) =>
       // check in node list if there are more than one root
       item.nodes.reduce((hasRoot, node) => {
-        if (hasRoot && node.customProperties.root) {
-          return false;
+        const isRoot = !model.links.find((link) => link.source === node.id);
+        if (isRoot && hasRoot) {
+          throw new Error('invalid number of roots, one allowed');
         }
-        return !!node.customProperties.root || hasRoot;
+        if (isRoot) {
+          node.customProperties.root = 'true';
+        }
+        return isRoot || hasRoot;
       }, false)
     )
-    // reduce the actors array to "are all actors valid?"
-    .reduce((isValid, actorRootValid) => isValid && actorRootValid, true);
+    // check if all actors have a root
+    .every((isValid) => isValid);
   if (!root) {
     throw new Error('invalid number of root, one allowed');
   }
