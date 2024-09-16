@@ -67,7 +67,7 @@
           "id": "c72ccbd6-b271-49b7-9b18-06d3a6d9a379",
           "text": "G5: f",
           "type": "istar.Goal",
-          "x": 423,
+          "x": 422,
           "y": 400,
           "customProperties": {
             "Description": "",
@@ -90,7 +90,7 @@
           "id": "8234fa73-1239-4390-81bd-983fa40b06a9",
           "text": "G7:h",
           "type": "istar.Goal",
-          "x": 334,
+          "x": 333,
           "y": 491,
           "customProperties": {
             "Description": ""
@@ -164,18 +164,6 @@
       "target": "de91e6df-0093-4208-9e8f-88c11b29fa82"
     },
     {
-      "id": "2d42ab87-5cbd-4c41-9163-a5e4e2fb9ed3",
-      "type": "istar.OrRefinementLink",
-      "source": "4dff6121-cd10-494a-92b3-de4c5888cbe3",
-      "target": "fa726dbc-d384-43a5-9732-f44ab8bc6d5a"
-    },
-    {
-      "id": "c2a32f3d-1ade-42fe-b51d-06c1d077d95e",
-      "type": "istar.OrRefinementLink",
-      "source": "8234fa73-1239-4390-81bd-983fa40b06a9",
-      "target": "fa726dbc-d384-43a5-9732-f44ab8bc6d5a"
-    },
-    {
       "id": "250ab83e-fad2-4b20-92ee-4e22c2fe2195",
       "type": "istar.OrRefinementLink",
       "source": "f247af8c-fde6-4c05-97e8-f4242d0dee8a",
@@ -198,12 +186,24 @@
       "type": "istar.OrRefinementLink",
       "source": "d18188ad-fa0c-495a-a3c9-8a46b5eaa9c3",
       "target": "8234fa73-1239-4390-81bd-983fa40b06a9"
+    },
+    {
+      "id": "63a5dc61-feab-483f-9d92-10fbb3eecdaf",
+      "type": "istar.AndRefinementLink",
+      "source": "4dff6121-cd10-494a-92b3-de4c5888cbe3",
+      "target": "fa726dbc-d384-43a5-9732-f44ab8bc6d5a"
+    },
+    {
+      "id": "75cbd09e-67e9-4ba9-a2d3-a9f227de3822",
+      "type": "istar.AndRefinementLink",
+      "source": "8234fa73-1239-4390-81bd-983fa40b06a9",
+      "target": "fa726dbc-d384-43a5-9732-f44ab8bc6d5a"
     }
   ],
   "display": {},
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Mon, 09 Sep 2024 17:35:18 GMT",
+  "saveDate": "Tue, 10 Sep 2024 14:44:53 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,

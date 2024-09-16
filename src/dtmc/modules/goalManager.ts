@@ -2,25 +2,51 @@ import { Dictionary } from 'lodash';
 import {
   achieved,
   grouppedGoals,
+  not,
+  parenthesis,
   pursue,
   pursued,
+  pursueThrough,
+  separator,
   skip,
 } from '../../mdp/common';
-import { GoalNode, GoalTree } from '../../ObjectiveTree/types';
+import { GoalNode, GoalTree, Relation } from '../../ObjectiveTree/types';
 import {
   decisionVariableName,
   decisionVariablesForGoal,
 } from '../decisionVariables';
+
+const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
+  const goalsWithChoice = Object.values(goals).reduce((acc, goal) => {
+    goal.forEach((g) => {
+      // return only unique choice goals
+      if (g.customProperties.uniqueChoice) {
+        acc.push(g);
+      }
+    });
+    return acc;
+  }, [] as GoalNode[]);
+  return goalsWithChoice;
+};
 
 const declareManagerVariables = ({
   goals,
 }: {
   goals: Dictionary<GoalNode[]>;
 }) => {
-  const childrenLength = (goal: string) => goals[goal].length;
-  return Object.keys(goals)
-    .map((goal) => `  ${pursued(goal)} : [0..${childrenLength(goal)}] init 0;`)
-    .join('\n');
+  const childrenLength = (parentId: string, goalGroup: GoalNode[]) =>
+    goalGroup.find((g) => g.id === parentId)?.children?.length ?? 1;
+  const goalsWithChoice = choosableGoals(goals);
+  return [
+    ...Object.entries(goals).map(
+      ([goalId, goals]) =>
+        `  ${pursued(goalId)} : [0..${childrenLength(goalId, goals)}] init 0;`
+    ),
+    ...goalsWithChoice.map(
+      (goal) =>
+        `  ${goal.id}_chosen : [0..${goal.children?.length ?? 1}] init 0;`
+    ),
+  ].join('\n');
 };
 
 // we're gonna have an entry for each decision combination
@@ -34,7 +60,7 @@ const variableStatement = (
 ) => {
   return variableArray
     .map((decisionVarName, i) => `${decisionVarName}=${variableCombination[i]}`)
-    .join(' & ');
+    .join(separator('and'));
 };
 
 // What to do when there's a variant
@@ -62,9 +88,10 @@ const declareGoalTransitionsWithDecisionVariable = ({
     const decisionVariable = decisionVariableName(goal.id, variableCombination);
 
     // G1_achieved=0
+    // expand to many children
     const childrenAchieved = achieved(goal.children?.[0].id ?? '');
 
-    return ` ${pursuePrefix} & ${pursued(goal.id)}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
+    return `  ${pursuePrefix} & ${pursued(goal.id)}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
   });
 
   const skipStatements = decisionVarArray.map((variableCombination) => {
@@ -75,45 +102,101 @@ const declareGoalTransitionsWithDecisionVariable = ({
 
   return [...pursueStatements, '', ...skipStatements].join('\n');
 };
-/*
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_0=1 & time=0 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_1=1 & time=1 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_2=1 & time=2 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_3=1 & time=3 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_4=1 & time=4 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_5=1 & time=5 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_6=1 & time=6 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_7=1 & time=7 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_8=1 & time=8 -> (G0_pursued'=1) & (goal'=1);
-  [pursueG0] turn=0 & goal=0 & G0_pursued=0 & G1_achieved=0 & decision_G0_9=1 & time=9 -> (G0_pursued'=1) & (goal'=1);
 
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_0=0 & time=0 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_1=0 & time=1 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_2=0 & time=2 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_3=0 & time=3 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_4=0 & time=4 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_5=0 & time=5 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_6=0 & time=6 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_7=0 & time=7 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_8=0 & time=8 -> true;
-  [skipG0] turn=0 & goal=0 & G0_pursued=0 & decision_G0_9=0 & time=9 -> true;
-  [achievedG0] turn=0 & goal=0 -> true; */
+const childrenAchieved = (children: GoalNode[]) => {
+  return parenthesis(
+    children.map((child) => `${achieved(child.id)}>0`).join(separator('and'))
+  );
+};
+
+const childrenNotAchieved = (children: GoalNode[]) => {
+  return not(childrenAchieved(children));
+};
+
+const anyChildrenAchieved = (children: GoalNode[]) => {
+  return parenthesis(
+    children.map((child) => `${achieved(child.id)}>0`).join(separator('or'))
+  );
+};
+
+const childrenSkipCondition = (children: GoalNode[], relation: Relation) => {
+  switch (relation) {
+    case 'or':
+      return anyChildrenAchieved(children);
+    case 'and':
+      return childrenNotAchieved(children);
+    case 'none':
+      throw new Error(
+        'Expected an and/or relation between children but found none'
+      );
+  }
+};
+
+const goalNumberId = (goalId: string) => {
+  const id = goalId.match(/\d+/)?.[0];
+  if (!id) {
+    throw new Error(
+      `The goal id must follow the pattern 'G%d', got: '${goalId}'`
+    );
+  }
+  return id;
+};
+
+/*
+  //G1
+  [pursueG1_2] turn=0 & goal=1 & G1_pursued=0 & G2_achieved=0 -> (G1_pursued'=1) & (goal'=2);
+  [pursueG1_3] turn=0 & goal=1 & G1_pursued=0 & G3_achieved=0 -> (G1_pursued'=2) & (goal'=3);
+  [skipG1] turn=0 & goal=1 & G1_pursued=0 & !(G2_achieved>0 & G3_achieved>0) -> (goal'=0) & (G0_pursued'=0);
+  [achievedG1] turn=0 & goal=1 -> (goal'=0);
+*/
+const declareGoalTransitionsWithChildren = ({
+  goal,
+}: {
+  goal: GoalNode & { relationToChildren: Relation };
+}) => {
+  const children = goal.children ?? [];
+  const goalIndex = goalNumberId(goal.id);
+
+  const childrenPursueTransitions = children.map((child, index) => {
+    const childIndex = goalNumberId(child.id);
+
+    const transition = `  [${pursueThrough(goal.id, child.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${achieved(child.id)}=0 -> (${pursued(goal.id)}'=${index + 1}) & (goal'=${childIndex});`;
+    return transition;
+  });
+  const skipTransition = `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${childrenSkipCondition(children, goal.relationToChildren)} -> (goal'=0) & (${pursued(goal.id)}'=0);`;
+
+  return ['', ...childrenPursueTransitions, skipTransition].join('\n');
+};
 
 const declareManagerTransitions = ({
   goals,
 }: {
   goals: Dictionary<GoalNode[]>;
 }) => {
-  return Object.keys(goals).map((goal, index) => {
-    const fatherGoalForGroup = goals[goal].find((g) => g.id === goal);
-    if (fatherGoalForGroup?.hasDecision) {
-      return declareGoalTransitionsWithDecisionVariable({
-        goal: fatherGoalForGroup,
-        goalIndex: index,
-      });
-    }
-    return '';
-  });
+  return Object.keys(goals)
+    .map((goal, index) => {
+      const parentGoalForGroup = goals[goal].find((g) => g.id === goal);
+      if (parentGoalForGroup?.hasDecision) {
+        return declareGoalTransitionsWithDecisionVariable({
+          goal: parentGoalForGroup,
+          goalIndex: index,
+        });
+      }
+      if (parentGoalForGroup?.customProperties.uniqueChoice) {
+        return '';
+      }
+
+      const relationToChildren = parentGoalForGroup?.relationToChildren;
+      if (parentGoalForGroup?.children?.length && relationToChildren) {
+        // ensure relationToChildren is not null
+        return declareGoalTransitionsWithChildren({
+          goal: { ...parentGoalForGroup, relationToChildren },
+        });
+      }
+      return '';
+    })
+    .filter((l) => l)
+    .join('\n');
 };
 
 export const goalManagerTemplate = ({ gm }: { gm: GoalTree }) => {
@@ -125,5 +208,6 @@ module GoalManager
 ${declareManagerVariables({ goals })}
 
 ${declareManagerTransitions({ goals })}
+
 `;
 };

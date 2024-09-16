@@ -32,6 +32,8 @@ export const pursued = (goalId: string) => `${goalId}_pursued`;
 export const achievedOrPursued = (goalId: string) =>
   pursued(`${achieved(goalId)}_or`);
 export const pursue = (goalId: string) => `${goalId}_pursue`;
+export const pursueThrough = (goalId: string, through: string) =>
+  `pursue${goalId}_${through}`;
 export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
 export const skip = (goalId: string) => `${goalId}_skip`;
 
