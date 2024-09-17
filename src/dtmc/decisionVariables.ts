@@ -1,5 +1,5 @@
 import { GoalNode, GoalTree } from '../ObjectiveTree/types';
-import { cartesianProduct } from '../ObjectiveTree/utils';
+import { allGoalsList, cartesianProduct } from '../ObjectiveTree/utils';
 
 // each decision variable is a tuple of values containing name:space
 // we need to generate all possible combinations of these tuples
@@ -27,7 +27,8 @@ export const decisionVariableName = (
 
 export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
   const decisionVariables: string[] = [];
-  gm.forEach((goal) => {
+  const allGoals = allGoalsList({ gm });
+  allGoals.forEach((goal) => {
     const [_, decisionVars] = decisionVariablesForGoal({ goal });
 
     for (const variableCombination of decisionVars) {

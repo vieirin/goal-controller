@@ -10,7 +10,12 @@ import {
   separator,
   skip,
 } from '../../mdp/common';
-import { GoalNode, GoalTree, Relation } from '../../ObjectiveTree/types';
+import {
+  GoalNode,
+  GoalNodeWithParent,
+  GoalTreeWithParent,
+  Relation,
+} from '../../ObjectiveTree/types';
 import {
   decisionVariableName,
   decisionVariablesForGoal,
@@ -142,17 +147,10 @@ const goalNumberId = (goalId: string) => {
   return id;
 };
 
-/*
-  //G1
-  [pursueG1_2] turn=0 & goal=1 & G1_pursued=0 & G2_achieved=0 -> (G1_pursued'=1) & (goal'=2);
-  [pursueG1_3] turn=0 & goal=1 & G1_pursued=0 & G3_achieved=0 -> (G1_pursued'=2) & (goal'=3);
-  [skipG1] turn=0 & goal=1 & G1_pursued=0 & !(G2_achieved>0 & G3_achieved>0) -> (goal'=0) & (G0_pursued'=0);
-  [achievedG1] turn=0 & goal=1 -> (goal'=0);
-*/
 const declareGoalTransitionsWithChildren = ({
   goal,
 }: {
-  goal: GoalNode & { relationToChildren: Relation };
+  goal: GoalNodeWithParent & { relationToChildren: Relation };
 }) => {
   const children = goal.children ?? [];
   const goalIndex = goalNumberId(goal.id);
@@ -163,6 +161,7 @@ const declareGoalTransitionsWithChildren = ({
     const transition = `  [${pursueThrough(goal.id, child.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${achieved(child.id)}=0 -> (${pursued(goal.id)}'=${index + 1}) & (goal'=${childIndex});`;
     return transition;
   });
+
   const skipTransition = `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${childrenSkipCondition(children, goal.relationToChildren)} -> (goal'=0) & (${pursued(goal.id)}'=0);`;
 
   return ['', ...childrenPursueTransitions, skipTransition].join('\n');
@@ -171,7 +170,7 @@ const declareGoalTransitionsWithChildren = ({
 const declareManagerTransitions = ({
   goals,
 }: {
-  goals: Dictionary<GoalNode[]>;
+  goals: Dictionary<GoalNodeWithParent[]>;
 }) => {
   return Object.keys(goals)
     .map((goal, index) => {
@@ -199,7 +198,7 @@ const declareManagerTransitions = ({
     .join('\n');
 };
 
-export const goalManagerTemplate = ({ gm }: { gm: GoalTree }) => {
+export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
   const goals = grouppedGoals({ gm });
   const goalsLength = Object.keys(goals).length;
   return `

@@ -2,13 +2,15 @@ import { getGoalDetail } from '../GoalParser';
 import {
   Actor,
   GoalNode,
-  GoalTree,
+  GoalNodeWithParent,
+  GoalTreeWithParent,
   Link,
   Model,
   Node,
   NodeType,
   Relation,
 } from './types';
+import { allGoalsList } from './utils';
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -188,23 +190,66 @@ const nodeToTree = ({
   return createNode({ node, children, relation });
 };
 
-export const convertToTree = ({ model }: { model: Model }): GoalTree => {
-  return (
-    model.actors
-      .map((actor) => {
-        // find root node
-        const rootNode = actor.nodes.find((item) => item.customProperties.root);
-        if (!rootNode) {
-          return undefined;
-        }
-        // calc tree
-        return nodeToTree({
-          actor,
-          node: rootNode,
-          iStarLinks: [...model.links],
-        });
+const addParentToChildren = (
+  unidirectionalTree: GoalNode,
+  searchParentsForGoal: (goalId: string) => GoalNode[]
+): GoalNodeWithParent => {
+  if (!unidirectionalTree.children) {
+    return {
+      ...unidirectionalTree,
+      parent: searchParentsForGoal(unidirectionalTree.id),
+      children: undefined,
+    };
+  }
+  const bidirectionalTree: GoalNodeWithParent = {
+    ...unidirectionalTree,
+    parent: searchParentsForGoal(unidirectionalTree.id),
+    children: unidirectionalTree.children.map(
+      (goal): GoalNodeWithParent => ({
+        ...goal,
+        parent: searchParentsForGoal(goal.id),
+        children: goal.children?.map((g) =>
+          addParentToChildren(g, searchParentsForGoal)
+        ),
       })
-      // filter undefined trees (those without a root node)
-      .filter((node): node is GoalNode => !!node)
+    ),
+  };
+
+  return bidirectionalTree;
+};
+
+export const convertToTree = ({
+  model,
+}: {
+  model: Model;
+}): GoalTreeWithParent => {
+  const unidirectionalTree = model.actors.map((actor) => {
+    // find root node
+    const rootNode = actor.nodes.find((item) => item.customProperties.root);
+    if (!rootNode) {
+      throw new Error(
+        '[Invalid model]: Root node not found during tree creation'
+      );
+    }
+
+    // calc tree
+    return nodeToTree({
+      actor,
+      node: rootNode,
+      iStarLinks: [...model.links],
+    });
+  });
+
+  const allGoals = allGoalsList({ gm: unidirectionalTree });
+  const searchParentsForGoal = (goalId: string) => {
+    return allGoals.filter((goal) =>
+      goal.children?.map(({ id }) => id).includes(goalId)
+    );
+  };
+  // traverse the tree adding parents to it
+  const bidirectionalTree: GoalTreeWithParent = unidirectionalTree.map((goal) =>
+    addParentToChildren(goal, searchParentsForGoal)
   );
+
+  return bidirectionalTree;
 };

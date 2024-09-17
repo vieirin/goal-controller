@@ -1,8 +1,8 @@
-import { GoalTree } from '../ObjectiveTree/types';
+import { GoalTreeWithParent } from '../ObjectiveTree/types';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { goalManagerTemplate } from './modules/goalManager';
 
-export const edgeDTMCTemplate = ({ gm }: { gm: GoalTree }) => {
+export const edgeDTMCTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
   return `dtmc
 
 //we encode states in which the controller make a specific decision with 

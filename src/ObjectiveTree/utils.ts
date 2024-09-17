@@ -1,19 +1,25 @@
-import { GoalNode, GoalTree } from './types';
+import {
+  GoalNode,
+  GoalNodeWithParent,
+  GoalTree,
+  GoalTreeWithParent,
+} from './types';
 
 export const allGoalsList = ({
   gm,
   preferVariant = true,
 }: {
-  gm: GoalTree | undefined;
+  gm: GoalTreeWithParent | GoalTree | undefined;
   preferVariant?: boolean;
 }) => {
-  const all = gm?.flatMap((node): GoalNode[] => {
-    if (node.children?.length) {
-      const children = node.children;
-      return [node, ...(allGoalsList({ gm: children, preferVariant }) ?? [])];
-    }
-    return [node];
-  });
+  const all: (GoalNode | GoalNodeWithParent)[] =
+    gm?.flatMap((node) => {
+      if (node.children?.length) {
+        const children = node.children;
+        return [node, ...(allGoalsList({ gm: children, preferVariant }) ?? [])];
+      }
+      return [node];
+    }) ?? [];
 
   const unique = Object.values(
     all?.reduce(
@@ -27,7 +33,7 @@ export const allGoalsList = ({
 
         return { ...acc, [current.id]: current };
       },
-      {} as Record<string, GoalNode>
+      {} as Record<string, GoalNodeWithParent | GoalNode>
     ) ?? {}
   );
 
@@ -38,7 +44,7 @@ export const allGoalsMap = ({
   gm,
   preferVariant = true,
 }: {
-  gm: GoalTree | undefined;
+  gm: GoalTreeWithParent | undefined;
   preferVariant?: boolean;
 }) => {
   return new Map(
@@ -50,7 +56,7 @@ export const goalRootId = ({ id }: { id: string }) => {
   return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 2) + 1);
 };
 
-export const leafGoals = ({ gm }: { gm: GoalTree | undefined }) => {
+export const leafGoals = ({ gm }: { gm: GoalTreeWithParent | undefined }) => {
   const leaves = allGoalsList({ gm })?.filter((goal) => !goal.children?.length);
   return leaves;
 };

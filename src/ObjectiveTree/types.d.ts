@@ -88,5 +88,11 @@ export type GoalNode = {
     [k: string]: any;
   };
 } & Decision;
+type GoalNodeWithParent = GoalNode & {
+  parent: GoalNode[];
+  children?: GoalNodeWithParent[];
+};
 
-export type GoalTree = GoalNode[];
+export type GoalTreeWithParent = GoalNodeWithParent[];
+
+type GoalTree = GoalNode[];
