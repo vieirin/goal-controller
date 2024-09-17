@@ -29,6 +29,9 @@ export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
   const decisionVariables: string[] = [];
   const allGoals = allGoalsList({ gm });
   allGoals.forEach((goal) => {
+    if (!goal.decisionVars.length) {
+      return;
+    }
     const [_, decisionVars] = decisionVariablesForGoal({ goal });
 
     for (const variableCombination of decisionVars) {

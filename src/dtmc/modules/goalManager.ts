@@ -37,7 +37,7 @@ const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
 const declareManagerVariables = ({
   goals,
 }: {
-  goals: Dictionary<GoalNode[]>;
+  goals: Dictionary<GoalNodeWithParent[]>;
 }) => {
   const childrenLength = (parentId: string, goalGroup: GoalNode[]) =>
     goalGroup.find((g) => g.id === parentId)?.children?.length ?? 1;
@@ -147,6 +147,13 @@ const goalNumberId = (goalId: string) => {
   return id;
 };
 
+//G8
+// [pursueG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 -> (G8_pursued'=1);
+// [skipG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 & G7_pursued=1 -> (goal'=7) & (G7_pursued'=0);
+// [skipG8] turn=0 & goal=8 & G8_pursued=0 & G8_achieved=0 & G5_pursued=2 -> (goal'=5) & (G5_pursued'=0);
+// [tryG8] turn=0 & goal=8 & G8_pursued=1 -> (G8_pursued'=0);
+// [achievedG8] turn=0 & goal=8 & G7_pursued=1 -> (goal'=7);
+// [achievedG8] turn=0 & goal=8 & G5_pursued=2 -> (goal'=5);
 const declareGoalTransitionsWithChildren = ({
   goal,
 }: {
@@ -162,7 +169,10 @@ const declareGoalTransitionsWithChildren = ({
     return transition;
   });
 
-  const skipTransition = `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${childrenSkipCondition(children, goal.relationToChildren)} -> (goal'=0) & (${pursued(goal.id)}'=0);`;
+  const skipTransition = goal.parent.map(
+    (parent) =>
+      `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${childrenSkipCondition(children, goal.relationToChildren)} -> (goal'=${goalNumberId(parent.id)}) & (${pursued(parent.id)}'=0);`
+  );
 
   return ['', ...childrenPursueTransitions, skipTransition].join('\n');
 };
@@ -180,6 +190,9 @@ const declareManagerTransitions = ({
           goal: parentGoalForGroup,
           goalIndex: index,
         });
+      }
+      if (parentGoalForGroup?.customProperties.alt) {
+        return '';
       }
       if (parentGoalForGroup?.customProperties.uniqueChoice) {
         return '';
@@ -199,7 +212,9 @@ const declareManagerTransitions = ({
 };
 
 export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
-  const goals = grouppedGoals({ gm });
+  const goals = grouppedGoals({
+    gm,
+  }) as Dictionary<GoalNodeWithParent[]>;
   const goalsLength = Object.keys(goals).length;
   return `
 module GoalManager

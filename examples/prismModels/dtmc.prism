@@ -120,7 +120,7 @@ module GoalManager
   //G5
   [pursueG5A] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 & G2_achieved=1 -> (G5_pursued'=1);
   [pursueG5B] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 & G8_achieved=0 -> (G5_pursued'=2) & (goal'=8);
-  // altGoal G5A_achieved=0 & G5B_achieved=0
+  // altGoal G5A_achieved=0 & G5B_achieved=0  
   [skipG5] turn=0 & goal=5 & G5_pursued=0 & G5A_achieved=0 & G5B_achieved=0 -> (goal'=3) & (G3_pursued'=0);
   [tryG5A] turn=0 & goal=5 & G5_pursued=1 -> (G5_pursued'=0);
   [achievedG5] turn=0 & goal=5 -> (goal'=3);  
@@ -133,8 +133,15 @@ module GoalManager
   [achievedG6] turn=0 & goal=6 -> (goal'=4) & (G4_pursued'=0); 
 
   //G7
-  [pursueG7] turn=0 & goal=7 & G7_pursued=0 & G8_achieved=0 -> (G7_pursued'=1) & (goal'=8);
-  // should this be !G8_achieved=0?
+  [pursueG7] turn=0 & goal=7 & G7_pursued=0 & G8_achieved=0 -> (G7_pursued'=1) & (goal'=8); 
+  // 1.
+  // should this be G8_achieved>0?
+  // the rule says if it is an OR then if should be `(children.join(achieved(child)>0, |))` 
+  // but here it is G8_achieved=0, why?
+  // 2. 
+  // G7 parent is G4, tied by an AND, which is the same case as for G1, there we set G0_pursued=0, why not here?
+  // is it because it is the last child of G4? if so we need a notation to say the order of the children, otherwise
+  // we can't infer it with certainty from the model
   [skipG7] turn=0 & goal=7 & G7_pursued=0 & G8_achieved=0 -> (goal'=4);
   [achievedG7] turn=0 & goal=7 -> (goal'=4) & (G4_pursued'=0);
 
