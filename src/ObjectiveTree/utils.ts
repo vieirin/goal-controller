@@ -37,7 +37,7 @@ export const allGoalsList = ({
     ) ?? {}
   );
 
-  return unique;
+  return unique.filter((goal) => goal.type !== 'resource');
 };
 
 export const allGoalsMap = ({
