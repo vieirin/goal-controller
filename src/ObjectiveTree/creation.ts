@@ -18,6 +18,8 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
       return 'goal';
     case 'istar.Task':
       return 'task';
+    case 'istar.Resource':
+      return 'resource';
     default:
       throw new Error('Invalid node type: ' + type);
   }
@@ -71,9 +73,21 @@ const createNode = ({
   children: GoalNode[];
 }): GoalNode => {
   // Other RT properties should be added here
+  // should we add order?
   const { id, goalName, decisionMaking } = getGoalDetail({
     goalText: node.text,
   });
+
+  console.log(goalName);
+
+  const type = convertIstarType({ type: node.type });
+
+  if (type === 'resource' && children.length > 0) {
+    throw new Error(
+      `[INVALID MODEL]: Resource node ${goalName} can't have children`
+    );
+  }
+
   const { alt, root, uniqueChoice, ...customProperties } =
     node.customProperties;
   const decisionVars = parseDecision({ decision: customProperties.variables });
@@ -85,7 +99,7 @@ const createNode = ({
     iStarId: node.id,
     relationToChildren: relation,
     relationToParent: null,
-    type: convertIstarType({ type: node.type }),
+    type,
     children,
     decisionVars: decisionVars,
     hasDecision: decisionVars.length > 0,
@@ -100,6 +114,7 @@ const createNode = ({
     },
   };
 };
+
 const nodeChildren = ({
   actor,
   id,
@@ -121,6 +136,8 @@ const nodeChildren = ({
         return 'and';
       case 'istar.OrRefinementLink':
         return 'or';
+      case 'istar.NeededByLink':
+        return 'neededBy';
       default:
         throw new Error(
           `[UNSUPPORTED LINK]: Please implement ${link.type} decoding`
@@ -143,9 +160,6 @@ const nodeChildren = ({
       if (!node) {
         return undefined;
       }
-      const { id, goalName, decisionMaking } = getGoalDetail({
-        goalText: node.text,
-      });
 
       const [granChildren, relation] = nodeChildren({
         actor,

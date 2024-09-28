@@ -1,0 +1,311 @@
+{
+  "actors": [
+    {
+      "id": "d3ee88a2-bfbe-464a-a147-d3b914d47ef8",
+      "text": "Actor",
+      "type": "istar.Actor",
+      "x": 103,
+      "y": 55,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "138d5cb3-5c5b-44b2-8e0c-e1adf81d25b9",
+          "text": "G0: Bake the cake",
+          "type": "istar.Goal",
+          "x": 567,
+          "y": 55,
+          "customProperties": {
+            "Description": "",
+            "root": ""
+          }
+        },
+        {
+          "id": "0975d062-c8da-46cc-8048-cc5a38af7c62",
+          "text": "G2: Make the Cake",
+          "type": "istar.Goal",
+          "x": 589,
+          "y": 135,
+          "customProperties": {
+            "Description": "",
+            "retry": "4",
+            "type": "retry"
+          }
+        },
+        {
+          "id": "cf01a347-9b79-499f-a452-aff482c1b274",
+          "text": "G1: Go to the supermarket",
+          "type": "istar.Goal",
+          "x": 392,
+          "y": 76,
+          "customProperties": {
+            "Description": "",
+            "type": "achieve"
+          }
+        },
+        {
+          "id": "56749852-179d-4189-adcd-8ef99045e9ed",
+          "text": "R1: Chocolate",
+          "type": "istar.Resource",
+          "x": 105,
+          "y": 291,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "a6725487-8a29-4fd9-bca5-b0e462af50bc",
+          "text": "R2: Vanilla",
+          "type": "istar.Resource",
+          "x": 265,
+          "y": 259,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "4509d3e2-868c-4cbc-be3b-ed7f9be2a6a5",
+          "text": "R3: Flour",
+          "type": "istar.Resource",
+          "x": 358,
+          "y": 313,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "07475186-43d7-429d-8021-a4cb5120d48e",
+          "text": "T1: Purchase Chocolate",
+          "type": "istar.Task",
+          "x": 103,
+          "y": 193,
+          "customProperties": {
+            "Description": "",
+            "chocolate": "+1",
+            "money": "-5"
+          }
+        },
+        {
+          "id": "892bf642-9c7d-4c7e-83a1-5268890b2a99",
+          "text": "T2: Purchase Vanilla",
+          "type": "istar.Task",
+          "x": 229,
+          "y": 196,
+          "customProperties": {
+            "Description": "",
+            "money": "-10",
+            "vanilla": "+1"
+          }
+        },
+        {
+          "id": "95d152cb-0402-423f-b250-74a8879df974",
+          "text": "T3: Purchase Flour",
+          "type": "istar.Task",
+          "x": 355,
+          "y": 200,
+          "customProperties": {
+            "Description": "",
+            "flour": "+1",
+            "money": "-1"
+          }
+        },
+        {
+          "id": "f46ab909-0ea3-470c-9691-cdc703157b1e",
+          "text": "R5: Money",
+          "type": "istar.Resource",
+          "x": 230,
+          "y": 363,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "a1105e9e-e84f-49cc-9b6a-c84d46ad4a9d",
+          "text": "M1: Monitor the ingredients",
+          "type": "istar.Goal",
+          "x": 463,
+          "y": 165,
+          "customProperties": {
+            "Description": "",
+            "Query": "true",
+            "chocolate": ">=3",
+            "flour": ">=2",
+            "vanilla": ">=1",
+            "chocolateorvanilla": "chocolate > 1 | vanilla > 1",
+            "tyope": "",
+            "type": "query"
+          }
+        },
+        {
+          "id": "cd59340b-ae4d-4ea8-b7a8-57e22abd10e8",
+          "text": "G3: Purchase Ingredient",
+          "type": "istar.Goal",
+          "x": 254,
+          "y": 126,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "65283e01-f11e-4630-8680-ca917987552a",
+          "text": "T4: Chocolate Cake",
+          "type": "istar.Task",
+          "x": 472,
+          "y": 241,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "6a574b40-069f-4ad9-a23c-df4709344c6c",
+          "text": "T5: Vanilla Cake",
+          "type": "istar.Task",
+          "x": 607,
+          "y": 243,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "a774ba2c-ac9a-4065-9fd8-2c248bde4c58",
+          "text": "T6: Carrot Cake",
+          "type": "istar.Task",
+          "x": 736,
+          "y": 243,
+          "customProperties": {
+            "Description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "4b0fc11a-6a26-4a45-8839-c815d5836c05",
+      "type": "istar.AndRefinementLink",
+      "source": "0975d062-c8da-46cc-8048-cc5a38af7c62",
+      "target": "138d5cb3-5c5b-44b2-8e0c-e1adf81d25b9"
+    },
+    {
+      "id": "82f33d54-2aeb-4f73-beb8-bdee3ecde6c6",
+      "type": "istar.NeededByLink",
+      "source": "56749852-179d-4189-adcd-8ef99045e9ed",
+      "target": "07475186-43d7-429d-8021-a4cb5120d48e"
+    },
+    {
+      "id": "832f238c-7e5a-47ac-be2f-4eafc5c7a322",
+      "type": "istar.NeededByLink",
+      "source": "a6725487-8a29-4fd9-bca5-b0e462af50bc",
+      "target": "892bf642-9c7d-4c7e-83a1-5268890b2a99"
+    },
+    {
+      "id": "6b84828d-abe1-4d8a-b742-684c44f28cf4",
+      "type": "istar.NeededByLink",
+      "source": "4509d3e2-868c-4cbc-be3b-ed7f9be2a6a5",
+      "target": "95d152cb-0402-423f-b250-74a8879df974"
+    },
+    {
+      "id": "25757220-7ebb-4768-9109-e69d3a404dc7",
+      "type": "istar.NeededByLink",
+      "source": "f46ab909-0ea3-470c-9691-cdc703157b1e",
+      "target": "07475186-43d7-429d-8021-a4cb5120d48e"
+    },
+    {
+      "id": "4115018b-c0fe-4b14-8294-dcce08010969",
+      "type": "istar.NeededByLink",
+      "source": "f46ab909-0ea3-470c-9691-cdc703157b1e",
+      "target": "892bf642-9c7d-4c7e-83a1-5268890b2a99"
+    },
+    {
+      "id": "92e2c4b7-b54e-4943-a28c-65a3fb9152e0",
+      "type": "istar.NeededByLink",
+      "source": "f46ab909-0ea3-470c-9691-cdc703157b1e",
+      "target": "95d152cb-0402-423f-b250-74a8879df974"
+    },
+    {
+      "id": "1e7a1a4b-81ce-45d3-9bfc-94b761723018",
+      "type": "istar.AndRefinementLink",
+      "source": "cf01a347-9b79-499f-a452-aff482c1b274",
+      "target": "138d5cb3-5c5b-44b2-8e0c-e1adf81d25b9"
+    },
+    {
+      "id": "d5888c7e-4084-4cb1-bcee-ed33c69a9674",
+      "type": "istar.AndRefinementLink",
+      "source": "a1105e9e-e84f-49cc-9b6a-c84d46ad4a9d",
+      "target": "cf01a347-9b79-499f-a452-aff482c1b274"
+    },
+    {
+      "id": "2abfcfe6-0bce-4dd9-b80a-745d8ae4d171",
+      "type": "istar.AndRefinementLink",
+      "source": "cd59340b-ae4d-4ea8-b7a8-57e22abd10e8",
+      "target": "cf01a347-9b79-499f-a452-aff482c1b274"
+    },
+    {
+      "id": "ae4a5a19-4200-4530-b680-d0abf80e24fe",
+      "type": "istar.OrRefinementLink",
+      "source": "95d152cb-0402-423f-b250-74a8879df974",
+      "target": "cd59340b-ae4d-4ea8-b7a8-57e22abd10e8"
+    },
+    {
+      "id": "47686c26-c3ca-4695-b94b-1996cb513419",
+      "type": "istar.OrRefinementLink",
+      "source": "892bf642-9c7d-4c7e-83a1-5268890b2a99",
+      "target": "cd59340b-ae4d-4ea8-b7a8-57e22abd10e8"
+    },
+    {
+      "id": "db11b0cb-ab14-4b4d-9905-e75f42baed7a",
+      "type": "istar.OrRefinementLink",
+      "source": "07475186-43d7-429d-8021-a4cb5120d48e",
+      "target": "cd59340b-ae4d-4ea8-b7a8-57e22abd10e8"
+    },
+    {
+      "id": "12861b5b-b35d-4d09-9a5b-7e25f52c54be",
+      "type": "istar.OrRefinementLink",
+      "source": "65283e01-f11e-4630-8680-ca917987552a",
+      "target": "0975d062-c8da-46cc-8048-cc5a38af7c62"
+    },
+    {
+      "id": "5c5201c7-1f35-415b-92d2-7d4aa3ee957f",
+      "type": "istar.OrRefinementLink",
+      "source": "6a574b40-069f-4ad9-a23c-df4709344c6c",
+      "target": "0975d062-c8da-46cc-8048-cc5a38af7c62"
+    },
+    {
+      "id": "560727ac-2363-42fa-85b0-50e4dc98fe5c",
+      "type": "istar.OrRefinementLink",
+      "source": "a774ba2c-ac9a-4065-9fd8-2c248bde4c58",
+      "target": "0975d062-c8da-46cc-8048-cc5a38af7c62"
+    }
+  ],
+  "display": {
+    "138d5cb3-5c5b-44b2-8e0c-e1adf81d25b9": {
+      "width": 103.39999389648438,
+      "height": 42.16667175292969
+    },
+    "0975d062-c8da-46cc-8048-cc5a38af7c62": {
+      "backgroundColor": "#FA4B0F",
+      "width": 109.39999389648438,
+      "height": 49.16667175292969
+    },
+    "cf01a347-9b79-499f-a452-aff482c1b274": {
+      "width": 105.19999694824219,
+      "height": 50.16667175292969
+    },
+    "a1105e9e-e84f-49cc-9b6a-c84d46ad4a9d": {
+      "backgroundColor": "#32F6FA"
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Wed, 25 Sep 2024 14:42:36 GMT",
+  "diagram": {
+    "width": 1145,
+    "height": 700,
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

@@ -17,7 +17,11 @@ export interface Actor extends Node {
   nodes: Node[];
 }
 
-export type NodeType = 'istar.Task' | 'istar.Goal' | 'istar.Actor';
+export type NodeType =
+  | 'istar.Task'
+  | 'istar.Goal'
+  | 'istar.Actor'
+  | 'istar.Resource';
 
 export interface Node extends CustomProperties {
   id: id;
@@ -29,7 +33,10 @@ export interface Node extends CustomProperties {
 
 export interface Link {
   id: id;
-  type: 'istar.AndRefinementLink' | 'istar.OrRefinementLink';
+  type:
+    | 'istar.AndRefinementLink'
+    | 'istar.OrRefinementLink'
+    | 'istar.NeededByLink';
   source: string;
   target: string;
 }
@@ -62,8 +69,8 @@ export interface CustomProperties {
   };
 }
 
-export type Relation = 'or' | 'and' | 'none';
-export type Type = 'goal' | 'task';
+export type Relation = 'or' | 'and' | 'neededBy' | 'none';
+export type Type = 'goal' | 'task' | 'resource';
 export type Decision = {
   decisionVars: { variable: string; space: number }[];
   hasDecision: boolean;

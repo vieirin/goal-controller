@@ -1,4 +1,4 @@
-// Generated from grammar/RTRegex.g4 by ANTLR 4.13.1
+// Generated from grammar/RTRegex.g4 by ANTLR 4.13.2
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
 import {
@@ -26,24 +26,27 @@ export default class RTRegexParser extends Parser {
 	public static readonly T__6 = 7;
 	public static readonly T__7 = 8;
 	public static readonly T__8 = 9;
-	public static readonly DIGIT_SUBID = 10;
-	public static readonly FLOAT = 11;
-	public static readonly SEQ = 12;
-	public static readonly INT = 13;
-	public static readonly TASK = 14;
-	public static readonly GOAL = 15;
-	public static readonly SKIPP = 16;
-	public static readonly X = 17;
-	public static readonly NEWLINE = 18;
-	public static readonly WORD = 19;
-	public static readonly SUBID = 20;
-	public static readonly WS = 21;
-	public static readonly EOF = Token.EOF;
+	public static readonly T__9 = 10;
+	public static readonly T__10 = 11;
+	public static readonly DIGIT_SUBID = 12;
+	public static readonly FLOAT = 13;
+	public static readonly SEQ = 14;
+	public static readonly INT = 15;
+	public static readonly TASK = 16;
+	public static readonly GOAL = 17;
+	public static readonly SKIPP = 18;
+	public static readonly X = 19;
+	public static readonly NEWLINE = 20;
+	public static readonly WORD = 21;
+	public static readonly SUBID = 22;
+	public static readonly WS = 23;
+	public static override readonly EOF = Token.EOF;
 	public static readonly RULE_rt = 0;
 	public static readonly RULE_expr = 1;
 	public static readonly RULE_id = 2;
 	public static readonly RULE_word = 3;
-	public static readonly literalNames: (string | null)[] = [ null, "','", 
+	public static readonly literalNames: (string | null)[] = [ null, "'M'", 
+                                                            "'R'", "','", 
                                                             "'['", "']'", 
                                                             "'DM('", "')'", 
                                                             "':'", "'@'", 
@@ -53,6 +56,7 @@ export default class RTRegexParser extends Parser {
                                                             "'T'", "'G'", 
                                                             "'skip'", "'X'" ];
 	public static readonly symbolicNames: (string | null)[] = [ null, null, 
+                                                             null, null, 
                                                              null, null, 
                                                              null, null, 
                                                              null, null, 
@@ -90,13 +94,15 @@ export default class RTRegexParser extends Parser {
 			this.state = 12;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
+			case 1:
 			case 2:
 			case 4:
 			case 6:
 			case 8:
-			case 14:
-			case 15:
+			case 10:
 			case 16:
+			case 17:
+			case 18:
 				localctx = new PrintExprContext(this, localctx);
 				this.enterOuterAlt(localctx, 1);
 				{
@@ -164,7 +170,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 15;
 				(localctx as GIdContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===14 || _la===15)) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 196614) !== 0))) {
 				    (localctx as GIdContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -183,7 +189,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 17;
 				(localctx as GIdContinuedContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===14 || _la===15)) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 196614) !== 0))) {
 				    (localctx as GIdContinuedContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -204,7 +210,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 21;
 				(localctx as GArgsContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!(_la===14 || _la===15)) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 196614) !== 0))) {
 				    (localctx as GArgsContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -214,7 +220,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 22;
 				this.id();
 				this.state = 23;
-				this.match(RTRegexParser.T__0);
+				this.match(RTRegexParser.T__2);
 				this.state = 24;
 				this.expr(10);
 				}
@@ -225,11 +231,11 @@ export default class RTRegexParser extends Parser {
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 26;
-				this.match(RTRegexParser.T__1);
+				this.match(RTRegexParser.T__3);
 				this.state = 27;
 				this.expr(0);
 				this.state = 28;
-				this.match(RTRegexParser.T__2);
+				this.match(RTRegexParser.T__4);
 				}
 				break;
 			case 5:
@@ -238,11 +244,11 @@ export default class RTRegexParser extends Parser {
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 30;
-				this.match(RTRegexParser.T__3);
+				this.match(RTRegexParser.T__5);
 				this.state = 31;
 				this.expr(0);
 				this.state = 32;
-				this.match(RTRegexParser.T__4);
+				this.match(RTRegexParser.T__6);
 				}
 				break;
 			case 6:
@@ -251,7 +257,7 @@ export default class RTRegexParser extends Parser {
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 34;
-				this.match(RTRegexParser.T__5);
+				this.match(RTRegexParser.T__7);
 				this.state = 35;
 				this.word();
 				this.state = 36;
@@ -264,7 +270,7 @@ export default class RTRegexParser extends Parser {
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 38;
-				this.match(RTRegexParser.T__5);
+				this.match(RTRegexParser.T__7);
 				this.state = 39;
 				this.word();
 				this.state = 40;
@@ -277,17 +283,17 @@ export default class RTRegexParser extends Parser {
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 42;
-				this.match(RTRegexParser.T__7);
+				this.match(RTRegexParser.T__9);
 				this.state = 43;
 				this.expr(0);
 				this.state = 44;
-				this.match(RTRegexParser.T__4);
+				this.match(RTRegexParser.T__6);
 				this.state = 45;
-				this.match(RTRegexParser.T__8);
+				this.match(RTRegexParser.T__10);
 				this.state = 46;
 				this.expr(0);
 				this.state = 47;
-				this.match(RTRegexParser.T__5);
+				this.match(RTRegexParser.T__7);
 				this.state = 48;
 				this.expr(3);
 				}
@@ -325,7 +331,7 @@ export default class RTRegexParser extends Parser {
 							throw this.createFailedPredicateException("this.precpred(this._ctx, 5)");
 						}
 						this.state = 54;
-						(localctx as GDMContext)._op = this.match(RTRegexParser.T__0);
+						(localctx as GDMContext)._op = this.match(RTRegexParser.T__2);
 						this.state = 55;
 						this.expr(6);
 						}
@@ -341,7 +347,7 @@ export default class RTRegexParser extends Parser {
 						this.state = 57;
 						(localctx as GTimeContext)._op = this._input.LT(1);
 						_la = this._input.LA(1);
-						if(!(_la===12 || _la===13)) {
+						if(!(_la===14 || _la===15)) {
 						    (localctx as GTimeContext)._op = this._errHandler.recoverInline(this);
 						}
 						else {
@@ -361,7 +367,7 @@ export default class RTRegexParser extends Parser {
 							throw this.createFailedPredicateException("this.precpred(this._ctx, 4)");
 						}
 						this.state = 60;
-						(localctx as GRetryContext)._op = this.match(RTRegexParser.T__6);
+						(localctx as GRetryContext)._op = this.match(RTRegexParser.T__8);
 						this.state = 61;
 						this.match(RTRegexParser.FLOAT);
 						}
@@ -488,30 +494,30 @@ export default class RTRegexParser extends Parser {
 		return true;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,21,77,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,23,77,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,3,0,13,8,0,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,52,8,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,63,8,1,10,1,12,1,66,9,1,1,2,1,2,1,2,1,
-	2,1,2,3,2,73,8,2,1,3,1,3,1,3,0,1,2,4,0,2,4,6,0,2,1,0,14,15,1,0,12,13,87,
-	0,12,1,0,0,0,2,51,1,0,0,0,4,72,1,0,0,0,6,74,1,0,0,0,8,9,3,2,1,0,9,10,5,
-	0,0,1,10,13,1,0,0,0,11,13,5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,0,
-	0,14,15,6,1,-1,0,15,16,7,0,0,0,16,52,3,4,2,0,17,18,7,0,0,0,18,19,3,4,2,
-	0,19,20,3,2,1,11,20,52,1,0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,1,0,
-	0,24,25,3,2,1,10,25,52,1,0,0,0,26,27,5,2,0,0,27,28,3,2,1,0,28,29,5,3,0,
-	0,29,52,1,0,0,0,30,31,5,4,0,0,31,32,3,2,1,0,32,33,5,5,0,0,33,52,1,0,0,0,
-	34,35,5,6,0,0,35,36,3,6,3,0,36,37,3,2,1,7,37,52,1,0,0,0,38,39,5,6,0,0,39,
-	40,3,6,3,0,40,41,5,0,0,1,41,52,1,0,0,0,42,43,5,8,0,0,43,44,3,2,1,0,44,45,
-	5,5,0,0,45,46,5,9,0,0,46,47,3,2,1,0,47,48,5,6,0,0,48,49,3,2,1,3,49,52,1,
-	0,0,0,50,52,5,16,0,0,51,14,1,0,0,0,51,17,1,0,0,0,51,21,1,0,0,0,51,26,1,
-	0,0,0,51,30,1,0,0,0,51,34,1,0,0,0,51,38,1,0,0,0,51,42,1,0,0,0,51,50,1,0,
-	0,0,52,64,1,0,0,0,53,54,10,5,0,0,54,55,5,1,0,0,55,63,3,2,1,6,56,57,10,2,
-	0,0,57,58,7,1,0,0,58,63,3,2,1,3,59,60,10,4,0,0,60,61,5,7,0,0,61,63,5,11,
-	0,0,62,53,1,0,0,0,62,56,1,0,0,0,62,59,1,0,0,0,63,66,1,0,0,0,64,62,1,0,0,
-	0,64,65,1,0,0,0,65,3,1,0,0,0,66,64,1,0,0,0,67,73,5,11,0,0,68,69,5,11,0,
-	0,69,73,5,17,0,0,70,73,5,17,0,0,71,73,5,10,0,0,72,67,1,0,0,0,72,68,1,0,
-	0,0,72,70,1,0,0,0,72,71,1,0,0,0,73,5,1,0,0,0,74,75,5,19,0,0,75,7,1,0,0,
-	0,5,12,51,62,64,72];
+	2,1,2,3,2,73,8,2,1,3,1,3,1,3,0,1,2,4,0,2,4,6,0,2,2,0,1,2,16,17,1,0,14,15,
+	87,0,12,1,0,0,0,2,51,1,0,0,0,4,72,1,0,0,0,6,74,1,0,0,0,8,9,3,2,1,0,9,10,
+	5,0,0,1,10,13,1,0,0,0,11,13,5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,
+	0,0,14,15,6,1,-1,0,15,16,7,0,0,0,16,52,3,4,2,0,17,18,7,0,0,0,18,19,3,4,
+	2,0,19,20,3,2,1,11,20,52,1,0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,3,
+	0,0,24,25,3,2,1,10,25,52,1,0,0,0,26,27,5,4,0,0,27,28,3,2,1,0,28,29,5,5,
+	0,0,29,52,1,0,0,0,30,31,5,6,0,0,31,32,3,2,1,0,32,33,5,7,0,0,33,52,1,0,0,
+	0,34,35,5,8,0,0,35,36,3,6,3,0,36,37,3,2,1,7,37,52,1,0,0,0,38,39,5,8,0,0,
+	39,40,3,6,3,0,40,41,5,0,0,1,41,52,1,0,0,0,42,43,5,10,0,0,43,44,3,2,1,0,
+	44,45,5,7,0,0,45,46,5,11,0,0,46,47,3,2,1,0,47,48,5,8,0,0,48,49,3,2,1,3,
+	49,52,1,0,0,0,50,52,5,18,0,0,51,14,1,0,0,0,51,17,1,0,0,0,51,21,1,0,0,0,
+	51,26,1,0,0,0,51,30,1,0,0,0,51,34,1,0,0,0,51,38,1,0,0,0,51,42,1,0,0,0,51,
+	50,1,0,0,0,52,64,1,0,0,0,53,54,10,5,0,0,54,55,5,3,0,0,55,63,3,2,1,6,56,
+	57,10,2,0,0,57,58,7,1,0,0,58,63,3,2,1,3,59,60,10,4,0,0,60,61,5,9,0,0,61,
+	63,5,13,0,0,62,53,1,0,0,0,62,56,1,0,0,0,62,59,1,0,0,0,63,66,1,0,0,0,64,
+	62,1,0,0,0,64,65,1,0,0,0,65,3,1,0,0,0,66,64,1,0,0,0,67,73,5,13,0,0,68,69,
+	5,13,0,0,69,73,5,19,0,0,70,73,5,19,0,0,71,73,5,12,0,0,72,67,1,0,0,0,72,
+	68,1,0,0,0,72,70,1,0,0,0,72,71,1,0,0,0,73,5,1,0,0,0,74,75,5,21,0,0,75,7,
+	1,0,0,0,5,12,51,62,64,72];
 
 	private static __ATN: ATN;
 	public static get _ATN(): ATN {
@@ -535,7 +541,7 @@ export class RtContext extends ParserRuleContext {
     public get ruleIndex(): number {
     	return RTRegexParser.RULE_rt;
 	}
-	public copyFrom(ctx: RtContext): void {
+	public override copyFrom(ctx: RtContext): void {
 		super.copyFrom(ctx);
 	}
 }
@@ -590,7 +596,7 @@ export class ExprContext extends ParserRuleContext {
     public get ruleIndex(): number {
     	return RTRegexParser.RULE_expr;
 	}
-	public copyFrom(ctx: ExprContext): void {
+	public override copyFrom(ctx: ExprContext): void {
 		super.copyFrom(ctx);
 	}
 }

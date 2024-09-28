@@ -16,7 +16,9 @@
 
 ##### Alternative 2: Run manually from any terminal
 
-1. install antlr4 by running: `pip install antlr4-tools`
+1. install antlr4 by running:
+   - `pip install antlr4-tools`
+   - `brew install antrl` (MacOS, check how to install for your distribution)
 2. install nvm and setup node version
 
    - ```bash

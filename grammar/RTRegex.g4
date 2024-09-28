@@ -9,18 +9,18 @@ grammar RTRegex;
 rt: expr EOF # printExpr | EOF # blank;
 
 expr:
-	t = ('G' | 'T') id					# gId
-	| t = ('G' | 'T') id expr			# gIdContinued
-	| t = ('G' | 'T') id ',' expr		# gArgs
-	| '[' expr ']'						# notationStart
-	| 'DM(' expr ')'					# gDecisionMaking
-	| ':' word expr						# nameContinued
-	| ':' word EOF						# nameOnly
-	| expr op = ',' expr				# gDM
-	| expr op = '@' FLOAT				# gRetry
-	| 'try(' expr ')' '?' expr ':' expr	# gTry
-	| expr op = (';' | '#') expr		# gTime
-	| SKIPP								# gSkip;
+	t = ('G' | 'T' | 'M' | 'R') id				# gId
+	| t = ('G' | 'T' | 'M' | 'R') id expr		# gIdContinued
+	| t = ('G' | 'T' | 'M' | 'R') id ',' expr	# gArgs
+	| '[' expr ']'								# notationStart
+	| 'DM(' expr ')'							# gDecisionMaking
+	| ':' word expr								# nameContinued
+	| ':' word EOF								# nameOnly
+	| expr op = ',' expr						# gDM
+	| expr op = '@' FLOAT						# gRetry
+	| 'try(' expr ')' '?' expr ':' expr			# gTry
+	| expr op = (';' | '#') expr				# gTime
+	| SKIPP										# gSkip;
 
 id: FLOAT | FLOAT X | X | DIGIT_SUBID;
 DIGIT_SUBID: DIGIT SUBID;

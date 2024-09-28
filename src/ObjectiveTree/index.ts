@@ -24,6 +24,7 @@ const validateModel = ({ model }: { model: Model }) => {
 };
 
 export const loadModel = ({ filename }: { filename: string }) => {
+  console.log({ filename });
   const modelFile = readFileSync(filename);
   const model = JSON.parse(modelFile.toString()) as Model;
 
