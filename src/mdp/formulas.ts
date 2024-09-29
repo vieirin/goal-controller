@@ -50,7 +50,7 @@ const nonAlternativeChildrenFormula = ({
   };
 };
 
-type TreeOrChildrenProps = { gm: GoalTree | undefined };
+type TreeOrChildrenProps = { gm: GoalTree };
 const goalsWithFormula = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
   return (
     gm?.map((node) => {
@@ -58,10 +58,12 @@ const goalsWithFormula = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
         (!!node.children?.length && !node.customProperties.alt) ||
         node.children?.some((child) => child.customProperties.alt);
 
-      const childreWithFormula = goalsWithFormula({ gm: node.children });
+      const childrenWithFormula = node.children
+        ? goalsWithFormula({ gm: node.children })
+        : [];
       return [
         ...(shouldHaveFormula ? [node] : []),
-        ...(childreWithFormula ?? []),
+        ...(childrenWithFormula ?? []),
       ];
     }) ?? []
   ).flat();
@@ -97,7 +99,9 @@ const goalDependency = ({
   return (
     gm?.map((node) => {
       const dependency = node.customProperties.dependsOn;
-      const childrenWithFormula = goalDependency({ gm: node.children });
+      const childrenWithFormula = node.children
+        ? goalDependency({ gm: node.children })
+        : [];
       if (!dependency.length) {
         return [...(childrenWithFormula ?? [])];
       }

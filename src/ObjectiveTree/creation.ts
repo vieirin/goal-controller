@@ -10,7 +10,7 @@ import {
   NodeType,
   Relation,
 } from './types';
-import { allGoalsList } from './utils';
+import { allByType } from './utils';
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -63,6 +63,31 @@ const parseDecision = ({
   }));
 };
 
+const convertNonGoalChildren = (children: GoalNode[]) => {
+  return children.reduce(
+    (acc, child) => {
+      if (child.type === 'goal' && child.id.startsWith('M')) {
+        return {
+          ...acc,
+          monitors: [...acc.monitors, child],
+        };
+      }
+      if (child.type === 'resource') {
+        return {
+          ...acc,
+          resources: [...acc.resources, child],
+        };
+      }
+      return { ...acc, children: [...acc.children, child] };
+    },
+    {
+      monitors: [] as GoalNode[],
+      resources: [] as GoalNode[],
+      children: [] as GoalNode[],
+    }
+  );
+};
+
 const createNode = ({
   node,
   relation,
@@ -78,8 +103,6 @@ const createNode = ({
     goalText: node.text,
   });
 
-  console.log(goalName);
-
   const type = convertIstarType({ type: node.type });
 
   if (type === 'resource' && children.length > 0) {
@@ -91,6 +114,11 @@ const createNode = ({
   const { alt, root, uniqueChoice, ...customProperties } =
     node.customProperties;
   const decisionVars = parseDecision({ decision: customProperties.variables });
+  const {
+    monitors,
+    resources,
+    children: filteredChildren,
+  } = convertNonGoalChildren(children);
 
   return {
     decisionMaking: decisionMaking,
@@ -100,7 +128,9 @@ const createNode = ({
     relationToChildren: relation,
     relationToParent: null,
     type,
-    children,
+    monitors,
+    resources,
+    children: filteredChildren,
     decisionVars: decisionVars,
     hasDecision: decisionVars.length > 0,
     customProperties: {
@@ -205,20 +235,20 @@ const nodeToTree = ({
 };
 
 const addParentToChildren = (
-  unidirectionalTree: GoalNode,
+  unidirectionalTreeNode: GoalNode,
   searchParentsForGoal: (goalId: string) => GoalNode[]
 ): GoalNodeWithParent => {
-  if (!unidirectionalTree.children) {
+  if (!unidirectionalTreeNode.children) {
     return {
-      ...unidirectionalTree,
-      parent: searchParentsForGoal(unidirectionalTree.id),
+      ...unidirectionalTreeNode,
+      parent: searchParentsForGoal(unidirectionalTreeNode.id),
       children: undefined,
     };
   }
   const bidirectionalTree: GoalNodeWithParent = {
-    ...unidirectionalTree,
-    parent: searchParentsForGoal(unidirectionalTree.id),
-    children: unidirectionalTree.children.map(
+    ...unidirectionalTreeNode,
+    parent: searchParentsForGoal(unidirectionalTreeNode.id),
+    children: unidirectionalTreeNode.children.map(
       (goal): GoalNodeWithParent => ({
         ...goal,
         parent: searchParentsForGoal(goal.id),
@@ -254,7 +284,7 @@ export const convertToTree = ({
     });
   });
 
-  const allGoals = allGoalsList({ gm: unidirectionalTree });
+  const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
   const searchParentsForGoal = (goalId: string) => {
     return allGoals.filter((goal) =>
       goal.children?.map(({ id }) => id).includes(goalId)

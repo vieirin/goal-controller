@@ -1,28 +1,27 @@
-import {
-  GoalNode,
-  GoalNodeWithParent,
-  GoalTree,
-  GoalTreeWithParent,
-} from './types';
+import { GoalNode, GoalTree, GoalTreeWithParent, Type } from './types';
 
-export const allGoalsList = ({
+export const allByType = <T extends GoalTreeWithParent | GoalTree>({
   gm,
+  type,
   preferVariant = true,
 }: {
-  gm: GoalTreeWithParent | GoalTree | undefined;
+  gm: T;
+  type: Type;
   preferVariant?: boolean;
-}) => {
-  const all: (GoalNode | GoalNodeWithParent)[] =
-    gm?.flatMap((node) => {
-      if (node.children?.length) {
-        const children = node.children;
-        return [node, ...(allGoalsList({ gm: children, preferVariant }) ?? [])];
+}): T => {
+  const allCurrent = gm
+    .flatMap((node) => {
+      if ((node.children?.length || 0) > 0) {
+        return [
+          node,
+          ...(allByType({ gm: node.children as T, type, preferVariant }) ?? []),
+        ];
       }
-      return [node];
-    }) ?? [];
 
-  const unique = Object.values(
-    all?.reduce(
+      return [node];
+    })
+    .filter((node) => node.type === type)
+    .reduce(
       (acc, current) => {
         if (acc[current.id]) {
           if (preferVariant && current.variantOf) {
@@ -33,22 +32,24 @@ export const allGoalsList = ({
 
         return { ...acc, [current.id]: current };
       },
-      {} as Record<string, GoalNodeWithParent | GoalNode>
-    ) ?? {}
-  );
+      {} as Record<string, T[number]>
+    );
 
-  return unique.filter((goal) => goal.type !== 'resource');
+  return Object.values(allCurrent) as T;
 };
 
-export const allGoalsMap = ({
+export const allGoalsMap = <T extends GoalTreeWithParent | GoalTree>({
   gm,
   preferVariant = true,
 }: {
-  gm: GoalTreeWithParent | undefined;
+  gm: T;
   preferVariant?: boolean;
 }) => {
   return new Map(
-    allGoalsList({ gm, preferVariant }).map((goal) => [goal.id, goal])
+    allByType({ gm, type: 'goal', preferVariant }).map((goal) => [
+      goal.id,
+      goal,
+    ])
   );
 };
 
@@ -56,8 +57,14 @@ export const goalRootId = ({ id }: { id: string }) => {
   return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 2) + 1);
 };
 
-export const leafGoals = ({ gm }: { gm: GoalTreeWithParent | undefined }) => {
-  const leaves = allGoalsList({ gm })?.filter((goal) => !goal.children?.length);
+export const leafGoals = <T extends GoalTreeWithParent | GoalTree>({
+  gm,
+}: {
+  gm: T;
+}) => {
+  const leaves = allByType({ gm, type: 'goal' })?.filter(
+    (goal) => !goal.children?.length
+  );
   return leaves;
 };
 

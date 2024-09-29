@@ -94,6 +94,8 @@ export type GoalNode = {
     uniqueChoice: boolean;
     [k: string]: any;
   };
+  monitors: GoalNode[];
+  resources: GoalNode[];
 } & Decision;
 type GoalNodeWithParent = GoalNode & {
   parent: GoalNode[];
@@ -101,5 +103,4 @@ type GoalNodeWithParent = GoalNode & {
 };
 
 export type GoalTreeWithParent = GoalNodeWithParent[];
-
 type GoalTree = GoalNode[];
