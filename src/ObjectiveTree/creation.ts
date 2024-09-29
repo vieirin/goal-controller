@@ -63,7 +63,7 @@ const parseDecision = ({
   }));
 };
 
-const isMonitor = (node: { id: string }) => node.id.startsWith('M');
+export const isMonitor = (node: { id: string }) => node.id.startsWith('M');
 
 const convertNonGoalChildren = (children: GoalNode[]) => {
   return children.reduce(
