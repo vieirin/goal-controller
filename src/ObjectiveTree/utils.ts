@@ -63,7 +63,7 @@ export const leafGoals = <T extends GoalTreeWithParent | GoalTree>({
   gm: T;
 }) => {
   const leaves = allByType({ gm, type: 'goal' })?.filter(
-    (goal) => !goal.children?.length
+    (goal) => !!goal.tasks
   );
   return leaves;
 };

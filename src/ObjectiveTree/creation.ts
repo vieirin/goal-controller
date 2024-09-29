@@ -78,13 +78,20 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
           resources: [...acc.resources, child],
         };
       }
+      if (child.type === 'task') {
+        return {
+          ...acc,
+          tasks: [...acc.tasks, child],
+        };
+      }
       return { ...acc, children: [...acc.children, child] };
     },
     {
-      monitors: [] as GoalNode[],
-      resources: [] as GoalNode[],
-      children: [] as GoalNode[],
-    }
+      monitors: [],
+      resources: [],
+      children: [],
+      tasks: [],
+    } as Record<'monitors' | 'resources' | 'children' | 'tasks', GoalNode[]>
   );
 };
 
@@ -117,8 +124,21 @@ const createNode = ({
   const {
     monitors,
     resources,
+    tasks,
     children: filteredChildren,
   } = convertNonGoalChildren(children);
+
+  if (!children.length && !tasks.length) {
+    throw new Error(
+      `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`
+    );
+  }
+
+  if (resources.length > 0 && type !== 'task') {
+    throw new Error(
+      `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${type} instead`
+    );
+  }
 
   return {
     decisionMaking: decisionMaking,
@@ -142,6 +162,7 @@ const createNode = ({
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
     },
+    ...(tasks.length > 0 && { tasks }),
   };
 };
 

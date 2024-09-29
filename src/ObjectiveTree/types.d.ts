@@ -96,6 +96,7 @@ export type GoalNode = {
   };
   monitors: GoalNode[];
   resources: GoalNode[];
+  tasks?: GoalNode[];
 } & Decision;
 type GoalNodeWithParent = GoalNode & {
   parent: GoalNode[];
