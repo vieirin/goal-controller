@@ -49,11 +49,11 @@ const parseDecision = ({
   parsedDecision.forEach((d) => {
     if (d.length !== 2) {
       throw new Error(
-        `[INVALID DECISION] decision must be a variable and space: ${decision}, expected format variable:space`
+        `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`
       );
     }
     if (isNaN(parseInt(d[1]))) {
-      throw new Error(`[INVALID DECISION] space must be a number: ${decision}`);
+      throw new Error(`[INVALID DECISION] space must be a number: got ${d[1]}`);
     }
   });
 
