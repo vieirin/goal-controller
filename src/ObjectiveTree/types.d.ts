@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 export type id = string;
 
-export interface Model {
+interface Model {
   actors: Actor[];
   orphans: never[];
   dependencies: never[];
@@ -13,17 +12,13 @@ export interface Model {
   diagram: Diagram;
 }
 
-export interface Actor extends Node {
+interface Actor extends Node {
   nodes: Node[];
 }
 
-export type NodeType =
-  | 'istar.Task'
-  | 'istar.Goal'
-  | 'istar.Actor'
-  | 'istar.Resource';
+type NodeType = 'istar.Task' | 'istar.Goal' | 'istar.Actor' | 'istar.Resource';
 
-export interface Node extends CustomProperties {
+interface Node extends CustomProperties {
   id: id;
   text: string;
   type: NodeType;
@@ -31,7 +26,7 @@ export interface Node extends CustomProperties {
   y: number;
 }
 
-export interface Link {
+interface Link {
   id: id;
   type:
     | 'istar.AndRefinementLink'
@@ -41,22 +36,22 @@ export interface Link {
   target: string;
 }
 
-export interface Display {
+interface Display {
   [K: string]: DisplayItem;
 }
 
-export interface DisplayItem {
+interface DisplayItem {
   backgroundColor: string;
   width?: number;
   height?: number;
 }
 
-export interface Diagram extends CustomProperties {
+interface Diagram extends CustomProperties {
   width: number;
   height: number;
 }
 
-export interface CustomProperties {
+interface CustomProperties {
   customProperties: {
     Description: '';
     root?: string;
@@ -69,13 +64,13 @@ export interface CustomProperties {
   };
 }
 
-export type Relation = 'or' | 'and' | 'neededBy' | 'none';
-export type Type = 'goal' | 'task' | 'resource';
-export type Decision = {
+type Relation = 'or' | 'and' | 'neededBy' | 'none';
+type Type = 'goal' | 'task' | 'resource';
+type Decision = {
   decisionVars: { variable: string; space: number }[];
   hasDecision: boolean;
 };
-export type GoalNode = {
+type GoalNode = {
   iStarId: id;
   id: string;
   type: Type;
@@ -98,10 +93,14 @@ export type GoalNode = {
   resources: GoalNode[];
   tasks?: GoalNode[];
 } & Decision;
+
 type GoalNodeWithParent = GoalNode & {
   parent: GoalNode[];
   children?: GoalNodeWithParent[];
 };
 
-export type GoalTreeWithParent = GoalNodeWithParent[];
+type GenericGoal = GoalNode | GoalNodeWithParent;
+
+type GoalTreeWithParent = GoalNodeWithParent[];
 type GoalTree = GoalNode[];
+type GenericTree = GenericGoal[];

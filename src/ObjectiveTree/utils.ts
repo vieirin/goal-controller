@@ -1,6 +1,6 @@
-import { GoalNode, GoalTree, GoalTreeWithParent, Type } from './types';
+import { GenericGoal, GenericTree, GoalNode, Type } from './types';
 
-export const allByType = <T extends GoalTreeWithParent | GoalTree>({
+export const allByType = <T extends GenericTree>({
   gm,
   type,
   preferVariant = true,
@@ -13,11 +13,7 @@ export const allByType = <T extends GoalTreeWithParent | GoalTree>({
     .flatMap((node) => {
       // we need to make resources and tasks back as children so we can
       // filter them out in the next step
-      const children = [
-        ...(node.children ?? []),
-        ...node.resources,
-        ...(node.tasks ?? []),
-      ] as T;
+      const children = childrenWithTasksAndResources({ node });
       if (children.length > 0) {
         return [
           node,
@@ -28,6 +24,7 @@ export const allByType = <T extends GoalTreeWithParent | GoalTree>({
       return [node];
     })
     .filter((node) => node.type === type)
+    .sort((a, b) => a.id.localeCompare(b.id))
     .reduce(
       (acc, current) => {
         if (acc[current.id]) {
@@ -45,7 +42,7 @@ export const allByType = <T extends GoalTreeWithParent | GoalTree>({
   return Object.values(allCurrent) as T;
 };
 
-export const allGoalsMap = <T extends GoalTreeWithParent | GoalTree>({
+export const allGoalsMap = <T extends GenericTree>({
   gm,
   preferVariant = true,
 }: {
@@ -64,11 +61,7 @@ export const goalRootId = ({ id }: { id: string }) => {
   return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 2) + 1);
 };
 
-export const leafGoals = <T extends GoalTreeWithParent | GoalTree>({
-  gm,
-}: {
-  gm: T;
-}) => {
+export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }) => {
   const leaves = allByType({ gm, type: 'goal' })?.filter(
     (goal) => !!goal.tasks
   );
@@ -92,4 +85,20 @@ export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
       yield [item, ...subProduct];
     }
   }
+}
+
+function childrenWithTasksAndResources<T extends GenericGoal>({
+  node,
+}: {
+  node: T;
+}) {
+  return [
+    ...(node.children ?? []),
+    ...node.resources,
+    ...(node.tasks ?? []),
+  ] as T[];
+}
+
+export function childrenLength({ node }: { node: GoalNode }) {
+  return childrenWithTasksAndResources({ node }).length;
 }

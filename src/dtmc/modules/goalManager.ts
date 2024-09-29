@@ -1,7 +1,6 @@
 import { Dictionary } from 'lodash';
 import {
   achieved,
-  grouppedGoals,
   not,
   parenthesis,
   pursue,
@@ -16,6 +15,7 @@ import {
   GoalTreeWithParent,
   Relation,
 } from '../../ObjectiveTree/types';
+import { allByType, childrenLength } from '../../ObjectiveTree/utils';
 import {
   decisionVariableName,
   decisionVariablesForGoal,
@@ -37,19 +37,12 @@ const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
 const declareManagerVariables = ({
   goals,
 }: {
-  goals: Dictionary<GoalNodeWithParent[]>;
+  goals: GoalNodeWithParent[];
 }) => {
-  const childrenLength = (parentId: string, goalGroup: GoalNode[]) =>
-    goalGroup.find((g) => g.id === parentId)?.children?.length ?? 1;
-  const goalsWithChoice = choosableGoals(goals);
   return [
-    ...Object.entries(goals).map(
-      ([goalId, goals]) =>
-        `  ${pursued(goalId)} : [0..${childrenLength(goalId, goals)}] init 0;`
-    ),
-    ...goalsWithChoice.map(
+    ...goals.map(
       (goal) =>
-        `  ${goal.id}_chosen : [0..${goal.children?.length ?? 1}] init 0;`
+        `  ${pursued(goal.id)} : [0..${childrenLength({ node: goal })}] init 0;`
     ),
   ].join('\n');
 };
@@ -212,16 +205,14 @@ const declareManagerTransitions = ({
 };
 
 export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
-  const goals = grouppedGoals({
-    gm,
-  }) as Dictionary<GoalNodeWithParent[]>;
+  const goals = allByType({ gm, type: 'goal' });
   const goalsLength = Object.keys(goals).length;
   return `
 module GoalManager
   goal : [0..${goalsLength - 1}] init 0;
 ${declareManagerVariables({ goals })}
 
-${declareManagerTransitions({ goals })}
+
 
 `;
 };

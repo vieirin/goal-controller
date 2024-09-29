@@ -63,10 +63,12 @@ const parseDecision = ({
   }));
 };
 
+const isMonitor = (node: { id: string }) => node.id.startsWith('M');
+
 const convertNonGoalChildren = (children: GoalNode[]) => {
   return children.reduce(
     (acc, child) => {
-      if (child.type === 'goal' && child.id.startsWith('M')) {
+      if (child.type === 'goal' && isMonitor(child)) {
         return {
           ...acc,
           monitors: [...acc.monitors, child],
@@ -128,7 +130,12 @@ const createNode = ({
     children: filteredChildren,
   } = convertNonGoalChildren(children);
 
-  if (!children.length && !tasks.length) {
+  if (
+    !children.length &&
+    !tasks.length &&
+    type === 'goal' &&
+    !isMonitor({ id })
+  ) {
     throw new Error(
       `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`
     );
