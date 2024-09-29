@@ -11,10 +11,17 @@ export const allByType = <T extends GoalTreeWithParent | GoalTree>({
 }): T => {
   const allCurrent = gm
     .flatMap((node) => {
-      if ((node.children?.length || 0) > 0) {
+      // we need to make resources and tasks back as children so we can
+      // filter them out in the next step
+      const children = [
+        ...(node.children ?? []),
+        ...node.resources,
+        ...(node.tasks ?? []),
+      ] as T;
+      if (children.length > 0) {
         return [
           node,
-          ...(allByType({ gm: node.children as T, type, preferVariant }) ?? []),
+          ...(allByType({ gm: children, type, preferVariant }) ?? []),
         ];
       }
 
