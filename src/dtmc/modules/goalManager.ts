@@ -20,6 +20,7 @@ import {
   decisionVariableName,
   decisionVariablesForGoal,
 } from '../decisionVariables';
+import { managerGoalModule } from './goalModule';
 
 const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
   const goalsWithChoice = Object.values(goals).reduce((acc, goal) => {
@@ -130,7 +131,7 @@ const childrenSkipCondition = (children: GoalNode[], relation: Relation) => {
   }
 };
 
-const goalNumberId = (goalId: string) => {
+export const goalNumberId = (goalId: string) => {
   const id = goalId.match(/\d+/)?.[0];
   if (!id) {
     throw new Error(
@@ -212,6 +213,7 @@ module GoalManager
   goal : [0..${goalsLength - 1}] init 0;
 ${declareManagerVariables({ goals })}
 
+${goals.map(managerGoalModule).join('\n')}
 
 
 `;

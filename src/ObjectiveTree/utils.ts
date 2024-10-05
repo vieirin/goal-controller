@@ -92,7 +92,7 @@ export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
   }
 }
 
-function childrenWithTasksAndResources<T extends GenericGoal>({
+export function childrenWithTasksAndResources<T extends GenericGoal>({
   node,
 }: {
   node: T;
@@ -104,6 +104,6 @@ function childrenWithTasksAndResources<T extends GenericGoal>({
   ] as T[];
 }
 
-export function childrenLength({ node }: { node: GoalNode }) {
+export function childrenLength({ node }: { node: GenericGoal }) {
   return childrenWithTasksAndResources({ node }).length;
 }
