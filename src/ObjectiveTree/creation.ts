@@ -11,6 +11,10 @@ import {
   Relation,
 } from './types';
 import { allByType } from './utils';
+import {
+  validateDependsOn,
+  validateDependsOnInput,
+} from './validators/dependsOn';
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -27,14 +31,26 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
 
 const parseDependsOn = ({
   dependsOn,
+  allNodes,
 }: {
   dependsOn: string;
+  allNodes: string[];
 }): Array<string> => {
   if (!dependsOn) {
     return [];
   }
+
+  const isValid = validateDependsOnInput(dependsOn);
+  if (!isValid) {
+    throw new Error(
+      `Invalid dependsOn input got ${dependsOn} but expected T2.2 or T2`
+    );
+  }
+
   const parsedDependency = dependsOn.split(',');
-  return parsedDependency.map((d) => d.trim());
+  const trimmedDependency = parsedDependency.map((d) => d.trim());
+  validateDependsOn(trimmedDependency, allNodes);
+  return trimmedDependency;
 };
 
 const parseDecision = ({
@@ -101,10 +117,12 @@ const createNode = ({
   node,
   relation,
   children,
+  allNodes,
 }: {
   node: Node;
   relation: Relation;
   children: GoalNode[];
+  allNodes: string[];
 }): GoalNode => {
   // Other RT properties should be added here
   // should we add order?
@@ -164,6 +182,7 @@ const createNode = ({
       ...customProperties,
       dependsOn: parseDependsOn({
         dependsOn: customProperties.dependsOn ?? '',
+        allNodes,
       }),
       alt: alt?.toLowerCase() === 'true' || false,
       root: root?.toLowerCase() === 'true' || undefined,
@@ -177,10 +196,12 @@ const nodeChildren = ({
   actor,
   id,
   links,
+  allNodes,
 }: {
   actor: Actor;
   links: Link[];
   id?: string;
+  allNodes: string[];
 }): [GoalNode[], Relation] => {
   if (!id) {
     return [[], 'none'];
@@ -223,6 +244,7 @@ const nodeChildren = ({
         actor,
         id: node.id,
         links: links,
+        allNodes,
       });
 
       const { alt, root, ...customProperties } = node.customProperties;
@@ -237,6 +259,7 @@ const nodeChildren = ({
           }
           return { ...granChild };
         }),
+        allNodes,
       });
     })
     .filter((n): n is GoalNode => !!n);
@@ -248,18 +271,21 @@ const nodeToTree = ({
   actor,
   iStarLinks,
   node,
+  allNodes,
 }: {
   actor: Actor;
   iStarLinks: Link[];
   node: Node;
+  allNodes: string[];
 }): GoalNode => {
   const [children, relation] = nodeChildren({
     actor,
     id: node.id,
     links: iStarLinks,
+    allNodes,
   });
 
-  return createNode({ node, children, relation });
+  return createNode({ node, children, relation, allNodes });
 };
 
 const addParentToChildren = (
@@ -295,6 +321,9 @@ export const convertToTree = ({
 }: {
   model: Model;
 }): GoalTreeWithParent => {
+  const allNodes = model.actors.flatMap((actor) =>
+    actor.nodes.map((node) => node.id)
+  );
   const unidirectionalTree = model.actors.map((actor) => {
     // find root node
     const rootNode = actor.nodes.find((item) => item.customProperties.root);
@@ -309,13 +338,14 @@ export const convertToTree = ({
       actor,
       node: rootNode,
       iStarLinks: [...model.links],
+      allNodes,
     });
   });
 
   const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
   const searchParentsForGoal = (goalId: string) => {
-    return allGoals.filter((goal) =>
-      goal.children?.map(({ id }) => id).includes(goalId)
+    return allGoals.filter(
+      (goal) => goal.children?.map(({ id }) => id).includes(goalId)
     );
   };
   // traverse the tree adding parents to it
