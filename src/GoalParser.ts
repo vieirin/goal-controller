@@ -1,15 +1,12 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
 import RTRegex from './antlr/RTRegexLexer';
+import RTRegexListener from './antlr/RTRegexListener';
 import RTRegexParser, {
-  ExprContext,
   GDecisionMakingContext,
   GIdContext,
   GIdContinuedContext,
-  IdContext,
-  RtContext,
   WordContext,
 } from './antlr/RTRegexParser';
-import RTRegexListener from './antlr/RTRegexListener';
 
 export const getGoalDetail = ({
   goalText,
@@ -49,5 +46,9 @@ export const getGoalDetail = ({
 
   const goalSanitizedName = goalName ?? '';
 
-  return { id, goalName: goalSanitizedName.trim(), decisionMaking };
+  return {
+    id: id.replace('.', '_'),
+    goalName: goalSanitizedName.trim(),
+    decisionMaking,
+  };
 };

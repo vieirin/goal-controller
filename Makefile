@@ -13,5 +13,5 @@ run: grammar
 	npx ts-node src/index.ts $(ARGS)
 
 exec:
-	npx ts-node src/index.ts ./examples/edgeModel.txt 
+	npx ts-node src/index.ts ./examples/modelv3.txt 
 

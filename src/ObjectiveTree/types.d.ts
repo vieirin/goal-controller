@@ -74,6 +74,7 @@ type GoalNode = {
   iStarId: id;
   id: string;
   type: Type;
+  index: number;
   relationToParent: Relation | null;
   relationToChildren: Relation | null;
   name: string | null;

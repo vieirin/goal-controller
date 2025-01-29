@@ -31,10 +31,10 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
 
 const parseDependsOn = ({
   dependsOn,
-  allNodes,
+  allNodesWithIndex,
 }: {
   dependsOn: string;
-  allNodes: string[];
+  allNodesWithIndex: { id: string; index: number }[];
 }): Array<string> => {
   if (!dependsOn) {
     return [];
@@ -48,8 +48,11 @@ const parseDependsOn = ({
   }
 
   const parsedDependency = dependsOn.split(',');
-  const trimmedDependency = parsedDependency.map((d) => d.trim());
-  validateDependsOn(trimmedDependency, allNodes);
+  const trimmedDependency = parsedDependency.map((d) =>
+    d.replace('.', '_').trim()
+  );
+  validateDependsOn(trimmedDependency, allNodesWithIndex);
+
   return trimmedDependency;
 };
 
@@ -117,12 +120,12 @@ const createNode = ({
   node,
   relation,
   children,
-  allNodes,
+  allNodesWithIndex,
 }: {
   node: Node;
   relation: Relation;
   children: GoalNode[];
-  allNodes: string[];
+  allNodesWithIndex: { id: string; index: number }[];
 }): GoalNode => {
   // Other RT properties should be added here
   // should we add order?
@@ -173,6 +176,7 @@ const createNode = ({
     relationToChildren: relation,
     relationToParent: null,
     type,
+    index: allNodesWithIndex.find((node) => node.id === id)?.index ?? -1,
     monitors,
     resources,
     children: filteredChildren,
@@ -182,7 +186,7 @@ const createNode = ({
       ...customProperties,
       dependsOn: parseDependsOn({
         dependsOn: customProperties.dependsOn ?? '',
-        allNodes,
+        allNodesWithIndex,
       }),
       alt: alt?.toLowerCase() === 'true' || false,
       root: root?.toLowerCase() === 'true' || undefined,
@@ -196,12 +200,12 @@ const nodeChildren = ({
   actor,
   id,
   links,
-  allNodes,
+  allNodesWithIndex,
 }: {
   actor: Actor;
   links: Link[];
   id?: string;
-  allNodes: string[];
+  allNodesWithIndex: { id: string; index: number }[];
 }): [GoalNode[], Relation] => {
   if (!id) {
     return [[], 'none'];
@@ -244,7 +248,7 @@ const nodeChildren = ({
         actor,
         id: node.id,
         links: links,
-        allNodes,
+        allNodesWithIndex,
       });
 
       const { alt, root, ...customProperties } = node.customProperties;
@@ -259,7 +263,7 @@ const nodeChildren = ({
           }
           return { ...granChild };
         }),
-        allNodes,
+        allNodesWithIndex,
       });
     })
     .filter((n): n is GoalNode => !!n);
@@ -271,21 +275,21 @@ const nodeToTree = ({
   actor,
   iStarLinks,
   node,
-  allNodes,
+  allNodesWithIndex,
 }: {
   actor: Actor;
   iStarLinks: Link[];
   node: Node;
-  allNodes: string[];
+  allNodesWithIndex: { id: string; index: number }[];
 }): GoalNode => {
   const [children, relation] = nodeChildren({
     actor,
     id: node.id,
     links: iStarLinks,
-    allNodes,
+    allNodesWithIndex,
   });
 
-  return createNode({ node, children, relation, allNodes });
+  return createNode({ node, children, relation, allNodesWithIndex });
 };
 
 const addParentToChildren = (
@@ -316,14 +320,41 @@ const addParentToChildren = (
   return bidirectionalTree;
 };
 
+// give an index to each goal/task node
+// map the index to the node id that's extracted from the goal text
+// sort the nodes by type, goal first, then task
+const mapNodeIndexes = (model: Model) => {
+  let index = 0;
+  return model.actors.flatMap((actor) =>
+    actor.nodes
+      .filter((node) => ['istar.Goal', 'istar.Task'].includes(node.type))
+      .sort((a, b) => {
+        if (a.type === 'istar.Goal' && b.type === 'istar.Task') {
+          return -1;
+        } else if (a.type === 'istar.Task' && b.type === 'istar.Goal') {
+          return 1;
+        }
+        return 0;
+      })
+      .map((node) => {
+        const { id } = getGoalDetail({
+          goalText: node.text,
+        });
+        return { id, index: index++ };
+      })
+  );
+};
+
 export const convertToTree = ({
   model,
 }: {
   model: Model;
-}): GoalTreeWithParent => {
-  const allNodes = model.actors.flatMap((actor) =>
-    actor.nodes.map((node) => node.id)
-  );
+}): {
+  bidirectionalTree: GoalTreeWithParent;
+  nodeIndexMap: { id: string; index: number }[];
+} => {
+  const allNodesWithIndex = mapNodeIndexes(model);
+
   const unidirectionalTree = model.actors.map((actor) => {
     // find root node
     const rootNode = actor.nodes.find((item) => item.customProperties.root);
@@ -338,7 +369,7 @@ export const convertToTree = ({
       actor,
       node: rootNode,
       iStarLinks: [...model.links],
-      allNodes,
+      allNodesWithIndex,
     });
   });
 
@@ -353,5 +384,5 @@ export const convertToTree = ({
     addParentToChildren(goal, searchParentsForGoal)
   );
 
-  return bidirectionalTree;
+  return { bidirectionalTree, nodeIndexMap: allNodesWithIndex };
 };

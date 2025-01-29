@@ -7,9 +7,11 @@ const pursueStatements = (goal: GoalNode): string[] => {
     ?.sort((a, b) => a.id.localeCompare(b.id))
     .map((child): [GoalNode, { left: string; right: string }] => {
       // default statement, no monitors
-      const leftStatement = `[pursue_${goal.id}_${child.id}] turn=0 & goal=${goalNumberId(goal.id)} & ${pursued(goal.id)}=0`;
+      const leftStatement = `[pursue_${goal.id}_${
+        child.id
+      }] turn=0 & goal=${goalNumberId(goal.id)} & ${pursued(goal.id)}=0`;
       const rightStatement = `(${pursued(goal.id)}'=1)`;
-      return [child, { left: leftStatement, right: rightStatement }] as const;
+      return [child, { left: leftStatement, right: rightStatement }];
     })
     .map(([child, statement]): { left: string; right: string }[] => {
       if (!child.monitors?.length) {
@@ -65,7 +67,9 @@ const achieveStatements = (goal: GoalNodeWithParent) => {
     ];
   }
   return goal.parent.map((parent) => {
-    return `  [achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(goal.id)} -> (goal'=${goalNumberId(parent.id)});`;
+    return `  [achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(
+      goal.id
+    )} -> (goal'=${goalNumberId(parent.id)});`;
   });
 };
 

@@ -15,12 +15,10 @@ import {
   GoalTreeWithParent,
   Relation,
 } from '../../ObjectiveTree/types';
-import { allByType, childrenLength } from '../../ObjectiveTree/utils';
 import {
   decisionVariableName,
   decisionVariablesForGoal,
 } from '../decisionVariables';
-import { managerGoalModule } from './goalModule';
 
 const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
   const goalsWithChoice = Object.values(goals).reduce((acc, goal) => {
@@ -35,16 +33,9 @@ const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
   return goalsWithChoice;
 };
 
-const declareManagerVariables = ({
-  goals,
-}: {
-  goals: GoalNodeWithParent[];
-}) => {
+const declareManagerVariables = ({ goals }: { goals: { id: string }[] }) => {
   return [
-    ...goals.map(
-      (goal) =>
-        `  ${pursued(goal.id)} : [0..${childrenLength({ node: goal })}] init 0;`
-    ),
+    ...goals.map((goal) => `  ${achieved(goal.id)} : [0..1] init 0;`),
   ].join('\n');
 };
 
@@ -77,7 +68,9 @@ const declareGoalTransitionsWithDecisionVariable = ({
   const pursuePrefix = `[${pursue(goal.id)}] turn=0 & goal=${goalIndex}`;
 
   // (G0_pursued'=1) & (goal'=1);
-  const transitionResult = `(${pursued(goal.id)}'=1) & (goal'=${goalIndex + 1});`;
+  const transitionResult = `(${pursued(goal.id)}'=1) & (goal'=${
+    goalIndex + 1
+  });`;
 
   const pursueStatements = decisionVarArray.map((variableCombination) => {
     // time=0 & space=1
@@ -90,13 +83,17 @@ const declareGoalTransitionsWithDecisionVariable = ({
     // expand to many children
     const childrenAchieved = achieved(goal.children?.[0].id ?? '');
 
-    return `  ${pursuePrefix} & ${pursued(goal.id)}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
+    return `  ${pursuePrefix} & ${pursued(
+      goal.id
+    )}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
   });
 
   const skipStatements = decisionVarArray.map((variableCombination) => {
     const decisionVariable = decisionVariableName(goal.id, variableCombination);
     const varStatement = variableStatement(variableArray, variableCombination);
-    return `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${decisionVariable}=0 & ${varStatement} -> true;`;
+    return `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(
+      goal.id
+    )}=0 & ${decisionVariable}=0 & ${varStatement} -> true;`;
   });
 
   return [...pursueStatements, '', ...skipStatements].join('\n');
@@ -159,13 +156,23 @@ const declareGoalTransitionsWithChildren = ({
   const childrenPursueTransitions = children.map((child, index) => {
     const childIndex = goalNumberId(child.id);
 
-    const transition = `  [${pursueThrough(goal.id, child.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${achieved(child.id)}=0 -> (${pursued(goal.id)}'=${index + 1}) & (goal'=${childIndex});`;
+    const transition = `  [${pursueThrough(
+      goal.id,
+      child.id
+    )}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${achieved(
+      child.id
+    )}=0 -> (${pursued(goal.id)}'=${index + 1}) & (goal'=${childIndex});`;
     return transition;
   });
 
   const skipTransition = goal.parent.map(
     (parent) =>
-      `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${childrenSkipCondition(children, goal.relationToChildren)} -> (goal'=${goalNumberId(parent.id)}) & (${pursued(parent.id)}'=0);`
+      `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(
+        goal.id
+      )}=0 & ${childrenSkipCondition(
+        children,
+        goal.relationToChildren
+      )} -> (goal'=${goalNumberId(parent.id)}) & (${pursued(parent.id)}'=0);`
   );
 
   return ['', ...childrenPursueTransitions, skipTransition].join('\n');
@@ -205,15 +212,19 @@ const declareManagerTransitions = ({
     .join('\n');
 };
 
-export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
-  const goals = allByType({ gm, type: 'goal' });
-  const goalsLength = Object.keys(goals).length;
+export const goalManagerTemplate = ({
+  gm,
+  nodeIndexMap,
+}: {
+  gm: GoalTreeWithParent;
+  nodeIndexMap: { id: string; index: number }[];
+}) => {
+  const goalsLength = nodeIndexMap.length;
   return `
 module GoalManager
   goal : [0..${goalsLength - 1}] init 0;
-${declareManagerVariables({ goals })}
+${declareManagerVariables({ goals: nodeIndexMap })}
 
-${goals.map(managerGoalModule).join('\n')}
 
 
 `;

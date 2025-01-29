@@ -2,9 +2,14 @@ import { GoalTreeWithParent } from '../ObjectiveTree/types';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { goalManagerTemplate } from './modules/goalManager';
 
-export const edgeDTMCTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
-  return `dtmc
-
+export const edgeDTMCTemplate = ({
+  gm,
+  nodeIndexMap,
+}: {
+  gm: GoalTreeWithParent;
+  nodeIndexMap: { id: string; index: number }[];
+}) => {
+  /* 
 //we encode states in which the controller make a specific decision with 
 //variables
 //For instance, G0 can be pursued or skipped whenever goal=0, i.e., the GM
@@ -18,8 +23,11 @@ export const edgeDTMCTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
 //Let's assume, that we want to make this decision based on some variable called 'time' in the
 //system. Let's further assume that 'time' goes from 0..9
 //We use the following variables to represent these system states: 
+*/
+  return `dtmc
+
 ${decisionVariablesTemplate({ gm })}
 
-${goalManagerTemplate({ gm })}
+${goalManagerTemplate({ gm, nodeIndexMap })}
 `;
 };
