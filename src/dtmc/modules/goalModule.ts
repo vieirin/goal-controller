@@ -1,80 +1,38 @@
-import { pursued } from '../../mdp/common';
-import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
-import { goalNumberId } from './goalManager';
+import { achieved, parenthesis } from '../../mdp/common';
+import { GoalNodeWithParent } from '../../ObjectiveTree/types';
 
-const pursueStatements = (goal: GoalNode): string[] => {
-  const pursueLines = goal.children
-    ?.sort((a, b) => a.id.localeCompare(b.id))
-    .map((child): [GoalNode, { left: string; right: string }] => {
-      // default statement, no monitors
-      const leftStatement = `[pursue_${goal.id}_${
-        child.id
-      }] turn=0 & goal=${goalNumberId(goal.id)} & ${pursued(goal.id)}=0`;
-      const rightStatement = `(${pursued(goal.id)}'=1)`;
-      return [child, { left: leftStatement, right: rightStatement }];
-    })
-    .map(([child, statement]): { left: string; right: string }[] => {
-      if (!child.monitors?.length) {
-        return [
-          {
-            left: `${statement.left} & decision_${goal.id}=1`,
-            right: `${statement.right} & (goal'=${goalNumberId(child.id)})`,
-          },
-        ];
-      }
-      //monitors stage
-      return child.monitors.flatMap((monitor) => {
-        return [
-          //monitor decision
-          {
-            left: `${statement.left} & ${monitor.id} & decision_${goal.id}_${monitor.id}>0`,
-            right: `${statement.right} & (goal'=decision_${goal.id}_${monitor.id})`,
-          },
-          // not monitor decision
-          {
-            left: `${statement.left} & !${monitor.id} & decision_${goal.id}_not${monitor.id}>0`,
-            right: `${statement.right} & (goal'=decision_${goal.id}_not${monitor.id})`,
-          },
-        ];
-      });
-    })
-    .map(
-      (statements) =>
-        // TODO: decision variables stage
-        statements
-    )
-    .map((statements): string[] => {
-      return statements.map((statement) => {
-        return `  ${statement.left} -> ${statement.right};`;
-      });
-    })
-    .flat();
+const allChildrenAchieved = (goal: GoalNodeWithParent) => {
+  const childrenToUse = goal.children?.length ? goal.children : goal.tasks;
 
-  return pursueLines ?? [];
+  return childrenToUse?.map((child) => `${achieved(child.id)}>0`).join(' & ');
 };
 
-const skipStatements = (goal: GoalNodeWithParent) => {
-  const startStatements = [
-    { left: `turn=0 & goal=1 & G1_pursued=0`, right: `(goal'=${goal.parent})` },
-  ];
-  return [];
+const anyChildAchieved = (goal: GoalNodeWithParent) => {
+  const childrenToUse = goal.children?.length ? goal.children : goal.tasks;
+  if (!childrenToUse?.length) return '';
+
+  return parenthesis(
+    childrenToUse?.map((child) => `${achieved(child.id)}>0`).join(' | ')
+  );
 };
 
-const achieveStatements = (goal: GoalNodeWithParent) => {
-  if (!goal.parent.length) {
-    return [
-      `  [achieved_${goal.id}] turn=0 & goal=${goalNumberId(goal.id)} -> true;`,
-    ];
-  }
-  return goal.parent.map((parent) => {
-    return `  [achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(
-      goal.id
-    )} -> (goal'=${goalNumberId(parent.id)});`;
-  });
+const successLine = (goal: GoalNodeWithParent) => {
+  const left = `[${goal.id}_success] goal=${goal.index} & ${
+    goal.relationToChildren === 'and'
+      ? allChildrenAchieved(goal)
+      : anyChildAchieved(goal)
+  }`;
+
+  const hasParent = !!goal.parent[0];
+  const returnToParent = hasParent ? `(goal'=${goal.parent[0].index})` : '';
+
+  const right = [returnToParent, `(${achieved(goal.id)}'=1)`]
+    .filter(Boolean)
+    .join(' & ');
+
+  return `${left} -> ${right}`;
 };
 
 export const managerGoalModule = (goal: GoalNodeWithParent) => {
-  const pursueLines = pursueStatements(goal);
-  const achieveLines = achieveStatements(goal);
-  return [...pursueLines, ...achieveLines, '\n'].join('\n');
+  return successLine(goal);
 };

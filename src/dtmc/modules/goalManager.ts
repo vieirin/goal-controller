@@ -15,10 +15,12 @@ import {
   GoalTreeWithParent,
   Relation,
 } from '../../ObjectiveTree/types';
+import { allByType } from '../../ObjectiveTree/utils';
 import {
   decisionVariableName,
   decisionVariablesForGoal,
 } from '../decisionVariables';
+import { managerGoalModule } from './goalModule';
 
 const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
   const goalsWithChoice = Object.values(goals).reduce((acc, goal) => {
@@ -219,12 +221,17 @@ export const goalManagerTemplate = ({
   gm: GoalTreeWithParent;
   nodeIndexMap: { id: string; index: number }[];
 }) => {
+  const goals = allByType({ gm, type: 'goal' });
   const goalsLength = nodeIndexMap.length;
   return `
 module GoalManager
   goal : [0..${goalsLength - 1}] init 0;
 ${declareManagerVariables({ goals: nodeIndexMap })}
 
+${goals
+  .map(managerGoalModule)
+  .map((line) => `  ${line}`)
+  .join('\n')}
 
 
 `;
