@@ -21,6 +21,7 @@ import {
   decisionVariablesForGoal,
 } from '../decisionVariables';
 import { managerGoalModule } from './goalModule';
+import { taskModule } from './taskModule';
 
 const choosableGoals = (goals: Dictionary<GoalNode[]>) => {
   const goalsWithChoice = Object.values(goals).reduce((acc, goal) => {
@@ -222,6 +223,7 @@ export const goalManagerTemplate = ({
   nodeIndexMap: { id: string; index: number }[];
 }) => {
   const goals = allByType({ gm, type: 'goal' });
+  const tasks = allByType({ gm, type: 'task' });
   const goalsLength = nodeIndexMap.length;
   return `
 module GoalManager
@@ -233,6 +235,10 @@ ${goals
   .map((line) => `  ${line}`)
   .join('\n')}
 
+${tasks
+  .map(taskModule)
+  .map((line) => ` ${line}`)
+  .join('\n\n')}
 
 `;
 };

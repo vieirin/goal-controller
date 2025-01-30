@@ -102,6 +102,7 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
       if (child.type === 'task') {
         return {
           ...acc,
+          children: [...acc.children, child],
           tasks: [...acc.tasks, child],
         };
       }
