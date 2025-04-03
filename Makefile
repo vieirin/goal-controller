@@ -10,7 +10,8 @@ grammar: grammar/RTRegex.g4
 	antlr -Dlanguage=TypeScript grammar/RTRegex.g4 && mv grammar/*.ts src/antlr
 
 run: grammar
-	npx ts-node src/index.ts $(ARGS)
+	@echo $(FILE)
+	npx ts-node src/index.ts "$(FILE)"
 
 exec:
 	npx ts-node src/index.ts ./examples/edgeModel.txt 

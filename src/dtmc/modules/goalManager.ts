@@ -207,14 +207,7 @@ const declareManagerTransitions = ({
 
 export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
   const goals = allByType({ gm, type: 'goal' });
-  const goalsLength = Object.keys(goals).length;
   return `
-module GoalManager
-  goal : [0..${goalsLength - 1}] init 0;
-${declareManagerVariables({ goals })}
-
-${goals.map(managerGoalModule).join('\n')}
-
-
+${goals.map(managerGoalModule).join('\n\n')}
 `;
 };

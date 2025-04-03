@@ -37,6 +37,8 @@ export const pursueThrough = (goalId: string, through: string) =>
 export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
 export const skip = (goalId: string) => `${goalId}_skip`;
 
+export const failed = (goalId: string) => `${goalId}_failed`;
+
 export const OR = (elements: string[]) => elements.join(separator('or'));
 export const AND = (elements: string[]) => elements.join(separator('or'));
 

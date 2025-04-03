@@ -1,0 +1,169 @@
+{
+  "actors": [
+    {
+      "id": "cd465149-2fb7-4bdd-9ce6-2b7e2ece60f7",
+      "text": "Actor",
+      "type": "istar.Actor",
+      "x": 139,
+      "y": 190,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "cbd67254-80ab-4265-b572-50ba7a5ee4b0",
+          "text": "G0: a",
+          "type": "istar.Goal",
+          "x": 289,
+          "y": 225,
+          "customProperties": {
+            "Description": "",
+            "goalType": "maintain"
+          }
+        },
+        {
+          "id": "6cd8e0ea-8b0c-4f59-9ff2-dbaef2a641ab",
+          "text": "GA: B",
+          "type": "istar.Goal",
+          "x": 217,
+          "y": 285,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "2445fcfc-4a7c-4b91-aaca-0556d4c386d5",
+          "text": "G31: C",
+          "type": "istar.Goal",
+          "x": 359,
+          "y": 284,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "edf4863f-6c79-4e07-b989-9c4654e0228d",
+          "text": "G1: D",
+          "type": "istar.Goal",
+          "x": 139,
+          "y": 349,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "4e2c4e40-5a8f-430f-a3fd-27d8baac7112",
+          "text": "G2: E",
+          "type": "istar.Goal",
+          "x": 283,
+          "y": 347,
+          "customProperties": {
+            "Description": "",
+            "alt": "true"
+          }
+        },
+        {
+          "id": "8dc9fcf7-b2f8-499f-9f43-21be1af214ee",
+          "text": "G4: F",
+          "type": "istar.Goal",
+          "x": 214,
+          "y": 408,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "6442e4cb-59ba-4949-8d77-b6becfaab72d",
+          "text": "G5: G",
+          "type": "istar.Goal",
+          "x": 361,
+          "y": 409,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "16349d07-5f05-46b6-a081-af08527772f0",
+          "text": "G8: H",
+          "type": "istar.Goal",
+          "x": 557,
+          "y": 350,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "cf9c71a9-9bc6-4b90-b035-14ff5dbd03f7",
+          "text": "G9: I",
+          "type": "istar.Goal",
+          "x": 494,
+          "y": 405.5,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "a6d73eb6-0c9f-4f10-a0b7-4c4dc68c7681",
+          "text": "G10: J",
+          "type": "istar.Goal",
+          "x": 623,
+          "y": 406,
+          "customProperties": {
+            "Description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "5888f533-874b-41e7-9e86-59816b202702",
+      "type": "istar.OrRefinementLink",
+      "source": "edf4863f-6c79-4e07-b989-9c4654e0228d",
+      "target": "6cd8e0ea-8b0c-4f59-9ff2-dbaef2a641ab"
+    },
+    {
+      "id": "302d8499-6589-48fe-8872-320d9d8ae659",
+      "type": "istar.OrRefinementLink",
+      "source": "4e2c4e40-5a8f-430f-a3fd-27d8baac7112",
+      "target": "6cd8e0ea-8b0c-4f59-9ff2-dbaef2a641ab"
+    },
+    {
+      "id": "d76c721e-9959-42ce-8c7e-113ddfc1c725",
+      "type": "istar.OrRefinementLink",
+      "source": "8dc9fcf7-b2f8-499f-9f43-21be1af214ee",
+      "target": "4e2c4e40-5a8f-430f-a3fd-27d8baac7112"
+    },
+    {
+      "id": "c3299b12-0bd9-4629-bf65-500f7f859acd",
+      "type": "istar.OrRefinementLink",
+      "source": "6442e4cb-59ba-4949-8d77-b6becfaab72d",
+      "target": "4e2c4e40-5a8f-430f-a3fd-27d8baac7112"
+    },
+    {
+      "id": "6589aad0-b263-443c-ba61-7c3170a09d28",
+      "type": "istar.AndRefinementLink",
+      "source": "6cd8e0ea-8b0c-4f59-9ff2-dbaef2a641ab",
+      "target": "cbd67254-80ab-4265-b572-50ba7a5ee4b0"
+    },
+    {
+      "id": "c1b58035-8d79-443f-bfda-5a26c882dd88",
+      "type": "istar.AndRefinementLink",
+      "source": "2445fcfc-4a7c-4b91-aaca-0556d4c386d5",
+      "target": "cbd67254-80ab-4265-b572-50ba7a5ee4b0"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Sun, 16 Mar 2025 21:45:25 GMT",
+  "diagram": {
+    "width": 1000,
+    "height": 700,
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

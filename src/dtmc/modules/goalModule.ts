@@ -1,4 +1,4 @@
-import { pursued } from '../../mdp/common';
+import { achieved, pursued } from '../../mdp/common';
 import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
 import { goalNumberId } from './goalManager';
 
@@ -43,7 +43,7 @@ const pursueStatements = (goal: GoalNode): string[] => {
     )
     .map((statements): string[] => {
       return statements.map((statement) => {
-        return `  ${statement.left} -> ${statement.right};`;
+        return `${statement.left} -> ${statement.right};`;
       });
     })
     .flat();
@@ -61,16 +61,27 @@ const skipStatements = (goal: GoalNodeWithParent) => {
 const achieveStatements = (goal: GoalNodeWithParent) => {
   if (!goal.parent.length) {
     return [
-      `  [achieved_${goal.id}] turn=0 & goal=${goalNumberId(goal.id)} -> true;`,
+      `[achieved_${goal.id}] turn=0 & goal=${goalNumberId(goal.id)} -> true;`,
     ];
   }
   return goal.parent.map((parent) => {
-    return `  [achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(goal.id)} -> (goal'=${goalNumberId(parent.id)});`;
+    return `[achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(goal.id)} -> (goal'=${goalNumberId(parent.id)});`;
   });
 };
 
 export const managerGoalModule = (goal: GoalNodeWithParent) => {
   const pursueLines = pursueStatements(goal);
   const achieveLines = achieveStatements(goal);
-  return [...pursueLines, ...achieveLines, '\n'].join('\n');
+
+  return `
+module ${goal.id}
+
+  ${pursued(goal.id)} : [0..1] init 0;
+  ${achieved(goal.id)} : [0..1] init 0;
+
+  ${pursueLines.join('\n  ')}
+  ${achieveLines.join('\n  ')}
+
+end module
+`.trim();
 };

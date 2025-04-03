@@ -1,4 +1,5 @@
 import { getGoalDetail } from '../GoalParser';
+import { isAlternative } from './nodeUtils';
 import {
   Actor,
   GoalNode,
@@ -225,8 +226,7 @@ const nodeChildren = ({
         links: links,
       });
 
-      const { alt, root, ...customProperties } = node.customProperties;
-      const nodeAlt = alt === 'true' || false;
+      const nodeAlt = isAlternative(node);
       return createNode({
         node,
         relation,

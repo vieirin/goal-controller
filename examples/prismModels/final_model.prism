@@ -1,0 +1,78 @@
+dtmc
+
+module G0
+  G0pursued: [0..1] init 0;
+  G0achieved: [0..1] init 0;
+
+  [pursueG0] G0pursued=0 & G0achieved=0 -> (G0pursued'=1);
+
+  [pursueGA] G0pursued=1 -> true;
+  [pursueG31] G0pursued=1 & outside -> true;
+  [pursue_maintain] G0pursued=1 & !achieved_maintain -> true;
+endmodule
+
+formula achieved_maintain = outside=true;
+
+module GA
+  GApursued: [0..1] init 0;
+  GAachieved: [0..1] init 0;
+
+  [pursueGA] GApursued=0 & GAachieved=0 -> (GApursued'=1);
+  [pursueG1] GApursued=1 & G2pursued=0 & G2failed > 1 -> true;
+  [pursueG2] GApursued=1 & G1pursued=0 -> true;
+
+  [achievedGA] GApursued=1 & (G1achieved=1 | G2achieved=1) -> (GApursued'=0) & (GAachieved'=1);
+  [skipGA] GApursued=1 -> (GApursued'=0);
+endmodule
+
+module G1
+  G1pursued: [0..1] init 0;
+  G1achieved: [0..1] init 0;
+
+  [pursueG1] G1pursued=0 & G1achieved=0 -> (G1pursued'=1);
+  [achievedG1] G1pursued=1 -> (G1pursued'=0) & (G1achieved'=1);
+  [skipG1] G1pursued=1 -> (G1pursued'=0);
+
+endmodule
+
+module G2
+  G2pursued: [0..1] init 0;
+  G2achieved: [0..1] init 0;
+  G2failed: [0..10] init 0;
+
+  [pursueG2] G2pursued=0 & G2achieved=0 -> (G2pursued'=1);
+  [achievedG2] G2pursued=1 -> (G2pursued'=0) & (G2achieved'=1);
+  [skipG2] G2pursued=1 -> (G2pursued'=0);
+  [pursueG4] G2pursued=1 & G4achieved=0 -> true;
+  [pursueG5] G2pursued=1 & G4achieved=1 -> true;
+
+endmodule
+
+
+module G31
+  G31pursued: [0..1] init 0;
+  G31achieved: [0..1] init 0;
+
+  [pursueG31] G31pursued=0 & G31achieved=0 & outside=true -> (G31pursued'=1);
+endmodule
+
+module G8
+  G8pursued: [0..1] init 0;
+
+  [pursueG8]  G8pursued=0 -> (G8pursued'=1);
+  [pursueG9]  G8pursued=1 & G10pursued=0 & G10achieved=0 -> true;
+  [pursueG10] G8pursued=1 &  G9pursued=0 &  G9achieved=0-> true;
+
+endmodule
+
+module ChangeManager
+
+  [pursueT1] true -> true;
+  [achievedT1] true -> true;
+
+endmodule
+
+module System
+  outside: bool init false;
+
+endmodule
