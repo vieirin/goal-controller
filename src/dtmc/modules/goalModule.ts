@@ -3,38 +3,21 @@ import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
 import { goalNumberId } from './goalManager';
 
 const pursueStatements = (goal: GoalNode): string[] => {
-  const pursueLines = goal.children
-    ?.sort((a, b) => a.id.localeCompare(b.id))
+  const goalsToPursue = [goal, ...(goal.children || [])];
+  const pursueLines = goalsToPursue
+    .sort((a, b) => a.id.localeCompare(b.id))
     .map((child): [GoalNode, { left: string; right: string }] => {
       // default statement, no monitors
-      const leftStatement = `[pursue_${goal.id}_${child.id}] turn=0 & goal=${goalNumberId(goal.id)} & ${pursued(goal.id)}=0`;
       const rightStatement = `(${pursued(goal.id)}'=1)`;
       return [child, { left: leftStatement, right: rightStatement }] as const;
     })
     .map(([child, statement]): { left: string; right: string }[] => {
-      if (!child.monitors?.length) {
         return [
           {
             left: `${statement.left} & decision_${goal.id}=1`,
             right: `${statement.right} & (goal'=${goalNumberId(child.id)})`,
           },
         ];
-      }
-      //monitors stage
-      return child.monitors.flatMap((monitor) => {
-        return [
-          //monitor decision
-          {
-            left: `${statement.left} & ${monitor.id} & decision_${goal.id}_${monitor.id}>0`,
-            right: `${statement.right} & (goal'=decision_${goal.id}_${monitor.id})`,
-          },
-          // not monitor decision
-          {
-            left: `${statement.left} & !${monitor.id} & decision_${goal.id}_not${monitor.id}>0`,
-            right: `${statement.right} & (goal'=decision_${goal.id}_not${monitor.id})`,
-          },
-        ];
-      });
     })
     .map(
       (statements) =>
