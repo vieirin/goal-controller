@@ -44,11 +44,8 @@ const pursueStatements = (goal: GoalNode): string[] => {
   return pursueLines ?? [];
 };
 
-const skipStatements = (goal: GoalNodeWithParent) => {
-  const startStatements = [
-    { left: `turn=0 & goal=1 & G1_pursued=0`, right: `(goal'=${goal.parent})` },
-  ];
-  return [];
+const skipStatement = (goal: GoalNodeWithParent) => {
+  return `[skip_${goal.id}] ${pursued(goal.id)}=1 -> (${pursued(goal.id)}'=0);`;
 };
 
 const achieveStatements = (goal: GoalNodeWithParent) => {
@@ -60,7 +57,7 @@ const achieveStatements = (goal: GoalNodeWithParent) => {
 export const managerGoalModule = (goal: GoalNodeWithParent) => {
   const pursueLines = pursueStatements(goal);
   const achieveLines = achieveStatements(goal);
-
+  const skipLine = skipStatement(goal);
   return `
 module ${goal.id}
 
@@ -69,7 +66,8 @@ module ${goal.id}
 
   ${pursueLines.join('\n  ')}
   ${achieveLines.join('\n  ')}
-
+  ${skipLine}
+  
 end module
 `.trim();
 };
