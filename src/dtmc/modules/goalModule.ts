@@ -3,9 +3,8 @@ import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
 
 const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || [])];
-  // console.log(goal.id, { goalsToPursue });
+
   const pursueLines = goalsToPursue
-    // .sort((a, b) => a.id.localeCompare(b.id))
     .map((child): [GoalNode, { left: string; right: string }] => {
       const isItself = child.id === goal.id;
       const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
