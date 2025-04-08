@@ -21,23 +21,19 @@ const pursueStatements = (goal: GoalNode): string[] => {
 
       return [child, { left: leftStatement, right: `true` }] as const;
     })
-    .map(([child, statement]): { left: string; right: string }[] => {
-      return [
-        {
-          left: `${statement.left}`,
-          right: `${statement.right}`,
-        },
-      ];
+    .map(([child, statement]): { left: string; right: string } => {
+      return {
+        left: `${statement.left}`,
+        right: `${statement.right}`,
+      };
     })
     .map(
       (statements) =>
         // TODO: decision variables stage
         statements
     )
-    .map((statements): string[] => {
-      return statements.map((statement) => {
-        return `${statement.left} -> ${statement.right};`;
-      });
+    .map((statement): string => {
+      return `${statement.left} -> ${statement.right};`;
     })
     .flat();
 
@@ -67,7 +63,7 @@ module ${goal.id}
   ${pursueLines.join('\n  ')}
   ${achieveLines.join('\n  ')}
   ${skipLine}
-  
+
 end module
 `.trim();
 };
