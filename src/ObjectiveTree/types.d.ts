@@ -70,6 +70,11 @@ type Decision = {
   decisionVars: { variable: string; space: number }[];
   hasDecision: boolean;
 };
+type GoalExecutionDetail =
+  | { type: 'interleaved'; interleaved: string[] }
+  | { type: 'sequence'; sequence: string[] }
+  | { type: 'decisionMaking'; dm: string[] };
+
 type GoalNode = {
   iStarId: id;
   id: string;
@@ -77,7 +82,6 @@ type GoalNode = {
   relationToParent: Relation | null;
   relationToChildren: Relation | null;
   name: string | null;
-  decisionMaking: { decision: string[] } | null;
   children?: GoalNode[];
   variantOf?: string;
   customProperties: {
@@ -92,6 +96,7 @@ type GoalNode = {
   monitors: GoalNode[];
   resources: GoalNode[];
   tasks?: GoalNode[];
+  executionDetail: GoalExecutionDetail | null;
 } & Decision;
 
 type GoalNodeWithParent = GoalNode & {

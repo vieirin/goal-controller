@@ -109,7 +109,7 @@ const createNode = ({
 }): GoalNode => {
   // Other RT properties should be added here
   // should we add order?
-  const { id, goalName, decisionMaking } = getGoalDetail({
+  const { id, goalName, executionDetail } = getGoalDetail({
     goalText: node.text,
   });
 
@@ -149,7 +149,7 @@ const createNode = ({
   }
 
   return {
-    decisionMaking: decisionMaking,
+    executionDetail,
     id,
     name: goalName,
     iStarId: node.id,

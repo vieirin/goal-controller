@@ -5,18 +5,20 @@ import {ParseTreeListener} from "antlr4";
 
 import { PrintExprContext } from "./RTRegexParser.js";
 import { BlankContext } from "./RTRegexParser.js";
-import { GDMContext } from "./RTRegexParser.js";
 import { GIdContext } from "./RTRegexParser.js";
 import { GTryContext } from "./RTRegexParser.js";
-import { GSkipContext } from "./RTRegexParser.js";
 import { NameOnlyContext } from "./RTRegexParser.js";
-import { NotationStartContext } from "./RTRegexParser.js";
+import { GInterleavedContext } from "./RTRegexParser.js";
 import { GTimeContext } from "./RTRegexParser.js";
-import { GRetryContext } from "./RTRegexParser.js";
-import { GIdContinuedContext } from "./RTRegexParser.js";
 import { GArgsContext } from "./RTRegexParser.js";
-import { GDecisionMakingContext } from "./RTRegexParser.js";
 import { NameContinuedContext } from "./RTRegexParser.js";
+import { GDMContext } from "./RTRegexParser.js";
+import { GSkipContext } from "./RTRegexParser.js";
+import { NotationStartContext } from "./RTRegexParser.js";
+import { GRetryContext } from "./RTRegexParser.js";
+import { GSequenceContext } from "./RTRegexParser.js";
+import { GIdContinuedContext } from "./RTRegexParser.js";
+import { GDecisionMakingContext } from "./RTRegexParser.js";
 import { IdContext } from "./RTRegexParser.js";
 import { WordContext } from "./RTRegexParser.js";
 
@@ -51,18 +53,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitBlank?: (ctx: BlankContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gDM`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGDM?: (ctx: GDMContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gDM`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGDM?: (ctx: GDMContext) => void;
-	/**
 	 * Enter a parse tree produced by the `gId`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -87,18 +77,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGTry?: (ctx: GTryContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gSkip`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGSkip?: (ctx: GSkipContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gSkip`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGSkip?: (ctx: GSkipContext) => void;
-	/**
 	 * Enter a parse tree produced by the `nameOnly`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -111,17 +89,17 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitNameOnly?: (ctx: NameOnlyContext) => void;
 	/**
-	 * Enter a parse tree produced by the `notationStart`
+	 * Enter a parse tree produced by the `gInterleaved`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	enterNotationStart?: (ctx: NotationStartContext) => void;
+	enterGInterleaved?: (ctx: GInterleavedContext) => void;
 	/**
-	 * Exit a parse tree produced by the `notationStart`
+	 * Exit a parse tree produced by the `gInterleaved`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	exitNotationStart?: (ctx: NotationStartContext) => void;
+	exitGInterleaved?: (ctx: GInterleavedContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gTime`
 	 * labeled alternative in `RTRegexParser.expr`.
@@ -135,6 +113,66 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGTime?: (ctx: GTimeContext) => void;
 	/**
+	 * Enter a parse tree produced by the `gArgs`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterGArgs?: (ctx: GArgsContext) => void;
+	/**
+	 * Exit a parse tree produced by the `gArgs`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitGArgs?: (ctx: GArgsContext) => void;
+	/**
+	 * Enter a parse tree produced by the `nameContinued`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterNameContinued?: (ctx: NameContinuedContext) => void;
+	/**
+	 * Exit a parse tree produced by the `nameContinued`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitNameContinued?: (ctx: NameContinuedContext) => void;
+	/**
+	 * Enter a parse tree produced by the `gDM`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterGDM?: (ctx: GDMContext) => void;
+	/**
+	 * Exit a parse tree produced by the `gDM`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitGDM?: (ctx: GDMContext) => void;
+	/**
+	 * Enter a parse tree produced by the `gSkip`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterGSkip?: (ctx: GSkipContext) => void;
+	/**
+	 * Exit a parse tree produced by the `gSkip`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitGSkip?: (ctx: GSkipContext) => void;
+	/**
+	 * Enter a parse tree produced by the `notationStart`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterNotationStart?: (ctx: NotationStartContext) => void;
+	/**
+	 * Exit a parse tree produced by the `notationStart`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitNotationStart?: (ctx: NotationStartContext) => void;
+	/**
 	 * Enter a parse tree produced by the `gRetry`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -146,6 +184,18 @@ export default class RTRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitGRetry?: (ctx: GRetryContext) => void;
+	/**
+	 * Enter a parse tree produced by the `gSequence`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterGSequence?: (ctx: GSequenceContext) => void;
+	/**
+	 * Exit a parse tree produced by the `gSequence`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitGSequence?: (ctx: GSequenceContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gIdContinued`
 	 * labeled alternative in `RTRegexParser.expr`.
@@ -159,18 +209,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGIdContinued?: (ctx: GIdContinuedContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gArgs`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGArgs?: (ctx: GArgsContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gArgs`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGArgs?: (ctx: GArgsContext) => void;
-	/**
 	 * Enter a parse tree produced by the `gDecisionMaking`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -182,18 +220,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitGDecisionMaking?: (ctx: GDecisionMakingContext) => void;
-	/**
-	 * Enter a parse tree produced by the `nameContinued`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterNameContinued?: (ctx: NameContinuedContext) => void;
-	/**
-	 * Exit a parse tree produced by the `nameContinued`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitNameContinued?: (ctx: NameContinuedContext) => void;
 	/**
 	 * Enter a parse tree produced by `RTRegexParser.id`.
 	 * @param ctx the parse tree

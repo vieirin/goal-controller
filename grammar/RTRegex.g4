@@ -18,6 +18,8 @@ expr:
 	| ':' word EOF								# nameOnly
 	| expr op = ',' expr						# gDM
 	| expr op = '@' FLOAT						# gRetry
+	| expr op = '|' expr						# gInterleaved
+	| expr op = ';' expr						# gSequence
 	| 'try(' expr ')' '?' expr ':' expr			# gTry
 	| expr op = (';' | '#') expr				# gTime
 	| SKIPP										# gSkip;
@@ -33,7 +35,7 @@ SKIPP: 'skip';
 X: 'X';
 NEWLINE: [\r\n]+;
 word: WORD;
-WORD: [A-Za-z- ]+;
+WORD: [A-Za-z- ']+;
 SUBID: [a-z];
 WS: [\t]+ -> skip;
 fragment DIGIT: [0-9];

@@ -4,20 +4,27 @@ import { goalNumberId } from './goalManager';
 
 const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || [])];
+  // console.log(goal.id, { goalsToPursue });
   const pursueLines = goalsToPursue
-    .sort((a, b) => a.id.localeCompare(b.id))
+    // .sort((a, b) => a.id.localeCompare(b.id))
     .map((child): [GoalNode, { left: string; right: string }] => {
+      const isItself = child.id === goal.id;
+      const leftStatement = `[pursue_${goal.id}_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
+      if (isItself) {
+        return [child, { left: leftStatement, right: '' }] as const;
+      }
+
       // default statement, no monitors
       const rightStatement = `(${pursued(goal.id)}'=1)`;
       return [child, { left: leftStatement, right: rightStatement }] as const;
     })
     .map(([child, statement]): { left: string; right: string }[] => {
-        return [
-          {
-            left: `${statement.left} & decision_${goal.id}=1`,
-            right: `${statement.right} & (goal'=${goalNumberId(child.id)})`,
-          },
-        ];
+      return [
+        {
+          left: `${statement.left}`,
+          right: `${statement.right}`,
+        },
+      ];
     })
     .map(
       (statements) =>
