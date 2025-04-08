@@ -7,10 +7,9 @@ if (!process.argv.length) {
   console.error('missing file param');
   process.exit(1);
 }
-console.log(process.argv);
 const model = loadModel({ filename: process.argv[2] });
 const tree = convertToTree({ model });
-// console.log(edgeDTMCTemplate({ gm: tree }));
+console.log(edgeDTMCTemplate({ gm: tree }));
 
 writeFile('output/edge.mp', edgeDTMCTemplate({ gm: tree }), function (err) {
   if (err) {

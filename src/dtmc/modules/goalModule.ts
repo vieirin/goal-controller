@@ -1,4 +1,4 @@
-import { achieved, pursued } from '../../mdp/common';
+import { achieved, parenthesis, pursued } from '../../mdp/common';
 import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
 import { goalNumberId } from './goalManager';
 
@@ -9,14 +9,18 @@ const pursueStatements = (goal: GoalNode): string[] => {
     // .sort((a, b) => a.id.localeCompare(b.id))
     .map((child): [GoalNode, { left: string; right: string }] => {
       const isItself = child.id === goal.id;
-      const leftStatement = `[pursue_${goal.id}_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
+      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
       if (isItself) {
-        return [child, { left: leftStatement, right: '' }] as const;
+        return [
+          child,
+          {
+            left: leftStatement + ` & [${achieved(goal.id)}=0]`,
+            right: `${parenthesis(pursued(goal.id))}'=1)`,
+          },
+        ] as const;
       }
 
-      // default statement, no monitors
-      const rightStatement = `(${pursued(goal.id)}'=1)`;
-      return [child, { left: leftStatement, right: rightStatement }] as const;
+      return [child, { left: leftStatement, right: `true` }] as const;
     })
     .map(([child, statement]): { left: string; right: string }[] => {
       return [
@@ -70,7 +74,6 @@ module ${goal.id}
   ${achieved(goal.id)} : [0..1] init 0;
 
   ${pursueLines.join('\n  ')}
-  ${achieveLines.join('\n  ')}
 
 end module
 `.trim();
