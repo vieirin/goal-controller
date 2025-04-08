@@ -1,6 +1,5 @@
-import { achieved, parenthesis, pursued } from '../../mdp/common';
+import { achieved, pursued } from '../../mdp/common';
 import { GoalNode, GoalNodeWithParent } from '../../ObjectiveTree/types';
-import { goalNumberId } from './goalManager';
 
 const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || [])];
@@ -14,8 +13,8 @@ const pursueStatements = (goal: GoalNode): string[] => {
         return [
           child,
           {
-            left: leftStatement + ` & [${achieved(goal.id)}=0]`,
-            right: `${parenthesis(pursued(goal.id))}'=1)`,
+            left: leftStatement + ` & ${achieved(goal.id)}=0`,
+            right: `(${pursued(goal.id)}'=1)`,
           },
         ] as const;
       }
@@ -53,13 +52,8 @@ const skipStatements = (goal: GoalNodeWithParent) => {
 };
 
 const achieveStatements = (goal: GoalNodeWithParent) => {
-  if (!goal.parent.length) {
-    return [
-      `[achieved_${goal.id}] turn=0 & goal=${goalNumberId(goal.id)} -> true;`,
-    ];
-  }
   return goal.parent.map((parent) => {
-    return `[achieved_${goal.id}_${parent.id}] turn=0 & goal=${goalNumberId(goal.id)} -> (goal'=${goalNumberId(parent.id)});`;
+    return `[achieved_${goal.id}] ${pursued(goal.id)}=1 -> (${pursued(parent.id)}'=1) & (${achieved(goal.id)}'=1);`;
   });
 };
 
@@ -74,6 +68,7 @@ module ${goal.id}
   ${achieved(goal.id)} : [0..1] init 0;
 
   ${pursueLines.join('\n  ')}
+  ${achieveLines.join('\n  ')}
 
 end module
 `.trim();
