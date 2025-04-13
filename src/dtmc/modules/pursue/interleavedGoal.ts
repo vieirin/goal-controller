@@ -12,7 +12,7 @@ export const pursueInterleavedGoal = (
       `Interleaved goals are not supported for and joints. Found in goal ${goal.id}`
     );
   }
-  console.log(goal.executionDetail);
+
   if (goal.relationToChildren === 'or') {
     const otherGoals = interleaved.filter(
       (goalId) => goalId !== currentChildId
@@ -23,6 +23,7 @@ export const pursueInterleavedGoal = (
         const maybeRetry = goal.executionDetail?.retryMap[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
+
         return [defaultCondition, retryCondition]
           .filter(Boolean)
           .join(separator('and'));
