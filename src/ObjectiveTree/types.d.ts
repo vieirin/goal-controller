@@ -70,10 +70,13 @@ type Decision = {
   decisionVars: { variable: string; space: number }[];
   hasDecision: boolean;
 };
-type GoalExecutionDetail =
+type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'sequence'; sequence: string[] }
-  | { type: 'decisionMaking'; dm: string[] };
+  | { type: 'decisionMaking'; dm: string[] }
+) & {
+  retryMap?: Dictionary<number>;
+};
 
 type GoalNode = {
   iStarId: id;

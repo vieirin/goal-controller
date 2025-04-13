@@ -249,7 +249,7 @@
         },
         {
           "id": "4c85283a-4e6a-43c4-af97-937dbffb3db6",
-          "text": "G1: Support in emergency [G3|G4]",
+          "text": "G1: Support in emergency [G3|G4@10]",
           "type": "istar.Goal",
           "x": 249,
           "y": 170,
@@ -713,7 +713,7 @@
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sun, 13 Apr 2025 16:45:37 GMT",
+  "saveDate": "Sun, 13 Apr 2025 19:18:03 GMT",
   "diagram": {
     "width": 1436,
     "height": 743,

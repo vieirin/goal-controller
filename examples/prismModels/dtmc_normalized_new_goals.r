@@ -18,6 +18,7 @@ module G1
   G1achieved: [0..1] init 0;
 
   [pursueG1] G1pursued=0 & G1achieved=0 -> (G1pursued'=1);
+  ## how do we define the number of failed goals threshold?
   [pursueG3] G1pursued=1 & G4pursued=0 & G4failed > 1 -> true;
   [pursueG4] G1pursued=1 & G3pursued=0 -> true;
 

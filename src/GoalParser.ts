@@ -1,4 +1,5 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
+import { Dictionary } from 'lodash';
 import RTRegex from './antlr/RTRegexLexer';
 import RTRegexListener from './antlr/RTRegexListener';
 import RTRegexParser, {
@@ -6,6 +7,7 @@ import RTRegexParser, {
   GIdContext,
   GIdContinuedContext,
   GInterleavedContext,
+  GRetryContext,
   GSequenceContext,
   WordContext,
 } from './antlr/RTRegexParser';
@@ -31,6 +33,7 @@ export const getGoalDetail = ({
   let decisionMaking: string[] = [];
   let interleaved: string[] = [];
   let sequence: string[] = [];
+  let retry: Dictionary<number> = {};
   class RTNotationTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
       id = `${ctx._t.text}${ctx.id().getText()}`;
@@ -45,10 +48,33 @@ export const getGoalDetail = ({
       decisionMaking = ctx.expr().getText().split(',');
     };
     exitGInterleaved = (ctx: GInterleavedContext) => {
-      interleaved = ctx.expr_list().map((e) => e.getText());
+      interleaved = ctx
+        .expr_list()
+        .map((e) => {
+          // in this case goal is the first child and the rest is some other expression
+          if (e.getChildCount() !== 2) {
+            return e.getChild(0).getText();
+          }
+          return e.getText();
+        })
+        .filter(Boolean);
     };
     exitGSequence = (ctx: GSequenceContext) => {
-      sequence = ctx.expr_list().map((e) => e.getText());
+      sequence = ctx
+        .expr_list()
+        .map((e) => {
+          // in this case goal is the first child and the rest is some other expression
+          if (e.getChildCount() !== 2) {
+            return e.getChild(0).getText();
+          }
+          return e.getText();
+        })
+        .filter(Boolean);
+    };
+    exitGRetry = (ctx: GRetryContext) => {
+      const goalToRetry = ctx.expr().getText();
+      const amountOfRetries = ctx.FLOAT().getText();
+      retry = { ...retry, [goalToRetry]: parseInt(amountOfRetries) };
     };
   }
 
@@ -60,7 +86,7 @@ export const getGoalDetail = ({
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'sequence', sequence },
+      executionDetail: { type: 'sequence', sequence, retryMap: retry },
     };
   }
 
@@ -71,6 +97,7 @@ export const getGoalDetail = ({
       executionDetail: {
         type: 'interleaved',
         interleaved,
+        retryMap: retry,
       },
     };
   }
@@ -82,6 +109,7 @@ export const getGoalDetail = ({
       executionDetail: {
         type: 'decisionMaking',
         dm: decisionMaking,
+        retryMap: retry,
       },
     };
   }
