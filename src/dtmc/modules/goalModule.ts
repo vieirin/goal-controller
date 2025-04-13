@@ -23,7 +23,9 @@ module ${goal.id}
   ${achieved(goal.id)} : [0..1] init 0;
 
   ${pursueLines.join('\n  ')}
+
   ${achieveLines.join('\n  ')}
+  
   ${skipLine}
 
 end module

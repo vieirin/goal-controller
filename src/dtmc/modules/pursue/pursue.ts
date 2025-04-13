@@ -41,6 +41,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           goal.executionDetail.interleaved,
           child.id
         );
+
+        return [
+          child,
+          { left: leftStatement + ` & ${pursueCondition}`, right: 'true' },
+        ] as const;
       }
       return [child, { left: leftStatement, right: leftStatement }] as const;
     })

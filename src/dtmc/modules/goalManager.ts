@@ -208,6 +208,11 @@ const declareManagerTransitions = ({
 export const goalManagerTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
   const goals = allByType({ gm, type: 'goal' });
   return `
-${goals.map(managerGoalModule).join('\n\n')}
+${goals
+  .sort(
+    (a, b) => Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0])
+  )
+  .map(managerGoalModule)
+  .join('\n\n')}
 `;
 };
