@@ -7,7 +7,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
 
   const pursueLines = goalsToPursue
-    .map((child, _, arr): [GoalNode, { left: string; right: string }] => {
+    .map((child, _): [GoalNode, { left: string; right: string }] => {
       const isItself = child.id === goal.id;
       const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
       if (isItself) {
@@ -51,7 +51,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           return [child, { left: leftStatement, right: 'true' }] as const;
       }
     })
-    .map(([child, statement]): { left: string; right: string } => {
+    .map(([, statement]): { left: string; right: string } => {
       // TODO: decision variables stage
       return {
         left: `${statement.left}`,

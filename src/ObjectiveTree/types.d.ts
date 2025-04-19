@@ -1,3 +1,5 @@
+import type { Dictionary } from 'lodash';
+
 export type id = string;
 
 interface Model {
@@ -61,6 +63,11 @@ interface CustomProperties {
     dependsOn?: string;
     variables?: string;
     uniqueChoice?: string;
+    type: never;
+  } & {
+    type: 'maintain';
+    maintain?: string;
+    assertion?: string;
   };
 }
 

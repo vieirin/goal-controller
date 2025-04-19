@@ -53,14 +53,14 @@ const parseDecision = ({
         `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`
       );
     }
-    if (isNaN(parseInt(d[1]))) {
+    if (isNaN(parseInt(d[1] ?? ''))) {
       throw new Error(`[INVALID DECISION] space must be a number: got ${d[1]}`);
     }
   });
 
   return parsedDecision.map((d) => ({
-    variable: d[0].trim(),
-    space: parseInt(d[1]),
+    variable: d[0]?.trim() ?? '',
+    space: parseInt(d[1] ?? ''),
   }));
 };
 
@@ -123,6 +123,9 @@ const createNode = ({
 
   const { alt, root, uniqueChoice, ...customProperties } =
     node.customProperties;
+
+  const maintainCondition = customProperties.maintain;
+
   const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
     monitors,
@@ -240,6 +243,10 @@ const nodeChildren = ({
       });
     })
     .filter((n): n is GoalNode => !!n);
+
+  if (!relations[0]) {
+    throw new Error(`[INVALID MODEL]: No relation found for node ${id}s`);
+  }
 
   return [children, relations[0]];
 };
