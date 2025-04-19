@@ -10,7 +10,7 @@ import {
   Node,
   NodeType,
   Relation,
-  type MaintainCondition,
+  type CustomProperties,
 } from './types';
 import { allByType } from './utils';
 
@@ -66,6 +66,26 @@ const parseDecision = ({
 };
 
 export const isMonitor = (node: { id: string }) => node.id.startsWith('M');
+
+const getMaintainCondition = (
+  goalName: string,
+  customProperties: CustomProperties['customProperties']
+) => {
+  if (customProperties.type !== 'maintain') {
+    return undefined;
+  }
+  if (!customProperties.maintain || !customProperties.assertion) {
+    // TODO: lock this as an error in the future
+    console.warn(
+      `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${customProperties.maintain || `'empty condition'`} and assertion:${customProperties.assertion || `'empty condition'`}`
+    );
+  }
+
+  return {
+    maintain: customProperties.maintain,
+    assertion: customProperties.assertion,
+  };
+};
 
 const convertNonGoalChildren = (children: GoalNode[]) => {
   return children.reduce(
@@ -125,21 +145,6 @@ const createNode = ({
   const { alt, root, uniqueChoice, ...customProperties } =
     node.customProperties;
 
-  let maintainCondition: MaintainCondition | undefined;
-  if (customProperties.type === 'maintain') {
-    if (!customProperties.maintain || !customProperties.assertion) {
-      // TODO: lock this as an error in the future
-      console.warn(
-        `[INVALID MODEL]: Maintain condition for goal [${id}:${goalName}] must have maintain and assertion: got maintain:${customProperties.maintain || `'empty condition'`} and assertion:${customProperties.assertion || `'empty condition'`}`
-      );
-    }
-
-    maintainCondition = {
-      maintain: customProperties.maintain,
-      assertion: customProperties.assertion,
-    };
-  }
-
   const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
     monitors,
@@ -187,7 +192,10 @@ const createNode = ({
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
     },
-    maintainCondition,
+    maintainCondition: getMaintainCondition(
+      `${id}:${goalName}`,
+      customProperties
+    ),
     ...(tasks.length > 0 && { tasks }),
   };
 };
