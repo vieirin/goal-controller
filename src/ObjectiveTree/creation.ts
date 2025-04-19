@@ -10,6 +10,7 @@ import {
   Node,
   NodeType,
   Relation,
+  type MaintainCondition,
 } from './types';
 import { allByType } from './utils';
 
@@ -124,7 +125,19 @@ const createNode = ({
   const { alt, root, uniqueChoice, ...customProperties } =
     node.customProperties;
 
-  const maintainCondition = customProperties.maintain;
+  let maintainCondition: MaintainCondition | undefined;
+  if (customProperties.type === 'maintain') {
+    if (!customProperties.maintain || !customProperties.assertion) {
+      throw new Error(
+        `[INVALID MODEL]: Maintain condition must have maintain and assertion: got ${customProperties.maintain} and ${customProperties.assertion}`
+      );
+    }
+
+    maintainCondition = {
+      maintain: customProperties.maintain,
+      assertion: customProperties.assertion,
+    };
+  }
 
   const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
@@ -173,6 +186,7 @@ const createNode = ({
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
     },
+    maintainCondition,
     ...(tasks.length > 0 && { tasks }),
   };
 };
