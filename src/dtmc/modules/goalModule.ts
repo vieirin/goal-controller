@@ -1,5 +1,6 @@
 import { achieved, pursued, separator } from '../../mdp/common';
 import { GoalNodeWithParent, Relation } from '../../ObjectiveTree/types';
+import { maintainConditionFormula } from '../formulas';
 import { beenPursued } from './pursue/common';
 import { pursueStatements } from './pursue/pursue';
 
@@ -32,22 +33,19 @@ const achieveStatement = (goal: GoalNodeWithParent) => {
 };
 
 export const managerGoalModule = (goal: GoalNodeWithParent) => {
-  const pursueLines = pursueStatements(goal);
-  const achieveLine = achieveStatement(goal);
-  const skipLine = skipStatement(goal);
-
-  return `
-module ${goal.id}
+  return `module ${goal.id}
 
   ${pursued(goal.id)} : [0..1] init 0;
   ${achieved(goal.id)} : [0..1] init 0;
 
-  ${pursueLines.join('\n  ')}
+  ${pursueStatements(goal).join('\n  ')}
 
-  ${achieveLine}
+  ${achieveStatement(goal)}
   
-  ${skipLine}
+  ${skipStatement(goal)}
 
 end module
+
+${maintainConditionFormula(goal)}
 `.trim();
 };

@@ -1,16 +1,16 @@
 import { achieved, pursued } from '../../../mdp/common';
 import { GoalNode } from '../../../ObjectiveTree/types';
+import { achievedMaintain } from '../../formulas';
 import { pursueInterleavedGoal } from './interleavedGoal';
 import { pursueSequentialGoal } from './sequentialGoal';
 
 export const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
-
+  const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
     .map((child, _): [GoalNode, { left: string; right: string }] => {
-      const isItself = child.id === goal.id;
-      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself ? 0 : 1}`;
-      if (isItself) {
+      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself(child) ? 0 : 1}`;
+      if (isItself(child)) {
         return [
           child,
           {
@@ -51,8 +51,21 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           return [child, { left: leftStatement, right: 'true' }] as const;
       }
     })
-    .map(([, statement]): { left: string; right: string } => {
-      // TODO: decision variables stage
+    .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
+      // add maintain condition
+      const left = child.maintainCondition
+        ? `${statement.left} & ${isItself(child) ? child.maintainCondition.assertion || 'ASSERTION_UNDEFINED' : achievedMaintain(child.id)}`
+        : statement.left;
+      return [
+        child,
+        {
+          left,
+          right: `${statement.right}`,
+        },
+      ];
+    })
+    .map(([, statement]) => {
+      // TODO: decision variables stage, dependencies
       return {
         left: `${statement.left}`,
         right: `${statement.right}`,
