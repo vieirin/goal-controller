@@ -113,9 +113,9 @@ const createNode = ({
     goalText: node.text,
   });
 
-  const type = convertIstarType({ type: node.type });
+  const nodeType = convertIstarType({ type: node.type });
 
-  if (type === 'resource' && children.length > 0) {
+  if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
       `[INVALID MODEL]: Resource node ${goalName} can't have children`
     );
@@ -134,7 +134,7 @@ const createNode = ({
   if (
     !children.length &&
     !tasks.length &&
-    type === 'goal' &&
+    nodeType === 'goal' &&
     !isMonitor({ id })
   ) {
     throw new Error(
@@ -142,9 +142,9 @@ const createNode = ({
     );
   }
 
-  if (resources.length > 0 && type !== 'task') {
+  if (resources.length > 0 && nodeType !== 'task') {
     throw new Error(
-      `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${type} instead`
+      `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${nodeType} instead`
     );
   }
 
@@ -155,7 +155,7 @@ const createNode = ({
     iStarId: node.id,
     relationToChildren: relation,
     relationToParent: null,
-    type,
+    type: nodeType,
     monitors,
     resources,
     children: filteredChildren,

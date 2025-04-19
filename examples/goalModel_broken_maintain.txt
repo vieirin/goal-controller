@@ -40,9 +40,9 @@
           "y": 227,
           "customProperties": {
             "Description": "",
-            "assertion": "enoughBattery & highReliability",
-            "maintain": "",
-            "type": "maintain"
+            // missing maintain condition, maintain type
+            "assertion": "Battery Level > 20% & Reliability = high",
+            "Maintain_condition": ""
           }
         },
         {
@@ -715,7 +715,7 @@
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sat, 19 Apr 2025 19:45:45 GMT",
+  "saveDate": "Sat, 19 Apr 2025 19:45:02 GMT",
   "diagram": {
     "width": 1436,
     "height": 743,
