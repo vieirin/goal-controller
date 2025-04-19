@@ -8,5 +8,5 @@ export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
   if (!goal.maintainCondition) {
     return '';
   }
-  return `formula ${achievedMaintain(goal.id)} = ${goal.maintainCondition.maintain};`;
+  return `formula ${achievedMaintain(goal.id)} = ${goal.maintainCondition.maintain || 'ASSERTION_UNDEFINED'};`;
 };
