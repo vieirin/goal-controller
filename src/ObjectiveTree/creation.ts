@@ -293,16 +293,30 @@ const addParentToChildren = (
   unidirectionalTreeNode: GoalNode,
   searchParentsForGoal: (goalId: string) => GoalNode[]
 ): GoalNodeWithParent => {
+  const parent = searchParentsForGoal(unidirectionalTreeNode.id);
   if (!unidirectionalTreeNode.children) {
     return {
       ...unidirectionalTreeNode,
-      parent: searchParentsForGoal(unidirectionalTreeNode.id),
+      parent,
       children: undefined,
     };
   }
+
+  // validate that the child has a maxRetries property if the parent has a retryMap entry for it
+  parent.forEach((p) => {
+    if (
+      p.executionDetail?.retryMap?.[unidirectionalTreeNode.id] &&
+      !unidirectionalTreeNode.customProperties.maxRetries
+    ) {
+      throw new Error(
+        `[INVALID MODEL]: Goal ${unidirectionalTreeNode.id} is missing maxRetries property, but its parent ${p.id} declares it in a retryMap`
+      );
+    }
+  });
+
   const bidirectionalTree: GoalNodeWithParent = {
     ...unidirectionalTreeNode,
-    parent: searchParentsForGoal(unidirectionalTreeNode.id),
+    parent,
     children: unidirectionalTreeNode.children.map(
       (goal): GoalNodeWithParent => ({
         ...goal,
