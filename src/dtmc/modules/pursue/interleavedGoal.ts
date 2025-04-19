@@ -22,7 +22,7 @@ export const pursueInterleavedGoal = (
         const defaultCondition = beenPursued(goalId, { condition: false });
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
-          maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
+          maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry - 1);
 
         return [defaultCondition, retryCondition]
           .filter(Boolean)

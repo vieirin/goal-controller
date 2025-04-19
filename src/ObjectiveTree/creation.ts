@@ -142,7 +142,7 @@ const createNode = ({
     );
   }
 
-  const { alt, root, uniqueChoice, ...customProperties } =
+  const { alt, root, uniqueChoice, maxRetries, ...customProperties } =
     node.customProperties;
 
   const decisionVars = parseDecision({ decision: customProperties.variables });
@@ -191,6 +191,7 @@ const createNode = ({
       alt: alt?.toLowerCase() === 'true' || false,
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
+      maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
     },
     maintainCondition: getMaintainCondition(
       `${id}:${goalName}`,

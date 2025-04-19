@@ -1,4 +1,4 @@
-import { achieved, pursued, separator } from '../../mdp/common';
+import { achieved, failed, pursued, separator } from '../../mdp/common';
 import { GoalNodeWithParent, Relation } from '../../ObjectiveTree/types';
 import { maintainConditionFormula } from '../formulas';
 import { beenPursued } from './pursue/common';
@@ -37,6 +37,11 @@ export const managerGoalModule = (goal: GoalNodeWithParent) => {
 
   ${pursued(goal.id)} : [0..1] init 0;
   ${achieved(goal.id)} : [0..1] init 0;
+  ${
+    goal.customProperties.maxRetries
+      ? `${failed(goal.id)} : [0..${goal.customProperties.maxRetries}] init 0;`
+      : ''
+  }
 
   ${pursueStatements(goal).join('\n  ')}
 

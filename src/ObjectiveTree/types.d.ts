@@ -69,6 +69,7 @@ interface CustomProperties {
     variables?: string;
     uniqueChoice?: string;
     type: never;
+    maxRetries?: string;
   } & {
     type: 'maintain';
     maintain: string;
@@ -106,6 +107,7 @@ type GoalNode = {
     root: boolean | undefined;
     dependsOn: string[];
     uniqueChoice: boolean;
+    maxRetries: number | undefined;
     [k: string]: any;
   };
   monitors: GoalNode[];
