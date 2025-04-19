@@ -4,7 +4,7 @@ import { pursueInterleavedGoal } from './interleavedGoal';
 import { pursueSequentialGoal } from './sequentialGoal';
 
 export const pursueStatements = (goal: GoalNode): string[] => {
-  const goalsToPursue = [goal, ...(goal.children || [])];
+  const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
 
   const pursueLines = goalsToPursue
     .map((child, _, arr): [GoalNode, { left: string; right: string }] => {
@@ -20,50 +20,47 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         ] as const;
       }
 
-      if (goal.executionDetail?.type === 'sequence') {
-        const pursueCondition = pursueSequentialGoal(
-          goal,
-          goal.executionDetail.sequence,
-          child.id
-        );
-        return [
-          child,
-          {
-            left: leftStatement + ` & ${pursueCondition}`,
-            right: 'true',
-          },
-        ] as const;
-      }
+      switch (goal.executionDetail?.type) {
+        case 'sequence': {
+          const pursueCondition = pursueSequentialGoal(
+            goal,
+            goal.executionDetail.sequence,
+            child.id
+          );
+          return [
+            child,
+            {
+              left: leftStatement + ` & ${pursueCondition}`,
+              right: 'true',
+            },
+          ] as const;
+        }
+        case 'interleaved': {
+          const pursueCondition = pursueInterleavedGoal(
+            goal,
+            goal.executionDetail.interleaved,
+            child.id
+          );
 
-      if (goal.executionDetail?.type === 'interleaved') {
-        const pursueCondition = pursueInterleavedGoal(
-          goal,
-          goal.executionDetail.interleaved,
-          child.id
-        );
-
-        return [
-          child,
-          { left: leftStatement + ` & ${pursueCondition}`, right: 'true' },
-        ] as const;
+          return [
+            child,
+            { left: leftStatement + ` & ${pursueCondition}`, right: 'true' },
+          ] as const;
+        }
+        default:
+          return [child, { left: leftStatement, right: 'true' }] as const;
       }
-      return [child, { left: leftStatement, right: leftStatement }] as const;
     })
     .map(([child, statement]): { left: string; right: string } => {
+      // TODO: decision variables stage
       return {
         left: `${statement.left}`,
         right: `${statement.right}`,
       };
     })
-    .map(
-      (statements) =>
-        // TODO: decision variables stage
-        statements
-    )
     .map((statement): string => {
       return `${statement.left} -> ${statement.right};`;
-    })
-    .flat();
+    });
 
   return pursueLines ?? [];
 };
