@@ -88,7 +88,7 @@ const declareGoalTransitionsWithDecisionVariable = ({
 
     // G1_achieved=0
     // expand to many children
-    const childrenAchieved = achieved(goal.children?.[0].id ?? '');
+    const childrenAchieved = achieved(goal.children?.[0]?.id ?? '');
 
     return `  ${pursuePrefix} & ${pursued(goal.id)}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
   });
@@ -178,7 +178,10 @@ const declareManagerTransitions = ({
 }) => {
   return Object.keys(goals)
     .map((goal, index) => {
-      const parentGoalForGroup = goals[goal].find((g) => g.id === goal);
+      const parentGoalForGroup = goals[goal]?.find((g) => g.id === goal);
+      if (!parentGoalForGroup) {
+        throw new Error(`[INVALID MODEL]: Goal ${goal} not found`);
+      }
       if (parentGoalForGroup?.hasDecision) {
         return declareGoalTransitionsWithDecisionVariable({
           goal: parentGoalForGroup,

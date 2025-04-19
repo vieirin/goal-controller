@@ -341,7 +341,7 @@
           "customProperties": {
             "Description": "",
             "assertion": "patientTracking",
-            "Maintain": "highPrecision",
+            "maintain": "highPrecision",
             "type": "maintain",
             "dependsOn": "G4"
           }

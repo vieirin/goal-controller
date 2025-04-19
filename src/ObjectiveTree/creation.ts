@@ -128,8 +128,9 @@ const createNode = ({
   let maintainCondition: MaintainCondition | undefined;
   if (customProperties.type === 'maintain') {
     if (!customProperties.maintain || !customProperties.assertion) {
-      throw new Error(
-        `[INVALID MODEL]: Maintain condition must have maintain and assertion: got ${customProperties.maintain} and ${customProperties.assertion}`
+      // TODO: lock this as an error in the future
+      console.warn(
+        `[INVALID MODEL]: Maintain condition for goal [${id}:${goalName}] must have maintain and assertion: got maintain:${customProperties.maintain || `'empty condition'`} and assertion:${customProperties.assertion || `'empty condition'`}`
       );
     }
 
@@ -258,11 +259,7 @@ const nodeChildren = ({
     })
     .filter((n): n is GoalNode => !!n);
 
-  if (!relations[0]) {
-    throw new Error(`[INVALID MODEL]: No relation found for node ${id}s`);
-  }
-
-  return [children, relations[0]];
+  return [children, relations[0] ?? 'none'];
 };
 
 const nodeToTree = ({

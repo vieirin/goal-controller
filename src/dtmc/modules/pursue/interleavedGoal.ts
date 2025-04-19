@@ -20,7 +20,7 @@ export const pursueInterleavedGoal = (
     return otherGoals
       .map((goalId) => {
         const defaultCondition = beenPursued(goalId, { condition: false });
-        const maybeRetry = goal.executionDetail?.retryMap[goalId];
+        const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
 
