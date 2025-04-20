@@ -20,6 +20,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         ] as const;
       }
 
+      return [child, { left: leftStatement, right: 'true' }] as const;
+    })
+    .map(([child, { left, right }]) => {
+      // organize pursue conditions by execution detail type
       switch (goal.executionDetail?.type) {
         case 'sequence': {
           const pursueCondition = pursueSequentialGoal(
@@ -30,8 +34,8 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           return [
             child,
             {
-              left: leftStatement + ` & ${pursueCondition}`,
-              right: 'true',
+              left: left + ` & ${pursueCondition}`,
+              right,
             },
           ] as const;
         }
@@ -44,11 +48,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
           return [
             child,
-            { left: leftStatement + ` & ${pursueCondition}`, right: 'true' },
+            { left: left + ` & ${pursueCondition}`, right },
           ] as const;
         }
         default:
-          return [child, { left: leftStatement, right: 'true' }] as const;
+          return [child, { left, right }] as const;
       }
     })
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
