@@ -1,6 +1,6 @@
 {
   "highPrecision": true,
-  "patientTracking": false,
+  "patientTracking": true,
   "enoughBattery": false,
   "highReliability": false
 }
