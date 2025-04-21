@@ -1,8 +1,8 @@
 import { achieved, failed, pursued, separator } from '../../../mdp/common';
 import { GoalNodeWithParent, Relation } from '../../../ObjectiveTree/types';
 import { maintainConditionFormula } from '../../formulas';
-import { beenPursued } from '../pursue/common';
-import { pursueStatements } from '../pursue/pursue';
+import { beenPursued } from './pursue/common';
+import { pursueStatements } from './pursue/pursue';
 
 const skipStatement = (goal: GoalNodeWithParent) => {
   return `[skip_${goal.id}] ${pursued(goal.id)}=1 -> (${pursued(goal.id)}'=0);`;

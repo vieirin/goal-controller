@@ -1,6 +1,6 @@
-import { achieved, pursued } from '../../../mdp/common';
-import { GoalNode } from '../../../ObjectiveTree/types';
-import { achievedMaintain } from '../../formulas';
+import { achieved, pursued } from '../../../../mdp/common';
+import { GoalNode } from '../../../../ObjectiveTree/types';
+import { achievedMaintain } from '../../../formulas';
 import { pursueInterleavedGoal } from './interleavedGoal';
 import { pursueSequentialGoal } from './sequentialGoal';
 

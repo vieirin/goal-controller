@@ -1,5 +1,5 @@
-import { separator } from '../../../mdp/common';
-import { GoalNode } from '../../../ObjectiveTree/types';
+import { separator } from '../../../../mdp/common';
+import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenPursued, hasFailedAtLeastNTimes } from './common';
 
 export const pursueInterleavedGoal = (

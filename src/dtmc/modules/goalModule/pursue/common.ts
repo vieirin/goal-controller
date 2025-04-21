@@ -1,4 +1,4 @@
-import { achieved, pursued, separator } from '../../../mdp/common';
+import { achieved, pursued, separator } from '../../../../mdp/common';
 
 export const beenAchieved = (
   goalId: string,
