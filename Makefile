@@ -6,10 +6,14 @@ node_modules: package.json
 	@rm -f node_modules/.modified
 	@touch -m node_modules/.modified
 
-grammar: grammar/RTRegex.g4
+
+grammarRT: grammar/RTRegex.g4
 	antlr -Dlanguage=TypeScript grammar/RTRegex.g4 && mv grammar/*.ts src/antlr
 
-run: grammar
+grammarAssertion: grammar/AssertionRegex.g4
+	antlr -Dlanguage=TypeScript grammar/AssertionRegex.g4 && mv grammar/*.ts src/antlr
+
+run: grammarRT grammarAssertion
 	@echo $(FILE)
 	npx ts-node src/index.ts "$(FILE)"
 

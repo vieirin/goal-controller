@@ -1,4 +1,4 @@
-import { getGoalDetail } from '../GoalParser';
+import { getGoalDetail } from '../parsers/GoalParser';
 import { isAlternative } from './nodeUtils';
 import {
   Actor,

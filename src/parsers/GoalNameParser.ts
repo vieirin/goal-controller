@@ -1,7 +1,7 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
 import { Dictionary } from 'lodash';
-import RTRegex from './antlr/RTRegexLexer';
-import RTRegexListener from './antlr/RTRegexListener';
+import RTRegex from '../antlr/RTRegexLexer';
+import RTRegexListener from '../antlr/RTRegexListener';
 import RTRegexParser, {
   GDecisionMakingContext,
   GIdContext,
@@ -10,8 +10,8 @@ import RTRegexParser, {
   GRetryContext,
   GSequenceContext,
   WordContext,
-} from './antlr/RTRegexParser';
-import { GoalExecutionDetail } from './ObjectiveTree/types';
+} from '../antlr/RTRegexParser';
+import { GoalExecutionDetail } from '../ObjectiveTree/types';
 
 export const getGoalDetail = ({
   goalText,
