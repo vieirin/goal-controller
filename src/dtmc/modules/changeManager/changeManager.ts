@@ -22,9 +22,7 @@ const taskDeclaration = (task: GoalNode) => {
 
 export const changeManagerModule = ({ gm }: { gm: GoalTreeWithParent }) => {
   const tasks = allByType({ gm, type: 'task' });
-  return `
-module ChangeManager
+  return `module ChangeManager
   ${tasks.map(taskDeclaration).join('')}
-endmodule
-  `;
+endmodule`;
 };

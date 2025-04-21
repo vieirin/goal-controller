@@ -9,11 +9,15 @@ if (!process.argv.length) {
 }
 const model = loadModel({ filename: process.argv[2] ?? '' });
 const tree = convertToTree({ model });
-console.log(edgeDTMCTemplate({ gm: tree }));
+console.log(edgeDTMCTemplate({ gm: tree, fileName: process.argv[2] ?? '' }));
 
-writeFile('output/edge.mp', edgeDTMCTemplate({ gm: tree }), function (err) {
-  if (err) {
-    return console.log(err);
+writeFile(
+  'output/edge.mp',
+  edgeDTMCTemplate({ gm: tree, fileName: process.argv[2] ?? '' }),
+  function (err) {
+    if (err) {
+      return console.log(err);
+    }
+    console.log('The file was saved!');
   }
-  console.log('The file was saved!');
-});
+);

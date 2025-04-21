@@ -8,7 +8,7 @@ import { treeVariables } from '../../ObjectiveTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
 const getVariablesFilePath = (modelPath: string): string => {
-  const fileName = basename(modelPath, '.json'); // Remove extension if present
+  const fileName = basename(modelPath, '.txt'); // Remove extension if present
   return join('input', fileName, 'variables.json');
 };
 
