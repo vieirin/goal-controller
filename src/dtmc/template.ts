@@ -1,6 +1,6 @@
 import { GoalTreeWithParent } from '../ObjectiveTree/types';
 import { decisionVariablesTemplate } from './decisionVariables';
-import { goalManagerTemplate } from './modules/goalManager';
+import { goalModules } from './modules/goalModule/goalModules';
 
 export const edgeDTMCTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
   return `dtmc
@@ -20,6 +20,6 @@ export const edgeDTMCTemplate = ({ gm }: { gm: GoalTreeWithParent }) => {
 //We use the following variables to represent these system states: 
 ${decisionVariablesTemplate({ gm })}
 
-${goalManagerTemplate({ gm })}
+${goalModules({ gm })}
 `;
 };
