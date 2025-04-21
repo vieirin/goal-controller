@@ -1,4 +1,5 @@
-import { getGoalDetail } from '../parsers/GoalParser';
+import { getAssertionVariables } from '../parsers/getAssertionVariables';
+import { getGoalDetail } from '../parsers/GoalNameParser';
 import { isAlternative } from './nodeUtils';
 import {
   Actor,
@@ -11,6 +12,7 @@ import {
   NodeType,
   Relation,
   type CustomProperties,
+  type MaintainCondition,
 } from './types';
 import { allByType } from './utils';
 
@@ -70,7 +72,7 @@ export const isMonitor = (node: { id: string }) => node.id.startsWith('M');
 const getMaintainCondition = (
   goalName: string,
   customProperties: CustomProperties['customProperties']
-) => {
+): MaintainCondition | undefined => {
   if (customProperties.type !== 'maintain') {
     return undefined;
   }
@@ -82,8 +84,18 @@ const getMaintainCondition = (
   }
 
   return {
-    maintain: customProperties.maintain,
-    assertion: customProperties.assertion,
+    maintain: {
+      sentence: customProperties.maintain,
+      variables: getAssertionVariables({
+        assertionSentence: customProperties.maintain,
+      }),
+    },
+    assertion: {
+      sentence: customProperties.assertion,
+      variables: getAssertionVariables({
+        assertionSentence: customProperties.assertion,
+      }),
+    },
   };
 };
 

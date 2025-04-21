@@ -37,7 +37,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/inquirer": "^9.0.7",
     "antlr4": "^4.13.0",
+    "inquirer": "^12.5.2",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",
     "lodash.mergewith": "^4.6.2"

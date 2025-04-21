@@ -58,7 +58,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
       // add maintain condition
       const left = child.maintainCondition
-        ? `${statement.left} & ${isItself(child) ? child.maintainCondition.assertion || 'ASSERTION_UNDEFINED' : achievedMaintain(child.id)}`
+        ? `${statement.left} & ${isItself(child) ? child.maintainCondition.assertion.sentence || 'ASSERTION_UNDEFINED' : achievedMaintain(child.id)}`
         : statement.left;
       return [
         child,

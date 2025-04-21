@@ -7,8 +7,8 @@ export const systemModule = ({ gm }: { gm: GoalTreeWithParent }) => {
 module System
   ${allGoals
     .map((goal) => {
-      if (goal.maintainCondition?.assertion) {
-        return `${goal.maintainCondition.assertion}: bool init false`;
+      if (goal.maintainCondition?.assertion.sentence) {
+        return `${goal.maintainCondition.assertion.sentence}: bool init false`;
       }
       return '';
     })

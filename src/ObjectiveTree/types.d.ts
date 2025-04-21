@@ -54,8 +54,14 @@ interface Diagram extends CustomProperties {
 }
 
 interface MaintainCondition {
-  maintain: string;
-  assertion: string;
+  maintain: {
+    sentence: string;
+    variables: { name: string; value: boolean | null }[];
+  };
+  assertion: {
+    sentence: string;
+    variables: { name: string; value: boolean | null }[];
+  };
 }
 
 interface CustomProperties {

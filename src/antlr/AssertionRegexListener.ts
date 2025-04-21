@@ -6,6 +6,9 @@ import {ParseTreeListener} from "antlr4";
 import { PrintExprContext } from "./AssertionRegexParser.js";
 import { BlankContext } from "./AssertionRegexParser.js";
 import { IdentifierContext } from "./AssertionRegexParser.js";
+import { NotExprContext } from "./AssertionRegexParser.js";
+import { BooleanContext } from "./AssertionRegexParser.js";
+import { AssignmentContext } from "./AssertionRegexParser.js";
 import { OrExprContext } from "./AssertionRegexParser.js";
 import { ParenExprContext } from "./AssertionRegexParser.js";
 import { AndExprContext } from "./AssertionRegexParser.js";
@@ -52,6 +55,42 @@ export default class AssertionRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitIdentifier?: (ctx: IdentifierContext) => void;
+	/**
+	 * Enter a parse tree produced by the `notExpr`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterNotExpr?: (ctx: NotExprContext) => void;
+	/**
+	 * Exit a parse tree produced by the `notExpr`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitNotExpr?: (ctx: NotExprContext) => void;
+	/**
+	 * Enter a parse tree produced by the `boolean`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterBoolean?: (ctx: BooleanContext) => void;
+	/**
+	 * Exit a parse tree produced by the `boolean`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitBoolean?: (ctx: BooleanContext) => void;
+	/**
+	 * Enter a parse tree produced by the `assignment`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterAssignment?: (ctx: AssignmentContext) => void;
+	/**
+	 * Exit a parse tree produced by the `assignment`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitAssignment?: (ctx: AssignmentContext) => void;
 	/**
 	 * Enter a parse tree produced by the `orExpr`
 	 * labeled alternative in `AssertionRegexParser.expr`.
