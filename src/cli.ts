@@ -1,11 +1,14 @@
-import { readdir, readFile, stat, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import { join } from 'path';
+import { edgeDTMCTemplate } from './dtmc/template';
 import { loadModel } from './ObjectiveTree';
 import { convertToTree } from './ObjectiveTree/creation';
-import { edgeDTMCTemplate } from './dtmc/template';
+import { treeVariables } from './ObjectiveTree/treeVariables';
 
 const LAST_SELECTED_DB = 'lastSelected.db';
+const VARIABLES_FILE = 'input/variables.json';
 
 const getFilesInDirectory = async (directory: string) => {
   try {
@@ -60,6 +63,104 @@ const runModel = async (filePath: string) => {
   }
 };
 
+const getExistingVariables = async (): Promise<Record<string, boolean>> => {
+  try {
+    if (existsSync(VARIABLES_FILE)) {
+      const data = await readFile(VARIABLES_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+    return {};
+  } catch (error) {
+    console.error('Error reading variables file:', error);
+    return {};
+  }
+};
+
+const saveVariables = async (variables: Record<string, boolean>) => {
+  try {
+    // Ensure the input directory exists
+    if (!existsSync('input')) {
+      await mkdir('input', { recursive: true });
+    }
+
+    await writeFile(VARIABLES_FILE, JSON.stringify(variables, null, 2));
+    console.log(`Variables saved to ${VARIABLES_FILE}`);
+  } catch (error) {
+    console.error('Error saving variables:', error);
+  }
+};
+
+const inputDefaultVariables = async () => {
+  try {
+    // Get the last selected model or prompt for one
+    let modelPath: string | null = await getLastSelectedModel();
+
+    if (!modelPath) {
+      const files = await getFilesInDirectory('examples');
+      if (files.length === 0) {
+        console.log('No files found in the example directory.');
+        return;
+      }
+
+      const { selectedFile } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedFile',
+          message: 'Select a model file to extract variables from:',
+          choices: files.map((file) => ({
+            name: file.name,
+            value: file.path,
+          })),
+        },
+      ]);
+
+      modelPath = selectedFile;
+    }
+
+    // At this point modelPath is guaranteed to be a string
+    const model = loadModel({ filename: modelPath as string });
+    const tree = convertToTree({ model });
+    const variables = treeVariables(tree);
+
+    if (variables.length === 0) {
+      console.log('No variables found in the model.');
+      return;
+    }
+
+    // Get existing variable values
+    const existingVariables = await getExistingVariables();
+
+    // Create questions for each variable
+    const questions = variables.map((variable) => ({
+      type: 'input' as const,
+      name: variable,
+      message: `Enter default value for ${variable} (true/false):`,
+      default:
+        existingVariables[variable] !== undefined
+          ? String(existingVariables[variable])
+          : 'false',
+      validate: (input: string) => {
+        const value = input.toLowerCase();
+        if (value === 'true' || value === 'false') {
+          return true;
+        }
+        return 'Please enter "true" or "false"';
+      },
+      filter: (input: string) => input.toLowerCase() === 'true',
+    }));
+
+    // Prompt for variable values
+    const answers = await inquirer.prompt<Record<string, boolean>>(questions);
+
+    // Save variables
+    await saveVariables(answers);
+
+    console.log('Default variables have been set successfully!');
+  } catch (error) {
+    console.error('Error setting default variables:', error);
+  }
+};
+
 const mainMenu = async () => {
   const lastSelectedModel = await getLastSelectedModel();
   const menuChoices = [
@@ -110,7 +211,7 @@ const mainMenu = async () => {
     await saveLastSelectedModel(selectedFile);
     await runModel(selectedFile);
   } else if (action === 'variables') {
-    console.log('Variable input feature is not implemented yet.');
+    await inputDefaultVariables();
   }
 
   // Return to main menu

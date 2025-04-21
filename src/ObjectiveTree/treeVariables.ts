@@ -1,7 +1,7 @@
 import type { GoalTreeWithParent } from './types';
 import { allByType } from './utils';
 
-const treeVariables = (tree: GoalTreeWithParent) => {
+const getTreeVariables = (tree: GoalTreeWithParent) => {
   const variables = new Set<string>();
 
   const goals = allByType({ gm: tree, type: 'goal' });
@@ -19,4 +19,4 @@ const treeVariables = (tree: GoalTreeWithParent) => {
   return Array.from(variables);
 };
 
-export { treeVariables };
+export { getTreeVariables as treeVariables };
