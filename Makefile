@@ -17,6 +17,9 @@ run: grammarRT grammarAssertion
 	@echo $(FILE)
 	npx ts-node src/index.ts "$(FILE)"
 
+cli: grammarRT grammarAssertion
+	npx ts-node src/cli.ts
+
 exec:
 	npx ts-node src/index.ts ./examples/edgeModel.txt 
 

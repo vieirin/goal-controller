@@ -12,7 +12,6 @@ export const runModel = async (filePath: string) => {
     if (!fileName) {
       throw new Error('File name not found');
     }
-    console.log({ fileName });
     const output = edgeDTMCTemplate({ gm: tree, fileName });
     await writeFile('output/edge.mp', output);
     console.log('The file was saved successfully!');
