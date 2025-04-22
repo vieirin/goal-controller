@@ -1,6 +1,10 @@
+import { existsSync } from 'fs';
 import inquirer from 'inquirer';
 import { runModel } from './cli/menu/selectModel';
-import { inputDefaultVariables } from './cli/menu/variablesInput';
+import {
+  getVariablesFilePath,
+  inputDefaultVariables,
+} from './cli/menu/variablesInput';
 import {
   getFilesInDirectory,
   getLastSelectedModel,
@@ -33,6 +37,14 @@ const mainMenu = async () => {
   ]);
 
   if (action === 'last' && lastSelectedModel) {
+    // Check if variables file exists for the last selected model
+    const variablesFilePath = getVariablesFilePath(lastSelectedModel);
+    if (!existsSync(variablesFilePath)) {
+      console.log(
+        'Variables file not found for the last selected model. Please input variables first.'
+      );
+      await inputDefaultVariables();
+    }
     await runModel(lastSelectedModel);
   } else if (action === 'run') {
     const files = await getFilesInDirectory('examples');
@@ -55,6 +67,16 @@ const mainMenu = async () => {
     ]);
 
     await saveLastSelectedModel(selectedFile);
+
+    // Check if variables file exists for the selected model
+    const variablesFilePath = getVariablesFilePath(selectedFile);
+    if (!existsSync(variablesFilePath)) {
+      console.log(
+        'Variables file not found for the selected model. Please input variables first.'
+      );
+      await inputDefaultVariables();
+    }
+
     await runModel(selectedFile);
   } else if (action === 'variables') {
     await inputDefaultVariables();

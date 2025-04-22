@@ -1,8 +1,7 @@
 import { readFileSync } from 'fs';
-import path, { join } from 'path';
 import { treeVariables } from '../../../ObjectiveTree/treeVariables';
 import type { GoalTreeWithParent } from '../../../ObjectiveTree/types';
-
+import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
 export const systemModule = ({
   gm,
   fileName,
@@ -13,16 +12,16 @@ export const systemModule = ({
   const variables = treeVariables(gm);
 
   try {
+    const variablesFilePath = getVariablesFilePath(fileName);
     const defaultVariableValues = JSON.parse(
-      readFileSync(
-        join('input', path.parse(fileName).name, 'variables.json'),
-        'utf8'
-      )
+      readFileSync(variablesFilePath, 'utf8')
     );
     return `module System
   ${variables
     .map((variable) => {
-      return `${variable}: bool init ${defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION'}`;
+      return `${variable}: bool init ${
+        defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION'
+      }`;
     })
     .join('\n  ')
     .trim()}

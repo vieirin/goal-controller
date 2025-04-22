@@ -7,7 +7,7 @@ import { convertToTree } from '../../ObjectiveTree/creation';
 import { treeVariables } from '../../ObjectiveTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
-const getVariablesFilePath = (modelPath: string): string => {
+export const getVariablesFilePath = (modelPath: string): string => {
   const fileName = basename(modelPath, '.txt'); // Remove extension if present
   return join('input', fileName, 'variables.json');
 };
@@ -53,30 +53,30 @@ const getExistingVariables = async (
 
 export const inputDefaultVariables = async () => {
   try {
-    // Get the last selected model or prompt for one
-    let modelPath: string | null = await getLastSelectedModel();
-
-    if (!modelPath) {
-      const files = await getFilesInDirectory('examples');
-      if (files.length === 0) {
-        console.log('No files found in the example directory.');
-        return;
-      }
-
-      const { selectedFile } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'selectedFile',
-          message: 'Select a model file to extract variables from:',
-          choices: files.map((file) => ({
-            name: file.name,
-            value: file.path,
-          })),
-        },
-      ]);
-
-      modelPath = selectedFile;
+    // Always show the model list first
+    const files = await getFilesInDirectory('examples');
+    if (files.length === 0) {
+      console.log('No files found in the example directory.');
+      return;
     }
+
+    // Get the last selected model to use as default if available
+    const lastSelectedModel = await getLastSelectedModel();
+
+    const { selectedFile } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedFile',
+        message: 'Select a model file to extract variables from:',
+        choices: files.map((file) => ({
+          name: file.name,
+          value: file.path,
+        })),
+        default: lastSelectedModel || files[0]?.path,
+      },
+    ]);
+
+    const modelPath = selectedFile;
 
     // At this point modelPath is guaranteed to be a string
     const model = loadModel({ filename: modelPath as string });
