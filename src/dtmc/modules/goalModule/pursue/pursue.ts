@@ -25,6 +25,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       return [child, { left: leftStatement, right: 'true' }] as const;
     })
     .map(([child, { left, right }]) => {
+      if (isItself(child)) {
+        return [child, { left, right }] as const;
+      }
       // organize pursue conditions by execution detail type
       switch (goal.executionDetail?.type) {
         case 'sequence': {
