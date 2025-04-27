@@ -24,42 +24,44 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       return [child, { left: leftStatement, right: 'true' }] as const;
     })
-    .map(([child, { left, right }]) => {
-      if (isItself(child)) {
-        return [child, { left, right }] as const;
-      }
-      // organize pursue conditions by execution detail type
-      switch (goal.executionDetail?.type) {
-        case 'sequence': {
-          const pursueCondition = pursueSequentialGoal(
-            goal,
-            goal.executionDetail.sequence,
-            child.id
-          );
-          return [
-            child,
-            {
-              left: left + ` & ${pursueCondition}`,
-              right,
-            },
-          ] as const;
+    .map(
+      ([child, { left, right }]): [
+        GoalNode,
+        { left: string; right: string },
+      ] => {
+        if (isItself(child)) {
+          return [child, { left, right }];
         }
-        case 'interleaved': {
-          const pursueCondition = pursueInterleavedGoal(
-            goal,
-            goal.executionDetail.interleaved,
-            child.id
-          );
+        // organize pursue conditions by execution detail type
+        switch (goal.executionDetail?.type) {
+          case 'sequence': {
+            const pursueCondition = pursueSequentialGoal(
+              goal,
+              goal.executionDetail.sequence,
+              child.id
+            );
+            return [
+              child,
+              {
+                left: left + ` & ${pursueCondition}`,
+                right,
+              },
+            ];
+          }
+          case 'interleaved': {
+            const pursueCondition = pursueInterleavedGoal(
+              goal,
+              goal.executionDetail.interleaved,
+              child.id
+            );
 
-          return [
-            child,
-            { left: left + ` & ${pursueCondition}`, right },
-          ] as const;
+            return [child, { left: left + ` & ${pursueCondition}`, right }];
+          }
+          default:
+            return [child, { left, right }];
         }
-        default:
-          return [child, { left, right }] as const;
       }
-    })
+    )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
       // add maintain condition
       const left = child.maintainCondition
