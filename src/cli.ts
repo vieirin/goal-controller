@@ -43,7 +43,7 @@ const mainMenu = async () => {
       console.log(
         'Variables file not found for the last selected model. Please input variables first.'
       );
-      await inputDefaultVariables();
+      await inputDefaultVariables(lastSelectedModel);
     }
     await runModel(lastSelectedModel);
   } else if (action === 'run') {
@@ -74,7 +74,7 @@ const mainMenu = async () => {
       console.log(
         'Variables file not found for the selected model. Please input variables first.'
       );
-      await inputDefaultVariables();
+      await inputDefaultVariables(selectedFile);
     }
 
     await runModel(selectedFile);

@@ -51,32 +51,36 @@ const getExistingVariables = async (
   }
 };
 
-export const inputDefaultVariables = async () => {
+export const inputDefaultVariables = async (selectedModel?: string) => {
   try {
-    // Always show the model list first
-    const files = await getFilesInDirectory('examples');
-    if (files.length === 0) {
-      console.log('No files found in the example directory.');
-      return;
+    let modelPath = selectedModel;
+
+    if (!selectedModel) {
+      // Always show the model list first
+      const files = await getFilesInDirectory('examples');
+      if (files.length === 0) {
+        console.log('No files found in the example directory.');
+        return;
+      }
+
+      // Get the last selected model to use as default if available
+      const lastSelectedModel = await getLastSelectedModel();
+
+      const { selectedFile } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedFile',
+          message: 'Select a model file to extract variables from:',
+          choices: files.map((file) => ({
+            name: file.name,
+            value: file.path,
+          })),
+          default: lastSelectedModel || files[0]?.path,
+        },
+      ]);
+
+      modelPath = selectedFile;
     }
-
-    // Get the last selected model to use as default if available
-    const lastSelectedModel = await getLastSelectedModel();
-
-    const { selectedFile } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selectedFile',
-        message: 'Select a model file to extract variables from:',
-        choices: files.map((file) => ({
-          name: file.name,
-          value: file.path,
-        })),
-        default: lastSelectedModel || files[0]?.path,
-      },
-    ]);
-
-    const modelPath = selectedFile;
 
     // At this point modelPath is guaranteed to be a string
     const model = loadModel({ filename: modelPath as string });

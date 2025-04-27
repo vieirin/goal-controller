@@ -9,7 +9,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
     .map((child, _): [GoalNode, { left: string; right: string }] => {
-      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${isItself(child) ? 0 : 1}`;
+      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${
+        isItself(child) ? 0 : 1
+      }`;
       if (isItself(child)) {
         return [
           child,
@@ -58,7 +60,12 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
       // add maintain condition
       const left = child.maintainCondition
-        ? `${statement.left} & ${isItself(child) ? child.maintainCondition.assertion.sentence || 'ASSERTION_UNDEFINED' : achievedMaintain(child.id)}`
+        ? `${statement.left} & ${
+            isItself(child)
+              ? child.maintainCondition.assertion.sentence ||
+                'ASSERTION_UNDEFINED'
+              : achievedMaintain(child.id)
+          }`
         : statement.left;
       return [
         child,
