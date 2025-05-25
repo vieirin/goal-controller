@@ -64,6 +64,20 @@ interface MaintainCondition {
   };
 }
 
+interface Resource extends GoalNode {
+  variable:
+    | {
+        type: 'boolean';
+        initialValue: boolean;
+      }
+    | {
+        type: 'int';
+        initialValue: number;
+        lowerBound: number;
+        upperBound: number;
+      };
+}
+
 interface CustomProperties {
   customProperties: {
     Description: '';
@@ -117,7 +131,7 @@ type GoalNode = {
     [k: string]: any;
   };
   monitors: GoalNode[];
-  resources: GoalNode[];
+  resources: Resource[];
   tasks?: GoalNode[];
   executionDetail: GoalExecutionDetail | null;
   maintainCondition?: MaintainCondition;

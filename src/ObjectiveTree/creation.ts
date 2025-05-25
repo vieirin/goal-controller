@@ -13,6 +13,7 @@ import {
   Relation,
   type CustomProperties,
   type MaintainCondition,
+  type Resource,
 } from './types';
 import { allByType } from './utils';
 
@@ -79,7 +80,9 @@ const getMaintainCondition = (
   if (!customProperties.maintain || !customProperties.assertion) {
     // TODO: lock this as an error in the future
     console.warn(
-      `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${customProperties.maintain || `'empty condition'`} and assertion:${customProperties.assertion || `'empty condition'`}`
+      `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
+        customProperties.maintain || `'empty condition'`
+      } and assertion:${customProperties.assertion || `'empty condition'`}`
     );
   }
 
@@ -99,6 +102,65 @@ const getMaintainCondition = (
   };
 };
 
+const createResource = (resource: GoalNode): Resource => {
+  const { type } = resource.customProperties;
+  switch (type) {
+    case 'boolean': {
+      const { initialValue } = resource.customProperties;
+      if (!initialValue) {
+        throw new Error(
+          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value`
+        );
+      }
+      return {
+        ...resource,
+        variable: { type: 'boolean', initialValue: initialValue === 'true' },
+      };
+    }
+    case 'int':
+      const { initialValue, lowerBound, upperBound } =
+        resource.customProperties;
+
+      if (!initialValue || !lowerBound || !upperBound) {
+        throw new Error(
+          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value, lower bound, and upper bound`
+        );
+      }
+
+      if (isNaN(lowerBound) || isNaN(upperBound)) {
+        throw new Error(
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`
+        );
+      }
+
+      const lowerBoundInt = parseInt(lowerBound);
+      const upperBoundInt = parseInt(upperBound);
+
+      if (lowerBoundInt > upperBoundInt) {
+        throw new Error(
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`
+        );
+      }
+
+      if (isNaN(initialValue)) {
+        throw new Error(
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid initial value`
+        );
+      }
+      return {
+        ...resource,
+        variable: {
+          type: 'int',
+          initialValue: parseInt(initialValue),
+          lowerBound: lowerBoundInt,
+          upperBound: upperBoundInt,
+        },
+      };
+    default:
+      throw new Error(`[INVALID RESOURCE]: Unsupported resource type: ${type}`);
+  }
+};
+
 const convertNonGoalChildren = (children: GoalNode[]) => {
   return children.reduce(
     (acc, child) => {
@@ -111,7 +173,7 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
       if (child.type === 'resource') {
         return {
           ...acc,
-          resources: [...acc.resources, child],
+          resources: [...acc.resources, createResource(child)],
         };
       }
       if (child.type === 'task') {
@@ -127,7 +189,9 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
       resources: [],
       children: [],
       tasks: [],
-    } as Record<'monitors' | 'resources' | 'children' | 'tasks', GoalNode[]>
+    } as Record<'monitors' | 'children' | 'tasks', GoalNode[]> & {
+      resources: Resource[];
+    }
   );
 };
 
@@ -367,8 +431,8 @@ export const convertToTree = ({
 
   const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
   const searchParentsForGoal = (goalId: string) => {
-    return allGoals.filter((goal) =>
-      goal.children?.map(({ id }) => id).includes(goalId)
+    return allGoals.filter(
+      (goal) => goal.children?.map(({ id }) => id).includes(goalId)
     );
   };
   // traverse the tree adding parents to it
