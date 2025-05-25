@@ -96,53 +96,23 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
     const existingVariables = await getExistingVariables(modelPath as string);
 
     // Create questions for each variable
-    const questions = variables.map((variable) => {
-      const isResourceVariable = variable.startsWith('resource_');
-      return {
-        type: 'input' as const,
-        name: variable,
-        message: `Enter default value for ${variable} (${
-          isResourceVariable ? 'float or true/false' : 'true/false'
-        }):`,
-        default:
-          existingVariables[variable] !== undefined
-            ? String(existingVariables[variable])
-            : isResourceVariable
-            ? '0.0'
-            : 'false',
-        validate: (input: string) => {
-          if (isResourceVariable) {
-            const value = input.toLowerCase();
-            if (value === 'true' || value === 'false') {
-              return true;
-            }
-            const floatValue = parseFloat(value);
-            if (!isNaN(floatValue)) {
-              return true;
-            }
-            return 'Please enter a valid number or "true"/"false"';
-          } else {
-            const value = input.toLowerCase();
-            if (value === 'true' || value === 'false') {
-              return true;
-            }
-            return 'Please enter "true" or "false"';
-          }
-        },
-        filter: (input: string) => {
-          if (isResourceVariable) {
-            const value = input.toLowerCase();
-            if (value === 'true' || value === 'false') {
-              return value === 'true';
-            }
-            const floatValue = parseFloat(value);
-            return isNaN(floatValue) ? 0.0 : floatValue;
-          } else {
-            return input.toLowerCase() === 'true';
-          }
-        },
-      };
-    });
+    const questions = variables.map((variable) => ({
+      type: 'input' as const,
+      name: variable,
+      message: `Enter default value for ${variable} (true/false):`,
+      default:
+        existingVariables[variable] !== undefined
+          ? String(existingVariables[variable])
+          : 'false',
+      validate: (input: string) => {
+        const value = input.toLowerCase();
+        if (value === 'true' || value === 'false') {
+          return true;
+        }
+        return 'Please enter "true" or "false"';
+      },
+      filter: (input: string) => input.toLowerCase() === 'true',
+    }));
 
     // Prompt for variable values
     const answers = await inquirer.prompt<Record<string, boolean>>(questions);

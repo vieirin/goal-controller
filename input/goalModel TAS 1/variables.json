@@ -1,10 +1,10 @@
 {
-  "resource_patient_data": 0.5,
-  "resource_location_service": 2,
-  "resource_prescription": false,
+  "resource_patient_data": 2,
+  "resource_location_service": false,
+  "resource_prescription": 5,
   "resource_mobile_data_service": true,
-  "highPrecision": true,
-  "patientTracking": false,
-  "enoughBattery": false,
-  "highReliability": true
+  "highPrecision": false,
+  "patientTracking": true,
+  "enoughBattery": true,
+  "highReliability": false
 }
