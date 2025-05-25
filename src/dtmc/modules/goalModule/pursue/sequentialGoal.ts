@@ -9,7 +9,7 @@ export const pursueSequentialGoal = (
 ): string => {
   const sequenceIndex = sequence.indexOf(childId);
   const leftGoals = sequence.slice(0, sequenceIndex);
-  const rightGoals = sequence.slice(sequenceIndex + 1);
+  const rightGoals = sequence.slice(sequenceIndex);
 
   if (!goal.relationToChildren) {
     return '';
@@ -17,12 +17,7 @@ export const pursueSequentialGoal = (
 
   const resolveAndGoal = (): string => {
     if (leftGoals.length === 0) {
-      return [
-        beenAchieved(childId, { condition: false }),
-        rightGoals
-          .map((goal) => beenAchieved(goal, { condition: false }))
-          .join(separator('and')),
-      ].join(separator('and'));
+      return beenAchieved(childId, { condition: false });
     }
 
     return [
