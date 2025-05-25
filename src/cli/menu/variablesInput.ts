@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 import { basename, join } from 'path';
 import { loadModel } from '../../ObjectiveTree';
 import { convertToTree } from '../../ObjectiveTree/creation';
-import { treeVariables } from '../../ObjectiveTree/treeVariables';
+import { treeContextVariables } from '../../ObjectiveTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
 export const getVariablesFilePath = (modelPath: string): string => {
@@ -85,7 +85,7 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
     // At this point modelPath is guaranteed to be a string
     const model = loadModel({ filename: modelPath as string });
     const tree = convertToTree({ model });
-    const variables = treeVariables(tree);
+    const variables = treeContextVariables(tree);
 
     if (variables.length === 0) {
       console.log('No variables found in the model.');
