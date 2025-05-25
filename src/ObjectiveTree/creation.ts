@@ -105,7 +105,7 @@ const getMaintainCondition = (
 const createResource = (resource: GoalNode): Resource => {
   const { type } = resource.customProperties;
   switch (type) {
-    case 'boolean': {
+    case 'bool': {
       const { initialValue } = resource.customProperties;
       if (!initialValue) {
         throw new Error(

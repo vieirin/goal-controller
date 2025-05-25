@@ -299,6 +299,10 @@
           "x": 883,
           "y": 246,
           "customProperties": {
+            "type": "int",
+            "initialValue": "50",
+            "lowerBound": "0",
+            "upperBound": "100",
             "Description": "instead of it being a resource here, since it is not updated maybe it can become a link condition? locationService > 0, for example"
           }
         },
@@ -309,6 +313,8 @@
           "x": 273,
           "y": 501,
           "customProperties": {
+            "type": "bool",
+            "initialValue": "true",
             "Description": ""
           }
         },
@@ -319,6 +325,8 @@
           "x": 846,
           "y": 525,
           "customProperties": {
+            "type": "bool",
+            "initialValue": "true",
             "Description": ""
           }
         },
@@ -329,6 +337,10 @@
           "x": 982,
           "y": 538,
           "customProperties": {
+            "type": "int",
+            "initialValue": "50",
+            "lowerBound": "0",
+            "upperBound": "100",
             "Description": "",
             "condMobileData": "available"
           }
@@ -354,6 +366,8 @@
           "x": 649,
           "y": 568,
           "customProperties": {
+            "type": "bool",
+            "initialValue": "false",
             "Description": "",
             "availableDrugs": "med1, med2, med3",
             "availableDosages": "med1:10,20,30; med2:40,50,100; med3:50,75,300",
