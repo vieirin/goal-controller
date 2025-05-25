@@ -1,8 +1,16 @@
-import { achieved, pursued } from '../../../../mdp/common';
+import { achieved, pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
 import { pursueInterleavedGoal } from './interleavedGoal';
 import { pursueSequentialGoal } from './sequentialGoal';
+
+const goalDependencyStatement = (goal: GoalNode) => {
+  return goal.customProperties.dependsOn
+    ? `& (${goal.customProperties.dependsOn
+        .map((dep) => `${achieved(dep)}=1`)
+        .join(separator('and'))})`
+    : '';
+};
 
 export const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
@@ -16,7 +24,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         return [
           child,
           {
-            left: leftStatement + ` & ${achieved(goal.id)}=0`,
+            left:
+              leftStatement +
+              ` & ${achieved(goal.id)}=0 ${goalDependencyStatement(goal)}`,
             right: `(${pursued(goal.id)}'=1)`,
           },
         ] as const;
