@@ -5,8 +5,8 @@ import { pursueInterleavedGoal } from './interleavedGoal';
 import { pursueSequentialGoal } from './sequentialGoal';
 
 const goalDependencyStatement = (goal: GoalNode) => {
-  return goal.customProperties.dependsOn
-    ? `& (${goal.customProperties.dependsOn
+  return goal.customProperties.dependsOn?.length
+    ? ` & (${goal.customProperties.dependsOn
         .map((dep) => `${achieved(dep)}=1`)
         .join(separator('and'))})`
     : '';
@@ -26,7 +26,8 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           {
             left:
               leftStatement +
-              ` & ${achieved(goal.id)}=0 ${goalDependencyStatement(goal)}`,
+              ` & ${achieved(goal.id)}=0` +
+              goalDependencyStatement(goal),
             right: `(${pursued(goal.id)}'=1)`,
           },
         ] as const;
