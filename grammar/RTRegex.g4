@@ -18,7 +18,8 @@ expr:
 	| ':' word EOF								# nameOnly
 	| expr op = ',' expr						# gDM
 	| expr op = '@' FLOAT						# gRetry
-	| expr op = '|' expr						# gInterleaved
+	| expr op = '|' expr						# gAlternative
+	| expr op = '#' expr						# gInterleaved
 	| expr op = ';' expr						# gSequence
 	| 'try(' expr ')' '?' expr ':' expr			# gTry
 	| expr op = (';' | '#') expr				# gTime

@@ -1,12 +1,17 @@
 import { separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
-import { beenAchieved, beenAchievedAndPursued } from './common';
+import { beenAchieved } from './common';
 
-export const pursueSequentialGoal = (
+export const pursueAndSequentialGoal = (
   goal: GoalNode,
   sequence: string[],
   childId: string
 ): string => {
+  if (goal.relationToChildren === 'or') {
+    throw new Error(
+      'OR relation to children without a runtime notation is not supported use Degradation goal instead'
+    );
+  }
   const sequenceIndex = sequence.indexOf(childId);
   const leftGoals = sequence.slice(0, sequenceIndex);
   const rightGoals = sequence.slice(sequenceIndex);
@@ -26,34 +31,8 @@ export const pursueSequentialGoal = (
     ].join(separator('and'));
   };
 
-  const resolveOrGoal = () => {
-    if (leftGoals.length === 0) {
-      return rightGoals
-        .map((goal) =>
-          beenAchievedAndPursued(goal, {
-            pursued: false,
-            achieved: false,
-          })
-        )
-        .join(separator('and'));
-    }
-
-    return leftGoals
-      .map((goal) =>
-        beenAchievedAndPursued(goal, {
-          pursued: true,
-          achieved: false,
-        })
-      )
-      .join(separator('and'));
-  };
-
   if (goal.relationToChildren === 'and') {
     return resolveAndGoal();
-  }
-
-  if (goal.relationToChildren === 'or') {
-    return resolveOrGoal();
   }
 
   return '';

@@ -105,6 +105,7 @@ type Decision = {
 };
 type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
+  | { type: 'alternative'; alternative: string[] }
   | { type: 'sequence'; sequence: string[] }
   | { type: 'decisionMaking'; dm: string[] }
 ) & {

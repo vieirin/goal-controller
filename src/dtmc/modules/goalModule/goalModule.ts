@@ -13,15 +13,17 @@ const isValidSeparator = (
 };
 
 const achieveCondition = (goal: GoalNodeWithParent) => {
-  if (goal.children?.length && isValidSeparator(goal?.relationToChildren)) {
-    return `(${goal.children
-      .map((child) => `${pursued(child.id)}=1`)
-      .join(separator(goal.relationToChildren))})`;
-  }
-  if (goal.tasks?.length && isValidSeparator(goal?.relationToChildren)) {
-    return `(${goal.tasks
-      .map((task) => `${achievedVariable(task.id)}=1`)
-      .join(separator(goal.relationToChildren))})`;
+  if (isValidSeparator(goal.relationToChildren)) {
+    if (goal.children?.length) {
+      return `(${goal.children
+        .map((child) => `${pursued(child.id)}=1`)
+        .join(separator(goal.relationToChildren))})`;
+    }
+    if (goal.tasks?.length) {
+      return `(${goal.tasks
+        .map((task) => `${achievedVariable(task.id)}=1`)
+        .join(separator(goal.relationToChildren))})`;
+    }
   }
   return '';
 };

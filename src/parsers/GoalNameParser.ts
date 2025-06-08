@@ -6,10 +6,11 @@ import RTRegexParser, {
   GDecisionMakingContext,
   GIdContext,
   GIdContinuedContext,
-  GInterleavedContext,
   GRetryContext,
   GSequenceContext,
   WordContext,
+  type GAlternativeContext,
+  type GInterleavedContext,
 } from '../antlr/RTRegexParser';
 import { GoalExecutionDetail } from '../ObjectiveTree/types';
 
@@ -31,6 +32,7 @@ export const getGoalDetail = ({
   let goalName: string | null = null;
 
   let decisionMaking: string[] = [];
+  let alternative: string[] = [];
   let interleaved: string[] = [];
   let sequence: string[] = [];
   let retry: Dictionary<number> = {};
@@ -47,8 +49,8 @@ export const getGoalDetail = ({
     exitGDecisionMaking = (ctx: GDecisionMakingContext) => {
       decisionMaking = ctx.expr().getText().split(',');
     };
-    exitGInterleaved = (ctx: GInterleavedContext) => {
-      interleaved = ctx
+    exitGAlternative = (ctx: GAlternativeContext) => {
+      alternative = ctx
         .expr_list()
         .map((e) => {
           // in this case goal is the first child and the rest is some other expression
@@ -57,6 +59,12 @@ export const getGoalDetail = ({
           }
           return e.getText();
         })
+        .filter(Boolean);
+    };
+    exitGInterleaved = (ctx: GInterleavedContext) => {
+      interleaved = ctx
+        .expr_list()
+        .map((e) => e.getText())
         .filter(Boolean);
     };
     exitGSequence = (ctx: GSequenceContext) => {
@@ -90,15 +98,22 @@ export const getGoalDetail = ({
     };
   }
 
-  if (interleaved.length > 0) {
+  if (alternative.length > 0) {
     return {
       id,
       goalName: goalSanitizedName.trim(),
       executionDetail: {
-        type: 'interleaved',
-        interleaved,
+        type: 'alternative',
+        alternative,
         retryMap: retry,
       },
+    };
+  }
+  if (interleaved.length > 0) {
+    return {
+      id,
+      goalName: goalSanitizedName.trim(),
+      executionDetail: { type: 'interleaved', interleaved, retryMap: retry },
     };
   }
 

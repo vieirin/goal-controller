@@ -2,19 +2,19 @@ import { separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenPursued, hasFailedAtLeastNTimes } from './common';
 
-export const pursueInterleavedGoal = (
+export const pursueAlternativeGoal = (
   goal: GoalNode,
-  interleaved: string[],
+  alternative: string[],
   currentChildId: string
 ): string => {
-  if (goal.relationToChildren === 'and') {
+  if (goal.relationToChildren === 'or') {
     throw new Error(
-      `Interleaved goals are not supported for and joints. Found in goal ${goal.id}`
+      `Alternative goals are not supported for OR joints. Found in goal ${goal.id}`
     );
   }
 
-  if (goal.relationToChildren === 'or') {
-    const otherGoals = interleaved.filter(
+  if (goal.relationToChildren === 'and') {
+    const otherGoals = alternative.filter(
       (goalId) => goalId !== currentChildId
     );
     return otherGoals
@@ -22,7 +22,7 @@ export const pursueInterleavedGoal = (
         const defaultCondition = beenPursued(goalId, { condition: false });
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
-          maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry - 1);
+          maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
 
         return [defaultCondition, retryCondition]
           .filter(Boolean)

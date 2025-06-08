@@ -1,8 +1,8 @@
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
-import { pursueInterleavedGoal } from './interleavedGoal';
-import { pursueSequentialGoal } from './sequentialGoal';
+import { pursueAlternativeGoal } from './interleavedGoal';
+import { pursueAndSequentialGoal } from './sequentialGoal';
 
 const goalDependencyStatement = (goal: GoalNode) => {
   return goal.customProperties.dependsOn?.length
@@ -41,36 +41,59 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         { left: string; right: string },
       ] => {
         if (isItself(child)) {
+          // skip itself
           return [child, { left, right }];
         }
-        // organize pursue conditions by execution detail type
-        switch (goal.executionDetail?.type) {
-          case 'sequence': {
-            const pursueCondition = pursueSequentialGoal(
-              goal,
-              goal.executionDetail.sequence,
-              child.id
-            );
-            return [
-              child,
-              {
-                left: left + ` & ${pursueCondition}`,
-                right,
-              },
-            ];
-          }
-          case 'interleaved': {
-            const pursueCondition = pursueInterleavedGoal(
-              goal,
-              goal.executionDetail.interleaved,
-              child.id
-            );
 
-            return [child, { left: left + ` & ${pursueCondition}`, right }];
+        if (goal.relationToChildren === 'or') {
+          switch (goal.executionDetail?.type) {
+            case 'sequence': {
+              throw new Error(
+                'OR relation to children with sequence execution detail is not supported'
+              );
+            }
+            case 'alternative': {
+              const pursueCondition = pursueAlternativeGoal(
+                goal,
+                goal.executionDetail.alternative,
+                child.id
+              );
+              return [child, { left: left + ` & ${pursueCondition}`, right }];
+            }
+            default:
+              return [child, { left, right }];
           }
-          default:
-            return [child, { left, right }];
         }
+
+        if (goal.relationToChildren === 'and') {
+          // organize pursue conditions by execution detail type
+          switch (goal.executionDetail?.type) {
+            case 'sequence': {
+              const pursueCondition = pursueAndSequentialGoal(
+                goal,
+                goal.executionDetail.sequence,
+                child.id
+              );
+              return [
+                child,
+                {
+                  left: left + ` & ${pursueCondition}`,
+                  right,
+                },
+              ];
+            }
+            case 'alternative': {
+              throw new Error(
+                'AND relation to children with alternative execution detail is not supported'
+              );
+            }
+            default:
+              // interleaved goals fall under the default case
+              return [child, { left, right }];
+          }
+        }
+
+        return [child, { left, right }];
       }
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {

@@ -25,5 +25,5 @@ export const beenAchievedAndPursued = (
 };
 
 export const hasFailedAtLeastNTimes = (goalId: string, n: number) => {
-  return `${goalId}Failed > ${n}`;
+  return `${goalId}_failed >= ${n}`;
 };
