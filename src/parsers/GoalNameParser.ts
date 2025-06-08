@@ -10,6 +10,7 @@ import RTRegexParser, {
   GSequenceContext,
   WordContext,
   type GAlternativeContext,
+  type GAnyContext,
   type GInterleavedContext,
 } from '../antlr/RTRegexParser';
 import { GoalExecutionDetail } from '../ObjectiveTree/types';
@@ -36,6 +37,7 @@ export const getGoalDetail = ({
   let interleaved: string[] = [];
   let sequence: string[] = [];
   let retry: Dictionary<number> = {};
+  let any: boolean = false;
   class RTNotationTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
       id = `${ctx._t.text}${ctx.id().getText()}`;
@@ -84,6 +86,9 @@ export const getGoalDetail = ({
       const amountOfRetries = ctx.FLOAT().getText();
       retry = { ...retry, [goalToRetry]: parseInt(amountOfRetries) };
     };
+    exitGAny = (ctx: GAnyContext) => {
+      any = ctx._op.text === '.';
+    };
   }
 
   const walker = new RTNotationTreeWalker();
@@ -117,6 +122,13 @@ export const getGoalDetail = ({
     };
   }
 
+  if (any) {
+    return {
+      id,
+      goalName: goalSanitizedName.trim(),
+      executionDetail: { type: 'any', retryMap: retry },
+    };
+  }
   if (decisionMaking.length > 0) {
     return {
       id,

@@ -6,10 +6,9 @@ import {ParseTreeListener} from "antlr4";
 import { PrintExprContext } from "./RTRegexParser.js";
 import { BlankContext } from "./RTRegexParser.js";
 import { GIdContext } from "./RTRegexParser.js";
-import { GTryContext } from "./RTRegexParser.js";
 import { NameOnlyContext } from "./RTRegexParser.js";
 import { GInterleavedContext } from "./RTRegexParser.js";
-import { GTimeContext } from "./RTRegexParser.js";
+import { GAnyContext } from "./RTRegexParser.js";
 import { GArgsContext } from "./RTRegexParser.js";
 import { NameContinuedContext } from "./RTRegexParser.js";
 import { GAlternativeContext } from "./RTRegexParser.js";
@@ -66,18 +65,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGId?: (ctx: GIdContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gTry`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGTry?: (ctx: GTryContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gTry`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGTry?: (ctx: GTryContext) => void;
-	/**
 	 * Enter a parse tree produced by the `nameOnly`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -102,17 +89,17 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGInterleaved?: (ctx: GInterleavedContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gTime`
+	 * Enter a parse tree produced by the `gAny`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	enterGTime?: (ctx: GTimeContext) => void;
+	enterGAny?: (ctx: GAnyContext) => void;
 	/**
-	 * Exit a parse tree produced by the `gTime`
+	 * Exit a parse tree produced by the `gAny`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	exitGTime?: (ctx: GTimeContext) => void;
+	exitGAny?: (ctx: GAnyContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gArgs`
 	 * labeled alternative in `RTRegexParser.expr`.

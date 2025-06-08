@@ -1,4 +1,4 @@
-import { separator } from '../../../../mdp/common';
+import { pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenPursued, hasFailedAtLeastNTimes } from './common';
 
@@ -7,13 +7,13 @@ export const pursueAlternativeGoal = (
   alternative: string[],
   currentChildId: string
 ): string => {
-  if (goal.relationToChildren === 'or') {
+  if (goal.relationToChildren === 'and') {
     throw new Error(
-      `Alternative goals are not supported for OR joints. Found in goal ${goal.id}`
+      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`
     );
   }
 
-  if (goal.relationToChildren === 'and') {
+  if (goal.relationToChildren === 'or') {
     const otherGoals = alternative.filter(
       (goalId) => goalId !== currentChildId
     );
@@ -32,4 +32,18 @@ export const pursueAlternativeGoal = (
   }
 
   return '';
+};
+
+export const pursueAnyGoal = (
+  goal: GoalNode,
+  currentChildId: string
+): string => {
+  const children = goal.children?.length ? goal.children : goal.tasks ?? [];
+  const otherGoals = children.filter((child) => child.id !== currentChildId);
+
+  return otherGoals
+    .map((child) => {
+      return `${pursued(child.id)}=0`;
+    })
+    .join(separator('and'));
 };
