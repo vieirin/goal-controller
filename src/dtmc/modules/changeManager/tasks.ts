@@ -3,6 +3,7 @@ import type { GoalNode } from '../../../ObjectiveTree/types';
 import {
   achievedTransition,
   achievedVariable,
+  failedTransition,
   pursueTransition,
   pursuedVariable,
 } from '../../common';
@@ -13,6 +14,18 @@ const pursueTask = (task: GoalNode) => {
 
 const achieveTask = (task: GoalNode) => {
   return `[${achievedTransition(task.id)}] true -> true;`;
+};
+
+const failedTask = (task: GoalNode) => {
+  return `[${failedTransition(task.id)}] ${pursuedVariable(
+    task.id
+  )}=1 & ${achievedVariable(task.id)}=0 -> (${pursuedVariable(task.id)}'=0)${
+    task.customProperties.maxRetries
+      ? ` & (${failed(task.id)}'=min(${
+          task.customProperties.maxRetries
+        }, ${failed(task.id)}+1))`
+      : ''
+  };`;
 };
 
 const maxRetriesVariable = (task: GoalNode) => {
@@ -34,5 +47,6 @@ export const taskTransitions = (task: GoalNode) => {
   return `
   ${pursueTask(task)}
   ${achieveTask(task)}
+  ${failedTask(task)}
   `;
 };
