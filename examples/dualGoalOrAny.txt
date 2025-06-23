@@ -12,9 +12,9 @@
       "nodes": [
         {
           "id": "d201ecf8-634a-425e-8e6e-f59885442511",
-          "text": "G0: Collect sample [T0|T1@3]",
+          "text": "G0: Collect sample [.]",
           "type": "istar.Goal",
-          "x": 372,
+          "x": 373,
           "y": 152,
           "customProperties": {
             "Description": ""
@@ -34,10 +34,9 @@
           "id": "444e6756-c402-444d-8c70-f630d415da2e",
           "text": "T1: Request sample to human",
           "type": "istar.Task",
-          "x": 426,
-          "y": 223,
+          "x": 428,
+          "y": 226,
           "customProperties": {
-            "maxRetries": "10",
             "Description": ""
           }
         }
@@ -48,13 +47,13 @@
   "dependencies": [],
   "links": [
     {
-      "id": "5ffd8f41-f76a-4c09-bc5c-2c77ca2044e5",
+      "id": "6ea9ab93-fbf5-4bd6-a077-85276854fb77",
       "type": "istar.OrRefinementLink",
       "source": "5768ce63-de72-4547-b03b-f445b4bdc839",
       "target": "d201ecf8-634a-425e-8e6e-f59885442511"
     },
     {
-      "id": "bce97552-ca79-4032-8829-fb2c03488d86",
+      "id": "bd7c7013-70da-489c-abee-373a2470074c",
       "type": "istar.OrRefinementLink",
       "source": "444e6756-c402-444d-8c70-f630d415da2e",
       "target": "d201ecf8-634a-425e-8e6e-f59885442511"
@@ -63,7 +62,7 @@
   "display": {},
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sun, 27 Apr 2025 20:16:03 GMT",
+  "saveDate": "Sun, 08 Jun 2025 22:35:51 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,

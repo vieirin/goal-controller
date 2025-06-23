@@ -58,7 +58,7 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   
   ${skipStatement(goal)}
 
-end module
+endmodule
 
 ${maintainConditionFormula(goal)}
 `.trim();
