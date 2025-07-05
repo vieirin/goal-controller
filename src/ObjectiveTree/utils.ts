@@ -1,4 +1,3 @@
-import { isMonitor } from './creation';
 import { GenericGoal, GenericTree, GoalNode, Type } from './types';
 
 export const allByType = <T extends GenericTree>({
@@ -41,10 +40,6 @@ export const allByType = <T extends GenericTree>({
     );
 
   return Object.values(allCurrent) as T;
-};
-
-export const allMonitors = <T extends GenericTree>({ gm }: { gm: T }) => {
-  return allByType({ gm, type: 'goal' }).filter((goal) => isMonitor(goal));
 };
 
 export const allGoalsMap = <T extends GenericTree>({
