@@ -68,8 +68,6 @@ const parseDecision = ({
   }));
 };
 
-export const isMonitor = (node: { id: string }) => node.id.startsWith('M');
-
 const getMaintainCondition = (
   goalName: string,
   customProperties: CustomProperties['customProperties']
@@ -79,11 +77,11 @@ const getMaintainCondition = (
   }
   if (!customProperties.maintain || !customProperties.assertion) {
     // TODO: lock this as an error in the future
-    console.warn(
-      `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
-        customProperties.maintain || `'empty condition'`
-      } and assertion:${customProperties.assertion || `'empty condition'`}`
-    );
+    // console.warn(
+    //   `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
+    //     customProperties.maintain || `'empty condition'`
+    //   } and assertion:${customProperties.assertion || `'empty condition'`}`
+    // );
   }
 
   return {
@@ -164,12 +162,6 @@ const createResource = (resource: GoalNode): Resource => {
 const convertNonGoalChildren = (children: GoalNode[]) => {
   return children.reduce(
     (acc, child) => {
-      if (child.type === 'goal' && isMonitor(child)) {
-        return {
-          ...acc,
-          monitors: [...acc.monitors, child],
-        };
-      }
       if (child.type === 'resource') {
         return {
           ...acc,
@@ -185,11 +177,10 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
       return { ...acc, children: [...acc.children, child] };
     },
     {
-      monitors: [],
       resources: [],
       children: [],
       tasks: [],
-    } as Record<'monitors' | 'children' | 'tasks', GoalNode[]> & {
+    } as Record<'children' | 'tasks', GoalNode[]> & {
       resources: Resource[];
     }
   );
@@ -223,18 +214,12 @@ const createNode = ({
 
   const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
-    monitors,
     resources,
     tasks,
     children: filteredChildren,
   } = convertNonGoalChildren(children);
 
-  if (
-    !children.length &&
-    !tasks.length &&
-    nodeType === 'goal' &&
-    !isMonitor({ id })
-  ) {
+  if (!children.length && !tasks.length && nodeType === 'goal') {
     throw new Error(
       `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`
     );
@@ -254,7 +239,6 @@ const createNode = ({
     relationToChildren: relation,
     relationToParent: null,
     type: nodeType,
-    monitors,
     resources,
     children: filteredChildren,
     decisionVars: decisionVars,

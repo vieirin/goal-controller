@@ -16,7 +16,7 @@ module G0
   
   [skip_G0] G0_pursued=1 & T0_pursued=0 & T1_pursued=0 -> (G0_pursued'=0);
 
-end module
+endmodule
 
 
 module ChangeManager

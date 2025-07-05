@@ -1,7 +1,5 @@
 import {
   achieved,
-  not,
-  parenthesis,
   pursue,
   pursued,
   separator,
@@ -11,7 +9,6 @@ import {
   GoalNode,
   GoalNodeWithParent,
   GoalTreeWithParent,
-  Relation,
 } from '../../../ObjectiveTree/types';
 import { allByType, childrenLength } from '../../../ObjectiveTree/utils';
 import {
@@ -62,7 +59,9 @@ const declareGoalTransitionsWithDecisionVariable = ({
   const pursuePrefix = `[${pursue(goal.id)}] turn=0 & goal=${goalIndex}`;
 
   // (G0_pursued'=1) & (goal'=1);
-  const transitionResult = `(${pursued(goal.id)}'=1) & (goal'=${goalIndex + 1});`;
+  const transitionResult = `(${pursued(goal.id)}'=1) & (goal'=${
+    goalIndex + 1
+  });`;
 
   const pursueStatements = decisionVarArray.map((variableCombination) => {
     // time=0 & space=1
@@ -75,45 +74,20 @@ const declareGoalTransitionsWithDecisionVariable = ({
     // expand to many children
     const childrenAchieved = achieved(goal.children?.[0]?.id ?? '');
 
-    return `  ${pursuePrefix} & ${pursued(goal.id)}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
+    return `  ${pursuePrefix} & ${pursued(
+      goal.id
+    )}=0 & ${childrenAchieved}=0 & ${decisionVariable}=1 & ${varStatement} -> ${transitionResult}`;
   });
 
   const skipStatements = decisionVarArray.map((variableCombination) => {
     const decisionVariable = decisionVariableName(goal.id, variableCombination);
     const varStatement = variableStatement(variableArray, variableCombination);
-    return `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(goal.id)}=0 & ${decisionVariable}=0 & ${varStatement} -> true;`;
+    return `  [${skip(goal.id)}] turn=0 & goal=${goalIndex} & ${pursued(
+      goal.id
+    )}=0 & ${decisionVariable}=0 & ${varStatement} -> true;`;
   });
 
   return [...pursueStatements, '', ...skipStatements].join('\n');
-};
-
-const childrenAchieved = (children: GoalNode[]) => {
-  return parenthesis(
-    children.map((child) => `${achieved(child.id)}>0`).join(separator('and'))
-  );
-};
-
-const childrenNotAchieved = (children: GoalNode[]) => {
-  return not(childrenAchieved(children));
-};
-
-const anyChildrenAchieved = (children: GoalNode[]) => {
-  return parenthesis(
-    children.map((child) => `${achieved(child.id)}>0`).join(separator('or'))
-  );
-};
-
-const childrenSkipCondition = (children: GoalNode[], relation: Relation) => {
-  switch (relation) {
-    case 'or':
-      return anyChildrenAchieved(children);
-    case 'and':
-      return childrenNotAchieved(children);
-    case 'none':
-      throw new Error(
-        'Expected an and/or relation between children but found none'
-      );
-  }
 };
 
 export const goalNumberId = (goalId: string) => {

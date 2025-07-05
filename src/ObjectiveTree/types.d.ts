@@ -132,7 +132,6 @@ type GoalNode = {
     maxRetries: number | undefined;
     [k: string]: any;
   };
-  monitors: GoalNode[];
   resources: Resource[];
   tasks?: GoalNode[];
   executionDetail: GoalExecutionDetail | null;

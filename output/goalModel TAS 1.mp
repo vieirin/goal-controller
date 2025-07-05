@@ -16,7 +16,7 @@ module G0
   
   [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
 
-end module
+endmodule
 
 module G1
 
@@ -32,7 +32,7 @@ module G1
   
   [skip_G1] G1_pursued=1 & G3_pursued=0 & G4_pursued=0 -> (G1_pursued'=0);
 
-end module
+endmodule
 
 module G2
 
@@ -41,14 +41,14 @@ module G2
   
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
-  [pursue_T2] G2_pursued=1 & T3_pursued=0 -> true;
-  [pursue_T3] G2_pursued=1 & T2_pursued=0 -> true;
+  [pursue_T2] G2_pursued=1 -> true;
+  [pursue_T3] G2_pursued=1 -> true;
 
   [achieved_G2] G2_pursued=1 & (T2_achieved=1 | T3_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
   
   [skip_G2] G2_pursued=1 & T2_pursued=0 & T3_pursued=0 -> (G2_pursued'=0);
 
-end module
+endmodule
 
 formula G2_achieved_maintain = highPrecision;
 
@@ -65,7 +65,7 @@ module G3
   
   [skip_G3] G3_pursued=1 & G5_pursued=0 -> (G3_pursued'=0);
 
-end module
+endmodule
 
 module G4
 
@@ -81,7 +81,7 @@ module G4
   
   [skip_G4] G4_pursued=1 & G6_pursued=0 & G7_pursued=0 -> (G4_pursued'=0);
 
-end module
+endmodule
 
 formula G4_achieved_maintain = ASSERTION_UNDEFINED;
 
@@ -98,7 +98,7 @@ module G5
   
   [skip_G5] G5_pursued=1 & T1_pursued=0 -> (G5_pursued'=0);
 
-end module
+endmodule
 
 module G6
 
@@ -114,7 +114,7 @@ module G6
   
   [skip_G6] G6_pursued=1 & G8_pursued=0 & G9_pursued=0 -> (G6_pursued'=0);
 
-end module
+endmodule
 
 formula G6_achieved_maintain = enoughBattery & highReliability;
 
@@ -132,7 +132,7 @@ module G7
   
   [skip_G7] G7_pursued=1 & G10_pursued=0 & G13_pursued=0 -> (G7_pursued'=0);
 
-end module
+endmodule
 
 module G8
 
@@ -147,7 +147,7 @@ module G8
   
   [skip_G8] G8_pursued=1 & T2_pursued=0 -> (G8_pursued'=0);
 
-end module
+endmodule
 
 module G9
 
@@ -163,7 +163,7 @@ module G9
   
   [skip_G9] G9_pursued=1 & T4_pursued=0 & T3_pursued=0 -> (G9_pursued'=0);
 
-end module
+endmodule
 
 module G10
 
@@ -172,14 +172,14 @@ module G10
   
 
   [pursue_G10] G10_pursued=0 & G10_achieved=0 & (G9_achieved=1) -> (G10_pursued'=1);
-  [pursue_G11] G10_pursued=1 & G12_pursued=0 -> true;
-  [pursue_G12] G10_pursued=1 & G11_pursued=0 -> true;
+  [pursue_G11] G10_pursued=1 -> true;
+  [pursue_G12] G10_pursued=1 -> true;
 
   [achieved_G10] G10_pursued=1 & (G11_pursued=1 | G12_pursued=1) -> (G10_pursued'=0) & (G10_achieved'=1);
   
   [skip_G10] G10_pursued=1 & G11_pursued=0 & G12_pursued=0 -> (G10_pursued'=0);
 
-end module
+endmodule
 
 module G11
 
@@ -194,7 +194,7 @@ module G11
   
   [skip_G11] G11_pursued=1 & T5_pursued=0 -> (G11_pursued'=0);
 
-end module
+endmodule
 
 module G12
 
@@ -209,7 +209,7 @@ module G12
   
   [skip_G12] G12_pursued=1 & T7_pursued=0 -> (G12_pursued'=0);
 
-end module
+endmodule
 
 module G13
 
@@ -225,7 +225,7 @@ module G13
   
   [skip_G13] G13_pursued=1 & G14_pursued=0 & G15_pursued=0 -> (G13_pursued'=0);
 
-end module
+endmodule
 
 module G14
 
@@ -240,7 +240,7 @@ module G14
   
   [skip_G14] G14_pursued=1 & T9_pursued=0 -> (G14_pursued'=0);
 
-end module
+endmodule
 
 formula G14_achieved_maintain = ASSERTION_UNDEFINED;
 
@@ -258,7 +258,7 @@ module G15
   
   [skip_G15] G15_pursued=1 & T13_pursued=0 & T14_pursued=0 -> (G15_pursued'=0);
 
-end module
+endmodule
 
 
 module ChangeManager
@@ -322,8 +322,8 @@ module ChangeManager
 endmodule
 
 module System
-  highPrecision: bool init false
-  patientTracking: bool init true
+  highPrecision: bool init true
+  patientTracking: bool init false
   enoughBattery: bool init true
   highReliability: bool init false
   resource_R0: bool init true;

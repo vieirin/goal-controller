@@ -12,6 +12,7 @@ import { GAnyContext } from "./RTRegexParser.js";
 import { GArgsContext } from "./RTRegexParser.js";
 import { NameContinuedContext } from "./RTRegexParser.js";
 import { GAlternativeContext } from "./RTRegexParser.js";
+import { GDegradationContext } from "./RTRegexParser.js";
 import { GDMContext } from "./RTRegexParser.js";
 import { GSkipContext } from "./RTRegexParser.js";
 import { NotationStartContext } from "./RTRegexParser.js";
@@ -136,6 +137,18 @@ export default class RTRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitGAlternative?: (ctx: GAlternativeContext) => void;
+	/**
+	 * Enter a parse tree produced by the `gDegradation`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterGDegradation?: (ctx: GDegradationContext) => void;
+	/**
+	 * Exit a parse tree produced by the `gDegradation`
+	 * labeled alternative in `RTRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitGDegradation?: (ctx: GDegradationContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gDM`
 	 * labeled alternative in `RTRegexParser.expr`.

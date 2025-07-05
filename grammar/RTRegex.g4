@@ -21,7 +21,8 @@ expr:
 	| expr op = '|' expr						# gAlternative
 	| expr op = '#' expr						# gInterleaved
 	| expr op = ';' expr						# gSequence
-	| op = '.'									# gAny
+	| expr op = '->' expr						# gDegradation
+	| op = '+'									# gAny
 	| SKIPP										# gSkip;
 
 id: FLOAT | FLOAT X | X | DIGIT_SUBID;

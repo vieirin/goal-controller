@@ -3,6 +3,7 @@ dtmc
 
 
 module G0
+
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
   
@@ -14,10 +15,12 @@ module G0
   [achieved_G0] G0_pursued=1 & (T0_achieved=1 | T1_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
   
   [skip_G0] G0_pursued=1 & T0_pursued=0 & T1_pursued=0 -> (G0_pursued'=0);
-end module
+
+endmodule
 
 
 module ChangeManager
+  
   T0_pursued : [0..1] init 0;
   T0_achieved : [0..1] init 0;
   T1_pursued : [0..1] init 0;
@@ -31,6 +34,7 @@ module ChangeManager
   [pursue_T1] true -> true;
   [achieved_T1] true -> true;
   [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0) & (T1_failed'=min(10, T1_failed+1));
+  
 endmodule
 
 module System

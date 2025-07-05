@@ -112,7 +112,7 @@
         },
         {
           "id": "ef565838-6961-4f79-87eb-b9db1e57c409",
-          "text": "G10: Administer medicine [.]",
+          "text": "G10: Administer medicine [+]",
           "type": "istar.Goal",
           "x": 607,
           "y": 355,
@@ -349,7 +349,7 @@
         },
         {
           "id": "67c420f7-9c2d-4911-bdc5-bae573c73eb6",
-          "text": "G2: Track patient location [.]",
+          "text": "G2: Track patient location [+]",
           "type": "istar.Goal",
           "x": 665,
           "y": 170,
