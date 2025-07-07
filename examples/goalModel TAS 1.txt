@@ -354,6 +354,7 @@
           "x": 665,
           "y": 170,
           "customProperties": {
+            "variables": "t:9, loc:3",
             "Description": "",
             "assertion": "patientTracking",
             "maintain": "highPrecision",

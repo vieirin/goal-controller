@@ -37,10 +37,6 @@ export const systemModule = ({
 
   return `module System
   ${(() => {
-    if (variables.length === 0) {
-      return '';
-    }
-
     try {
       const variablesFilePath = getVariablesFilePath(fileName);
       const defaultVariableValues = JSON.parse(

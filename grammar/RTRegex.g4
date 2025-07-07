@@ -13,10 +13,8 @@ expr:
 	| t = ('G' | 'T' | 'M' | 'R') id expr		# gIdContinued
 	| t = ('G' | 'T' | 'M' | 'R') id ',' expr	# gArgs
 	| '[' expr ']'								# notationStart
-	| 'DM(' expr ')'							# gDecisionMaking
 	| ':' word expr								# nameContinued
 	| ':' word EOF								# nameOnly
-	| expr op = ',' expr						# gDM
 	| expr op = '@' FLOAT						# gRetry
 	| expr op = '|' expr						# gAlternative
 	| expr op = '#' expr						# gInterleaved

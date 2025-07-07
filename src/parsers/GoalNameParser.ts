@@ -3,7 +3,6 @@ import { Dictionary } from 'lodash';
 import RTRegex from '../antlr/RTRegexLexer';
 import RTRegexListener from '../antlr/RTRegexListener';
 import RTRegexParser, {
-  GDecisionMakingContext,
   GIdContext,
   GIdContinuedContext,
   GRetryContext,
@@ -32,7 +31,6 @@ export const getGoalDetail = ({
   let id: string = '';
   let goalName: string | null = null;
 
-  let decisionMaking: string[] = [];
   let alternative: string[] = [];
   let interleaved: string[] = [];
   let sequence: string[] = [];
@@ -47,9 +45,6 @@ export const getGoalDetail = ({
     };
     exitWord = (ctx: WordContext) => {
       goalName = ctx.WORD().getText();
-    };
-    exitGDecisionMaking = (ctx: GDecisionMakingContext) => {
-      decisionMaking = ctx.expr().getText().split(',');
     };
     exitGAlternative = (ctx: GAlternativeContext) => {
       alternative = ctx
@@ -129,16 +124,6 @@ export const getGoalDetail = ({
       executionDetail: { type: 'any', retryMap: retry },
     };
   }
-  if (decisionMaking.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: {
-        type: 'decisionMaking',
-        dm: decisionMaking,
-        retryMap: retry,
-      },
-    };
-  }
+
   return { id, goalName: goalSanitizedName.trim(), executionDetail: null };
 };

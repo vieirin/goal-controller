@@ -27,20 +27,18 @@ export default class RTRegexParser extends Parser {
 	public static readonly T__7 = 8;
 	public static readonly T__8 = 9;
 	public static readonly T__9 = 10;
-	public static readonly T__10 = 11;
-	public static readonly T__11 = 12;
-	public static readonly DIGIT_SUBID = 13;
-	public static readonly FLOAT = 14;
-	public static readonly SEQ = 15;
-	public static readonly INT = 16;
-	public static readonly TASK = 17;
-	public static readonly GOAL = 18;
-	public static readonly SKIPP = 19;
-	public static readonly X = 20;
-	public static readonly NEWLINE = 21;
-	public static readonly WORD = 22;
-	public static readonly SUBID = 23;
-	public static readonly WS = 24;
+	public static readonly DIGIT_SUBID = 11;
+	public static readonly FLOAT = 12;
+	public static readonly SEQ = 13;
+	public static readonly INT = 14;
+	public static readonly TASK = 15;
+	public static readonly GOAL = 16;
+	public static readonly SKIPP = 17;
+	public static readonly X = 18;
+	public static readonly NEWLINE = 19;
+	public static readonly WORD = 20;
+	public static readonly SUBID = 21;
+	public static readonly WS = 22;
 	public static override readonly EOF = Token.EOF;
 	public static readonly RULE_rt = 0;
 	public static readonly RULE_expr = 1;
@@ -49,7 +47,6 @@ export default class RTRegexParser extends Parser {
 	public static readonly literalNames: (string | null)[] = [ null, "'M'", 
                                                             "'R'", "','", 
                                                             "'['", "']'", 
-                                                            "'DM('", "')'", 
                                                             "':'", "'@'", 
                                                             "'|'", "'->'", 
                                                             "'+'", null, 
@@ -58,7 +55,6 @@ export default class RTRegexParser extends Parser {
                                                             "'G'", "'skip'", 
                                                             "'X'" ];
 	public static readonly symbolicNames: (string | null)[] = [ null, null, 
-                                                             null, null, 
                                                              null, null, 
                                                              null, null, 
                                                              null, null, 
@@ -100,11 +96,10 @@ export default class RTRegexParser extends Parser {
 			case 2:
 			case 4:
 			case 6:
-			case 8:
-			case 12:
+			case 10:
+			case 15:
+			case 16:
 			case 17:
-			case 18:
-			case 19:
 				localctx = new PrintExprContext(this, localctx);
 				this.enterOuterAlt(localctx, 1);
 				{
@@ -160,7 +155,7 @@ export default class RTRegexParser extends Parser {
 			let _alt: number;
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 44;
+			this.state = 40;
 			this._errHandler.sync(this);
 			switch ( this._interp.adaptivePredict(this._input, 1, this._ctx) ) {
 			case 1:
@@ -172,7 +167,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 15;
 				(localctx as GIdContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 393222) !== 0))) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 98310) !== 0))) {
 				    (localctx as GIdContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -191,7 +186,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 17;
 				(localctx as GIdContinuedContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 393222) !== 0))) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 98310) !== 0))) {
 				    (localctx as GIdContinuedContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -201,7 +196,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 18;
 				this.id();
 				this.state = 19;
-				this.expr(14);
+				this.expr(12);
 				}
 				break;
 			case 3:
@@ -212,7 +207,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 21;
 				(localctx as GArgsContext)._t = this._input.LT(1);
 				_la = this._input.LA(1);
-				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 393222) !== 0))) {
+				if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 98310) !== 0))) {
 				    (localctx as GArgsContext)._t = this._errHandler.recoverInline(this);
 				}
 				else {
@@ -224,7 +219,7 @@ export default class RTRegexParser extends Parser {
 				this.state = 23;
 				this.match(RTRegexParser.T__2);
 				this.state = 24;
-				this.expr(13);
+				this.expr(11);
 				}
 				break;
 			case 4:
@@ -242,64 +237,51 @@ export default class RTRegexParser extends Parser {
 				break;
 			case 5:
 				{
-				localctx = new GDecisionMakingContext(this, localctx);
+				localctx = new NameContinuedContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 30;
 				this.match(RTRegexParser.T__5);
 				this.state = 31;
-				this.expr(0);
+				this.word();
 				this.state = 32;
-				this.match(RTRegexParser.T__6);
+				this.expr(9);
 				}
 				break;
 			case 6:
 				{
-				localctx = new NameContinuedContext(this, localctx);
+				localctx = new NameOnlyContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 34;
-				this.match(RTRegexParser.T__7);
+				this.match(RTRegexParser.T__5);
 				this.state = 35;
 				this.word();
 				this.state = 36;
-				this.expr(10);
+				this.match(RTRegexParser.EOF);
 				}
 				break;
 			case 7:
 				{
-				localctx = new NameOnlyContext(this, localctx);
+				localctx = new GAnyContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 38;
-				this.match(RTRegexParser.T__7);
-				this.state = 39;
-				this.word();
-				this.state = 40;
-				this.match(RTRegexParser.EOF);
+				(localctx as GAnyContext)._op = this.match(RTRegexParser.T__9);
 				}
 				break;
 			case 8:
 				{
-				localctx = new GAnyContext(this, localctx);
-				this._ctx = localctx;
-				_prevctx = localctx;
-				this.state = 42;
-				(localctx as GAnyContext)._op = this.match(RTRegexParser.T__11);
-				}
-				break;
-			case 9:
-				{
 				localctx = new GSkipContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
-				this.state = 43;
+				this.state = 39;
 				this.match(RTRegexParser.SKIPP);
 				}
 				break;
 			}
 			this._ctx.stop = this._input.LT(-1);
-			this.state = 66;
+			this.state = 59;
 			this._errHandler.sync(this);
 			_alt = this._interp.adaptivePredict(this._input, 3, this._ctx);
 			while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
@@ -309,97 +291,83 @@ export default class RTRegexParser extends Parser {
 					}
 					_prevctx = localctx;
 					{
-					this.state = 64;
+					this.state = 57;
 					this._errHandler.sync(this);
 					switch ( this._interp.adaptivePredict(this._input, 2, this._ctx) ) {
 					case 1:
 						{
-						localctx = new GDMContext(this, new ExprContext(this, _parentctx, _parentState));
+						localctx = new GAlternativeContext(this, new ExprContext(this, _parentctx, _parentState));
 						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 46;
-						if (!(this.precpred(this._ctx, 8))) {
-							throw this.createFailedPredicateException("this.precpred(this._ctx, 8)");
+						this.state = 42;
+						if (!(this.precpred(this._ctx, 6))) {
+							throw this.createFailedPredicateException("this.precpred(this._ctx, 6)");
 						}
-						this.state = 47;
-						(localctx as GDMContext)._op = this.match(RTRegexParser.T__2);
-						this.state = 48;
-						this.expr(9);
+						this.state = 43;
+						(localctx as GAlternativeContext)._op = this.match(RTRegexParser.T__7);
+						this.state = 44;
+						this.expr(7);
 						}
 						break;
 					case 2:
 						{
-						localctx = new GAlternativeContext(this, new ExprContext(this, _parentctx, _parentState));
+						localctx = new GInterleavedContext(this, new ExprContext(this, _parentctx, _parentState));
 						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 49;
-						if (!(this.precpred(this._ctx, 6))) {
-							throw this.createFailedPredicateException("this.precpred(this._ctx, 6)");
+						this.state = 45;
+						if (!(this.precpred(this._ctx, 5))) {
+							throw this.createFailedPredicateException("this.precpred(this._ctx, 5)");
 						}
-						this.state = 50;
-						(localctx as GAlternativeContext)._op = this.match(RTRegexParser.T__9);
-						this.state = 51;
-						this.expr(7);
+						this.state = 46;
+						(localctx as GInterleavedContext)._op = this.match(RTRegexParser.INT);
+						this.state = 47;
+						this.expr(6);
 						}
 						break;
 					case 3:
 						{
-						localctx = new GInterleavedContext(this, new ExprContext(this, _parentctx, _parentState));
+						localctx = new GSequenceContext(this, new ExprContext(this, _parentctx, _parentState));
 						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 52;
-						if (!(this.precpred(this._ctx, 5))) {
-							throw this.createFailedPredicateException("this.precpred(this._ctx, 5)");
+						this.state = 48;
+						if (!(this.precpred(this._ctx, 4))) {
+							throw this.createFailedPredicateException("this.precpred(this._ctx, 4)");
 						}
-						this.state = 53;
-						(localctx as GInterleavedContext)._op = this.match(RTRegexParser.INT);
-						this.state = 54;
-						this.expr(6);
+						this.state = 49;
+						(localctx as GSequenceContext)._op = this.match(RTRegexParser.SEQ);
+						this.state = 50;
+						this.expr(5);
 						}
 						break;
 					case 4:
 						{
-						localctx = new GSequenceContext(this, new ExprContext(this, _parentctx, _parentState));
+						localctx = new GDegradationContext(this, new ExprContext(this, _parentctx, _parentState));
 						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 55;
-						if (!(this.precpred(this._ctx, 4))) {
-							throw this.createFailedPredicateException("this.precpred(this._ctx, 4)");
+						this.state = 51;
+						if (!(this.precpred(this._ctx, 3))) {
+							throw this.createFailedPredicateException("this.precpred(this._ctx, 3)");
 						}
-						this.state = 56;
-						(localctx as GSequenceContext)._op = this.match(RTRegexParser.SEQ);
-						this.state = 57;
-						this.expr(5);
+						this.state = 52;
+						(localctx as GDegradationContext)._op = this.match(RTRegexParser.T__8);
+						this.state = 53;
+						this.expr(4);
 						}
 						break;
 					case 5:
 						{
-						localctx = new GDegradationContext(this, new ExprContext(this, _parentctx, _parentState));
-						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 58;
-						if (!(this.precpred(this._ctx, 3))) {
-							throw this.createFailedPredicateException("this.precpred(this._ctx, 3)");
-						}
-						this.state = 59;
-						(localctx as GDegradationContext)._op = this.match(RTRegexParser.T__10);
-						this.state = 60;
-						this.expr(4);
-						}
-						break;
-					case 6:
-						{
 						localctx = new GRetryContext(this, new ExprContext(this, _parentctx, _parentState));
 						this.pushNewRecursionContext(localctx, _startState, RTRegexParser.RULE_expr);
-						this.state = 61;
+						this.state = 54;
 						if (!(this.precpred(this._ctx, 7))) {
 							throw this.createFailedPredicateException("this.precpred(this._ctx, 7)");
 						}
-						this.state = 62;
-						(localctx as GRetryContext)._op = this.match(RTRegexParser.T__8);
-						this.state = 63;
+						this.state = 55;
+						(localctx as GRetryContext)._op = this.match(RTRegexParser.T__6);
+						this.state = 56;
 						this.match(RTRegexParser.FLOAT);
 						}
 						break;
 					}
 					}
 				}
-				this.state = 68;
+				this.state = 61;
 				this._errHandler.sync(this);
 				_alt = this._interp.adaptivePredict(this._input, 3, this._ctx);
 			}
@@ -424,36 +392,36 @@ export default class RTRegexParser extends Parser {
 		let localctx: IdContext = new IdContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 4, RTRegexParser.RULE_id);
 		try {
-			this.state = 74;
+			this.state = 67;
 			this._errHandler.sync(this);
 			switch ( this._interp.adaptivePredict(this._input, 4, this._ctx) ) {
 			case 1:
 				this.enterOuterAlt(localctx, 1);
 				{
-				this.state = 69;
+				this.state = 62;
 				this.match(RTRegexParser.FLOAT);
 				}
 				break;
 			case 2:
 				this.enterOuterAlt(localctx, 2);
 				{
-				this.state = 70;
+				this.state = 63;
 				this.match(RTRegexParser.FLOAT);
-				this.state = 71;
+				this.state = 64;
 				this.match(RTRegexParser.X);
 				}
 				break;
 			case 3:
 				this.enterOuterAlt(localctx, 3);
 				{
-				this.state = 72;
+				this.state = 65;
 				this.match(RTRegexParser.X);
 				}
 				break;
 			case 4:
 				this.enterOuterAlt(localctx, 4);
 				{
-				this.state = 73;
+				this.state = 66;
 				this.match(RTRegexParser.DIGIT_SUBID);
 				}
 				break;
@@ -480,7 +448,7 @@ export default class RTRegexParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 76;
+			this.state = 69;
 			this.match(RTRegexParser.WORD);
 			}
 		}
@@ -509,46 +477,42 @@ export default class RTRegexParser extends Parser {
 	private expr_sempred(localctx: ExprContext, predIndex: number): boolean {
 		switch (predIndex) {
 		case 0:
-			return this.precpred(this._ctx, 8);
-		case 1:
 			return this.precpred(this._ctx, 6);
-		case 2:
+		case 1:
 			return this.precpred(this._ctx, 5);
-		case 3:
+		case 2:
 			return this.precpred(this._ctx, 4);
-		case 4:
+		case 3:
 			return this.precpred(this._ctx, 3);
-		case 5:
+		case 4:
 			return this.precpred(this._ctx, 7);
 		}
 		return true;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,24,79,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,22,72,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,3,0,13,8,0,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,45,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,65,8,1,10,1,12,1,68,9,1,1,2,1,
-	2,1,2,1,2,1,2,3,2,75,8,2,1,3,1,3,1,3,0,1,2,4,0,2,4,6,0,1,2,0,1,2,17,18,
-	92,0,12,1,0,0,0,2,44,1,0,0,0,4,74,1,0,0,0,6,76,1,0,0,0,8,9,3,2,1,0,9,10,
-	5,0,0,1,10,13,1,0,0,0,11,13,5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,
-	0,0,14,15,6,1,-1,0,15,16,7,0,0,0,16,45,3,4,2,0,17,18,7,0,0,0,18,19,3,4,
-	2,0,19,20,3,2,1,14,20,45,1,0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,3,
-	0,0,24,25,3,2,1,13,25,45,1,0,0,0,26,27,5,4,0,0,27,28,3,2,1,0,28,29,5,5,
-	0,0,29,45,1,0,0,0,30,31,5,6,0,0,31,32,3,2,1,0,32,33,5,7,0,0,33,45,1,0,0,
-	0,34,35,5,8,0,0,35,36,3,6,3,0,36,37,3,2,1,10,37,45,1,0,0,0,38,39,5,8,0,
-	0,39,40,3,6,3,0,40,41,5,0,0,1,41,45,1,0,0,0,42,45,5,12,0,0,43,45,5,19,0,
-	0,44,14,1,0,0,0,44,17,1,0,0,0,44,21,1,0,0,0,44,26,1,0,0,0,44,30,1,0,0,0,
-	44,34,1,0,0,0,44,38,1,0,0,0,44,42,1,0,0,0,44,43,1,0,0,0,45,66,1,0,0,0,46,
-	47,10,8,0,0,47,48,5,3,0,0,48,65,3,2,1,9,49,50,10,6,0,0,50,51,5,10,0,0,51,
-	65,3,2,1,7,52,53,10,5,0,0,53,54,5,16,0,0,54,65,3,2,1,6,55,56,10,4,0,0,56,
-	57,5,15,0,0,57,65,3,2,1,5,58,59,10,3,0,0,59,60,5,11,0,0,60,65,3,2,1,4,61,
-	62,10,7,0,0,62,63,5,9,0,0,63,65,5,14,0,0,64,46,1,0,0,0,64,49,1,0,0,0,64,
-	52,1,0,0,0,64,55,1,0,0,0,64,58,1,0,0,0,64,61,1,0,0,0,65,68,1,0,0,0,66,64,
-	1,0,0,0,66,67,1,0,0,0,67,3,1,0,0,0,68,66,1,0,0,0,69,75,5,14,0,0,70,71,5,
-	14,0,0,71,75,5,20,0,0,72,75,5,20,0,0,73,75,5,13,0,0,74,69,1,0,0,0,74,70,
-	1,0,0,0,74,72,1,0,0,0,74,73,1,0,0,0,75,5,1,0,0,0,76,77,5,22,0,0,77,7,1,
-	0,0,0,5,12,44,64,66,74];
+	1,1,1,1,1,3,1,41,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,5,1,58,8,1,10,1,12,1,61,9,1,1,2,1,2,1,2,1,2,1,2,3,2,68,8,2,1,
+	3,1,3,1,3,0,1,2,4,0,2,4,6,0,1,2,0,1,2,15,16,83,0,12,1,0,0,0,2,40,1,0,0,
+	0,4,67,1,0,0,0,6,69,1,0,0,0,8,9,3,2,1,0,9,10,5,0,0,1,10,13,1,0,0,0,11,13,
+	5,0,0,1,12,8,1,0,0,0,12,11,1,0,0,0,13,1,1,0,0,0,14,15,6,1,-1,0,15,16,7,
+	0,0,0,16,41,3,4,2,0,17,18,7,0,0,0,18,19,3,4,2,0,19,20,3,2,1,12,20,41,1,
+	0,0,0,21,22,7,0,0,0,22,23,3,4,2,0,23,24,5,3,0,0,24,25,3,2,1,11,25,41,1,
+	0,0,0,26,27,5,4,0,0,27,28,3,2,1,0,28,29,5,5,0,0,29,41,1,0,0,0,30,31,5,6,
+	0,0,31,32,3,6,3,0,32,33,3,2,1,9,33,41,1,0,0,0,34,35,5,6,0,0,35,36,3,6,3,
+	0,36,37,5,0,0,1,37,41,1,0,0,0,38,41,5,10,0,0,39,41,5,17,0,0,40,14,1,0,0,
+	0,40,17,1,0,0,0,40,21,1,0,0,0,40,26,1,0,0,0,40,30,1,0,0,0,40,34,1,0,0,0,
+	40,38,1,0,0,0,40,39,1,0,0,0,41,59,1,0,0,0,42,43,10,6,0,0,43,44,5,8,0,0,
+	44,58,3,2,1,7,45,46,10,5,0,0,46,47,5,14,0,0,47,58,3,2,1,6,48,49,10,4,0,
+	0,49,50,5,13,0,0,50,58,3,2,1,5,51,52,10,3,0,0,52,53,5,9,0,0,53,58,3,2,1,
+	4,54,55,10,7,0,0,55,56,5,7,0,0,56,58,5,12,0,0,57,42,1,0,0,0,57,45,1,0,0,
+	0,57,48,1,0,0,0,57,51,1,0,0,0,57,54,1,0,0,0,58,61,1,0,0,0,59,57,1,0,0,0,
+	59,60,1,0,0,0,60,3,1,0,0,0,61,59,1,0,0,0,62,68,5,12,0,0,63,64,5,12,0,0,
+	64,68,5,18,0,0,65,68,5,18,0,0,66,68,5,11,0,0,67,62,1,0,0,0,67,63,1,0,0,
+	0,67,65,1,0,0,0,67,66,1,0,0,0,68,5,1,0,0,0,69,70,5,20,0,0,70,7,1,0,0,0,
+	5,12,40,57,59,67];
 
 	private static __ATN: ATN;
 	public static get _ATN(): ATN {
@@ -819,29 +783,6 @@ export class GDegradationContext extends ExprContext {
 		}
 	}
 }
-export class GDMContext extends ExprContext {
-	public _op!: Token;
-	constructor(parser: RTRegexParser, ctx: ExprContext) {
-		super(parser, ctx.parentCtx, ctx.invokingState);
-		super.copyFrom(ctx);
-	}
-	public expr_list(): ExprContext[] {
-		return this.getTypedRuleContexts(ExprContext) as ExprContext[];
-	}
-	public expr(i: number): ExprContext {
-		return this.getTypedRuleContext(ExprContext, i) as ExprContext;
-	}
-	public enterRule(listener: RTRegexListener): void {
-	    if(listener.enterGDM) {
-	 		listener.enterGDM(this);
-		}
-	}
-	public exitRule(listener: RTRegexListener): void {
-	    if(listener.exitGDM) {
-	 		listener.exitGDM(this);
-		}
-	}
-}
 export class GSkipContext extends ExprContext {
 	constructor(parser: RTRegexParser, ctx: ExprContext) {
 		super(parser, ctx.parentCtx, ctx.invokingState);
@@ -955,25 +896,6 @@ export class GIdContinuedContext extends ExprContext {
 	public exitRule(listener: RTRegexListener): void {
 	    if(listener.exitGIdContinued) {
 	 		listener.exitGIdContinued(this);
-		}
-	}
-}
-export class GDecisionMakingContext extends ExprContext {
-	constructor(parser: RTRegexParser, ctx: ExprContext) {
-		super(parser, ctx.parentCtx, ctx.invokingState);
-		super.copyFrom(ctx);
-	}
-	public expr(): ExprContext {
-		return this.getTypedRuleContext(ExprContext, 0) as ExprContext;
-	}
-	public enterRule(listener: RTRegexListener): void {
-	    if(listener.enterGDecisionMaking) {
-	 		listener.enterGDecisionMaking(this);
-		}
-	}
-	public exitRule(listener: RTRegexListener): void {
-	    if(listener.exitGDecisionMaking) {
-	 		listener.exitGDecisionMaking(this);
 		}
 	}
 }

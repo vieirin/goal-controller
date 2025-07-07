@@ -13,13 +13,11 @@ import { GArgsContext } from "./RTRegexParser.js";
 import { NameContinuedContext } from "./RTRegexParser.js";
 import { GAlternativeContext } from "./RTRegexParser.js";
 import { GDegradationContext } from "./RTRegexParser.js";
-import { GDMContext } from "./RTRegexParser.js";
 import { GSkipContext } from "./RTRegexParser.js";
 import { NotationStartContext } from "./RTRegexParser.js";
 import { GRetryContext } from "./RTRegexParser.js";
 import { GSequenceContext } from "./RTRegexParser.js";
 import { GIdContinuedContext } from "./RTRegexParser.js";
-import { GDecisionMakingContext } from "./RTRegexParser.js";
 import { IdContext } from "./RTRegexParser.js";
 import { WordContext } from "./RTRegexParser.js";
 
@@ -150,18 +148,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGDegradation?: (ctx: GDegradationContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gDM`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGDM?: (ctx: GDMContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gDM`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGDM?: (ctx: GDMContext) => void;
-	/**
 	 * Enter a parse tree produced by the `gSkip`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -221,18 +207,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitGIdContinued?: (ctx: GIdContinuedContext) => void;
-	/**
-	 * Enter a parse tree produced by the `gDecisionMaking`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGDecisionMaking?: (ctx: GDecisionMakingContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gDecisionMaking`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGDecisionMaking?: (ctx: GDecisionMakingContext) => void;
 	/**
 	 * Enter a parse tree produced by `RTRegexParser.id`.
 	 * @param ctx the parse tree

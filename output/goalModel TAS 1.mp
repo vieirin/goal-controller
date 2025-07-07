@@ -1,5 +1,59 @@
 dtmc
 
+const int decision_G2_0_0;
+const int decision_G2_0_0;
+const int decision_G2_0_1;
+const int decision_G2_0_1;
+const int decision_G2_0_2;
+const int decision_G2_0_2;
+const int decision_G2_1_0;
+const int decision_G2_1_0;
+const int decision_G2_1_1;
+const int decision_G2_1_1;
+const int decision_G2_1_2;
+const int decision_G2_1_2;
+const int decision_G2_2_0;
+const int decision_G2_2_0;
+const int decision_G2_2_1;
+const int decision_G2_2_1;
+const int decision_G2_2_2;
+const int decision_G2_2_2;
+const int decision_G2_3_0;
+const int decision_G2_3_0;
+const int decision_G2_3_1;
+const int decision_G2_3_1;
+const int decision_G2_3_2;
+const int decision_G2_3_2;
+const int decision_G2_4_0;
+const int decision_G2_4_0;
+const int decision_G2_4_1;
+const int decision_G2_4_1;
+const int decision_G2_4_2;
+const int decision_G2_4_2;
+const int decision_G2_5_0;
+const int decision_G2_5_0;
+const int decision_G2_5_1;
+const int decision_G2_5_1;
+const int decision_G2_5_2;
+const int decision_G2_5_2;
+const int decision_G2_6_0;
+const int decision_G2_6_0;
+const int decision_G2_6_1;
+const int decision_G2_6_1;
+const int decision_G2_6_2;
+const int decision_G2_6_2;
+const int decision_G2_7_0;
+const int decision_G2_7_0;
+const int decision_G2_7_1;
+const int decision_G2_7_1;
+const int decision_G2_7_2;
+const int decision_G2_7_2;
+const int decision_G2_8_0;
+const int decision_G2_8_0;
+const int decision_G2_8_1;
+const int decision_G2_8_1;
+const int decision_G2_8_2;
+const int decision_G2_8_2;
 
 
 module G0
