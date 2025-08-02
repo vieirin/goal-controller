@@ -10,6 +10,7 @@ import RTRegexParser, {
   WordContext,
   type GAlternativeContext,
   type GAnyContext,
+  type GDegradationContext,
   type GInterleavedContext,
 } from '../antlr/RTRegexParser';
 import { GoalExecutionDetail } from '../ObjectiveTree/types';
@@ -32,6 +33,7 @@ export const getGoalDetail = ({
   let goalName: string | null = null;
 
   let alternative: string[] = [];
+  let degradationList: string[] = [];
   let interleaved: string[] = [];
   let sequence: string[] = [];
   let retry: Dictionary<number> = {};
@@ -48,6 +50,18 @@ export const getGoalDetail = ({
     };
     exitGAlternative = (ctx: GAlternativeContext) => {
       alternative = ctx
+        .expr_list()
+        .map((e) => {
+          // in this case goal is the first child and the rest is some other expression
+          if (e.getChildCount() !== 2) {
+            return e.getChild(0).getText();
+          }
+          return e.getText();
+        })
+        .filter(Boolean);
+    };
+    exitGDegradation = (ctx: GDegradationContext) => {
+      degradationList = ctx
         .expr_list()
         .map((e) => {
           // in this case goal is the first child and the rest is some other expression
@@ -82,13 +96,25 @@ export const getGoalDetail = ({
       retry = { ...retry, [goalToRetry]: parseInt(amountOfRetries) };
     };
     exitGAny = (ctx: GAnyContext) => {
-      any = ctx._op.text === '.';
+      any = ctx._op.text === '+';
     };
   }
 
   const walker = new RTNotationTreeWalker();
   ParseTreeWalker.DEFAULT.walk(walker, tree);
   const goalSanitizedName = goalName ?? '';
+
+  if (degradationList.length > 0) {
+    return {
+      id,
+      goalName: goalSanitizedName.trim(),
+      executionDetail: {
+        type: 'degradation',
+        degradationList,
+        retryMap: retry,
+      },
+    };
+  }
 
   if (sequence.length > 0) {
     return {

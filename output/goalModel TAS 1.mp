@@ -1,60 +1,5 @@
 dtmc
 
-const int decision_G2_0_0;
-const int decision_G2_0_0;
-const int decision_G2_0_1;
-const int decision_G2_0_1;
-const int decision_G2_0_2;
-const int decision_G2_0_2;
-const int decision_G2_1_0;
-const int decision_G2_1_0;
-const int decision_G2_1_1;
-const int decision_G2_1_1;
-const int decision_G2_1_2;
-const int decision_G2_1_2;
-const int decision_G2_2_0;
-const int decision_G2_2_0;
-const int decision_G2_2_1;
-const int decision_G2_2_1;
-const int decision_G2_2_2;
-const int decision_G2_2_2;
-const int decision_G2_3_0;
-const int decision_G2_3_0;
-const int decision_G2_3_1;
-const int decision_G2_3_1;
-const int decision_G2_3_2;
-const int decision_G2_3_2;
-const int decision_G2_4_0;
-const int decision_G2_4_0;
-const int decision_G2_4_1;
-const int decision_G2_4_1;
-const int decision_G2_4_2;
-const int decision_G2_4_2;
-const int decision_G2_5_0;
-const int decision_G2_5_0;
-const int decision_G2_5_1;
-const int decision_G2_5_1;
-const int decision_G2_5_2;
-const int decision_G2_5_2;
-const int decision_G2_6_0;
-const int decision_G2_6_0;
-const int decision_G2_6_1;
-const int decision_G2_6_1;
-const int decision_G2_6_2;
-const int decision_G2_6_2;
-const int decision_G2_7_0;
-const int decision_G2_7_0;
-const int decision_G2_7_1;
-const int decision_G2_7_1;
-const int decision_G2_7_2;
-const int decision_G2_7_2;
-const int decision_G2_8_0;
-const int decision_G2_8_0;
-const int decision_G2_8_1;
-const int decision_G2_8_1;
-const int decision_G2_8_2;
-const int decision_G2_8_2;
-
 
 module G0
 
@@ -79,8 +24,8 @@ module G1
   
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
-  [pursue_G3] G1_pursued=1 & G4_pursued=0 & G4_failed >= 2 -> true;
-  [pursue_G4] G1_pursued=1 & G3_pursued=0 & G4_achieved_maintain -> true;
+  [pursue_G3] G1_pursued=1 -> true;
+  [pursue_G4] G1_pursued=1 & G4_achieved_maintain -> true;
 
   [achieved_G1] G1_pursued=1 & (G3_pursued=1 | G4_pursued=1) -> (G1_pursued'=0) & (G1_achieved'=1);
   
@@ -95,8 +40,8 @@ module G2
   
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
-  [pursue_T2] G2_pursued=1 -> true;
-  [pursue_T3] G2_pursued=1 -> true;
+  [pursue_T2] G2_pursued=1 & T3_pursued=0 -> true;
+  [pursue_T3] G2_pursued=1 & T2_pursued=0 -> true;
 
   [achieved_G2] G2_pursued=1 & (T2_achieved=1 | T3_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
   
@@ -137,7 +82,7 @@ module G4
 
 endmodule
 
-formula G4_achieved_maintain = ASSERTION_UNDEFINED;
+formula G4_achieved_maintain = inEmergency;
 
 module G5
 
@@ -160,7 +105,7 @@ module G6
   G6_achieved : [0..1] init 0;
   
 
-  [pursue_G6] G6_pursued=0 & G6_achieved=0 & ASSERTION_UNDEFINED -> (G6_pursued'=1);
+  [pursue_G6] G6_pursued=0 & G6_achieved=0 & sensorAvailable -> (G6_pursued'=1);
   [pursue_G8] G6_pursued=1 & G8_achieved=0 -> true;
   [pursue_G9] G6_pursued=1 & G8_achieved=1 & G9_achieved=0 -> true;
 
@@ -210,8 +155,8 @@ module G9
   
 
   [pursue_G9] G9_pursued=0 & G9_achieved=0 -> (G9_pursued'=1);
-  [pursue_T4] G9_pursued=1 & T3_pursued=0 -> true;
-  [pursue_T3] G9_pursued=1 & T4_pursued=0 & T4_failed >= 2 -> true;
+  [pursue_T4] G9_pursued=1 -> true;
+  [pursue_T3] G9_pursued=1 -> true;
 
   [achieved_G9] G9_pursued=1 & (T4_achieved=1 | T3_achieved=1) -> (G9_pursued'=0) & (G9_achieved'=1);
   
@@ -226,8 +171,8 @@ module G10
   
 
   [pursue_G10] G10_pursued=0 & G10_achieved=0 & (G9_achieved=1) -> (G10_pursued'=1);
-  [pursue_G11] G10_pursued=1 -> true;
-  [pursue_G12] G10_pursued=1 -> true;
+  [pursue_G11] G10_pursued=1 & G12_pursued=0 -> true;
+  [pursue_G12] G10_pursued=1 & G11_pursued=0 -> true;
 
   [achieved_G10] G10_pursued=1 & (G11_pursued=1 | G12_pursued=1) -> (G10_pursued'=0) & (G10_achieved'=1);
   
@@ -287,7 +232,7 @@ module G14
   G14_achieved : [0..1] init 0;
   
 
-  [pursue_G14] G14_pursued=0 & G14_achieved=0 & ASSERTION_UNDEFINED -> (G14_pursued'=1);
+  [pursue_G14] G14_pursued=0 & G14_achieved=0 & medicationApplied -> (G14_pursued'=1);
   [pursue_T9] G14_pursued=1 -> true;
 
   [achieved_G14] G14_pursued=1 & (T9_achieved=1) -> (G14_pursued'=0) & (G14_achieved'=1);
@@ -296,7 +241,7 @@ module G14
 
 endmodule
 
-formula G14_achieved_maintain = ASSERTION_UNDEFINED;
+formula G14_achieved_maintain = inSideEffectWindow;
 
 module G15
 
@@ -305,8 +250,8 @@ module G15
   
 
   [pursue_G15] G15_pursued=0 & G15_achieved=0 -> (G15_pursued'=1);
-  [pursue_T13] G15_pursued=1 & T14_pursued=0 -> true;
-  [pursue_T14] G15_pursued=1 & T13_pursued=0 -> true;
+  [pursue_T13] G15_pursued=1 -> true;
+  [pursue_T14] G15_pursued=1 -> true;
 
   [achieved_G15] G15_pursued=1 & (T13_achieved=1 | T14_achieved=1) -> (G15_pursued'=0) & (G15_achieved'=1);
   
@@ -376,13 +321,17 @@ module ChangeManager
 endmodule
 
 module System
-  highPrecision: bool init true
-  patientTracking: bool init false
-  enoughBattery: bool init true
-  highReliability: bool init false
+  inSideEffectWindow: bool init false;
+  medicationApplied: bool init false;
+  highPrecision: bool init true;
+  patientTracking: bool init false;
+  inEmergency: bool init false;
+  enoughBattery: bool init true;
+  highReliability: bool init false;
+  sensorAvailable: bool init false;
   resource_R0: bool init true;
-  resource_R1: int [0..100] init 50;
+  resource_R1: [0..100] init 50;
   resource_R2: bool init false;
   resource_R3: bool init true;
-  resource_R4: int [0..100] init 50;
+  resource_R4: [0..100] init 50;
 endmodule

@@ -9,7 +9,6 @@ if (!process.argv.length) {
 }
 const model = loadModel({ filename: process.argv[2] ?? '' });
 const tree = convertToTree({ model });
-console.log(edgeDTMCTemplate({ gm: tree, fileName: process.argv[2] ?? '' }));
 
 writeFile(
   'output/edge.mp',

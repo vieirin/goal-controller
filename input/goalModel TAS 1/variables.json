@@ -1,6 +1,10 @@
 {
+  "inSideEffectWindow": true,
+  "medicationApplied": false,
   "highPrecision": true,
   "patientTracking": false,
+  "inEmergency": true,
   "enoughBattery": true,
-  "highReliability": false
+  "highReliability": false,
+  "sensorAvailable": false
 }

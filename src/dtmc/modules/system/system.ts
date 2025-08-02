@@ -29,7 +29,7 @@ export const systemModule = ({
         variable.initialValue
       };`;
     } else if (variable.type === 'int') {
-      return `${resourceVariableName(resource)}: int [${variable.lowerBound}..${
+      return `${resourceVariableName(resource)}: [${variable.lowerBound}..${
         variable.upperBound
       }] init ${variable.initialValue};`;
     }
@@ -47,7 +47,7 @@ export const systemModule = ({
         variables.map((variable) => {
           return `${variable}: bool init ${
             defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION'
-          }`;
+          };`;
         }),
         resourceVariables.join('\n  '),
       ]

@@ -2,7 +2,7 @@ import { achieved, pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
-import { pursueAlternativeGoal, pursueAnyGoal } from './orGoal';
+import { pursueAnyGoal, pursueDegradationGoal } from './orGoal';
 
 const goalDependencyStatement = (goal: GoalNode) => {
   return goal.customProperties.dependsOn?.length
@@ -17,17 +17,16 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
     .map((child, _): [GoalNode, { left: string; right: string }] => {
-      const leftStatement = `[pursue_${child.id}] ${pursued(goal.id)}=${
-        isItself(child) ? 0 : 1
-      }`;
+      const leftStatement =
+        `[pursue_${child.id}] ${pursued(goal.id)}=${
+          isItself(child) ? 0 : 1
+        } & ${achieved(goal.id)}=0` + goalDependencyStatement(goal);
+
       if (isItself(child)) {
         return [
           child,
           {
-            left:
-              leftStatement +
-              ` & ${achieved(goal.id)}=0` +
-              goalDependencyStatement(goal),
+            left: leftStatement,
             right: `(${pursued(goal.id)}'=1)`,
           },
         ] as const;
@@ -56,13 +55,18 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               const pursueCondition = pursueAnyGoal(goal, child.id);
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
-            case 'alternative': {
-              const pursueCondition = pursueAlternativeGoal(
+            case 'degradation': {
+              const pursueCondition = pursueDegradationGoal(
                 goal,
-                goal.executionDetail.alternative,
+                goal.executionDetail.degradationList,
                 child.id
               );
               return [child, { left: left + ` & ${pursueCondition}`, right }];
+            }
+            case 'alternative': {
+              throw new Error(
+                'OR relation to children with alternative execution detail is not supported'
+              );
             }
             default:
               return [child, { left, right }];
