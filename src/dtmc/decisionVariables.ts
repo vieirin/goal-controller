@@ -20,9 +20,12 @@ export const decisionVariablesForGoal = ({ goal }: { goal: GoalNode }) => {
 
 export const decisionVariableName = (
   goalId: string,
-  variableCombination: number[]
+  variableCombination: number[],
+  vars: string[]
 ) => {
-  return `decision_${goalId}_${variableCombination.join('_')}`;
+  return `decision_${goalId}_${variableCombination
+    .map((v, i) => `${vars[i]}${v}`)
+    .join('_')}`;
 };
 
 export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
@@ -32,10 +35,13 @@ export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
     if (!goal.decisionVars.length) {
       return;
     }
-    const [_, decisionVars] = decisionVariablesForGoal({ goal });
-
+    const [vars, decisionVars] = decisionVariablesForGoal({ goal });
     for (const variableCombination of decisionVars) {
-      const variable = `const int ${decisionVariableName(goal.id, variableCombination)};`;
+      const variable = `const int ${decisionVariableName(
+        goal.id,
+        variableCombination,
+        vars
+      )};`;
       decisionVariables.push(variable);
     }
   });

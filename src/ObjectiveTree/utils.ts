@@ -84,9 +84,10 @@ export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
   for (const item of first) {
     if (rest.length === 0) {
       yield [item];
-    }
-    for (const subProduct of cartesianProduct(...rest)) {
-      yield [item, ...subProduct];
+    } else {
+      for (const subProduct of cartesianProduct(...rest)) {
+        yield [item, ...subProduct];
+      }
     }
   }
 }

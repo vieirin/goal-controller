@@ -35,7 +35,7 @@ export const pursueAlternativeGoal = (
     const notChosen = otherGoals
       .map((goalId) => {
         const originalIndex = alternative.indexOf(goalId);
-        return `${chosenVariable(goalId)}!=${originalIndex}`;
+        return `${chosenVariable(goal.id)}!=${originalIndex}`;
       })
       .join(separator('and'));
 

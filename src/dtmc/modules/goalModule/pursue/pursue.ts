@@ -2,7 +2,11 @@ import { achieved, pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
-import { pursueAnyGoal, pursueDegradationGoal } from './orGoal';
+import {
+  pursueAlternativeGoal,
+  pursueAnyGoal,
+  pursueDegradationGoal,
+} from './orGoal';
 
 const goalDependencyStatement = (goal: GoalNode) => {
   return goal.customProperties.dependsOn?.length
@@ -64,9 +68,12 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             case 'alternative': {
-              throw new Error(
-                'OR relation to children with alternative execution detail is not supported'
+              const pursueCondition = pursueAlternativeGoal(
+                goal,
+                goal.executionDetail.alternative,
+                child.id
               );
+              return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             default:
               return [child, { left, right }];
