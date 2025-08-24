@@ -39,9 +39,10 @@ export const systemModule = ({
   ${(() => {
     try {
       const variablesFilePath = getVariablesFilePath(fileName);
-      const defaultVariableValues = JSON.parse(
-        readFileSync(variablesFilePath, 'utf8')
-      );
+      const defaultVariableValues =
+        variables.length > 0
+          ? JSON.parse(readFileSync(variablesFilePath, 'utf8'))
+          : {};
 
       return [
         variables.map((variable) => {
