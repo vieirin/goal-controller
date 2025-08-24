@@ -19,14 +19,10 @@ const isValidSeparator = (
 
 const achieveCondition = (goal: GoalNodeWithParent) => {
   if (isValidSeparator(goal.relationToChildren)) {
-    if (goal.children?.length) {
-      return `(${goal.children
-        .map((child) => `${pursued(child.id)}=1`)
-        .join(separator(goal.relationToChildren))})`;
-    }
-    if (goal.tasks?.length) {
-      return `(${goal.tasks
-        .map((task) => `${achievedVariable(task.id)}=1`)
+    const children = [...(goal.children || []), ...(goal.tasks || [])];
+    if (children.length) {
+      return `(${children
+        .map((child) => `${achievedVariable(child.id)}=1`)
         .join(separator(goal.relationToChildren))})`;
     }
   }
