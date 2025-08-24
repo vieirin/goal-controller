@@ -1,4 +1,7 @@
-mdp
+dtmc
+
+
+
 
 module G0
 
@@ -11,7 +14,7 @@ module G0
   [pursue_G1] G0_pursued=1 & G0_achieved=0 -> true;
   [pursue_G2] G0_pursued=1 & G0_achieved=0 -> true;
 
-  [achieved_G0] G0_pursued=1 & (G1_pursued=1 | G2_pursued=1) -> (G0_pursued'=0) & (G0_achieved'=1);
+  [achieved_G0] G0_pursued=1 & (G1_achieved=1 | G2_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
   
   [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
 
@@ -21,11 +24,14 @@ module G1
 
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
+  
+  
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
   [pursue_T1] G1_pursued=1 & G1_achieved=0 -> true;
 
   [achieved_G1] G1_pursued=1 & (T1_achieved=1) -> (G1_pursued'=0) & (G1_achieved'=1);
+  
   [skip_G1] G1_pursued=1 & T1_pursued=0 -> (G1_pursued'=0);
 
 endmodule
@@ -41,7 +47,8 @@ module G2
   [pursue_G3] G2_pursued=1 & G2_achieved=0 & G2_chosen!=1 -> true;
   [pursue_G4] G2_pursued=1 & G2_achieved=0 & G2_chosen!=0 -> true;
 
-  [achieved_G2] G2_pursued=1 & (G3_pursued=1 | G4_pursued=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+  [achieved_G2] G2_pursued=1 & (G3_achieved=1 | G4_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+  
   [skip_G2] G2_pursued=1 & G3_pursued=0 & G4_pursued=0 -> (G2_pursued'=0);
 
 endmodule
@@ -57,7 +64,8 @@ module G3
   [pursue_G5] G3_pursued=1 & G3_achieved=0 & G5_achieved=0 -> true;
   [pursue_G6] G3_pursued=1 & G3_achieved=0 & G5_achieved=1 & G6_achieved=0 -> true;
 
-  [achieved_G3] G3_pursued=1 & (G5_pursued=1 & G6_pursued=1) -> (G3_pursued'=0) & (G3_achieved'=1);
+  [achieved_G3] G3_pursued=1 & (G5_achieved=1 & G6_achieved=1) -> (G3_pursued'=0) & (G3_achieved'=1);
+  
   [skip_G3] G3_pursued=1 & G5_pursued=0 & G6_pursued=0 -> (G3_pursued'=0);
 
 endmodule
@@ -73,7 +81,8 @@ module G4
   [pursue_G6] G4_pursued=1 & G4_achieved=0 & T2_achieved=1 & G6_achieved=0 -> true;
   [pursue_T2] G4_pursued=1 & G4_achieved=0 & T2_achieved=0 -> true;
 
-  [achieved_G4] G4_pursued=1 & (G6_pursued=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+  [achieved_G4] G4_pursued=1 & (G6_achieved=1 & T2_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+  
   [skip_G4] G4_pursued=1 & G6_pursued=0 -> (G4_pursued'=0);
 
 endmodule
@@ -90,7 +99,8 @@ module G5
   [pursue_G8] G5_pursued=1 & G5_achieved=0 & G7_achieved=1 & G9_achieved=0 -> true;
   [pursue_G9] G5_pursued=1 & G5_achieved=0 & G7_achieved=1 & G9_achieved=0 -> true;
 
-  [achieved_G5] G5_pursued=1 & (G7_pursued=1 & G8_pursued=1 & G9_pursued=1) -> (G5_pursued'=0) & (G5_achieved'=1);
+  [achieved_G5] G5_pursued=1 & (G7_achieved=1 & G8_achieved=1 & G9_achieved=1) -> (G5_pursued'=0) & (G5_achieved'=1);
+  
   [skip_G5] G5_pursued=1 & G7_pursued=0 & G8_pursued=0 & G9_pursued=0 -> (G5_pursued'=0);
 
 endmodule
@@ -107,7 +117,8 @@ module G6
   [pursue_G11] G6_pursued=1 & G6_achieved=0 & G10_achieved=1 & G12_achieved=0 -> true;
   [pursue_G12] G6_pursued=1 & G6_achieved=0 & G10_achieved=1 & G12_achieved=0 -> true;
 
-  [achieved_G6] G6_pursued=1 & (G10_pursued=1 & G11_pursued=1 & G12_pursued=1) -> (G6_pursued'=0) & (G6_achieved'=1);
+  [achieved_G6] G6_pursued=1 & (G10_achieved=1 & G11_achieved=1 & G12_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
+  
   [skip_G6] G6_pursued=1 & G10_pursued=0 & G11_pursued=0 & G12_pursued=0 -> (G6_pursued'=0);
 
 endmodule
