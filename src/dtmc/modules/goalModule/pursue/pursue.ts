@@ -118,11 +118,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
       // add maintain condition
-      const left = child.maintainCondition
+      const left = child.execCondition
         ? `${statement.left} & ${
             isItself(child)
-              ? child.maintainCondition.assertion.sentence ||
-                'ASSERTION_UNDEFINED'
+              ? child.execCondition.assertion.sentence || 'ASSERTION_UNDEFINED'
               : achievedMaintain(child.id)
           }`
         : statement.left;
@@ -134,10 +133,14 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         },
       ];
     })
-    .map(([, statement]) => {
+    .map(([child, statement]) => {
       // TODO: decision variables stage, dependencies
       return {
-        left: `${statement.left}`,
+        left:
+          `${statement.left}` +
+          (child.execCondition?.assertion.sentence
+            ? ` & ${child.execCondition.assertion.sentence}`
+            : ''),
         right: `${statement.right}`,
       };
     })

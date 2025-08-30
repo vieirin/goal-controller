@@ -12,7 +12,7 @@ import {
   NodeType,
   Relation,
   type CustomProperties,
-  type MaintainCondition,
+  type ExecCondition,
   type Resource,
 } from './types';
 import { allByType } from './utils';
@@ -71,33 +71,45 @@ const parseDecision = ({
 const getMaintainCondition = (
   goalName: string,
   customProperties: CustomProperties['customProperties']
-): MaintainCondition | undefined => {
-  if (customProperties.type !== 'maintain') {
-    return undefined;
-  }
-  if (!customProperties.maintain || !customProperties.assertion) {
-    // TODO: lock this as an error in the future
-    // console.warn(
-    //   `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
-    //     customProperties.maintain || `'empty condition'`
-    //   } and assertion:${customProperties.assertion || `'empty condition'`}`
-    // );
+): ExecCondition | undefined => {
+  if (customProperties.type === 'maintain') {
+    if (!customProperties.maintain && !customProperties.assertion) {
+      // TODO: lock this as an error in the future
+      console.warn(
+        `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
+          customProperties.maintain || `'empty condition'`
+        } and assertion:${customProperties.assertion || `'empty condition'`}`
+      );
+    }
+
+    return {
+      maintain: {
+        sentence: customProperties.maintain,
+        variables: getAssertionVariables({
+          assertionSentence: customProperties.maintain,
+        }),
+      },
+      assertion: {
+        sentence: customProperties.assertion,
+        variables: getAssertionVariables({
+          assertionSentence: customProperties.assertion,
+        }),
+      },
+    };
   }
 
-  return {
-    maintain: {
-      sentence: customProperties.maintain,
-      variables: getAssertionVariables({
-        assertionSentence: customProperties.maintain,
-      }),
-    },
-    assertion: {
-      sentence: customProperties.assertion,
-      variables: getAssertionVariables({
-        assertionSentence: customProperties.assertion,
-      }),
-    },
-  };
+  if (!!customProperties.assertion) {
+    return {
+      assertion: {
+        sentence: customProperties.assertion,
+        variables: getAssertionVariables({
+          assertionSentence: customProperties.assertion,
+        }),
+      },
+    };
+  }
+
+  return undefined;
 };
 
 const createResource = (resource: GoalNode): Resource => {
@@ -253,10 +265,7 @@ const createNode = ({
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
       maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
     },
-    maintainCondition: getMaintainCondition(
-      `${id}:${goalName}`,
-      customProperties
-    ),
+    execCondition: getMaintainCondition(`${id}:${goalName}`, customProperties),
     ...(tasks.length > 0 && { tasks }),
   };
 };

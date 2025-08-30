@@ -38,9 +38,9 @@ module G0
 
   [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
   [pursue_G1] G0_pursued=1 & G0_achieved=0 -> true;
-  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G2_achieved_maintain -> true;
+  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G2_achieved_maintain & patientTracking -> true;
 
-  [achieved_G0] G0_pursued=1 & (G1_pursued=1 | G2_pursued=1) -> (G0_pursued'=0) & (G0_achieved'=1);
+  [achieved_G0] G0_pursued=1 & (G1_achieved=1 | G2_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
   
   [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
 
@@ -54,10 +54,10 @@ module G1
   
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
-  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_pursued=0 & G4_failed >= 2 -> true;
-  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G3_pursued=0 & G4_achieved_maintain -> true;
+  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_pursued=0 & G4_failed >= 2 & G3_achieved_maintain & privacyEnabled | battery!=low -> true;
+  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G3_pursued=0 & G4_achieved_maintain & enoughBattery & highReliability -> true;
 
-  [achieved_G1] G1_pursued=1 & (G3_pursued=1 | G4_pursued=1) -> (G1_pursued'=0) & (G1_achieved'=1);
+  [achieved_G1] G1_pursued=1 & (G3_achieved=1 | G4_achieved=1) -> (G1_pursued'=0) & (G1_achieved'=1);
   
   [skip_G1] G1_pursued=1 & G3_pursued=0 & G4_pursued=0 -> (G1_pursued'=0);
 
@@ -70,9 +70,9 @@ module G2
   
   
 
-  [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
-  [pursue_T2] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T3_pursued=0 -> true;
-  [pursue_T3] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T2_pursued=0 -> true;
+  [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking & patientTracking -> (G2_pursued'=1);
+  [pursue_T2] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T3_pursued=0 & T2_achieved_maintain & privacyEnabled -> true;
+  [pursue_T3] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T2_pursued=0 & T3_achieved_maintain & privacyEnabled=false -> true;
 
   [achieved_G2] G2_pursued=1 & (T2_achieved=1 | T3_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
   
@@ -89,10 +89,10 @@ module G3
   
   
 
-  [pursue_G3] G3_pursued=0 & G3_achieved=0 -> (G3_pursued'=1);
+  [pursue_G3] G3_pursued=0 & G3_achieved=0 & privacyEnabled | battery!=low & privacyEnabled | battery!=low -> (G3_pursued'=1);
   [pursue_G5] G3_pursued=1 & G3_achieved=0 -> true;
 
-  [achieved_G3] G3_pursued=1 & (G5_pursued=1) -> (G3_pursued'=0) & (G3_achieved'=1);
+  [achieved_G3] G3_pursued=1 & (G5_achieved=1) -> (G3_pursued'=0) & (G3_achieved'=1);
   
   [skip_G3] G3_pursued=1 & G5_pursued=0 -> (G3_pursued'=0);
 
@@ -105,11 +105,11 @@ module G4
   
   G4_failed : [0..10] init 0;
 
-  [pursue_G4] G4_pursued=0 & G4_achieved=0 & enoughBattery & highReliability -> (G4_pursued'=1);
-  [pursue_G6] G4_pursued=1 & G4_achieved=0 & G6_achieved=0 & G6_achieved_maintain -> true;
+  [pursue_G4] G4_pursued=0 & G4_achieved=0 & enoughBattery & highReliability & enoughBattery & highReliability -> (G4_pursued'=1);
+  [pursue_G6] G4_pursued=1 & G4_achieved=0 & G6_achieved=0 & G6_achieved_maintain & sensorAvailable -> true;
   [pursue_G7] G4_pursued=1 & G4_achieved=0 & G6_achieved=1 & G7_achieved=0 -> true;
 
-  [achieved_G4] G4_pursued=1 & (G6_pursued=1 & G7_pursued=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+  [achieved_G4] G4_pursued=1 & (G6_achieved=1 & G7_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
   
   [skip_G4] G4_pursued=1 & G6_pursued=0 & G7_pursued=0 -> (G4_pursued'=0);
 
@@ -140,11 +140,11 @@ module G6
   
   
 
-  [pursue_G6] G6_pursued=0 & G6_achieved=0 & sensorAvailable -> (G6_pursued'=1);
+  [pursue_G6] G6_pursued=0 & G6_achieved=0 & sensorAvailable & sensorAvailable -> (G6_pursued'=1);
   [pursue_G8] G6_pursued=1 & G6_achieved=0 & G8_achieved=0 -> true;
   [pursue_G9] G6_pursued=1 & G6_achieved=0 & G8_achieved=1 & G9_achieved=0 -> true;
 
-  [achieved_G6] G6_pursued=1 & (G8_pursued=1 & G9_pursued=1) -> (G6_pursued'=0) & (G6_achieved'=1);
+  [achieved_G6] G6_pursued=1 & (G8_achieved=1 & G9_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
   
   [skip_G6] G6_pursued=1 & G8_pursued=0 & G9_pursued=0 -> (G6_pursued'=0);
 
@@ -160,10 +160,10 @@ module G7
   
 
   [pursue_G7] G7_pursued=0 & G7_achieved=0 -> (G7_pursued'=1);
-  [pursue_G10] G7_pursued=1 & G7_achieved=0 & G10_achieved=0 -> true;
-  [pursue_G13] G7_pursued=1 & G7_achieved=0 & G10_achieved=1 & G13_achieved=0 -> true;
+  [pursue_G10] G7_pursued=1 & G7_achieved=0 & G10_achieved=0 & G10_achieved_maintain & pharmacyAvailable & atHome -> true;
+  [pursue_G13] G7_pursued=1 & G7_achieved=0 & G10_achieved=1 & G13_achieved=0 & G13_achieved_maintain & medicationApplied -> true;
 
-  [achieved_G7] G7_pursued=1 & (G10_pursued=1 & G13_pursued=1) -> (G7_pursued'=0) & (G7_achieved'=1);
+  [achieved_G7] G7_pursued=1 & (G10_achieved=1 & G13_achieved=1) -> (G7_pursued'=0) & (G7_achieved'=1);
   
   [skip_G7] G7_pursued=1 & G10_pursued=0 & G13_pursued=0 -> (G7_pursued'=0);
 
@@ -209,11 +209,11 @@ module G10
   
   
 
-  [pursue_G10] G10_pursued=0 & G10_achieved=0 & (G9_achieved=1) -> (G10_pursued'=1);
+  [pursue_G10] G10_pursued=0 & G10_achieved=0 & (G9_achieved=1) & pharmacyAvailable & atHome & pharmacyAvailable & atHome -> (G10_pursued'=1);
   [pursue_G11] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G12_pursued=0 -> true;
   [pursue_G12] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G11_pursued=0 -> true;
 
-  [achieved_G10] G10_pursued=1 & (G11_pursued=1 | G12_pursued=1) -> (G10_pursued'=0) & (G10_achieved'=1);
+  [achieved_G10] G10_pursued=1 & (G11_achieved=1 | G12_achieved=1) -> (G10_pursued'=0) & (G10_achieved'=1);
   
   [skip_G10] G10_pursued=1 & G11_pursued=0 & G12_pursued=0 -> (G10_pursued'=0);
 
@@ -258,11 +258,11 @@ module G13
   
   
 
-  [pursue_G13] G13_pursued=0 & G13_achieved=0 -> (G13_pursued'=1);
-  [pursue_G14] G13_pursued=1 & G13_achieved=0 & G14_achieved=0 & G14_achieved_maintain -> true;
-  [pursue_G15] G13_pursued=1 & G13_achieved=0 & G14_achieved=1 & G15_achieved=0 -> true;
+  [pursue_G13] G13_pursued=0 & G13_achieved=0 & medicationApplied & medicationApplied -> (G13_pursued'=1);
+  [pursue_G14] G13_pursued=1 & G13_achieved=0 & G14_achieved=0 & G14_achieved_maintain & medicationApplied -> true;
+  [pursue_G15] G13_pursued=1 & G13_achieved=0 & G14_achieved=1 & G15_achieved=0 & G15_achieved_maintain & inEmergency -> true;
 
-  [achieved_G13] G13_pursued=1 & (G14_pursued=1 & G15_pursued=1) -> (G13_pursued'=0) & (G13_achieved'=1);
+  [achieved_G13] G13_pursued=1 & (G14_achieved=1 & G15_achieved=1) -> (G13_pursued'=0) & (G13_achieved'=1);
   
   [skip_G13] G13_pursued=1 & G14_pursued=0 & G15_pursued=0 -> (G13_pursued'=0);
 
@@ -275,7 +275,7 @@ module G14
   
   
 
-  [pursue_G14] G14_pursued=0 & G14_achieved=0 & medicationApplied -> (G14_pursued'=1);
+  [pursue_G14] G14_pursued=0 & G14_achieved=0 & medicationApplied & medicationApplied -> (G14_pursued'=1);
   [pursue_T9] G14_pursued=1 & G14_achieved=0 -> true;
 
   [achieved_G14] G14_pursued=1 & (T9_achieved=1) -> (G14_pursued'=0) & (G14_achieved'=1);
@@ -293,9 +293,9 @@ module G15
   G15_chosen : [0..2] init 0;
   
 
-  [pursue_G15] G15_pursued=0 & G15_achieved=0 -> (G15_pursued'=1);
+  [pursue_G15] G15_pursued=0 & G15_achieved=0 & inEmergency & inEmergency -> (G15_pursued'=1);
   [pursue_T13] G15_pursued=1 & G15_achieved=0 & G15_chosen!=1 -> true;
-  [pursue_T14] G15_pursued=1 & G15_achieved=0 & G15_chosen!=0 -> true;
+  [pursue_T14] G15_pursued=1 & G15_achieved=0 & G15_chosen!=0 & T14_achieved_maintain & networkAvailable -> true;
 
   [achieved_G15] G15_pursued=1 & (T13_achieved=1 | T14_achieved=1) -> (G15_pursued'=0) & (G15_achieved'=1);
   
@@ -365,11 +365,15 @@ module ChangeManager
 endmodule
 
 module System
-  inSideEffectWindow: bool init true;
+  pharmacyAvailable: bool init false;
+  atHome: bool init false;
   medicationApplied: bool init false;
+  inSideEffectWindow: bool init true;
+  inEmergency: bool init true;
   highPrecision: bool init true;
   patientTracking: bool init false;
-  inEmergency: bool init true;
+  privacyEnabled: bool init false;
+  battery: bool init false;
   enoughBattery: bool init true;
   highReliability: bool init false;
   sensorAvailable: bool init false;

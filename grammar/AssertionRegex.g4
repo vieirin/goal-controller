@@ -17,6 +17,6 @@ expr:
 	| ID				# identifier
 	| BOOLEAN			# boolean;
 
-ID: [a-zA-Z_][a-zA-Z0-9_]*;
 BOOLEAN: 'true' | 'false';
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
 WS: [ \t\r\n]+ -> skip;

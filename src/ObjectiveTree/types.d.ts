@@ -53,8 +53,8 @@ interface Diagram extends CustomProperties {
   height: number;
 }
 
-interface MaintainCondition {
-  maintain: {
+interface ExecCondition {
+  maintain?: {
     sentence: string;
     variables: { name: string; value: boolean | null }[];
   };
@@ -136,7 +136,7 @@ type GoalNode = {
   resources: Resource[];
   tasks?: GoalNode[];
   executionDetail: GoalExecutionDetail | null;
-  maintainCondition?: MaintainCondition;
+  execCondition?: ExecCondition;
 } & Decision;
 
 type GoalNodeWithParent = GoalNode & {

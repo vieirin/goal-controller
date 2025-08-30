@@ -7,11 +7,11 @@ const getTreeContextVariables = (tree: GoalTreeWithParent) => {
   const goals = allByType({ gm: tree, type: 'goal' });
 
   goals.forEach((goal) => {
-    goal.maintainCondition?.maintain.variables.forEach((variable) => {
+    goal.execCondition?.maintain?.variables.forEach((variable) => {
       variables.add(variable.name);
     });
 
-    goal.maintainCondition?.assertion.variables.forEach((variable) => {
+    goal.execCondition?.assertion.variables.forEach((variable) => {
       variables.add(variable.name);
     });
   });

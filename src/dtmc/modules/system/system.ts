@@ -18,6 +18,7 @@ export const systemModule = ({
   fileName: string;
 }) => {
   const variables = treeContextVariables(gm);
+  // resources are deduped in allByType
   const resources = allByType({ gm, type: 'resource' });
   if (!isResource(resources)) {
     throw new Error('Resources must be an array of resources');

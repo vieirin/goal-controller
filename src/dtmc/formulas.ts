@@ -5,8 +5,10 @@ export const achievedMaintain = (goalId: string) => {
 };
 
 export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
-  if (!goal.maintainCondition) {
+  if (!goal.execCondition?.maintain) {
     return '';
   }
-  return `formula ${achievedMaintain(goal.id)} = ${goal.maintainCondition.maintain.sentence || 'ASSERTION_UNDEFINED'};`;
+  return `formula ${achievedMaintain(goal.id)} = ${
+    goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED'
+  };`;
 };

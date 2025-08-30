@@ -17,6 +17,7 @@ export const getAssertionVariables = ({
   if (!assertionSentence) {
     return [];
   }
+
   const chars = new CharStream(assertionSentence);
   const lexer = new AssertionRegex(chars);
   const tokens = new CommonTokenStream(lexer);
