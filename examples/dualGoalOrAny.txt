@@ -12,7 +12,7 @@
       "nodes": [
         {
           "id": "d201ecf8-634a-425e-8e6e-f59885442511",
-          "text": "G0: Collect sample [.]",
+          "text": "G0: Collect sample [+]",
           "type": "istar.Goal",
           "x": 373,
           "y": 152,
@@ -47,13 +47,13 @@
   "dependencies": [],
   "links": [
     {
-      "id": "6ea9ab93-fbf5-4bd6-a077-85276854fb77",
+      "id": "4f8fc839-ffb6-469e-9a02-ea1306d8caee",
       "type": "istar.OrRefinementLink",
       "source": "5768ce63-de72-4547-b03b-f445b4bdc839",
       "target": "d201ecf8-634a-425e-8e6e-f59885442511"
     },
     {
-      "id": "bd7c7013-70da-489c-abee-373a2470074c",
+      "id": "2b3f18ce-4656-4927-aa7f-79363336001d",
       "type": "istar.OrRefinementLink",
       "source": "444e6756-c402-444d-8c70-f630d415da2e",
       "target": "d201ecf8-634a-425e-8e6e-f59885442511"
@@ -62,7 +62,7 @@
   "display": {},
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sun, 08 Jun 2025 22:35:51 GMT",
+  "saveDate": "Sun, 31 Aug 2025 17:52:56 GMT",
   "diagram": {
     "width": 1000,
     "height": 700,

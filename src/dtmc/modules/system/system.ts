@@ -8,7 +8,7 @@ import type {
 } from '../../../ObjectiveTree/types';
 import { allByType } from '../../../ObjectiveTree/utils';
 
-const resourceVariableName = (resource: Resource) => `resource_${resource.id}`;
+const resourceVariableName = (resource: Resource) => `${resource.id}`;
 
 export const systemModule = ({
   gm,

@@ -9,9 +9,11 @@ import { IdentifierContext } from "./AssertionRegexParser.js";
 import { NotExprContext } from "./AssertionRegexParser.js";
 import { BooleanContext } from "./AssertionRegexParser.js";
 import { AssignmentContext } from "./AssertionRegexParser.js";
+import { IntComparisonContext } from "./AssertionRegexParser.js";
 import { OrExprContext } from "./AssertionRegexParser.js";
 import { ParenExprContext } from "./AssertionRegexParser.js";
 import { AndExprContext } from "./AssertionRegexParser.js";
+import { ComparatorContext } from "./AssertionRegexParser.js";
 
 
 /**
@@ -92,6 +94,18 @@ export default class AssertionRegexListener extends ParseTreeListener {
 	 */
 	exitAssignment?: (ctx: AssignmentContext) => void;
 	/**
+	 * Enter a parse tree produced by the `intComparison`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	enterIntComparison?: (ctx: IntComparisonContext) => void;
+	/**
+	 * Exit a parse tree produced by the `intComparison`
+	 * labeled alternative in `AssertionRegexParser.expr`.
+	 * @param ctx the parse tree
+	 */
+	exitIntComparison?: (ctx: IntComparisonContext) => void;
+	/**
 	 * Enter a parse tree produced by the `orExpr`
 	 * labeled alternative in `AssertionRegexParser.expr`.
 	 * @param ctx the parse tree
@@ -127,5 +141,15 @@ export default class AssertionRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitAndExpr?: (ctx: AndExprContext) => void;
+	/**
+	 * Enter a parse tree produced by `AssertionRegexParser.comparator`.
+	 * @param ctx the parse tree
+	 */
+	enterComparator?: (ctx: ComparatorContext) => void;
+	/**
+	 * Exit a parse tree produced by `AssertionRegexParser.comparator`.
+	 * @param ctx the parse tree
+	 */
+	exitComparator?: (ctx: ComparatorContext) => void;
 }
 

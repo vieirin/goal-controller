@@ -12,7 +12,7 @@ module G0
 
   [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
   [pursue_T0] G0_pursued=1 & G0_achieved=0 & T1_pursued=0 -> true;
-  [pursue_T1] G0_pursued=1 & G0_achieved=0 & T0_pursued=0 -> true;
+  [pursue_T1] G0_pursued=1 & G0_achieved=0 & T0_pursued=0 & T0_failed >= 2 -> true;
 
   [achieved_G0] G0_pursued=1 & (T0_achieved=1 | T1_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
   
