@@ -136,11 +136,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     .map(([child, statement]) => {
       // TODO: decision variables stage, dependencies
       return {
-        left:
-          `${statement.left}` +
-          (child.execCondition?.assertion.sentence
-            ? ` & ${child.execCondition.assertion.sentence}`
-            : ''),
+        left: `${statement.left}`,
         right: `${statement.right}`,
       };
     })
