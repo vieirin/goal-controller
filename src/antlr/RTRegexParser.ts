@@ -263,11 +263,11 @@ export default class RTRegexParser extends Parser {
 				break;
 			case 7:
 				{
-				localctx = new GAnyContext(this, localctx);
+				localctx = new GChoiceContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 				this.state = 38;
-				(localctx as GAnyContext)._op = this.match(RTRegexParser.T__9);
+				(localctx as GChoiceContext)._op = this.match(RTRegexParser.T__9);
 				}
 				break;
 			case 8:
@@ -669,20 +669,20 @@ export class GInterleavedContext extends ExprContext {
 		}
 	}
 }
-export class GAnyContext extends ExprContext {
+export class GChoiceContext extends ExprContext {
 	public _op!: Token;
 	constructor(parser: RTRegexParser, ctx: ExprContext) {
 		super(parser, ctx.parentCtx, ctx.invokingState);
 		super.copyFrom(ctx);
 	}
 	public enterRule(listener: RTRegexListener): void {
-	    if(listener.enterGAny) {
-	 		listener.enterGAny(this);
+	    if(listener.enterGChoice) {
+	 		listener.enterGChoice(this);
 		}
 	}
 	public exitRule(listener: RTRegexListener): void {
-	    if(listener.exitGAny) {
-	 		listener.exitGAny(this);
+	    if(listener.exitGChoice) {
+	 		listener.exitGChoice(this);
 		}
 	}
 }

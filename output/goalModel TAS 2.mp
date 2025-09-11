@@ -33,8 +33,6 @@ module G0
 
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
-  
-  
 
   [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
   [pursue_G1] G0_pursued=1 & G0_achieved=0 -> true;
@@ -71,8 +69,8 @@ module G2
   
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
-  [pursue_T2] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T3_pursued=0 & T2_achieved_maintain -> true;
-  [pursue_T3] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & T2_pursued=0 & T3_achieved_maintain -> true;
+  [pursue_T2] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) &  & T2_achieved_maintain -> true;
+  [pursue_T3] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) &  & T3_achieved_maintain -> true;
 
   [achieved_G2] G2_pursued=1 & (T2_achieved=1 | T3_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
   
@@ -210,8 +208,8 @@ module G10
   
 
   [pursue_G10] G10_pursued=0 & G10_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G10_pursued'=1);
-  [pursue_G11] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G12_pursued=0 -> true;
-  [pursue_G12] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G11_pursued=0 -> true;
+  [pursue_G11] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G10_chosen!=1 -> true;
+  [pursue_G12] G10_pursued=1 & G10_achieved=0 & (G9_achieved=1) & G10_chosen!=0 -> true;
 
   [achieved_G10] G10_pursued=1 & (G11_achieved=1 | G12_achieved=1) -> (G10_pursued'=0) & (G10_achieved'=1);
   
@@ -294,8 +292,8 @@ module G15
   
 
   [pursue_G15] G15_pursued=0 & G15_achieved=0 & inEmergency -> (G15_pursued'=1);
-  [pursue_T13] G15_pursued=1 & G15_achieved=0 & G15_chosen!=1 & T13_achieved_maintain -> true;
-  [pursue_T14] G15_pursued=1 & G15_achieved=0 & G15_chosen!=0 & T14_achieved_maintain -> true;
+  [pursue_T13] G15_pursued=1 & G15_achieved=0 & T14_pursued=0 & T13_achieved_maintain -> true;
+  [pursue_T14] G15_pursued=1 & G15_achieved=0 & T13_pursued=0 & T14_achieved_maintain -> true;
 
   [achieved_G15] G15_pursued=1 & (T13_achieved=1 | T14_achieved=1) -> (G15_pursued'=0) & (G15_achieved'=1);
   

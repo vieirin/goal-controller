@@ -8,7 +8,7 @@ import { BlankContext } from "./RTRegexParser.js";
 import { GIdContext } from "./RTRegexParser.js";
 import { NameOnlyContext } from "./RTRegexParser.js";
 import { GInterleavedContext } from "./RTRegexParser.js";
-import { GAnyContext } from "./RTRegexParser.js";
+import { GChoiceContext } from "./RTRegexParser.js";
 import { GArgsContext } from "./RTRegexParser.js";
 import { NameContinuedContext } from "./RTRegexParser.js";
 import { GAlternativeContext } from "./RTRegexParser.js";
@@ -88,17 +88,17 @@ export default class RTRegexListener extends ParseTreeListener {
 	 */
 	exitGInterleaved?: (ctx: GInterleavedContext) => void;
 	/**
-	 * Enter a parse tree produced by the `gAny`
+	 * Enter a parse tree produced by the `gChoice`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	enterGAny?: (ctx: GAnyContext) => void;
+	enterGChoice?: (ctx: GChoiceContext) => void;
 	/**
-	 * Exit a parse tree produced by the `gAny`
+	 * Exit a parse tree produced by the `gChoice`
 	 * labeled alternative in `RTRegexParser.expr`.
 	 * @param ctx the parse tree
 	 */
-	exitGAny?: (ctx: GAnyContext) => void;
+	exitGChoice?: (ctx: GChoiceContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gArgs`
 	 * labeled alternative in `RTRegexParser.expr`.

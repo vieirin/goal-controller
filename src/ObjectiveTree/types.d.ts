@@ -109,7 +109,7 @@ type GoalExecutionDetail = (
   | { type: 'sequence'; sequence: string[] }
   | { type: 'degradation'; degradationList: string[] }
   | { type: 'decisionMaking'; dm: string[] }
-  | { type: 'any' }
+  | { type: 'choice' }
 ) & {
   retryMap?: Dictionary<number>;
 };

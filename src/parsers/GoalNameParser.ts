@@ -9,7 +9,7 @@ import RTRegexParser, {
   GSequenceContext,
   WordContext,
   type GAlternativeContext,
-  type GAnyContext,
+  type GChoiceContext,
   type GDegradationContext,
   type GInterleavedContext,
 } from '../antlr/RTRegexParser';
@@ -37,7 +37,7 @@ export const getGoalDetail = ({
   let interleaved: string[] = [];
   let sequence: string[] = [];
   let retry: Dictionary<number> = {};
-  let any: boolean = false;
+  let choice: boolean = false;
   class RTNotationTreeWalker extends RTRegexListener {
     exitGId = (ctx: GIdContext) => {
       id = `${ctx._t.text}${ctx.id().getText()}`;
@@ -95,8 +95,8 @@ export const getGoalDetail = ({
       const amountOfRetries = ctx.FLOAT().getText();
       retry = { ...retry, [goalToRetry]: parseInt(amountOfRetries) };
     };
-    exitGAny = (ctx: GAnyContext) => {
-      any = ctx._op.text === '+';
+    exitGChoice = (ctx: GChoiceContext) => {
+      choice = ctx._op.text === '+';
     };
   }
 
@@ -143,11 +143,11 @@ export const getGoalDetail = ({
     };
   }
 
-  if (any) {
+  if (choice) {
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'any', retryMap: retry },
+      executionDetail: { type: 'choice', retryMap: retry },
     };
   }
 

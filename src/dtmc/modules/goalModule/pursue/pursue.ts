@@ -55,8 +55,19 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 'OR relation to children with sequence execution detail is not supported'
               );
             }
-            case 'any': {
-              const pursueCondition = pursueAnyGoal(goal, child.id);
+            case 'choice': {
+              const children = goal.children?.map((child) => child.id);
+              if (!children) {
+                throw new Error(
+                  'OR relation to children with choice without children is not supported'
+                );
+              }
+
+              const pursueCondition = pursueAlternativeGoal(
+                goal,
+                children,
+                child.id
+              );
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             case 'degradation': {
@@ -68,11 +79,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             case 'alternative': {
-              const pursueCondition = pursueAlternativeGoal(
-                goal,
-                goal.executionDetail.alternative,
-                child.id
-              );
+              const pursueCondition = pursueAnyGoal(goal, child.id);
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             default:
@@ -102,9 +109,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 'AND relation to children with alternative execution detail is not supported'
               );
             }
-            case 'any': {
+            case 'choice': {
               throw new Error(
-                'AND relation to children with any execution detail is not supported'
+                'AND relation to children with choice execution detail is not supported'
               );
             }
             default:

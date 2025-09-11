@@ -20,7 +20,7 @@ expr:
 	| expr op = '#' expr						# gInterleaved
 	| expr op = ';' expr						# gSequence
 	| expr op = '->' expr						# gDegradation
-	| op = '+'									# gAny
+	| op = '+'									# gChoice
 	| SKIPP										# gSkip;
 
 id: FLOAT | FLOAT X | X | DIGIT_SUBID;
