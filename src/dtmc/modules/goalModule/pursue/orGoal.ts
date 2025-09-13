@@ -1,3 +1,4 @@
+import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { chosenVariable } from '../../../common';
@@ -17,7 +18,7 @@ module G1 //non-idempotent, a.k.a choose once!
 endmodule
 */
 
-export const pursueAlternativeGoal = (
+export const pursueChoiceGoal = (
   goal: GoalNode,
   alternative: string[],
   currentChildId: string
@@ -27,6 +28,8 @@ export const pursueAlternativeGoal = (
       `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`
     );
   }
+
+  const { choice: choiceLogger } = getLogger().pursue.executionDetail;
 
   if (goal.relationToChildren === 'or') {
     const otherGoals = alternative.filter(
@@ -39,6 +42,7 @@ export const pursueAlternativeGoal = (
       })
       .join(separator('and'));
 
+    choiceLogger(currentChildId, otherGoals, notChosen);
     return notChosen;
   }
   return '';
@@ -54,17 +58,23 @@ export const pursueDegradationGoal = (
       `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`
     );
   }
+  const { degradation: degradationLogger } = getLogger().pursue.executionDetail;
 
   if (goal.relationToChildren === 'or') {
     const otherGoals = degradationList.filter(
       (goalId) => goalId !== currentChildId
     );
+    degradationLogger.init(currentChildId, degradationList);
     return otherGoals
       .map((goalId) => {
         const defaultCondition = beenPursued(goalId, { condition: false });
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
+
+        if (maybeRetry) {
+          degradationLogger.retry(currentChildId, goalId, maybeRetry);
+        }
 
         return [defaultCondition, retryCondition]
           .filter(Boolean)
@@ -76,12 +86,19 @@ export const pursueDegradationGoal = (
   return '';
 };
 
-export const pursueAnyGoal = (
+// chooses either one of the children always
+export const pursueAlternativeGoal = (
   goal: GoalNode,
   currentChildId: string
 ): string => {
   const children = goal.children?.length ? goal.children : goal.tasks ?? [];
   const otherGoals = children.filter((child) => child.id !== currentChildId);
+  const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
+
+  alternativeLogger(
+    currentChildId,
+    otherGoals.map((child) => child.id)
+  );
 
   return otherGoals
     .map((child) => {

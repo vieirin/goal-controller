@@ -1,3 +1,4 @@
+import { getLogger } from '../logger/logger';
 import { GoalNode, GoalTree } from '../ObjectiveTree/types';
 import { allByType, cartesianProduct } from '../ObjectiveTree/utils';
 
@@ -15,7 +16,7 @@ export const decisionVariablesForGoal = ({ goal }: { goal: GoalNode }) => {
   const variableArray = goal.decisionVars.map((decision) => decision.variable);
 
   const decisionVars = cartesianProduct(...spaceArray);
-  return [variableArray, decisionVars] as const;
+  return [variableArray, decisionVars, spaceArray] as const;
 };
 
 export const decisionVariableName = (
@@ -29,13 +30,20 @@ export const decisionVariableName = (
 };
 
 export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
+  const logger = getLogger();
   const decisionVariables: string[] = [];
   const allGoals = allByType({ gm, type: 'goal' });
-  allGoals.forEach((goal) => {
-    if (!goal.decisionVars.length) {
-      return;
-    }
-    const [vars, decisionVars] = decisionVariablesForGoal({ goal });
+
+  const goalsWithDecisionVariables = allGoals.filter(
+    (goal) => goal.decisionVars.length
+  );
+  goalsWithDecisionVariables.forEach((goal) => {
+    const [vars, decisionVars, spaceArray] = decisionVariablesForGoal({ goal });
+
+    spaceArray.forEach((space, i) => {
+      logger.decisionVariable([vars[i]!, space.length]);
+    });
+
     for (const variableCombination of decisionVars) {
       const variable = `const int ${decisionVariableName(
         goal.id,

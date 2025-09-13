@@ -1,5 +1,7 @@
+import { getLogger } from '../../../logger/logger';
 import { achieved, failed, pursued, separator } from '../../../mdp/common';
 import { GoalNodeWithParent, Relation } from '../../../ObjectiveTree/types';
+import { childrenWithTasksAndResources } from '../../../ObjectiveTree/utils';
 import {
   achievedVariable,
   chosenVariable,
@@ -43,15 +45,24 @@ const achieveStatement = (goal: GoalNodeWithParent) => {
 };
 
 export const goalModule = (goal: GoalNodeWithParent) => {
+  const logger = getLogger();
+  logger.initGoal(goal);
+
+  const defineVariable = (variable: string, upperBound: number) => {
+    logger.variableDefinition(variable, upperBound);
+    return `${variable} : [0..${upperBound}] init 0;`;
+  };
+
   return `module ${goal.id}
 
-  ${pursuedVariable(goal.id)} : [0..1] init 0;
-  ${achievedVariable(goal.id)} : [0..1] init 0;
+  ${defineVariable(pursuedVariable(goal.id), 1)}
+  ${defineVariable(achievedVariable(goal.id), 1)}
   ${
-    goal.executionDetail?.type === 'alternative'
-      ? `${chosenVariable(goal.id)} : [0..${
-          goal.executionDetail.alternative.length
-        }] init 0;`
+    goal.executionDetail?.type === 'choice'
+      ? `${defineVariable(
+          chosenVariable(goal.id),
+          childrenWithTasksAndResources({ node: goal }).length
+        )}`
       : ''
   }
   ${

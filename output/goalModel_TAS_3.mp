@@ -67,7 +67,7 @@ module G2
 
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;
-  G2_chosen : [0..2] init 0;
+  
   
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
@@ -106,8 +106,8 @@ module G4
   G4_failed : [0..10] init 0;
 
   [pursue_G4] G4_pursued=0 & G4_achieved=0 & enoughBattery & highReliability -> (G4_pursued'=1);
-  [pursue_G8] G4_pursued=1 & G4_achieved=0 & G6_achieved=1 & G7_achieved=0 & G8_achieved_maintain -> true;
-  [pursue_G9] G4_pursued=1 & G4_achieved=0 & G6_achieved=1 & G7_achieved=0 -> true;
+  [pursue_G8] G4_pursued=1 & G4_achieved=0 & G8_achieved=0 & G8_achieved_maintain -> true;
+  [pursue_G9] G4_pursued=1 & G4_achieved=0 & G8_achieved=1 & G9_achieved=0 -> true;
 
   [achieved_G4] G4_pursued=1 & (G8_achieved=1 & G9_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
   
@@ -173,8 +173,8 @@ module G8
   
 
   [pursue_G8] G8_pursued=0 & G8_achieved=0 & sensorAvailable -> (G8_pursued'=1);
-  [pursue_G10] G8_pursued=1 & G8_achieved=0 & G8_achieved=1 & G9_achieved=0 -> true;
-  [pursue_G11] G8_pursued=1 & G8_achieved=0 & G8_achieved=1 & G9_achieved=0 -> true;
+  [pursue_G10] G8_pursued=1 & G8_achieved=0 & G10_achieved=0 -> true;
+  [pursue_G11] G8_pursued=1 & G8_achieved=0 & G10_achieved=1 & G11_achieved=0 -> true;
 
   [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0) & (G8_achieved'=1);
   
@@ -221,7 +221,7 @@ module G11
 
   G11_pursued : [0..1] init 0;
   G11_achieved : [0..1] init 0;
-  
+  G11_chosen : [0..2] init 0;
   
 
   [pursue_G11] G11_pursued=0 & G11_achieved=0 -> (G11_pursued'=1);
@@ -238,7 +238,7 @@ module G12
 
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;
-  G12_chosen : [0..2] init 0;
+  
   
 
   [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G12_pursued'=1);
@@ -259,8 +259,8 @@ module G13
   
 
   [pursue_G13] G13_pursued=0 & G13_achieved=0 -> (G13_pursued'=1);
-  [pursue_G18] G13_pursued=1 & G13_achieved=0 & G14_achieved=1 & G15_achieved=0 & G18_achieved_maintain -> true;
-  [pursue_G19] G13_pursued=1 & G13_achieved=0 & G14_achieved=1 & G15_achieved=0 & G19_achieved_maintain -> true;
+  [pursue_G18] G13_pursued=1 & G13_achieved=0 & G18_achieved=0 & G18_achieved_maintain -> true;
+  [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved=1 & G19_achieved=0 & G19_achieved_maintain -> true;
 
   [achieved_G13] G13_pursued=1 & (G18_achieved=1 & G19_achieved=1) -> (G13_pursued'=0) & (G13_achieved'=1);
   
@@ -354,7 +354,7 @@ module G19
 
   G19_pursued : [0..1] init 0;
   G19_achieved : [0..1] init 0;
-  
+  G19_chosen : [0..2] init 0;
   
 
   [pursue_G19] G19_pursued=0 & G19_achieved=0 & inEmergency -> (G19_pursued'=1);

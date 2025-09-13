@@ -1,3 +1,4 @@
+import { initLogger } from '../logger/logger';
 import { GoalTreeWithParent } from '../ObjectiveTree/types';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -11,6 +12,7 @@ export const edgeDTMCTemplate = ({
   gm: GoalTreeWithParent;
   fileName: string;
 }) => {
+  initLogger(fileName);
   return `dtmc
 
 ${decisionVariablesTemplate({ gm })}

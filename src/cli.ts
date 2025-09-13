@@ -18,6 +18,12 @@ const mainMenu = async () => {
     { name: 'Input default variables', value: 'variables' },
   ];
 
+  console.log(process.env.MODE, lastSelectedModel);
+  if (process.env.MODE === 'last' && lastSelectedModel) {
+    await runModel(lastSelectedModel);
+    return;
+  }
+
   // Add "Run last selected model" option if it exists
   if (lastSelectedModel) {
     const fileName = lastSelectedModel.split('/').pop() || 'unknown';

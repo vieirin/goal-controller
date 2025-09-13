@@ -1,3 +1,4 @@
+import { getLogger } from '../../../../logger/logger';
 import { separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenAchieved } from './common';
@@ -30,6 +31,9 @@ export const pursueAndSequentialGoal = (
       ...rightGoals.map((goal) => beenAchieved(goal, { condition: false })),
     ].join(separator('and'));
   };
+
+  const { sequence: sequenceLogger } = getLogger().pursue.executionDetail;
+  sequenceLogger(goal.id, childId, leftGoals, rightGoals);
 
   if (goal.relationToChildren === 'and') {
     return resolveAndGoal();

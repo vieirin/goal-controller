@@ -1,10 +1,11 @@
+import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import {
   pursueAlternativeGoal,
-  pursueAnyGoal,
+  pursueChoiceGoal,
   pursueDegradationGoal,
 } from './orGoal';
 
@@ -17,34 +18,66 @@ const goalDependencyStatement = (goal: GoalNode) => {
 };
 
 export const pursueStatements = (goal: GoalNode): string[] => {
+  const logger = getLogger();
+  const pursueLogger = logger.pursue;
+
   const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
   const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
     .map((child, _): [GoalNode, { left: string; right: string }] => {
-      const leftStatement =
-        `[pursue_${child.id}] ${pursued(goal.id)}=${
-          isItself(child) ? 0 : 1
-        } & ${achieved(goal.id)}=0` + goalDependencyStatement(goal);
+      const itself = isItself(child);
+      pursueLogger.pursue(child, 1);
+
+      const calcLeftStatement = () => {
+        const statement = `[pursue_${child.id}] ${pursued(goal.id)}=${
+          itself ? 0 : 1
+        } & ${achieved(goal.id)}=0`;
+        pursueLogger.defaultPursueCondition(statement);
+
+        const dependencyStatement = goalDependencyStatement(goal);
+        pursueLogger.goalDependency(goal.id, goal.customProperties.dependsOn);
+
+        return statement + dependencyStatement;
+      };
+
+      const calcRightStatement = () => {
+        if (itself) {
+          const update = `(${pursued(goal.id)}'=1)`;
+          pursueLogger.update(update);
+          return update;
+        }
+        pursueLogger.update('true');
+        return 'true';
+      };
 
       if (isItself(child)) {
         return [
           child,
           {
-            left: leftStatement,
-            right: `(${pursued(goal.id)}'=1)`,
+            left: calcLeftStatement(),
+            right: calcRightStatement(),
           },
         ] as const;
       }
 
-      return [child, { left: leftStatement, right: 'true' }] as const;
+      return [
+        child,
+        { left: calcLeftStatement(), right: calcRightStatement() },
+      ] as const;
     })
     .map(
       ([child, { left, right }]): [
         GoalNode,
         { left: string; right: string },
       ] => {
+        pursueLogger.pursue(child, 2);
+
         if (isItself(child)) {
           // skip itself
+          logger.info(
+            '[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step',
+            2
+          );
           return [child, { left, right }];
         }
 
@@ -63,7 +96,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
               }
 
-              const pursueCondition = pursueAlternativeGoal(
+              const pursueCondition = pursueChoiceGoal(
                 goal,
                 children,
                 child.id
@@ -79,10 +112,14 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             case 'alternative': {
-              const pursueCondition = pursueAnyGoal(goal, child.id);
+              const pursueCondition = pursueAlternativeGoal(goal, child.id);
               return [child, { left: left + ` & ${pursueCondition}`, right }];
             }
             default:
+              logger.info(
+                `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                2
+              );
               return [child, { left, right }];
           }
         }
@@ -114,11 +151,25 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 'AND relation to children with choice execution detail is not supported'
               );
             }
+            case 'interleaved': {
+              pursueLogger.executionDetail.interleaved();
+              // interleaved goals fall under the default case
+              return [child, { left, right }];
+            }
             default:
+              logger.info(
+                `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                2
+              );
               // interleaved goals fall under the default case
               return [child, { left, right }];
           }
         }
+
+        logger.info(
+          `[EXECUTION DETAIL: ERROR] ${goal.id} is not an OR or AND goal`,
+          2
+        );
 
         return [child, { left, right }];
       }
