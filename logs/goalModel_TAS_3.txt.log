@@ -6,8 +6,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: interleaved
-	[VARIABLE DEFINITION] G0_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G0_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G0_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G0_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G0 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G0] G0_pursued=0 & G0_achieved=0
 		[UPDATE] (G0_pursued'=1)
@@ -58,8 +58,8 @@
 	Type: achieve
 	Relation to children: or
 	Execution detail: degradation
-	[VARIABLE DEFINITION] G1_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G1_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G1_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G1_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G1 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G1] G1_pursued=0 & G1_achieved=0
 		[UPDATE] (G1_pursued'=1)
@@ -111,8 +111,8 @@
 	Type: maintain
 	Relation to children: or
 	Execution detail: alternative
-	[VARIABLE DEFINITION] G2_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G2_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G2_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G2_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G2 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G2] G2_pursued=0 & G2_achieved=0
 		[GOAL DEPENDENCY] G2: G4
@@ -166,8 +166,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G3_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G3_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G3_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G3_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G3 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G3] G3_pursued=0 & G3_achieved=0
 		[UPDATE] (G3_pursued'=1)
@@ -206,8 +206,8 @@
 	Type: maintain
 	Relation to children: and
 	Execution detail: sequence
-	[VARIABLE DEFINITION] G4_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G4_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G4_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G4_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G4 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G4] G4_pursued=0 & G4_achieved=0
 		[UPDATE] (G4_pursued'=1)
@@ -262,8 +262,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G5_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G5_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G5_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G5_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G5 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G5] G5_pursued=0 & G5_achieved=0
 		[UPDATE] (G5_pursued'=1)
@@ -302,8 +302,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G6_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G6_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G6_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G6_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G6 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G6] G6_pursued=0 & G6_achieved=0
 		[UPDATE] (G6_pursued'=1)
@@ -342,8 +342,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G7_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G7_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G7_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G7_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G7 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G7] G7_pursued=0 & G7_achieved=0
 		[UPDATE] (G7_pursued'=1)
@@ -382,8 +382,8 @@
 	Type: maintain
 	Relation to children: and
 	Execution detail: sequence
-	[VARIABLE DEFINITION] G8_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G8_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G8_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G8_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G8 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G8] G8_pursued=0 & G8_achieved=0
 		[UPDATE] (G8_pursued'=1)
@@ -438,8 +438,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: sequence
-	[VARIABLE DEFINITION] G9_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G9_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G9_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G9_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G9 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G9] G9_pursued=0 & G9_achieved=0
 		[UPDATE] (G9_pursued'=1)
@@ -494,8 +494,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G10_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G10_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G10_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G10_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G10 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G10] G10_pursued=0 & G10_achieved=0
 		[UPDATE] (G10_pursued'=1)
@@ -534,9 +534,9 @@
 	Type: achieve
 	Relation to children: or
 	Execution detail: choice
-	[VARIABLE DEFINITION] G11_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G11_achieved; upper bound: 1
-	[VARIABLE DEFINITION] G11_chosen; upper bound: 2
+	[VARIABLE DEFINITION] G11_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G11_achieved; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G11_chosen; initial value: 0; upper bound: 2; type: int
 	[PURSUE GENERATION] G11 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G11] G11_pursued=0 & G11_achieved=0
 		[UPDATE] (G11_pursued'=1)
@@ -593,8 +593,8 @@
 	Type: achieve
 	Relation to children: or
 	Execution detail: alternative
-	[VARIABLE DEFINITION] G12_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G12_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G12_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G12_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G12 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G12] G12_pursued=0 & G12_achieved=0
 		[GOAL DEPENDENCY] G12: G9
@@ -648,8 +648,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: sequence
-	[VARIABLE DEFINITION] G13_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G13_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G13_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G13_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G13 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G13] G13_pursued=0 & G13_achieved=0
 		[UPDATE] (G13_pursued'=1)
@@ -704,8 +704,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G14_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G14_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G14_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G14_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G14 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G14] G14_pursued=0 & G14_achieved=0
 		[UPDATE] (G14_pursued'=1)
@@ -744,8 +744,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G15_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G15_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G15_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G15_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G15 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G15] G15_pursued=0 & G15_achieved=0
 		[UPDATE] (G15_pursued'=1)
@@ -784,8 +784,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G16_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G16_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G16_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G16_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G16 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G16] G16_pursued=0 & G16_achieved=0
 		[UPDATE] (G16_pursued'=1)
@@ -824,8 +824,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G17_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G17_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G17_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G17_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G17 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G17] G17_pursued=0 & G17_achieved=0
 		[UPDATE] (G17_pursued'=1)
@@ -864,8 +864,8 @@
 	Type: maintain
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G18_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G18_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G18_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G18_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G18 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G18] G18_pursued=0 & G18_achieved=0
 		[UPDATE] (G18_pursued'=1)
@@ -904,9 +904,9 @@
 	Type: achieve
 	Relation to children: or
 	Execution detail: choice
-	[VARIABLE DEFINITION] G19_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G19_achieved; upper bound: 1
-	[VARIABLE DEFINITION] G19_chosen; upper bound: 2
+	[VARIABLE DEFINITION] G19_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G19_achieved; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G19_chosen; initial value: 0; upper bound: 2; type: int
 	[PURSUE GENERATION] G19 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G19] G19_pursued=0 & G19_achieved=0
 		[UPDATE] (G19_pursued'=1)
@@ -963,8 +963,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G20_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G20_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G20_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G20_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G20 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G20] G20_pursued=0 & G20_achieved=0
 		[UPDATE] (G20_pursued'=1)
@@ -1003,8 +1003,8 @@
 	Type: achieve
 	Relation to children: and
 	Execution detail: none
-	[VARIABLE DEFINITION] G21_pursued; upper bound: 1
-	[VARIABLE DEFINITION] G21_achieved; upper bound: 1
+	[VARIABLE DEFINITION] G21_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G21_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G21 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G21] G21_pursued=0 & G21_achieved=0
 		[UPDATE] (G21_pursued'=1)
@@ -1037,10 +1037,11 @@
 		[UPDATE] (G21_pursued'=0);
 		PRISM statement: [skip_G21] G21_pursued=1 & T11_pursued=0 -> (G21_pursued'=0);
 	[END OF SKIP]
+[CHANGE MANAGER MODULE START]
 [INIT TASK] T1: Trigger alarm by pushing emergency button
 	Resources: none
-	[VARIABLE DEFINITION] T1_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T1_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T1_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T1_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T1 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1058,8 +1059,8 @@
 	[END OF FAILED]
 [INIT TASK] T10: Enact SMS Service
 	Resources: R2
-	[VARIABLE DEFINITION] T10_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T10_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T10_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T10_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T10 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1077,8 +1078,8 @@
 	[END OF FAILED]
 [INIT TASK] T11: Enact alarm service
 	Resources: none
-	[VARIABLE DEFINITION] T11_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T11_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T11_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T11_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T11 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1096,8 +1097,8 @@
 	[END OF FAILED]
 [INIT TASK] T2: Perform Manual Tracking
 	Resources: none
-	[VARIABLE DEFINITION] T2_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T2_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T2_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T2_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T2 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1115,8 +1116,8 @@
 	[END OF FAILED]
 [INIT TASK] T3: Perform Automatic Tracking
 	Resources: R1
-	[VARIABLE DEFINITION] T3_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T3_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T3_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T3_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T3 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1134,8 +1135,8 @@
 	[END OF FAILED]
 [INIT TASK] T4: Send sensed data
 	Resources: R0
-	[VARIABLE DEFINITION] T4_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T4_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T4_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T4_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T4 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1153,9 +1154,9 @@
 	[END OF FAILED]
 [INIT TASK] T5: Perform remote analysis
 	Resources: none
-	[VARIABLE DEFINITION] T5_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T5_achieved; upper bound: 1
-	[VARIABLE DEFINITION] T5_failed; upper bound: 8
+	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T5_achieved; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T5_failed; initial value: 0; upper bound: 8; type: int
 	[PURSUE] Task T5 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1168,13 +1169,14 @@
 	[END OF ACHIEVE]
 	[FAILED] Task T5 skipped label
 		[CONDITION] T5_pursued=1 & T5_achieved=0
+		[MAX RETRIES] 8
 		[UPDATE] (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1))
 		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1));
 	[END OF FAILED]
 [INIT TASK] T6: Perform local analysis
 	Resources: none
-	[VARIABLE DEFINITION] T6_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T6_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T6_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T6_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T6 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1192,8 +1194,8 @@
 	[END OF FAILED]
 [INIT TASK] T7: Apply drug change
 	Resources: R4
-	[VARIABLE DEFINITION] T7_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T7_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T7_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T7_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T7 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1211,8 +1213,8 @@
 	[END OF FAILED]
 [INIT TASK] T8: Apply dose change
 	Resources: R4, R5
-	[VARIABLE DEFINITION] T8_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T8_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T8_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T8_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T8 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1230,8 +1232,8 @@
 	[END OF FAILED]
 [INIT TASK] T9: Apply side effect monitor
 	Resources: R3
-	[VARIABLE DEFINITION] T9_pursued; upper bound: 1
-	[VARIABLE DEFINITION] T9_achieved; upper bound: 1
+	[VARIABLE DEFINITION] T9_pursued; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T9_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T9 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1247,3 +1249,21 @@
 		[UPDATE] (T9_pursued'=0)
 		PRISM statement: [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
 	[END OF FAILED]
+[INIT SYSTEM MODULE]
+	[VARIABLE DEFINITION] R0; initial value: true; type: boolean
+	[VARIABLE DEFINITION] R1; initial value: 50; upper bound: 100; type: int
+	[VARIABLE DEFINITION] R2; initial value: 50; upper bound: 100; type: int
+	[VARIABLE DEFINITION] R3; initial value: true; type: boolean
+	[VARIABLE DEFINITION] R4; initial value: 1; lower bound: 1; upper bound: 4; type: int
+	[VARIABLE DEFINITION] R5; initial value: 0; upper bound: 10; type: int
+	[VARIABLE DEFINITION] pharmacyAvailable; initial value: true; type: boolean
+	[VARIABLE DEFINITION] atHome; initial value: false; type: boolean
+	[VARIABLE DEFINITION] inSideEffectWindow; initial value: false; type: boolean
+	[VARIABLE DEFINITION] medicationApplied; initial value: false; type: boolean
+	[VARIABLE DEFINITION] inEmergency; initial value: false; type: boolean
+	[VARIABLE DEFINITION] highPrecision; initial value: false; type: boolean
+	[VARIABLE DEFINITION] patientTracking; initial value: false; type: boolean
+	[VARIABLE DEFINITION] privacyEnabled; initial value: false; type: boolean
+	[VARIABLE DEFINITION] enoughBattery; initial value: true; type: boolean
+	[VARIABLE DEFINITION] highReliability; initial value: false; type: boolean
+	[VARIABLE DEFINITION] sensorAvailable; initial value: true; type: boolean

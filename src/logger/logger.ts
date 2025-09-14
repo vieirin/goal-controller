@@ -52,17 +52,24 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         }\n`
       );
     },
+    initSystem: () => {
+      write(`[INIT SYSTEM MODULE]\n`);
+    },
     taskTranstions: {
       transition: (
         taskId: string,
         leftStatement: string,
         updateStatement: string,
         prismLabelStatement: string,
-        transition: 'pursue' | 'achieve' | 'failed'
+        transition: 'pursue' | 'achieve' | 'failed',
+        maxRetries?: number
       ) => {
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
         write(`\t\t[CONDITION] ${leftStatement}\n`);
+        if (maxRetries) {
+          write(`\t\t[MAX RETRIES] ${maxRetries}\n`);
+        }
         write(`\t\t[UPDATE] ${updateStatement}\n`);
         write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
         write(`\t[END OF ${transitionLogLabel}]\n`);
@@ -194,9 +201,29 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
       write(`\t[END OF SKIP]\n`);
     },
-    variableDefinition: (variable: string, upperBound: number) => {
+    variableDefinition: ({
+      variable,
+      initialValue,
+      upperBound,
+      lowerBound,
+      type = 'int',
+    }: {
+      variable: string;
+      initialValue: number | boolean;
+      upperBound?: number | boolean;
+      lowerBound?: number | boolean;
+      type?: 'boolean' | 'int';
+    }) => {
+      if (type === 'boolean') {
+        write(
+          `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; type: ${type}\n`
+        );
+        return;
+      }
       write(
-        `\t[VARIABLE DEFINITION] ${variable}; upper bound: ${upperBound}\n`
+        `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; ${
+          lowerBound ? `lower bound: ${lowerBound}; ` : ''
+        }${upperBound ? `upper bound: ${upperBound};` : ''} type: ${type}\n`
       );
     },
     executionDetail: (executionDetail: GoalExecutionDetail) => {

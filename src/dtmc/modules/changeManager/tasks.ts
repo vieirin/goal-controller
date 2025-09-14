@@ -58,7 +58,8 @@ const failedTask = (task: GoalNode) => {
     leftStatement,
     updateStatement,
     prismLabelStatement,
-    'failed'
+    'failed',
+    task.customProperties.maxRetries
   );
   return prismLabelStatement;
 };
@@ -69,18 +70,35 @@ const maxRetriesVariable = (task: GoalNode) => {
   }
   const logger = getLogger();
 
-  logger.variableDefinition(failed(task.id), task.customProperties.maxRetries);
+  logger.variableDefinition({
+    variable: failed(task.id),
+    upperBound: task.customProperties.maxRetries,
+    initialValue: 0,
+    type: 'int',
+  });
   return `${failed(task.id)}: [0..${task.customProperties.maxRetries}] init 0;`;
+};
+
+const defineVariable = (variable: string) => {
+  const upperBound = 1;
+
+  const logger = getLogger();
+  logger.variableDefinition({
+    variable,
+    upperBound,
+    initialValue: 0,
+    type: 'int',
+  });
+  return `${variable} : [0..${upperBound}] init 0;`;
 };
 
 export const taskVariables = (task: GoalNode) => {
   const logger = getLogger();
   logger.initTask(task);
-  logger.variableDefinition(pursuedVariable(task.id), 1);
-  logger.variableDefinition(achievedVariable(task.id), 1);
+
   return `
-  ${pursuedVariable(task.id)} : [0..1] init 0;
-  ${achievedVariable(task.id)} : [0..1] init 0;
+  ${defineVariable(pursuedVariable(task.id))}
+  ${defineVariable(achievedVariable(task.id))}
   ${maxRetriesVariable(task)}
 `.trimEnd();
 };

@@ -56,7 +56,12 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   logger.initGoal(goal);
 
   const defineVariable = (variable: string, upperBound: number) => {
-    logger.variableDefinition(variable, upperBound);
+    logger.variableDefinition({
+      variable,
+      upperBound,
+      initialValue: 0,
+      type: 'int',
+    });
     return `${variable} : [0..${upperBound}] init 0;`;
   };
 
