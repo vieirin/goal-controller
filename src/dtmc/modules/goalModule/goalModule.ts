@@ -32,16 +32,23 @@ const achieveCondition = (goal: GoalNodeWithParent) => {
 };
 
 const achieveStatement = (goal: GoalNodeWithParent) => {
+  const logger = getLogger();
+
   const leftStatement = [
     beenPursued(goal.id, { condition: true }),
-    ...[achieveCondition(goal)],
+    achieveCondition(goal),
   ]
     .filter(Boolean)
     .join(separator('and'));
 
-  return `[achieved_${goal.id}] ${leftStatement} -> (${pursued(
+  const updateStatement = `(${pursued(goal.id)}'=0) & (${achieved(
     goal.id
-  )}'=0) & (${achieved(goal.id)}'=1);`;
+  )}'=1);`;
+
+  const prismLabelStatement = `[achieved_${goal.id}] ${leftStatement} -> ${updateStatement}`;
+
+  logger.achieve(goal.id, leftStatement, updateStatement, prismLabelStatement);
+  return prismLabelStatement;
 };
 
 export const goalModule = (goal: GoalNodeWithParent) => {

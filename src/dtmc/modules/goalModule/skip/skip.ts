@@ -1,3 +1,4 @@
+import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
 import type { GoalNodeWithParent } from '../../../../ObjectiveTree/types';
 
@@ -14,7 +15,13 @@ const childrenHasNotBeenPursued = (goal: GoalNodeWithParent) => {
 };
 
 export const skipStatement = (goal: GoalNodeWithParent) => {
-  return `[skip_${goal.id}] ${pursued(goal.id)}=1 & ${childrenHasNotBeenPursued(
+  const logger = getLogger();
+  const leftStatement = `${pursued(goal.id)}=1 & ${childrenHasNotBeenPursued(
     goal
-  )} -> (${pursued(goal.id)}'=0);`;
+  )}`;
+  const updateStatement = `(${pursued(goal.id)}'=0);`;
+  const prismLabelStatement = `[skip_${goal.id}] ${leftStatement} -> ${updateStatement}`;
+
+  logger.skip(goal.id, leftStatement, updateStatement, prismLabelStatement);
+  return prismLabelStatement;
 };

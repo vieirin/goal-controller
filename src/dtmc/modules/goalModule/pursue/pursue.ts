@@ -64,7 +64,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           },
         ] as const;
       }
-      logger.stepStatement(1, left, right);
+      pursueLogger.stepStatement(1, left, right);
 
       return [child, { left, right }] as const;
     })
@@ -182,7 +182,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
         const executionDetail = calcExecutionDetail();
 
-        logger.stepStatement(
+        pursueLogger.stepStatement(
           2,
           executionDetail[1].left,
           executionDetail[1].right
@@ -211,7 +211,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         pursueLogger.executionDetail.noActivationContext(child.id);
       }
 
-      logger.stepStatement(3, left, statement.right);
+      pursueLogger.stepStatement(3, left, statement.right);
       return [
         child,
         {

@@ -17,10 +17,6 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
   };
 
   return {
-    stepStatement: (step: number, left: string, right: string) => {
-      write(`\t\tPRISM statement: ${left} -> ${right}\n`);
-      write(`\t[END OF STEP ${step}]\n`);
-    },
     decisionVariable: (decisionVariable: [string, number]) => {
       write(
         `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`
@@ -143,6 +139,34 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           );
         },
       },
+      stepStatement: (step: number, left: string, right: string) => {
+        write(`\t\tPRISM statement: ${left} -> ${right}\n`);
+        write(`\t[END OF STEP ${step}]\n`);
+      },
+    },
+    achieve: (
+      goalId: string,
+      condition: string,
+      update: string,
+      prismLabelStatement: string
+    ) => {
+      write(`\t[ACHIEVE] Goal ${goalId} achieved label\n`);
+      write(`\t\t[CONDITION] ${condition}\n`);
+      write(`\t\t[UPDATE] ${update}\n`);
+      write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
+      write(`\t[END OF ACHIEVE]\n`);
+    },
+    skip: (
+      goalId: string,
+      leftStatement: string,
+      updateStatement: string,
+      prismLabelStatement: string
+    ) => {
+      write(`\t[SKIP] Goal ${goalId} skipped label\n`);
+      write(`\t\t[CONDITION] ${leftStatement}\n`);
+      write(`\t\t[UPDATE] ${updateStatement}\n`);
+      write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
+      write(`\t[END OF SKIP]\n`);
     },
     variableDefinition: (variable: string, upperBound: number) => {
       write(
