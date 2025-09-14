@@ -1,3 +1,4 @@
+import { getLogger } from '../logger/logger';
 import type { GoalNodeWithParent } from '../ObjectiveTree/types';
 
 export const achievedMaintain = (goalId: string) => {
@@ -8,7 +9,16 @@ export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
   if (!goal.execCondition?.maintain) {
     return '';
   }
-  return `formula ${achievedMaintain(goal.id)} = ${
+  const logger = getLogger();
+
+  const prismLine = `formula ${achievedMaintain(goal.id)} = ${
     goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED'
   };`;
+
+  logger.formulaDefinition(
+    achievedMaintain(goal.id),
+    goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED',
+    prismLine
+  );
+  return prismLine;
 };

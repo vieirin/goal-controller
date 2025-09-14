@@ -160,6 +160,8 @@
 		[UPDATE] (G2_pursued'=0);
 		PRISM statement: [skip_G2] G2_pursued=1 & G5_pursued=0 & G6_pursued=0 -> (G2_pursued'=0);
 	[END OF SKIP]
+	[FORMULA DEFINITION] G2_achieved_maintain; guard statement: highPrecision
+		PRISM statement: formula G2_achieved_maintain = highPrecision;
 [INIT GOAL] G3: Self-diagnosed emergency support service
 	Children: G7
 	Tasks: none
@@ -256,6 +258,8 @@
 		[UPDATE] (G4_pursued'=0);
 		PRISM statement: [skip_G4] G4_pursued=1 & G8_pursued=0 & G9_pursued=0 -> (G4_pursued'=0);
 	[END OF SKIP]
+	[FORMULA DEFINITION] G4_achieved_maintain; guard statement: inEmergency
+		PRISM statement: formula G4_achieved_maintain = inEmergency;
 [INIT GOAL] G5: Manual Tracking
 	Children: none
 	Tasks: T2
@@ -432,6 +436,8 @@
 		[UPDATE] (G8_pursued'=0);
 		PRISM statement: [skip_G8] G8_pursued=1 & G10_pursued=0 & G11_pursued=0 -> (G8_pursued'=0);
 	[END OF SKIP]
+	[FORMULA DEFINITION] G8_achieved_maintain; guard statement: enoughBattery & highReliability
+		PRISM statement: formula G8_achieved_maintain = enoughBattery & highReliability;
 [INIT GOAL] G9: Enact treatment
 	Children: G13, G12
 	Tasks: none
@@ -898,6 +904,8 @@
 		[UPDATE] (G18_pursued'=0);
 		PRISM statement: [skip_G18] G18_pursued=1 & T9_pursued=0 -> (G18_pursued'=0);
 	[END OF SKIP]
+	[FORMULA DEFINITION] G18_achieved_maintain; guard statement: inSideEffectWindow
+		PRISM statement: formula G18_achieved_maintain = inSideEffectWindow;
 [INIT GOAL] G19: Trigger Alarm Service
 	Children: G20, G21
 	Tasks: none

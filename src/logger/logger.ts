@@ -55,6 +55,16 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
     initSystem: () => {
       write(`[INIT SYSTEM MODULE]\n`);
     },
+    formulaDefinition: (
+      formula: string,
+      sentence: string,
+      prismLine: string
+    ) => {
+      write(
+        `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`
+      );
+      write(`\t\tPRISM statement: ${prismLine}\n`);
+    },
     taskTranstions: {
       transition: (
         taskId: string,
