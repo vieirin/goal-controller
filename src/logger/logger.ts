@@ -17,6 +17,10 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
   };
 
   return {
+    stepStatement: (step: number, left: string, right: string) => {
+      write(`\t\tPRISM statement: ${left} -> ${right}\n`);
+      write(`\t[END OF STEP ${step}]\n`);
+    },
     decisionVariable: (decisionVariable: [string, number]) => {
       write(
         `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`
@@ -123,17 +127,20 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
             )}\n`
           );
         },
-
         interleaved: () => {
           write(
             `\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n`
           );
         },
-        decisionMaking: (decisionMaking: string[]) => {
-          write(`\t\t[DECISION MAKING] ${decisionMaking.join(', ')}\n`);
+        activationContext: (sentence: string) => {
+          write(
+            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${sentence}\n`
+          );
         },
-        none: () => {
-          write(`\t\t[NONE]\n`);
+        noActivationContext: (goalId: string) => {
+          write(
+            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${goalId} has no activation context\n`
+          );
         },
       },
     },

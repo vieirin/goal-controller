@@ -54,7 +54,7 @@ module G1
   
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
-  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_pursued=0 & G4_failed >= 2 & G3_achieved_maintain -> true;
+  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_pursued=0 & G4_failed >= 2 -> true;
   [pursue_G4] G1_pursued=1 & G1_achieved=0 & G3_pursued=0 & G4_achieved_maintain -> true;
 
   [achieved_G1] G1_pursued=1 & (G3_achieved=1 | G4_achieved=1) -> (G1_pursued'=0) & (G1_achieved'=1);
@@ -71,8 +71,8 @@ module G2
   
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
-  [pursue_G5] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & G6_pursued=0 & G5_achieved_maintain -> true;
-  [pursue_G6] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & G5_pursued=0 & G6_achieved_maintain -> true;
+  [pursue_G5] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & G6_pursued=0 -> true;
+  [pursue_G6] G2_pursued=1 & G2_achieved=0 & (G4_achieved=1) & G5_pursued=0 -> true;
 
   [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
   
@@ -125,7 +125,7 @@ module G5
   
 
   [pursue_G5] G5_pursued=0 & G5_achieved=0 & privacyEnabled -> (G5_pursued'=1);
-  [pursue_T2] G5_pursued=1 & G5_achieved=0 & T2_achieved_maintain -> true;
+  [pursue_T2] G5_pursued=1 & G5_achieved=0 -> true;
 
   [achieved_G5] G5_pursued=1 & (T2_achieved=1) -> (G5_pursued'=0) & (G5_achieved'=1);
   
@@ -141,7 +141,7 @@ module G6
   
 
   [pursue_G6] G6_pursued=0 & G6_achieved=0 & privacyEnabled=false -> (G6_pursued'=1);
-  [pursue_T3] G6_pursued=1 & G6_achieved=0 & T3_achieved_maintain -> true;
+  [pursue_T3] G6_pursued=1 & G6_achieved=0 -> true;
 
   [achieved_G6] G6_pursued=1 & (T3_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
   
@@ -193,7 +193,7 @@ module G9
 
   [pursue_G9] G9_pursued=0 & G9_achieved=0 -> (G9_pursued'=1);
   [pursue_G13] G9_pursued=1 & G9_achieved=0 & G10_achieved=1 & G13_achieved=0 -> true;
-  [pursue_G12] G9_pursued=1 & G9_achieved=0 & G10_achieved=1 & G13_achieved=0 & G12_achieved_maintain -> true;
+  [pursue_G12] G9_pursued=1 & G9_achieved=0 & G10_achieved=1 & G13_achieved=0 -> true;
 
   [achieved_G9] G9_pursued=1 & (G13_achieved=1 & G12_achieved=1) -> (G9_pursued'=0) & (G9_achieved'=1);
   
@@ -209,7 +209,7 @@ module G10
   
 
   [pursue_G10] G10_pursued=0 & G10_achieved=0 -> (G10_pursued'=1);
-  [pursue_T4] G10_pursued=1 & G10_achieved=0 & T4_achieved_maintain -> true;
+  [pursue_T4] G10_pursued=1 & G10_achieved=0 -> true;
 
   [achieved_G10] G10_pursued=1 & (T4_achieved=1) -> (G10_pursued'=0) & (G10_achieved'=1);
   
@@ -260,7 +260,7 @@ module G13
 
   [pursue_G13] G13_pursued=0 & G13_achieved=0 -> (G13_pursued'=1);
   [pursue_G18] G13_pursued=1 & G13_achieved=0 & G18_achieved=0 & G18_achieved_maintain -> true;
-  [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved=1 & G19_achieved=0 & G19_achieved_maintain -> true;
+  [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved=1 & G19_achieved=0 -> true;
 
   [achieved_G13] G13_pursued=1 & (G18_achieved=1 & G19_achieved=1) -> (G13_pursued'=0) & (G13_achieved'=1);
   
@@ -340,7 +340,7 @@ module G18
   
 
   [pursue_G18] G18_pursued=0 & G18_achieved=0 & medicationApplied -> (G18_pursued'=1);
-  [pursue_T9] G18_pursued=1 & G18_achieved=0 & T9_achieved_maintain -> true;
+  [pursue_T9] G18_pursued=1 & G18_achieved=0 -> true;
 
   [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0) & (G18_achieved'=1);
   
@@ -375,7 +375,7 @@ module G20
   
 
   [pursue_G20] G20_pursued=0 & G20_achieved=0 -> (G20_pursued'=1);
-  [pursue_T10] G20_pursued=1 & G20_achieved=0 & T10_achieved_maintain -> true;
+  [pursue_T10] G20_pursued=1 & G20_achieved=0 -> true;
 
   [achieved_G20] G20_pursued=1 & (T10_achieved=1) -> (G20_pursued'=0) & (G20_achieved'=1);
   
@@ -391,7 +391,7 @@ module G21
   
 
   [pursue_G21] G21_pursued=0 & G21_achieved=0 -> (G21_pursued'=1);
-  [pursue_T11] G21_pursued=1 & G21_achieved=0 & T11_achieved_maintain -> true;
+  [pursue_T11] G21_pursued=1 & G21_achieved=0 -> true;
 
   [achieved_G21] G21_pursued=1 & (T11_achieved=1) -> (G21_pursued'=0) & (G21_achieved'=1);
   

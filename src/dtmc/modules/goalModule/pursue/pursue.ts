@@ -50,139 +50,168 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         return 'true';
       };
 
+      const { left, right } = {
+        left: calcLeftStatement(),
+        right: calcRightStatement(),
+      };
+
       if (isItself(child)) {
         return [
           child,
           {
-            left: calcLeftStatement(),
-            right: calcRightStatement(),
+            left,
+            right,
           },
         ] as const;
       }
+      logger.stepStatement(1, left, right);
 
-      return [
-        child,
-        { left: calcLeftStatement(), right: calcRightStatement() },
-      ] as const;
+      return [child, { left, right }] as const;
     })
     .map(
       ([child, { left, right }]): [
         GoalNode,
         { left: string; right: string },
       ] => {
-        pursueLogger.pursue(child, 2);
+        const calcExecutionDetail = (): [
+          GoalNode,
+          { left: string; right: string },
+        ] => {
+          pursueLogger.pursue(child, 2);
 
-        if (isItself(child)) {
-          // skip itself
+          if (isItself(child)) {
+            // skip itself
+            logger.info(
+              '[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step',
+              2
+            );
+            return [child, { left, right }];
+          }
+
+          if (goal.relationToChildren === 'or') {
+            switch (goal.executionDetail?.type) {
+              case 'sequence': {
+                throw new Error(
+                  'OR relation to children with sequence execution detail is not supported'
+                );
+              }
+              case 'choice': {
+                const children = goal.children?.map((child) => child.id);
+                if (!children) {
+                  throw new Error(
+                    'OR relation to children with choice without children is not supported'
+                  );
+                }
+
+                const pursueCondition = pursueChoiceGoal(
+                  goal,
+                  children,
+                  child.id
+                );
+                return [child, { left: left + ` & ${pursueCondition}`, right }];
+              }
+              case 'degradation': {
+                const pursueCondition = pursueDegradationGoal(
+                  goal,
+                  goal.executionDetail.degradationList,
+                  child.id
+                );
+                return [child, { left: left + ` & ${pursueCondition}`, right }];
+              }
+              case 'alternative': {
+                const pursueCondition = pursueAlternativeGoal(goal, child.id);
+                return [child, { left: left + ` & ${pursueCondition}`, right }];
+              }
+              default:
+                logger.info(
+                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                  2
+                );
+                return [child, { left, right }];
+            }
+          }
+
+          if (goal.relationToChildren === 'and') {
+            // organize pursue conditions by execution detail type
+            switch (goal.executionDetail?.type) {
+              case 'sequence': {
+                const pursueCondition = pursueAndSequentialGoal(
+                  goal,
+                  goal.executionDetail.sequence,
+                  child.id
+                );
+                return [
+                  child,
+                  {
+                    left: left + ` & ${pursueCondition}`,
+                    right,
+                  },
+                ];
+              }
+              case 'alternative': {
+                throw new Error(
+                  'AND relation to children with alternative execution detail is not supported'
+                );
+              }
+              case 'choice': {
+                throw new Error(
+                  'AND relation to children with choice execution detail is not supported'
+                );
+              }
+              case 'interleaved': {
+                pursueLogger.executionDetail.interleaved();
+                // interleaved goals fall under the default case
+                return [child, { left, right }];
+              }
+              default:
+                logger.info(
+                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                  2
+                );
+                // interleaved goals fall under the default case
+                return [child, { left, right }];
+            }
+          }
+
           logger.info(
-            '[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step',
+            `[EXECUTION DETAIL: ERROR] ${goal.id} is not an OR or AND goal`,
             2
           );
           return [child, { left, right }];
-        }
+        };
 
-        if (goal.relationToChildren === 'or') {
-          switch (goal.executionDetail?.type) {
-            case 'sequence': {
-              throw new Error(
-                'OR relation to children with sequence execution detail is not supported'
-              );
-            }
-            case 'choice': {
-              const children = goal.children?.map((child) => child.id);
-              if (!children) {
-                throw new Error(
-                  'OR relation to children with choice without children is not supported'
-                );
-              }
+        const executionDetail = calcExecutionDetail();
 
-              const pursueCondition = pursueChoiceGoal(
-                goal,
-                children,
-                child.id
-              );
-              return [child, { left: left + ` & ${pursueCondition}`, right }];
-            }
-            case 'degradation': {
-              const pursueCondition = pursueDegradationGoal(
-                goal,
-                goal.executionDetail.degradationList,
-                child.id
-              );
-              return [child, { left: left + ` & ${pursueCondition}`, right }];
-            }
-            case 'alternative': {
-              const pursueCondition = pursueAlternativeGoal(goal, child.id);
-              return [child, { left: left + ` & ${pursueCondition}`, right }];
-            }
-            default:
-              logger.info(
-                `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
-                2
-              );
-              return [child, { left, right }];
-          }
-        }
-
-        if (goal.relationToChildren === 'and') {
-          // organize pursue conditions by execution detail type
-          switch (goal.executionDetail?.type) {
-            case 'sequence': {
-              const pursueCondition = pursueAndSequentialGoal(
-                goal,
-                goal.executionDetail.sequence,
-                child.id
-              );
-              return [
-                child,
-                {
-                  left: left + ` & ${pursueCondition}`,
-                  right,
-                },
-              ];
-            }
-            case 'alternative': {
-              throw new Error(
-                'AND relation to children with alternative execution detail is not supported'
-              );
-            }
-            case 'choice': {
-              throw new Error(
-                'AND relation to children with choice execution detail is not supported'
-              );
-            }
-            case 'interleaved': {
-              pursueLogger.executionDetail.interleaved();
-              // interleaved goals fall under the default case
-              return [child, { left, right }];
-            }
-            default:
-              logger.info(
-                `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
-                2
-              );
-              // interleaved goals fall under the default case
-              return [child, { left, right }];
-          }
-        }
-
-        logger.info(
-          `[EXECUTION DETAIL: ERROR] ${goal.id} is not an OR or AND goal`,
-          2
+        logger.stepStatement(
+          2,
+          executionDetail[1].left,
+          executionDetail[1].right
         );
 
-        return [child, { left, right }];
+        return executionDetail;
       }
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
-      // add maintain condition
-      const left = child.execCondition
-        ? `${statement.left} & ${
-            isItself(child)
-              ? child.execCondition.assertion.sentence || 'ASSERTION_UNDEFINED'
-              : achievedMaintain(child.id)
-          }`
+      // add context condition
+      const activationContextGuard = child.execCondition
+        ? isItself(child)
+          ? child.execCondition.assertion.sentence || 'ASSERTION_UNDEFINED'
+          : child.execCondition.maintain?.sentence
+          ? achievedMaintain(child.id)
+          : ''
+        : '';
+
+      const left = activationContextGuard
+        ? `${statement.left} & ${activationContextGuard}`
         : statement.left;
+
+      if (child.execCondition) {
+        pursueLogger.executionDetail.activationContext(activationContextGuard);
+      } else {
+        pursueLogger.executionDetail.noActivationContext(child.id);
+      }
+
+      logger.stepStatement(3, left, statement.right);
       return [
         child,
         {
