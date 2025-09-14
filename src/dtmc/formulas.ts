@@ -16,6 +16,7 @@ export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
   };`;
 
   logger.formulaDefinition(
+    goal.id,
     achievedMaintain(goal.id),
     goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED',
     prismLine

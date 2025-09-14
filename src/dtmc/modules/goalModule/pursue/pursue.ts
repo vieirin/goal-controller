@@ -89,8 +89,13 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           }
 
           if (goal.relationToChildren === 'or') {
+            logger.trace(child.id, 'or goal detected', 2);
             switch (goal.executionDetail?.type) {
               case 'sequence': {
+                logger.error(
+                  child.id,
+                  'sequence execution detail detected in or goal'
+                );
                 throw new Error(
                   'OR relation to children with sequence execution detail is not supported'
                 );
@@ -98,11 +103,18 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               case 'choice': {
                 const children = goal.children?.map((child) => child.id);
                 if (!children) {
+                  logger.error(
+                    child.id,
+                    'choice execution detail detected without children'
+                  );
                   throw new Error(
                     'OR relation to children with choice without children is not supported'
                   );
                 }
-
+                logger.trace(
+                  child.id,
+                  'choice execution detail detected with children'
+                );
                 const pursueCondition = pursueChoiceGoal(
                   goal,
                   children,
@@ -111,6 +123,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 return [child, { left: left + ` & ${pursueCondition}`, right }];
               }
               case 'degradation': {
+                logger.trace(
+                  child.id,
+                  'degradation execution detail detected',
+                  2
+                );
                 const pursueCondition = pursueDegradationGoal(
                   goal,
                   goal.executionDetail.degradationList,
@@ -119,12 +136,17 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 return [child, { left: left + ` & ${pursueCondition}`, right }];
               }
               case 'alternative': {
+                logger.trace(
+                  child.id,
+                  'alternative execution detail detected',
+                  2
+                );
                 const pursueCondition = pursueAlternativeGoal(goal, child.id);
                 return [child, { left: left + ` & ${pursueCondition}`, right }];
               }
               default:
                 logger.info(
-                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2
                 );
                 return [child, { left, right }];
@@ -132,9 +154,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           }
 
           if (goal.relationToChildren === 'and') {
+            logger.trace(child.id, 'and goal detected', 2);
             // organize pursue conditions by execution detail type
             switch (goal.executionDetail?.type) {
               case 'sequence': {
+                logger.trace(child.id, 'sequence execution detail detected', 2);
                 const pursueCondition = pursueAndSequentialGoal(
                   goal,
                   goal.executionDetail.sequence,
@@ -149,23 +173,34 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 ];
               }
               case 'alternative': {
+                logger.trace(
+                  child.id,
+                  'alternative execution detail detected',
+                  3
+                );
                 throw new Error(
                   'AND relation to children with alternative execution detail is not supported'
                 );
               }
               case 'choice': {
+                logger.trace(child.id, 'choice execution detail detected', 2);
                 throw new Error(
                   'AND relation to children with choice execution detail is not supported'
                 );
               }
               case 'interleaved': {
+                logger.trace(
+                  child.id,
+                  'interleaved execution detail detected',
+                  2
+                );
                 pursueLogger.executionDetail.interleaved();
                 // interleaved goals fall under the default case
                 return [child, { left, right }];
               }
               default:
                 logger.info(
-                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${goal.id} on runtime guard generation step, no execution detail`,
+                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2
                 );
                 // interleaved goals fall under the default case
@@ -174,7 +209,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           }
 
           logger.info(
-            `[EXECUTION DETAIL: ERROR] ${goal.id} is not an OR or AND goal`,
+            `[EXECUTION DETAIL: ERROR] ${child.id} is not an OR or AND goal`,
             2
           );
           return [child, { left, right }];
@@ -206,8 +241,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         : statement.left;
 
       if (child.execCondition) {
+        logger.trace(child.id, 'activation context guard detected', 2);
         pursueLogger.executionDetail.activationContext(activationContextGuard);
       } else {
+        logger.trace(child.id, 'no activation context guard detected', 2);
         pursueLogger.executionDetail.noActivationContext(child.id);
       }
 

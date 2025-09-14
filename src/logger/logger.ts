@@ -41,6 +41,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       );
       write(`\tRelation to children: ${goal.relationToChildren}\n`);
       write(`\tExecution detail: ${goal.executionDetail?.type ?? 'none'}\n`);
+      write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
     initTask: (task: GoalNode) => {
       write(`[INIT TASK] ${task.id}: ${task.name}\n`);
@@ -56,14 +57,16 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       write(`[INIT SYSTEM MODULE]\n`);
     },
     formulaDefinition: (
+      goalId: string,
       formula: string,
       sentence: string,
       prismLine: string
     ) => {
+      write(`\t[TRACE] ${goalId}.maintainCondition -> ${formula} \n`);
       write(
         `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`
       );
-      write(`\t\tPRISM statement: ${prismLine}\n`);
+      write(`\t\t[PRISM emitted statement]: ${prismLine}\n`);
     },
     taskTranstions: {
       transition: (
@@ -243,21 +246,11 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
     info: (message: string, level: number) => {
       write(`${'\t'.repeat(level)}${message}\n`);
     },
-    error: (message: string) => {
-      write(`${message}\n`);
-      console.error(message);
+    error: (source: string, message: string) => {
+      write(`[ERROR] ${source}: ${message}\n`);
     },
-    warn: (message: string) => {
-      write(`${message}\n`);
-      console.warn(message);
-    },
-    debug: (message: string) => {
-      write(`${message}\n`);
-      console.debug(message);
-    },
-    trace: (message: string) => {
-      write(`${message}\n`);
-      console.trace(message);
+    trace: (source: string, message: string, level: number = 0) => {
+      write(`${'\t'.repeat(level)}[TRACE] ${source}: ${message}\n`);
     },
   };
 };
