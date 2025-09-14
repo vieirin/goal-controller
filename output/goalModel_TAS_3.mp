@@ -404,25 +404,35 @@ module ChangeManager
   
   T1_pursued : [0..1] init 0;
   T1_achieved : [0..1] init 0;
+
   T10_pursued : [0..1] init 0;
   T10_achieved : [0..1] init 0;
+
   T11_pursued : [0..1] init 0;
   T11_achieved : [0..1] init 0;
+
   T2_pursued : [0..1] init 0;
   T2_achieved : [0..1] init 0;
+
   T3_pursued : [0..1] init 0;
   T3_achieved : [0..1] init 0;
+
   T4_pursued : [0..1] init 0;
   T4_achieved : [0..1] init 0;
+
   T5_pursued : [0..1] init 0;
   T5_achieved : [0..1] init 0;
   T5_failed: [0..8] init 0;
+
   T6_pursued : [0..1] init 0;
   T6_achieved : [0..1] init 0;
+
   T7_pursued : [0..1] init 0;
   T7_achieved : [0..1] init 0;
+
   T8_pursued : [0..1] init 0;
   T8_achieved : [0..1] init 0;
+
   T9_pursued : [0..1] init 0;
   T9_achieved : [0..1] init 0;
   
@@ -430,42 +440,52 @@ module ChangeManager
   [achieved_T1] true -> true;
   [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
   
+
   [pursue_T10] true -> true;
   [achieved_T10] true -> true;
   [failed_T10] T10_pursued=1 & T10_achieved=0 -> (T10_pursued'=0);
   
+
   [pursue_T11] true -> true;
   [achieved_T11] true -> true;
   [failed_T11] T11_pursued=1 & T11_achieved=0 -> (T11_pursued'=0);
   
+
   [pursue_T2] true -> true;
   [achieved_T2] true -> true;
   [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
   
+
   [pursue_T3] true -> true;
   [achieved_T3] true -> true;
   [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
   
+
   [pursue_T4] true -> true;
   [achieved_T4] true -> true;
   [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
   
+
   [pursue_T5] true -> true;
   [achieved_T5] true -> true;
   [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1));
   
+
   [pursue_T6] true -> true;
   [achieved_T6] true -> true;
   [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
   
+
   [pursue_T7] true -> true;
   [achieved_T7] true -> true;
   [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
   
+
   [pursue_T8] true -> true;
   [achieved_T8] true -> true;
   [failed_T8] T8_pursued=1 & T8_achieved=0 -> (T8_pursued'=0);
   
+
   [pursue_T9] true -> true;
   [achieved_T9] true -> true;
   [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);

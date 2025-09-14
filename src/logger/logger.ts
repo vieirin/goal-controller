@@ -42,6 +42,32 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       write(`\tRelation to children: ${goal.relationToChildren}\n`);
       write(`\tExecution detail: ${goal.executionDetail?.type ?? 'none'}\n`);
     },
+    initTask: (task: GoalNode) => {
+      write(`[INIT TASK] ${task.id}: ${task.name}\n`);
+      write(
+        `\tResources: ${
+          task.resources?.length && task.resources.length > 0
+            ? task.resources.map((resource) => resource.id).join(', ')
+            : 'none'
+        }\n`
+      );
+    },
+    taskTranstions: {
+      transition: (
+        taskId: string,
+        leftStatement: string,
+        updateStatement: string,
+        prismLabelStatement: string,
+        transition: 'pursue' | 'achieve' | 'failed'
+      ) => {
+        const transitionLogLabel = transition.toUpperCase();
+        write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
+        write(`\t\t[CONDITION] ${leftStatement}\n`);
+        write(`\t\t[UPDATE] ${updateStatement}\n`);
+        write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
+        write(`\t[END OF ${transitionLogLabel}]\n`);
+      },
+    },
     pursue: {
       pursue: (goal: GoalNode, step: number) => {
         write(`\t[PURSUE GENERATION] ${goal.id} - STEP ${step}\n`);

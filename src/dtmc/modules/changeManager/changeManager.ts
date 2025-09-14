@@ -4,8 +4,18 @@ import { taskTransitions, taskVariables } from './tasks';
 
 export const changeManagerModule = ({ gm }: { gm: GoalTreeWithParent }) => {
   const tasks = allByType({ gm, type: 'task' });
+
+  const { variables, transitions } = tasks.reduce(
+    (acc, task) => {
+      acc.variables.push(taskVariables(task));
+      acc.transitions.push(taskTransitions(task));
+      return acc;
+    },
+    { variables: [] as string[], transitions: [] as string[] }
+  );
+
   return `module ChangeManager
-  ${tasks.map(taskVariables).join('')}
-  ${tasks.map(taskTransitions).join('')}
+  ${variables.join('\n')}
+  ${transitions.join('\n')}
 endmodule`;
 };
