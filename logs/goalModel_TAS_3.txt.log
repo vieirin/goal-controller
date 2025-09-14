@@ -186,7 +186,7 @@
 	[END OF SKIP]
 	[TRACE] G2.maintainCondition -> G2_achieved_maintain 
 	[FORMULA DEFINITION] G2_achieved_maintain; guard statement: highPrecision
-		PRISM statement: formula G2_achieved_maintain = highPrecision;
+		[PRISM emitted statement]: formula G2_achieved_maintain = highPrecision;
 [INIT GOAL] G3: Self-diagnosed emergency support service
 	Children: G7
 	Tasks: none
@@ -297,7 +297,7 @@
 	[END OF SKIP]
 	[TRACE] G4.maintainCondition -> G4_achieved_maintain 
 	[FORMULA DEFINITION] G4_achieved_maintain; guard statement: inEmergency
-		PRISM statement: formula G4_achieved_maintain = inEmergency;
+		[PRISM emitted statement]: formula G4_achieved_maintain = inEmergency;
 [INIT GOAL] G5: Manual Tracking
 	Children: none
 	Tasks: T2
@@ -496,7 +496,7 @@
 	[END OF SKIP]
 	[TRACE] G8.maintainCondition -> G8_achieved_maintain 
 	[FORMULA DEFINITION] G8_achieved_maintain; guard statement: enoughBattery & highReliability
-		PRISM statement: formula G8_achieved_maintain = enoughBattery & highReliability;
+		[PRISM emitted statement]: formula G8_achieved_maintain = enoughBattery & highReliability;
 [INIT GOAL] G9: Enact treatment
 	Children: G13, G12
 	Tasks: none
@@ -1021,7 +1021,7 @@
 	[END OF SKIP]
 	[TRACE] G18.maintainCondition -> G18_achieved_maintain 
 	[FORMULA DEFINITION] G18_achieved_maintain; guard statement: inSideEffectWindow
-		PRISM statement: formula G18_achieved_maintain = inSideEffectWindow;
+		[PRISM emitted statement]: formula G18_achieved_maintain = inSideEffectWindow;
 [INIT GOAL] G19: Trigger Alarm Service
 	Children: G20, G21
 	Tasks: none

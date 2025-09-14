@@ -257,8 +257,11 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
 
 let logger: ReturnType<typeof createLogger>;
 
-export const initLogger = (modelFileName: string) => {
-  logger = createLogger(modelFileName);
+export const initLogger = (
+  modelFileName: string,
+  logToConsole: boolean = false
+) => {
+  logger = createLogger(modelFileName, logToConsole);
 };
 
 export const getLogger = () => {
