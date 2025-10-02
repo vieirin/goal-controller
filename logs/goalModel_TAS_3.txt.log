@@ -38,6 +38,7 @@
 		[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition
 		PRISM statement: [pursue_G2] G0_pursued=1 & G0_achieved=0 -> true
 	[END OF STEP 2]
+	[PURSUE GENERATION] G2 - STEP 3
 		[TRACE] G0: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G0 has no activation context
 		PRISM statement: [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1)
