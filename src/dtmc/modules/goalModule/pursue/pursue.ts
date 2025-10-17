@@ -227,22 +227,32 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       }
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
-      // add context condition
-      const activationContextGuard = child.execCondition
-        ? isItself(child)
-          ? child.execCondition.assertion.sentence || 'ASSERTION_UNDEFINED'
-          : child.execCondition.maintain?.sentence
-          ? achievedMaintain(child.id)
-          : ''
-        : '';
+      // parent goals have activation context independently of the maintain condition
+      const activationContextCondition =
+        (isItself(child) &&
+          child.execCondition &&
+          child.execCondition.assertion.sentence) ||
+        '';
 
-      const left = activationContextGuard
-        ? `${statement.left} & ${activationContextGuard}`
-        : statement.left;
+      // child goals have maintain condition only if they are not itself
+      const maintainContextGuard =
+        child.execCondition && child.execCondition.maintain?.sentence
+          ? achievedMaintain(child.id)
+          : '';
+
+      const left =
+        activationContextCondition || maintainContextGuard
+          ? `${statement.left} & ${[
+              activationContextCondition,
+              maintainContextGuard,
+            ]
+              .filter(Boolean)
+              .join(' & ')}`
+          : statement.left;
 
       if (child.execCondition) {
         logger.trace(child.id, 'activation context guard detected', 2);
-        pursueLogger.executionDetail.activationContext(activationContextGuard);
+        pursueLogger.executionDetail.activationContext(maintainContextGuard);
       } else {
         logger.trace(child.id, 'no activation context guard detected', 2);
         pursueLogger.executionDetail.noActivationContext(child.id);
