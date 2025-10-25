@@ -29,15 +29,15 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       pursueLogger.pursue(child, 1);
 
       const calcLeftStatement = () => {
-        const statement = `[pursue_${child.id}] ${pursued(goal.id)}=${
-          itself ? 0 : 1
-        } & ${achieved(goal.id)}=0`;
-        pursueLogger.defaultPursueCondition(statement);
-
         const dependencyStatement = goalDependencyStatement(goal);
         pursueLogger.goalDependency(goal.id, goal.customProperties.dependsOn);
+        const statement =
+          `[pursue_${child.id}] ${pursued(goal.id)}=${
+            itself ? 0 : 1
+          } & ${achieved(goal.id)}=0` + (itself ? dependencyStatement : '');
+        pursueLogger.defaultPursueCondition(statement);
 
-        return statement + dependencyStatement;
+        return statement;
       };
 
       const calcRightStatement = () => {
@@ -236,7 +236,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       // child goals have maintain condition only if they are not itself
       const maintainContextGuard =
-        child.execCondition && child.execCondition.maintain?.sentence
+        child.execCondition &&
+        child.execCondition.maintain?.sentence &&
+        !isItself(child)
           ? achievedMaintain(child.id)
           : '';
 
