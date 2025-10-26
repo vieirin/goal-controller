@@ -7,6 +7,8 @@ import { convertToTree } from '../../ObjectiveTree/creation';
 export const runModel = async (filePath: string) => {
   try {
     const model = loadModel({ filename: filePath });
+    // const emfModel = convertModelToEMF(model);
+
     const tree = convertToTree({ model });
     // last part of the path
     const fileName = filePath.split('/').pop();
