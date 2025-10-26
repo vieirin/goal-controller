@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "Controller Synthesis from GM",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.6.0"
+  },
   "scripts": {
-    "start": "npx ts-node src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node src/cli.ts"
+    "start": "node --experimental-strip-types src/index.ts",
+    "test": "mocha",
+    "dev": "node --experimental-strip-types src/cli.ts"
   },
   "repository": {
     "type": "git",
@@ -19,12 +22,15 @@
   },
   "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
+    "@types/chai": "^4.3.11",
     "@types/lodash": "^4.14.197",
     "@types/lodash.groupby": "^4.6.7",
     "@types/lodash.mergewith": "^4.6.7",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.5.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "babel-eslint": "^10.1.0",
+    "chai": "^4.3.10",
     "eslint": "^8.47.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard-with-typescript": "^37.0.0",
@@ -33,9 +39,9 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "minimatch": "^9.0.3",
+    "mocha": "^10.2.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.0.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {

@@ -3,7 +3,6 @@ import { Dictionary } from 'lodash';
 import RTRegex from '../antlr/RTRegexLexer';
 import RTRegexListener from '../antlr/RTRegexListener';
 import RTRegexParser, {
-  GIdContext,
   GIdContinuedContext,
   GRetryContext,
   GSequenceContext,
@@ -39,55 +38,100 @@ export const getGoalDetail = ({
   let retry: Dictionary<number> = {};
   let choice: boolean = false;
   class RTNotationTreeWalker extends RTRegexListener {
-    exitGId = (ctx: GIdContext) => {
-      id = `${ctx._t.text}${ctx.id().getText()}`;
-    };
     exitGIdContinued = (ctx: GIdContinuedContext) => {
+      if (id) return;
       id = `${ctx._t.text}${ctx.id().getText()}`;
+      return id;
     };
     exitWord = (ctx: WordContext) => {
       goalName = ctx.WORD().getText();
     };
     exitGAlternative = (ctx: GAlternativeContext) => {
+      const extractGoalIds = (expr: any): string[] => {
+        if (expr.getChildCount() === 1) {
+          // Simple goal like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 2) {
+          // Goal with ID, like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 3) {
+          // Binary operation like G1|G2
+          const left = extractGoalIds(expr.getChild(0));
+          const right = extractGoalIds(expr.getChild(2));
+          return [...left, ...right];
+        }
+        return [];
+      };
+
       alternative = ctx
         .expr_list()
-        .map((e) => {
-          // in this case goal is the first child and the rest is some other expression
-          if (e.getChildCount() !== 2) {
-            return e.getChild(0).getText();
-          }
-          return e.getText();
-        })
+        .flatMap((e) => extractGoalIds(e))
         .filter(Boolean);
     };
     exitGDegradation = (ctx: GDegradationContext) => {
+      const extractGoalIds = (expr: any): string[] => {
+        if (expr.getChildCount() === 1) {
+          // Simple goal like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 2) {
+          // Goal with ID, like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 3) {
+          // Binary operation like G1->G2
+          const left = extractGoalIds(expr.getChild(0));
+          const right = extractGoalIds(expr.getChild(2));
+          return [...left, ...right];
+        }
+        return [];
+      };
+
       degradationList = ctx
         .expr_list()
-        .map((e) => {
-          // in this case goal is the first child and the rest is some other expression
-          if (e.getChildCount() !== 2) {
-            return e.getChild(0).getText();
-          }
-          return e.getText();
-        })
+        .flatMap((e) => extractGoalIds(e))
         .filter(Boolean);
     };
     exitGInterleaved = (ctx: GInterleavedContext) => {
+      const extractGoalIds = (expr: any): string[] => {
+        if (expr.getChildCount() === 1) {
+          // Simple goal like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 2) {
+          // Goal with ID, like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 3) {
+          // Binary operation like G1#G2
+          const left = extractGoalIds(expr.getChild(0));
+          const right = extractGoalIds(expr.getChild(2));
+          return [...left, ...right];
+        }
+        return [];
+      };
+
       interleaved = ctx
         .expr_list()
-        .map((e) => e.getText())
+        .flatMap((e) => extractGoalIds(e))
         .filter(Boolean);
     };
     exitGSequence = (ctx: GSequenceContext) => {
+      const extractGoalIds = (expr: any): string[] => {
+        if (expr.getChildCount() === 1) {
+          // Simple goal like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 2) {
+          // Goal with ID, like G1
+          return [expr.getText()];
+        } else if (expr.getChildCount() === 3) {
+          // Binary operation like G1;G2
+          const left = extractGoalIds(expr.getChild(0));
+          const right = extractGoalIds(expr.getChild(2));
+          return [...left, ...right];
+        }
+        return [];
+      };
+
       sequence = ctx
         .expr_list()
-        .map((e) => {
-          // in this case goal is the first child and the rest is some other expression
-          if (e.getChildCount() !== 2) {
-            return e.getChild(0).getText();
-          }
-          return e.getText();
-        })
+        .flatMap((e) => extractGoalIds(e))
         .filter(Boolean);
     };
     exitGRetry = (ctx: GRetryContext) => {
@@ -105,14 +149,20 @@ export const getGoalDetail = ({
   const goalSanitizedName = goalName ?? '';
 
   if (degradationList.length > 0) {
+    const executionDetail: any = {
+      type: 'degradation',
+      degradationList,
+    };
+
+    // Only include retryMap if it's not empty
+    if (Object.keys(retry).length > 0) {
+      executionDetail.retryMap = retry;
+    }
+
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: {
-        type: 'degradation',
-        degradationList,
-        retryMap: retry,
-      },
+      executionDetail,
     };
   }
 
@@ -120,7 +170,7 @@ export const getGoalDetail = ({
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'sequence', sequence, retryMap: retry },
+      executionDetail: { type: 'sequence', sequence },
     };
   }
 
@@ -131,7 +181,6 @@ export const getGoalDetail = ({
       executionDetail: {
         type: 'alternative',
         alternative,
-        retryMap: retry,
       },
     };
   }
@@ -139,7 +188,7 @@ export const getGoalDetail = ({
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'interleaved', interleaved, retryMap: retry },
+      executionDetail: { type: 'interleaved', interleaved },
     };
   }
 
@@ -147,7 +196,7 @@ export const getGoalDetail = ({
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'choice', retryMap: retry },
+      executionDetail: { type: 'choice' },
     };
   }
 
