@@ -3,11 +3,12 @@ import path from 'path';
 import { edgeDTMCTemplate } from '../../dtmc/template';
 import { loadModel } from '../../ObjectiveTree';
 import { convertToTree } from '../../ObjectiveTree/creation';
+import { convertModelToEMF } from 'src/GoalTree';
 
 export const runModel = async (filePath: string) => {
   try {
     const model = loadModel({ filename: filePath });
-    // const emfModel = convertModelToEMF(model);
+    const emfModel = convertModelToEMF(model);
 
     const tree = convertToTree({ model });
     // last part of the path
