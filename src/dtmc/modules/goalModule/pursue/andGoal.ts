@@ -3,6 +3,19 @@ import { separator } from '../../../../mdp/common';
 import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenAchieved } from './common';
 
+export const splitSequence = (
+  sequence: string[],
+  childId: string
+): [string[], string[]] => {
+  if (!sequence.includes(childId)) {
+    throw new Error(
+      `Child ID ${childId} not found in sequence ${sequence.join(', ')}`
+    );
+  }
+  const sequenceIndex = sequence.indexOf(childId);
+  return [sequence.slice(0, sequenceIndex), sequence.slice(sequenceIndex + 1)];
+};
+
 export const pursueAndSequentialGoal = (
   goal: GoalNode,
   sequence: string[],
@@ -13,9 +26,8 @@ export const pursueAndSequentialGoal = (
       'OR relation to children without a runtime notation is not supported use Degradation goal instead'
     );
   }
-  const sequenceIndex = sequence.indexOf(childId);
-  const leftGoals = sequence.slice(0, sequenceIndex);
-  const rightGoals = sequence.slice(sequenceIndex);
+
+  const [leftGoals, rightGoals] = splitSequence(sequence, childId);
 
   if (!goal.relationToChildren) {
     return '';
