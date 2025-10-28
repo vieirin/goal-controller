@@ -1,13 +1,10 @@
 import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
+import { isResource } from '../../../GoalTree/nodeUtils';
+import { treeContextVariables } from '../../../GoalTree/treeVariables';
+import type { GoalTreeWithParent, Resource } from '../../../GoalTree/types';
+import { allByType } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
-import { isResource } from '../../../ObjectiveTree/nodeUtils';
-import { treeContextVariables } from '../../../ObjectiveTree/treeVariables';
-import type {
-  GoalTreeWithParent,
-  Resource,
-} from '../../../ObjectiveTree/types';
-import { allByType } from '../../../ObjectiveTree/utils';
 
 const resourceVariableName = (resource: Resource) => `${resource.id}`;
 

@@ -1,4 +1,4 @@
-import { GoalTree } from '../ObjectiveTree/types';
+import { GoalTree } from '../GoalTree/types';
 import { goalMgmtVariables, outcomes } from './changeMgmt';
 import { GrouppedGoals, leavesGrouppedGoals } from './common';
 import { dependencyFormulaes, goalFormulaes } from './formulas';

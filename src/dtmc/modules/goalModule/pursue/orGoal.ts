@@ -1,6 +1,6 @@
+import { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
-import { GoalNode } from '../../../../ObjectiveTree/types';
 import { chosenVariable } from '../../../common';
 import { beenPursued, hasFailedAtLeastNTimes } from './common';
 

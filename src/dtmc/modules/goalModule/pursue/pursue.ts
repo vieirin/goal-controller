@@ -1,6 +1,6 @@
+import { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
-import { GoalNode } from '../../../../ObjectiveTree/types';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import {

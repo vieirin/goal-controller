@@ -1,6 +1,6 @@
+import { GoalNode, GoalTree } from '../GoalTree/types';
+import { allByType, cartesianProduct } from '../GoalTree/utils';
 import { getLogger } from '../logger/logger';
-import { GoalNode, GoalTree } from '../ObjectiveTree/types';
-import { allByType, cartesianProduct } from '../ObjectiveTree/utils';
 
 // each decision variable is a tuple of values containing name:space
 // we need to generate all possible combinations of these tuples

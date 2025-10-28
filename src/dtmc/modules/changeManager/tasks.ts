@@ -1,6 +1,6 @@
+import type { GoalNode } from '../../../GoalTree/types';
 import { getLogger } from '../../../logger/logger';
 import { failed } from '../../../mdp/common';
-import type { GoalNode } from '../../../ObjectiveTree/types';
 import {
   achievedTransition,
   achievedVariable,

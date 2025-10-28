@@ -1,5 +1,5 @@
+import { GoalTreeWithParent } from '../GoalTree/types';
 import { initLogger } from '../logger/logger';
-import { GoalTreeWithParent } from '../ObjectiveTree/types';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules } from './modules/goalModule/goalModules';

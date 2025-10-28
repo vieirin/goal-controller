@@ -1,6 +1,6 @@
+import type { GoalTreeWithParent } from '../../../GoalTree/types';
+import { allByType } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
-import type { GoalTreeWithParent } from '../../../ObjectiveTree/types';
-import { allByType } from '../../../ObjectiveTree/utils';
 import { taskTransitions, taskVariables } from './tasks';
 
 export const changeManagerModule = ({ gm }: { gm: GoalTreeWithParent }) => {

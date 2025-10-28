@@ -12,7 +12,7 @@ import RTRegexParser, {
   type GDegradationContext,
   type GInterleavedContext,
 } from '../antlr/RTRegexParser';
-import { GoalExecutionDetail } from '../ObjectiveTree/types';
+import { GoalExecutionDetail } from '../GoalTree/types';
 
 export const getGoalDetail = ({
   goalText,

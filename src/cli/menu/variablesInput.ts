@@ -2,9 +2,9 @@ import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import { basename, join } from 'path';
-import { loadModel } from '../../ObjectiveTree';
-import { convertToTree } from '../../ObjectiveTree/creation';
-import { treeContextVariables } from '../../ObjectiveTree/treeVariables';
+import { loadModel } from '../../GoalTree';
+import { convertToTree } from '../../GoalTree/creation';
+import { treeContextVariables } from '../../GoalTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
 export const getVariablesFilePath = (modelPath: string): string => {

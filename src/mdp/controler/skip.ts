@@ -1,4 +1,4 @@
-import { ConditionDependency } from '../../ObjectiveTree/dependencyResolver';
+import { ConditionDependency } from '../../GoalTree/dependencyResolver';
 import { achievable, achieved, not, parenthesis, separator } from '../common';
 import { dependency } from './dependency';
 

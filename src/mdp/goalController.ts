@@ -1,6 +1,6 @@
-import { ConditionDependency } from '../ObjectiveTree/dependencyResolver';
-import { GoalTree } from '../ObjectiveTree/types';
-import { goalRootId } from '../ObjectiveTree/utils';
+import { ConditionDependency } from '../GoalTree/dependencyResolver';
+import { GoalTree } from '../GoalTree/types';
+import { goalRootId } from '../GoalTree/utils';
 import {
   achievable,
   achieved,

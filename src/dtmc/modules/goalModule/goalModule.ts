@@ -1,7 +1,7 @@
+import { GoalNodeWithParent, Relation } from '../../../GoalTree/types';
+import { childrenWithTasksAndResources } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { achieved, failed, pursued, separator } from '../../../mdp/common';
-import { GoalNodeWithParent, Relation } from '../../../ObjectiveTree/types';
-import { childrenWithTasksAndResources } from '../../../ObjectiveTree/utils';
 import {
   achievedVariable,
   chosenVariable,

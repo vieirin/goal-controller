@@ -1,5 +1,5 @@
 import fs from 'fs';
-import type { GoalExecutionDetail, GoalNode } from '../ObjectiveTree/types';
+import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
 
 const createLoggerFile = (modelFileName: string) => {
   const logFilePath = `logs/${modelFileName}.log`;

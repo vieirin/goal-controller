@@ -1,5 +1,5 @@
+import type { GoalNodeWithParent } from '../GoalTree/types';
 import { getLogger } from '../logger/logger';
-import type { GoalNodeWithParent } from '../ObjectiveTree/types';
 
 export const achievedMaintain = (goalId: string) => {
   return `${goalId}_achieved_maintain`;

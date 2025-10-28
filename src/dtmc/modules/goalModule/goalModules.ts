@@ -1,9 +1,9 @@
-import { pursued, separator } from '../../../mdp/common';
 import {
   GoalNodeWithParent,
   GoalTreeWithParent,
-} from '../../../ObjectiveTree/types';
-import { allByType, childrenLength } from '../../../ObjectiveTree/utils';
+} from '../../../GoalTree/types';
+import { allByType, childrenLength } from '../../../GoalTree/utils';
+import { pursued, separator } from '../../../mdp/common';
 import { goalModule } from './goalModule';
 
 const declareManagerVariables = ({

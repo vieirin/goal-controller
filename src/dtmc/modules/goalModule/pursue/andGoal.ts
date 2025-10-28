@@ -1,6 +1,6 @@
+import { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { separator } from '../../../../mdp/common';
-import { GoalNode } from '../../../../ObjectiveTree/types';
 import { beenAchieved } from './common';
 
 export const splitSequence = (

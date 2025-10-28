@@ -1,6 +1,6 @@
 import { writeFile } from 'fs';
-import { loadModel } from './ObjectiveTree';
-import { convertToTree } from './ObjectiveTree/creation';
+import { loadModel } from './GoalTree';
+import { convertToTree } from './GoalTree/creation';
 import { edgeDTMCTemplate } from './dtmc/template';
 
 if (!process.argv.length) {

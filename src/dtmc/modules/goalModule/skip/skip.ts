@@ -1,6 +1,6 @@
+import type { GoalNodeWithParent } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
-import type { GoalNodeWithParent } from '../../../../ObjectiveTree/types';
 
 const childrenHasNotBeenPursued = (goal: GoalNodeWithParent) => {
   const pursueMembers = goal.children?.length
