@@ -32,9 +32,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         const dependencyStatement = goalDependencyStatement(goal);
         pursueLogger.goalDependency(goal.id, goal.customProperties.dependsOn);
         const statement =
-          `[pursue_${child.id}] ${pursued(goal.id)}=${
-            itself ? 0 : 1
-          } & ${achieved(goal.id)}=0` + (itself ? dependencyStatement : '');
+          `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
+            goal.execCondition?.maintain
+              ? `${achievedMaintain(goal.id)}=false`
+              : `${achieved(goal.id)}=0`
+          }` + (itself ? dependencyStatement : '');
         pursueLogger.defaultPursueCondition(statement);
 
         return statement;

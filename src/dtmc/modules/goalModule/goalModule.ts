@@ -1,5 +1,4 @@
 import { GoalNodeWithParent, Relation } from '../../../GoalTree/types';
-import { childrenWithTasksAndResources } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { achieved, failed, pursued, separator } from '../../../mdp/common';
 import {
@@ -7,7 +6,7 @@ import {
   chosenVariable,
   pursuedVariable,
 } from '../../common';
-import { maintainConditionFormula } from '../../formulas';
+import { achievedMaintain, maintainConditionFormula } from '../../formulas';
 import { beenPursued } from './pursue/common';
 
 import { pursueStatements } from './pursue/pursue';
@@ -24,7 +23,11 @@ const achieveCondition = (goal: GoalNodeWithParent) => {
     const children = [...(goal.children || []), ...(goal.tasks || [])];
     if (children.length) {
       return `(${children
-        .map((child) => `${achievedVariable(child.id)}=1`)
+        .map((child) =>
+          child.execCondition?.maintain
+            ? `${achievedMaintain(child.id)}=true`
+            : `${achievedVariable(child.id)}=1`
+        )
         .join(separator(goal.relationToChildren))})`;
     }
   }
@@ -35,7 +38,7 @@ const achieveStatement = (goal: GoalNodeWithParent) => {
   const logger = getLogger();
 
   const leftStatement = [
-    beenPursued(goal.id, { condition: true }),
+    beenPursued(goal, { condition: true }),
     achieveCondition(goal),
   ]
     .filter(Boolean)
@@ -51,10 +54,8 @@ const achieveStatement = (goal: GoalNodeWithParent) => {
   return prismLabelStatement;
 };
 
-export const goalModule = (goal: GoalNodeWithParent) => {
+const variablesDefinition = (goal: GoalNodeWithParent) => {
   const logger = getLogger();
-  logger.initGoal(goal);
-
   const defineVariable = (variable: string, upperBound: number) => {
     logger.variableDefinition({
       variable,
@@ -65,23 +66,36 @@ export const goalModule = (goal: GoalNodeWithParent) => {
     return `${variable} : [0..${upperBound}] init 0;`;
   };
 
+  const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
+  const achievedVariableStatement = !goal.execCondition?.maintain
+    ? defineVariable(achievedVariable(goal.id), 1)
+    : null;
+
+  const chosenVariableStatement =
+    goal.executionDetail?.type === 'choice'
+      ? defineVariable(chosenVariable(goal.id), 1)
+      : null;
+  const maxRetriesVariableStatement = goal.customProperties.maxRetries
+    ? defineVariable(failed(goal.id), goal.customProperties.maxRetries)
+    : null;
+
+  return [
+    pursuedVariableStatement,
+    achievedVariableStatement,
+    chosenVariableStatement,
+    maxRetriesVariableStatement,
+  ]
+    .filter(Boolean)
+    .join('\n  ');
+};
+
+export const goalModule = (goal: GoalNodeWithParent) => {
+  const logger = getLogger();
+  logger.initGoal(goal);
+
   return `module ${goal.id}
 
-  ${defineVariable(pursuedVariable(goal.id), 1)}
-  ${defineVariable(achievedVariable(goal.id), 1)}
-  ${
-    goal.executionDetail?.type === 'choice'
-      ? `${defineVariable(
-          chosenVariable(goal.id),
-          childrenWithTasksAndResources({ node: goal }).length
-        )}`
-      : ''
-  }
-  ${
-    goal.customProperties.maxRetries
-      ? `${failed(goal.id)} : [0..${goal.customProperties.maxRetries}] init 0;`
-      : ''
-  }
+  ${variablesDefinition(goal)}
 
   ${pursueStatements(goal).join('\n  ')}
 

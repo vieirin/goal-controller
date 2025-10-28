@@ -67,7 +67,7 @@ export const pursueDegradationGoal = (
     degradationLogger.init(currentChildId, degradationList);
     return otherGoals
       .map((goalId) => {
-        const defaultCondition = beenPursued(goalId, { condition: false });
+        const defaultCondition = beenPursued(goal, { condition: false });
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
