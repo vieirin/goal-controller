@@ -94,7 +94,6 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   logger.initGoal(goal);
 
   return `module ${goal.id}
-
   ${variablesDefinition(goal)}
 
   ${pursueStatements(goal).join('\n  ')}
@@ -102,7 +101,6 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   ${achieveStatement(goal)}
   
   ${skipStatement(goal)}
-
 endmodule
 
 ${maintainConditionFormula(goal)}

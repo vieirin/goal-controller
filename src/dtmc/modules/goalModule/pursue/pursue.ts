@@ -175,7 +175,8 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 const pursueCondition = pursueAndSequentialGoal(
                   goal,
                   goal.executionDetail.sequence,
-                  child.id
+                  child.id,
+                  [...(goal.children ?? []), ...(goal.tasks ?? [])]
                 );
                 return [
                   child,
@@ -252,7 +253,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         child.execCondition &&
         child.execCondition.maintain?.sentence &&
         !isItself(child)
-          ? achievedMaintain(child.id)
+          ? `${achievedMaintain(child.id)}=false`
           : '';
 
       const left =

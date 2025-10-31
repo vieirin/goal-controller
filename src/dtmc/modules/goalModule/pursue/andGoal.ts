@@ -19,7 +19,8 @@ export const splitSequence = (
 export const pursueAndSequentialGoal = (
   goal: GoalNode,
   sequence: string[],
-  childId: string
+  childId: string,
+  children: GoalNode[]
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -32,15 +33,22 @@ export const pursueAndSequentialGoal = (
   if (!goal.relationToChildren) {
     return '';
   }
+  const childrenMap = new Map<string, GoalNode>(
+    children.map((child) => [child.id, child])
+  );
 
   const resolveAndGoal = (): string => {
     if (leftGoals.length === 0) {
-      return beenAchieved(childId, { condition: false });
+      return beenAchieved(childrenMap.get(childId)!, { condition: false });
     }
 
     return [
-      ...leftGoals.map((goal) => beenAchieved(goal, { condition: true })),
-      ...rightGoals.map((goal) => beenAchieved(goal, { condition: false })),
+      ...leftGoals.map((goalId) =>
+        beenAchieved(childrenMap.get(goalId)!, { condition: true })
+      ),
+      ...rightGoals.map((goalId) =>
+        beenAchieved(childrenMap.get(goalId)!, { condition: false })
+      ),
     ].join(separator('and'));
   };
 
