@@ -1,5 +1,5 @@
 import { getAssertionVariables } from '../parsers/getAssertionVariables';
-import { getGoalDetail } from '../parsers/GoalNameParser';
+import { getGoalDetail } from '../parsers/goalNameParser';
 import { isAlternative } from './nodeUtils';
 import {
   Actor,
