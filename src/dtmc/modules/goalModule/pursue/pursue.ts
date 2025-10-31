@@ -338,7 +338,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         },
       ] as const;
     })
-    .map(([child, statement]) => {
+    .map(([_, statement]) => {
       // fifth map, responsible for writing the fifth column of the pursue lines
       // cleans up the left and right statements by removing repeated conditions
       // TODO: decision variables stage, dependencies
