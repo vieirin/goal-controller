@@ -32,7 +32,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
   const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
+
     .map((child, _): [GoalNode, { left: string; right: string }] => {
+      // first map, responsible for writing the first column of the pursue lines
+      // itself: [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1)
+      // non-itself: [pursue_G2] G1_pursued=1 & G1_achieved=0 -> true
       const itself = isItself(child);
       pursueLogger.pursue(child, 1);
 
@@ -83,6 +87,16 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         [child, { left, right }],
         index
       ): [GoalNode, { left: string; right: string }] => {
+        // second map, responsible for writing the second column of the pursue lines
+        // defines how a goal should be pursued based on the execution detail
+        // skips itself and handles or and and goals
+        // or goal:
+        //   - alternatives: pursueAlternativeGoal(goal, child.id)
+        //   - choice: pursueChoiceGoal(goal, children, child.id)
+        //   - degradation: pursueDegradationGoal(goal, goal.executionDetail.degradationList, child.id)
+        // and goal:
+        //   - sequence: pursueAndSequentialGoal(goal, goal.executionDetail.sequence, child.id, [...(goal.children ?? []), ...(goal.tasks ?? [])])
+        //    - interleaved: return [child, { left, right }]
         const calcExecutionDetail = (): [
           GoalNode,
           { left: string; right: string },
@@ -248,6 +262,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       }
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
+      // third map, responsible for writing the third column of the pursue lines
+      // defines the activation context and maintain context guards
+      // if itself add context guard only if it has an activation context
+      // if child add context guard only if it has a maintain condition
+
       // parent goals have activation context independently of the maintain condition
       const activationContextCondition =
         (isItself(child) &&
@@ -291,6 +310,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       ];
     })
     .map(([child, statement]) => {
+      // fourth map, responsible for writing the fourth column of the pursue lines
+      // defines the update failed counter statement
+      // if child has a max retries, update the failed counter variable
+      // if itself, skip the update failed counter statement
+
       const updateFailedCounterStatement = child.customProperties.maxRetries
         ? `${failed(child.id)}=min(${
             child.customProperties.maxRetries
@@ -315,6 +339,8 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       ] as const;
     })
     .map(([child, statement]) => {
+      // fifth map, responsible for writing the fifth column of the pursue lines
+      // cleans up the left and right statements by removing repeated conditions
       // TODO: decision variables stage, dependencies
       return {
         left: `${removeRepeatedConditions(statement.left)}`,
