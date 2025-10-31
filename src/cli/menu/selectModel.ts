@@ -1,8 +1,8 @@
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { edgeDTMCTemplate } from '../../dtmc/template';
 import { loadModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
+import { edgeDTMCTemplate } from '../../templateEngine/template';
 
 export const runModel = async (filePath: string) => {
   try {

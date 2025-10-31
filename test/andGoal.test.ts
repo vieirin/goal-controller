@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { splitSequence } from '../src/dtmc/modules/goalModule/pursue/andGoal';
+import { splitSequence } from '../src/templateEngine/modules/goalModule/pursue/andGoal';
 
 describe('splitSequence', () => {
   describe('basic functionality', () => {

@@ -1,7 +1,7 @@
 import { writeFile } from 'fs';
 import { loadModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
-import { edgeDTMCTemplate } from './dtmc/template';
+import { edgeDTMCTemplate } from './templateEngine/template';
 
 if (!process.argv.length) {
   console.error('missing file param');
