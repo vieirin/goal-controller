@@ -1,6 +1,6 @@
 import { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
-import { achieved, pursued, separator } from '../../../../mdp/common';
+import { achieved, failed, pursued, separator } from '../../../../mdp/common';
 import { chosenVariable } from '../../../common';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
@@ -16,6 +16,13 @@ const goalDependencyStatement = (goal: GoalNode) => {
         .map((dep) => `${achieved(dep)}=1`)
         .join(separator('and'))})`
     : '';
+};
+
+const removeRepeatedConditions = (condition: string) => {
+  return condition
+    .split(' & ')
+    .filter((condition, index, self) => self.indexOf(condition) === index)
+    .join(' & ');
 };
 
 export const pursueStatements = (goal: GoalNode): string[] => {
@@ -284,15 +291,34 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       ];
     })
     .map(([child, statement]) => {
-      // TODO: decision variables stage, dependencies
+      const updateFailedCounterStatement = child.customProperties.maxRetries
+        ? `${failed(child.id)}=min(${
+            child.customProperties.maxRetries
+          }, ${failed(child.id)}+1)`
+        : '';
 
-      const leftWithoutRepeatedConditions = statement.left
-        .split(' & ')
-        .filter((condition, index, self) => self.indexOf(condition) === index)
-        .join(' & ');
+      if (!updateFailedCounterStatement) {
+        return [child, statement] as const;
+      }
+
+      const rightStatement =
+        statement.right === 'true'
+          ? // overwrite default true with update failed counter statement
+            updateFailedCounterStatement
+          : `${statement.right} & ${updateFailedCounterStatement}`;
+      return [
+        child,
+        {
+          left: statement.left,
+          right: rightStatement,
+        },
+      ] as const;
+    })
+    .map(([child, statement]) => {
+      // TODO: decision variables stage, dependencies
       return {
-        left: `${leftWithoutRepeatedConditions}`,
-        right: `${statement.right}`,
+        left: `${removeRepeatedConditions(statement.left)}`,
+        right: `${removeRepeatedConditions(statement.right)}`,
       };
     })
     .map((statement): string => {

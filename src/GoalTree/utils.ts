@@ -107,3 +107,9 @@ export function childrenWithTasksAndResources<T extends GenericGoal>({
 export function childrenLength({ node }: { node: GenericGoal }) {
   return childrenWithTasksAndResources({ node }).length;
 }
+
+export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
+  return childrenWithTasksAndResources({ node }).filter(
+    (child) => !!child.customProperties.maxRetries
+  );
+}

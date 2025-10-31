@@ -1,4 +1,5 @@
 import { GoalNodeWithParent, Relation } from '../../../GoalTree/types';
+import * as utils from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { achieved, failed, pursued, separator } from '../../../mdp/common';
 import {
@@ -75,9 +76,16 @@ const variablesDefinition = (goal: GoalNodeWithParent) => {
     goal.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), 1)
       : null;
-  const maxRetriesVariableStatement = goal.customProperties.maxRetries
-    ? defineVariable(failed(goal.id), goal.customProperties.maxRetries)
-    : null;
+
+  const childrenWithMaxRetries = utils.childrenWithMaxRetries({ node: goal });
+  const maxRetriesVariableStatement =
+    childrenWithMaxRetries.length > 0
+      ? childrenWithMaxRetries
+          .map((child) =>
+            defineVariable(failed(child.id), child.customProperties.maxRetries!)
+          )
+          .join('\n')
+      : null;
 
   return [
     pursuedVariableStatement,

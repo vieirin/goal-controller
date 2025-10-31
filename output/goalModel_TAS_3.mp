@@ -45,10 +45,11 @@ endmodule
 module G1
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
+  G4_failed : [0..10] init 0;
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
   [pursue_G3] G1_pursued=1 & G1_achieved=0 & G1_pursued=0 & G4_failed >= 2 -> true;
-  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G1_pursued=0 & G4_achieved_maintain=false -> true;
+  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G1_pursued=0 & G4_achieved_maintain=false -> G4_failed=min(10, G4_failed+1);
 
   [achieved_G1] G1_pursued=1 & (G3_achieved=1 | G4_achieved_maintain=true) -> (G1_pursued'=0) & (G1_achieved'=1);
   
@@ -83,9 +84,8 @@ endmodule
 
 module G4
   G4_pursued : [0..1] init 0;
-  G4_failed : [0..10] init 0;
 
-  [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1);
+  [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1) & G4_failed=min(10, G4_failed+1);
   [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false -> true;
   [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true;
 
@@ -214,9 +214,10 @@ endmodule
 module G14
   G14_pursued : [0..1] init 0;
   G14_achieved : [0..1] init 0;
+  T5_failed : [0..8] init 0;
 
   [pursue_G14] G14_pursued=0 & G14_achieved=0 -> (G14_pursued'=1);
-  [pursue_T5] G14_pursued=1 & G14_achieved=0 -> true;
+  [pursue_T5] G14_pursued=1 & G14_achieved=0 -> T5_failed=min(8, T5_failed+1);
 
   [achieved_G14] G14_pursued=1 & (T5_achieved=1) -> (G14_pursued'=0) & (G14_achieved'=1);
   

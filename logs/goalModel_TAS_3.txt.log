@@ -69,6 +69,7 @@
 	[TRACE]: [G1] Emits module: G1
 	[VARIABLE DEFINITION] G1_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G1_achieved; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G4_failed; initial value: 0; upper bound: 10; type: int
 	[PURSUE GENERATION] G1 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G1] G1_pursued=0 & G1_achieved=0
 		[UPDATE] (G1_pursued'=1)
@@ -238,7 +239,6 @@
 	Execution detail: sequence
 	[TRACE]: [G4] Emits module: G4
 	[VARIABLE DEFINITION] G4_pursued; initial value: 0; upper bound: 1; type: int
-	[VARIABLE DEFINITION] G4_failed; initial value: 0; upper bound: 10; type: int
 	[PURSUE GENERATION] G4 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false
 		[UPDATE] (G4_pursued'=1)
@@ -806,6 +806,7 @@
 	[TRACE]: [G14] Emits module: G14
 	[VARIABLE DEFINITION] G14_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G14_achieved; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] T5_failed; initial value: 0; upper bound: 8; type: int
 	[PURSUE GENERATION] G14 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G14] G14_pursued=0 & G14_achieved=0
 		[UPDATE] (G14_pursued'=1)
