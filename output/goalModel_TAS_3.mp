@@ -200,8 +200,8 @@ module G11
   G11_chosen : [0..1] init 0;
 
   [pursue_G11] G11_pursued=0 & G11_achieved=0 -> (G11_pursued'=1);
-  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> true;
-  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> true;
+  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> G11_chosen=0;
+  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> G11_chosen=1;
 
   [achieved_G11] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1) -> (G11_pursued'=0) & (G11_achieved'=1);
   
@@ -317,8 +317,8 @@ module G19
   G19_chosen : [0..1] init 0;
 
   [pursue_G19] G19_pursued=0 & G19_achieved=0 & inEmergency -> (G19_pursued'=1);
-  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> true;
-  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> true;
+  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> G19_chosen=0;
+  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> G19_chosen=1;
 
   [achieved_G19] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1) -> (G19_pursued'=0) & (G19_achieved'=1);
   

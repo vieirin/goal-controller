@@ -1,6 +1,7 @@
 import { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
+import { chosenVariable } from '../../../common';
 import { achievedMaintain } from '../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import {
@@ -71,10 +72,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       return [child, { left, right }] as const;
     })
     .map(
-      ([child, { left, right }]): [
-        GoalNode,
-        { left: string; right: string },
-      ] => {
+      (
+        [child, { left, right }],
+        index
+      ): [GoalNode, { left: string; right: string }] => {
         const calcExecutionDetail = (): [
           GoalNode,
           { left: string; right: string },
@@ -103,7 +104,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = goal.children?.map((child) => child.id);
+                const children = [
+                  ...(goal.children ?? []),
+                  ...(goal.tasks ?? []),
+                ].map((child) => child.id);
                 if (!children) {
                   logger.error(
                     child.id,
@@ -122,7 +126,14 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   children,
                   child.id
                 );
-                return [child, { left: left + ` & ${pursueCondition}`, right }];
+
+                const _right =
+                  index > 0 ? `${chosenVariable(goal.id)}=${index - 1}` : right;
+
+                return [
+                  child,
+                  { left: left + ` & ${pursueCondition}`, right: _right },
+                ];
               }
               case 'degradation': {
                 logger.trace(
