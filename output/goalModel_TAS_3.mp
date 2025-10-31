@@ -85,7 +85,7 @@ endmodule
 module G4
   G4_pursued : [0..1] init 0;
 
-  [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1) & G4_failed=min(10, G4_failed+1);
+  [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1);
   [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false -> true;
   [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true;
 

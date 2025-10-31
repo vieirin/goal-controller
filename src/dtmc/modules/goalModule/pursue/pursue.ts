@@ -297,7 +297,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           }, ${failed(child.id)}+1)`
         : '';
 
-      if (!updateFailedCounterStatement) {
+      if (!updateFailedCounterStatement || isItself(child)) {
         return [child, statement] as const;
       }
 
