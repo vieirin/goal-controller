@@ -86,7 +86,7 @@ module G4
   G4_failed : [0..10] init 0;
 
   [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1);
-  [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false & G8_achieved_maintain=false -> true;
+  [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false -> true;
   [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true;
 
   [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
@@ -151,8 +151,8 @@ module G9
   G9_achieved : [0..1] init 0;
 
   [pursue_G9] G9_pursued=0 & G9_achieved=0 -> (G9_pursued'=1);
-  [pursue_G12] G9_pursued=1 & G9_achieved=0 & G12_achieved=0 -> true;
   [pursue_G13] G9_pursued=1 & G9_achieved=0 & G12_achieved=1 -> true;
+  [pursue_G12] G9_pursued=1 & G9_achieved=0 & G12_achieved=0 -> true;
 
   [achieved_G9] G9_pursued=1 & (G13_achieved=1 & G12_achieved=1) -> (G9_pursued'=0) & (G9_achieved'=1);
   
@@ -203,7 +203,7 @@ module G13
   G13_achieved : [0..1] init 0;
 
   [pursue_G13] G13_pursued=0 & G13_achieved=0 -> (G13_pursued'=1);
-  [pursue_G18] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=false & G18_achieved_maintain=false -> true;
+  [pursue_G18] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=false -> true;
   [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=true -> true;
 
   [achieved_G13] G13_pursued=1 & (G18_achieved_maintain=true & G19_achieved=1) -> (G13_pursued'=0) & (G13_achieved'=1);

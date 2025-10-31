@@ -285,8 +285,13 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     })
     .map(([child, statement]) => {
       // TODO: decision variables stage, dependencies
+
+      const leftWithoutRepeatedConditions = statement.left
+        .split(' & ')
+        .filter((condition, index, self) => self.indexOf(condition) === index)
+        .join(' & ');
       return {
-        left: `${statement.left}`,
+        left: `${leftWithoutRepeatedConditions}`,
         right: `${statement.right}`,
       };
     })
