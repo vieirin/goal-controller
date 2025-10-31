@@ -1,12 +1,12 @@
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { loadModel } from '../../GoalTree';
+import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import { edgeDTMCTemplate } from '../../templateEngine/template';
 
 export const runModel = async (filePath: string) => {
   try {
-    const model = loadModel({ filename: filePath });
+    const model = loadPistarModel({ filename: filePath });
     const tree = convertToTree({ model });
     // last part of the path
     const fileName = filePath.split('/').pop();

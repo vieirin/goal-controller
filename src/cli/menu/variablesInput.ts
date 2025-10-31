@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import { basename, join } from 'path';
-import { loadModel } from '../../GoalTree';
+import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import { treeContextVariables } from '../../GoalTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
@@ -83,7 +83,7 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
     }
 
     // At this point modelPath is guaranteed to be a string
-    const model = loadModel({ filename: modelPath as string });
+    const model = loadPistarModel({ filename: modelPath as string });
     const tree = convertToTree({ model });
     const variables = treeContextVariables(tree);
 

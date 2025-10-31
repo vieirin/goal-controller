@@ -1,5 +1,5 @@
 import { writeFile } from 'fs';
-import { loadModel } from './GoalTree';
+import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
 import { edgeDTMCTemplate } from './templateEngine/template';
 
@@ -7,7 +7,7 @@ if (!process.argv.length) {
   console.error('missing file param');
   process.exit(1);
 }
-const model = loadModel({ filename: process.argv[2] ?? '' });
+const model = loadPistarModel({ filename: process.argv[2] ?? '' });
 const tree = convertToTree({ model });
 
 writeFile(
