@@ -1,8 +1,13 @@
-import { GoalNode } from '../../../../GoalTree/types';
-import { getLogger } from '../../../../logger/logger';
-import { achieved, failed, pursued, separator } from '../../../../mdp/common';
-import { chosenVariable } from '../../../common';
-import { achievedMaintain } from '../../../formulas';
+import { GoalNode } from '../../../../../GoalTree/types';
+import { getLogger } from '../../../../../logger/logger';
+import {
+  achieved,
+  failed,
+  pursued,
+  separator,
+} from '../../../../../mdp/common';
+import { chosenVariable } from '../../../../common';
+import { achievedMaintain } from '../../../../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import {
   pursueAlternativeGoal,

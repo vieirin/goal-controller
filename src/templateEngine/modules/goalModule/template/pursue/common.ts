@@ -1,6 +1,6 @@
-import type { GoalNode } from '../../../../GoalTree/types';
-import { achieved, pursued, separator } from '../../../../mdp/common';
-import { achievedMaintain } from '../../../formulas';
+import type { GoalNode } from '../../../../../GoalTree/types';
+import { achieved, pursued, separator } from '../../../../../mdp/common';
+import { achievedMaintain } from '../../../../formulas';
 
 export const beenAchieved = (
   goal: GoalNode,

@@ -1,37 +1,6 @@
-import {
-  GoalNodeWithParent,
-  GoalTreeWithParent,
-} from '../../../GoalTree/types';
-import { allByType, childrenLength } from '../../../GoalTree/utils';
-import { pursued, separator } from '../../../mdp/common';
-import { goalModule } from './goalModule';
-
-const declareManagerVariables = ({
-  goals,
-}: {
-  goals: GoalNodeWithParent[];
-}) => {
-  return [
-    ...goals.map(
-      (goal) =>
-        `  ${pursued(goal.id)} : [0..${childrenLength({ node: goal })}] init 0;`
-    ),
-  ].join('\n');
-};
-
-// we're gonna have an entry for each decision combination
-// for instance, if we have decision variables for time, we'll have
-// an entry for each time value
-// we need to map each variable in the combination to the corresponding decision variable
-// for instance, decision_G0_0_1 should be mapped to `t=0 & s=1`
-const variableStatement = (
-  variableArray: string[],
-  variableCombination: number[]
-) => {
-  return variableArray
-    .map((decisionVarName, i) => `${decisionVarName}=${variableCombination[i]}`)
-    .join(separator('and'));
-};
+import { GoalTreeWithParent } from '../../../GoalTree/types';
+import { allByType } from '../../../GoalTree/utils';
+import { goalModule } from './template/goalModuleTemplate';
 
 export const goalNumberId = (goalId: string) => {
   const id = goalId.match(/\d+/)?.[0];
