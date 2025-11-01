@@ -1,13 +1,13 @@
-import type { GoalNode } from '../../../GoalTree/types';
-import { getLogger } from '../../../logger/logger';
-import { failed } from '../../../mdp/common';
+import type { GoalNode } from '../../../../GoalTree/types';
+import { getLogger } from '../../../../logger/logger';
+import { failed } from '../../../../mdp/common';
 import {
   achievedTransition,
   achievedVariable,
   failedTransition,
   pursueTransition,
   pursuedVariable,
-} from '../../common';
+} from '../../../common';
 
 const pursueTask = (task: GoalNode) => {
   const logger = getLogger();

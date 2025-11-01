@@ -222,11 +222,18 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       type = 'int',
     }: {
       variable: string;
-      initialValue: number | boolean;
+      initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION';
       upperBound?: number | boolean;
       lowerBound?: number | boolean;
       type?: 'boolean' | 'int';
     }) => {
+      if (initialValue === 'MISSING_VARIABLE_DEFINITION') {
+        write(
+          `\t[VARIABLE DEFINITION] ${variable}; initial value: MISSING_VARIABLE_DEFINITION; type: ${type}\n`
+        );
+        return;
+      }
+
       if (type === 'boolean') {
         write(
           `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; type: ${type}\n`
