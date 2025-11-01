@@ -1,6 +1,6 @@
 import { GoalTreeWithParent } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
-import { goalModule } from './template/goalModuleTemplate';
+import { goalModule } from './template';
 
 export const goalNumberId = (goalId: string) => {
   const id = goalId.match(/\d+/)?.[0];
