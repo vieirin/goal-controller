@@ -2,7 +2,7 @@ import { writeFile } from 'fs/promises';
 import path from 'path';
 import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
-import { edgeDTMCTemplate } from '../../templateEngine/template';
+import { edgeDTMCTemplate } from '../../templateEngine/engine';
 
 export const runModel = async (filePath: string) => {
   try {
