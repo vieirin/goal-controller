@@ -259,7 +259,6 @@ const createNode = ({
       dependsOn: parseDependsOn({
         dependsOn: customProperties.dependsOn ?? '',
       }),
-      alt: alt?.toLowerCase() === 'true' || false,
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
       maxRetries: maxRetries ? parseInt(maxRetries) : undefined,

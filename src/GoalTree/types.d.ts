@@ -126,7 +126,6 @@ type GoalNode = {
   properties: {
     utility: string;
     cost: string;
-    alt: boolean;
     root: boolean | undefined;
     dependsOn: string[];
     uniqueChoice: boolean;
