@@ -7,6 +7,7 @@ import RTRegexParser, {
   GRetryContext,
   GSequenceContext,
   WordContext,
+  type ExprContext,
   type GAlternativeContext,
   type GChoiceContext,
   type GDegradationContext,
@@ -38,6 +39,21 @@ export const getGoalDetail = ({
   let retry: Dictionary<number> = {};
   let choice: boolean = false;
   class RTNotationTreeWalker extends RTRegexListener {
+    extractGoalIds = (expr: ExprContext): string[] => {
+      if (expr.getChildCount() === 1) {
+        // Simple goal like G1
+        return [expr.getText()];
+      } else if (expr.getChildCount() === 2) {
+        // Goal with ID, like G1
+        return [expr.getText()];
+      } else if (expr.getChildCount() === 3) {
+        // Binary operation (e.g., G1|G2, G1->G2, G1#G2, G1;G2)
+        const left = this.extractGoalIds(expr.getChild(0) as ExprContext);
+        const right = this.extractGoalIds(expr.getChild(2) as ExprContext);
+        return [...left, ...right];
+      }
+      return [];
+    };
     exitGIdContinued = (ctx: GIdContinuedContext) => {
       if (id) return;
       id = `${ctx._t.text}${ctx.id().getText()}`;
@@ -47,91 +63,27 @@ export const getGoalDetail = ({
       goalName = ctx.WORD().getText();
     };
     exitGAlternative = (ctx: GAlternativeContext) => {
-      const extractGoalIds = (expr: any): string[] => {
-        if (expr.getChildCount() === 1) {
-          // Simple goal like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 2) {
-          // Goal with ID, like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 3) {
-          // Binary operation like G1|G2
-          const left = extractGoalIds(expr.getChild(0));
-          const right = extractGoalIds(expr.getChild(2));
-          return [...left, ...right];
-        }
-        return [];
-      };
-
       alternative = ctx
         .expr_list()
-        .flatMap((e) => extractGoalIds(e))
+        .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
     exitGDegradation = (ctx: GDegradationContext) => {
-      const extractGoalIds = (expr: any): string[] => {
-        if (expr.getChildCount() === 1) {
-          // Simple goal like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 2) {
-          // Goal with ID, like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 3) {
-          // Binary operation like G1->G2
-          const left = extractGoalIds(expr.getChild(0));
-          const right = extractGoalIds(expr.getChild(2));
-          return [...left, ...right];
-        }
-        return [];
-      };
-
       degradationList = ctx
         .expr_list()
-        .flatMap((e) => extractGoalIds(e))
+        .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
     exitGInterleaved = (ctx: GInterleavedContext) => {
-      const extractGoalIds = (expr: any): string[] => {
-        if (expr.getChildCount() === 1) {
-          // Simple goal like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 2) {
-          // Goal with ID, like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 3) {
-          // Binary operation like G1#G2
-          const left = extractGoalIds(expr.getChild(0));
-          const right = extractGoalIds(expr.getChild(2));
-          return [...left, ...right];
-        }
-        return [];
-      };
-
       interleaved = ctx
         .expr_list()
-        .flatMap((e) => extractGoalIds(e))
+        .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
     exitGSequence = (ctx: GSequenceContext) => {
-      const extractGoalIds = (expr: any): string[] => {
-        if (expr.getChildCount() === 1) {
-          // Simple goal like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 2) {
-          // Goal with ID, like G1
-          return [expr.getText()];
-        } else if (expr.getChildCount() === 3) {
-          // Binary operation like G1;G2
-          const left = extractGoalIds(expr.getChild(0));
-          const right = extractGoalIds(expr.getChild(2));
-          return [...left, ...right];
-        }
-        return [];
-      };
-
       sequence = ctx
         .expr_list()
-        .flatMap((e) => extractGoalIds(e))
+        .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
     exitGRetry = (ctx: GRetryContext) => {
