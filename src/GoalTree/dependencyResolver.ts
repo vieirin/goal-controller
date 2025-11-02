@@ -19,7 +19,7 @@ const resolve = ({
     return null;
   }
   const isFormula = (targetDependency.children?.length ?? 0) > 0;
-  const dependencies = targetDependency.customProperties.dependsOn;
+  const dependencies = targetDependency.properties.dependsOn;
   return {
     goal: targetDependency.id,
     isFormula,
@@ -41,7 +41,7 @@ export const resolveDependency = ({
   goal: GoalNode;
 }): ConditionDependency => {
   const allGoals = allGoalsMap({ gm });
-  const dependencies = goal.customProperties.dependsOn;
+  const dependencies = goal.properties.dependsOn;
 
   return {
     goal: goal.id,

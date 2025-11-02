@@ -123,7 +123,7 @@ type GoalNode = {
   name: string | null;
   children?: GoalNode[];
   variantOf?: string;
-  customProperties: {
+  properties: {
     utility: string;
     cost: string;
     alt: boolean;

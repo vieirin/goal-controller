@@ -16,8 +16,8 @@ import {
 } from './orGoal';
 
 const goalDependencyStatement = (goal: GoalNode) => {
-  return goal.customProperties.dependsOn?.length
-    ? ` & (${goal.customProperties.dependsOn
+  return goal.properties.dependsOn?.length
+    ? ` & (${goal.properties.dependsOn
         .map((dep) => `${achieved(dep)}=1`)
         .join(separator('and'))})`
     : '';
@@ -47,7 +47,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       const calcLeftStatement = () => {
         const dependencyStatement = goalDependencyStatement(goal);
-        pursueLogger.goalDependency(goal.id, goal.customProperties.dependsOn);
+        pursueLogger.goalDependency(goal.id, goal.properties.dependsOn);
         const statement =
           `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
             goal.execCondition?.maintain
@@ -320,10 +320,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       // if child has a max retries, update the failed counter variable
       // if itself, skip the update failed counter statement
 
-      const updateFailedCounterStatement = child.customProperties.maxRetries
-        ? `${failed(child.id)}=min(${
-            child.customProperties.maxRetries
-          }, ${failed(child.id)}+1)`
+      const updateFailedCounterStatement = child.properties.maxRetries
+        ? `${failed(child.id)}=min(${child.properties.maxRetries}, ${failed(
+            child.id
+          )}+1)`
         : '';
 
       if (!updateFailedCounterStatement || isItself(child)) {

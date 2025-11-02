@@ -12,7 +12,7 @@ const rewardsMapping = <T extends 'utility' | 'cost'>({
 }): Reward[] => {
   return (
     tree?.flatMap((goal) => {
-      const reward = goal.customProperties[type];
+      const reward = goal.properties[type];
       const childrenRewards = goal.children
         ? rewardsMapping({ type: type, tree: goal.children })
         : [];

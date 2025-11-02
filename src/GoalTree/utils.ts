@@ -110,6 +110,6 @@ export function childrenLength({ node }: { node: GenericGoal }) {
 
 export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
   return childrenWithTasksAndResources({ node }).filter(
-    (child) => !!child.customProperties.maxRetries
+    (child) => !!child.properties.maxRetries
   );
 }

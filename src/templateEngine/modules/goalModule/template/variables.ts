@@ -35,7 +35,7 @@ export const variablesDefinition = (goal: GoalNodeWithParent) => {
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
           .map((child) =>
-            defineVariable(failed(child.id), child.customProperties.maxRetries!)
+            defineVariable(failed(child.id), child.properties.maxRetries!)
           )
           .join('\n')
       : null;

@@ -42,10 +42,10 @@ const failedTask = (task: GoalNode) => {
   )}=0`;
 
   const updateStatement = `(${pursuedVariable(task.id)}'=0)${
-    task.customProperties.maxRetries
-      ? ` & (${failed(task.id)}'=min(${
-          task.customProperties.maxRetries
-        }, ${failed(task.id)}+1))`
+    task.properties.maxRetries
+      ? ` & (${failed(task.id)}'=min(${task.properties.maxRetries}, ${failed(
+          task.id
+        )}+1))`
       : ''
   }`;
 
@@ -59,24 +59,24 @@ const failedTask = (task: GoalNode) => {
     updateStatement,
     prismLabelStatement,
     'failed',
-    task.customProperties.maxRetries
+    task.properties.maxRetries
   );
   return prismLabelStatement;
 };
 
 const maxRetriesVariable = (task: GoalNode) => {
-  if (!task.customProperties.maxRetries) {
+  if (!task.properties.maxRetries) {
     return '';
   }
   const logger = getLogger();
 
   logger.variableDefinition({
     variable: failed(task.id),
-    upperBound: task.customProperties.maxRetries,
+    upperBound: task.properties.maxRetries,
     initialValue: 0,
     type: 'int',
   });
-  return `${failed(task.id)}: [0..${task.customProperties.maxRetries}] init 0;`;
+  return `${failed(task.id)}: [0..${task.properties.maxRetries}] init 0;`;
 };
 
 const defineVariable = (variable: string) => {

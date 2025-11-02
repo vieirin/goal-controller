@@ -113,10 +113,10 @@ const getMaintainCondition = (
 };
 
 const createResource = (resource: GoalNode): Resource => {
-  const { type } = resource.customProperties;
+  const { type } = resource.properties;
   switch (type) {
     case 'bool': {
-      const { initialValue } = resource.customProperties;
+      const { initialValue } = resource.properties;
       if (!initialValue) {
         throw new Error(
           `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value`
@@ -128,8 +128,7 @@ const createResource = (resource: GoalNode): Resource => {
       };
     }
     case 'int':
-      const { initialValue, lowerBound, upperBound } =
-        resource.customProperties;
+      const { initialValue, lowerBound, upperBound } = resource.properties;
 
       if (!initialValue || !lowerBound || !upperBound) {
         throw new Error(
@@ -255,7 +254,7 @@ const createNode = ({
     children: filteredChildren,
     decisionVars: decisionVars,
     hasDecision: decisionVars.length > 0,
-    customProperties: {
+    properties: {
       ...customProperties,
       dependsOn: parseDependsOn({
         dependsOn: customProperties.dependsOn ?? '',
@@ -375,7 +374,7 @@ const addParentToChildren = (
   parent.forEach((p) => {
     if (
       p.executionDetail?.retryMap?.[unidirectionalTreeNode.id] &&
-      !unidirectionalTreeNode.customProperties.maxRetries
+      !unidirectionalTreeNode.properties.maxRetries
     ) {
       throw new Error(
         `[INVALID MODEL]: Goal ${unidirectionalTreeNode.id} is missing maxRetries property, but its parent ${p.id} declares it in a retryMap`

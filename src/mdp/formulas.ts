@@ -18,7 +18,7 @@ const alternativeChildrenFormula = ({
 }: NodeOrChildProps) => {
   return (
     node?.children
-      ?.filter((child) => child.customProperties.alt)
+      ?.filter((child) => child.properties.alt)
       .map((child) => {
         if (child.children?.length) {
           const ids = child.children
@@ -43,7 +43,7 @@ const nonAlternativeChildrenFormula = ({
   return {
     ids:
       node?.children
-        ?.filter((child) => !child.customProperties.alt)
+        ?.filter((child) => !child.properties.alt)
         .map((child) => child.id)
         .map((id) => `${appendAchieve ? achieved(id) : id}`) ?? [],
     relation: node?.relationToChildren ?? null,
@@ -55,8 +55,8 @@ const goalsWithFormula = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
   return (
     gm?.map((node) => {
       const shouldHaveFormula =
-        (!!node.children?.length && !node.customProperties.alt) ||
-        node.children?.some((child) => child.customProperties.alt);
+        (!!node.children?.length && !node.properties.alt) ||
+        node.children?.some((child) => child.properties.alt);
 
       const childrenWithFormula = node.children
         ? goalsWithFormula({ gm: node.children })
@@ -98,7 +98,7 @@ const goalDependency = ({
 }: TreeOrChildrenProps): { id: string; dependant: string }[] => {
   return (
     gm?.map((node) => {
-      const dependency = node.customProperties.dependsOn;
+      const dependency = node.properties.dependsOn;
       const childrenWithFormula = node.children
         ? goalDependency({ gm: node.children })
         : [];
