@@ -1,6 +1,6 @@
 import { GoalNodeWithParent } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
-import { maintainConditionFormula } from '../../../formulas';
+import { maintainConditionFormula } from '../formulas';
 import { achieveStatement } from './achieve';
 
 import { pursueStatements } from './pursue';
@@ -22,5 +22,6 @@ export const goalModule = (goal: GoalNodeWithParent) => {
 endmodule
 
 ${maintainConditionFormula(goal)}
+
 `.trim();
 };

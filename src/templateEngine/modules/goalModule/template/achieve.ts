@@ -2,7 +2,7 @@ import { GoalNodeWithParent, Relation } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
-import { achievedMaintain } from '../../../formulas';
+import { achievedMaintain } from '../formulas';
 import { beenPursued } from './pursue/common';
 
 const isValidSeparator = (
