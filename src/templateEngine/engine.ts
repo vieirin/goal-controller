@@ -19,7 +19,7 @@ ${decisionVariablesTemplate({ gm })}
 
 ${goalModules({ gm })}
 
-${changeManagerModule({ gm })}
+${changeManagerModule({ gm, fileName })}
 
 ${systemModule({ gm, fileName })}
 `;

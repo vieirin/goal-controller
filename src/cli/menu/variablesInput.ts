@@ -4,7 +4,10 @@ import inquirer from 'inquirer';
 import { basename, join } from 'path';
 import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
-import { treeContextVariables } from '../../GoalTree/treeVariables';
+import {
+  getTaskAchievabilityVariables,
+  treeContextVariables,
+} from '../../GoalTree/treeVariables';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
 export const getVariablesFilePath = (modelPath: string): string => {
@@ -85,7 +88,9 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
     // At this point modelPath is guaranteed to be a string
     const model = loadPistarModel({ filename: modelPath as string });
     const tree = convertToTree({ model });
-    const variables = treeContextVariables(tree);
+    const contextVariables = treeContextVariables(tree);
+    const achievabilityVariables = getTaskAchievabilityVariables(tree);
+    const variables = [...contextVariables, ...achievabilityVariables];
 
     if (variables.length === 0) {
       console.log('No variables found in the model.');
@@ -96,23 +101,43 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
     const existingVariables = await getExistingVariables(modelPath as string);
 
     // Create questions for each variable
-    const questions = variables.map((variable) => ({
-      type: 'input' as const,
-      name: variable,
-      message: `Enter default value for ${variable} (true/false):`,
-      default:
-        existingVariables[variable] !== undefined
-          ? String(existingVariables[variable])
-          : 'false',
-      validate: (input: string) => {
-        const value = input.toLowerCase();
-        if (value === 'true' || value === 'false') {
-          return true;
-        }
-        return 'Please enter "true" or "false"';
-      },
-      filter: (input: string) => input.toLowerCase() === 'true',
-    }));
+    const questions = variables.map((variable) =>
+      contextVariables.includes(variable)
+        ? {
+            type: 'input' as const,
+            name: variable,
+            message: `Enter default value for ${variable} (true/false):`,
+            default:
+              existingVariables[variable] !== undefined
+                ? String(existingVariables[variable])
+                : 'false',
+            validate: (input: string) => {
+              const value = input.toLowerCase();
+              if (value === 'true' || value === 'false') {
+                return true;
+              }
+              return 'Please enter "true" or "false"';
+            },
+            filter: (input: string) => input.toLowerCase() === 'true',
+          }
+        : {
+            type: 'input' as const,
+            name: variable,
+            message: `Enter default value for ${variable} (0.0-1.0):`,
+            default:
+              existingVariables[variable] !== undefined
+                ? String(existingVariables[variable])
+                : '0.0',
+            validate: (input: string) => {
+              const value = parseFloat(input);
+              if (!isNaN(value) && value >= 0.0 && value <= 1.0) {
+                return true;
+              }
+              return 'Please enter a value between 0.0 and 1.0';
+            },
+            filter: (input: string) => parseFloat(input),
+          }
+    );
 
     // Prompt for variable values
     const answers = await inquirer.prompt<Record<string, boolean>>(questions);

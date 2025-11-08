@@ -4,10 +4,21 @@
   "inSideEffectWindow": false,
   "medicationApplied": false,
   "inEmergency": false,
-  "privacyEnabled": false,
   "highPrecision": false,
   "patientTracking": false,
+  "privacyEnabled": false,
   "enoughBattery": true,
   "highReliability": false,
-  "sensorAvailable": true
+  "sensorAvailable": true,
+  "T1_achievable": 0.2,
+  "T10_achievable": 0.2,
+  "T11_achievable": 0.5,
+  "T2_achievable": 0.6,
+  "T3_achievable": 0.8,
+  "T4_achievable": 0.3,
+  "T5_achievable": 0.5,
+  "T6_achievable": 0.4,
+  "T7_achievable": 0.3,
+  "T8_achievable": 0.6,
+  "T9_achievable": 0.8
 }

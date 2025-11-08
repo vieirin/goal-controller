@@ -352,6 +352,18 @@ endmodule
 formula G21_achievable = T11_achievable - (T11_achievable)
 
 
+const double T1_achievable = 0.2;
+const double T10_achievable = 0.2;
+const double T11_achievable = 0.5;
+const double T2_achievable = 0.6;
+const double T3_achievable = 0.8;
+const double T4_achievable = 0.3;
+const double T5_achievable = 0.5;
+const double T6_achievable = 0.4;
+const double T7_achievable = 0.3;
+const double T8_achievable = 0.6;
+const double T9_achievable = 0.8;
+
 module ChangeManager
   T1_pursued: [0..1] init 0;
   T1_achieved: [0..1] init 0;
