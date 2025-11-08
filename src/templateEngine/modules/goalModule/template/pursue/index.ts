@@ -7,7 +7,7 @@ import {
   separator,
 } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
-import { achievedMaintain } from '../../formulas';
+import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import {
   pursueAlternativeGoal,
