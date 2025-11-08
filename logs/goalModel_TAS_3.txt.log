@@ -1388,12 +1388,12 @@
 		PRISM statement: [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
 	[END OF FAILED]
 [INIT SYSTEM MODULE]
-	[VARIABLE DEFINITION] R0; initial value: MISSING_VARIABLE_DEFINITION; type: boolean
-	[VARIABLE DEFINITION] R1; initial value: MISSING_VARIABLE_DEFINITION; type: int
-	[VARIABLE DEFINITION] R2; initial value: MISSING_VARIABLE_DEFINITION; type: int
-	[VARIABLE DEFINITION] R3; initial value: MISSING_VARIABLE_DEFINITION; type: boolean
-	[VARIABLE DEFINITION] R4; initial value: MISSING_VARIABLE_DEFINITION; type: int
-	[VARIABLE DEFINITION] R5; initial value: MISSING_VARIABLE_DEFINITION; type: int
+	[VARIABLE DEFINITION] R0; initial value: true; type: boolean
+	[VARIABLE DEFINITION] R1; initial value: 50; upper bound: 100; type: int
+	[VARIABLE DEFINITION] R2; initial value: 50; upper bound: 100; type: int
+	[VARIABLE DEFINITION] R3; initial value: true; type: boolean
+	[VARIABLE DEFINITION] R4; initial value: 1; lower bound: 1; upper bound: 4; type: int
+	[VARIABLE DEFINITION] R5; initial value: 0; upper bound: 10; type: int
 	[VARIABLE DEFINITION] pharmacyAvailable; initial value: true; type: boolean
 	[VARIABLE DEFINITION] atHome; initial value: false; type: boolean
 	[VARIABLE DEFINITION] inSideEffectWindow; initial value: false; type: boolean

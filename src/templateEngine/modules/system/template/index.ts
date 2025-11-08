@@ -11,10 +11,20 @@ export const systemModuleTemplate = ({
   defaultVariableValues: Record<string, number | boolean>;
 }) => {
   const resourceVariables = resources.map((resource) => {
+    if (resource.variable.type === 'boolean') {
+      return defineVariable(
+        resourceVariableName(resource),
+        resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
+        resource.variable.type
+      );
+    }
+
     return defineVariable(
       resourceVariableName(resource),
-      defaultVariableValues[resource.id] ?? 'MISSING_VARIABLE_DEFINITION',
-      resource.variable.type
+      resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
+      resource.variable.type,
+      resource.variable.lowerBound,
+      resource.variable.upperBound
     );
   });
   return `module System

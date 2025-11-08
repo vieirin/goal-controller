@@ -468,10 +468,10 @@ module System
   enoughBattery: bool init true;
   highReliability: bool init false;
   sensorAvailable: bool init true;
-  R0: bool init MISSING_VARIABLE_DEFINITION;
-  R1: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
-  R2: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
-  R3: bool init MISSING_VARIABLE_DEFINITION;
-  R4: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
-  R5: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
+  R0: bool init true;
+  R1: [0..100] init 50;
+  R2: [0..100] init 50;
+  R3: bool init true;
+  R4: [1..4] init 1;
+  R5: [0..10] init 0;
 endmodule
