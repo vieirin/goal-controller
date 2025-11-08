@@ -442,10 +442,10 @@ module ChangeManager
   [achieved_T9] true -> true;
   [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
   
-  endmodule
+endmodule
 
 module System
-    pharmacyAvailable: bool init true;
+  pharmacyAvailable: bool init true;
   atHome: bool init false;
   inSideEffectWindow: bool init false;
   medicationApplied: bool init false;
@@ -462,4 +462,4 @@ module System
   R3: bool init MISSING_VARIABLE_DEFINITION;
   R4: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
   R5: [undefined..undefined] init MISSING_VARIABLE_DEFINITION;
-  endmodule
+endmodule

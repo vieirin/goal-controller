@@ -18,18 +18,18 @@ export const systemModuleTemplate = ({
     );
   });
   return `module System
-    ${[
-      variables.map((variable) => {
-        return defineVariable(
-          variable,
-          defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION',
-          'boolean'
-        );
-      }),
-      resourceVariables.join('\n  '),
-    ]
-      .flat()
-      .join('\n  ')
-      .trim()}
+  ${[
+    variables.map((variable) => {
+      return defineVariable(
+        variable,
+        defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION',
+        'boolean'
+      );
+    }),
+    resourceVariables.join('\n  '),
+  ]
+    .flat()
+    .join('\n  ')
+    .trim()}
 endmodule`;
 };
