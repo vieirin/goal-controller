@@ -315,15 +315,15 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       ];
     })
     .map(([child, statement]) => {
-      // fourth map, responsible for writing the fourth column of the pursue lines
+      // fourth map, responsible for writing the update of the failed counter variable
       // defines the update failed counter statement
       // if child has a max retries, update the failed counter variable
       // if itself, skip the update failed counter statement
 
       const updateFailedCounterStatement = child.properties.maxRetries
-        ? `${failed(child.id)}=min(${child.properties.maxRetries}, ${failed(
+        ? `(${failed(child.id)}'=min(${child.properties.maxRetries}, ${failed(
             child.id
-          )}+1)`
+          )}+1))`
         : '';
 
       if (!updateFailedCounterStatement || isItself(child)) {
@@ -344,7 +344,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       ] as const;
     })
     .map(([_, statement]) => {
-      // fifth map, responsible for writing the fifth column of the pursue lines
+      // fifth map
       // cleans up the left and right statements by removing repeated conditions
       // TODO: decision variables stage, dependencies
       return {
