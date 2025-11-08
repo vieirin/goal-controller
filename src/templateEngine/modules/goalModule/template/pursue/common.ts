@@ -2,30 +2,36 @@ import type { GoalNode } from '../../../../../GoalTree/types';
 import { achieved, pursued, separator } from '../../../../../mdp/common';
 import { achievedMaintain } from '../formulas';
 
-export const beenAchieved = (
+export const hasBeenAchieved = (
   goal: GoalNode,
-  { condition }: { condition: boolean }
+  { condition, update }: { condition: boolean; update?: boolean }
 ) => {
   if (goal.execCondition?.maintain) {
+    if (update) {
+      throw new Error(
+        'Invalid update option for goal of type maintain, please verify'
+      );
+    }
     return `${achievedMaintain(goal.id)}=${condition ? 'true' : 'false'}`;
   }
-  return `${achieved(goal.id)}=${condition ? 1 : 0}`;
+
+  return `${achieved(goal.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
 };
 
-export const beenPursued = (
+export const hasBeenPursued = (
   goal: GoalNode,
-  { condition }: { condition: boolean }
+  { condition, update }: { condition: boolean; update?: boolean }
 ) => {
-  return `${pursued(goal.id)}=${condition ? 1 : 0}`;
+  return `${pursued(goal.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
 };
 
-export const beenAchievedAndPursued = (
+export const hasBeenAchievedAndPursued = (
   goal: GoalNode,
   { achieved, pursued }: { achieved: boolean; pursued: boolean }
 ) => {
   return [
-    beenPursued(goal, { condition: pursued }),
-    beenAchieved(goal, { condition: achieved }),
+    hasBeenPursued(goal, { condition: pursued }),
+    hasBeenAchieved(goal, { condition: achieved }),
   ].join(separator('and'));
 };
 

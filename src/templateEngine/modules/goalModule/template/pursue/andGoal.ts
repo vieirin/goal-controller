@@ -1,7 +1,7 @@
 import { GoalNode } from '../../../../../GoalTree/types';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
-import { beenAchieved } from './common';
+import { hasBeenAchieved } from './common';
 
 export const splitSequence = (
   sequence: string[],
@@ -39,15 +39,15 @@ export const pursueAndSequentialGoal = (
 
   const resolveAndGoal = (): string => {
     if (leftGoals.length === 0) {
-      return beenAchieved(childrenMap.get(childId)!, { condition: false });
+      return hasBeenAchieved(childrenMap.get(childId)!, { condition: false });
     }
 
     return [
       ...leftGoals.map((goalId) =>
-        beenAchieved(childrenMap.get(goalId)!, { condition: true })
+        hasBeenAchieved(childrenMap.get(goalId)!, { condition: true })
       ),
       ...rightGoals.map((goalId) =>
-        beenAchieved(childrenMap.get(goalId)!, { condition: false })
+        hasBeenAchieved(childrenMap.get(goalId)!, { condition: false })
       ),
     ].join(separator('and'));
   };

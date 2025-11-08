@@ -7,7 +7,9 @@ export const chosenVariable = (goalId: string) => `${goalId}_chosen`;
 export const pursueTransition = (goalId: string) => `pursue_${goalId}`;
 export const achievedTransition = (goalId: string) => `achieved_${goalId}`;
 export const failedTransition = (goalId: string) => `failed_${goalId}`;
+export const tryTransition = (goalId: string) => `try_${goalId}`;
 
 // formulas
 export const achievableFormulaVariable = (goalId: string) =>
   `${goalId}_achievable`;
+export const failed = (goalId: string) => `${goalId}_failed`;

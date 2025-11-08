@@ -2,7 +2,7 @@ import { GoalNode } from '../../../../../GoalTree/types';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
-import { beenPursued, hasFailedAtLeastNTimes } from './common';
+import { hasBeenPursued, hasFailedAtLeastNTimes } from './common';
 
 /*
 G1: Goal[T1|T2]
@@ -67,7 +67,7 @@ export const pursueDegradationGoal = (
     degradationLogger.init(currentChildId, degradationList);
     return otherGoals
       .map((goalId) => {
-        const defaultCondition = beenPursued(goal, { condition: false });
+        const defaultCondition = hasBeenPursued(goal, { condition: false });
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);

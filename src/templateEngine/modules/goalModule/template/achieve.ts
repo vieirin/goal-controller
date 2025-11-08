@@ -3,7 +3,7 @@ import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
 import { achievedMaintain } from './formulas';
-import { beenPursued } from './pursue/common';
+import { hasBeenPursued } from './pursue/common';
 
 const isValidSeparator = (
   relation: Relation | null
@@ -31,7 +31,7 @@ export const achieveStatement = (goal: GoalNodeWithParent) => {
   const logger = getLogger();
 
   const leftStatement = [
-    beenPursued(goal, { condition: true }),
+    hasBeenPursued(goal, { condition: true }),
     achieveCondition(goal),
   ]
     .filter(Boolean)

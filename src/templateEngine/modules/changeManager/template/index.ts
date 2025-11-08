@@ -1,5 +1,6 @@
 import type { GoalNode } from '../../../../GoalTree/types';
-import { taskTransitions, taskVariables } from './tasks';
+import { taskTransitions } from './tasks/transitions';
+import { taskVariables } from './tasks/variables';
 
 export const changeManagerModuleTemplate = ({
   tasks,
@@ -14,8 +15,9 @@ export const changeManagerModuleTemplate = ({
     },
     { variables: [] as string[], transitions: [] as string[] }
   );
+
   return `module ChangeManager
-    ${variables.join('\n')}
-    ${transitions.join('\n')}
+  ${variables.join('\n  ')}
+  ${transitions.join('\n')}
 endmodule`;
 };

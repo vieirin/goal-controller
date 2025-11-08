@@ -1,13 +1,20 @@
-import type { GoalNode } from '../../../../GoalTree/types';
-import { getLogger } from '../../../../logger/logger';
-import { failed } from '../../../../mdp/common';
+import type { GoalNode } from '../../../../../GoalTree/types';
+import { getLogger } from '../../../../../logger/logger';
+import { failed, parenthesis } from '../../../../../mdp/common';
 import {
+  achievableFormulaVariable,
   achievedTransition,
   achievedVariable,
   failedTransition,
   pursueTransition,
   pursuedVariable,
-} from '../../../common';
+  tryTransition,
+} from '../../../../common';
+import {
+  hasBeenAchieved,
+  hasBeenAchievedAndPursued,
+  hasBeenPursued,
+} from '../../../goalModule/template/pursue/common';
 
 const pursueTask = (task: GoalNode) => {
   const logger = getLogger();
@@ -64,48 +71,26 @@ const failedTask = (task: GoalNode) => {
   return prismLabelStatement;
 };
 
-const maxRetriesVariable = (task: GoalNode) => {
-  if (!task.properties.maxRetries) {
-    return '';
-  }
-  const logger = getLogger();
+const tryTask = (task: GoalNode) => {
+  const taskAchievabilityVariable = achievableFormulaVariable(task.id);
 
-  logger.variableDefinition({
-    variable: failed(task.id),
-    upperBound: task.properties.maxRetries,
-    initialValue: 0,
-    type: 'int',
-  });
-  return `${failed(task.id)}: [0..${task.properties.maxRetries}] init 0;`;
-};
-
-const defineVariable = (variable: string) => {
-  const upperBound = 1;
-
-  const logger = getLogger();
-  logger.variableDefinition({
-    variable,
-    upperBound,
-    initialValue: 0,
-    type: 'int',
-  });
-  return `${variable} : [0..${upperBound}] init 0;`;
-};
-
-export const taskVariables = (task: GoalNode) => {
-  const logger = getLogger();
-  logger.initTask(task);
-
-  return `
-  ${defineVariable(pursuedVariable(task.id))}
-  ${defineVariable(achievedVariable(task.id))}
-  ${maxRetriesVariable(task)}
-`.trimEnd();
+  return `[${tryTransition(task.id)}] ${hasBeenAchievedAndPursued(task, {
+    achieved: false,
+    pursued: true,
+  })} -> ${taskAchievabilityVariable}: ${parenthesis(
+    hasBeenAchieved(task, {
+      condition: true,
+      update: true,
+    })
+  )} + 1-${taskAchievabilityVariable}: ${parenthesis(
+    hasBeenPursued(task, { condition: false, update: true })
+  )};`;
 };
 
 export const taskTransitions = (task: GoalNode) => {
   return `
   ${pursueTask(task)}
+  ${tryTask(task)}
   ${achieveTask(task)}
   ${failedTask(task)}
   `;
