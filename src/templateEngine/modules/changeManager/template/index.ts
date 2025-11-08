@@ -17,5 +17,5 @@ export const changeManagerModuleTemplate = ({
   return `module ChangeManager
     ${variables.join('\n')}
     ${transitions.join('\n')}
-  endmodule`;
+endmodule`;
 };

@@ -11,6 +11,13 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   const logger = getLogger();
   logger.initGoal(goal);
 
+  const formulaStatements = [
+    maintainConditionFormula(goal),
+    achievableGoalFormula(goal),
+  ]
+    .filter(Boolean)
+    .join('\n');
+
   return `module ${goal.id}
   ${variablesDefinition(goal)}
 
@@ -21,7 +28,6 @@ export const goalModule = (goal: GoalNodeWithParent) => {
   ${skipStatement(goal)}
 endmodule
 
-${maintainConditionFormula(goal)}
-${achievableGoalFormula(goal)}
+${formulaStatements}
 `.trim();
 };

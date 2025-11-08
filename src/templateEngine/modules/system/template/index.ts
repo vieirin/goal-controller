@@ -31,5 +31,5 @@ export const systemModuleTemplate = ({
       .flat()
       .join('\n  ')
       .trim()}
-  endmodule`;
+endmodule`;
 };
