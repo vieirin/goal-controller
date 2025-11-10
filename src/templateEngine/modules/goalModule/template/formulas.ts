@@ -28,6 +28,13 @@ export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
 
 export const achievableGoalFormula = (goal: GoalNodeWithParent) => {
   const children = [...(goal.children || []), ...(goal.tasks || [])];
+
+  if (children.length === 1) {
+    return `formula ${goal.id}_achievable = ${achievableFormulaVariable(
+      children[0]!.id
+    )}`;
+  }
+
   const childrenVariables = children.map((child) =>
     achievableFormulaVariable(child.id)
   );
