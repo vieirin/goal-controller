@@ -87,7 +87,7 @@ module G3
   [skip_G3] G3_pursued=1 & G7_pursued=0 -> (G3_pursued'=0);
 endmodule
 
-formula G3_achievable = G7_achievable - (G7_achievable)
+formula G3_achievable = G7_achievable
 
 module G4
   G4_pursued : [0..1] init 0;
@@ -116,7 +116,7 @@ module G5
   [skip_G5] G5_pursued=1 & T2_pursued=0 -> (G5_pursued'=0);
 endmodule
 
-formula G5_achievable = T2_achievable - (T2_achievable)
+formula G5_achievable = T2_achievable
 
 module G6
   G6_pursued : [0..1] init 0;
@@ -130,7 +130,7 @@ module G6
   [skip_G6] G6_pursued=1 & T3_pursued=0 -> (G6_pursued'=0);
 endmodule
 
-formula G6_achievable = T3_achievable - (T3_achievable)
+formula G6_achievable = T3_achievable
 
 module G7
   G7_pursued : [0..1] init 0;
@@ -144,7 +144,7 @@ module G7
   [skip_G7] G7_pursued=1 & T1_pursued=0 -> (G7_pursued'=0);
 endmodule
 
-formula G7_achievable = T1_achievable - (T1_achievable)
+formula G7_achievable = T1_achievable
 
 module G8
   G8_pursued : [0..1] init 0;
@@ -188,7 +188,7 @@ module G10
   [skip_G10] G10_pursued=1 & T4_pursued=0 -> (G10_pursued'=0);
 endmodule
 
-formula G10_achievable = T4_achievable - (T4_achievable)
+formula G10_achievable = T4_achievable
 
 module G11
   G11_pursued : [0..1] init 0;
@@ -249,7 +249,7 @@ module G14
   [skip_G14] G14_pursued=1 & T5_pursued=0 -> (G14_pursued'=0);
 endmodule
 
-formula G14_achievable = T5_achievable - (T5_achievable)
+formula G14_achievable = T5_achievable
 
 module G15
   G15_pursued : [0..1] init 0;
@@ -263,7 +263,7 @@ module G15
   [skip_G15] G15_pursued=1 & T6_pursued=0 -> (G15_pursued'=0);
 endmodule
 
-formula G15_achievable = T6_achievable - (T6_achievable)
+formula G15_achievable = T6_achievable
 
 module G16
   G16_pursued : [0..1] init 0;
@@ -277,7 +277,7 @@ module G16
   [skip_G16] G16_pursued=1 & T7_pursued=0 -> (G16_pursued'=0);
 endmodule
 
-formula G16_achievable = T7_achievable - (T7_achievable)
+formula G16_achievable = T7_achievable
 
 module G17
   G17_pursued : [0..1] init 0;
@@ -291,7 +291,7 @@ module G17
   [skip_G17] G17_pursued=1 & T8_pursued=0 -> (G17_pursued'=0);
 endmodule
 
-formula G17_achievable = T8_achievable - (T8_achievable)
+formula G17_achievable = T8_achievable
 
 module G18
   G18_pursued : [0..1] init 0;
@@ -305,7 +305,7 @@ module G18
 endmodule
 
 formula G18_achieved_maintain = inSideEffectWindow;
-formula G18_achievable = T9_achievable - (T9_achievable)
+formula G18_achievable = T9_achievable
 
 module G19
   G19_pursued : [0..1] init 0;
@@ -335,7 +335,7 @@ module G20
   [skip_G20] G20_pursued=1 & T10_pursued=0 -> (G20_pursued'=0);
 endmodule
 
-formula G20_achievable = T10_achievable - (T10_achievable)
+formula G20_achievable = T10_achievable
 
 module G21
   G21_pursued : [0..1] init 0;
@@ -349,7 +349,7 @@ module G21
   [skip_G21] G21_pursued=1 & T11_pursued=0 -> (G21_pursued'=0);
 endmodule
 
-formula G21_achievable = T11_achievable - (T11_achievable)
+formula G21_achievable = T11_achievable
 
 
 const double T1_achievable = 0.2;
