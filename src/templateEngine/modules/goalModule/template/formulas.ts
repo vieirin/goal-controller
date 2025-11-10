@@ -1,4 +1,4 @@
-import type { GoalNodeWithParent } from '../../../../GoalTree/types';
+import type { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { parenthesis } from '../../../../mdp/common';
 import { achievableFormulaVariable } from '../../../common';
@@ -7,7 +7,7 @@ export const achievedMaintain = (goalId: string) => {
   return `${goalId}_achieved_maintain`;
 };
 
-export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
+export const maintainConditionFormula = (goal: GoalNode) => {
   if (!goal.execCondition?.maintain) {
     return '';
   }
@@ -26,7 +26,7 @@ export const maintainConditionFormula = (goal: GoalNodeWithParent) => {
   return prismLine;
 };
 
-export const achievableGoalFormula = (goal: GoalNodeWithParent) => {
+export const achievableGoalFormula = (goal: GoalNode) => {
   const children = [...(goal.children || []), ...(goal.tasks || [])];
 
   if (children.length === 1) {

@@ -1,0 +1,1131 @@
+[
+  {
+    "executionDetail": {
+      "type": "interleaved",
+      "interleaved": [
+        "G1",
+        "G2"
+      ]
+    },
+    "id": "G0",
+    "name": "Provide Health Support",
+    "iStarId": "4073434e-8443-4ede-bf9d-dd3ece650e9a",
+    "relationToChildren": "and",
+    "relationToParent": null,
+    "type": "goal",
+    "resources": [],
+    "children": [
+      {
+        "executionDetail": {
+          "type": "degradation",
+          "degradationList": [
+            "G4",
+            "G3"
+          ],
+          "retryMap": {
+            "G4": 2
+          }
+        },
+        "id": "G1",
+        "name": "Support in emergency",
+        "iStarId": "4c85283a-4e6a-43c4-af97-937dbffb3db6",
+        "relationToChildren": "or",
+        "relationToParent": null,
+        "type": "goal",
+        "resources": [],
+        "children": [
+          {
+            "executionDetail": null,
+            "id": "G3",
+            "name": "Self-diagnosed emergency support service",
+            "iStarId": "7d48e691-88de-4506-9094-5953dac940c6",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [
+              {
+                "executionDetail": null,
+                "id": "G7",
+                "name": "Allow push button",
+                "iStarId": "9d7cc2b0-b8f5-4da0-add6-b0e105d84160",
+                "relationToChildren": "and",
+                "relationToParent": null,
+                "type": "goal",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false
+                },
+                "tasks": [
+                  {
+                    "executionDetail": null,
+                    "id": "T1",
+                    "name": "Trigger alarm by pushing emergency button",
+                    "iStarId": "7f74803d-cd1f-4989-ac1a-a28a706c2acb",
+                    "relationToChildren": "none",
+                    "relationToParent": null,
+                    "type": "task",
+                    "resources": [],
+                    "children": [],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "Description": "",
+                      "dependsOn": [],
+                      "uniqueChoice": false
+                    }
+                  }
+                ]
+              }
+            ],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "assertion": "privacyEnabled",
+              "qosPrivacy": "true",
+              "dependsOn": [],
+              "uniqueChoice": false
+            },
+            "execCondition": {
+              "assertion": {
+                "sentence": "privacyEnabled",
+                "variables": [
+                  {
+                    "name": "privacyEnabled",
+                    "value": null
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "executionDetail": {
+              "type": "sequence",
+              "sequence": [
+                "G8",
+                "G9"
+              ]
+            },
+            "id": "G4",
+            "name": "Automated life support service",
+            "iStarId": "f8826bf5-5d1a-4659-9779-3330c41fa795",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [
+              {
+                "executionDetail": {
+                  "type": "sequence",
+                  "sequence": [
+                    "G10",
+                    "G11"
+                  ]
+                },
+                "id": "G8",
+                "name": "Detect patient's health status",
+                "iStarId": "7c41ae22-a6a0-43cc-9b39-286de9f42930",
+                "relationToChildren": "and",
+                "relationToParent": null,
+                "type": "goal",
+                "resources": [],
+                "children": [
+                  {
+                    "executionDetail": null,
+                    "id": "G10",
+                    "name": "Read vital signs",
+                    "iStarId": "5d2fa8e1-c678-4ae7-b3cd-d0c7fb99d2db",
+                    "relationToChildren": "and",
+                    "relationToParent": null,
+                    "type": "goal",
+                    "resources": [],
+                    "children": [],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "Description": "",
+                      "dependsOn": [],
+                      "uniqueChoice": false
+                    },
+                    "tasks": [
+                      {
+                        "executionDetail": null,
+                        "id": "T4",
+                        "name": "Send sensed data",
+                        "iStarId": "82e36ceb-7452-4a7e-8079-0adbab49fc07",
+                        "relationToChildren": "neededBy",
+                        "relationToParent": null,
+                        "type": "task",
+                        "resources": [
+                          {
+                            "executionDetail": null,
+                            "id": "R0",
+                            "name": "Patient data",
+                            "iStarId": "d3cebdca-502b-4338-baef-56c8254c4032",
+                            "relationToChildren": "none",
+                            "relationToParent": null,
+                            "type": "resource",
+                            "resources": [],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "type": "bool",
+                              "initialValue": "true",
+                              "Description": "",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            },
+                            "variable": {
+                              "type": "boolean",
+                              "initialValue": true
+                            }
+                          }
+                        ],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "update": "again the task updates the resource with an unpredicted value (one that's returned by the system) seems that we need to support this case?",
+                          "assertion": "R0=true",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "execCondition": {
+                          "assertion": {
+                            "sentence": "R0=true",
+                            "variables": [
+                              {
+                                "name": "R0",
+                                "value": true
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "executionDetail": {
+                      "type": "choice"
+                    },
+                    "id": "G11",
+                    "name": "Analyse data",
+                    "iStarId": "1300f48c-890f-41f9-9d53-faf08becfcce",
+                    "relationToChildren": "or",
+                    "relationToParent": null,
+                    "type": "goal",
+                    "resources": [],
+                    "children": [
+                      {
+                        "executionDetail": null,
+                        "id": "G14",
+                        "name": "Remote analysis",
+                        "iStarId": "9f6df9ae-9e20-4705-96c7-6256a8b6f7f1",
+                        "relationToChildren": "and",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "tasks": [
+                          {
+                            "executionDetail": null,
+                            "id": "T5",
+                            "name": "Perform remote analysis",
+                            "iStarId": "d09c0850-2bca-48af-a4a4-241c03525723",
+                            "relationToChildren": "none",
+                            "relationToParent": null,
+                            "type": "task",
+                            "resources": [],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "dependsOn": [],
+                              "uniqueChoice": false,
+                              "maxRetries": 8
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "executionDetail": null,
+                        "id": "G15",
+                        "name": "Local analysis",
+                        "iStarId": "a061305b-20bb-4732-b0ce-85f70fe7b76c",
+                        "relationToChildren": "and",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "tasks": [
+                          {
+                            "executionDetail": null,
+                            "id": "T6",
+                            "name": "Perform local analysis",
+                            "iStarId": "e2fccc8c-79b0-4a25-8e17-eab5cb40a476",
+                            "relationToChildren": "none",
+                            "relationToParent": null,
+                            "type": "task",
+                            "resources": [],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "Description": "",
+                      "dependsOn": [],
+                      "uniqueChoice": false
+                    }
+                  }
+                ],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "assertion": "sensorAvailable",
+                  "maintain": "enoughBattery & highReliability",
+                  "type": "maintain",
+                  "qosReliability": "high",
+                  "dependsOn": [],
+                  "uniqueChoice": false
+                },
+                "execCondition": {
+                  "maintain": {
+                    "sentence": "enoughBattery & highReliability",
+                    "variables": [
+                      {
+                        "name": "enoughBattery",
+                        "value": null
+                      },
+                      {
+                        "name": "highReliability",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "assertion": {
+                    "sentence": "sensorAvailable",
+                    "variables": [
+                      {
+                        "name": "sensorAvailable",
+                        "value": null
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "executionDetail": {
+                  "type": "sequence",
+                  "sequence": [
+                    "G12",
+                    "G13"
+                  ]
+                },
+                "id": "G9",
+                "name": "Enact treatment",
+                "iStarId": "e40ac95e-4b64-4f9c-81c2-db3baa5d378d",
+                "relationToChildren": "and",
+                "relationToParent": null,
+                "type": "goal",
+                "resources": [],
+                "children": [
+                  {
+                    "executionDetail": {
+                      "type": "sequence",
+                      "sequence": [
+                        "G18",
+                        "G19"
+                      ]
+                    },
+                    "id": "G13",
+                    "name": "Analyse side effect",
+                    "iStarId": "97a04342-d763-48da-a41f-d5e0e66f6dba",
+                    "relationToChildren": "and",
+                    "relationToParent": null,
+                    "type": "goal",
+                    "resources": [],
+                    "children": [
+                      {
+                        "executionDetail": null,
+                        "id": "G18",
+                        "name": "Monitor side effects",
+                        "iStarId": "cd383e03-eab4-45c5-b811-51c634f76c08",
+                        "relationToChildren": "and",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "type": "maintain",
+                          "maintain": "inSideEffectWindow",
+                          "assertion": "medicationApplied",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "execCondition": {
+                          "maintain": {
+                            "sentence": "inSideEffectWindow",
+                            "variables": [
+                              {
+                                "name": "inSideEffectWindow",
+                                "value": null
+                              }
+                            ]
+                          },
+                          "assertion": {
+                            "sentence": "medicationApplied",
+                            "variables": [
+                              {
+                                "name": "medicationApplied",
+                                "value": null
+                              }
+                            ]
+                          }
+                        },
+                        "tasks": [
+                          {
+                            "executionDetail": null,
+                            "id": "T9",
+                            "name": "Apply side effect monitor",
+                            "iStarId": "a6141063-52a5-4ee4-be46-3cab425b44b6",
+                            "relationToChildren": "neededBy",
+                            "relationToParent": null,
+                            "type": "task",
+                            "resources": [
+                              {
+                                "executionDetail": null,
+                                "id": "R3",
+                                "name": "Patient data",
+                                "iStarId": "bcfe846e-8f10-424e-a7b5-0c4ca411e448",
+                                "relationToChildren": "none",
+                                "relationToParent": null,
+                                "type": "resource",
+                                "resources": [],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "type": "bool",
+                                  "initialValue": "true",
+                                  "Description": "",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "variable": {
+                                  "type": "boolean",
+                                  "initialValue": true
+                                }
+                              }
+                            ],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "assertion": "R3=true",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            },
+                            "execCondition": {
+                              "assertion": {
+                                "sentence": "R3=true",
+                                "variables": [
+                                  {
+                                    "name": "R3",
+                                    "value": true
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "executionDetail": {
+                          "type": "choice"
+                        },
+                        "id": "G19",
+                        "name": "Trigger Alarm Service",
+                        "iStarId": "c6de8c50-a3a9-4dbd-b9c1-e2c8315ae1f6",
+                        "relationToChildren": "or",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [
+                          {
+                            "executionDetail": null,
+                            "id": "G20",
+                            "name": "Trigger SMS Service",
+                            "iStarId": "891ddc22-95ae-4ec9-8470-3598bd2e6ab2",
+                            "relationToChildren": "and",
+                            "relationToParent": null,
+                            "type": "goal",
+                            "resources": [],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            },
+                            "tasks": [
+                              {
+                                "executionDetail": null,
+                                "id": "T10",
+                                "name": "Enact SMS Service",
+                                "iStarId": "e4c0141f-71b5-44f4-948c-fb1b614a27cb",
+                                "relationToChildren": "neededBy",
+                                "relationToParent": null,
+                                "type": "task",
+                                "resources": [
+                                  {
+                                    "executionDetail": null,
+                                    "id": "R2",
+                                    "name": "Mobile data service",
+                                    "iStarId": "e420b39e-1e89-4111-9bdf-f398072175b0",
+                                    "relationToChildren": "none",
+                                    "relationToParent": null,
+                                    "type": "resource",
+                                    "resources": [],
+                                    "children": [],
+                                    "decisionVars": [],
+                                    "hasDecision": false,
+                                    "properties": {
+                                      "type": "int",
+                                      "initialValue": "50",
+                                      "lowerBound": "0",
+                                      "upperBound": "100",
+                                      "Description": "",
+                                      "condMobileData": "available",
+                                      "dependsOn": [],
+                                      "uniqueChoice": false
+                                    },
+                                    "variable": {
+                                      "type": "int",
+                                      "initialValue": 50,
+                                      "lowerBound": 0,
+                                      "upperBound": 100
+                                    }
+                                  }
+                                ],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "Description": "this one would be the same case as T3, maybe a link condition?",
+                                  "assertion": "R4>35",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "execCondition": {
+                                  "assertion": {
+                                    "sentence": "R4>35",
+                                    "variables": []
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "executionDetail": null,
+                            "id": "G21",
+                            "name": "Trigger alarm service",
+                            "iStarId": "239d37e2-0afa-4c72-b82b-122a19bedcf1",
+                            "relationToChildren": "and",
+                            "relationToParent": null,
+                            "type": "goal",
+                            "resources": [],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            },
+                            "tasks": [
+                              {
+                                "executionDetail": null,
+                                "id": "T11",
+                                "name": "Enact alarm service",
+                                "iStarId": "6b86c89c-b60f-40ed-bfb0-1f5789acd19a",
+                                "relationToChildren": "none",
+                                "relationToParent": null,
+                                "type": "task",
+                                "resources": [],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "Description": "assertion",
+                                  "assertion": "networkAvailable",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "execCondition": {
+                                  "assertion": {
+                                    "sentence": "networkAvailable",
+                                    "variables": [
+                                      {
+                                        "name": "networkAvailable",
+                                        "value": null
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "assertion": "inEmergency",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "execCondition": {
+                          "assertion": {
+                            "sentence": "inEmergency",
+                            "variables": [
+                              {
+                                "name": "inEmergency",
+                                "value": null
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "Description": "",
+                      "maintain": "",
+                      "assertion": "",
+                      "dependsOn": [],
+                      "uniqueChoice": false
+                    }
+                  },
+                  {
+                    "executionDetail": {
+                      "type": "alternative",
+                      "alternative": [
+                        "G16",
+                        "G17"
+                      ]
+                    },
+                    "id": "G12",
+                    "name": "Administer medicine",
+                    "iStarId": "ef565838-6961-4f79-87eb-b9db1e57c409",
+                    "relationToChildren": "or",
+                    "relationToParent": null,
+                    "type": "goal",
+                    "resources": [],
+                    "children": [
+                      {
+                        "executionDetail": null,
+                        "id": "G16",
+                        "name": "Change drug",
+                        "iStarId": "d7f34d7b-545a-457a-b5af-cc44a5651f32",
+                        "relationToChildren": "and",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "assertion": "",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "tasks": [
+                          {
+                            "executionDetail": null,
+                            "id": "T7",
+                            "name": "Apply drug change",
+                            "iStarId": "4a1d8121-4f43-4755-a871-bc08962e4a65",
+                            "relationToChildren": "neededBy",
+                            "relationToParent": null,
+                            "type": "task",
+                            "resources": [
+                              {
+                                "executionDetail": null,
+                                "id": "R4",
+                                "name": "Drug",
+                                "iStarId": "474bd29f-54b4-4f05-a8b8-5f45eef23245",
+                                "relationToChildren": "none",
+                                "relationToParent": null,
+                                "type": "resource",
+                                "resources": [],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "Description": "",
+                                  "type": "int",
+                                  "initialValue": "1",
+                                  "lowerBound": "1",
+                                  "upperBound": "4",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "variable": {
+                                  "type": "int",
+                                  "initialValue": 1,
+                                  "lowerBound": 1,
+                                  "upperBound": 4
+                                }
+                              }
+                            ],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "update": "how to describe the resource update in this case? since it is not numeric",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "executionDetail": null,
+                        "id": "G17",
+                        "name": "Change dose",
+                        "iStarId": "df4a265e-1cd5-46a0-ae4f-353e46b4cf42",
+                        "relationToChildren": "and",
+                        "relationToParent": null,
+                        "type": "goal",
+                        "resources": [],
+                        "children": [],
+                        "decisionVars": [],
+                        "hasDecision": false,
+                        "properties": {
+                          "Description": "",
+                          "assertion": "",
+                          "dependsOn": [],
+                          "uniqueChoice": false
+                        },
+                        "tasks": [
+                          {
+                            "executionDetail": null,
+                            "id": "T8",
+                            "name": "Apply dose change",
+                            "iStarId": "f5224531-e4f8-447c-93ae-ac641fc8579e",
+                            "relationToChildren": "neededBy",
+                            "relationToParent": null,
+                            "type": "task",
+                            "resources": [
+                              {
+                                "executionDetail": null,
+                                "id": "R4",
+                                "name": "Drug",
+                                "iStarId": "474bd29f-54b4-4f05-a8b8-5f45eef23245",
+                                "relationToChildren": "none",
+                                "relationToParent": null,
+                                "type": "resource",
+                                "resources": [],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "Description": "",
+                                  "type": "int",
+                                  "initialValue": "1",
+                                  "lowerBound": "1",
+                                  "upperBound": "4",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "variable": {
+                                  "type": "int",
+                                  "initialValue": 1,
+                                  "lowerBound": 1,
+                                  "upperBound": 4
+                                }
+                              },
+                              {
+                                "executionDetail": null,
+                                "id": "R5",
+                                "name": "Drug dosage",
+                                "iStarId": "5cb7e3f1-14cb-4747-8b21-fe203c9be1a3",
+                                "relationToChildren": "none",
+                                "relationToParent": null,
+                                "type": "resource",
+                                "resources": [],
+                                "children": [],
+                                "decisionVars": [],
+                                "hasDecision": false,
+                                "properties": {
+                                  "Description": "",
+                                  "type": "int",
+                                  "initialValue": "0",
+                                  "lowerBound": "0",
+                                  "upperBound": "10",
+                                  "dependsOn": [],
+                                  "uniqueChoice": false
+                                },
+                                "variable": {
+                                  "type": "int",
+                                  "initialValue": 0,
+                                  "lowerBound": 0,
+                                  "upperBound": 10
+                                }
+                              }
+                            ],
+                            "children": [],
+                            "decisionVars": [],
+                            "hasDecision": false,
+                            "properties": {
+                              "Description": "",
+                              "update": "the update here is a variable that is ideally received from the system, and not something we write in the model, as in T5",
+                              "dependsOn": [],
+                              "uniqueChoice": false
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "Description": "",
+                      "assertion": "pharmacyAvailable&atHome",
+                      "dependsOn": [
+                        "G9"
+                      ],
+                      "uniqueChoice": false
+                    },
+                    "execCondition": {
+                      "assertion": {
+                        "sentence": "pharmacyAvailable&atHome",
+                        "variables": [
+                          {
+                            "name": "pharmacyAvailable",
+                            "value": null
+                          },
+                          {
+                            "name": "atHome",
+                            "value": null
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "assertion": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false
+                }
+              }
+            ],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "assertion": "enoughBattery & highReliability",
+              "maintain": "inEmergency",
+              "type": "maintain",
+              "dependsOn": [],
+              "uniqueChoice": false,
+              "maxRetries": 10
+            },
+            "execCondition": {
+              "maintain": {
+                "sentence": "inEmergency",
+                "variables": [
+                  {
+                    "name": "inEmergency",
+                    "value": null
+                  }
+                ]
+              },
+              "assertion": {
+                "sentence": "enoughBattery & highReliability",
+                "variables": [
+                  {
+                    "name": "enoughBattery",
+                    "value": null
+                  },
+                  {
+                    "name": "highReliability",
+                    "value": null
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "decisionVars": [],
+        "hasDecision": false,
+        "properties": {
+          "dependsOn": [],
+          "uniqueChoice": false
+        }
+      },
+      {
+        "executionDetail": {
+          "type": "alternative",
+          "alternative": [
+            "G5",
+            "G6"
+          ]
+        },
+        "id": "G2",
+        "name": "Track patient location",
+        "iStarId": "67c420f7-9c2d-4911-bdc5-bae573c73eb6",
+        "relationToChildren": "or",
+        "relationToParent": null,
+        "type": "goal",
+        "resources": [],
+        "children": [
+          {
+            "executionDetail": null,
+            "id": "G5",
+            "name": "Manual Tracking",
+            "iStarId": "16bf102c-3ad1-4d1c-a6d5-c209faaa30c5",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "assertion": "privacyEnabled",
+              "dependsOn": [],
+              "uniqueChoice": false
+            },
+            "execCondition": {
+              "assertion": {
+                "sentence": "privacyEnabled",
+                "variables": [
+                  {
+                    "name": "privacyEnabled",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "tasks": [
+              {
+                "executionDetail": null,
+                "id": "T2",
+                "name": "Perform Manual Tracking",
+                "iStarId": "a0167c35-4093-4056-8d80-790f0676f0e4",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "assertion": "privacyEnabled",
+                  "dependsOn": [],
+                  "uniqueChoice": false
+                },
+                "execCondition": {
+                  "assertion": {
+                    "sentence": "privacyEnabled",
+                    "variables": [
+                      {
+                        "name": "privacyEnabled",
+                        "value": null
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "executionDetail": null,
+            "id": "G6",
+            "name": "Automatic Tracking",
+            "iStarId": "028a939d-bb4b-4afb-93e2-af1a738a2543",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "assertion": "privacyEnabled=false",
+              "dependsOn": [],
+              "uniqueChoice": false
+            },
+            "execCondition": {
+              "assertion": {
+                "sentence": "privacyEnabled=false",
+                "variables": [
+                  {
+                    "name": "privacyEnabled",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "tasks": [
+              {
+                "executionDetail": null,
+                "id": "T3",
+                "name": "Perform Automatic Tracking",
+                "iStarId": "08a484f7-1ed9-4c7e-8082-aab809944daf",
+                "relationToChildren": "neededBy",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [
+                  {
+                    "executionDetail": null,
+                    "id": "R1",
+                    "name": "Location service",
+                    "iStarId": "5e08b16e-6a3a-4df1-b070-275378fe3f2e",
+                    "relationToChildren": "none",
+                    "relationToParent": null,
+                    "type": "resource",
+                    "resources": [],
+                    "children": [],
+                    "decisionVars": [],
+                    "hasDecision": false,
+                    "properties": {
+                      "type": "int",
+                      "initialValue": "50",
+                      "lowerBound": "0",
+                      "upperBound": "100",
+                      "Description": "instead of it being a resource here, since it is not updated maybe it can become a link condition? locationService > 0, for example",
+                      "dependsOn": [],
+                      "uniqueChoice": false
+                    },
+                    "variable": {
+                      "type": "int",
+                      "initialValue": 50,
+                      "lowerBound": 0,
+                      "upperBound": 100
+                    }
+                  }
+                ],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "assertion": "R1>50",
+                  "dependsOn": [],
+                  "uniqueChoice": false
+                },
+                "execCondition": {
+                  "assertion": {
+                    "sentence": "R1>50",
+                    "variables": []
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "decisionVars": [
+          {
+            "variable": "t",
+            "space": 9
+          },
+          {
+            "variable": "loc",
+            "space": 3
+          }
+        ],
+        "hasDecision": true,
+        "properties": {
+          "variables": "t:9, loc:3",
+          "Description": "",
+          "assertion": "patientTracking",
+          "maintain": "highPrecision",
+          "type": "maintain",
+          "dependsOn": [
+            "G4"
+          ],
+          "uniqueChoice": false
+        },
+        "execCondition": {
+          "maintain": {
+            "sentence": "highPrecision",
+            "variables": [
+              {
+                "name": "highPrecision",
+                "value": null
+              }
+            ]
+          },
+          "assertion": {
+            "sentence": "patientTracking",
+            "variables": [
+              {
+                "name": "patientTracking",
+                "value": null
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "decisionVars": [],
+    "hasDecision": false,
+    "properties": {
+      "Description": "",
+      "dependsOn": [],
+      "root": true,
+      "uniqueChoice": false
+    }
+  }
+]

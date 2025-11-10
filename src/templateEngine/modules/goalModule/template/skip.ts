@@ -1,8 +1,8 @@
-import type { GoalNodeWithParent } from '../../../../GoalTree/types';
+import type { GoalNode } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
 
-const childrenHasNotBeenPursued = (goal: GoalNodeWithParent) => {
+const childrenHasNotBeenPursued = (goal: GoalNode) => {
   const pursueMembers = goal.children?.length
     ? goal.children
     : goal.tasks?.length
@@ -14,7 +14,7 @@ const childrenHasNotBeenPursued = (goal: GoalNodeWithParent) => {
     .join(separator('and'));
 };
 
-export const skipStatement = (goal: GoalNodeWithParent) => {
+export const skipStatement = (goal: GoalNode) => {
   const logger = getLogger();
   const leftStatement = `${pursued(goal.id)}=1 & ${childrenHasNotBeenPursued(
     goal

@@ -5,7 +5,6 @@ import {
   Actor,
   GoalNode,
   GoalNodeWithParent,
-  GoalTreeWithParent,
   Link,
   Model,
   Node,
@@ -13,9 +12,9 @@ import {
   Relation,
   type CustomProperties,
   type ExecCondition,
+  type GoalTree,
   type Resource,
 } from './types';
-import { allByType } from './utils';
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -398,11 +397,7 @@ const addParentToChildren = (
   return bidirectionalTree;
 };
 
-export const convertToTree = ({
-  model,
-}: {
-  model: Model;
-}): GoalTreeWithParent => {
+export const convertToTree = ({ model }: { model: Model }): GoalTree => {
   const unidirectionalTree = model.actors.map((actor) => {
     // find root node
     const rootNode = actor.nodes.find((item) => item.customProperties.root);
@@ -420,16 +415,16 @@ export const convertToTree = ({
     });
   });
 
-  const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
-  const searchParentsForGoal = (goalId: string) => {
-    return allGoals.filter(
-      (goal) => goal.children?.map(({ id }) => id).includes(goalId)
-    );
-  };
-  // traverse the tree adding parents to it
-  const bidirectionalTree: GoalTreeWithParent = unidirectionalTree.map((goal) =>
-    addParentToChildren(goal, searchParentsForGoal)
-  );
+  // const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
+  // const searchParentsForGoal = (goalId: string) => {
+  //   return allGoals.filter(
+  //     (goal) => goal.children?.map(({ id }) => id).includes(goalId)
+  //   );
+  // };
+  // // traverse the tree adding parents to it
+  // const bidirectionalTree: GoalTreeWithParent = unidirectionalTree.map((goal) =>
+  //   addParentToChildren(goal, searchParentsForGoal)
+  // );
 
-  return bidirectionalTree;
+  return unidirectionalTree;
 };

@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
 import { isResource } from '../../../GoalTree/nodeUtils';
 import { treeContextVariables } from '../../../GoalTree/treeVariables';
-import type { GoalTreeWithParent } from '../../../GoalTree/types';
+import type { GoalTree } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { systemModuleTemplate } from './template';
@@ -11,7 +11,7 @@ export const systemModule = ({
   gm,
   fileName,
 }: {
-  gm: GoalTreeWithParent;
+  gm: GoalTree;
   fileName: string;
 }) => {
   const logger = getLogger();

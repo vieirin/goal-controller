@@ -1,4 +1,4 @@
-import { GoalNodeWithParent, Relation } from '../../../../GoalTree/types';
+import { GoalNode, Relation } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
@@ -11,7 +11,7 @@ const isValidSeparator = (
   return ['and', 'or'].includes(relation ?? '');
 };
 
-const achieveCondition = (goal: GoalNodeWithParent) => {
+const achieveCondition = (goal: GoalNode) => {
   if (isValidSeparator(goal.relationToChildren)) {
     const children = [...(goal.children || []), ...(goal.tasks || [])];
     if (children.length) {
@@ -27,7 +27,7 @@ const achieveCondition = (goal: GoalNodeWithParent) => {
   return '';
 };
 
-export const achieveStatement = (goal: GoalNodeWithParent) => {
+export const achieveStatement = (goal: GoalNode) => {
   const logger = getLogger();
 
   const leftStatement = [

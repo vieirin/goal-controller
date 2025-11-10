@@ -113,3 +113,7 @@ export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
     (child) => !!child.properties.maxRetries
   );
 }
+
+export function dumpTreeToJSON({ gm }: { gm: GenericTree }) {
+  return JSON.stringify(gm, null, 2);
+}

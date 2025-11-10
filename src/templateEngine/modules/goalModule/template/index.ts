@@ -1,13 +1,13 @@
-import { GoalNodeWithParent } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 import { achieveStatement } from './achieve';
 import { achievableGoalFormula, maintainConditionFormula } from './formulas';
 
+import type { GoalNode } from '../../../../GoalTree/types';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
 
-export const goalModule = (goal: GoalNodeWithParent) => {
+export const goalModule = (goal: GoalNode) => {
   const logger = getLogger();
   logger.initGoal(goal);
 

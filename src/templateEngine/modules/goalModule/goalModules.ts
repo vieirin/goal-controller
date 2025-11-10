@@ -1,4 +1,4 @@
-import { GoalTreeWithParent } from '../../../GoalTree/types';
+import { type GoalTree } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
 import { goalModule } from './template';
 
@@ -12,7 +12,7 @@ export const goalNumberId = (goalId: string) => {
   return id;
 };
 
-export const goalModules = ({ gm }: { gm: GoalTreeWithParent }) => {
+export const goalModules = ({ gm }: { gm: GoalTree }) => {
   const goals = allByType({ gm, type: 'goal' });
   return `
 ${goals

@@ -1,4 +1,4 @@
-import { GoalNodeWithParent } from '../../../../GoalTree/types';
+import type { GoalNode } from '../../../../GoalTree/types';
 import * as utils from '../../../../GoalTree/utils';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
@@ -8,7 +8,7 @@ import {
   pursuedVariable,
 } from '../../../common';
 
-export const variablesDefinition = (goal: GoalNodeWithParent) => {
+export const variablesDefinition = (goal: GoalNode) => {
   const logger = getLogger();
   const defineVariable = (variable: string, upperBound: number) => {
     logger.variableDefinition({

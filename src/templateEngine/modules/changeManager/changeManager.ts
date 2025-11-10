@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
 import { getTaskAchievabilityVariables } from '../../../GoalTree/treeVariables';
-import type { GoalTreeWithParent } from '../../../GoalTree/types';
+import type { GoalTree } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { changeManagerModuleTemplate } from './template';
@@ -11,7 +11,7 @@ export const changeManagerModule = ({
   gm,
   fileName,
 }: {
-  gm: GoalTreeWithParent;
+  gm: GoalTree;
   fileName: string;
 }) => {
   const tasks = allByType({ gm, type: 'task' });

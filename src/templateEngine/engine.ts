@@ -1,4 +1,4 @@
-import { GoalTreeWithParent } from '../GoalTree/types';
+import { type GoalTree } from '../GoalTree/types';
 import { initLogger } from '../logger/logger';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -9,7 +9,7 @@ export const edgeDTMCTemplate = ({
   gm,
   fileName,
 }: {
-  gm: GoalTreeWithParent;
+  gm: GoalTree;
   fileName: string;
 }) => {
   initLogger(fileName);
