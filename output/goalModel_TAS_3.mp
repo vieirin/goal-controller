@@ -63,7 +63,7 @@ formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achi
 module G2
   G2_pursued : [0..1] init 0;
 
-  [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & ((G8_achieved_maintain=true & G9_achieved=1)) & patientTracking -> (G2_pursued'=1);
+  [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved_maintain=true) & patientTracking -> (G2_pursued'=1);
   [pursue_G5] G2_pursued=1 & G2_achieved_maintain=false & G6_pursued=0 -> true;
   [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false & G5_pursued=0 -> true;
 
@@ -210,7 +210,7 @@ module G12
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;
 
-  [pursue_G12] G12_pursued=0 & G12_achieved=0 & ((G13_achieved=1 & G12_achieved=1)) & pharmacyAvailable&atHome -> (G12_pursued'=1);
+  [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G12_pursued'=1);
   [pursue_G16] G12_pursued=1 & G12_achieved=0 & G17_pursued=0 -> true;
   [pursue_G17] G12_pursued=1 & G12_achieved=0 & G16_pursued=0 -> true;
 

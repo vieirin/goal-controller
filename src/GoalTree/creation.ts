@@ -70,13 +70,14 @@ const parseDecision = ({
 
 const getMaintainCondition = (
   goalName: string,
-  customProperties: CustomProperties['customProperties']
+  customProperties: CustomProperties['customProperties'],
+  nodeType: 'goal' | 'task' | 'resource'
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
     if (!customProperties.maintain && !customProperties.assertion) {
       // TODO: lock this as an error in the future
       console.warn(
-        `[INVALID MODEL]: Maintain condition for goal [${goalName}] must have maintain and assertion: got maintain:${
+        `[INVALID MODEL]: Maintain condition for ${nodeType} [${goalName}] must have maintain and assertion: got maintain:${
           customProperties.maintain || `'empty condition'`
         } and assertion:${customProperties.assertion || `'empty condition'`}`
       );
@@ -98,13 +99,20 @@ const getMaintainCondition = (
     };
   }
 
-  if (!!customProperties.assertion) {
+  // For both goal and task types, handle assertions
+  if (
+    !!customProperties.assertion &&
+    (nodeType === 'goal' || nodeType === 'task')
+  ) {
+    // Validate the assertion using the parser (getAssertionVariables will throw if invalid)
+    const assertionVariables = getAssertionVariables({
+      assertionSentence: customProperties.assertion,
+    });
+
     return {
       assertion: {
         sentence: customProperties.assertion,
-        variables: getAssertionVariables({
-          assertionSentence: customProperties.assertion,
-        }),
+        variables: assertionVariables,
       },
     };
   }
@@ -242,6 +250,13 @@ const createNode = ({
     );
   }
 
+  // Get execCondition from getMaintainCondition (handles maintain type and assertions for both goals and tasks)
+  const execCondition = getMaintainCondition(
+    `${id}:${goalName}`,
+    customProperties,
+    nodeType
+  );
+
   return {
     executionDetail,
     id,
@@ -263,7 +278,7 @@ const createNode = ({
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
       maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
     },
-    execCondition: getMaintainCondition(`${id}:${goalName}`, customProperties),
+    execCondition,
     ...(tasks.length > 0 && { tasks }),
   };
 };

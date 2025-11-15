@@ -4,6 +4,7 @@ import AssertionRegexListener from '../antlr/AssertionRegexListener';
 import AssertionRegexParser, {
   AssignmentContext,
   IdentifierContext,
+  IntComparisonContext,
 } from '../antlr/AssertionRegexParser';
 
 export const getAssertionVariables = ({
@@ -36,6 +37,15 @@ export const getAssertionVariables = ({
     exitIdentifier = (ctx: IdentifierContext) => {
       const name = ctx.ID().getText();
       // If it's just a variable without assignment, value is null
+      if (!variables.some((v) => v.name === name)) {
+        variables.push({ name, value: null });
+      }
+    };
+
+    exitIntComparison = (ctx: IntComparisonContext) => {
+      const name = ctx.ID().getText();
+      // For integer comparisons, the variable name is extracted but value is null
+      // (the comparison value is in the INT token, not a boolean assignment)
       if (!variables.some((v) => v.name === name)) {
         variables.push({ name, value: null });
       }

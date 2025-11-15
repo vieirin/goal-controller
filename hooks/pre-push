@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Pre-push hook to run tests before allowing push
+# This hook prevents pushing if tests fail
+
+echo "🔍 Running tests before push..."
+
+# Run the test suite
+npm test
+
+# Capture the exit code
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "❌ Tests failed! Push aborted."
+  echo "Please fix the failing tests before pushing."
+  exit 1
+fi
+
+echo "✅ All tests passed! Proceeding with push..."
+exit 0
+

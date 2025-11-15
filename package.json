@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node --experimental-strip-types src/index.ts",
     "test": "mocha",
-    "dev": "node --experimental-strip-types src/cli.ts"
+    "dev": "node --experimental-strip-types src/cli.ts",
+    "setup-hooks": "bash hooks/setup.sh"
   },
   "repository": {
     "type": "git",
