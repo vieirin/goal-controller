@@ -1,0 +1,49 @@
+# Dockerfile for PRISM ARM testing
+# Use Node.js official image based on Debian slim (much lighter than Ubuntu)
+FROM --platform=linux/arm64 node:22-slim
+
+# Install system dependencies in a single layer with no recommended packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    tar \
+    make \
+    openjdk-17-jdk \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ANTLR4
+RUN curl -L -o /usr/local/lib/antlr-4.13.0-complete.jar https://www.antlr.org/download/antlr-4.13.0-complete.jar && \
+    echo '#!/bin/bash\njava -jar /usr/local/lib/antlr-4.13.0-complete.jar "$@"' > /usr/local/bin/antlr && \
+    chmod +x /usr/local/bin/antlr
+
+# Create directory structure and download/extract PRISM ARM
+RUN mkdir -p /home/ubuntu/prism-4.9-src && \
+    curl -L -o /tmp/prism.tar.gz https://www.prismmodelchecker.org/dl/prism-4.9-linux64-arm.tar.gz && \
+    tar -xzf /tmp/prism.tar.gz -C /home/ubuntu/prism-4.9-src && \
+    rm /tmp/prism.tar.gz && \
+    # Move extracted content to the required location
+    mv /home/ubuntu/prism-4.9-src/prism-4.9-linux64-arm /home/ubuntu/prism-4.9-src/prism && \
+    chmod +x /home/ubuntu/prism-4.9-src/prism/bin/prism && \
+    # Add PRISM bin to PATH
+    echo 'export PATH="/home/ubuntu/prism-4.9-src/prism/bin:$PATH"' >> /etc/profile && \
+    echo 'export PATH="/home/ubuntu/prism-4.9-src/prism/bin:$PATH"' >> ~/.bashrc
+
+# Set PATH in the environment
+ENV PATH="/home/ubuntu/prism-4.9-src/prism/bin:${PATH}"
+
+# Copy the rest of the project
+COPY . .
+RUN rm -rf node_modules
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy package files
+COPY package*.json ./
+
+# Install Node.js dependencies (including devDependencies for TypeScript types)
+# Explicitly install devDependencies to ensure @types/node is available
+RUN npm install --production=false
+
+# Default command (can be overridden)
+CMD ["bash"]

@@ -22,13 +22,19 @@
     "url": "https://github.com/vieirin/goal-controller/issues"
   },
   "homepage": "https://github.com/vieirin/goal-controller#readme",
-  "devDependencies": {
+  "dependencies": {
+    "@types/inquirer": "^9.0.7",
+    "antlr4": "^4.13.0",
+    "inquirer": "^12.5.2",
+    "lodash": "^4.17.21",
+    "lodash.groupby": "^4.6.0",
+    "lodash.mergewith": "^4.6.2",
     "@types/chai": "^4.3.11",
     "@types/lodash": "^4.14.197",
     "@types/lodash.groupby": "^4.6.7",
     "@types/lodash.mergewith": "^4.6.7",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.5.7",
+    "@types/node": "^22.6.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.10",
@@ -46,13 +52,5 @@
     "prettier": "^3.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@types/inquirer": "^9.0.7",
-    "antlr4": "^4.13.0",
-    "inquirer": "^12.5.2",
-    "lodash": "^4.17.21",
-    "lodash.groupby": "^4.6.0",
-    "lodash.mergewith": "^4.6.2"
   }
 }
