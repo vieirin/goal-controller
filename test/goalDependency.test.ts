@@ -28,9 +28,8 @@ describe('Goal Dependency Statement', () => {
 
     // Verify that it contains G4_achieved_maintain = true
     assert.ok(
-      dependencyStatement.includes('G4_achieved_maintain=true'),
-      `Expected dependency statement to include "G4_achieved_maintain=true", but got: ${dependencyStatement}`
+      dependencyStatement === ' & (G4_achieved_maintain=true)',
+      `Expected dependency statement to include "G4_achieved_maintain=true", but got: ${dependencyStatement}`,
     );
   });
 });
-
