@@ -24,11 +24,21 @@ chmod +x .git/hooks/post-commit
 
 ### pre-push
 
-Runs the test suite (`npm test`) before allowing a push. If tests fail, the push is aborted.
+Runs ESLint validation and the test suite before allowing a push. If there are any linter errors or test failures, the push is aborted.
+
+**What it does:**
+1. Runs ESLint on all TypeScript files (excluding `antlr` generated files)
+2. Runs the test suite (`npm test`)
+3. Aborts the push if either ESLint or tests fail
 
 **To bypass the hook (not recommended):**
 ```bash
 git push --no-verify
+```
+
+**To auto-fix ESLint issues:**
+```bash
+npx eslint "src/**/*.ts" --ignore-pattern "**/antlr/**" --fix
 ```
 
 ### post-commit

@@ -1,8 +1,27 @@
 #!/bin/bash
 
-# Pre-push hook to run tests before allowing push
-# This hook prevents pushing if tests fail
+# Pre-push hook to run ESLint and tests before allowing push
+# This hook prevents pushing if there are linter errors or test failures
 
+echo "🔍 Running ESLint validation..."
+
+# Run ESLint on all TypeScript files (excluding antlr generated files)
+npx eslint "src/**/*.ts" --ignore-pattern "**/antlr/**" --format=compact
+
+# Capture the exit code
+ESLINT_EXIT_CODE=$?
+
+if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "❌ ESLint errors found! Push aborted."
+  echo "Please fix all linter errors before pushing."
+  echo ""
+  echo "You can run 'npx eslint src/**/*.ts --ignore-pattern \"**/antlr/**\" --fix' to auto-fix some issues."
+  exit 1
+fi
+
+echo "✅ ESLint validation passed!"
+echo ""
 echo "🔍 Running tests before push..."
 
 # Run the test suite
