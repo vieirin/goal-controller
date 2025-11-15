@@ -1,6 +1,7 @@
 # goal-controller
 
 [![PRISM Model Test](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml)
+[![Tests](https://github.com/vieirin/goal-controller/actions/workflows/test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/test.yaml)
 
 ### FAQ
 
@@ -22,7 +23,6 @@
    - `pip install antlr4-tools`
    - `brew install antrl` (MacOS, check how to install for your distribution)
 2. install nvm and setup node version
-
    - ```bash
        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
        nvm install --lts
