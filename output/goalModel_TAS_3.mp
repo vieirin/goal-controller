@@ -42,7 +42,7 @@ module G0
   [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
 endmodule
 
-formula G0_achievable = G1_achievable + G2_achievable - (G1_achievable * G2_achievable)
+formula G0_achievable = G1_achievable + G2_achievable - (G1_achievable * G2_achievable);
 
 module G1
   G1_pursued : [0..1] init 0;
@@ -58,7 +58,7 @@ module G1
   [skip_G1] G1_pursued=1 & G3_pursued=0 & G4_pursued=0 -> (G1_pursued'=0);
 endmodule
 
-formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achievable)
+formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achievable);
 
 module G2
   G2_pursued : [0..1] init 0;
@@ -73,7 +73,7 @@ module G2
 endmodule
 
 formula G2_achieved_maintain = highPrecision;
-formula G2_achievable = G5_achievable + G6_achievable - (G5_achievable * G6_achievable)
+formula G2_achievable = G5_achievable + G6_achievable - (G5_achievable * G6_achievable);
 
 module G3
   G3_pursued : [0..1] init 0;
@@ -102,7 +102,7 @@ module G4
 endmodule
 
 formula G4_achieved_maintain = inEmergency;
-formula G4_achievable = G8_achievable + G9_achievable - (G8_achievable * G9_achievable)
+formula G4_achievable = G8_achievable + G9_achievable - (G8_achievable * G9_achievable);
 
 module G5
   G5_pursued : [0..1] init 0;
@@ -159,7 +159,7 @@ module G8
 endmodule
 
 formula G8_achieved_maintain = enoughBattery & highReliability;
-formula G8_achievable = G10_achievable + G11_achievable - (G10_achievable * G11_achievable)
+formula G8_achievable = G10_achievable + G11_achievable - (G10_achievable * G11_achievable);
 
 module G9
   G9_pursued : [0..1] init 0;
@@ -174,7 +174,7 @@ module G9
   [skip_G9] G9_pursued=1 & G13_pursued=0 & G12_pursued=0 -> (G9_pursued'=0);
 endmodule
 
-formula G9_achievable = G13_achievable + G12_achievable - (G13_achievable * G12_achievable)
+formula G9_achievable = G13_achievable + G12_achievable - (G13_achievable * G12_achievable);
 
 module G10
   G10_pursued : [0..1] init 0;
@@ -204,7 +204,7 @@ module G11
   [skip_G11] G11_pursued=1 & G14_pursued=0 & G15_pursued=0 -> (G11_pursued'=0);
 endmodule
 
-formula G11_achievable = G14_achievable + G15_achievable - (G14_achievable * G15_achievable)
+formula G11_achievable = G14_achievable + G15_achievable - (G14_achievable * G15_achievable);
 
 module G12
   G12_pursued : [0..1] init 0;
@@ -219,7 +219,7 @@ module G12
   [skip_G12] G12_pursued=1 & G16_pursued=0 & G17_pursued=0 -> (G12_pursued'=0);
 endmodule
 
-formula G12_achievable = G16_achievable + G17_achievable - (G16_achievable * G17_achievable)
+formula G12_achievable = G16_achievable + G17_achievable - (G16_achievable * G17_achievable);
 
 module G13
   G13_pursued : [0..1] init 0;
@@ -234,7 +234,7 @@ module G13
   [skip_G13] G13_pursued=1 & G18_pursued=0 & G19_pursued=0 -> (G13_pursued'=0);
 endmodule
 
-formula G13_achievable = G18_achievable + G19_achievable - (G18_achievable * G19_achievable)
+formula G13_achievable = G18_achievable + G19_achievable - (G18_achievable * G19_achievable);
 
 module G14
   G14_pursued : [0..1] init 0;
@@ -321,7 +321,7 @@ module G19
   [skip_G19] G19_pursued=1 & G20_pursued=0 & G21_pursued=0 -> (G19_pursued'=0);
 endmodule
 
-formula G19_achievable = G20_achievable + G21_achievable - (G20_achievable * G21_achievable)
+formula G19_achievable = G20_achievable + G21_achievable - (G20_achievable * G21_achievable);
 
 module G20
   G20_pursued : [0..1] init 0;

@@ -32,17 +32,28 @@ export const achievableGoalFormula = (goal: GoalNode) => {
   if (children.length === 1) {
     return `formula ${goal.id}_achievable = ${achievableFormulaVariable(
       children[0]!.id
-    )}`;
+    )};`;
   }
+  ('');
 
   const childrenVariables = children.map((child) =>
     achievableFormulaVariable(child.id)
   );
+  const productPart = childrenVariables.join(' * ');
 
-  const sumPart = childrenVariables.join(' + ');
-  const multPart = childrenVariables.join(' * ');
-
-  return `formula ${goal.id}_achievable = ${sumPart} - ${parenthesis(
-    multPart
-  )}`;
+  switch (goal.relationToChildren) {
+    case 'and': {
+      return `formula ${goal.id}_achievable = ${productPart};`;
+    }
+    case 'or': {
+      const sumPart = childrenVariables.join(' + ');
+      return `formula ${goal.id}_achievable = ${sumPart} - ${parenthesis(
+        productPart
+      )};`;
+    }
+    default:
+      throw new Error(
+        `Invalid relation to children: ${goal.relationToChildren}`
+      );
+  }
 };
