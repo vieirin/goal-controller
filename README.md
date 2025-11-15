@@ -1,5 +1,7 @@
 # goal-controller
 
+[![PRISM Model Test](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml)
+
 ### FAQ
 
 ## How to execute this repo?
