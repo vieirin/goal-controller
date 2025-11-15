@@ -1,6 +1,6 @@
 # goal-controller
 
-[![PRISM Model Test](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml)
+[![PRISM Model Compilation](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/prism-test.yaml)
 [![Tests](https://github.com/vieirin/goal-controller/actions/workflows/test.yaml/badge.svg)](https://github.com/vieirin/goal-controller/actions/workflows/test.yaml)
 
 ### FAQ
