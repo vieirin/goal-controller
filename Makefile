@@ -7,10 +7,14 @@ node_modules: package.json
 	@touch -m node_modules/.modified
 
 
-grammarRT: grammar/RTRegex.g4
+grammarRT: src/antlr/RTRegexLexer.ts src/antlr/RTRegexListener.ts src/antlr/RTRegexParser.ts
+
+src/antlr/RTRegexLexer.ts src/antlr/RTRegexListener.ts src/antlr/RTRegexParser.ts: grammar/RTRegex.g4
 	antlr -Dlanguage=TypeScript grammar/RTRegex.g4 && mv grammar/*.ts src/antlr
 
-grammarAssertion: grammar/AssertionRegex.g4
+grammarAssertion: src/antlr/AssertionRegexLexer.ts src/antlr/AssertionRegexListener.ts src/antlr/AssertionRegexParser.ts
+
+src/antlr/AssertionRegexLexer.ts src/antlr/AssertionRegexListener.ts src/antlr/AssertionRegexParser.ts: grammar/AssertionRegex.g4
 	antlr -Dlanguage=TypeScript grammar/AssertionRegex.g4 && mv grammar/*.ts src/antlr
 
 run: grammarRT grammarAssertion
