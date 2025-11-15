@@ -14,7 +14,7 @@ const validateModel = ({ model }: { model: Model }) => {
           node.customProperties.root = 'true';
         }
         return isRoot || hasRoot;
-      }, false)
+      }, false),
     )
     // check if all actors have a root
     .every((isValid) => isValid);

@@ -5,11 +5,11 @@ import { hasBeenAchieved } from './common';
 
 export const splitSequence = (
   sequence: string[],
-  childId: string
+  childId: string,
 ): [string[], string[]] => {
   if (!sequence.includes(childId)) {
     throw new Error(
-      `Child ID ${childId} not found in sequence ${sequence.join(', ')}`
+      `Child ID ${childId} not found in sequence ${sequence.join(', ')}`,
     );
   }
   const sequenceIndex = sequence.indexOf(childId);
@@ -20,11 +20,11 @@ export const pursueAndSequentialGoal = (
   goal: GoalNode,
   sequence: string[],
   childId: string,
-  children: GoalNode[]
+  children: GoalNode[],
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
-      'OR relation to children without a runtime notation is not supported use Degradation goal instead'
+      'OR relation to children without a runtime notation is not supported use Degradation goal instead',
     );
   }
 
@@ -34,21 +34,39 @@ export const pursueAndSequentialGoal = (
     return '';
   }
   const childrenMap = new Map<string, GoalNode>(
-    children.map((child) => [child.id, child])
+    children.map((child) => [child.id, child]),
   );
 
   const resolveAndGoal = (): string => {
     if (leftGoals.length === 0) {
-      return hasBeenAchieved(childrenMap.get(childId)!, { condition: false });
+      const child = childrenMap.get(childId);
+      if (!child) {
+        throw new Error(
+          `Child with ID ${childId} not found in children map for goal ${goal.id}`,
+        );
+      }
+      return hasBeenAchieved(child, { condition: false });
     }
 
     return [
-      ...leftGoals.map((goalId) =>
-        hasBeenAchieved(childrenMap.get(goalId)!, { condition: true })
-      ),
-      ...rightGoals.map((goalId) =>
-        hasBeenAchieved(childrenMap.get(goalId)!, { condition: false })
-      ),
+      ...leftGoals.map((goalId) => {
+        const child = childrenMap.get(goalId);
+        if (!child) {
+          throw new Error(
+            `Child with ID ${goalId} not found in children map for goal ${goal.id}`,
+          );
+        }
+        return hasBeenAchieved(child, { condition: true });
+      }),
+      ...rightGoals.map((goalId) => {
+        const child = childrenMap.get(goalId);
+        if (!child) {
+          throw new Error(
+            `Child with ID ${goalId} not found in children map for goal ${goal.id}`,
+          );
+        }
+        return hasBeenAchieved(child, { condition: false });
+      }),
     ].join(separator('and'));
   };
 

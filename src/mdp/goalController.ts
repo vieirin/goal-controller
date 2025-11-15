@@ -34,7 +34,7 @@ const controllerVariables = ({
       return { variable: goalGroup };
     }
     throw new Error(
-      'Expected either single (leaf) goal in the group or all elements to be variants'
+      'Expected either single (leaf) goal in the group or all elements to be variants',
     );
   });
 
@@ -54,7 +54,7 @@ export const goalControllerVariables = ({
                 .map((i) => `${i + 1} - pursued as variant ${i + 1}`)
                 .join(',')}`
             : '1 - pursued'
-        }`
+        }`,
     )
     .map((v) => `  ${v}`)
     .join('\n');
@@ -78,15 +78,15 @@ const goalConditions = ({
                 achieved(goal),
                 not(achievable(goal)),
                 not(dependency({ condition, negateItems: false, sep: 'or' })),
-              ].filter(Boolean)
-            )
+              ].filter(Boolean),
+            ),
           ),
           pursueDefault: AND(
             [
               not(achieved(goal)),
               achievable(goal),
               dependency({ condition, negateItems: false, sep: 'or' }),
-            ].filter(Boolean)
+            ].filter(Boolean),
           ),
           pursueVariants: [
             {
@@ -96,7 +96,7 @@ const goalConditions = ({
                   not(achieved(goal)),
                   achievable(goal),
                   dependency({ condition, negateItems: false, sep: 'or' }),
-                ].filter(Boolean)
+                ].filter(Boolean),
               ),
             },
           ],
@@ -128,7 +128,7 @@ const update = ({
 }) =>
   `1:${[
     parenthesis(equals(`${pursued(rootGoal)}'`, goalValue)),
-    parenthesis(equals('n\'', n + 1)),
+    parenthesis(equals("n'", n + 1)),
   ].join(separator('and').trim())}`;
 
 const goalSentence = ({

@@ -15,12 +15,12 @@ const skipAchievable = (conditions: ConditionDependency[]) => {
             [
               defaultSentence,
               not(dependency({ condition, negateItems: false, sep: 'or' })),
-            ].join(separator('or'))
+            ].join(separator('or')),
           );
         }
         return defaultSentence;
       })
-      .join(separator('and'))
+      .join(separator('and')),
   );
 };
 
@@ -31,6 +31,6 @@ export const variantsSkip = ({
 }) => {
   const goalIds = conditions.map(({ goal }) => goal);
   return parenthesis(
-    [skipAchieved(goalIds), skipAchievable(conditions)].join(separator('or'))
+    [skipAchieved(goalIds), skipAchievable(conditions)].join(separator('or')),
   );
 };

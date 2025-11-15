@@ -8,7 +8,7 @@ export const defineVariable = (
   initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION',
   type: 'boolean' | 'int',
   lowerBound?: number | boolean,
-  upperBound?: number | boolean
+  upperBound?: number | boolean,
 ) => {
   const logger = getLogger();
   logger.variableDefinition({

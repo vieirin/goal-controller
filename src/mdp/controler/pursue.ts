@@ -15,12 +15,12 @@ const pursueAchievable = (conditions: ConditionDependency[]) => {
             [
               defaultSentence,
               dependency({ condition, negateItems: false, sep: 'or' }),
-            ].join(separator('and'))
+            ].join(separator('and')),
           );
         }
         return defaultSentence;
       })
-      .join(separator('or'))
+      .join(separator('or')),
   );
 };
 
@@ -32,7 +32,7 @@ export const variantsPursueDefault = ({
   const goalIds = conditions.map(({ goal }) => goal);
 
   return [pursueAchieved(goalIds), pursueAchievable(conditions)].join(
-    separator('and')
+    separator('and'),
   );
 };
 

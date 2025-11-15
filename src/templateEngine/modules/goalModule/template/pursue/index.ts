@@ -133,10 +133,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = [
-                  ...(goal.children ?? []),
-                  ...(goal.tasks ?? []),
-                ].map((child) => child.id);
+                const children = childrenIncludingTasks({ node: goal }).map(
+                  (child) => child.id
+                );
                 if (!children) {
                   logger.error(
                     child.id,
@@ -210,7 +209,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   goal,
                   goal.executionDetail.sequence,
                   child.id,
-                  [...(goal.children ?? []), ...(goal.tasks ?? [])]
+                  childrenIncludingTasks({ node: goal })
                 );
                 return [
                   child,
@@ -289,9 +288,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       // child goals have maintain condition only if they are not itself
       const maintainContextGuard =
-        child.execCondition &&
-        child.execCondition.maintain?.sentence &&
-        !isItself(child)
+        child.execCondition?.maintain?.sentence && !isItself(child)
           ? `${achievedMaintain(child.id)}=false`
           : '';
 
@@ -339,9 +336,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       }
 
       const rightStatement =
+        // overwrite default true with update failed counter statement
         statement.right === 'true'
-          ? // overwrite default true with update failed counter statement
-            updateFailedCounterStatement
+          ? updateFailedCounterStatement
           : `${statement.right} & ${updateFailedCounterStatement}`;
       return [
         child,

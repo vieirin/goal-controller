@@ -25,19 +25,16 @@ export const allByType = <T extends GenericTree>({
     })
     .filter((node) => node.type === type)
     .sort((a, b) => a.id.localeCompare(b.id))
-    .reduce(
-      (acc, current) => {
-        if (acc[current.id]) {
-          if (preferVariant && current.variantOf) {
-            return { ...acc, [current.id]: current };
-          }
-          return { ...acc };
+    .reduce<Record<string, T[number]>>((acc, current) => {
+      if (acc[current.id]) {
+        if (preferVariant && current.variantOf) {
+          return { ...acc, [current.id]: current };
         }
+        return { ...acc };
+      }
 
-        return { ...acc, [current.id]: current };
-      },
-      {} as Record<string, T[number]>
-    );
+      return { ...acc, [current.id]: current };
+    }, {});
 
   return Object.values(allCurrent) as T;
 };
@@ -53,7 +50,7 @@ export const allGoalsMap = <T extends GenericTree>({
     allByType({ gm, type: 'goal', preferVariant }).map((goal) => [
       goal.id,
       goal,
-    ])
+    ]),
   );
 };
 
@@ -63,7 +60,7 @@ export const goalRootId = ({ id }: { id: string }) => {
 
 export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }) => {
   const leaves = allByType({ gm, type: 'goal' })?.filter(
-    (goal) => !!goal.tasks
+    (goal) => !!goal.tasks,
   );
   return leaves;
 };
@@ -110,7 +107,7 @@ export function childrenLength({ node }: { node: GenericGoal }) {
 
 export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
   return childrenWithTasksAndResources({ node }).filter(
-    (child) => !!child.properties.maxRetries
+    (child) => !!child.properties.maxRetries,
   );
 }
 
@@ -123,5 +120,5 @@ export function childrenIncludingTasks<T extends GenericGoal>({
 }: {
   node: T;
 }): T[] {
-  return [...(node.children || []), ...(node.tasks || [])] as T[];
+  return childrenWithTasksAndResources({ node });
 }

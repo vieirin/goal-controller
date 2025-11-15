@@ -13,7 +13,7 @@ export const changeManagerModuleTemplate = ({
       acc.transitions.push(taskTransitions(task));
       return acc;
     },
-    { variables: [] as string[], transitions: [] as string[] }
+    { variables: [] as string[], transitions: [] as string[] },
   );
 
   return `module ChangeManager

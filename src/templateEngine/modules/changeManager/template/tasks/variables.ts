@@ -15,7 +15,7 @@ const defineVariable = (variable: string) => {
   return `${variable}: [0..${upperBound}] init 0;`;
 };
 
-const maxRetriesVariable = (task: GoalNode) => {
+export const maxRetriesVariable = (task: GoalNode) => {
   if (!task.properties.maxRetries) {
     return '';
   }

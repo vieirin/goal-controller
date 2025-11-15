@@ -7,7 +7,7 @@ import { achievedMaintain } from './formulas';
 import { hasBeenPursued } from './pursue/common';
 
 const isValidSeparator = (
-  relation: Relation | null
+  relation: Relation | null,
 ): relation is 'and' | 'or' => {
   return ['and', 'or'].includes(relation ?? '');
 };
@@ -20,7 +20,7 @@ export const achieveCondition = (goal: GoalNode) => {
         .map((child) =>
           child.execCondition?.maintain
             ? `${achievedMaintain(child.id)}=true`
-            : `${achievedVariable(child.id)}=1`
+            : `${achievedVariable(child.id)}=1`,
         )
         .join(separator(goal.relationToChildren))})`;
     }

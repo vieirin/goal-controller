@@ -1,19 +1,20 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 import RTRegex from '../antlr/RTRegexLexer';
 import RTRegexListener from '../antlr/RTRegexListener';
-import RTRegexParser, {
+import type {
+  ExprContext,
+  GAlternativeContext,
+  GChoiceContext,
+  GDegradationContext,
   GIdContinuedContext,
+  GInterleavedContext,
   GRetryContext,
   GSequenceContext,
   WordContext,
-  type ExprContext,
-  type GAlternativeContext,
-  type GChoiceContext,
-  type GDegradationContext,
-  type GInterleavedContext,
 } from '../antlr/RTRegexParser';
-import { GoalExecutionDetail } from '../GoalTree/types';
+import RTRegexParser from '../antlr/RTRegexParser';
+import type { GoalExecutionDetail } from '../GoalTree/types';
 
 export const getGoalDetail = ({
   goalText,
@@ -54,43 +55,51 @@ export const getGoalDetail = ({
       }
       return [];
     };
+
     exitGIdContinued = (ctx: GIdContinuedContext) => {
       if (id) return;
       id = `${ctx._t.text}${ctx.id().getText()}`;
       return id;
     };
+
     exitWord = (ctx: WordContext) => {
       goalName = ctx.WORD().getText();
     };
+
     exitGAlternative = (ctx: GAlternativeContext) => {
       alternative = ctx
         .expr_list()
         .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
+
     exitGDegradation = (ctx: GDegradationContext) => {
       degradationList = ctx
         .expr_list()
         .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
+
     exitGInterleaved = (ctx: GInterleavedContext) => {
       interleaved = ctx
         .expr_list()
         .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
+
     exitGSequence = (ctx: GSequenceContext) => {
       sequence = ctx
         .expr_list()
         .flatMap((e) => this.extractGoalIds(e))
         .filter(Boolean);
     };
+
     exitGRetry = (ctx: GRetryContext) => {
       const goalToRetry = ctx.expr().getText();
       const amountOfRetries = ctx.FLOAT().getText();
       retry = { ...retry, [goalToRetry]: parseInt(amountOfRetries) };
     };
+
     exitGChoice = (ctx: GChoiceContext) => {
       choice = ctx._op.text === '+';
     };

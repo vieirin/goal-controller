@@ -10,7 +10,7 @@ G1: Goal[T1|T2]
 module G1 //non-idempotent, a.k.a choose once!
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
-  G1_chosen : [0..2] init 0; //which one is chosen? 
+  G1_chosen : [0..2] init 0; //which one is chosen?
 
 //  [pursue_T1] G1_pursued=1 & G1_achieved=0 & G1_chosen!=2 -> (G1_chosen'=1);
 //  [pursue_T2] G1_pursued=1 & G1_achieved=0 & G1_chosen!=1 -> (G1_chosen'=2);
@@ -22,11 +22,11 @@ endmodule
 export const pursueChoiceGoal = (
   goal: GoalNode,
   alternative: string[],
-  currentChildId: string
+  currentChildId: string,
 ): string => {
   if (goal.relationToChildren === 'and') {
     throw new Error(
-      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`
+      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`,
     );
   }
 
@@ -34,7 +34,7 @@ export const pursueChoiceGoal = (
 
   if (goal.relationToChildren === 'or') {
     const otherGoals = alternative.filter(
-      (goalId) => goalId !== currentChildId
+      (goalId) => goalId !== currentChildId,
     );
     const notChosen = otherGoals
       .map((goalId) => {
@@ -52,18 +52,18 @@ export const pursueChoiceGoal = (
 export const pursueDegradationGoal = (
   goal: GoalNode,
   degradationList: string[],
-  currentChildId: string
+  currentChildId: string,
 ): string => {
   if (goal.relationToChildren === 'and') {
     throw new Error(
-      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`
+      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`,
     );
   }
   const { degradation: degradationLogger } = getLogger().pursue.executionDetail;
 
   if (goal.relationToChildren === 'or') {
     const otherGoals = degradationList.filter(
-      (goalId) => goalId !== currentChildId
+      (goalId) => goalId !== currentChildId,
     );
     degradationLogger.init(currentChildId, degradationList);
     const result = otherGoals
@@ -91,7 +91,7 @@ export const pursueDegradationGoal = (
 // chooses either one of the children always
 export const pursueAlternativeGoal = (
   goal: GoalNode,
-  currentChildId: string
+  currentChildId: string,
 ): string => {
   const children = childrenIncludingTasks({ node: goal });
   const otherGoals = children.filter((child) => child.id !== currentChildId);
@@ -99,7 +99,7 @@ export const pursueAlternativeGoal = (
 
   alternativeLogger(
     currentChildId,
-    otherGoals.map((child) => child.id)
+    otherGoals.map((child) => child.id),
   );
 
   return otherGoals

@@ -1,1 +1,1 @@
-const costsModules = () => {};
+export const costsModules = () => {};

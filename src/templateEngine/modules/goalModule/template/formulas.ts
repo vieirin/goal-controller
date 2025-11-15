@@ -22,7 +22,7 @@ export const maintainConditionFormula = (goal: GoalNode) => {
     goal.id,
     achievedMaintain(goal.id),
     goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED',
-    prismLine
+    prismLine,
   );
   return prismLine;
 };
@@ -31,14 +31,19 @@ export const achievableGoalFormula = (goal: GoalNode) => {
   const children = childrenIncludingTasks({ node: goal });
 
   if (children.length === 1) {
+    const firstChild = children[0];
+    if (!firstChild) {
+      throw new Error(
+        `Expected at least one child for goal ${goal.id} but children array is empty`,
+      );
+    }
     return `formula ${goal.id}_achievable = ${achievableFormulaVariable(
-      children[0]!.id
+      firstChild.id,
     )};`;
   }
-  ('');
 
   const childrenVariables = children.map((child) =>
-    achievableFormulaVariable(child.id)
+    achievableFormulaVariable(child.id),
   );
   const productPart = childrenVariables.join(' * ');
 
@@ -49,12 +54,12 @@ export const achievableGoalFormula = (goal: GoalNode) => {
     case 'or': {
       const sumPart = childrenVariables.join(' + ');
       return `formula ${goal.id}_achievable = ${sumPart} - ${parenthesis(
-        productPart
+        productPart,
       )};`;
     }
     default:
       throw new Error(
-        `Invalid relation to children: ${goal.relationToChildren}`
+        `Invalid relation to children: ${goal.relationToChildren ?? 'none'}`,
       );
   }
 };

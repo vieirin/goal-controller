@@ -23,7 +23,7 @@ const getTreeContextVariables = (tree: GoalTree) => {
 export const getTaskAchievabilityVariables = (tree: GoalTree) => {
   const tasks = allByType({ gm: tree, type: 'task' });
   const taskAchievabilityVariables = tasks.map((task) =>
-    achievableFormulaVariable(task.id)
+    achievableFormulaVariable(task.id),
   );
   return taskAchievabilityVariables;
 };

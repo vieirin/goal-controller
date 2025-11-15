@@ -6,7 +6,7 @@ export const goalNumberId = (goalId: string) => {
   const id = goalId.match(/\d+/)?.[0];
   if (!id) {
     throw new Error(
-      `The goal id must follow the pattern 'G%d', got: '${goalId}'`
+      `The goal id must follow the pattern 'G%d', got: '${goalId}'`,
     );
   }
   return id;
@@ -17,7 +17,7 @@ export const goalModules = ({ gm }: { gm: GoalTree }) => {
   return `
 ${goals
   .sort(
-    (a, b) => Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0])
+    (a, b) => Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0]),
   )
   .map(goalModule)
   .join('\n\n')}

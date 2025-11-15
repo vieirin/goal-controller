@@ -24,7 +24,7 @@ const pursueTask = (task: GoalNode) => {
     'true',
     'true',
     prismLabelStatement,
-    'pursue'
+    'pursue',
   );
   return prismLabelStatement;
 };
@@ -37,7 +37,7 @@ const achieveTask = (task: GoalNode) => {
     'true',
     'true',
     prismLabelStatement,
-    'achieve'
+    'achieve',
   );
   return prismLabelStatement;
 };
@@ -45,13 +45,13 @@ const achieveTask = (task: GoalNode) => {
 const failedTask = (task: GoalNode) => {
   const logger = getLogger();
   const leftStatement = `${pursuedVariable(task.id)}=1 & ${achievedVariable(
-    task.id
+    task.id,
   )}=0`;
 
   const updateStatement = `(${pursuedVariable(task.id)}'=0)`;
 
   const prismLabelStatement = `[${failedTransition(
-    task.id
+    task.id,
   )}] ${leftStatement} -> ${updateStatement};`;
 
   logger.taskTranstions.transition(
@@ -60,7 +60,7 @@ const failedTask = (task: GoalNode) => {
     updateStatement,
     prismLabelStatement,
     'failed',
-    task.properties.maxRetries
+    task.properties.maxRetries,
   );
   return prismLabelStatement;
 };
@@ -75,9 +75,9 @@ const tryTask = (task: GoalNode) => {
     hasBeenAchieved(task, {
       condition: true,
       update: true,
-    })
+    }),
   )} + 1-${taskAchievabilityVariable}: ${parenthesis(
-    hasBeenPursued(task, { condition: false, update: true })
+    hasBeenPursued(task, { condition: false, update: true }),
   )};`;
 };
 

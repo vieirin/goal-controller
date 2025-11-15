@@ -7,7 +7,8 @@ const baseConfig = require('./.eslintrc.json');
 
 module.exports = {
   ...baseConfig,
-  plugins: [...(baseConfig.plugins || []), 'rulesdir'],
+  ignorePatterns: ['.eslintrc.js', '*.config.js'],
+  plugins: [...(baseConfig.plugins || []), 'prettier', 'rulesdir'],
   rules: {
     ...baseConfig.rules,
     'rulesdir/no-direct-children-tasks-pattern': 'error',
@@ -15,7 +16,43 @@ module.exports = {
     '@typescript-eslint/semi': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/member-delimiter-style': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    '@typescript-eslint/comma-dangle': 'off',
+    '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/restrict-template-expressions': [
+      'error',
+      {
+        allowNumber: true,
+        allowBoolean: true,
+        allowNullish: true,
+        allowRegExp: true,
+        allowAny: true,
+      },
+    ],
+    'generator-star-spacing': ['error', { before: false, after: true }],
+    '@typescript-eslint/space-before-function-paren': [
+      'error',
+      {
+        anonymous: 'always',
+        named: 'never',
+        asyncArrow: 'always',
+      },
+    ],
+    'prettier/prettier': 'off',
     'no-console': ['error', { allow: ['warn'] }],
   },
+  overrides: [
+    {
+      files: ['src/cli.ts', 'src/cli/**/*.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
+      files: ['*.js', '*.config.js', '.eslintrc.js'],
+      parserOptions: {
+        project: null,
+      },
+    },
+  ],
 };
-

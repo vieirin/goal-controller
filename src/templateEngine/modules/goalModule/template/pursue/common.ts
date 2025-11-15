@@ -4,12 +4,12 @@ import { achievedMaintain } from '../formulas';
 
 export const hasBeenAchieved = (
   goal: GoalNode,
-  { condition, update }: { condition: boolean; update?: boolean }
+  { condition, update }: { condition: boolean; update?: boolean },
 ) => {
   if (goal.execCondition?.maintain) {
     if (update) {
       throw new Error(
-        'Invalid update option for goal of type maintain, please verify'
+        'Invalid update option for goal of type maintain, please verify',
       );
     }
     return `${achievedMaintain(goal.id)}=${condition ? 'true' : 'false'}`;
@@ -20,14 +20,14 @@ export const hasBeenAchieved = (
 
 export const hasBeenPursued = (
   goal: GoalNode,
-  { condition, update }: { condition: boolean; update?: boolean }
+  { condition, update }: { condition: boolean; update?: boolean },
 ) => {
   return `${pursued(goal.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
 };
 
 export const hasBeenAchievedAndPursued = (
   goal: GoalNode,
-  { achieved, pursued }: { achieved: boolean; pursued: boolean }
+  { achieved, pursued }: { achieved: boolean; pursued: boolean },
 ) => {
   return [
     hasBeenPursued(goal, { condition: pursued }),

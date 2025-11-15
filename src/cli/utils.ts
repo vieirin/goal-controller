@@ -15,7 +15,7 @@ export const getFilesInDirectory = async (directory: string) => {
           path: filePath,
           mtime: stats.mtime,
         };
-      })
+      }),
     );
     return fileStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
   } catch (error) {

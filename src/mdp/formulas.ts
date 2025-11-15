@@ -126,8 +126,8 @@ const goalsWithDependency = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
       `Missing goals on the model, requested dependencies were ${dependency
         .map((d) => `(${d.dependant}: depends on ${d.id})`)
         .join(
-          ';'
-        )}\nCheck the depends on strings, they should match existing elements in the goal model`
+          ';',
+        )}\nCheck the depends on strings, they should match existing elements in the goal model`,
     );
   }
 
@@ -144,7 +144,7 @@ export const goalFormulaes = ({ gm }: TemplateProps) => {
   return treeFormula.map(({ underLevel, rootLevel, formulatedGoal }) => {
     return `formula ${achieved(formulatedGoal)} = ${[
       ...underLevel.map(
-        (elem) => `(${elem.ids.join(separator(elem.relation))})`
+        (elem) => `(${elem.ids.join(separator(elem.relation))})`,
       ),
       ...rootLevel.ids,
     ].join(separator(rootLevel.relation))};`;
@@ -163,7 +163,7 @@ export const dependencyFormulaes = ({ gm }: TemplateProps) => {
       return `formula ${achievedOrPursued(
         goalRootId({
           id: formulatedGoal,
-        })
+        }),
       )} = 
               ${[
                 ...rootLevel.ids.map(
@@ -171,17 +171,17 @@ export const dependencyFormulaes = ({ gm }: TemplateProps) => {
                     `(${[
                       `${achieved(id)}`,
                       `${greaterThan(pursued(id), 0)}`,
-                    ].join(separator('or'))})`
+                    ].join(separator('or'))})`,
                 ),
                 ...underLevel.map(
                   ({ rootId, ids }) =>
                     `(${[
                       ids.map((id) => `${id}`).join(separator('or')),
                       `${pursued(rootId)} > 0`,
-                    ].join(separator('or'))})`
+                    ].join(separator('or'))})`,
                 ),
               ].join(`${separator(rootLevel.relation)}\n${' '.repeat(14)}`)};`;
-    }
+    },
   );
 
   return dependency;

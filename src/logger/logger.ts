@@ -20,7 +20,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
   return {
     decisionVariable: (decisionVariable: [string, number]) => {
       write(
-        `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`
+        `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`,
       );
     },
     initGoal: (goal: GoalNode) => {
@@ -30,15 +30,15 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           goal.children?.length && goal.children.length > 0
             ? goal.children.map((child) => child.id).join(', ')
             : 'none'
-        }\n`
+        }\n`,
       );
       write(
-        `\tTasks: ${goal.tasks?.map((task) => task.id).join(', ') ?? 'none'}\n`
+        `\tTasks: ${goal.tasks?.map((task) => task.id).join(', ') ?? 'none'}\n`,
       );
       write(
         `\tType: ${
           goal.execCondition?.maintain?.sentence ? 'maintain' : 'achieve'
-        }\n`
+        }\n`,
       );
       write(`\tRelation to children: ${goal.relationToChildren ?? 'none'}\n`);
       write(`\tExecution detail: ${goal.executionDetail?.type ?? 'none'}\n`);
@@ -51,7 +51,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           task.resources?.length && task.resources.length > 0
             ? task.resources.map((resource) => resource.id).join(', ')
             : 'none'
-        }\n`
+        }\n`,
       );
     },
     initSystem: () => {
@@ -61,11 +61,11 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       goalId: string,
       formula: string,
       sentence: string,
-      prismLine: string
+      prismLine: string,
     ) => {
       write(`\t[TRACE] ${goalId}.maintainCondition -> ${formula} \n`);
       write(
-        `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`
+        `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`,
       );
       write(`\t\t[PRISM emitted statement]: ${prismLine}\n`);
     },
@@ -76,7 +76,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         updateStatement: string,
         prismLabelStatement: string,
         transition: 'pursue' | 'achieve' | 'failed',
-        maxRetries?: number
+        maxRetries?: number,
       ) => {
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
@@ -109,7 +109,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         choice: (
           currentGoal: string,
           otherGoals: string[],
-          guardStatement: string
+          guardStatement: string,
         ) => {
           write('\t\t[EXECUTION DETAIL: CHOICE]\n');
           write(`\t\t\t[CURRENT GOAL] ${currentGoal}\n`);
@@ -122,24 +122,24 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
               degradation.findIndex((goal) => goal === currentGoal) + 1;
             write(
               `\t\t[EXECUTION DETAIL: DEGRADATION] ${currentGoal} priority #${priority} : ${degradation.join(
-                ' -> '
-              )}\n`
+                ' -> ',
+              )}\n`,
             );
           },
           retry: (
             currentGoal: string,
             goalToRetry: string,
-            amountOfRetries: number
+            amountOfRetries: number,
           ) => {
             write(
-              `\t\t[EXECUTION DETAIL: DEGRADATION] ${currentGoal} retry after: ${goalToRetry} ${amountOfRetries} times\n`
+              `\t\t[EXECUTION DETAIL: DEGRADATION] ${currentGoal} retry after: ${goalToRetry} ${amountOfRetries} times\n`,
             );
           },
           alternative: (currentGoal: string, alternative: string[]) => {
             write(
               `\t\t[EXECUTION DETAIL: ALTERNATIVE GOAL] ${currentGoal} other alternatives: ${alternative.join(
-                ', '
-              )}\n`
+                ', ',
+              )}\n`,
             );
           },
         },
@@ -147,42 +147,42 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           goalId: string,
           currentGoal: string,
           leftGoals: string[],
-          rightGoals: string[]
+          rightGoals: string[],
         ) => {
           write(
-            `\t\t[EXECUTION DETAIL: SEQUENCE] ${goalId}: Curr ${currentGoal};\n`
+            `\t\t[EXECUTION DETAIL: SEQUENCE] ${goalId}: Curr ${currentGoal};\n`,
           );
           write(
             `\t\t\t[LEFT GOALS] - should be achieved:  ${
               leftGoals.length > 0 ? leftGoals.join(', ') : 'none'
-            }\n`
+            }\n`,
           );
           write(
             `\t\t\t[RIGHT GOALS] - should be not achieved: ${rightGoals.join(
-              ', '
-            )}\n`
+              ', ',
+            )}\n`,
           );
         },
         alternative: (currentGoal: string, alternative: string[]) => {
           write(
             `\t\t[EXECUTION DETAIL: ALTERNATIVE GOAL] ${currentGoal} other alternatives: ${alternative.join(
-              ', '
-            )}\n`
+              ', ',
+            )}\n`,
           );
         },
         interleaved: () => {
           write(
-            '\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n'
+            '\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n',
           );
         },
         activationContext: (sentence: string) => {
           write(
-            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${sentence}\n`
+            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${sentence}\n`,
           );
         },
         noActivationContext: (goalId: string) => {
           write(
-            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${goalId} has no activation context\n`
+            `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${goalId} has no activation context\n`,
           );
         },
       },
@@ -195,7 +195,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       goalId: string,
       condition: string,
       update: string,
-      prismLabelStatement: string
+      prismLabelStatement: string,
     ) => {
       write(`\t[ACHIEVE] Goal ${goalId} achieved label\n`);
       write(`\t\t[CONDITION] ${condition}\n`);
@@ -207,7 +207,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       goalId: string,
       leftStatement: string,
       updateStatement: string,
-      prismLabelStatement: string
+      prismLabelStatement: string,
     ) => {
       write(`\t[SKIP] Goal ${goalId} skipped label\n`);
       write(`\t\t[CONDITION] ${leftStatement}\n`);
@@ -230,21 +230,21 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
     }) => {
       if (initialValue === 'MISSING_VARIABLE_DEFINITION') {
         write(
-          `\t[VARIABLE DEFINITION] ${variable}; initial value: MISSING_VARIABLE_DEFINITION; type: ${type}\n`
+          `\t[VARIABLE DEFINITION] ${variable}; initial value: MISSING_VARIABLE_DEFINITION; type: ${type}\n`,
         );
         return;
       }
 
       if (type === 'boolean') {
         write(
-          `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; type: ${type}\n`
+          `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; type: ${type}\n`,
         );
         return;
       }
       write(
         `\t[VARIABLE DEFINITION] ${variable}; initial value: ${initialValue}; ${
           lowerBound ? `lower bound: ${lowerBound}; ` : ''
-        }${upperBound ? `upper bound: ${upperBound};` : ''} type: ${type}\n`
+        }${upperBound ? `upper bound: ${upperBound};` : ''} type: ${type}\n`,
       );
     },
     executionDetail: (executionDetail: GoalExecutionDetail) => {
@@ -267,7 +267,7 @@ let logger: ReturnType<typeof createLogger>;
 
 export const initLogger = (
   modelFileName: string,
-  logToConsole: boolean = false
+  logToConsole: boolean = false,
 ) => {
   logger = createLogger(modelFileName, logToConsole);
 };

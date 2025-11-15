@@ -11,7 +11,7 @@ import { getLogger } from '../logger/logger';
 // decision_G0_0_0, decision_G0_0_1, ..., decision_G0_9_1
 export const decisionVariablesForGoal = ({ goal }: { goal: GoalNode }) => {
   const spaceArray = goal.decisionVars.map((decision) =>
-    Array.from({ length: decision.space }, (_, i) => i)
+    Array.from({ length: decision.space }, (_, i) => i),
   );
   const variableArray = goal.decisionVars.map((decision) => decision.variable);
 
@@ -22,7 +22,7 @@ export const decisionVariablesForGoal = ({ goal }: { goal: GoalNode }) => {
 export const decisionVariableName = (
   goalId: string,
   variableCombination: number[],
-  vars: string[]
+  vars: string[],
 ) => {
   return `decision_${goalId}_${variableCombination
     .map((v, i) => `${vars[i]}${v}`)
@@ -38,20 +38,26 @@ export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
   const allGoals = allByType({ gm, type: 'goal' });
 
   const goalsWithDecisionVariables = allGoals.filter(
-    (goal) => goal.decisionVars.length
+    (goal) => goal.decisionVars.length,
   );
   goalsWithDecisionVariables.forEach((goal) => {
     const [vars, decisionVars, spaceArray] = decisionVariablesForGoal({ goal });
 
     spaceArray.forEach((space, i) => {
-      logger.decisionVariable([vars[i]!, space.length]);
+      const varName = vars[i];
+      if (!varName) {
+        throw new Error(
+          `Variable at index ${i} is undefined for goal ${goal.id}`,
+        );
+      }
+      logger.decisionVariable([varName, space.length]);
     });
 
     for (const variableCombination of decisionVars) {
       const variable = `const int ${decisionVariableName(
         goal.id,
         variableCombination,
-        vars
+        vars,
       )};`;
       decisionVariables.push(variable);
     }

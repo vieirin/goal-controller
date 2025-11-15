@@ -6,7 +6,6 @@ import type {
   CustomProperties,
   ExecCondition,
   GoalNode,
-  GoalNodeWithParent,
   GoalTree,
   Link,
   Model,
@@ -30,11 +29,7 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
   }
 };
 
-const parseDependsOn = ({
-  dependsOn,
-}: {
-  dependsOn: string;
-}): Array<string> => {
+const parseDependsOn = ({ dependsOn }: { dependsOn: string }): string[] => {
   if (!dependsOn) {
     return [];
   }
@@ -46,7 +41,7 @@ const parseDecision = ({
   decision,
 }: {
   decision: string | undefined;
-}): { variable: string; space: number }[] => {
+}): Array<{ variable: string; space: number }> => {
   if (!decision) {
     return [];
   }
@@ -54,7 +49,7 @@ const parseDecision = ({
   parsedDecision.forEach((d) => {
     if (d.length !== 2) {
       throw new Error(
-        `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`
+        `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`,
       );
     }
     if (isNaN(parseInt(d[1] ?? ''))) {
@@ -71,7 +66,7 @@ const parseDecision = ({
 const getMaintainCondition = (
   goalName: string,
   customProperties: CustomProperties['customProperties'],
-  nodeType: 'goal' | 'task' | 'resource'
+  nodeType: 'goal' | 'task' | 'resource',
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
     if (!customProperties.maintain && !customProperties.assertion) {
@@ -79,7 +74,7 @@ const getMaintainCondition = (
       console.warn(
         `[INVALID MODEL]: Maintain condition for ${nodeType} [${goalName}] must have maintain and assertion: got maintain:${
           customProperties.maintain || "'empty condition'"
-        } and assertion:${customProperties.assertion || "'empty condition'"}`
+        } and assertion:${customProperties.assertion || "'empty condition'"}`,
       );
     }
 
@@ -127,7 +122,7 @@ const createResource = (resource: GoalNode): Resource => {
       const { initialValue } = resource.properties;
       if (!initialValue) {
         throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value`
+          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value`,
         );
       }
       return {
@@ -135,18 +130,18 @@ const createResource = (resource: GoalNode): Resource => {
         variable: { type: 'boolean', initialValue: initialValue === 'true' },
       };
     }
-    case 'int':
+    case 'int': {
       const { initialValue, lowerBound, upperBound } = resource.properties;
 
       if (!initialValue || !lowerBound || !upperBound) {
         throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value, lower bound, and upper bound`
+          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value, lower bound, and upper bound`,
         );
       }
 
       if (isNaN(lowerBound) || isNaN(upperBound)) {
         throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`,
         );
       }
 
@@ -155,13 +150,13 @@ const createResource = (resource: GoalNode): Resource => {
 
       if (lowerBoundInt > upperBoundInt) {
         throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`,
         );
       }
 
       if (isNaN(initialValue)) {
         throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid initial value`
+          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid initial value`,
         );
       }
       return {
@@ -173,13 +168,18 @@ const createResource = (resource: GoalNode): Resource => {
           upperBound: upperBoundInt,
         },
       };
+    }
     default:
       throw new Error(`[INVALID RESOURCE]: Unsupported resource type: ${type}`);
   }
 };
 
 const convertNonGoalChildren = (children: GoalNode[]) => {
-  return children.reduce(
+  return children.reduce<
+    Record<'children' | 'tasks', GoalNode[]> & {
+      resources: Resource[];
+    }
+  >(
     (acc, child) => {
       if (child.type === 'resource') {
         return {
@@ -199,9 +199,7 @@ const convertNonGoalChildren = (children: GoalNode[]) => {
       resources: [],
       children: [],
       tasks: [],
-    } as Record<'children' | 'tasks', GoalNode[]> & {
-      resources: Resource[];
-    }
+    },
   );
 };
 
@@ -224,7 +222,7 @@ const createNode = ({
 
   if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
-      `[INVALID MODEL]: Resource node ${goalName} can't have children`
+      `[INVALID MODEL]: Resource node ${goalName} can't have children`,
     );
   }
 
@@ -240,13 +238,13 @@ const createNode = ({
 
   if (!children.length && !tasks.length && nodeType === 'goal') {
     throw new Error(
-      `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`
+      `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`,
     );
   }
 
   if (resources.length > 0 && nodeType !== 'task') {
     throw new Error(
-      `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${nodeType} instead`
+      `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${nodeType} instead`,
     );
   }
 
@@ -254,7 +252,7 @@ const createNode = ({
   const execCondition = getMaintainCondition(
     `${id}:${goalName}`,
     customProperties,
-    nodeType
+    nodeType,
   );
 
   return {
@@ -267,7 +265,7 @@ const createNode = ({
     type: nodeType,
     resources,
     children: filteredChildren,
-    decisionVars: decisionVars,
+    decisionVars,
     hasDecision: decisionVars.length > 0,
     properties: {
       ...customProperties,
@@ -298,7 +296,7 @@ const nodeChildren = ({
   const nodeLinks = links.filter((link) => link.target === id);
 
   // get the set of relations associated to the parent element
-  const relations = nodeLinks.map((link) => {
+  const relations = nodeLinks.map((link: { type: Link['type'] | string }) => {
     switch (link.type) {
       case 'istar.AndRefinementLink':
         return 'and';
@@ -308,7 +306,7 @@ const nodeChildren = ({
         return 'neededBy';
       default:
         throw new Error(
-          `[UNSUPPORTED LINK]: Please implement ${link.type} decoding`
+          `[UNSUPPORTED LINK]: Please implement ${link.type} decoding`,
         );
     }
   });
@@ -332,7 +330,7 @@ const nodeChildren = ({
       const [granChildren, relation] = nodeChildren({
         actor,
         id: node.id,
-        links: links,
+        links,
       });
 
       const nodeAlt = isAlternative(node);
@@ -371,48 +369,6 @@ const nodeToTree = ({
   return createNode({ node, children, relation });
 };
 
-const addParentToChildren = (
-  unidirectionalTreeNode: GoalNode,
-  searchParentsForGoal: (goalId: string) => GoalNode[]
-): GoalNodeWithParent => {
-  const parent = searchParentsForGoal(unidirectionalTreeNode.id);
-  if (!unidirectionalTreeNode.children) {
-    return {
-      ...unidirectionalTreeNode,
-      parent,
-      children: undefined,
-    };
-  }
-
-  // validate that the child has a maxRetries property if the parent has a retryMap entry for it
-  parent.forEach((p) => {
-    if (
-      p.executionDetail?.retryMap?.[unidirectionalTreeNode.id] &&
-      !unidirectionalTreeNode.properties.maxRetries
-    ) {
-      throw new Error(
-        `[INVALID MODEL]: Goal ${unidirectionalTreeNode.id} is missing maxRetries property, but its parent ${p.id} declares it in a retryMap`
-      );
-    }
-  });
-
-  const bidirectionalTree: GoalNodeWithParent = {
-    ...unidirectionalTreeNode,
-    parent,
-    children: unidirectionalTreeNode.children.map(
-      (goal): GoalNodeWithParent => ({
-        ...goal,
-        parent: searchParentsForGoal(goal.id),
-        children: goal.children?.map((g) =>
-          addParentToChildren(g, searchParentsForGoal)
-        ),
-      })
-    ),
-  };
-
-  return bidirectionalTree;
-};
-
 const resolveDependencies = (tree: GoalTree): GoalTree => {
   // Collect all nodes (goals, tasks, resources) into a map for dependency resolution
   const allGoals = allByType({ gm: tree, type: 'goal' });
@@ -430,7 +386,7 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
       const depNode = nodeMap.get(depId);
       if (!depNode) {
         throw new Error(
-          `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`
+          `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`,
         );
       }
       return depNode;
@@ -456,7 +412,7 @@ export const convertToTree = ({ model }: { model: Model }): GoalTree => {
     const rootNode = actor.nodes.find((item) => item.customProperties.root);
     if (!rootNode) {
       throw new Error(
-        '[Invalid model]: Root node not found during tree creation'
+        '[Invalid model]: Root node not found during tree creation',
       );
     }
 

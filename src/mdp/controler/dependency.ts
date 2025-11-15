@@ -34,7 +34,7 @@ const _dependency = ({
   return parenthesis(
     [achieved(goal), greaterThan(pursued(goal), 0)]
       .map((item) => (negateItems ? not(item) : item))
-      .join(separator(sep))
+      .join(separator(sep)),
   );
 };
 

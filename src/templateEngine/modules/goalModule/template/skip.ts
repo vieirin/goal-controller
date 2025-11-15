@@ -17,7 +17,7 @@ const childrenHasNotBeenPursued = (goal: GoalNode) => {
 export const skipStatement = (goal: GoalNode) => {
   const logger = getLogger();
   const leftStatement = `${pursued(goal.id)}=1 & ${childrenHasNotBeenPursued(
-    goal
+    goal,
   )}`;
   const updateStatement = `(${pursued(goal.id)}'=0);`;
   const prismLabelStatement = `[skip_${goal.id}] ${leftStatement} -> ${updateStatement}`;

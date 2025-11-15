@@ -17,13 +17,13 @@ export const getVariablesFilePath = (modelPath: string): string => {
 
 const saveVariables = async (
   variables: Record<string, boolean>,
-  modelPath: string
+  modelPath: string,
 ) => {
   try {
     const variablesFilePath = getVariablesFilePath(modelPath);
     const variablesDir = variablesFilePath.substring(
       0,
-      variablesFilePath.lastIndexOf('/')
+      variablesFilePath.lastIndexOf('/'),
     );
 
     // Ensure the directory exists
@@ -39,7 +39,7 @@ const saveVariables = async (
 };
 
 const getExistingVariables = async (
-  modelPath: string
+  modelPath: string,
 ): Promise<Record<string, boolean>> => {
   try {
     const variablesFilePath = getVariablesFilePath(modelPath);
@@ -136,7 +136,7 @@ export const inputDefaultVariables = async (selectedModel?: string) => {
               return 'Please enter a value between 0.0 and 1.0';
             },
             filter: (input: string) => parseFloat(input),
-          }
+          },
     );
 
     // Prompt for variable values

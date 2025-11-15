@@ -30,7 +30,9 @@ module.exports = {
           const [firstSpread, secondSpread] = node.elements;
 
           // Check if first spread is [...(something.children || [])]
-          const firstIsChildrenPattern = isChildrenPattern(firstSpread.argument);
+          const firstIsChildrenPattern = isChildrenPattern(
+            firstSpread.argument,
+          );
           // Check if second spread is [...(something.tasks || [])]
           const secondIsTasksPattern = isTasksPattern(secondSpread.argument);
 
@@ -44,7 +46,6 @@ module.exports = {
                 node,
                 messageId: 'useChildrenIncludingTasks',
               });
-              return;
             }
           }
         }
@@ -71,7 +72,11 @@ function isChildrenPattern(expr) {
       left.property.name === 'children'
     ) {
       const right = expr.right;
-      if (right && right.type === 'ArrayExpression' && right.elements.length === 0) {
+      if (
+        right &&
+        right.type === 'ArrayExpression' &&
+        right.elements.length === 0
+      ) {
         return true;
       }
     }
@@ -98,7 +103,11 @@ function isTasksPattern(expr) {
       left.property.name === 'tasks'
     ) {
       const right = expr.right;
-      if (right && right.type === 'ArrayExpression' && right.elements.length === 0) {
+      if (
+        right &&
+        right.type === 'ArrayExpression' &&
+        right.elements.length === 0
+      ) {
         return true;
       }
     }
@@ -126,4 +135,3 @@ function extractObjectName(expr) {
 
   return null;
 }
-

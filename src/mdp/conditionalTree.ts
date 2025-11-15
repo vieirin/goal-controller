@@ -10,6 +10,6 @@ export const conditionalTree = ({
   gm: GoalTree;
 }) => {
   return Object.values(grouppedGoals).map((variants) =>
-    variants.map((variant) => resolveDependency({ gm, goal: variant }))
+    variants.map((variant) => resolveDependency({ gm, goal: variant })),
   );
 };

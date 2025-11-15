@@ -15,7 +15,7 @@ export const systemModuleTemplate = ({
       return defineVariable(
         resourceVariableName(resource),
         resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
-        resource.variable.type
+        resource.variable.type,
       );
     }
 
@@ -24,7 +24,7 @@ export const systemModuleTemplate = ({
       resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
       resource.variable.type,
       resource.variable.lowerBound,
-      resource.variable.upperBound
+      resource.variable.upperBound,
     );
   });
   return `module System
@@ -33,7 +33,7 @@ export const systemModuleTemplate = ({
       return defineVariable(
         variable,
         defaultVariableValues[variable] ?? 'MISSING_VARIABLE_DEFINITION',
-        'boolean'
+        'boolean',
       );
     }),
     resourceVariables.join('\n  '),

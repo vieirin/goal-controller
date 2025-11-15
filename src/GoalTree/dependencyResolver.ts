@@ -27,7 +27,7 @@ const resolve = ({
       resolve({
         allMap,
         target: dependency,
-      })
+      }),
     ),
   };
 };
@@ -50,7 +50,7 @@ export const resolveDependency = ({
       resolve({
         allMap: allGoals,
         target: dependency,
-      })
+      }),
     ),
   };
 };

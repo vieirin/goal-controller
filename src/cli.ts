@@ -53,7 +53,7 @@ const mainMenu = async () => {
     const variablesFilePath = getVariablesFilePath(lastSelectedModel);
     if (!existsSync(variablesFilePath)) {
       console.log(
-        'Variables file not found for the last selected model. Please input variables first.'
+        'Variables file not found for the last selected model. Please input variables first.',
       );
       await inputDefaultVariables(lastSelectedModel);
     }
@@ -62,7 +62,7 @@ const mainMenu = async () => {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
       console.log('No files found in the example directory.');
-      return mainMenu();
+      await mainMenu();
     }
 
     const { selectedFile } = await inquirer.prompt([
@@ -84,7 +84,7 @@ const mainMenu = async () => {
     const variablesFilePath = getVariablesFilePath(selectedFile);
     if (!existsSync(variablesFilePath)) {
       console.log(
-        'Variables file not found for the selected model. Please input variables first.'
+        'Variables file not found for the selected model. Please input variables first.',
       );
       await inputDefaultVariables(selectedFile);
     }
@@ -96,7 +96,8 @@ const mainMenu = async () => {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
       console.log('No files found in the example directory.');
-      return mainMenu();
+      await mainMenu();
+      return;
     }
 
     const { selectedFile } = await inquirer.prompt([
@@ -117,12 +118,12 @@ const mainMenu = async () => {
     const json = dumpTreeToJSON({ gm: tree });
     await writeFile(`output/${path.parse(selectedFile).name}.json`, json);
     console.log(
-      `The file ${path.parse(selectedFile).name}.json was saved successfully!`
+      `The file ${path.parse(selectedFile).name}.json was saved successfully!`,
     );
   }
 
   // Return to main menu
-  return mainMenu();
+  await mainMenu();
 };
 
 // Start the CLI

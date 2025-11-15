@@ -16,14 +16,14 @@ export const goalMgmtVariables = ({
   });
 
   const grouppedVariableLines = variableLines.map((line) =>
-    groupBy(line.flat(), (l) => l.includes('achievable'))
+    groupBy(line.flat(), (l) => l.includes('achievable')),
   );
 
   return grouppedVariableLines
     .map((grouppedLine) =>
       Object.values(grouppedLine)
         .map((elem) => elem)
-        .flat()
+        .flat(),
     )
     .map((line) => line.join('\n'))
     .join('\n\n');
@@ -55,7 +55,7 @@ const templateGoalOutcome = ({
 }) => `  // outcomes of pursuing goal ${goalId}
 ${transitionSentences
   .map((sentence) =>
-    outcomeLineTemplate({ step, transitionSentence: sentence })
+    outcomeLineTemplate({ step, transitionSentence: sentence }),
   )
   .join('\n')}`;
 
@@ -97,8 +97,8 @@ export const outcomes = ({
         } else {
           throw new Error(
             `Goal (${goalGroupId}) has variants and non variants goals groupped, invalid syntax, check the following goals: (${goals.map(
-              (id) => id
-            )})`
+              (id) => id,
+            )})`,
           );
         }
       }
@@ -120,7 +120,7 @@ export const outcomes = ({
         throw new Error(
           `Goal variable should be a leaf, got (${goals
             .map((id) => id)
-            .join(',')}) as non-variant goals for (${goalGroupId})`
+            .join(',')}) as non-variant goals for (${goalGroupId})`,
         );
       }
     })
