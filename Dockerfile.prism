@@ -1,6 +1,6 @@
 # Dockerfile for PRISM ARM testing
 # Use Node.js official image based on Debian slim (much lighter than Ubuntu)
-FROM --platform=linux/arm64 node:22-slim
+FROM node:22-slim
 
 # Install system dependencies in a single layer with no recommended packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
