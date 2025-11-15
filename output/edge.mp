@@ -1,32 +1,6 @@
 dtmc
 
-const int decision_G2_t0_loc0;
-const int decision_G2_t0_loc1;
-const int decision_G2_t0_loc2;
-const int decision_G2_t1_loc0;
-const int decision_G2_t1_loc1;
-const int decision_G2_t1_loc2;
-const int decision_G2_t2_loc0;
-const int decision_G2_t2_loc1;
-const int decision_G2_t2_loc2;
-const int decision_G2_t3_loc0;
-const int decision_G2_t3_loc1;
-const int decision_G2_t3_loc2;
-const int decision_G2_t4_loc0;
-const int decision_G2_t4_loc1;
-const int decision_G2_t4_loc2;
-const int decision_G2_t5_loc0;
-const int decision_G2_t5_loc1;
-const int decision_G2_t5_loc2;
-const int decision_G2_t6_loc0;
-const int decision_G2_t6_loc1;
-const int decision_G2_t6_loc2;
-const int decision_G2_t7_loc0;
-const int decision_G2_t7_loc1;
-const int decision_G2_t7_loc2;
-const int decision_G2_t8_loc0;
-const int decision_G2_t8_loc1;
-const int decision_G2_t8_loc2;
+
 
 
 module G0
@@ -50,8 +24,8 @@ module G1
   G4_failed : [0..10] init 0;
 
   [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
-  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G1_pursued=0 & G4_failed >= 2 -> true;
-  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G1_pursued=0 & G4_achieved_maintain=false -> (G4_failed'=min(10, G4_failed+1));
+  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_failed >= 2 -> true;
+  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G4_achieved_maintain=false -> (G4_failed'=min(10, G4_failed+1));
 
   [achieved_G1] G1_pursued=1 & (G3_achieved=1 | G4_achieved_maintain=true) -> (G1_pursued'=0) & (G1_achieved'=1);
   
@@ -193,11 +167,11 @@ formula G10_achievable = T4_achievable;
 module G11
   G11_pursued : [0..1] init 0;
   G11_achieved : [0..1] init 0;
-  G11_chosen : [0..1] init 0;
+  G11_chosen : [0..2] init 0;
 
   [pursue_G11] G11_pursued=0 & G11_achieved=0 -> (G11_pursued'=1);
-  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0);
-  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1);
+  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=2 -> (G11_chosen'=1);
+  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=2);
 
   [achieved_G11] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1) -> (G11_pursued'=0) & (G11_achieved'=1);
   
@@ -310,11 +284,11 @@ formula G18_achievable = T9_achievable;
 module G19
   G19_pursued : [0..1] init 0;
   G19_achieved : [0..1] init 0;
-  G19_chosen : [0..1] init 0;
+  G19_chosen : [0..2] init 0;
 
   [pursue_G19] G19_pursued=0 & G19_achieved=0 & inEmergency -> (G19_pursued'=1);
-  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0);
-  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1);
+  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=2 -> (G19_chosen'=1);
+  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=2);
 
   [achieved_G19] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1) -> (G19_pursued'=0) & (G19_achieved'=1);
   
@@ -468,8 +442,8 @@ module System
   highReliability: bool init false;
   sensorAvailable: bool init true;
   R0: bool init true;
-  R1: [0..100] init 50;
-  R2: [0..100] init 50;
+  R1: [0..5] init 3;
+  R2: [0..5] init 4;
   R3: bool init true;
   R4: [1..4] init 1;
   R5: [0..10] init 0;

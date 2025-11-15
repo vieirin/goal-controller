@@ -1,9 +1,11 @@
 import fs from 'fs';
+import path from 'path';
 import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
 
 const createLoggerFile = (modelFileName: string) => {
   const logFilePath = `logs/${modelFileName}.log`;
-  fs.mkdirSync('logs', { recursive: true });
+  const logDir = path.dirname(logFilePath);
+  fs.mkdirSync(logDir, { recursive: true });
   return fs.createWriteStream(logFilePath, { flags: 'w' });
 };
 
