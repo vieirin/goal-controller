@@ -93,7 +93,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
     .map(
       (
         [child, { left, right }],
-        index
+        index,
       ): [GoalNode, { left: string; right: string }] => {
         // second map, responsible for writing the second column of the pursue lines
         // defines how a goal should be pursued based on the execution detail
@@ -115,7 +115,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
             // skip itself
             logger.info(
               '[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step',
-              2
+              2,
             );
             return [child, { left, right }];
           }
@@ -126,33 +126,33 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               case 'sequence': {
                 logger.error(
                   child.id,
-                  'sequence execution detail detected in or goal'
+                  'sequence execution detail detected in or goal',
                 );
                 throw new Error(
-                  'OR relation to children with sequence execution detail is not supported'
+                  'OR relation to children with sequence execution detail is not supported',
                 );
               }
               case 'choice': {
                 const children = childrenIncludingTasks({ node: goal }).map(
-                  (child) => child.id
+                  (child) => child.id,
                 );
                 if (!children) {
                   logger.error(
                     child.id,
-                    'choice execution detail detected without children'
+                    'choice execution detail detected without children',
                   );
                   throw new Error(
-                    'OR relation to children with choice without children is not supported'
+                    'OR relation to children with choice without children is not supported',
                   );
                 }
                 logger.trace(
                   child.id,
-                  'choice execution detail detected with children'
+                  'choice execution detail detected with children',
                 );
                 const pursueCondition = pursueChoiceGoal(
                   goal,
                   children,
-                  child.id
+                  child.id,
                 );
 
                 const _right =
@@ -169,12 +169,12 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 logger.trace(
                   child.id,
                   'degradation execution detail detected',
-                  2
+                  2,
                 );
                 const pursueCondition = pursueDegradationGoal(
                   goal,
                   goal.executionDetail.degradationList,
-                  child.id
+                  child.id,
                 );
                 const updatedLeft = pursueCondition
                   ? `${left} & ${pursueCondition}`
@@ -185,7 +185,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 logger.trace(
                   child.id,
                   'alternative execution detail detected',
-                  2
+                  2,
                 );
                 const pursueCondition = pursueAlternativeGoal(goal, child.id);
                 return [child, { left: left + ` & ${pursueCondition}`, right }];
@@ -193,7 +193,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               default:
                 logger.info(
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
-                  2
+                  2,
                 );
                 return [child, { left, right }];
             }
@@ -209,7 +209,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   goal,
                   goal.executionDetail.sequence,
                   child.id,
-                  childrenIncludingTasks({ node: goal })
+                  childrenIncludingTasks({ node: goal }),
                 );
                 return [
                   child,
@@ -223,23 +223,23 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 logger.trace(
                   child.id,
                   'alternative execution detail detected',
-                  3
+                  3,
                 );
                 throw new Error(
-                  'AND relation to children with alternative execution detail is not supported'
+                  'AND relation to children with alternative execution detail is not supported',
                 );
               }
               case 'choice': {
                 logger.trace(child.id, 'choice execution detail detected', 2);
                 throw new Error(
-                  'AND relation to children with choice execution detail is not supported'
+                  'AND relation to children with choice execution detail is not supported',
                 );
               }
               case 'interleaved': {
                 logger.trace(
                   child.id,
                   'interleaved execution detail detected',
-                  2
+                  2,
                 );
                 pursueLogger.executionDetail.interleaved();
                 // interleaved goals fall under the default case
@@ -248,7 +248,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
               default:
                 logger.info(
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
-                  2
+                  2,
                 );
                 // interleaved goals fall under the default case
                 return [child, { left, right }];
@@ -257,7 +257,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
           logger.info(
             `[EXECUTION DETAIL: ERROR] ${child.id} is not an OR or AND goal`,
-            2
+            2,
           );
           return [child, { left, right }];
         };
@@ -267,11 +267,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         pursueLogger.stepStatement(
           2,
           executionDetail[1].left,
-          executionDetail[1].right
+          executionDetail[1].right,
         );
 
         return executionDetail;
-      }
+      },
     )
     .map(([child, statement]): [GoalNode, { left: string; right: string }] => {
       // third map, responsible for writing the third column of the pursue lines
@@ -327,7 +327,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       const updateFailedCounterStatement = child.properties.maxRetries
         ? `(${failed(child.id)}'=min(${child.properties.maxRetries}, ${failed(
-            child.id
+            child.id,
           )}+1))`
         : '';
 
