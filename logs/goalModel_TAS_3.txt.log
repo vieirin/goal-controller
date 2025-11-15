@@ -610,7 +610,7 @@
 	[TRACE]: [G11] Emits module: G11
 	[VARIABLE DEFINITION] G11_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G11_achieved; initial value: 0; upper bound: 1; type: int
-	[VARIABLE DEFINITION] G11_chosen; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G11_chosen; initial value: 0; upper bound: 2; type: int
 	[PURSUE GENERATION] G11 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G11] G11_pursued=0 & G11_achieved=0
 		[UPDATE] (G11_pursued'=1)
@@ -634,8 +634,8 @@
 		[EXECUTION DETAIL: CHOICE]
 			[CURRENT GOAL] G14
 			[OTHER GOALS] G15
-			[GUARD STATEMENT] G11_chosen!=1
-		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0)
+			[GUARD STATEMENT] G11_chosen!=2
+		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=2 -> (G11_chosen'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G15 - STEP 2
 		[TRACE] G15: or goal detected
@@ -643,8 +643,8 @@
 		[EXECUTION DETAIL: CHOICE]
 			[CURRENT GOAL] G15
 			[OTHER GOALS] G14
-			[GUARD STATEMENT] G11_chosen!=0
-		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1)
+			[GUARD STATEMENT] G11_chosen!=1
+		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=2)
 	[END OF STEP 2]
 		[TRACE] G11: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G11 has no activation context
@@ -652,11 +652,11 @@
 	[END OF STEP 3]
 		[TRACE] G14: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G14 has no activation context
-		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0)
+		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=2 -> (G11_chosen'=1)
 	[END OF STEP 3]
 		[TRACE] G15: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G15 has no activation context
-		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1)
+		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=2)
 	[END OF STEP 3]
 	[ACHIEVE] Goal G11 achieved label
 		[CONDITION] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1)
@@ -1027,7 +1027,7 @@
 	[TRACE]: [G19] Emits module: G19
 	[VARIABLE DEFINITION] G19_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G19_achieved; initial value: 0; upper bound: 1; type: int
-	[VARIABLE DEFINITION] G19_chosen; initial value: 0; upper bound: 1; type: int
+	[VARIABLE DEFINITION] G19_chosen; initial value: 0; upper bound: 2; type: int
 	[PURSUE GENERATION] G19 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G19] G19_pursued=0 & G19_achieved=0
 		[UPDATE] (G19_pursued'=1)
@@ -1051,8 +1051,8 @@
 		[EXECUTION DETAIL: CHOICE]
 			[CURRENT GOAL] G20
 			[OTHER GOALS] G21
-			[GUARD STATEMENT] G19_chosen!=1
-		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0)
+			[GUARD STATEMENT] G19_chosen!=2
+		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=2 -> (G19_chosen'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G21 - STEP 2
 		[TRACE] G21: or goal detected
@@ -1060,8 +1060,8 @@
 		[EXECUTION DETAIL: CHOICE]
 			[CURRENT GOAL] G21
 			[OTHER GOALS] G20
-			[GUARD STATEMENT] G19_chosen!=0
-		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1)
+			[GUARD STATEMENT] G19_chosen!=1
+		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=2)
 	[END OF STEP 2]
 		[TRACE] G19: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
@@ -1069,11 +1069,11 @@
 	[END OF STEP 3]
 		[TRACE] G20: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G20 has no activation context
-		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0)
+		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=2 -> (G19_chosen'=1)
 	[END OF STEP 3]
 		[TRACE] G21: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G21 has no activation context
-		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1)
+		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=2)
 	[END OF STEP 3]
 	[ACHIEVE] Goal G19 achieved label
 		[CONDITION] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1)

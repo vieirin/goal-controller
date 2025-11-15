@@ -19,18 +19,15 @@ export const variablesDefinition = (goal: GoalNode) => {
     });
     return `${variable} : [0..${upperBound}] init 0;`;
   };
-  const children = utils.childrenIncludingTasks({ node: goal });
-  const pursuedVariableStatement = defineVariable(
-    pursuedVariable(goal.id),
-    children.length,
-  );
+  const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
   const achievedVariableStatement = !goal.execCondition?.maintain
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
+  const children = utils.childrenIncludingTasks({ node: goal });
   const chosenVariableStatement =
     goal.executionDetail?.type === 'choice'
-      ? defineVariable(chosenVariable(goal.id), 1)
+      ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 
   const childrenWithMaxRetries = utils.childrenWithMaxRetries({ node: goal });

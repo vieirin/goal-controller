@@ -157,7 +157,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
                 const _right =
                   index > 0
-                    ? parenthesis(`${chosenVariable(goal.id)}'=${index - 1}`)
+                    ? parenthesis(`${chosenVariable(goal.id)}'=${index}`)
                     : right;
 
                 return [
