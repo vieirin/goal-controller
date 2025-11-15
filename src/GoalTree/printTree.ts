@@ -1,4 +1,4 @@
-import { GoalNode } from './types';
+import type { GoalNode } from './types';
 
 export const printTree = (tree: GoalNode[]) => {
   let level = 1;

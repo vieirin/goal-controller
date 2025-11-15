@@ -27,3 +27,12 @@ cli: grammarRT grammarAssertion
 exec:
 	npx ts-node src/index.ts ./examples/edgeModel.txt 
 
+generate: grammarRT grammarAssertion
+	@if [ -z "$(FILE)" ]; then \
+		echo "Error: FILE variable is required. Usage: make generate FILE=examples/goalModel_TAS_3.txt"; \
+		exit 1; \
+	fi
+	@echo "Generating model from $(FILE)..."
+	npx ts-node src/index.ts "$(FILE)"
+	@echo "✅ Model generated successfully!"
+

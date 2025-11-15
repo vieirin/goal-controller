@@ -1,19 +1,19 @@
 import { getAssertionVariables } from '../parsers/getAssertionVariables';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import { isAlternative } from './nodeUtils';
-import {
+import type {
   Actor,
+  CustomProperties,
+  ExecCondition,
   GoalNode,
   GoalNodeWithParent,
+  GoalTree,
   Link,
   Model,
   Node,
   NodeType,
   Relation,
-  type CustomProperties,
-  type ExecCondition,
-  type GoalTree,
-  type Resource,
+  Resource,
 } from './types';
 import { allByType } from './utils';
 
@@ -78,8 +78,8 @@ const getMaintainCondition = (
       // TODO: lock this as an error in the future
       console.warn(
         `[INVALID MODEL]: Maintain condition for ${nodeType} [${goalName}] must have maintain and assertion: got maintain:${
-          customProperties.maintain || `'empty condition'`
-        } and assertion:${customProperties.assertion || `'empty condition'`}`
+          customProperties.maintain || "'empty condition'"
+        } and assertion:${customProperties.assertion || "'empty condition'"}`
       );
     }
 

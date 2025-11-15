@@ -1,4 +1,4 @@
-import { GoalTree } from '../GoalTree/types';
+import type { GoalTree } from '../GoalTree/types';
 import { achieved } from './common';
 
 type Reward = { goalId: string } & ({ utility: number } | { cost: number });

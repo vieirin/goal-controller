@@ -12,6 +12,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
   const write = (message: string) => {
     logFile.write(message);
     if (logToConsole) {
+      // eslint-disable-next-line no-console
       console.log(message);
     }
   };
@@ -23,7 +24,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       );
     },
     initGoal: (goal: GoalNode) => {
-      write(`[INIT GOAL] ${goal.id}: ${goal.name}\n`);
+      write(`[INIT GOAL] ${goal.id}: ${goal.name ?? 'none'}\n`);
       write(
         `\tChildren: ${
           goal.children?.length && goal.children.length > 0
@@ -39,12 +40,12 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           goal.execCondition?.maintain?.sentence ? 'maintain' : 'achieve'
         }\n`
       );
-      write(`\tRelation to children: ${goal.relationToChildren}\n`);
+      write(`\tRelation to children: ${goal.relationToChildren ?? 'none'}\n`);
       write(`\tExecution detail: ${goal.executionDetail?.type ?? 'none'}\n`);
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
     initTask: (task: GoalNode) => {
-      write(`[INIT TASK] ${task.id}: ${task.name}\n`);
+      write(`[INIT TASK] ${task.id}: ${task.name ?? 'none'}\n`);
       write(
         `\tResources: ${
           task.resources?.length && task.resources.length > 0
@@ -54,7 +55,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       );
     },
     initSystem: () => {
-      write(`[INIT SYSTEM MODULE]\n`);
+      write('[INIT SYSTEM MODULE]\n');
     },
     formulaDefinition: (
       goalId: string,
@@ -110,7 +111,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
           otherGoals: string[],
           guardStatement: string
         ) => {
-          write(`\t\t[EXECUTION DETAIL: CHOICE]\n`);
+          write('\t\t[EXECUTION DETAIL: CHOICE]\n');
           write(`\t\t\t[CURRENT GOAL] ${currentGoal}\n`);
           write(`\t\t\t[OTHER GOALS] ${otherGoals.join(', ')}\n`);
           write(`\t\t\t[GUARD STATEMENT] ${guardStatement}\n`);
@@ -171,7 +172,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         },
         interleaved: () => {
           write(
-            `\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n`
+            '\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n'
           );
         },
         activationContext: (sentence: string) => {
@@ -200,7 +201,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       write(`\t\t[CONDITION] ${condition}\n`);
       write(`\t\t[UPDATE] ${update}\n`);
       write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
-      write(`\t[END OF ACHIEVE]\n`);
+      write('\t[END OF ACHIEVE]\n');
     },
     skip: (
       goalId: string,
@@ -212,7 +213,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       write(`\t\t[CONDITION] ${leftStatement}\n`);
       write(`\t\t[UPDATE] ${updateStatement}\n`);
       write(`\t\tPRISM statement: ${prismLabelStatement}\n`);
-      write(`\t[END OF SKIP]\n`);
+      write('\t[END OF SKIP]\n');
     },
     variableDefinition: ({
       variable,

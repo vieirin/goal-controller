@@ -1,4 +1,4 @@
-import { GoalNode, GoalTree } from './types';
+import type { GoalNode, GoalTree } from './types';
 import { allGoalsMap } from './utils';
 
 type GoalId = string;

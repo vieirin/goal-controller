@@ -1,6 +1,6 @@
 import { resolveDependency } from '../GoalTree/dependencyResolver';
-import { GoalTree } from '../GoalTree/types';
-import { GrouppedGoals } from './common';
+import type { GoalTree } from '../GoalTree/types';
+import type { GrouppedGoals } from './common';
 
 export const conditionalTree = ({
   grouppedGoals,

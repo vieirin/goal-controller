@@ -1,8 +1,8 @@
-import {
+import type {
   ConditionDependency,
   Dependency,
 } from '../../GoalTree/dependencyResolver';
-import { Relation } from '../../GoalTree/types';
+import type { Relation } from '../../GoalTree/types';
 import {
   achieved,
   formulaForGoal,

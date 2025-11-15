@@ -1,5 +1,5 @@
 import { groupBy } from 'lodash';
-import { GrouppedGoals } from './common';
+import type { GrouppedGoals } from './common';
 
 export const goalMgmtVariables = ({
   grouppedGoals,

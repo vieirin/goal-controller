@@ -1,4 +1,5 @@
-import { GoalNode } from '../../../../../GoalTree/types';
+import type { GoalNode } from '../../../../../GoalTree/types';
+import { childrenIncludingTasks } from '../../../../../GoalTree/utils';
 import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
@@ -36,7 +37,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const logger = getLogger();
   const pursueLogger = logger.pursue;
 
-  const goalsToPursue = [goal, ...(goal.children || []), ...(goal.tasks || [])];
+  const goalsToPursue = [goal, ...childrenIncludingTasks({ node: goal })];
   const isItself = (child: GoalNode) => child.id === goal.id;
   const pursueLines = goalsToPursue
 
@@ -176,7 +177,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   goal.executionDetail.degradationList,
                   child.id
                 );
-                return [child, { left: left + ` & ${pursueCondition}`, right }];
+                const updatedLeft = pursueCondition
+                  ? `${left} & ${pursueCondition}`
+                  : left;
+                return [child, { left: updatedLeft, right }];
               }
               case 'alternative': {
                 logger.trace(

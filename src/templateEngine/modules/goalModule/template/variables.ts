@@ -19,8 +19,11 @@ export const variablesDefinition = (goal: GoalNode) => {
     });
     return `${variable} : [0..${upperBound}] init 0;`;
   };
-
-  const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
+  const children = utils.childrenIncludingTasks({ node: goal });
+  const pursuedVariableStatement = defineVariable(
+    pursuedVariable(goal.id),
+    children.length
+  );
   const achievedVariableStatement = !goal.execCondition?.maintain
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;

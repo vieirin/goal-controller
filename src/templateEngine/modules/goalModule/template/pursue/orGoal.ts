@@ -1,8 +1,9 @@
-import { GoalNode } from '../../../../../GoalTree/types';
+import type { GoalNode } from '../../../../../GoalTree/types';
+import { childrenIncludingTasks } from '../../../../../GoalTree/utils';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
-import { hasBeenPursued, hasFailedAtLeastNTimes } from './common';
+import { hasFailedAtLeastNTimes } from './common';
 
 /*
 G1: Goal[T1|T2]
@@ -38,7 +39,7 @@ export const pursueChoiceGoal = (
     const notChosen = otherGoals
       .map((goalId) => {
         const originalIndex = alternative.indexOf(goalId);
-        return `${chosenVariable(goal.id)}!=${originalIndex}`;
+        return `${chosenVariable(goal.id)}!=${originalIndex + 1}`;
       })
       .join(separator('and'));
 
@@ -65,9 +66,10 @@ export const pursueDegradationGoal = (
       (goalId) => goalId !== currentChildId
     );
     degradationLogger.init(currentChildId, degradationList);
-    return otherGoals
+    const result = otherGoals
       .map((goalId) => {
-        const defaultCondition = hasBeenPursued(goal, { condition: false });
+        // For degradation, we only need to check retry conditions (failures of earlier goals)
+        // We don't need to check if the parent goal has been pursued (that's already in the base guard)
         const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
@@ -76,11 +78,11 @@ export const pursueDegradationGoal = (
           degradationLogger.retry(currentChildId, goalId, maybeRetry);
         }
 
-        return [defaultCondition, retryCondition]
-          .filter(Boolean)
-          .join(separator('and'));
+        return retryCondition || '';
       })
+      .filter(Boolean)
       .join(separator('and'));
+    return result;
   }
 
   return '';
@@ -91,7 +93,7 @@ export const pursueAlternativeGoal = (
   goal: GoalNode,
   currentChildId: string
 ): string => {
-  const children = goal.children?.length ? goal.children : goal.tasks ?? [];
+  const children = childrenIncludingTasks({ node: goal });
   const otherGoals = children.filter((child) => child.id !== currentChildId);
   const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
 

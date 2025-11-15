@@ -1,4 +1,5 @@
-import { GoalNode, Relation } from '../../../../GoalTree/types';
+import type { GoalNode, Relation } from '../../../../GoalTree/types';
+import { childrenIncludingTasks } from '../../../../GoalTree/utils';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
@@ -13,7 +14,7 @@ const isValidSeparator = (
 
 export const achieveCondition = (goal: GoalNode) => {
   if (isValidSeparator(goal.relationToChildren)) {
-    const children = [...(goal.children || []), ...(goal.tasks || [])];
+    const children = childrenIncludingTasks({ node: goal });
     if (children.length) {
       return `(${children
         .map((child) =>

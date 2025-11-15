@@ -1,4 +1,4 @@
-import { GoalNode, GoalTree } from '../GoalTree/types';
+import type { GoalNode, GoalTree } from '../GoalTree/types';
 import { allGoalsMap, goalRootId } from '../GoalTree/utils';
 import {
   achieved,

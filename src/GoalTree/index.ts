@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { Model } from './types';
+import type { Model } from './types';
 
 const validateModel = ({ model }: { model: Model }) => {
   const root = model.actors

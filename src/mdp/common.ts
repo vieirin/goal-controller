@@ -1,5 +1,5 @@
 import { groupBy } from 'lodash';
-import { GenericTree, Relation } from '../GoalTree/types';
+import type { GenericTree, Relation } from '../GoalTree/types';
 import { allByType, goalRootId, leafGoals } from '../GoalTree/utils';
 
 export type GrouppedGoals = ReturnType<typeof leavesGrouppedGoals>;

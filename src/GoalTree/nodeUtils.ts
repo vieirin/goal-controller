@@ -1,4 +1,4 @@
-import { Node, type GenericTree, type Resource } from './types';
+import type { Node, GenericTree, Resource } from './types';
 
 const isAlternative = (goal: Node) => {
   const { alt } = goal.customProperties;

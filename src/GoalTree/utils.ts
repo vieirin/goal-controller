@@ -1,4 +1,4 @@
-import { GenericGoal, GenericTree, GoalNode, Type } from './types';
+import type { GenericGoal, GenericTree, GoalNode, Type } from './types';
 
 export const allByType = <T extends GenericTree>({
   gm,
@@ -116,4 +116,12 @@ export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
 
 export function dumpTreeToJSON({ gm }: { gm: GenericTree }) {
   return JSON.stringify(gm, null, 2);
+}
+
+export function childrenIncludingTasks<T extends GenericGoal>({
+  node,
+}: {
+  node: T;
+}): T[] {
+  return [...(node.children || []), ...(node.tasks || [])] as T[];
 }

@@ -1,12 +1,12 @@
-import { ConditionDependency } from '../GoalTree/dependencyResolver';
-import { GoalTree } from '../GoalTree/types';
+import type { ConditionDependency } from '../GoalTree/dependencyResolver';
+import type { GoalTree } from '../GoalTree/types';
 import { goalRootId } from '../GoalTree/utils';
 import {
   achievable,
   achieved,
   AND,
   equals,
-  GrouppedGoals,
+  type GrouppedGoals,
   not,
   OR,
   parenthesis,
@@ -128,7 +128,7 @@ const update = ({
 }) =>
   `1:${[
     parenthesis(equals(`${pursued(rootGoal)}'`, goalValue)),
-    parenthesis(equals(`n'`, n + 1)),
+    parenthesis(equals('n\'', n + 1)),
   ].join(separator('and').trim())}`;
 
 const goalSentence = ({

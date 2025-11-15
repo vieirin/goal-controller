@@ -2,9 +2,9 @@ import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
 import AssertionRegex from '../antlr/AssertionRegexLexer';
 import AssertionRegexListener from '../antlr/AssertionRegexListener';
 import AssertionRegexParser, {
-  AssignmentContext,
-  IdentifierContext,
-  IntComparisonContext,
+  type AssignmentContext,
+  type IdentifierContext,
+  type IntComparisonContext,
 } from '../antlr/AssertionRegexParser';
 
 export const getAssertionVariables = ({

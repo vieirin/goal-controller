@@ -1,4 +1,4 @@
-import { GoalNode } from '../../../../../GoalTree/types';
+import type { GoalNode } from '../../../../../GoalTree/types';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { hasBeenAchieved } from './common';

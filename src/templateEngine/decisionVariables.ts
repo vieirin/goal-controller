@@ -1,4 +1,4 @@
-import { GoalNode, GoalTree } from '../GoalTree/types';
+import type { GoalNode, GoalTree } from '../GoalTree/types';
 import { allByType, cartesianProduct } from '../GoalTree/utils';
 import { getLogger } from '../logger/logger';
 
@@ -30,6 +30,9 @@ export const decisionVariableName = (
 };
 
 export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
+  if (!process.env.EXPERIMENTAL_DECISION_VARIABLES) {
+    return '';
+  }
   const logger = getLogger();
   const decisionVariables: string[] = [];
   const allGoals = allByType({ gm, type: 'goal' });
