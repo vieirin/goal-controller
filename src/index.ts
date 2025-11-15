@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { writeFile } from 'fs';
 import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
@@ -15,7 +16,8 @@ writeFile(
   edgeDTMCTemplate({ gm: tree, fileName: process.argv[2] ?? '' }),
   function (err) {
     if (err) {
-      return console.log(err);
+      console.log(err);
+      return;
     }
     console.log('The file was saved!');
   },

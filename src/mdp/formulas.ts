@@ -8,10 +8,10 @@ import {
   separator,
 } from './common';
 
-type NodeOrChildProps = {
+interface NodeOrChildProps {
   node: GoalNode | undefined;
   appendAchieve?: boolean;
-};
+}
 const alternativeChildrenFormula = ({
   node,
   appendAchieve = true,
@@ -50,7 +50,9 @@ const nonAlternativeChildrenFormula = ({
   };
 };
 
-type TreeOrChildrenProps = { gm: GoalTree };
+interface TreeOrChildrenProps {
+  gm: GoalTree;
+}
 const goalsWithFormula = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
   return (
     gm?.map((node) => {
@@ -92,10 +94,12 @@ const treeFormula = ({
   });
 };
 
-type TemplateProps = { gm: GoalTree };
+interface TemplateProps {
+  gm: GoalTree;
+}
 const goalDependency = ({
   gm,
-}: TreeOrChildrenProps): { id: string; dependant: string }[] => {
+}: TreeOrChildrenProps): Array<{ id: string; dependant: string }> => {
   return (
     gm?.map((node) => {
       const dependency = node.properties.dependsOn;
@@ -121,7 +125,7 @@ const goalsWithDependency = ({ gm }: TreeOrChildrenProps): GoalNode[] => {
     .map((dep) => allGoals.get(dep.id))
     .filter((v): v is GoalNode => Boolean(v));
 
-  if (matchedGoals.length != dependency.length) {
+  if (matchedGoals.length !== dependency.length) {
     throw new Error(
       `Missing goals on the model, requested dependencies were ${dependency
         .map((d) => `(${d.dependant}: depends on ${d.id})`)

@@ -38,9 +38,7 @@ interface Link {
   target: string;
 }
 
-interface Display {
-  [K: string]: DisplayItem;
-}
+type Display = Record<string, DisplayItem>;
 
 interface DisplayItem {
   backgroundColor: string;
@@ -56,11 +54,11 @@ interface Diagram extends CustomProperties {
 interface ExecCondition {
   maintain?: {
     sentence: string;
-    variables: { name: string; value: boolean | null }[];
+    variables: Array<{ name: string; value: boolean | null }>;
   };
   assertion: {
     sentence: string;
-    variables: { name: string; value: boolean | null }[];
+    variables: Array<{ name: string; value: boolean | null }>;
   };
 }
 
@@ -99,10 +97,10 @@ interface CustomProperties {
 
 type Relation = 'or' | 'and' | 'neededBy' | 'none';
 type Type = 'goal' | 'task' | 'resource';
-type Decision = {
-  decisionVars: { variable: string; space: number }[];
+interface Decision {
+  decisionVars: Array<{ variable: string; space: number }>;
   hasDecision: boolean;
-};
+}
 type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }

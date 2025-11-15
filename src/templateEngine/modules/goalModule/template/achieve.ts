@@ -39,7 +39,7 @@ export const achieveStatement = (goal: GoalNode) => {
     .join(separator('and'));
 
   const achievedUpdate = `${achieved(goal.id)}'=1`;
-  const shouldHaveUpdateAchieved = goal.execCondition?.maintain ? false : true;
+  const shouldHaveUpdateAchieved = !goal.execCondition?.maintain;
   const updateStatement = `(${pursued(goal.id)}'=0)${
     shouldHaveUpdateAchieved ? ` & (${achievedUpdate})` : ''
   };`;

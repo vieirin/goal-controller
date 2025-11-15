@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { GoalNode } from './types';
 
 export const printTree = (tree: GoalNode[]) => {

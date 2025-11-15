@@ -35,6 +35,7 @@ export const systemModule = ({
       defaultVariableValues,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error reading variables file:', error);
     throw new Error('Error reading variables file');
   }

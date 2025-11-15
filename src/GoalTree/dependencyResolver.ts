@@ -2,11 +2,11 @@ import type { GoalNode, GoalTree } from './types';
 import { allGoalsMap } from './utils';
 
 type GoalId = string;
-export type Dependency = {
+export interface Dependency {
   goal: string;
   isFormula?: boolean;
   depends: Array<Dependency | null>;
-};
+}
 const resolve = ({
   allMap,
   target,

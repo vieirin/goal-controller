@@ -56,7 +56,7 @@ const moduleTemplates = ({ gm }: { gm: GoalTree }) => {
   const grouppedGoals = leavesGrouppedGoals({ gm });
   return `${goalControllerTemplate({ gm, grouppedGoals })}
 
-${dependencyFormulaes({ gm })}
+${dependencyFormulaes({ gm }).join('\n')}
 
 ${changeMgmtTemplate({ grouppedGoals })}
 `;

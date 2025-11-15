@@ -30,7 +30,7 @@ const controllerVariables = ({
     if (variants.every((v) => !!v.variantOf)) {
       return { variable: goalGroup, variants: variants.length };
     }
-    if (variants.length == 1) {
+    if (variants.length === 1) {
       return { variable: goalGroup };
     }
     throw new Error(
