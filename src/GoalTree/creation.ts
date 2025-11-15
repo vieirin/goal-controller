@@ -15,6 +15,7 @@ import {
   type GoalTree,
   type Resource,
 } from './types';
+import { allByType } from './utils';
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -397,6 +398,43 @@ const addParentToChildren = (
   return bidirectionalTree;
 };
 
+const resolveDependencies = (tree: GoalTree): GoalTree => {
+  // Collect all nodes (goals, tasks, resources) into a map for dependency resolution
+  const allGoals = allByType({ gm: tree, type: 'goal' });
+  const allTasks = allByType({ gm: tree, type: 'task' });
+  const allResources = allByType({ gm: tree, type: 'resource' });
+
+  const nodeMap = new Map<string, GoalNode>();
+  [...allGoals, ...allTasks, ...allResources].forEach((node) => {
+    nodeMap.set(node.id, node);
+  });
+
+  const resolveNodeDependencies = (node: GoalNode): GoalNode => {
+    // Resolve dependencies for this node
+    const resolvedDependencies = node.properties.dependsOn.map((depId) => {
+      const depNode = nodeMap.get(depId);
+      if (!depNode) {
+        throw new Error(
+          `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`
+        );
+      }
+      return depNode;
+    });
+
+    // Recursively resolve dependencies for children (goals only)
+    const resolvedChildren = node.children?.map(resolveNodeDependencies);
+    // Tasks and resources don't need to be resolved as they don't have dependsOn
+
+    return {
+      ...node,
+      dependsOn: resolvedDependencies,
+      ...(resolvedChildren && { children: resolvedChildren }),
+    };
+  };
+
+  return tree.map(resolveNodeDependencies);
+};
+
 export const convertToTree = ({ model }: { model: Model }): GoalTree => {
   const unidirectionalTree = model.actors.map((actor) => {
     // find root node
@@ -414,17 +452,6 @@ export const convertToTree = ({ model }: { model: Model }): GoalTree => {
       iStarLinks: [...model.links],
     });
   });
-
-  // const allGoals = allByType({ gm: unidirectionalTree, type: 'goal' });
-  // const searchParentsForGoal = (goalId: string) => {
-  //   return allGoals.filter(
-  //     (goal) => goal.children?.map(({ id }) => id).includes(goalId)
-  //   );
-  // };
-  // // traverse the tree adding parents to it
-  // const bidirectionalTree: GoalTreeWithParent = unidirectionalTree.map((goal) =>
-  //   addParentToChildren(goal, searchParentsForGoal)
-  // );
-
-  return unidirectionalTree;
+  const treeWithDependencies = resolveDependencies(unidirectionalTree);
+  return treeWithDependencies;
 };

@@ -63,11 +63,11 @@ formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achi
 module G2
   G2_pursued : [0..1] init 0;
 
-  [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved=1) & patientTracking -> (G2_pursued'=1);
+  [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & ((G8_achieved_maintain=true & G9_achieved=1)) & patientTracking -> (G2_pursued'=1);
   [pursue_G5] G2_pursued=1 & G2_achieved_maintain=false & G6_pursued=0 -> true;
   [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false & G5_pursued=0 -> true;
 
-  [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+  [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0);
   
   [skip_G2] G2_pursued=1 & G5_pursued=0 & G6_pursued=0 -> (G2_pursued'=0);
 endmodule
@@ -96,7 +96,7 @@ module G4
   [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false -> true;
   [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true;
 
-  [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+  [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0);
   
   [skip_G4] G4_pursued=1 & G8_pursued=0 & G9_pursued=0 -> (G4_pursued'=0);
 endmodule
@@ -153,7 +153,7 @@ module G8
   [pursue_G10] G8_pursued=1 & G8_achieved_maintain=false & G10_achieved=0 -> true;
   [pursue_G11] G8_pursued=1 & G8_achieved_maintain=false & G10_achieved=1 -> true;
 
-  [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0) & (G8_achieved'=1);
+  [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0);
   
   [skip_G8] G8_pursued=1 & G10_pursued=0 & G11_pursued=0 -> (G8_pursued'=0);
 endmodule
@@ -196,8 +196,8 @@ module G11
   G11_chosen : [0..1] init 0;
 
   [pursue_G11] G11_pursued=0 & G11_achieved=0 -> (G11_pursued'=1);
-  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> G11_chosen=0;
-  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> G11_chosen=1;
+  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0);
+  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1);
 
   [achieved_G11] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1) -> (G11_pursued'=0) & (G11_achieved'=1);
   
@@ -210,7 +210,7 @@ module G12
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;
 
-  [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G12_pursued'=1);
+  [pursue_G12] G12_pursued=0 & G12_achieved=0 & ((G13_achieved=1 & G12_achieved=1)) & pharmacyAvailable&atHome -> (G12_pursued'=1);
   [pursue_G16] G12_pursued=1 & G12_achieved=0 & G17_pursued=0 -> true;
   [pursue_G17] G12_pursued=1 & G12_achieved=0 & G16_pursued=0 -> true;
 
@@ -299,7 +299,7 @@ module G18
   [pursue_G18] G18_pursued=0 & G18_achieved_maintain=false & medicationApplied -> (G18_pursued'=1);
   [pursue_T9] G18_pursued=1 & G18_achieved_maintain=false -> true;
 
-  [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0) & (G18_achieved'=1);
+  [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0);
   
   [skip_G18] G18_pursued=1 & T9_pursued=0 -> (G18_pursued'=0);
 endmodule
@@ -313,8 +313,8 @@ module G19
   G19_chosen : [0..1] init 0;
 
   [pursue_G19] G19_pursued=0 & G19_achieved=0 & inEmergency -> (G19_pursued'=1);
-  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> G19_chosen=0;
-  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> G19_chosen=1;
+  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0);
+  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1);
 
   [achieved_G19] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1) -> (G19_pursued'=0) & (G19_achieved'=1);
   
@@ -379,7 +379,6 @@ module ChangeManager
   T4_achieved: [0..1] init 0;
   T5_pursued: [0..1] init 0;
   T5_achieved: [0..1] init 0;
-  T5_failed: [0..8] init 0;
   T6_pursued: [0..1] init 0;
   T6_achieved: [0..1] init 0;
   T7_pursued: [0..1] init 0;
@@ -428,7 +427,7 @@ module ChangeManager
   [pursue_T5] true -> true;
   [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
   [achieved_T5] true -> true;
-  [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1));
+  [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
   
 
   [pursue_T6] true -> true;

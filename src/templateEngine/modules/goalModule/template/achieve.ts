@@ -11,7 +11,7 @@ const isValidSeparator = (
   return ['and', 'or'].includes(relation ?? '');
 };
 
-const achieveCondition = (goal: GoalNode) => {
+export const achieveCondition = (goal: GoalNode) => {
   if (isValidSeparator(goal.relationToChildren)) {
     const children = [...(goal.children || []), ...(goal.tasks || [])];
     if (children.length) {
@@ -37,9 +37,11 @@ export const achieveStatement = (goal: GoalNode) => {
     .filter(Boolean)
     .join(separator('and'));
 
-  const updateStatement = `(${pursued(goal.id)}'=0) & (${achieved(
-    goal.id
-  )}'=1);`;
+  const achievedUpdate = `${achieved(goal.id)}'=1`;
+  const shouldHaveUpdateAchieved = goal.execCondition?.maintain ? false : true;
+  const updateStatement = `(${pursued(goal.id)}'=0)${
+    shouldHaveUpdateAchieved ? ` & (${achievedUpdate})` : ''
+  };`;
 
   const prismLabelStatement = `[achieved_${goal.id}] ${leftStatement} -> ${updateStatement}`;
 

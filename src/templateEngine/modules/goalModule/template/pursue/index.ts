@@ -3,22 +3,24 @@ import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
   failed,
+  parenthesis,
   pursued,
   separator,
 } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
 import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
+import { hasBeenAchieved } from './common';
 import {
   pursueAlternativeGoal,
   pursueChoiceGoal,
   pursueDegradationGoal,
 } from './orGoal';
 
-const goalDependencyStatement = (goal: GoalNode) => {
-  return goal.properties.dependsOn?.length
-    ? ` & (${goal.properties.dependsOn
-        .map((dep) => `${achieved(dep)}=1`)
+export const goalDependencyStatement = (goal: GoalNode) => {
+  return goal.dependsOn?.length
+    ? ` & (${goal.dependsOn
+        .map((dep) => hasBeenAchieved(dep, { condition: true }))
         .join(separator('and'))})`
     : '';
 };
@@ -154,7 +156,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
 
                 const _right =
-                  index > 0 ? `${chosenVariable(goal.id)}=${index - 1}` : right;
+                  index > 0
+                    ? parenthesis(`${chosenVariable(goal.id)}'=${index - 1}`)
+                    : right;
 
                 return [
                   child,

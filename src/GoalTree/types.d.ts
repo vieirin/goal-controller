@@ -123,6 +123,7 @@ type GoalNode = {
   name: string | null;
   children?: GoalNode[];
   variantOf?: string;
+  dependsOn?: GoalNode[];
   properties: {
     utility: string;
     cost: string;

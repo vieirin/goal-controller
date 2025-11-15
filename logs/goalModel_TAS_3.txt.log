@@ -135,7 +135,7 @@
 	[VARIABLE DEFINITION] G2_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G2 - STEP 1
 		[GOAL DEPENDENCY] G2: G4
-		[DEFAULT PURSUE CONDITION] [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved=1)
+		[DEFAULT PURSUE CONDITION] [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & ((G8_achieved_maintain=true & G9_achieved=1))
 		[UPDATE] (G2_pursued'=1)
 	[PURSUE GENERATION] G5 - STEP 1
 		[GOAL DEPENDENCY] G2: G4
@@ -151,7 +151,7 @@
 	[END OF STEP 1]
 	[PURSUE GENERATION] G2 - STEP 2
 		[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step
-		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved=1) -> (G2_pursued'=1)
+		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & ((G8_achieved_maintain=true & G9_achieved=1)) -> (G2_pursued'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G5 - STEP 2
 		[TRACE] G5: or goal detected
@@ -167,7 +167,7 @@
 	[END OF STEP 2]
 		[TRACE] G2: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved=1) & patientTracking -> (G2_pursued'=1)
+		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & ((G8_achieved_maintain=true & G9_achieved=1)) & patientTracking -> (G2_pursued'=1)
 	[END OF STEP 3]
 		[TRACE] G5: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
@@ -179,8 +179,8 @@
 	[END OF STEP 3]
 	[ACHIEVE] Goal G2 achieved label
 		[CONDITION] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1)
-		[UPDATE] (G2_pursued'=0) & (G2_achieved'=1);
-		PRISM statement: [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+		[UPDATE] (G2_pursued'=0);
+		PRISM statement: [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0);
 	[END OF ACHIEVE]
 	[SKIP] Goal G2 skipped label
 		[CONDITION] G2_pursued=1 & G5_pursued=0 & G6_pursued=0
@@ -289,8 +289,8 @@
 	[END OF STEP 3]
 	[ACHIEVE] Goal G4 achieved label
 		[CONDITION] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1)
-		[UPDATE] (G4_pursued'=0) & (G4_achieved'=1);
-		PRISM statement: [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+		[UPDATE] (G4_pursued'=0);
+		PRISM statement: [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0);
 	[END OF ACHIEVE]
 	[SKIP] Goal G4 skipped label
 		[CONDITION] G4_pursued=1 & G8_pursued=0 & G9_pursued=0
@@ -487,8 +487,8 @@
 	[END OF STEP 3]
 	[ACHIEVE] Goal G8 achieved label
 		[CONDITION] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1)
-		[UPDATE] (G8_pursued'=0) & (G8_achieved'=1);
-		PRISM statement: [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0) & (G8_achieved'=1);
+		[UPDATE] (G8_pursued'=0);
+		PRISM statement: [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0);
 	[END OF ACHIEVE]
 	[SKIP] Goal G8 skipped label
 		[CONDITION] G8_pursued=1 & G10_pursued=0 & G11_pursued=0
@@ -637,7 +637,7 @@
 			[CURRENT GOAL] G14
 			[OTHER GOALS] G15
 			[GUARD STATEMENT] G11_chosen!=1
-		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> G11_chosen=0
+		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G15 - STEP 2
 		[TRACE] G15: or goal detected
@@ -646,7 +646,7 @@
 			[CURRENT GOAL] G15
 			[OTHER GOALS] G14
 			[GUARD STATEMENT] G11_chosen!=0
-		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> G11_chosen=1
+		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1)
 	[END OF STEP 2]
 		[TRACE] G11: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G11 has no activation context
@@ -654,11 +654,11 @@
 	[END OF STEP 3]
 		[TRACE] G14: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G14 has no activation context
-		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> G11_chosen=0
+		PRISM statement: [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=0)
 	[END OF STEP 3]
 		[TRACE] G15: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G15 has no activation context
-		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> G11_chosen=1
+		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=0 -> (G11_chosen'=1)
 	[END OF STEP 3]
 	[ACHIEVE] Goal G11 achieved label
 		[CONDITION] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1)
@@ -681,7 +681,7 @@
 	[VARIABLE DEFINITION] G12_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G12 - STEP 1
 		[GOAL DEPENDENCY] G12: G9
-		[DEFAULT PURSUE CONDITION] [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1)
+		[DEFAULT PURSUE CONDITION] [pursue_G12] G12_pursued=0 & G12_achieved=0 & ((G13_achieved=1 & G12_achieved=1))
 		[UPDATE] (G12_pursued'=1)
 	[PURSUE GENERATION] G16 - STEP 1
 		[GOAL DEPENDENCY] G12: G9
@@ -697,7 +697,7 @@
 	[END OF STEP 1]
 	[PURSUE GENERATION] G12 - STEP 2
 		[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step
-		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) -> (G12_pursued'=1)
+		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & ((G13_achieved=1 & G12_achieved=1)) -> (G12_pursued'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G16 - STEP 2
 		[TRACE] G16: or goal detected
@@ -713,7 +713,7 @@
 	[END OF STEP 2]
 		[TRACE] G12: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G12_pursued'=1)
+		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & ((G13_achieved=1 & G12_achieved=1)) & pharmacyAvailable&atHome -> (G12_pursued'=1)
 	[END OF STEP 3]
 		[TRACE] G16: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G16 has no activation context
@@ -1012,8 +1012,8 @@
 	[END OF STEP 3]
 	[ACHIEVE] Goal G18 achieved label
 		[CONDITION] G18_pursued=1 & (T9_achieved=1)
-		[UPDATE] (G18_pursued'=0) & (G18_achieved'=1);
-		PRISM statement: [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0) & (G18_achieved'=1);
+		[UPDATE] (G18_pursued'=0);
+		PRISM statement: [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0);
 	[END OF ACHIEVE]
 	[SKIP] Goal G18 skipped label
 		[CONDITION] G18_pursued=1 & T9_pursued=0
@@ -1054,7 +1054,7 @@
 			[CURRENT GOAL] G20
 			[OTHER GOALS] G21
 			[GUARD STATEMENT] G19_chosen!=1
-		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> G19_chosen=0
+		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G21 - STEP 2
 		[TRACE] G21: or goal detected
@@ -1063,7 +1063,7 @@
 			[CURRENT GOAL] G21
 			[OTHER GOALS] G20
 			[GUARD STATEMENT] G19_chosen!=0
-		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> G19_chosen=1
+		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1)
 	[END OF STEP 2]
 		[TRACE] G19: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
@@ -1071,11 +1071,11 @@
 	[END OF STEP 3]
 		[TRACE] G20: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G20 has no activation context
-		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> G19_chosen=0
+		PRISM statement: [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=0)
 	[END OF STEP 3]
 		[TRACE] G21: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G21 has no activation context
-		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> G19_chosen=1
+		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=0 -> (G19_chosen'=1)
 	[END OF STEP 3]
 	[ACHIEVE] Goal G19 achieved label
 		[CONDITION] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1)
@@ -1294,7 +1294,6 @@
 	Resources: none
 	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T5_achieved; initial value: 0; upper bound: 1; type: int
-	[VARIABLE DEFINITION] T5_failed; initial value: 0; upper bound: 8; type: int
 	[PURSUE] Task T5 skipped label
 		[CONDITION] true
 		[UPDATE] true
@@ -1308,8 +1307,8 @@
 	[FAILED] Task T5 skipped label
 		[CONDITION] T5_pursued=1 & T5_achieved=0
 		[MAX RETRIES] 8
-		[UPDATE] (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1))
-		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0) & (T5_failed'=min(8, T5_failed+1));
+		[UPDATE] (T5_pursued'=0)
+		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
 	[END OF FAILED]
 [INIT TASK] T6: Perform local analysis
 	Resources: none

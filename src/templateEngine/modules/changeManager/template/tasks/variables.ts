@@ -37,6 +37,5 @@ export const taskVariables = (task: GoalNode) => {
   return `
   ${defineVariable(pursuedVariable(task.id))}
   ${defineVariable(achievedVariable(task.id))}
-  ${maxRetriesVariable(task)}
 `.trim();
 };

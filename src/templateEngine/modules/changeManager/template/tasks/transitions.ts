@@ -1,6 +1,6 @@
 import type { GoalNode } from '../../../../../GoalTree/types';
 import { getLogger } from '../../../../../logger/logger';
-import { failed, parenthesis } from '../../../../../mdp/common';
+import { parenthesis } from '../../../../../mdp/common';
 import {
   achievableFormulaVariable,
   achievedTransition,
@@ -48,13 +48,7 @@ const failedTask = (task: GoalNode) => {
     task.id
   )}=0`;
 
-  const updateStatement = `(${pursuedVariable(task.id)}'=0)${
-    task.properties.maxRetries
-      ? ` & (${failed(task.id)}'=min(${task.properties.maxRetries}, ${failed(
-          task.id
-        )}+1))`
-      : ''
-  }`;
+  const updateStatement = `(${pursuedVariable(task.id)}'=0)`;
 
   const prismLabelStatement = `[${failedTransition(
     task.id
