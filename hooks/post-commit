@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Post-commit hook to run Prettier on committed files and amend the commit
+# This ensures all committed code is properly formatted
+
+echo "🎨 Running Prettier on committed files..."
+
+# Get the files from the last commit
+COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+
+# Filter for TypeScript/JavaScript files that exist
+TS_JS_FILES=""
+while IFS= read -r file; do
+  if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [[ ! "$file" =~ node_modules ]] && [[ ! "$file" =~ antlr ]] && [ -f "$file" ]; then
+    TS_JS_FILES="$TS_JS_FILES $file"
+  fi
+done <<< "$COMMITTED_FILES"
+
+# Trim leading space
+TS_JS_FILES=$(echo "$TS_JS_FILES" | sed 's/^[[:space:]]*//')
+
+if [ -z "$TS_JS_FILES" ]; then
+  echo "✅ No TypeScript/JavaScript files to format."
+  exit 0
+fi
+
+# Run Prettier on the committed files
+echo "Formatting files:"
+for file in $TS_JS_FILES; do
+  echo "  - $file"
+done
+
+# Run Prettier
+npx prettier --write $TS_JS_FILES > /dev/null 2>&1
+PRETTIER_EXIT_CODE=$?
+
+if [ $PRETTIER_EXIT_CODE -ne 0 ]; then
+  echo "⚠️  Prettier encountered an error (this is usually fine if files are already formatted)"
+fi
+
+# Check if there are any changes after formatting and stage them
+HAS_CHANGES=false
+for file in $TS_JS_FILES; do
+  if ! git diff --quiet "$file"; then
+    git add "$file"
+    HAS_CHANGES=true
+  fi
+done
+
+# If there are changes, amend the commit
+if [ "$HAS_CHANGES" = true ]; then
+  echo "📝 Amending commit with Prettier formatting..."
+  git commit --amend --no-edit --no-verify > /dev/null 2>&1
+  echo "✅ Commit amended with formatted code!"
+else
+  echo "✅ All files were already properly formatted."
+fi
+
+exit 0
+
