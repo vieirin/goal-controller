@@ -8,11 +8,34 @@ type LoggerStore = {
   goalPursueLines: number;
   goalAchievabilityFormulas: number;
   goalMaintainFormulas: number;
+  goalAchievedLines: number;
+  goalSkipLines: number;
   tasksVariables: number;
   tasksLabels: number;
   tasksAchievabilityConstants: number;
+  tasksTryLines: number;
+  tasksFailedLines: number;
+  tasksAchievedLines: number;
+  tasksSkippedLines: number;
   systemVariables: number;
+  systemResources: number;
+  systemContextVariables: number;
 };
+
+type VariableDefinitionBase = {
+  variable: string;
+  initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION';
+  upperBound?: number | boolean;
+  lowerBound?: number | boolean;
+  type?: 'boolean' | 'int';
+};
+
+type VariableDefinition =
+  | (VariableDefinitionBase & { context: 'goal' | 'task' })
+  | (VariableDefinitionBase & {
+      context: 'system';
+      subContext: 'resource' | 'context';
+    });
 
 export const createStore = (): LoggerStore => {
   // Create a plain object to hold the state
@@ -26,6 +49,14 @@ export const createStore = (): LoggerStore => {
     tasksLabels: 0,
     tasksAchievabilityConstants: 0,
     systemVariables: 0,
+    goalAchievedLines: 0,
+    goalSkipLines: 0,
+    tasksTryLines: 0,
+    tasksFailedLines: 0,
+    tasksAchievedLines: 0,
+    tasksSkippedLines: 0,
+    systemResources: 0,
+    systemContextVariables: 0,
   };
 
   // Create a Proxy that intercepts property access for all LoggerStore properties
@@ -123,10 +154,25 @@ const createLogger = (
         leftStatement: string,
         updateStatement: string,
         prismLabelStatement: string,
-        transition: 'pursue' | 'achieve' | 'failed',
+        transition: 'pursue' | 'achieve' | 'failed' | 'try',
         maxRetries?: number,
       ) => {
         store.tasksLabels++;
+        switch (transition) {
+          case 'try':
+            store.tasksTryLines++;
+            break;
+          case 'failed':
+            store.tasksFailedLines++;
+            break;
+          case 'achieve':
+            store.tasksAchievedLines++;
+            break;
+          case 'pursue':
+            store.tasksSkippedLines++;
+            break;
+        }
+
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
         write(`\t\t[CONDITION] ${leftStatement}\n`);
@@ -247,6 +293,7 @@ const createLogger = (
       update: string,
       prismLabelStatement: string,
     ) => {
+      store.goalAchievedLines++;
       write(`\t[ACHIEVE] Goal ${goalId} achieved label\n`);
       write(`\t\t[CONDITION] ${condition}\n`);
       write(`\t\t[UPDATE] ${update}\n`);
@@ -259,6 +306,7 @@ const createLogger = (
       updateStatement: string,
       prismLabelStatement: string,
     ) => {
+      store.goalSkipLines++;
       write(`\t[SKIP] Goal ${goalId} skipped label\n`);
       write(`\t\t[CONDITION] ${leftStatement}\n`);
       write(`\t\t[UPDATE] ${updateStatement}\n`);
@@ -272,20 +320,19 @@ const createLogger = (
       lowerBound,
       type = 'int',
       context = 'goal',
-    }: {
-      variable: string;
-      initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION';
-      upperBound?: number | boolean;
-      lowerBound?: number | boolean;
-      type?: 'boolean' | 'int';
-      context?: 'goal' | 'task' | 'system';
-    }) => {
+      ...props
+    }: VariableDefinition) => {
       if (context === 'goal') {
         store.goalVariables++;
       } else if (context === 'task') {
         store.tasksVariables++;
       } else if (context === 'system') {
         store.systemVariables++;
+        if ('subContext' in props && props.subContext === 'resource') {
+          store.systemResources++;
+        } else if ('subContext' in props && props.subContext === 'context') {
+          store.systemContextVariables++;
+        }
       }
 
       if (initialValue === 'MISSING_VARIABLE_DEFINITION') {
@@ -319,6 +366,33 @@ const createLogger = (
     },
     trace: (source: string, message: string, level: number = 0) => {
       write(`${'\t'.repeat(level)}[TRACE] ${source}: ${message}\n`);
+    },
+    close: () => {
+      write('----------------------------------------\n');
+      write(`[LOGGER SUMMARY] ${modelFileName}\n`);
+      write('----------GOAL SUMMARY----------\n');
+      write(`[GOAL MODULES] ${store.goalModules}\n`);
+      write(`[GOAL VARIABLES] ${store.goalVariables}\n`);
+      write(`[GOAL PURSUE LINES] ${store.goalPursueLines}\n`);
+      write(`[GOAL ACHIEVED LINES] ${store.goalAchievedLines}\n`);
+      write(`[GOAL SKIPPED LINES] ${store.goalSkipLines}\n`);
+      write(
+        `[GOAL ACHIEVABILITY FORMULAS] ${store.goalAchievabilityFormulas}\n`,
+      );
+      write(`[GOAL MAINTAIN FORMULAS] ${store.goalMaintainFormulas}\n`);
+      write('----------CHANGE MANAGER SUMMARY----------\n');
+      write(`[TASKS VARIABLES] ${store.tasksVariables}\n`);
+      write(`[TASKS LABELS] ${store.tasksLabels}\n`);
+      write(`[TASKS TRY LINES] ${store.tasksTryLines}\n`);
+      write(`[TASKS FAILED LINES] ${store.tasksFailedLines}\n`);
+      write(`[TASKS ACHIEVED LINES] ${store.tasksAchievedLines}\n`);
+      write(`[TASKS SKIPPED LINES] ${store.tasksSkippedLines}\n`);
+      write(
+        `[TASKS ACHIEVABILITY CONSTANTS] ${store.tasksAchievabilityConstants}\n`,
+      );
+      write('----------SYSTEM SUMMARY----------\n');
+      write(`[SYSTEM VARIABLES] ${store.systemVariables}\n`);
+      write('----------------------------------------\n');
     },
   };
 };

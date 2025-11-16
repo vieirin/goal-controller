@@ -16,6 +16,7 @@ export const variablesDefinition = (goal: GoalNode) => {
       upperBound,
       initialValue: 0,
       type: 'int',
+      context: 'goal',
     });
     return `${variable} : [0..${upperBound}] init 0;`;
   };

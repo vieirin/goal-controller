@@ -11,6 +11,7 @@ const defineVariable = (variable: string) => {
     upperBound,
     initialValue: 0,
     type: 'int',
+    context: 'task',
   });
   return `${variable}: [0..${upperBound}] init 0;`;
 };
@@ -26,6 +27,7 @@ export const maxRetriesVariable = (task: GoalNode) => {
     upperBound: task.properties.maxRetries,
     initialValue: 0,
     type: 'int',
+    context: 'task',
   });
   return `${failed(task.id)}: [0..${task.properties.maxRetries}] init 0;`;
 };

@@ -7,6 +7,7 @@ export const defineVariable = (
   variable: string,
   initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION',
   type: 'boolean' | 'int',
+  context: 'resource' | 'context',
   lowerBound?: number | boolean,
   upperBound?: number | boolean,
 ) => {
@@ -17,6 +18,8 @@ export const defineVariable = (
     type,
     lowerBound,
     upperBound,
+    context: 'system',
+    subContext: context,
   });
   switch (type) {
     case 'boolean':

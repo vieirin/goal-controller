@@ -66,12 +66,16 @@ const failedTask = (task: GoalNode) => {
 };
 
 const tryTask = (task: GoalNode) => {
+  const logger = getLogger();
   const taskAchievabilityVariable = achievableFormulaVariable(task.id);
 
-  return `[${tryTransition(task.id)}] ${hasBeenAchievedAndPursued(task, {
+  const leftStatement = `[${tryTransition(
+    task.id,
+  )}] ${hasBeenAchievedAndPursued(task, {
     achieved: false,
     pursued: true,
-  })} -> ${taskAchievabilityVariable}: ${parenthesis(
+  })}`;
+  const updateStatement = `${taskAchievabilityVariable}: ${parenthesis(
     hasBeenAchieved(task, {
       condition: true,
       update: true,
@@ -79,6 +83,17 @@ const tryTask = (task: GoalNode) => {
   )} + 1-${taskAchievabilityVariable}: ${parenthesis(
     hasBeenPursued(task, { condition: false, update: true }),
   )};`;
+  const tryStatement = `${leftStatement} -> ${updateStatement}`;
+  logger.taskTranstions.transition(
+    task.id,
+    leftStatement,
+    updateStatement,
+    tryStatement,
+    'try',
+    task.properties.maxRetries,
+  );
+
+  return tryStatement;
 };
 
 export const taskTransitions = (task: GoalNode) => {
