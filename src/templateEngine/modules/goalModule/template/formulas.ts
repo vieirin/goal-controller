@@ -18,7 +18,7 @@ export const maintainConditionFormula = (goal: GoalNode) => {
     goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED'
   };`;
 
-  logger.formulaDefinition(
+  logger.maintainFormulaDefinition(
     goal.id,
     achievedMaintain(goal.id),
     goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED',
@@ -29,7 +29,8 @@ export const maintainConditionFormula = (goal: GoalNode) => {
 
 export const achievableGoalFormula = (goal: GoalNode) => {
   const children = childrenIncludingTasks({ node: goal });
-
+  const formulaName = `${achievableFormulaVariable(goal.id)}`;
+  const logger = getLogger();
   if (children.length === 1) {
     const firstChild = children[0];
     if (!firstChild) {
@@ -37,7 +38,7 @@ export const achievableGoalFormula = (goal: GoalNode) => {
         `Expected at least one child for goal ${goal.id} but children array is empty`,
       );
     }
-    return `formula ${goal.id}_achievable = ${achievableFormulaVariable(
+    return `formula ${formulaName} = ${achievableFormulaVariable(
       firstChild.id,
     )};`;
   }
@@ -49,13 +50,28 @@ export const achievableGoalFormula = (goal: GoalNode) => {
 
   switch (goal.relationToChildren) {
     case 'and': {
-      return `formula ${goal.id}_achievable = ${productPart};`;
+      const andFormula = `formula ${formulaName} = ${productPart};`;
+      logger.achievabilityFormulaDefinition(
+        goal.id,
+        formulaName,
+        'AND',
+        productPart,
+        andFormula,
+      );
+      return andFormula;
     }
     case 'or': {
       const sumPart = childrenVariables.join(' + ');
-      return `formula ${goal.id}_achievable = ${sumPart} - ${parenthesis(
-        productPart,
-      )};`;
+      const formulaValue = `${sumPart} - ${parenthesis(productPart)}`;
+      const orFormula = `formula ${formulaName} = ${formulaValue};`;
+      logger.achievabilityFormulaDefinition(
+        goal.id,
+        formulaName,
+        'OR',
+        formulaValue,
+        orFormula,
+      );
+      return orFormula;
     }
     default:
       throw new Error(

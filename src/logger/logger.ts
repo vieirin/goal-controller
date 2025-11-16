@@ -135,7 +135,7 @@ const createLogger = (
     initSystem: () => {
       write('[INIT SYSTEM MODULE]\n');
     },
-    formulaDefinition: (
+    maintainFormulaDefinition: (
       goalId: string,
       formula: string,
       sentence: string,
@@ -143,6 +143,20 @@ const createLogger = (
     ) => {
       store.goalMaintainFormulas++;
       write(`\t[TRACE] ${goalId}.maintainCondition -> ${formula} \n`);
+      write(
+        `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`,
+      );
+      write(`\t\t[PRISM emitted statement]: ${prismLine}\n`);
+    },
+    achievabilityFormulaDefinition: (
+      goalId: string,
+      formula: string,
+      type: 'AND' | 'OR' | 'SINGLE_GOAL',
+      sentence: string,
+      prismLine: string,
+    ) => {
+      store.goalAchievabilityFormulas++;
+      write(`\t[TRACE] ${goalId}.${type} -> ${formula} \n`);
       write(
         `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`,
       );
@@ -174,7 +188,9 @@ const createLogger = (
         }
 
         const transitionLogLabel = transition.toUpperCase();
-        write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
+        write(
+          `\t[${transitionLogLabel}] Task ${taskId} ${transitionLogLabel} label\n`,
+        );
         write(`\t\t[CONDITION] ${leftStatement}\n`);
         if (maxRetries) {
           write(`\t\t[MAX RETRIES] ${maxRetries}\n`);
@@ -392,6 +408,8 @@ const createLogger = (
       );
       write('----------SYSTEM SUMMARY----------\n');
       write(`[SYSTEM VARIABLES] ${store.systemVariables}\n`);
+      write(`[SYSTEM RESOURCES] ${store.systemResources}\n`);
+      write(`[SYSTEM CONTEXT VARIABLES] ${store.systemContextVariables}\n`);
       write('----------------------------------------\n');
     },
   };
@@ -406,6 +424,7 @@ export const initLogger = (
 ) => {
   store = createStore();
   logger = createLogger(modelFileName, store, logToConsole);
+  return logger;
 };
 
 export const getLogger = () => {

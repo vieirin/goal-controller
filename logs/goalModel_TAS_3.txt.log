@@ -1178,17 +1178,22 @@
 	Resources: none
 	[VARIABLE DEFINITION] T1_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T1_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T1 skipped label
+	[PURSUE] Task T1 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T1] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T1 skipped label
+	[TRY] Task T1 TRY label
+		[CONDITION] [try_T1] T1_pursued=1 & T1_achieved=0
+		[UPDATE] T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
+		PRISM statement: [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T1 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T1] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T1 skipped label
+	[FAILED] Task T1 FAILED label
 		[CONDITION] T1_pursued=1 & T1_achieved=0
 		[UPDATE] (T1_pursued'=0)
 		PRISM statement: [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
@@ -1197,17 +1202,22 @@
 	Resources: R2
 	[VARIABLE DEFINITION] T10_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T10_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T10 skipped label
+	[PURSUE] Task T10 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T10] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T10 skipped label
+	[TRY] Task T10 TRY label
+		[CONDITION] [try_T10] T10_pursued=1 & T10_achieved=0
+		[UPDATE] T10_achievable: (T10_achieved'=1) + 1-T10_achievable: (T10_pursued'=0);
+		PRISM statement: [try_T10] T10_pursued=1 & T10_achieved=0 -> T10_achievable: (T10_achieved'=1) + 1-T10_achievable: (T10_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T10 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T10] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T10 skipped label
+	[FAILED] Task T10 FAILED label
 		[CONDITION] T10_pursued=1 & T10_achieved=0
 		[UPDATE] (T10_pursued'=0)
 		PRISM statement: [failed_T10] T10_pursued=1 & T10_achieved=0 -> (T10_pursued'=0);
@@ -1216,17 +1226,22 @@
 	Resources: none
 	[VARIABLE DEFINITION] T11_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T11_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T11 skipped label
+	[PURSUE] Task T11 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T11] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T11 skipped label
+	[TRY] Task T11 TRY label
+		[CONDITION] [try_T11] T11_pursued=1 & T11_achieved=0
+		[UPDATE] T11_achievable: (T11_achieved'=1) + 1-T11_achievable: (T11_pursued'=0);
+		PRISM statement: [try_T11] T11_pursued=1 & T11_achieved=0 -> T11_achievable: (T11_achieved'=1) + 1-T11_achievable: (T11_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T11 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T11] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T11 skipped label
+	[FAILED] Task T11 FAILED label
 		[CONDITION] T11_pursued=1 & T11_achieved=0
 		[UPDATE] (T11_pursued'=0)
 		PRISM statement: [failed_T11] T11_pursued=1 & T11_achieved=0 -> (T11_pursued'=0);
@@ -1235,17 +1250,22 @@
 	Resources: none
 	[VARIABLE DEFINITION] T2_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T2_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T2 skipped label
+	[PURSUE] Task T2 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T2] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T2 skipped label
+	[TRY] Task T2 TRY label
+		[CONDITION] [try_T2] T2_pursued=1 & T2_achieved=0
+		[UPDATE] T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
+		PRISM statement: [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T2 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T2] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T2 skipped label
+	[FAILED] Task T2 FAILED label
 		[CONDITION] T2_pursued=1 & T2_achieved=0
 		[UPDATE] (T2_pursued'=0)
 		PRISM statement: [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
@@ -1254,17 +1274,22 @@
 	Resources: R1
 	[VARIABLE DEFINITION] T3_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T3_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T3 skipped label
+	[PURSUE] Task T3 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T3] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T3 skipped label
+	[TRY] Task T3 TRY label
+		[CONDITION] [try_T3] T3_pursued=1 & T3_achieved=0
+		[UPDATE] T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
+		PRISM statement: [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T3 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T3] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T3 skipped label
+	[FAILED] Task T3 FAILED label
 		[CONDITION] T3_pursued=1 & T3_achieved=0
 		[UPDATE] (T3_pursued'=0)
 		PRISM statement: [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
@@ -1273,17 +1298,22 @@
 	Resources: R0
 	[VARIABLE DEFINITION] T4_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T4_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T4 skipped label
+	[PURSUE] Task T4 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T4] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T4 skipped label
+	[TRY] Task T4 TRY label
+		[CONDITION] [try_T4] T4_pursued=1 & T4_achieved=0
+		[UPDATE] T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
+		PRISM statement: [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T4 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T4] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T4 skipped label
+	[FAILED] Task T4 FAILED label
 		[CONDITION] T4_pursued=1 & T4_achieved=0
 		[UPDATE] (T4_pursued'=0)
 		PRISM statement: [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
@@ -1292,17 +1322,23 @@
 	Resources: none
 	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T5_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T5 skipped label
+	[PURSUE] Task T5 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T5] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T5 skipped label
+	[TRY] Task T5 TRY label
+		[CONDITION] [try_T5] T5_pursued=1 & T5_achieved=0
+		[MAX RETRIES] 8
+		[UPDATE] T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
+		PRISM statement: [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T5 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T5] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T5 skipped label
+	[FAILED] Task T5 FAILED label
 		[CONDITION] T5_pursued=1 & T5_achieved=0
 		[MAX RETRIES] 8
 		[UPDATE] (T5_pursued'=0)
@@ -1312,17 +1348,22 @@
 	Resources: none
 	[VARIABLE DEFINITION] T6_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T6_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T6 skipped label
+	[PURSUE] Task T6 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T6] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T6 skipped label
+	[TRY] Task T6 TRY label
+		[CONDITION] [try_T6] T6_pursued=1 & T6_achieved=0
+		[UPDATE] T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
+		PRISM statement: [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T6 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T6] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T6 skipped label
+	[FAILED] Task T6 FAILED label
 		[CONDITION] T6_pursued=1 & T6_achieved=0
 		[UPDATE] (T6_pursued'=0)
 		PRISM statement: [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
@@ -1331,17 +1372,22 @@
 	Resources: R4
 	[VARIABLE DEFINITION] T7_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T7_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T7 skipped label
+	[PURSUE] Task T7 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T7] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T7 skipped label
+	[TRY] Task T7 TRY label
+		[CONDITION] [try_T7] T7_pursued=1 & T7_achieved=0
+		[UPDATE] T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
+		PRISM statement: [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T7 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T7] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T7 skipped label
+	[FAILED] Task T7 FAILED label
 		[CONDITION] T7_pursued=1 & T7_achieved=0
 		[UPDATE] (T7_pursued'=0)
 		PRISM statement: [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
@@ -1350,17 +1396,22 @@
 	Resources: R4, R5
 	[VARIABLE DEFINITION] T8_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T8_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T8 skipped label
+	[PURSUE] Task T8 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T8] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T8 skipped label
+	[TRY] Task T8 TRY label
+		[CONDITION] [try_T8] T8_pursued=1 & T8_achieved=0
+		[UPDATE] T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
+		PRISM statement: [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T8 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T8] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T8 skipped label
+	[FAILED] Task T8 FAILED label
 		[CONDITION] T8_pursued=1 & T8_achieved=0
 		[UPDATE] (T8_pursued'=0)
 		PRISM statement: [failed_T8] T8_pursued=1 & T8_achieved=0 -> (T8_pursued'=0);
@@ -1369,17 +1420,22 @@
 	Resources: R3
 	[VARIABLE DEFINITION] T9_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T9_achieved; initial value: 0; upper bound: 1; type: int
-	[PURSUE] Task T9 skipped label
+	[PURSUE] Task T9 PURSUE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [pursue_T9] true -> true;
 	[END OF PURSUE]
-	[ACHIEVE] Task T9 skipped label
+	[TRY] Task T9 TRY label
+		[CONDITION] [try_T9] T9_pursued=1 & T9_achieved=0
+		[UPDATE] T9_achievable: (T9_achieved'=1) + 1-T9_achievable: (T9_pursued'=0);
+		PRISM statement: [try_T9] T9_pursued=1 & T9_achieved=0 -> T9_achievable: (T9_achieved'=1) + 1-T9_achievable: (T9_pursued'=0);
+	[END OF TRY]
+	[ACHIEVE] Task T9 ACHIEVE label
 		[CONDITION] true
 		[UPDATE] true
 		PRISM statement: [achieved_T9] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T9 skipped label
+	[FAILED] Task T9 FAILED label
 		[CONDITION] T9_pursued=1 & T9_achieved=0
 		[UPDATE] (T9_pursued'=0)
 		PRISM statement: [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
@@ -1402,3 +1458,26 @@
 	[VARIABLE DEFINITION] enoughBattery; initial value: true; type: boolean
 	[VARIABLE DEFINITION] highReliability; initial value: false; type: boolean
 	[VARIABLE DEFINITION] sensorAvailable; initial value: true; type: boolean
+----------------------------------------
+[LOGGER SUMMARY] goalModel_TAS_3.txt
+----------GOAL SUMMARY----------
+[GOAL MODULES] 22
+[GOAL VARIABLES] 44
+[GOAL PURSUE LINES] 140
+[GOAL ACHIEVED LINES] 22
+[GOAL SKIPPED LINES] 22
+[GOAL ACHIEVABILITY FORMULAS] 0
+[GOAL MAINTAIN FORMULAS] 4
+----------CHANGE MANAGER SUMMARY----------
+[TASKS VARIABLES] 22
+[TASKS LABELS] 44
+[TASKS TRY LINES] 11
+[TASKS FAILED LINES] 11
+[TASKS ACHIEVED LINES] 11
+[TASKS SKIPPED LINES] 11
+[TASKS ACHIEVABILITY CONSTANTS] 0
+----------SYSTEM SUMMARY----------
+[SYSTEM VARIABLES] 17
+[SYSTEM RESOURCES] 6
+[SYSTEM CONTEXT VARIABLES] 11
+----------------------------------------

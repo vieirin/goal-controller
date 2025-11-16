@@ -12,8 +12,8 @@ export const edgeDTMCTemplate = ({
   gm: GoalTree;
   fileName: string;
 }) => {
-  initLogger(fileName);
-  return `dtmc
+  const logger = initLogger(fileName);
+  const dtmcModel = `dtmc
 
 ${decisionVariablesTemplate({ gm })}
 
@@ -23,4 +23,6 @@ ${changeManagerModule({ gm, fileName })}
 
 ${systemModule({ gm, fileName })}
 `;
+  logger.close();
+  return dtmcModel;
 };
