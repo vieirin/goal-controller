@@ -1,17 +1,6 @@
 from parse import Parser
 import json
 
-def tag_number(node):
-    try:
-        # node_tag is like "G12" or maybe "G12: Administer medicine [...]"
-        tag = node.node_tag
-        # if node_tag includes extra (rare), ensure we're using only the tag
-        if ":" in tag:
-            tag = tag.split(":")[0]
-        return int(tag.lstrip("Gg"))
-    except Exception:
-        return float("inf")  # non-standard tags go to the end
-
 def dfs_max_utility(node, visited=None):
     """
     Depth-first search to find the path with the maximum utility.
@@ -24,12 +13,11 @@ def dfs_max_utility(node, visited=None):
 
     total_utility = node.utility
     total_cost = node.cost
-    path = [node.node_tag]
-    sorted_links = sorted(node.and_link, key=tag_number) if node.and_link else []
+    path = [node.node_id]
 
     # Case 1: AND decomposition – include all children
-    if sorted_links:
-        for child in sorted_links:
+    if node.and_link:
+        for child in node.and_link:
             if child.node_id not in visited:
                 child_cost, child_utility, child_path = dfs_max_utility(child, visited)
                 total_utility += child_utility
@@ -66,12 +54,11 @@ def dfs_min_cost(node, visited=None):
 
     total_cost = node.cost
     total_utility = node.utility
-    path = [node.node_tag]
-    sorted_links = sorted(node.and_link, key=tag_number) if node.and_link else []
+    path = [node.node_id]
 
     # Case 1: AND decomposition – include all children
-    if sorted_links:
-        for child in sorted_links:
+    if node.and_link:
+        for child in node.and_link:
             if child.node_id not in visited:
                 child_cost, child_utility, child_path = dfs_min_cost(child, visited)
                 total_cost += child_cost
@@ -102,8 +89,8 @@ if __name__ == "__main__":
     with open("goalModel_TAS_3_tasks_only_cost_utility.json", "r") as f:
         config = json.load(f)
 
-    parser = Parser(config)
-    nodes, root = parser.parse()
+    parser = Parser()
+    nodes, root = parser.parse(config[0])
 
     # Run DFS from the root (G0)
     total_cost, total_utility, path = dfs_min_cost(root)
@@ -113,7 +100,7 @@ if __name__ == "__main__":
     print(f"Total Cost: {total_cost}")
     print(f"Total Utility: {total_utility}")
 
-    print("\n\n")
+    print("\n")
     total_cost, total_utility, path = dfs_max_utility(root)
     print("Maximum-utility DFS path:")
     print(" -> ".join(path))
