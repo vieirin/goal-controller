@@ -2,6 +2,69 @@ import fs from 'fs';
 import path from 'path';
 import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
 
+export interface LoggerStore {
+  goalModules: number;
+  goalVariables: number;
+  goalPursueLines: number;
+  goalAchievabilityFormulas: number;
+  goalMaintainFormulas: number;
+  taskVariables: number;
+  taskLabels: number;
+  taskAchievabilityConstants: number;
+  systemVariables: number;
+  incrementGoalModules: () => void;
+  incrementGoalVariables: () => void;
+  incrementGoalPursueLines: () => void;
+  incrementGoalAchievabilityFormulas: () => void;
+  incrementGoalMaintainFormulas: () => void;
+  incrementTaskVariables: () => void;
+  incrementTaskLabels: () => void;
+  incrementTaskAchievabilityConstants: () => void;
+  incrementSystemVariables: () => void;
+}
+
+export const createStore = (): LoggerStore => {
+  const store: LoggerStore = {
+    goalModules: 0,
+    goalVariables: 0,
+    goalPursueLines: 0,
+    goalAchievabilityFormulas: 0,
+    goalMaintainFormulas: 0,
+    taskVariables: 0,
+    taskLabels: 0,
+    taskAchievabilityConstants: 0,
+    systemVariables: 0,
+    incrementGoalModules: () => {
+      store.goalModules++;
+    },
+    incrementGoalVariables: () => {
+      store.goalVariables++;
+    },
+    incrementGoalPursueLines: () => {
+      store.goalPursueLines++;
+    },
+    incrementGoalAchievabilityFormulas: () => {
+      store.goalAchievabilityFormulas++;
+    },
+    incrementGoalMaintainFormulas: () => {
+      store.goalMaintainFormulas++;
+    },
+    incrementTaskVariables: () => {
+      store.taskVariables++;
+    },
+    incrementTaskLabels: () => {
+      store.taskLabels++;
+    },
+    incrementTaskAchievabilityConstants: () => {
+      store.taskAchievabilityConstants++;
+    },
+    incrementSystemVariables: () => {
+      store.systemVariables++;
+    },
+  };
+  return store;
+};
+
 const createLoggerFile = (modelFileName: string) => {
   const logFilePath = `logs/${modelFileName}.log`;
   const logDir = path.dirname(logFilePath);
@@ -9,7 +72,11 @@ const createLoggerFile = (modelFileName: string) => {
   return fs.createWriteStream(logFilePath, { flags: 'w' });
 };
 
-const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
+const createLogger = (
+  modelFileName: string,
+  store: LoggerStore,
+  logToConsole: boolean = false,
+) => {
   const logFile = createLoggerFile(modelFileName);
   const write = (message: string) => {
     logFile.write(message);
@@ -26,6 +93,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       );
     },
     initGoal: (goal: GoalNode) => {
+      store.incrementGoalModules();
       write(`[INIT GOAL] ${goal.id}: ${goal.name ?? 'none'}\n`);
       write(
         `\tChildren: ${
@@ -65,6 +133,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       sentence: string,
       prismLine: string,
     ) => {
+      store.incrementGoalMaintainFormulas();
       write(`\t[TRACE] ${goalId}.maintainCondition -> ${formula} \n`);
       write(
         `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`,
@@ -80,6 +149,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         transition: 'pursue' | 'achieve' | 'failed',
         maxRetries?: number,
       ) => {
+        store.incrementTaskLabels();
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
         write(`\t\t[CONDITION] ${leftStatement}\n`);
@@ -189,6 +259,7 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
         },
       },
       stepStatement: (step: number, left: string, right: string) => {
+        store.incrementGoalPursueLines();
         write(`\t\tPRISM statement: ${left} -> ${right}\n`);
         write(`\t[END OF STEP ${step}]\n`);
       },
@@ -223,13 +294,23 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
       upperBound,
       lowerBound,
       type = 'int',
+      context = 'goal',
     }: {
       variable: string;
       initialValue: number | boolean | 'MISSING_VARIABLE_DEFINITION';
       upperBound?: number | boolean;
       lowerBound?: number | boolean;
       type?: 'boolean' | 'int';
+      context?: 'goal' | 'task' | 'system';
     }) => {
+      if (context === 'goal') {
+        store.incrementGoalVariables();
+      } else if (context === 'task') {
+        store.incrementTaskVariables();
+      } else if (context === 'system') {
+        store.incrementSystemVariables();
+      }
+
       if (initialValue === 'MISSING_VARIABLE_DEFINITION') {
         write(
           `\t[VARIABLE DEFINITION] ${variable}; initial value: MISSING_VARIABLE_DEFINITION; type: ${type}\n`,
@@ -266,12 +347,14 @@ const createLogger = (modelFileName: string, logToConsole: boolean = false) => {
 };
 
 let logger: ReturnType<typeof createLogger>;
+let store: LoggerStore;
 
 export const initLogger = (
   modelFileName: string,
   logToConsole: boolean = false,
 ) => {
-  logger = createLogger(modelFileName, logToConsole);
+  store = createStore();
+  logger = createLogger(modelFileName, store, logToConsole);
 };
 
 export const getLogger = () => {
