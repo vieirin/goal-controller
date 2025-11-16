@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { proxy } from 'valtio';
 import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
 
 type LoggerStore = {
@@ -9,23 +8,37 @@ type LoggerStore = {
   goalPursueLines: number;
   goalAchievabilityFormulas: number;
   goalMaintainFormulas: number;
-  taskVariables: number;
-  taskLabels: number;
-  taskAchievabilityConstants: number;
+  tasksVariables: number;
+  tasksLabels: number;
+  tasksAchievabilityConstants: number;
   systemVariables: number;
 };
 
 export const createStore = (): LoggerStore => {
-  return proxy<LoggerStore>({
+  // Create a plain object to hold the state
+  const state: LoggerStore = {
     goalModules: 0,
     goalVariables: 0,
     goalPursueLines: 0,
     goalAchievabilityFormulas: 0,
     goalMaintainFormulas: 0,
-    taskVariables: 0,
-    taskLabels: 0,
-    taskAchievabilityConstants: 0,
+    tasksVariables: 0,
+    tasksLabels: 0,
+    tasksAchievabilityConstants: 0,
     systemVariables: 0,
+  };
+
+  // Create a Proxy that intercepts property access for all LoggerStore properties
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const emptyStore = {} as LoggerStore;
+  return new Proxy(emptyStore, {
+    get(_target, prop: keyof LoggerStore) {
+      return state[prop];
+    },
+    set(_target, prop: keyof LoggerStore, value: number) {
+      state[prop] = value;
+      return true;
+    },
   });
 };
 
@@ -113,7 +126,7 @@ const createLogger = (
         transition: 'pursue' | 'achieve' | 'failed',
         maxRetries?: number,
       ) => {
-        store.taskLabels++;
+        store.tasksLabels++;
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
         write(`\t\t[CONDITION] ${leftStatement}\n`);
@@ -270,7 +283,7 @@ const createLogger = (
       if (context === 'goal') {
         store.goalVariables++;
       } else if (context === 'task') {
-        store.taskVariables++;
+        store.tasksVariables++;
       } else if (context === 'system') {
         store.systemVariables++;
       }
