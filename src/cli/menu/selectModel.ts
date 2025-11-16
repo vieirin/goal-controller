@@ -16,7 +16,7 @@ export const runModel = async (filePath: string): Promise<void> => {
       throw new Error('File name not found');
     }
     const output = edgeDTMCTemplate({ gm: tree, fileName });
-    await writeFile(`output/${path.parse(fileName).name}.mp`, output);
+    await writeFile(`output/${path.parse(fileName).name}.prism`, output);
     console.log('The file was saved successfully!');
   } catch (error) {
     logger.error('Error running model:', error);

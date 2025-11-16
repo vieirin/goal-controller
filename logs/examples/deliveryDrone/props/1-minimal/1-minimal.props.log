@@ -1,6 +1,6 @@
-[ERROR] Error running model:: Error: ENOENT: no such file or directory, open 'examples/deliveryDrone/1-minimal'
+[ERROR] Error running model:: SyntaxError: Unexpected token 'P', "P=? [ F G0"... is not valid JSON
 ----------------------------------------
-[LOGGER SUMMARY] examples/deliveryDrone/1-minimal
+[LOGGER SUMMARY] examples/deliveryDrone/props/1-minimal/1-minimal.props
 ----------GOAL SUMMARY----------
 [GOAL MODULES] 0
 [GOAL VARIABLES] 0

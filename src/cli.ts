@@ -24,7 +24,6 @@ const mainMenu = async (): Promise<void> => {
     { name: 'Dump tree to JSON', value: 'dumpTree' },
   ];
 
-  console.log(process.env.MODE, lastSelectedModel);
   if (process.env.MODE === 'last' && lastSelectedModel) {
     await runModel(lastSelectedModel);
     return;

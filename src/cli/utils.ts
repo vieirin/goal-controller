@@ -18,14 +18,19 @@ export const getFilesInDirectory = async (
           return await getFilesInDirectory(filePath);
         }
 
-        // If it's a file, return it
-        return [
-          {
-            name: file,
-            path: filePath,
-            mtime: stats.mtime,
-          },
-        ];
+        // If it's a file and ends with .txt, return it
+        if (file.endsWith('.txt')) {
+          return [
+            {
+              name: file,
+              path: filePath,
+              mtime: stats.mtime,
+            },
+          ];
+        }
+
+        // Otherwise, return empty array
+        return [];
       }),
     );
 
