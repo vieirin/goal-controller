@@ -12,14 +12,26 @@ export const getFilesInDirectory = async (
       files.map(async (file) => {
         const filePath = join(directory, file);
         const stats = await stat(filePath);
-        return {
-          name: file,
-          path: filePath,
-          mtime: stats.mtime,
-        };
+
+        // If it's a directory, recursively get files from it
+        if (stats.isDirectory()) {
+          return await getFilesInDirectory(filePath);
+        }
+
+        // If it's a file, return it
+        return [
+          {
+            name: file,
+            path: filePath,
+            mtime: stats.mtime,
+          },
+        ];
       }),
     );
-    return fileStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+
+    // Flatten the array of arrays and sort by modification time
+    const allFiles = fileStats.flat();
+    return allFiles.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
   } catch (error) {
     console.error('Error reading directory:', error);
     return [];

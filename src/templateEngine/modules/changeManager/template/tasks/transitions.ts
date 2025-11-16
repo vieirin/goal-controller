@@ -18,11 +18,20 @@ import {
 
 const pursueTask = (task: GoalNode): string => {
   const logger = getLogger();
-  const prismLabelStatement = `[${pursueTransition(task.id)}] true -> true;`;
+  const leftStatement = `${hasBeenPursued(task, {
+    condition: false,
+  })} & ${hasBeenAchieved(task, { condition: false })}`;
+  const updateStatement = `(${hasBeenPursued(task, {
+    condition: true,
+    update: true,
+  })})`;
+  const prismLabelStatement = `[${pursueTransition(
+    task.id,
+  )}] ${leftStatement} -> ${updateStatement};`;
   logger.taskTranstions.transition(
     task.id,
-    'true',
-    'true',
+    leftStatement,
+    updateStatement,
     prismLabelStatement,
     'pursue',
   );

@@ -1,0 +1,84 @@
+dtmc
+
+
+
+
+module G0
+  G0_pursued : [0..1] init 0;
+  G0_achieved : [0..1] init 0;
+
+  [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
+  [pursue_G1] G0_pursued=1 & G0_achieved=0 & G1_achieved=0 -> true;
+  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 -> true;
+
+  [achieved_G0] G0_pursued=1 & (G1_achieved=1 & G2_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
+  
+  [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
+endmodule
+
+formula G0_achievable = G1_achievable * G2_achievable;
+
+module G1
+  G1_pursued : [0..1] init 0;
+  G1_achieved : [0..1] init 0;
+
+  [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
+  [pursue_T1] G1_pursued=1 & G1_achieved=0 & T1_achieved=0 -> true;
+  [pursue_T2] G1_pursued=1 & G1_achieved=0 & T1_achieved=1 -> true;
+
+  [achieved_G1] G1_pursued=1 & (T1_achieved=1 & T2_achieved=1) -> (G1_pursued'=0) & (G1_achieved'=1);
+  
+  [skip_G1] G1_pursued=1 & T1_pursued=0 & T2_pursued=0 -> (G1_pursued'=0);
+endmodule
+
+formula G1_achievable = T1_achievable * T2_achievable;
+
+module G2
+  G2_pursued : [0..1] init 0;
+  G2_achieved : [0..1] init 0;
+
+  [pursue_G2] G2_pursued=0 & G2_achieved=0 -> (G2_pursued'=1);
+  [pursue_T3] G2_pursued=1 & G2_achieved=0 -> true;
+
+  [achieved_G2] G2_pursued=1 & (T3_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+  
+  [skip_G2] G2_pursued=1 & T3_pursued=0 -> (G2_pursued'=0);
+endmodule
+
+formula G2_achievable = T3_achievable;
+
+
+const double T1_achievable = 0.9;
+const double T2_achievable = 0.7;
+const double T3_achievable = 0.8;
+
+module ChangeManager
+  T1_pursued: [0..1] init 0;
+  T1_achieved: [0..1] init 0;
+  T2_pursued: [0..1] init 0;
+  T2_achieved: [0..1] init 0;
+  T3_pursued: [0..1] init 0;
+  T3_achieved: [0..1] init 0;
+  
+  [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
+  [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
+  [achieved_T1] true -> true;
+  [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
+  
+
+  [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
+  [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
+  [achieved_T2] true -> true;
+  [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
+  
+
+  [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
+  [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
+  [achieved_T3] true -> true;
+  [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
+  
+endmodule
+
+module System
+  
+endmodule
