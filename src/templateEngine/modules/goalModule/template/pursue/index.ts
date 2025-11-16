@@ -18,7 +18,7 @@ import {
   pursueDegradationGoal,
 } from './orGoal';
 
-export const goalDependencyStatement = (goal: GoalNode) => {
+export const goalDependencyStatement = (goal: GoalNode): string => {
   return goal.dependsOn?.length
     ? ` & (${goal.dependsOn
         .map((dep) => hasBeenAchieved(dep, { condition: true }))
@@ -26,7 +26,7 @@ export const goalDependencyStatement = (goal: GoalNode) => {
     : '';
 };
 
-const removeRepeatedConditions = (condition: string) => {
+const removeRepeatedConditions = (condition: string): string => {
   return condition
     .split(' & ')
     .filter((condition, index, self) => self.indexOf(condition) === index)
@@ -38,7 +38,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const pursueLogger = logger.pursue;
 
   const goalsToPursue = [goal, ...childrenIncludingTasks({ node: goal })];
-  const isItself = (child: GoalNode) => child.id === goal.id;
+  const isItself = (child: GoalNode): boolean => child.id === goal.id;
   const pursueLines = goalsToPursue
 
     .map((child, _): [GoalNode, { left: string; right: string }] => {
@@ -48,7 +48,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       const itself = isItself(child);
       pursueLogger.pursue(child, 1);
 
-      const calcLeftStatement = () => {
+      const calcLeftStatement = (): string => {
         const dependencyStatement = goalDependencyStatement(goal);
         pursueLogger.goalDependency(goal.id, goal.properties.dependsOn);
         const statement =
@@ -62,7 +62,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         return statement;
       };
 
-      const calcRightStatement = () => {
+      const calcRightStatement = (): string => {
         if (itself) {
           const update = `(${pursued(goal.id)}'=1)`;
           pursueLogger.update(update);

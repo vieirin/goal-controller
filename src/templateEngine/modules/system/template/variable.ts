@@ -1,7 +1,8 @@
 import type { Resource } from '../../../../GoalTree/types';
 import { getLogger } from '../../../../logger/logger';
 
-export const resourceVariableName = (resource: Resource) => `${resource.id}`;
+export const resourceVariableName = (resource: Resource): string =>
+  `${resource.id}`;
 
 export const defineVariable = (
   variable: string,
@@ -10,7 +11,7 @@ export const defineVariable = (
   context: 'resource' | 'context',
   lowerBound?: number | boolean,
   upperBound?: number | boolean,
-) => {
+): string => {
   const logger = getLogger();
   logger.variableDefinition({
     variable,

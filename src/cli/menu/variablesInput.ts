@@ -54,7 +54,9 @@ const getExistingVariables = async (
   }
 };
 
-export const inputDefaultVariables = async (selectedModel?: string) => {
+export const inputDefaultVariables = async (
+  selectedModel?: string,
+): Promise<void> => {
   try {
     let modelPath = selectedModel;
 

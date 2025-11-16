@@ -13,7 +13,7 @@ export const systemModule = ({
 }: {
   gm: GoalTree;
   fileName: string;
-}) => {
+}): string => {
   const logger = getLogger();
   logger.initSystem();
   const variables = treeContextVariables(gm);

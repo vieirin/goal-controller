@@ -14,7 +14,7 @@ const childrenHasNotBeenPursued = (goal: GoalNode) => {
     .join(separator('and'));
 };
 
-export const skipStatement = (goal: GoalNode) => {
+export const skipStatement = (goal: GoalNode): string => {
   const logger = getLogger();
   const leftStatement = `${pursued(goal.id)}=1 & ${childrenHasNotBeenPursued(
     goal,

@@ -2,7 +2,7 @@ import { type GoalTree } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
 import { goalModule } from './template';
 
-export const goalNumberId = (goalId: string) => {
+export const goalNumberId = (goalId: string): string => {
   const id = goalId.match(/\d+/)?.[0];
   if (!id) {
     throw new Error(
@@ -12,7 +12,7 @@ export const goalNumberId = (goalId: string) => {
   return id;
 };
 
-export const goalModules = ({ gm }: { gm: GoalTree }) => {
+export const goalModules = ({ gm }: { gm: GoalTree }): string => {
   const goals = allByType({ gm, type: 'goal' });
   return `
 ${goals

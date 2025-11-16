@@ -13,6 +13,15 @@ module.exports = {
     ...baseConfig.rules,
     'rulesdir/no-direct-children-tasks-pattern': 'error',
     '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': [
+      'error',
+      {
+        allowArgumentsExplicitlyTypedAsAny: true,
+        allowDirectConstAssertionInArrowFunctions: true,
+        allowHigherOrderFunctions: true,
+        allowTypedFunctionExpressions: true,
+      },
+    ],
     '@typescript-eslint/semi': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/member-delimiter-style': 'off',

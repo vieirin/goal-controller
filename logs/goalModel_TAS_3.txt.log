@@ -5,6 +5,9 @@
 	Relation to children: and
 	Execution detail: interleaved
 	[TRACE]: [G0] Emits module: G0
+	[TRACE] G0.AND -> G0_achievable 
+	[FORMULA DEFINITION] G0_achievable; guard statement: G1_achievable * G2_achievable
+		[PRISM emitted statement]: formula G0_achievable = G1_achievable * G2_achievable;
 	[VARIABLE DEFINITION] G0_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G0_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G0 - STEP 1
@@ -65,6 +68,9 @@
 	Relation to children: or
 	Execution detail: degradation
 	[TRACE]: [G1] Emits module: G1
+	[TRACE] G1.OR -> G1_achievable 
+	[FORMULA DEFINITION] G1_achievable; guard statement: G3_achievable + G4_achievable - (G3_achievable * G4_achievable)
+		[PRISM emitted statement]: formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achievable);
 	[VARIABLE DEFINITION] G1_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G1_achieved; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G4_failed; initial value: 0; upper bound: 10; type: int
@@ -130,6 +136,9 @@
 	[TRACE] G2.maintainCondition -> G2_achieved_maintain 
 	[FORMULA DEFINITION] G2_achieved_maintain; guard statement: highPrecision
 		[PRISM emitted statement]: formula G2_achieved_maintain = highPrecision;
+	[TRACE] G2.OR -> G2_achievable 
+	[FORMULA DEFINITION] G2_achievable; guard statement: G5_achievable + G6_achievable - (G5_achievable * G6_achievable)
+		[PRISM emitted statement]: formula G2_achievable = G5_achievable + G6_achievable - (G5_achievable * G6_achievable);
 	[VARIABLE DEFINITION] G2_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G2 - STEP 1
 		[GOAL DEPENDENCY] G2: G4
@@ -239,6 +248,9 @@
 	[TRACE] G4.maintainCondition -> G4_achieved_maintain 
 	[FORMULA DEFINITION] G4_achieved_maintain; guard statement: inEmergency
 		[PRISM emitted statement]: formula G4_achieved_maintain = inEmergency;
+	[TRACE] G4.AND -> G4_achievable 
+	[FORMULA DEFINITION] G4_achievable; guard statement: G8_achievable * G9_achievable
+		[PRISM emitted statement]: formula G4_achievable = G8_achievable * G9_achievable;
 	[VARIABLE DEFINITION] G4_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G4 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false
@@ -437,6 +449,9 @@
 	[TRACE] G8.maintainCondition -> G8_achieved_maintain 
 	[FORMULA DEFINITION] G8_achieved_maintain; guard statement: enoughBattery & highReliability
 		[PRISM emitted statement]: formula G8_achieved_maintain = enoughBattery & highReliability;
+	[TRACE] G8.AND -> G8_achievable 
+	[FORMULA DEFINITION] G8_achievable; guard statement: G10_achievable * G11_achievable
+		[PRISM emitted statement]: formula G8_achievable = G10_achievable * G11_achievable;
 	[VARIABLE DEFINITION] G8_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G8 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G8] G8_pursued=0 & G8_achieved_maintain=false
@@ -500,6 +515,9 @@
 	Relation to children: and
 	Execution detail: sequence
 	[TRACE]: [G9] Emits module: G9
+	[TRACE] G9.AND -> G9_achievable 
+	[FORMULA DEFINITION] G9_achievable; guard statement: G13_achievable * G12_achievable
+		[PRISM emitted statement]: formula G9_achievable = G13_achievable * G12_achievable;
 	[VARIABLE DEFINITION] G9_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G9_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G9 - STEP 1
@@ -608,6 +626,9 @@
 	Relation to children: or
 	Execution detail: choice
 	[TRACE]: [G11] Emits module: G11
+	[TRACE] G11.OR -> G11_achievable 
+	[FORMULA DEFINITION] G11_achievable; guard statement: G14_achievable + G15_achievable - (G14_achievable * G15_achievable)
+		[PRISM emitted statement]: formula G11_achievable = G14_achievable + G15_achievable - (G14_achievable * G15_achievable);
 	[VARIABLE DEFINITION] G11_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G11_achieved; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G11_chosen; initial value: 0; upper bound: 2; type: int
@@ -675,6 +696,9 @@
 	Relation to children: or
 	Execution detail: alternative
 	[TRACE]: [G12] Emits module: G12
+	[TRACE] G12.OR -> G12_achievable 
+	[FORMULA DEFINITION] G12_achievable; guard statement: G16_achievable + G17_achievable - (G16_achievable * G17_achievable)
+		[PRISM emitted statement]: formula G12_achievable = G16_achievable + G17_achievable - (G16_achievable * G17_achievable);
 	[VARIABLE DEFINITION] G12_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G12_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G12 - STEP 1
@@ -738,6 +762,9 @@
 	Relation to children: and
 	Execution detail: sequence
 	[TRACE]: [G13] Emits module: G13
+	[TRACE] G13.AND -> G13_achievable 
+	[FORMULA DEFINITION] G13_achievable; guard statement: G18_achievable * G19_achievable
+		[PRISM emitted statement]: formula G13_achievable = G18_achievable * G19_achievable;
 	[VARIABLE DEFINITION] G13_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G13_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G13 - STEP 1
@@ -1025,6 +1052,9 @@
 	Relation to children: or
 	Execution detail: choice
 	[TRACE]: [G19] Emits module: G19
+	[TRACE] G19.OR -> G19_achievable 
+	[FORMULA DEFINITION] G19_achievable; guard statement: G20_achievable + G21_achievable - (G20_achievable * G21_achievable)
+		[PRISM emitted statement]: formula G19_achievable = G20_achievable + G21_achievable - (G20_achievable * G21_achievable);
 	[VARIABLE DEFINITION] G19_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G19_achieved; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G19_chosen; initial value: 0; upper bound: 2; type: int
@@ -1466,7 +1496,7 @@
 [GOAL PURSUE LINES] 140
 [GOAL ACHIEVED LINES] 22
 [GOAL SKIPPED LINES] 22
-[GOAL ACHIEVABILITY FORMULAS] 0
+[GOAL ACHIEVABILITY FORMULAS] 10
 [GOAL MAINTAIN FORMULAS] 4
 ----------CHANGE MANAGER SUMMARY----------
 [TASKS VARIABLES] 22

@@ -2,7 +2,7 @@ import { achievableFormulaVariable } from '../templateEngine/common';
 import type { GoalTree } from './types';
 import { allByType } from './utils';
 
-const getTreeContextVariables = (tree: GoalTree) => {
+const getTreeContextVariables = (tree: GoalTree): string[] => {
   const variables = new Set<string>();
 
   const goals = allByType({ gm: tree, type: 'goal' });
@@ -20,7 +20,7 @@ const getTreeContextVariables = (tree: GoalTree) => {
   return Array.from(variables);
 };
 
-export const getTaskAchievabilityVariables = (tree: GoalTree) => {
+export const getTaskAchievabilityVariables = (tree: GoalTree): string[] => {
   const tasks = allByType({ gm: tree, type: 'task' });
   const taskAchievabilityVariables = tasks.map((task) =>
     achievableFormulaVariable(task.id),

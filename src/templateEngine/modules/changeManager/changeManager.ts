@@ -13,7 +13,7 @@ export const changeManagerModule = ({
 }: {
   gm: GoalTree;
   fileName: string;
-}) => {
+}): string => {
   const tasks = allByType({ gm, type: 'task' });
   const logger = getLogger();
   logger.info('[CHANGE MANAGER MODULE START]', 0);

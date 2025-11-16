@@ -1,1 +1,1 @@
-export const costsModules = () => {};
+export const costsModules = (): void => {};

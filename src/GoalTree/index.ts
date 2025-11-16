@@ -23,7 +23,7 @@ const validateModel = ({ model }: { model: Model }) => {
   }
 };
 
-export const loadPistarModel = ({ filename }: { filename: string }) => {
+export const loadPistarModel = ({ filename }: { filename: string }): Model => {
   const modelFile = readFileSync(filename);
   const model = JSON.parse(modelFile.toString()) as Model;
 

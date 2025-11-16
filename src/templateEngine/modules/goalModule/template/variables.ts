@@ -8,9 +8,9 @@ import {
   pursuedVariable,
 } from '../../../common';
 
-export const variablesDefinition = (goal: GoalNode) => {
+export const variablesDefinition = (goal: GoalNode): string => {
   const logger = getLogger();
-  const defineVariable = (variable: string, upperBound: number) => {
+  const defineVariable = (variable: string, upperBound: number): string => {
     logger.variableDefinition({
       variable,
       upperBound,

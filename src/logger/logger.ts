@@ -73,7 +73,7 @@ export const createStore = (): LoggerStore => {
   });
 };
 
-const createLoggerFile = (modelFileName: string) => {
+const createLoggerFile = (modelFileName: string): fs.WriteStream => {
   const logFilePath = `logs/${modelFileName}.log`;
   const logDir = path.dirname(logFilePath);
   fs.mkdirSync(logDir, { recursive: true });
@@ -86,7 +86,7 @@ const createLogger = (
   logToConsole: boolean = false,
 ) => {
   const logFile = createLoggerFile(modelFileName);
-  const write = (message: string) => {
+  const write = (message: string): void => {
     logFile.write(message);
     if (logToConsole) {
       // eslint-disable-next-line no-console
@@ -421,13 +421,13 @@ let store: LoggerStore;
 export const initLogger = (
   modelFileName: string,
   logToConsole: boolean = false,
-) => {
+): ReturnType<typeof createLogger> => {
   store = createStore();
   logger = createLogger(modelFileName, store, logToConsole);
   return logger;
 };
 
-export const getLogger = () => {
+export const getLogger = (): ReturnType<typeof createLogger> => {
   if (!logger) {
     throw new Error('Logger not initialized');
   }

@@ -1,6 +1,6 @@
-import type { Node, GenericTree, Resource } from './types';
+import type { GenericTree, Node, Resource } from './types';
 
-const isAlternative = (goal: Node) => {
+const isAlternative = (goal: Node): boolean => {
   const { alt } = goal.customProperties;
   return alt === 'true' || false;
 };

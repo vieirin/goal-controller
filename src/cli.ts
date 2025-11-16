@@ -16,7 +16,7 @@ import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
 import { dumpTreeToJSON } from './GoalTree/utils';
 
-const mainMenu = async () => {
+const mainMenu = async (): Promise<void> => {
   const lastSelectedModel = await getLastSelectedModel();
   const menuChoices = [
     { name: 'Run the model', value: 'run' },

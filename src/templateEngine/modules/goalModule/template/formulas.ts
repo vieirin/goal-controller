@@ -4,11 +4,11 @@ import { getLogger } from '../../../../logger/logger';
 import { parenthesis } from '../../../../mdp/common';
 import { achievableFormulaVariable } from '../../../common';
 
-export const achievedMaintain = (goalId: string) => {
+export const achievedMaintain = (goalId: string): string => {
   return `${goalId}_achieved_maintain`;
 };
 
-export const maintainConditionFormula = (goal: GoalNode) => {
+export const maintainConditionFormula = (goal: GoalNode): string => {
   if (!goal.execCondition?.maintain) {
     return '';
   }
@@ -27,7 +27,7 @@ export const maintainConditionFormula = (goal: GoalNode) => {
   return prismLine;
 };
 
-export const achievableGoalFormula = (goal: GoalNode) => {
+export const achievableGoalFormula = (goal: GoalNode): string => {
   const children = childrenIncludingTasks({ node: goal });
   const formulaName = `${achievableFormulaVariable(goal.id)}`;
   const logger = getLogger();

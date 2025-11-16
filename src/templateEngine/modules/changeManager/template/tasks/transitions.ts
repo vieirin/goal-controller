@@ -16,7 +16,7 @@ import {
   hasBeenPursued,
 } from '../../../goalModule/template/pursue/common';
 
-const pursueTask = (task: GoalNode) => {
+const pursueTask = (task: GoalNode): string => {
   const logger = getLogger();
   const prismLabelStatement = `[${pursueTransition(task.id)}] true -> true;`;
   logger.taskTranstions.transition(
@@ -29,7 +29,7 @@ const pursueTask = (task: GoalNode) => {
   return prismLabelStatement;
 };
 
-const achieveTask = (task: GoalNode) => {
+const achieveTask = (task: GoalNode): string => {
   const logger = getLogger();
   const prismLabelStatement = `[${achievedTransition(task.id)}] true -> true;`;
   logger.taskTranstions.transition(
@@ -42,7 +42,7 @@ const achieveTask = (task: GoalNode) => {
   return prismLabelStatement;
 };
 
-const failedTask = (task: GoalNode) => {
+const failedTask = (task: GoalNode): string => {
   const logger = getLogger();
   const leftStatement = `${pursuedVariable(task.id)}=1 & ${achievedVariable(
     task.id,
@@ -65,7 +65,7 @@ const failedTask = (task: GoalNode) => {
   return prismLabelStatement;
 };
 
-const tryTask = (task: GoalNode) => {
+const tryTask = (task: GoalNode): string => {
   const logger = getLogger();
   const taskAchievabilityVariable = achievableFormulaVariable(task.id);
 
@@ -96,7 +96,7 @@ const tryTask = (task: GoalNode) => {
   return tryStatement;
 };
 
-export const taskTransitions = (task: GoalNode) => {
+export const taskTransitions = (task: GoalNode): string => {
   return `
   ${pursueTask(task)}
   ${tryTask(task)}

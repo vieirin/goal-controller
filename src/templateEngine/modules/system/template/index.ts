@@ -9,7 +9,7 @@ export const systemModuleTemplate = ({
   variables: string[];
   resources: Resource[];
   defaultVariableValues: Record<string, number | boolean>;
-}) => {
+}): string => {
   const resourceVariables = resources.map((resource) => {
     if (resource.variable.type === 'boolean') {
       return defineVariable(

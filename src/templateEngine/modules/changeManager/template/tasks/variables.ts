@@ -2,7 +2,7 @@ import type { GoalNode } from '../../../../../GoalTree/types';
 import { getLogger } from '../../../../../logger/logger';
 import { achievedVariable, failed, pursuedVariable } from '../../../../common';
 
-const defineVariable = (variable: string) => {
+const defineVariable = (variable: string): string => {
   const upperBound = 1;
 
   const logger = getLogger();
@@ -16,7 +16,7 @@ const defineVariable = (variable: string) => {
   return `${variable}: [0..${upperBound}] init 0;`;
 };
 
-export const maxRetriesVariable = (task: GoalNode) => {
+export const maxRetriesVariable = (task: GoalNode): string => {
   if (!task.properties.maxRetries) {
     return '';
   }
@@ -32,7 +32,7 @@ export const maxRetriesVariable = (task: GoalNode) => {
   return `${failed(task.id)}: [0..${task.properties.maxRetries}] init 0;`;
 };
 
-export const taskVariables = (task: GoalNode) => {
+export const taskVariables = (task: GoalNode): string => {
   const logger = getLogger();
   logger.initTask(task);
 

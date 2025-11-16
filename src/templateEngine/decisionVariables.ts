@@ -9,7 +9,11 @@ import { getLogger } from '../logger/logger';
 // decision_G0_0, decision_G0_1, ..., decision_G0_9
 // if we have two variables t and s, we generate 10*2=20 variables:
 // decision_G0_0_0, decision_G0_0_1, ..., decision_G0_9_1
-export const decisionVariablesForGoal = ({ goal }: { goal: GoalNode }) => {
+export const decisionVariablesForGoal = ({
+  goal,
+}: {
+  goal: GoalNode;
+}): readonly [string[], Generator<number[]>, number[][]] => {
   const spaceArray = goal.decisionVars.map((decision) =>
     Array.from({ length: decision.space }, (_, i) => i),
   );
@@ -23,13 +27,13 @@ export const decisionVariableName = (
   goalId: string,
   variableCombination: number[],
   vars: string[],
-) => {
+): string => {
   return `decision_${goalId}_${variableCombination
     .map((v, i) => `${vars[i]}${v}`)
     .join('_')}`;
 };
 
-export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }) => {
+export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }): string => {
   if (!process.env.EXPERIMENTAL_DECISION_VARIABLES) {
     return '';
   }

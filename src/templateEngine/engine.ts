@@ -11,7 +11,7 @@ export const edgeDTMCTemplate = ({
 }: {
   gm: GoalTree;
   fileName: string;
-}) => {
+}): string => {
   const logger = initLogger(fileName);
   const dtmcModel = `dtmc
 

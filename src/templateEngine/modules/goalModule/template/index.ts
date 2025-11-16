@@ -7,7 +7,7 @@ import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
 
-export const goalModule = (goal: GoalNode) => {
+export const goalModule = (goal: GoalNode): string => {
   const logger = getLogger();
   logger.initGoal(goal);
 

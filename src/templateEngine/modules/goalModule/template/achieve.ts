@@ -12,7 +12,7 @@ const isValidSeparator = (
   return ['and', 'or'].includes(relation ?? '');
 };
 
-export const achieveCondition = (goal: GoalNode) => {
+export const achieveCondition = (goal: GoalNode): string => {
   if (isValidSeparator(goal.relationToChildren)) {
     const children = childrenIncludingTasks({ node: goal });
     if (children.length) {
@@ -28,7 +28,7 @@ export const achieveCondition = (goal: GoalNode) => {
   return '';
 };
 
-export const achieveStatement = (goal: GoalNode) => {
+export const achieveStatement = (goal: GoalNode): string => {
   const logger = getLogger();
 
   const leftStatement = [

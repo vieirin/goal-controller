@@ -6,7 +6,7 @@ export const changeManagerModuleTemplate = ({
   tasks,
 }: {
   tasks: GoalNode[];
-}) => {
+}): string => {
   const { variables, transitions } = tasks.reduce(
     (acc, task) => {
       acc.variables.push(taskVariables(task));

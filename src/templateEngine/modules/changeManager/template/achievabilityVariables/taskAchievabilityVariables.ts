@@ -4,7 +4,7 @@ import { achievableFormulaVariable } from '../../../../common';
 export const taskAchievabilityVariable = (
   task: GoalNode,
   variableValues: Record<string, number>,
-) => {
+): string => {
   const variableName = achievableFormulaVariable(task.id);
   const variableValue = variableValues[variableName];
   return `const double ${variableName} = ${variableValue};`;
@@ -13,7 +13,7 @@ export const taskAchievabilityVariable = (
 export const taskAchievabilityVariables = (
   tasks: GoalNode[],
   variableValues: Record<string, number>,
-) => {
+): string => {
   return tasks
     .map((task) => taskAchievabilityVariable(task, variableValues))
     .join('\n');

@@ -4,7 +4,7 @@ import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import { edgeDTMCTemplate } from '../../templateEngine/engine';
 
-export const runModel = async (filePath: string) => {
+export const runModel = async (filePath: string): Promise<void> => {
   try {
     const model = loadPistarModel({ filename: filePath });
     const tree = convertToTree({ model });

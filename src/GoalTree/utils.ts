@@ -45,7 +45,7 @@ export const allGoalsMap = <T extends GenericTree>({
 }: {
   gm: T;
   preferVariant?: boolean;
-}) => {
+}): Map<string, T[number]> => {
   return new Map(
     allByType({ gm, type: 'goal', preferVariant }).map((goal) => [
       goal.id,
@@ -54,15 +54,15 @@ export const allGoalsMap = <T extends GenericTree>({
   );
 };
 
-export const goalRootId = ({ id }: { id: string }) => {
+export const goalRootId = ({ id }: { id: string }): string => {
   return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 2) + 1);
 };
 
-export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }) => {
+export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }): T => {
   const leaves = allByType({ gm, type: 'goal' })?.filter(
     (goal) => !!goal.tasks,
   );
-  return leaves;
+  return leaves as T;
 };
 
 export const isVariant = ({ variantOf }: GoalNode): boolean => !!variantOf;
@@ -93,7 +93,7 @@ export function childrenWithTasksAndResources<T extends GenericGoal>({
   node,
 }: {
   node: T;
-}) {
+}): T[] {
   return [
     ...(node.children ?? []),
     ...node.resources,
@@ -101,17 +101,21 @@ export function childrenWithTasksAndResources<T extends GenericGoal>({
   ] as T[];
 }
 
-export function childrenLength({ node }: { node: GenericGoal }) {
+export function childrenLength({ node }: { node: GenericGoal }): number {
   return childrenWithTasksAndResources({ node }).length;
 }
 
-export function childrenWithMaxRetries({ node }: { node: GenericGoal }) {
+export function childrenWithMaxRetries({
+  node,
+}: {
+  node: GenericGoal;
+}): GenericGoal[] {
   return childrenWithTasksAndResources({ node }).filter(
     (child) => !!child.properties.maxRetries,
   );
 }
 
-export function dumpTreeToJSON({ gm }: { gm: GenericTree }) {
+export function dumpTreeToJSON({ gm }: { gm: GenericTree }): string {
   return JSON.stringify(gm, null, 2);
 }
 

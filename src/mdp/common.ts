@@ -1,15 +1,7 @@
-import { groupBy } from 'lodash';
-import type { GenericTree, Relation } from '../GoalTree/types';
-import { allByType, goalRootId, leafGoals } from '../GoalTree/utils';
+import type { Relation } from '../GoalTree/types';
+import { goalRootId } from '../GoalTree/utils';
 
-export type GrouppedGoals = ReturnType<typeof leavesGrouppedGoals>;
-export const leavesGrouppedGoals = <T extends GenericTree>({ gm }: { gm: T }) =>
-  groupBy(leafGoals({ gm }), goalRootId);
-
-export const grouppedGoals = <T extends GenericTree>({ gm }: { gm: T }) =>
-  groupBy(allByType({ gm, type: 'goal' }), goalRootId);
-
-export const separator = (relation: Relation | null) => {
+export const separator = (relation: Relation | null): string => {
   switch (relation) {
     case 'or':
       return ' | ';
@@ -20,28 +12,31 @@ export const separator = (relation: Relation | null) => {
   }
 };
 
-export const formulaForGoal = (goalId: string) =>
+export const formulaForGoal = (goalId: string): string =>
   `${goalRootId({ id: goalId })}_achieved_or_pursued`;
 
-export const not = (s: string) => (s ? `!${s}` : s);
-export const parenthesis = (s: string) => (s ? `(${s})` : s);
+export const not = (s: string): string => (s ? `!${s}` : s);
+export const parenthesis = (s: string): string => (s ? `(${s})` : s);
 
-export const achieved = (goalId: string) => `${goalId}_achieved`;
-export const achievable = (goalId: string) => `${goalId}_achievable`;
-export const pursued = (goalId: string) => `${goalId}_pursued`;
-export const achievedOrPursued = (goalId: string) =>
+export const achieved = (goalId: string): string => `${goalId}_achieved`;
+export const achievable = (goalId: string): string => `${goalId}_achievable`;
+export const pursued = (goalId: string): string => `${goalId}_pursued`;
+export const achievedOrPursued = (goalId: string): string =>
   pursued(`${achieved(goalId)}_or`);
-export const pursue = (goalId: string) => `${goalId}_pursue`;
-export const pursueThrough = (goalId: string, through: string) =>
+export const pursue = (goalId: string): string => `${goalId}_pursue`;
+export const pursueThrough = (goalId: string, through: string): string =>
   `pursue${goalId}_${through}`;
-export const pursueDefault = (goalId: string) => `${goalId}_pursue0`;
-export const skip = (goalId: string) => `${goalId}_skip`;
+export const pursueDefault = (goalId: string): string => `${goalId}_pursue0`;
+export const skip = (goalId: string): string => `${goalId}_skip`;
 
-export const failed = (goalId: string) => `${goalId}_failed`;
+export const failed = (goalId: string): string => `${goalId}_failed`;
 
-export const OR = (elements: string[]) => elements.join(separator('or'));
-export const AND = (elements: string[]) => elements.join(separator('or'));
+export const OR = (elements: string[]): string =>
+  elements.join(separator('or'));
+export const AND = (elements: string[]): string =>
+  elements.join(separator('or'));
 
-export const equals = (operand: string, value: string | number) =>
+export const equals = (operand: string, value: string | number): string =>
   `${operand}=${value}`;
-export const greaterThan = (goal: string, than: number) => `${goal}>${than}`;
+export const greaterThan = (goal: string, than: number): string =>
+  `${goal}>${than}`;
