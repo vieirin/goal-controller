@@ -162,6 +162,16 @@ const createLogger = (
       );
       write(`\t\t[PRISM emitted statement]: ${prismLine}\n`);
     },
+    achievabilityTaskConstant: (
+      taskId: string,
+      constant: string,
+      value: number,
+    ) => {
+      store.tasksAchievabilityConstants++;
+      write(
+        `\t[TASK ACHIEVABILITY CONSTANT] ${taskId}: ${constant} = ${value}\n`,
+      );
+    },
     taskTranstions: {
       transition: (
         taskId: string,
@@ -377,8 +387,8 @@ const createLogger = (
     info: (message: string, level: number) => {
       write(`${'\t'.repeat(level)}${message}\n`);
     },
-    error: (source: string, message: string) => {
-      write(`[ERROR] ${source}: ${message}\n`);
+    error: (source: string, message: string | Error | unknown) => {
+      write(`[ERROR] ${source}: ${message as string}\n`);
     },
     trace: (source: string, message: string, level: number = 0) => {
       write(`${'\t'.repeat(level)}[TRACE] ${source}: ${message}\n`);
