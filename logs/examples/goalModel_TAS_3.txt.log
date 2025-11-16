@@ -51,6 +51,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G2_achieved_maintain=false
 		PRISM statement: [pursue_G2] G0_pursued=1 & G0_achieved=0 & G2_achieved_maintain=false -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G0 achieved label
 		[CONDITION] G0_pursued=1 & (G1_achieved=1 & G2_achieved_maintain=true)
 		[UPDATE] (G0_pursued'=0) & (G0_achieved'=1);
@@ -116,6 +119,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G4_achieved_maintain=false
 		PRISM statement: [pursue_G4] G1_pursued=1 & G1_achieved=0 & G4_achieved_maintain=false -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G1 achieved label
 		[CONDITION] G1_pursued=1 & (G3_achieved=1 | G4_achieved_maintain=true)
 		[UPDATE] (G1_pursued'=0) & (G1_achieved'=1);
@@ -184,6 +190,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false & G5_pursued=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G2 achieved label
 		[CONDITION] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1)
 		[UPDATE] (G2_pursued'=0);
@@ -201,6 +210,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G3] Emits module: G3
+	[TRACE] G3.SINGLE_GOAL -> G3_achievable 
+	[FORMULA DEFINITION] G3_achievable; guard statement: G7_achievable
+		[PRISM emitted statement]: formula G3_achievable = G7_achievable;
 	[VARIABLE DEFINITION] G3_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G3_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G3 - STEP 1
@@ -228,6 +240,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G7 has no activation context
 		PRISM statement: [pursue_G7] G3_pursued=1 & G3_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G3 achieved label
 		[CONDITION] G3_pursued=1 & (G7_achieved=1)
 		[UPDATE] (G3_pursued'=0) & (G3_achieved'=1);
@@ -297,6 +311,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G9 has no activation context
 		PRISM statement: [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G4 achieved label
 		[CONDITION] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1)
 		[UPDATE] (G4_pursued'=0);
@@ -314,6 +331,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G5] Emits module: G5
+	[TRACE] G5.SINGLE_GOAL -> G5_achievable 
+	[FORMULA DEFINITION] G5_achievable; guard statement: T2_achievable
+		[PRISM emitted statement]: formula G5_achievable = T2_achievable;
 	[VARIABLE DEFINITION] G5_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G5_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G5 - STEP 1
@@ -341,6 +361,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T2] G5_pursued=1 & G5_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G5 achieved label
 		[CONDITION] G5_pursued=1 & (T2_achieved=1)
 		[UPDATE] (G5_pursued'=0) & (G5_achieved'=1);
@@ -358,6 +380,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G6] Emits module: G6
+	[TRACE] G6.SINGLE_GOAL -> G6_achievable 
+	[FORMULA DEFINITION] G6_achievable; guard statement: T3_achievable
+		[PRISM emitted statement]: formula G6_achievable = T3_achievable;
 	[VARIABLE DEFINITION] G6_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G6_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G6 - STEP 1
@@ -385,6 +410,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T3] G6_pursued=1 & G6_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G6 achieved label
 		[CONDITION] G6_pursued=1 & (T3_achieved=1)
 		[UPDATE] (G6_pursued'=0) & (G6_achieved'=1);
@@ -402,6 +429,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G7] Emits module: G7
+	[TRACE] G7.SINGLE_GOAL -> G7_achievable 
+	[FORMULA DEFINITION] G7_achievable; guard statement: T1_achievable
+		[PRISM emitted statement]: formula G7_achievable = T1_achievable;
 	[VARIABLE DEFINITION] G7_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G7_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G7 - STEP 1
@@ -429,6 +459,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: T1 has no activation context
 		PRISM statement: [pursue_T1] G7_pursued=1 & G7_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G7 achieved label
 		[CONDITION] G7_pursued=1 & (T1_achieved=1)
 		[UPDATE] (G7_pursued'=0) & (G7_achieved'=1);
@@ -498,6 +530,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G11 has no activation context
 		PRISM statement: [pursue_G11] G8_pursued=1 & G8_achieved_maintain=false & G10_achieved=1 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G8 achieved label
 		[CONDITION] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1)
 		[UPDATE] (G8_pursued'=0);
@@ -565,6 +600,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_G12] G9_pursued=1 & G9_achieved=0 & G12_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G9 achieved label
 		[CONDITION] G9_pursued=1 & (G13_achieved=1 & G12_achieved=1)
 		[UPDATE] (G9_pursued'=0) & (G9_achieved'=1);
@@ -582,6 +620,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G10] Emits module: G10
+	[TRACE] G10.SINGLE_GOAL -> G10_achievable 
+	[FORMULA DEFINITION] G10_achievable; guard statement: T4_achievable
+		[PRISM emitted statement]: formula G10_achievable = T4_achievable;
 	[VARIABLE DEFINITION] G10_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G10_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G10 - STEP 1
@@ -609,6 +650,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T4] G10_pursued=1 & G10_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G10 achieved label
 		[CONDITION] G10_pursued=1 & (T4_achieved=1)
 		[UPDATE] (G10_pursued'=0) & (G10_achieved'=1);
@@ -679,6 +722,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G15 has no activation context
 		PRISM statement: [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=2)
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G11 achieved label
 		[CONDITION] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1)
 		[UPDATE] (G11_pursued'=0) & (G11_achieved'=1);
@@ -745,6 +791,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G17 has no activation context
 		PRISM statement: [pursue_G17] G12_pursued=1 & G12_achieved=0 & G16_pursued=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G12 achieved label
 		[CONDITION] G12_pursued=1 & (G16_achieved=1 | G17_achieved=1)
 		[UPDATE] (G12_pursued'=0) & (G12_achieved'=1);
@@ -812,6 +861,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=true -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G13 achieved label
 		[CONDITION] G13_pursued=1 & (G18_achieved_maintain=true & G19_achieved=1)
 		[UPDATE] (G13_pursued'=0) & (G13_achieved'=1);
@@ -829,6 +881,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G14] Emits module: G14
+	[TRACE] G14.SINGLE_GOAL -> G14_achievable 
+	[FORMULA DEFINITION] G14_achievable; guard statement: T5_achievable
+		[PRISM emitted statement]: formula G14_achievable = T5_achievable;
 	[VARIABLE DEFINITION] G14_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G14_achieved; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T5_failed; initial value: 0; upper bound: 8; type: int
@@ -857,6 +912,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: T5 has no activation context
 		PRISM statement: [pursue_T5] G14_pursued=1 & G14_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G14 achieved label
 		[CONDITION] G14_pursued=1 & (T5_achieved=1)
 		[UPDATE] (G14_pursued'=0) & (G14_achieved'=1);
@@ -874,6 +931,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G15] Emits module: G15
+	[TRACE] G15.SINGLE_GOAL -> G15_achievable 
+	[FORMULA DEFINITION] G15_achievable; guard statement: T6_achievable
+		[PRISM emitted statement]: formula G15_achievable = T6_achievable;
 	[VARIABLE DEFINITION] G15_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G15_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G15 - STEP 1
@@ -901,6 +961,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: T6 has no activation context
 		PRISM statement: [pursue_T6] G15_pursued=1 & G15_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G15 achieved label
 		[CONDITION] G15_pursued=1 & (T6_achieved=1)
 		[UPDATE] (G15_pursued'=0) & (G15_achieved'=1);
@@ -918,6 +980,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G16] Emits module: G16
+	[TRACE] G16.SINGLE_GOAL -> G16_achievable 
+	[FORMULA DEFINITION] G16_achievable; guard statement: T7_achievable
+		[PRISM emitted statement]: formula G16_achievable = T7_achievable;
 	[VARIABLE DEFINITION] G16_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G16_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G16 - STEP 1
@@ -945,6 +1010,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: T7 has no activation context
 		PRISM statement: [pursue_T7] G16_pursued=1 & G16_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G16 achieved label
 		[CONDITION] G16_pursued=1 & (T7_achieved=1)
 		[UPDATE] (G16_pursued'=0) & (G16_achieved'=1);
@@ -962,6 +1029,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G17] Emits module: G17
+	[TRACE] G17.SINGLE_GOAL -> G17_achievable 
+	[FORMULA DEFINITION] G17_achievable; guard statement: T8_achievable
+		[PRISM emitted statement]: formula G17_achievable = T8_achievable;
 	[VARIABLE DEFINITION] G17_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G17_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G17 - STEP 1
@@ -989,6 +1059,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: T8 has no activation context
 		PRISM statement: [pursue_T8] G17_pursued=1 & G17_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G17 achieved label
 		[CONDITION] G17_pursued=1 & (T8_achieved=1)
 		[UPDATE] (G17_pursued'=0) & (G17_achieved'=1);
@@ -1009,6 +1081,9 @@
 	[TRACE] G18.maintainCondition -> G18_achieved_maintain 
 	[FORMULA DEFINITION] G18_achieved_maintain; guard statement: inSideEffectWindow
 		[PRISM emitted statement]: formula G18_achieved_maintain = inSideEffectWindow;
+	[TRACE] G18.SINGLE_GOAL -> G18_achievable 
+	[FORMULA DEFINITION] G18_achievable; guard statement: T9_achievable
+		[PRISM emitted statement]: formula G18_achievable = T9_achievable;
 	[VARIABLE DEFINITION] G18_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G18 - STEP 1
 		[DEFAULT PURSUE CONDITION] [pursue_G18] G18_pursued=0 & G18_achieved_maintain=false
@@ -1035,6 +1110,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T9] G18_pursued=1 & G18_achieved_maintain=false -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G18 achieved label
 		[CONDITION] G18_pursued=1 & (T9_achieved=1)
 		[UPDATE] (G18_pursued'=0);
@@ -1105,6 +1182,9 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G21 has no activation context
 		PRISM statement: [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=2)
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G19 achieved label
 		[CONDITION] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1)
 		[UPDATE] (G19_pursued'=0) & (G19_achieved'=1);
@@ -1122,6 +1202,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G20] Emits module: G20
+	[TRACE] G20.SINGLE_GOAL -> G20_achievable 
+	[FORMULA DEFINITION] G20_achievable; guard statement: T10_achievable
+		[PRISM emitted statement]: formula G20_achievable = T10_achievable;
 	[VARIABLE DEFINITION] G20_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G20_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G20 - STEP 1
@@ -1149,6 +1232,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T10] G20_pursued=1 & G20_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G20 achieved label
 		[CONDITION] G20_pursued=1 & (T10_achieved=1)
 		[UPDATE] (G20_pursued'=0) & (G20_achieved'=1);
@@ -1166,6 +1251,9 @@
 	Relation to children: and
 	Execution detail: none
 	[TRACE]: [G21] Emits module: G21
+	[TRACE] G21.SINGLE_GOAL -> G21_achievable 
+	[FORMULA DEFINITION] G21_achievable; guard statement: T11_achievable
+		[PRISM emitted statement]: formula G21_achievable = T11_achievable;
 	[VARIABLE DEFINITION] G21_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G21_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G21 - STEP 1
@@ -1193,6 +1281,8 @@
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
 		PRISM statement: [pursue_T11] G21_pursued=1 & G21_achieved=0 -> true
 	[END OF STEP 3]
+	[END OF PURSUE]
+	[END OF PURSUE]
 	[ACHIEVE] Goal G21 achieved label
 		[CONDITION] G21_pursued=1 & (T11_achieved=1)
 		[UPDATE] (G21_pursued'=0) & (G21_achieved'=1);
@@ -1204,6 +1294,17 @@
 		PRISM statement: [skip_G21] G21_pursued=1 & T11_pursued=0 -> (G21_pursued'=0);
 	[END OF SKIP]
 [CHANGE MANAGER MODULE START]
+	[TASK ACHIEVABILITY CONSTANT] T1: T1_achievable = 0.2
+	[TASK ACHIEVABILITY CONSTANT] T10: T10_achievable = 0.2
+	[TASK ACHIEVABILITY CONSTANT] T11: T11_achievable = 0.5
+	[TASK ACHIEVABILITY CONSTANT] T2: T2_achievable = 0.6
+	[TASK ACHIEVABILITY CONSTANT] T3: T3_achievable = 0.8
+	[TASK ACHIEVABILITY CONSTANT] T4: T4_achievable = 0.3
+	[TASK ACHIEVABILITY CONSTANT] T5: T5_achievable = 0.5
+	[TASK ACHIEVABILITY CONSTANT] T6: T6_achievable = 0.4
+	[TASK ACHIEVABILITY CONSTANT] T7: T7_achievable = 0.3
+	[TASK ACHIEVABILITY CONSTANT] T8: T8_achievable = 0.6
+	[TASK ACHIEVABILITY CONSTANT] T9: T9_achievable = 0.8
 [INIT TASK] T1: Trigger alarm by pushing emergency button
 	Resources: none
 	[VARIABLE DEFINITION] T1_pursued; initial value: 0; upper bound: 1; type: int
@@ -1489,14 +1590,14 @@
 	[VARIABLE DEFINITION] highReliability; initial value: false; type: boolean
 	[VARIABLE DEFINITION] sensorAvailable; initial value: true; type: boolean
 ----------------------------------------
-[LOGGER SUMMARY] goalModel_TAS_3.txt
+[LOGGER SUMMARY] examples/goalModel_TAS_3.txt
 ----------GOAL SUMMARY----------
 [GOAL MODULES] 22
 [GOAL VARIABLES] 44
-[GOAL PURSUE LINES] 140
+[GOAL PURSUE LINES] 54
 [GOAL ACHIEVED LINES] 22
 [GOAL SKIPPED LINES] 22
-[GOAL ACHIEVABILITY FORMULAS] 10
+[GOAL ACHIEVABILITY FORMULAS] 22
 [GOAL MAINTAIN FORMULAS] 4
 ----------CHANGE MANAGER SUMMARY----------
 [TASKS VARIABLES] 22
@@ -1505,7 +1606,7 @@
 [TASKS FAILED LINES] 11
 [TASKS ACHIEVED LINES] 11
 [TASKS SKIPPED LINES] 11
-[TASKS ACHIEVABILITY CONSTANTS] 0
+[TASKS ACHIEVABILITY CONSTANTS] 11
 ----------SYSTEM SUMMARY----------
 [SYSTEM VARIABLES] 17
 [SYSTEM RESOURCES] 6

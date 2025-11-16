@@ -38,9 +38,16 @@ export const achievableGoalFormula = (goal: GoalNode): string => {
         `Expected at least one child for goal ${goal.id} but children array is empty`,
       );
     }
-    return `formula ${formulaName} = ${achievableFormulaVariable(
-      firstChild.id,
-    )};`;
+    const sentence = achievableFormulaVariable(firstChild.id);
+    const formula = `formula ${formulaName} = ${sentence};`;
+    logger.achievabilityFormulaDefinition(
+      goal.id,
+      formulaName,
+      'SINGLE_GOAL',
+      sentence,
+      formula,
+    );
+    return formula;
   }
 
   const childrenVariables = children.map((child) =>

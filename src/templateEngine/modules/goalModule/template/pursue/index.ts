@@ -358,6 +358,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       };
     })
     .map((statement): string => {
+      pursueLogger.finish();
       return `${statement.left} -> ${statement.right};`;
     });
 

@@ -308,9 +308,12 @@ const createLogger = (
         },
       },
       stepStatement: (step: number, left: string, right: string) => {
-        store.goalPursueLines++;
         write(`\t\tPRISM statement: ${left} -> ${right}\n`);
         write(`\t[END OF STEP ${step}]\n`);
+      },
+      finish: () => {
+        store.goalPursueLines++;
+        write('\t[END OF PURSUE]\n');
       },
     },
     achieve: (
