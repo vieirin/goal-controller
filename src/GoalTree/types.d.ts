@@ -2,7 +2,7 @@ import type { Dictionary } from 'lodash';
 
 export type id = string;
 
-interface Model {
+type Model = {
   actors: Actor[];
   orphans: never[];
   dependencies: never[];
@@ -12,23 +12,23 @@ interface Model {
   istar: string;
   saveDate: Date;
   diagram: Diagram;
-}
+};
 
-interface Actor extends Node {
+type Actor = {
   nodes: Node[];
-}
+} & Node;
 
 type NodeType = 'istar.Task' | 'istar.Goal' | 'istar.Actor' | 'istar.Resource';
 
-interface Node extends CustomProperties {
+type Node = {
   id: id;
   text: string;
   type: NodeType;
   x: number;
   y: number;
-}
+} & CustomProperties;
 
-interface Link {
+type Link = {
   id: id;
   type:
     | 'istar.AndRefinementLink'
@@ -36,22 +36,22 @@ interface Link {
     | 'istar.NeededByLink';
   source: string;
   target: string;
-}
+};
 
 type Display = Record<string, DisplayItem>;
 
-interface DisplayItem {
+type DisplayItem = {
   backgroundColor: string;
   width?: number;
   height?: number;
-}
+};
 
-interface Diagram extends CustomProperties {
+type Diagram = {
   width: number;
   height: number;
-}
+} & CustomProperties;
 
-interface ExecCondition {
+type ExecCondition = {
   maintain?: {
     sentence: string;
     variables: Array<{ name: string; value: boolean | null }>;
@@ -60,9 +60,9 @@ interface ExecCondition {
     sentence: string;
     variables: Array<{ name: string; value: boolean | null }>;
   };
-}
+};
 
-interface Resource extends GoalNode {
+type Resource = {
   variable:
     | {
         type: 'boolean';
@@ -74,9 +74,9 @@ interface Resource extends GoalNode {
         lowerBound: number;
         upperBound: number;
       };
-}
+} & GoalNode;
 
-interface CustomProperties {
+type CustomProperties = {
   customProperties: {
     Description: '';
     root?: string;
@@ -93,14 +93,14 @@ interface CustomProperties {
     maintain: string;
     assertion: string;
   };
-}
+};
 
 type Relation = 'or' | 'and' | 'neededBy' | 'none';
 type Type = 'goal' | 'task' | 'resource';
-interface Decision {
+type Decision = {
   decisionVars: Array<{ variable: string; space: number }>;
   hasDecision: boolean;
-}
+};
 type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }

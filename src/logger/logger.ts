@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { proxy } from 'valtio';
 import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
 
-export interface LoggerStore {
+type LoggerStore = {
   goalModules: number;
   goalVariables: number;
   goalPursueLines: number;
@@ -12,19 +13,10 @@ export interface LoggerStore {
   taskLabels: number;
   taskAchievabilityConstants: number;
   systemVariables: number;
-  incrementGoalModules: () => void;
-  incrementGoalVariables: () => void;
-  incrementGoalPursueLines: () => void;
-  incrementGoalAchievabilityFormulas: () => void;
-  incrementGoalMaintainFormulas: () => void;
-  incrementTaskVariables: () => void;
-  incrementTaskLabels: () => void;
-  incrementTaskAchievabilityConstants: () => void;
-  incrementSystemVariables: () => void;
-}
+};
 
 export const createStore = (): LoggerStore => {
-  const store: LoggerStore = {
+  return proxy<LoggerStore>({
     goalModules: 0,
     goalVariables: 0,
     goalPursueLines: 0,
@@ -34,35 +26,7 @@ export const createStore = (): LoggerStore => {
     taskLabels: 0,
     taskAchievabilityConstants: 0,
     systemVariables: 0,
-    incrementGoalModules: () => {
-      store.goalModules++;
-    },
-    incrementGoalVariables: () => {
-      store.goalVariables++;
-    },
-    incrementGoalPursueLines: () => {
-      store.goalPursueLines++;
-    },
-    incrementGoalAchievabilityFormulas: () => {
-      store.goalAchievabilityFormulas++;
-    },
-    incrementGoalMaintainFormulas: () => {
-      store.goalMaintainFormulas++;
-    },
-    incrementTaskVariables: () => {
-      store.taskVariables++;
-    },
-    incrementTaskLabels: () => {
-      store.taskLabels++;
-    },
-    incrementTaskAchievabilityConstants: () => {
-      store.taskAchievabilityConstants++;
-    },
-    incrementSystemVariables: () => {
-      store.systemVariables++;
-    },
-  };
-  return store;
+  });
 };
 
 const createLoggerFile = (modelFileName: string) => {
@@ -93,7 +57,7 @@ const createLogger = (
       );
     },
     initGoal: (goal: GoalNode) => {
-      store.incrementGoalModules();
+      store.goalModules++;
       write(`[INIT GOAL] ${goal.id}: ${goal.name ?? 'none'}\n`);
       write(
         `\tChildren: ${
@@ -133,7 +97,7 @@ const createLogger = (
       sentence: string,
       prismLine: string,
     ) => {
-      store.incrementGoalMaintainFormulas();
+      store.goalMaintainFormulas++;
       write(`\t[TRACE] ${goalId}.maintainCondition -> ${formula} \n`);
       write(
         `\t[FORMULA DEFINITION] ${formula}; guard statement: ${sentence}\n`,
@@ -149,7 +113,7 @@ const createLogger = (
         transition: 'pursue' | 'achieve' | 'failed',
         maxRetries?: number,
       ) => {
-        store.incrementTaskLabels();
+        store.taskLabels++;
         const transitionLogLabel = transition.toUpperCase();
         write(`\t[${transitionLogLabel}] Task ${taskId} skipped label\n`);
         write(`\t\t[CONDITION] ${leftStatement}\n`);
@@ -259,7 +223,7 @@ const createLogger = (
         },
       },
       stepStatement: (step: number, left: string, right: string) => {
-        store.incrementGoalPursueLines();
+        store.goalPursueLines++;
         write(`\t\tPRISM statement: ${left} -> ${right}\n`);
         write(`\t[END OF STEP ${step}]\n`);
       },
@@ -304,11 +268,11 @@ const createLogger = (
       context?: 'goal' | 'task' | 'system';
     }) => {
       if (context === 'goal') {
-        store.incrementGoalVariables();
+        store.goalVariables++;
       } else if (context === 'task') {
-        store.incrementTaskVariables();
+        store.taskVariables++;
       } else if (context === 'system') {
-        store.incrementSystemVariables();
+        store.systemVariables++;
       }
 
       if (initialValue === 'MISSING_VARIABLE_DEFINITION') {
