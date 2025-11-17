@@ -95,14 +95,14 @@ if __name__ == "__main__":
     # Run DFS from the root (G0)
     total_cost, total_utility, path = dfs_min_cost(root)
 
-    print("Minimum-cost DFS path:")
+    print("Minimum-cost DFS plan:")
     print(" -> ".join(path))
     print(f"Total Cost: {total_cost}")
     print(f"Total Utility: {total_utility}")
 
     print("\n")
     total_cost, total_utility, path = dfs_max_utility(root)
-    print("Maximum-utility DFS path:")
+    print("Maximum-utility DFS plan:")
     print(" -> ".join(path))
     print(f"Total Utility: {total_utility}")
     print(f"Total Cost: {total_cost}")

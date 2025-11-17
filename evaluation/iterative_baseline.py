@@ -1,4 +1,3 @@
-from global_baseline import tag_number
 from parse import Parser
 from evaluate_assertion import evaluate_assertion
 import json
@@ -37,11 +36,11 @@ def dfs_min_cost(node, visited=None):
 
     total_cost = node.cost
     total_utility = node.utility
-    path = [node.node_tag]
+    path = [node.node_id]
 
     # Case 1: AND decomposition → must include all children
     if node.and_link:
-        for child in sorted(node.and_link, key=tag_number):
+        for child in node.and_link:
             if child.node_id not in visited:
                 child_cost, child_utility, child_path = dfs_min_cost(child, visited)
                 total_cost += child_cost
@@ -78,10 +77,10 @@ def dfs_max_utility(node, visited=None):
 
     total_utility = node.utility
     total_cost = node.cost
-    path = [node.node_tag]
+    path = [node.node_id]
 
     if node.and_link:
-        for child in sorted(node.and_link, key=tag_number):
+        for child in node.and_link:
             if child.node_id not in visited:
                 child_cost, child_utility, child_path = dfs_max_utility(child, visited)
                 total_utility += child_utility
@@ -111,18 +110,18 @@ if __name__ == "__main__":
     with open("goalModel_TAS_3_tasks_only_cost_utility.json", "r") as f:
         config = json.load(f)
 
-    parser = Parser(config)
-    nodes, root = parser.parse()
+    parser = Parser()
+    nodes, root = parser.parse(config[0])
 
     total_cost, total_utility, path = dfs_min_cost(root)
-    print("Minimum-cost DFS path (with assertions):")
+    print("Minimum-cost DFS plan (with assertions):")
     print(" -> ".join(path))
     print(f"Total Utility: {total_utility}")
     print(f"Total Cost: {total_cost}")
     print("\n\n")
 
     total_cost, total_utility, path = dfs_max_utility(root)
-    print("Maximum-utility DFS path (with assertions):")
+    print("Maximum-utility DFS plan (with assertions):")
     print(" -> ".join(path))
     print(f"Total Utility: {total_utility}")
     print(f"Total Cost: {total_cost}")
