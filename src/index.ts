@@ -2,6 +2,7 @@
 import { writeFile } from 'fs';
 import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
+import { initLogger } from './logger/logger';
 import { edgeDTMCTemplate } from './templateEngine/engine';
 
 if (!process.argv.length) {
@@ -11,6 +12,7 @@ if (!process.argv.length) {
 const model = loadPistarModel({ filename: process.argv[2] ?? '' });
 const tree = convertToTree({ model });
 
+const logger = initLogger(process.argv[2] ?? '');
 writeFile(
   'output/edge.mp',
   edgeDTMCTemplate({ gm: tree, fileName: process.argv[2] ?? '' }),
@@ -20,5 +22,6 @@ writeFile(
       return;
     }
     console.log('The file was saved!');
+    logger.close();
   },
 );
