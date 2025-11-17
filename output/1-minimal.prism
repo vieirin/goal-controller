@@ -1,8 +1,6 @@
 dtmc
 
 
-
-
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;

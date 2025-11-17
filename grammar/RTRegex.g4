@@ -9,9 +9,9 @@ grammar RTRegex;
 rt: expr EOF # printExpr | EOF # blank;
 
 expr:
-	t = ('G' | 'T' | 'M' | 'R') id				# gId
-	| t = ('G' | 'T' | 'M' | 'R') id expr		# gIdContinued
-	| t = ('G' | 'T' | 'M' | 'R') id ',' expr	# gArgs
+	t = ('G' | 'T' | 'R') id					# gId
+	| t = ('G' | 'T' | 'R') id expr				# gIdContinued
+	| t = ('G' | 'T' | 'R') id ',' expr			# gArgs
 	| '[' expr ']'								# notationStart
 	| ':' word expr								# nameContinued
 	| ':' word EOF								# nameOnly
