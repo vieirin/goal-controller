@@ -33,9 +33,10 @@ class Node:
     def set_execution(self):
         match self.execution_type:
             case "degradation":
+                # Here we assume that goal will succeed on the first try, since we don't consider failures for the graph traversal
                 degradation_list = self.execution_detail["degradationList"]
                 order_index = {id_: idx for idx, id_ in enumerate(degradation_list)}
-                self.and_link = sorted(self.or_link, key=lambda x: order_index[x.node_id])
+                self.and_link = sorted(self.or_link, key=lambda x: order_index[x.node_id])[0]
                 self.or_link = []
             case "sequence":
                 sequence_list = self.execution_detail["sequence"]
