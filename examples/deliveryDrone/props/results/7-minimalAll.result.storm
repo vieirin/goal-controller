@@ -1,0 +1,193 @@
+Storm 1.11.1
+
+Date: Sat Nov 22 15:21:19 2025
+Command line arguments: --prism output/7-minimalAll.prism --buildfull --prop examples/deliveryDrone/props/7-minimalAll.props --timemem
+Current working directory: /workspace
+
+Time for model input parsing: 0.005s.
+
+Time for model construction: 0.100s.
+
+-------------------------------------------------------------- 
+Model type: 	DTMC (sparse)
+States: 	7249
+Transitions: 	30051
+Reward Models:  none
+State Labels: 	30 labels
+   * ((G10_pursued = 1) => (G3_chosen = 2)) -> 7249 item(s)
+   * ((G5_achieved = 1) => ((G14_achieved = 1) | (G15_achieved = 1))) -> 7249 item(s)
+   * ((G0_achieved = 1) => (((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)) & (G5_achieved = 1))) -> 7249 item(s)
+   * ((((G1_pursued = 1) & (G1_achieved = 0)) & (T1_pursued = 1)) & (T2_pursued = 1)) -> 4 item(s)
+   * ((G1_achieved = 1) => ((T1_achieved = 1) & (T2_achieved = 1))) -> 7249 item(s)
+   * (G0_achieved = 1) -> 1221 item(s)
+   * deadlock -> 0 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 1)) => ((G10_pursued = 0) & (G11_pursued = 0))) -> 7249 item(s)
+   * (((((((G3_pursued = 1) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 7249 item(s)
+   * (((((((((G2_pursued = 1) | (G2_achieved = 1)) | (G3_pursued = 1)) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (G1_achieved = 1)) -> 7249 item(s)
+   * (((((G4_pursued = 1) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 7249 item(s)
+   * ((G11_pursued = 1) => (G3_chosen = 3)) -> 7249 item(s)
+   * ((G12_failed < 2) => (G13_pursued = 0)) -> 7249 item(s)
+   * (G5_achieved = 1) -> 3663 item(s)
+   * !(((G14_pursued = 1) & (G15_pursued = 1))) -> 7249 item(s)
+   * (((G5_pursued = 1) | (G5_achieved = 1)) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1))) -> 7249 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 2)) => ((G9_pursued = 0) & (G11_pursued = 0))) -> 7249 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 3)) => ((G9_pursued = 0) & (G10_pursued = 0))) -> 7249 item(s)
+   * !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1)))) -> 7249 item(s)
+   * ((G13_pursued = 1) => (G12_failed >= 2)) -> 7249 item(s)
+   * ((G14_achieved = 1) => ((T10_achieved = 1) & (T11_achieved = 1))) -> 7249 item(s)
+   * ((G3_achieved = 1) => (((G9_achieved = 1) | (G10_achieved = 1)) | (G11_achieved = 1))) -> 7249 item(s)
+   * (((T11_pursued = 1) | (T11_achieved = 1)) => (T10_achieved = 1)) -> 7249 item(s)
+   * init -> 1 item(s)
+   * ((G4_achieved = 1) => ((G12_achieved = 1) | (G13_achieved = 1))) -> 7249 item(s)
+   * ((G9_pursued = 1) => (G3_chosen = 1)) -> 7249 item(s)
+   * (G1_achieved = 1) -> 7238 item(s)
+   * (G4_achieved = 1) -> 6771 item(s)
+   * (G2_achieved = 1) -> 7233 item(s)
+   * (G3_achieved = 1) -> 7203 item(s)
+Choice Labels: 	none
+-------------------------------------------------------------- 
+
+Model checking property "1": P>=1 [F (G0_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "2": P>=1 [F (G1_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "3": P>=1 [F (G2_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "4": P>=1 [F (G3_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "5": P>=1 [F (G4_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "6": P>=1 [F (G5_achieved = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "7": P>=1 [G (((((((((G2_pursued = 1) | (G2_achieved = 1)) | (G3_pursued = 1)) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (G1_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "8": P>=1 [G (((((((G3_pursued = 1) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => ((G1_achieved = 1) & (G2_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "9": P>=1 [G (((((G4_pursued = 1) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "10": P>=1 [G (((G5_pursued = 1) | (G5_achieved = 1)) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "11": P>=1 [G ((G0_achieved = 1) => (((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)) & (G5_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "12": P>=1 [G ((G1_achieved = 1) => ((T1_achieved = 1) & (T2_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "13": P>0 [F ((((G1_pursued = 1) & (G1_achieved = 0)) & (T1_pursued = 1)) & (T2_pursued = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "14": P>=1 [G (((T11_pursued = 1) | (T11_achieved = 1)) => (T10_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "15": P>=1 [G ((G14_achieved = 1) => ((T10_achieved = 1) & (T11_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "16": P>=1 [G !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1))))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "17": P>=1 [G ((G9_pursued = 1) => (G3_chosen = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "18": P>=1 [G ((G10_pursued = 1) => (G3_chosen = 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "19": P>=1 [G ((G11_pursued = 1) => (G3_chosen = 3))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "20": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 1)) => ((G10_pursued = 0) & (G11_pursued = 0)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "21": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 2)) => ((G9_pursued = 0) & (G11_pursued = 0)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "22": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 3)) => ((G9_pursued = 0) & (G10_pursued = 0)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "23": P>=1 [G ((G3_achieved = 1) => (((G9_achieved = 1) | (G10_achieved = 1)) | (G11_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "24": P>=1 [G ((G13_pursued = 1) => (G12_failed >= 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "25": P>=1 [G ((G12_failed < 2) => (G13_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "26": P>=1 [G ((G4_achieved = 1) => ((G12_achieved = 1) | (G13_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "27": P>=1 [G ((G5_achieved = 1) => ((G14_achieved = 1) | (G15_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "28": P>=1 [G !(((G14_pursued = 1) & (G15_pursued = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Performance statistics:
+  * peak memory usage: 76MB
+  * CPU time: 0.142s
+  * wallclock time: 0.127s

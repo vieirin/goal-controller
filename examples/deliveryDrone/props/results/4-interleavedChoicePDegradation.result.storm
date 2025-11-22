@@ -1,0 +1,172 @@
+Storm 1.11.1
+
+Date: Sat Nov 22 15:21:19 2025
+Command line arguments: --prism output/4-interleavedChoicePDegradation.prism --buildfull --prop examples/deliveryDrone/props/4-interleavedChoicePDegradation.props --timemem
+Current working directory: /workspace
+
+Time for model input parsing: 0.004s.
+
+ERROR (FormulaParser.cpp:97): Could not parse formula: // ======================================================
+// CHOICE OR  (+)   —  G2: Configure flight [+]
+//   Children: G7 (Standard Mode) and G8 (High-Priority)
+//   Encoding: G2_chosen ∈ {0,1,2}, set by pursue_G7 / pursue_G8
+// ======================================================
+
+// C1 — While G2 is active, at most one branch is pursued.
+//      No state with both G7 and G8 pursued simultaneously.
+P>=1 [ G (G2_pursued=1 & G2_achieved=0 => !(G7_pursued=1 & G8_pursued=1)) ]
+
+// C2 — Once G2 has committed to G7 (G2_chosen=1), that choice
+//      never flips to G8 while G2 is still active.
+//P>=1 [ 
+//  G ( G2_pursued=1 & G2_chosen=1 
+//      => X (G2_chosen=1 | G2_achieved=1 | G2_pursued=0) )
+//]
+
+// C3 — Symmetric property: once G2 has committed to G8 (G2_chosen=2),
+//      it never flips to G7 while G2 is still active.
+//P>=1 [ 
+//  G ( G2_pursued=1 & G2_chosen=2 
+//      => X (G2_chosen=2 | G2_achieved=1 | G2_pursued=0) )
+//]
+
+// C4 — In a complete execution of G2, at most one branch ends up achieved.
+P>=1 [ G !(G7_achieved=1 & G8_achieved=1) ]
+
+
+// ======================================================
+// INTERLEAVED AND  (#)  —  G0: Perform Autonomous Package Delivery
+//   Annotation: [G1#G2#G3#G4]
+//   Parent should only complete when all children are achieved,
+//   and there should be no deadlock while G0 is active.
+//
+//   Also: G6: Plan Route [T2#T3] is another interleaved AND.
+// ======================================================
+
+// I0 — Parent G0 only achieved when all interleaved children achieved.
+//      (This also indirectly validates the guard in [achieved_G0].)
+P>=1 [ 
+  G ( G0_achieved=1 
+      => (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1) )
+]
+
+// I1 — No deadlock while G0 is active and not yet achieved.
+//      Uses PRISM’s built-in atomic proposition "deadlock".
+//P>=1 [ 
+//  G ( G0_pursued=1 & G0_achieved=0 => !deadlock )
+//]
+
+// I2 — Interleaving evidence: it is possible (positive probability) 
+//      to first complete G1 while G2 is still incomplete.
+P>0 [ (G1_achieved=0 & G2_achieved=0) U (G1_achieved=1 & G2_achieved=0) ]
+
+// I3 — Symmetric evidence: it is possible to first complete G2 
+//      while G1 is still incomplete.
+P>0 [ (G1_achieved=0 & G2_achieved=0) U (G2_achieved=1 & G1_achieved=0) ]
+
+// (You can replicate I2/I3 patterns for (G1,G3), (G1,G4), (G2,G3), etc.,
+//  if you want explicit coverage of additional permutations.)
+
+// --- Interleaved AND at task level: G6: Plan Route [T2#T3] ---
+
+// I4 — G6 only completes when *both* interleaved tasks have succeeded.
+P>=1 [ 
+  G ( G6_achieved=1 => (T2_achieved=1 & T3_achieved=1) )
+]
+
+// I5 — It is possible to pursue T2 while T3 is still idle
+//       (evidence that the order is not fixed).
+P>0 [ F (G6_pursued=1 & T2_pursued=1 & T3_pursued=0) ]
+
+// I6 — It is also possible to pursue T3 while T2 is still idle
+//       (the other interleaving direction).
+P>0 [ F (G6_pursued=1 & T3_pursued=1 & T2_pursued=0) ]
+
+
+// ======================================================
+// SEQUENTIAL AND  (;)  —  G4: Execute Delivery [G11;G12]
+//   Requirement: G12 may only be pursued after G11 is achieved;
+//   parent may complete only if both are achieved.
+// ======================================================
+
+// S1 — Safety (ordering): while G11 is not yet achieved, G12 must
+//      not be pursued.
+P>=1 [
+  G ( G4_pursued=1 & G4_achieved=0 & G11_achieved=0 => G12_pursued=0 )
+]
+
+// S2 — Any time G12 is pursued under G4, G11 must have been 
+//      completed already (no out-of-order start).
+P>=1 [
+  G ( G4_pursued=1 & G12_pursued=1 => G11_achieved=1 )
+]
+
+// S3 — Parent sequential goal only completes when both
+//      G11 and G12 are achieved.
+P>=1 [
+  G ( G4_achieved=1 => (G11_achieved=1 & G12_achieved=1) )
+]
+
+// ======================================================
+// GENERAL PARENT–CHILD CONSISTENCY CHECKS
+//   These are generic “sanity properties” that reflect the
+//   AND/OR probabilistic semantics you encoded via *_achievable.
+//   They don’t equate probabilities symbolically (PCTL cannot
+//   compare against non-constant expressions), but they help
+//   confirm structural correctness.
+// ======================================================
+
+// G1 — Navigate to Delivery Zone [G5#G6] (interleaved AND):
+//      G1 can only complete when G5 and G6 are both achieved.
+P>=1 [
+  G ( G1_achieved=1 => (G5_achieved=1 & G6_achieved=1) )
+]
+
+// G2 — Choice OR [+] (already partly covered above):
+//      When G2 completes, exactly one branch has been achieved.
+//      (Given the model, “at most one” + “at least one” gives exactly one.)
+P>=1 [
+  G ( G2_achieved=1 
+      => ( (G7_achieved=1 & G8_achieved=0) 
+           | (G7_achieved=0 & G8_achieved=1) ) )
+]
+
+// G3 — Maintain Safety (currently AND of G9 and G10 in the model):
+//      G3 completes only when both avoidance strategies have succeeded.
+P>=1 [
+  G ( G3_achieved=1 => (G9_achieved=1 & G10_achieved=1) )
+]
+
+// G6 — Plan Route [T2#T3] already checked in I4, but here is the
+//      same structural check stated again for clarity.
+P>=1 [
+  G ( G6_achieved=1 => (T2_achieved=1 & T3_achieved=1) )
+]
+
+
+// ======================================================
+// QUANTITATIVE CHECKS (FOR MANUAL COMPARISON)
+//   These properties let you *query* the actual probabilities
+//   of goal satisfaction in the DTMC, to compare them with the
+//   algebraic *_achievable formulas in the model.
+//   (Equality to those formulas must be checked outside PRISM.)
+// ======================================================
+
+// Q0 — Probability of eventually achieving the top-level goal G0.
+P=? [ F (G0_achieved=1) ]
+
+// Q1 — Probability of achieving G1: Navigate to Delivery Zone.
+P=? [ F (G1_achieved=1) ]
+
+// Q2 — Probability of achieving G2: Configure flight (choice OR).
+P=? [ F (G2_achieved=1) ]
+
+// Q3 — Probability of achieving G3: Maintain Safety.
+P=? [ F (G3_achieved=1) ]
+
+// Q4 — Probability of achieving G4: Execute Delivery.
+P=? [ F (G4_achieved=1) ]
+
+// Q5 — Probability of achieving interleaved task goal G6: Plan Route.
+P=? [ F (G6_achieved=1) ]
+ERROR (storm-cli.cpp:50): An unexpected exception occurred and caused Storm to terminate. The message of this exception is: std::exception

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  storm:
+    image: movesrwth/storm:stable
+    container_name: storm-container
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+

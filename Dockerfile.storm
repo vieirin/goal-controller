@@ -1,0 +1,10 @@
+# Dockerfile for Storm model checker
+# Uses the official Storm image and keeps container running
+FROM movesrwth/storm:stable
+
+# Set working directory
+WORKDIR /workspace
+
+# Keep container running forever
+CMD ["tail", "-f", "/dev/null"]
+

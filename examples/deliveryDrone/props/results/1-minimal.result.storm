@@ -1,0 +1,52 @@
+Storm 1.11.1
+
+Date: Sat Nov 22 15:21:19 2025
+Command line arguments: --prism output/1-minimal.prism --buildfull --prop examples/deliveryDrone/props/1-minimal.props --timemem
+Current working directory: /workspace
+
+Time for model input parsing: 0.004s.
+
+ERROR (FormulaParser.cpp:97): Could not parse formula: // G0 is eventually achieved
+P=? [ F G0_achieved=1 ]
+
+// G1 pursues the tasks sequentially [T1; T2]
+P>=1 [ G (T2_achieved=1=>T1_achieved=1) ]
+
+// stronger version that forbids even trying T2 before T1 is achieved:
+P>=1 [ G (T2_pursued=1=>T1_achieved=1) ]
+
+// G0 pursues its goals sequentially
+P>=1 [ G (G2_pursued=1=>G1_achieved=1) ]
+
+// symmetric “dont start G1 after G2”
+P>=1 [ G (G1_pursued=1&G2_achieved=0=>!G2_pursued=1) ]
+
+// With which probability G0 is achievable?
+P=? [ F G0_achieved=1 ]
+
+// T3 is eventually achieved
+P=? [ F T3_achieved=1 ]
+
+// No “early success” of goals
+P>=1 [ G (G1_achieved=1=>(T1_achieved=1&T2_achieved=1)) ]
+
+// No “early success” of goals
+P>=1 [ G (G2_achieved=1=>T3_achieved=1) ]
+
+// No “early success” of goals
+P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1)) ]
+
+// Goal-completion implies package delivery
+P>=1 [ G (G0_achieved=1=>T3_achieved=1) ]
+
+// Probability only G1 succeeds
+P=? [ F (G1_achieved=1&G2_achieved=0) ]
+
+// Probability only G2 succeeds
+P=? [ F (G2_achieved=1 & G1_achieved=0) ]
+
+// Probability neither succeeds
+P=? [ F (G1_achieved=0 & G2_achieved=0) ]
+
+
+ERROR (storm-cli.cpp:50): An unexpected exception occurred and caused Storm to terminate. The message of this exception is: std::exception
