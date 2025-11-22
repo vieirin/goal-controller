@@ -87,7 +87,6 @@ const tryTask = (task: GoalNode): string => {
 
 export const taskTransitions = (task: GoalNode): string => {
   return `
-
   // Task ${task.id}: ${task.name}
   ${pursueTask(task)}
   ${tryTask(task)}

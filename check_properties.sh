@@ -14,6 +14,7 @@ PRISM_BIN="$HOME/Downloads/prism-4.8.1-mac64-arm/bin/prism"
 STORM_BIN="storm"
 OUTPUT_DIR="output"
 PROPS_DIR="examples/deliveryDrone/props"
+PROPS_DIR_ALT="examples/props"
 RESULTS_DIR="examples/deliveryDrone/props/results"
 
 # Detect number of CPU cores and calculate cores-2
@@ -46,23 +47,31 @@ mkdir -p "$RESULTS_DIR"
 
 # Array of model files (without extension)
 models=(
-    "1-minimal"
-    "2-OrVariation"
-    "3-interleavedPaltPseq"
-    "6-allnotationsReduced"
-    "4-interleavedChoicePDegradation"
-    "7-minimalAll"
-    "8-minimalMaintain"
-    "9-minimalMaintainContext"
-    "10-minimalMaintainResource"
+    "labSamplesWithSideEffect"
+    # "1-minimal"
+    # "2-OrVariation"
+    # "3-interleavedPaltPseq"
+    # "6-allnotationsReduced"
+    # "4-interleavedChoicePDegradation"
+    # "7-minimalAll"
+    # "8-minimalMaintain"
+    # "9-minimalMaintainContext"
+    # "10-minimalMaintainResource"
 )
-
-models_=("10-minimalMaintainResource")
 
 # Iterate over each model
 for model in "${models[@]}"; do
     model_file="$OUTPUT_DIR/${model}.prism"
-    props_file="$PROPS_DIR/${model}.props"
+    
+    # Check props file in default location first, then alternative location
+    if [ -f "$PROPS_DIR/${model}.props" ]; then
+        props_file="$PROPS_DIR/${model}.props"
+    elif [ -f "$PROPS_DIR_ALT/${model}.props" ]; then
+        props_file="$PROPS_DIR_ALT/${model}.props"
+    else
+        props_file="$PROPS_DIR/${model}.props"
+    fi
+    
     if [ "$USE_STORM" = true ]; then
         result_file="$RESULTS_DIR/${model}.result.storm"
     else

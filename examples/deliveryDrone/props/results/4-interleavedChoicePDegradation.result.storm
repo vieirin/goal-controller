@@ -1,12 +1,12 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 21:42:31 2025
+Date: Sat Nov 22 22:40:40 2025
 Command line arguments: --prism output/4-interleavedChoicePDegradation.prism --buildfull --prop examples/deliveryDrone/props/4-interleavedChoicePDegradation.props --timemem
 Current working directory: /workspace
 
-Time for model input parsing: 0.005s.
+Time for model input parsing: 0.004s.
 
-Time for model construction: 8.407s.
+Time for model construction: 6.124s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -43,103 +43,103 @@ Choice Labels: 	none
 Model checking property "1": P>=1 [G (((G2_pursued = 1) & (G2_achieved = 0)) => !(((G7_pursued = 1) & (G8_pursued = 1))))] ...
 Result (for initial states): true
 
-Time for model checking: 0.133s.
+Time for model checking: 0.083s.
 
 Model checking property "2": P>=1 [G !(((G7_achieved = 1) & (G8_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.086s.
+Time for model checking: 0.074s.
 
 Model checking property "3": P>=1 [G ((G0_achieved = 1) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.089s.
+Time for model checking: 0.070s.
 
 Model checking property "4": P>0 [((G1_achieved = 0) & (G2_achieved = 0)) U ((G1_achieved = 1) & (G2_achieved = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.187s.
+Time for model checking: 0.147s.
 
 Model checking property "5": P>0 [((G1_achieved = 0) & (G2_achieved = 0)) U ((G2_achieved = 1) & (G1_achieved = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.188s.
+Time for model checking: 0.142s.
 
 Model checking property "6": P>=1 [G ((G6_achieved = 1) => ((T2_achieved = 1) & (T3_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.079s.
+Time for model checking: 0.061s.
 
 Model checking property "7": P>0 [F (((G6_pursued = 1) & (T2_pursued = 1)) & (T3_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.145s.
+Time for model checking: 0.106s.
 
 Model checking property "8": P>0 [F (((G6_pursued = 1) & (T3_pursued = 1)) & (T2_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.130s.
+Time for model checking: 0.102s.
 
 Model checking property "9": P>=1 [G ((((G4_pursued = 1) & (G4_achieved = 0)) & (G11_achieved = 0)) => (G12_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.075s.
+Time for model checking: 0.063s.
 
 Model checking property "10": P>=1 [G (((G4_pursued = 1) & (G12_pursued = 1)) => (G11_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.080s.
+Time for model checking: 0.061s.
 
 Model checking property "11": P>=1 [G ((G4_achieved = 1) => ((G11_achieved = 1) & (G12_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.103s.
+Time for model checking: 0.062s.
 
 Model checking property "12": P>=1 [G ((G1_achieved = 1) => ((G5_achieved = 1) & (G6_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.080s.
+Time for model checking: 0.061s.
 
 Model checking property "13": P>=1 [G ((G2_achieved = 1) => (((G7_achieved = 1) & (G8_achieved = 0)) | ((G7_achieved = 0) & (G8_achieved = 1))))] ...
 Result (for initial states): true
 
-Time for model checking: 0.073s.
+Time for model checking: 0.066s.
 
 Model checking property "14": P>=1 [G ((G3_achieved = 1) => ((G9_achieved = 1) & (G10_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.075s.
+Time for model checking: 0.062s.
 
 Model checking property "15": P>=1 [G ((G6_achieved = 1) => ((T2_achieved = 1) & (T3_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.074s.
+Time for model checking: 0.061s.
 
 Model checking property "16": P=? [F (G0_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.107s.
+Time for model checking: 0.089s.
 
 Model checking property "17": P=? [F (G1_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.119s.
+Time for model checking: 0.103s.
 
 Model checking property "18": P=? [F (G2_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.118s.
+Time for model checking: 0.091s.
 
 Model checking property "19": P=? [F (G3_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.107s.
+Time for model checking: 0.090s.
 
 Model checking property "20": P=? [F (G4_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.105s.
+Time for model checking: 0.091s.
 
 Model checking property "21": P=? [F (G6_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.106s.
+Time for model checking: 0.087s.
 
 Performance statistics:
   * peak memory usage: 204MB
-  * CPU time: 10.486s
-  * wallclock time: 10.694s
+  * CPU time: 7.794s
+  * wallclock time: 7.922s
