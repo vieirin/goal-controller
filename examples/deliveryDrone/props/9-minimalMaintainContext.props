@@ -2,69 +2,88 @@
 // 0. Basic reachability / sanity
 // ======================================================
 
+// Overall mission success
 P=? [ F (G0_achieved=1) ];
 
+// Ever reach a state where we are in flight with link up?
 P=? [ F (inFlight & commLink) ];
 
 
 // ======================================================
 // 1. Sequential AND semantics
+//    - G0: [G1;G2;G3;G4;G5]
+//    - G14: [T10;T11]
 // ======================================================
 
+// G2 can only be pursued after G1 is achieved
 P>=1 [ G (G2_pursued=1 => G1_achieved=1) ];
 
+// G3 can only be pursued after G1 and G2 are achieved
 P>=1 [ G (G3_pursued=1 => (G1_achieved=1 & G2_achieved=1)) ];
 
+// G4 can only be pursued after G1, G2, G3 are achieved
 P>=1 [ G (G4_pursued=1 => (G1_achieved=1 & G2_achieved=1 & G3_achieved=1)) ];
 
+// G5 can only be pursued after G1, G2, G3, G4 are achieved
 P>=1 [ G (G5_pursued=1 => (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1)) ];
 
+// No two top-level sequential goals are pursued in parallel
 P>=1 [ G !( (G1_pursued=1 & G2_pursued=1)
          | (G2_pursued=1 & G3_pursued=1)
          | (G3_pursued=1 & G4_pursued=1)
          | (G4_pursued=1 & G5_pursued=1) ) ];
 
+// G14: T11 may only be pursued after T10 is achieved
 P>=1 [ G (T11_pursued=1 => T10_achieved=1) ];
 
-P>=1 [ G !(T10_pursued=1 & T11_pursued=1) ];
+// G14: no parallel execution of *incomplete* T10 and T11
+P>=1 [ G !( T10_pursued=1 & T10_achieved=0
+           & T11_pursued=1 & T11_achieved=0 ) ];
 
 
 // ======================================================
 // 2. Interleaved AND semantics
+//    - G1: [T1#T2]
+//    - G2: [G6#G7]
+//    We check that both execution orders are possible.
 // ======================================================
 
+// G1: It is possible to start with T1 while T2 is not yet pursued
 P>0 [ F (G1_pursued=1 & T1_pursued=1 & T2_pursued=0) ];
 
+// G1: It is possible to start with T2 while T1 is not yet pursued
 P>0 [ F (G1_pursued=1 & T2_pursued=1 & T1_pursued=0) ];
 
-P>=1 [ G ( (G1_pursued=1 & G1_achieved=0)
-           => (T1_pursued=1 | T2_pursued=1) ) ];
-
+// G2: It is possible to start with G6 while G7 is not yet pursued
 P>0 [ F (G2_pursued=1 & G6_pursued=1 & G7_pursued=0) ];
 
+// G2: It is possible to start with G7 while G6 is not yet pursued
 P>0 [ F (G2_pursued=1 & G7_pursued=1 & G6_pursued=0) ];
-
-P>=1 [ G ( (G2_pursued=1 & G2_achieved=0)
-           => (G6_pursued=1 | G7_pursued=1) ) ];
 
 
 // ======================================================
 // 3. Choice semantics
+//    - G3: [+] over G9, G10, G11
 // ======================================================
 
+// At most one of G9, G10, G11 can be pursued at a time
 P>=1 [ G !( (G9_pursued=1 & G10_pursued=1)
          | (G9_pursued=1 & G11_pursued=1)
          | (G10_pursued=1 & G11_pursued=1) ) ];
 
+// If G9 is pursued under G3, then G10 and G11 are not pursued
 P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G9_pursued=1)
            => (G10_pursued=0 & G11_pursued=0) ) ];
 
+// If G10 is pursued under G3, then G9 and G11 are not pursued
 P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G10_pursued=1)
            => (G9_pursued=0 & G11_pursued=0) ) ];
 
+// If G11 is pursued under G3, then G9 and G10 are not pursued
 P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G11_pursued=1)
            => (G9_pursued=0 & G10_pursued=0) ) ];
 
+// Each branch is reachable under G3 at some point
 P>0 [ F (G3_pursued=1 & G9_pursued=1) ];
 P>0 [ F (G3_pursued=1 & G10_pursued=1) ];
 P>0 [ F (G3_pursued=1 & G11_pursued=1) ];
@@ -72,61 +91,76 @@ P>0 [ F (G3_pursued=1 & G11_pursued=1) ];
 
 // ======================================================
 // 4. Degradation semantics
+//    - G4: [G12 @2 -> G13]
 // ======================================================
 
+// G13 is only pursued after at least 2 failures of G12
 P>=1 [ G (G13_pursued=1 => G12_failed>=2) ];
 
+// There are runs where G4 completes via G12 alone (no G13)
 P>0 [ F (G4_achieved=1 & G12_achieved=1 & G13_achieved=0) ];
 
+// There are runs where G4 completes via degraded mode G13
 P>0 [ F (G4_achieved=1 & G13_achieved=1) ];
 
 
 // ======================================================
 // 5. Alternative OR semantics
+//    - G5: [G14 | G15]
 // ======================================================
 
+// G14 and G15 are never pursued in parallel
 P>=1 [ G !(G14_pursued=1 & G15_pursued=1) ];
 
+// There are runs where G5 completes via G14
 P>0 [ F (G5_achieved=1 & G14_achieved=1) ];
 
+// There are runs where G5 completes via G15
 P>0 [ F (G5_achieved=1 & G15_achieved=1) ];
 
 
 // ======================================================
 // 6. Maintain semantics
+//    - G7: maintain commLink while inFlight
 // ======================================================
 
+// G7 is only pursued when inFlight holds (assertion context)
 P>=1 [ G (G7_pursued=1 => inFlight) ];
 
+// Structural: G7_achieved_maintain is exactly commLink
 P>=1 [ G ( (G7_achieved_maintain &  commLink)
         | (!G7_achieved_maintain & !commLink) ) ];
 
+// Maintain: from any state with inFlight & !commLink,
+// there exists some path that recovers link or leaves flight
 filter(forall,
        P>0 [ F (commLink | !inFlight) ],
        inFlight & !commLink);
 
 
 // ======================================================
-// 7. Contextual goals: guards must hold
+// 7. Contextual goals: guards must hold at selection time
+//    - G2:   requires missionReady
+//    - G11:  requires lowBattery = false
+//    - G14:  requires !hasMoreDelivery
+//    - G15:  requires lowBattery = true
 // ======================================================
 
 // --- G2: requires missionReady ---
 P>=1 [ G (G2_pursued=1 => missionReady) ];
 
+// In states where missionReady is false, G2 must not be pursued
 filter(forall,
        P<=0 [ F (G2_pursued=1) ],
        !missionReady);
 
-// --- G11: requires lowBattery=false ---
-P>=1 [ G (G11_pursued=1 => !lowBattery) ];
-
+// In states where lowBattery is true, G11 must not be pursued
 filter(forall,
        P<=0 [ F (G11_pursued=1) ],
        lowBattery);
 
-// --- G14: requires !hasMoreDelivery ---
-P>=1 [ G (G14_pursued=1 => !hasMoreDelivery) ];
 
+// In states where hasMoreDelivery is true, G14 must not be pursued
 filter(forall,
        P<=0 [ F (G14_pursued=1) ],
        hasMoreDelivery);
@@ -134,35 +168,53 @@ filter(forall,
 // --- G15: requires lowBattery=true ---
 P>=1 [ G (G15_pursued=1 => lowBattery) ];
 
+// In states where lowBattery is true, G15 can be pursued with positive probability
 filter(forall,
        P>0 [ F (G15_pursued=1) ],
        lowBattery);
 
 
 // ======================================================
-// 8. Context–effect linkage
+// 8. Context–effect linkage (qualitative)
+//    - show that context variables are actually used
 // ======================================================
 
-P>=1 [ G (T1_achieved=1 => missionReady) ];
-
+// There are runs where missionReady is true and G2 is pursued
 P>0 [ F (missionReady & G2_pursued=1) ];
 
-P>=1 [ G (T3_achieved=1 => inFlight) ];
-
+// There are runs where T4 completes and hasMoreDelivery becomes true
 P>0 [ F (T4_achieved=1 & hasMoreDelivery) ];
+
+// There are runs where T4 completes and hasMoreDelivery stays false
 P>0 [ F (T4_achieved=1 & !hasMoreDelivery) ];
 
 
 // ======================================================
 // 9. Quantitative context-sensitive goals
+//    - achievement probabilities under context conditions
 // ======================================================
 
+// Probability that G2 eventually achieves its goal
 P=? [ F (G2_achieved=1) ];
 
-filter(forall,
-       P=? [ F (G14_achieved=1) ],
-       !hasMoreDelivery);
+// Quantitative: overall probability (from initial state) of achieving G14
+P=? [ F (G14_achieved=1) ];
 
+// G14: guard respected at selection time
+// From any state where G14 is idle and hasMoreDelivery holds,
+// the probability to start G14 in the *next* step is 0.
 filter(forall,
-       P=? [ F (G15_achieved=1) ],
-       lowBattery);
+       P<=0 [ X (G14_pursued=1) ],
+       hasMoreDelivery & G14_pursued=0 & G14_achieved=0);
+
+// Quantitative: overall probability (from initial state) of achieving G15
+P=? [ F (G15_achieved=1) ];
+
+// G15: emergency option available in the right context & phase
+// From any state where we are inside G5, lowBattery is true, and G15 is idle,
+// there exists a path that eventually pursues G15.
+filter(forall,
+       P>0 [ F (G15_pursued=1) ],
+       lowBattery
+       & G5_pursued=1 & G5_achieved=0
+       & G15_pursued=0 & G15_achieved=0);
