@@ -36,3 +36,6 @@ generate: grammarRT grammarAssertion
 	npx ts-node src/index.ts "$(FILE)"
 	@echo "✅ Model generated successfully!"
 
+storm:
+	docker-compose -f docker-compose.storm.yml up -d
+	docker exec -it storm-container bash 
