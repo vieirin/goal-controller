@@ -1,214 +1,214 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 18:20:03 2025
+Date: Sat Nov 22 19:40:44 2025
 Command line arguments: --prism output/8-minimalMaintain.prism --buildfull --prop examples/deliveryDrone/props/8-minimalMaintain.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.005s.
 
-Time for model construction: 1.439s.
+Time for model construction: 0.370s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
-States: 	86924
-Transitions: 	526976
+States: 	24126
+Transitions: 	131345
 Reward Models:  none
 State Labels: 	34 labels
    * deadlock -> 0 item(s)
    * init -> 1 item(s)
-   * (inFlight & commLink) -> 36209 item(s)
-   * (commLink | !(inFlight)) -> 50715 item(s)
-   * (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0)) -> 8 item(s)
-   * ((G3_pursued = 1) & (G11_pursued = 1)) -> 36 item(s)
-   * (((G1_pursued = 1) & (G1_achieved = 0)) => ((T1_pursued = 1) | (T2_pursued = 1))) -> 86920 item(s)
-   * ((commLink & commLink) | (!(commLink) & !(commLink))) -> 86924 item(s)
-   * ((G3_pursued = 1) & (G9_pursued = 1)) -> 36 item(s)
-   * (((G2_pursued = 1) & (G2_achieved = 0)) => ((G6_pursued = 1) | (G7_pursued = 1))) -> 86912 item(s)
-   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G9_pursued = 1)) => ((G10_pursued = 0) & (G11_pursued = 0))) -> 86924 item(s)
-   * (inFlight & !(commLink)) -> 36209 item(s)
-   * ((T11_pursued = 1) => (T10_achieved = 1)) -> 86924 item(s)
-   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G11_pursued = 1)) => ((G9_pursued = 0) & (G10_pursued = 0))) -> 86924 item(s)
-   * !((((((G1_pursued = 1) & (G2_pursued = 1)) | ((G2_pursued = 1) & (G3_pursued = 1))) | ((G3_pursued = 1) & (G4_pursued = 1))) | ((G4_pursued = 1) & (G5_pursued = 1)))) -> 86924 item(s)
-   * ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 86924 item(s)
-   * (((G2_pursued = 1) & (G7_pursued = 1)) & (G6_pursued = 0)) -> 12 item(s)
-   * ((G4_achieved = 1) & (G13_achieved = 1)) -> 43920 item(s)
-   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G10_pursued = 1)) => ((G9_pursued = 0) & (G11_pursued = 0))) -> 86924 item(s)
-   * !(((T10_pursued = 1) & (T11_pursued = 1))) -> 41636 item(s)
-   * !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1)))) -> 86924 item(s)
-   * ((G7_pursued = 1) => inFlight) -> 86924 item(s)
-   * (((G2_pursued = 1) & (G6_pursued = 1)) & (G7_pursued = 0)) -> 18 item(s)
-   * (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0)) -> 8 item(s)
-   * (((G4_achieved = 1) & (G12_achieved = 1)) & (G13_achieved = 0)) -> 37332 item(s)
-   * ((G13_pursued = 1) => (G12_failed >= 2)) -> 86924 item(s)
-   * !(((G14_pursued = 1) & (G15_pursued = 1))) -> 86924 item(s)
-   * ((G2_pursued = 1) => (G1_achieved = 1)) -> 86924 item(s)
-   * ((G3_pursued = 1) & (G10_pursued = 1)) -> 36 item(s)
-   * ((G5_achieved = 1) & (G14_achieved = 1)) -> 19980 item(s)
-   * ((G5_achieved = 1) & (G15_achieved = 1)) -> 27972 item(s)
-   * ((G5_pursued = 1) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1))) -> 86924 item(s)
-   * ((G4_pursued = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 86924 item(s)
-   * (G0_achieved = 1) -> 14652 item(s)
+   * (inFlight & commLink) -> 14472 item(s)
+   * (commLink | !(inFlight)) -> 14492 item(s)
+   * (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0)) -> 2 item(s)
+   * ((G3_pursued = 1) & (G11_pursued = 1)) -> 8 item(s)
+   * (((G1_pursued = 1) & (G1_achieved = 0)) => ((T1_pursued = 1) | (T2_pursued = 1))) -> 24125 item(s)
+   * ((commLink & commLink) | (!(commLink) & !(commLink))) -> 24126 item(s)
+   * ((G3_pursued = 1) & (G9_pursued = 1)) -> 6 item(s)
+   * (((G2_pursued = 1) & (G2_achieved = 0)) => ((G6_pursued = 1) | (G7_pursued = 1))) -> 24121 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G9_pursued = 1)) => ((G10_pursued = 0) & (G11_pursued = 0))) -> 24126 item(s)
+   * (inFlight & !(commLink)) -> 9634 item(s)
+   * ((T11_pursued = 1) => (T10_achieved = 1)) -> 24126 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G11_pursued = 1)) => ((G9_pursued = 0) & (G10_pursued = 0))) -> 24126 item(s)
+   * !((((((G1_pursued = 1) & (G2_pursued = 1)) | ((G2_pursued = 1) & (G3_pursued = 1))) | ((G3_pursued = 1) & (G4_pursued = 1))) | ((G4_pursued = 1) & (G5_pursued = 1)))) -> 24126 item(s)
+   * ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 24126 item(s)
+   * (((G2_pursued = 1) & (G7_pursued = 1)) & (G6_pursued = 0)) -> 4 item(s)
+   * ((G4_achieved = 1) & (G13_achieved = 1)) -> 12200 item(s)
+   * ((((G3_pursued = 1) & (G3_achieved = 0)) & (G10_pursued = 1)) => ((G9_pursued = 0) & (G11_pursued = 0))) -> 24126 item(s)
+   * !(((T10_pursued = 1) & (T11_pursued = 1))) -> 11546 item(s)
+   * !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1)))) -> 24126 item(s)
+   * ((G7_pursued = 1) => inFlight) -> 24126 item(s)
+   * (((G2_pursued = 1) & (G6_pursued = 1)) & (G7_pursued = 0)) -> 6 item(s)
+   * (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0)) -> 2 item(s)
+   * (((G4_achieved = 1) & (G12_achieved = 1)) & (G13_achieved = 0)) -> 10370 item(s)
+   * ((G13_pursued = 1) => (G12_failed >= 2)) -> 24126 item(s)
+   * !(((G14_pursued = 1) & (G15_pursued = 1))) -> 24126 item(s)
+   * ((G2_pursued = 1) => (G1_achieved = 1)) -> 24126 item(s)
+   * ((G3_pursued = 1) & (G10_pursued = 1)) -> 8 item(s)
+   * ((G5_achieved = 1) & (G14_achieved = 1)) -> 5550 item(s)
+   * ((G5_achieved = 1) & (G15_achieved = 1)) -> 7770 item(s)
+   * ((G5_pursued = 1) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1))) -> 24126 item(s)
+   * ((G4_pursued = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 24126 item(s)
+   * (G0_achieved = 1) -> 4070 item(s)
 Choice Labels: 	none
 -------------------------------------------------------------- 
 
 Model checking property "1": P=? [F (G0_achieved = 1)] ...
 Result (for initial states): 1
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "2": P=? [F (inFlight & commLink)] ...
 Result (for initial states): 1
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "3": P>=1 [G ((G2_pursued = 1) => (G1_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.002s.
 
 Model checking property "4": P>=1 [G ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "5": P>=1 [G ((G4_pursued = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.002s.
 
 Model checking property "6": P>=1 [G ((G5_pursued = 1) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "7": P>=1 [G !((((((G1_pursued = 1) & (G2_pursued = 1)) | ((G2_pursued = 1) & (G3_pursued = 1))) | ((G3_pursued = 1) & (G4_pursued = 1))) | ((G4_pursued = 1) & (G5_pursued = 1))))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.002s.
 
 Model checking property "8": P>=1 [G ((T11_pursued = 1) => (T10_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.002s.
 
 Model checking property "9": P>=1 [G !(((T10_pursued = 1) & (T11_pursued = 1)))] ...
 Result (for initial states): false
 
-Time for model checking: 0.012s.
+Time for model checking: 0.002s.
 
 Model checking property "10": P>0 [F (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "11": P>0 [F (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "12": P>=1 [G (((G1_pursued = 1) & (G1_achieved = 0)) => ((T1_pursued = 1) | (T2_pursued = 1)))] ...
 Result (for initial states): false
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "13": P>0 [F (((G2_pursued = 1) & (G6_pursued = 1)) & (G7_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "14": P>0 [F (((G2_pursued = 1) & (G7_pursued = 1)) & (G6_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "15": P>=1 [G (((G2_pursued = 1) & (G2_achieved = 0)) => ((G6_pursued = 1) | (G7_pursued = 1)))] ...
 Result (for initial states): false
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "16": P>=1 [G !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1))))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "17": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G9_pursued = 1)) => ((G10_pursued = 0) & (G11_pursued = 0)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "18": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G10_pursued = 1)) => ((G9_pursued = 0) & (G11_pursued = 0)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.002s.
 
 Model checking property "19": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G11_pursued = 1)) => ((G9_pursued = 0) & (G10_pursued = 0)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "20": P>0 [F ((G3_pursued = 1) & (G9_pursued = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "21": P>0 [F ((G3_pursued = 1) & (G10_pursued = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "22": P>0 [F ((G3_pursued = 1) & (G11_pursued = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "23": P>=1 [G ((G13_pursued = 1) => (G12_failed >= 2))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "24": P>0 [F (((G4_achieved = 1) & (G12_achieved = 1)) & (G13_achieved = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "25": P>0 [F ((G4_achieved = 1) & (G13_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "26": P>=1 [G !(((G14_pursued = 1) & (G15_pursued = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "27": P>0 [F ((G5_achieved = 1) & (G14_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "28": P>0 [F ((G5_achieved = 1) & (G15_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.010s.
+Time for model checking: 0.002s.
 
 Model checking property "29": P>=1 [G ((G7_pursued = 1) => inFlight)] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "30": P>=1 [G ((commLink & commLink) | (!(commLink) & !(commLink)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "31": P>=1 [F (inFlight & commLink)] ...
 Result (for initial states): true
 
-Time for model checking: 0.008s.
+Time for model checking: 0.002s.
 
 Model checking property "31": P>0 [F (commLink | !(inFlight))] ...
 Result (for '(inFlight & !(commLink))' states): 1
-Time for model checking: 0.011s.
+Time for model checking: 0.002s.
 
 Performance statistics:
-  * peak memory usage: 85MB
-  * CPU time: 1.769s
-  * wallclock time: 1.764s
+  * peak memory usage: 76MB
+  * CPU time: 0.462s
+  * wallclock time: 0.454s

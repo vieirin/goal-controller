@@ -45,7 +45,7 @@ fi
 mkdir -p "$RESULTS_DIR"
 
 # Array of model files (without extension)
-models_=(
+models=(
     "1-minimal"
     "2-OrVariation"
     "3-interleavedPaltPseq"
@@ -56,7 +56,7 @@ models_=(
     "9-minimalMaintainContext"
 )
 
-models=("9-minimalMaintainContext")
+models_=("9-minimalMaintainContext")
 
 # Iterate over each model
 for model in "${models[@]}"; do

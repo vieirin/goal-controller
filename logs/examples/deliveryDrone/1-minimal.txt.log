@@ -206,9 +206,9 @@
 		PRISM statement: [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T1 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T1_pursued=1 & T1_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T1] true -> true;
+		PRISM statement: [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T2: Follow waypoint
 	Resources: none
@@ -225,9 +225,9 @@
 		PRISM statement: [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T2 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T2_pursued=1 & T2_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T2] true -> true;
+		PRISM statement: [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T3: Drop package
 	Resources: none
@@ -244,9 +244,9 @@
 		PRISM statement: [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T3 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T3_pursued=1 & T3_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T3] true -> true;
+		PRISM statement: [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT SYSTEM MODULE]
 ----------------------------------------

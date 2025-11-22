@@ -1,6 +1,6 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 18:19:53 2025
+Date: Sat Nov 22 19:40:34 2025
 Command line arguments: --prism output/3-interleavedPaltPseq.prism --buildfull --prop examples/deliveryDrone/props/3-interleavedPaltPseq.props --timemem
 Current working directory: /workspace
 
@@ -11,7 +11,7 @@ Time for model construction: 0.007s.
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
 States: 	277
-Transitions: 	1017
+Transitions: 	1011
 Reward Models:  none
 State Labels: 	16 labels
    * (G6_achieved = 1) -> 156 item(s)
@@ -91,9 +91,9 @@ Time for model checking: 0.000s.
 Model checking property "12": P>=1 [G (!((G3_pursued = 1)) | (!((G7_pursued = 1)) U (G6_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.010s.
+Time for model checking: 0.006s.
 
 Performance statistics:
   * peak memory usage: 89MB
   * CPU time: 0.029s
-  * wallclock time: 0.025s
+  * wallclock time: 0.024s

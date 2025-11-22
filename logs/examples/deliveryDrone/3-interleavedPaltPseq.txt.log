@@ -550,9 +550,9 @@
 		PRISM statement: [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T1 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T1_pursued=1 & T1_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T1] true -> true;
+		PRISM statement: [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T2: Follow waypoint
 	Resources: none
@@ -569,9 +569,9 @@
 		PRISM statement: [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T2 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T2_pursued=1 & T2_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T2] true -> true;
+		PRISM statement: [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T3: Detect obstacles using camera
 	Resources: none
@@ -588,9 +588,9 @@
 		PRISM statement: [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T3 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T3_pursued=1 & T3_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T3] true -> true;
+		PRISM statement: [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T4: Adjust course visually
 	Resources: none
@@ -607,9 +607,9 @@
 		PRISM statement: [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T4 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T4_pursued=1 & T4_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T4] true -> true;
+		PRISM statement: [achieved_T4] T4_pursued=1 & T4_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T5: Scan area with lidar
 	Resources: none
@@ -626,9 +626,9 @@
 		PRISM statement: [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T5 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T5_pursued=1 & T5_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T5] true -> true;
+		PRISM statement: [achieved_T5] T5_pursued=1 & T5_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T6: Adjust course using lidar map
 	Resources: none
@@ -645,9 +645,9 @@
 		PRISM statement: [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T6 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T6_pursued=1 & T6_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T6] true -> true;
+		PRISM statement: [achieved_T6] T6_pursued=1 & T6_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T7: Detect landing marker
 	Resources: none
@@ -664,9 +664,9 @@
 		PRISM statement: [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T7 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T7_pursued=1 & T7_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T7] true -> true;
+		PRISM statement: [achieved_T7] T7_pursued=1 & T7_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT TASK] T8: Open release mechanism
 	Resources: none
@@ -683,9 +683,9 @@
 		PRISM statement: [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T8 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T8_pursued=1 & T8_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T8] true -> true;
+		PRISM statement: [achieved_T8] T8_pursued=1 & T8_achieved=1 -> true;
 	[END OF ACHIEVE]
 [INIT SYSTEM MODULE]
 ----------------------------------------

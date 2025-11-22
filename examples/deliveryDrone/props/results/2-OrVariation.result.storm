@@ -1,17 +1,17 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 18:19:53 2025
+Date: Sat Nov 22 19:40:34 2025
 Command line arguments: --prism output/2-OrVariation.prism --buildfull --prop examples/deliveryDrone/props/2-OrVariation.props --timemem
 Current working directory: /workspace
 
-Time for model input parsing: 0.003s.
+Time for model input parsing: 0.002s.
 
-Time for model construction: 0.017s.
+Time for model construction: 0.016s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
 States: 	103
-Transitions: 	342
+Transitions: 	338
 Reward Models:  none
 State Labels: 	30 labels
    * deadlock -> 0 item(s)
@@ -189,5 +189,5 @@ Time for model checking: 0.000s.
 
 Performance statistics:
   * peak memory usage: 76MB
-  * CPU time: 0.023s
-  * wallclock time: 0.027s
+  * CPU time: 0.036s
+  * wallclock time: 0.026s

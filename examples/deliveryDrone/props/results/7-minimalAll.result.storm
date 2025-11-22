@@ -1,17 +1,17 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 18:20:03 2025
+Date: Sat Nov 22 19:40:44 2025
 Command line arguments: --prism output/7-minimalAll.prism --buildfull --prop examples/deliveryDrone/props/7-minimalAll.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.005s.
 
-Time for model construction: 0.099s.
+Time for model construction: 0.094s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
 States: 	7249
-Transitions: 	30051
+Transitions: 	30045
 Reward Models:  none
 State Labels: 	30 labels
    * ((G10_pursued = 1) => (G3_chosen = 2)) -> 7249 item(s)
@@ -189,5 +189,5 @@ Time for model checking: 0.000s.
 
 Performance statistics:
   * peak memory usage: 76MB
-  * CPU time: 0.143s
-  * wallclock time: 0.128s
+  * CPU time: 0.141s
+  * wallclock time: 0.123s
