@@ -1,12 +1,12 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 19:40:44 2025
+Date: Sat Nov 22 20:44:12 2025
 Command line arguments: --prism output/9-minimalMaintainContext.prism --buildfull --prop examples/deliveryDrone/props/9-minimalMaintainContext.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.005s.
 
-Time for model construction: 0.546s.
+Time for model construction: 0.552s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -223,7 +223,7 @@ Time for model checking: 0.004s.
 
 Model checking property "32": P<=0 [F (G14_pursued = 1)] ...
 Result (for 'hasMoreDelivery' states): 0
-Time for model checking: 0.004s.
+Time for model checking: 0.005s.
 
 Model checking property "34": P>=1 [G ((G15_pursued = 1) => lowBattery)] ...
 Result (for initial states): true
@@ -232,7 +232,7 @@ Time for model checking: 0.003s.
 
 Model checking property "34": P>0 [F (G15_pursued = 1)] ...
 Result (for 'lowBattery' states): 0
-Time for model checking: 0.005s.
+Time for model checking: 0.004s.
 
 Model checking property "36": P>0 [F (missionReady & (G2_pursued = 1))] ...
 Result (for initial states): true
@@ -271,5 +271,5 @@ Time for model checking: 0.004s.
 
 Performance statistics:
   * peak memory usage: 76MB
-  * CPU time: 0.752s
-  * wallclock time: 0.737s
+  * CPU time: 0.754s
+  * wallclock time: 0.744s

@@ -1,12 +1,12 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 19:40:34 2025
+Date: Sat Nov 22 20:44:03 2025
 Command line arguments: --prism output/3-interleavedPaltPseq.prism --buildfull --prop examples/deliveryDrone/props/3-interleavedPaltPseq.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.003s.
 
-Time for model construction: 0.007s.
+Time for model construction: 0.006s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -17,19 +17,19 @@ State Labels: 	16 labels
    * (G6_achieved = 1) -> 156 item(s)
    * deadlock -> 0 item(s)
    * !(((G4_pursued = 1) & (G5_pursued = 1))) -> 277 item(s)
-   * !((G3_pursued = 1)) -> 160 item(s)
-   * ((((G2_pursued = 1) & ((G5_pursued = 1) | (G5_achieved = 1))) & (G2_achieved = 0)) => (((G4_pursued = 0) & (T3_pursued = 0)) & (T4_pursued = 0))) -> 266 item(s)
    * !((G7_pursued = 1)) -> 238 item(s)
    * (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0)) -> 2 item(s)
-   * init -> 1 item(s)
-   * ((T1_pursued = 1) & (T2_pursued = 1)) -> 270 item(s)
-   * (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0)) -> 2 item(s)
-   * ((((G2_pursued = 1) & ((G4_pursued = 1) | (G4_achieved = 1))) & (G2_achieved = 0)) => (((G5_pursued = 0) & (T5_pursued = 0)) & (T6_pursued = 0))) -> 266 item(s)
+   * ((G4_pursued = 1) => ((T5_pursued = 0) & (T6_pursued = 0))) -> 182 item(s)
    * ((G0_achieved = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 277 item(s)
    * ((G2_pursued = 1) => (G1_achieved = 1)) -> 277 item(s)
    * ((G7_pursued = 1) => (G6_achieved = 1)) -> 277 item(s)
    * ((G3_achieved = 1) => ((G6_achieved = 1) & (G7_achieved = 1))) -> 277 item(s)
    * ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 277 item(s)
+   * !((G3_pursued = 1)) -> 160 item(s)
+   * ((G5_pursued = 1) => ((T3_pursued = 0) & (T4_pursued = 0))) -> 182 item(s)
+   * init -> 1 item(s)
+   * (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0)) -> 2 item(s)
+   * ((T1_pursued = 1) & (T2_pursued = 1)) -> 270 item(s)
 Choice Labels: 	none
 -------------------------------------------------------------- 
 
@@ -68,12 +68,12 @@ Result (for initial states): true
 
 Time for model checking: 0.000s.
 
-Model checking property "8": P>=1 [G ((((G2_pursued = 1) & ((G4_pursued = 1) | (G4_achieved = 1))) & (G2_achieved = 0)) => (((G5_pursued = 0) & (T5_pursued = 0)) & (T6_pursued = 0)))] ...
+Model checking property "8": P>=1 [G ((G4_pursued = 1) => ((T5_pursued = 0) & (T6_pursued = 0)))] ...
 Result (for initial states): false
 
 Time for model checking: 0.000s.
 
-Model checking property "9": P>=1 [G ((((G2_pursued = 1) & ((G5_pursued = 1) | (G5_achieved = 1))) & (G2_achieved = 0)) => (((G4_pursued = 0) & (T3_pursued = 0)) & (T4_pursued = 0)))] ...
+Model checking property "9": P>=1 [G ((G5_pursued = 1) => ((T3_pursued = 0) & (T4_pursued = 0)))] ...
 Result (for initial states): false
 
 Time for model checking: 0.000s.
@@ -91,9 +91,9 @@ Time for model checking: 0.000s.
 Model checking property "12": P>=1 [G (!((G3_pursued = 1)) | (!((G7_pursued = 1)) U (G6_achieved = 1)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.006s.
+Time for model checking: 0.004s.
 
 Performance statistics:
   * peak memory usage: 89MB
   * CPU time: 0.029s
-  * wallclock time: 0.024s
+  * wallclock time: 0.018s

@@ -56,7 +56,7 @@ models=(
     "9-minimalMaintainContext"
 )
 
-models_=("9-minimalMaintainContext")
+models_=("2-OrVariation")
 
 # Iterate over each model
 for model in "${models[@]}"; do

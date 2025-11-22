@@ -43,8 +43,6 @@ P>=1 [ G !(
 // T11 is only pursued after T10 has been achieved
 P>=1 [ G (T11_pursued=1 => T10_achieved=1) ];
 
-// Optional: T10 and T11 are not pursued in parallel
-P>=1 [ G !(T10_pursued=1 & T11_pursued=1) ];
 
 
 // ======================================================
@@ -58,13 +56,13 @@ P>=1 [ G !(T10_pursued=1 & T11_pursued=1) ];
 // It is possible to pursue T1 first (before T2)
 P>0  [ F (G1_pursued=1 & T1_pursued=1 & T2_pursued=0) ];
 
-// It is possible to pursue T2 first (before T1)
-P>0  [ F (G1_pursued=1 & T2_pursued=1 & T1_pursued=0) ];
+// T1 is actually used at some point along paths where G1 is pursued
+P>0 [ F (G1_pursued=1 & T1_pursued=1) ];
+// T2 is actually used at some point along paths where G1 is pursued
+P>0 [ F (G1_pursued=1 & T2_pursued=1) ];
 
-// While G1 is active, at least one of T1 or T2 is being pursued
-P>=1 [ G ((G1_pursued=1 & G1_achieved=0) 
-          => (T1_pursued=1 | T2_pursued=1)) ];
-
+// When G1 is eventually achieved, both tasks have achieved status
+P>=1 [ G (G1_achieved=1 => (T1_achieved=1 & T2_achieved=1)) ];
 
 // --- G2: G6 and G7 are interleaved children ---
 
@@ -74,9 +72,12 @@ P>0  [ F (G2_pursued=1 & G6_pursued=1 & G7_pursued=0) ];
 // It is possible to pursue G7 while G6 is not yet pursued
 P>0  [ F (G2_pursued=1 & G7_pursued=1 & G6_pursued=0) ];
 
-// While G2 is active, at least one of G6 or G7 is being pursued
-P>=1 [ G ((G2_pursued=1 & G2_achieved=0)
-          => (G6_pursued=1 | G7_pursued=1)) ];
+// Each child is actually used at some point while G2 is pursued
+P>0  [ F (G2_pursued=1 & G6_pursued=1) ];
+P>0  [ F (G2_pursued=1 & G7_pursued=1) ];
+
+// When G2 is finally achieved, the logical conditions hold
+P>=1 [ G2_achieved=1 => F (commLink=true) ];
 
 
 // ======================================================

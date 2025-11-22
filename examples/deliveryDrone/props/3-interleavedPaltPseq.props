@@ -35,15 +35,9 @@ P>0 [ F (G1_pursued=1 & T2_pursued=1 & T1_pursued=0) ];
 // G2: G4 and G5 are never pursued at the same time (exclusive alternatives)
 P>=1 [ G !(G4_pursued=1 & G5_pursued=1) ];
 
-// G2: if the visual-avoidance branch (G4) is selected and G2 is still active,
-//     then lidar branch tasks are not pursued (T5, T6 disabled while committed to G4)
-P>=1 [ G ((G2_pursued=1 & (G4_pursued=1 | G4_achieved=1) & G2_achieved=0)
-          => (G5_pursued=0 & T5_pursued=0 & T6_pursued=0)) ];
-
-// G2: if the lidar-avoidance branch (G5) is selected and G2 is still active,
-//     then visual branch tasks are not pursued (T3, T4 disabled while committed to G5)
-P>=1 [ G ((G2_pursued=1 & (G5_pursued=1 | G5_achieved=1) & G2_achieved=0)
-          => (G4_pursued=0 & T3_pursued=0 & T4_pursued=0)) ];
+// No mixing of tasks during pursuit
+P>=1 [ G (G4_pursued=1 => T5_pursued=0 & T6_pursued=0) ];
+P>=1 [ G (G5_pursued=1 => T3_pursued=0 & T4_pursued=0) ];
 
 
 //
