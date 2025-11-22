@@ -45,14 +45,18 @@ fi
 mkdir -p "$RESULTS_DIR"
 
 # Array of model files (without extension)
-models=(
+models_=(
     "1-minimal"
     "2-OrVariation"
     "3-interleavedPaltPseq"
-    "7-minimalAll"
-    "4-interleavedChoicePDegradation"
     "6-allnotationsReduced"
+    "4-interleavedChoicePDegradation"
+    "7-minimalAll"
+    "8-minimalMaintain"
+    "9-minimalMaintainContext"
 )
+
+models=("9-minimalMaintainContext")
 
 # Iterate over each model
 for model in "${models[@]}"; do
@@ -106,5 +110,70 @@ else
     echo "All property checks completed using PRISM!"
 fi
 echo "Results saved in: $RESULTS_DIR"
+echo "=========================================="
+echo ""
+
+# Extract and display all false formulas
+echo "=========================================="
+echo "FALSE PROPERTIES SUMMARY"
+echo "=========================================="
+echo ""
+
+false_found=false
+
+# Iterate over each model to extract false properties
+for model in "${models[@]}"; do
+    if [ "$USE_STORM" = true ]; then
+        result_file="$RESULTS_DIR/${model}.result.storm"
+    else
+        result_file="$RESULTS_DIR/${model}.result"
+    fi
+    
+    # Check if result file exists
+    if [ ! -f "$result_file" ]; then
+        continue
+    fi
+    
+    # Extract false properties from Storm output
+    if [ "$USE_STORM" = true ]; then
+        # Parse Storm output: look for "Model checking property" followed by "Result...false"
+        current_property=""
+        current_prop_num=""
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Check if this is a "Model checking property" line
+            # Format: Model checking property "X": <formula> ...
+            if [[ "$line" =~ ^Model\ checking\ property\ \"([^\"]+)\":\ (.+)\ \.\.\. ]]; then
+                current_prop_num="${BASH_REMATCH[1]}"
+                current_property="${BASH_REMATCH[2]}"
+            # Check if this is a "Result...false" line (must be on next line after property)
+            elif [[ "$line" =~ Result.*false ]] && [ -n "$current_property" ]; then
+                echo "[$model] Property \"$current_prop_num\": $current_property"
+                echo "  Result: false"
+                echo ""
+                false_found=true
+                current_property=""
+                current_prop_num=""
+            # Reset property if we see a new result that's not false
+            elif [[ "$line" =~ ^Result.* ]] && [ -n "$current_property" ]; then
+                current_property=""
+                current_prop_num=""
+            fi
+        done < "$result_file"
+    else
+        # Parse PRISM output: look for properties that are false
+        # PRISM format: "Property <name>: ... Result: false"
+        grep -A 1 "Property.*Result: false" "$result_file" | while IFS= read -r line; do
+            if [[ "$line" =~ Property\ (.+): ]]; then
+                echo "[$model] Property: ${BASH_REMATCH[1]}"
+                false_found=true
+            fi
+        done
+    fi
+done
+
+if [ "$false_found" = false ]; then
+    echo "No false properties found. All properties are satisfied!"
+fi
+
 echo "=========================================="
 

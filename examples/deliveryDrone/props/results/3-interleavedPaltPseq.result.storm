@@ -1,170 +1,99 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 16:36:48 2025
-Command line arguments: --prism output/3-interleavedPaltPseq.prism --buildfull --prop examples/deliveryDrone/props/3-interleavedPaltPseq.props --timemem --trace
+Date: Sat Nov 22 18:19:53 2025
+Command line arguments: --prism output/3-interleavedPaltPseq.prism --buildfull --prop examples/deliveryDrone/props/3-interleavedPaltPseq.props --timemem
 Current working directory: /workspace
-
-DEBUG (PrismParserGrammar.cpp:64): First pass of parsing PRISM input finished.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-TRACE (PrismParserGrammar.cpp:81): Parsed PRISM input: dtmc
-const double T1_achievable = 9/10;
-const double T2_achievable = 4/5;
-const double T3_achievable = 4/5;
-const double T4_achievable = 4/5;
-const double T5_achievable = 4/5;
-const double T6_achievable = 4/5;
-const double T7_achievable = 4/5;
-const double T8_achievable = 4/5;
-
-
-formula G1_achievable = (T1_achievable * T2_achievable);
-formula G4_achievable = (T3_achievable * T4_achievable);
-formula G5_achievable = (T6_achievable * T5_achievable);
-formula G6_achievable = T7_achievable;
-formula G7_achievable = T8_achievable;
-formula G2_achievable = ((G4_achievable + G5_achievable) - (G4_achievable * G5_achievable));
-formula G3_achievable = (G6_achievable * G7_achievable);
-formula G0_achievable = ((G1_achievable * G2_achievable) * G3_achievable);
-
-module G0
-	G0_pursued: [0..1] init 0;
-	G0_achieved: [0..1] init 0;
-	[pursue_G0] ((G0_pursued = 0) & (G0_achieved = 0)) -> 1 : (G0_pursued' = 1);
-	[pursue_G1] (((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 0)) -> 1 : true;
-	[pursue_G2] ((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G3_achieved = 0)) -> 1 : true;
-	[pursue_G3] ((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G2_achieved = 1)) -> 1 : true;
-	[achieved_G0] ((G0_pursued = 1) & (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 1 : (G0_pursued' = 0) & (G0_achieved' = 1);
-	[skip_G0] ((((G0_pursued = 1) & (G1_pursued = 0)) & (G2_pursued = 0)) & (G3_pursued = 0)) -> 1 : (G0_pursued' = 0);
-endmodule
-
-module G1
-	G1_pursued: [0..1] init 0;
-	G1_achieved: [0..1] init 0;
-	[pursue_G1] ((G1_pursued = 0) & (G1_achieved = 0)) -> 1 : (G1_pursued' = 1);
-	[pursue_T1] ((G1_pursued = 1) & (G1_achieved = 0)) -> 1 : true;
-	[pursue_T2] ((G1_pursued = 1) & (G1_achieved = 0)) -> 1 : true;
-	[achieved_G1] ((G1_pursued = 1) & ((T1_achieved = 1) & (T2_achieved = 1))) -> 1 : (G1_pursued' = 0) & (G1_achieved' = 1);
-	[skip_G1] (((G1_pursued = 1) & (T1_pursued = 0)) & (T2_pursued = 0)) -> 1 : (G1_pursued' = 0);
-endmodule
-
-module G2
-	G2_pursued: [0..1] init 0;
-	G2_achieved: [0..1] init 0;
-	[pursue_G2] ((G2_pursued = 0) & (G2_achieved = 0)) -> 1 : (G2_pursued' = 1);
-	[pursue_G4] (((G2_pursued = 1) & (G2_achieved = 0)) & (G5_pursued = 0)) -> 1 : true;
-	[pursue_G5] (((G2_pursued = 1) & (G2_achieved = 0)) & (G4_pursued = 0)) -> 1 : true;
-	[achieved_G2] ((G2_pursued = 1) & ((G4_achieved = 1) | (G5_achieved = 1))) -> 1 : (G2_pursued' = 0) & (G2_achieved' = 1);
-	[skip_G2] (((G2_pursued = 1) & (G4_pursued = 0)) & (G5_pursued = 0)) -> 1 : (G2_pursued' = 0);
-endmodule
-
-module G3
-	G3_pursued: [0..1] init 0;
-	G3_achieved: [0..1] init 0;
-	[pursue_G3] ((G3_pursued = 0) & (G3_achieved = 0)) -> 1 : (G3_pursued' = 1);
-	[pursue_G6] (((G3_pursued = 1) & (G3_achieved = 0)) & (G6_achieved = 0)) -> 1 : true;
-	[pursue_G7] (((G3_pursued = 1) & (G3_achieved = 0)) & (G6_achieved = 1)) -> 1 : true;
-	[achieved_G3] ((G3_pursued = 1) & ((G6_achieved = 1) & (G7_achieved = 1))) -> 1 : (G3_pursued' = 0) & (G3_achieved' = 1);
-	[skip_G3] (((G3_pursued = 1) & (G6_pursued = 0)) & (G7_pursued = 0)) -> 1 : (G3_pursued' = 0);
-endmodule
-
-module G4
-	G4_pursued: [0..1] init 0;
-	G4_achieved: [0..1] init 0;
-	[pursue_G4] ((G4_pursued = 0) & (G4_achieved = 0)) -> 1 : (G4_pursued' = 1);
-	[pursue_T3] (((G4_pursued = 1) & (G4_achieved = 0)) & (T3_achieved = 0)) -> 1 : true;
-	[pursue_T4] (((G4_pursued = 1) & (G4_achieved = 0)) & (T3_achieved = 1)) -> 1 : true;
-	[achieved_G4] ((G4_pursued = 1) & ((T3_achieved = 1) & (T4_achieved = 1))) -> 1 : (G4_pursued' = 0) & (G4_achieved' = 1);
-	[skip_G4] (((G4_pursued = 1) & (T3_pursued = 0)) & (T4_pursued = 0)) -> 1 : (G4_pursued' = 0);
-endmodule
-
-module G5
-	G5_pursued: [0..1] init 0;
-	G5_achieved: [0..1] init 0;
-	[pursue_G5] ((G5_pursued = 0) & (G5_achieved = 0)) -> 1 : (G5_pursued' = 1);
-	[pursue_T6] (((G5_pursued = 1) & (G5_achieved = 0)) & (T5_achieved = 1)) -> 1 : true;
-	[pursue_T5] (((G5_pursued = 1) & (G5_achieved = 0)) & (T5_achieved = 0)) -> 1 : true;
-	[achieved_G5] ((G5_pursued = 1) & ((T6_achieved = 1) & (T5_achieved = 1))) -> 1 : (G5_pursued' = 0) & (G5_achieved' = 1);
-	[skip_G5] (((G5_pursued = 1) & (T6_pursued = 0)) & (T5_pursued = 0)) -> 1 : (G5_pursued' = 0);
-endmodule
-
-module G6
-	G6_pursued: [0..1] init 0;
-	G6_achieved: [0..1] init 0;
-	[pursue_G6] ((G6_pursued = 0) & (G6_achieved = 0)) -> 1 : (G6_pursued' = 1);
-	[pursue_T7] ((G6_pursued = 1) & (G6_achieved = 0)) -> 1 : true;
-	[achieved_G6] ((G6_pursued = 1) & (T7_achieved = 1)) -> 1 : (G6_pursued' = 0) & (G6_achieved' = 1);
-	[skip_G6] ((G6_pursued = 1) & (T7_pursued = 0)) -> 1 : (G6_pursued' = 0);
-endmodule
-
-module G7
-	G7_pursued: [0..1] init 0;
-	G7_achieved: [0..1] init 0;
-	[pursue_G7] ((G7_pursued = 0) & (G7_achieved = 0)) -> 1 : (G7_pursued' = 1);
-	[pursue_T8] ((G7_pursued = 1) & (G7_achieved = 0)) -> 1 : true;
-	[achieved_G7] ((G7_pursued = 1) & (T8_achieved = 1)) -> 1 : (G7_pursued' = 0) & (G7_achieved' = 1);
-	[skip_G7] ((G7_pursued = 1) & (T8_pursued = 0)) -> 1 : (G7_pursued' = 0);
-endmodule
-
-module ChangeManager
-	T1_pursued: [0..1] init 0;
-	T1_achieved: [0..1] init 0;
-	T2_pursued: [0..1] init 0;
-	T2_achieved: [0..1] init 0;
-	T3_pursued: [0..1] init 0;
-	T3_achieved: [0..1] init 0;
-	T4_pursued: [0..1] init 0;
-	T4_achieved: [0..1] init 0;
-	T5_pursued: [0..1] init 0;
-	T5_achieved: [0..1] init 0;
-	T6_pursued: [0..1] init 0;
-	T6_achieved: [0..1] init 0;
-	T7_pursued: [0..1] init 0;
-	T7_achieved: [0..1] init 0;
-	T8_pursued: [0..1] init 0;
-	T8_achieved: [0..1] init 0;
-	[pursue_T1] ((T1_pursued = 0) & (T1_achieved = 0)) -> 1 : (T1_pursued' = 1);
-	[try_T1] ((T1_pursued = 1) & (T1_achieved = 0)) -> T1_achievable : (T1_achieved' = 1) + (1 - T1_achievable) : (T1_pursued' = 0);
-	[achieved_T1] true -> 1 : true;
-	[pursue_T2] ((T2_pursued = 0) & (T2_achieved = 0)) -> 1 : (T2_pursued' = 1);
-	[try_T2] ((T2_pursued = 1) & (T2_achieved = 0)) -> T2_achievable : (T2_achieved' = 1) + (1 - T2_achievable) : (T2_pursued' = 0);
-	[achieved_T2] true -> 1 : true;
-	[pursue_T3] ((T3_pursued = 0) & (T3_achieved = 0)) -> 1 : (T3_pursued' = 1);
-	[try_T3] ((T3_pursued = 1) & (T3_achieved = 0)) -> T3_achievable : (T3_achieved' = 1) + (1 - T3_achievable) : (T3_pursued' = 0);
-	[achieved_T3] true -> 1 : true;
-	[pursue_T4] ((T4_pursued = 0) & (T4_achieved = 0)) -> 1 : (T4_pursued' = 1);
-	[try_T4] ((T4_pursued = 1) & (T4_achieved = 0)) -> T4_achievable : (T4_achieved' = 1) + (1 - T4_achievable) : (T4_pursued' = 0);
-	[achieved_T4] true -> 1 : true;
-	[pursue_T5] ((T5_pursued = 0) & (T5_achieved = 0)) -> 1 : (T5_pursued' = 1);
-	[try_T5] ((T5_pursued = 1) & (T5_achieved = 0)) -> T5_achievable : (T5_achieved' = 1) + (1 - T5_achievable) : (T5_pursued' = 0);
-	[achieved_T5] true -> 1 : true;
-	[pursue_T6] ((T6_pursued = 0) & (T6_achieved = 0)) -> 1 : (T6_pursued' = 1);
-	[try_T6] ((T6_pursued = 1) & (T6_achieved = 0)) -> T6_achievable : (T6_achieved' = 1) + (1 - T6_achievable) : (T6_pursued' = 0);
-	[achieved_T6] true -> 1 : true;
-	[pursue_T7] ((T7_pursued = 0) & (T7_achieved = 0)) -> 1 : (T7_pursued' = 1);
-	[try_T7] ((T7_pursued = 1) & (T7_achieved = 0)) -> T7_achievable : (T7_achieved' = 1) + (1 - T7_achievable) : (T7_pursued' = 0);
-	[achieved_T7] true -> 1 : true;
-	[pursue_T8] ((T8_pursued = 0) & (T8_achieved = 0)) -> 1 : (T8_pursued' = 1);
-	[try_T8] ((T8_pursued = 1) & (T8_achieved = 0)) -> T8_achievable : (T8_achieved' = 1) + (1 - T8_achievable) : (T8_pursued' = 0);
-	[achieved_T8] true -> 1 : true;
-endmodule
-
-module System
-endmodule
-
 
 Time for model input parsing: 0.003s.
 
-INFO  (properties.cpp:32): Loading properties from file: examples/deliveryDrone/props/3-interleavedPaltPseq.props
+Time for model construction: 0.007s.
 
-ERROR (SpiritErrorHandler.h:26): Parsing error at 60:16:  expecting ")", here:
-	 (G3_pursued=1 => (!(G7_pursued=1) U (G6_achieved=1))) ];
-	               ^
+-------------------------------------------------------------- 
+Model type: 	DTMC (sparse)
+States: 	277
+Transitions: 	1017
+Reward Models:  none
+State Labels: 	16 labels
+   * (G6_achieved = 1) -> 156 item(s)
+   * deadlock -> 0 item(s)
+   * !(((G4_pursued = 1) & (G5_pursued = 1))) -> 277 item(s)
+   * !((G3_pursued = 1)) -> 160 item(s)
+   * ((((G2_pursued = 1) & ((G5_pursued = 1) | (G5_achieved = 1))) & (G2_achieved = 0)) => (((G4_pursued = 0) & (T3_pursued = 0)) & (T4_pursued = 0))) -> 266 item(s)
+   * !((G7_pursued = 1)) -> 238 item(s)
+   * (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0)) -> 2 item(s)
+   * init -> 1 item(s)
+   * ((T1_pursued = 1) & (T2_pursued = 1)) -> 270 item(s)
+   * (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0)) -> 2 item(s)
+   * ((((G2_pursued = 1) & ((G4_pursued = 1) | (G4_achieved = 1))) & (G2_achieved = 0)) => (((G5_pursued = 0) & (T5_pursued = 0)) & (T6_pursued = 0))) -> 266 item(s)
+   * ((G0_achieved = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1))) -> 277 item(s)
+   * ((G2_pursued = 1) => (G1_achieved = 1)) -> 277 item(s)
+   * ((G7_pursued = 1) => (G6_achieved = 1)) -> 277 item(s)
+   * ((G3_achieved = 1) => ((G6_achieved = 1) & (G7_achieved = 1))) -> 277 item(s)
+   * ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 277 item(s)
+Choice Labels: 	none
+-------------------------------------------------------------- 
 
-ERROR (storm-cli.cpp:50): An unexpected exception occurred and caused Storm to terminate. The message of this exception is: std::exception
+Model checking property "1": P>=1 [G ((G2_pursued = 1) => (G1_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "2": P>=1 [G ((G3_pursued = 1) => ((G1_achieved = 1) & (G2_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "3": P>=1 [G ((G0_achieved = 1) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "4": P>0 [F ((T1_pursued = 1) & (T2_pursued = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "5": P>0 [F (((G1_pursued = 1) & (T1_pursued = 1)) & (T2_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "6": P>0 [F (((G1_pursued = 1) & (T2_pursued = 1)) & (T1_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "7": P>=1 [G !(((G4_pursued = 1) & (G5_pursued = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "8": P>=1 [G ((((G2_pursued = 1) & ((G4_pursued = 1) | (G4_achieved = 1))) & (G2_achieved = 0)) => (((G5_pursued = 0) & (T5_pursued = 0)) & (T6_pursued = 0)))] ...
+Result (for initial states): false
+
+Time for model checking: 0.000s.
+
+Model checking property "9": P>=1 [G ((((G2_pursued = 1) & ((G5_pursued = 1) | (G5_achieved = 1))) & (G2_achieved = 0)) => (((G4_pursued = 0) & (T3_pursued = 0)) & (T4_pursued = 0)))] ...
+Result (for initial states): false
+
+Time for model checking: 0.000s.
+
+Model checking property "10": P>=1 [G ((G7_pursued = 1) => (G6_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "11": P>=1 [G ((G3_achieved = 1) => ((G6_achieved = 1) & (G7_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "12": P>=1 [G (!((G3_pursued = 1)) | (!((G7_pursued = 1)) U (G6_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.010s.
+
+Performance statistics:
+  * peak memory usage: 89MB
+  * CPU time: 0.029s
+  * wallclock time: 0.025s

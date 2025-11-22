@@ -1,77 +1,10 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 16:36:48 2025
-Command line arguments: --prism output/1-minimal.prism --buildfull --prop examples/deliveryDrone/props/1-minimal.props --timemem --trace
+Date: Sat Nov 22 18:19:53 2025
+Command line arguments: --prism output/1-minimal.prism --buildfull --prop examples/deliveryDrone/props/1-minimal.props --timemem
 Current working directory: /workspace
 
-DEBUG (PrismParserGrammar.cpp:64): First pass of parsing PRISM input finished.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
-TRACE (PrismParserGrammar.cpp:81): Parsed PRISM input: dtmc
-const double T1_achievable = 9/10;
-const double T2_achievable = 7/10;
-const double T3_achievable = 4/5;
-
-
-formula G1_achievable = (T1_achievable * T2_achievable);
-formula G2_achievable = T3_achievable;
-formula G0_achievable = (G1_achievable * G2_achievable);
-
-module G0
-	G0_pursued: [0..1] init 0;
-	G0_achieved: [0..1] init 0;
-	[pursue_G0] ((G0_pursued = 0) & (G0_achieved = 0)) -> 1 : (G0_pursued' = 1);
-	[pursue_G1] (((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 0)) -> 1 : true;
-	[pursue_G2] (((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) -> 1 : true;
-	[achieved_G0] ((G0_pursued = 1) & ((G1_achieved = 1) & (G2_achieved = 1))) -> 1 : (G0_pursued' = 0) & (G0_achieved' = 1);
-	[skip_G0] (((G0_pursued = 1) & (G1_pursued = 0)) & (G2_pursued = 0)) -> 1 : (G0_pursued' = 0);
-endmodule
-
-module G1
-	G1_pursued: [0..1] init 0;
-	G1_achieved: [0..1] init 0;
-	[pursue_G1] ((G1_pursued = 0) & (G1_achieved = 0)) -> 1 : (G1_pursued' = 1);
-	[pursue_T1] (((G1_pursued = 1) & (G1_achieved = 0)) & (T1_achieved = 0)) -> 1 : true;
-	[pursue_T2] (((G1_pursued = 1) & (G1_achieved = 0)) & (T1_achieved = 1)) -> 1 : true;
-	[achieved_G1] ((G1_pursued = 1) & ((T1_achieved = 1) & (T2_achieved = 1))) -> 1 : (G1_pursued' = 0) & (G1_achieved' = 1);
-	[skip_G1] (((G1_pursued = 1) & (T1_pursued = 0)) & (T2_pursued = 0)) -> 1 : (G1_pursued' = 0);
-endmodule
-
-module G2
-	G2_pursued: [0..1] init 0;
-	G2_achieved: [0..1] init 0;
-	[pursue_G2] ((G2_pursued = 0) & (G2_achieved = 0)) -> 1 : (G2_pursued' = 1);
-	[pursue_T3] ((G2_pursued = 1) & (G2_achieved = 0)) -> 1 : true;
-	[achieved_G2] ((G2_pursued = 1) & (T3_achieved = 1)) -> 1 : (G2_pursued' = 0) & (G2_achieved' = 1);
-	[skip_G2] ((G2_pursued = 1) & (T3_pursued = 0)) -> 1 : (G2_pursued' = 0);
-endmodule
-
-module ChangeManager
-	T1_pursued: [0..1] init 0;
-	T1_achieved: [0..1] init 0;
-	T2_pursued: [0..1] init 0;
-	T2_achieved: [0..1] init 0;
-	T3_pursued: [0..1] init 0;
-	T3_achieved: [0..1] init 0;
-	[pursue_T1] ((T1_pursued = 0) & (T1_achieved = 0)) -> 1 : (T1_pursued' = 1);
-	[try_T1] ((T1_pursued = 1) & (T1_achieved = 0)) -> T1_achievable : (T1_achieved' = 1) + (1 - T1_achievable) : (T1_pursued' = 0);
-	[achieved_T1] true -> 1 : true;
-	[pursue_T2] ((T2_pursued = 0) & (T2_achieved = 0)) -> 1 : (T2_pursued' = 1);
-	[try_T2] ((T2_pursued = 1) & (T2_achieved = 0)) -> T2_achievable : (T2_achieved' = 1) + (1 - T2_achievable) : (T2_pursued' = 0);
-	[achieved_T2] true -> 1 : true;
-	[pursue_T3] ((T3_pursued = 0) & (T3_achieved = 0)) -> 1 : (T3_pursued' = 1);
-	[try_T3] ((T3_pursued = 1) & (T3_achieved = 0)) -> T3_achievable : (T3_achieved' = 1) + (1 - T3_achievable) : (T3_pursued' = 0);
-	[achieved_T3] true -> 1 : true;
-endmodule
-
-module System
-endmodule
-
-
-Time for model input parsing: 0.006s.
-
-INFO  (properties.cpp:32): Loading properties from file: examples/deliveryDrone/props/1-minimal.props
+Time for model input parsing: 0.004s.
 
 ERROR (FormulaParser.cpp:97): Could not parse formula: // G0 is eventually achieved
 P=? [ F G0_achieved=1 ]

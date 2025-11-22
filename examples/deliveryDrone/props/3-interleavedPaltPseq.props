@@ -57,4 +57,4 @@ P>=1 [ G (G7_pursued=1 => G6_achieved=1) ];
 P>=1 [ G (G3_achieved=1 => (G6_achieved=1 & G7_achieved=1)) ];
 
 // G3: once G3 is being pursued, G6 must be achieved before any pursuit of G7
-P>=1 [ G (G3_pursued=1 => (!(G7_pursued=1) U (G6_achieved=1))) ];
+P>=1 [ G ( !(G3_pursued=1) | ( !(G7_pursued=1) U (G6_achieved=1) ) ) ];

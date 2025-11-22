@@ -37,10 +37,16 @@ const pursueTask = (task: GoalNode): string => {
 
 const achieveTask = (task: GoalNode): string => {
   const logger = getLogger();
-  const prismLabelStatement = `[${achievedTransition(task.id)}] true -> true;`;
+  const leftStatement = `${hasBeenAchievedAndPursued(task, {
+    achieved: true,
+    pursued: true,
+  })}`;
+  const prismLabelStatement = `[${achievedTransition(
+    task.id,
+  )}] ${leftStatement} -> true;`;
   logger.taskTranstions.transition(
     task.id,
-    'true',
+    leftStatement,
     'true',
     prismLabelStatement,
     'achieve',
@@ -81,6 +87,8 @@ const tryTask = (task: GoalNode): string => {
 
 export const taskTransitions = (task: GoalNode): string => {
   return `
+
+  // Task ${task.id}: ${task.name}
   ${pursueTask(task)}
   ${tryTask(task)}
   ${achieveTask(task)}

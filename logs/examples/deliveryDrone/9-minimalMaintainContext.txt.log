@@ -1,0 +1,24 @@
+[ERROR] Error running model:: Error: ENOENT: no such file or directory, open 'examples/deliveryDrone/9-minimalMaintainContext.txt'
+----------------------------------------
+[LOGGER SUMMARY] examples/deliveryDrone/9-minimalMaintainContext.txt
+----------GOAL SUMMARY----------
+[GOAL MODULES] 0
+[GOAL VARIABLES] 0
+[GOAL PURSUE LINES] 0
+[GOAL ACHIEVED LINES] 0
+[GOAL SKIPPED LINES] 0
+[GOAL ACHIEVABILITY FORMULAS] 0
+[GOAL MAINTAIN FORMULAS] 0
+----------CHANGE MANAGER SUMMARY----------
+[TASKS VARIABLES] 0
+[TASKS LABELS] 0
+[TASKS TRY LINES] 0
+[TASKS FAILED LINES] 0
+[TASKS ACHIEVED LINES] 0
+[TASKS SKIPPED LINES] 0
+[TASKS ACHIEVABILITY CONSTANTS] 0
+----------SYSTEM SUMMARY----------
+[SYSTEM VARIABLES] 0
+[SYSTEM RESOURCES] 0
+[SYSTEM CONTEXT VARIABLES] 0
+----------------------------------------
