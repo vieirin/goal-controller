@@ -1,0 +1,18 @@
+{
+  "hasMoreDelivery": false,
+  "missionReady": false,
+  "commLink": false,
+  "inFlight": false,
+  "T1_achievable": 0.8,
+  "T10_achievable": 0.7,
+  "T11_achievable": 0.8,
+  "T12_achievable": 0.8,
+  "T2_achievable": 0.8,
+  "T3_achievable": 0.8,
+  "T4_achievable": 0.8,
+  "T5_achievable": 0.8,
+  "T6_achievable": 0.8,
+  "T7_achievable": 0.8,
+  "T8_achievable": 0.8,
+  "T9_achievable": 0.8
+}

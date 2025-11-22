@@ -281,7 +281,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       // parent goals have activation context independently of the maintain condition
       const activationContextCondition =
-        (isItself(child) &&
+        ((isItself(child) || child.type === 'task') &&
           child.execCondition &&
           child.execCondition.assertion.sentence) ||
         '';

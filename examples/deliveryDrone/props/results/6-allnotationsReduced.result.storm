@@ -1,12 +1,12 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 20:44:03 2025
+Date: Sat Nov 22 21:42:30 2025
 Command line arguments: --prism output/6-allnotationsReduced.prism --buildfull --prop examples/deliveryDrone/props/6-allnotationsReduced.props --timemem
 Current working directory: /workspace
 
-Time for model input parsing: 0.005s.
+Time for model input parsing: 0.006s.
 
-Time for model construction: 1.168s.
+Time for model construction: 1.231s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -51,7 +51,7 @@ Choice Labels: 	none
 Model checking property "1": P>=1 [G ((G2_pursued = 1) => ((((G1_achieved = 1) & (G3_achieved = 0)) & (G4_achieved = 0)) & (G5_achieved = 0)))] ...
 Result (for initial states): true
 
-Time for model checking: 0.007s.
+Time for model checking: 0.008s.
 
 Model checking property "2": P>=1 [G ((G3_pursued = 1) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G4_achieved = 0)) & (G5_achieved = 0)))] ...
 Result (for initial states): true
@@ -85,7 +85,7 @@ Time for model checking: 0.007s.
 Model checking property "8": P>0 [(T2_achieved = 0) U ((T1_achieved = 1) & (T2_achieved = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.006s.
+Time for model checking: 0.007s.
 
 Model checking property "9": P>0 [(T1_achieved = 0) U ((T2_achieved = 1) & (T1_achieved = 0))] ...
 Result (for initial states): true
@@ -120,7 +120,7 @@ Time for model checking: 0.007s.
 Model checking property "15": P>0 [F ((G3_pursued = 1) & (G3_chosen = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.007s.
+Time for model checking: 0.008s.
 
 Model checking property "16": P>0 [F ((G3_pursued = 1) & (G3_chosen = 2))] ...
 Result (for initial states): true
@@ -130,7 +130,7 @@ Time for model checking: 0.007s.
 Model checking property "17": P>0 [F ((G3_pursued = 1) & (G3_chosen = 3))] ...
 Result (for initial states): true
 
-Time for model checking: 0.006s.
+Time for model checking: 0.007s.
 
 Model checking property "18": P>=1 [G ((G3_chosen = 1) => ((G10_pursued = 0) & (G11_pursued = 0)))] ...
 Result (for initial states): true
@@ -180,9 +180,9 @@ Time for model checking: 0.009s.
 Model checking property "27": P>0 [F (((G5_pursued = 1) & (G15_pursued = 1)) & (G14_pursued = 0))] ...
 Result (for initial states): true
 
-Time for model checking: 0.009s.
+Time for model checking: 0.008s.
 
 Performance statistics:
   * peak memory usage: 82MB
-  * CPU time: 1.394s
-  * wallclock time: 1.384s
+  * CPU time: 1.460s
+  * wallclock time: 1.453s
