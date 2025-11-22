@@ -1,12 +1,247 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 15:21:19 2025
-Command line arguments: --prism output/7-minimalAll.prism --buildfull --prop examples/deliveryDrone/props/7-minimalAll.props --timemem
+Date: Sat Nov 22 16:36:48 2025
+Command line arguments: --prism output/7-minimalAll.prism --buildfull --prop examples/deliveryDrone/props/7-minimalAll.props --timemem --trace
 Current working directory: /workspace
 
-Time for model input parsing: 0.005s.
+DEBUG (PrismParserGrammar.cpp:64): First pass of parsing PRISM input finished.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+DEBUG (ExpressionParser.cpp:352): Parsed expression successfully.
+TRACE (PrismParserGrammar.cpp:81): Parsed PRISM input: dtmc
+const double T1_achievable = 4/5;
+const double T10_achievable = 4/5;
+const double T11_achievable = 4/5;
+const double T12_achievable = 4/5;
+const double T2_achievable = 4/5;
+const double T3_achievable = 4/5;
+const double T5_achievable = 4/5;
+const double T6_achievable = 4/5;
+const double T7_achievable = 4/5;
+const double T8_achievable = 4/5;
+const double T9_achievable = 4/5;
 
-Time for model construction: 0.100s.
+
+formula G1_achievable = (T1_achievable * T2_achievable);
+formula G2_achievable = T3_achievable;
+formula G9_achievable = T5_achievable;
+formula G10_achievable = T6_achievable;
+formula G11_achievable = T7_achievable;
+formula G12_achievable = T8_achievable;
+formula G13_achievable = T9_achievable;
+formula G14_achievable = (T10_achievable * T11_achievable);
+formula G15_achievable = T12_achievable;
+formula G3_achievable = (((G9_achievable + G10_achievable) + G11_achievable) - ((G9_achievable * G10_achievable) * G11_achievable));
+formula G4_achievable = ((G12_achievable + G13_achievable) - (G12_achievable * G13_achievable));
+formula G5_achievable = ((G14_achievable + G15_achievable) - (G14_achievable * G15_achievable));
+formula G0_achievable = ((((G1_achievable * G2_achievable) * G3_achievable) * G4_achievable) * G5_achievable);
+
+module G0
+	G0_pursued: [0..1] init 0;
+	G0_achieved: [0..1] init 0;
+	[pursue_G0] ((G0_pursued = 0) & (G0_achieved = 0)) -> 1 : (G0_pursued' = 1);
+	[pursue_G1] (((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 0)) -> 1 : true;
+	[pursue_G2] ((((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G3_achieved = 0)) & (G4_achieved = 0)) & (G5_achieved = 0)) -> 1 : true;
+	[pursue_G3] ((((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G2_achieved = 1)) & (G4_achieved = 0)) & (G5_achieved = 0)) -> 1 : true;
+	[pursue_G4] ((((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G5_achieved = 0)) -> 1 : true;
+	[pursue_G5] ((((((G0_pursued = 1) & (G0_achieved = 0)) & (G1_achieved = 1)) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)) -> 1 : true;
+	[achieved_G0] ((G0_pursued = 1) & (((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)) & (G5_achieved = 1))) -> 1 : (G0_pursued' = 0) & (G0_achieved' = 1);
+	[skip_G0] ((((((G0_pursued = 1) & (G1_pursued = 0)) & (G2_pursued = 0)) & (G3_pursued = 0)) & (G4_pursued = 0)) & (G5_pursued = 0)) -> 1 : (G0_pursued' = 0);
+endmodule
+
+module G1
+	G1_pursued: [0..1] init 0;
+	G1_achieved: [0..1] init 0;
+	[pursue_G1] ((G1_pursued = 0) & (G1_achieved = 0)) -> 1 : (G1_pursued' = 1);
+	[pursue_T1] ((G1_pursued = 1) & (G1_achieved = 0)) -> 1 : true;
+	[pursue_T2] ((G1_pursued = 1) & (G1_achieved = 0)) -> 1 : true;
+	[achieved_G1] ((G1_pursued = 1) & ((T1_achieved = 1) & (T2_achieved = 1))) -> 1 : (G1_pursued' = 0) & (G1_achieved' = 1);
+	[skip_G1] (((G1_pursued = 1) & (T1_pursued = 0)) & (T2_pursued = 0)) -> 1 : (G1_pursued' = 0);
+endmodule
+
+module G2
+	G2_pursued: [0..1] init 0;
+	G2_achieved: [0..1] init 0;
+	[pursue_G2] ((G2_pursued = 0) & (G2_achieved = 0)) -> 1 : (G2_pursued' = 1);
+	[pursue_T3] ((G2_pursued = 1) & (G2_achieved = 0)) -> 1 : true;
+	[achieved_G2] ((G2_pursued = 1) & (T3_achieved = 1)) -> 1 : (G2_pursued' = 0) & (G2_achieved' = 1);
+	[skip_G2] ((G2_pursued = 1) & (T3_pursued = 0)) -> 1 : (G2_pursued' = 0);
+endmodule
+
+module G3
+	G3_pursued: [0..1] init 0;
+	G3_achieved: [0..1] init 0;
+	G3_chosen: [0..3] init 0;
+	[pursue_G3] ((G3_pursued = 0) & (G3_achieved = 0)) -> 1 : (G3_pursued' = 1);
+	[pursue_G9] ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen != 2)) & (G3_chosen != 3)) -> 1 : (G3_chosen' = 1);
+	[pursue_G10] ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen != 1)) & (G3_chosen != 3)) -> 1 : (G3_chosen' = 2);
+	[pursue_G11] ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen != 1)) & (G3_chosen != 2)) -> 1 : (G3_chosen' = 3);
+	[achieved_G3] ((G3_pursued = 1) & (((G9_achieved = 1) | (G10_achieved = 1)) | (G11_achieved = 1))) -> 1 : (G3_pursued' = 0) & (G3_achieved' = 1);
+	[skip_G3] ((((G3_pursued = 1) & (G9_pursued = 0)) & (G10_pursued = 0)) & (G11_pursued = 0)) -> 1 : (G3_pursued' = 0);
+endmodule
+
+module G4
+	G4_pursued: [0..1] init 0;
+	G4_achieved: [0..1] init 0;
+	G12_failed: [0..5] init 0;
+	[pursue_G4] ((G4_pursued = 0) & (G4_achieved = 0)) -> 1 : (G4_pursued' = 1);
+	[pursue_G12] ((G4_pursued = 1) & (G4_achieved = 0)) -> 1 : (G12_failed' = (min(5, (G12_failed + 1))));
+	[pursue_G13] (((G4_pursued = 1) & (G4_achieved = 0)) & (G12_failed >= 2)) -> 1 : true;
+	[achieved_G4] ((G4_pursued = 1) & ((G12_achieved = 1) | (G13_achieved = 1))) -> 1 : (G4_pursued' = 0) & (G4_achieved' = 1);
+	[skip_G4] (((G4_pursued = 1) & (G12_pursued = 0)) & (G13_pursued = 0)) -> 1 : (G4_pursued' = 0);
+endmodule
+
+module G5
+	G5_pursued: [0..1] init 0;
+	G5_achieved: [0..1] init 0;
+	[pursue_G5] ((G5_pursued = 0) & (G5_achieved = 0)) -> 1 : (G5_pursued' = 1);
+	[pursue_G14] (((G5_pursued = 1) & (G5_achieved = 0)) & (G15_pursued = 0)) -> 1 : true;
+	[pursue_G15] (((G5_pursued = 1) & (G5_achieved = 0)) & (G14_pursued = 0)) -> 1 : true;
+	[achieved_G5] ((G5_pursued = 1) & ((G14_achieved = 1) | (G15_achieved = 1))) -> 1 : (G5_pursued' = 0) & (G5_achieved' = 1);
+	[skip_G5] (((G5_pursued = 1) & (G14_pursued = 0)) & (G15_pursued = 0)) -> 1 : (G5_pursued' = 0);
+endmodule
+
+module G9
+	G9_pursued: [0..1] init 0;
+	G9_achieved: [0..1] init 0;
+	[pursue_G9] ((G9_pursued = 0) & (G9_achieved = 0)) -> 1 : (G9_pursued' = 1);
+	[pursue_T5] ((G9_pursued = 1) & (G9_achieved = 0)) -> 1 : true;
+	[achieved_G9] ((G9_pursued = 1) & (T5_achieved = 1)) -> 1 : (G9_pursued' = 0) & (G9_achieved' = 1);
+	[skip_G9] ((G9_pursued = 1) & (T5_pursued = 0)) -> 1 : (G9_pursued' = 0);
+endmodule
+
+module G10
+	G10_pursued: [0..1] init 0;
+	G10_achieved: [0..1] init 0;
+	[pursue_G10] ((G10_pursued = 0) & (G10_achieved = 0)) -> 1 : (G10_pursued' = 1);
+	[pursue_T6] ((G10_pursued = 1) & (G10_achieved = 0)) -> 1 : true;
+	[achieved_G10] ((G10_pursued = 1) & (T6_achieved = 1)) -> 1 : (G10_pursued' = 0) & (G10_achieved' = 1);
+	[skip_G10] ((G10_pursued = 1) & (T6_pursued = 0)) -> 1 : (G10_pursued' = 0);
+endmodule
+
+module G11
+	G11_pursued: [0..1] init 0;
+	G11_achieved: [0..1] init 0;
+	[pursue_G11] ((G11_pursued = 0) & (G11_achieved = 0)) -> 1 : (G11_pursued' = 1);
+	[pursue_T7] ((G11_pursued = 1) & (G11_achieved = 0)) -> 1 : true;
+	[achieved_G11] ((G11_pursued = 1) & (T7_achieved = 1)) -> 1 : (G11_pursued' = 0) & (G11_achieved' = 1);
+	[skip_G11] ((G11_pursued = 1) & (T7_pursued = 0)) -> 1 : (G11_pursued' = 0);
+endmodule
+
+module G12
+	G12_pursued: [0..1] init 0;
+	G12_achieved: [0..1] init 0;
+	[pursue_G12] ((G12_pursued = 0) & (G12_achieved = 0)) -> 1 : (G12_pursued' = 1);
+	[pursue_T8] ((G12_pursued = 1) & (G12_achieved = 0)) -> 1 : true;
+	[achieved_G12] ((G12_pursued = 1) & (T8_achieved = 1)) -> 1 : (G12_pursued' = 0) & (G12_achieved' = 1);
+	[skip_G12] ((G12_pursued = 1) & (T8_pursued = 0)) -> 1 : (G12_pursued' = 0);
+endmodule
+
+module G13
+	G13_pursued: [0..1] init 0;
+	G13_achieved: [0..1] init 0;
+	[pursue_G13] ((G13_pursued = 0) & (G13_achieved = 0)) -> 1 : (G13_pursued' = 1);
+	[pursue_T9] ((G13_pursued = 1) & (G13_achieved = 0)) -> 1 : true;
+	[achieved_G13] ((G13_pursued = 1) & (T9_achieved = 1)) -> 1 : (G13_pursued' = 0) & (G13_achieved' = 1);
+	[skip_G13] ((G13_pursued = 1) & (T9_pursued = 0)) -> 1 : (G13_pursued' = 0);
+endmodule
+
+module G14
+	G14_pursued: [0..1] init 0;
+	G14_achieved: [0..1] init 0;
+	[pursue_G14] ((G14_pursued = 0) & (G14_achieved = 0)) -> 1 : (G14_pursued' = 1);
+	[pursue_T10] (((G14_pursued = 1) & (G14_achieved = 0)) & (T10_achieved = 0)) -> 1 : true;
+	[pursue_T11] (((G14_pursued = 1) & (G14_achieved = 0)) & (T10_achieved = 1)) -> 1 : true;
+	[achieved_G14] ((G14_pursued = 1) & ((T10_achieved = 1) & (T11_achieved = 1))) -> 1 : (G14_pursued' = 0) & (G14_achieved' = 1);
+	[skip_G14] (((G14_pursued = 1) & (T10_pursued = 0)) & (T11_pursued = 0)) -> 1 : (G14_pursued' = 0);
+endmodule
+
+module G15
+	G15_pursued: [0..1] init 0;
+	G15_achieved: [0..1] init 0;
+	[pursue_G15] ((G15_pursued = 0) & (G15_achieved = 0)) -> 1 : (G15_pursued' = 1);
+	[pursue_T12] ((G15_pursued = 1) & (G15_achieved = 0)) -> 1 : true;
+	[achieved_G15] ((G15_pursued = 1) & (T12_achieved = 1)) -> 1 : (G15_pursued' = 0) & (G15_achieved' = 1);
+	[skip_G15] ((G15_pursued = 1) & (T12_pursued = 0)) -> 1 : (G15_pursued' = 0);
+endmodule
+
+module ChangeManager
+	T1_pursued: [0..1] init 0;
+	T1_achieved: [0..1] init 0;
+	T10_pursued: [0..1] init 0;
+	T10_achieved: [0..1] init 0;
+	T11_pursued: [0..1] init 0;
+	T11_achieved: [0..1] init 0;
+	T12_pursued: [0..1] init 0;
+	T12_achieved: [0..1] init 0;
+	T2_pursued: [0..1] init 0;
+	T2_achieved: [0..1] init 0;
+	T3_pursued: [0..1] init 0;
+	T3_achieved: [0..1] init 0;
+	T5_pursued: [0..1] init 0;
+	T5_achieved: [0..1] init 0;
+	T6_pursued: [0..1] init 0;
+	T6_achieved: [0..1] init 0;
+	T7_pursued: [0..1] init 0;
+	T7_achieved: [0..1] init 0;
+	T8_pursued: [0..1] init 0;
+	T8_achieved: [0..1] init 0;
+	T9_pursued: [0..1] init 0;
+	T9_achieved: [0..1] init 0;
+	[pursue_T1] ((T1_pursued = 0) & (T1_achieved = 0)) -> 1 : (T1_pursued' = 1);
+	[try_T1] ((T1_pursued = 1) & (T1_achieved = 0)) -> T1_achievable : (T1_achieved' = 1) + (1 - T1_achievable) : (T1_pursued' = 0);
+	[achieved_T1] true -> 1 : true;
+	[pursue_T10] ((T10_pursued = 0) & (T10_achieved = 0)) -> 1 : (T10_pursued' = 1);
+	[try_T10] ((T10_pursued = 1) & (T10_achieved = 0)) -> T10_achievable : (T10_achieved' = 1) + (1 - T10_achievable) : (T10_pursued' = 0);
+	[achieved_T10] true -> 1 : true;
+	[pursue_T11] ((T11_pursued = 0) & (T11_achieved = 0)) -> 1 : (T11_pursued' = 1);
+	[try_T11] ((T11_pursued = 1) & (T11_achieved = 0)) -> T11_achievable : (T11_achieved' = 1) + (1 - T11_achievable) : (T11_pursued' = 0);
+	[achieved_T11] true -> 1 : true;
+	[pursue_T12] ((T12_pursued = 0) & (T12_achieved = 0)) -> 1 : (T12_pursued' = 1);
+	[try_T12] ((T12_pursued = 1) & (T12_achieved = 0)) -> T12_achievable : (T12_achieved' = 1) + (1 - T12_achievable) : (T12_pursued' = 0);
+	[achieved_T12] true -> 1 : true;
+	[pursue_T2] ((T2_pursued = 0) & (T2_achieved = 0)) -> 1 : (T2_pursued' = 1);
+	[try_T2] ((T2_pursued = 1) & (T2_achieved = 0)) -> T2_achievable : (T2_achieved' = 1) + (1 - T2_achievable) : (T2_pursued' = 0);
+	[achieved_T2] true -> 1 : true;
+	[pursue_T3] ((T3_pursued = 0) & (T3_achieved = 0)) -> 1 : (T3_pursued' = 1);
+	[try_T3] ((T3_pursued = 1) & (T3_achieved = 0)) -> T3_achievable : (T3_achieved' = 1) + (1 - T3_achievable) : (T3_pursued' = 0);
+	[achieved_T3] true -> 1 : true;
+	[pursue_T5] ((T5_pursued = 0) & (T5_achieved = 0)) -> 1 : (T5_pursued' = 1);
+	[try_T5] ((T5_pursued = 1) & (T5_achieved = 0)) -> T5_achievable : (T5_achieved' = 1) + (1 - T5_achievable) : (T5_pursued' = 0);
+	[achieved_T5] true -> 1 : true;
+	[pursue_T6] ((T6_pursued = 0) & (T6_achieved = 0)) -> 1 : (T6_pursued' = 1);
+	[try_T6] ((T6_pursued = 1) & (T6_achieved = 0)) -> T6_achievable : (T6_achieved' = 1) + (1 - T6_achievable) : (T6_pursued' = 0);
+	[achieved_T6] true -> 1 : true;
+	[pursue_T7] ((T7_pursued = 0) & (T7_achieved = 0)) -> 1 : (T7_pursued' = 1);
+	[try_T7] ((T7_pursued = 1) & (T7_achieved = 0)) -> T7_achievable : (T7_achieved' = 1) + (1 - T7_achievable) : (T7_pursued' = 0);
+	[achieved_T7] true -> 1 : true;
+	[pursue_T8] ((T8_pursued = 0) & (T8_achieved = 0)) -> 1 : (T8_pursued' = 1);
+	[try_T8] ((T8_pursued = 1) & (T8_achieved = 0)) -> T8_achievable : (T8_achieved' = 1) + (1 - T8_achievable) : (T8_pursued' = 0);
+	[achieved_T8] true -> 1 : true;
+	[pursue_T9] ((T9_pursued = 0) & (T9_achieved = 0)) -> 1 : (T9_pursued' = 1);
+	[try_T9] ((T9_pursued = 1) & (T9_achieved = 0)) -> T9_achievable : (T9_achieved' = 1) + (1 - T9_achievable) : (T9_pursued' = 0);
+	[achieved_T9] true -> 1 : true;
+endmodule
+
+module System
+endmodule
+
+
+Time for model input parsing: 0.006s.
+
+INFO  (properties.cpp:32): Loading properties from file: examples/deliveryDrone/props/7-minimalAll.props
+
+Time for model construction: 0.104s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -48,146 +283,174 @@ Choice Labels: 	none
 -------------------------------------------------------------- 
 
 Model checking property "1": P>=1 [F (G0_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "2": P>=1 [F (G1_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "3": P>=1 [F (G2_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "4": P>=1 [F (G3_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "5": P>=1 [F (G4_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "6": P>=1 [F (G5_achieved = 1)] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 7249 states with probability 1, 0 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "7": P>=1 [G (((((((((G2_pursued = 1) | (G2_achieved = 1)) | (G3_pursued = 1)) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (G1_achieved = 1))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "8": P>=1 [G (((((((G3_pursued = 1) | (G3_achieved = 1)) | (G4_pursued = 1)) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => ((G1_achieved = 1) & (G2_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "9": P>=1 [G (((((G4_pursued = 1) | (G4_achieved = 1)) | (G5_pursued = 1)) | (G5_achieved = 1)) => (((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "10": P>=1 [G (((G5_pursued = 1) | (G5_achieved = 1)) => ((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "11": P>=1 [G ((G0_achieved = 1) => (((((G1_achieved = 1) & (G2_achieved = 1)) & (G3_achieved = 1)) & (G4_achieved = 1)) & (G5_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "12": P>=1 [G ((G1_achieved = 1) => ((T1_achieved = 1) & (T2_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "13": P>0 [F ((((G1_pursued = 1) & (G1_achieved = 0)) & (T1_pursued = 1)) & (T2_pursued = 1))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 11 states with probability 1, 7238 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "14": P>=1 [G (((T11_pursued = 1) | (T11_achieved = 1)) => (T10_achieved = 1))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "15": P>=1 [G ((G14_achieved = 1) => ((T10_achieved = 1) & (T11_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "16": P>=1 [G !(((((G9_pursued = 1) & (G10_pursued = 1)) | ((G9_pursued = 1) & (G11_pursued = 1))) | ((G10_pursued = 1) & (G11_pursued = 1))))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "17": P>=1 [G ((G9_pursued = 1) => (G3_chosen = 1))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "18": P>=1 [G ((G10_pursued = 1) => (G3_chosen = 2))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "19": P>=1 [G ((G11_pursued = 1) => (G3_chosen = 3))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "20": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 1)) => ((G10_pursued = 0) & (G11_pursued = 0)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "21": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 2)) => ((G9_pursued = 0) & (G11_pursued = 0)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "22": P>=1 [G ((((G3_pursued = 1) & (G3_achieved = 0)) & (G3_chosen = 3)) => ((G9_pursued = 0) & (G10_pursued = 0)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "23": P>=1 [G ((G3_achieved = 1) => (((G9_achieved = 1) | (G10_achieved = 1)) | (G11_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "24": P>=1 [G ((G13_pursued = 1) => (G12_failed >= 2))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "25": P>=1 [G ((G12_failed < 2) => (G13_pursued = 0))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "26": P>=1 [G ((G4_achieved = 1) => ((G12_achieved = 1) | (G13_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "27": P>=1 [G ((G5_achieved = 1) => ((G14_achieved = 1) | (G15_achieved = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Model checking property "28": P>=1 [G !(((G14_pursued = 1) & (G15_pursued = 1)))] ...
+INFO  (SparseDtmcPrctlHelper.cpp:185): Preprocessing: 0 states with probability 1, 7249 with probability 0 (0 states remaining).
 Result (for initial states): true
 
 Time for model checking: 0.000s.
 
 Performance statistics:
   * peak memory usage: 76MB
-  * CPU time: 0.142s
-  * wallclock time: 0.127s
+  * CPU time: 0.144s
+  * wallclock time: 0.134s
