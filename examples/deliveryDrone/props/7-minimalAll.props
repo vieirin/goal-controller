@@ -1,0 +1,125 @@
+// =====================================================================
+// Reachability / sanity checks (optional, DTMC-compatible)
+// =====================================================================
+
+// Probability to eventually achieve the top-level delivery goal
+P>=1 [ F (G0_achieved=1) ];
+
+// Local goal achievements
+P>=1 [ F (G1_achieved=1) ];
+P>=1 [ F (G2_achieved=1) ];
+P>=1 [ F (G3_achieved=1) ];
+P>=1 [ F (G4_achieved=1) ];
+P>=1 [ F (G5_achieved=1) ];
+
+
+// =====================================================================
+// Sequential AND  :  G0: [G1;G2;G3;G4;G5]
+//   - Later subgoals can only be active/achieved if all earlier ones
+//     are already achieved.
+// =====================================================================
+
+// If any of G2..G5 is active/achieved, then G1 is achieved
+P>=1 [ G ( ((G2_pursued=1 | G2_achieved=1
+            | G3_pursued=1 | G3_achieved=1
+            | G4_pursued=1 | G4_achieved=1
+            | G5_pursued=1 | G5_achieved=1)
+           => G1_achieved=1) ) ];
+
+// If any of G3..G5 is active/achieved, then G1 and G2 are achieved
+P>=1 [ G ( ((G3_pursued=1 | G3_achieved=1
+            | G4_pursued=1 | G4_achieved=1
+            | G5_pursued=1 | G5_achieved=1)
+           => (G1_achieved=1 & G2_achieved=1)) ) ];
+
+// If any of G4..G5 is active/achieved, then G1, G2, G3 are achieved
+P>=1 [ G ( ((G4_pursued=1 | G4_achieved=1
+            | G5_pursued=1 | G5_achieved=1)
+           => (G1_achieved=1 & G2_achieved=1 & G3_achieved=1)) ) ];
+
+// If G5 is active/achieved, then G1..G4 are achieved
+P>=1 [ G ( ((G5_pursued=1 | G5_achieved=1)
+           => (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1)) ) ];
+
+// Root achieved implies all children achieved
+P>=1 [ G ( G0_achieved=1 =>
+           (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 & G5_achieved=1) ) ];
+
+// =====================================================================
+// Interleaved AND :  G1: [T1#T2]
+//   - Both T1 and T2 must succeed for G1.
+//   - T1 and T2 are not pursued in parallel (interleaving only).
+// =====================================================================
+
+// G1 achieved only if both tasks are achieved
+P>=1 [ G ( G1_achieved=1 => (T1_achieved=1 & T2_achieved=1) ) ];
+
+// There exists a path where T1 and T2 are pursued in parallel while G1 is active
+P>0 [ F ( G1_pursued=1 & G1_achieved=0
+          & T1_pursued=1 & T2_pursued=1 ) ];
+
+// =====================================================================
+// Sequential AND  :  G14: [T10;T11]
+//   - T10 must be achieved before T11 can be pursued/achieved.
+// =====================================================================
+
+// If T11 is active/achieved, T10 must already be achieved
+P>=1 [ G ( ((T11_pursued=1 | T11_achieved=1)
+           => T10_achieved=1) ) ];
+
+// G14 achieved only if both T10 and T11 are achieved
+P>=1 [ G ( G14_achieved=1 => (T10_achieved=1 & T11_achieved=1) ) ];
+
+// =====================================================================
+// Choice OR       :  G3: Configure Flight Profile [+]
+//   (G9, G10, G11) are mutually exclusive, with a sticky choice via G3_chosen.
+// =====================================================================
+
+// At most one profile is pursued at any time
+P>=1 [ G !( (G9_pursued=1 & G10_pursued=1)
+          | (G9_pursued=1 & G11_pursued=1)
+          | (G10_pursued=1 & G11_pursued=1) ) ];
+
+// Branch pursued matches the chosen value
+P>=1 [ G ( G9_pursued=1  => G3_chosen=1 ) ];
+P>=1 [ G ( G10_pursued=1 => G3_chosen=2 ) ];
+P>=1 [ G ( G11_pursued=1 => G3_chosen=3 ) ];
+
+// Once a branch is chosen while G3 is active, other branches are not pursued
+P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G3_chosen=1)
+           => (G10_pursued=0 & G11_pursued=0) ) ];
+P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G3_chosen=2)
+           => (G9_pursued=0 & G11_pursued=0) ) ];
+P>=1 [ G ( (G3_pursued=1 & G3_achieved=0 & G3_chosen=3)
+           => (G9_pursued=0 & G10_pursued=0) ) ];
+
+// G3 achieved iff at least one profile is achieved (sanity for refinement)
+P>=1 [ G ( G3_achieved=1 =>
+           (G9_achieved=1 | G10_achieved=1 | G11_achieved=1) ) ];
+
+// =====================================================================
+// Degradation OR  :  G4: [G12@2->G13]
+//   - G12 is tried up to 2 failures; after that, G13 may be pursued.
+//   - Counter G12_failed tracks the number of failed attempts.
+// =====================================================================
+
+// G13 can only be pursued after at least 2 failed attempts of G12
+P>=1 [ G ( G13_pursued=1 => G12_failed>=2 ) ];
+
+// While fewer than 2 failures, G13 is not yet pursued
+P>=1 [ G ( G12_failed<2 => G13_pursued=0 ) ];
+
+// G4 achieved implies that either G12 or G13 is achieved
+P>=1 [ G ( G4_achieved=1 => (G12_achieved=1 | G13_achieved=1) ) ];
+
+// =====================================================================
+// Alternative OR  :  G5: [G14 | G15]
+//   - Standard Landing OR Emergency Air-Drop.
+//   - At most one landing mode pursued; G5 achieved via either.
+// =====================================================================
+
+// G5 achieved implies one of G14 or G15 is achieved
+P>=1 [ G ( G5_achieved=1 => (G14_achieved=1 | G15_achieved=1) ) ];
+
+// G14 and G15 are never pursued in parallel
+P>=1 [ G !( G14_pursued=1 & G15_pursued=1 ) ];

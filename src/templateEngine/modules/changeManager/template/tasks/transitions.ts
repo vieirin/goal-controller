@@ -4,10 +4,7 @@ import { parenthesis } from '../../../../../mdp/common';
 import {
   achievableFormulaVariable,
   achievedTransition,
-  achievedVariable,
-  failedTransition,
   pursueTransition,
-  pursuedVariable,
   tryTransition,
 } from '../../../../common';
 import {
@@ -51,29 +48,6 @@ const achieveTask = (task: GoalNode): string => {
   return prismLabelStatement;
 };
 
-const failedTask = (task: GoalNode): string => {
-  const logger = getLogger();
-  const leftStatement = `${pursuedVariable(task.id)}=1 & ${achievedVariable(
-    task.id,
-  )}=0`;
-
-  const updateStatement = `(${pursuedVariable(task.id)}'=0)`;
-
-  const prismLabelStatement = `[${failedTransition(
-    task.id,
-  )}] ${leftStatement} -> ${updateStatement};`;
-
-  logger.taskTranstions.transition(
-    task.id,
-    leftStatement,
-    updateStatement,
-    prismLabelStatement,
-    'failed',
-    task.properties.maxRetries,
-  );
-  return prismLabelStatement;
-};
-
 const tryTask = (task: GoalNode): string => {
   const logger = getLogger();
   const taskAchievabilityVariable = achievableFormulaVariable(task.id);
@@ -110,6 +84,5 @@ export const taskTransitions = (task: GoalNode): string => {
   ${pursueTask(task)}
   ${tryTask(task)}
   ${achieveTask(task)}
-  ${failedTask(task)}
   `;
 };

@@ -153,49 +153,41 @@ module ChangeManager
   [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
   [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
   [achieved_T1] true -> true;
-  [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
   
 
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
   [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
   [achieved_T2] true -> true;
-  [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
   
 
   [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
   [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
   [achieved_T3] true -> true;
-  [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
   
 
   [pursue_T4] T4_pursued=0 & T4_achieved=0 -> (T4_pursued'=1);
   [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
   [achieved_T4] true -> true;
-  [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
   
 
   [pursue_T5] T5_pursued=0 & T5_achieved=0 -> (T5_pursued'=1);
   [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
   [achieved_T5] true -> true;
-  [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
   
 
   [pursue_T6] T6_pursued=0 & T6_achieved=0 -> (T6_pursued'=1);
   [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
   [achieved_T6] true -> true;
-  [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
   
 
   [pursue_T7] T7_pursued=0 & T7_achieved=0 -> (T7_pursued'=1);
   [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
   [achieved_T7] true -> true;
-  [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
   
 
   [pursue_T8] T8_pursued=0 & T8_achieved=0 -> (T8_pursued'=1);
   [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
   [achieved_T8] true -> true;
-  [failed_T8] T8_pursued=1 & T8_achieved=0 -> (T8_pursued'=0);
   
 endmodule
 

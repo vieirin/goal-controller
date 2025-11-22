@@ -554,11 +554,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T1] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T1 FAILED label
-		[CONDITION] T1_pursued=1 & T1_achieved=0
-		[UPDATE] (T1_pursued'=0)
-		PRISM statement: [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T2: Follow waypoint
 	Resources: none
 	[VARIABLE DEFINITION] T2_pursued; initial value: 0; upper bound: 1; type: int
@@ -578,11 +573,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T2] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T2 FAILED label
-		[CONDITION] T2_pursued=1 & T2_achieved=0
-		[UPDATE] (T2_pursued'=0)
-		PRISM statement: [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T3: Detect obstacles using camera
 	Resources: none
 	[VARIABLE DEFINITION] T3_pursued; initial value: 0; upper bound: 1; type: int
@@ -602,11 +592,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T3] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T3 FAILED label
-		[CONDITION] T3_pursued=1 & T3_achieved=0
-		[UPDATE] (T3_pursued'=0)
-		PRISM statement: [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T4: Adjust course visually
 	Resources: none
 	[VARIABLE DEFINITION] T4_pursued; initial value: 0; upper bound: 1; type: int
@@ -626,11 +611,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T4] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T4 FAILED label
-		[CONDITION] T4_pursued=1 & T4_achieved=0
-		[UPDATE] (T4_pursued'=0)
-		PRISM statement: [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T5: Scan area with lidar
 	Resources: none
 	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
@@ -650,11 +630,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T5] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T5 FAILED label
-		[CONDITION] T5_pursued=1 & T5_achieved=0
-		[UPDATE] (T5_pursued'=0)
-		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T6: Adjust course using lidar map
 	Resources: none
 	[VARIABLE DEFINITION] T6_pursued; initial value: 0; upper bound: 1; type: int
@@ -674,11 +649,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T6] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T6 FAILED label
-		[CONDITION] T6_pursued=1 & T6_achieved=0
-		[UPDATE] (T6_pursued'=0)
-		PRISM statement: [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T7: Detect landing marker
 	Resources: none
 	[VARIABLE DEFINITION] T7_pursued; initial value: 0; upper bound: 1; type: int
@@ -698,11 +668,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T7] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T7 FAILED label
-		[CONDITION] T7_pursued=1 & T7_achieved=0
-		[UPDATE] (T7_pursued'=0)
-		PRISM statement: [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T8: Open release mechanism
 	Resources: none
 	[VARIABLE DEFINITION] T8_pursued; initial value: 0; upper bound: 1; type: int
@@ -722,11 +687,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T8] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T8 FAILED label
-		[CONDITION] T8_pursued=1 & T8_achieved=0
-		[UPDATE] (T8_pursued'=0)
-		PRISM statement: [failed_T8] T8_pursued=1 & T8_achieved=0 -> (T8_pursued'=0);
-	[END OF FAILED]
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/3-interleavedPaltPseq.txt
@@ -740,9 +700,9 @@
 [GOAL MAINTAIN FORMULAS] 0
 ----------CHANGE MANAGER SUMMARY----------
 [TASKS VARIABLES] 16
-[TASKS LABELS] 32
+[TASKS LABELS] 24
 [TASKS TRY LINES] 8
-[TASKS FAILED LINES] 8
+[TASKS FAILED LINES] 0
 [TASKS ACHIEVED LINES] 8
 [TASKS SKIPPED LINES] 8
 [TASKS ACHIEVABILITY CONSTANTS] 8

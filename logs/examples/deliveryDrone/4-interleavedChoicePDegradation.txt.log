@@ -810,11 +810,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T1] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T1 FAILED label
-		[CONDITION] T1_pursued=1 & T1_achieved=0
-		[UPDATE] (T1_pursued'=0)
-		PRISM statement: [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T10: Release package
 	Resources: none
 	[VARIABLE DEFINITION] T10_pursued; initial value: 0; upper bound: 1; type: int
@@ -834,11 +829,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T10] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T10 FAILED label
-		[CONDITION] T10_pursued=1 & T10_achieved=0
-		[UPDATE] (T10_pursued'=0)
-		PRISM statement: [failed_T10] T10_pursued=1 & T10_achieved=0 -> (T10_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T2: Generate initial route
 	Resources: none
 	[VARIABLE DEFINITION] T2_pursued; initial value: 0; upper bound: 1; type: int
@@ -858,11 +848,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T2] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T2 FAILED label
-		[CONDITION] T2_pursued=1 & T2_achieved=0
-		[UPDATE] (T2_pursued'=0)
-		PRISM statement: [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T3: Find obstacles around route
 	Resources: none
 	[VARIABLE DEFINITION] T3_pursued; initial value: 0; upper bound: 1; type: int
@@ -882,11 +867,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T3] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T3 FAILED label
-		[CONDITION] T3_pursued=1 & T3_achieved=0
-		[UPDATE] (T3_pursued'=0)
-		PRISM statement: [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T4: Set nominal speed altitude
 	Resources: none
 	[VARIABLE DEFINITION] T4_pursued; initial value: 0; upper bound: 1; type: int
@@ -906,11 +886,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T4] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T4 FAILED label
-		[CONDITION] T4_pursued=1 & T4_achieved=0
-		[UPDATE] (T4_pursued'=0)
-		PRISM statement: [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T5: Increase speed relax smoothing
 	Resources: none
 	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
@@ -930,11 +905,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T5] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T5 FAILED label
-		[CONDITION] T5_pursued=1 & T5_achieved=0
-		[UPDATE] (T5_pursued'=0)
-		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T6: Camera-based obstacle detection
 	Resources: none
 	[VARIABLE DEFINITION] T6_pursued; initial value: 0; upper bound: 1; type: int
@@ -954,11 +924,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T6] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T6 FAILED label
-		[CONDITION] T6_pursued=1 & T6_achieved=0
-		[UPDATE] (T6_pursued'=0)
-		PRISM statement: [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T7: Lidar-based obstacle detection
 	Resources: none
 	[VARIABLE DEFINITION] T7_pursued; initial value: 0; upper bound: 1; type: int
@@ -978,11 +943,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T7] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T7 FAILED label
-		[CONDITION] T7_pursued=1 & T7_achieved=0
-		[UPDATE] (T7_pursued'=0)
-		PRISM statement: [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T9: Detect landing marker
 	Resources: none
 	[VARIABLE DEFINITION] T9_pursued; initial value: 0; upper bound: 1; type: int
@@ -1002,11 +962,6 @@
 		[UPDATE] true
 		PRISM statement: [achieved_T9] true -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T9 FAILED label
-		[CONDITION] T9_pursued=1 & T9_achieved=0
-		[UPDATE] (T9_pursued'=0)
-		PRISM statement: [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
-	[END OF FAILED]
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/4-interleavedChoicePDegradation.txt
@@ -1020,9 +975,9 @@
 [GOAL MAINTAIN FORMULAS] 0
 ----------CHANGE MANAGER SUMMARY----------
 [TASKS VARIABLES] 18
-[TASKS LABELS] 36
+[TASKS LABELS] 27
 [TASKS TRY LINES] 9
-[TASKS FAILED LINES] 9
+[TASKS FAILED LINES] 0
 [TASKS ACHIEVED LINES] 9
 [TASKS SKIPPED LINES] 9
 [TASKS ACHIEVABILITY CONSTANTS] 9

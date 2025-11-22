@@ -1,0 +1,481 @@
+PRISM
+=====
+
+Version: 4.8.1
+Date: Sat Nov 22 00:56:56 UTC 2025
+Hostname: Vieira-Neto-dojo
+Memory limits: cudd=30g, java(heap)=1g
+Command line: prism output/7-minimalAll.prism examples/deliveryDrone/props/7-minimalAll.props -cuddmaxmem 30g
+
+Parsing model file "output/7-minimalAll.prism"...
+
+Type:        DTMC
+Modules:     G0 G1 G2 G3 G4 G5 G9 G10 G11 G12 G13 G14 G15 ChangeManager System
+Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G2_pursued G2_achieved G3_pursued G3_achieved G3_chosen G4_pursued G4_achieved G12_failed G5_pursued G5_achieved G9_pursued G9_achieved G10_pursued G10_achieved G11_pursued G11_achieved G12_pursued G12_achieved G13_pursued G13_achieved G14_pursued G14_achieved G15_pursued G15_achieved T1_pursued T1_achieved T10_pursued T10_achieved T11_pursued T11_achieved T12_pursued T12_achieved T2_pursued T2_achieved T3_pursued T3_achieved T5_pursued T5_achieved T6_pursued T6_achieved T7_pursued T7_achieved T8_pursued T8_achieved T9_pursued T9_achieved
+
+Parsing properties file "examples/deliveryDrone/props/7-minimalAll.props"...
+
+28 properties:
+(1) P>=1 [ F (G0_achieved=1) ]
+(2) P>=1 [ F (G1_achieved=1) ]
+(3) P>=1 [ F (G2_achieved=1) ]
+(4) P>=1 [ F (G3_achieved=1) ]
+(5) P>=1 [ F (G4_achieved=1) ]
+(6) P>=1 [ F (G5_achieved=1) ]
+(7) P>=1 [ G (((G2_pursued=1|G2_achieved=1|G3_pursued=1|G3_achieved=1|G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>G1_achieved=1)) ]
+(8) P>=1 [ G (((G3_pursued=1|G3_achieved=1|G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1))) ]
+(9) P>=1 [ G (((G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1&G3_achieved=1))) ]
+(10) P>=1 [ G (((G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1))) ]
+(11) P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1&G5_achieved=1)) ]
+(12) P>=1 [ G (G1_achieved=1=>(T1_achieved=1&T2_achieved=1)) ]
+(13) P>0 [ F (G1_pursued=1&G1_achieved=0&T1_pursued=1&T2_pursued=1) ]
+(14) P>=1 [ G (((T11_pursued=1|T11_achieved=1)=>T10_achieved=1)) ]
+(15) P>=1 [ G (G14_achieved=1=>(T10_achieved=1&T11_achieved=1)) ]
+(16) P>=1 [ G !((G9_pursued=1&G10_pursued=1)|(G9_pursued=1&G11_pursued=1)|(G10_pursued=1&G11_pursued=1)) ]
+(17) P>=1 [ G (G9_pursued=1=>G3_chosen=1) ]
+(18) P>=1 [ G (G10_pursued=1=>G3_chosen=2) ]
+(19) P>=1 [ G (G11_pursued=1=>G3_chosen=3) ]
+(20) P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=1)=>(G10_pursued=0&G11_pursued=0)) ]
+(21) P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=2)=>(G9_pursued=0&G11_pursued=0)) ]
+(22) P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=3)=>(G9_pursued=0&G10_pursued=0)) ]
+(23) P>=1 [ G (G3_achieved=1=>(G9_achieved=1|G10_achieved=1|G11_achieved=1)) ]
+(24) P>=1 [ G (G13_pursued=1=>G12_failed>=2) ]
+(25) P>=1 [ G (G12_failed<2=>G13_pursued=0) ]
+(26) P>=1 [ G (G4_achieved=1=>(G12_achieved=1|G13_achieved=1)) ]
+(27) P>=1 [ G (G5_achieved=1=>(G14_achieved=1|G15_achieved=1)) ]
+(28) P>=1 [ G !(G14_pursued=1&G15_pursued=1) ]
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G0_achieved=1) ]
+
+Building model...
+
+Computing reachable states...
+
+Reachability (BFS): 49 iterations in 0.30 seconds (average 0.006122, setup 0.00)
+
+Time for model construction: 111.369 seconds.
+
+Type:        DTMC
+States:      7249 (1 initial)
+Transitions: 30051
+
+Transition matrix: 29298 nodes (23 terminal), 30051 minterms, vars: 53r/53c
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 31 iterations in 0.01 seconds (average 0.000323, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.021 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G1_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 8 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.003 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G2_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 12 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.004 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G3_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 18 iterations in 0.01 seconds (average 0.000556, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.005 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G4_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 24 iterations in 0.01 seconds (average 0.000417, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.007 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ F (G5_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 30 iterations in 0.01 seconds (average 0.000333, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 7249, no = 0, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.009 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (((G2_pursued=1|G2_achieved=1|G3_pursued=1|G3_achieved=1|G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>G1_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (((G3_pursued=1|G3_achieved=1|G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1))) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (((G4_pursued=1|G4_achieved=1|G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1&G3_achieved=1))) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (((G5_pursued=1|G5_achieved=1)=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1))) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1&G5_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G1_achieved=1=>(T1_achieved=1&T2_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>0 [ F (G1_pursued=1&G1_achieved=0&T1_pursued=1&T2_pursued=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 5 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 11, no = 7238, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (((T11_pursued=1|T11_achieved=1)=>T10_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G14_achieved=1=>(T10_achieved=1&T11_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G !((G9_pursued=1&G10_pursued=1)|(G9_pursued=1&G11_pursued=1)|(G10_pursued=1&G11_pursued=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G9_pursued=1=>G3_chosen=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G10_pursued=1=>G3_chosen=2) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G11_pursued=1=>G3_chosen=3) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=1)=>(G10_pursued=0&G11_pursued=0)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=2)=>(G9_pursued=0&G11_pursued=0)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G ((G3_pursued=1&G3_achieved=0&G3_chosen=3)=>(G9_pursued=0&G10_pursued=0)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G3_achieved=1=>(G9_achieved=1|G10_achieved=1|G11_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G13_pursued=1=>G12_failed>=2) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G12_failed<2=>G13_pursued=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G4_achieved=1=>(G12_achieved=1|G13_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G5_achieved=1=>(G14_achieved=1|G15_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G !(G14_pursued=1&G15_pursued=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 7249, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.0 seconds.
+
+Result: true
+

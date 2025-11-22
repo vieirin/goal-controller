@@ -1,6 +1,8 @@
 dtmc
 
 
+
+
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -61,19 +63,16 @@ module ChangeManager
   [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
   [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
   [achieved_T1] true -> true;
-  [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
   
 
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
   [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
   [achieved_T2] true -> true;
-  [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
   
 
   [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
   [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
   [achieved_T3] true -> true;
-  [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
   
 endmodule
 

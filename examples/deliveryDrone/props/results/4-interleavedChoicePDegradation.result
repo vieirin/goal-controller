@@ -1,0 +1,376 @@
+PRISM
+=====
+
+Version: 4.8.1
+Date: Sat Nov 22 00:56:28 UTC 2025
+Hostname: Vieira-Neto-dojo
+Memory limits: cudd=30g, java(heap)=1g
+Command line: prism output/4-interleavedChoicePDegradation.prism examples/deliveryDrone/props/4-interleavedChoicePDegradation.props -cuddmaxmem 30g
+
+Parsing model file "output/4-interleavedChoicePDegradation.prism"...
+
+Type:        DTMC
+Modules:     G0 G1 G2 G3 G4 G5 G6 G7 G8 G9 G10 G11 G12 ChangeManager System
+Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G2_pursued G2_achieved G2_chosen G3_pursued G3_achieved G4_pursued G4_achieved G5_pursued G5_achieved G6_pursued G6_achieved G7_pursued G7_achieved G8_pursued G8_achieved G9_pursued G9_achieved G10_pursued G10_achieved G11_pursued G11_achieved G12_pursued G12_achieved T1_pursued T1_achieved T10_pursued T10_achieved T2_pursued T2_achieved T3_pursued T3_achieved T4_pursued T4_achieved T5_pursued T5_achieved T6_pursued T6_achieved T7_pursued T7_achieved T9_pursued T9_achieved
+
+Parsing properties file "examples/deliveryDrone/props/4-interleavedChoicePDegradation.props"...
+
+21 properties:
+(1) P>=1 [ G (G2_pursued=1&G2_achieved=0=>!(G7_pursued=1&G8_pursued=1)) ]
+(2) P>=1 [ G !(G7_achieved=1&G8_achieved=1) ]
+(3) P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1)) ]
+(4) P>0 [ (G1_achieved=0&G2_achieved=0) U (G1_achieved=1&G2_achieved=0) ]
+(5) P>0 [ (G1_achieved=0&G2_achieved=0) U (G2_achieved=1&G1_achieved=0) ]
+(6) P>=1 [ G (G6_achieved=1=>(T2_achieved=1&T3_achieved=1)) ]
+(7) P>0 [ F (G6_pursued=1&T2_pursued=1&T3_pursued=0) ]
+(8) P>0 [ F (G6_pursued=1&T3_pursued=1&T2_pursued=0) ]
+(9) P>=1 [ G (G4_pursued=1&G4_achieved=0&G11_achieved=0=>G12_pursued=0) ]
+(10) P>=1 [ G (G4_pursued=1&G12_pursued=1=>G11_achieved=1) ]
+(11) P>=1 [ G (G4_achieved=1=>(G11_achieved=1&G12_achieved=1)) ]
+(12) P>=1 [ G (G1_achieved=1=>(G5_achieved=1&G6_achieved=1)) ]
+(13) P>=1 [ G (G2_achieved=1=>((G7_achieved=1&G8_achieved=0)|(G7_achieved=0&G8_achieved=1))) ]
+(14) P>=1 [ G (G3_achieved=1=>(G9_achieved=1&G10_achieved=1)) ]
+(15) P>=1 [ G (G6_achieved=1=>(T2_achieved=1&T3_achieved=1)) ]
+(16) P=? [ F (G0_achieved=1) ]
+(17) P=? [ F (G1_achieved=1) ]
+(18) P=? [ F (G2_achieved=1) ]
+(19) P=? [ F (G3_achieved=1) ]
+(20) P=? [ F (G4_achieved=1) ]
+(21) P=? [ F (G6_achieved=1) ]
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G2_pursued=1&G2_achieved=0=>!(G7_pursued=1&G8_pursued=1)) ]
+
+Building model...
+
+Computing reachable states...
+
+Reachability (BFS): 41 iterations in 1.60 seconds (average 0.039024, setup 0.00)
+
+Time for model construction: 23.462 seconds.
+
+Type:        DTMC
+States:      421902 (1 initial)
+Transitions: 3879664
+
+Transition matrix: 503294 nodes (54 terminal), 3879664 minterms, vars: 46r/46c
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.014 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G !(G7_achieved=1&G8_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.002 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1&G3_achieved=1&G4_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.002 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>0 [ (G1_achieved=0&G2_achieved=0) U (G1_achieved=1&G2_achieved=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 14 iterations in 0.22 seconds (average 0.015714, setup 0.00)
+
+Prob1: 8 iterations in 0.10 seconds (average 0.012500, setup 0.00)
+
+yes = 6340, no = 47002, maybe = 368560
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.347 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>0 [ (G1_achieved=0&G2_achieved=0) U (G2_achieved=1&G1_achieved=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 8 iterations in 0.04 seconds (average 0.005000, setup 0.00)
+
+Prob1: 14 iterations in 0.06 seconds (average 0.004286, setup 0.00)
+
+yes = 46180, no = 7162, maybe = 368560
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.11 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G6_achieved=1=>(T2_achieved=1&T3_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.011 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>0 [ F (G6_pursued=1&T2_pursued=1&T3_pursued=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 5 iterations in 0.10 seconds (average 0.020000, setup 0.00)
+
+Prob1: 6 iterations in 0.12 seconds (average 0.020000, setup 0.00)
+
+yes = 70200, no = 161882, maybe = 189820
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.254 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>0 [ F (G6_pursued=1&T3_pursued=1&T2_pursued=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+Prob0: 5 iterations in 0.09 seconds (average 0.018000, setup 0.00)
+
+Prob1: 6 iterations in 0.12 seconds (average 0.020000, setup 0.00)
+
+yes = 70200, no = 161882, maybe = 189820
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.228 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G4_pursued=1&G4_achieved=0&G11_achieved=0=>G12_pursued=0) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.009 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G4_pursued=1&G12_pursued=1=>G11_achieved=1) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.006 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G4_achieved=1=>(G11_achieved=1&G12_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.005 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G1_achieved=1=>(G5_achieved=1&G6_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G2_achieved=1=>((G7_achieved=1&G8_achieved=0)|(G7_achieved=0&G8_achieved=1))) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.004 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G3_achieved=1=>(G9_achieved=1&G10_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.007 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P>=1 [ G (G6_achieved=1=>(T2_achieved=1&T3_achieved=1)) ]
+
+Probability bound in formula is 0/1 so not computing exact probabilities...
+
+yes = 0, no = 421902, maybe = 0
+
+Property satisfied in 1 of 1 initial states.
+
+Time for model checking: 0.002 seconds.
+
+Result: true
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G0_achieved=1) ]
+
+Prob0: 41 iterations in 1.19 seconds (average 0.029024, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 1.259 seconds.
+
+Result: 1.0 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G1_achieved=1) ]
+
+Prob0: 14 iterations in 0.11 seconds (average 0.007857, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 0.141 seconds.
+
+Result: 1.0 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G2_achieved=1) ]
+
+Prob0: 8 iterations in 0.04 seconds (average 0.005000, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 0.075 seconds.
+
+Result: 1.0 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G3_achieved=1) ]
+
+Prob0: 12 iterations in 0.23 seconds (average 0.019167, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 0.26 seconds.
+
+Result: 1.0 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G4_achieved=1) ]
+
+Prob0: 12 iterations in 0.28 seconds (average 0.023333, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 0.32 seconds.
+
+Result: 1.0 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G6_achieved=1) ]
+
+Prob0: 9 iterations in 0.14 seconds (average 0.015556, setup 0.00)
+
+Prob1: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+yes = 421902, no = 0, maybe = 0
+
+Value in the initial state: 1.0
+
+Time for model checking: 0.177 seconds.
+
+Result: 1.0 (exact floating point)
+

@@ -9,18 +9,17 @@ module G0
 
   [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
   [pursue_G1] G0_pursued=1 & G0_achieved=0 & G1_achieved=0 -> true;
-  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G3_achieved=0 & G4_achieved=0 & G5_achieved=0 & G6_achieved=0 -> true;
-  [pursue_G3] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G4_achieved=0 & G5_achieved=0 & G6_achieved=0 -> true;
-  [pursue_G4] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G5_achieved=0 & G6_achieved=0 -> true;
-  [pursue_G5] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 & G6_achieved=0 -> true;
-  [pursue_G6] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 & G5_achieved=1 -> true;
+  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G3_achieved=0 & G4_achieved=0 & G5_achieved=0 -> true;
+  [pursue_G3] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G4_achieved=0 & G5_achieved=0 -> true;
+  [pursue_G4] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G5_achieved=0 -> true;
+  [pursue_G5] G0_pursued=1 & G0_achieved=0 & G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 -> true;
 
-  [achieved_G0] G0_pursued=1 & (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 & G5_achieved=1 & G6_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
+  [achieved_G0] G0_pursued=1 & (G1_achieved=1 & G2_achieved=1 & G3_achieved=1 & G4_achieved=1 & G5_achieved=1) -> (G0_pursued'=0) & (G0_achieved'=1);
   
-  [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 & G3_pursued=0 & G4_pursued=0 & G5_pursued=0 & G6_pursued=0 -> (G0_pursued'=0);
+  [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 & G3_pursued=0 & G4_pursued=0 & G5_pursued=0 -> (G0_pursued'=0);
 endmodule
 
-formula G0_achievable = G1_achievable * G2_achievable * G3_achievable * G4_achievable * G5_achievable * G6_achievable;
+formula G0_achievable = G1_achievable * G2_achievable * G3_achievable * G4_achievable * G5_achievable;
 
 module G1
   G1_pursued : [0..1] init 0;
@@ -42,15 +41,15 @@ module G2
   G2_achieved : [0..1] init 0;
 
   [pursue_G2] G2_pursued=0 & G2_achieved=0 -> (G2_pursued'=1);
-  [pursue_G7] G2_pursued=1 & G2_achieved=0 -> true;
-  [pursue_G8] G2_pursued=1 & G2_achieved=0 -> true;
+  [pursue_G6] G2_pursued=1 & G2_achieved=0 -> true;
+  [pursue_G7] G2_pursued=1 & G2_achieved=0 & G7_achieved_maintain=false -> true;
 
-  [achieved_G2] G2_pursued=1 & (G7_achieved=1 | G8_achieved=1) -> (G2_pursued'=0) & (G2_achieved'=1);
+  [achieved_G2] G2_pursued=1 & (G6_achieved=1 & G7_achieved_maintain=true) -> (G2_pursued'=0) & (G2_achieved'=1);
   
-  [skip_G2] G2_pursued=1 & G7_pursued=0 & G8_pursued=0 -> (G2_pursued'=0);
+  [skip_G2] G2_pursued=1 & G6_pursued=0 & G7_pursued=0 -> (G2_pursued'=0);
 endmodule
 
-formula G2_achievable = G7_achievable + G8_achievable - (G7_achievable * G8_achievable);
+formula G2_achievable = G6_achievable * G7_achievable;
 
 module G3
   G3_pursued : [0..1] init 0;
@@ -76,22 +75,22 @@ module G4
 
   [pursue_G4] G4_pursued=0 & G4_achieved=0 -> (G4_pursued'=1);
   [pursue_G12] G4_pursued=1 & G4_achieved=0 -> (G12_failed'=min(5, G12_failed+1));
-  [pursue_G13] G4_pursued=1 & G4_achieved=0 -> true;
+  [pursue_G13] G4_pursued=1 & G4_achieved=0 & G12_failed >= 2 -> true;
 
-  [achieved_G4] G4_pursued=1 & (G12_achieved=1 & G13_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
+  [achieved_G4] G4_pursued=1 & (G12_achieved=1 | G13_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);
   
   [skip_G4] G4_pursued=1 & G12_pursued=0 & G13_pursued=0 -> (G4_pursued'=0);
 endmodule
 
-formula G4_achievable = G12_achievable * G13_achievable;
+formula G4_achievable = G12_achievable + G13_achievable - (G12_achievable * G13_achievable);
 
 module G5
   G5_pursued : [0..1] init 0;
   G5_achieved : [0..1] init 0;
 
   [pursue_G5] G5_pursued=0 & G5_achieved=0 -> (G5_pursued'=1);
-  [pursue_G14] G5_pursued=1 & G5_achieved=0 -> true;
-  [pursue_G15] G5_pursued=1 & G5_achieved=0 -> true;
+  [pursue_G14] G5_pursued=1 & G5_achieved=0 & G15_pursued=0 -> true;
+  [pursue_G15] G5_pursued=1 & G5_achieved=0 & G14_pursued=0 -> true;
 
   [achieved_G5] G5_pursued=1 & (G14_achieved=1 | G15_achieved=1) -> (G5_pursued'=0) & (G5_achieved'=1);
   
@@ -105,43 +104,28 @@ module G6
   G6_achieved : [0..1] init 0;
 
   [pursue_G6] G6_pursued=0 & G6_achieved=0 -> (G6_pursued'=1);
-  [pursue_G16] G6_pursued=1 & G6_achieved=0 & G17_pursued=0 -> true;
-  [pursue_G17] G6_pursued=1 & G6_achieved=0 & G16_pursued=0 -> true;
+  [pursue_T3] G6_pursued=1 & G6_achieved=0 -> true;
 
-  [achieved_G6] G6_pursued=1 & (G16_achieved=1 | G17_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
+  [achieved_G6] G6_pursued=1 & (T3_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
   
-  [skip_G6] G6_pursued=1 & G16_pursued=0 & G17_pursued=0 -> (G6_pursued'=0);
+  [skip_G6] G6_pursued=1 & T3_pursued=0 -> (G6_pursued'=0);
 endmodule
 
-formula G6_achievable = G16_achievable + G17_achievable - (G16_achievable * G17_achievable);
+formula G6_achievable = T3_achievable;
 
 module G7
   G7_pursued : [0..1] init 0;
-  G7_achieved : [0..1] init 0;
 
-  [pursue_G7] G7_pursued=0 & G7_achieved=0 -> (G7_pursued'=1);
-  [pursue_T3] G7_pursued=1 & G7_achieved=0 -> true;
+  [pursue_G7] G7_pursued=0 & G7_achieved_maintain=false & inFlight -> (G7_pursued'=1);
+  [pursue_T4] G7_pursued=1 & G7_achieved_maintain=false -> true;
 
-  [achieved_G7] G7_pursued=1 & (T3_achieved=1) -> (G7_pursued'=0) & (G7_achieved'=1);
+  [achieved_G7] G7_pursued=1 & (T4_achieved=1) -> (G7_pursued'=0);
   
-  [skip_G7] G7_pursued=1 & T3_pursued=0 -> (G7_pursued'=0);
+  [skip_G7] G7_pursued=1 & T4_pursued=0 -> (G7_pursued'=0);
 endmodule
 
-formula G7_achievable = T3_achievable;
-
-module G8
-  G8_pursued : [0..1] init 0;
-  G8_achieved : [0..1] init 0;
-
-  [pursue_G8] G8_pursued=0 & G8_achieved=0 -> (G8_pursued'=1);
-  [pursue_T4] G8_pursued=1 & G8_achieved=0 -> true;
-
-  [achieved_G8] G8_pursued=1 & (T4_achieved=1) -> (G8_pursued'=0) & (G8_achieved'=1);
-  
-  [skip_G8] G8_pursued=1 & T4_pursued=0 -> (G8_pursued'=0);
-endmodule
-
-formula G8_achievable = T4_achievable;
+formula G7_achieved_maintain = commLink;
+formula G7_achievable = T4_achievable;
 
 module G9
   G9_pursued : [0..1] init 0;
@@ -242,41 +226,11 @@ endmodule
 
 formula G15_achievable = T12_achievable;
 
-module G16
-  G16_pursued : [0..1] init 0;
-  G16_achieved : [0..1] init 0;
-
-  [pursue_G16] G16_pursued=0 & G16_achieved=0 -> (G16_pursued'=1);
-  [pursue_T13] G16_pursued=1 & G16_achieved=0 -> true;
-
-  [achieved_G16] G16_pursued=1 & (T13_achieved=1) -> (G16_pursued'=0) & (G16_achieved'=1);
-  
-  [skip_G16] G16_pursued=1 & T13_pursued=0 -> (G16_pursued'=0);
-endmodule
-
-formula G16_achievable = T13_achievable;
-
-module G17
-  G17_pursued : [0..1] init 0;
-  G17_achieved : [0..1] init 0;
-
-  [pursue_G17] G17_pursued=0 & G17_achieved=0 -> (G17_pursued'=1);
-  [pursue_T14] G17_pursued=1 & G17_achieved=0 -> true;
-
-  [achieved_G17] G17_pursued=1 & (T14_achieved=1) -> (G17_pursued'=0) & (G17_achieved'=1);
-  
-  [skip_G17] G17_pursued=1 & T14_pursued=0 -> (G17_pursued'=0);
-endmodule
-
-formula G17_achievable = T14_achievable;
-
 
 const double T1_achievable = 0.8;
 const double T10_achievable = 0.8;
 const double T11_achievable = 0.8;
 const double T12_achievable = 0.8;
-const double T13_achievable = 0.8;
-const double T14_achievable = 0.8;
 const double T2_achievable = 0.8;
 const double T3_achievable = 0.8;
 const double T4_achievable = 0.8;
@@ -295,10 +249,6 @@ module ChangeManager
   T11_achieved: [0..1] init 0;
   T12_pursued: [0..1] init 0;
   T12_achieved: [0..1] init 0;
-  T13_pursued: [0..1] init 0;
-  T13_achieved: [0..1] init 0;
-  T14_pursued: [0..1] init 0;
-  T14_achieved: [0..1] init 0;
   T2_pursued: [0..1] init 0;
   T2_achieved: [0..1] init 0;
   T3_pursued: [0..1] init 0;
@@ -334,16 +284,6 @@ module ChangeManager
   [pursue_T12] T12_pursued=0 & T12_achieved=0 -> (T12_pursued'=1);
   [try_T12] T12_pursued=1 & T12_achieved=0 -> T12_achievable: (T12_achieved'=1) + 1-T12_achievable: (T12_pursued'=0);
   [achieved_T12] true -> true;
-  
-
-  [pursue_T13] T13_pursued=0 & T13_achieved=0 -> (T13_pursued'=1);
-  [try_T13] T13_pursued=1 & T13_achieved=0 -> T13_achievable: (T13_achieved'=1) + 1-T13_achievable: (T13_pursued'=0);
-  [achieved_T13] true -> true;
-  
-
-  [pursue_T14] T14_pursued=0 & T14_achieved=0 -> (T14_pursued'=1);
-  [try_T14] T14_pursued=1 & T14_achieved=0 -> T14_achievable: (T14_achieved'=1) + 1-T14_achievable: (T14_pursued'=0);
-  [achieved_T14] true -> true;
   
 
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
@@ -388,5 +328,11 @@ module ChangeManager
 endmodule
 
 module System
-  
+  commLink: bool init false;
+  inFlight: bool init false;
+  [achieved_T3] true -> (inFlight'=true);
+  [achieved_T4] true -> (commLink'=true); 
+  [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+  [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+
 endmodule
