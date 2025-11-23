@@ -1193,7 +1193,7 @@
 	[VARIABLE DEFINITION] inFlight; initial value: false; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/9-minimalMaintainContext.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 2ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 15
 [TOTAL TASKS] 12

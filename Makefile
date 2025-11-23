@@ -24,6 +24,9 @@ run: grammarRT grammarAssertion
 cli: grammarRT grammarAssertion
 	npx ts-node src/cli.ts
 
+cli-clean: grammarRT grammarAssertion
+	npx ts-node src/cli.ts --clean
+
 exec:
 	npx ts-node src/index.ts ./examples/edgeModel.txt 
 

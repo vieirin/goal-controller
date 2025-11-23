@@ -16,6 +16,10 @@ import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
 import { dumpTreeToJSON } from './GoalTree/utils';
 
+// Parse command line arguments for clean flag
+const args = process.argv.slice(2);
+const cleanFlag = args.includes('--clean') || args.includes('-c');
+
 const mainMenu = async (): Promise<void> => {
   const lastSelectedModel = await getLastSelectedModel();
   const menuChoices = [
@@ -25,7 +29,7 @@ const mainMenu = async (): Promise<void> => {
   ];
 
   if (process.env.MODE === 'last' && lastSelectedModel) {
-    await runModel(lastSelectedModel);
+    await runModel(lastSelectedModel, cleanFlag);
     return;
   }
 
@@ -56,7 +60,7 @@ const mainMenu = async (): Promise<void> => {
       );
       await inputDefaultVariables(lastSelectedModel);
     }
-    await runModel(lastSelectedModel);
+    await runModel(lastSelectedModel, cleanFlag);
   } else if (action === 'run') {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
@@ -88,7 +92,7 @@ const mainMenu = async (): Promise<void> => {
       await inputDefaultVariables(selectedFile);
     }
 
-    await runModel(selectedFile);
+    await runModel(selectedFile, cleanFlag);
   } else if (action === 'variables') {
     await inputDefaultVariables();
   } else if (action === 'dumpTree') {

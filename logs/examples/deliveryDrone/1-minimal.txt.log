@@ -251,7 +251,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/1-minimal.txt
-[ELAPSED TIME] 7ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 3
 [TOTAL TASKS] 3
