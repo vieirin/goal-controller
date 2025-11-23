@@ -1,12 +1,12 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 22:53:52 2025
+Date: Sun Nov 23 01:16:54 2025
 Command line arguments: --prism output/labSamplesWithSideEffect.prism --buildfull --prop examples/props/labSamplesWithSideEffect.props --timemem
 Current working directory: /workspace
 
-Time for model input parsing: 0.008s.
+Time for model input parsing: 0.010s.
 
-Time for model construction: 0.287s.
+Time for model construction: 0.247s.
 
 -------------------------------------------------------------- 
 Model type: 	DTMC (sparse)
@@ -96,7 +96,7 @@ Time for model checking: 0.002s.
 Model checking property "9": P>0 [F !(sampleLoaded)] ...
 Result (for initial states): true
 
-Time for model checking: 0.002s.
+Time for model checking: 0.001s.
 
 Model checking property "10": P>=1 [G ((G6_pursued = 1) => (G13_achieved = 1))] ...
 Result (for initial states): true
@@ -177,12 +177,12 @@ Time for model checking: 0.000s.
 Model checking property "26": P>0 [F ((G12_achieved = 1) & (T9_achieved = 1))] ...
 Result (for initial states): true
 
-Time for model checking: 0.002s.
+Time for model checking: 0.001s.
 
 Model checking property "27": P>0 [F ((T4_achieved = 1) & sampleLoaded)] ...
 Result (for initial states): true
 
-Time for model checking: 0.002s.
+Time for model checking: 0.001s.
 
 Model checking property "28": P>0 [F ((T5_achieved = 1) & sampleLoaded)] ...
 Result (for initial states): true
@@ -206,5 +206,5 @@ Time for model checking: 0.001s.
 
 Performance statistics:
   * peak memory usage: 76MB
-  * CPU time: 0.353s
-  * wallclock time: 0.369s
+  * CPU time: 0.324s
+  * wallclock time: 0.328s

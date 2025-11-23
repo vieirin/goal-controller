@@ -1,52 +1,102 @@
 Storm 1.11.1
 
-Date: Sat Nov 22 22:40:38 2025
+Date: Sun Nov 23 01:16:55 2025
 Command line arguments: --prism output/1-minimal.prism --buildfull --prop examples/deliveryDrone/props/1-minimal.props --timemem
 Current working directory: /workspace
 
-Time for model input parsing: 0.004s.
+Time for model input parsing: 0.002s.
 
-ERROR (FormulaParser.cpp:97): Could not parse formula: // G0 is eventually achieved
-P=? [ F G0_achieved=1 ]
+Time for model construction: 0.006s.
 
-// G1 pursues the tasks sequentially [T1; T2]
-P>=1 [ G (T2_achieved=1=>T1_achieved=1) ]
+-------------------------------------------------------------- 
+Model type: 	DTMC (sparse)
+States: 	15
+Transitions: 	33
+Reward Models:  none
+State Labels: 	15 labels
+   * init -> 1 item(s)
+   * (((G1_pursued = 1) & (G2_achieved = 0)) => !((G2_pursued = 1))) -> 15 item(s)
+   * ((G0_achieved = 1) => (T3_achieved = 1)) -> 15 item(s)
+   * deadlock -> 0 item(s)
+   * ((G0_achieved = 1) => ((G1_achieved = 1) & (G2_achieved = 1))) -> 15 item(s)
+   * ((G2_pursued = 1) => (G1_achieved = 1)) -> 15 item(s)
+   * ((G1_achieved = 0) & (G2_achieved = 0)) -> 7 item(s)
+   * ((G1_achieved = 1) & (G2_achieved = 0)) -> 5 item(s)
+   * ((G2_achieved = 1) => (T3_achieved = 1)) -> 15 item(s)
+   * ((G2_achieved = 1) & (G1_achieved = 0)) -> 0 item(s)
+   * ((T2_achieved = 1) => (T1_achieved = 1)) -> 15 item(s)
+   * (T3_achieved = 1) -> 4 item(s)
+   * ((T2_pursued = 1) => (T1_achieved = 1)) -> 15 item(s)
+   * ((G1_achieved = 1) => ((T1_achieved = 1) & (T2_achieved = 1))) -> 15 item(s)
+   * (G0_achieved = 1) -> 1 item(s)
+Choice Labels: 	none
+-------------------------------------------------------------- 
 
-// stronger version that forbids even trying T2 before T1 is achieved:
-P>=1 [ G (T2_pursued=1=>T1_achieved=1) ]
+Model checking property "1": P=? [F (G0_achieved = 1)] ...
+Result (for initial states): 1
+Time for model checking: 0.000s.
 
-// G0 pursues its goals sequentially
-P>=1 [ G (G2_pursued=1=>G1_achieved=1) ]
+Model checking property "2": P>=1 [G ((T2_achieved = 1) => (T1_achieved = 1))] ...
+Result (for initial states): true
 
-// symmetric “dont start G1 after G2”
-P>=1 [ G (G1_pursued=1&G2_achieved=0=>!G2_pursued=1) ]
+Time for model checking: 0.000s.
 
-// With which probability G0 is achievable?
-P=? [ F G0_achieved=1 ]
+Model checking property "3": P>=1 [G ((T2_pursued = 1) => (T1_achieved = 1))] ...
+Result (for initial states): true
 
-// T3 is eventually achieved
-P=? [ F T3_achieved=1 ]
+Time for model checking: 0.000s.
 
-// No “early success” of goals
-P>=1 [ G (G1_achieved=1=>(T1_achieved=1&T2_achieved=1)) ]
+Model checking property "4": P>=1 [G ((G2_pursued = 1) => (G1_achieved = 1))] ...
+Result (for initial states): true
 
-// No “early success” of goals
-P>=1 [ G (G2_achieved=1=>T3_achieved=1) ]
+Time for model checking: 0.000s.
 
-// No “early success” of goals
-P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved=1)) ]
+Model checking property "5": P>=1 [G (((G1_pursued = 1) & (G2_achieved = 0)) => !((G2_pursued = 1)))] ...
+Result (for initial states): true
 
-// Goal-completion implies package delivery
-P>=1 [ G (G0_achieved=1=>T3_achieved=1) ]
+Time for model checking: 0.000s.
 
-// Probability only G1 succeeds
-P=? [ F (G1_achieved=1&G2_achieved=0) ]
+Model checking property "6": P=? [F (G0_achieved = 1)] ...
+Result (for initial states): 1
+Time for model checking: 0.000s.
 
-// Probability only G2 succeeds
-P=? [ F (G2_achieved=1 & G1_achieved=0) ]
+Model checking property "7": P=? [F (T3_achieved = 1)] ...
+Result (for initial states): 1
+Time for model checking: 0.000s.
 
-// Probability neither succeeds
-P=? [ F (G1_achieved=0 & G2_achieved=0) ]
+Model checking property "8": P>=1 [G ((G1_achieved = 1) => ((T1_achieved = 1) & (T2_achieved = 1)))] ...
+Result (for initial states): true
 
+Time for model checking: 0.000s.
 
-ERROR (storm-cli.cpp:50): An unexpected exception occurred and caused Storm to terminate. The message of this exception is: std::exception
+Model checking property "9": P>=1 [G ((G2_achieved = 1) => (T3_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "10": P>=1 [G ((G0_achieved = 1) => ((G1_achieved = 1) & (G2_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "11": P>=1 [G ((G0_achieved = 1) => (T3_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.000s.
+
+Model checking property "12": P=? [F ((G1_achieved = 1) & (G2_achieved = 0))] ...
+Result (for initial states): 1
+Time for model checking: 0.000s.
+
+Model checking property "13": P=? [F ((G2_achieved = 1) & (G1_achieved = 0))] ...
+Result (for initial states): 0
+Time for model checking: 0.000s.
+
+Model checking property "14": P=? [F ((G1_achieved = 0) & (G2_achieved = 0))] ...
+Result (for initial states): 1
+Time for model checking: 0.000s.
+
+Performance statistics:
+  * peak memory usage: 76MB
+  * CPU time: 0.022s
+  * wallclock time: 0.012s

@@ -48,15 +48,15 @@ mkdir -p "$RESULTS_DIR"
 # Array of model files (without extension)
 models=(
     "labSamplesWithSideEffect"
-    # "1-minimal"
-    # "2-OrVariation"
-    # "3-interleavedPaltPseq"
-    # "6-allnotationsReduced"
-    # "4-interleavedChoicePDegradation"
-    # "7-minimalAll"
-    # "8-minimalMaintain"
-    # "9-minimalMaintainContext"
-    # "10-minimalMaintainResource"
+    "1-minimal"
+    "2-OrVariation"
+    "3-interleavedPaltPseq"
+    "6-allnotationsReduced"
+    "4-interleavedChoicePDegradation"
+    "7-minimalAll"
+    "8-minimalMaintain"
+    "9-minimalMaintainContext"
+    "10-minimalMaintainResource"
 )
 
 # Iterate over each model
