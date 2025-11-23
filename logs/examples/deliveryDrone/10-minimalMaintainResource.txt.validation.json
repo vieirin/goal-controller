@@ -2,7 +2,31 @@
   "summary": {
     "expected": 201,
     "emitted": 201,
-    "missing": 0
+    "missing": 0,
+    "byNodeType": {
+      "goals": {
+        "modules": {
+          "expected": 15,
+          "emitted": 15
+        }
+      },
+      "tasks": {
+        "variables": {
+          "expected": 24,
+          "emitted": 24
+        },
+        "transitions": {
+          "expected": 36,
+          "emitted": 36
+        }
+      },
+      "resources": {
+        "variables": {
+          "expected": 1,
+          "emitted": 1
+        }
+      }
+    }
   },
   "goalTypes": {
     "choice": {

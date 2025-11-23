@@ -86,6 +86,18 @@ export type ValidationReport = {
     totalExpected: number;
     totalEmitted: number;
     totalMissing: number;
+    byNodeType: {
+      goals: {
+        modules: { expected: number; emitted: number };
+      };
+      tasks: {
+        variables: { expected: number; emitted: number };
+        transitions: { expected: number; emitted: number };
+      };
+      resources: {
+        variables: { expected: number; emitted: number };
+      };
+    };
   };
 };
 

@@ -1,5 +1,5 @@
 import type { GoalTree } from '../GoalTree/types';
-import { allGoalsMap } from '../GoalTree/utils';
+import { allByType, allGoalsMap } from '../GoalTree/utils';
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -210,8 +210,8 @@ export const validatePrismModel = (
   };
 
   // Count expected goal types from GoalTree
-  const allGoals = allGoalsMap({ gm: goalTree });
-  allGoals.forEach((goal) => {
+  const allGoalsMapResult = allGoalsMap({ gm: goalTree });
+  allGoalsMapResult.forEach((goal) => {
     const goalType =
       goal.executionDetail?.type === 'choice'
         ? 'choice'
@@ -289,6 +289,11 @@ export const validatePrismModel = (
     systemValidation.contextVariables.missing +
     systemValidation.resourceVariables.missing;
 
+  // Calculate node-type aggregated summary
+  const allGoalsList = allByType({ gm: goalTree, type: 'goal' });
+  const goalsModulesExpected = allGoalsList.length;
+  const goalsModulesEmitted = parsedModel.goalModules.size;
+
   return {
     goals: goalValidations,
     changeManager: changeManagerValidation,
@@ -298,6 +303,30 @@ export const validatePrismModel = (
       totalExpected,
       totalEmitted,
       totalMissing,
+      byNodeType: {
+        goals: {
+          modules: {
+            expected: goalsModulesExpected,
+            emitted: goalsModulesEmitted,
+          },
+        },
+        tasks: {
+          variables: {
+            expected: changeManagerValidation.taskVariables.expected,
+            emitted: changeManagerValidation.taskVariables.emitted,
+          },
+          transitions: {
+            expected: changeManagerValidation.taskTransitions.expected,
+            emitted: changeManagerValidation.taskTransitions.emitted,
+          },
+        },
+        resources: {
+          variables: {
+            expected: systemValidation.resourceVariables.expected,
+            emitted: systemValidation.resourceVariables.emitted,
+          },
+        },
+      },
     },
   };
 };

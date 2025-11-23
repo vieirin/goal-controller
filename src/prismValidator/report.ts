@@ -54,6 +54,30 @@ export const serializeValidationReportToJSON = (
       expected: report.summary.totalExpected,
       emitted: report.summary.totalEmitted,
       missing: report.summary.totalMissing,
+      byNodeType: {
+        goals: {
+          modules: {
+            expected: report.summary.byNodeType.goals.modules.expected,
+            emitted: report.summary.byNodeType.goals.modules.emitted,
+          },
+        },
+        tasks: {
+          variables: {
+            expected: report.summary.byNodeType.tasks.variables.expected,
+            emitted: report.summary.byNodeType.tasks.variables.emitted,
+          },
+          transitions: {
+            expected: report.summary.byNodeType.tasks.transitions.expected,
+            emitted: report.summary.byNodeType.tasks.transitions.emitted,
+          },
+        },
+        resources: {
+          variables: {
+            expected: report.summary.byNodeType.resources.variables.expected,
+            emitted: report.summary.byNodeType.resources.variables.emitted,
+          },
+        },
+      },
     },
     goalTypes: {
       choice: {
@@ -129,6 +153,26 @@ export const formatValidationReport = (report: ValidationReport): string => {
   lines.push(`Total Expected: ${report.summary.totalExpected}`);
   lines.push(`Total Emitted:  ${report.summary.totalEmitted}`);
   lines.push(`Total Missing:  ${report.summary.totalMissing}`);
+  lines.push('');
+
+  // Node-type aggregated summary
+  lines.push('SUMMARY BY NODE TYPE');
+  lines.push('-'.repeat(80));
+  lines.push('Goals:');
+  lines.push(
+    `  Modules: expected=${report.summary.byNodeType.goals.modules.expected}, emitted=${report.summary.byNodeType.goals.modules.emitted}`,
+  );
+  lines.push('Tasks:');
+  lines.push(
+    `  Variables: expected=${report.summary.byNodeType.tasks.variables.expected}, emitted=${report.summary.byNodeType.tasks.variables.emitted}`,
+  );
+  lines.push(
+    `  Transitions: expected=${report.summary.byNodeType.tasks.transitions.expected}, emitted=${report.summary.byNodeType.tasks.transitions.emitted}`,
+  );
+  lines.push('Resources:');
+  lines.push(
+    `  Variables: expected=${report.summary.byNodeType.resources.variables.expected}, emitted=${report.summary.byNodeType.resources.variables.emitted}`,
+  );
   lines.push('');
 
   // Goal Types

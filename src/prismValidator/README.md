@@ -161,6 +161,17 @@ console.log(
 console.log(
   `Sequence goals: expected=${report.goalTypes.sequence.expected}, emitted=${report.goalTypes.sequence.emitted}`,
 );
+
+// Access node-type aggregated summary
+console.log(
+  `Goal modules: expected=${report.summary.byNodeType.goals.modules.expected}, emitted=${report.summary.byNodeType.goals.modules.emitted}`,
+);
+console.log(
+  `Task variables: expected=${report.summary.byNodeType.tasks.variables.expected}, emitted=${report.summary.byNodeType.tasks.variables.emitted}`,
+);
+console.log(
+  `Resource variables: expected=${report.summary.byNodeType.resources.variables.expected}, emitted=${report.summary.byNodeType.resources.variables.emitted}`,
+);
 ```
 
 ## Report Structure
@@ -184,6 +195,18 @@ type ValidationReport = {
     totalExpected: number;
     totalEmitted: number;
     totalMissing: number;
+    byNodeType: {
+      goals: {
+        modules: { expected: number; emitted: number };
+      };
+      tasks: {
+        variables: { expected: number; emitted: number };
+        transitions: { expected: number; emitted: number };
+      };
+      resources: {
+        variables: { expected: number; emitted: number };
+      };
+    };
   };
 };
 ```
