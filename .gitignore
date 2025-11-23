@@ -3,3 +3,4 @@ grammar/.antlr
 *.interp
 *.tokens
 out/*
+venv/*
