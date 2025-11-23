@@ -1,7 +1,7 @@
 {
   "summary": {
     "expected": 199,
-    "emitted": 231,
+    "emitted": 225,
     "missing": 0
   },
   "goals": {
@@ -50,7 +50,7 @@
       },
       "formulas": {
         "expected": 1,
-        "emitted": 7,
+        "emitted": 1,
         "missing": 0
       },
       "contextVariables": {

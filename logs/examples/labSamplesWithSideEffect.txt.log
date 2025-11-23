@@ -1041,7 +1041,7 @@
 	[VARIABLE DEFINITION] analysisEnded; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/labSamplesWithSideEffect.txt
-[ELAPSED TIME] 9ms
+[ELAPSED TIME] 10ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 14
 [TOTAL TASKS] 9

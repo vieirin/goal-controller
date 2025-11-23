@@ -44,8 +44,12 @@ const validateGoal = (
   const goalModule = parsedModel.goalModules.get(goalId);
   const emittedVariables = goalModule?.variables.map((v) => v.name) || [];
   const emittedTransitions = goalModule?.transitions.map((t) => t.label) || [];
+  // Filter formulas that belong to this goal
+  // Formulas are named like: G1_achievable, G1_achieved_maintain
+  // We need to match formulas that start with goalId + '_' to avoid matching
+  // G10, G11, etc. when looking for G1
   const emittedFormulas = parsedModel.formulas
-    .filter((f) => f.name.startsWith(goalId))
+    .filter((f) => f.name === goalId || f.name.startsWith(`${goalId}_`))
     .map((f) => f.name);
 
   // Check if module exists
@@ -63,14 +67,30 @@ const validateGoal = (
   // Validate formulas
   const formulas = createElementCount(expected.formulas, emittedFormulas);
 
-  // Validate context variables (should be in System module)
-  // Context variables from maintain and assertion conditions should be declared in System
+  // Validate context variables: count only those that appear in the first pursue line
+  // The first pursue line is the one where the goal pursues itself: [pursue_${goalId}] ...
+  const pursueTransition = goalModule?.transitions.find(
+    (t) => t.label === `pursue_${goalId}`,
+  );
+
+  // Extract context variables from the first pursue transition's guard
+  // Filter out goal-specific variables (like G5_pursued, G5_achieved, etc.)
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
+  const goalVariablePattern = new RegExp(
+    `^${goalId}_(pursued|achieved|chosen|failed)$`,
+  );
+
+  const emittedContextVars =
+    pursueTransition?.variablesReferenced.filter(
+      (varName) =>
+        systemContextVars.includes(varName) &&
+        !goalVariablePattern.test(varName),
+    ) || [];
 
   const contextVariables = createElementCount(
     expected.contextVariables,
-    systemContextVars,
+    emittedContextVars,
   );
 
   return {

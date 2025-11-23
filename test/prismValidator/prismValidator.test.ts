@@ -165,6 +165,82 @@ describe('PRISM Validator - Delivery Drone Examples', () => {
           `Should have no missing elements for ${exampleName}`,
         );
       });
+
+      it('should have exactly one achievability formula per goal, plus one maintain formula for maintain goals', () => {
+        const inputFile = `examples/deliveryDrone/${exampleName}.txt`;
+
+        // Load and convert model
+        const model = loadPistarModel({ filename: inputFile });
+        const tree = convertToTree({ model });
+
+        // Generate PRISM model
+        const logger = initLogger(inputFile);
+        const prismModel = templateEngineInternals.edgeDTMCTemplate({
+          gm: tree,
+          fileName: inputFile,
+        });
+        logger.close();
+
+        // Validate
+        const report = validate(tree, prismModel);
+
+        // Check each goal's formula count
+        report.goals.forEach((validation, goalId) => {
+          // Each goal should have exactly 1 achievability formula
+          // Maintain goals should have an additional 1 maintain formula (total 2)
+          // Non-maintain goals should have exactly 1 formula
+          const expectedFormulaCount = validation.formulas.expected;
+          const emittedFormulaCount = validation.formulas.emitted;
+
+          assert.strictEqual(
+            emittedFormulaCount,
+            expectedFormulaCount,
+            `Goal ${goalId} should have exactly ${expectedFormulaCount} formula(s) (1 achievability + ${
+              expectedFormulaCount - 1
+            } maintain), but found ${emittedFormulaCount}. Formulas: ${validation.formulas.details.emitted.join(
+              ', ',
+            )}`,
+          );
+
+          // Verify expected count is correct: 1 for non-maintain, 2 for maintain
+          assert.ok(
+            expectedFormulaCount === 1 || expectedFormulaCount === 2,
+            `Goal ${goalId} should have 1 or 2 formulas, but expected count is ${expectedFormulaCount}`,
+          );
+
+          if (expectedFormulaCount === 2) {
+            // Should have both achievability and maintain formulas
+            const formulas = validation.formulas.details.emitted;
+            assert.ok(
+              formulas.some((f) => f.endsWith('_achievable')),
+              `Goal ${goalId} (maintain goal) should have achievability formula, but found: ${formulas.join(
+                ', ',
+              )}`,
+            );
+            assert.ok(
+              formulas.some((f) => f.endsWith('_achieved_maintain')),
+              `Goal ${goalId} (maintain goal) should have maintain formula, but found: ${formulas.join(
+                ', ',
+              )}`,
+            );
+          } else {
+            // Should only have achievability formula
+            const formulas = validation.formulas.details.emitted;
+            assert.ok(
+              formulas.some((f) => f.endsWith('_achievable')),
+              `Goal ${goalId} should have achievability formula, but found: ${formulas.join(
+                ', ',
+              )}`,
+            );
+            assert.ok(
+              !formulas.some((f) => f.endsWith('_achieved_maintain')),
+              `Goal ${goalId} (non-maintain goal) should not have maintain formula, but found: ${formulas.join(
+                ', ',
+              )}`,
+            );
+          }
+        });
+      });
     });
   });
 });

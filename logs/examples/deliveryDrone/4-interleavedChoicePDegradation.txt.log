@@ -965,7 +965,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/4-interleavedChoicePDegradation.txt
-[ELAPSED TIME] 9ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 13
 [TOTAL TASKS] 9
@@ -999,10 +999,3 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 0
 ----------------------------------------
-
-==========================================
-MEMORY USAGE
-Generated at: Sun Nov 23 16:08:12 UTC 2025
-----------------------------------------
-Memory usage: 316 MB (324560 KB, 332349440 bytes)
-==========================================

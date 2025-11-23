@@ -42,7 +42,7 @@ export const systemModuleTemplate = ({
       );
     }),
     resourceVariables.join('\n  '),
-    oldTransitions?.join('\n  ') ?? '',
+    oldTransitions?.map((str) => str.trim()).join('\n  ') ?? '',
   ]
     .filter(Boolean)
     .flat()

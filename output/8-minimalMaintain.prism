@@ -342,8 +342,8 @@ endmodule
 module System
   commLink: bool init false;
   inFlight: bool init false;
-          [achieved_T3] true -> (inFlight'=true);
-          [achieved_T4] true -> (commLink'=true); 
-          [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
-          [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+            [achieved_T3] true -> (inFlight'=true);
+            [achieved_T4] true -> (commLink'=true); 
+            [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+            [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
 endmodule

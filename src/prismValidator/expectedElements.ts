@@ -84,35 +84,15 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
 const calculateGoalContextVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];
 
-  // From assertion (activation context) - always check since assertion is required
+  // Only count context variables from the goal's own assertion
+  // These appear in the first pursue line of the goal's module
+  // We don't count maintain variables because they're used in formulas, not pursue lines
+  // We don't count children's context variables because they don't appear in the goal's first pursue line
   if (goal.execCondition?.assertion) {
     goal.execCondition.assertion.variables.forEach((v) => {
       variables.push(v.name);
     });
   }
-
-  // From maintain condition (optional)
-  if (goal.execCondition?.maintain?.variables) {
-    goal.execCondition.maintain.variables.forEach((v) => {
-      variables.push(v.name);
-    });
-  }
-
-  // Also collect context variables from child tasks that have execCondition
-  // These are used in the parent goal's transitions
-  const children = childrenIncludingTasks({ node: goal });
-  children.forEach((child) => {
-    if (child.execCondition?.assertion) {
-      child.execCondition.assertion.variables.forEach((v) => {
-        variables.push(v.name);
-      });
-    }
-    if (child.execCondition?.maintain?.variables) {
-      child.execCondition.maintain.variables.forEach((v) => {
-        variables.push(v.name);
-      });
-    }
-  });
 
   return variables;
 };
