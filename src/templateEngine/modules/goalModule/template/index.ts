@@ -3,6 +3,7 @@ import { achieveStatement } from './achieve';
 import { achievableGoalFormula, maintainConditionFormula } from './formulas';
 
 import type { GoalNode } from '../../../../GoalTree/types';
+import { childrenIncludingTasks } from '../../../../GoalTree/utils';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
@@ -18,7 +19,14 @@ export const goalModule = (goal: GoalNode): string => {
     .filter(Boolean)
     .join('\n');
 
-  return `module ${goal.id}
+  return `// ID: ${goal.id}
+// Name: ${goal.name}
+// Type: ${goal.executionDetail?.type || 'basic'}
+// Relation to children: ${goal.relationToChildren}
+// Children: ${childrenIncludingTasks({ node: goal })
+    .map((child) => child.id)
+    .join(', ')}
+module ${goal.id}
   ${variablesDefinition(goal)}
 
   ${pursueStatements(goal).join('\n  ')}

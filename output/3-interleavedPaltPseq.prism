@@ -3,6 +3,11 @@ dtmc
 
 
 
+// ID: G0
+// Name: Perform Autonomous Package Delivery
+// Type: sequence
+// Relation to children: and
+// Children: G1, G2, G3
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -19,6 +24,11 @@ endmodule
 
 formula G0_achievable = G1_achievable * G2_achievable * G3_achievable;
 
+// ID: G1
+// Name: Navigate
+// Type: interleaved
+// Relation to children: and
+// Children: T1, T2
 module G1
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
@@ -34,6 +44,11 @@ endmodule
 
 formula G1_achievable = T1_achievable * T2_achievable;
 
+// ID: G2
+// Name: Ensure safe flight
+// Type: alternative
+// Relation to children: or
+// Children: G4, G5
 module G2
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;
@@ -49,6 +64,11 @@ endmodule
 
 formula G2_achievable = G4_achievable + G5_achievable - (G4_achievable * G5_achievable);
 
+// ID: G3
+// Name: Deliver package
+// Type: sequence
+// Relation to children: and
+// Children: G6, G7
 module G3
   G3_pursued : [0..1] init 0;
   G3_achieved : [0..1] init 0;
@@ -64,6 +84,11 @@ endmodule
 
 formula G3_achievable = G6_achievable * G7_achievable;
 
+// ID: G4
+// Name: Visual avoidance
+// Type: sequence
+// Relation to children: and
+// Children: T3, T4
 module G4
   G4_pursued : [0..1] init 0;
   G4_achieved : [0..1] init 0;
@@ -79,6 +104,11 @@ endmodule
 
 formula G4_achievable = T3_achievable * T4_achievable;
 
+// ID: G5
+// Name: Lidar Avoidance
+// Type: sequence
+// Relation to children: and
+// Children: T6, T5
 module G5
   G5_pursued : [0..1] init 0;
   G5_achieved : [0..1] init 0;
@@ -94,6 +124,11 @@ endmodule
 
 formula G5_achievable = T6_achievable * T5_achievable;
 
+// ID: G6
+// Name: Identify Delivery Spot
+// Type: basic
+// Relation to children: and
+// Children: T7
 module G6
   G6_pursued : [0..1] init 0;
   G6_achieved : [0..1] init 0;
@@ -108,6 +143,11 @@ endmodule
 
 formula G6_achievable = T7_achievable;
 
+// ID: G7
+// Name: Release Package
+// Type: basic
+// Relation to children: and
+// Children: T8
 module G7
   G7_pursued : [0..1] init 0;
   G7_achieved : [0..1] init 0;

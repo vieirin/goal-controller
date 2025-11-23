@@ -4,6 +4,38 @@
     "emitted": 77,
     "missing": 0
   },
+  "goalTypes": {
+    "choice": {
+      "expected": 0,
+      "emitted": 0,
+      "missing": 0
+    },
+    "degradation": {
+      "expected": 0,
+      "emitted": 0,
+      "missing": 0
+    },
+    "sequence": {
+      "expected": 2,
+      "emitted": 2,
+      "missing": 0
+    },
+    "interleaved": {
+      "expected": 0,
+      "emitted": 0,
+      "missing": 0
+    },
+    "alternative": {
+      "expected": 1,
+      "emitted": 1,
+      "missing": 0
+    },
+    "basic": {
+      "expected": 3,
+      "emitted": 3,
+      "missing": 0
+    }
+  },
   "goals": {
     "G0": {
       "module": {

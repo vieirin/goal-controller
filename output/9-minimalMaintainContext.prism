@@ -3,6 +3,11 @@ dtmc
 
 
 
+// ID: G0
+// Name: Perform Autonomous Urgent Delivery
+// Type: sequence
+// Relation to children: and
+// Children: G1, G2, G3, G4, G5
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -21,6 +26,11 @@ endmodule
 
 formula G0_achievable = G1_achievable * G2_achievable * G3_achievable * G4_achievable * G5_achievable;
 
+// ID: G1
+// Name: Prepare Mission and Payload
+// Type: interleaved
+// Relation to children: and
+// Children: T1, T2
 module G1
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
@@ -36,6 +46,11 @@ endmodule
 
 formula G1_achievable = T1_achievable * T2_achievable;
 
+// ID: G2
+// Name: Reach Delivery Vicinity
+// Type: interleaved
+// Relation to children: and
+// Children: G6, G7
 module G2
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;
@@ -51,6 +66,11 @@ endmodule
 
 formula G2_achievable = G6_achievable * G7_achievable;
 
+// ID: G3
+// Name: Configure Flight Profile
+// Type: choice
+// Relation to children: or
+// Children: G9, G10, G11
 module G3
   G3_pursued : [0..1] init 0;
   G3_achieved : [0..1] init 0;
@@ -68,6 +88,11 @@ endmodule
 
 formula G3_achievable = G9_achievable + G10_achievable + G11_achievable - (G9_achievable * G10_achievable * G11_achievable);
 
+// ID: G4
+// Name: Maintain Safety Envelope
+// Type: degradation
+// Relation to children: or
+// Children: G12, G13
 module G4
   G4_pursued : [0..1] init 0;
   G4_achieved : [0..1] init 0;
@@ -84,6 +109,11 @@ endmodule
 
 formula G4_achievable = G12_achievable + G13_achievable - (G12_achievable * G13_achievable);
 
+// ID: G5
+// Name: Standard Landing Delivery
+// Type: alternative
+// Relation to children: or
+// Children: G14, G15
 module G5
   G5_pursued : [0..1] init 0;
   G5_achieved : [0..1] init 0;
@@ -99,6 +129,11 @@ endmodule
 
 formula G5_achievable = G14_achievable + G15_achievable - (G14_achievable * G15_achievable);
 
+// ID: G6
+// Name: Reach altitude
+// Type: basic
+// Relation to children: and
+// Children: T3
 module G6
   G6_pursued : [0..1] init 0;
   G6_achieved : [0..1] init 0;
@@ -113,6 +148,11 @@ endmodule
 
 formula G6_achievable = T3_achievable;
 
+// ID: G7
+// Name: Maintain communication link
+// Type: basic
+// Relation to children: and
+// Children: T4
 module G7
   G7_pursued : [0..1] init 0;
 
@@ -127,6 +167,11 @@ endmodule
 formula G7_achieved_maintain = commLink;
 formula G7_achievable = T4_achievable;
 
+// ID: G9
+// Name: Energy-Saving Profile
+// Type: basic
+// Relation to children: and
+// Children: T5
 module G9
   G9_pursued : [0..1] init 0;
   G9_achieved : [0..1] init 0;
@@ -141,6 +186,11 @@ endmodule
 
 formula G9_achievable = T5_achievable;
 
+// ID: G10
+// Name: Balanced Profile
+// Type: basic
+// Relation to children: and
+// Children: T6
 module G10
   G10_pursued : [0..1] init 0;
   G10_achieved : [0..1] init 0;
@@ -155,6 +205,11 @@ endmodule
 
 formula G10_achievable = T6_achievable;
 
+// ID: G11
+// Name: Aggressive Profile
+// Type: basic
+// Relation to children: and
+// Children: T7
 module G11
   G11_pursued : [0..1] init 0;
   G11_achieved : [0..1] init 0;
@@ -169,6 +224,11 @@ endmodule
 
 formula G11_achievable = T7_achievable;
 
+// ID: G12
+// Name: Visual Safety Mode
+// Type: basic
+// Relation to children: and
+// Children: T8
 module G12
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;
@@ -183,6 +243,11 @@ endmodule
 
 formula G12_achievable = T8_achievable;
 
+// ID: G13
+// Name: Sensor-Fusion Safety Mode
+// Type: basic
+// Relation to children: and
+// Children: T9
 module G13
   G13_pursued : [0..1] init 0;
   G13_achieved : [0..1] init 0;
@@ -197,6 +262,11 @@ endmodule
 
 formula G13_achievable = T9_achievable;
 
+// ID: G14
+// Name: Standard Landing Delivery
+// Type: sequence
+// Relation to children: and
+// Children: T10, T11
 module G14
   G14_pursued : [0..1] init 0;
   G14_achieved : [0..1] init 0;
@@ -212,6 +282,11 @@ endmodule
 
 formula G14_achievable = T10_achievable * T11_achievable;
 
+// ID: G15
+// Name: Emergency Air-Drop Delivery
+// Type: basic
+// Relation to children: and
+// Children: T12
 module G15
   G15_pursued : [0..1] init 0;
   G15_achieved : [0..1] init 0;
@@ -345,11 +420,11 @@ module System
   missionReady: bool init false;
   commLink: bool init false;
   inFlight: bool init false;
-            [achieved_T1] true -> (missionReady'=true);
-            [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
-            [achieved_T7] true -> (lowBattery'=true);
-            [achieved_T3] true -> (inFlight'=true);
-            [achieved_T4] true -> (commLink'=true); 
-            [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
-            [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+  [achieved_T1] true -> (missionReady'=true);
+  [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
+  [achieved_T7] true -> (lowBattery'=true);
+  [achieved_T3] true -> (inFlight'=true);
+  [achieved_T4] true -> (commLink'=true);
+  [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+  [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
 endmodule

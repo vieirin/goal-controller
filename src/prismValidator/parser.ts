@@ -161,6 +161,43 @@ const parseModule = (
   const moduleName = moduleMatch[1];
   if (!moduleName) return null;
 
+  // Look backwards for goal type in header comments
+  // Headers are typically 3-5 lines before the module declaration
+  let goalType:
+    | 'choice'
+    | 'degradation'
+    | 'sequence'
+    | 'interleaved'
+    | 'alternative'
+    | 'basic'
+    | undefined;
+  for (let j = Math.max(0, startIndex - 10); j < startIndex; j++) {
+    const line = lines[j];
+    if (!line) continue;
+    const trimmedLine = line.trim();
+    const typeMatch = trimmedLine.match(/^\/\/\s*Type:\s*(\w+)/i);
+    const typeStr = typeMatch?.[1]?.toLowerCase();
+    if (typeStr === 'choice') {
+      goalType = 'choice';
+      break;
+    } else if (typeStr === 'degradation') {
+      goalType = 'degradation';
+      break;
+    } else if (typeStr === 'sequence') {
+      goalType = 'sequence';
+      break;
+    } else if (typeStr === 'interleaved') {
+      goalType = 'interleaved';
+      break;
+    } else if (typeStr === 'alternative') {
+      goalType = 'alternative';
+      break;
+    } else if (typeStr === 'basic') {
+      goalType = 'basic';
+      break;
+    }
+  }
+
   const variables: VariableInfo[] = [];
   const transitions: TransitionInfo[] = [];
 
@@ -205,6 +242,7 @@ const parseModule = (
       name: moduleName,
       variables,
       transitions,
+      goalType,
     },
     nextIndex: i + 1,
   };

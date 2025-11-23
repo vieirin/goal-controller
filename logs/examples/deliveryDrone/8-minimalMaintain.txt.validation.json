@@ -1,8 +1,40 @@
 {
   "summary": {
-    "expected": 199,
-    "emitted": 225,
+    "expected": 196,
+    "emitted": 196,
     "missing": 0
+  },
+  "goalTypes": {
+    "choice": {
+      "expected": 1,
+      "emitted": 1,
+      "missing": 0
+    },
+    "degradation": {
+      "expected": 1,
+      "emitted": 1,
+      "missing": 0
+    },
+    "sequence": {
+      "expected": 2,
+      "emitted": 2,
+      "missing": 0
+    },
+    "interleaved": {
+      "expected": 2,
+      "emitted": 2,
+      "missing": 0
+    },
+    "alternative": {
+      "expected": 1,
+      "emitted": 1,
+      "missing": 0
+    },
+    "basic": {
+      "expected": 8,
+      "emitted": 8,
+      "missing": 0
+    }
   },
   "goals": {
     "G0": {
@@ -28,7 +60,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -55,7 +87,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -82,7 +114,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -109,7 +141,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -136,7 +168,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -163,7 +195,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -190,7 +222,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -217,7 +249,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -243,8 +275,8 @@
         "missing": 0
       },
       "contextVariables": {
-        "expected": 2,
-        "emitted": 2,
+        "expected": 0,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -271,7 +303,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -298,7 +330,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -325,7 +357,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -352,7 +384,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     },
@@ -378,8 +410,8 @@
         "missing": 0
       },
       "contextVariables": {
-        "expected": 2,
-        "emitted": 2,
+        "expected": 1,
+        "emitted": 1,
         "missing": 0
       }
     },
@@ -406,7 +438,7 @@
       },
       "contextVariables": {
         "expected": 0,
-        "emitted": 2,
+        "emitted": 0,
         "missing": 0
       }
     }

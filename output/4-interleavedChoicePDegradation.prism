@@ -3,6 +3,11 @@ dtmc
 
 
 
+// ID: G0
+// Name: Perform Autonomous Package Delivery
+// Type: interleaved
+// Relation to children: and
+// Children: G1, G2, G3, G4
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -20,6 +25,11 @@ endmodule
 
 formula G0_achievable = G1_achievable * G2_achievable * G3_achievable * G4_achievable;
 
+// ID: G1
+// Name: Navigate to Delivery Zone
+// Type: interleaved
+// Relation to children: and
+// Children: G5, G6
 module G1
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
@@ -35,6 +45,11 @@ endmodule
 
 formula G1_achievable = G5_achievable * G6_achievable;
 
+// ID: G2
+// Name: Configure flight
+// Type: choice
+// Relation to children: or
+// Children: G7, G8
 module G2
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;
@@ -51,6 +66,11 @@ endmodule
 
 formula G2_achievable = G7_achievable + G8_achievable - (G7_achievable * G8_achievable);
 
+// ID: G3
+// Name: Maintain Safety
+// Type: degradation
+// Relation to children: and
+// Children: G9, G10
 module G3
   G3_pursued : [0..1] init 0;
   G3_achieved : [0..1] init 0;
@@ -66,6 +86,11 @@ endmodule
 
 formula G3_achievable = G9_achievable * G10_achievable;
 
+// ID: G4
+// Name: Execute Delivery
+// Type: sequence
+// Relation to children: and
+// Children: G11, G12
 module G4
   G4_pursued : [0..1] init 0;
   G4_achieved : [0..1] init 0;
@@ -81,6 +106,11 @@ endmodule
 
 formula G4_achievable = G11_achievable * G12_achievable;
 
+// ID: G5
+// Name: Localize Position
+// Type: sequence
+// Relation to children: and
+// Children: T1
 module G5
   G5_pursued : [0..1] init 0;
   G5_achieved : [0..1] init 0;
@@ -95,6 +125,11 @@ endmodule
 
 formula G5_achievable = T1_achievable;
 
+// ID: G6
+// Name: Plan Route
+// Type: interleaved
+// Relation to children: and
+// Children: T2, T3
 module G6
   G6_pursued : [0..1] init 0;
   G6_achieved : [0..1] init 0;
@@ -110,6 +145,11 @@ endmodule
 
 formula G6_achievable = T2_achievable * T3_achievable;
 
+// ID: G7
+// Name: Standard Mode
+// Type: basic
+// Relation to children: and
+// Children: T4
 module G7
   G7_pursued : [0..1] init 0;
   G7_achieved : [0..1] init 0;
@@ -124,6 +164,11 @@ endmodule
 
 formula G7_achievable = T4_achievable;
 
+// ID: G8
+// Name: High-Priority Mode
+// Type: basic
+// Relation to children: and
+// Children: T5
 module G8
   G8_pursued : [0..1] init 0;
   G8_achieved : [0..1] init 0;
@@ -138,6 +183,11 @@ endmodule
 
 formula G8_achievable = T5_achievable;
 
+// ID: G9
+// Name: Visual Avoidance
+// Type: basic
+// Relation to children: and
+// Children: T6
 module G9
   G9_pursued : [0..1] init 0;
   G9_achieved : [0..1] init 0;
@@ -152,6 +202,11 @@ endmodule
 
 formula G9_achievable = T6_achievable;
 
+// ID: G10
+// Name: Lidar Avoidance
+// Type: basic
+// Relation to children: and
+// Children: T7
 module G10
   G10_pursued : [0..1] init 0;
   G10_achieved : [0..1] init 0;
@@ -166,6 +221,11 @@ endmodule
 
 formula G10_achievable = T7_achievable;
 
+// ID: G11
+// Name: Identify Delivery Spot
+// Type: basic
+// Relation to children: and
+// Children: T9
 module G11
   G11_pursued : [0..1] init 0;
   G11_achieved : [0..1] init 0;
@@ -180,6 +240,11 @@ endmodule
 
 formula G11_achievable = T9_achievable;
 
+// ID: G12
+// Name: Perform Drop
+// Type: basic
+// Relation to children: and
+// Children: T10
 module G12
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;

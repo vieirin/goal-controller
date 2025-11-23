@@ -21,6 +21,13 @@ export type ModuleInfo = {
   name: string;
   variables: VariableInfo[];
   transitions: TransitionInfo[];
+  goalType?:
+    | 'choice'
+    | 'degradation'
+    | 'sequence'
+    | 'interleaved'
+    | 'alternative'
+    | 'basic';
 };
 
 export type ParsedPrismModel = {
@@ -61,10 +68,20 @@ export type SystemValidation = {
   resourceVariables: ElementCount & { details: ElementDetails };
 };
 
+export type GoalTypeCounts = {
+  choice: ElementCount;
+  degradation: ElementCount;
+  sequence: ElementCount;
+  interleaved: ElementCount;
+  alternative: ElementCount;
+  basic: ElementCount;
+};
+
 export type ValidationReport = {
   goals: Map<string, GoalValidation>;
   changeManager: ChangeManagerValidation;
   system: SystemValidation;
+  goalTypes: GoalTypeCounts;
   summary: {
     totalExpected: number;
     totalEmitted: number;

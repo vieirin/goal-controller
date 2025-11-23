@@ -1,4 +1,5 @@
 import type { GoalTree } from '../GoalTree/types';
+import { allGoalsMap } from '../GoalTree/utils';
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -6,6 +7,7 @@ import type {
   ElementCount,
   ElementDetails,
   ExpectedElements,
+  GoalTypeCounts,
   GoalValidation,
   ParsedPrismModel,
   SystemValidation,
@@ -197,6 +199,50 @@ export const validatePrismModel = (
   // Validate System
   const systemValidation = validateSystem(expected.system, parsedModel);
 
+  // Calculate goal type counts
+  const goalTypes: GoalTypeCounts = {
+    choice: { expected: 0, emitted: 0, missing: 0 },
+    degradation: { expected: 0, emitted: 0, missing: 0 },
+    sequence: { expected: 0, emitted: 0, missing: 0 },
+    interleaved: { expected: 0, emitted: 0, missing: 0 },
+    alternative: { expected: 0, emitted: 0, missing: 0 },
+    basic: { expected: 0, emitted: 0, missing: 0 },
+  };
+
+  // Count expected goal types from GoalTree
+  const allGoals = allGoalsMap({ gm: goalTree });
+  allGoals.forEach((goal) => {
+    const goalType =
+      goal.executionDetail?.type === 'choice'
+        ? 'choice'
+        : goal.executionDetail?.type === 'degradation'
+        ? 'degradation'
+        : goal.executionDetail?.type === 'sequence'
+        ? 'sequence'
+        : goal.executionDetail?.type === 'interleaved'
+        ? 'interleaved'
+        : goal.executionDetail?.type === 'alternative'
+        ? 'alternative'
+        : 'basic';
+    goalTypes[goalType].expected++;
+  });
+
+  // Count emitted goal types from parsed PRISM model
+  parsedModel.goalModules.forEach((module) => {
+    if (module.goalType) {
+      goalTypes[module.goalType].emitted++;
+    }
+  });
+
+  // Calculate missing for each type
+  Object.keys(goalTypes).forEach((type) => {
+    const typed = type as keyof GoalTypeCounts;
+    goalTypes[typed].missing = Math.max(
+      0,
+      goalTypes[typed].expected - goalTypes[typed].emitted,
+    );
+  });
+
   // Calculate summary
   let totalExpected = 0;
   let totalEmitted = 0;
@@ -247,6 +293,7 @@ export const validatePrismModel = (
     goals: goalValidations,
     changeManager: changeManagerValidation,
     system: systemValidation,
+    goalTypes,
     summary: {
       totalExpected,
       totalEmitted,

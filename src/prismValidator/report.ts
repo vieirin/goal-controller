@@ -55,6 +55,38 @@ export const serializeValidationReportToJSON = (
       emitted: report.summary.totalEmitted,
       missing: report.summary.totalMissing,
     },
+    goalTypes: {
+      choice: {
+        expected: report.goalTypes.choice.expected,
+        emitted: report.goalTypes.choice.emitted,
+        missing: report.goalTypes.choice.missing,
+      },
+      degradation: {
+        expected: report.goalTypes.degradation.expected,
+        emitted: report.goalTypes.degradation.emitted,
+        missing: report.goalTypes.degradation.missing,
+      },
+      sequence: {
+        expected: report.goalTypes.sequence.expected,
+        emitted: report.goalTypes.sequence.emitted,
+        missing: report.goalTypes.sequence.missing,
+      },
+      interleaved: {
+        expected: report.goalTypes.interleaved.expected,
+        emitted: report.goalTypes.interleaved.emitted,
+        missing: report.goalTypes.interleaved.missing,
+      },
+      alternative: {
+        expected: report.goalTypes.alternative.expected,
+        emitted: report.goalTypes.alternative.emitted,
+        missing: report.goalTypes.alternative.missing,
+      },
+      basic: {
+        expected: report.goalTypes.basic.expected,
+        emitted: report.goalTypes.basic.emitted,
+        missing: report.goalTypes.basic.missing,
+      },
+    },
     goals: goalsObject,
     changeManager: {
       taskVariables: {
@@ -97,6 +129,29 @@ export const formatValidationReport = (report: ValidationReport): string => {
   lines.push(`Total Expected: ${report.summary.totalExpected}`);
   lines.push(`Total Emitted:  ${report.summary.totalEmitted}`);
   lines.push(`Total Missing:  ${report.summary.totalMissing}`);
+  lines.push('');
+
+  // Goal Types
+  lines.push('GOAL TYPES');
+  lines.push('-'.repeat(80));
+  lines.push(
+    `Choice: expected=${report.goalTypes.choice.expected}, emitted=${report.goalTypes.choice.emitted}, missing=${report.goalTypes.choice.missing}`,
+  );
+  lines.push(
+    `Degradation: expected=${report.goalTypes.degradation.expected}, emitted=${report.goalTypes.degradation.emitted}, missing=${report.goalTypes.degradation.missing}`,
+  );
+  lines.push(
+    `Sequence: expected=${report.goalTypes.sequence.expected}, emitted=${report.goalTypes.sequence.emitted}, missing=${report.goalTypes.sequence.missing}`,
+  );
+  lines.push(
+    `Interleaved: expected=${report.goalTypes.interleaved.expected}, emitted=${report.goalTypes.interleaved.emitted}, missing=${report.goalTypes.interleaved.missing}`,
+  );
+  lines.push(
+    `Alternative: expected=${report.goalTypes.alternative.expected}, emitted=${report.goalTypes.alternative.emitted}, missing=${report.goalTypes.alternative.missing}`,
+  );
+  lines.push(
+    `Basic: expected=${report.goalTypes.basic.expected}, emitted=${report.goalTypes.basic.emitted}, missing=${report.goalTypes.basic.missing}`,
+  );
   lines.push('');
 
   // Goals validation

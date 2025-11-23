@@ -3,6 +3,11 @@ dtmc
 
 
 
+// ID: G0
+// Name: Perform Autonomous Package Delivery
+// Type: sequence
+// Relation to children: and
+// Children: G1, G2
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -18,6 +23,11 @@ endmodule
 
 formula G0_achievable = G1_achievable * G2_achievable;
 
+// ID: G1
+// Name: Navigate
+// Type: sequence
+// Relation to children: and
+// Children: T1, T2
 module G1
   G1_pursued : [0..1] init 0;
   G1_achieved : [0..1] init 0;
@@ -33,6 +43,11 @@ endmodule
 
 formula G1_achievable = T1_achievable * T2_achievable;
 
+// ID: G2
+// Name: Deliver Package
+// Type: basic
+// Relation to children: and
+// Children: T3
 module G2
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;

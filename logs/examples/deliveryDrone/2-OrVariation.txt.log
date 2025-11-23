@@ -473,7 +473,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/2-OrVariation.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 7ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 6
 [TOTAL TASKS] 5
@@ -507,3 +507,10 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 0
 ----------------------------------------
+
+==========================================
+MEMORY USAGE
+Generated at: Sun Nov 23 16:42:55 UTC 2025
+----------------------------------------
+Memory usage: 363 MB (371968 KB, 380895232 bytes)
+==========================================

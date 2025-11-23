@@ -3,6 +3,11 @@ dtmc
 
 
 
+// ID: G0
+// Name: Provide Sample Delivery
+// Type: interleaved
+// Relation to children: and
+// Children: G1, G2
 module G0
   G0_pursued : [0..1] init 0;
   G0_achieved : [0..1] init 0;
@@ -18,6 +23,11 @@ endmodule
 
 formula G0_achievable = G1_achievable * G2_achievable;
 
+// ID: G1
+// Name: Monitor Sample Track System
+// Type: basic
+// Relation to children: and
+// Children: T1
 module G1
   G1_pursued : [0..1] init 0;
 
@@ -32,6 +42,11 @@ endmodule
 formula G1_achieved_maintain = !sampleLoaded;
 formula G1_achievable = T1_achievable;
 
+// ID: G2
+// Name: Deliver Sample and Pickup Sample if Needed
+// Type: sequence
+// Relation to children: and
+// Children: G13, G6
 module G2
   G2_pursued : [0..1] init 0;
   G2_achieved : [0..1] init 0;
@@ -47,6 +62,11 @@ endmodule
 
 formula G2_achievable = G13_achievable * G6_achievable;
 
+// ID: G3
+// Name: Pickup Sample
+// Type: sequence
+// Relation to children: and
+// Children: G5
 module G3
   G3_pursued : [0..1] init 0;
   G3_achieved : [0..1] init 0;
@@ -61,6 +81,11 @@ endmodule
 
 formula G3_achievable = G5_achievable;
 
+// ID: G4
+// Name: Load sample to deliver
+// Type: basic
+// Relation to children: and
+// Children: T5
 module G4
   G4_pursued : [0..1] init 0;
   G4_achieved : [0..1] init 0;
@@ -75,6 +100,11 @@ endmodule
 
 formula G4_achievable = T5_achievable;
 
+// ID: G5
+// Name: Approach Nurse and Pickup Sample
+// Type: sequence
+// Relation to children: and
+// Children: G7, G8, G9
 module G5
   G5_pursued : [0..1] init 0;
   G5_achieved : [0..1] init 0;
@@ -91,6 +121,11 @@ endmodule
 
 formula G5_achievable = G7_achievable * G8_achievable * G9_achievable;
 
+// ID: G6
+// Name: Deliver Sample to Lab
+// Type: sequence
+// Relation to children: and
+// Children: G10, G11, G12
 module G6
   G6_pursued : [0..1] init 0;
   G6_achieved : [0..1] init 0;
@@ -107,6 +142,11 @@ endmodule
 
 formula G6_achievable = G10_achievable * G11_achievable * G12_achievable;
 
+// ID: G7
+// Name: Approach the Nurse
+// Type: basic
+// Relation to children: and
+// Children: T2
 module G7
   G7_pursued : [0..1] init 0;
   G7_achieved : [0..1] init 0;
@@ -121,6 +161,11 @@ endmodule
 
 formula G7_achievable = T2_achievable;
 
+// ID: G8
+// Name: Scan Sample Barcode
+// Type: basic
+// Relation to children: and
+// Children: T3
 module G8
   G8_pursued : [0..1] init 0;
   G8_achieved : [0..1] init 0;
@@ -135,6 +180,11 @@ endmodule
 
 formula G8_achievable = T3_achievable;
 
+// ID: G9
+// Name: Pickup Sample
+// Type: basic
+// Relation to children: and
+// Children: T4
 module G9
   G9_pursued : [0..1] init 0;
   G9_achieved : [0..1] init 0;
@@ -149,6 +199,11 @@ endmodule
 
 formula G9_achievable = T4_achievable;
 
+// ID: G10
+// Name: Approach the Lab
+// Type: basic
+// Relation to children: and
+// Children: T6
 module G10
   G10_pursued : [0..1] init 0;
   G10_achieved : [0..1] init 0;
@@ -163,6 +218,11 @@ endmodule
 
 formula G10_achievable = T6_achievable;
 
+// ID: G11
+// Name: Monitor Sample Data
+// Type: sequence
+// Relation to children: and
+// Children: T7, T8
 module G11
   G11_pursued : [0..1] init 0;
 
@@ -178,6 +238,11 @@ endmodule
 formula G11_achieved_maintain = analysisEnded;
 formula G11_achievable = T7_achievable * T8_achievable;
 
+// ID: G12
+// Name: Give sample to Robotic Arm
+// Type: basic
+// Relation to children: and
+// Children: T9
 module G12
   G12_pursued : [0..1] init 0;
   G12_achieved : [0..1] init 0;
@@ -192,6 +257,11 @@ endmodule
 
 formula G12_achievable = T9_achievable;
 
+// ID: G13
+// Name: Prepare sample
+// Type: choice
+// Relation to children: or
+// Children: G3, G4
 module G13
   G13_pursued : [0..1] init 0;
   G13_achieved : [0..1] init 0;
@@ -300,9 +370,9 @@ module System
   R0: bool init true;
   R1: [0..5] init 5;
   R2: bool init true;
-            [achieved_T2] true -> (R1'=max(0, R1-1));
-            [achieved_T4] true -> (sampleLoaded'=true) & (R2'=false);
-            [achieved_T5] true -> (sampleLoaded'=true) & (R2'=false);
-            [achieved_T8] true -> (analysisEnded'=true);
-            [achieved_T9] true -> (sampleLoaded'=false);
+  [achieved_T2] true -> (R1'=max(0, R1-1));
+  [achieved_T4] true -> (sampleLoaded'=true) & (R2'=false);
+  [achieved_T5] true -> (sampleLoaded'=true) & (R2'=false);
+  [achieved_T8] true -> (analysisEnded'=true);
+  [achieved_T9] true -> (sampleLoaded'=false);
 endmodule
