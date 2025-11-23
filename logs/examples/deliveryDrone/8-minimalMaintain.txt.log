@@ -1190,6 +1190,19 @@
 	[VARIABLE DEFINITION] inFlight; initial value: false; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/8-minimalMaintain.txt
+[ELAPSED TIME] 1ms
+----------MODEL STRUCTURE SUMMARY----------
+[TOTAL GOALS] 15
+[TOTAL TASKS] 12
+[TOTAL RESOURCES] 0
+[TOTAL NODES] 27
+[TOTAL VARIABLES] 57
+----------GOAL TYPE BREAKDOWN----------
+[GOAL TYPE: DEGRADATION] 1
+[GOAL TYPE: CHOICE] 1
+[GOAL TYPE: ALTERNATIVE] 1
+[GOAL TYPE: SEQUENCE] 2
+[GOAL TYPE: INTERLEAVED] 2
 ----------GOAL SUMMARY----------
 [GOAL MODULES] 15
 [GOAL VARIABLES] 31

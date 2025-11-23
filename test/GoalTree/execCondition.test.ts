@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '../src/GoalTree';
-import { convertToTree } from '../src/GoalTree/creation';
-import { allByType, allGoalsMap } from '../src/GoalTree/utils';
+import { loadPistarModel } from '../../src/GoalTree';
+import { convertToTree } from '../../src/GoalTree/creation';
+import { allByType, allGoalsMap } from '../../src/GoalTree/utils';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
@@ -21,12 +21,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g3.execCondition, 'G3 should have execCondition');
       assert.ok(
         g3.execCondition.assertion,
-        'G3 should have execCondition.assertion'
+        'G3 should have execCondition.assertion',
       );
       assert.strictEqual(g3.execCondition.assertion.sentence, 'privacyEnabled');
       assert.ok(
         g3.execCondition.assertion.variables.length > 0,
-        'G3 assertion should have variables'
+        'G3 assertion should have variables',
       );
     });
 
@@ -36,20 +36,20 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g4.execCondition, 'G4 should have execCondition');
       assert.ok(
         g4.execCondition.maintain,
-        'G4 should have execCondition.maintain'
+        'G4 should have execCondition.maintain',
       );
       assert.strictEqual(g4.execCondition.maintain.sentence, 'inEmergency');
       assert.ok(
         g4.execCondition.assertion,
-        'G4 should have execCondition.assertion'
+        'G4 should have execCondition.assertion',
       );
       assert.strictEqual(
         g4.execCondition.assertion.sentence,
-        'enoughBattery & highReliability'
+        'enoughBattery & highReliability',
       );
       assert.ok(
         g4.execCondition.assertion.variables.length > 0,
-        'G4 assertion should have variables'
+        'G4 assertion should have variables',
       );
     });
 
@@ -59,23 +59,23 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g8.execCondition, 'G8 should have execCondition');
       assert.ok(
         g8.execCondition.maintain,
-        'G8 should have execCondition.maintain'
+        'G8 should have execCondition.maintain',
       );
       assert.strictEqual(
         g8.execCondition.maintain.sentence,
-        'enoughBattery & highReliability'
+        'enoughBattery & highReliability',
       );
       assert.ok(
         g8.execCondition.assertion,
-        'G8 should have execCondition.assertion'
+        'G8 should have execCondition.assertion',
       );
       assert.strictEqual(
         g8.execCondition.assertion.sentence,
-        'sensorAvailable'
+        'sensorAvailable',
       );
       assert.ok(
         g8.execCondition.assertion.variables.length > 0,
-        'G8 assertion should have variables'
+        'G8 assertion should have variables',
       );
     });
 
@@ -85,15 +85,15 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g12.execCondition, 'G12 should have execCondition');
       assert.ok(
         g12.execCondition.assertion,
-        'G12 should have execCondition.assertion'
+        'G12 should have execCondition.assertion',
       );
       assert.strictEqual(
         g12.execCondition.assertion.sentence,
-        'pharmacyAvailable&atHome'
+        'pharmacyAvailable&atHome',
       );
       assert.ok(
         g12.execCondition.assertion.variables.length > 0,
-        'G12 assertion should have variables'
+        'G12 assertion should have variables',
       );
     });
 
@@ -103,23 +103,23 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g18.execCondition, 'G18 should have execCondition');
       assert.ok(
         g18.execCondition.maintain,
-        'G18 should have execCondition.maintain'
+        'G18 should have execCondition.maintain',
       );
       assert.strictEqual(
         g18.execCondition.maintain.sentence,
-        'inSideEffectWindow'
+        'inSideEffectWindow',
       );
       assert.ok(
         g18.execCondition.assertion,
-        'G18 should have execCondition.assertion'
+        'G18 should have execCondition.assertion',
       );
       assert.strictEqual(
         g18.execCondition.assertion.sentence,
-        'medicationApplied'
+        'medicationApplied',
       );
       assert.ok(
         g18.execCondition.assertion.variables.length > 0,
-        'G18 assertion should have variables'
+        'G18 assertion should have variables',
       );
     });
 
@@ -129,12 +129,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g19.execCondition, 'G19 should have execCondition');
       assert.ok(
         g19.execCondition.assertion,
-        'G19 should have execCondition.assertion'
+        'G19 should have execCondition.assertion',
       );
       assert.strictEqual(g19.execCondition.assertion.sentence, 'inEmergency');
       assert.ok(
         g19.execCondition.assertion.variables.length > 0,
-        'G19 assertion should have variables'
+        'G19 assertion should have variables',
       );
     });
 
@@ -144,20 +144,20 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g2.execCondition, 'G2 should have execCondition');
       assert.ok(
         g2.execCondition.maintain,
-        'G2 should have execCondition.maintain'
+        'G2 should have execCondition.maintain',
       );
       assert.strictEqual(g2.execCondition.maintain.sentence, 'highPrecision');
       assert.ok(
         g2.execCondition.assertion,
-        'G2 should have execCondition.assertion'
+        'G2 should have execCondition.assertion',
       );
       assert.strictEqual(
         g2.execCondition.assertion.sentence,
-        'patientTracking'
+        'patientTracking',
       );
       assert.ok(
         g2.execCondition.assertion.variables.length > 0,
-        'G2 assertion should have variables'
+        'G2 assertion should have variables',
       );
     });
 
@@ -167,12 +167,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g5.execCondition, 'G5 should have execCondition');
       assert.ok(
         g5.execCondition.assertion,
-        'G5 should have execCondition.assertion'
+        'G5 should have execCondition.assertion',
       );
       assert.strictEqual(g5.execCondition.assertion.sentence, 'privacyEnabled');
       assert.ok(
         g5.execCondition.assertion.variables.length > 0,
-        'G5 assertion should have variables'
+        'G5 assertion should have variables',
       );
     });
 
@@ -182,15 +182,15 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(g6.execCondition, 'G6 should have execCondition');
       assert.ok(
         g6.execCondition.assertion,
-        'G6 should have execCondition.assertion'
+        'G6 should have execCondition.assertion',
       );
       assert.strictEqual(
         g6.execCondition.assertion.sentence,
-        'privacyEnabled=false'
+        'privacyEnabled=false',
       );
       assert.ok(
         g6.execCondition.assertion.variables.length > 0,
-        'G6 assertion should have variables'
+        'G6 assertion should have variables',
       );
     });
   });
@@ -202,12 +202,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t4.execCondition, 'T4 should have execCondition');
       assert.ok(
         t4.execCondition.assertion,
-        'T4 should have execCondition.assertion'
+        'T4 should have execCondition.assertion',
       );
       assert.strictEqual(t4.execCondition.assertion.sentence, 'R0=true');
       assert.ok(
         t4.execCondition.assertion.variables.length > 0,
-        'T4 assertion should have variables'
+        'T4 assertion should have variables',
       );
     });
 
@@ -217,12 +217,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t9.execCondition, 'T9 should have execCondition');
       assert.ok(
         t9.execCondition.assertion,
-        'T9 should have execCondition.assertion'
+        'T9 should have execCondition.assertion',
       );
       assert.strictEqual(t9.execCondition.assertion.sentence, 'R3=true');
       assert.ok(
         t9.execCondition.assertion.variables.length > 0,
-        'T9 assertion should have variables'
+        'T9 assertion should have variables',
       );
     });
 
@@ -232,12 +232,12 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t2.execCondition, 'T2 should have execCondition');
       assert.ok(
         t2.execCondition.assertion,
-        'T2 should have execCondition.assertion'
+        'T2 should have execCondition.assertion',
       );
       assert.strictEqual(t2.execCondition.assertion.sentence, 'privacyEnabled');
       assert.ok(
         t2.execCondition.assertion.variables.length > 0,
-        'T2 assertion should have variables'
+        'T2 assertion should have variables',
       );
     });
 
@@ -247,22 +247,22 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t3.execCondition, 'T3 should have execCondition');
       assert.ok(
         t3.execCondition.assertion,
-        'T3 should have execCondition.assertion'
+        'T3 should have execCondition.assertion',
       );
       assert.strictEqual(t3.execCondition.assertion.sentence, 'R1>50');
       assert.ok(
         t3.execCondition.assertion.variables.length > 0,
-        'T3 assertion should have variables'
+        'T3 assertion should have variables',
       );
       // Verify that R1 is extracted as a variable
       const r1Variable = t3.execCondition.assertion.variables.find(
-        (v) => v.name === 'R1'
+        (v) => v.name === 'R1',
       );
       assert.ok(r1Variable, 'T3 assertion should extract R1 as a variable');
       assert.strictEqual(
         r1Variable.value,
         null,
-        'R1 variable should have null value (integer comparison)'
+        'R1 variable should have null value (integer comparison)',
       );
     });
 
@@ -272,22 +272,22 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t10.execCondition, 'T10 should have execCondition');
       assert.ok(
         t10.execCondition.assertion,
-        'T10 should have execCondition.assertion'
+        'T10 should have execCondition.assertion',
       );
       assert.strictEqual(t10.execCondition.assertion.sentence, 'R4>35');
       assert.ok(
         t10.execCondition.assertion.variables.length > 0,
-        'T10 assertion should have variables'
+        'T10 assertion should have variables',
       );
       // Verify that R4 is extracted as a variable
       const r4Variable = t10.execCondition.assertion.variables.find(
-        (v) => v.name === 'R4'
+        (v) => v.name === 'R4',
       );
       assert.ok(r4Variable, 'T10 assertion should extract R4 as a variable');
       assert.strictEqual(
         r4Variable.value,
         null,
-        'R4 variable should have null value (integer comparison)'
+        'R4 variable should have null value (integer comparison)',
       );
     });
 
@@ -297,15 +297,15 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       assert.ok(t11.execCondition, 'T11 should have execCondition');
       assert.ok(
         t11.execCondition.assertion,
-        'T11 should have execCondition.assertion'
+        'T11 should have execCondition.assertion',
       );
       assert.strictEqual(
         t11.execCondition.assertion.sentence,
-        'networkAvailable'
+        'networkAvailable',
       );
       assert.ok(
         t11.execCondition.assertion.variables.length > 0,
-        'T11 assertion should have variables'
+        'T11 assertion should have variables',
       );
     });
   });

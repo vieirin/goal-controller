@@ -1,4 +1,5 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
+import path from 'path';
 import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
 import { isResource } from '../../../GoalTree/nodeUtils';
 import { treeContextVariables } from '../../../GoalTree/treeVariables';
@@ -7,12 +8,96 @@ import { allByType } from '../../../GoalTree/utils';
 import { getLogger } from '../../../logger/logger';
 import { systemModuleTemplate } from './template';
 
+/**
+ * Extracts transition lines from the System module in an existing PRISM file
+ * @param fileName The input file name (e.g., "examples/deliveryDrone/1-minimal.txt")
+ * @returns Array of transition lines from the System module, or empty array if file doesn't exist or has no transitions
+ */
+const extractOldSystemTransitions = (fileName: string): string[] => {
+  // Extract base name from fileName (e.g., "examples/deliveryDrone/1-minimal.txt" -> "1-minimal")
+  const parsedPath = path.parse(fileName);
+  const baseName = parsedPath.name;
+  const oldPrismFilePath = `output/${baseName}.prism`;
+
+  // Check if the old PRISM file exists
+  if (!existsSync(oldPrismFilePath)) {
+    return [];
+  }
+
+  try {
+    const prismContent = readFileSync(oldPrismFilePath, 'utf8');
+    const lines = prismContent.split('\n');
+
+    let inSystemModule = false;
+    const transitions: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line) continue;
+
+      const trimmedLine = line.trim();
+
+      // Check if we're entering the System module
+      if (trimmedLine === 'module System') {
+        inSystemModule = true;
+        continue;
+      }
+
+      // Check if we're leaving the System module
+      if (inSystemModule && trimmedLine === 'endmodule') {
+        break;
+      }
+
+      // If we're in the System module, check for transitions
+      if (inSystemModule) {
+        // Match transition pattern: [label] guard -> update;
+        const transitionMatch = trimmedLine.match(
+          /^\s*\[([^\]]+)\]\s*.+?\s*->\s*.+?\s*;?\s*$/,
+        );
+        if (transitionMatch) {
+          // Collect preceding comment lines
+          const precedingComments: string[] = [];
+          let j = i - 1;
+          while (j >= 0) {
+            const prevLine = lines[j];
+            if (!prevLine) {
+              j--;
+              continue;
+            }
+            const prevTrimmed = prevLine.trim();
+            // Stop if we hit a non-comment, non-empty line
+            if (prevTrimmed && !prevTrimmed.startsWith('//')) {
+              break;
+            }
+            // Collect comment lines (preserve order by unshifting)
+            if (prevTrimmed.startsWith('//')) {
+              precedingComments.unshift(prevLine);
+            }
+            j--;
+          }
+
+          // Add preceding comments and the transition line
+          transitions.push(...precedingComments);
+          transitions.push(line);
+        }
+      }
+    }
+
+    return transitions;
+  } catch (error) {
+    // If there's an error reading the file, return empty array
+    return [];
+  }
+};
+
 export const systemModule = ({
   gm,
   fileName,
+  clean = false,
 }: {
   gm: GoalTree;
   fileName: string;
+  clean?: boolean;
 }): string => {
   const logger = getLogger();
   logger.initSystem();
@@ -29,14 +114,20 @@ export const systemModule = ({
       variables.length > 0
         ? JSON.parse(readFileSync(variablesFilePath, 'utf8'))
         : {};
+    const oldTransitions = clean ? [] : extractOldSystemTransitions(fileName);
     return systemModuleTemplate({
       variables,
       resources,
       defaultVariableValues,
+      oldTransitions,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error reading variables file:', error);
     throw new Error('Error reading variables file');
   }
+};
+
+export const __test_only_exports__ = {
+  extractOldSystemTransitions,
 };

@@ -5,10 +5,12 @@ export const systemModuleTemplate = ({
   variables,
   resources,
   defaultVariableValues,
+  oldTransitions,
 }: {
   variables: string[];
   resources: Resource[];
   defaultVariableValues: Record<string, number | boolean>;
+  oldTransitions?: string[];
 }): string => {
   const resourceVariables = resources.map((resource) => {
     if (resource.variable.type === 'boolean') {
@@ -40,7 +42,9 @@ export const systemModuleTemplate = ({
       );
     }),
     resourceVariables.join('\n  '),
+    oldTransitions?.join('\n  ') ?? '',
   ]
+    .filter(Boolean)
     .flat()
     .join('\n  ')
     .trim()}

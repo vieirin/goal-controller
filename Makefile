@@ -36,6 +36,15 @@ generate: grammarRT grammarAssertion
 	npx ts-node src/index.ts "$(FILE)"
 	@echo "✅ Model generated successfully!"
 
+generate-file: grammarRT grammarAssertion
+	@if [ -z "$(FILE)" ]; then \
+		echo "Error: FILE variable is required. Usage: make generate-file FILE=path/to/file.txt"; \
+		exit 1; \
+	fi
+	@echo "Generating model from $(FILE)..."
+	npx ts-node src/index.ts "$(FILE)"
+	@echo "✅ Model generated successfully!"
+
 storm:
 	docker-compose -f docker-compose.storm.yml up -d
 	docker exec -it storm-container bash 

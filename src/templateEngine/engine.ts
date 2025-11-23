@@ -1,15 +1,18 @@
 import { type GoalTree } from '../GoalTree/types';
+import { validate } from '../prismValidator';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules } from './modules/goalModule/goalModules';
 import { systemModule } from './modules/system/system';
 
-export const edgeDTMCTemplate = ({
+const edgeDTMCTemplate = ({
   gm,
   fileName,
+  clean = false,
 }: {
   gm: GoalTree;
   fileName: string;
+  clean?: boolean;
 }): string => {
   const dtmcModel = `dtmc
 
@@ -19,7 +22,29 @@ ${goalModules({ gm })}
 
 ${changeManagerModule({ gm, fileName })}
 
-${systemModule({ gm, fileName })}
+${systemModule({ gm, fileName, clean })}
 `;
   return dtmcModel;
+};
+
+export const generateValidatedPrismModel = ({
+  gm,
+  fileName,
+  clean = false,
+}: {
+  gm: GoalTree;
+  fileName: string;
+  clean?: boolean;
+}): string => {
+  const prismModel = edgeDTMCTemplate({ gm, fileName, clean });
+  const report = validate(gm, prismModel);
+  if (report.summary.totalMissing > 0) {
+    throw new Error('PRISM model is not valid');
+  }
+  return prismModel;
+};
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export const __test_only_exports__ = {
+  edgeDTMCTemplate,
 };

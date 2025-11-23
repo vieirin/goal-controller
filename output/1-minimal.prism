@@ -60,20 +60,17 @@ module ChangeManager
   T3_pursued: [0..1] init 0;
   T3_achieved: [0..1] init 0;
   
-
   // Task T1: Acquire GPS
   [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
   [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
   [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
   
 
-
   // Task T2: Follow waypoint
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
   [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
   [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
   
-
 
   // Task T3: Drop package
   [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);

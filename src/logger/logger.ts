@@ -1,6 +1,6 @@
 import fs from 'fs';
-import path from 'path';
 import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
+import { ensureLogFileDirectory } from './filePath';
 
 type LoggerStore = {
   goalModules: number;
@@ -20,6 +20,17 @@ type LoggerStore = {
   systemVariables: number;
   systemResources: number;
   systemContextVariables: number;
+  // New counters
+  totalGoals: number;
+  goalTypeDegradation: number;
+  goalTypeChoice: number;
+  goalTypeAlternative: number;
+  goalTypeSequence: number;
+  goalTypeInterleaved: number;
+  totalTasks: number;
+  totalResources: number;
+  totalNodes: number;
+  totalVariables: number;
 };
 
 type VariableDefinitionBase = {
@@ -57,6 +68,17 @@ export const createStore = (): LoggerStore => {
     tasksSkippedLines: 0,
     systemResources: 0,
     systemContextVariables: 0,
+    // New counters
+    totalGoals: 0,
+    goalTypeDegradation: 0,
+    goalTypeChoice: 0,
+    goalTypeAlternative: 0,
+    goalTypeSequence: 0,
+    goalTypeInterleaved: 0,
+    totalTasks: 0,
+    totalResources: 0,
+    totalNodes: 0,
+    totalVariables: 0,
   };
 
   // Create a Proxy that intercepts property access for all LoggerStore properties
@@ -74,9 +96,7 @@ export const createStore = (): LoggerStore => {
 };
 
 const createLoggerFile = (modelFileName: string): fs.WriteStream => {
-  const logFilePath = `logs/${modelFileName}.log`;
-  const logDir = path.dirname(logFilePath);
-  fs.mkdirSync(logDir, { recursive: true });
+  const logFilePath = ensureLogFileDirectory(modelFileName, '.log');
   return fs.createWriteStream(logFilePath, { flags: 'w' });
 };
 
@@ -85,6 +105,7 @@ const createLogger = (
   store: LoggerStore,
   logToConsole: boolean = false,
 ) => {
+  const startTime = Date.now();
   const logFile = createLoggerFile(modelFileName);
   const write = (message: string): void => {
     logFile.write(message);
@@ -102,6 +123,29 @@ const createLogger = (
     },
     initGoal: (goal: GoalNode) => {
       store.goalModules++;
+      store.totalGoals++;
+
+      // Track execution detail type
+      if (goal.executionDetail) {
+        switch (goal.executionDetail.type) {
+          case 'degradation':
+            store.goalTypeDegradation++;
+            break;
+          case 'choice':
+            store.goalTypeChoice++;
+            break;
+          case 'alternative':
+            store.goalTypeAlternative++;
+            break;
+          case 'sequence':
+            store.goalTypeSequence++;
+            break;
+          case 'interleaved':
+            store.goalTypeInterleaved++;
+            break;
+        }
+      }
+
       write(`[INIT GOAL] ${goal.id}: ${goal.name ?? 'none'}\n`);
       write(
         `\tChildren: ${
@@ -123,6 +167,13 @@ const createLogger = (
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
     initTask: (task: GoalNode) => {
+      store.totalTasks++;
+
+      // Count resources for this task
+      if (task.resources && task.resources.length > 0) {
+        store.totalResources += task.resources.length;
+      }
+
       write(`[INIT TASK] ${task.id}: ${task.name ?? 'none'}\n`);
       write(
         `\tResources: ${
@@ -397,8 +448,35 @@ const createLogger = (
       write(`${'\t'.repeat(level)}[TRACE] ${source}: ${message}\n`);
     },
     close: () => {
+      const endTime = Date.now();
+      const elapsedTime = endTime - startTime;
+      const elapsedSeconds = (elapsedTime / 1000).toFixed(3);
+      const elapsedFormatted =
+        elapsedTime >= 1000
+          ? `${elapsedSeconds}s (${elapsedTime}ms)`
+          : `${elapsedTime}ms`;
+
+      // Calculate total nodes and total variables
+      store.totalNodes =
+        store.totalGoals + store.totalTasks + store.totalResources;
+      store.totalVariables =
+        store.goalVariables + store.tasksVariables + store.systemVariables;
+
       write('----------------------------------------\n');
       write(`[LOGGER SUMMARY] ${modelFileName}\n`);
+      write(`[ELAPSED TIME] ${elapsedFormatted}\n`);
+      write('----------MODEL STRUCTURE SUMMARY----------\n');
+      write(`[TOTAL GOALS] ${store.totalGoals}\n`);
+      write(`[TOTAL TASKS] ${store.totalTasks}\n`);
+      write(`[TOTAL RESOURCES] ${store.totalResources}\n`);
+      write(`[TOTAL NODES] ${store.totalNodes}\n`);
+      write(`[TOTAL VARIABLES] ${store.totalVariables}\n`);
+      write('----------GOAL TYPE BREAKDOWN----------\n');
+      write(`[GOAL TYPE: DEGRADATION] ${store.goalTypeDegradation}\n`);
+      write(`[GOAL TYPE: CHOICE] ${store.goalTypeChoice}\n`);
+      write(`[GOAL TYPE: ALTERNATIVE] ${store.goalTypeAlternative}\n`);
+      write(`[GOAL TYPE: SEQUENCE] ${store.goalTypeSequence}\n`);
+      write(`[GOAL TYPE: INTERLEAVED] ${store.goalTypeInterleaved}\n`);
       write('----------GOAL SUMMARY----------\n');
       write(`[GOAL MODULES] ${store.goalModules}\n`);
       write(`[GOAL VARIABLES] ${store.goalVariables}\n`);
@@ -424,6 +502,7 @@ const createLogger = (
       write(`[SYSTEM RESOURCES] ${store.systemResources}\n`);
       write(`[SYSTEM CONTEXT VARIABLES] ${store.systemContextVariables}\n`);
       write('----------------------------------------\n');
+      logFile.end();
     },
   };
 };

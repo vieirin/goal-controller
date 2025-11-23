@@ -150,13 +150,11 @@ module ChangeManager
   T8_pursued: [0..1] init 0;
   T8_achieved: [0..1] init 0;
   
-
   // Task T1: Acquire GPS
   [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
   [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
   [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
   
-
 
   // Task T2: Follow waypoint
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
@@ -164,13 +162,11 @@ module ChangeManager
   [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
   
 
-
   // Task T3: Detect obstacles using camera
   [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
   [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
   [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
   
-
 
   // Task T4: Adjust course visually
   [pursue_T4] T4_pursued=0 & T4_achieved=0 -> (T4_pursued'=1);
@@ -178,13 +174,11 @@ module ChangeManager
   [achieved_T4] T4_pursued=1 & T4_achieved=1 -> true;
   
 
-
   // Task T5: Scan area with lidar
   [pursue_T5] T5_pursued=0 & T5_achieved=0 -> (T5_pursued'=1);
   [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
   [achieved_T5] T5_pursued=1 & T5_achieved=1 -> true;
   
-
 
   // Task T6: Adjust course using lidar map
   [pursue_T6] T6_pursued=0 & T6_achieved=0 -> (T6_pursued'=1);
@@ -192,13 +186,11 @@ module ChangeManager
   [achieved_T6] T6_pursued=1 & T6_achieved=1 -> true;
   
 
-
   // Task T7: Detect landing marker
   [pursue_T7] T7_pursued=0 & T7_achieved=0 -> (T7_pursued'=1);
   [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
   [achieved_T7] T7_pursued=1 & T7_achieved=1 -> true;
   
-
 
   // Task T8: Open release mechanism
   [pursue_T8] T8_pursued=0 & T8_achieved=0 -> (T8_pursued'=1);

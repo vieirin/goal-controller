@@ -1041,6 +1041,19 @@
 	[VARIABLE DEFINITION] analysisEnded; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/labSamplesWithSideEffect.txt
+[ELAPSED TIME] 9ms
+----------MODEL STRUCTURE SUMMARY----------
+[TOTAL GOALS] 14
+[TOTAL TASKS] 9
+[TOTAL RESOURCES] 8
+[TOTAL NODES] 31
+[TOTAL VARIABLES] 50
+----------GOAL TYPE BREAKDOWN----------
+[GOAL TYPE: DEGRADATION] 0
+[GOAL TYPE: CHOICE] 1
+[GOAL TYPE: ALTERNATIVE] 0
+[GOAL TYPE: SEQUENCE] 5
+[GOAL TYPE: INTERLEAVED] 1
 ----------GOAL SUMMARY----------
 [GOAL MODULES] 14
 [GOAL VARIABLES] 27

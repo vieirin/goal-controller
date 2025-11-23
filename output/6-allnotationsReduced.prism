@@ -266,13 +266,11 @@ module ChangeManager
   T9_pursued: [0..1] init 0;
   T9_achieved: [0..1] init 0;
   
-
   // Task T1: Load mission plan
   [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
   [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
   [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
   
-
 
   // Task T10: Descend to landing spot
   [pursue_T10] T10_pursued=0 & T10_achieved=0 -> (T10_pursued'=1);
@@ -280,13 +278,11 @@ module ChangeManager
   [achieved_T10] T10_pursued=1 & T10_achieved=1 -> true;
   
 
-
   // Task T11: Release package on ground
   [pursue_T11] T11_pursued=0 & T11_achieved=0 -> (T11_pursued'=1);
   [try_T11] T11_pursued=1 & T11_achieved=0 -> T11_achievable: (T11_achieved'=1) + 1-T11_achievable: (T11_pursued'=0);
   [achieved_T11] T11_pursued=1 & T11_achieved=1 -> true;
   
-
 
   // Task T12: Perform low-altitude air-drop
   [pursue_T12] T12_pursued=0 & T12_achieved=0 -> (T12_pursued'=1);
@@ -294,13 +290,11 @@ module ChangeManager
   [achieved_T12] T12_pursued=1 & T12_achieved=1 -> true;
   
 
-
   // Task T2: Attach payload
   [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
   [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
   [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
   
-
 
   // Task T3: Climb to cruise altitude
   [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
@@ -308,13 +302,11 @@ module ChangeManager
   [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
   
 
-
   // Task T4: Establish link with base
   [pursue_T4] T4_pursued=0 & T4_achieved=0 -> (T4_pursued'=1);
   [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
   [achieved_T4] T4_pursued=1 & T4_achieved=1 -> true;
   
-
 
   // Task T5: Set low speed and altitude limits
   [pursue_T5] T5_pursued=0 & T5_achieved=0 -> (T5_pursued'=1);
@@ -322,13 +314,11 @@ module ChangeManager
   [achieved_T5] T5_pursued=1 & T5_achieved=1 -> true;
   
 
-
   // Task T6: Set medium speed and altitude
   [pursue_T6] T6_pursued=0 & T6_achieved=0 -> (T6_pursued'=1);
   [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
   [achieved_T6] T6_pursued=1 & T6_achieved=1 -> true;
   
-
 
   // Task T7: Set high speed and direct routing
   [pursue_T7] T7_pursued=0 & T7_achieved=0 -> (T7_pursued'=1);
@@ -336,13 +326,11 @@ module ChangeManager
   [achieved_T7] T7_pursued=1 & T7_achieved=1 -> true;
   
 
-
   // Task T8: Detect obstacles with camera
   [pursue_T8] T8_pursued=0 & T8_achieved=0 -> (T8_pursued'=1);
   [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
   [achieved_T8] T8_pursued=1 & T8_achieved=1 -> true;
   
-
 
   // Task T9: Fuse camera and lidar readings
   [pursue_T9] T9_pursued=0 & T9_achieved=0 -> (T9_pursued'=1);

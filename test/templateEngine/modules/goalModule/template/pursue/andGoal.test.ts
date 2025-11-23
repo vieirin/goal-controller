@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { splitSequence } from '../src/templateEngine/modules/goalModule/template/pursue/andGoal';
+import { splitSequence } from '../../../../../../src/templateEngine/modules/goalModule/template/pursue/andGoal';
 
 describe('splitSequence', () => {
   describe('basic functionality', () => {
@@ -61,8 +61,8 @@ describe('splitSequence', () => {
       assert.throws(
         () => splitSequence(sequence, childId),
         new Error(
-          `Child ID ${childId} not found in sequence ${sequence.join(', ')}`
-        )
+          `Child ID ${childId} not found in sequence ${sequence.join(', ')}`,
+        ),
       );
     });
 
@@ -73,8 +73,8 @@ describe('splitSequence', () => {
       assert.throws(
         () => splitSequence(sequence, childId),
         new Error(
-          `Child ID ${childId} not found in sequence ${sequence.join(', ')}`
-        )
+          `Child ID ${childId} not found in sequence ${sequence.join(', ')}`,
+        ),
       );
     });
 

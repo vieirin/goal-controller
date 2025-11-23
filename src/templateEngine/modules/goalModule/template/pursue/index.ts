@@ -155,14 +155,14 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   child.id,
                 );
 
-                const _right =
+                const updatedRight =
                   index > 0
                     ? parenthesis(`${chosenVariable(goal.id)}'=${index}`)
                     : right;
 
                 return [
                   child,
-                  { left: left + ` & ${pursueCondition}`, right: _right },
+                  { left: left + ` & ${pursueCondition}`, right: updatedRight },
                 ];
               }
               case 'degradation': {

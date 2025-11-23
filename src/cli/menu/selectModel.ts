@@ -3,9 +3,12 @@ import path from 'path';
 import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import { initLogger } from '../../logger/logger';
-import { edgeDTMCTemplate } from '../../templateEngine/engine';
+import { generateValidatedPrismModel } from '../../templateEngine/engine';
 
-export const runModel = async (filePath: string): Promise<void> => {
+export const runModel = async (
+  filePath: string,
+  clean: boolean = false,
+): Promise<void> => {
   const logger = initLogger(filePath);
   try {
     const model = loadPistarModel({ filename: filePath });
@@ -15,7 +18,11 @@ export const runModel = async (filePath: string): Promise<void> => {
     if (!fileName) {
       throw new Error('File name not found');
     }
-    const output = edgeDTMCTemplate({ gm: tree, fileName });
+    const output = generateValidatedPrismModel({
+      gm: tree,
+      fileName,
+      clean,
+    });
     await writeFile(`output/${path.parse(fileName).name}.prism`, output);
     console.log('The file was saved successfully!');
   } catch (error) {

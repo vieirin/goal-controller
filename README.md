@@ -35,14 +35,47 @@
 
 #### Generating the mdp model
 
-1. In a new terminal run `npx ts-node src/index.ts $GOAL_MODEL_FILE`
+1. In a new terminal run `npx ts-node src/index.ts $GOAL_MODEL_FILE [--clean|-c]`
    - where `$GOAL_MODEL_FILE` is the downloaded goal model from [pistar](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
    - The default clean room example is under `examples/edgeModel.txt`
    - E.g: `npx ts-node src/index.ts ./examples/edgeModel.txt`
+   - Use `--clean` or `-c` flag to skip preserving old System module transitions (see below)
 2. If successful you should see the string `The file was saved!` in the terminal.
 3. Add the goal model to the goalmngt folder
    - `cp $GOAL_MODEL_FILE goalmgmt/edgeModel.txt`
    - E.g: `cp examples/edgeModel.txt goalmgmt/edgeModel.txt`
+
+##### System Module Transition Preservation
+
+By default, when generating a PRISM model, the System module will automatically preserve transitions from a previously generated PRISM file (if it exists in the `output/` directory). This allows you to maintain custom transitions in the System module across model regenerations.
+
+**How it works:**
+- When generating a PRISM model, the system looks for an existing PRISM file with the same base name in the `output/` directory
+- If found, it extracts all transition lines (including any preceding comments) from the System module
+- These transitions are then included in the newly generated System module alongside the automatically generated context and resource variables
+
+**Example:**
+If you have a file `output/myModel.prism` with custom System module transitions:
+```prism
+module System
+  myVar: bool init false;
+  
+  // Custom transition
+  [achieved_T1] true -> (myVar'=true);
+endmodule
+```
+
+When you regenerate the model, these transitions will be preserved in the new System module.
+
+**Using the `--clean` flag:**
+To skip this behavior and generate a completely fresh System module without preserving old transitions, use the `--clean` or `-c` flag:
+```bash
+npx ts-node src/index.ts ./examples/edgeModel.txt --clean
+# or
+npx ts-node src/index.ts ./examples/edgeModel.txt -c
+```
+
+This is useful when you want to start with a clean System module or when the old transitions are no longer relevant.
 
 This process outputs a file in `output/edge.mp` this is the MDP input for the PRISM model checker. To generate the controller and states files please refer to the [EDGE specification](https://github.com/Genaina/Formalise23/tree/main?tab=readme-ov-file#instructions-to-synthesize-the-edge-goal-controller)
 

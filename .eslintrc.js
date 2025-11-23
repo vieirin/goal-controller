@@ -50,6 +50,25 @@ module.exports = {
     ],
     'prettier/prettier': 'off',
     'no-console': ['error', { allow: ['warn'] }],
+    '@typescript-eslint/naming-convention': [
+      'error',
+      {
+        selector: 'variable',
+        format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+        filter: {
+          regex: '^__test_only_exports__$',
+          match: false,
+        },
+      },
+      {
+        selector: 'variable',
+        filter: {
+          regex: '^__test_only_exports__$',
+          match: true,
+        },
+        format: null,
+      },
+    ],
   },
   overrides: [
     {

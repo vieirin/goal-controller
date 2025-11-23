@@ -17,6 +17,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
+import re
+
+def extract_label(model_name):
+    """Extract simplified label from model name.
+    
+    Rules:
+    - Extract the last word that starts with a capital letter
+    - For number-dash patterns, work on the part after the dash
+    """
+    if not model_name:
+        return ""
+    
+    # Check if starts with number-dash pattern (e.g., "1-minimal", "10-minimalMaintainResource", "2-OrVariation")
+    match = re.match(r'^\d+-(.+)', model_name)
+    if match:
+        rest = match.group(1)
+        # Work with the part after the dash
+        text_to_process = rest
+    else:
+        text_to_process = model_name
+    
+    # Find all words that start with a capital letter
+    # Split on capital letters: "minimalMaintainResource" -> ["minimal", "Maintain", "Resource"]
+    words = re.findall(r'[A-Z][a-z]*', text_to_process)
+    
+    if words:
+        # Return the last word that starts with a capital letter
+        return words[-1]
+    
+    # If no capitalized words found, return the last word (split by any non-letter)
+    all_words = re.findall(r'[a-zA-Z]+', text_to_process)
+    if all_words:
+        return all_words[-1]
+    
+    # Fallback: return the original string
+    return text_to_process
 
 def load_data(csv_file='metrics.csv'):
     """Load the metrics CSV file"""
@@ -31,9 +67,15 @@ def create_plot(df, x_col, y_col, title, xlabel, ylabel, figsize=(8, 6)):
     """Create a scatter plot with regression line"""
     fig, ax = plt.subplots(figsize=figsize)
     
-    # Filter out zero or invalid values if needed
+    # Filter out NaN values, but allow zeros (some metrics can legitimately be 0)
     data = df[[x_col, y_col]].dropna()
-    data = data[(data[x_col] > 0) & (data[y_col] > 0)]
+    # Only filter out negative values
+    data = data[(data[x_col] >= 0) & (data[y_col] >= 0)]
+    
+    # Use log scale for num_transitions and num_states - filter out zeros since log(0) is undefined
+    use_log_scale = (y_col == 'num_transitions' or y_col == 'num_states')
+    if use_log_scale:
+        data = data[data[y_col] > 0]
     
     if len(data) == 0:
         print(f"Warning: No valid data for {x_col} vs {y_col}")
@@ -43,25 +85,38 @@ def create_plot(df, x_col, y_col, title, xlabel, ylabel, figsize=(8, 6)):
     x = data[x_col]
     y = data[y_col]
     
+    # Set log scale for y-axis if needed
+    if use_log_scale:
+        ax.set_yscale('log')
+    
     # Create scatter plot
     ax.scatter(x, y, alpha=0.6, s=100, edgecolors='black', linewidth=1)
     
-    # Add regression line
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
-    ax.plot(x, p(x), "r--", alpha=0.8, linewidth=2, label=f'Trend: y={z[0]:.4f}x+{z[1]:.4f}')
+    # Add regression line (only if we have at least 2 points)
+    # Skip regression line for log scale as it requires log-space fitting
+    if len(data) >= 2 and not use_log_scale:
+        try:
+            z = np.polyfit(x, y, 1)
+            p = np.poly1d(z)
+            ax.plot(x, p(x), "r--", alpha=0.8, linewidth=2, 
+                   label=f'Trend: y={z[0]:.4f}x+{z[1]:.4f}')
+            ax.legend()
+        except (np.linalg.LinAlgError, ValueError):
+            # Skip regression line if it can't be computed
+            pass
     
-    # Add labels for each point
+    # Add labels for each point with simplified names
     for idx, row in data.iterrows():
         model_name = df.loc[idx, 'model_name']
-        ax.annotate(model_name, (row[x_col], row[y_col]), 
-                   fontsize=8, alpha=0.7, xytext=(5, 5), textcoords='offset points')
+        label = extract_label(model_name)
+        ax.annotate(label, (row[x_col], row[y_col]), 
+                   fontsize=8, alpha=0.7,
+                   xytext=(5, 5), textcoords='offset points')
     
     ax.set_xlabel(xlabel, fontsize=12)
     ax.set_ylabel(ylabel, fontsize=12)
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.grid(True, alpha=0.3)
-    ax.legend()
     
     plt.tight_layout()
     return fig
@@ -83,88 +138,41 @@ def main():
     df = load_data(args.csv)
     print(f"Loaded {len(df)} models")
     
+    # Convert parsing_time from seconds to milliseconds
+    if 'parsing_time' in df.columns:
+        df['parsing_time_ms'] = df['parsing_time'] * 1000.0
+    
     # Create output directory if saving
     if args.save:
         os.makedirs(args.output_dir, exist_ok=True)
         print(f"Plots will be saved to {args.output_dir}/")
     
-    # List of plots to create: (x_col, y_col, title, xlabel, ylabel)
-    plots = [
-        # Goals and tasks vs construction time
-        ('num_goals', 'construction_time', 
-         'Number of Goals vs Model Construction Time',
-         'Number of Goals', 'Construction Time (seconds)'),
-        
-        ('num_tasks', 'construction_time',
-         'Number of Tasks vs Model Construction Time',
-         'Number of Tasks', 'Construction Time (seconds)'),
-        
-        # Goals and tasks vs memory
-        ('num_goals', 'peak_memory_mb',
-         'Number of Goals vs Peak Memory Usage',
-         'Number of Goals', 'Peak Memory (MB)'),
-        
-        ('num_tasks', 'peak_memory_mb',
-         'Number of Tasks vs Peak Memory Usage',
-         'Number of Tasks', 'Peak Memory (MB)'),
-        
-        # States and transitions vs construction time
-        ('num_states', 'construction_time',
-         'Number of States vs Model Construction Time',
-         'Number of States', 'Construction Time (seconds)'),
-        
-        ('num_transitions', 'construction_time',
-         'Number of Transitions vs Model Construction Time',
-         'Number of Transitions', 'Construction Time (seconds)'),
-        
-        # States and transitions vs memory
-        ('num_states', 'peak_memory_mb',
-         'Number of States vs Peak Memory Usage',
-         'Number of States', 'Peak Memory (MB)'),
-        
-        ('num_transitions', 'peak_memory_mb',
-         'Number of Transitions vs Peak Memory Usage',
-         'Number of Transitions', 'Peak Memory (MB)'),
-        
-        # Goals and tasks vs states/transitions
-        ('num_goals', 'num_states',
-         'Number of Goals vs Number of States',
-         'Number of Goals', 'Number of States'),
-        
-        ('num_tasks', 'num_states',
-         'Number of Tasks vs Number of States',
-         'Number of Tasks', 'Number of States'),
-        
-        ('num_goals', 'num_transitions',
-         'Number of Goals vs Number of Transitions',
-         'Number of Goals', 'Number of Transitions'),
-        
-        ('num_tasks', 'num_transitions',
-         'Number of Tasks vs Number of Transitions',
-         'Number of Tasks', 'Number of Transitions'),
-        
-        # Time metrics
-        ('construction_time', 'total_checking_time',
-         'Construction Time vs Total Checking Time',
-         'Construction Time (seconds)', 'Total Checking Time (seconds)'),
-        
-        ('construction_time', 'cpu_time',
-         'Construction Time vs CPU Time',
-         'Construction Time (seconds)', 'CPU Time (seconds)'),
-        
-        ('construction_time', 'wallclock_time',
-         'Construction Time vs Wallclock Time',
-         'Construction Time (seconds)', 'Wallclock Time (seconds)'),
-        
-        # Properties vs time
-        ('num_properties', 'total_checking_time',
-         'Number of Properties vs Total Checking Time',
-         'Number of Properties', 'Total Checking Time (seconds)'),
-        
-        ('num_properties', 'construction_time',
-         'Number of Properties vs Construction Time',
-         'Number of Properties', 'Construction Time (seconds)'),
+    # Define validation metrics to plot against
+    validation_metrics = [
+        ('elapsed_time_ms', 'EDGE2PRISM Translation Time (ms)'),
+        ('num_states', 'PRISM Number of States'),
+        ('num_transitions', 'PRISM Number of Transitions'),
+        ('parsing_time_ms', 'PRISM Parsing Time (ms)'),
+        ('construction_time', 'PRISM Construction Time (s)'),
+        ('peak_memory_mb', 'PRISM Peak Memory (MB)'),
+        ('cpu_time', 'PRISM CPU Time (s)'),
     ]
+    
+    # Define construction metrics to plot
+    construction_metrics = [
+        ('total_nodes', 'Total Nodes'),
+        ('total_goals', 'Total Goals'),
+        ('total_tasks', 'Total Tasks'),
+    ]
+    
+    # Create plots: construction metrics (x-axis) vs validation metrics (y-axis)
+    plots = []
+    
+    for const_col, const_label in construction_metrics:
+        for valid_col, valid_label in validation_metrics:
+            if const_col in df.columns and valid_col in df.columns:
+                title = f'{const_label} vs {valid_label}'
+                plots.append((const_col, valid_col, title, const_label, valid_label))
     
     # Create all plots
     figures = []

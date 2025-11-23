@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { getGoalDetail } from '../src/parsers/goalNameParser';
+import { getGoalDetail } from '../../src/parsers/goalNameParser';
 
 describe('GoalNameParser', () => {
   describe('getGoalDetail', () => {
