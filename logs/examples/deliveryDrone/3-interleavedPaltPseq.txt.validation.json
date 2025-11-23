@@ -1,0 +1,249 @@
+{
+  "summary": {
+    "expected": 111,
+    "emitted": 111,
+    "missing": 0
+  },
+  "goals": {
+    "G0": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 6,
+        "emitted": 6,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G1": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 5,
+        "emitted": 5,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G2": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 5,
+        "emitted": 5,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G3": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 5,
+        "emitted": 5,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G4": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 5,
+        "emitted": 5,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G5": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 5,
+        "emitted": 5,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G6": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 4,
+        "emitted": 4,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    },
+    "G7": {
+      "module": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "variables": {
+        "expected": 2,
+        "emitted": 2,
+        "missing": 0
+      },
+      "transitions": {
+        "expected": 4,
+        "emitted": 4,
+        "missing": 0
+      },
+      "formulas": {
+        "expected": 1,
+        "emitted": 1,
+        "missing": 0
+      },
+      "contextVariables": {
+        "expected": 0,
+        "emitted": 0,
+        "missing": 0
+      }
+    }
+  },
+  "changeManager": {
+    "taskVariables": {
+      "expected": 16,
+      "emitted": 16,
+      "missing": 0
+    },
+    "taskTransitions": {
+      "expected": 24,
+      "emitted": 24,
+      "missing": 0
+    }
+  },
+  "system": {
+    "contextVariables": {
+      "expected": 0,
+      "emitted": 0,
+      "missing": 0
+    },
+    "resourceVariables": {
+      "expected": 0,
+      "emitted": 0,
+      "missing": 0
+    }
+  }
+}

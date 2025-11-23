@@ -37,7 +37,7 @@ export const generateValidatedPrismModel = ({
   clean?: boolean;
 }): string => {
   const prismModel = edgeDTMCTemplate({ gm, fileName, clean });
-  const report = validate(gm, prismModel);
+  const report = validate(gm, prismModel, fileName);
   if (report.summary.totalMissing > 0) {
     throw new Error('PRISM model is not valid');
   }

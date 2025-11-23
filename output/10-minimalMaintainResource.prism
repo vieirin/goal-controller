@@ -345,11 +345,11 @@ module System
   commLink: bool init false;
   inFlight: bool init false;
   R0: [0..5] init 5;
-    [achieved_T1] true -> (missionReady'=true);
-    [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
-    [achieved_T7] true -> (R0'=max(0, R0-2));
-    [achieved_T3] true -> (inFlight'=true) & (R0'=max(0, R0-1)) ;
-    [achieved_T4] true -> (commLink'=true); 
-    [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
-    [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+          [achieved_T1] true -> (missionReady'=true);
+          [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
+          [achieved_T7] true -> (R0'=max(0, R0-2));
+          [achieved_T3] true -> (inFlight'=true) & (R0'=max(0, R0-1)) ;
+          [achieved_T4] true -> (commLink'=true); 
+          [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+          [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
 endmodule
