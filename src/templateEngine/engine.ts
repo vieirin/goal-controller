@@ -1,5 +1,4 @@
 import { type GoalTree } from '../GoalTree/types';
-import { allByType, childrenIncludingTasks } from '../GoalTree/utils';
 import { validate } from '../prismValidator';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -38,17 +37,17 @@ export const generateValidatedPrismModel = ({
   clean?: boolean;
 }): string => {
   const prismModel = edgeDTMCTemplate({ gm, fileName, clean });
-  const all = [
-    ...allByType({ gm, type: 'goal' }),
-    ...allByType({ gm, type: 'task' }),
-  ];
-  console.log(
-    all.map((goal) => ({
-      id: goal.id,
-      children: childrenIncludingTasks({ node: goal }).map((child) => child.id),
-      relationToChildren: goal.relationToChildren,
-    })),
-  );
+  // const all = [
+  //   ...allByType({ gm, type: 'goal' }),
+  //   ...allByType({ gm, type: 'task' }),
+  // ];
+  // console.log(
+  //   all.map((goal) => ({
+  //     id: goal.id,
+  //     children: childrenIncludingTasks({ node: goal }).map((child) => child.id),
+  //     relationToChildren: goal.relationToChildren,
+  //   })),
+  // );
   // console.log('==============================================');
   // console.log(
   //   all.map((goal) => ({
@@ -57,19 +56,19 @@ export const generateValidatedPrismModel = ({
   //   })),
   // );
   // console.log('==============================================');
-  console.log(
-    all
-      .filter(
-        (goal) =>
-          !!goal.execCondition?.maintain?.sentence ||
-          !!goal.execCondition?.assertion?.sentence,
-      )
-      .map((goal) => ({
-        id: goal.id,
-        maintain: goal.execCondition?.maintain?.sentence,
-        assertion: goal.execCondition?.assertion?.sentence,
-      })),
-  );
+  // console.log(
+  //   all
+  //     .filter(
+  //       (goal) =>
+  //         !!goal.execCondition?.maintain?.sentence ||
+  //         !!goal.execCondition?.assertion?.sentence,
+  //     )
+  //     .map((goal) => ({
+  //       id: goal.id,
+  //       maintain: goal.execCondition?.maintain?.sentence,
+  //       assertion: goal.execCondition?.assertion?.sentence,
+  //     })),
+  // );
   // console.log('==============================================');
   // console.log('==============================================');
   // console.log(

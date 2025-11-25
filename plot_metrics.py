@@ -155,6 +155,7 @@ def main():
         ('parsing_time_ms', 'PRISM Parsing Time (ms)'),
         ('construction_time', 'PRISM Construction Time (s)'),
         ('peak_memory_mb', 'PRISM Peak Memory (MB)'),
+        ('memory_usage_mb', 'EDGE2PRISM Memory Usage (MB)'),
         ('cpu_time', 'PRISM CPU Time (s)'),
     ]
     

@@ -48,7 +48,7 @@ find_log_file() {
 extract_log_metrics() {
     local log_file="$1"
     if [ ! -f "$log_file" ]; then
-        echo "0,0,0,0,0,0"
+        echo "0,0,0,0,0,0,0"
         return
     fi
     
@@ -77,7 +77,14 @@ extract_log_metrics() {
     total_nodes=$(grep "^\[TOTAL NODES\]" "$log_file" | sed 's/.*\[TOTAL NODES\] \([0-9]*\).*/\1/' || echo "0")
     total_variables=$(grep "^\[TOTAL VARIABLES\]" "$log_file" | sed 's/.*\[TOTAL VARIABLES\] \([0-9]*\).*/\1/' || echo "0")
     
-    echo "$elapsed_time_ms,$total_goals,$total_tasks,$total_resources,$total_nodes,$total_variables"
+    # Extract memory usage from MEMORY USAGE section (format: "Memory usage: 369 MB (...)")
+    memory_usage_mb=$(grep "^Memory usage:" "$log_file" | sed -E 's/.*Memory usage:[[:space:]]*([0-9]+)[[:space:]]*MB.*/\1/' || echo "0")
+    # Ensure we have a valid number
+    if ! echo "$memory_usage_mb" | grep -qE '^[0-9]+$'; then
+        memory_usage_mb="0"
+    fi
+    
+    echo "$elapsed_time_ms,$total_goals,$total_tasks,$total_resources,$total_nodes,$total_variables,$memory_usage_mb"
 }
 
 # Function to extract metrics from Storm result file
@@ -119,7 +126,7 @@ extract_storm_metrics() {
 }
 
 # Create CSV header
-echo "model_name,elapsed_time_ms,total_goals,total_tasks,total_resources,total_nodes,total_variables,model_type,num_states,num_transitions,parsing_time,construction_time,total_checking_time,peak_memory_mb,cpu_time,wallclock_time" > "$CSV_OUTPUT"
+echo "model_name,elapsed_time_ms,total_goals,total_tasks,total_resources,total_nodes,total_variables,memory_usage_mb,model_type,num_states,num_transitions,parsing_time,construction_time,total_checking_time,peak_memory_mb,cpu_time,wallclock_time" > "$CSV_OUTPUT"
 
 # Iterate over each model
 for model in "${models[@]}"; do
@@ -137,7 +144,7 @@ for model in "${models[@]}"; do
     if [ -z "$log_file" ] || [ ! -f "$log_file" ]; then
         echo "  WARNING: Log file not found for: $model"
         # Use zeros for log metrics
-        log_metrics="0,0,0,0,0,0"
+        log_metrics="0,0,0,0,0,0,0"
     else
         log_metrics=$(extract_log_metrics "$log_file")
     fi

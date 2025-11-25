@@ -1530,7 +1530,7 @@
 	[VARIABLE DEFINITION] networkAvailable; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/goalModel_TAS_3.txt
-[ELAPSED TIME] 11ms
+[ELAPSED TIME] 17ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 22
 [TOTAL TASKS] 11

@@ -65,7 +65,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -92,7 +93,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -119,7 +121,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,

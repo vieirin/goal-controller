@@ -65,7 +65,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 15
       },
       "variables": {
         "expected": 2,
@@ -92,7 +93,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -119,7 +121,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -146,7 +149,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -173,7 +177,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -200,7 +205,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -227,7 +233,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -254,7 +261,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -281,7 +289,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -308,7 +317,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 14
       },
       "variables": {
         "expected": 3,
@@ -335,7 +345,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 13
       },
       "variables": {
         "expected": 3,
@@ -362,7 +373,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 12
       },
       "variables": {
         "expected": 2,
@@ -389,7 +401,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -416,7 +429,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,
@@ -443,7 +457,8 @@
       "module": {
         "expected": 1,
         "emitted": 1,
-        "missing": 0
+        "missing": 0,
+        "lineCount": 11
       },
       "variables": {
         "expected": 2,

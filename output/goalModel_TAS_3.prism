@@ -539,84 +539,23 @@ module ChangeManager
   
 endmodule
 
-
 module System
   pharmacyAvailable: bool init true;
-  atHome: bool init true;
-  inSideEffectWindow: bool init false;   // keep false so G18_achieved_maintain = false
-  medicationApplied: bool init true;     // enables pursue_G18
-  inEmergency: bool init false;          // so G4_achieved_maintain = false and pursue_G4 is enabled
-  highPrecision: bool init false;        // so G2_achieved_maintain = false and pursue_G2 can start
-  patientTracking: bool init true;       // enables pursue_G2
-  privacyEnabled: bool init true;        // enables G3 and G5 branch (G6 will require later flip by T3)
-  enoughBattery: bool init true;         // needed for pursue_G4 and G8_achieved_maintain
-  highReliability: bool init true;       // needed for pursue_G4 and G8_achieved_maintain
-  sensorAvailable: bool init true;       // enables pursue_G8
-  networkAvailable: bool init true;      // enables pursue_T11 / G21
-
-  R0: bool init true;                    // enables pursue_T4
-  R1: [0..5] init 5;                     // max value, though guard R1>50 is still unsat
-  R2: [0..5] init 5;                     // max mobile data
-  R3: bool init true;                    // enables pursue_T9
-  R4: [1..4] init 4;                     // max value, though guard R4>35 is still unsat
-  R5: [0..10] init 10;                   // max dosage value
-
-  // T1: Trigger alarm by pushing emergency button -> raise emergency
-  [achieved_T1] true ->
-    (inEmergency'=true);
-
-  // T2: Manual tracking -> enable privacy, start tracking with low precision
-  [achieved_T2] true ->
-    (privacyEnabled'=true) &
-    (patientTracking'=true) &
-    (highPrecision'=false);
-
-  // T3: Automatic tracking -> disable privacy, start tracking with high precision and improve R1
-  [achieved_T3] true ->
-    (privacyEnabled'=false) &
-    (patientTracking'=true) &
-    (highPrecision'=true) &
-    (R1'=min(5,R1+1));
-
-  // T4: Send sensed data -> confirm patient data available
-  [achieved_T4] true ->
-    (R0'=true);
-
-  // T5: Perform remote analysis -> tends to increase reliability (probabilistically)
-  [achieved_T5] true ->
-    0.9 : (highReliability'=true) +
-    0.1 : (highReliability'=false);
-
-  // T6: Perform local analysis -> may drain battery
-  [achieved_T6] true ->
-    0.7 : (enoughBattery'=true) +
-    0.3 : (enoughBattery'=false);
-
-  // T7: Apply drug change -> mark medication applied, move drug id, open side-effect window, ensure at home & pharmacy
-  [achieved_T7] true ->
-    (medicationApplied'=true) &
-    (pharmacyAvailable'=true) &
-    (atHome'=true) &
-    (inSideEffectWindow'=true) &
-    (R4'=min(4,R4+1));
-
-  // T8: Apply dose change -> adjust dosage, mark medication applied, open side-effect window
-  [achieved_T8] true ->
-    (medicationApplied'=true) &
-    (inSideEffectWindow'=true) &
-    (R5'=min(10,R5+2));
-
-  // T9: Apply side effect monitor -> consume patient data flag and close side-effect window
-  [achieved_T9] true ->
-    (R3'=false) &
-    (inSideEffectWindow'=false);
-
-  // T10: Enact SMS Service -> consume some mobile data and occasionally lose network
-  [achieved_T10] true ->
-    0.95 : (R2'=max(0,R2-1)) & (networkAvailable'=true) +
-    0.05 : (R2'=max(0,R2-1)) & (networkAvailable'=false);
-
-  // T11: Enact alarm service -> resolve emergency
-  [achieved_T11] true ->
-    (inEmergency'=false);
+  atHome: bool init false;
+  inSideEffectWindow: bool init false;
+  medicationApplied: bool init false;
+  inEmergency: bool init false;
+  highPrecision: bool init false;
+  patientTracking: bool init false;
+  privacyEnabled: bool init false;
+  enoughBattery: bool init true;
+  highReliability: bool init false;
+  sensorAvailable: bool init true;
+  networkAvailable: bool init true;
+  R0: bool init true;
+  R1: [0..5] init 3;
+  R2: [0..5] init 4;
+  R3: bool init true;
+  R4: [1..4] init 1;
+  R5: [0..10] init 0;
 endmodule
