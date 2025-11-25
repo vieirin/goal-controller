@@ -690,7 +690,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/3-interleavedPaltPseq.txt
-[ELAPSED TIME] 10ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 8
 [TOTAL TASKS] 8
@@ -724,10 +724,3 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 0
 ----------------------------------------
-
-==========================================
-MEMORY USAGE
-Generated at: Tue Nov 25 15:18:52 UTC 2025
-----------------------------------------
-Memory usage: 379 MB (388592 KB, 397918208 bytes)
-==========================================

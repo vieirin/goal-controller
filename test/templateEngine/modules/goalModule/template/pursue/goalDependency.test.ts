@@ -23,6 +23,11 @@ describe('Goal Dependency Statement', () => {
       throw new Error('G2 not found in the tree');
     }
 
+    const g4 = allGoals.get('G4');
+    if (!g4) {
+      throw new Error('G4 not found in the tree');
+    }
+    g2.dependsOn = [g4];
     // Calculate the goal dependency statement
     const dependencyStatement = goalDependencyStatement(g2);
 
