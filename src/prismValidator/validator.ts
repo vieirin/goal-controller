@@ -100,6 +100,7 @@ const validateGoal = (
       expected: 1,
       emitted: moduleExists ? 1 : 0,
       missing: moduleExists ? 0 : 1,
+      lineCount: goalModule?.lineCount,
     },
     variables,
     transitions,

@@ -1,0 +1,335 @@
+Storm 1.11.1
+
+Date: Mon Nov 24 01:38:08 2025
+Command line arguments: --prism output/goalModel_TAS_3.prism --buildfull --prop examples/props/goalModel_TAS_3.props --timemem
+Current working directory: /workspace
+
+Time for model input parsing: 0.009s.
+
+Time for model construction: 49.153s.
+
+-------------------------------------------------------------- 
+Model type: 	DTMC (sparse)
+States: 	2091502
+Transitions: 	16371731
+Reward Models:  none
+State Labels: 	55 labels
+   * (G9_achieved = 1) -> 212868 item(s)
+   * (G6_achieved = 1) -> 0 item(s)
+   * (highPrecision = true) -> 0 item(s)
+   * (G2_pursued = 1) -> 1312800 item(s)
+   * (G21_achieved = 1) -> 1071144 item(s)
+   * (G20_achieved = 1) -> 0 item(s)
+   * (G1_achieved = 1) -> 1028376 item(s)
+   * (G18_pursued = 1) -> 787176 item(s)
+   * (G13_achieved = 1) -> 519048 item(s)
+   * (G12_achieved = 1) -> 2032524 item(s)
+   * (G0_achieved = 1) -> 0 item(s)
+   * ((G7_achieved = 1) => (T1_achieved = 1)) -> 2091502 item(s)
+   * ((G6_pursued = 1) => (privacyEnabled = false)) -> 2091502 item(s)
+   * (G3_achieved = 1) -> 546966 item(s)
+   * ((G6_achieved = 1) => (T3_achieved = 1)) -> 2091502 item(s)
+   * (G5_achieved = 1) -> 651911 item(s)
+   * ((G5_pursued = 1) => (privacyEnabled = true)) -> 2091502 item(s)
+   * ((T11_pursued = 1) & (T11_achieved = 1)) -> 1164456 item(s)
+   * (((inEmergency = true) & (G19_achieved = 0)) & (G21_achieved = 0)) -> 759402 item(s)
+   * ((G14_pursued = 1) => (G11_chosen = 1)) -> 2091502 item(s)
+   * (inEmergency = true) -> 1294974 item(s)
+   * (((G11_pursued = 1) | (G11_achieved = 1)) => (G10_achieved = 1)) -> 2091502 item(s)
+   * ((((inEmergency = true) & (networkAvailable = false)) & (T10_pursued = 0)) & (T11_pursued = 0)) -> 0 item(s)
+   * ((((G3_pursued = 1) & (G1_pursued = 1)) & (G1_achieved = 0)) => (G4_failed >= 2)) -> 2091502 item(s)
+   * ((G14_achieved = 1) => (T5_achieved = 1)) -> 2091502 item(s)
+   * (inSideEffectWindow = true) -> 1494464 item(s)
+   * ((enoughBattery & highReliability) = true) -> 2091502 item(s)
+   * (((G1_pursued = 1) & (G4_failed >= 2)) & (G3_pursued = 1)) -> 495180 item(s)
+   * ((G15_pursued = 1) => (G11_chosen = 2)) -> 2091502 item(s)
+   * ((((G19_pursued = 1) & (G19_achieved = 0)) & (G19_chosen = 2)) => (G20_pursued = 0)) -> 2091502 item(s)
+   * (((G1_pursued = 1) & (G4_pursued = 1)) & (G4_failed < 2)) -> 1925 item(s)
+   * ((((G19_pursued = 1) & (G19_achieved = 0)) & (G19_chosen = 1)) => (G21_pursued = 0)) -> 2091502 item(s)
+   * ((G15_achieved = 1) => (T6_achieved = 1)) -> 2091502 item(s)
+   * ((G9_achieved = 1) => ((G13_achieved = 1) & (G12_achieved = 1))) -> 2091502 item(s)
+   * ((G2_pursued = 1) => !(((G5_pursued = 1) & (G6_pursued = 1)))) -> 2091502 item(s)
+   * ((G21_pursued = 1) => (G19_chosen = 2)) -> 2091502 item(s)
+   * ((G20_achieved = 1) => (T10_achieved = 1)) -> 2091502 item(s)
+   * ((((G11_pursued = 1) & (G11_achieved = 0)) & (G11_chosen = 2)) => (G14_pursued = 0)) -> 2091502 item(s)
+   * ((((G11_pursued = 1) & (G11_achieved = 0)) & (G11_chosen = 1)) => (G15_pursued = 0)) -> 2091502 item(s)
+   * !(((T5_pursued = 1) & (T6_pursued = 1))) -> 2091502 item(s)
+   * !(((G20_pursued = 1) & (G21_pursued = 1))) -> 2091502 item(s)
+   * !(((G14_pursued = 1) & (G15_pursued = 1))) -> 2091502 item(s)
+   * ((G17_achieved = 1) => (T8_achieved = 1)) -> 2091502 item(s)
+   * init -> 1 item(s)
+   * (((medicationApplied = true) & (inSideEffectWindow = false)) & (G18_pursued = 0)) -> 414374 item(s)
+   * (G19_achieved = 1) -> 748440 item(s)
+   * ((G9_achieved = 1) & (G19_achieved = 1)) -> 212868 item(s)
+   * ((G0_achieved = 1) => ((G1_achieved = 1) & (highPrecision = true))) -> 2091502 item(s)
+   * ((G20_pursued = 1) => (G19_chosen = 1)) -> 2091502 item(s)
+   * deadlock -> 0 item(s)
+   * ((G0_pursued = 1) => !(((G0_achieved = 1) & ((G1_pursued = 0) & (G2_pursued = 0))))) -> 2091502 item(s)
+   * ((G21_achieved = 1) => (T11_achieved = 1)) -> 2091502 item(s)
+   * ((G10_achieved = 1) => (T4_achieved = 1)) -> 2091502 item(s)
+   * ((G16_achieved = 1) => (T7_achieved = 1)) -> 2091502 item(s)
+   * ((G5_achieved = 1) => (T2_achieved = 1)) -> 2091502 item(s)
+Choice Labels: 	none
+-------------------------------------------------------------- 
+
+Model checking property "1": P=? [F (G0_achieved = 1)] ...
+Result (for initial states): 0
+Time for model checking: 0.316s.
+
+Model checking property "2": P=? [true U (G0_achieved = 1)] ...
+Result (for initial states): 0
+Time for model checking: 0.260s.
+
+Model checking property "3": P=? [F (G1_achieved = 1)] ...
+Result (for initial states): 1
+Time for model checking: 0.355s.
+
+Model checking property "4": P=? [F (highPrecision = true)] ...
+Result (for initial states): 0
+Time for model checking: 0.258s.
+
+Model checking property "5": P=? [F (G3_achieved = 1)] ...
+Result (for initial states): 0.6230096483
+Time for model checking: 100.380s.
+
+Model checking property "6": P=? [F (G5_achieved = 1)] ...
+Result (for initial states): 1
+Time for model checking: 0.401s.
+
+Model checking property "7": P=? [F (G6_achieved = 1)] ...
+Result (for initial states): 0
+Time for model checking: 0.258s.
+
+Model checking property "8": P=? [F ((enoughBattery & highReliability) = true)] ...
+Result (for initial states): 1
+Time for model checking: 0.255s.
+
+Model checking property "9": P=? [F (G9_achieved = 1)] ...
+Result (for initial states): 0.01560255339
+Time for model checking: 100.390s.
+
+Model checking property "10": P=? [F (G12_achieved = 1)] ...
+Result (for initial states): 0.7322168205
+Time for model checking: 0.656s.
+
+Model checking property "11": P=? [F (G13_achieved = 1)] ...
+Result (for initial states): 0.02645516326
+Time for model checking: 68.342s.
+
+Model checking property "12": P=? [F (inSideEffectWindow = true)] ...
+Result (for initial states): 0.797462974
+Time for model checking: 0.352s.
+
+Model checking property "13": P=? [F (G19_achieved = 1)] ...
+Result (for initial states): 0.03735612096
+Time for model checking: 47.646s.
+
+Model checking property "14": P=? [F (G20_achieved = 1)] ...
+Result (for initial states): 0
+Time for model checking: 0.271s.
+
+Model checking property "15": P=? [F (G21_achieved = 1)] ...
+Result (for initial states): 0.055150182
+Time for model checking: 20.071s.
+
+Model checking property "16": P>0 [F (inEmergency = true)] ...
+Result (for initial states): true
+
+Time for model checking: 0.372s.
+
+Model checking property "17": P>0 [F (G2_pursued = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.306s.
+
+Model checking property "18": P>0 [F (inSideEffectWindow = true)] ...
+Result (for initial states): true
+
+Time for model checking: 0.350s.
+
+Model checking property "19": P>0 [F (G18_pursued = 1)] ...
+Result (for initial states): true
+
+Time for model checking: 0.406s.
+
+Model checking property "20": P>0 [F ((G9_achieved = 1) & (G19_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.581s.
+
+Model checking property "21": P>0 [F ((T11_pursued = 1) & (T11_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.385s.
+
+Model checking property "22": P=? [F (((inEmergency = true) & (G19_achieved = 0)) & (G21_achieved = 0))] ...
+Result (for initial states): 1
+Time for model checking: 0.315s.
+
+Model checking property "23": P=? [F ((((inEmergency = true) & (networkAvailable = false)) & (T10_pursued = 0)) & (T11_pursued = 0))] ...
+Result (for initial states): 0
+Time for model checking: 0.266s.
+
+Model checking property "24": P=? [F (((medicationApplied = true) & (inSideEffectWindow = false)) & (G18_pursued = 0))] ...
+Result (for initial states): 1
+Time for model checking: 0.420s.
+
+Model checking property "25": P>=1 [G ((G0_achieved = 1) => ((G1_achieved = 1) & (highPrecision = true)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.276s.
+
+Model checking property "26": P>=1 [G ((G0_pursued = 1) => !(((G0_achieved = 1) & ((G1_pursued = 0) & (G2_pursued = 0)))))] ...
+Result (for initial states): true
+
+Time for model checking: 0.272s.
+
+Model checking property "27": P>=1 [G ((G2_pursued = 1) => !(((G5_pursued = 1) & (G6_pursued = 1))))] ...
+Result (for initial states): true
+
+Time for model checking: 0.270s.
+
+Model checking property "28": P>=1 [G ((G5_pursued = 1) => (privacyEnabled = true))] ...
+Result (for initial states): true
+
+Time for model checking: 0.268s.
+
+Model checking property "29": P>=1 [G ((G6_pursued = 1) => (privacyEnabled = false))] ...
+Result (for initial states): true
+
+Time for model checking: 0.270s.
+
+Model checking property "30": P>=1 [G (((G11_pursued = 1) | (G11_achieved = 1)) => (G10_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.265s.
+
+Model checking property "31": P>=1 [G ((G9_achieved = 1) => ((G13_achieved = 1) & (G12_achieved = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.267s.
+
+Model checking property "32": P>=1 [G !(((G14_pursued = 1) & (G15_pursued = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.266s.
+
+Model checking property "33": P>=1 [G ((G14_pursued = 1) => (G11_chosen = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.271s.
+
+Model checking property "34": P>=1 [G ((G15_pursued = 1) => (G11_chosen = 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.276s.
+
+Model checking property "35": P>=1 [G ((((G11_pursued = 1) & (G11_achieved = 0)) & (G11_chosen = 1)) => (G15_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.267s.
+
+Model checking property "36": P>=1 [G ((((G11_pursued = 1) & (G11_achieved = 0)) & (G11_chosen = 2)) => (G14_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.267s.
+
+Model checking property "37": P>=1 [G !(((G20_pursued = 1) & (G21_pursued = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.274s.
+
+Model checking property "38": P>=1 [G ((G20_pursued = 1) => (G19_chosen = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.275s.
+
+Model checking property "39": P>=1 [G ((G21_pursued = 1) => (G19_chosen = 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.263s.
+
+Model checking property "40": P>=1 [G ((((G19_pursued = 1) & (G19_achieved = 0)) & (G19_chosen = 1)) => (G21_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.268s.
+
+Model checking property "41": P>=1 [G ((((G19_pursued = 1) & (G19_achieved = 0)) & (G19_chosen = 2)) => (G20_pursued = 0))] ...
+Result (for initial states): true
+
+Time for model checking: 0.272s.
+
+Model checking property "42": P>=1 [G ((G7_achieved = 1) => (T1_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.266s.
+
+Model checking property "43": P>=1 [G ((G5_achieved = 1) => (T2_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.266s.
+
+Model checking property "44": P>=1 [G ((G6_achieved = 1) => (T3_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.270s.
+
+Model checking property "45": P>=1 [G ((G10_achieved = 1) => (T4_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.271s.
+
+Model checking property "46": P>=1 [G ((G14_achieved = 1) => (T5_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.268s.
+
+Model checking property "47": P>=1 [G ((G15_achieved = 1) => (T6_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.267s.
+
+Model checking property "48": P>=1 [G ((G16_achieved = 1) => (T7_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.266s.
+
+Model checking property "49": P>=1 [G ((G17_achieved = 1) => (T8_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.270s.
+
+Model checking property "50": P>=1 [G ((G20_achieved = 1) => (T10_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.270s.
+
+Model checking property "51": P>=1 [G ((G21_achieved = 1) => (T11_achieved = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.272s.
+
+Model checking property "52": P>=1 [G !(((T5_pursued = 1) & (T6_pursued = 1)))] ...
+Result (for initial states): true
+
+Time for model checking: 0.271s.
+
+Model checking property "53": P>0 [F (((G1_pursued = 1) & (G4_pursued = 1)) & (G4_failed < 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.260s.
+
+Model checking property "54": P>=1 [G ((((G3_pursued = 1) & (G1_pursued = 1)) & (G1_achieved = 0)) => (G4_failed >= 2))] ...
+Result (for initial states): true
+
+Time for model checking: 0.268s.
+
+Model checking property "55": P>0 [F (((G1_pursued = 1) & (G4_failed >= 2)) & (G3_pursued = 1))] ...
+Result (for initial states): true
+
+Time for model checking: 0.322s.
+
+Performance statistics:
+  * peak memory usage: 864MB
+  * CPU time: 400.002s
+  * wallclock time: 401.227s

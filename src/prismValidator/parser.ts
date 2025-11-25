@@ -237,12 +237,16 @@ const parseModule = (
     i++;
   }
 
+  // Calculate line count: from module declaration to endmodule (inclusive)
+  const lineCount = i - startIndex + 1;
+
   return {
     module: {
       name: moduleName,
       variables,
       transitions,
       goalType,
+      lineCount,
     },
     nextIndex: i + 1,
   };

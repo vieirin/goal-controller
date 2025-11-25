@@ -107,11 +107,6 @@ const calculateChangeManagerTaskVariables = (
     variables.push(`${task.id}_pursued`);
     variables.push(achievedVariable(task.id));
 
-    // Add failed variable if maxRetries exists
-    if (task.properties.maxRetries) {
-      variables.push(failed(task.id));
-    }
-
     taskVariables.set(task.id, variables);
   });
 

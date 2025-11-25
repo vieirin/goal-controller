@@ -7,7 +7,12 @@ export const serializeValidationReportToJSON = (
   const goalsObject: Record<
     string,
     {
-      module: { expected: number; emitted: number; missing: number };
+      module: {
+        expected: number;
+        emitted: number;
+        missing: number;
+        lineCount?: number;
+      };
       variables: { expected: number; emitted: number; missing: number };
       transitions: { expected: number; emitted: number; missing: number };
       formulas: { expected: number; emitted: number; missing: number };
@@ -25,6 +30,9 @@ export const serializeValidationReportToJSON = (
         expected: validation.module.expected,
         emitted: validation.module.emitted,
         missing: validation.module.missing,
+        ...(validation.module.lineCount !== undefined && {
+          lineCount: validation.module.lineCount,
+        }),
       },
       variables: {
         expected: validation.variables.expected,

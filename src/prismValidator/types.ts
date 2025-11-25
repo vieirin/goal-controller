@@ -28,6 +28,7 @@ export type ModuleInfo = {
     | 'interleaved'
     | 'alternative'
     | 'basic';
+  lineCount?: number;
 };
 
 export type ParsedPrismModel = {
@@ -51,7 +52,7 @@ export type ElementDetails = {
 };
 
 export type GoalValidation = {
-  module: ElementCount;
+  module: ElementCount & { lineCount?: number };
   variables: ElementCount & { details: ElementDetails };
   transitions: ElementCount & { details: ElementDetails };
   formulas: ElementCount & { details: ElementDetails };

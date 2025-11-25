@@ -10,6 +10,7 @@
   "enoughBattery": true,
   "highReliability": false,
   "sensorAvailable": true,
+  "networkAvailable": true,
   "T1_achievable": 0.2,
   "T10_achievable": 0.2,
   "T11_achievable": 0.5,

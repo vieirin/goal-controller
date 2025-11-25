@@ -101,12 +101,39 @@ export const systemModule = ({
 }): string => {
   const logger = getLogger();
   logger.initSystem();
-  const variables = treeContextVariables(gm);
-  // resources are deduped in allByType
+  const goalContextVars = treeContextVariables(gm);
+
+  // Also collect context variables from tasks
+  const tasks = allByType({ gm, type: 'task' });
+  const taskContextVariables = new Set<string>();
+  tasks.forEach((task) => {
+    if (task.execCondition?.assertion) {
+      task.execCondition.assertion.variables.forEach((v) => {
+        taskContextVariables.add(v.name);
+      });
+    }
+    if (task.execCondition?.maintain?.variables) {
+      task.execCondition.maintain.variables.forEach((v) => {
+        taskContextVariables.add(v.name);
+      });
+    }
+  });
+
+  // Combine goal and task context variables
+  const allContextVars = new Set([
+    ...goalContextVars,
+    ...Array.from(taskContextVariables),
+  ]);
+
+  // Exclude resource IDs from context variables
   const resources = allByType({ gm, type: 'resource' });
   if (!isResource(resources)) {
     throw new Error('Resources must be an array of resources');
   }
+  const resourceIds = new Set(resources.map((resource) => resource.id));
+  const variables = Array.from(allContextVars).filter(
+    (varName) => !resourceIds.has(varName),
+  );
 
   try {
     const variablesFilePath = getVariablesFilePath(fileName);

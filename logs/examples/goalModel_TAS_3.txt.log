@@ -147,24 +147,21 @@
 		[PRISM emitted statement]: formula G2_achievable = G5_achievable + G6_achievable - (G5_achievable * G6_achievable);
 	[VARIABLE DEFINITION] G2_pursued; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G2 - STEP 1
-		[GOAL DEPENDENCY] G2: G4
-		[DEFAULT PURSUE CONDITION] [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved_maintain=true)
+		[DEFAULT PURSUE CONDITION] [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false
 		[UPDATE] (G2_pursued'=1)
 	[PURSUE GENERATION] G5 - STEP 1
-		[GOAL DEPENDENCY] G2: G4
 		[DEFAULT PURSUE CONDITION] [pursue_G5] G2_pursued=1 & G2_achieved_maintain=false
 		[UPDATE] true
 		PRISM statement: [pursue_G5] G2_pursued=1 & G2_achieved_maintain=false -> true
 	[END OF STEP 1]
 	[PURSUE GENERATION] G6 - STEP 1
-		[GOAL DEPENDENCY] G2: G4
 		[DEFAULT PURSUE CONDITION] [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false
 		[UPDATE] true
 		PRISM statement: [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false -> true
 	[END OF STEP 1]
 	[PURSUE GENERATION] G2 - STEP 2
 		[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step
-		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved_maintain=true) -> (G2_pursued'=1)
+		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false -> (G2_pursued'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G5 - STEP 2
 		[TRACE] G5: or goal detected
@@ -180,7 +177,7 @@
 	[END OF STEP 2]
 		[TRACE] G2: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & (G4_achieved_maintain=true) & patientTracking -> (G2_pursued'=1)
+		PRISM statement: [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & patientTracking -> (G2_pursued'=1)
 	[END OF STEP 3]
 		[TRACE] G5: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
@@ -359,7 +356,7 @@
 	[END OF STEP 3]
 		[TRACE] T2: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T2] G5_pursued=1 & G5_achieved=0 -> true
+		PRISM statement: [pursue_T2] G5_pursued=1 & G5_achieved=0 & privacyEnabled -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -408,7 +405,7 @@
 	[END OF STEP 3]
 		[TRACE] T3: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T3] G6_pursued=1 & G6_achieved=0 -> true
+		PRISM statement: [pursue_T3] G6_pursued=1 & G6_achieved=0 & R1>50 -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -648,7 +645,7 @@
 	[END OF STEP 3]
 		[TRACE] T4: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T4] G10_pursued=1 & G10_achieved=0 -> true
+		PRISM statement: [pursue_T4] G10_pursued=1 & G10_achieved=0 & R0=true -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -748,24 +745,21 @@
 	[VARIABLE DEFINITION] G12_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] G12_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE GENERATION] G12 - STEP 1
-		[GOAL DEPENDENCY] G12: G9
-		[DEFAULT PURSUE CONDITION] [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1)
+		[DEFAULT PURSUE CONDITION] [pursue_G12] G12_pursued=0 & G12_achieved=0
 		[UPDATE] (G12_pursued'=1)
 	[PURSUE GENERATION] G16 - STEP 1
-		[GOAL DEPENDENCY] G12: G9
 		[DEFAULT PURSUE CONDITION] [pursue_G16] G12_pursued=1 & G12_achieved=0
 		[UPDATE] true
 		PRISM statement: [pursue_G16] G12_pursued=1 & G12_achieved=0 -> true
 	[END OF STEP 1]
 	[PURSUE GENERATION] G17 - STEP 1
-		[GOAL DEPENDENCY] G12: G9
 		[DEFAULT PURSUE CONDITION] [pursue_G17] G12_pursued=1 & G12_achieved=0
 		[UPDATE] true
 		PRISM statement: [pursue_G17] G12_pursued=1 & G12_achieved=0 -> true
 	[END OF STEP 1]
 	[PURSUE GENERATION] G12 - STEP 2
 		[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step
-		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) -> (G12_pursued'=1)
+		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 -> (G12_pursued'=1)
 	[END OF STEP 2]
 	[PURSUE GENERATION] G16 - STEP 2
 		[TRACE] G16: or goal detected
@@ -781,7 +775,7 @@
 	[END OF STEP 2]
 		[TRACE] G12: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & (G9_achieved=1) & pharmacyAvailable&atHome -> (G12_pursued'=1)
+		PRISM statement: [pursue_G12] G12_pursued=0 & G12_achieved=0 & pharmacyAvailable&atHome -> (G12_pursued'=1)
 	[END OF STEP 3]
 		[TRACE] G16: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G16 has no activation context
@@ -1108,7 +1102,7 @@
 	[END OF STEP 3]
 		[TRACE] T9: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T9] G18_pursued=1 & G18_achieved_maintain=false -> true
+		PRISM statement: [pursue_T9] G18_pursued=1 & G18_achieved_maintain=false & R3=true -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -1230,7 +1224,7 @@
 	[END OF STEP 3]
 		[TRACE] T10: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T10] G20_pursued=1 & G20_achieved=0 -> true
+		PRISM statement: [pursue_T10] G20_pursued=1 & G20_achieved=0 & R4>35 -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -1279,7 +1273,7 @@
 	[END OF STEP 3]
 		[TRACE] T11: activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: 
-		PRISM statement: [pursue_T11] G21_pursued=1 & G21_achieved=0 -> true
+		PRISM statement: [pursue_T11] G21_pursued=1 & G21_achieved=0 & networkAvailable -> true
 	[END OF STEP 3]
 	[END OF PURSUE]
 	[END OF PURSUE]
@@ -1310,9 +1304,9 @@
 	[VARIABLE DEFINITION] T1_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T1_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T1 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T1] true -> true;
+		[CONDITION] T1_pursued=0 & T1_achieved=0
+		[UPDATE] (T1_pursued'=1)
+		PRISM statement: [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T1 TRY label
 		[CONDITION] [try_T1] T1_pursued=1 & T1_achieved=0
@@ -1320,23 +1314,18 @@
 		PRISM statement: [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T1 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T1_pursued=1 & T1_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T1] true -> true;
+		PRISM statement: [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T1 FAILED label
-		[CONDITION] T1_pursued=1 & T1_achieved=0
-		[UPDATE] (T1_pursued'=0)
-		PRISM statement: [failed_T1] T1_pursued=1 & T1_achieved=0 -> (T1_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T10: Enact SMS Service
 	Resources: R2
 	[VARIABLE DEFINITION] T10_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T10_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T10 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T10] true -> true;
+		[CONDITION] T10_pursued=0 & T10_achieved=0
+		[UPDATE] (T10_pursued'=1)
+		PRISM statement: [pursue_T10] T10_pursued=0 & T10_achieved=0 -> (T10_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T10 TRY label
 		[CONDITION] [try_T10] T10_pursued=1 & T10_achieved=0
@@ -1344,23 +1333,18 @@
 		PRISM statement: [try_T10] T10_pursued=1 & T10_achieved=0 -> T10_achievable: (T10_achieved'=1) + 1-T10_achievable: (T10_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T10 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T10_pursued=1 & T10_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T10] true -> true;
+		PRISM statement: [achieved_T10] T10_pursued=1 & T10_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T10 FAILED label
-		[CONDITION] T10_pursued=1 & T10_achieved=0
-		[UPDATE] (T10_pursued'=0)
-		PRISM statement: [failed_T10] T10_pursued=1 & T10_achieved=0 -> (T10_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T11: Enact alarm service
 	Resources: none
 	[VARIABLE DEFINITION] T11_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T11_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T11 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T11] true -> true;
+		[CONDITION] T11_pursued=0 & T11_achieved=0
+		[UPDATE] (T11_pursued'=1)
+		PRISM statement: [pursue_T11] T11_pursued=0 & T11_achieved=0 -> (T11_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T11 TRY label
 		[CONDITION] [try_T11] T11_pursued=1 & T11_achieved=0
@@ -1368,23 +1352,18 @@
 		PRISM statement: [try_T11] T11_pursued=1 & T11_achieved=0 -> T11_achievable: (T11_achieved'=1) + 1-T11_achievable: (T11_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T11 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T11_pursued=1 & T11_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T11] true -> true;
+		PRISM statement: [achieved_T11] T11_pursued=1 & T11_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T11 FAILED label
-		[CONDITION] T11_pursued=1 & T11_achieved=0
-		[UPDATE] (T11_pursued'=0)
-		PRISM statement: [failed_T11] T11_pursued=1 & T11_achieved=0 -> (T11_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T2: Perform Manual Tracking
 	Resources: none
 	[VARIABLE DEFINITION] T2_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T2_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T2 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T2] true -> true;
+		[CONDITION] T2_pursued=0 & T2_achieved=0
+		[UPDATE] (T2_pursued'=1)
+		PRISM statement: [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T2 TRY label
 		[CONDITION] [try_T2] T2_pursued=1 & T2_achieved=0
@@ -1392,23 +1371,18 @@
 		PRISM statement: [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T2 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T2_pursued=1 & T2_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T2] true -> true;
+		PRISM statement: [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T2 FAILED label
-		[CONDITION] T2_pursued=1 & T2_achieved=0
-		[UPDATE] (T2_pursued'=0)
-		PRISM statement: [failed_T2] T2_pursued=1 & T2_achieved=0 -> (T2_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T3: Perform Automatic Tracking
 	Resources: R1
 	[VARIABLE DEFINITION] T3_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T3_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T3 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T3] true -> true;
+		[CONDITION] T3_pursued=0 & T3_achieved=0
+		[UPDATE] (T3_pursued'=1)
+		PRISM statement: [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T3 TRY label
 		[CONDITION] [try_T3] T3_pursued=1 & T3_achieved=0
@@ -1416,23 +1390,18 @@
 		PRISM statement: [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T3 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T3_pursued=1 & T3_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T3] true -> true;
+		PRISM statement: [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T3 FAILED label
-		[CONDITION] T3_pursued=1 & T3_achieved=0
-		[UPDATE] (T3_pursued'=0)
-		PRISM statement: [failed_T3] T3_pursued=1 & T3_achieved=0 -> (T3_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T4: Send sensed data
 	Resources: R0
 	[VARIABLE DEFINITION] T4_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T4_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T4 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T4] true -> true;
+		[CONDITION] T4_pursued=0 & T4_achieved=0
+		[UPDATE] (T4_pursued'=1)
+		PRISM statement: [pursue_T4] T4_pursued=0 & T4_achieved=0 -> (T4_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T4 TRY label
 		[CONDITION] [try_T4] T4_pursued=1 & T4_achieved=0
@@ -1440,23 +1409,18 @@
 		PRISM statement: [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T4 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T4_pursued=1 & T4_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T4] true -> true;
+		PRISM statement: [achieved_T4] T4_pursued=1 & T4_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T4 FAILED label
-		[CONDITION] T4_pursued=1 & T4_achieved=0
-		[UPDATE] (T4_pursued'=0)
-		PRISM statement: [failed_T4] T4_pursued=1 & T4_achieved=0 -> (T4_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T5: Perform remote analysis
 	Resources: none
 	[VARIABLE DEFINITION] T5_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T5_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T5 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T5] true -> true;
+		[CONDITION] T5_pursued=0 & T5_achieved=0
+		[UPDATE] (T5_pursued'=1)
+		PRISM statement: [pursue_T5] T5_pursued=0 & T5_achieved=0 -> (T5_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T5 TRY label
 		[CONDITION] [try_T5] T5_pursued=1 & T5_achieved=0
@@ -1465,24 +1429,18 @@
 		PRISM statement: [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T5 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T5_pursued=1 & T5_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T5] true -> true;
+		PRISM statement: [achieved_T5] T5_pursued=1 & T5_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T5 FAILED label
-		[CONDITION] T5_pursued=1 & T5_achieved=0
-		[MAX RETRIES] 8
-		[UPDATE] (T5_pursued'=0)
-		PRISM statement: [failed_T5] T5_pursued=1 & T5_achieved=0 -> (T5_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T6: Perform local analysis
 	Resources: none
 	[VARIABLE DEFINITION] T6_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T6_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T6 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T6] true -> true;
+		[CONDITION] T6_pursued=0 & T6_achieved=0
+		[UPDATE] (T6_pursued'=1)
+		PRISM statement: [pursue_T6] T6_pursued=0 & T6_achieved=0 -> (T6_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T6 TRY label
 		[CONDITION] [try_T6] T6_pursued=1 & T6_achieved=0
@@ -1490,23 +1448,18 @@
 		PRISM statement: [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T6 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T6_pursued=1 & T6_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T6] true -> true;
+		PRISM statement: [achieved_T6] T6_pursued=1 & T6_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T6 FAILED label
-		[CONDITION] T6_pursued=1 & T6_achieved=0
-		[UPDATE] (T6_pursued'=0)
-		PRISM statement: [failed_T6] T6_pursued=1 & T6_achieved=0 -> (T6_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T7: Apply drug change
 	Resources: R4
 	[VARIABLE DEFINITION] T7_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T7_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T7 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T7] true -> true;
+		[CONDITION] T7_pursued=0 & T7_achieved=0
+		[UPDATE] (T7_pursued'=1)
+		PRISM statement: [pursue_T7] T7_pursued=0 & T7_achieved=0 -> (T7_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T7 TRY label
 		[CONDITION] [try_T7] T7_pursued=1 & T7_achieved=0
@@ -1514,23 +1467,18 @@
 		PRISM statement: [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T7 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T7_pursued=1 & T7_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T7] true -> true;
+		PRISM statement: [achieved_T7] T7_pursued=1 & T7_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T7 FAILED label
-		[CONDITION] T7_pursued=1 & T7_achieved=0
-		[UPDATE] (T7_pursued'=0)
-		PRISM statement: [failed_T7] T7_pursued=1 & T7_achieved=0 -> (T7_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T8: Apply dose change
 	Resources: R4, R5
 	[VARIABLE DEFINITION] T8_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T8_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T8 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T8] true -> true;
+		[CONDITION] T8_pursued=0 & T8_achieved=0
+		[UPDATE] (T8_pursued'=1)
+		PRISM statement: [pursue_T8] T8_pursued=0 & T8_achieved=0 -> (T8_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T8 TRY label
 		[CONDITION] [try_T8] T8_pursued=1 & T8_achieved=0
@@ -1538,23 +1486,18 @@
 		PRISM statement: [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T8 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T8_pursued=1 & T8_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T8] true -> true;
+		PRISM statement: [achieved_T8] T8_pursued=1 & T8_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T8 FAILED label
-		[CONDITION] T8_pursued=1 & T8_achieved=0
-		[UPDATE] (T8_pursued'=0)
-		PRISM statement: [failed_T8] T8_pursued=1 & T8_achieved=0 -> (T8_pursued'=0);
-	[END OF FAILED]
 [INIT TASK] T9: Apply side effect monitor
 	Resources: R3
 	[VARIABLE DEFINITION] T9_pursued; initial value: 0; upper bound: 1; type: int
 	[VARIABLE DEFINITION] T9_achieved; initial value: 0; upper bound: 1; type: int
 	[PURSUE] Task T9 PURSUE label
-		[CONDITION] true
-		[UPDATE] true
-		PRISM statement: [pursue_T9] true -> true;
+		[CONDITION] T9_pursued=0 & T9_achieved=0
+		[UPDATE] (T9_pursued'=1)
+		PRISM statement: [pursue_T9] T9_pursued=0 & T9_achieved=0 -> (T9_pursued'=1);
 	[END OF PURSUE]
 	[TRY] Task T9 TRY label
 		[CONDITION] [try_T9] T9_pursued=1 & T9_achieved=0
@@ -1562,15 +1505,10 @@
 		PRISM statement: [try_T9] T9_pursued=1 & T9_achieved=0 -> T9_achievable: (T9_achieved'=1) + 1-T9_achievable: (T9_pursued'=0);
 	[END OF TRY]
 	[ACHIEVE] Task T9 ACHIEVE label
-		[CONDITION] true
+		[CONDITION] T9_pursued=1 & T9_achieved=1
 		[UPDATE] true
-		PRISM statement: [achieved_T9] true -> true;
+		PRISM statement: [achieved_T9] T9_pursued=1 & T9_achieved=1 -> true;
 	[END OF ACHIEVE]
-	[FAILED] Task T9 FAILED label
-		[CONDITION] T9_pursued=1 & T9_achieved=0
-		[UPDATE] (T9_pursued'=0)
-		PRISM statement: [failed_T9] T9_pursued=1 & T9_achieved=0 -> (T9_pursued'=0);
-	[END OF FAILED]
 [INIT SYSTEM MODULE]
 	[VARIABLE DEFINITION] R0; initial value: true; type: boolean
 	[VARIABLE DEFINITION] R1; initial value: 3; upper bound: 5; type: int
@@ -1589,8 +1527,22 @@
 	[VARIABLE DEFINITION] enoughBattery; initial value: true; type: boolean
 	[VARIABLE DEFINITION] highReliability; initial value: false; type: boolean
 	[VARIABLE DEFINITION] sensorAvailable; initial value: true; type: boolean
+	[VARIABLE DEFINITION] networkAvailable; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/goalModel_TAS_3.txt
+[ELAPSED TIME] 11ms
+----------MODEL STRUCTURE SUMMARY----------
+[TOTAL GOALS] 22
+[TOTAL TASKS] 11
+[TOTAL RESOURCES] 7
+[TOTAL NODES] 40
+[TOTAL VARIABLES] 84
+----------GOAL TYPE BREAKDOWN----------
+[GOAL TYPE: DEGRADATION] 1
+[GOAL TYPE: CHOICE] 2
+[GOAL TYPE: ALTERNATIVE] 2
+[GOAL TYPE: SEQUENCE] 4
+[GOAL TYPE: INTERLEAVED] 1
 ----------GOAL SUMMARY----------
 [GOAL MODULES] 22
 [GOAL VARIABLES] 44
@@ -1601,14 +1553,14 @@
 [GOAL MAINTAIN FORMULAS] 4
 ----------CHANGE MANAGER SUMMARY----------
 [TASKS VARIABLES] 22
-[TASKS LABELS] 44
+[TASKS LABELS] 33
 [TASKS TRY LINES] 11
-[TASKS FAILED LINES] 11
+[TASKS FAILED LINES] 0
 [TASKS ACHIEVED LINES] 11
 [TASKS SKIPPED LINES] 11
 [TASKS ACHIEVABILITY CONSTANTS] 11
 ----------SYSTEM SUMMARY----------
-[SYSTEM VARIABLES] 17
+[SYSTEM VARIABLES] 18
 [SYSTEM RESOURCES] 6
-[SYSTEM CONTEXT VARIABLES] 11
+[SYSTEM CONTEXT VARIABLES] 12
 ----------------------------------------

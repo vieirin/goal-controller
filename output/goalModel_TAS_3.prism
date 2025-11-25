@@ -1,0 +1,622 @@
+dtmc
+
+
+
+
+// ID: G0
+// Name: Provide Health Support
+// Type: interleaved
+// Relation to children: and
+// Children: G1, G2
+module G0
+  G0_pursued : [0..1] init 0;
+  G0_achieved : [0..1] init 0;
+
+  [pursue_G0] G0_pursued=0 & G0_achieved=0 -> (G0_pursued'=1);
+  [pursue_G1] G0_pursued=1 & G0_achieved=0 -> true;
+  [pursue_G2] G0_pursued=1 & G0_achieved=0 & G2_achieved_maintain=false -> true;
+
+  [achieved_G0] G0_pursued=1 & (G1_achieved=1 & G2_achieved_maintain=true) -> (G0_pursued'=0) & (G0_achieved'=1);
+  
+  [skip_G0] G0_pursued=1 & G1_pursued=0 & G2_pursued=0 -> (G0_pursued'=0);
+endmodule
+
+formula G0_achievable = G1_achievable * G2_achievable;
+
+// ID: G1
+// Name: Support in emergency
+// Type: degradation
+// Relation to children: or
+// Children: G3, G4
+module G1
+  G1_pursued : [0..1] init 0;
+  G1_achieved : [0..1] init 0;
+  G4_failed : [0..10] init 0;
+
+  [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1);
+  [pursue_G3] G1_pursued=1 & G1_achieved=0 & G4_failed >= 2 -> true;
+  [pursue_G4] G1_pursued=1 & G1_achieved=0 & G4_achieved_maintain=false -> (G4_failed'=min(10, G4_failed+1));
+
+  [achieved_G1] G1_pursued=1 & (G3_achieved=1 | G4_achieved_maintain=true) -> (G1_pursued'=0) & (G1_achieved'=1);
+  
+  [skip_G1] G1_pursued=1 & G3_pursued=0 & G4_pursued=0 -> (G1_pursued'=0);
+endmodule
+
+formula G1_achievable = G3_achievable + G4_achievable - (G3_achievable * G4_achievable);
+
+// ID: G2
+// Name: Track patient location
+// Type: alternative
+// Relation to children: or
+// Children: G5, G6
+module G2
+  G2_pursued : [0..1] init 0;
+
+  [pursue_G2] G2_pursued=0 & G2_achieved_maintain=false & patientTracking -> (G2_pursued'=1);
+  [pursue_G5] G2_pursued=1 & G2_achieved_maintain=false & G6_pursued=0 -> true;
+  [pursue_G6] G2_pursued=1 & G2_achieved_maintain=false & G5_pursued=0 -> true;
+
+  [achieved_G2] G2_pursued=1 & (G5_achieved=1 | G6_achieved=1) -> (G2_pursued'=0);
+  
+  [skip_G2] G2_pursued=1 & G5_pursued=0 & G6_pursued=0 -> (G2_pursued'=0);
+endmodule
+
+formula G2_achieved_maintain = highPrecision;
+formula G2_achievable = G5_achievable + G6_achievable - (G5_achievable * G6_achievable);
+
+// ID: G3
+// Name: Self-diagnosed emergency support service
+// Type: basic
+// Relation to children: and
+// Children: G7
+module G3
+  G3_pursued : [0..1] init 0;
+  G3_achieved : [0..1] init 0;
+
+  [pursue_G3] G3_pursued=0 & G3_achieved=0 & privacyEnabled -> (G3_pursued'=1);
+  [pursue_G7] G3_pursued=1 & G3_achieved=0 -> true;
+
+  [achieved_G3] G3_pursued=1 & (G7_achieved=1) -> (G3_pursued'=0) & (G3_achieved'=1);
+  
+  [skip_G3] G3_pursued=1 & G7_pursued=0 -> (G3_pursued'=0);
+endmodule
+
+formula G3_achievable = G7_achievable;
+
+// ID: G4
+// Name: Automated life support service
+// Type: sequence
+// Relation to children: and
+// Children: G8, G9
+module G4
+  G4_pursued : [0..1] init 0;
+
+  [pursue_G4] G4_pursued=0 & G4_achieved_maintain=false & enoughBattery & highReliability -> (G4_pursued'=1);
+  [pursue_G8] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=false -> true;
+  [pursue_G9] G4_pursued=1 & G4_achieved_maintain=false & G8_achieved_maintain=true -> true;
+
+  [achieved_G4] G4_pursued=1 & (G8_achieved_maintain=true & G9_achieved=1) -> (G4_pursued'=0);
+  
+  [skip_G4] G4_pursued=1 & G8_pursued=0 & G9_pursued=0 -> (G4_pursued'=0);
+endmodule
+
+formula G4_achieved_maintain = inEmergency;
+formula G4_achievable = G8_achievable * G9_achievable;
+
+// ID: G5
+// Name: Manual Tracking
+// Type: basic
+// Relation to children: and
+// Children: T2
+module G5
+  G5_pursued : [0..1] init 0;
+  G5_achieved : [0..1] init 0;
+
+  [pursue_G5] G5_pursued=0 & G5_achieved=0 & privacyEnabled -> (G5_pursued'=1);
+  [pursue_T2] G5_pursued=1 & G5_achieved=0 & privacyEnabled -> true;
+
+  [achieved_G5] G5_pursued=1 & (T2_achieved=1) -> (G5_pursued'=0) & (G5_achieved'=1);
+  
+  [skip_G5] G5_pursued=1 & T2_pursued=0 -> (G5_pursued'=0);
+endmodule
+
+formula G5_achievable = T2_achievable;
+
+// ID: G6
+// Name: Automatic Tracking
+// Type: basic
+// Relation to children: and
+// Children: T3
+module G6
+  G6_pursued : [0..1] init 0;
+  G6_achieved : [0..1] init 0;
+
+  [pursue_G6] G6_pursued=0 & G6_achieved=0 & privacyEnabled=false -> (G6_pursued'=1);
+  [pursue_T3] G6_pursued=1 & G6_achieved=0 & R1>50 -> true;
+
+  [achieved_G6] G6_pursued=1 & (T3_achieved=1) -> (G6_pursued'=0) & (G6_achieved'=1);
+  
+  [skip_G6] G6_pursued=1 & T3_pursued=0 -> (G6_pursued'=0);
+endmodule
+
+formula G6_achievable = T3_achievable;
+
+// ID: G7
+// Name: Allow push button
+// Type: basic
+// Relation to children: and
+// Children: T1
+module G7
+  G7_pursued : [0..1] init 0;
+  G7_achieved : [0..1] init 0;
+
+  [pursue_G7] G7_pursued=0 & G7_achieved=0 -> (G7_pursued'=1);
+  [pursue_T1] G7_pursued=1 & G7_achieved=0 -> true;
+
+  [achieved_G7] G7_pursued=1 & (T1_achieved=1) -> (G7_pursued'=0) & (G7_achieved'=1);
+  
+  [skip_G7] G7_pursued=1 & T1_pursued=0 -> (G7_pursued'=0);
+endmodule
+
+formula G7_achievable = T1_achievable;
+
+// ID: G8
+// Name: Detect patient's health status
+// Type: sequence
+// Relation to children: and
+// Children: G10, G11
+module G8
+  G8_pursued : [0..1] init 0;
+
+  [pursue_G8] G8_pursued=0 & G8_achieved_maintain=false & sensorAvailable -> (G8_pursued'=1);
+  [pursue_G10] G8_pursued=1 & G8_achieved_maintain=false & G10_achieved=0 -> true;
+  [pursue_G11] G8_pursued=1 & G8_achieved_maintain=false & G10_achieved=1 -> true;
+
+  [achieved_G8] G8_pursued=1 & (G10_achieved=1 & G11_achieved=1) -> (G8_pursued'=0);
+  
+  [skip_G8] G8_pursued=1 & G10_pursued=0 & G11_pursued=0 -> (G8_pursued'=0);
+endmodule
+
+formula G8_achieved_maintain = enoughBattery & highReliability;
+formula G8_achievable = G10_achievable * G11_achievable;
+
+// ID: G9
+// Name: Enact treatment
+// Type: sequence
+// Relation to children: and
+// Children: G13, G12
+module G9
+  G9_pursued : [0..1] init 0;
+  G9_achieved : [0..1] init 0;
+
+  [pursue_G9] G9_pursued=0 & G9_achieved=0 -> (G9_pursued'=1);
+  [pursue_G13] G9_pursued=1 & G9_achieved=0 & G12_achieved=1 -> true;
+  [pursue_G12] G9_pursued=1 & G9_achieved=0 & G12_achieved=0 -> true;
+
+  [achieved_G9] G9_pursued=1 & (G13_achieved=1 & G12_achieved=1) -> (G9_pursued'=0) & (G9_achieved'=1);
+  
+  [skip_G9] G9_pursued=1 & G13_pursued=0 & G12_pursued=0 -> (G9_pursued'=0);
+endmodule
+
+formula G9_achievable = G13_achievable * G12_achievable;
+
+// ID: G10
+// Name: Read vital signs
+// Type: basic
+// Relation to children: and
+// Children: T4
+module G10
+  G10_pursued : [0..1] init 0;
+  G10_achieved : [0..1] init 0;
+
+  [pursue_G10] G10_pursued=0 & G10_achieved=0 -> (G10_pursued'=1);
+  [pursue_T4] G10_pursued=1 & G10_achieved=0 & R0=true -> true;
+
+  [achieved_G10] G10_pursued=1 & (T4_achieved=1) -> (G10_pursued'=0) & (G10_achieved'=1);
+  
+  [skip_G10] G10_pursued=1 & T4_pursued=0 -> (G10_pursued'=0);
+endmodule
+
+formula G10_achievable = T4_achievable;
+
+// ID: G11
+// Name: Analyse data
+// Type: choice
+// Relation to children: or
+// Children: G14, G15
+module G11
+  G11_pursued : [0..1] init 0;
+  G11_achieved : [0..1] init 0;
+  G11_chosen : [0..2] init 0;
+
+  [pursue_G11] G11_pursued=0 & G11_achieved=0 -> (G11_pursued'=1);
+  [pursue_G14] G11_pursued=1 & G11_achieved=0 & G11_chosen!=2 -> (G11_chosen'=1);
+  [pursue_G15] G11_pursued=1 & G11_achieved=0 & G11_chosen!=1 -> (G11_chosen'=2);
+
+  [achieved_G11] G11_pursued=1 & (G14_achieved=1 | G15_achieved=1) -> (G11_pursued'=0) & (G11_achieved'=1);
+  
+  [skip_G11] G11_pursued=1 & G14_pursued=0 & G15_pursued=0 -> (G11_pursued'=0);
+endmodule
+
+formula G11_achievable = G14_achievable + G15_achievable - (G14_achievable * G15_achievable);
+
+// ID: G12
+// Name: Administer medicine
+// Type: alternative
+// Relation to children: or
+// Children: G16, G17
+module G12
+  G12_pursued : [0..1] init 0;
+  G12_achieved : [0..1] init 0;
+
+  [pursue_G12] G12_pursued=0 & G12_achieved=0 & pharmacyAvailable&atHome -> (G12_pursued'=1);
+  [pursue_G16] G12_pursued=1 & G12_achieved=0 & G17_pursued=0 -> true;
+  [pursue_G17] G12_pursued=1 & G12_achieved=0 & G16_pursued=0 -> true;
+
+  [achieved_G12] G12_pursued=1 & (G16_achieved=1 | G17_achieved=1) -> (G12_pursued'=0) & (G12_achieved'=1);
+  
+  [skip_G12] G12_pursued=1 & G16_pursued=0 & G17_pursued=0 -> (G12_pursued'=0);
+endmodule
+
+formula G12_achievable = G16_achievable + G17_achievable - (G16_achievable * G17_achievable);
+
+// ID: G13
+// Name: Analyse side effect
+// Type: sequence
+// Relation to children: and
+// Children: G18, G19
+module G13
+  G13_pursued : [0..1] init 0;
+  G13_achieved : [0..1] init 0;
+
+  [pursue_G13] G13_pursued=0 & G13_achieved=0 -> (G13_pursued'=1);
+  [pursue_G18] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=false -> true;
+  [pursue_G19] G13_pursued=1 & G13_achieved=0 & G18_achieved_maintain=true -> true;
+
+  [achieved_G13] G13_pursued=1 & (G18_achieved_maintain=true & G19_achieved=1) -> (G13_pursued'=0) & (G13_achieved'=1);
+  
+  [skip_G13] G13_pursued=1 & G18_pursued=0 & G19_pursued=0 -> (G13_pursued'=0);
+endmodule
+
+formula G13_achievable = G18_achievable * G19_achievable;
+
+// ID: G14
+// Name: Remote analysis
+// Type: basic
+// Relation to children: and
+// Children: T5
+module G14
+  G14_pursued : [0..1] init 0;
+  G14_achieved : [0..1] init 0;
+  T5_failed : [0..8] init 0;
+
+  [pursue_G14] G14_pursued=0 & G14_achieved=0 -> (G14_pursued'=1);
+  [pursue_T5] G14_pursued=1 & G14_achieved=0 -> (T5_failed'=min(8, T5_failed+1));
+
+  [achieved_G14] G14_pursued=1 & (T5_achieved=1) -> (G14_pursued'=0) & (G14_achieved'=1);
+  
+  [skip_G14] G14_pursued=1 & T5_pursued=0 -> (G14_pursued'=0);
+endmodule
+
+formula G14_achievable = T5_achievable;
+
+// ID: G15
+// Name: Local analysis
+// Type: basic
+// Relation to children: and
+// Children: T6
+module G15
+  G15_pursued : [0..1] init 0;
+  G15_achieved : [0..1] init 0;
+
+  [pursue_G15] G15_pursued=0 & G15_achieved=0 -> (G15_pursued'=1);
+  [pursue_T6] G15_pursued=1 & G15_achieved=0 -> true;
+
+  [achieved_G15] G15_pursued=1 & (T6_achieved=1) -> (G15_pursued'=0) & (G15_achieved'=1);
+  
+  [skip_G15] G15_pursued=1 & T6_pursued=0 -> (G15_pursued'=0);
+endmodule
+
+formula G15_achievable = T6_achievable;
+
+// ID: G16
+// Name: Change drug
+// Type: basic
+// Relation to children: and
+// Children: T7
+module G16
+  G16_pursued : [0..1] init 0;
+  G16_achieved : [0..1] init 0;
+
+  [pursue_G16] G16_pursued=0 & G16_achieved=0 -> (G16_pursued'=1);
+  [pursue_T7] G16_pursued=1 & G16_achieved=0 -> true;
+
+  [achieved_G16] G16_pursued=1 & (T7_achieved=1) -> (G16_pursued'=0) & (G16_achieved'=1);
+  
+  [skip_G16] G16_pursued=1 & T7_pursued=0 -> (G16_pursued'=0);
+endmodule
+
+formula G16_achievable = T7_achievable;
+
+// ID: G17
+// Name: Change dose
+// Type: basic
+// Relation to children: and
+// Children: T8
+module G17
+  G17_pursued : [0..1] init 0;
+  G17_achieved : [0..1] init 0;
+
+  [pursue_G17] G17_pursued=0 & G17_achieved=0 -> (G17_pursued'=1);
+  [pursue_T8] G17_pursued=1 & G17_achieved=0 -> true;
+
+  [achieved_G17] G17_pursued=1 & (T8_achieved=1) -> (G17_pursued'=0) & (G17_achieved'=1);
+  
+  [skip_G17] G17_pursued=1 & T8_pursued=0 -> (G17_pursued'=0);
+endmodule
+
+formula G17_achievable = T8_achievable;
+
+// ID: G18
+// Name: Monitor side effects
+// Type: basic
+// Relation to children: and
+// Children: T9
+module G18
+  G18_pursued : [0..1] init 0;
+
+  [pursue_G18] G18_pursued=0 & G18_achieved_maintain=false & medicationApplied -> (G18_pursued'=1);
+  [pursue_T9] G18_pursued=1 & G18_achieved_maintain=false & R3=true -> true;
+
+  [achieved_G18] G18_pursued=1 & (T9_achieved=1) -> (G18_pursued'=0);
+  
+  [skip_G18] G18_pursued=1 & T9_pursued=0 -> (G18_pursued'=0);
+endmodule
+
+formula G18_achieved_maintain = inSideEffectWindow;
+formula G18_achievable = T9_achievable;
+
+// ID: G19
+// Name: Trigger Alarm Service
+// Type: choice
+// Relation to children: or
+// Children: G20, G21
+module G19
+  G19_pursued : [0..1] init 0;
+  G19_achieved : [0..1] init 0;
+  G19_chosen : [0..2] init 0;
+
+  [pursue_G19] G19_pursued=0 & G19_achieved=0 & inEmergency -> (G19_pursued'=1);
+  [pursue_G20] G19_pursued=1 & G19_achieved=0 & G19_chosen!=2 -> (G19_chosen'=1);
+  [pursue_G21] G19_pursued=1 & G19_achieved=0 & G19_chosen!=1 -> (G19_chosen'=2);
+
+  [achieved_G19] G19_pursued=1 & (G20_achieved=1 | G21_achieved=1) -> (G19_pursued'=0) & (G19_achieved'=1);
+  
+  [skip_G19] G19_pursued=1 & G20_pursued=0 & G21_pursued=0 -> (G19_pursued'=0);
+endmodule
+
+formula G19_achievable = G20_achievable + G21_achievable - (G20_achievable * G21_achievable);
+
+// ID: G20
+// Name: Trigger SMS Service
+// Type: basic
+// Relation to children: and
+// Children: T10
+module G20
+  G20_pursued : [0..1] init 0;
+  G20_achieved : [0..1] init 0;
+
+  [pursue_G20] G20_pursued=0 & G20_achieved=0 -> (G20_pursued'=1);
+  [pursue_T10] G20_pursued=1 & G20_achieved=0 & R4>35 -> true;
+
+  [achieved_G20] G20_pursued=1 & (T10_achieved=1) -> (G20_pursued'=0) & (G20_achieved'=1);
+  
+  [skip_G20] G20_pursued=1 & T10_pursued=0 -> (G20_pursued'=0);
+endmodule
+
+formula G20_achievable = T10_achievable;
+
+// ID: G21
+// Name: Trigger alarm service
+// Type: basic
+// Relation to children: and
+// Children: T11
+module G21
+  G21_pursued : [0..1] init 0;
+  G21_achieved : [0..1] init 0;
+
+  [pursue_G21] G21_pursued=0 & G21_achieved=0 -> (G21_pursued'=1);
+  [pursue_T11] G21_pursued=1 & G21_achieved=0 & networkAvailable -> true;
+
+  [achieved_G21] G21_pursued=1 & (T11_achieved=1) -> (G21_pursued'=0) & (G21_achieved'=1);
+  
+  [skip_G21] G21_pursued=1 & T11_pursued=0 -> (G21_pursued'=0);
+endmodule
+
+formula G21_achievable = T11_achievable;
+
+
+const double T1_achievable = 0.2;
+const double T10_achievable = 0.2;
+const double T11_achievable = 0.5;
+const double T2_achievable = 0.6;
+const double T3_achievable = 0.8;
+const double T4_achievable = 0.3;
+const double T5_achievable = 0.5;
+const double T6_achievable = 0.4;
+const double T7_achievable = 0.3;
+const double T8_achievable = 0.6;
+const double T9_achievable = 0.8;
+
+module ChangeManager
+  T1_pursued: [0..1] init 0;
+  T1_achieved: [0..1] init 0;
+  T10_pursued: [0..1] init 0;
+  T10_achieved: [0..1] init 0;
+  T11_pursued: [0..1] init 0;
+  T11_achieved: [0..1] init 0;
+  T2_pursued: [0..1] init 0;
+  T2_achieved: [0..1] init 0;
+  T3_pursued: [0..1] init 0;
+  T3_achieved: [0..1] init 0;
+  T4_pursued: [0..1] init 0;
+  T4_achieved: [0..1] init 0;
+  T5_pursued: [0..1] init 0;
+  T5_achieved: [0..1] init 0;
+  T6_pursued: [0..1] init 0;
+  T6_achieved: [0..1] init 0;
+  T7_pursued: [0..1] init 0;
+  T7_achieved: [0..1] init 0;
+  T8_pursued: [0..1] init 0;
+  T8_achieved: [0..1] init 0;
+  T9_pursued: [0..1] init 0;
+  T9_achieved: [0..1] init 0;
+  
+  // Task T1: Trigger alarm by pushing emergency button
+  [pursue_T1] T1_pursued=0 & T1_achieved=0 -> (T1_pursued'=1);
+  [try_T1] T1_pursued=1 & T1_achieved=0 -> T1_achievable: (T1_achieved'=1) + 1-T1_achievable: (T1_pursued'=0);
+  [achieved_T1] T1_pursued=1 & T1_achieved=1 -> true;
+  
+
+  // Task T10: Enact SMS Service
+  [pursue_T10] T10_pursued=0 & T10_achieved=0 -> (T10_pursued'=1);
+  [try_T10] T10_pursued=1 & T10_achieved=0 -> T10_achievable: (T10_achieved'=1) + 1-T10_achievable: (T10_pursued'=0);
+  [achieved_T10] T10_pursued=1 & T10_achieved=1 -> true;
+  
+
+  // Task T11: Enact alarm service
+  [pursue_T11] T11_pursued=0 & T11_achieved=0 -> (T11_pursued'=1);
+  [try_T11] T11_pursued=1 & T11_achieved=0 -> T11_achievable: (T11_achieved'=1) + 1-T11_achievable: (T11_pursued'=0);
+  [achieved_T11] T11_pursued=1 & T11_achieved=1 -> true;
+  
+
+  // Task T2: Perform Manual Tracking
+  [pursue_T2] T2_pursued=0 & T2_achieved=0 -> (T2_pursued'=1);
+  [try_T2] T2_pursued=1 & T2_achieved=0 -> T2_achievable: (T2_achieved'=1) + 1-T2_achievable: (T2_pursued'=0);
+  [achieved_T2] T2_pursued=1 & T2_achieved=1 -> true;
+  
+
+  // Task T3: Perform Automatic Tracking
+  [pursue_T3] T3_pursued=0 & T3_achieved=0 -> (T3_pursued'=1);
+  [try_T3] T3_pursued=1 & T3_achieved=0 -> T3_achievable: (T3_achieved'=1) + 1-T3_achievable: (T3_pursued'=0);
+  [achieved_T3] T3_pursued=1 & T3_achieved=1 -> true;
+  
+
+  // Task T4: Send sensed data
+  [pursue_T4] T4_pursued=0 & T4_achieved=0 -> (T4_pursued'=1);
+  [try_T4] T4_pursued=1 & T4_achieved=0 -> T4_achievable: (T4_achieved'=1) + 1-T4_achievable: (T4_pursued'=0);
+  [achieved_T4] T4_pursued=1 & T4_achieved=1 -> true;
+  
+
+  // Task T5: Perform remote analysis
+  [pursue_T5] T5_pursued=0 & T5_achieved=0 -> (T5_pursued'=1);
+  [try_T5] T5_pursued=1 & T5_achieved=0 -> T5_achievable: (T5_achieved'=1) + 1-T5_achievable: (T5_pursued'=0);
+  [achieved_T5] T5_pursued=1 & T5_achieved=1 -> true;
+  
+
+  // Task T6: Perform local analysis
+  [pursue_T6] T6_pursued=0 & T6_achieved=0 -> (T6_pursued'=1);
+  [try_T6] T6_pursued=1 & T6_achieved=0 -> T6_achievable: (T6_achieved'=1) + 1-T6_achievable: (T6_pursued'=0);
+  [achieved_T6] T6_pursued=1 & T6_achieved=1 -> true;
+  
+
+  // Task T7: Apply drug change
+  [pursue_T7] T7_pursued=0 & T7_achieved=0 -> (T7_pursued'=1);
+  [try_T7] T7_pursued=1 & T7_achieved=0 -> T7_achievable: (T7_achieved'=1) + 1-T7_achievable: (T7_pursued'=0);
+  [achieved_T7] T7_pursued=1 & T7_achieved=1 -> true;
+  
+
+  // Task T8: Apply dose change
+  [pursue_T8] T8_pursued=0 & T8_achieved=0 -> (T8_pursued'=1);
+  [try_T8] T8_pursued=1 & T8_achieved=0 -> T8_achievable: (T8_achieved'=1) + 1-T8_achievable: (T8_pursued'=0);
+  [achieved_T8] T8_pursued=1 & T8_achieved=1 -> true;
+  
+
+  // Task T9: Apply side effect monitor
+  [pursue_T9] T9_pursued=0 & T9_achieved=0 -> (T9_pursued'=1);
+  [try_T9] T9_pursued=1 & T9_achieved=0 -> T9_achievable: (T9_achieved'=1) + 1-T9_achievable: (T9_pursued'=0);
+  [achieved_T9] T9_pursued=1 & T9_achieved=1 -> true;
+  
+endmodule
+
+
+module System
+  pharmacyAvailable: bool init true;
+  atHome: bool init true;
+  inSideEffectWindow: bool init false;   // keep false so G18_achieved_maintain = false
+  medicationApplied: bool init true;     // enables pursue_G18
+  inEmergency: bool init false;          // so G4_achieved_maintain = false and pursue_G4 is enabled
+  highPrecision: bool init false;        // so G2_achieved_maintain = false and pursue_G2 can start
+  patientTracking: bool init true;       // enables pursue_G2
+  privacyEnabled: bool init true;        // enables G3 and G5 branch (G6 will require later flip by T3)
+  enoughBattery: bool init true;         // needed for pursue_G4 and G8_achieved_maintain
+  highReliability: bool init true;       // needed for pursue_G4 and G8_achieved_maintain
+  sensorAvailable: bool init true;       // enables pursue_G8
+  networkAvailable: bool init true;      // enables pursue_T11 / G21
+
+  R0: bool init true;                    // enables pursue_T4
+  R1: [0..5] init 5;                     // max value, though guard R1>50 is still unsat
+  R2: [0..5] init 5;                     // max mobile data
+  R3: bool init true;                    // enables pursue_T9
+  R4: [1..4] init 4;                     // max value, though guard R4>35 is still unsat
+  R5: [0..10] init 10;                   // max dosage value
+
+  // T1: Trigger alarm by pushing emergency button -> raise emergency
+  [achieved_T1] true ->
+    (inEmergency'=true);
+
+  // T2: Manual tracking -> enable privacy, start tracking with low precision
+  [achieved_T2] true ->
+    (privacyEnabled'=true) &
+    (patientTracking'=true) &
+    (highPrecision'=false);
+
+  // T3: Automatic tracking -> disable privacy, start tracking with high precision and improve R1
+  [achieved_T3] true ->
+    (privacyEnabled'=false) &
+    (patientTracking'=true) &
+    (highPrecision'=true) &
+    (R1'=min(5,R1+1));
+
+  // T4: Send sensed data -> confirm patient data available
+  [achieved_T4] true ->
+    (R0'=true);
+
+  // T5: Perform remote analysis -> tends to increase reliability (probabilistically)
+  [achieved_T5] true ->
+    0.9 : (highReliability'=true) +
+    0.1 : (highReliability'=false);
+
+  // T6: Perform local analysis -> may drain battery
+  [achieved_T6] true ->
+    0.7 : (enoughBattery'=true) +
+    0.3 : (enoughBattery'=false);
+
+  // T7: Apply drug change -> mark medication applied, move drug id, open side-effect window, ensure at home & pharmacy
+  [achieved_T7] true ->
+    (medicationApplied'=true) &
+    (pharmacyAvailable'=true) &
+    (atHome'=true) &
+    (inSideEffectWindow'=true) &
+    (R4'=min(4,R4+1));
+
+  // T8: Apply dose change -> adjust dosage, mark medication applied, open side-effect window
+  [achieved_T8] true ->
+    (medicationApplied'=true) &
+    (inSideEffectWindow'=true) &
+    (R5'=min(10,R5+2));
+
+  // T9: Apply side effect monitor -> consume patient data flag and close side-effect window
+  [achieved_T9] true ->
+    (R3'=false) &
+    (inSideEffectWindow'=false);
+
+  // T10: Enact SMS Service -> consume some mobile data and occasionally lose network
+  [achieved_T10] true ->
+    0.95 : (R2'=max(0,R2-1)) & (networkAvailable'=true) +
+    0.05 : (R2'=max(0,R2-1)) & (networkAvailable'=false);
+
+  // T11: Enact alarm service -> resolve emergency
+  [achieved_T11] true ->
+    (inEmergency'=false);
+endmodule
