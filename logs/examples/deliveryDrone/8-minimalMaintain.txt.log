@@ -1190,7 +1190,7 @@
 	[VARIABLE DEFINITION] inFlight; initial value: false; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/8-minimalMaintain.txt
-[ELAPSED TIME] 11ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 15
 [TOTAL TASKS] 12
@@ -1224,10 +1224,3 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 2
 ----------------------------------------
-
-==========================================
-MEMORY USAGE
-Generated at: Tue Nov 25 20:31:22 UTC 2025
-----------------------------------------
-Memory usage: 377 MB
-==========================================

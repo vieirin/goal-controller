@@ -251,7 +251,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/1-minimal.txt
-[ELAPSED TIME] 7ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 3
 [TOTAL TASKS] 3
@@ -285,10 +285,3 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 0
 ----------------------------------------
-
-==========================================
-MEMORY USAGE
-Generated at: Tue Nov 25 20:31:12 UTC 2025
-----------------------------------------
-Memory usage: 368 MB
-==========================================
