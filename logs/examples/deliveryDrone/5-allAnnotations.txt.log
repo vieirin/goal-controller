@@ -1403,7 +1403,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/5-allAnnotations.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 6ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 18
 [TOTAL TASKS] 14

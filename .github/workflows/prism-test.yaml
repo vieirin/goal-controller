@@ -39,4 +39,4 @@ jobs:
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             goal-controller-prism:latest \
-            bash -c "npm install --production=false && make generate FILE=examples/goalModel_TAS_3.txt && prism -nobuild output/goalModel_TAS_3.mp"
+            bash -c "npm install --production=false && make generate FILE=examples/goalModel_TAS_3_.txt && prism -nobuild output/goalModel_TAS_3.mp"

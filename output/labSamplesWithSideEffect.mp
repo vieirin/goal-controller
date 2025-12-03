@@ -305,4 +305,9 @@ module System
   R0: bool init true;
   R1: [0..100] init 100;
   R2: bool init true;
+  [achieved_T2] true -> (R1'=max(0, R1-1));
+  [achieved_T4] true -> (sampleLoaded'=true) & (R2'=false);
+  [achieved_T5] true -> (sampleLoaded'=true) & (R2'=false);
+  [achieved_T8] true -> (analysisEnded'=true);
+  [achieved_T9] true -> (sampleLoaded'=false);
 endmodule

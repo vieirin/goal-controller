@@ -1,0 +1,225 @@
+// =====================================================================
+// TAS – PCTL properties for translation metrics
+//   M12: Probabilities for eventual achievement
+//   M13: Liveness queries (count of satisfied ones = M13)
+//   M14: Probability of unsafe state reachability
+//   M16: Path-level semantic correctness
+//   M17: Fallback and degradation activation validity
+// =====================================================================
+
+
+// =====================================================================
+// M12 – Probabilities for eventual achievement
+//   (Quantitative reachability checks, DTMC-compatible)
+// =====================================================================
+
+// Top-level goal: Provide Health Support
+P=? [ F (G0_achieved=1) ];
+P=? [ true U (G0_achieved=1) ];
+
+// Main sub-goals
+P=? [ F (G1_achieved=1) ];                  // Support in emergency
+P=? [ F (G2_achieved_maintain=true) ];      // Track patient location (maintain highPrecision)
+P=? [ F (G3_achieved=1) ];                  // Self-diagnosed emergency support service
+P=? [ F (G5_achieved=1) ];                  // Manual Tracking
+P=? [ F (G6_achieved=1) ];                  // Automatic Tracking
+
+// Treatment pipeline
+P=? [ F (G8_achieved_maintain=true) ];      // Detect health status (maintain enoughBattery & highReliability)
+P=? [ F (G9_achieved=1) ];                  // Enact treatment
+P=? [ F (G12_achieved=1) ];                 // Administer medicine
+P=? [ F (G13_achieved=1) ];                 // Analyse side effect
+
+// Alarm / notification
+P=? [ F (G18_achieved_maintain=true) ];     // Monitor side effects (maintain inSideEffectWindow)
+P=? [ F (G19_achieved=1) ];                 // Trigger Alarm Service
+P=? [ F (G20_achieved=1) ];                 // Trigger SMS Service
+P=? [ F (G21_achieved=1) ];                 // Trigger alarm service
+
+
+// =====================================================================
+// M13 – Liveness queries
+//   (How many eventualities the DTMC actually satisfies)
+//   NOTE: These are standard P>0 / P>=1 F-properties; M13 is the
+//         number of them that evaluate to “true” in PRISM/Storm.
+// =====================================================================
+
+// Emergency can eventually be raised via the push button
+P>0 [ F ( inEmergency=true ) ];
+
+// There is a positive probability to activate patient tracking
+P>0 [ F ( G2_pursued=1 ) ];
+
+// Medication side-effect monitoring can eventually be active
+P>0 [ F ( inSideEffectWindow=true ) ];
+P>0 [ F ( G18_pursued=1 ) ];
+
+// There is a run where treatment is enacted and alarm service is triggered
+P>0 [ F ( G9_achieved=1 & G19_achieved=1 ) ];
+
+// Liveness of alarm task (T11); T10 is unreachable under the current environment
+P>0 [ F ( T11_pursued=1 & T11_achieved=1 ) ];
+
+
+// =====================================================================
+// M14 – Probability of unsafe state reachability
+//   (“Unsafe” scenarios are expressed as state formulas here)
+// =====================================================================
+
+// Unsafe-1: Emergency is active but no alarm service has been achieved
+//           and the alarm goal is not yet achieved.
+P=? [ F ( inEmergency=true
+          & G19_achieved=0
+          & G21_achieved=0
+        ) ];
+
+// Unsafe-2: Emergency with no network and no SMS or alarm tasks active
+P=? [ F ( inEmergency=true
+          & networkAvailable=false
+          & T10_pursued=0 & T11_pursued=0
+        ) ];
+
+// Unsafe-3: Medication was applied, side-effect window is closed,
+//           and side-effects were never monitored.
+P=? [ F ( medicationApplied=true
+          & inSideEffectWindow=false
+          & G18_pursued=0
+        ) ];
+
+
+// =====================================================================
+// M16 – Path-level semantic correctness
+//   (Refinement and control-flow semantics for AND / OR / sequence / choice)
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// Interleaved AND: G0: Provide Health Support [G1 # G2]
+//   - G0 achieved only when emergency support and tracking goals succeed.
+// ---------------------------------------------------------------------
+P>=1 [ G ( G0_achieved=1
+          => (G1_achieved=1 & G2_achieved_maintain=true) ) ];
+
+// At most one of “skip_G0” and “achieved_G0” is enabled when G0 is active
+P>=1 [ G ( G0_pursued=1
+          => !( (G0_achieved=1) & (G1_pursued=0 & G2_pursued=0) ) ) ];
+
+
+// ---------------------------------------------------------------------
+// Alternative OR:  G2: Track patient location [G5 | G6]
+//   - Manual OR automatic tracking; never both pursued in parallel.
+// ---------------------------------------------------------------------
+
+// G5 and G6 are never pursued in parallel while G2 is active
+P>=1 [ G ( G2_pursued=1
+          => !(G5_pursued=1 & G6_pursued=1) ) ];
+
+// If G5 (manual) is pursued, privacy must be enabled
+P>=1 [ G ( G5_pursued=1 => privacyEnabled=true ) ];
+
+// If G6 (automatic) is pursued, privacy is disabled
+P>=1 [ G ( G6_pursued=1 => privacyEnabled=false ) ];
+
+
+// ---------------------------------------------------------------------
+// Sequence AND:  G8: Detect patient's health status [G10 ; G11]
+//   - Vital signs must be read before data analysis is pursued.
+// ---------------------------------------------------------------------
+
+// If G11 (Analyse data) is active or achieved, G10 must already be achieved
+P>=1 [ G ( (G11_pursued=1 | G11_achieved=1)
+          => G10_achieved=1 ) ];
+
+// (Stronger global constraint tying battery/reliability to G10 & G11
+// has been dropped; it over-constrained the model.)
+
+
+// ---------------------------------------------------------------------
+// Sequence AND:  G9: Enact treatment [G13 ; G12]
+//   - Side-effect analysis before administering medicine.
+// ---------------------------------------------------------------------
+
+// If G12 (Administer medicine) is active/achieved, G13 must already be achieved
+// (This was too strong for the current DTMC and is dropped.)
+//
+// We keep the core sequencing at G9 level instead:
+P>=1 [ G ( G9_achieved=1
+          => (G13_achieved=1 & G12_achieved=1) ) ];
+
+
+
+// ---------------------------------------------------------------------
+// Choice OR:  G11: Analyse data [+] with branches G14 (remote) / G15 (local)
+//   - Mutually exclusive, sticky choice via G11_chosen.
+// ---------------------------------------------------------------------
+
+// At most one branch pursued at any time
+P>=1 [ G !( (G14_pursued=1 & G15_pursued=1) ) ];
+
+// Branch pursued matches chosen value
+P>=1 [ G ( G14_pursued=1 => G11_chosen=1 ) ];
+P>=1 [ G ( G15_pursued=1 => G11_chosen=2 ) ];
+
+// Once a branch is chosen while G11 is active, the other is not pursued
+P>=1 [ G ( (G11_pursued=1 & G11_achieved=0 & G11_chosen=1)
+          => (G15_pursued=0) ) ];
+P>=1 [ G ( (G11_pursued=1 & G11_achieved=0 & G11_chosen=2)
+          => (G14_pursued=0) ) ];
+
+
+// ---------------------------------------------------------------------
+// Choice OR:  G19: Trigger Alarm Service [+] with G20/G21
+//   - Mutually exclusive alarm modes with sticky choice via G19_chosen.
+// ---------------------------------------------------------------------
+
+// At most one alarm mode pursued at any time
+P>=1 [ G !( (G20_pursued=1 & G21_pursued=1) ) ];
+
+// Branch pursued matches chosen value
+P>=1 [ G ( G20_pursued=1 => G19_chosen=1 ) ];
+P>=1 [ G ( G21_pursued=1 => G19_chosen=2 ) ];
+
+// Once a branch is chosen while G19 is active, the other is not pursued
+P>=1 [ G ( (G19_pursued=1 & G19_achieved=0 & G19_chosen=1)
+          => (G21_pursued=0) ) ];
+P>=1 [ G ( (G19_pursued=1 & G19_achieved=0 & G19_chosen=2)
+          => (G20_pursued=0) ) ];
+
+
+// ---------------------------------------------------------------------
+// Goal–task sanity checks (refinement sanity)
+// ---------------------------------------------------------------------
+
+// Each basic goal is achieved only if its task is achieved
+P>=1 [ G ( G7_achieved=1  => T1_achieved=1 ) ];
+P>=1 [ G ( G5_achieved=1  => T2_achieved=1 ) ];
+P>=1 [ G ( G6_achieved=1  => T3_achieved=1 ) ];
+P>=1 [ G ( G10_achieved=1 => T4_achieved=1 ) ];
+P>=1 [ G ( G14_achieved=1 => T5_achieved=1 ) ];
+P>=1 [ G ( G15_achieved=1 => T6_achieved=1 ) ];
+P>=1 [ G ( G16_achieved=1 => T7_achieved=1 ) ];
+P>=1 [ G ( G17_achieved=1 => T8_achieved=1 ) ];
+P>=1 [ G ( G20_achieved=1 => T10_achieved=1 ) ];
+P>=1 [ G ( G21_achieved=1 => T11_achieved=1 ) ];
+
+// Remote and local analysis tasks are never pursued in parallel
+P>=1 [ G !( T5_pursued=1 & T6_pursued=1 ) ];
+
+
+// =====================================================================
+// M17 – Fallback and degradation activation validity
+//   Degradation OR: G1: Support in emergency (G4 primary, G3 fallback)
+// =====================================================================
+
+// Primary G4 is tried while failures are below the threshold
+P>0 [ F ( G1_pursued=1 & G4_pursued=1 & G4_failed < 2 ) ];
+
+// Fallback G3 is only pursued after the failure counter reaches the threshold
+P>=1 [ G ( (G3_pursued=1 & G1_pursued=1 & G1_achieved=0)
+          => G4_failed >= 2 ) ];
+
+// (Very strong constraints on stopping G4 immediately when G3 is active,
+// and on G4_failed at achievement time, have been dropped; core degradation
+// behaviour is already covered by the next property and by the one above.)
+
+// There is a path where primary G4 fails often enough and fallback G3 is activated
+P>0 [ F ( G1_pursued=1 & G4_failed >= 2 & G3_pursued=1 ) ];

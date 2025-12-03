@@ -1184,7 +1184,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/6-allnotationsReduced.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 9ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 15
 [TOTAL TASKS] 12
@@ -1218,3 +1218,10 @@
 [SYSTEM RESOURCES] 0
 [SYSTEM CONTEXT VARIABLES] 0
 ----------------------------------------
+
+==========================================
+MEMORY USAGE
+Generated at: Tue Nov 25 20:31:17 UTC 2025
+----------------------------------------
+Memory usage: 375 MB
+==========================================

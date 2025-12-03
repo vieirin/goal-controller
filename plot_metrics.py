@@ -64,7 +64,7 @@ def load_data(csv_file='metrics.csv'):
     return df
 
 def create_plot(df, x_col, y_col, title, xlabel, ylabel, figsize=(8, 6)):
-    """Create a scatter plot with regression line"""
+    """Create a scatter plot"""
     fig, ax = plt.subplots(figsize=figsize)
     
     # Filter out NaN values, but allow zeros (some metrics can legitimately be 0)
@@ -72,8 +72,8 @@ def create_plot(df, x_col, y_col, title, xlabel, ylabel, figsize=(8, 6)):
     # Only filter out negative values
     data = data[(data[x_col] >= 0) & (data[y_col] >= 0)]
     
-    # Use log scale for num_transitions and num_states - filter out zeros since log(0) is undefined
-    use_log_scale = (y_col == 'num_transitions' or y_col == 'num_states')
+    # Use log scale for num_transitions, num_states, construction_time, and cpu_time - filter out zeros since log(0) is undefined
+    use_log_scale = (y_col == 'num_transitions' or y_col == 'num_states' or y_col == 'construction_time' or y_col == 'cpu_time')
     if use_log_scale:
         data = data[data[y_col] > 0]
     
@@ -91,19 +91,6 @@ def create_plot(df, x_col, y_col, title, xlabel, ylabel, figsize=(8, 6)):
     
     # Create scatter plot
     ax.scatter(x, y, alpha=0.6, s=100, edgecolors='black', linewidth=1)
-    
-    # Add regression line (only if we have at least 2 points)
-    # Skip regression line for log scale as it requires log-space fitting
-    if len(data) >= 2 and not use_log_scale:
-        try:
-            z = np.polyfit(x, y, 1)
-            p = np.poly1d(z)
-            ax.plot(x, p(x), "r--", alpha=0.8, linewidth=2, 
-                   label=f'Trend: y={z[0]:.4f}x+{z[1]:.4f}')
-            ax.legend()
-        except (np.linalg.LinAlgError, ValueError):
-            # Skip regression line if it can't be computed
-            pass
     
     # Add labels for each point with simplified names
     for idx, row in data.iterrows():
@@ -157,6 +144,7 @@ def main():
         ('peak_memory_mb', 'PRISM Peak Memory (MB)'),
         ('memory_usage_mb', 'EDGE2PRISM Memory Usage (MB)'),
         ('cpu_time', 'PRISM CPU Time (s)'),
+        ('prism_lines', 'PRISM File Lines'),
     ]
     
     # Define construction metrics to plot

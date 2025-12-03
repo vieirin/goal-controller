@@ -1,0 +1,83 @@
+PRISM
+=====
+
+Version: 4.8.1
+Date: Wed Nov 26 00:11:11 UTC 2025
+Hostname: Vieira-Neto-dojo
+Memory limits: cudd=30g, java(heap)=1g
+Command line: prism output/goalModel_TAS_3.prism examples/deliveryDrone/props/goalModel_TAS_3.props -cuddmaxmem 30g
+
+Parsing model file "output/goalModel_TAS_3.prism"...
+
+Type:        DTMC
+Modules:     G0 G1 G2 G3 G4 G5 G6 G7 G8 G9 G10 G11 G12 G13 G14 G15 G16 G17 G18 G19 G20 G21 ChangeManager System
+Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G4_failed G2_pursued G3_pursued G3_achieved G4_pursued G5_pursued G5_achieved G6_pursued G6_achieved G7_pursued G7_achieved G8_pursued G9_pursued G9_achieved G10_pursued G10_achieved G11_pursued G11_achieved G11_chosen G12_pursued G12_achieved G13_pursued G13_achieved G14_pursued G14_achieved T5_failed G15_pursued G15_achieved G16_pursued G16_achieved G17_pursued G17_achieved G18_pursued G19_pursued G19_achieved G19_chosen G20_pursued G20_achieved G21_pursued G21_achieved T1_pursued T1_achieved T10_pursued T10_achieved T11_pursued T11_achieved T2_pursued T2_achieved T3_pursued T3_achieved T4_pursued T4_achieved T5_pursued T5_achieved T6_pursued T6_achieved T7_pursued T7_achieved T8_pursued T8_achieved T9_pursued T9_achieved pharmacyAvailable atHome inSideEffectWindow medicationApplied inEmergency highPrecision patientTracking privacyEnabled enoughBattery highReliability sensorAvailable networkAvailable R0 R1 R2 R3 R4 R5
+
+Parsing properties file "examples/deliveryDrone/props/goalModel_TAS_3.props"...
+
+55 properties:
+(1) P=? [ F (G0_achieved=1) ]
+(2) P=? [ true U (G0_achieved=1) ]
+(3) P=? [ F (G1_achieved=1) ]
+(4) P=? [ F (G2_achieved_maintain=true) ]
+(5) P=? [ F (G3_achieved=1) ]
+(6) P=? [ F (G5_achieved=1) ]
+(7) P=? [ F (G6_achieved=1) ]
+(8) P=? [ F (G8_achieved_maintain=true) ]
+(9) P=? [ F (G9_achieved=1) ]
+(10) P=? [ F (G12_achieved=1) ]
+(11) P=? [ F (G13_achieved=1) ]
+(12) P=? [ F (G18_achieved_maintain=true) ]
+(13) P=? [ F (G19_achieved=1) ]
+(14) P=? [ F (G20_achieved=1) ]
+(15) P=? [ F (G21_achieved=1) ]
+(16) P>0 [ F (inEmergency=true) ]
+(17) P>0 [ F (G2_pursued=1) ]
+(18) P>0 [ F (inSideEffectWindow=true) ]
+(19) P>0 [ F (G18_pursued=1) ]
+(20) P>0 [ F (G9_achieved=1&G19_achieved=1) ]
+(21) P>0 [ F (T11_pursued=1&T11_achieved=1) ]
+(22) P=? [ F (inEmergency=true&G19_achieved=0&G21_achieved=0) ]
+(23) P=? [ F (inEmergency=true&networkAvailable=false&T10_pursued=0&T11_pursued=0) ]
+(24) P=? [ F (medicationApplied=true&inSideEffectWindow=false&G18_pursued=0) ]
+(25) P>=1 [ G (G0_achieved=1=>(G1_achieved=1&G2_achieved_maintain=true)) ]
+(26) P>=1 [ G (G0_pursued=1=>!((G0_achieved=1)&(G1_pursued=0&G2_pursued=0))) ]
+(27) P>=1 [ G (G2_pursued=1=>!(G5_pursued=1&G6_pursued=1)) ]
+(28) P>=1 [ G (G5_pursued=1=>privacyEnabled=true) ]
+(29) P>=1 [ G (G6_pursued=1=>privacyEnabled=false) ]
+(30) P>=1 [ G ((G11_pursued=1|G11_achieved=1)=>G10_achieved=1) ]
+(31) P>=1 [ G (G9_achieved=1=>(G13_achieved=1&G12_achieved=1)) ]
+(32) P>=1 [ G !((G14_pursued=1&G15_pursued=1)) ]
+(33) P>=1 [ G (G14_pursued=1=>G11_chosen=1) ]
+(34) P>=1 [ G (G15_pursued=1=>G11_chosen=2) ]
+(35) P>=1 [ G ((G11_pursued=1&G11_achieved=0&G11_chosen=1)=>(G15_pursued=0)) ]
+(36) P>=1 [ G ((G11_pursued=1&G11_achieved=0&G11_chosen=2)=>(G14_pursued=0)) ]
+(37) P>=1 [ G !((G20_pursued=1&G21_pursued=1)) ]
+(38) P>=1 [ G (G20_pursued=1=>G19_chosen=1) ]
+(39) P>=1 [ G (G21_pursued=1=>G19_chosen=2) ]
+(40) P>=1 [ G ((G19_pursued=1&G19_achieved=0&G19_chosen=1)=>(G21_pursued=0)) ]
+(41) P>=1 [ G ((G19_pursued=1&G19_achieved=0&G19_chosen=2)=>(G20_pursued=0)) ]
+(42) P>=1 [ G (G7_achieved=1=>T1_achieved=1) ]
+(43) P>=1 [ G (G5_achieved=1=>T2_achieved=1) ]
+(44) P>=1 [ G (G6_achieved=1=>T3_achieved=1) ]
+(45) P>=1 [ G (G10_achieved=1=>T4_achieved=1) ]
+(46) P>=1 [ G (G14_achieved=1=>T5_achieved=1) ]
+(47) P>=1 [ G (G15_achieved=1=>T6_achieved=1) ]
+(48) P>=1 [ G (G16_achieved=1=>T7_achieved=1) ]
+(49) P>=1 [ G (G17_achieved=1=>T8_achieved=1) ]
+(50) P>=1 [ G (G20_achieved=1=>T10_achieved=1) ]
+(51) P>=1 [ G (G21_achieved=1=>T11_achieved=1) ]
+(52) P>=1 [ G !(T5_pursued=1&T6_pursued=1) ]
+(53) P>0 [ F (G1_pursued=1&G4_pursued=1&G4_failed<2) ]
+(54) P>=1 [ G ((G3_pursued=1&G1_pursued=1&G1_achieved=0)=>G4_failed>=2) ]
+(55) P>0 [ F (G1_pursued=1&G4_failed>=2&G3_pursued=1) ]
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F (G0_achieved=1) ]
+
+Building model...
+
+Warning: Guard for command 2 of module "G6" is never satisfied.
+
+Warning: Guard for command 2 of module "G20" is never satisfied.

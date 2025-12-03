@@ -11,6 +11,7 @@ LOGS_DIR="logs/examples/deliveryDrone"
 # Array of model files (without extension)
 models=(
     "labSamplesWithSideEffect"
+    "goalModel_TAS_3"
     "1-minimal"
     "2-OrVariation"
     "3-interleavedPaltPseq"
@@ -52,44 +53,37 @@ for model in "${models[@]}"; do
     # Create a temporary file to capture time output
     temp_time_file=$(mktemp)
     
-    # Generate model and capture memory usage
-    # Measure only the Node.js/ts-node process, not the entire make command tree
+    # Generate model and capture memory usage for entire node process tree
     if command -v /usr/bin/time &> /dev/null; then
-        # Check if we're on macOS (uses -l) or Linux (uses -f)
+        temp_stderr=$(mktemp)
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS: Measure just the ts-node process directly (not the make wrapper)
-            temp_stderr=$(mktemp)
+            # macOS: -l measures entire process tree
             /usr/bin/time -l npx ts-node src/index.ts "$input_file" > /dev/null 2> "$temp_stderr"
             make_exit_code=$?
-            # Extract maximum resident set size from macOS time output
             max_rss=$(grep 'maximum resident set size' "$temp_stderr" | awk '{print $1}')
-            rm -f "$temp_stderr"
             if [ -n "$max_rss" ] && [ "$max_rss" -gt 0 ]; then
-                # Convert bytes to MB for readability
                 max_rss_mb=$((max_rss / 1024 / 1024))
-                max_rss_kb=$((max_rss / 1024))
-                echo "Memory usage: ${max_rss_mb} MB (${max_rss_kb} KB, ${max_rss} bytes)" > "$temp_time_file"
+                echo "Memory usage: ${max_rss_mb} MB" > "$temp_time_file"
             else
                 echo "Memory usage: Unable to determine" > "$temp_time_file"
             fi
         else
-            # Linux: Measure just the ts-node process directly
-            /usr/bin/time -o "$temp_time_file" -f "Memory usage: %M KB" npx ts-node src/index.ts "$input_file" > /dev/null 2>&1
+            # Linux: measures entire process tree
+            /usr/bin/time -o "$temp_stderr" -f "%M" npx ts-node src/index.ts "$input_file" > /dev/null 2>&1
             make_exit_code=$?
-            # Convert KB to MB if needed
-            if [ -f "$temp_time_file" ]; then
-                mem_kb=$(grep -o '[0-9]*' "$temp_time_file" | head -1)
-                if [ -n "$mem_kb" ] && [ "$mem_kb" -gt 0 ]; then
-                    mem_mb=$((mem_kb / 1024))
-                    echo "Memory usage: ${mem_mb} MB (${mem_kb} KB)" > "$temp_time_file"
-                fi
+            mem_kb=$(grep -o '^[0-9]*' "$temp_stderr" | head -1)
+            if [ -n "$mem_kb" ] && [ "$mem_kb" -gt 0 ]; then
+                mem_mb=$((mem_kb / 1024))
+                echo "Memory usage: ${mem_mb} MB" > "$temp_time_file"
+            else
+                echo "Memory usage: Unable to determine" > "$temp_time_file"
             fi
         fi
+        rm -f "$temp_stderr"
     else
-        # Fallback: run make and note that memory measurement is not available
-        make generate-file FILE="$input_file"
+        npx ts-node src/index.ts "$input_file" > /dev/null 2>&1
         make_exit_code=$?
-        echo "Memory usage: Not available (time command does not provide memory statistics)" > "$temp_time_file"
+        echo "Memory usage: Not available" > "$temp_time_file"
     fi
     
     # Check exit status

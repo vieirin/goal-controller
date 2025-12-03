@@ -12,11 +12,13 @@ fi
 
 LOGS_DIR="logs"
 RESULTS_DIR="examples/deliveryDrone/props/results"
+OUTPUT_DIR="output"
 CSV_OUTPUT="metrics.csv"
 
 # Array of model files (without extension)
 models=(
     "labSamplesWithSideEffect"
+    "goalModel_TAS_3"
     "1-minimal"
     "2-OrVariation"
     "3-interleavedPaltPseq"
@@ -35,6 +37,8 @@ find_log_file() {
     # Try different possible locations
     if [ -f "$LOGS_DIR/examples/deliveryDrone/${model}.txt.log" ]; then
         echo "$LOGS_DIR/examples/deliveryDrone/${model}.txt.log"
+    elif [ -f "$LOGS_DIR/examples/${model}.txt.log" ]; then
+        echo "$LOGS_DIR/examples/${model}.txt.log"
     elif [ -f "$LOGS_DIR/examples/labSamplesWithSideEffect.txt.log" ] && [ "$model" == "labSamplesWithSideEffect" ]; then
         echo "$LOGS_DIR/examples/labSamplesWithSideEffect.txt.log"
     elif [ -f "$LOGS_DIR/${model}.txt.log" ]; then
@@ -87,6 +91,18 @@ extract_log_metrics() {
     echo "$elapsed_time_ms,$total_goals,$total_tasks,$total_resources,$total_nodes,$total_variables,$memory_usage_mb"
 }
 
+# Function to count lines in .prism file
+count_prism_lines() {
+    local model="$1"
+    local prism_file="$OUTPUT_DIR/${model}.prism"
+    
+    if [ -f "$prism_file" ]; then
+        wc -l < "$prism_file" | tr -d '[:space:]'
+    else
+        echo "0"
+    fi
+}
+
 # Function to extract metrics from Storm result file
 extract_storm_metrics() {
     local result_file="$1"
@@ -126,7 +142,7 @@ extract_storm_metrics() {
 }
 
 # Create CSV header
-echo "model_name,elapsed_time_ms,total_goals,total_tasks,total_resources,total_nodes,total_variables,memory_usage_mb,model_type,num_states,num_transitions,parsing_time,construction_time,total_checking_time,peak_memory_mb,cpu_time,wallclock_time" > "$CSV_OUTPUT"
+echo "model_name,elapsed_time_ms,total_goals,total_tasks,total_resources,total_nodes,total_variables,memory_usage_mb,prism_lines,model_type,num_states,num_transitions,parsing_time,construction_time,total_checking_time,peak_memory_mb,cpu_time,wallclock_time" > "$CSV_OUTPUT"
 
 # Iterate over each model
 for model in "${models[@]}"; do
@@ -157,8 +173,11 @@ for model in "${models[@]}"; do
         storm_metrics=$(extract_storm_metrics "$result_file")
     fi
     
+    # Count lines in .prism file
+    prism_lines=$(count_prism_lines "$model")
+    
     # Combine metrics
-    echo "$model,$log_metrics,$storm_metrics" >> "$CSV_OUTPUT"
+    echo "$model,$log_metrics,$prism_lines,$storm_metrics" >> "$CSV_OUTPUT"
     
     echo "  ✓ Extracted metrics for $model"
 done

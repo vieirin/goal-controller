@@ -1041,7 +1041,7 @@
 	[VARIABLE DEFINITION] analysisEnded; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/labSamplesWithSideEffect.txt
-[ELAPSED TIME] 13ms
+[ELAPSED TIME] 10ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 14
 [TOTAL TASKS] 9
@@ -1078,7 +1078,7 @@
 
 ==========================================
 MEMORY USAGE
-Generated at: Tue Nov 25 15:18:47 UTC 2025
+Generated at: Tue Nov 25 20:31:08 UTC 2025
 ----------------------------------------
-Memory usage: 363 MB (372656 KB, 381599744 bytes)
+Memory usage: 370 MB
 ==========================================

@@ -1529,8 +1529,8 @@
 	[VARIABLE DEFINITION] sensorAvailable; initial value: true; type: boolean
 	[VARIABLE DEFINITION] networkAvailable; initial value: true; type: boolean
 ----------------------------------------
-[LOGGER SUMMARY] examples/goalModel_TAS_3.txt
-[ELAPSED TIME] 17ms
+[LOGGER SUMMARY] examples/deliveryDrone/goalModel_TAS_3.txt
+[ELAPSED TIME] 12ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 22
 [TOTAL TASKS] 11
@@ -1564,3 +1564,10 @@
 [SYSTEM RESOURCES] 6
 [SYSTEM CONTEXT VARIABLES] 12
 ----------------------------------------
+
+==========================================
+MEMORY USAGE
+Generated at: Tue Nov 25 20:31:10 UTC 2025
+----------------------------------------
+Memory usage: 373 MB
+==========================================

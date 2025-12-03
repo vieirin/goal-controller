@@ -7,7 +7,7 @@ import { allByType, allGoalsMap } from '../../src/GoalTree/utils';
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
   const model = loadPistarModel({
-    filename: 'examples/goalModel_TAS_3.txt',
+    filename: 'examples/goalModel_TAS_3_.txt',
   });
 
   const tree = convertToTree({ model });

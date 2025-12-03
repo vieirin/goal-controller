@@ -9,7 +9,7 @@ describe('Goal Dependency Statement', () => {
   it('should output G4_achieved_maintain = true for G2 dependency', () => {
     // Load the model
     const model = loadPistarModel({
-      filename: 'examples/goalModel_TAS_3.txt',
+      filename: 'examples/goalModel_TAS_3_.txt',
     });
 
     // Convert to tree
