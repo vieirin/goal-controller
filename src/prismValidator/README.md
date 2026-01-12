@@ -79,21 +79,21 @@ import { edgeDTMCTemplate } from '../templateEngine/engine';
 
 // Load and convert model
 const model = loadPistarModel({
-  filename: 'examples/deliveryDrone/1-minimal.txt',
+  filename: 'examples/experiments/1-minimal.txt',
 });
 const tree = convertToTree({ model });
 
 // Generate PRISM model
 const prismModel = edgeDTMCTemplate({
   gm: tree,
-  fileName: 'examples/deliveryDrone/1-minimal.txt',
+  fileName: 'examples/experiments/1-minimal.txt',
 });
 
 // Validate
 const report = validate(
   tree,
   prismModel,
-  'examples/deliveryDrone/1-minimal.txt',
+  'examples/experiments/1-minimal.txt',
 );
 
 // Check results
@@ -119,11 +119,11 @@ console.log(formatValidationReport(report));
 The validator automatically writes JSON reports to `logs/<modelFileName>.validation.json` when a `modelFileName` is provided:
 
 ```typescript
-// JSON report is automatically written to logs/examples/deliveryDrone/1-minimal.txt.validation.json
+// JSON report is automatically written to logs/examples/experiments/1-minimal.txt.validation.json
 const report = validate(
   tree,
   prismModel,
-  'examples/deliveryDrone/1-minimal.txt',
+  'examples/experiments/1-minimal.txt',
 );
 ```
 

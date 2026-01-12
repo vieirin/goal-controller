@@ -5,7 +5,7 @@ Version: 4.8.1
 Date: Sat Nov 22 00:56:25 UTC 2025
 Hostname: Vieira-Neto-dojo
 Memory limits: cudd=30g, java(heap)=1g
-Command line: prism output/1-minimal.prism examples/deliveryDrone/props/1-minimal.props -cuddmaxmem 30g
+Command line: prism output/1-minimal.prism examples/experiments/props/1-minimal.props -cuddmaxmem 30g
 
 Parsing model file "output/1-minimal.prism"...
 
@@ -13,7 +13,7 @@ Type:        DTMC
 Modules:     G0 G1 G2 ChangeManager System
 Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G2_pursued G2_achieved T1_pursued T1_achieved T2_pursued T2_achieved T3_pursued T3_achieved
 
-Parsing properties file "examples/deliveryDrone/props/1-minimal.props"...
+Parsing properties file "examples/experiments/props/1-minimal.props"...
 
 14 properties:
 (1) P=? [ F G0_achieved=1 ]

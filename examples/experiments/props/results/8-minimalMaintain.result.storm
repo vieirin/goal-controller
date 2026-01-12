@@ -1,7 +1,7 @@
 Storm 1.11.1
 
 Date: Sun Nov 23 01:17:04 2025
-Command line arguments: --prism output/8-minimalMaintain.prism --buildfull --prop examples/deliveryDrone/props/8-minimalMaintain.props --timemem
+Command line arguments: --prism output/8-minimalMaintain.prism --buildfull --prop examples/experiments/props/8-minimalMaintain.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.005s.

@@ -4,3 +4,4 @@ grammar/.antlr
 *.tokens
 out/*
 venv/*
+logs/*

@@ -5,7 +5,7 @@ Version: 4.8.1
 Date: Wed Nov 26 00:11:11 UTC 2025
 Hostname: Vieira-Neto-dojo
 Memory limits: cudd=30g, java(heap)=1g
-Command line: prism output/goalModel_TAS_3.prism examples/deliveryDrone/props/goalModel_TAS_3.props -cuddmaxmem 30g
+Command line: prism output/goalModel_TAS_3.prism examples/experiments/props/goalModel_TAS_3.props -cuddmaxmem 30g
 
 Parsing model file "output/goalModel_TAS_3.prism"...
 
@@ -13,7 +13,7 @@ Type:        DTMC
 Modules:     G0 G1 G2 G3 G4 G5 G6 G7 G8 G9 G10 G11 G12 G13 G14 G15 G16 G17 G18 G19 G20 G21 ChangeManager System
 Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G4_failed G2_pursued G3_pursued G3_achieved G4_pursued G5_pursued G5_achieved G6_pursued G6_achieved G7_pursued G7_achieved G8_pursued G9_pursued G9_achieved G10_pursued G10_achieved G11_pursued G11_achieved G11_chosen G12_pursued G12_achieved G13_pursued G13_achieved G14_pursued G14_achieved T5_failed G15_pursued G15_achieved G16_pursued G16_achieved G17_pursued G17_achieved G18_pursued G19_pursued G19_achieved G19_chosen G20_pursued G20_achieved G21_pursued G21_achieved T1_pursued T1_achieved T10_pursued T10_achieved T11_pursued T11_achieved T2_pursued T2_achieved T3_pursued T3_achieved T4_pursued T4_achieved T5_pursued T5_achieved T6_pursued T6_achieved T7_pursued T7_achieved T8_pursued T8_achieved T9_pursued T9_achieved pharmacyAvailable atHome inSideEffectWindow medicationApplied inEmergency highPrecision patientTracking privacyEnabled enoughBattery highReliability sensorAvailable networkAvailable R0 R1 R2 R3 R4 R5
 
-Parsing properties file "examples/deliveryDrone/props/goalModel_TAS_3.props"...
+Parsing properties file "examples/experiments/props/goalModel_TAS_3.props"...
 
 55 properties:
 (1) P=? [ F (G0_achieved=1) ]

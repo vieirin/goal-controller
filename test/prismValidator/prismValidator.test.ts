@@ -6,7 +6,7 @@ import { initLogger } from '../../src/logger/logger';
 import { formatValidationReport, validate } from '../../src/prismValidator';
 import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';
 
-const deliveryDroneExamples = [
+const experimentExamples = [
   '1-minimal',
   '2-OrVariation',
   '3-interleavedPaltPseq',
@@ -19,11 +19,11 @@ const deliveryDroneExamples = [
   '10-minimalMaintainResource',
 ];
 
-describe('PRISM Validator - Delivery Drone Examples', () => {
-  deliveryDroneExamples.forEach((exampleName) => {
+describe('PRISM Validator - Experiment Examples', () => {
+  experimentExamples.forEach((exampleName) => {
     describe(exampleName, () => {
       it('should validate generated PRISM model matches expected elements', () => {
-        const inputFile = `examples/deliveryDrone/${exampleName}.txt`;
+        const inputFile = `examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });
@@ -137,7 +137,7 @@ describe('PRISM Validator - Delivery Drone Examples', () => {
       });
 
       it('should have emitted at least as many elements as expected', () => {
-        const inputFile = `examples/deliveryDrone/${exampleName}.txt`;
+        const inputFile = `examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });
@@ -167,7 +167,7 @@ describe('PRISM Validator - Delivery Drone Examples', () => {
       });
 
       it('should have exactly one achievability formula per goal, plus one maintain formula for maintain goals', () => {
-        const inputFile = `examples/deliveryDrone/${exampleName}.txt`;
+        const inputFile = `examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });

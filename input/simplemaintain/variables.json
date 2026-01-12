@@ -1,4 +1,6 @@
 {
-  "highPrecision": true,
-  "patientTracking": false
+  "condToMaintain": true,
+  "contextCondition": true,
+  "T1_achievable": 1,
+  "T2_achievable": 1
 }

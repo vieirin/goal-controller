@@ -5,7 +5,7 @@ Version: 4.8.1
 Date: Sat Nov 22 00:56:56 UTC 2025
 Hostname: Vieira-Neto-dojo
 Memory limits: cudd=30g, java(heap)=1g
-Command line: prism output/7-minimalAll.prism examples/deliveryDrone/props/7-minimalAll.props -cuddmaxmem 30g
+Command line: prism output/7-minimalAll.prism examples/experiments/props/7-minimalAll.props -cuddmaxmem 30g
 
 Parsing model file "output/7-minimalAll.prism"...
 
@@ -13,7 +13,7 @@ Type:        DTMC
 Modules:     G0 G1 G2 G3 G4 G5 G9 G10 G11 G12 G13 G14 G15 ChangeManager System
 Variables:   G0_pursued G0_achieved G1_pursued G1_achieved G2_pursued G2_achieved G3_pursued G3_achieved G3_chosen G4_pursued G4_achieved G12_failed G5_pursued G5_achieved G9_pursued G9_achieved G10_pursued G10_achieved G11_pursued G11_achieved G12_pursued G12_achieved G13_pursued G13_achieved G14_pursued G14_achieved G15_pursued G15_achieved T1_pursued T1_achieved T10_pursued T10_achieved T11_pursued T11_achieved T12_pursued T12_achieved T2_pursued T2_achieved T3_pursued T3_achieved T5_pursued T5_achieved T6_pursued T6_achieved T7_pursued T7_achieved T8_pursued T8_achieved T9_pursued T9_achieved
 
-Parsing properties file "examples/deliveryDrone/props/7-minimalAll.props"...
+Parsing properties file "examples/experiments/props/7-minimalAll.props"...
 
 28 properties:
 (1) P>=1 [ F (G0_achieved=1) ]

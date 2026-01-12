@@ -1,7 +1,7 @@
 Storm 1.11.1
 
 Date: Sun Nov 23 01:16:55 2025
-Command line arguments: --prism output/6-allnotationsReduced.prism --buildfull --prop examples/deliveryDrone/props/6-allnotationsReduced.props --timemem
+Command line arguments: --prism output/6-allnotationsReduced.prism --buildfull --prop examples/experiments/props/6-allnotationsReduced.props --timemem
 Current working directory: /workspace
 
 Time for model input parsing: 0.005s.

@@ -380,7 +380,7 @@
 		[TRACE] G12: or goal detected
 		[TRACE] G12: degradation execution detail detected
 		[EXECUTION DETAIL: DEGRADATION] G12 priority #1 : G12 -> G13
-		PRISM statement: [pursue_G12] G4_pursued=1 & G4_achieved=0 -> true
+		PRISM statement: [pursue_G12] G4_pursued=1 & G4_achieved=0 & G12_failed <= 1 -> true
 	[END OF STEP 2]
 	[PURSUE GENERATION] G13 - STEP 2
 		[TRACE] G13: or goal detected
@@ -395,7 +395,7 @@
 	[END OF STEP 3]
 		[TRACE] G12: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G12 has no activation context
-		PRISM statement: [pursue_G12] G4_pursued=1 & G4_achieved=0 -> true
+		PRISM statement: [pursue_G12] G4_pursued=1 & G4_achieved=0 & G12_failed <= 1 -> true
 	[END OF STEP 3]
 		[TRACE] G13: no activation context guard detected
 		[EXECUTION DETAIL: CONTEXT] Guard statement: G13 has no activation context
@@ -945,18 +945,18 @@
 		PRISM statement: [skip_G15] G15_pursued=1 & T12_pursued=0 -> (G15_pursued'=0);
 	[END OF SKIP]
 [CHANGE MANAGER MODULE START]
-	[TASK ACHIEVABILITY CONSTANT] T1: T1_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T10: T10_achievable = 0.7
-	[TASK ACHIEVABILITY CONSTANT] T11: T11_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T12: T12_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T2: T2_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T3: T3_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T4: T4_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T5: T5_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T6: T6_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T7: T7_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T8: T8_achievable = 0.8
-	[TASK ACHIEVABILITY CONSTANT] T9: T9_achievable = 0.8
+	[TASK ACHIEVABILITY CONSTANT] T1: T1_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T10: T10_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T11: T11_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T12: T12_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T2: T2_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T3: T3_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T4: T4_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T5: T5_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T6: T6_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T7: T7_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T8: T8_achievable = 1
+	[TASK ACHIEVABILITY CONSTANT] T9: T9_achievable = 1
 [INIT TASK] T1: Load mission plan
 	Resources: none
 	[VARIABLE DEFINITION] T1_pursued; initial value: 0; upper bound: 1; type: int
@@ -1187,13 +1187,13 @@
 	[END OF ACHIEVE]
 [INIT SYSTEM MODULE]
 	[VARIABLE DEFINITION] R0; initial value: 5; upper bound: 5; type: int
-	[VARIABLE DEFINITION] hasMoreDelivery; initial value: false; type: boolean
-	[VARIABLE DEFINITION] missionReady; initial value: false; type: boolean
-	[VARIABLE DEFINITION] commLink; initial value: false; type: boolean
-	[VARIABLE DEFINITION] inFlight; initial value: false; type: boolean
+	[VARIABLE DEFINITION] hasMoreDelivery; initial value: true; type: boolean
+	[VARIABLE DEFINITION] missionReady; initial value: true; type: boolean
+	[VARIABLE DEFINITION] commLink; initial value: true; type: boolean
+	[VARIABLE DEFINITION] inFlight; initial value: true; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] examples/deliveryDrone/10-minimalMaintainResource.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 37ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 15
 [TOTAL TASKS] 12

@@ -98,7 +98,7 @@ module G4
   G12_failed : [0..5] init 0;
 
   [pursue_G4] G4_pursued=0 & G4_achieved=0 -> (G4_pursued'=1);
-  [pursue_G12] G4_pursued=1 & G4_achieved=0 -> (G12_failed'=min(5, G12_failed+1));
+  [pursue_G12] G4_pursued=1 & G4_achieved=0 & G12_failed <= 1 -> (G12_failed'=min(5, G12_failed+1));
   [pursue_G13] G4_pursued=1 & G4_achieved=0 & G12_failed >= 2 -> true;
 
   [achieved_G4] G4_pursued=1 & (G12_achieved=1 | G13_achieved=1) -> (G4_pursued'=0) & (G4_achieved'=1);

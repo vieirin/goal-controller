@@ -11,3 +11,14 @@ services:
     tty: true
     command: tail -f /dev/null
 
+  experiment:
+    build:
+      context: .
+      dockerfile: Dockerfile.experiment
+    container_name: experiment-container
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null

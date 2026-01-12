@@ -3,9 +3,9 @@ import path from 'path';
 
 /**
  * Calculates the log file path for a given model file name
- * @param modelFileName The model file name (e.g., "examples/deliveryDrone/1-minimal.txt")
+ * @param modelFileName The model file name (e.g., "examples/experiments/1-minimal.txt")
  * @param extension The file extension (default: ".log")
- * @returns The full path to the log file (e.g., "logs/examples/deliveryDrone/1-minimal.txt.log")
+ * @returns The full path to the log file (e.g., "logs/examples/experiments/1-minimal.txt.log")
  */
 export const getLogFilePath = (
   modelFileName: string,

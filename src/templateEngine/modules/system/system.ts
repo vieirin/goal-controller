@@ -10,11 +10,11 @@ import { systemModuleTemplate } from './template';
 
 /**
  * Extracts transition lines from the System module in an existing PRISM file
- * @param fileName The input file name (e.g., "examples/deliveryDrone/1-minimal.txt")
+ * @param fileName The input file name (e.g., "examples/experiments/1-minimal.txt")
  * @returns Array of transition lines from the System module, or empty array if file doesn't exist or has no transitions
  */
 const extractOldSystemTransitions = (fileName: string): string[] => {
-  // Extract base name from fileName (e.g., "examples/deliveryDrone/1-minimal.txt" -> "1-minimal")
+  // Extract base name from fileName (e.g., "examples/experiments/1-minimal.txt" -> "1-minimal")
   const parsedPath = path.parse(fileName);
   const baseName = parsedPath.name;
   const oldPrismFilePath = `output/${baseName}.prism`;

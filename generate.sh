@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Script to generate PRISM model files for all delivery drone models
+# Script to generate PRISM model files for all experiment models
 # Usage: ./generate.sh
 
 OUTPUT_DIR="output"
-INPUT_DIR="examples/deliveryDrone"
+INPUT_DIR="examples/experiments"
 INPUT_DIR_ALT="examples"
-LOGS_DIR="logs/examples/deliveryDrone"
+LOGS_DIR="logs/examples/experiments"
 
 # Array of model files (without extension)
 models=(

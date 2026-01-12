@@ -38,3 +38,7 @@ export const hasBeenAchievedAndPursued = (
 export const hasFailedAtLeastNTimes = (goalId: string, n: number): string => {
   return `${goalId}_failed >= ${n}`;
 };
+
+export const hasFailedAtMostNTimes = (goalId: string, n: number): string => {
+  return `${goalId}_failed <= ${n}`;
+};

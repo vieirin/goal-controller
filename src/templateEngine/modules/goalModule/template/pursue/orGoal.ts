@@ -3,7 +3,7 @@ import { childrenIncludingTasks } from '../../../../../GoalTree/utils';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
-import { hasFailedAtLeastNTimes } from './common';
+import { hasFailedAtLeastNTimes, hasFailedAtMostNTimes } from './common';
 
 /*
 G1: Goal[T1|T2]
@@ -66,6 +66,11 @@ export const pursueDegradationGoal = (
       (goalId) => goalId !== currentChildId,
     );
     degradationLogger.init(currentChildId, degradationList);
+    const maybeRetry = goal.executionDetail?.retryMap?.[currentChildId];
+    if (maybeRetry) {
+      return hasFailedAtMostNTimes(currentChildId, maybeRetry - 1);
+    }
+
     const result = otherGoals
       .map((goalId) => {
         // For degradation, we only need to check retry conditions (failures of earlier goals)

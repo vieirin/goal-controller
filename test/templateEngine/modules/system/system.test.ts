@@ -7,7 +7,7 @@ const { extractOldSystemTransitions } = __test_only_exports__;
 describe('extractOldSystemTransitions', () => {
   describe('8-minimalMaintain', () => {
     it('should extract all transitions from System module', () => {
-      const fileName = 'examples/deliveryDrone/8-minimalMaintain.txt';
+      const fileName = 'examples/experiments/8-minimalMaintain.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       // Should have 4 transitions
@@ -45,7 +45,7 @@ describe('extractOldSystemTransitions', () => {
 
   describe('9-minimalMaintainContext', () => {
     it('should extract all transitions from System module', () => {
-      const fileName = 'examples/deliveryDrone/9-minimalMaintainContext.txt';
+      const fileName = 'examples/experiments/9-minimalMaintainContext.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       // Should have 7 transitions
@@ -91,7 +91,7 @@ describe('extractOldSystemTransitions', () => {
 
   describe('10-minimalMaintainResource', () => {
     it('should extract all transitions from System module', () => {
-      const fileName = 'examples/deliveryDrone/10-minimalMaintainResource.txt';
+      const fileName = 'examples/experiments/10-minimalMaintainResource.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       // Should have 7 transitions
@@ -137,7 +137,7 @@ describe('extractOldSystemTransitions', () => {
 
   describe('edge cases', () => {
     it('should return empty array for non-existent file', () => {
-      const fileName = 'examples/deliveryDrone/non-existent-file.txt';
+      const fileName = 'examples/experiments/non-existent-file.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       assert.strictEqual(
@@ -148,7 +148,7 @@ describe('extractOldSystemTransitions', () => {
     });
 
     it('should preserve original line formatting', () => {
-      const fileName = 'examples/deliveryDrone/8-minimalMaintain.txt';
+      const fileName = 'examples/experiments/8-minimalMaintain.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       // All transitions should preserve their original formatting
@@ -165,7 +165,7 @@ describe('extractOldSystemTransitions', () => {
     });
 
     it('should only extract transitions from System module', () => {
-      const fileName = 'examples/deliveryDrone/8-minimalMaintain.txt';
+      const fileName = 'examples/experiments/8-minimalMaintain.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       // Verify no transitions from other modules are included

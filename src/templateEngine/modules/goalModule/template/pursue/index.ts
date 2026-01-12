@@ -325,6 +325,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       // if child has a max retries, update the failed counter variable
       // if itself, skip the update failed counter statement
 
+      // TODO: only update if child is part of a degradation goal
       const updateFailedCounterStatement = child.properties.maxRetries
         ? `(${failed(child.id)}'=min(${child.properties.maxRetries}, ${failed(
             child.id,

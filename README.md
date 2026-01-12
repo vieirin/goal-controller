@@ -97,3 +97,196 @@ make cli-clean  # Interactive CLI with --clean flag
 This is useful when you want to start with a clean System module or when the old transitions are no longer relevant.
 
 This process outputs a file in `output/<file>.prism` this is the MDP input for the PRISM model checker. To generate the controller and states files please refer to the [EDGE specification](https://github.com/Genaina/Formalise23/tree/main?tab=readme-ov-file#instructions-to-synthesize-the-edge-goal-controller)
+
+## Running Experiments
+
+This section describes how to run experiments to collect metrics and analyze the performance of goal model translations.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- The experiment Docker container (built automatically on first run)
+
+### Step-by-Step Guide
+
+#### 1. Add the Goal Model
+
+Add your goal model file (`.txt` format) to the `examples/experiments/` directory:
+
+```bash
+cp your-goal-model.txt examples/experiments/your-goal-model.txt
+```
+
+The goal model should be in the PiStar format, as exported from the [PiStar tool](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
+
+#### 2. Add PCTL Properties
+
+Create a properties file (`.props` format) with PCTL formulas to verify against your model. Place it in `examples/experiments/props/`:
+
+```bash
+# Create the props directory if it doesn't exist
+mkdir -p examples/experiments/props
+
+# Add your properties file
+# The filename should match your goal model name (e.g., if your model is "myModel.txt",
+# create "myModel.props")
+cp your-properties.props examples/experiments/props/your-goal-model.props
+```
+
+**Example properties file format:**
+
+```prism
+// Example properties for goal model verification
+P=? [F "goal_achieved"]
+P>=0.9 [G "system_safe"]
+```
+
+#### 3. Launch the Experiment Container
+
+Start the Docker container with all necessary dependencies:
+
+```bash
+make experiment
+```
+
+This command will:
+
+- Build the experiment Docker image (if not already built)
+- Start the container in detached mode
+- Open an interactive bash session inside the container
+
+The container includes:
+
+- Node.js 22.6.0
+- Storm model checker
+- Python 3 with required packages
+- All project files mounted at `/workspace`
+
+#### 4. Run the Experiment
+
+Inside the Docker container, run the experiment pipeline:
+
+```bash
+make run-experiment
+```
+
+This command executes the following steps:
+
+1. **Generate PRISM models**: Converts all goal models in `examples/experiments/` to PRISM format
+2. **Check properties**: Validates all properties using Storm model checker
+3. **Extract metrics**: Collects performance and model statistics
+
+The results are saved to:
+
+- PRISM models: `output/*.prism`
+- Property check results: `examples/experiments/props/results/*.result.storm`
+- Metrics: `metrics.csv`
+
+#### 5. Collect the Data
+
+Exit the Docker container (type `exit` or press `Ctrl+D`) and collect the results:
+
+**Metrics CSV file:**
+The `metrics.csv` file contains comprehensive metrics for each model, including:
+
+- Translation time and memory usage
+- Model structure (goals, tasks, resources, nodes, variables)
+- PRISM model characteristics (states, transitions, lines)
+- Model checking performance (parsing time, construction time, checking time)
+- Memory and CPU usage
+
+**View the metrics:**
+
+```bash
+cat metrics.csv
+# or
+head -n 20 metrics.csv
+```
+
+#### 6. Plot the Results
+
+Use the provided Python script to visualize the collected metrics:
+
+**Display plots interactively:**
+
+```bash
+python3 plot_metrics.py
+```
+
+**Save plots as PNG files:**
+
+```bash
+python3 plot_metrics.py --save
+```
+
+**Save to a custom directory:**
+
+```bash
+python3 plot_metrics.py --save --output-dir result_plots
+```
+
+**View statistics:**
+
+```bash
+# Display min/max statistics for all metrics
+python3 plot_metrics.py --stats
+
+# Display relationship statistics for total_nodes
+python3 plot_metrics.py --relationships
+```
+
+**Customize the plots:**
+You can modify `plot_metrics.py` to:
+
+- Add new metrics to visualize
+- Change plot types (scatter, line, bar, etc.)
+- Adjust plot styling and labels
+- Add regression analysis or trend lines
+
+### Experiment Workflow Summary
+
+```bash
+# 1. Add your files
+cp my-model.txt examples/experiments/
+cp my-properties.props examples/experiments/props/my-model.props
+
+# 2. Launch container
+make experiment
+
+# 3. Inside container: run experiment
+make run-experiment
+
+# 4. Exit container
+exit
+
+# 5. View results
+cat metrics.csv
+
+# 6. Plot results
+python3 plot_metrics.py --save
+```
+
+### Troubleshooting
+
+**Container won't start:**
+
+- Ensure Docker is running: `docker ps`
+- Check if container already exists: `docker ps -a | grep experiment-container`
+- Remove old container: `docker rm experiment-container`
+
+**Experiment fails:**
+
+- Check that goal model files are valid PiStar format
+- Verify properties files are in correct PCTL syntax
+- Check container logs: `docker logs experiment-container`
+
+**Missing dependencies:**
+
+- The container should have all dependencies pre-installed
+- If issues occur, rebuild: `docker-compose -f docker-compose.storm.yml build experiment`
+
+### Additional Resources
+
+- [PRISM Model Checker Documentation](https://www.prismmodelchecker.org/manual/)
+- [Storm Model Checker Documentation](https://www.stormchecker.org/)
+- [PCTL Property Specification](https://www.prismmodelchecker.org/manual/PropertySpecification/PropertiesFiles)

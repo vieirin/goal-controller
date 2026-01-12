@@ -51,3 +51,14 @@ generate-file: grammarRT grammarAssertion
 storm:
 	docker-compose -f docker-compose.storm.yml up -d
 	docker exec -it storm-container bash 
+
+experiment:
+	docker-compose -f docker-compose.storm.yml build experiment
+	docker-compose -f docker-compose.storm.yml up -d experiment
+	docker exec -it experiment-container bash
+
+run-experiment:
+	@echo "Running experiment..."
+	@./generate.sh
+	@./check_properties.sh --storm
+	@./extract_metrics.sh

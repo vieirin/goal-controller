@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
-# Script to check PRISM/Storm properties for all delivery drone models
+# Script to check PRISM/Storm properties for all experiment models
 # Usage: ./check_properties.sh [--storm|-s]
 #   --storm, -s: Use Storm instead of PRISM
 
@@ -13,9 +13,9 @@ fi
 PRISM_BIN="$HOME/Downloads/prism-4.8.1-mac64-arm/bin/prism"
 STORM_BIN="storm"
 OUTPUT_DIR="output"
-PROPS_DIR="examples/deliveryDrone/props"
+PROPS_DIR="examples/experiments/props"
 PROPS_DIR_ALT="examples/props"
-RESULTS_DIR="examples/deliveryDrone/props/results"
+RESULTS_DIR="examples/experiments/props/results"
 
 # Detect number of CPU cores and calculate cores-2
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -48,16 +48,16 @@ mkdir -p "$RESULTS_DIR"
 # Array of model files (without extension)
 models=(
     "goalModel_TAS_3"
-    # "labSamplesWithSideEffect"
-    # "1-minimal"
-    # "2-OrVariation"
-    # "3-interleavedPaltPseq"
-    # "6-allnotationsReduced"
-    # "4-interleavedChoicePDegradation"
-    # "7-minimalAll"
-    # "8-minimalMaintain"
-    # "9-minimalMaintainContext"
-    # "10-minimalMaintainResource"
+    "labSamplesWithSideEffect"
+    "1-minimal"
+    "2-OrVariation"
+    "3-interleavedPaltPseq"
+    "6-allnotationsReduced"
+    "4-interleavedChoicePDegradation"
+    "7-minimalAll"
+    "8-minimalMaintain"
+    "9-minimalMaintainContext"
+    "10-minimalMaintainResource"
 )
 
 # Iterate over each model
