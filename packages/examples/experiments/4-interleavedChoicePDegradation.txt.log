@@ -965,7 +965,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/4-interleavedChoicePDegradation.txt
-[ELAPSED TIME] 0ms
+[ELAPSED TIME] 1ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 13
 [TOTAL TASKS] 9

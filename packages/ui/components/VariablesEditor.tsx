@@ -202,13 +202,8 @@ export default function VariablesEditor({
   };
 
   return (
-<<<<<<< Updated upstream
-    <div className='space-y-2'>
-      <div className='flex items-center justify-between'>
-=======
     <div className='space-y-2 h-full flex flex-col'>
       <div className='flex items-center justify-between flex-shrink-0'>
->>>>>>> Stashed changes
         <label className='text-sm font-medium text-gray-700'>
           Variables Configuration
         </label>
@@ -231,11 +226,7 @@ export default function VariablesEditor({
           </button>
         </div>
       </div>
-<<<<<<< Updated upstream
-      <div className='flex items-center gap-2 text-xs text-gray-500'>
-=======
       <div className='flex items-center gap-2 text-xs text-gray-500 flex-shrink-0'>
->>>>>>> Stashed changes
         {contextVariables.length > 0 && (
           <span>
             <span className='inline-block w-2 h-2 rounded-full bg-amber-500 mr-1'></span>
@@ -248,22 +239,14 @@ export default function VariablesEditor({
         </span>
       </div>
 
-<<<<<<< Updated upstream
-      <div className='relative'>
-=======
       <div className='relative flex-1 min-h-0 flex flex-col overflow-hidden'>
->>>>>>> Stashed changes
         {isEditing ? (
           <textarea
             ref={textareaRef}
             value={jsonText}
             onChange={handleTextChange}
             onBlur={handleBlur}
-<<<<<<< Updated upstream
-            className={`w-full h-64 p-4 font-mono text-sm bg-slate-900 text-slate-100 rounded-lg border-2 resize-none focus:outline-none ${
-=======
             className={`w-full flex-1 min-h-0 p-4 font-mono text-sm bg-slate-900 text-slate-100 rounded-lg border-2 resize-none focus:outline-none overflow-auto ${
->>>>>>> Stashed changes
               error
                 ? 'border-red-500'
                 : 'border-slate-700 focus:border-blue-500'
@@ -276,11 +259,7 @@ export default function VariablesEditor({
               setIsEditing(true);
               setTimeout(() => textareaRef.current?.focus(), 0);
             }}
-<<<<<<< Updated upstream
-            className='w-full h-64 p-4 font-mono text-sm bg-slate-900 rounded-lg border-2 border-slate-700 cursor-text overflow-auto hover:border-slate-600 transition-colors'
-=======
             className='w-full flex-1 min-h-0 p-4 font-mono text-sm bg-slate-900 rounded-lg border-2 border-slate-700 cursor-text overflow-auto hover:border-slate-600 transition-colors'
->>>>>>> Stashed changes
           >
             <pre className='text-slate-100 leading-relaxed'>
               {formatJsonWithColors(parsedJson)}
@@ -296,25 +275,17 @@ export default function VariablesEditor({
             onChange={handleTextChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
-<<<<<<< Updated upstream
-            className='absolute inset-0 opacity-0 cursor-text'
-=======
             className='absolute inset-0 opacity-0 cursor-text pointer-events-none'
->>>>>>> Stashed changes
             spellCheck={false}
           />
         )}
       </div>
 
-<<<<<<< Updated upstream
-      {error && <p className='text-red-500 text-sm mt-1'>{error}</p>}
-
-      <p className='text-xs text-gray-500'>
-=======
-      {error && <p className='text-red-500 text-sm mt-1 flex-shrink-0'>{error}</p>}
+      {error && (
+        <p className='text-red-500 text-sm mt-1 flex-shrink-0'>{error}</p>
+      )}
 
       <p className='text-xs text-gray-500 flex-shrink-0'>
->>>>>>> Stashed changes
         Click to edit. Context conditions use boolean values (true/false). Task
         achievability uses probability values (0.0 - 1.0).
       </p>
