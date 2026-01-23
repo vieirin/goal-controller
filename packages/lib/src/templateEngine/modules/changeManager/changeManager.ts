@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
+import { getVariablesFilePath } from '../../../utils/variablesPath';
 import { getTaskAchievabilityVariables } from '../../../GoalTree/treeVariables';
 import type { GoalTree } from '../../../GoalTree/types';
 import { allByType } from '../../../GoalTree/utils';
@@ -25,7 +25,9 @@ export const changeManagerModule = ({
   if (variables) {
     // Filter to only include number values (task achievability variables)
     const numericVariables = Object.fromEntries(
-      Object.entries(variables).filter(([, value]) => typeof value === 'number')
+      Object.entries(variables).filter(
+        ([, value]) => typeof value === 'number',
+      ),
     ) as Record<string, number>;
     return (
       taskAchievabilityVariables(tasks, numericVariables) +
