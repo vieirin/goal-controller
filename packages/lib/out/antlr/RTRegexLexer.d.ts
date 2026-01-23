@@ -1,0 +1,43 @@
+import { ATN, CharStream, DFA, Lexer } from "antlr4";
+export default class RTRegexLexer extends Lexer {
+    static readonly T__0 = 1;
+    static readonly T__1 = 2;
+    static readonly T__2 = 3;
+    static readonly T__3 = 4;
+    static readonly T__4 = 5;
+    static readonly T__5 = 6;
+    static readonly T__6 = 7;
+    static readonly T__7 = 8;
+    static readonly T__8 = 9;
+    static readonly DIGIT_SUBID = 10;
+    static readonly FLOAT = 11;
+    static readonly SEQ = 12;
+    static readonly INT = 13;
+    static readonly TASK = 14;
+    static readonly GOAL = 15;
+    static readonly SKIPP = 16;
+    static readonly X = 17;
+    static readonly NEWLINE = 18;
+    static readonly WORD = 19;
+    static readonly SUBID = 20;
+    static readonly WS = 21;
+    static readonly EOF: number;
+    static readonly channelNames: string[];
+    static readonly literalNames: (string | null)[];
+    static readonly symbolicNames: (string | null)[];
+    static readonly modeNames: string[];
+    static readonly ruleNames: string[];
+    constructor(input: CharStream);
+    get grammarFileName(): string;
+    get literalNames(): (string | null)[];
+    get symbolicNames(): (string | null)[];
+    get ruleNames(): string[];
+    get serializedATN(): number[];
+    get channelNames(): string[];
+    get modeNames(): string[];
+    static readonly _serializedATN: number[];
+    private static __ATN;
+    static get _ATN(): ATN;
+    static DecisionsToDFA: DFA[];
+}
+//# sourceMappingURL=RTRegexLexer.d.ts.map

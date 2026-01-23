@@ -1,0 +1,1 @@
+{"version":3,"file":"treeVariables.d.ts","sourceRoot":"","sources":["../../src/GoalTree/treeVariables.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAGxC,QAAA,MAAM,uBAAuB,GAAI,MAAM,QAAQ,KAAG,MAAM,EAgBvD,CAAC;AAEF,eAAO,MAAM,6BAA6B,GAAI,MAAM,QAAQ,KAAG,MAAM,EAMpE,CAAC;AACF,OAAO,EAAE,uBAAuB,IAAI,oBAAoB,EAAE,CAAC"}

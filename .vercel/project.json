@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_kRIwFsFQal43A8MA9zVIp8iIGFR6",
+  "orgId": "team_3ZBD4fTrLybbcpQbfXNQysvx",
+  "projectName": "goal-controller",
+  "settings": {
+    "createdAt": 1769200126253,
+    "framework": "nextjs",
+    "devCommand": "cd packages/ui && pnpm run dev",
+    "installCommand": "pnpm install",
+    "buildCommand": "pnpm run build:lib && cd packages/ui && pnpm run build",
+    "outputDirectory": "packages/ui/.next",
+    "rootDirectory": "packages/ui",
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

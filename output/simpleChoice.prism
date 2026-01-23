@@ -1,0 +1,10 @@
+rules
+      RuleT1_1 when undefined and undefined then Startundefined
+      RuleT1_2 when Startundefined then Pursuingundefined within undefined
+      RuleT1_3 when Pursuingundefined and undefined then Achievedundefined unless (not undefined) then ReportFailureundefined 
+      
+RuleT2_1 when undefined and undefined then Startundefined
+      RuleT2_2 when Startundefined then Pursuingundefined within undefined
+      RuleT2_3 when Pursuingundefined and undefined then Achievedundefined unless (not undefined) then ReportFailureundefined 
+      
+    end
