@@ -35,7 +35,7 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
       )} 
       ${hasAvoidEvents(task) ? generateAvoidEventsRules(task) : ''}`;
         })
-        .join('\n      ')}
+        .join('\n')}
     end`;
 };
 
