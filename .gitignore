@@ -37,3 +37,5 @@ venv/
 .pnpm-debug.log
 node_modules/.ignored
 .vercel
+
+packages/ui/.next/

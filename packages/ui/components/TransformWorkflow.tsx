@@ -2,13 +2,8 @@
 
 import type { LoggerReport } from '@goal-controller/lib';
 import { useMutation } from '@tanstack/react-query';
-<<<<<<< Updated upstream
-import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-=======
 import { GripVertical, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
->>>>>>> Stashed changes
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
 import ModelViewer from './ModelViewer';
@@ -87,12 +82,9 @@ export default function TransformWorkflow() {
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
-<<<<<<< Updated upstream
-=======
   const [configHeight, setConfigHeight] = useState<number>(400);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const resizeRef = useRef<HTMLDivElement>(null);
->>>>>>> Stashed changes
 
   // Mutation for fetching variables from model
   const variablesMutation = useMutation({
@@ -127,8 +119,6 @@ export default function TransformWorkflow() {
     setVariables(newVariables);
   };
 
-<<<<<<< Updated upstream
-=======
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -164,7 +154,6 @@ export default function TransformWorkflow() {
     };
   }, [isResizing]);
 
->>>>>>> Stashed changes
   const handleTransform = () => {
     if (!modelContent) {
       return;
@@ -194,58 +183,6 @@ export default function TransformWorkflow() {
         </p>
 
         {/* Configuration Section */}
-<<<<<<< Updated upstream
-        <div className='grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8'>
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <h2 className='text-xl font-semibold mb-4'>1. Upload Model</h2>
-            <FileUploader onFileUpload={handleFileUpload} />
-          </div>
-
-          {modelContent && (
-            <div className='bg-white rounded-lg shadow-md p-6 flex-grow'>
-              <h2 className='text-lg font-semibold mb-3 text-gray-700'>
-                Input Model
-              </h2>
-              <div className='h-full max-h-[340px] overflow-auto'>
-                <ModelViewer content={modelContent} fileName={fileName} />
-              </div>
-            </div>
-          )}
-
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
-            <EngineSelector
-              engine={engine}
-              onEngineChange={setEngine}
-              clean={clean}
-              onCleanChange={setClean}
-            />
-          </div>
-
-          {engine === 'prism' && modelContent && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-semibold mb-4'>3. Variables</h2>
-              {variablesMutation.isPending ? (
-                <div className='flex items-center justify-center py-8'>
-                  <Loader2 className='h-6 w-6 animate-spin text-blue-600' />
-                  <span className='ml-2 text-gray-600'>
-                    Loading variables...
-                  </span>
-                </div>
-              ) : variablesMutation.isError ? (
-                <div className='bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
-                  <p className='text-sm'>{variablesMutation.error?.message}</p>
-                </div>
-              ) : variablesMutation.data ? (
-                <VariablesEditor
-                  variableKeys={variablesMutation.data.variables}
-                  contextVariables={variablesMutation.data.contextVariables}
-                  onChange={handleVariablesChange}
-                />
-              ) : null}
-            </div>
-          )}
-=======
         <div
           ref={resizeRef}
           className='relative'
@@ -280,7 +217,9 @@ export default function TransformWorkflow() {
 
             {engine === 'prism' && modelContent && (
               <div className='bg-white rounded-lg shadow-md p-6 overflow-hidden flex flex-col h-full'>
-                <h2 className='text-xl font-semibold mb-4 flex-shrink-0'>3. Variables</h2>
+                <h2 className='text-xl font-semibold mb-4 flex-shrink-0'>
+                  3. Variables
+                </h2>
                 <div className='flex-1 overflow-auto min-h-0'>
                   {variablesMutation.isPending ? (
                     <div className='flex items-center justify-center py-8'>
@@ -291,7 +230,9 @@ export default function TransformWorkflow() {
                     </div>
                   ) : variablesMutation.isError ? (
                     <div className='bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
-                      <p className='text-sm'>{variablesMutation.error?.message}</p>
+                      <p className='text-sm'>
+                        {variablesMutation.error?.message}
+                      </p>
                     </div>
                   ) : variablesMutation.data ? (
                     <VariablesEditor
@@ -318,7 +259,6 @@ export default function TransformWorkflow() {
               <GripVertical className='h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors' />
             </div>
           </div>
->>>>>>> Stashed changes
         </div>
 
         {/* Transform Button */}
