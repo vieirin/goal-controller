@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface VariablesEditorProps {
   variableKeys: string[];
@@ -14,9 +14,9 @@ const getDefaultValue = (key: string, contextVariables: string[]): boolean | num
   return contextVariables.includes(key) ? false : 0.8;
 };
 
-const formatJsonWithColors = (obj: Record<string, boolean | number>): JSX.Element[] => {
+const formatJsonWithColors = (obj: Record<string, boolean | number>): React.ReactNode[] => {
   const entries = Object.entries(obj);
-  const elements: JSX.Element[] = [];
+  const elements: React.ReactNode[] = [];
   
   elements.push(
     <span key="open" className="text-slate-400">{'{'}</span>
