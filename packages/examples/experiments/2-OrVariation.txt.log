@@ -473,7 +473,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/2-OrVariation.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 0ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 6
 [TOTAL TASKS] 5

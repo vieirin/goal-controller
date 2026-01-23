@@ -9,11 +9,11 @@
     "goal-controller-cli": "out/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
     "test": "mocha",
     "grammar": "make grammar",
-    "clean": "rm -rf out",
+    "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
