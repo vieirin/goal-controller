@@ -1,47 +1,34 @@
-events
-      Achieved
-      AchievedInformPurposeAndProtocol
-      AchievedObtainConsentFullTracking
-      AchievedObtainConsentPartialTracking
-      MeetingUser
-      Pursuing
-      PursuingInformPurposeAndProtocol
-      PursuingObtainConsentFullTracking
-      PursuingObtainConsentPartialTracking
-      ReportFailure
-      ReportFailureInformPurposeAndProtocol
-      ReportFailureObtainConsentFullTracking
-      ReportFailureObtainConsentPartialTracking
-      Start
-      StartInformPurposeAndProtocol
-      StartObtainConsentFullTracking
-      StartObtainConsentPartialTracking
-      UserWantsToUpdateConsent
-    end
-
 rules
       RuleT1_1_1 when MeetingUser and (not {purposeProtocolInformed}) then StartInformPurposeAndProtocol
       RuleT1_1_2 when StartInformPurposeAndProtocol then PursuingInformPurposeAndProtocol within 120 seconds
       RuleT1_1_3 when PursuingInformPurposeAndProtocol and {purposeProtocolInformed} then AchievedInformPurposeAndProtocol unless (not {purposeProtocolInformed}) then ReportFailureInformPurposeAndProtocol 
+      
       RuleT1_21_1 when MeetingUser and {purposeProtocolInformed} then StartObtainConsentFullTracking
       RuleT1_21_2 when StartObtainConsentFullTracking then PursuingObtainConsentFullTracking within 300 seconds
       RuleT1_21_3 when PursuingObtainConsentFullTracking and {userConsentsFullVitalsTracking} then AchievedObtainConsentFullTracking unless (not {userConsentsFullVitalsTracking}) then ReportFailureObtainConsentFullTracking 
+      
       RuleT1_22_1 when UserWantsToUpdateConsent and ({patientCanModifyOrRevokeAuthorizations} and ({riskLevel} = low)) then StartObtainConsentPartialTracking
       RuleT1_22_2 when StartObtainConsentPartialTracking then PursuingObtainConsentPartialTracking within 300 seconds
       RuleT1_22_3 when PursuingObtainConsentPartialTracking and {userConsentsPartialVitalsTracking} then AchievedObtainConsentPartialTracking unless (not {userConsentsPartialVitalsTracking}) then ReportFailureObtainConsentPartialTracking 
+      
       RuleT2_1_1 when  and  then Start
       RuleT2_1_2 when Start then Pursuing within 
       RuleT2_1_3 when Pursuing and  then Achieved unless (not ) then ReportFailure 
+      
       RuleT2_4_1 when  and  then Start
       RuleT2_4_2 when Start then Pursuing within 
       RuleT2_4_3 when Pursuing and  then Achieved unless (not ) then ReportFailure 
+      
       RuleT3_1 when  and  then Start
       RuleT3_2 when Start then Pursuing within 
       RuleT3_3 when Pursuing and  then Achieved unless (not ) then ReportFailure 
+      
       RuleT5_1_1 when  and  then Start
       RuleT5_1_2 when Start then Pursuing within 
       RuleT5_1_3 when Pursuing and  then Achieved unless (not ) then ReportFailure 
+      
       RuleT5_2_1 when  and  then Start
       RuleT5_2_2 when Start then Pursuing within 
       RuleT5_2_3 when Pursuing and  then Achieved unless (not ) then ReportFailure 
+      
     end

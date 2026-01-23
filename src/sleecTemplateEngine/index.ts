@@ -1,6 +1,8 @@
 import type { GoalNode, GoalTree } from '../GoalTree/types';
 import { allByType } from '../GoalTree/utils';
 
+const renameTaskId = (id: string) => id.replace('.', '_');
+
 const taskFluentName = (
   task: GoalNode,
   op: 'Start' | 'Pursuing' | 'Achieved' | 'ReportFailure',
@@ -8,7 +10,7 @@ const taskFluentName = (
   return `${op}${task.properties.FluentName}`;
 };
 const generateTaskRules = (tasks: GoalNode[]): string => {
-  const renameTaskId = (id: string) => id.replace('.', '_');
+  const hasAvoidEvents = (task: GoalNode) => !!task.properties.AvoidEvent;
   return `rules
       ${tasks
         .map((task) => {
@@ -30,11 +32,18 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
       )} unless (not ${task.properties.PostCond}) then ${taskFluentName(
         task,
         'ReportFailure',
-      )} `;
+      )} 
+      ${hasAvoidEvents(task) ? generateAvoidEventsRules(task) : ''}`;
         })
         .join('\n      ')}
     end`;
 };
+
+function generateAvoidEventsRules(task: GoalNode): string {
+  return `Rule${renameTaskId(task.id)}_4 when ${
+    task.properties.AvoidEvent
+  } then ReportFailure${task.properties.FluentName}`;
+}
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {
   const tasks = allByType({ gm: tree, type: 'task' });
