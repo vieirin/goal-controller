@@ -1,6 +1,5 @@
 import { getAssertionVariables } from '../parsers/getAssertionVariables';
 import { getGoalDetail } from '../parsers/goalNameParser';
-import { isAlternative } from './nodeUtils';
 import type {
   Actor,
   CustomProperties,
@@ -24,6 +23,8 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
       return 'task';
     case 'istar.Resource':
       return 'resource';
+    case 'istar.Quality':
+      return 'goal';
     default:
       throw new Error('Invalid node type: ' + type);
   }
@@ -219,6 +220,7 @@ const createNode = ({
   });
 
   const nodeType = convertIstarType({ type: node.type });
+  const isQualityNode = node.type === 'istar.Quality';
 
   if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
@@ -226,8 +228,8 @@ const createNode = ({
     );
   }
 
-  const { alt, root, uniqueChoice, maxRetries, ...customProperties } =
-    node.customProperties;
+  const { root, uniqueChoice, maxRetries, ...customProperties } =
+    node.customProperties || {};
 
   const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
@@ -236,7 +238,12 @@ const createNode = ({
     children: filteredChildren,
   } = convertNonGoalChildren(children);
 
-  if (!children.length && !tasks.length && nodeType === 'goal') {
+  if (
+    !children.length &&
+    !tasks.length &&
+    nodeType === 'goal' &&
+    !isQualityNode
+  ) {
     throw new Error(
       `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`,
     );
@@ -275,6 +282,7 @@ const createNode = ({
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
       maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
+      isQuality: isQualityNode,
     },
     execCondition,
     ...(tasks.length > 0 && { tasks }),
@@ -293,7 +301,20 @@ const nodeChildren = ({
   if (!id) {
     return [[], 'none'];
   }
-  const nodeLinks = links.filter((link) => link.target === id);
+
+  // Find links where this node is the target (children are sources)
+  // Exclude QualificationLinks as they are handled separately
+  const incomingLinks = links.filter(
+    (link) => link.target === id && link.type !== 'istar.QualificationLink',
+  );
+
+  // Find QualificationLinks where this node is the source (children are targets)
+  const outgoingQualificationLinks = links.filter(
+    (link) => link.type === 'istar.QualificationLink' && link.source === id,
+  );
+
+  // Combine both sets of links
+  const nodeLinks = [...incomingLinks, ...outgoingQualificationLinks];
 
   // get the set of relations associated to the parent element
   const relations = nodeLinks.map((link: { type: Link['type'] | string }) => {
@@ -304,6 +325,8 @@ const nodeChildren = ({
         return 'or';
       case 'istar.NeededByLink':
         return 'neededBy';
+      case 'istar.QualificationLink':
+        return 'and';
       default:
         throw new Error(
           `[UNSUPPORTED LINK]: Please implement ${link.type} decoding`,
@@ -321,8 +344,13 @@ const nodeChildren = ({
 
   const children = nodeLinks
     .map((link): GoalNode | undefined => {
-      // from links find linked the linked nodes
-      const node = actor.nodes.find((item) => item.id === link.source);
+      // For incoming links (node is target), children are sources
+      // For outgoing QualificationLinks (node is source), children are targets
+      const isOutgoingQualification =
+        link.type === 'istar.QualificationLink' && link.source === id;
+      const childNodeId = isOutgoingQualification ? link.target : link.source;
+
+      const node = actor.nodes.find((item) => item.id === childNodeId);
       if (!node) {
         return undefined;
       }
@@ -333,17 +361,10 @@ const nodeChildren = ({
         links,
       });
 
-      const nodeAlt = isAlternative(node);
       return createNode({
         node,
         relation,
-        children: granChildren.map((granChild) => {
-          // if the parent is alternative, then its children must be marked as their variant
-          if (nodeAlt) {
-            return { ...granChild, variantOf: granChild.id.slice(0, 2) };
-          }
-          return { ...granChild };
-        }),
+        children: granChildren,
       });
     })
     .filter((n): n is GoalNode => !!n);

@@ -18,7 +18,12 @@ type Actor = {
   nodes: Node[];
 } & Node;
 
-type NodeType = 'istar.Task' | 'istar.Goal' | 'istar.Actor' | 'istar.Resource';
+type NodeType =
+  | 'istar.Task'
+  | 'istar.Goal'
+  | 'istar.Actor'
+  | 'istar.Resource'
+  | 'istar.Quality';
 
 type Node = {
   id: id;
@@ -33,7 +38,8 @@ type Link = {
   type:
     | 'istar.AndRefinementLink'
     | 'istar.OrRefinementLink'
-    | 'istar.NeededByLink';
+    | 'istar.NeededByLink'
+    | 'istar.QualificationLink';
   source: string;
   target: string;
 };
@@ -88,6 +94,13 @@ type CustomProperties = {
     uniqueChoice?: string;
     type: never;
     maxRetries?: string;
+    selected?: string;
+    PreCond?: string;
+    TriggeringEvent?: string;
+    TemporalConstraint?: string;
+    PostCond?: string;
+    FluentName?: string;
+    AvoidEvent?: string;
   } & {
     type: 'maintain';
     maintain: string;
@@ -129,6 +142,13 @@ type GoalNode = {
     dependsOn: string[];
     uniqueChoice: boolean;
     maxRetries: number | undefined;
+    isQuality: boolean;
+    PreCond?: string;
+    TriggeringEvent?: string;
+    TemporalConstraint?: string;
+    PostCond?: string;
+    FluentName?: string;
+    AvoidEvent?: string;
     [k: string]: any;
   };
   resources: Resource[];

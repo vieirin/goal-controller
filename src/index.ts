@@ -4,11 +4,11 @@ import path from 'path';
 import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
 import { initLogger } from './logger/logger';
-import { generateValidatedPrismModel } from './templateEngine/engine';
+import { sleecTemplateEngine } from './sleecTemplateEngine';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const cleanFlag = args.includes('--clean') || args.includes('-c');
+// const cleanFlag = args.includes('--clean') || args.includes('-c');
 const inputFile = args.find(
   (arg) => !arg.startsWith('--') && !arg.startsWith('-'),
 );
@@ -26,20 +26,12 @@ const logger = initLogger(inputFile);
 const fileName = path.parse(inputFile).name;
 const outputPath = `output/${fileName}.prism`;
 
-writeFile(
-  outputPath,
-  generateValidatedPrismModel({
-    gm: tree,
-    fileName: inputFile,
-    clean: cleanFlag,
-  }),
-  function (err) {
-    if (err) {
-      console.log(err);
-      logger.close();
-      return;
-    }
-    console.log(`The file was saved to ${outputPath}!`);
+writeFile(outputPath, sleecTemplateEngine(tree), function (err) {
+  if (err) {
+    console.log(err);
     logger.close();
-  },
-);
+    return;
+  }
+  console.log(`The file was saved to ${outputPath}!`);
+  logger.close();
+});
