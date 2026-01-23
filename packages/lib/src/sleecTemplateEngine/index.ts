@@ -14,7 +14,8 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
   return `rules
       ${tasks
         .map((task) => {
-          return `Rule${renameTaskId(task.id)}_1 when ${
+          return `
+      Rule${renameTaskId(task.id)}_1 when ${
             task.properties.TriggeringEvent
           } and ${task.properties.PreCond} then ${taskFluentName(task, 'Start')}
       Rule${renameTaskId(task.id)}_2 when ${taskFluentName(
@@ -36,7 +37,7 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
       ${hasAvoidEvents(task) ? generateAvoidEventsRules(task) : ''}`;
         })
         .join('\n')}
-    end`;
+end`;
 };
 
 function generateAvoidEventsRules(task: GoalNode): string {

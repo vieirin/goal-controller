@@ -1,12 +1,10 @@
 import {
-    convertToTree,
-    getTaskAchievabilityVariables,
-    treeContextVariables,
-    validateModel,
-    type Model,
+  getTaskAchievabilityVariables,
+  treeContextVariables,
 } from '@goal-controller/lib';
-import { NextRequest, NextResponse } from 'next/server';
-import { VariablesModel } from '../../../lib/models';
+import { NextRequest } from 'next/server';
+import { ApiResponse } from '../../../lib/api';
+import { GoalModel, VariablesModel } from '../../../lib/models';
 
 /**
  * GET: Retrieve stored variables for a model hash
@@ -17,27 +15,14 @@ export async function GET(request: NextRequest) {
     const modelHash = searchParams.get('hash');
 
     if (!modelHash) {
-      return NextResponse.json(
-        { error: 'Model hash is required', success: false },
-        { status: 400 }
-      );
+      return ApiResponse.badRequest('Model hash is required');
     }
 
     const storedVariables = VariablesModel.findByHash(modelHash);
 
-    return NextResponse.json({
-      success: true,
-      storedVariables,
-    });
+    return ApiResponse.success({ storedVariables });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        success: false,
-      },
-      { status: 500 }
-    );
+    return ApiResponse.fromError(error);
   }
 }
 
@@ -49,43 +34,23 @@ export async function POST(request: NextRequest) {
     const { modelJson } = await request.json();
 
     if (!modelJson) {
-      return NextResponse.json(
-        { error: 'Model JSON is required', success: false },
-        { status: 400 }
-      );
+      return ApiResponse.badRequest('Model JSON is required');
     }
 
     // Generate hash from model content
     const modelHash = VariablesModel.hashContent(modelJson);
 
-    // Parse model JSON
-    let model: Model;
-    try {
-      model = JSON.parse(modelJson);
-      validateModel({ model });
-    } catch (parseError) {
-      return NextResponse.json(
-        {
-          error: `Invalid JSON: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`,
-          success: false,
-        },
-        { status: 400 }
+    // Parse and validate model
+    const parseResult = GoalModel.parse(modelJson);
+
+    if (!parseResult.success) {
+      return ApiResponse.error(
+        parseResult.error,
+        GoalModel.getErrorStatus(parseResult.stage)
       );
     }
 
-    // Convert to tree
-    let tree;
-    try {
-      tree = convertToTree({ model });
-    } catch (treeError) {
-      return NextResponse.json(
-        {
-          error: `Tree conversion failed: ${treeError instanceof Error ? treeError.message : 'Unknown error'}`,
-          success: false,
-        },
-        { status: 500 }
-      );
-    }
+    const { tree } = parseResult;
 
     // Extract variables
     const contextVariables = treeContextVariables(tree);
@@ -95,8 +60,7 @@ export async function POST(request: NextRequest) {
     // Get stored variables for this model
     const storedVariables = VariablesModel.findByHash(modelHash);
 
-    return NextResponse.json({
-      success: true,
+    return ApiResponse.success({
       modelHash,
       variables: allVariables,
       contextVariables,
@@ -104,14 +68,7 @@ export async function POST(request: NextRequest) {
       storedVariables,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        success: false,
-      },
-      { status: 500 }
-    );
+    return ApiResponse.fromError(error);
   }
 }
 
@@ -123,34 +80,18 @@ export async function PUT(request: NextRequest) {
     const { modelHash, variables } = await request.json();
 
     if (!modelHash) {
-      return NextResponse.json(
-        { error: 'Model hash is required', success: false },
-        { status: 400 }
-      );
+      return ApiResponse.badRequest('Model hash is required');
     }
 
     if (!variables || typeof variables !== 'object') {
-      return NextResponse.json(
-        { error: 'Variables object is required', success: false },
-        { status: 400 }
-      );
+      return ApiResponse.badRequest('Variables object is required');
     }
 
     // Store variables in the database
     VariablesModel.upsert(modelHash, variables);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Variables stored successfully',
-    });
+    return ApiResponse.success({ message: 'Variables stored successfully' });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        success: false,
-      },
-      { status: 500 }
-    );
+    return ApiResponse.fromError(error);
   }
 }

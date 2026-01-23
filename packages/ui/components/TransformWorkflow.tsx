@@ -159,8 +159,8 @@ export default function TransformWorkflow() {
   const report = transformMutation.data?.report || null;
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-8 bg-slate-50">
+      <div className="max-w-full mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Goal Controller
         </h1>
@@ -168,100 +168,106 @@ export default function TransformWorkflow() {
           Transform goal models to PRISM or SLEEC specifications
         </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">1. Upload Model</h2>
-              <FileUploader onFileUpload={handleFileUpload} />
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">2. Configure</h2>
-              <EngineSelector
-                engine={engine}
-                onEngineChange={setEngine}
-                clean={clean}
-                onCleanChange={setClean}
-              />
-            </div>
-
-            {engine === 'prism' && modelContent && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4">3. Variables</h2>
-                {variablesMutation.isPending ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                    <span className="ml-2 text-gray-600">Loading variables...</span>
-                  </div>
-                ) : variablesMutation.isError ? (
-                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-                    <p className="text-sm">{variablesMutation.error?.message}</p>
-                  </div>
-                ) : variablesMutation.data ? (
-                  <VariablesEditor
-                    variableKeys={variablesMutation.data.variables}
-                    contextVariables={variablesMutation.data.contextVariables}
-                    onChange={handleVariablesChange}
-                    initialValues={variablesMutation.data.storedVariables ?? undefined}
-                  />
-                ) : null}
-              </div>
-            )}
-
-            <button
-              onClick={handleTransform}
-              disabled={!modelContent || transformMutation.isPending}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {transformMutation.isPending ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Transforming...
-                </>
-              ) : (
-                'Transform'
-              )}
-            </button>
-
-            {transformMutation.isError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-                <p className="font-medium">Error:</p>
-                <p className="text-sm">{transformMutation.error?.message}</p>
-              </div>
-            )}
+        {/* Configuration Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">1. Upload Model</h2>
+            <FileUploader onFileUpload={handleFileUpload} />
           </div>
 
-          <div className="space-y-6">
-            {modelContent && (
-              <div className="bg-white rounded-lg shadow-md p-6 h-96">
-                <h2 className="text-xl font-semibold mb-4">Input Model</h2>
-                <div className="h-72">
-                  <ModelViewer content={modelContent} fileName={fileName} />
-                </div>
+          {modelContent && (
+            <div className="bg-white rounded-lg shadow-md p-6 flex-grow">
+              <h2 className="text-lg font-semibold mb-3 text-gray-700">Input Model</h2>
+              <div className="h-full max-h-[340px] overflow-auto">
+                <ModelViewer content={modelContent} fileName={fileName} />
               </div>
-            )}
+            </div>
+          )}
 
-            {output && (
-              <>
-                <div className="bg-white rounded-lg shadow-md p-6 h-96">
-                  <h2 className="text-xl font-semibold mb-4">Output</h2>
-                  <div className="h-72">
-                    <OutputViewer
-                      output={output}
-                      engine={engine}
-                      fileName={fileName}
-                    />
-                  </div>
-                </div>
-                {report && (
-                  <div>
-                    <ReportViewer report={report} />
-                  </div>
-                )}
-              </>
-            )}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">2. Configure</h2>
+            <EngineSelector
+              engine={engine}
+              onEngineChange={setEngine}
+              clean={clean}
+              onCleanChange={setClean}
+            />
           </div>
+
+          {engine === 'prism' && modelContent && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4">3. Variables</h2>
+              {variablesMutation.isPending ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <span className="ml-2 text-gray-600">Loading variables...</span>
+                </div>
+              ) : variablesMutation.isError ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                  <p className="text-sm">{variablesMutation.error?.message}</p>
+                </div>
+              ) : variablesMutation.data ? (
+                <VariablesEditor
+                  variableKeys={variablesMutation.data.variables}
+                  contextVariables={variablesMutation.data.contextVariables}
+                  onChange={handleVariablesChange}
+                  initialValues={variablesMutation.data.storedVariables ?? undefined}
+                />
+              ) : null}
+            </div>
+          )}
         </div>
+
+        {/* Transform Button */}
+        <div className="mb-8">
+          <button
+            onClick={handleTransform}
+            disabled={!modelContent || transformMutation.isPending}
+            className="w-full max-w-md mx-auto block bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            {transformMutation.isPending ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Transforming...
+              </>
+            ) : (
+              'Transform'
+            )}
+          </button>
+
+          {transformMutation.isError && (
+            <div className="max-w-md mx-auto mt-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+              <p className="font-medium">Error:</p>
+              <p className="text-sm">{transformMutation.error?.message}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Output Section - Full Width & Prominent */}
+        {output && (
+          <div className="mb-8">
+            <div className="bg-white rounded-xl shadow-lg border-2 border-blue-100 p-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
+                <span className="inline-block w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                Generated Output
+              </h2>
+              <div className="h-[500px]">
+                <OutputViewer
+                  output={output}
+                  engine={engine}
+                  fileName={fileName}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Report Section - Full Width */}
+        {report && (
+          <div className="w-full">
+            <ReportViewer report={report} />
+          </div>
+        )}
       </div>
     </div>
   );
