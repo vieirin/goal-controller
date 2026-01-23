@@ -3,7 +3,13 @@
     "allow": [
       "Bash(xargs:*)",
       "Bash(FILE=\"examples/goalModel - 2026-01-23T112755.270.txt\" make run:*)",
-      "Bash(node --eval:*)"
+      "Bash(node --eval:*)",
+      "Bash(tree:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm install:*)",
+      "Bash(make:*)",
+      "Bash(pnpm run build:*)"
     ]
   }
 }

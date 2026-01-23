@@ -1,7 +1,38 @@
-node_modules
-grammar/.antlr
+# Dependencies
+node_modules/
+packages/*/node_modules/
+
+# Build outputs
+out/
+packages/lib/out/
+packages/ui/.next/
+packages/ui/out/
+
+# Generated files
 *.interp
 *.tokens
-out/*
-venv/*
-logs/*
+grammar/.antlr
+
+# Output directory
+output/
+
+# Database
+packages/ui/data/
+data/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env*.local
+venv/
+
+# Editor
+.DS_Store
+.vscode/
+.idea/
+
+# pnpm
+.pnpm-debug.log
+node_modules/.ignored
