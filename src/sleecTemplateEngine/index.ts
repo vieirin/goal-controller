@@ -40,9 +40,9 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
 };
 
 function generateAvoidEventsRules(task: GoalNode): string {
-  return `Rule${renameTaskId(task.id)}_4 when ${
+  return `Rule${renameTaskId(task.id)}_4 when Achieved${
     task.properties.AvoidEvent
-  } then ReportFailure${task.properties.FluentName}`;
+  } then ${taskFluentName(task, 'Pursuing')}`;
 }
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {
