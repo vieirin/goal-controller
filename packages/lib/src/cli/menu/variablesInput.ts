@@ -1,31 +1,17 @@
 import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
-import { basename, join } from 'path';
 import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import {
   getTaskAchievabilityVariables,
   treeContextVariables,
 } from '../../GoalTree/treeVariables';
+import { getVariablesFilePath } from '../../utils/variablesPath';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
-export const getVariablesFilePath = (modelPath: string): string => {
-  const fileName = basename(modelPath, '.txt'); // Remove extension if present
-  const relativePath = join('input', fileName, 'variables.json');
-  
-  // Try multiple paths to support both direct execution and monorepo (from packages/lib)
-  if (existsSync(relativePath)) {
-    return relativePath;
-  }
-  const monorepoPath = join('..', '..', 'input', fileName, 'variables.json');
-  if (existsSync(monorepoPath)) {
-    return monorepoPath;
-  }
-  
-  // Return the default path (will fail with helpful error if file doesn't exist)
-  return relativePath;
-};
+// Re-export for backwards compatibility
+export { getVariablesFilePath };
 
 const saveVariables = async (
   variables: Record<string, boolean>,

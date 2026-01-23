@@ -32,13 +32,25 @@ export const validate = (
   const report = validatePrismModel(goalTree, prismModel);
 
   // Write JSON report to logs folder if modelFileName is provided
+  // Skip file writing in serverless environments (e.g., Vercel)
   if (modelFileName) {
     const jsonReport = serializeValidationReportToJSON(report);
     const jsonFilePath = ensureLogFileDirectory(
       modelFileName,
       '.validation.json',
     );
-    writeFileSync(jsonFilePath, JSON.stringify(jsonReport, null, 2), 'utf8');
+    // Only write if directory creation succeeded (not in serverless environment)
+    if (jsonFilePath) {
+      try {
+        writeFileSync(
+          jsonFilePath,
+          JSON.stringify(jsonReport, null, 2),
+          'utf8',
+        );
+      } catch {
+        // Silently fail in serverless environments
+      }
+    }
   }
 
   return report;

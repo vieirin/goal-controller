@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
-import { getVariablesFilePath } from '../../../cli/menu/variablesInput';
+import { getVariablesFilePath } from '../../../utils/variablesPath';
 import { isResource } from '../../../GoalTree/nodeUtils';
 import { treeContextVariables } from '../../../GoalTree/treeVariables';
 import type { GoalTree } from '../../../GoalTree/types';
@@ -17,13 +17,13 @@ const extractOldSystemTransitions = (fileName: string): string[] => {
   // Extract base name from fileName (e.g., "examples/experiments/1-minimal.txt" -> "1-minimal")
   const parsedPath = path.parse(fileName);
   const baseName = parsedPath.name;
-  
+
   // Try multiple paths to find the output file (supports both monorepo and direct execution)
   const possiblePaths = [
-    `output/${baseName}.prism`,           // From project root
-    `../../output/${baseName}.prism`,     // From packages/lib (monorepo)
+    `output/${baseName}.prism`, // From project root
+    `../../output/${baseName}.prism`, // From packages/lib (monorepo)
   ];
-  
+
   const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
 
   // Check if the old PRISM file exists

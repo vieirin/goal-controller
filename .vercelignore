@@ -1,0 +1,15 @@
+node_modules
+packages/*/node_modules
+.git
+.vercel
+*.log
+logs
+output
+venv
+.DS_Store
+.vscode
+.idea
+pnpm-debug.log
+data
+*.db
+
