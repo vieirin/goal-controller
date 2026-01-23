@@ -8,7 +8,8 @@
     "onlyBuiltDependencies": []
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
   },
   "scripts": {
     "dev": "concurrently \"pnpm run dev:lib\" \"pnpm run dev:ui\"",
