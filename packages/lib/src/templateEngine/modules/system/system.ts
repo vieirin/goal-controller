@@ -17,10 +17,17 @@ const extractOldSystemTransitions = (fileName: string): string[] => {
   // Extract base name from fileName (e.g., "examples/experiments/1-minimal.txt" -> "1-minimal")
   const parsedPath = path.parse(fileName);
   const baseName = parsedPath.name;
-  const oldPrismFilePath = `output/${baseName}.prism`;
+  
+  // Try multiple paths to find the output file (supports both monorepo and direct execution)
+  const possiblePaths = [
+    `output/${baseName}.prism`,           // From project root
+    `../../output/${baseName}.prism`,     // From packages/lib (monorepo)
+  ];
+  
+  const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
 
   // Check if the old PRISM file exists
-  if (!existsSync(oldPrismFilePath)) {
+  if (!oldPrismFilePath) {
     return [];
   }
 

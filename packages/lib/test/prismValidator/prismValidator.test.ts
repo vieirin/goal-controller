@@ -23,7 +23,7 @@ describe('PRISM Validator - Experiment Examples', () => {
   experimentExamples.forEach((exampleName) => {
     describe(exampleName, () => {
       it('should validate generated PRISM model matches expected elements', () => {
-        const inputFile = `examples/experiments/${exampleName}.txt`;
+        const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });
@@ -137,7 +137,7 @@ describe('PRISM Validator - Experiment Examples', () => {
       });
 
       it('should have emitted at least as many elements as expected', () => {
-        const inputFile = `examples/experiments/${exampleName}.txt`;
+        const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });
@@ -167,7 +167,7 @@ describe('PRISM Validator - Experiment Examples', () => {
       });
 
       it('should have exactly one achievability formula per goal, plus one maintain formula for maintain goals', () => {
-        const inputFile = `examples/experiments/${exampleName}.txt`;
+        const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
         const model = loadPistarModel({ filename: inputFile });
