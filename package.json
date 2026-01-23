@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Controller Synthesis from Goal Models - Monorepo",
   "private": true,
+  "packageManager": "pnpm@8.15.0",
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  },
   "engines": {
-    "node": ">=22.6.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "concurrently \"pnpm run dev:lib\" \"pnpm run dev:ui\"",
@@ -31,6 +34,7 @@
   "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vercel": "^50.4.11"
   }
 }

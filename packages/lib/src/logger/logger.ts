@@ -135,6 +135,10 @@ export const createStore = (): LoggerStore => {
 const createLoggerFile = (modelFileName: string): fs.WriteStream | null => {
   try {
     const logFilePath = ensureLogFileDirectory(modelFileName, '.log');
+    if (!logFilePath) {
+      // Directory creation failed (e.g., serverless environment)
+      return null;
+    }
     return fs.createWriteStream(logFilePath, { flags: 'w' });
   } catch {
     // If file creation fails, return null for in-memory mode
@@ -523,11 +527,17 @@ const createLogger = (
       summaryLines.push(`[TOTAL NODES] ${store.totalNodes}\n`);
       summaryLines.push(`[TOTAL VARIABLES] ${store.totalVariables}\n`);
       summaryLines.push('----------GOAL TYPE BREAKDOWN----------\n');
-      summaryLines.push(`[GOAL TYPE: DEGRADATION] ${store.goalTypeDegradation}\n`);
+      summaryLines.push(
+        `[GOAL TYPE: DEGRADATION] ${store.goalTypeDegradation}\n`,
+      );
       summaryLines.push(`[GOAL TYPE: CHOICE] ${store.goalTypeChoice}\n`);
-      summaryLines.push(`[GOAL TYPE: ALTERNATIVE] ${store.goalTypeAlternative}\n`);
+      summaryLines.push(
+        `[GOAL TYPE: ALTERNATIVE] ${store.goalTypeAlternative}\n`,
+      );
       summaryLines.push(`[GOAL TYPE: SEQUENCE] ${store.goalTypeSequence}\n`);
-      summaryLines.push(`[GOAL TYPE: INTERLEAVED] ${store.goalTypeInterleaved}\n`);
+      summaryLines.push(
+        `[GOAL TYPE: INTERLEAVED] ${store.goalTypeInterleaved}\n`,
+      );
       summaryLines.push('----------GOAL SUMMARY----------\n');
       summaryLines.push(`[GOAL MODULES] ${store.goalModules}\n`);
       summaryLines.push(`[GOAL VARIABLES] ${store.goalVariables}\n`);
@@ -537,7 +547,9 @@ const createLogger = (
       summaryLines.push(
         `[GOAL ACHIEVABILITY FORMULAS] ${store.goalAchievabilityFormulas}\n`,
       );
-      summaryLines.push(`[GOAL MAINTAIN FORMULAS] ${store.goalMaintainFormulas}\n`);
+      summaryLines.push(
+        `[GOAL MAINTAIN FORMULAS] ${store.goalMaintainFormulas}\n`,
+      );
       summaryLines.push('----------CHANGE MANAGER SUMMARY----------\n');
       summaryLines.push(`[TASKS VARIABLES] ${store.tasksVariables}\n`);
       summaryLines.push(`[TASKS LABELS] ${store.tasksLabels}\n`);
@@ -551,7 +563,9 @@ const createLogger = (
       summaryLines.push('----------SYSTEM SUMMARY----------\n');
       summaryLines.push(`[SYSTEM VARIABLES] ${store.systemVariables}\n`);
       summaryLines.push(`[SYSTEM RESOURCES] ${store.systemResources}\n`);
-      summaryLines.push(`[SYSTEM CONTEXT VARIABLES] ${store.systemContextVariables}\n`);
+      summaryLines.push(
+        `[SYSTEM CONTEXT VARIABLES] ${store.systemContextVariables}\n`,
+      );
       summaryLines.push('----------------------------------------\n');
 
       const fullLog = logBuffer.join('') + summaryLines.join('');

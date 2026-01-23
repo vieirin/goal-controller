@@ -36,3 +36,4 @@ venv/
 # pnpm
 .pnpm-debug.log
 node_modules/.ignored
+.vercel

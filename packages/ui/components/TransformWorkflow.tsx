@@ -28,17 +28,10 @@ interface TransformResponse {
 
 interface VariablesResponse {
   success: boolean;
-  modelHash: string;
   variables: string[];
   contextVariables: string[];
   taskVariables: string[];
-  storedVariables: Record<string, boolean | number> | null;
   error?: string;
-}
-
-interface SaveVariablesRequest {
-  modelHash: string;
-  variables: Record<string, boolean | number>;
 }
 
 const transformModel = async (
@@ -61,7 +54,9 @@ const transformModel = async (
   return data;
 };
 
-const fetchVariables = async (modelJson: string): Promise<VariablesResponse> => {
+const fetchVariables = async (
+  modelJson: string,
+): Promise<VariablesResponse> => {
   const response = await fetch('/api/variables', {
     method: 'POST',
     headers: {
@@ -79,36 +74,18 @@ const fetchVariables = async (modelJson: string): Promise<VariablesResponse> => 
   return data;
 };
 
-const saveVariables = async ({ modelHash, variables }: SaveVariablesRequest): Promise<void> => {
-  const response = await fetch('/api/variables', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ modelHash, variables }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || 'Failed to save variables');
-  }
-};
-
 export default function TransformWorkflow() {
   const [modelContent, setModelContent] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
   const [engine, setEngine] = useState<'prism' | 'sleec'>('prism');
   const [clean, setClean] = useState<boolean>(false);
-  const [variables, setVariables] = useState<Record<string, boolean | number>>({});
+  const [variables, setVariables] = useState<Record<string, boolean | number>>(
+    {},
+  );
 
   // Mutation for fetching variables from model
   const variablesMutation = useMutation({
     mutationFn: fetchVariables,
-  });
-
-  // Mutation for saving variables to database
-  const saveVariablesMutation = useMutation({
-    mutationFn: saveVariables,
   });
 
   // Mutation for transforming model
@@ -133,12 +110,10 @@ export default function TransformWorkflow() {
     transformMutation.reset();
   };
 
-  const handleVariablesChange = (newVariables: Record<string, boolean | number>) => {
+  const handleVariablesChange = (
+    newVariables: Record<string, boolean | number>,
+  ) => {
     setVariables(newVariables);
-    const modelHash = variablesMutation.data?.modelHash;
-    if (modelHash && Object.keys(newVariables).length > 0) {
-      saveVariablesMutation.mutate({ modelHash, variables: newVariables });
-    }
   };
 
   const handleTransform = () => {
@@ -151,7 +126,8 @@ export default function TransformWorkflow() {
       engine,
       clean,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
-      ...(engine === 'prism' && Object.keys(variables).length > 0 && { variables }),
+      ...(engine === 'prism' &&
+        Object.keys(variables).length > 0 && { variables }),
     });
   };
 
@@ -159,33 +135,35 @@ export default function TransformWorkflow() {
   const report = transformMutation.data?.report || null;
 
   return (
-    <div className="min-h-screen p-8 bg-slate-50">
-      <div className="max-w-full mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className='min-h-screen p-8 bg-slate-50'>
+      <div className='max-w-full mx-auto px-4'>
+        <h1 className='text-3xl font-bold text-gray-900 mb-2'>
           Goal Controller
         </h1>
-        <p className="text-gray-600 mb-8">
+        <p className='text-gray-600 mb-8'>
           Transform goal models to PRISM or SLEEC specifications
         </p>
 
         {/* Configuration Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">1. Upload Model</h2>
+        <div className='grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8'>
+          <div className='bg-white rounded-lg shadow-md p-6'>
+            <h2 className='text-xl font-semibold mb-4'>1. Upload Model</h2>
             <FileUploader onFileUpload={handleFileUpload} />
           </div>
 
           {modelContent && (
-            <div className="bg-white rounded-lg shadow-md p-6 flex-grow">
-              <h2 className="text-lg font-semibold mb-3 text-gray-700">Input Model</h2>
-              <div className="h-full max-h-[340px] overflow-auto">
+            <div className='bg-white rounded-lg shadow-md p-6 flex-grow'>
+              <h2 className='text-lg font-semibold mb-3 text-gray-700'>
+                Input Model
+              </h2>
+              <div className='h-full max-h-[340px] overflow-auto'>
                 <ModelViewer content={modelContent} fileName={fileName} />
               </div>
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">2. Configure</h2>
+          <div className='bg-white rounded-lg shadow-md p-6'>
+            <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
             <EngineSelector
               engine={engine}
               onEngineChange={setEngine}
@@ -195,23 +173,24 @@ export default function TransformWorkflow() {
           </div>
 
           {engine === 'prism' && modelContent && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">3. Variables</h2>
+            <div className='bg-white rounded-lg shadow-md p-6'>
+              <h2 className='text-xl font-semibold mb-4'>3. Variables</h2>
               {variablesMutation.isPending ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                  <span className="ml-2 text-gray-600">Loading variables...</span>
+                <div className='flex items-center justify-center py-8'>
+                  <Loader2 className='h-6 w-6 animate-spin text-blue-600' />
+                  <span className='ml-2 text-gray-600'>
+                    Loading variables...
+                  </span>
                 </div>
               ) : variablesMutation.isError ? (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-                  <p className="text-sm">{variablesMutation.error?.message}</p>
+                <div className='bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
+                  <p className='text-sm'>{variablesMutation.error?.message}</p>
                 </div>
               ) : variablesMutation.data ? (
                 <VariablesEditor
                   variableKeys={variablesMutation.data.variables}
                   contextVariables={variablesMutation.data.contextVariables}
                   onChange={handleVariablesChange}
-                  initialValues={variablesMutation.data.storedVariables ?? undefined}
                 />
               ) : null}
             </div>
@@ -219,15 +198,15 @@ export default function TransformWorkflow() {
         </div>
 
         {/* Transform Button */}
-        <div className="mb-8">
+        <div className='mb-8'>
           <button
             onClick={handleTransform}
             disabled={!modelContent || transformMutation.isPending}
-            className="w-full max-w-md mx-auto block bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className='w-full max-w-md mx-auto block bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2'
           >
             {transformMutation.isPending ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className='h-5 w-5 animate-spin' />
                 Transforming...
               </>
             ) : (
@@ -236,22 +215,22 @@ export default function TransformWorkflow() {
           </button>
 
           {transformMutation.isError && (
-            <div className="max-w-md mx-auto mt-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-              <p className="font-medium">Error:</p>
-              <p className="text-sm">{transformMutation.error?.message}</p>
+            <div className='max-w-md mx-auto mt-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
+              <p className='font-medium'>Error:</p>
+              <p className='text-sm'>{transformMutation.error?.message}</p>
             </div>
           )}
         </div>
 
         {/* Output Section - Full Width & Prominent */}
         {output && (
-          <div className="mb-8">
-            <div className="bg-white rounded-xl shadow-lg border-2 border-blue-100 p-6">
-              <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
-                <span className="inline-block w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+          <div className='mb-8'>
+            <div className='bg-white rounded-xl shadow-lg border-2 border-blue-100 p-6'>
+              <h2 className='text-xl font-bold mb-4 text-gray-900 flex items-center gap-2'>
+                <span className='inline-block w-3 h-3 bg-green-500 rounded-full animate-pulse'></span>
                 Generated Output
               </h2>
-              <div className="h-[500px]">
+              <div className='h-[500px]'>
                 <OutputViewer
                   output={output}
                   engine={engine}
@@ -264,7 +243,7 @@ export default function TransformWorkflow() {
 
         {/* Report Section - Full Width */}
         {report && (
-          <div className="w-full">
+          <div className='w-full'>
             <ReportViewer report={report} />
           </div>
         )}
