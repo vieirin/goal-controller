@@ -1,1 +1,0 @@
-{"version":3,"file":"goalNameParser.d.ts","sourceRoot":"","sources":["../../src/parsers/goalNameParser.ts"],"names":[],"mappings":"AAgBA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,mBAAmB,CAAC;AAE7D,eAAO,MAAM,aAAa,GAAI,eAE3B;IACD,QAAQ,EAAE,MAAM,CAAC;CAClB,KAAG;IACF,EAAE,EAAE,MAAM,CAAC;IACX,QAAQ,EAAE,MAAM,GAAG,IAAI,CAAC;IACxB,eAAe,EAAE,mBAAmB,GAAG,IAAI,CAAC;CA2I7C,CAAC"}

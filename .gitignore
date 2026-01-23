@@ -39,3 +39,4 @@ node_modules/.ignored
 .vercel
 
 packages/ui/.next/
+packages/lib/out/
