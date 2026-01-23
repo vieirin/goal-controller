@@ -5,6 +5,48 @@
 
 ### FAQ
 
+## Monorepo Structure
+
+This repository is organized as a pnpm monorepo with the following structure:
+
+```
+goal-controller/
+├── packages/
+│   ├── lib/          # Core transformation engines (PRISM/SLEEC) + CLI tools
+│   └── ui/           # Next.js web application for transformations
+├── examples/         # Example goal models
+├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
+└── output/          # Generated PRISM/SLEEC models
+```
+
+### Quick Start
+
+1. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+2. **Generate ANTLR parsers:**
+   ```bash
+   make grammar
+   ```
+
+3. **Build the library:**
+   ```bash
+   pnpm run build:lib
+   ```
+
+4. **Run transformations:**
+   ```bash
+   make run FILE=examples/simpleChoice.txt
+   ```
+
+5. **Launch the web UI:**
+   ```bash
+   pnpm run dev:ui
+   # Open http://localhost:3000
+   ```
+
 ## How to execute this repo?
 
 ### Installation
@@ -22,15 +64,27 @@
 
 ##### Alternative 2: Run manually from any terminal
 
-1. install antlr4 by running:
-   - `pip install antlr4-tools`
-   - `brew install antrl` (MacOS, check how to install for your distribution)
-2. install nvm and setup node version
+1. **Install pnpm:**
+   ```bash
+   npm install -g pnpm
+   ```
 
-   - ```bash
-       curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-       nvm install --lts
-     ```
+2. **Install antlr4:**
+   - `pip install antlr4-tools`
+   - `brew install antlr` (MacOS, check how to install for your distribution)
+
+3. **Install Node.js 22.6.0:**
+   ```bash
+   # Using nvm
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+   nvm install 22.6.0
+   nvm use 22.6.0
+   ```
+
+4. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
 
 ### Execution
 
@@ -41,13 +95,31 @@ You can use the interactive CLI to select and run models:
 - `make cli` - Launches the interactive CLI
 - `make cli-clean` - Launches the interactive CLI with the `--clean` flag (generates clean System modules without preserving old transitions)
 
-#### Generating the mdp model
+#### Generating the PRISM model
 
-1. In a new terminal run `npx ts-node src/index.ts $GOAL_MODEL_FILE [--clean|-c]`
-   - where `$GOAL_MODEL_FILE` is the downloaded goal model from [pistar](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
-   - The default clean room example is under `examples/edgeModel.txt`
-   - E.g: `npx ts-node src/index.ts ./examples/edgeModel.txt`
-   - Use `--clean` or `-c` flag to skip preserving old System module transitions (see below)
+1. Build the library package first:
+   ```bash
+   make grammar  # Generate ANTLR parsers
+   pnpm run build:lib  # Build the library
+   ```
+
+2. Generate the model using one of these methods:
+
+   **Using Makefile (Recommended):**
+   ```bash
+   make run FILE=examples/simpleChoice.txt
+   # or
+   make generate FILE=examples/simpleChoice.txt
+   ```
+
+   **Using Node directly:**
+   ```bash
+   node packages/lib/out/index.js examples/simpleChoice.txt
+   ```
+
+   Where `$GOAL_MODEL_FILE` is the downloaded goal model from [pistar](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
+   
+   **Note:** The `--clean` flag is not currently supported in the CLI entry point. Use the interactive CLI (`make cli`) for clean mode.
 2. If successful you should see the string `The file was saved!` in the terminal.
 3. Add the goal model to the goalmngt folder
    - `cp $GOAL_MODEL_FILE goalmgmt/edgeModel.txt`
@@ -80,19 +152,13 @@ When you regenerate the model, these transitions will be preserved in the new Sy
 **Using the `--clean` flag:**
 To skip this behavior and generate a completely fresh System module without preserving old transitions, use the `--clean` or `-c` flag:
 
-**Command line:**
-
-```bash
-npx ts-node src/index.ts ./examples/edgeModel.txt --clean
-# or
-npx ts-node src/index.ts ./examples/edgeModel.txt -c
-```
-
 **Make targets:**
 
 ```bash
 make cli-clean  # Interactive CLI with --clean flag
 ```
+
+**Note:** The direct command-line `--clean` flag is not available. Use the interactive CLI for clean mode.
 
 This is useful when you want to start with a clean System module or when the old transitions are no longer relevant.
 
@@ -210,33 +276,33 @@ Use the provided Python script to visualize the collected metrics:
 **Display plots interactively:**
 
 ```bash
-python3 plot_metrics.py
+python3 experiments/plot_metrics.py
 ```
 
 **Save plots as PNG files:**
 
 ```bash
-python3 plot_metrics.py --save
+python3 experiments/plot_metrics.py --save
 ```
 
 **Save to a custom directory:**
 
 ```bash
-python3 plot_metrics.py --save --output-dir result_plots
+python3 experiments/plot_metrics.py --save --output-dir result_plots
 ```
 
 **View statistics:**
 
 ```bash
 # Display min/max statistics for all metrics
-python3 plot_metrics.py --stats
+python3 experiments/plot_metrics.py --stats
 
 # Display relationship statistics for total_nodes
-python3 plot_metrics.py --relationships
+python3 experiments/plot_metrics.py --relationships
 ```
 
 **Customize the plots:**
-You can modify `plot_metrics.py` to:
+You can modify `experiments/plot_metrics.py` to:
 
 - Add new metrics to visualize
 - Change plot types (scatter, line, bar, etc.)
@@ -263,7 +329,7 @@ exit
 cat metrics.csv
 
 # 6. Plot results
-python3 plot_metrics.py --save
+python3 experiments/plot_metrics.py --save
 ```
 
 ### Troubleshooting
@@ -283,7 +349,7 @@ python3 plot_metrics.py --save
 **Missing dependencies:**
 
 - The container should have all dependencies pre-installed
-- If issues occur, rebuild: `docker-compose -f docker-compose.storm.yml build experiment`
+- If issues occur, rebuild: `docker-compose -f experiments/docker-compose.storm.yml build experiment`
 
 ### Additional Resources
 

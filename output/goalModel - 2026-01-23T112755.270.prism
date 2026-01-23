@@ -1,0 +1,210 @@
+[
+  {
+    "executionDetail": null,
+    "id": "G1",
+    "name": "Emergency is detected",
+    "iStarId": "f86f961e-3866-4eef-b220-00be273f4e28",
+    "relationToChildren": "and",
+    "relationToParent": null,
+    "type": "goal",
+    "resources": [],
+    "children": [
+      {
+        "executionDetail": null,
+        "id": "G3",
+        "name": "Patient status is monitored",
+        "iStarId": "bc0563bd-1b58-41ac-adb1-0b49c76957e6",
+        "relationToChildren": "and",
+        "relationToParent": null,
+        "type": "goal",
+        "resources": [],
+        "children": [
+          {
+            "executionDetail": null,
+            "id": "G6",
+            "name": "Vital signs are monitored",
+            "iStarId": "3700ada8-0515-48f8-8bee-6c3854a93f3f",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "dependsOn": [],
+              "uniqueChoice": false,
+              "isQuality": false
+            },
+            "tasks": [
+              {
+                "executionDetail": null,
+                "id": "T2.1",
+                "name": "Track Patient Asleep",
+                "iStarId": "9f6700ae-c0d9-4389-8c52-e0210a91e241",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "NatLangDescription": "When the patient is sleeping, the BSN must keep track of the patient vital signs, despite potential patient’s discomfort while sleeping",
+                  "StartingState": "patientDiscomfort = 'low' ∨\npatientDiscomfort} = 'moderate' ∨ \npatientDiscomfort} = 'high'",
+                  "TriggeringEvent": "PatientAsleep",
+                  "TemporalQualification": "",
+                  "ResultingState": "TrackVitals = 'true'",
+                  "Fluent": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false,
+                  "isQuality": false
+                }
+              },
+              {
+                "executionDetail": null,
+                "id": "T2.4",
+                "name": "Track Patient Outdoors",
+                "iStarId": "3f1fa994-903b-488f-81f2-a81f1bd99710",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "AvoidEvent": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false,
+                  "isQuality": false
+                }
+              }
+            ],
+            "dependsOn": []
+          },
+          {
+            "executionDetail": null,
+            "id": "G7",
+            "name": "Vital signs are analyzed",
+            "iStarId": "f5337583-38cb-4378-b77a-22c25c00e3c2",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "dependsOn": [],
+              "uniqueChoice": false,
+              "isQuality": false
+            },
+            "tasks": [
+              {
+                "executionDetail": null,
+                "id": "T5.2",
+                "name": "Detect patient health status",
+                "iStarId": "cf30acfa-557b-4a41-a5da-df0d771d9829",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false,
+                  "isQuality": false
+                }
+              },
+              {
+                "executionDetail": null,
+                "id": "T5.1",
+                "name": "Process data",
+                "iStarId": "c3600bd1-6dd7-45d1-8c96-f7c70dbd6789",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false,
+                  "isQuality": false
+                }
+              }
+            ],
+            "dependsOn": []
+          },
+          {
+            "executionDetail": null,
+            "id": "G5",
+            "name": "Adjust users consent",
+            "iStarId": "ce17f8ca-e471-4a97-8ae7-6b2af3730b6e",
+            "relationToChildren": "and",
+            "relationToParent": null,
+            "type": "goal",
+            "resources": [],
+            "children": [],
+            "decisionVars": [],
+            "hasDecision": false,
+            "properties": {
+              "Description": "",
+              "dependsOn": [],
+              "uniqueChoice": false,
+              "isQuality": false
+            },
+            "tasks": [
+              {
+                "executionDetail": null,
+                "id": "T3",
+                "name": "Apply Consent Protocol",
+                "iStarId": "f1161501-8729-4943-b7fb-a6378f48920d",
+                "relationToChildren": "none",
+                "relationToParent": null,
+                "type": "task",
+                "resources": [],
+                "children": [],
+                "decisionVars": [],
+                "hasDecision": false,
+                "properties": {
+                  "Description": "",
+                  "dependsOn": [],
+                  "uniqueChoice": false,
+                  "isQuality": false
+                }
+              }
+            ],
+            "dependsOn": []
+          }
+        ],
+        "decisionVars": [],
+        "hasDecision": false,
+        "properties": {
+          "dependsOn": [],
+          "uniqueChoice": false,
+          "isQuality": false
+        },
+        "dependsOn": []
+      }
+    ],
+    "decisionVars": [],
+    "hasDecision": false,
+    "properties": {
+      "selected": "true",
+      "dependsOn": [],
+      "root": true,
+      "uniqueChoice": false,
+      "isQuality": false
+    },
+    "dependsOn": []
+  }
+]

@@ -1,64 +1,67 @@
 PATH  := /usr/local/bin/:node_modules/.bin/:/bin:/opt/homebrew/bin/:$(PATH)
 SHELL := /bin/bash
 
-node_modules: package.json
-	npm install
-	@rm -f node_modules/.modified
-	@touch -m node_modules/.modified
+.PHONY: all install grammar dev build test clean storm experiment run-experiment
 
+all: install grammar build
 
-grammarRT: src/antlr/RTRegexLexer.ts src/antlr/RTRegexListener.ts src/antlr/RTRegexParser.ts
+install:
+	pnpm install
 
-src/antlr/RTRegexLexer.ts src/antlr/RTRegexListener.ts src/antlr/RTRegexParser.ts: grammar/RTRegex.g4
-	antlr -Dlanguage=TypeScript grammar/RTRegex.g4 && mv grammar/*.ts src/antlr
+grammar:
+	cd packages/lib && make grammar
 
-grammarAssertion: src/antlr/AssertionRegexLexer.ts src/antlr/AssertionRegexListener.ts src/antlr/AssertionRegexParser.ts
+dev:
+	pnpm run dev
 
-src/antlr/AssertionRegexLexer.ts src/antlr/AssertionRegexListener.ts src/antlr/AssertionRegexParser.ts: grammar/AssertionRegex.g4
-	antlr -Dlanguage=TypeScript grammar/AssertionRegex.g4 && mv grammar/*.ts src/antlr
+build:
+	pnpm run build
 
-run: grammarRT grammarAssertion
-	@echo $(FILE)
-	npx ts-node src/index.ts "$(FILE)"
+build-lib:
+	pnpm run build:lib
 
-cli: grammarRT grammarAssertion
-	npx ts-node src/cli.ts
+build-ui:
+	pnpm run build:ui
 
-cli-clean: grammarRT grammarAssertion
-	npx ts-node src/cli.ts --clean
+test:
+	pnpm run test
 
-exec:
-	npx ts-node src/index.ts ./examples/edgeModel.txt 
+clean:
+	pnpm run clean
 
-generate: grammarRT grammarAssertion
+# CLI commands (for backwards compatibility)
+cli: grammar build-lib
+	cd packages/lib && node --experimental-strip-types src/cli.ts
+
+run: grammar build-lib
 	@if [ -z "$(FILE)" ]; then \
-		echo "Error: FILE variable is required. Usage: make generate FILE=examples/goalModel_TAS_3.txt"; \
+		echo "Error: FILE variable is required. Usage: make run FILE=examples/model.txt"; \
+		exit 1; \
+	fi
+	@echo "Processing $(FILE)..."
+	node packages/lib/out/index.js "$(FILE)"
+
+generate: grammar build-lib
+	@if [ -z "$(FILE)" ]; then \
+		echo "Error: FILE variable is required. Usage: make generate FILE=examples/model.txt"; \
 		exit 1; \
 	fi
 	@echo "Generating model from $(FILE)..."
-	npx ts-node src/index.ts "$(FILE)"
+	node packages/lib/out/index.js "$(FILE)"
 	@echo "✅ Model generated successfully!"
 
-generate-file: grammarRT grammarAssertion
-	@if [ -z "$(FILE)" ]; then \
-		echo "Error: FILE variable is required. Usage: make generate-file FILE=path/to/file.txt"; \
-		exit 1; \
-	fi
-	@echo "Generating model from $(FILE)..."
-	npx ts-node src/index.ts "$(FILE)"
-	@echo "✅ Model generated successfully!"
-
+# Experiment targets (updated paths)
 storm:
-	docker-compose -f docker-compose.storm.yml up -d
-	docker exec -it storm-container bash 
+	docker-compose -f experiments/docker-compose.storm.yml up -d
+	docker exec -it storm-container bash
 
 experiment:
-	docker-compose -f docker-compose.storm.yml build experiment
-	docker-compose -f docker-compose.storm.yml up -d experiment
+	docker-compose -f experiments/docker-compose.storm.yml build experiment
+	docker-compose -f experiments/docker-compose.storm.yml up -d experiment
 	docker exec -it experiment-container bash
 
 run-experiment:
 	@echo "Running experiment..."
-	@./generate.sh
-	@./check_properties.sh --storm
-	@./extract_metrics.sh
+	@cd experiments && ./generate.sh
+	@cd experiments && ./check_properties.sh --storm
+	@cd experiments && ./extract_metrics.sh

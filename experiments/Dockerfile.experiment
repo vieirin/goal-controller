@@ -1,0 +1,46 @@
+# Dockerfile for Storm model checker
+# Uses the official Storm image and keeps container running
+FROM movesrwth/storm:stable
+
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip curl build-essential antlr4
+RUN ln -sf /usr/local/bin/antlr4 /usr/local/bin/antlr
+
+# Set working directory
+WORKDIR /workspace
+
+# Install Node.js 22.6.0 directly from official binaries
+# Detect architecture and download appropriate binary
+RUN NODE_VERSION=22.6.0 && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        NODE_ARCH="arm64"; \
+    else \
+        NODE_ARCH="x64"; \
+    fi && \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" -o node.tar.xz && \
+    tar -xJf node.tar.xz -C /usr/local --strip-components=1 && \
+    rm node.tar.xz
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml ./
+COPY packages/lib ./packages/lib
+COPY examples ./examples
+COPY experiments ./experiments
+
+# Clean node_modules
+RUN rm -rf node_modules packages/*/node_modules
+
+# Install dependencies and build
+RUN pnpm install
+RUN cd packages/lib && make grammar
+RUN pnpm run build:lib
+
+# Setup Python environment
+RUN . venv/bin/activate 2>/dev/null || true
+
+# Keep container running forever
+CMD ["tail", "-f", "/dev/null"]
