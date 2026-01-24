@@ -19,10 +19,10 @@ const fluentOperations = [
 
 export type MeasureType = 'boolean' | 'scale';
 
-export interface Measure {
+export type Measure = {
   name: string;
   type: MeasureType;
-}
+};
 
 /**
  * Extracts measures (variables) from task conditions.
@@ -109,7 +109,7 @@ const extractFluentNames = (tasks: GoalNode[]): string[] =>
 const extractAvoidEvents = (tasks: GoalNode[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => task.properties.AvoidEvent)
+      .map((task) => `Achieved${task.properties.AvoidEvent}`)
       .filter((event): event is string => !!event),
   );
 

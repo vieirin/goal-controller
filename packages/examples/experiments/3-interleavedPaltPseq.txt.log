@@ -690,7 +690,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/3-interleavedPaltPseq.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 54ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 8
 [TOTAL TASKS] 8

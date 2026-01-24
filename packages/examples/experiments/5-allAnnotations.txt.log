@@ -1403,7 +1403,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/5-allAnnotations.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 130ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 18
 [TOTAL TASKS] 14
