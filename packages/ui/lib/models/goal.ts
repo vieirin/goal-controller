@@ -1,8 +1,8 @@
 import {
-    convertToTree,
-    validateModel,
-    type GoalTree,
-    type Model,
+  convertToTree,
+  validateModel,
+  type GoalTree,
+  type Model,
 } from '@goal-controller/lib';
 
 export interface ParseResult {
@@ -91,4 +91,3 @@ export const GoalModel = {
     }
   },
 };
-

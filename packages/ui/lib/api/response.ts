@@ -36,9 +36,11 @@ export const ApiResponse = {
       {
         success: false,
         error: message,
-        ...(details && process.env.NODE_ENV === 'development' ? { details } : {}),
+        ...(details && process.env.NODE_ENV === 'development'
+          ? { details }
+          : {}),
       },
-      { status }
+      { status },
     );
   },
 
@@ -77,8 +79,7 @@ export const ApiResponse = {
     return this.error(
       this.extractMessage(error),
       status,
-      this.extractDetails(error)
+      this.extractDetails(error),
     );
   },
 };
-
