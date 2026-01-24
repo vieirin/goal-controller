@@ -251,7 +251,7 @@
 [INIT SYSTEM MODULE]
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/1-minimal.txt
-[ELAPSED TIME] 1ms
+[ELAPSED TIME] 2ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 3
 [TOTAL TASKS] 3

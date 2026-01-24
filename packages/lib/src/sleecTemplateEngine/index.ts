@@ -207,7 +207,7 @@ rule_end`;
 };
 
 function generateAvoidEventsRules(task: GoalNode): string {
-  return `Rule${renameTaskId(task.id)}_4 when ${task.properties.AvoidEvent} then not ${taskFluentName(task, 'Pursuing')}`;
+  return `Rule${renameTaskId(task.id)}_4 when Achieved${task.properties.AvoidEvent} then not ${taskFluentName(task, 'Pursuing')}`;
 }
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {
