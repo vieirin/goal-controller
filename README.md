@@ -13,11 +13,26 @@ This repository is organized as a pnpm monorepo with the following structure:
 goal-controller/
 ├── packages/
 │   ├── lib/          # Core transformation engines (PRISM/SLEEC) + CLI tools
+│   │   ├── src/
+│   │   │   ├── templateEngine/        # PRISM model generator
+│   │   │   ├── sleecTemplateEngine/   # SLEEC specification generator
+│   │   │   │   └── README.md          # SLEEC engine architecture & documentation
+│   │   │   ├── GoalTree/              # Goal model data structures
+│   │   │   └── prismValidator/        # PRISM model validation
+│   │   └── out/      # Compiled JavaScript
 │   └── ui/           # Next.js web application for transformations
 ├── examples/         # Example goal models
 ├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
 └── output/          # Generated PRISM/SLEEC models
 ```
+
+### Template Engines
+
+This repository includes two template engines for transforming goal models:
+
+1. **PRISM Template Engine** (`packages/lib/src/templateEngine/`) - Generates PRISM models for probabilistic verification
+2. **SLEEC Template Engine** (`packages/lib/src/sleecTemplateEngine/`) - Generates SLEEC specifications for runtime monitoring
+   - See [SLEEC Engine Documentation](packages/lib/src/sleecTemplateEngine/README.md) for architecture and implementation details
 
 ### Quick Start
 
