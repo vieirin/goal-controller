@@ -154,7 +154,7 @@ const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
     tasks
       .filter((task) => task.name)
       .flatMap((task) =>
-        fluentOperations.map((op) => `${op}${task.name?.replace(' ', '')}`),
+        fluentOperations.map((op) => taskFluentName(task, op)),
       ),
   );
 
