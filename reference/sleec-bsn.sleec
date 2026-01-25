@@ -1,0 +1,106 @@
+def_start
+    event DataCollected
+    event MeetingUser
+    event ObtainRiskLevel
+    event PatientAsleep
+    event PatientOutdoors
+    event UserWantsToUpdateConsent
+
+    event StartApplyConsentProtocol
+    event PursuingApplyConsentProtocol
+    event AchievedApplyConsentProtocol
+    event ReportFailureApplyConsentProtocol
+
+    event StartDetectPatientHealthStatus
+    event PursuingDetectPatientHealthStatus
+    event AchievedDetectPatientHealthStatus
+    event ReportFailureDetectPatientHealthStatus
+
+    event StartInformPurposeAndProtocol
+    event PursuingInformPurposeAndProtocol
+    event AchievedInformPurposeAndProtocol
+    event ReportFailureInformPurposeAndProtocol
+
+    event StartObtainConsentFullTracking
+    event PursuingObtainConsentFullTracking
+    event AchievedObtainConsentFullTracking
+    event ReportFailureObtainConsentFullTracking
+
+    event StartObtainConsentPartialTracking
+    event PursuingObtainConsentPartialTracking
+    event AchievedObtainConsentPartialTracking
+    event ReportFailureObtainConsentPartialTracking
+
+    event StartProcessData
+    event PursuingProcessData
+    event AchievedProcessData
+    event ReportFailureProcessData
+
+    event StartTrackVitals
+    event PursuingTrackVitals
+    event AchievedTrackVitals
+    event ReportFailureTrackVitals
+
+    event StartTrackVitalsOutdoors
+    event PursuingTrackVitalsOutdoors
+    event AchievedTrackVitalsOutdoors
+    event ReportFailureTrackVitalsOutdoors
+
+    event Achievedundefined
+
+    measure dataAnalyzed: boolean
+    measure dataProcessed: boolean
+    measure patientCanRevokeAuthorizations: boolean
+    measure patientConsentsFullTracking: boolean
+    measure patientConsentsPartialTracking: boolean
+    measure patientDiscomfort: scale(d_low, d_moderate, d_high)
+    measure patientIsHome: boolean
+    measure profileAdaptedToPartialTracking: boolean
+    measure purposeProtocolInformed: boolean
+    measure riskLevel: scale(r_low, r_moderate, r_high)
+    measure userConsentsPartialTracking: boolean
+    measure vitalsSignsCollected: boolean
+def_end
+
+rule_start
+      
+      RuleT1_1 when MeetingUser and (not {purposeProtocolInformed}) then StartInformPurposeAndProtocol
+      RuleT1_2 when StartInformPurposeAndProtocol then PursuingInformPurposeAndProtocol within 120 seconds
+      RuleT1_3 when PursuingInformPurposeAndProtocol and {purposeProtocolInformed} then AchievedInformPurposeAndProtocol unless (not {purposeProtocolInformed}) then ReportFailureInformPurposeAndProtocol 
+      
+
+      RuleT2_1 when MeetingUser and {purposeProtocolInformed} then StartObtainConsentFullTracking
+      RuleT2_2 when StartObtainConsentFullTracking then PursuingObtainConsentFullTracking within 180 seconds
+      RuleT2_3 when PursuingObtainConsentFullTracking and {patientConsentsFullTracking} then AchievedObtainConsentFullTracking unless (not {patientConsentsFullTracking}) then ReportFailureObtainConsentFullTracking 
+      
+
+      RuleT3_1 when UserWantsToUpdateConsent and ({patientCanRevokeAuthorizations} and ({riskLevel} = r_low)) then StartObtainConsentPartialTracking
+      RuleT3_2 when StartObtainConsentPartialTracking then PursuingObtainConsentPartialTracking within 180 seconds
+      RuleT3_3 when PursuingObtainConsentPartialTracking and {patientConsentsPartialTracking} then AchievedObtainConsentPartialTracking unless (not {patientConsentsPartialTracking}) then ReportFailureObtainConsentPartialTracking 
+      
+
+      RuleT4_1 when AchievedObtainConsentPartialTracking and {userConsentsPartialTracking} then StartApplyConsentProtocol
+      RuleT4_2 when StartApplyConsentProtocol then PursuingApplyConsentProtocol within 240 seconds
+      RuleT4_3 when PursuingApplyConsentProtocol and {profileAdaptedToPartialTracking} then AchievedApplyConsentProtocol unless (not {profileAdaptedToPartialTracking}) then ReportFailureApplyConsentProtocol 
+      
+
+      RuleT5_1 when PatientAsleep and ((({patientDiscomfort} = d_low) or ({patientDiscomfort} = d_moderate)) or ({patientDiscomfort} = d_high)) then StartTrackVitals
+      RuleT5_2 when StartTrackVitals then PursuingTrackVitals within 300 seconds
+      RuleT5_3 when PursuingTrackVitals and {vitalsSignsCollected} then AchievedTrackVitals unless (not {vitalsSignsCollected}) then ReportFailureTrackVitals 
+      
+
+      RuleT6_1 when PatientOutdoors and ({patientConsentsFullTracking} and (not {patientIsHome})) then StartTrackVitalsOutdoors
+      RuleT6_2 when StartTrackVitalsOutdoors then PursuingTrackVitalsOutdoors within 300 seconds
+      RuleT6_3 when PursuingTrackVitalsOutdoors and {vitalsSignsCollected} then AchievedTrackVitalsOutdoors unless (not {vitalsSignsCollected}) then ReportFailureTrackVitalsOutdoors 
+      RuleT6_4 when AchievedObtainConsentPartialTracking then not PursuingTrackVitalsOutdoors
+
+      RuleT7_1 when DataCollected and {vitalsSignsCollected} then StartProcessData
+      RuleT7_2 when StartProcessData then PursuingProcessData within 60 seconds
+      RuleT7_3 when PursuingProcessData and {dataProcessed} then AchievedProcessData unless (not {dataProcessed}) then ReportFailureProcessData 
+      
+
+      RuleT8_1 when ObtainRiskLevel and {dataProcessed} then StartDetectPatientHealthStatus
+      RuleT8_2 when StartDetectPatientHealthStatus then PursuingDetectPatientHealthStatus within 30 seconds
+      RuleT8_3 when PursuingDetectPatientHealthStatus and {dataAnalyzed} then AchievedDetectPatientHealthStatus unless (not {dataAnalyzed}) then ReportFailureDetectPatientHealthStatus 
+      
+rule_end

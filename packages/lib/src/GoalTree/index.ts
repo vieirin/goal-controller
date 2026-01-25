@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import type { Model } from './types';
 
-export const validateModel = ({ model }: { model: Model }) => {
+export const validateModel = ({ model }: { model: Model }): void => {
   const root = model.actors
     .map((item) =>
       // check in node list if there are more than one root

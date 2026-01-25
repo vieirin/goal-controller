@@ -7,7 +7,7 @@ const taskFluentName = (
   task: GoalNode,
   op: 'Start' | 'Pursuing' | 'Achieved' | 'ReportFailure',
 ) => {
-  return `${op}${task.properties.FluentName}`;
+  return `${op}${task.name?.replace(' ', '')}`;
 };
 
 const fluentOperations = [
@@ -22,6 +22,53 @@ export type MeasureType = 'boolean' | 'scale';
 export type Measure = {
   name: string;
   type: MeasureType;
+  scaleValues?: string[];
+};
+
+/**
+ * Sorts scale values semantically based on common patterns (low → moderate → high).
+ * Detects patterns like: *_low/*_moderate/*_high, *_min/*_med/*_max, *_l/*_m/*_h.
+ * Falls back to alphabetical sort if no pattern is detected.
+ */
+const semanticSortScaleValues = (values: string[]): string[] => {
+  // Define tier patterns (in order: low, medium, high)
+  const lowPatterns = ['low', 'l', 'min', 'minimum', 'small', 'weak'];
+  const mediumPatterns = [
+    'moderate',
+    'med',
+    'medium',
+    'm',
+    'normal',
+    'average',
+  ];
+  const highPatterns = ['high', 'h', 'max', 'maximum', 'large', 'strong'];
+
+  // Extract suffix after last underscore or match entire lowercase value
+  const getSuffix = (value: string): string => {
+    const parts = value.toLowerCase().split('_');
+    return parts[parts.length - 1] || '';
+  };
+
+  // Determine tier of a value (0=low, 1=medium, 2=high, -1=unknown)
+  const getTier = (value: string): number => {
+    const suffix = getSuffix(value);
+    if (lowPatterns.includes(suffix)) return 0;
+    if (mediumPatterns.includes(suffix)) return 1;
+    if (highPatterns.includes(suffix)) return 2;
+    return -1;
+  };
+
+  // Check if all values have recognized tiers
+  const tiers = values.map((v) => getTier(v));
+  const hasUnknownTier = tiers.includes(-1);
+
+  if (hasUnknownTier) {
+    // Fall back to alphabetical sort
+    return [...values].sort();
+  }
+
+  // Sort by tier (semantic ordering)
+  return [...values].sort((a, b) => getTier(a) - getTier(b));
 };
 
 /**
@@ -31,6 +78,7 @@ export type Measure = {
  */
 export const extractMeasures = (tasks: GoalNode[]): Measure[] => {
   const measures = new Map<string, MeasureType>();
+  const scaleValuesMap = new Map<string, Set<string>>();
 
   // Regex to find variables in {variableName} format
   const variableRegex = /\{(\w+)\}/g;
@@ -44,12 +92,17 @@ export const extractMeasures = (tasks: GoalNode[]): Measure[] => {
     ].filter(Boolean) as string[];
 
     for (const condition of conditions) {
-      // First, find all scale variables (those with = value)
+      // First, find all scale variables (those with = value) and collect their values
       let scaleMatch;
       while ((scaleMatch = scaleRegex.exec(condition)) !== null) {
         const varName = scaleMatch[1];
-        if (varName) {
+        const value = scaleMatch[2];
+        if (varName && value) {
           measures.set(varName, 'scale');
+          if (!scaleValuesMap.has(varName)) {
+            scaleValuesMap.set(varName, new Set());
+          }
+          scaleValuesMap.get(varName)?.add(value);
         }
       }
 
@@ -66,7 +119,20 @@ export const extractMeasures = (tasks: GoalNode[]): Measure[] => {
 
   // Convert to array and sort
   return Array.from(measures.entries())
-    .map(([name, type]) => ({ name, type }))
+    .map(([name, type]) => {
+      if (type === 'scale') {
+        const values = scaleValuesMap.get(name);
+        if (!values || values.size === 0) {
+          throw new Error(
+            `Scale measure "${name}" was detected but no values could be extracted. ` +
+              `Ensure scale variables are used with format: {${name}} = value`,
+          );
+        }
+        const sortedValues = semanticSortScaleValues(Array.from(values));
+        return { name, type, scaleValues: sortedValues };
+      }
+      return { name, type };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 };
 
@@ -86,9 +152,9 @@ const extractTriggeringEvents = (tasks: GoalNode[]): Set<string> =>
 const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
   new Set(
     tasks
-      .filter((task) => task.properties.FluentName)
+      .filter((task) => task.name)
       .flatMap((task) =>
-        fluentOperations.map((op) => `${op}${task.properties.FluentName}`),
+        fluentOperations.map((op) => taskFluentName(task, op)),
       ),
   );
 
@@ -97,26 +163,26 @@ const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
  */
 const extractFluentNames = (tasks: GoalNode[]): string[] =>
   tasks
-    .map((task) => task.properties.FluentName)
+    .map((task) => task.name?.replace(' ', ''))
     .filter((name): name is string => !!name)
     .filter((name, index, self) => self.indexOf(name) === index)
     .sort();
 
 /**
- * Extracts events that other tasks avoid (from AvoidEvent property)
- * The AvoidEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
+ * Extracts events that other tasks avoid (from ObstacleEvent property)
+ * The ObstacleEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
  */
-const extractAvoidEvents = (tasks: GoalNode[]): Set<string> =>
+const extractObstacleEvents = (tasks: GoalNode[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => `Achieved${task.properties.AvoidEvent}`)
+      .map((task) => `Achieved${task.properties.ObstacleEvent}`)
       .filter((event): event is string => !!event),
   );
 
 const eventLine = (event: string): string => `    event ${event}`;
 const measureLine = (measure: Measure): string =>
-  measure.type === 'scale'
-    ? `    measure ${measure.name}: scale(low, moderate, high)`
+  measure.type === 'scale' && measure.scaleValues
+    ? `    measure ${measure.name}: scale(${measure.scaleValues.join(', ')})`
     : `    measure ${measure.name}: boolean`;
 
 /**
@@ -125,7 +191,7 @@ const measureLine = (measure: Measure): string =>
 const generateDefinitions = (tasks: GoalNode[]): string => {
   const triggeringEvents = extractTriggeringEvents(tasks);
   const fluentEvents = extractFluentEvents(tasks);
-  const avoidEvents = extractAvoidEvents(tasks);
+  const ObstacleEvents = extractObstacleEvents(tasks);
   const fluentNames = extractFluentNames(tasks);
   const measures = extractMeasures(tasks);
 
@@ -142,7 +208,7 @@ const generateDefinitions = (tasks: GoalNode[]): string => {
   ]);
 
   // Avoid events not covered by fluent events
-  const additionalAvoidEventLines = Array.from(avoidEvents)
+  const additionalObstacleEventLines = Array.from(ObstacleEvents)
     .filter((event) => !fluentEvents.has(event))
     .sort()
     .map(eventLine);
@@ -154,7 +220,7 @@ const generateDefinitions = (tasks: GoalNode[]): string => {
   const sections = [
     externalEventLines,
     fluentEventLines,
-    additionalAvoidEventLines,
+    additionalObstacleEventLines,
     measureLines,
   ].filter((section) => section.length > 0);
 
@@ -176,7 +242,7 @@ def_end`;
 };
 
 const generateTaskRules = (tasks: GoalNode[]): string => {
-  const hasAvoidEvents = (task: GoalNode) => !!task.properties.AvoidEvent;
+  const hasObstacleEvents = (task: GoalNode) => !!task.properties.ObstacleEvent;
   return `rule_start
       ${tasks
         .map((task) => {
@@ -200,14 +266,14 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
         task,
         'ReportFailure',
       )} 
-      ${hasAvoidEvents(task) ? generateAvoidEventsRules(task) : ''}`;
+      ${hasObstacleEvents(task) ? generateObstacleEventsRules(task) : ''}`;
         })
         .join('\n')}
 rule_end`;
 };
 
-function generateAvoidEventsRules(task: GoalNode): string {
-  return `Rule${renameTaskId(task.id)}_4 when Achieved${task.properties.AvoidEvent} then not ${taskFluentName(task, 'Pursuing')}`;
+function generateObstacleEventsRules(task: GoalNode): string {
+  return `Rule${renameTaskId(task.id)}_Obstacle when Achieved${task.properties.ObstacleEvent} then not ${taskFluentName(task, 'Pursuing')}`;
 }
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {

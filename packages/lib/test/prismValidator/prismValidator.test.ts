@@ -29,8 +29,8 @@ describe('PRISM Validator - Experiment Examples', () => {
         const model = loadPistarModel({ filename: inputFile });
         const tree = convertToTree({ model });
 
-        // Generate PRISM model
-        const logger = initLogger(inputFile);
+        // Generate PRISM model (use in-memory logging to avoid creating .log files)
+        const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree,
           fileName: inputFile,
@@ -143,8 +143,8 @@ describe('PRISM Validator - Experiment Examples', () => {
         const model = loadPistarModel({ filename: inputFile });
         const tree = convertToTree({ model });
 
-        // Generate PRISM model
-        const logger = initLogger(inputFile);
+        // Generate PRISM model (use in-memory logging to avoid creating .log files)
+        const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree,
           fileName: inputFile,
@@ -173,8 +173,8 @@ describe('PRISM Validator - Experiment Examples', () => {
         const model = loadPistarModel({ filename: inputFile });
         const tree = convertToTree({ model });
 
-        // Generate PRISM model
-        const logger = initLogger(inputFile);
+        // Generate PRISM model (use in-memory logging to avoid creating .log files)
+        const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree,
           fileName: inputFile,

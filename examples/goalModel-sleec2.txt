@@ -11,15 +11,13 @@
           "id": "f86f961e-3866-4eef-b220-00be273f4e28",
           "text": "G1: Emergency Detected",
           "type": "istar.Goal",
-          "x": 498,
-          "y": 62,
-          "customProperties": {
-            "selected": "true"
-          }
+          "x": 492,
+          "y": 60,
+          "customProperties": {}
         },
         {
           "id": "bc0563bd-1b58-41ac-adb1-0b49c76957e6",
-          "text": "G2: Patient status is Monitored",
+          "text": "G2: Patient Status Monitored",
           "type": "istar.Goal",
           "x": 485,
           "y": 121
@@ -39,10 +37,10 @@
           "y": 254,
           "customProperties": {
             "Description": "When the patient is sleeping, the BSN must keep track of the patient vital signs, despite potential patient’s discomfort while sleeping",
-            "PreCond": "((({patientDiscomfort} = low) or ({patientDiscomfort} = moderate) or ({patientDiscomfort} = high))",
+            "PreCond": "((({patientDiscomfort} = d_low) or ({patientDiscomfort} = d_moderate)) or ({patientDiscomfort} = d_high))",
             "TriggeringEvent": "PatientAsleep",
             "TemporalConstraint": "300 seconds",
-            "PostCond": "{dataCollected}",
+            "PostCond": "{vitalsSignsCollected}",
             "FluentName": "TrackVitals"
           }
         },
@@ -79,11 +77,11 @@
           "y": 256,
           "customProperties": {
             "Description": "When the patient is outdoors, the vital signs should be monitored",
-            "PreCond": "(({userConsentsFullVitalsTracking} and (not {patientIsHome}))",
+            "PreCond": "({patientConsentsFullTracking} and (not {patientIsHome}))",
             "TriggeringEvent": "PatientOutdoors",
             "TemporalConstraint": "300 seconds",
-            "PostCond": "{dataCollected}",
-            "ObstacleEvent": "AchievedObtainConsentPartialTracking",
+            "PostCond": "{vitalsSignsCollected}",
+            "ObstacleEvent": "ObtainConsentPartialTracking",
             "FluentName": "TrackVitalsOutdoors"
           }
         },
@@ -99,46 +97,46 @@
         },
         {
           "id": "f1161501-8729-4943-b7fb-a6378f48920d",
-          "text": "T4: Apply Consent Protocol",
+          "text": "T4: Apply Consent Partial Tracking Protocol ",
           "type": "istar.Task",
-          "x": 397,
-          "y": 253,
+          "x": 388,
+          "y": 252,
           "customProperties": {
             "Description": "Ask the user for their consent prior to fitting BSN",
-            "PreCond": "{userConsentsPartialVitalsTracking}",
+            "PreCond": "{userConsentsPartialTracking}",
             "TriggeringEvent": "AchievedObtainConsentPartialTracking",
             "TemporalConstraint": "240 seconds",
-            "PostCond": "{profileAdapted}",
+            "PostCond": "{profileAdaptedToPartialTracking}",
             "FluentName": "ApplyConsentProtocol"
           }
         },
         {
           "id": "b01cf2cc-1357-47e0-bdc4-d41ca5d126e8",
-          "text": "T2: Consent Full Vitals Tracking",
+          "text": "T2: Obtain Consent Full Tracking",
           "type": "istar.Task",
-          "x": 204,
-          "y": 365,
+          "x": 212,
+          "y": 363,
           "customProperties": {
             "Description": "In first interaction with the user, get informed consent for collecting, recording, and sending their information to other parties.",
             "PreCond": "{purposeProtocolInformed}",
             "TriggeringEvent": "MeetingUser",
             "TemporalConstraint": "180 seconds",
-            "PostCond": "{userConsentsFullVitalsTracking}",
+            "PostCond": "{patientConsentsFullTracking}",
             "FluentName": "ObtainConsentFullTracking"
           }
         },
         {
           "id": "de5fe2b4-2f9f-46c3-bfff-0e7110b22acc",
-          "text": "T3: Consent Partial Vitals Tracking",
+          "text": "T3: Obtain Consent Partial Tracking",
           "type": "istar.Task",
-          "x": 360,
+          "x": 351,
           "y": 366,
           "customProperties": {
             "Description": "In first interaction with the user, get informed consent for collecting, recording, and sending their information to other parties.",
-            "PreCond": "({patientCanModifyOrRevokeAuthorizations} and ({riskLevel} = low))",
+            "PreCond": "({patientCanRevokeAuthorizations} and ({riskLevel} = r_low))",
             "TriggeringEvent": "UserWantsToUpdateConsent",
             "TemporalConstraint": "180 seconds",
-            "PostCond": "{userConsentsPartialVitalsTracking}",
+            "PostCond": "{patientConsentsPartialTracking}",
             "FluentName": "ObtainConsentPartialTracking"
           }
         },
@@ -150,7 +148,7 @@
           "y": 254,
           "customProperties": {
             "Description": "If the data is collected, it should be processed",
-            "PreCond": "{dataSaved}",
+            "PreCond": "{vitalsSignsCollected}",
             "TriggeringEvent": "DataCollected",
             "TemporalConstraint": "60 seconds",
             "PostCond": "{dataProcessed}",
@@ -185,20 +183,20 @@
         },
         {
           "id": "761fcd8c-ce84-49e7-b7df-e384688bb58e",
-          "text": "G4: Obtain Consent",
+          "text": "G4: Profile Consent",
           "type": "istar.Goal",
-          "x": 318,
-          "y": 302,
+          "x": 314,
+          "y": 313,
           "customProperties": {
             "Description": ""
           }
         },
         {
           "id": "d7c6feb3-c7ee-471f-a0b8-8a5ab2190cf6",
-          "text": "G4: Request Consent",
+          "text": "G4: VitalSignsConsent",
           "type": "istar.Goal",
           "x": 264,
-          "y": 246,
+          "y": 247,
           "customProperties": {
             "Description": ""
           }
@@ -301,6 +299,10 @@
     }
   ],
   "display": {
+    "f86f961e-3866-4eef-b220-00be273f4e28": {
+      "width": 97.86363220214844,
+      "height": 37.05681610107422
+    },
     "bc0563bd-1b58-41ac-adb1-0b49c76957e6": {
       "width": 115.38888549804688,
       "height": 35.47222137451172
@@ -331,18 +333,18 @@
     },
     "f1161501-8729-4943-b7fb-a6378f48920d": {
       "backgroundColor": "#E7E7E7",
-      "width": 123.25,
-      "height": 35.025001525878906
+      "width": 134.86363220214844,
+      "height": 40.05681610107422
     },
     "b01cf2cc-1357-47e0-bdc4-d41ca5d126e8": {
       "backgroundColor": "#E7E7E7",
-      "width": 111.640625,
-      "height": 41.53125
+      "width": 132.86363220214844,
+      "height": 39.05681610107422
     },
     "de5fe2b4-2f9f-46c3-bfff-0e7110b22acc": {
       "backgroundColor": "#E7E7E7",
-      "width": 113.640625,
-      "height": 41.53125
+      "width": 127.86363220214844,
+      "height": 38.05681610107422
     },
     "c3600bd1-6dd7-45d1-8c96-f7c70dbd6789": {
       "backgroundColor": "#E7E7E7",
@@ -360,11 +362,19 @@
     },
     "d7c6feb3-c7ee-471f-a0b8-8a5ab2190cf6": {
       "backgroundColor": "#FFE2D0"
+    },
+    "ed7ec6c9-c600-4f8d-b20a-bb947faf647d": {
+      "vertices": [
+        {
+          "x": 303,
+          "y": 247
+        }
+      ]
     }
   },
   "tool": "dsm3-goals",
   "metamodelVersion": "1.0",
-  "saveDate": "Fri, 23 Jan 2026 22:56:06 GMT",
+  "saveDate": "Sun, 25 Jan 2026 14:21:11 GMT",
   "diagram": {
     "width": 3669.5,
     "height": 2272,

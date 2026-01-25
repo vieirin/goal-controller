@@ -71,10 +71,19 @@ describe('sleecTemplateEngine', () => {
 
       const measures = extractMeasures(tasks);
 
-      assert.ok(
-        measures.find((m) => m.name === 'riskLevel' && m.type === 'scale'),
-        'riskLevel should be detected as scale',
+      const riskLevel = measures.find((m) => m.name === 'riskLevel');
+      assert.ok(riskLevel, 'riskLevel should be found');
+      assert.strictEqual(
+        riskLevel.type,
+        'scale',
+        'riskLevel should be scale type',
       );
+      assert.deepStrictEqual(
+        riskLevel.scaleValues,
+        ['low'],
+        'riskLevel should have scaleValues: ["low"]',
+      );
+
       assert.ok(
         measures.find(
           (m) =>
@@ -97,12 +106,21 @@ describe('sleecTemplateEngine', () => {
 
       const measures = extractMeasures(tasks);
 
-      assert.ok(
-        measures.find(
-          (m) => m.name === 'patientDiscomfort' && m.type === 'scale',
-        ),
-        'patientDiscomfort should be detected as scale',
+      const patientDiscomfort = measures.find(
+        (m) => m.name === 'patientDiscomfort',
       );
+      assert.ok(patientDiscomfort, 'patientDiscomfort should be found');
+      assert.strictEqual(
+        patientDiscomfort.type,
+        'scale',
+        'patientDiscomfort should be scale type',
+      );
+      assert.deepStrictEqual(
+        patientDiscomfort.scaleValues,
+        ['low', 'moderate', 'high'],
+        'patientDiscomfort should have semantically ordered scaleValues',
+      );
+
       assert.ok(
         measures.find(
           (m) => m.name === 'vitalSignsCollected' && m.type === 'boolean',
@@ -192,13 +210,28 @@ describe('sleecTemplateEngine', () => {
         2,
         'Should have 2 scale measures',
       );
-      assert.ok(
-        scaleMeasures.find((m) => m.name === 'patientDiscomfort'),
-        'patientDiscomfort should be a scale measure',
+
+      const patientDiscomfort = scaleMeasures.find(
+        (m) => m.name === 'patientDiscomfort',
       );
       assert.ok(
-        scaleMeasures.find((m) => m.name === 'riskLevel'),
-        'riskLevel should be a scale measure',
+        patientDiscomfort,
+        'patientDiscomfort should be a scale measure',
+      );
+      // Note: In the actual BSN model, patientDiscomfort uses d_low, d_moderate, d_high
+      // but this test uses the simple low, moderate, high values
+      assert.deepStrictEqual(
+        patientDiscomfort.scaleValues,
+        ['low', 'moderate', 'high'],
+        'patientDiscomfort should have semantically ordered values',
+      );
+
+      const riskLevel = scaleMeasures.find((m) => m.name === 'riskLevel');
+      assert.ok(riskLevel, 'riskLevel should be a scale measure');
+      assert.deepStrictEqual(
+        riskLevel.scaleValues,
+        ['low'],
+        'riskLevel should have scaleValues: ["low"]',
       );
 
       // Boolean measures (9)
@@ -276,9 +309,114 @@ describe('sleecTemplateEngine', () => {
 
       const measures = extractMeasures(tasks);
 
-      assert.ok(
-        measures.find((m) => m.name === 'mixedVar' && m.type === 'scale'),
+      const mixedVar = measures.find((m) => m.name === 'mixedVar');
+      assert.ok(mixedVar, 'mixedVar should be found');
+      assert.strictEqual(
+        mixedVar.type,
+        'scale',
         'mixedVar should be detected as scale when used with = anywhere',
+      );
+      assert.deepStrictEqual(
+        mixedVar.scaleValues,
+        ['high'],
+        'mixedVar should have scaleValues: ["high"]',
+      );
+    });
+
+    it('should semantically order scale values with prefixes: d_low, d_moderate, d_high', () => {
+      // Actual BSN model uses prefixed values: d_low, d_moderate, d_high
+      const tasks = [
+        createTaskNode(
+          'T5',
+          '((({patientDiscomfort} = d_high) or ({patientDiscomfort} = d_low)) or ({patientDiscomfort} = d_moderate))',
+          '{vitalSignsCollected}',
+        ),
+      ];
+
+      const measures = extractMeasures(tasks);
+
+      const patientDiscomfort = measures.find(
+        (m) => m.name === 'patientDiscomfort',
+      );
+      assert.ok(patientDiscomfort, 'patientDiscomfort should be found');
+      assert.strictEqual(patientDiscomfort.type, 'scale');
+      assert.deepStrictEqual(
+        patientDiscomfort.scaleValues,
+        ['d_low', 'd_moderate', 'd_high'],
+        'Values should be semantically ordered despite input order',
+      );
+    });
+
+    it('should semantically order scale values with different prefixes: r_low, r_moderate, r_high', () => {
+      const tasks = [
+        createTaskNode('T1', '({riskLevel} = r_high)', undefined),
+        createTaskNode('T2', '({riskLevel} = r_low)', undefined),
+        createTaskNode('T3', '({riskLevel} = r_moderate)', undefined),
+      ];
+
+      const measures = extractMeasures(tasks);
+
+      const riskLevel = measures.find((m) => m.name === 'riskLevel');
+      assert.ok(riskLevel, 'riskLevel should be found');
+      assert.strictEqual(riskLevel.type, 'scale');
+      assert.deepStrictEqual(
+        riskLevel.scaleValues,
+        ['r_low', 'r_moderate', 'r_high'],
+        'Values should be semantically ordered',
+      );
+    });
+
+    it('should handle scale values with min/med/max pattern', () => {
+      const tasks = [
+        createTaskNode('T1', '({priority} = max)', undefined),
+        createTaskNode('T2', '({priority} = min)', undefined),
+        createTaskNode('T3', '({priority} = med)', undefined),
+      ];
+
+      const measures = extractMeasures(tasks);
+
+      const priority = measures.find((m) => m.name === 'priority');
+      assert.ok(priority, 'priority should be found');
+      assert.deepStrictEqual(
+        priority.scaleValues,
+        ['min', 'med', 'max'],
+        'Values should be semantically ordered',
+      );
+    });
+
+    it('should fallback to alphabetical sort when no semantic pattern detected', () => {
+      const tasks = [
+        createTaskNode('T1', '({status} = zebra)', undefined),
+        createTaskNode('T2', '({status} = apple)', undefined),
+        createTaskNode('T3', '({status} = mango)', undefined),
+      ];
+
+      const measures = extractMeasures(tasks);
+
+      const status = measures.find((m) => m.name === 'status');
+      assert.ok(status, 'status should be found');
+      assert.deepStrictEqual(
+        status.scaleValues,
+        ['apple', 'mango', 'zebra'],
+        'Values should be alphabetically sorted when no pattern is detected',
+      );
+    });
+
+    it('should deduplicate scale values', () => {
+      const tasks = [
+        createTaskNode('T1', '({level} = low)', undefined),
+        createTaskNode('T2', '({level} = low)', undefined),
+        createTaskNode('T3', '({level} = high)', undefined),
+      ];
+
+      const measures = extractMeasures(tasks);
+
+      const level = measures.find((m) => m.name === 'level');
+      assert.ok(level, 'level should be found');
+      assert.deepStrictEqual(
+        level.scaleValues,
+        ['low', 'high'],
+        'Duplicate values should be removed',
       );
     });
   });
