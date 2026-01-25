@@ -3,11 +3,14 @@ import { allByType } from '../GoalTree/utils';
 
 const renameTaskId = (id: string) => id.replace('.', '_');
 
+const getFluentName = (task: GoalNode): string | undefined =>
+  task.name?.replaceAll(' ', '');
+
 const taskFluentName = (
   task: GoalNode,
   op: 'Start' | 'Pursuing' | 'Achieved' | 'ReportFailure',
 ) => {
-  return `${op}${task.name?.replace(' ', '')}`;
+  return `${op}${getFluentName(task)}`;
 };
 
 const fluentOperations = [
@@ -163,7 +166,7 @@ const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
  */
 const extractFluentNames = (tasks: GoalNode[]): string[] =>
   tasks
-    .map((task) => task.name?.replace(' ', ''))
+    .map((task) => getFluentName(task))
     .filter((name): name is string => !!name)
     .filter((name, index, self) => self.indexOf(name) === index)
     .sort();
