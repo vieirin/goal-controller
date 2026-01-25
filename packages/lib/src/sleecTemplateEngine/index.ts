@@ -273,7 +273,7 @@ rule_end`;
 };
 
 function generateObstacleEventsRules(task: GoalNode): string {
-  return `Rule${renameTaskId(task.id)}_4 when Achieved${task.properties.ObstacleEvent} then not ${taskFluentName(task, 'Pursuing')}`;
+  return `Rule${renameTaskId(task.id)}_Obstacle when Achieved${task.properties.ObstacleEvent} then not ${taskFluentName(task, 'Pursuing')}`;
 }
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {
