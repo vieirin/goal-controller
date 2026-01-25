@@ -124,6 +124,18 @@ type GoalExecutionDetail = (
   retryMap?: Dictionary<number>;
 };
 
+export type SleecProps = {
+  Type?: string;
+  Source?: string;
+  Class?: string;
+  NormPrinciple?: string;
+  Proxy?: string;
+  AddedValue?: string;
+  Condition?: string;
+  Event?: string;
+  ContextEvent?: string;
+};
+
 type GoalNode = {
   iStarId: id;
   id: string;
@@ -153,6 +165,7 @@ type GoalNode = {
   tasks?: GoalNode[];
   executionDetail: GoalExecutionDetail | null;
   execCondition?: ExecCondition;
+  sleecProps?: SleecProps;
 } & Decision;
 
 type GoalNodeWithParent = GoalNode & {

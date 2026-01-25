@@ -12,8 +12,38 @@ import type {
   NodeType,
   Relation,
   Resource,
+  SleecProps,
 } from './types';
 import { allByType } from './utils';
+
+const SLEEC_PROP_KEYS = [
+  'Type',
+  'Source',
+  'Class',
+  'NormPrinciple',
+  'Proxy',
+  'AddedValue',
+  'Condition',
+  'Event',
+  'ContextEvent',
+] as const;
+
+const extractSleecProps = (
+  customProps: Record<string, unknown>,
+): SleecProps | undefined => {
+  const sleecProps: SleecProps = {};
+  let hasAnyProp = false;
+
+  for (const key of SLEEC_PROP_KEYS) {
+    const value = customProps[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      sleecProps[key] = value;
+      hasAnyProp = true;
+    }
+  }
+
+  return hasAnyProp ? sleecProps : undefined;
+};
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -262,6 +292,9 @@ const createNode = ({
     nodeType,
   );
 
+  // Extract SLEEC properties if present
+  const sleecProps = extractSleecProps(customProperties);
+
   return {
     executionDetail,
     id,
@@ -286,6 +319,7 @@ const createNode = ({
     },
     execCondition,
     ...(tasks.length > 0 && { tasks }),
+    ...(sleecProps && { sleecProps }),
   };
 };
 

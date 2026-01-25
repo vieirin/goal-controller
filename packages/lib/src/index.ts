@@ -15,20 +15,26 @@ import { generateValidatedPrismModel } from './templateEngine/engine';
 export { generateValidatedPrismModel, sleecTemplateEngine };
 
 // Goal Tree utilities
-  export { convertToTree, dumpTreeToJSON, loadPistarModel, validateModel };
+export { convertToTree, dumpTreeToJSON, loadPistarModel, validateModel };
 
 // Variable extraction
-  export {
-    getTaskAchievabilityVariables, treeContextVariables
-  } from './GoalTree/treeVariables';
+export {
+  getTaskAchievabilityVariables,
+  treeContextVariables,
+} from './GoalTree/treeVariables';
 
 // Validation
-  export { validate };
+export { validate };
 
 // Types
-  export type {
-    GoalNode, GoalTree, Model, Relation, Type
-  } from './GoalTree/types';
+export type {
+  GoalNode,
+  GoalTree,
+  Model,
+  Relation,
+  SleecProps,
+  Type,
+} from './GoalTree/types';
 
 // Logger
 export type { LoggerReport } from './logger/logger';
@@ -57,13 +63,17 @@ if (require.main === module) {
   const fileName = path.parse(inputFile).name;
   const outputPath = `output/${fileName}.prism`;
 
-  writeFile(outputPath, sleecTemplateEngine(tree), function (err: Error | null) {
-    if (err) {
-      console.log(err);
+  writeFile(
+    outputPath,
+    sleecTemplateEngine(tree),
+    function (err: Error | null) {
+      if (err) {
+        console.log(err);
+        logger.close();
+        return;
+      }
+      console.log(`The file was saved to ${outputPath}!`);
       logger.close();
-      return;
-    }
-    console.log(`The file was saved to ${outputPath}!`);
-    logger.close();
-  });
+    },
+  );
 }

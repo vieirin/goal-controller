@@ -40,8 +40,7 @@
             "PreCond": "((({patientDiscomfort} = d_low) or ({patientDiscomfort} = d_moderate)) or ({patientDiscomfort} = d_high))",
             "TriggeringEvent": "PatientAsleep",
             "TemporalConstraint": "300 seconds",
-            "PostCond": "{vitalsSignsCollected}",
-            "FluentName": "TrackVitals"
+            "PostCond": "{vitalsSignsCollected}"
           }
         },
         {
@@ -65,8 +64,7 @@
             "PreCond": "(not {purposeProtocolInformed})",
             "TriggeringEvent": "MeetingUser",
             "TemporalConstraint": "120 seconds",
-            "PostCond": "{purposeProtocolInformed}",
-            "FluentName": "InformPurposeAndProtocol"
+            "PostCond": "{purposeProtocolInformed}"
           }
         },
         {
@@ -81,8 +79,7 @@
             "TriggeringEvent": "PatientOutdoors",
             "TemporalConstraint": "300 seconds",
             "PostCond": "{vitalsSignsCollected}",
-            "ObstacleEvent": "ObtainConsentPartialTracking",
-            "FluentName": "TrackVitalsOutdoors"
+            "ObstacleEvent": "ObtainConsentPartialTracking"
           }
         },
         {
@@ -106,8 +103,7 @@
             "PreCond": "{userConsentsPartialTracking}",
             "TriggeringEvent": "AchievedObtainConsentPartialTracking",
             "TemporalConstraint": "240 seconds",
-            "PostCond": "{profileAdaptedToPartialTracking}",
-            "FluentName": "ApplyConsentProtocol"
+            "PostCond": "{profileAdaptedToPartialTracking}"
           }
         },
         {
@@ -121,8 +117,7 @@
             "PreCond": "{purposeProtocolInformed}",
             "TriggeringEvent": "MeetingUser",
             "TemporalConstraint": "180 seconds",
-            "PostCond": "{patientConsentsFullTracking}",
-            "FluentName": "ObtainConsentFullTracking"
+            "PostCond": "{patientConsentsFullTracking}"
           }
         },
         {
@@ -136,8 +131,7 @@
             "PreCond": "({patientCanRevokeAuthorizations} and ({riskLevel} = r_low))",
             "TriggeringEvent": "UserWantsToUpdateConsent",
             "TemporalConstraint": "180 seconds",
-            "PostCond": "{patientConsentsPartialTracking}",
-            "FluentName": "ObtainConsentPartialTracking"
+            "PostCond": "{patientConsentsPartialTracking}"
           }
         },
         {
@@ -151,8 +145,7 @@
             "PreCond": "{vitalsSignsCollected}",
             "TriggeringEvent": "DataCollected",
             "TemporalConstraint": "60 seconds",
-            "PostCond": "{dataProcessed}",
-            "FluentName": "ProcessData"
+            "PostCond": "{dataProcessed}"
           }
         },
         {
@@ -166,8 +159,7 @@
             "PreCond": "{dataProcessed}",
             "TriggeringEvent": "ObtainRiskLevel",
             "TemporalConstraint": "30 seconds",
-            "PostCond": "{dataAnalyzed}",
-            "FluentName": "DetectPatientHealthStatus"
+            "PostCond": "{dataAnalyzed}"
           }
         },
         {
@@ -183,22 +175,33 @@
         },
         {
           "id": "761fcd8c-ce84-49e7-b7df-e384688bb58e",
-          "text": "G4: Profile Consent",
+          "text": "G7: Profile Consent",
           "type": "istar.Goal",
-          "x": 314,
-          "y": 313,
+          "x": 307,
+          "y": 306,
           "customProperties": {
             "Description": ""
           }
         },
         {
           "id": "d7c6feb3-c7ee-471f-a0b8-8a5ab2190cf6",
-          "text": "G4: VitalSignsConsent",
+          "text": "G6: VitalSignsConsent",
           "type": "istar.Goal",
           "x": 264,
           "y": 247,
           "customProperties": {
-            "Description": ""
+            "Description": "",
+            "Type": "Achieve",
+            "Source": "Healthcare and data-protection regulations (e.g., GDPR);medical ethics",
+            "Class": "Ethical; Legal; Social",
+            "NormPrinciple": "Autonomy; Privacy",
+            "Proxy": "ConsentStatus ∈ {Full, Partial, Withdrawn}",
+            "AddedValue": "Preserved patient autonomy and reduced privacy intrusion",
+            "Condition": "(not {purposeProtocolInformed})",
+            "Event": "StartInformPurposeandProtocol",
+            "ContextEvent": "ObtainConsentFullTracking",
+            "Def": "",
+            "FormalDe": ""
           }
         }
       ]
@@ -374,7 +377,7 @@
   },
   "tool": "dsm3-goals",
   "metamodelVersion": "1.0",
-  "saveDate": "Sun, 25 Jan 2026 14:21:11 GMT",
+  "saveDate": "Sun, 25 Jan 2026 16:05:02 GMT",
   "diagram": {
     "width": 3669.5,
     "height": 2272,
