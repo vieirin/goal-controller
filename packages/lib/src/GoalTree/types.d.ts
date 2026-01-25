@@ -99,8 +99,7 @@ type CustomProperties = {
     TriggeringEvent?: string;
     TemporalConstraint?: string;
     PostCond?: string;
-    FluentName?: string;
-    AvoidEvent?: string;
+    ObstacleEvent?: string;
   } & {
     type: 'maintain';
     maintain: string;
@@ -147,8 +146,7 @@ type GoalNode = {
     TriggeringEvent?: string;
     TemporalConstraint?: string;
     PostCond?: string;
-    FluentName?: string;
-    AvoidEvent?: string;
+    ObstacleEvent?: string;
     [k: string]: any;
   };
   resources: Resource[];

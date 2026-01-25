@@ -74,7 +74,7 @@
           "y": 332,
           "customProperties": {
             "Description": "",
-            "AvoidEvent": ""
+            "ObstacleEvent": ""
           }
         },
         {

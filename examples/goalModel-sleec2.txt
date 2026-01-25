@@ -81,7 +81,7 @@
             "TriggeringEvent": "PatientOutdoors",
             "TemporalConstraint": "300 seconds",
             "PostCond": "{vitalsSignsCollected}",
-            "AvoidEvent": "ObtainConsentPartialTracking",
+            "ObstacleEvent": "ObtainConsentPartialTracking",
             "FluentName": "TrackVitalsOutdoors"
           }
         },

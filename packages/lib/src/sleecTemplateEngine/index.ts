@@ -7,7 +7,7 @@ const taskFluentName = (
   task: GoalNode,
   op: 'Start' | 'Pursuing' | 'Achieved' | 'ReportFailure',
 ) => {
-  return `${op}${task.properties.FluentName}`;
+  return `${op}${task.name?.replace(' ', '')}`;
 };
 
 const fluentOperations = [
@@ -152,9 +152,9 @@ const extractTriggeringEvents = (tasks: GoalNode[]): Set<string> =>
 const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
   new Set(
     tasks
-      .filter((task) => task.properties.FluentName)
+      .filter((task) => task.name)
       .flatMap((task) =>
-        fluentOperations.map((op) => `${op}${task.properties.FluentName}`),
+        fluentOperations.map((op) => `${op}${task.name?.replace(' ', '')}`),
       ),
   );
 
@@ -163,19 +163,19 @@ const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
  */
 const extractFluentNames = (tasks: GoalNode[]): string[] =>
   tasks
-    .map((task) => task.properties.FluentName)
+    .map((task) => task.name?.replace(' ', ''))
     .filter((name): name is string => !!name)
     .filter((name, index, self) => self.indexOf(name) === index)
     .sort();
 
 /**
- * Extracts events that other tasks avoid (from AvoidEvent property)
- * The AvoidEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
+ * Extracts events that other tasks avoid (from ObstacleEvent property)
+ * The ObstacleEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
  */
-const extractAvoidEvents = (tasks: GoalNode[]): Set<string> =>
+const extractObstacleEvents = (tasks: GoalNode[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => `Achieved${task.properties.AvoidEvent}`)
+      .map((task) => `Achieved${task.properties.ObstacleEvent}`)
       .filter((event): event is string => !!event),
   );
 
@@ -191,7 +191,7 @@ const measureLine = (measure: Measure): string =>
 const generateDefinitions = (tasks: GoalNode[]): string => {
   const triggeringEvents = extractTriggeringEvents(tasks);
   const fluentEvents = extractFluentEvents(tasks);
-  const avoidEvents = extractAvoidEvents(tasks);
+  const ObstacleEvents = extractObstacleEvents(tasks);
   const fluentNames = extractFluentNames(tasks);
   const measures = extractMeasures(tasks);
 
@@ -208,7 +208,7 @@ const generateDefinitions = (tasks: GoalNode[]): string => {
   ]);
 
   // Avoid events not covered by fluent events
-  const additionalAvoidEventLines = Array.from(avoidEvents)
+  const additionalObstacleEventLines = Array.from(ObstacleEvents)
     .filter((event) => !fluentEvents.has(event))
     .sort()
     .map(eventLine);
@@ -220,7 +220,7 @@ const generateDefinitions = (tasks: GoalNode[]): string => {
   const sections = [
     externalEventLines,
     fluentEventLines,
-    additionalAvoidEventLines,
+    additionalObstacleEventLines,
     measureLines,
   ].filter((section) => section.length > 0);
 
@@ -242,7 +242,7 @@ def_end`;
 };
 
 const generateTaskRules = (tasks: GoalNode[]): string => {
-  const hasAvoidEvents = (task: GoalNode) => !!task.properties.AvoidEvent;
+  const hasObstacleEvents = (task: GoalNode) => !!task.properties.ObstacleEvent;
   return `rule_start
       ${tasks
         .map((task) => {
@@ -266,14 +266,14 @@ const generateTaskRules = (tasks: GoalNode[]): string => {
         task,
         'ReportFailure',
       )} 
-      ${hasAvoidEvents(task) ? generateAvoidEventsRules(task) : ''}`;
+      ${hasObstacleEvents(task) ? generateObstacleEventsRules(task) : ''}`;
         })
         .join('\n')}
 rule_end`;
 };
 
-function generateAvoidEventsRules(task: GoalNode): string {
-  return `Rule${renameTaskId(task.id)}_4 when Achieved${task.properties.AvoidEvent} then not ${taskFluentName(task, 'Pursuing')}`;
+function generateObstacleEventsRules(task: GoalNode): string {
+  return `Rule${renameTaskId(task.id)}_4 when Achieved${task.properties.ObstacleEvent} then not ${taskFluentName(task, 'Pursuing')}`;
 }
 
 export const sleecTemplateEngine = (tree: GoalTree): string => {
