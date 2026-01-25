@@ -1193,7 +1193,7 @@
 	[VARIABLE DEFINITION] inFlight; initial value: false; type: boolean
 ----------------------------------------
 [LOGGER SUMMARY] ../../examples/experiments/9-minimalMaintainContext.txt
-[ELAPSED TIME] 11ms
+[ELAPSED TIME] 4ms
 ----------MODEL STRUCTURE SUMMARY----------
 [TOTAL GOALS] 15
 [TOTAL TASKS] 12
