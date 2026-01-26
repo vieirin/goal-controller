@@ -6,13 +6,22 @@ const getTreeContextVariables = (tree: GoalTree): string[] => {
   const variables = new Set<string>();
 
   const goals = allByType({ gm: tree, type: 'goal' });
+  const tasks = allByType({ gm: tree, type: 'task' });
 
+  // Collect variables from goals
   goals.forEach((goal) => {
     goal.execCondition?.maintain?.variables.forEach((variable) => {
       variables.add(variable.name);
     });
 
-    goal.execCondition?.assertion.variables.forEach((variable) => {
+    goal.execCondition?.assertion?.variables.forEach((variable) => {
+      variables.add(variable.name);
+    });
+  });
+
+  // Collect variables from tasks (tasks can also have assertions)
+  tasks.forEach((task) => {
+    task.execCondition?.assertion?.variables.forEach((variable) => {
       variables.add(variable.name);
     });
   });
