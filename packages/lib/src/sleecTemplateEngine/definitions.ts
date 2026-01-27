@@ -1,4 +1,5 @@
 import type { GoalNode } from '../GoalTree/types';
+import { generateFluents } from './fluents';
 import {
   fluentOperations,
   getFluentName,
@@ -198,12 +199,16 @@ export const generateDefinitions = (tasks: GoalNode[]): string => {
   // Measure definitions
   const measureLines = measures.map(measureLine);
 
+  // Fluent definitions (fluent TaskName <{StartTaskName}, {AchievedTaskName}>)
+  const fluentLines = generateFluents(tasks);
+
   // Combine all sections with empty line separators between them
   const sections = [
     externalEventLines,
     fluentEventLines,
     additionalObstacleEventLines,
     measureLines,
+    fluentLines,
   ].filter((section) => section.length > 0);
 
   const lines = sections
