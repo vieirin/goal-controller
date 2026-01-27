@@ -23,17 +23,21 @@ The SLEEC Template Engine is a code generator that transforms goal models (from 
 
 ```
 sleecTemplateEngine/
-└── index.ts
-    ├── sleecTemplateEngine()      # Main entry point
-    ├── generateDefinitions()      # Generates def_start...def_end block
-    │   ├── extractTriggeringEvents()
-    │   ├── extractFluentEvents()
-    │   ├── extractFluentNames()
-    │   ├── extractObstacleEvents()
-    │   └── extractMeasures()
-    │       └── semanticSortScaleValues()  # Smart ordering for scale values
-    └── generateTaskRules()        # Generates rule_start...rule_end block
-        └── generateObstacleEventsRules()
+├── index.ts              # Main entry point
+├── definitions.ts        # Generates def_start...def_end block
+│   ├── extractTriggeringEvents()
+│   ├── extractFluentEvents()
+│   ├── extractFluentNames()
+│   ├── extractObstacleEvents()
+│   └── extractMeasures()
+│       └── semanticSortScaleValues()  # Smart ordering for scale values
+├── fluents.ts            # Generates fluent state definitions
+│   └── generateFluents()
+├── rules.ts              # Generates rule_start...rule_end block
+│   └── generateObstacleEventsRules()
+├── purposes.ts           # Generates purpose_start...purpose_end block
+│   └── generatePurposes()
+└── shared.ts             # Shared utilities and types
 ```
 
 ### Data Flow
@@ -101,6 +105,23 @@ measure purposeProtocolInformed: boolean
 // From condition: ({patientDiscomfort} = d_low) or ({patientDiscomfort} = d_moderate)
 measure patientDiscomfort: scale(d_low, d_moderate, d_high)
 ```
+
+#### Fluent Definitions
+
+Fluents represent the active state of tasks (started but not yet achieved). Each task generates one fluent definition:
+
+```sleec
+fluent TaskName <{StartTaskName}, {AchievedTaskName}>
+```
+
+**Example:**
+```sleec
+fluent InformPurposeandProtocol <{StartInformPurposeandProtocol}, {AchievedInformPurposeandProtocol}>
+fluent ObtainConsentFullTracking <{StartObtainConsentFullTracking}, {AchievedObtainConsentFullTracking}>
+fluent TrackVitalSigns <{StartTrackVitalSigns}, {AchievedTrackVitalSigns}>
+```
+
+The fluent becomes true when the Start event occurs and becomes false when the Achieved event occurs, providing a way to track whether a task is currently in progress.
 
 **Semantic Value Ordering:**
 
@@ -182,6 +203,8 @@ def_start
 
     measure booleanVar: boolean
     measure scaleVar: scale(low, moderate, high)
+
+    fluent TaskFluent <{StartTaskFluent}, {AchievedTaskFluent}>
 def_end
 
 rule_start
@@ -190,6 +213,10 @@ rule_start
     RuleT1_3 when ... then ... unless ... then ...
     RuleT1_Obstacle when ... then not ...
 rule_end
+
+purpose_start
+    P1 when ContextEvent and Condition then Event
+purpose_end
 ```
 
 ## Key Functions
@@ -256,19 +283,42 @@ semanticSortScaleValues(['zebra', 'apple'])
 
 ### `generateDefinitions(tasks: GoalNode[]): string`
 
-Creates the `def_start...def_end` block with all events and measures.
+Creates the `def_start...def_end` block with all events, measures, and fluents.
 
 **Process:**
 1. Extract all event types (external, fluent, obstacle)
 2. Filter and deduplicate events
 3. Extract and classify measures
-4. Format into SLEEC syntax with proper grouping
+4. Generate fluent definitions
+5. Format into SLEEC syntax with proper grouping
 
 **Grouping Strategy:**
 - External events (sorted alphabetically)
 - Fluent events (grouped by task, with blank line separators)
 - Obstacle events (sorted alphabetically)
 - Measures (sorted alphabetically)
+- Fluent definitions
+
+### `generateFluents(tasks: GoalNode[]): string[]`
+
+Generates fluent state definitions for all tasks.
+
+**Format:** `fluent TaskName <{StartTaskName}, {AchievedTaskName}>`
+
+**Process:**
+1. Iterate through all tasks
+2. Extract fluent name (task name with spaces removed)
+3. Generate start and achieved event names
+4. Return array of fluent definition lines
+
+**Example:**
+```typescript
+const tasks = [{ name: 'Track Vital Signs', ... }];
+const fluents = generateFluents(tasks);
+// Returns: ['    fluent TrackVitalSigns <{StartTrackVitalSigns}, {AchievedTrackVitalSigns}>']
+```
+
+**Note:** Tasks with no name are skipped.
 
 ### `generateTaskRules(tasks: GoalNode[]): string`
 
@@ -317,6 +367,8 @@ def_start
 
     measure patientDiscomfort: scale(d_low, d_moderate, d_high)
     measure vitalsSignsCollected: boolean
+
+    fluent TrackVitals <{StartTrackVitals}, {AchievedTrackVitals}>
 def_end
 
 rule_start
@@ -338,9 +390,12 @@ rule_end
 
 The template engine includes comprehensive test coverage:
 
-**Test File:** `packages/lib/test/sleecTemplateEngine/extractMeasures.test.ts`
+**Test Files:**
+- `packages/lib/test/sleecTemplateEngine/extractMeasures.test.ts`
+- `packages/lib/test/sleecTemplateEngine/fluents.test.ts`
+- `packages/lib/test/sleecTemplateEngine/purposes.test.ts`
 
-**Coverage:**
+**extractMeasures Coverage:**
 - ✅ Boolean measure extraction
 - ✅ Scale measure detection
 - ✅ Scale value extraction and ordering
@@ -352,9 +407,24 @@ The template engine includes comprehensive test coverage:
 - ✅ Alternative patterns (`min/med/max`)
 - ✅ BSN goal model integration
 
+**generateFluents Coverage:**
+- ✅ Single/multiple task fluent generation
+- ✅ Space removal from task names
+- ✅ Skip tasks with no name
+- ✅ Empty tasks list handling
+- ✅ Correct fluent format validation
+- ✅ BSN Goal Model task names
+
+**generatePurposes Coverage:**
+- ✅ Achieve type purpose generation
+- ✅ Maintain type purpose generation
+- ✅ Sequential label generation (P1, P2, P3)
+- ✅ Missing property error handling
+- ✅ Nested goals in tree
+
 **Run Tests:**
 ```bash
-npm test -- --grep "extractMeasures"
+pnpm test -- --grep "sleecTemplateEngine"
 ```
 
 ## Related Documentation
