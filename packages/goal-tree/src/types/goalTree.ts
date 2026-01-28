@@ -76,7 +76,6 @@ export type BaseNode = {
   iStarId: id;
   id: string;
   type: Type;
-  relationToParent: Relation | null;
   relationToChildren: Relation | null;
   name: string | null;
 };
@@ -120,15 +119,6 @@ export type Resource = BaseNode & {
       };
 };
 
-export type GoalNodeWithParent = GoalNode & {
-  parent: GoalNode[];
-  children?: GoalNodeWithParent[];
-};
-
 export type TreeNode = GoalNode | Task | Resource;
-export type GenericGoal = GoalNode | GoalNodeWithParent;
-export type GenericTreeNode = TreeNode | GoalNodeWithParent;
 
 export type GoalTree = TreeNode[];
-export type GoalTreeWithParent = GoalNodeWithParent[];
-export type GenericTree = GenericTreeNode[];

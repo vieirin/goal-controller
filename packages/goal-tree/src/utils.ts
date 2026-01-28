@@ -1,8 +1,6 @@
 import type {
-  GenericGoal,
-  GenericTree,
-  GenericTreeNode,
   GoalNode,
+  GoalTree,
   Resource,
   Task,
   TreeNode,
@@ -10,69 +8,50 @@ import type {
 } from './types/';
 
 // Overloads for type-specific returns
-export function allByType<T extends GenericTree>({
+export function allByType({
   gm,
   type,
-  preferVariant,
 }: {
-  gm: T;
+  gm: GoalTree;
   type: 'goal';
-  preferVariant?: boolean;
 }): GoalNode[];
-export function allByType<T extends GenericTree>({
+export function allByType({ gm, type }: { gm: GoalTree; type: 'task' }): Task[];
+export function allByType({
   gm,
   type,
-  preferVariant,
 }: {
-  gm: T;
-  type: 'task';
-  preferVariant?: boolean;
-}): Task[];
-export function allByType<T extends GenericTree>({
-  gm,
-  type,
-  preferVariant,
-}: {
-  gm: T;
+  gm: GoalTree;
   type: 'resource';
-  preferVariant?: boolean;
 }): Resource[];
 // Implementation signature for internal recursive calls
 export function allByType({
   gm,
   type,
-  preferVariant,
 }: {
-  gm: GenericTree;
+  gm: GoalTree;
   type: Type;
-  preferVariant?: boolean;
-}): GenericTreeNode[];
-export function allByType<T extends GenericTree>({
+}): TreeNode[];
+export function allByType({
   gm,
   type,
-  preferVariant = true,
 }: {
-  gm: T;
+  gm: GoalTree;
   type: Type;
-  preferVariant?: boolean;
-}): GenericTreeNode[] {
+}): TreeNode[] {
   const allCurrent = gm
     .flatMap((node) => {
       // we need to make resources and tasks back as children so we can
       // filter them out in the next step
       const children = childrenWithTasksAndResources({ node });
       if (children.length > 0) {
-        return [
-          node,
-          ...(allByType({ gm: children, type, preferVariant }) ?? []),
-        ];
+        return [node, ...(allByType({ gm: children, type }) ?? [])];
       }
 
       return [node];
     })
     .filter((node) => node.type === type)
     .sort((a, b) => a.id.localeCompare(b.id))
-    .reduce<Record<string, GenericTreeNode>>((acc, current) => {
+    .reduce<Record<string, TreeNode>>((acc, current) => {
       if (acc[current.id]) {
         return { ...acc };
       }
@@ -83,18 +62,13 @@ export function allByType<T extends GenericTree>({
   return Object.values(allCurrent);
 }
 
-export const allGoalsMap = <T extends GenericTree>({
+export const allGoalsMap = ({
   gm,
-  preferVariant = true,
 }: {
-  gm: T;
-  preferVariant?: boolean;
+  gm: GoalTree;
 }): Map<string, GoalNode> => {
   return new Map(
-    allByType({ gm, type: 'goal', preferVariant }).map((goal) => [
-      goal.id,
-      goal,
-    ]),
+    allByType({ gm, type: 'goal' }).map((goal) => [goal.id, goal]),
   );
 };
 
@@ -102,11 +76,11 @@ export const goalRootId = ({ id }: { id: string }): string => {
   return id.slice(0, (id.slice(1).match('[a-zA-Z]')?.index ?? 2) + 1);
 };
 
-export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }): T => {
+export const leafGoals = ({ gm }: { gm: GoalTree }): GoalNode[] => {
   const leaves = allByType({ gm, type: 'goal' })?.filter(
     (goal) => !!goal.tasks,
   );
-  return leaves as T;
+  return leaves;
 };
 
 export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
@@ -134,7 +108,7 @@ export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
 export function childrenWithTasksAndResources({
   node,
 }: {
-  node: GenericTreeNode;
+  node: TreeNode;
 }): TreeNode[] {
   const result: TreeNode[] = [];
 
@@ -161,14 +135,14 @@ export function childrenWithTasksAndResources({
   return result;
 }
 
-export function childrenLength({ node }: { node: GenericTreeNode }): number {
+export function childrenLength({ node }: { node: TreeNode }): number {
   return childrenWithTasksAndResources({ node }).length;
 }
 
 export function childrenWithMaxRetries({
   node,
 }: {
-  node: GenericGoal;
+  node: GoalNode;
 }): Array<GoalNode | Task> {
   return childrenWithTasksAndResources({ node }).filter(
     (child): child is GoalNode | Task => {
@@ -180,14 +154,14 @@ export function childrenWithMaxRetries({
   );
 }
 
-export function dumpTreeToJSON({ gm }: { gm: GenericTree }): string {
+export function dumpTreeToJSON({ gm }: { gm: GoalTree }): string {
   return JSON.stringify(gm, null, 2);
 }
 
 export function childrenIncludingTasks({
   node,
 }: {
-  node: GenericGoal | Task;
+  node: GoalNode | Task;
 }): TreeNode[] {
   return childrenWithTasksAndResources({ node });
 }

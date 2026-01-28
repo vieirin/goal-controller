@@ -314,7 +314,6 @@ const createNode = ({
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      relationToParent: null,
       type: 'resource',
       properties: {
         type: customProperties.type || '',
@@ -357,7 +356,6 @@ const createNode = ({
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      relationToParent: null,
       type: 'task',
       tasks,
       resources,
@@ -386,7 +384,6 @@ const createNode = ({
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      relationToParent: null,
       type: 'goal',
       children: filteredChildren,
       properties: {

@@ -33,10 +33,5 @@ export type {
   Task,
   Resource,
   TreeNode,
-  GoalNodeWithParent,
-  GenericGoal,
-  GenericTreeNode,
   GoalTree,
-  GoalTreeWithParent,
-  GenericTree,
 } from './goalTree';
