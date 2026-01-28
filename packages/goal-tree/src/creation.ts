@@ -302,7 +302,7 @@ const createNode = ({
   );
 
   // Extract SLEEC properties if present
-  const sleecProps = extractSleecProps(customProperties);
+  const sleec = extractSleecProps(customProperties);
 
   if (nodeType === 'resource') {
     // Create base resource node, will be converted by createResource later
@@ -324,6 +324,31 @@ const createNode = ({
   }
 
   if (nodeType === 'task') {
+    const sleec =
+      customProperties.PreCond ||
+      customProperties.TriggeringEvent ||
+      customProperties.TemporalConstraint ||
+      customProperties.PostCond ||
+      customProperties.ObstacleEvent
+        ? {
+            ...(customProperties.PreCond && {
+              PreCond: customProperties.PreCond,
+            }),
+            ...(customProperties.TriggeringEvent && {
+              TriggeringEvent: customProperties.TriggeringEvent,
+            }),
+            ...(customProperties.TemporalConstraint && {
+              TemporalConstraint: customProperties.TemporalConstraint,
+            }),
+            ...(customProperties.PostCond && {
+              PostCond: customProperties.PostCond,
+            }),
+            ...(customProperties.ObstacleEvent && {
+              ObstacleEvent: customProperties.ObstacleEvent,
+            }),
+          }
+        : undefined;
+
     const taskNode: Task = {
       id,
       name: goalName,
@@ -334,24 +359,11 @@ const createNode = ({
       tasks,
       resources,
       properties: {
-        ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
-        ...(customProperties.TriggeringEvent && {
-          TriggeringEvent: customProperties.TriggeringEvent,
-        }),
-        ...(customProperties.TemporalConstraint && {
-          TemporalConstraint: customProperties.TemporalConstraint,
-        }),
-        ...(customProperties.PostCond && {
-          PostCond: customProperties.PostCond,
-        }),
-        ...(customProperties.ObstacleEvent && {
-          ObstacleEvent: customProperties.ObstacleEvent,
-        }),
         edge: {
           execCondition,
           maxRetries: maxRetries ? parseInt(maxRetries) : 0,
         },
-        ...customProperties,
+        ...(sleec && { sleec }),
       },
     };
     return taskNode;
@@ -367,25 +379,11 @@ const createNode = ({
       type: 'goal',
       children: filteredChildren,
       properties: {
-        utility: customProperties.utility || '',
-        cost: customProperties.cost || '',
         ...(root?.toLowerCase() === 'true' && { root: true }),
-        uniqueChoice: uniqueChoice?.toLowerCase() === 'true',
         isQuality: isQualityNode,
-        ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
-        ...(customProperties.TriggeringEvent && {
-          TriggeringEvent: customProperties.TriggeringEvent,
-        }),
-        ...(customProperties.TemporalConstraint && {
-          TemporalConstraint: customProperties.TemporalConstraint,
-        }),
-        ...(customProperties.PostCond && {
-          PostCond: customProperties.PostCond,
-        }),
-        ...(customProperties.ObstacleEvent && {
-          ObstacleEvent: customProperties.ObstacleEvent,
-        }),
         edge: {
+          utility: customProperties.utility || '',
+          cost: customProperties.cost || '',
           dependsOn: parseDependsOn({
             dependsOn: customProperties.dependsOn ?? '',
           }),
@@ -397,9 +395,9 @@ const createNode = ({
           },
           maxRetries: maxRetries ? parseInt(maxRetries) : 0,
         },
+        ...(sleec && { sleec }),
       },
       ...(tasks.length > 0 && { tasks }),
-      ...(sleecProps && { sleecProps }),
     };
     return goalNode;
   }

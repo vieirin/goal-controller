@@ -70,8 +70,8 @@ export const extractMeasures = (tasks: Task[]): Measure[] => {
 
   for (const task of tasks) {
     const conditions = [
-      task.properties.PreCond,
-      task.properties.PostCond,
+      task.properties.sleec?.PreCond,
+      task.properties.sleec?.PostCond,
     ].filter(Boolean) as string[];
 
     for (const condition of conditions) {
@@ -125,7 +125,7 @@ export const extractMeasures = (tasks: Task[]): Measure[] => {
 const extractTriggeringEvents = (tasks: Task[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => task.properties.TriggeringEvent)
+      .map((task) => task.properties.sleec?.TriggeringEvent)
       .filter((event): event is string => !!event),
   );
 
@@ -158,7 +158,7 @@ const extractFluentNames = (tasks: Task[]): string[] =>
 const extractObstacleEvents = (tasks: Task[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => `Achieved${task.properties.ObstacleEvent}`)
+      .map((task) => `Achieved${task.properties.sleec?.ObstacleEvent}`)
       .filter((event): event is string => !!event),
   );
 

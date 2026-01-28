@@ -6,7 +6,7 @@ export const generatePurposes = (tree: GoalTree): string => {
   return `purpose_start
   ${goals
     .filter((goal: GoalNode) =>
-      ['Achieve', 'Maintain'].includes(goal.sleecProps?.Type || ''),
+      ['Achieve', 'Maintain'].includes(goal.properties.sleec?.Type || ''),
     )
     .map((purpose: GoalNode, index: number) => {
       const purposeLabel = `P${index + 1}`;
@@ -15,13 +15,13 @@ export const generatePurposes = (tree: GoalTree): string => {
         Condition: condition,
         Event: event,
         ContextEvent: contextEvent,
-      } = purpose.sleecProps || {};
+      } = purpose.properties.sleec || {};
       if (!condition || !event || !contextEvent) {
         throw new Error(
           `Purpose ${purpose.name} has no condition, event or contextEvent property`,
         );
       }
-      if (purpose.sleecProps?.Type === 'Achieve') {
+      if (purpose.properties.sleec?.Type === 'Achieve') {
         return `${purposeLabel} when ${contextEvent} and ${condition} then ${event}`;
       }
       return `${purposeLabel} exists ${event} and ${condition} while ${contextEvent}`;

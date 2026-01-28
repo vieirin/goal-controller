@@ -49,6 +49,29 @@ export type SleecProps = {
   ContextEvent?: string;
 };
 
+export type TaskEdgeProps = {
+  execCondition?: ExecCondition;
+  maxRetries: number;
+};
+
+export type TaskSleecProps = {
+  PreCond?: string;
+  TriggeringEvent?: string;
+  TemporalConstraint?: string;
+  PostCond?: string;
+  ObstacleEvent?: string;
+};
+
+export type GoalEdgeProps = {
+  utility: string;
+  cost: string;
+  dependsOn: string[];
+  executionDetail: GoalExecutionDetail | null;
+  execCondition?: ExecCondition;
+  decision: Decision;
+  maxRetries: number;
+};
+
 export type BaseNode = {
   iStarId: id;
   id: string;
@@ -63,16 +86,8 @@ export type Task = BaseNode & {
   tasks: Task[];
   resources: Resource[];
   properties: {
-    PreCond?: string;
-    TriggeringEvent?: string;
-    TemporalConstraint?: string;
-    PostCond?: string;
-    ObstacleEvent?: string;
-    edge: {
-      execCondition?: ExecCondition;
-      maxRetries: number;
-    };
-    [key: string]: any;
+    edge: TaskEdgeProps;
+    sleec?: TaskSleecProps;
   };
 };
 
@@ -83,33 +98,13 @@ export type GoalNode = BaseNode & {
   variantOf?: string;
   dependsOn?: GoalNode[];
   properties: {
-    utility: string;
-    cost: string;
     root?: boolean;
-    uniqueChoice: boolean;
     isQuality: boolean;
-    PreCond?: string;
-    TriggeringEvent?: string;
-    TemporalConstraint?: string;
-    PostCond?: string;
-    ObstacleEvent?: string;
-    // Resource-specific properties (raw values from iStar model)
-    type?: string;
-    initialValue?: string;
-    lowerBound?: string;
-    upperBound?: string;
-    edge: {
-      dependsOn: string[];
-      executionDetail: GoalExecutionDetail | null;
-      execCondition?: ExecCondition;
-      decision: Decision;
-      maxRetries: number;
-    };
-    [key: string]: any;
+    edge: GoalEdgeProps;
+    sleec?: SleecProps;
   };
   /** Task children - leaf goals have tasks */
   tasks?: Task[];
-  sleecProps?: SleecProps;
 };
 
 export type Resource = BaseNode & {

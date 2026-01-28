@@ -8,20 +8,21 @@ import type {
 import { generatePurposes } from '../../src/sleecTemplateEngine/purposes';
 
 /**
- * Helper to create a minimal GoalNode with sleecProps
+ * Helper to create a minimal GoalNode with sleec props
  */
 const createGoalNode = (
   id: string,
   name: string,
-  sleecProps?: SleecProps,
+  sleec?: SleecProps,
 ): GoalNode =>
   ({
     id,
     name,
     type: 'goal',
-    properties: {},
+    properties: {
+      sleec,
+    },
     resources: [],
-    sleecProps,
   }) as unknown as GoalNode;
 
 describe('sleecTemplateEngine', () => {
