@@ -170,14 +170,14 @@ const createResource = (resource: GoalNode): Resource => {
         );
       }
 
-      if (isNaN(lowerBound) || isNaN(upperBound)) {
+      const lowerBoundInt = parseInt(lowerBound);
+      const upperBoundInt = parseInt(upperBound);
+
+      if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
         throw new Error(
           `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`,
         );
       }
-
-      const lowerBoundInt = parseInt(lowerBound);
-      const upperBoundInt = parseInt(upperBound);
 
       if (lowerBoundInt > upperBoundInt) {
         throw new Error(
@@ -185,7 +185,9 @@ const createResource = (resource: GoalNode): Resource => {
         );
       }
 
-      if (isNaN(initialValue)) {
+      const initialValueInt = parseInt(initialValue);
+
+      if (isNaN(initialValueInt)) {
         throw new Error(
           `[INVALID RESOURCE]: Resource ${resource.id} must have a valid initial value`,
         );
@@ -194,7 +196,7 @@ const createResource = (resource: GoalNode): Resource => {
         ...resource,
         variable: {
           type: 'int',
-          initialValue: parseInt(initialValue),
+          initialValue: initialValueInt,
           lowerBound: lowerBoundInt,
           upperBound: upperBoundInt,
         },
@@ -296,7 +298,6 @@ const createNode = ({
   const sleecProps = extractSleecProps(customProperties);
 
   return {
-    executionDetail,
     id,
     name: goalName,
     iStarId: node.id,
@@ -305,19 +306,24 @@ const createNode = ({
     type: nodeType,
     resources,
     children: filteredChildren,
-    decisionVars,
-    hasDecision: decisionVars.length > 0,
     properties: {
       ...customProperties,
-      dependsOn: parseDependsOn({
-        dependsOn: customProperties.dependsOn ?? '',
-      }),
       root: root?.toLowerCase() === 'true' || undefined,
       uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
       maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
       isQuality: isQualityNode,
+      edge: {
+        dependsOn: parseDependsOn({
+          dependsOn: customProperties.dependsOn ?? '',
+        }),
+        executionDetail,
+        execCondition,
+        decision: {
+          decisionVars,
+          hasDecision: decisionVars.length > 0,
+        },
+      },
     },
-    execCondition,
     ...(tasks.length > 0 && { tasks }),
     ...(sleecProps && { sleecProps }),
   };
@@ -437,7 +443,7 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
 
   const resolveNodeDependencies = (node: GoalNode): GoalNode => {
     // Resolve dependencies for this node
-    const resolvedDependencies = node.properties.dependsOn.map((depId) => {
+    const resolvedDependencies = node.properties.edge.dependsOn.map((depId) => {
       const depNode = nodeMap.get(depId);
       if (!depNode) {
         throw new Error(

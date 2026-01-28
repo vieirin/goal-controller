@@ -66,7 +66,8 @@ export const pursueDegradationGoal = (
       (goalId) => goalId !== currentChildId,
     );
     degradationLogger.init(currentChildId, degradationList);
-    const maybeRetry = goal.executionDetail?.retryMap?.[currentChildId];
+    const maybeRetry =
+      goal.properties.edge.executionDetail?.retryMap?.[currentChildId];
     if (maybeRetry) {
       return hasFailedAtMostNTimes(currentChildId, maybeRetry - 1);
     }
@@ -75,7 +76,8 @@ export const pursueDegradationGoal = (
       .map((goalId) => {
         // For degradation, we only need to check retry conditions (failures of earlier goals)
         // We don't need to check if the parent goal has been pursued (that's already in the base guard)
-        const maybeRetry = goal.executionDetail?.retryMap?.[goalId];
+        const maybeRetry =
+          goal.properties.edge.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
 

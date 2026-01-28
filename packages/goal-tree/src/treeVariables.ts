@@ -13,20 +13,32 @@ const getTreeContextVariables = (tree: GoalTree): string[] => {
 
   // Collect variables from goals
   goals.forEach((goal) => {
-    goal.execCondition?.maintain?.variables.forEach((variable) => {
-      variables.add(variable.name);
-    });
+    if (goal.properties?.edge?.execCondition?.maintain?.variables) {
+      goal.properties.edge.execCondition.maintain.variables.forEach(
+        (variable) => {
+          variables.add(variable.name);
+        },
+      );
+    }
 
-    goal.execCondition?.assertion?.variables.forEach((variable) => {
-      variables.add(variable.name);
-    });
+    if (goal.properties?.edge?.execCondition?.assertion?.variables) {
+      goal.properties.edge.execCondition.assertion.variables.forEach(
+        (variable) => {
+          variables.add(variable.name);
+        },
+      );
+    }
   });
 
   // Collect variables from tasks (tasks can also have assertions)
   tasks.forEach((task) => {
-    task.execCondition?.assertion?.variables.forEach((variable) => {
-      variables.add(variable.name);
-    });
+    if (task.properties?.edge?.execCondition?.assertion?.variables) {
+      task.properties.edge.execCondition.assertion.variables.forEach(
+        (variable) => {
+          variables.add(variable.name);
+        },
+      );
+    }
   });
 
   return Array.from(variables);

@@ -27,12 +27,12 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
   variables.push(pursuedVariable(goal.id));
 
   // Has achieved if not maintain goal
-  if (!goal.execCondition?.maintain) {
+  if (!goal.properties.edge.execCondition?.maintain) {
     variables.push(achievedVariable(goal.id));
   }
 
   // Has chosen if choice execution detail
-  if (goal.executionDetail?.type === 'choice') {
+  if (goal.properties.edge.executionDetail?.type === 'choice') {
     const children = childrenIncludingTasks({ node: goal });
     if (children.length > 0) {
       variables.push(chosenVariable(goal.id));
@@ -74,7 +74,7 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
   formulas.push(achievableFormulaVariable(goal.id));
 
   // Has maintain formula if maintain goal
-  if (goal.execCondition?.maintain) {
+  if (goal.properties.edge.execCondition?.maintain) {
     formulas.push(achievedMaintain(goal.id));
   }
 
@@ -88,10 +88,12 @@ const calculateGoalContextVariables = (goal: GoalNode): string[] => {
   // These appear in the first pursue line of the goal's module
   // We don't count maintain variables because they're used in formulas, not pursue lines
   // We don't count children's context variables because they don't appear in the goal's first pursue line
-  if (goal.execCondition?.assertion) {
-    goal.execCondition.assertion.variables.forEach((v: { name: string }) => {
-      variables.push(v.name);
-    });
+  if (goal.properties.edge.execCondition?.assertion) {
+    goal.properties.edge.execCondition.assertion.variables.forEach(
+      (v: { name: string }) => {
+        variables.push(v.name);
+      },
+    );
   }
 
   return variables;
@@ -168,15 +170,19 @@ export const calculateExpectedElements = (
   // Also collect context variables from tasks
   const taskContextVariables = new Set<string>();
   tasks.forEach((task: GoalNode) => {
-    if (task.execCondition?.assertion) {
-      task.execCondition.assertion.variables.forEach((v: { name: string }) => {
-        taskContextVariables.add(v.name);
-      });
+    if (task.properties.edge.execCondition?.assertion) {
+      task.properties.edge.execCondition.assertion.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
     }
-    if (task.execCondition?.maintain?.variables) {
-      task.execCondition.maintain.variables.forEach((v: { name: string }) => {
-        taskContextVariables.add(v.name);
-      });
+    if (task.properties.edge.execCondition?.maintain?.variables) {
+      task.properties.edge.execCondition.maintain.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
     }
   });
 

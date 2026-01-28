@@ -20,7 +20,16 @@
       "Bash(pnpm exec tsc --help:*)",
       "Bash(pnpm exec tsc:*)",
       "Bash(pnpm run build:ui:*)",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "Bash(git checkout:*)",
+      "Bash(perl:*)",
+      "Bash(npx mocha:*)",
+      "Bash(pnpm run build:lib:*)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(pnpm -w run build:goal-tree)",
+      "Bash(git status:*)",
+      "Bash(pnpm -w run build:lib:*)"
     ]
   }
 }

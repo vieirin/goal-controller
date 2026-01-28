@@ -2,7 +2,7 @@ import type { Dictionary } from 'lodash';
 
 export type id = string;
 
-type Model = {
+export type Model = {
   actors: Actor[];
   orphans: never[];
   dependencies: never[];
@@ -14,18 +14,18 @@ type Model = {
   diagram: Diagram;
 };
 
-type Actor = {
+export type Actor = {
   nodes: Node[];
 } & Node;
 
-type NodeType =
+export type NodeType =
   | 'istar.Task'
   | 'istar.Goal'
   | 'istar.Actor'
   | 'istar.Resource'
   | 'istar.Quality';
 
-type Node = {
+export type Node = {
   id: id;
   text: string;
   type: NodeType;
@@ -33,7 +33,7 @@ type Node = {
   y: number;
 } & CustomProperties;
 
-type Link = {
+export type Link = {
   id: id;
   type:
     | 'istar.AndRefinementLink'
@@ -44,20 +44,20 @@ type Link = {
   target: string;
 };
 
-type Display = Record<string, DisplayItem>;
+export type Display = Record<string, DisplayItem>;
 
-type DisplayItem = {
+export type DisplayItem = {
   backgroundColor: string;
   width?: number;
   height?: number;
 };
 
-type Diagram = {
+export type Diagram = {
   width: number;
   height: number;
 } & CustomProperties;
 
-type ExecCondition = {
+export type ExecCondition = {
   maintain?: {
     sentence: string;
     variables: Array<{ name: string; value: boolean | null }>;
@@ -68,7 +68,7 @@ type ExecCondition = {
   };
 };
 
-type Resource = {
+export type Resource = {
   variable:
     | {
         type: 'boolean';
@@ -82,7 +82,7 @@ type Resource = {
       };
 } & GoalNode;
 
-type CustomProperties = {
+export type CustomProperties = {
   customProperties: {
     Description: '';
     root?: string;
@@ -107,13 +107,13 @@ type CustomProperties = {
   };
 };
 
-type Relation = 'or' | 'and' | 'neededBy' | 'none';
-type Type = 'goal' | 'task' | 'resource';
-type Decision = {
+export type Relation = 'or' | 'and' | 'neededBy' | 'none';
+export type Type = 'goal' | 'task' | 'resource';
+export type Decision = {
   decisionVars: Array<{ variable: string; space: number }>;
   hasDecision: boolean;
 };
-type GoalExecutionDetail = (
+export type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }
   | { type: 'sequence'; sequence: string[] }
@@ -136,7 +136,7 @@ export type SleecProps = {
   ContextEvent?: string;
 };
 
-type GoalNode = {
+export type GoalNode = {
   iStarId: id;
   id: string;
   type: Type;
@@ -150,29 +150,38 @@ type GoalNode = {
     utility: string;
     cost: string;
     root: boolean | undefined;
-    dependsOn: string[];
     maxRetries: number | undefined;
+    uniqueChoice: boolean;
+    isQuality: boolean;
     PreCond?: string;
     TriggeringEvent?: string;
     TemporalConstraint?: string;
     PostCond?: string;
     ObstacleEvent?: string;
-    [k: string]: any;
+    // Resource-specific properties (raw values from iStar model)
+    type?: string;
+    initialValue?: string;
+    lowerBound?: string;
+    upperBound?: string;
+    edge: {
+      dependsOn: string[];
+      executionDetail: GoalExecutionDetail | null;
+      execCondition?: ExecCondition;
+      decision: Decision;
+    };
   };
   resources: Resource[];
   tasks?: GoalNode[];
-  executionDetail: GoalExecutionDetail | null;
-  execCondition?: ExecCondition;
   sleecProps?: SleecProps;
-} & Decision;
+};
 
-type GoalNodeWithParent = GoalNode & {
+export type GoalNodeWithParent = GoalNode & {
   parent: GoalNode[];
   children?: GoalNodeWithParent[];
 };
 
-type GenericGoal = GoalNode | GoalNodeWithParent;
+export type GenericGoal = GoalNode | GoalNodeWithParent;
 
-type GoalTreeWithParent = GoalNodeWithParent[];
-type GoalTree = GoalNode[];
-type GenericTree = GenericGoal[];
+export type GoalTreeWithParent = GoalNodeWithParent[];
+export type GoalTree = GoalNode[];
+export type GenericTree = GenericGoal[];

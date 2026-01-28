@@ -180,8 +180,8 @@ const createLogger = (
       store.totalGoals++;
 
       // Track execution detail type
-      if (goal.executionDetail) {
-        switch (goal.executionDetail.type) {
+      if (goal.properties.edge.executionDetail) {
+        switch (goal.properties.edge.executionDetail.type) {
           case 'degradation':
             store.goalTypeDegradation++;
             break;
@@ -213,11 +213,15 @@ const createLogger = (
       );
       write(
         `\tType: ${
-          goal.execCondition?.maintain?.sentence ? 'maintain' : 'achieve'
+          goal.properties.edge.execCondition?.maintain?.sentence
+            ? 'maintain'
+            : 'achieve'
         }\n`,
       );
       write(`\tRelation to children: ${goal.relationToChildren ?? 'none'}\n`);
-      write(`\tExecution detail: ${goal.executionDetail?.type ?? 'none'}\n`);
+      write(
+        `\tExecution detail: ${goal.properties.edge.executionDetail?.type ?? 'none'}\n`,
+      );
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
     initTask: (task: GoalNode) => {

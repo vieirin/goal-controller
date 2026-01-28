@@ -41,50 +41,7 @@ export const generateValidatedPrismModel = ({
   variables?: Record<string, boolean | number>;
 }): string => {
   const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables });
-  // const all = [
-  //   ...allByType({ gm, type: 'goal' }),
-  //   ...allByType({ gm, type: 'task' }),
-  // ];
-  // console.log(
-  //   all.map((goal) => ({
-  //     id: goal.id,
-  //     children: childrenIncludingTasks({ node: goal }).map((child) => child.id),
-  //     relationToChildren: goal.relationToChildren,
-  //   })),
-  // );
-  // console.log('==============================================');
-  // console.log(
-  //   all.map((goal) => ({
-  //     id: goal.id,
-  //     relationToChildren: goal.relationToChildren,
-  //   })),
-  // );
-  // console.log('==============================================');
-  // console.log(
-  //   all
-  //     .filter(
-  //       (goal) =>
-  //         !!goal.execCondition?.maintain?.sentence ||
-  //         !!goal.execCondition?.assertion?.sentence,
-  //     )
-  //     .map((goal) => ({
-  //       id: goal.id,
-  //       maintain: goal.execCondition?.maintain?.sentence,
-  //       assertion: goal.execCondition?.assertion?.sentence,
-  //     })),
-  // );
-  // console.log('==============================================');
-  // console.log('==============================================');
-  // console.log(
-  //   all
-  //     .filter((goal) => !!goal.execCondition?.maintain?.sentence)
-  //     .map((goal) => ({
-  //       id: goal.id,
-  //       type: 'maintain',
-  //       formula: 1,
-  //       formulaExpected: 1,
-  //     })),
-  // );
+
   const report = validate(gm, prismModel, fileName);
   if (report.summary.totalMissing > 0) {
     throw new Error('PRISM model is not valid');

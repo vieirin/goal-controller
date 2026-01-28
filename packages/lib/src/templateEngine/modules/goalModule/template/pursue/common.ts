@@ -6,7 +6,7 @@ export const hasBeenAchieved = (
   goal: GoalNode,
   { condition, update }: { condition: boolean; update?: boolean },
 ): string => {
-  if (goal.execCondition?.maintain) {
+  if (goal.properties.edge.execCondition?.maintain) {
     if (update) {
       throw new Error(
         'Invalid update option for goal of type maintain, please verify',

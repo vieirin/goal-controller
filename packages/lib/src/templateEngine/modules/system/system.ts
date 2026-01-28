@@ -116,15 +116,19 @@ export const systemModule = ({
   const tasks = allByType({ gm, type: 'task' });
   const taskContextVariables = new Set<string>();
   tasks.forEach((task: GoalNode) => {
-    if (task.execCondition?.assertion) {
-      task.execCondition.assertion.variables.forEach((v: { name: string }) => {
-        taskContextVariables.add(v.name);
-      });
+    if (task.properties.edge.execCondition?.assertion) {
+      task.properties.edge.execCondition.assertion.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
     }
-    if (task.execCondition?.maintain?.variables) {
-      task.execCondition.maintain.variables.forEach((v: { name: string }) => {
-        taskContextVariables.add(v.name);
-      });
+    if (task.properties.edge.execCondition?.maintain?.variables) {
+      task.properties.edge.execCondition.maintain.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
     }
   });
 

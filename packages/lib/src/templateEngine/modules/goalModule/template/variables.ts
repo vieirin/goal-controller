@@ -21,13 +21,14 @@ export const variablesDefinition = (goal: GoalNode): string => {
     return `${variable} : [0..${upperBound}] init 0;`;
   };
   const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
-  const achievedVariableStatement = !goal.execCondition?.maintain
+  const achievedVariableStatement = !goal.properties.edge.execCondition
+    ?.maintain
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
   const children = utils.childrenIncludingTasks({ node: goal });
   const chosenVariableStatement =
-    goal.executionDetail?.type === 'choice'
+    goal.properties.edge.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 

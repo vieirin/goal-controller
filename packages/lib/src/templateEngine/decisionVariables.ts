@@ -14,11 +14,11 @@ export const decisionVariablesForGoal = ({
 }: {
   goal: GoalNode;
 }): readonly [string[], Generator<number[]>, number[][]] => {
-  const spaceArray = goal.decisionVars.map(
+  const spaceArray = goal.properties.edge.decision.decisionVars.map(
     (decision: { variable: string; space: number }) =>
       Array.from({ length: decision.space }, (_, i) => i),
   );
-  const variableArray = goal.decisionVars.map(
+  const variableArray = goal.properties.edge.decision.decisionVars.map(
     (decision: { variable: string; space: number }) => decision.variable,
   );
 
@@ -45,7 +45,7 @@ export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }): string => {
   const allGoals = allByType({ gm, type: 'goal' });
 
   const goalsWithDecisionVariables = allGoals.filter(
-    (goal: GoalNode) => goal.decisionVars.length,
+    (goal: GoalNode) => goal.properties.edge.decision.decisionVars.length,
   );
   goalsWithDecisionVariables.forEach((goal: GoalNode) => {
     const [vars, decisionVars, spaceArray] = decisionVariablesForGoal({ goal });

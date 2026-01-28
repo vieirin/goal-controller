@@ -18,7 +18,7 @@ export const achieveCondition = (goal: GoalNode): string => {
     if (children.length) {
       return `(${children
         .map((child) =>
-          child.execCondition?.maintain
+          child.properties.edge.execCondition?.maintain
             ? `${achievedMaintain(child.id)}=true`
             : `${achievedVariable(child.id)}=1`,
         )
@@ -39,7 +39,8 @@ export const achieveStatement = (goal: GoalNode): string => {
     .join(separator('and'));
 
   const achievedUpdate = `${achieved(goal.id)}'=1`;
-  const shouldHaveUpdateAchieved = !goal.execCondition?.maintain;
+  const shouldHaveUpdateAchieved =
+    !goal.properties.edge.execCondition?.maintain;
   const updateStatement = `(${pursued(goal.id)}'=0)${
     shouldHaveUpdateAchieved ? ` & (${achievedUpdate})` : ''
   };`;

@@ -21,7 +21,7 @@ export const goalModule = (goal: GoalNode): string => {
 
   return `// ID: ${goal.id}
 // Name: ${goal.name}
-// Type: ${goal.executionDetail?.type || 'basic'}
+// Type: ${goal.properties.edge.executionDetail?.type || 'basic'}
 // Relation to children: ${goal.relationToChildren}
 // Children: ${childrenIncludingTasks({ node: goal })
     .map((child) => child.id)

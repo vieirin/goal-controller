@@ -214,15 +214,15 @@ export const validatePrismModel = (
   const allGoalsMapResult = allGoalsMap({ gm: goalTree });
   allGoalsMapResult.forEach((goal) => {
     const goalType =
-      goal.executionDetail?.type === 'choice'
+      goal.properties.edge.executionDetail?.type === 'choice'
         ? 'choice'
-        : goal.executionDetail?.type === 'degradation'
+        : goal.properties.edge.executionDetail?.type === 'degradation'
           ? 'degradation'
-          : goal.executionDetail?.type === 'sequence'
+          : goal.properties.edge.executionDetail?.type === 'sequence'
             ? 'sequence'
-            : goal.executionDetail?.type === 'interleaved'
+            : goal.properties.edge.executionDetail?.type === 'interleaved'
               ? 'interleaved'
-              : goal.executionDetail?.type === 'alternative'
+              : goal.properties.edge.executionDetail?.type === 'alternative'
                 ? 'alternative'
                 : 'basic';
     goalTypes[goalType].expected++;

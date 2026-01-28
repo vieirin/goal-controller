@@ -41,3 +41,4 @@ node_modules/.ignored
 packages/ui/.next/
 packages/lib/out/
 packages/lib/tsconfig.tsbuildinfo
+packages/goal-tree/tsconfig.tsbuildinfo

@@ -9,19 +9,21 @@ export const achievedMaintain = (goalId: string): string => {
 };
 
 export const maintainConditionFormula = (goal: GoalNode): string => {
-  if (!goal.execCondition?.maintain) {
+  if (!goal.properties.edge.execCondition?.maintain) {
     return '';
   }
   const logger = getLogger();
 
   const prismLine = `formula ${achievedMaintain(goal.id)} = ${
-    goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED'
+    goal.properties.edge.execCondition.maintain.sentence ||
+    'ASSERTION_UNDEFINED'
   };`;
 
   logger.maintainFormulaDefinition(
     goal.id,
     achievedMaintain(goal.id),
-    goal.execCondition.maintain.sentence || 'ASSERTION_UNDEFINED',
+    goal.properties.edge.execCondition.maintain.sentence ||
+      'ASSERTION_UNDEFINED',
     prismLine,
   );
   return prismLine;
