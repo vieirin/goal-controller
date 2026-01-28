@@ -59,7 +59,7 @@ export type {
   TaskEdgeProps,
   TaskSleecProps,
   TreeNode,
-  Type,
+  Type
 } from './types/';
 
 // ─────────────────────────────────────────────────────────────────────────────
