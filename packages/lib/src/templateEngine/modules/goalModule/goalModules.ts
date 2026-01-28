@@ -1,5 +1,5 @@
-import { type GoalTree, type GoalNode } from '@goal-controller/goal-tree';
-import { allByType } from '@goal-controller/goal-tree';
+import type { GoalTreeType, GoalNode } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { goalModule } from './template';
 
 export const goalNumberId = (goalId: string): string => {
@@ -12,8 +12,8 @@ export const goalNumberId = (goalId: string): string => {
   return id;
 };
 
-export const goalModules = ({ gm }: { gm: GoalTree }): string => {
-  const goals = allByType({ gm, type: 'goal' });
+export const goalModules = ({ gm }: { gm: GoalTreeType }): string => {
+  const goals = GoalTree.allByType(gm, 'goal');
   return `
 ${goals
   .sort(

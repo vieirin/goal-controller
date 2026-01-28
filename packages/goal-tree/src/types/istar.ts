@@ -12,33 +12,46 @@ export type NodeType =
   | 'istar.Resource'
   | 'istar.Quality';
 
+export type CustomPropertiesData = {
+  Description?: string;
+  root?: string;
+  cost?: string;
+  alt?: string;
+  utility?: string;
+  dependsOn?: string;
+  variables?: string;
+  uniqueChoice?: string;
+  type?: string;
+  maxRetries?: string;
+  selected?: string;
+  PreCond?: string;
+  TriggeringEvent?: string;
+  TemporalConstraint?: string;
+  PostCond?: string;
+  ObstacleEvent?: string;
+  // Resource-specific properties
+  initialValue?: string;
+  lowerBound?: string;
+  upperBound?: string;
+  // Maintain/assertion properties
+  maintain?: string;
+  assertion?: string;
+  // SLEEC properties
+  Type?: string;
+  Source?: string;
+  Class?: string;
+  NormPrinciple?: string;
+  Proxy?: string;
+  AddedValue?: string;
+  Condition?: string;
+  Event?: string;
+  ContextEvent?: string;
+  // Allow additional string properties
+  [key: string]: string | undefined;
+};
+
 export type CustomProperties = {
-  customProperties: {
-    Description: '';
-    root?: string;
-    cost: string;
-    alt?: string;
-    utility: string;
-    dependsOn?: string;
-    variables?: string;
-    uniqueChoice?: string;
-    type: never;
-    maxRetries?: string;
-    selected?: string;
-    PreCond?: string;
-    TriggeringEvent?: string;
-    TemporalConstraint?: string;
-    PostCond?: string;
-    ObstacleEvent?: string;
-    // Resource-specific properties
-    initialValue?: string;
-    lowerBound?: string;
-    upperBound?: string;
-  } & {
-    type: 'maintain';
-    maintain: string;
-    assertion: string;
-  };
+  customProperties: CustomPropertiesData;
 };
 
 export type Node = {

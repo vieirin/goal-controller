@@ -1,97 +1,69 @@
-import { readFileSync } from 'fs';
-import type { Model } from './types/';
+/**
+ * Goal Tree SDK
+ *
+ * A class-based SDK for working with iStar goal models.
+ *
+ * @example
+ * ```typescript
+ * import { GoalTree, Node, Model } from '@goal-controller/goal-tree';
+ *
+ * // Create a tree from a file
+ * const tree = GoalTree.fromFile('model.json');
+ *
+ * // Query operations
+ * const allGoals = tree.query.allByType('goal');
+ * const leafGoals = tree.query.leafGoals();
+ *
+ * // Node utilities
+ * if (Node.isGoal(node)) {
+ *   const children = Node.children(node);
+ * }
+ *
+ * // Model utilities
+ * const model = Model.load('file.json');
+ * Model.validate(model);
+ * ```
+ */
 
-export const validateModel = ({ model }: { model: Model }): void => {
-  const root = model.actors
-    .map((item) =>
-      // check in node list if there are more than one root
-      item.nodes.reduce((hasRoot, node) => {
-        // Exclude Quality nodes from root check
-        if (node.type === 'istar.Quality') {
-          return hasRoot;
-        }
-        // Check if this node has outgoing links
-        const isRoot = !model.links.find((link) => link.source === node.id);
-        // Also exclude nodes that are targets of QualificationLinks (connected to Quality nodes)
-        const isQualifiedByQuality = model.links.some((link) => {
-          if (link.type !== 'istar.QualificationLink') return false;
-          if (link.target !== node.id) return false;
-          // Check if the source is a Quality node
-          const sourceNode = item.nodes.find((n) => n.id === link.source);
-          return sourceNode?.type === 'istar.Quality';
-        });
+// ─────────────────────────────────────────────────────────────────────────────
+// Main SDK Classes
+// ─────────────────────────────────────────────────────────────────────────────
 
-        if (isQualifiedByQuality) {
-          return hasRoot; // Skip this node in root check
-        }
+export { GoalTree, type TreeQuery } from './GoalTree';
+export { Model, type ModelNamespace } from './Model';
+export { Node, type NodeNamespace } from './Node';
 
-        if (isRoot && hasRoot) {
-          throw new Error('invalid number of roots, one allowed');
-        }
-        if (isRoot) {
-          node.customProperties.root = 'true';
-        }
-        return isRoot || hasRoot;
-      }, false),
-    )
-    // check if all actors have a root
-    .every((isValid) => isValid);
-  if (!root) {
-    throw new Error('invalid number of root, one allowed');
-  }
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
-export const loadPistarModel = ({ filename }: { filename: string }): Model => {
-  const modelFile = readFileSync(filename);
-  const model = JSON.parse(modelFile.toString()) as Model;
-
-  validateModel({ model });
-
-  return model;
-};
-
-// Export from creation.ts
-export { convertToTree } from './creation';
-
-// Export from utils.ts
-export {
-  allByType,
-  allGoalsMap,
-  cartesianProduct,
-  childrenIncludingTasks,
-  childrenWithMaxRetries,
-  dumpTreeToJSON,
-  goalRootId,
-  leafGoals,
-} from './utils';
-
-// Export from treeVariables.ts
-export {
-  getTaskAchievabilityVariables,
-  treeContextVariables,
-} from './treeVariables';
-
-// Export from printTree.ts
-export { printTree } from './printTree';
-
-// Export from nodeUtils.ts
-export { isGoalNode, isResource, isTask } from './nodeUtils';
-
-// Export all types
 export type {
+  // iStar types
   Actor,
+  Decision,
+  // Props types
   ExecCondition,
+  GoalEdgeProps,
   GoalExecutionDetail,
+  // Goal Tree types
   GoalNode,
-  GoalTree,
+  GoalTree as GoalTreeType,
+  Model as IStarModel,
+  Node as IStarNode,
   Link,
-  Model,
-  Node,
   NodeType,
   Relation,
   Resource,
   SleecProps,
   Task,
+  TaskEdgeProps,
+  TaskSleecProps,
   TreeNode,
   Type,
 } from './types/';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal utilities (exported for advanced use cases)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export { cartesianProduct } from './internal/utils';

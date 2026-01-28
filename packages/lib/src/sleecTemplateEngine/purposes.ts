@@ -1,8 +1,8 @@
-import type { GoalTree, GoalNode } from '@goal-controller/goal-tree';
-import { allByType } from '@goal-controller/goal-tree';
+import type { GoalTreeType, GoalNode } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 
-export const generatePurposes = (tree: GoalTree): string => {
-  const goals = allByType({ gm: tree, type: 'goal' });
+export const generatePurposes = (tree: GoalTreeType): string => {
+  const goals = GoalTree.allByType(tree, 'goal');
   return `purpose_start
   ${goals
     .filter((goal: GoalNode) =>

@@ -1,15 +1,17 @@
-import type { GoalTree } from './types/';
-import { allByType } from './utils';
+/**
+ * Internal tree variable utilities
+ */
+import type { GoalTree } from '../types/';
+import { allByType } from './traversal';
 
-// Helper function for achievable formula variable names
 const achievableFormulaVariable = (goalId: string): string =>
   `${goalId}_achievable`;
 
-const getTreeContextVariables = (tree: GoalTree): string[] => {
+export function getContextVariables(tree: GoalTree): string[] {
   const variables = new Set<string>();
 
-  const goals = allByType({ gm: tree, type: 'goal' });
-  const tasks = allByType({ gm: tree, type: 'task' });
+  const goals = allByType(tree, 'goal');
+  const tasks = allByType(tree, 'task');
 
   // Collect variables from goals
   goals.forEach((goal) => {
@@ -42,13 +44,9 @@ const getTreeContextVariables = (tree: GoalTree): string[] => {
   });
 
   return Array.from(variables);
-};
+}
 
-export const getTaskAchievabilityVariables = (tree: GoalTree): string[] => {
-  const tasks = allByType({ gm: tree, type: 'task' });
-  const taskAchievabilityVariables = tasks.map((task) =>
-    achievableFormulaVariable(task.id),
-  );
-  return taskAchievabilityVariables;
-};
-export { getTreeContextVariables as treeContextVariables };
+export function getTaskAchievabilityVariables(tree: GoalTree): string[] {
+  const tasks = allByType(tree, 'task');
+  return tasks.map((task) => achievableFormulaVariable(task.id));
+}

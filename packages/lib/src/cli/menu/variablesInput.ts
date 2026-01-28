@@ -1,12 +1,7 @@
 import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
-import { loadPistarModel } from '@goal-controller/goal-tree';
-import { convertToTree } from '@goal-controller/goal-tree';
-import {
-  getTaskAchievabilityVariables,
-  treeContextVariables,
-} from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { getVariablesFilePath } from '../../utils/variablesPath';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
@@ -86,10 +81,10 @@ export const inputDefaultVariables = async (
     }
 
     // At this point modelPath is guaranteed to be a string
-    const model = loadPistarModel({ filename: modelPath as string });
-    const tree = convertToTree({ model });
-    const contextVariables = treeContextVariables(tree);
-    const achievabilityVariables = getTaskAchievabilityVariables(tree);
+    const model = Model.load(modelPath as string);
+    const tree = GoalTree.fromModel(model);
+    const contextVariables = tree.query.contextVariables();
+    const achievabilityVariables = tree.query.taskAchievabilityVariables();
     const variables = [...contextVariables, ...achievabilityVariables];
 
     if (variables.length === 0) {

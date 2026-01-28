@@ -1,14 +1,14 @@
 import {
-  convertToTree,
-  validateModel,
-  type GoalTree,
-  type Model,
+  GoalTree,
+  Model,
+  type GoalTreeType,
+  type IStarModel,
 } from '@goal-controller/lib';
 
 export interface ParseResult {
   success: true;
-  model: Model;
-  tree: GoalTree;
+  model: IStarModel;
+  tree: GoalTreeType;
 }
 
 export interface ParseError {
@@ -28,7 +28,7 @@ export const GoalModel = {
    */
   parse(modelJson: string): ParseModelResult {
     // Parse JSON
-    let model: Model;
+    let model: IStarModel;
     try {
       model = JSON.parse(modelJson);
     } catch (error) {
@@ -41,7 +41,7 @@ export const GoalModel = {
 
     // Validate model
     try {
-      validateModel({ model });
+      Model.validate(model);
     } catch (error) {
       return {
         success: false,
@@ -51,9 +51,9 @@ export const GoalModel = {
     }
 
     // Convert to tree
-    let tree: GoalTree;
+    let tree: GoalTreeType;
     try {
-      tree = convertToTree({ model });
+      tree = GoalTree.fromModel(model).nodes;
     } catch (error) {
       return {
         success: false,

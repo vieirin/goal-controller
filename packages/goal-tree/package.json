@@ -1,12 +1,13 @@
 {
   "name": "@goal-controller/goal-tree",
   "version": "1.0.0",
-  "description": "Goal tree data structures and conversion utilities",
+  "description": "iStar Goal SDK - Tree data structures and conversion utilities for edge/sleec models",
   "main": "out/index.js",
   "types": "out/index.d.ts",
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
+    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
   "dependencies": {
@@ -14,8 +15,13 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.11",
     "@types/lodash": "^4.14.197",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^22.6.0",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "engines": {

@@ -1,9 +1,5 @@
 import type { GoalNode, Task } from '@goal-controller/goal-tree';
-import {
-  childrenIncludingTasks,
-  isResource,
-  isTask,
-} from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
@@ -45,9 +41,9 @@ export const pursueStatements = (goal: GoalNode): string[] => {
   const pursueLogger = logger.pursue;
 
   // Filter out resources - they cannot be pursued
-  const allChildren = childrenIncludingTasks({ node: goal });
+  const allChildren = Node.children(goal);
   const pursueableChildren = allChildren.filter(
-    (child): child is PursueableNode => !isResource(child),
+    (child): child is PursueableNode => !Node.isResource(child),
   );
   const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren];
 
@@ -149,9 +145,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = childrenIncludingTasks({ node: goal }).map(
-                  (child) => child.id,
-                );
+                const children = Node.children(goal).map((child) => child.id);
                 if (!children) {
                   logger.error(
                     child.id,
@@ -225,7 +219,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                   goal,
                   goal.properties.edge.executionDetail.sequence,
                   child.id,
-                  childrenIncludingTasks({ node: goal }),
+                  Node.children(goal),
                 );
                 return [
                   child,
@@ -301,7 +295,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
         // parent goals have activation context independently of the maintain condition
         const activationContextCondition =
-          ((isItself(child) || isTask(child)) &&
+          ((isItself(child) || Node.isTask(child)) &&
             child.properties.edge.execCondition &&
             child.properties.edge.execCondition.assertion.sentence) ||
           '';

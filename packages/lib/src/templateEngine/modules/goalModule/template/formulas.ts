@@ -1,5 +1,5 @@
 import type { GoalNode } from '@goal-controller/goal-tree';
-import { childrenIncludingTasks } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { parenthesis } from '../../../../mdp/common';
 import { achievableFormulaVariable } from '../../../common';
@@ -30,7 +30,7 @@ export const maintainConditionFormula = (goal: GoalNode): string => {
 };
 
 export const achievableGoalFormula = (goal: GoalNode): string => {
-  const children = childrenIncludingTasks({ node: goal });
+  const children = Node.children(goal);
   const formulaName = `${achievableFormulaVariable(goal.id)}`;
   const logger = getLogger();
   if (children.length === 1) {

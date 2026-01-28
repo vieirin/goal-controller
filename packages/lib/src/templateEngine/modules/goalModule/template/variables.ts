@@ -1,5 +1,5 @@
 import type { GoalNode } from '@goal-controller/goal-tree';
-import * as utils from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import {
@@ -26,13 +26,13 @@ export const variablesDefinition = (goal: GoalNode): string => {
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
-  const children = utils.childrenIncludingTasks({ node: goal });
+  const children = Node.children(goal);
   const chosenVariableStatement =
     goal.properties.edge.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 
-  const childrenWithMaxRetries = utils.childrenWithMaxRetries({ node: goal });
+  const childrenWithMaxRetries = Node.childrenWithRetries(goal);
   const maxRetriesVariableStatement =
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries

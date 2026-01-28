@@ -1,15 +1,10 @@
-import { treeContextVariables } from '@goal-controller/goal-tree';
 import type {
   GoalNode,
-  GoalTree,
+  GoalTreeType,
   Resource,
   Task,
 } from '@goal-controller/goal-tree';
-import {
-  allByType,
-  childrenIncludingTasks,
-  childrenWithMaxRetries,
-} from '@goal-controller/goal-tree';
+import { GoalTree, Node } from '@goal-controller/goal-tree';
 import { failed } from '../mdp/common';
 import {
   achievableFormulaVariable,
@@ -38,14 +33,14 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 
   // Has chosen if choice execution detail
   if (goal.properties.edge.executionDetail?.type === 'choice') {
-    const children = childrenIncludingTasks({ node: goal });
+    const children = Node.children(goal);
     if (children.length > 0) {
       variables.push(chosenVariable(goal.id));
     }
   }
 
   // Has failed variables for children with maxRetries
-  const childrenWithRetries = childrenWithMaxRetries({ node: goal });
+  const childrenWithRetries = Node.childrenWithRetries(goal);
   childrenWithRetries.forEach((child) => {
     variables.push(failed(child.id));
   });
@@ -58,7 +53,7 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 
   // Always has pursue transitions: one for itself + one for each child
   transitions.push(pursueTransition(goal.id));
-  const children = childrenIncludingTasks({ node: goal });
+  const children = Node.children(goal);
   children.forEach((child) => {
     transitions.push(pursueTransition(child.id));
   });
@@ -137,11 +132,11 @@ const calculateChangeManagerTaskTransitions = (
 };
 
 export const calculateExpectedElements = (
-  goalTree: GoalTree,
+  goalTree: GoalTreeType,
 ): ExpectedElements => {
-  const goals = allByType({ gm: goalTree, type: 'goal' });
-  const tasks = allByType({ gm: goalTree, type: 'task' });
-  const resources = allByType({ gm: goalTree, type: 'resource' });
+  const goals = GoalTree.allByType(goalTree, 'goal');
+  const tasks = GoalTree.allByType(goalTree, 'task');
+  const resources = GoalTree.allByType(goalTree, 'resource');
 
   const goalElements = new Map<
     string,
@@ -170,7 +165,7 @@ export const calculateExpectedElements = (
 
   // Calculate System elements
   // Context variables from goals (using existing function)
-  const goalContextVariables = treeContextVariables(goalTree);
+  const goalContextVariables = GoalTree.contextVariables(goalTree);
 
   // Also collect context variables from tasks
   const taskContextVariables = new Set<string>();

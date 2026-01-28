@@ -3,14 +3,7 @@
 // Import for CLI usage and re-export
 import { writeFile } from 'fs';
 import path from 'path';
-import {
-  loadPistarModel,
-  validateModel,
-  convertToTree,
-  dumpTreeToJSON,
-  getTaskAchievabilityVariables,
-  treeContextVariables,
-} from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from './logger/logger';
 import { validate } from './prismValidator';
 import { sleecTemplateEngine } from './sleecTemplateEngine';
@@ -18,18 +11,16 @@ import { generateValidatedPrismModel } from './templateEngine/engine';
 
 // Re-export from @goal-controller/goal-tree for backward compatibility
 export {
-  convertToTree,
-  dumpTreeToJSON,
-  loadPistarModel,
-  validateModel,
-  getTaskAchievabilityVariables,
-  treeContextVariables,
+  GoalTree,
+  Model,
+  Node,
+  cartesianProduct,
 } from '@goal-controller/goal-tree';
 
 export type {
   GoalNode,
-  GoalTree,
-  Model,
+  GoalTreeType,
+  IStarModel,
   Relation,
   SleecProps,
   Type,
@@ -61,8 +52,8 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  const model = loadPistarModel({ filename: inputFile });
-  const tree = convertToTree({ model });
+  const model = Model.load(inputFile);
+  const tree = GoalTree.fromModel(model);
 
   const logger = initLogger(inputFile);
   const fileName = path.parse(inputFile).name;
@@ -70,7 +61,7 @@ if (require.main === module) {
 
   writeFile(
     outputPath,
-    sleecTemplateEngine(tree),
+    sleecTemplateEngine(tree.nodes),
     function (err: Error | null) {
       if (err) {
         console.log(err);

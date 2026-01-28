@@ -1,4 +1,4 @@
-import { type GoalTree } from '@goal-controller/goal-tree';
+import type { GoalTreeType } from '@goal-controller/goal-tree';
 import { validate } from '../prismValidator';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -11,7 +11,7 @@ const edgeDTMCTemplate = ({
   clean = false,
   variables,
 }: {
-  gm: GoalTree;
+  gm: GoalTreeType;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
@@ -35,7 +35,7 @@ export const generateValidatedPrismModel = ({
   clean = false,
   variables,
 }: {
-  gm: GoalTree;
+  gm: GoalTreeType;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;

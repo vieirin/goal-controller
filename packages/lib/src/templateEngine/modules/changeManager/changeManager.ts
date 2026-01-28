@@ -1,8 +1,7 @@
 import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
-import { getTaskAchievabilityVariables } from '@goal-controller/goal-tree';
-import type { GoalTree, Task } from '@goal-controller/goal-tree';
-import { allByType } from '@goal-controller/goal-tree';
+import type { GoalTreeType, Task } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../logger/logger';
 import { changeManagerModuleTemplate } from './template';
 import { taskAchievabilityVariables } from './template/achievabilityVariables/taskAchievabilityVariables';
@@ -12,14 +11,14 @@ export const changeManagerModule = ({
   fileName,
   variables,
 }: {
-  gm: GoalTree;
+  gm: GoalTreeType;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }): string => {
-  const tasks = allByType({ gm, type: 'task' });
+  const tasks = GoalTree.allByType(gm, 'task');
   const logger = getLogger();
   logger.info('[CHANGE MANAGER MODULE START]', 0);
-  const taskAchieveVariables = getTaskAchievabilityVariables(gm);
+  const taskAchieveVariables = GoalTree.taskAchievabilityVariables(gm);
 
   // If variables are provided directly, use them; otherwise try to read from file
   if (variables) {

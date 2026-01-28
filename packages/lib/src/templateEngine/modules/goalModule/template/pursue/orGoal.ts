@@ -1,5 +1,5 @@
 import type { GoalNode, TreeNode } from '@goal-controller/goal-tree';
-import { childrenIncludingTasks, isResource } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
@@ -100,11 +100,11 @@ export const pursueAlternativeGoal = (
   goal: GoalNode,
   currentChildId: string,
 ): string => {
-  const children = childrenIncludingTasks({ node: goal });
+  const children = Node.children(goal);
   // Filter out resources - they don't have pursued state
   const pursueableChildren = children.filter(
     (child): child is Exclude<TreeNode, { type: 'resource' }> =>
-      !isResource(child),
+      !Node.isResource(child),
   );
   const otherGoals = pursueableChildren.filter(
     (child) => child.id !== currentChildId,

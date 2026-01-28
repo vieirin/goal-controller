@@ -12,9 +12,7 @@ import {
   getLastSelectedModel,
   saveLastSelectedModel,
 } from './cli/utils';
-import { loadPistarModel } from '@goal-controller/goal-tree';
-import { convertToTree } from '@goal-controller/goal-tree';
-import { dumpTreeToJSON } from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 
 // Parse command line arguments for clean flag
 const args = process.argv.slice(2);
@@ -116,9 +114,9 @@ const mainMenu = async (): Promise<void> => {
       },
     ]);
 
-    const model = loadPistarModel({ filename: selectedFile });
-    const tree = convertToTree({ model });
-    const json = dumpTreeToJSON({ gm: tree });
+    const model = Model.load(selectedFile);
+    const tree = GoalTree.fromModel(model);
+    const json = tree.toJSON();
     await writeFile(`output/${path.parse(selectedFile).name}.json`, json);
     console.log(
       `The file ${path.parse(selectedFile).name}.json was saved successfully!`,

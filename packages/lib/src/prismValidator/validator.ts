@@ -1,5 +1,5 @@
-import type { GoalTree } from '@goal-controller/goal-tree';
-import { allByType, allGoalsMap } from '@goal-controller/goal-tree';
+import type { GoalTreeType } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -176,7 +176,7 @@ const validateSystem = (
 };
 
 export const validatePrismModel = (
-  goalTree: GoalTree,
+  goalTree: GoalTreeType,
   prismModel: string,
 ): ValidationReport => {
   const parsedModel = parsePrismModel(prismModel);
@@ -211,7 +211,7 @@ export const validatePrismModel = (
   };
 
   // Count expected goal types from GoalTree
-  const allGoalsMapResult = allGoalsMap({ gm: goalTree });
+  const allGoalsMapResult = GoalTree.allGoalsMap(goalTree);
   allGoalsMapResult.forEach((goal) => {
     const goalType =
       goal.properties.edge.executionDetail?.type === 'choice'
@@ -291,7 +291,7 @@ export const validatePrismModel = (
     systemValidation.resourceVariables.missing;
 
   // Calculate node-type aggregated summary
-  const allGoalsList = allByType({ gm: goalTree, type: 'goal' });
+  const allGoalsList = GoalTree.allByType(goalTree, 'goal');
   const goalsModulesExpected = allGoalsList.length;
   const goalsModulesEmitted = parsedModel.goalModules.size;
 

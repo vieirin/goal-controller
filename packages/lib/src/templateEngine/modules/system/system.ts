@@ -1,10 +1,9 @@
+import type { GoalTreeType, Resource, Task } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
-import { getVariablesFilePath } from '../../../utils/variablesPath';
-import { treeContextVariables } from '@goal-controller/goal-tree';
-import type { GoalTree, Task, Resource } from '@goal-controller/goal-tree';
-import { allByType } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../logger/logger';
+import { getVariablesFilePath } from '../../../utils/variablesPath';
 import { systemModuleTemplate } from './template';
 
 /**
@@ -102,17 +101,17 @@ export const systemModule = ({
   clean = false,
   variables: variablesParam,
 }: {
-  gm: GoalTree;
+  gm: GoalTreeType;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
 }): string => {
   const logger = getLogger();
   logger.initSystem();
-  const goalContextVars = treeContextVariables(gm);
+  const goalContextVars = GoalTree.contextVariables(gm);
 
   // Also collect context variables from tasks
-  const tasks = allByType({ gm, type: 'task' });
+  const tasks = GoalTree.allByType(gm, 'task');
   const taskContextVariables = new Set<string>();
   tasks.forEach((task: Task) => {
     if (task.properties.edge.execCondition?.assertion) {
@@ -138,7 +137,7 @@ export const systemModule = ({
   ]);
 
   // Exclude resource IDs from context variables
-  const resources = allByType({ gm, type: 'resource' });
+  const resources = GoalTree.allByType(gm, 'resource');
   const resourceIds = new Set(
     resources.map((resource: Resource) => resource.id),
   );

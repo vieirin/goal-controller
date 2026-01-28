@@ -1,5 +1,5 @@
 import type { Relation } from '@goal-controller/goal-tree';
-import { goalRootId } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 
 export const separator = (relation: Relation | null): string => {
   switch (relation) {
@@ -13,7 +13,7 @@ export const separator = (relation: Relation | null): string => {
 };
 
 export const formulaForGoal = (goalId: string): string =>
-  `${goalRootId({ id: goalId })}_achieved_or_pursued`;
+  `${Node.rootId(goalId)}_achieved_or_pursued`;
 
 export const not = (s: string): string => (s ? `!${s}` : s);
 export const parenthesis = (s: string): string => (s ? `(${s})` : s);

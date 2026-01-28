@@ -1,5 +1,5 @@
-import type { GoalTree } from '@goal-controller/goal-tree';
-import { allByType } from '@goal-controller/goal-tree';
+import type { GoalTreeType } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { generateDefinitions } from './definitions';
 import { generatePurposes } from './purposes';
 import { generateTaskRules } from './rules';
@@ -8,8 +8,8 @@ import { generateTaskRules } from './rules';
 export { extractMeasures } from './definitions';
 export type { Measure, MeasureType } from './shared';
 
-export const sleecTemplateEngine = (tree: GoalTree): string => {
-  const tasks = allByType({ gm: tree, type: 'task' });
+export const sleecTemplateEngine = (tree: GoalTreeType): string => {
+  const tasks = GoalTree.allByType(tree, 'task');
   const definitions = generateDefinitions(tasks);
   const rules = generateTaskRules(tasks);
   const purposes = generatePurposes(tree);

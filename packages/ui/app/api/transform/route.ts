@@ -10,8 +10,13 @@ import { GoalModel } from '../../../lib/models';
 
 export async function POST(request: NextRequest) {
   try {
-    const { modelJson, engine, clean = false, fileName, variables } = await request.json();
-
+    const {
+      modelJson,
+      engine,
+      clean = false,
+      fileName,
+      variables,
+    } = await request.json();
 
     if (!modelJson) {
       return ApiResponse.badRequest('Model JSON is required');
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
       }
       return ApiResponse.error(
         parseResult.error,
-        GoalModel.getErrorStatus(parseResult.stage)
+        GoalModel.getErrorStatus(parseResult.stage),
       );
     }
 
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
       console.error('[API] Generation error:', generationError);
       return ApiResponse.serverError(
         `Generation failed: ${ApiResponse.extractMessage(generationError)}`,
-        ApiResponse.extractDetails(generationError)
+        ApiResponse.extractDetails(generationError),
       );
     }
   } catch (error) {

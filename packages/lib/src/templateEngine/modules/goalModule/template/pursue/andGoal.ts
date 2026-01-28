@@ -1,5 +1,5 @@
 import type { GoalNode, Task, TreeNode } from '@goal-controller/goal-tree';
-import { isResource } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { hasBeenAchieved } from './common';
@@ -40,7 +40,7 @@ export const pursueAndSequentialGoal = (
 
   // Filter out resources - they cannot be achieved
   const achievableChildren = children.filter(
-    (child): child is AchievableNode => !isResource(child),
+    (child): child is AchievableNode => !Node.isResource(child),
   );
 
   const childrenMap = new Map<string, AchievableNode>(

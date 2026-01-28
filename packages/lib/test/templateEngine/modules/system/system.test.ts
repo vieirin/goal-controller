@@ -12,7 +12,10 @@ const outputFileExists = (inputFileName: string): boolean => {
   const baseName = inputFileName.split('/').pop()?.replace('.txt', '') || '';
   // Check where extractOldSystemTransitions will look (output/ relative to cwd)
   // AND where the files actually are (../../output from packages/lib)
-  return existsSync(`output/${baseName}.prism`) || existsSync(`../../output/${baseName}.prism`);
+  return (
+    existsSync(`output/${baseName}.prism`) ||
+    existsSync(`../../output/${baseName}.prism`)
+  );
 };
 
 describe('extractOldSystemTransitions', () => {
@@ -59,7 +62,8 @@ describe('extractOldSystemTransitions', () => {
 
   describe('9-minimalMaintainContext', () => {
     it('should extract all transitions from System module', function () {
-      const fileName = '../../examples/experiments/9-minimalMaintainContext.txt';
+      const fileName =
+        '../../examples/experiments/9-minimalMaintainContext.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
@@ -108,7 +112,8 @@ describe('extractOldSystemTransitions', () => {
 
   describe('10-minimalMaintainResource', () => {
     it('should extract all transitions from System module', function () {
-      const fileName = '../../examples/experiments/10-minimalMaintainResource.txt';
+      const fileName =
+        '../../examples/experiments/10-minimalMaintainResource.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }

@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '@goal-controller/goal-tree';
-import { convertToTree } from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from '../../src/logger/logger';
 import { formatValidationReport, validate } from '../../src/prismValidator';
 import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';
@@ -26,19 +25,19 @@ describe('PRISM Validator - Experiment Examples', () => {
         const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
-        const model = loadPistarModel({ filename: inputFile });
-        const tree = convertToTree({ model });
+        const model = Model.load(inputFile);
+        const tree = GoalTree.fromModel(model);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
-          gm: tree,
+          gm: tree.nodes,
           fileName: inputFile,
         });
         logger.close();
 
         // Validate
-        const report = validate(tree, prismModel);
+        const report = validate(tree.nodes, prismModel);
 
         // Check that all expected elements are present
         let hasErrors = false;
@@ -140,19 +139,19 @@ describe('PRISM Validator - Experiment Examples', () => {
         const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
-        const model = loadPistarModel({ filename: inputFile });
-        const tree = convertToTree({ model });
+        const model = Model.load(inputFile);
+        const tree = GoalTree.fromModel(model);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
-          gm: tree,
+          gm: tree.nodes,
           fileName: inputFile,
         });
         logger.close();
 
         // Validate
-        const report = validate(tree, prismModel);
+        const report = validate(tree.nodes, prismModel);
 
         // Check that we have at least as many emitted as expected (may have extra)
         assert.ok(
@@ -170,19 +169,19 @@ describe('PRISM Validator - Experiment Examples', () => {
         const inputFile = `../../examples/experiments/${exampleName}.txt`;
 
         // Load and convert model
-        const model = loadPistarModel({ filename: inputFile });
-        const tree = convertToTree({ model });
+        const model = Model.load(inputFile);
+        const tree = GoalTree.fromModel(model);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
-          gm: tree,
+          gm: tree.nodes,
           fileName: inputFile,
         });
         logger.close();
 
         // Validate
-        const report = validate(tree, prismModel);
+        const report = validate(tree.nodes, prismModel);
 
         // Check each goal's formula count
         report.goals.forEach((validation, goalId) => {

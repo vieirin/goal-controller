@@ -1,5 +1,5 @@
 import type { GoalNode, Relation, TreeNode } from '@goal-controller/goal-tree';
-import { childrenIncludingTasks, isResource } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
@@ -14,12 +14,12 @@ const isValidSeparator = (
 
 export const achieveCondition = (goal: GoalNode): string => {
   if (isValidSeparator(goal.relationToChildren)) {
-    const children = childrenIncludingTasks({ node: goal });
+    const children = Node.children(goal);
     if (children.length) {
       return `(${children
         .filter(
           (child): child is Exclude<TreeNode, { type: 'resource' }> =>
-            !isResource(child),
+            !Node.isResource(child),
         )
         .map((child) =>
           child.properties.edge.execCondition?.maintain

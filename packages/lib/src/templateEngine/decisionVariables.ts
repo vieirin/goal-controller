@@ -1,5 +1,5 @@
-import type { GoalNode, GoalTree } from '@goal-controller/goal-tree';
-import { allByType, cartesianProduct } from '@goal-controller/goal-tree';
+import type { GoalNode, GoalTreeType } from '@goal-controller/goal-tree';
+import { GoalTree, cartesianProduct } from '@goal-controller/goal-tree';
 import { getLogger } from '../logger/logger';
 
 // each decision variable is a tuple of values containing name:space
@@ -36,13 +36,17 @@ export const decisionVariableName = (
     .join('_')}`;
 };
 
-export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }): string => {
+export const decisionVariablesTemplate = ({
+  gm,
+}: {
+  gm: GoalTreeType;
+}): string => {
   if (!process.env.EXPERIMENTAL_DECISION_VARIABLES) {
     return '';
   }
   const logger = getLogger();
   const decisionVariables: string[] = [];
-  const allGoals = allByType({ gm, type: 'goal' });
+  const allGoals = GoalTree.allByType(gm, 'goal');
 
   const goalsWithDecisionVariables = allGoals.filter(
     (goal: GoalNode) => goal.properties.edge.decision.decisionVars.length,

@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import type {
   GoalNode,
-  GoalTree,
+  GoalTreeType,
   SleecProps,
 } from '@goal-controller/goal-tree';
 import { generatePurposes } from '../../src/sleecTemplateEngine/purposes';
@@ -28,7 +28,7 @@ const createGoalNode = (
 describe('sleecTemplateEngine', () => {
   describe('generatePurposes', () => {
     it('should generate purpose for Achieve type goal', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'VitalSignsConsent', {
           Type: 'Achieve',
           Condition: '(not {purposeProtocolInformed})',
@@ -49,7 +49,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should generate purpose for Maintain type goal', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'PatientMonitoring', {
           Type: 'Maintain',
           Condition: '{patientAwake}',
@@ -70,7 +70,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should skip goals without Achieve or Maintain type', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'RegularGoal', {
           Type: 'Other',
           Condition: 'condition',
@@ -86,7 +86,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should generate sequential purpose labels P1, P2, P3', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'Goal1', {
           Type: 'Achieve',
           Condition: 'cond1',
@@ -115,7 +115,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should throw error when Condition is missing', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'MissingCondition', {
           Type: 'Achieve',
           Event: 'event',
@@ -130,7 +130,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should throw error when Event is missing', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'MissingEvent', {
           Type: 'Achieve',
           Condition: 'condition',
@@ -145,7 +145,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should throw error when ContextEvent is missing', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'MissingContextEvent', {
           Type: 'Achieve',
           Condition: 'condition',
@@ -175,7 +175,7 @@ describe('sleecTemplateEngine', () => {
       });
       parentGoal.children = [childGoal];
 
-      const tree: GoalTree = [parentGoal];
+      const tree: GoalTreeType = [parentGoal];
 
       const purposes = generatePurposes(tree);
 
@@ -185,7 +185,7 @@ describe('sleecTemplateEngine', () => {
     });
 
     it('should return empty purposes section when no applicable goals', () => {
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G1', 'TaskGoal', undefined),
         createGoalNode('G2', 'AnotherGoal', { Type: 'Unknown' }),
       ];
@@ -197,7 +197,7 @@ describe('sleecTemplateEngine', () => {
 
     it('should match BSN Goal Model format', () => {
       // Based on goalModel-sleec2.txt G6: VitalSignsConsent
-      const tree: GoalTree = [
+      const tree: GoalTreeType = [
         createGoalNode('G6', 'VitalSignsConsent', {
           Type: 'Achieve',
           Source:

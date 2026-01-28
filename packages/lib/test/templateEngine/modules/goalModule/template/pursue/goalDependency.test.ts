@@ -1,22 +1,18 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '@goal-controller/goal-tree';
-import { convertToTree } from '@goal-controller/goal-tree';
-import { allGoalsMap } from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { goalDependencyStatement } from '../../../../../../src/templateEngine/modules/goalModule/template/pursue/index';
 
 describe('Goal Dependency Statement', () => {
   it('should output G4_achieved_maintain = true for G2 dependency', () => {
     // Load the model
-    const model = loadPistarModel({
-      filename: '../../examples/goalModel_TAS_3_.txt',
-    });
+    const model = Model.load('../../examples/goalModel_TAS_3_.txt');
 
     // Convert to tree
-    const tree = convertToTree({ model });
+    const tree = GoalTree.fromModel(model);
 
     // Find G2 in the tree
-    const allGoals = allGoalsMap({ gm: tree });
+    const allGoals = tree.query.allGoalsMap();
     const g2 = allGoals.get('G2');
 
     if (!g2) {

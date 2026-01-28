@@ -1,18 +1,14 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '@goal-controller/goal-tree';
-import { convertToTree } from '@goal-controller/goal-tree';
-import { allByType, allGoalsMap } from '@goal-controller/goal-tree';
+import { GoalTree, Model } from '../../src/index';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
-  const model = loadPistarModel({
-    filename: '../../examples/goalModel_TAS_3_.txt',
-  });
+  const model = Model.load('../../examples/goalModel_TAS_3_.txt');
 
-  const tree = convertToTree({ model });
-  const allGoals = allGoalsMap({ gm: tree });
-  const allTasks = allByType({ gm: tree, type: 'task' });
+  const tree = GoalTree.fromModel(model);
+  const allGoals = tree.query.allGoalsMap();
+  const allTasks = tree.query.allByType('task');
 
   describe('Goal nodes with assertions', () => {
     it('should have execCondition.assertion for G3 with privacyEnabled', () => {

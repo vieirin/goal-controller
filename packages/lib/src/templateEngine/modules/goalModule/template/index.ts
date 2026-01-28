@@ -3,7 +3,7 @@ import { achieveStatement } from './achieve';
 import { achievableGoalFormula, maintainConditionFormula } from './formulas';
 
 import type { GoalNode } from '@goal-controller/goal-tree';
-import { childrenIncludingTasks } from '@goal-controller/goal-tree';
+import { Node } from '@goal-controller/goal-tree';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
@@ -23,7 +23,7 @@ export const goalModule = (goal: GoalNode): string => {
 // Name: ${goal.name}
 // Type: ${goal.properties.edge.executionDetail?.type || 'basic'}
 // Relation to children: ${goal.relationToChildren}
-// Children: ${childrenIncludingTasks({ node: goal })
+// Children: ${Node.children(goal)
     .map((child) => child.id)
     .join(', ')}
 module ${goal.id}
