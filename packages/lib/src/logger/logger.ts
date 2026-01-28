@@ -1,5 +1,10 @@
 import fs from 'fs';
-import type { GoalExecutionDetail, GoalNode } from '@goal-controller/goal-tree';
+import type {
+  GoalExecutionDetail,
+  GoalNode,
+  Resource,
+  Task,
+} from '@goal-controller/goal-tree';
 import { ensureLogFileDirectory } from './filePath';
 
 type LoggerStore = {
@@ -209,7 +214,7 @@ const createLogger = (
         }\n`,
       );
       write(
-        `\tTasks: ${goal.tasks?.map((task: GoalNode) => task.id).join(', ') ?? 'none'}\n`,
+        `\tTasks: ${goal.tasks?.map((task: Task) => task.id).join(', ') ?? 'none'}\n`,
       );
       write(
         `\tType: ${
@@ -224,7 +229,7 @@ const createLogger = (
       );
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
-    initTask: (task: GoalNode) => {
+    initTask: (task: Task) => {
       store.totalTasks++;
 
       // Count resources for this task
@@ -236,7 +241,7 @@ const createLogger = (
       write(
         `\tResources: ${
           task.resources?.length && task.resources.length > 0
-            ? task.resources.map((resource: GoalNode) => resource.id).join(', ')
+            ? task.resources.map((resource: Resource) => resource.id).join(', ')
             : 'none'
         }\n`,
       );
@@ -320,8 +325,8 @@ const createLogger = (
       },
     },
     pursue: {
-      pursue: (goal: GoalNode, step: number) => {
-        write(`\t[PURSUE GENERATION] ${goal.id} - STEP ${step}\n`);
+      pursue: (node: GoalNode | Task, step: number) => {
+        write(`\t[PURSUE GENERATION] ${node.id} - STEP ${step}\n`);
       },
       defaultPursueCondition: (pursueCondition: string) => {
         write(`\t\t[DEFAULT PURSUE CONDITION] ${pursueCondition}\n`);

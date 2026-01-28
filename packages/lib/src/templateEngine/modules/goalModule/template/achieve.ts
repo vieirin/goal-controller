@@ -1,5 +1,5 @@
-import type { GoalNode, Relation } from '@goal-controller/goal-tree';
-import { childrenIncludingTasks } from '@goal-controller/goal-tree';
+import type { GoalNode, Relation, TreeNode } from '@goal-controller/goal-tree';
+import { childrenIncludingTasks, isResource } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
@@ -17,6 +17,10 @@ export const achieveCondition = (goal: GoalNode): string => {
     const children = childrenIncludingTasks({ node: goal });
     if (children.length) {
       return `(${children
+        .filter(
+          (child): child is Exclude<TreeNode, { type: 'resource' }> =>
+            !isResource(child),
+        )
         .map((child) =>
           child.properties.edge.execCondition?.maintain
             ? `${achievedMaintain(child.id)}=true`

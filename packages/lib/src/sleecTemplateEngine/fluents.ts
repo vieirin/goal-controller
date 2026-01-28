@@ -1,11 +1,11 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 import { getFluentName, taskFluentName } from './shared';
 
 /**
  * Generates a single fluent definition line for a task.
  * Format: fluent TaskName <{StartTaskName}, {AchievedTaskName}>
  */
-const fluentLine = (task: GoalNode): string | undefined => {
+const fluentLine = (task: Task): string | undefined => {
   const fluentName = getFluentName(task);
   if (!fluentName) return undefined;
 
@@ -23,6 +23,6 @@ const fluentLine = (task: GoalNode): string | undefined => {
  *   fluent InformPurposeandProtocol <{StartInformPurposeandProtocol}, {AchievedInformPurposeandProtocol}>
  *   fluent ObtainConsentFullTracking <{StartObtainConsentFullTracking}, {AchievedObtainConsentFullTracking}>
  */
-export const generateFluents = (tasks: GoalNode[]): string[] => {
+export const generateFluents = (tasks: Task[]): string[] => {
   return tasks.map(fluentLine).filter((line): line is string => !!line);
 };

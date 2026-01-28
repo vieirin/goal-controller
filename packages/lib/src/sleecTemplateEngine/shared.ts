@@ -1,12 +1,12 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 
 export const renameTaskId = (id: string) => id.replace('.', '_');
 
-export const getFluentName = (task: GoalNode): string | undefined =>
+export const getFluentName = (task: Task): string | undefined =>
   task.name?.replaceAll(' ', '');
 
 export const taskFluentName = (
-  task: GoalNode,
+  task: Task,
   op: 'Start' | 'Pursuing' | 'Achieved' | 'ReportFailure',
 ) => {
   return `${op}${getFluentName(task)}`;

@@ -37,12 +37,7 @@ export const variablesDefinition = (goal: GoalNode): string => {
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
           .map((child) => {
-            const maxRetries = child.properties.maxRetries;
-            if (maxRetries === undefined) {
-              throw new Error(
-                `Child ${child.id} is expected to have maxRetries but it is undefined`,
-              );
-            }
+            const maxRetries = child.properties.edge.maxRetries;
             return defineVariable(failed(child.id), maxRetries);
           })
           .join('\n')

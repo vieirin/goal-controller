@@ -1,9 +1,8 @@
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
-import { isResource } from '@goal-controller/goal-tree';
 import { treeContextVariables } from '@goal-controller/goal-tree';
-import type { GoalTree, GoalNode } from '@goal-controller/goal-tree';
+import type { GoalTree, Task, Resource } from '@goal-controller/goal-tree';
 import { allByType } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../logger/logger';
 import { systemModuleTemplate } from './template';
@@ -115,7 +114,7 @@ export const systemModule = ({
   // Also collect context variables from tasks
   const tasks = allByType({ gm, type: 'task' });
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task: GoalNode) => {
+  tasks.forEach((task: Task) => {
     if (task.properties.edge.execCondition?.assertion) {
       task.properties.edge.execCondition.assertion.variables.forEach(
         (v: { name: string }) => {
@@ -140,10 +139,9 @@ export const systemModule = ({
 
   // Exclude resource IDs from context variables
   const resources = allByType({ gm, type: 'resource' });
-  if (!isResource(resources)) {
-    throw new Error('Resources must be an array of resources');
-  }
-  const resourceIds = new Set(resources.map((resource) => resource.id));
+  const resourceIds = new Set(
+    resources.map((resource: Resource) => resource.id),
+  );
   const variables = Array.from(allContextVars).filter(
     (varName) => !resourceIds.has(varName),
   );

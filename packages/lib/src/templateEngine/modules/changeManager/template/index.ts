@@ -1,11 +1,11 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 import { taskTransitions } from './tasks/transitions';
 import { taskVariables } from './tasks/variables';
 
 export const changeManagerModuleTemplate = ({
   tasks,
 }: {
-  tasks: GoalNode[];
+  tasks: Task[];
 }): string => {
   const { variables, transitions } = tasks.reduce(
     (acc, task) => {

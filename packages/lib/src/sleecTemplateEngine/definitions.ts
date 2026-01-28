@@ -1,4 +1,4 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 import { generateFluents } from './fluents';
 import {
   fluentOperations,
@@ -59,7 +59,7 @@ const semanticSortScaleValues = (values: string[]): string[] => {
  * Variables in {name} format that are used with = value are scales,
  * otherwise they are booleans.
  */
-export const extractMeasures = (tasks: GoalNode[]): Measure[] => {
+export const extractMeasures = (tasks: Task[]): Measure[] => {
   const measures = new Map<string, MeasureType>();
   const scaleValuesMap = new Map<string, Set<string>>();
 
@@ -122,7 +122,7 @@ export const extractMeasures = (tasks: GoalNode[]): Measure[] => {
 /**
  * Extracts external triggering events from tasks (e.g., MeetingUser, PatientAsleep)
  */
-const extractTriggeringEvents = (tasks: GoalNode[]): Set<string> =>
+const extractTriggeringEvents = (tasks: Task[]): Set<string> =>
   new Set(
     tasks
       .map((task) => task.properties.TriggeringEvent)
@@ -132,7 +132,7 @@ const extractTriggeringEvents = (tasks: GoalNode[]): Set<string> =>
 /**
  * Generates fluent-based events for each task (Start/Pursuing/Achieved/ReportFailure)
  */
-const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
+const extractFluentEvents = (tasks: Task[]): Set<string> =>
   new Set(
     tasks
       .filter((task) => task.name)
@@ -144,7 +144,7 @@ const extractFluentEvents = (tasks: GoalNode[]): Set<string> =>
 /**
  * Extracts fluent names from tasks
  */
-const extractFluentNames = (tasks: GoalNode[]): string[] =>
+const extractFluentNames = (tasks: Task[]): string[] =>
   tasks
     .map((task) => getFluentName(task))
     .filter((name): name is string => !!name)
@@ -155,7 +155,7 @@ const extractFluentNames = (tasks: GoalNode[]): string[] =>
  * Extracts events that other tasks avoid (from ObstacleEvent property)
  * The ObstacleEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
  */
-const extractObstacleEvents = (tasks: GoalNode[]): Set<string> =>
+const extractObstacleEvents = (tasks: Task[]): Set<string> =>
   new Set(
     tasks
       .map((task) => `Achieved${task.properties.ObstacleEvent}`)
@@ -171,7 +171,7 @@ const measureLine = (measure: Measure): string =>
 /**
  * Generates the def_start section with all events and measures
  */
-export const generateDefinitions = (tasks: GoalNode[]): string => {
+export const generateDefinitions = (tasks: Task[]): string => {
   const triggeringEvents = extractTriggeringEvents(tasks);
   const fluentEvents = extractFluentEvents(tasks);
   const ObstacleEvents = extractObstacleEvents(tasks);

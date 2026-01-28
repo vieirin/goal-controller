@@ -1,12 +1,12 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 import { renameTaskId, taskFluentName } from './shared';
 
-const generateObstacleEventsRules = (task: GoalNode): string => {
+const generateObstacleEventsRules = (task: Task): string => {
   return `Rule${renameTaskId(task.id)}_Obstacle when Achieved${task.properties.ObstacleEvent} then not ${taskFluentName(task, 'Pursuing')}`;
 };
 
-export const generateTaskRules = (tasks: GoalNode[]): string => {
-  const hasObstacleEvents = (task: GoalNode) => !!task.properties.ObstacleEvent;
+export const generateTaskRules = (tasks: Task[]): string => {
+  const hasObstacleEvents = (task: Task) => !!task.properties.ObstacleEvent;
   return `rule_start
       ${tasks
         .map((task) => {

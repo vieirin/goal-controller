@@ -1,5 +1,10 @@
 import { treeContextVariables } from '@goal-controller/goal-tree';
-import type { GoalNode, GoalTree } from '@goal-controller/goal-tree';
+import type {
+  GoalNode,
+  GoalTree,
+  Resource,
+  Task,
+} from '@goal-controller/goal-tree';
 import {
   allByType,
   childrenIncludingTasks,
@@ -100,11 +105,11 @@ const calculateGoalContextVariables = (goal: GoalNode): string[] => {
 };
 
 const calculateChangeManagerTaskVariables = (
-  tasks: GoalNode[],
+  tasks: Task[],
 ): Map<string, string[]> => {
   const taskVariables = new Map<string, string[]>();
 
-  tasks.forEach((task) => {
+  tasks.forEach((task: Task) => {
     const variables: string[] = [];
     variables.push(`${task.id}_pursued`);
     variables.push(achievedVariable(task.id));
@@ -116,11 +121,11 @@ const calculateChangeManagerTaskVariables = (
 };
 
 const calculateChangeManagerTaskTransitions = (
-  tasks: GoalNode[],
+  tasks: Task[],
 ): Map<string, string[]> => {
   const taskTransitions = new Map<string, string[]>();
 
-  tasks.forEach((task) => {
+  tasks.forEach((task: Task) => {
     const transitions: string[] = [];
     transitions.push(pursueTransition(task.id));
     transitions.push(`try_${task.id}`);
@@ -169,7 +174,7 @@ export const calculateExpectedElements = (
 
   // Also collect context variables from tasks
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task: GoalNode) => {
+  tasks.forEach((task: Task) => {
     if (task.properties.edge.execCondition?.assertion) {
       task.properties.edge.execCondition.assertion.variables.forEach(
         (v: { name: string }) => {
@@ -188,7 +193,7 @@ export const calculateExpectedElements = (
 
   // Resource IDs to exclude from context variables (resources are separate)
   const resourceIds = new Set(
-    resources.map((resource: GoalNode) => resource.id),
+    resources.map((resource: Resource) => resource.id),
   );
 
   // Combine goal and task context variables, but exclude resource IDs
@@ -199,7 +204,7 @@ export const calculateExpectedElements = (
   const contextVariables = Array.from(allContextVars).filter(
     (varName) => !resourceIds.has(varName),
   );
-  const resourceVariables = resources.map((resource: GoalNode) => resource.id);
+  const resourceVariables = resources.map((resource: Resource) => resource.id);
 
   return {
     goals: goalElements,

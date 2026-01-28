@@ -1,16 +1,16 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { GoalNode, Task, TreeNode } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { pursued, separator } from '../../../../mdp/common';
 
 const childrenHasNotBeenPursued = (goal: GoalNode) => {
-  const pursueMembers = goal.children?.length
+  const pursueMembers: TreeNode[] = goal.children?.length
     ? goal.children
     : goal.tasks?.length
       ? goal.tasks
       : [];
 
   return pursueMembers
-    .map((child: GoalNode) => `${pursued(child.id)}=0`)
+    .map((child: TreeNode) => `${pursued(child.id)}=0`)
     .join(separator('and'));
 };
 

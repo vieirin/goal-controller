@@ -1,9 +1,9 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { Task } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { achievableFormulaVariable } from '../../../../common';
 
 export const taskAchievabilityVariable = (
-  task: GoalNode,
+  task: Task,
   variableValues: Record<string, number>,
 ): string => {
   const logger = getLogger();
@@ -21,7 +21,7 @@ export const taskAchievabilityVariable = (
 };
 
 export const taskAchievabilityVariables = (
-  tasks: GoalNode[],
+  tasks: Task[],
   variableValues: Record<string, number>,
 ): string => {
   return tasks

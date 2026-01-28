@@ -1,7 +1,11 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
+import type { GoalNode, Task, TreeNode } from '@goal-controller/goal-tree';
+import { isResource } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { hasBeenAchieved } from './common';
+
+// Type for nodes that can be achieved (goals and tasks, but not resources)
+type AchievableNode = GoalNode | Task;
 
 export const splitSequence = (
   sequence: string[],
@@ -20,7 +24,7 @@ export const pursueAndSequentialGoal = (
   goal: GoalNode,
   sequence: string[],
   childId: string,
-  children: GoalNode[],
+  children: TreeNode[],
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -33,8 +37,14 @@ export const pursueAndSequentialGoal = (
   if (!goal.relationToChildren) {
     return '';
   }
-  const childrenMap = new Map<string, GoalNode>(
-    children.map((child) => [child.id, child]),
+
+  // Filter out resources - they cannot be achieved
+  const achievableChildren = children.filter(
+    (child): child is AchievableNode => !isResource(child),
+  );
+
+  const childrenMap = new Map<string, AchievableNode>(
+    achievableChildren.map((child) => [child.id, child]),
   );
 
   const resolveAndGoal = (): string => {
