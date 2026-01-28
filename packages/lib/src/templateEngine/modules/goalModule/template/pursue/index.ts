@@ -1,8 +1,7 @@
-import type { GoalNode, Task, TreeNode } from '@goal-controller/goal-tree';
+import type { GoalNode, Task } from '@goal-controller/goal-tree';
 import {
   childrenIncludingTasks,
   isResource,
-  isGoalNode,
   isTask,
 } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
@@ -27,8 +26,8 @@ import {
 type PursueableNode = GoalNode | Task;
 
 export const goalDependencyStatement = (goal: GoalNode): string => {
-  return goal.dependsOn?.length
-    ? ` & (${goal.dependsOn
+  return goal.properties.edge.dependsOn?.length
+    ? ` & (${goal.properties.edge.dependsOn
         .map((dep: GoalNode) => hasBeenAchieved(dep, { condition: true }))
         .join(separator('and'))})`
     : '';
@@ -64,7 +63,10 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
       const calcLeftStatement = (): string => {
         const dependencyStatement = goalDependencyStatement(goal);
-        pursueLogger.goalDependency(goal.id, goal.properties.edge.dependsOn);
+        pursueLogger.goalDependency(
+          goal.id,
+          goal.properties.edge.dependsOn.map((dep) => dep.id),
+        );
         const statement =
           `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
             goal.properties.edge.execCondition?.maintain

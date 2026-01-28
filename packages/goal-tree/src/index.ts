@@ -55,14 +55,14 @@ export { convertToTree } from './creation';
 
 // Export from utils.ts
 export {
-  dumpTreeToJSON,
   allByType,
   allGoalsMap,
+  cartesianProduct,
+  childrenIncludingTasks,
+  childrenWithMaxRetries,
+  dumpTreeToJSON,
   goalRootId,
   leafGoals,
-  cartesianProduct,
-  childrenWithMaxRetries,
-  childrenIncludingTasks,
 } from './utils';
 
 // Export from treeVariables.ts
@@ -74,28 +74,24 @@ export {
 // Export from printTree.ts
 export { printTree } from './printTree';
 
-// Export from dependencyResolver.ts
-export { resolveDependency } from './dependencyResolver';
-export type { Dependency, ConditionDependency } from './dependencyResolver';
-
 // Export from nodeUtils.ts
-export { isResource, isGoalNode, isTask } from './nodeUtils';
+export { isGoalNode, isResource, isTask } from './nodeUtils';
 
 // Export all types
 export type {
+  Actor,
+  ExecCondition,
+  GoalExecutionDetail,
   GoalNode,
   GoalTree,
-  Model,
-  Actor,
-  Node,
   Link,
-  Relation,
-  Type,
+  Model,
+  Node,
   NodeType,
-  ExecCondition,
+  Relation,
   Resource,
+  SleecProps,
   Task,
   TreeNode,
-  SleecProps,
-  GoalExecutionDetail,
+  Type,
 } from './types/';

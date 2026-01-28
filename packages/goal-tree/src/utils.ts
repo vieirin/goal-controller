@@ -74,10 +74,6 @@ export function allByType<T extends GenericTree>({
     .sort((a, b) => a.id.localeCompare(b.id))
     .reduce<Record<string, GenericTreeNode>>((acc, current) => {
       if (acc[current.id]) {
-        // Only goals have variantOf
-        if (preferVariant && 'variantOf' in current && current.variantOf) {
-          return { ...acc, [current.id]: current };
-        }
         return { ...acc };
       }
 
@@ -112,8 +108,6 @@ export const leafGoals = <T extends GenericTree>({ gm }: { gm: T }): T => {
   );
   return leaves as T;
 };
-
-export const isVariant = ({ variantOf }: GoalNode): boolean => !!variantOf;
 
 export function* cartesianProduct<T>(...arrays: T[][]): Generator<T[]> {
   if (arrays.length === 0) {

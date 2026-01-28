@@ -65,7 +65,7 @@ export type TaskSleecProps = {
 export type GoalEdgeProps = {
   utility: string;
   cost: string;
-  dependsOn: string[];
+  dependsOn: GoalNode[];
   executionDetail: GoalExecutionDetail | null;
   execCondition?: ExecCondition;
   decision: Decision;
@@ -95,8 +95,6 @@ export type GoalNode = BaseNode & {
   type: 'goal';
   /** Goal children - only GoalNodes, not Tasks (tasks are in the tasks property) */
   children?: GoalNode[];
-  variantOf?: string;
-  dependsOn?: GoalNode[];
   properties: {
     root?: boolean;
     isQuality: boolean;

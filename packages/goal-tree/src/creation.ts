@@ -70,6 +70,9 @@ const parseDependsOn = ({ dependsOn }: { dependsOn: string }): string[] => {
   return parsedDependency.map((d) => d.trim());
 };
 
+// Temporary storage for raw dependency IDs during tree creation
+const pendingDependencies = new Map<string, string[]>();
+
 const parseDecision = ({
   decision,
 }: {
@@ -370,6 +373,14 @@ const createNode = ({
   }
 
   if (nodeType === 'goal') {
+    // Store raw dependency IDs for later resolution
+    const rawDependsOn = parseDependsOn({
+      dependsOn: customProperties.dependsOn ?? '',
+    });
+    if (rawDependsOn.length > 0) {
+      pendingDependencies.set(id, rawDependsOn);
+    }
+
     const goalNode: GoalNode = {
       id,
       name: goalName,
@@ -384,9 +395,7 @@ const createNode = ({
         edge: {
           utility: customProperties.utility || '',
           cost: customProperties.cost || '',
-          dependsOn: parseDependsOn({
-            dependsOn: customProperties.dependsOn ?? '',
-          }),
+          dependsOn: [], // Will be resolved later
           executionDetail,
           execCondition,
           decision: {
@@ -525,8 +534,11 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
       return node;
     }
 
+    // Get raw dependency IDs from pending map
+    const rawDependsOn = pendingDependencies.get(node.id) || [];
+
     // Resolve dependencies for this goal node
-    const resolvedDependencies = node.properties.edge.dependsOn.map((depId) => {
+    const resolvedDependencies = rawDependsOn.map((depId) => {
       const depNode = nodeMap.get(depId);
       if (!depNode) {
         throw new Error(
@@ -543,12 +555,23 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
 
     return {
       ...node,
-      dependsOn: resolvedDependencies,
+      properties: {
+        ...node.properties,
+        edge: {
+          ...node.properties.edge,
+          dependsOn: resolvedDependencies,
+        },
+      },
       ...(resolvedChildren && { children: resolvedChildren }),
     };
   };
 
-  return tree.map(resolveNodeDependencies);
+  const result = tree.map(resolveNodeDependencies);
+
+  // Clear pending dependencies after resolution
+  pendingDependencies.clear();
+
+  return result;
 };
 
 export const convertToTree = ({ model }: { model: Model }): GoalTree => {

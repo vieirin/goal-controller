@@ -27,7 +27,7 @@ describe('Goal Dependency Statement', () => {
     if (!g4) {
       throw new Error('G4 not found in the tree');
     }
-    g2.dependsOn = [g4];
+    g2.properties.edge.dependsOn = [g4];
     // Calculate the goal dependency statement
     const dependencyStatement = goalDependencyStatement(g2);
 
