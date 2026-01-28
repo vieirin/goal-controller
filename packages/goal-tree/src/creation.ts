@@ -1,3 +1,4 @@
+import type { Dictionary } from 'lodash';
 import { getAssertionVariables } from './parsers/getAssertionVariables';
 import { getGoalDetail } from './parsers/goalNameParser';
 import type {
@@ -13,7 +14,8 @@ import type {
   Relation,
   Resource,
   SleecProps,
-} from './types';
+} from './types/';
+import type { BaseNode, Task, TreeNode } from './types/goalTree';
 import { allByType } from './utils';
 
 const SLEEC_PROP_KEYS = [
@@ -146,7 +148,9 @@ const getMaintainCondition = (
   return undefined;
 };
 
-const createResource = (resource: GoalNode): Resource => {
+const createResource = (
+  resource: BaseNode & { properties: Dictionary<string> },
+): Resource => {
   const { type } = resource.properties;
   switch (type) {
     case 'bool': {
@@ -158,6 +162,7 @@ const createResource = (resource: GoalNode): Resource => {
       }
       return {
         ...resource,
+        type: 'resource',
         variable: { type: 'boolean', initialValue: initialValue === 'true' },
       };
     }
@@ -194,6 +199,7 @@ const createResource = (resource: GoalNode): Resource => {
       }
       return {
         ...resource,
+        type: 'resource',
         variable: {
           type: 'int',
           initialValue: initialValueInt,
@@ -207,17 +213,18 @@ const createResource = (resource: GoalNode): Resource => {
   }
 };
 
-const convertNonGoalChildren = (children: GoalNode[]) => {
-  return children.reduce<
-    Record<'children' | 'tasks', GoalNode[]> & {
-      resources: Resource[];
-    }
-  >(
+const convertNonGoalChildren = (children: TreeNode[]) => {
+  return children.reduce<{
+    resources: Resource[];
+    children: GoalNode[];
+    tasks: Task[];
+  }>(
     (acc, child) => {
       if (child.type === 'resource') {
+        // Resource is already created, just add it
         return {
           ...acc,
-          resources: [...acc.resources, createResource(child)],
+          resources: [...acc.resources, child],
         };
       }
       if (child.type === 'task') {
@@ -243,8 +250,8 @@ const createNode = ({
 }: {
   node: Node;
   relation: Relation;
-  children: GoalNode[];
-}): GoalNode => {
+  children: TreeNode[];
+}): TreeNode => {
   // Other RT properties should be added here
   // should we add order?
   const { id, goalName, executionDetail } = getGoalDetail({
@@ -297,36 +304,107 @@ const createNode = ({
   // Extract SLEEC properties if present
   const sleecProps = extractSleecProps(customProperties);
 
-  return {
-    id,
-    name: goalName,
-    iStarId: node.id,
-    relationToChildren: relation,
-    relationToParent: null,
-    type: nodeType,
-    resources,
-    children: filteredChildren,
-    properties: {
-      ...customProperties,
-      root: root?.toLowerCase() === 'true' || undefined,
-      uniqueChoice: uniqueChoice?.toLowerCase() === 'true' || false,
-      maxRetries: maxRetries ? parseInt(maxRetries) : undefined,
-      isQuality: isQualityNode,
-      edge: {
-        dependsOn: parseDependsOn({
-          dependsOn: customProperties.dependsOn ?? '',
+  if (nodeType === 'resource') {
+    // Create base resource node, will be converted by createResource later
+    const resourceNode: BaseNode & { properties: Dictionary<string> } = {
+      id,
+      name: goalName,
+      iStarId: node.id,
+      relationToChildren: relation,
+      relationToParent: null,
+      type: 'resource',
+      properties: {
+        type: customProperties.type || '',
+        initialValue: customProperties.initialValue || '',
+        lowerBound: customProperties.lowerBound || '',
+        upperBound: customProperties.upperBound || '',
+      },
+    };
+    return createResource(resourceNode);
+  }
+
+  if (nodeType === 'task') {
+    const taskNode: Task = {
+      id,
+      name: goalName,
+      iStarId: node.id,
+      relationToChildren: relation,
+      relationToParent: null,
+      type: 'task',
+      tasks: tasks,
+      resources: resources,
+      properties: {
+        ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
+        ...(customProperties.TriggeringEvent && {
+          TriggeringEvent: customProperties.TriggeringEvent,
         }),
-        executionDetail,
-        execCondition,
-        decision: {
-          decisionVars,
-          hasDecision: decisionVars.length > 0,
+        ...(customProperties.TemporalConstraint && {
+          TemporalConstraint: customProperties.TemporalConstraint,
+        }),
+        ...(customProperties.PostCond && {
+          PostCond: customProperties.PostCond,
+        }),
+        ...(customProperties.ObstacleEvent && {
+          ObstacleEvent: customProperties.ObstacleEvent,
+        }),
+        edge: {
+          execCondition,
+          maxRetries: maxRetries ? parseInt(maxRetries) : 0,
+        },
+        ...customProperties,
+      },
+    };
+    return taskNode;
+  }
+
+  if (nodeType === 'goal') {
+    const goalNode: GoalNode = {
+      id,
+      name: goalName,
+      iStarId: node.id,
+      relationToChildren: relation,
+      relationToParent: null,
+      type: 'goal',
+      children: filteredChildren,
+      properties: {
+        utility: customProperties.utility || '',
+        cost: customProperties.cost || '',
+        ...(root?.toLowerCase() === 'true' && { root: true }),
+        ...(maxRetries && { maxRetries: parseInt(maxRetries) }),
+        uniqueChoice: uniqueChoice?.toLowerCase() === 'true',
+        isQuality: isQualityNode,
+        ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
+        ...(customProperties.TriggeringEvent && {
+          TriggeringEvent: customProperties.TriggeringEvent,
+        }),
+        ...(customProperties.TemporalConstraint && {
+          TemporalConstraint: customProperties.TemporalConstraint,
+        }),
+        ...(customProperties.PostCond && {
+          PostCond: customProperties.PostCond,
+        }),
+        ...(customProperties.ObstacleEvent && {
+          ObstacleEvent: customProperties.ObstacleEvent,
+        }),
+        edge: {
+          dependsOn: parseDependsOn({
+            dependsOn: customProperties.dependsOn ?? '',
+          }),
+          executionDetail,
+          execCondition,
+          decision: {
+            decisionVars,
+            hasDecision: decisionVars.length > 0,
+          },
         },
       },
-    },
-    ...(tasks.length > 0 && { tasks }),
-    ...(sleecProps && { sleecProps }),
-  };
+      ...(tasks.length > 0 && { tasks }),
+      ...(sleecProps && { sleecProps }),
+    };
+    return goalNode;
+  }
+
+  throw new Error(`[INVALID NODE TYPE]: Unsupported node type: ${nodeType}`);
 };
 
 const nodeChildren = ({
@@ -337,7 +415,7 @@ const nodeChildren = ({
   actor: Actor;
   links: Link[];
   id?: string;
-}): [GoalNode[], Relation] => {
+}): [TreeNode[], Relation] => {
   if (!id) {
     return [[], 'none'];
   }
@@ -383,7 +461,7 @@ const nodeChildren = ({
   }
 
   const children = nodeLinks
-    .map((link): GoalNode | undefined => {
+    .map((link): TreeNode | undefined => {
       // For incoming links (node is target), children are sources
       // For outgoing QualificationLinks (node is source), children are targets
       const isOutgoingQualification =
@@ -407,7 +485,7 @@ const nodeChildren = ({
         children: granChildren,
       });
     })
-    .filter((n): n is GoalNode => !!n);
+    .filter((n): n is TreeNode => !!n);
 
   return [children, relations[0] ?? 'none'];
 };
@@ -420,7 +498,7 @@ const nodeToTree = ({
   actor: Actor;
   iStarLinks: Link[];
   node: Node;
-}): GoalNode => {
+}): TreeNode => {
   const [children, relation] = nodeChildren({
     actor,
     id: node.id,
@@ -436,13 +514,18 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
   const allTasks = allByType({ gm: tree, type: 'task' });
   const allResources = allByType({ gm: tree, type: 'resource' });
 
-  const nodeMap = new Map<string, GoalNode>();
+  const nodeMap = new Map<string, TreeNode>();
   [...allGoals, ...allTasks, ...allResources].forEach((node) => {
     nodeMap.set(node.id, node);
   });
 
-  const resolveNodeDependencies = (node: GoalNode): GoalNode => {
-    // Resolve dependencies for this node
+  const resolveNodeDependencies = (node: TreeNode): TreeNode => {
+    // Only GoalNodes have dependencies
+    if (node.type !== 'goal') {
+      return node;
+    }
+
+    // Resolve dependencies for this goal node
     const resolvedDependencies = node.properties.edge.dependsOn.map((depId) => {
       const depNode = nodeMap.get(depId);
       if (!depNode) {
@@ -450,12 +533,13 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
           `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`,
         );
       }
-      return depNode;
+      return depNode as GoalNode;
     });
 
     // Recursively resolve dependencies for children (goals only)
-    const resolvedChildren = node.children?.map(resolveNodeDependencies);
-    // Tasks and resources don't need to be resolved as they don't have dependsOn
+    const resolvedChildren = node.children?.map(resolveNodeDependencies) as
+      | GoalNode[]
+      | undefined;
 
     return {
       ...node,

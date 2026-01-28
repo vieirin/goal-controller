@@ -1,7 +1,7 @@
-import type { GenericTree, Resource } from './types';
+import type { GenericTreeNode, Resource } from './types/';
 
-const isResource = (goal: GenericTree): goal is Resource[] => {
-  return goal.every((goal) => goal.type === 'resource');
+const isResource = (node: GenericTreeNode): node is Resource => {
+  return node.type === 'resource';
 };
 
 export { isResource };

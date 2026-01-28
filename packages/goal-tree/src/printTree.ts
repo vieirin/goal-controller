@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { GoalNode } from './types';
+import type { GoalNode } from './types/';
 
 export const printTree = (tree: GoalNode[]): void => {
   let level = 1;

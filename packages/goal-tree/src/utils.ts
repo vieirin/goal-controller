@@ -1,6 +1,41 @@
-import type { GenericGoal, GenericTree, GoalNode, Type } from './types';
+import type {
+  GenericGoal,
+  GenericTree,
+  GoalNode,
+  Resource,
+  Task,
+  Type,
+} from './types/';
 
-export const allByType = <T extends GenericTree>({
+// Overloads for type-specific returns
+export function allByType<T extends GenericTree>({
+  gm,
+  type,
+  preferVariant,
+}: {
+  gm: T;
+  type: 'goal';
+  preferVariant?: boolean;
+}): GoalNode[];
+export function allByType<T extends GenericTree>({
+  gm,
+  type,
+  preferVariant,
+}: {
+  gm: T;
+  type: 'task';
+  preferVariant?: boolean;
+}): Task[];
+export function allByType<T extends GenericTree>({
+  gm,
+  type,
+  preferVariant,
+}: {
+  gm: T;
+  type: 'resource';
+  preferVariant?: boolean;
+}): Resource[];
+export function allByType<T extends GenericTree>({
   gm,
   type,
   preferVariant = true,
@@ -8,7 +43,7 @@ export const allByType = <T extends GenericTree>({
   gm: T;
   type: Type;
   preferVariant?: boolean;
-}): T => {
+}): any {
   const allCurrent = gm
     .flatMap((node) => {
       // we need to make resources and tasks back as children so we can
@@ -37,7 +72,7 @@ export const allByType = <T extends GenericTree>({
     }, {});
 
   return Object.values(allCurrent) as T;
-};
+}
 
 export const allGoalsMap = <T extends GenericTree>({
   gm,
@@ -93,12 +128,25 @@ export function childrenWithTasksAndResources<T extends GenericGoal>({
   node,
 }: {
   node: T;
-}): T[] {
-  return [
-    ...(node.children ?? []),
-    ...node.resources,
-    ...(node.tasks ?? []),
-  ] as T[];
+}): any[] {
+  const result: any[] = [];
+
+  // Add children if they exist (GoalNode types)
+  if ('children' in node && node.children) {
+    result.push(...node.children);
+  }
+
+  // Add resources if they exist (GoalNode only, since tasks have resources but shouldn't be traversed here)
+  if ('resources' in node && node.type === 'goal') {
+    result.push(...node.resources);
+  }
+
+  // Add tasks if they exist (GoalNode types)
+  if ('tasks' in node && node.tasks) {
+    result.push(...node.tasks);
+  }
+
+  return result;
 }
 
 export function childrenLength({ node }: { node: GenericGoal }): number {

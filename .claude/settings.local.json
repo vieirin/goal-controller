@@ -29,7 +29,8 @@
       "Bash(python3:*)",
       "Bash(pnpm -w run build:goal-tree)",
       "Bash(git status:*)",
-      "Bash(pnpm -w run build:lib:*)"
+      "Bash(pnpm -w run build:lib:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

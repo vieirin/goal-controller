@@ -1,4 +1,4 @@
-import type { GoalTree } from './types';
+import type { GoalTree } from './types/';
 import { allByType } from './utils';
 
 // Helper function for achievable formula variable names

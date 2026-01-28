@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import type { Model } from './types';
+import type { Model } from './types/';
 
 export const validateModel = ({ model }: { model: Model }): void => {
   const root = model.actors
@@ -96,4 +96,4 @@ export type {
   Resource,
   SleecProps,
   GoalExecutionDetail,
-} from './types';
+} from './types/';
