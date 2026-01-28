@@ -78,6 +78,7 @@ export type Task = BaseNode & {
 
 export type GoalNode = BaseNode & {
   type: 'goal';
+  /** Goal children - only GoalNodes, not Tasks (tasks are in the tasks property) */
   children?: GoalNode[];
   variantOf?: string;
   dependsOn?: GoalNode[];
@@ -85,7 +86,6 @@ export type GoalNode = BaseNode & {
     utility: string;
     cost: string;
     root?: boolean;
-    maxRetries?: number;
     uniqueChoice: boolean;
     isQuality: boolean;
     PreCond?: string;
@@ -103,9 +103,11 @@ export type GoalNode = BaseNode & {
       executionDetail: GoalExecutionDetail | null;
       execCondition?: ExecCondition;
       decision: Decision;
+      maxRetries: number;
     };
     [key: string]: any;
   };
+  /** Task children - leaf goals have tasks */
   tasks?: Task[];
   sleecProps?: SleecProps;
 };

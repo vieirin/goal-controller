@@ -79,7 +79,7 @@ export { resolveDependency } from './dependencyResolver';
 export type { Dependency, ConditionDependency } from './dependencyResolver';
 
 // Export from nodeUtils.ts
-export { isResource } from './nodeUtils';
+export { isResource, isGoalNode, isTask } from './nodeUtils';
 
 // Export all types
 export type {
@@ -94,6 +94,8 @@ export type {
   NodeType,
   ExecCondition,
   Resource,
+  Task,
+  TreeNode,
   SleecProps,
   GoalExecutionDetail,
 } from './types/';

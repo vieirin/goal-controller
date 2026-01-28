@@ -331,8 +331,8 @@ const createNode = ({
       relationToChildren: relation,
       relationToParent: null,
       type: 'task',
-      tasks: tasks,
-      resources: resources,
+      tasks,
+      resources,
       properties: {
         ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
         ...(customProperties.TriggeringEvent && {
@@ -370,7 +370,6 @@ const createNode = ({
         utility: customProperties.utility || '',
         cost: customProperties.cost || '',
         ...(root?.toLowerCase() === 'true' && { root: true }),
-        ...(maxRetries && { maxRetries: parseInt(maxRetries) }),
         uniqueChoice: uniqueChoice?.toLowerCase() === 'true',
         isQuality: isQualityNode,
         ...(customProperties.PreCond && { PreCond: customProperties.PreCond }),
@@ -396,6 +395,7 @@ const createNode = ({
             decisionVars,
             hasDecision: decisionVars.length > 0,
           },
+          maxRetries: maxRetries ? parseInt(maxRetries) : 0,
         },
       },
       ...(tasks.length > 0 && { tasks }),
@@ -404,7 +404,9 @@ const createNode = ({
     return goalNode;
   }
 
-  throw new Error(`[INVALID NODE TYPE]: Unsupported node type: ${nodeType}`);
+  throw new Error(
+    `[INVALID NODE TYPE]: Unsupported node type: ${nodeType as string}`,
+  );
 };
 
 const nodeChildren = ({
