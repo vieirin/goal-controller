@@ -5,18 +5,18 @@ import type { Dictionary } from 'lodash';
 import { getAssertionVariables } from '../parsers/getAssertionVariables';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
-    Actor,
-    CustomProperties,
-    ExecCondition,
-    GoalNode,
-    GoalTree,
-    Link,
-    Model,
-    Node,
-    NodeType,
-    Relation,
-    Resource,
-    SleecProps,
+  Actor,
+  CustomProperties,
+  ExecCondition,
+  GoalNode,
+  GoalTree,
+  Link,
+  Model,
+  Node,
+  NodeType,
+  Relation,
+  Resource,
+  SleecProps,
 } from '../types/';
 import type { BaseNode, Task, TreeNode } from '../types/goalTree';
 import { allByType } from './traversal';
