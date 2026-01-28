@@ -49,3 +49,51 @@ export const loadPistarModel = ({ filename }: { filename: string }): Model => {
 
   return model;
 };
+
+// Export from creation.ts
+export { convertToTree } from './creation';
+
+// Export from utils.ts
+export {
+  dumpTreeToJSON,
+  allByType,
+  allGoalsMap,
+  goalRootId,
+  leafGoals,
+  cartesianProduct,
+  childrenWithMaxRetries,
+  childrenIncludingTasks,
+} from './utils';
+
+// Export from treeVariables.ts
+export {
+  getTaskAchievabilityVariables,
+  treeContextVariables,
+} from './treeVariables';
+
+// Export from printTree.ts
+export { printTree } from './printTree';
+
+// Export from dependencyResolver.ts
+export { resolveDependency } from './dependencyResolver';
+export type { Dependency, ConditionDependency } from './dependencyResolver';
+
+// Export from nodeUtils.ts
+export { isResource } from './nodeUtils';
+
+// Export all types
+export type {
+  GoalNode,
+  GoalTree,
+  Model,
+  Actor,
+  Node,
+  Link,
+  Relation,
+  Type,
+  NodeType,
+  ExecCondition,
+  Resource,
+  SleecProps,
+  GoalExecutionDetail,
+} from './types';

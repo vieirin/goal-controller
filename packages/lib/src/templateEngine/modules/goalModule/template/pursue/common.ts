@@ -1,4 +1,4 @@
-import type { GoalNode } from '../../../../../GoalTree/types';
+import type { GoalNode } from '@goal-controller/goal-tree';
 import { achieved, pursued, separator } from '../../../../../mdp/common';
 import { achievedMaintain } from '../formulas';
 

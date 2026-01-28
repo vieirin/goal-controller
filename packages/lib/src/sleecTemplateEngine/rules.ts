@@ -1,4 +1,4 @@
-import type { GoalNode } from '../GoalTree/types';
+import type { GoalNode } from '@goal-controller/goal-tree';
 import { renameTaskId, taskFluentName } from './shared';
 
 const generateObstacleEventsRules = (task: GoalNode): string => {

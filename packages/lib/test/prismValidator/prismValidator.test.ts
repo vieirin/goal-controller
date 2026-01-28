@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '../../src/GoalTree';
-import { convertToTree } from '../../src/GoalTree/creation';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
 import { initLogger } from '../../src/logger/logger';
 import { formatValidationReport, validate } from '../../src/prismValidator';
 import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';

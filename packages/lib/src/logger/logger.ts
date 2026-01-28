@@ -1,5 +1,5 @@
 import fs from 'fs';
-import type { GoalExecutionDetail, GoalNode } from '../GoalTree/types';
+import type { GoalExecutionDetail, GoalNode } from '@goal-controller/goal-tree';
 import { ensureLogFileDirectory } from './filePath';
 
 type LoggerStore = {
@@ -204,12 +204,12 @@ const createLogger = (
       write(
         `\tChildren: ${
           goal.children?.length && goal.children.length > 0
-            ? goal.children.map((child) => child.id).join(', ')
+            ? goal.children.map((child: GoalNode) => child.id).join(', ')
             : 'none'
         }\n`,
       );
       write(
-        `\tTasks: ${goal.tasks?.map((task) => task.id).join(', ') ?? 'none'}\n`,
+        `\tTasks: ${goal.tasks?.map((task: GoalNode) => task.id).join(', ') ?? 'none'}\n`,
       );
       write(
         `\tType: ${
@@ -232,7 +232,7 @@ const createLogger = (
       write(
         `\tResources: ${
           task.resources?.length && task.resources.length > 0
-            ? task.resources.map((resource) => resource.id).join(', ')
+            ? task.resources.map((resource: GoalNode) => resource.id).join(', ')
             : 'none'
         }\n`,
       );

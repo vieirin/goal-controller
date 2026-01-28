@@ -1,5 +1,5 @@
-import type { GoalNode, GoalTree } from '../GoalTree/types';
-import { allByType, cartesianProduct } from '../GoalTree/utils';
+import type { GoalNode, GoalTree } from '@goal-controller/goal-tree';
+import { allByType, cartesianProduct } from '@goal-controller/goal-tree';
 import { getLogger } from '../logger/logger';
 
 // each decision variable is a tuple of values containing name:space
@@ -14,12 +14,15 @@ export const decisionVariablesForGoal = ({
 }: {
   goal: GoalNode;
 }): readonly [string[], Generator<number[]>, number[][]] => {
-  const spaceArray = goal.decisionVars.map((decision) =>
-    Array.from({ length: decision.space }, (_, i) => i),
+  const spaceArray = goal.decisionVars.map(
+    (decision: { variable: string; space: number }) =>
+      Array.from({ length: decision.space }, (_, i) => i),
   );
-  const variableArray = goal.decisionVars.map((decision) => decision.variable);
+  const variableArray = goal.decisionVars.map(
+    (decision: { variable: string; space: number }) => decision.variable,
+  );
 
-  const decisionVars = cartesianProduct(...spaceArray);
+  const decisionVars = cartesianProduct<number>(...spaceArray);
   return [variableArray, decisionVars, spaceArray] as const;
 };
 
@@ -42,9 +45,9 @@ export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }): string => {
   const allGoals = allByType({ gm, type: 'goal' });
 
   const goalsWithDecisionVariables = allGoals.filter(
-    (goal) => goal.decisionVars.length,
+    (goal: GoalNode) => goal.decisionVars.length,
   );
-  goalsWithDecisionVariables.forEach((goal) => {
+  goalsWithDecisionVariables.forEach((goal: GoalNode) => {
     const [vars, decisionVars, spaceArray] = decisionVariablesForGoal({ goal });
 
     spaceArray.forEach((space, i) => {

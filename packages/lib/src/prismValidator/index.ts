@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs';
-import type { GoalTree } from '../GoalTree/types';
+import type { GoalTree } from '@goal-controller/goal-tree';
 import { ensureLogFileDirectory } from '../logger/filePath';
 import {
   formatValidationReport,

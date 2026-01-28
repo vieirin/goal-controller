@@ -1,7 +1,7 @@
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { loadPistarModel } from '../../GoalTree';
-import { convertToTree } from '../../GoalTree/creation';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
 import { initLogger } from '../../logger/logger';
 import { generateValidatedPrismModel } from '../../templateEngine/engine';
 

@@ -1,5 +1,5 @@
-import type { GoalNode } from '../../../../../GoalTree/types';
-import { childrenIncludingTasks } from '../../../../../GoalTree/utils';
+import type { GoalNode } from '@goal-controller/goal-tree';
+import { childrenIncludingTasks } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
@@ -21,7 +21,7 @@ import {
 export const goalDependencyStatement = (goal: GoalNode): string => {
   return goal.dependsOn?.length
     ? ` & (${goal.dependsOn
-        .map((dep) => hasBeenAchieved(dep, { condition: true }))
+        .map((dep: GoalNode) => hasBeenAchieved(dep, { condition: true }))
         .join(separator('and'))})`
     : '';
 };

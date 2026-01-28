@@ -1,5 +1,5 @@
-import type { GoalTree } from '../GoalTree/types';
-import { allByType, allGoalsMap } from '../GoalTree/utils';
+import type { GoalTree } from '@goal-controller/goal-tree';
+import { allByType, allGoalsMap } from '@goal-controller/goal-tree';
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -217,14 +217,14 @@ export const validatePrismModel = (
       goal.executionDetail?.type === 'choice'
         ? 'choice'
         : goal.executionDetail?.type === 'degradation'
-        ? 'degradation'
-        : goal.executionDetail?.type === 'sequence'
-        ? 'sequence'
-        : goal.executionDetail?.type === 'interleaved'
-        ? 'interleaved'
-        : goal.executionDetail?.type === 'alternative'
-        ? 'alternative'
-        : 'basic';
+          ? 'degradation'
+          : goal.executionDetail?.type === 'sequence'
+            ? 'sequence'
+            : goal.executionDetail?.type === 'interleaved'
+              ? 'interleaved'
+              : goal.executionDetail?.type === 'alternative'
+                ? 'alternative'
+                : 'basic';
     goalTypes[goalType].expected++;
   });
 

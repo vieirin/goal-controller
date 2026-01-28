@@ -1,4 +1,4 @@
-import type { Resource } from '../../../../GoalTree/types';
+import type { Resource } from '@goal-controller/goal-tree';
 import { defineVariable, resourceVariableName } from './variable';
 
 export const systemModuleTemplate = ({

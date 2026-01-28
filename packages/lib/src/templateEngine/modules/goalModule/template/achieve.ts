@@ -1,5 +1,5 @@
-import type { GoalNode, Relation } from '../../../../GoalTree/types';
-import { childrenIncludingTasks } from '../../../../GoalTree/utils';
+import type { GoalNode, Relation } from '@goal-controller/goal-tree';
+import { childrenIncludingTasks } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';

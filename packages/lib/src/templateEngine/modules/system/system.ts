@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
-import { isResource } from '../../../GoalTree/nodeUtils';
-import { treeContextVariables } from '../../../GoalTree/treeVariables';
-import type { GoalTree } from '../../../GoalTree/types';
-import { allByType } from '../../../GoalTree/utils';
+import { isResource } from '@goal-controller/goal-tree';
+import { treeContextVariables } from '@goal-controller/goal-tree';
+import type { GoalTree, GoalNode } from '@goal-controller/goal-tree';
+import { allByType } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../logger/logger';
 import { systemModuleTemplate } from './template';
 
@@ -115,14 +115,14 @@ export const systemModule = ({
   // Also collect context variables from tasks
   const tasks = allByType({ gm, type: 'task' });
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task) => {
+  tasks.forEach((task: GoalNode) => {
     if (task.execCondition?.assertion) {
-      task.execCondition.assertion.variables.forEach((v) => {
+      task.execCondition.assertion.variables.forEach((v: { name: string }) => {
         taskContextVariables.add(v.name);
       });
     }
     if (task.execCondition?.maintain?.variables) {
-      task.execCondition.maintain.variables.forEach((v) => {
+      task.execCondition.maintain.variables.forEach((v: { name: string }) => {
         taskContextVariables.add(v.name);
       });
     }

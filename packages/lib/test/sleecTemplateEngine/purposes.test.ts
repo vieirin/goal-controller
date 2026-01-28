@@ -1,6 +1,10 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import type { GoalNode, GoalTree, SleecProps } from '../../src/GoalTree/types';
+import type {
+  GoalNode,
+  GoalTree,
+  SleecProps,
+} from '@goal-controller/goal-tree';
 import { generatePurposes } from '../../src/sleecTemplateEngine/purposes';
 
 /**

@@ -12,9 +12,9 @@ import {
   getLastSelectedModel,
   saveLastSelectedModel,
 } from './cli/utils';
-import { loadPistarModel } from './GoalTree';
-import { convertToTree } from './GoalTree/creation';
-import { dumpTreeToJSON } from './GoalTree/utils';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
+import { dumpTreeToJSON } from '@goal-controller/goal-tree';
 
 // Parse command line arguments for clean flag
 const args = process.argv.slice(2);

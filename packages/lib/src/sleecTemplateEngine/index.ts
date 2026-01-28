@@ -1,5 +1,5 @@
-import type { GoalTree } from '../GoalTree/types';
-import { allByType } from '../GoalTree/utils';
+import type { GoalTree } from '@goal-controller/goal-tree';
+import { allByType } from '@goal-controller/goal-tree';
 import { generateDefinitions } from './definitions';
 import { generatePurposes } from './purposes';
 import { generateTaskRules } from './rules';

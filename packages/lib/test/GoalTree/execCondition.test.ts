@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '../../src/GoalTree';
-import { convertToTree } from '../../src/GoalTree/creation';
-import { allByType, allGoalsMap } from '../../src/GoalTree/utils';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
+import { allByType, allGoalsMap } from '@goal-controller/goal-tree';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests

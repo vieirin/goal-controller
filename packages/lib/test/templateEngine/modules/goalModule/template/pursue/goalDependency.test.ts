@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { loadPistarModel } from '../../../../../../src/GoalTree';
-import { convertToTree } from '../../../../../../src/GoalTree/creation';
-import { allGoalsMap } from '../../../../../../src/GoalTree/utils';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
+import { allGoalsMap } from '@goal-controller/goal-tree';
 import { goalDependencyStatement } from '../../../../../../src/templateEngine/modules/goalModule/template/pursue/index';
 
 describe('Goal Dependency Statement', () => {

@@ -2,8 +2,8 @@ import { getLogger } from '../../../../logger/logger';
 import { achieveStatement } from './achieve';
 import { achievableGoalFormula, maintainConditionFormula } from './formulas';
 
-import type { GoalNode } from '../../../../GoalTree/types';
-import { childrenIncludingTasks } from '../../../../GoalTree/utils';
+import type { GoalNode } from '@goal-controller/goal-tree';
+import { childrenIncludingTasks } from '@goal-controller/goal-tree';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';

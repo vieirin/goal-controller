@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { generateFluents } from '../../src/sleecTemplateEngine/fluents';
-import type { GoalNode } from '../../src/GoalTree/types';
+import type { GoalNode } from '@goal-controller/goal-tree';
 
 /**
  * Helper to create a minimal GoalNode with only the properties needed for testing

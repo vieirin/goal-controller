@@ -1,10 +1,10 @@
-import { treeContextVariables } from '../GoalTree/treeVariables';
-import type { GoalNode, GoalTree } from '../GoalTree/types';
+import { treeContextVariables } from '@goal-controller/goal-tree';
+import type { GoalNode, GoalTree } from '@goal-controller/goal-tree';
 import {
   allByType,
   childrenIncludingTasks,
   childrenWithMaxRetries,
-} from '../GoalTree/utils';
+} from '@goal-controller/goal-tree';
 import { failed } from '../mdp/common';
 import {
   achievableFormulaVariable,
@@ -89,7 +89,7 @@ const calculateGoalContextVariables = (goal: GoalNode): string[] => {
   // We don't count maintain variables because they're used in formulas, not pursue lines
   // We don't count children's context variables because they don't appear in the goal's first pursue line
   if (goal.execCondition?.assertion) {
-    goal.execCondition.assertion.variables.forEach((v) => {
+    goal.execCondition.assertion.variables.forEach((v: { name: string }) => {
       variables.push(v.name);
     });
   }
@@ -147,7 +147,7 @@ export const calculateExpectedElements = (
   >();
 
   // Calculate expected elements for each goal
-  goals.forEach((goal) => {
+  goals.forEach((goal: GoalNode) => {
     goalElements.set(goal.id, {
       variables: calculateGoalVariables(goal),
       transitions: calculateGoalTransitions(goal),
@@ -167,21 +167,23 @@ export const calculateExpectedElements = (
 
   // Also collect context variables from tasks
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task) => {
+  tasks.forEach((task: GoalNode) => {
     if (task.execCondition?.assertion) {
-      task.execCondition.assertion.variables.forEach((v) => {
+      task.execCondition.assertion.variables.forEach((v: { name: string }) => {
         taskContextVariables.add(v.name);
       });
     }
     if (task.execCondition?.maintain?.variables) {
-      task.execCondition.maintain.variables.forEach((v) => {
+      task.execCondition.maintain.variables.forEach((v: { name: string }) => {
         taskContextVariables.add(v.name);
       });
     }
   });
 
   // Resource IDs to exclude from context variables (resources are separate)
-  const resourceIds = new Set(resources.map((resource) => resource.id));
+  const resourceIds = new Set(
+    resources.map((resource: GoalNode) => resource.id),
+  );
 
   // Combine goal and task context variables, but exclude resource IDs
   const allContextVars = new Set([
@@ -191,7 +193,7 @@ export const calculateExpectedElements = (
   const contextVariables = Array.from(allContextVars).filter(
     (varName) => !resourceIds.has(varName),
   );
-  const resourceVariables = resources.map((resource) => resource.id);
+  const resourceVariables = resources.map((resource: GoalNode) => resource.id);
 
   return {
     goals: goalElements,

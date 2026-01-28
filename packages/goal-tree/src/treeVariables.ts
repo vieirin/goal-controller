@@ -1,6 +1,9 @@
-import { achievableFormulaVariable } from '../templateEngine/common';
 import type { GoalTree } from './types';
 import { allByType } from './utils';
+
+// Helper function for achievable formula variable names
+const achievableFormulaVariable = (goalId: string): string =>
+  `${goalId}_achievable`;
 
 const getTreeContextVariables = (tree: GoalTree): string[] => {
   const variables = new Set<string>();

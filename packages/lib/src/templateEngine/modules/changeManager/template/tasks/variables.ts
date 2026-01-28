@@ -1,4 +1,4 @@
-import type { GoalNode } from '../../../../../GoalTree/types';
+import type { GoalNode } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { achievedVariable, failed, pursuedVariable } from '../../../../common';
 

@@ -1,5 +1,5 @@
-import type { Relation } from '../GoalTree/types';
-import { goalRootId } from '../GoalTree/utils';
+import type { Relation } from '@goal-controller/goal-tree';
+import { goalRootId } from '@goal-controller/goal-tree';
 
 export const separator = (relation: Relation | null): string => {
   switch (relation) {

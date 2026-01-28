@@ -1,5 +1,5 @@
-import { type GoalTree } from '../../../GoalTree/types';
-import { allByType } from '../../../GoalTree/utils';
+import { type GoalTree, type GoalNode } from '@goal-controller/goal-tree';
+import { allByType } from '@goal-controller/goal-tree';
 import { goalModule } from './template';
 
 export const goalNumberId = (goalId: string): string => {
@@ -17,7 +17,8 @@ export const goalModules = ({ gm }: { gm: GoalTree }): string => {
   return `
 ${goals
   .sort(
-    (a, b) => Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0]),
+    (a: GoalNode, b: GoalNode) =>
+      Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0]),
   )
   .map(goalModule)
   .join('\n\n')}

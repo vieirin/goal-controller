@@ -20,8 +20,30 @@ importers:
         specifier: ^50.4.11
         version: 50.4.11(typescript@5.9.3)
 
+  packages/goal-tree:
+    dependencies:
+      antlr4:
+        specifier: ^4.13.0
+        version: 4.13.2
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.23
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.14.197
+        version: 4.17.23
+      '@types/node':
+        specifier: ^22.6.0
+        version: 22.19.7
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/lib:
     dependencies:
+      '@goal-controller/goal-tree':
+        specifier: workspace:*
+        version: link:../goal-tree
       antlr4:
         specifier: ^4.13.0
         version: 4.13.2

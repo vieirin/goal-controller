@@ -1,12 +1,12 @@
 import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
-import { loadPistarModel } from '../../GoalTree';
-import { convertToTree } from '../../GoalTree/creation';
+import { loadPistarModel } from '@goal-controller/goal-tree';
+import { convertToTree } from '@goal-controller/goal-tree';
 import {
   getTaskAchievabilityVariables,
   treeContextVariables,
-} from '../../GoalTree/treeVariables';
+} from '@goal-controller/goal-tree';
 import { getVariablesFilePath } from '../../utils/variablesPath';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 

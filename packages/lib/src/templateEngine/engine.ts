@@ -1,4 +1,4 @@
-import { type GoalTree } from '../GoalTree/types';
+import { type GoalTree } from '@goal-controller/goal-tree';
 import { validate } from '../prismValidator';
 import { decisionVariablesTemplate } from './decisionVariables';
 import { changeManagerModule } from './modules/changeManager/changeManager';

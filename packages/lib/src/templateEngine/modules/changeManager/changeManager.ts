@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
-import { getTaskAchievabilityVariables } from '../../../GoalTree/treeVariables';
-import type { GoalTree } from '../../../GoalTree/types';
-import { allByType } from '../../../GoalTree/utils';
+import { getTaskAchievabilityVariables } from '@goal-controller/goal-tree';
+import type { GoalTree } from '@goal-controller/goal-tree';
+import { allByType } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../logger/logger';
 import { changeManagerModuleTemplate } from './template';
 import { taskAchievabilityVariables } from './template/achievabilityVariables/taskAchievabilityVariables';

@@ -1,4 +1,4 @@
-import type { GoalNode } from '../GoalTree/types';
+import type { GoalNode } from '@goal-controller/goal-tree';
 
 export const renameTaskId = (id: string) => id.replace('.', '_');
 

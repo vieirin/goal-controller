@@ -1,5 +1,5 @@
-import { getAssertionVariables } from '../parsers/getAssertionVariables';
-import { getGoalDetail } from '../parsers/goalNameParser';
+import { getAssertionVariables } from './parsers/getAssertionVariables';
+import { getGoalDetail } from './parsers/goalNameParser';
 import type {
   Actor,
   CustomProperties,

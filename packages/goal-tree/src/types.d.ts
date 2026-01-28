@@ -151,9 +151,7 @@ type GoalNode = {
     cost: string;
     root: boolean | undefined;
     dependsOn: string[];
-    uniqueChoice: boolean;
     maxRetries: number | undefined;
-    isQuality: boolean;
     PreCond?: string;
     TriggeringEvent?: string;
     TemporalConstraint?: string;

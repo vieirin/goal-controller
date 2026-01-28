@@ -1,5 +1,5 @@
-import type { GoalNode } from '../../../../GoalTree/types';
-import * as utils from '../../../../GoalTree/utils';
+import type { GoalNode } from '@goal-controller/goal-tree';
+import * as utils from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import {

@@ -12,10 +12,12 @@
     "pnpm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "concurrently \"pnpm run dev:lib\" \"pnpm run dev:ui\"",
+    "dev": "concurrently \"pnpm run dev:goal-tree\" \"pnpm run dev:lib\" \"pnpm run dev:ui\"",
+    "dev:goal-tree": "pnpm --filter @goal-controller/goal-tree run watch",
     "dev:lib": "pnpm --filter @goal-controller/lib run watch",
     "dev:ui": "pnpm --filter @goal-controller/ui run dev",
-    "build": "pnpm run build:lib && pnpm run build:ui",
+    "build": "pnpm run build:goal-tree && pnpm run build:lib && pnpm run build:ui",
+    "build:goal-tree": "pnpm --filter @goal-controller/goal-tree run build",
     "build:lib": "pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
     "test": "pnpm --filter @goal-controller/lib run test",

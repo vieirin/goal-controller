@@ -1,4 +1,4 @@
-import type { Resource } from '../../../../GoalTree/types';
+import type { Resource } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 
 export const resourceVariableName = (resource: Resource): string =>

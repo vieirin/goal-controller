@@ -3,30 +3,29 @@
 // Import for CLI usage and re-export
 import { writeFile } from 'fs';
 import path from 'path';
-import { loadPistarModel, validateModel } from './GoalTree';
-import { convertToTree } from './GoalTree/creation';
-import { dumpTreeToJSON } from './GoalTree/utils';
+import {
+  loadPistarModel,
+  validateModel,
+  convertToTree,
+  dumpTreeToJSON,
+  getTaskAchievabilityVariables,
+  treeContextVariables,
+} from '@goal-controller/goal-tree';
 import { initLogger } from './logger/logger';
 import { validate } from './prismValidator';
 import { sleecTemplateEngine } from './sleecTemplateEngine';
 import { generateValidatedPrismModel } from './templateEngine/engine';
 
-// Core transformation engines
-export { generateValidatedPrismModel, sleecTemplateEngine };
-
-// Goal Tree utilities
-export { convertToTree, dumpTreeToJSON, loadPistarModel, validateModel };
-
-// Variable extraction
+// Re-export from @goal-controller/goal-tree for backward compatibility
 export {
+  convertToTree,
+  dumpTreeToJSON,
+  loadPistarModel,
+  validateModel,
   getTaskAchievabilityVariables,
   treeContextVariables,
-} from './GoalTree/treeVariables';
+} from '@goal-controller/goal-tree';
 
-// Validation
-export { validate };
-
-// Types
 export type {
   GoalNode,
   GoalTree,
@@ -34,7 +33,13 @@ export type {
   Relation,
   SleecProps,
   Type,
-} from './GoalTree/types';
+} from '@goal-controller/goal-tree';
+
+// Core transformation engines (remain in lib)
+export { generateValidatedPrismModel, sleecTemplateEngine };
+
+// Validation
+export { validate };
 
 // Logger
 export type { LoggerReport } from './logger/logger';

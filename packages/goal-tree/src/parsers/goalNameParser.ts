@@ -14,7 +14,7 @@ import type {
   WordContext,
 } from '../antlr/RTRegexParser';
 import RTRegexParser from '../antlr/RTRegexParser';
-import type { GoalExecutionDetail } from '../GoalTree/types';
+import type { GoalExecutionDetail } from '../types';
 
 export const getGoalDetail = ({
   goalText,

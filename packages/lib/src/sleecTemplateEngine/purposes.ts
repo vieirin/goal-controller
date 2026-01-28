@@ -1,14 +1,14 @@
-import type { GoalTree } from '../GoalTree/types';
-import { allByType } from '../GoalTree/utils';
+import type { GoalTree, GoalNode } from '@goal-controller/goal-tree';
+import { allByType } from '@goal-controller/goal-tree';
 
 export const generatePurposes = (tree: GoalTree): string => {
   const goals = allByType({ gm: tree, type: 'goal' });
   return `purpose_start
   ${goals
-    .filter((goal) =>
+    .filter((goal: GoalNode) =>
       ['Achieve', 'Maintain'].includes(goal.sleecProps?.Type || ''),
     )
-    .map((purpose, index) => {
+    .map((purpose: GoalNode, index: number) => {
       const purposeLabel = `P${index + 1}`;
 
       const {
