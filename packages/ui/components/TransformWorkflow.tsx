@@ -3,6 +3,7 @@
 import type { LoggerReport } from '@goal-controller/lib';
 import { useMutation } from '@tanstack/react-query';
 import { GripVertical, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
@@ -75,9 +76,15 @@ const fetchVariables = async (
 };
 
 export default function TransformWorkflow() {
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get('mode') as 'prism' | 'sleec' | null;
+  const isValidMode = modeParam === 'prism' || modeParam === 'sleec';
+
   const [modelContent, setModelContent] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [engine, setEngine] = useState<'prism' | 'sleec'>('prism');
+  const [engine, setEngine] = useState<'prism' | 'sleec'>(
+    isValidMode ? modeParam : 'prism',
+  );
   const [clean, setClean] = useState<boolean>(false);
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
@@ -95,6 +102,13 @@ export default function TransformWorkflow() {
   const transformMutation = useMutation({
     mutationFn: transformModel,
   });
+
+  // Sync engine state with URL mode param
+  useEffect(() => {
+    if (isValidMode) {
+      setEngine(modeParam);
+    }
+  }, [isValidMode, modeParam]);
 
   // Fetch variables when model content changes
   useEffect(() => {
@@ -205,15 +219,17 @@ export default function TransformWorkflow() {
               </div>
             )}
 
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
-              <EngineSelector
-                engine={engine}
-                onEngineChange={setEngine}
-                clean={clean}
-                onCleanChange={setClean}
-              />
-            </div>
+            {!isValidMode && (
+              <div className='bg-white rounded-lg shadow-md p-6'>
+                <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
+                <EngineSelector
+                  engine={engine}
+                  onEngineChange={setEngine}
+                  clean={clean}
+                  onCleanChange={setClean}
+                />
+              </div>
+            )}
 
             {engine === 'prism' && modelContent && (
               <div className='bg-white rounded-lg shadow-md p-6 overflow-hidden flex flex-col h-full'>
@@ -247,8 +263,8 @@ export default function TransformWorkflow() {
           </div>
         </div>
 
-        {/* Resize Handle */}
-        <div className='relative w-full py-4 mb-4'>
+        {/* Resize Handle - hidden on mobile */}
+        <div className='hidden lg:block relative w-full py-4 mb-4'>
           <div
             className='flex items-center justify-center cursor-row-resize group'
             onMouseDown={handleMouseDown}
