@@ -150,13 +150,13 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                     (child): child is PursueableNode => !Node.isResource(child),
                   )
                   .map((child) => child.id);
-                if (!children) {
+                if (children.length === 0) {
                   logger.error(
-                    child.id,
-                    'choice execution detail detected without children',
+                    goal.id,
+                    'choice execution detail detected without pursueable children',
                   );
                   throw new Error(
-                    'OR relation to children with choice without children is not supported',
+                    `[INVALID MODEL]: Goal "${goal.id}" has choice execution detail but no pursueable children (goals or tasks)`,
                   );
                 }
                 logger.trace(
