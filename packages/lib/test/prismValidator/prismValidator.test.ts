@@ -4,6 +4,7 @@ import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from '../../src/logger/logger';
 import { formatValidationReport, validate } from '../../src/prismValidator';
 import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';
+import { edgeEngineMapper } from '../../src/templateEngine/edgeMapper';
 
 const experimentExamples = [
   '1-minimal',
@@ -26,7 +27,7 @@ describe('PRISM Validator - Experiment Examples', () => {
 
         // Load and convert model
         const model = Model.load(inputFile);
-        const tree = GoalTree.fromModel(model);
+        const tree = GoalTree.fromModel(model, edgeEngineMapper);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);
@@ -140,7 +141,7 @@ describe('PRISM Validator - Experiment Examples', () => {
 
         // Load and convert model
         const model = Model.load(inputFile);
-        const tree = GoalTree.fromModel(model);
+        const tree = GoalTree.fromModel(model, edgeEngineMapper);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);
@@ -170,7 +171,7 @@ describe('PRISM Validator - Experiment Examples', () => {
 
         // Load and convert model
         const model = Model.load(inputFile);
-        const tree = GoalTree.fromModel(model);
+        const tree = GoalTree.fromModel(model, edgeEngineMapper);
 
         // Generate PRISM model (use in-memory logging to avoid creating .log files)
         const logger = initLogger(inputFile, false, true);

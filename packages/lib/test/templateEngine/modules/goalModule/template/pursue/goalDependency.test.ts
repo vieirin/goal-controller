@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { goalDependencyStatement } from '../../../../../../src/templateEngine/modules/goalModule/template/pursue/index';
+import { edgeEngineMapper } from '../../../../../../src/templateEngine/edgeMapper';
 
 describe('Goal Dependency Statement', () => {
   it('should output G4_achieved_maintain = true for G2 dependency', () => {
@@ -9,7 +10,7 @@ describe('Goal Dependency Statement', () => {
     const model = Model.load('../../examples/goalModel_TAS_3_.txt');
 
     // Convert to tree
-    const tree = GoalTree.fromModel(model);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
 
     // Find G2 in the tree
     const allGoals = tree.query.allGoalsMap();
@@ -23,7 +24,7 @@ describe('Goal Dependency Statement', () => {
     if (!g4) {
       throw new Error('G4 not found in the tree');
     }
-    g2.properties.edge.dependsOn = [g4];
+    g2.properties.engine.dependsOn = [g4];
     // Calculate the goal dependency statement
     const dependencyStatement = goalDependencyStatement(g2);
 

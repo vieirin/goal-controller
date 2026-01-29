@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { extractMeasures, Measure } from '../../src/sleecTemplateEngine/index';
-import type { Task } from '@goal-controller/goal-tree';
+import type { SleecTask } from '../../src/sleecTemplateEngine/sleecMapper';
 
 /**
  * Helper to create a minimal Task node with only the properties needed for testing
@@ -10,17 +10,17 @@ const createTaskNode = (
   id: string,
   preCond?: string,
   postCond?: string,
-): Task =>
+): SleecTask =>
   ({
     id,
     type: 'task',
     properties: {
-      sleec: {
+      engine: {
         PreCond: preCond,
         PostCond: postCond,
       },
     },
-  }) as Task;
+  }) as SleecTask;
 
 describe('sleecTemplateEngine', () => {
   describe('extractMeasures', () => {
