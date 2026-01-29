@@ -15,10 +15,12 @@ const isValidSeparator = (
 
 export const achieveCondition = (goal: EdgeGoalNode): string => {
   if (isValidSeparator(goal.relationToChildren)) {
-    const children = Node.children(goal);
-    if (children.length) {
-      return `(${children
-        .filter((child) => !Node.isResource(child))
+    // Filter out resources first, then check if there are any pursueable children
+    const pursueableChildren = Node.children(goal).filter(
+      (child) => !Node.isResource(child),
+    );
+    if (pursueableChildren.length) {
+      return `(${pursueableChildren
         .map((child) => {
           const typedChild = child as EdgeGoalNode | EdgeTask;
           return typedChild.properties.engine.execCondition?.maintain

@@ -9,7 +9,7 @@ export const taskAchievabilityVariable = (
   const logger = getLogger();
   const variableName = achievableFormulaVariable(task.id);
   const variableValue = variableValues[variableName];
-  if (!variableValue) {
+  if (variableValue === undefined || variableValue === null) {
     throw new Error(
       `Variable value not found for task ${task.id}: ${variableName}`,
     );

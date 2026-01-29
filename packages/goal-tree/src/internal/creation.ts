@@ -135,7 +135,15 @@ const createResource = (
     case 'int': {
       const { initialValue, lowerBound, upperBound } = resource.properties;
 
-      if (!initialValue || !lowerBound || !upperBound) {
+      // Check for null/undefined/empty string explicitly to allow "0" as valid value
+      if (
+        initialValue == null ||
+        lowerBound == null ||
+        upperBound == null ||
+        initialValue === '' ||
+        lowerBound === '' ||
+        upperBound === ''
+      ) {
         throw new Error(
           `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value, lower bound, and upper bound`,
         );
@@ -465,51 +473,53 @@ function runAfterCreationMapper<TGoalEngine, TTaskEngine>(
     return tree;
   }
 
-  const allGoals = allByType(tree, 'goal') as Array<
-    GoalNode<TGoalEngine, TTaskEngine>
-  >;
-  const allTasks = allByType(tree, 'task') as Array<Task<TTaskEngine>>;
-  const allResources = allByType(tree, 'resource');
+  try {
+    const allGoals = allByType(tree, 'goal') as Array<
+      GoalNode<TGoalEngine, TTaskEngine>
+    >;
+    const allTasks = allByType(tree, 'task') as Array<Task<TTaskEngine>>;
+    const allResources = allByType(tree, 'resource');
 
-  const nodeMap = new Map<string, TreeNode<TGoalEngine, TTaskEngine>>();
-  [...allGoals, ...allTasks, ...allResources].forEach((node) => {
-    nodeMap.set(node.id, node);
-  });
-
-  const processNode = (
-    node: TreeNode<TGoalEngine, TTaskEngine>,
-  ): TreeNode<TGoalEngine, TTaskEngine> => {
-    if (node.type !== 'goal') {
-      return node;
-    }
-
-    const rawProperties = pendingRawProperties.get(node.id) || {};
-
-    const resolvedChildren = node.children?.map(processNode) as
-      | Array<GoalNode<TGoalEngine, TTaskEngine>>
-      | undefined;
-
-    // Call afterCreationMapper to transform engine props
-    const updatedEngine = mapper.afterCreationMapper!({
-      node,
-      allNodes: nodeMap,
-      rawProperties,
+    const nodeMap = new Map<string, TreeNode<TGoalEngine, TTaskEngine>>();
+    [...allGoals, ...allTasks, ...allResources].forEach((node) => {
+      nodeMap.set(node.id, node);
     });
 
-    return {
-      ...node,
-      properties: {
-        ...node.properties,
-        engine: updatedEngine,
-      },
-      ...(resolvedChildren && { children: resolvedChildren }),
+    const processNode = (
+      node: TreeNode<TGoalEngine, TTaskEngine>,
+    ): TreeNode<TGoalEngine, TTaskEngine> => {
+      if (node.type !== 'goal') {
+        return node;
+      }
+
+      const rawProperties = pendingRawProperties.get(node.id) || {};
+
+      const resolvedChildren = node.children?.map(processNode) as
+        | Array<GoalNode<TGoalEngine, TTaskEngine>>
+        | undefined;
+
+      // Call afterCreationMapper to transform engine props
+      const updatedEngine = mapper.afterCreationMapper!({
+        node,
+        allNodes: nodeMap,
+        rawProperties,
+      });
+
+      return {
+        ...node,
+        properties: {
+          ...node.properties,
+          engine: updatedEngine,
+        },
+        ...(resolvedChildren && { children: resolvedChildren }),
+      };
     };
-  };
 
-  const result = tree.map(processNode);
-  pendingRawProperties.clear();
-
-  return result;
+    return tree.map(processNode);
+  } finally {
+    // Always clear pending raw properties, even on error
+    pendingRawProperties.clear();
+  }
 }
 
 /**

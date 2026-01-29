@@ -300,8 +300,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         // parent goals have activation context independently of the maintain condition
         const activationContextCondition =
           ((isItself(child) || Node.isTask(child)) &&
-            child.properties.engine.execCondition &&
-            child.properties.engine.execCondition.assertion.sentence) ||
+            child.properties.engine.execCondition?.assertion?.sentence) ||
           '';
 
         // child goals have maintain condition only if they are not itself

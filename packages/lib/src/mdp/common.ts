@@ -34,7 +34,7 @@ export const failed = (goalId: string): string => `${goalId}_failed`;
 export const OR = (elements: string[]): string =>
   elements.join(separator('or'));
 export const AND = (elements: string[]): string =>
-  elements.join(separator('or'));
+  elements.join(separator('and'));
 
 export const equals = (operand: string, value: string | number): string =>
   `${operand}=${value}`;

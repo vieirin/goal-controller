@@ -41,8 +41,28 @@ const parseDecision = (
 
   return parsedDecision.map((d) => ({
     variable: d[0]?.trim() ?? '',
-    space: parseInt(d[1] ?? ''),
+    space: parseInt(d[1] ?? '', 10),
   }));
+};
+
+/**
+ * Parse and validate maxRetries value
+ * Returns 0 if not provided, throws if invalid
+ */
+const parseMaxRetries = (
+  maxRetries: string | undefined,
+  nodeType: 'goal' | 'task',
+): number => {
+  if (!maxRetries) {
+    return 0;
+  }
+  const parsed = parseInt(maxRetries, 10);
+  if (isNaN(parsed) || parsed < 0) {
+    throw new Error(
+      `[INVALID ${nodeType.toUpperCase()}] maxRetries must be a non-negative integer: got "${maxRetries}"`,
+    );
+  }
+  return parsed;
 };
 
 const getMaintainCondition = (
@@ -135,7 +155,7 @@ export const edgeEngineMapper: EngineMapper<
         decisionVars,
         hasDecision: decisionVars.length > 0,
       } satisfies Decision,
-      maxRetries: raw.maxRetries ? parseInt(raw.maxRetries) : 0,
+      maxRetries: parseMaxRetries(raw.maxRetries, 'goal'),
     };
   },
 
@@ -144,7 +164,7 @@ export const edgeEngineMapper: EngineMapper<
 
     return {
       execCondition,
-      maxRetries: raw.maxRetries ? parseInt(raw.maxRetries) : 0,
+      maxRetries: parseMaxRetries(raw.maxRetries, 'task'),
     };
   },
 
