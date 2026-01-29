@@ -69,13 +69,22 @@ export type EngineMapper<TGoalEngine, TTaskEngine> = {
   mapGoalProps: (props: {
     raw: RawGoalProps;
     executionDetail: GoalExecutionDetail | null;
-    dependsOn: Array<GoalNode<TGoalEngine, TTaskEngine>>;
   }) => TGoalEngine;
 
   /**
    * Map raw task properties to engine-specific task properties
    */
   mapTaskProps: (props: { raw: RawTaskProps }) => TTaskEngine;
+
+  /**
+   * Optional: Transform goal props after tree is created (e.g., resolve dependsOn)
+   * Called for each goal node after the full tree is built
+   */
+  afterCreationMapper?: (props: {
+    node: GoalNode<TGoalEngine, TTaskEngine>;
+    allNodes: Map<string, TreeNode<TGoalEngine, TTaskEngine>>;
+    rawProperties: RawGoalProps;
+  }) => TGoalEngine;
 };
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
@@ -101,8 +110,9 @@ const parseDependsOn = ({ dependsOn }: { dependsOn: string }): string[] => {
   return parsedDependency.map((d) => d.trim());
 };
 
-// Temporary storage for raw dependency IDs during tree creation
-const pendingDependencies = new Map<string, string[]>();
+// Temporary storage for raw goal properties during tree creation
+// Used by afterCreationMapper to access raw properties after tree is built
+const pendingRawProperties = new Map<string, RawGoalProps>();
 
 const createResource = (
   resource: BaseNode & { properties: Dictionary<string> },
@@ -296,13 +306,6 @@ function createNode<TGoalEngine, TTaskEngine>({
   }
 
   if (nodeType === 'goal') {
-    const rawDependsOn = parseDependsOn({
-      dependsOn: customProperties.dependsOn ?? '',
-    });
-    if (rawDependsOn.length > 0) {
-      pendingDependencies.set(id, rawDependsOn);
-    }
-
     const rawGoalProps: RawGoalProps = {
       root,
       maxRetries: customProperties.maxRetries,
@@ -324,6 +327,9 @@ function createNode<TGoalEngine, TTaskEngine>({
       ContextEvent: customProperties.ContextEvent,
     };
 
+    // Store raw properties for afterCreationMapper
+    pendingRawProperties.set(id, rawGoalProps);
+
     const goalNode: GoalNode<TGoalEngine, TTaskEngine> = {
       id,
       name: goalName,
@@ -337,7 +343,6 @@ function createNode<TGoalEngine, TTaskEngine>({
         engine: mapper.mapGoalProps({
           raw: rawGoalProps,
           executionDetail,
-          dependsOn: [], // Will be resolved later
         }),
       },
       ...(tasks.length > 0 && { tasks }),
@@ -450,10 +455,16 @@ function nodeToTree<TGoalEngine, TTaskEngine>({
   return createNode({ node, children, relation, mapper });
 }
 
-function resolveDependencies<TGoalEngine, TTaskEngine>(
+function runAfterCreationMapper<TGoalEngine, TTaskEngine>(
   tree: GoalTree<TGoalEngine, TTaskEngine>,
   mapper: EngineMapper<TGoalEngine, TTaskEngine>,
 ): GoalTree<TGoalEngine, TTaskEngine> {
+  // If no afterCreationMapper is provided, return tree as-is
+  if (!mapper.afterCreationMapper) {
+    pendingRawProperties.clear();
+    return tree;
+  }
+
   const allGoals = allByType(tree, 'goal') as Array<
     GoalNode<TGoalEngine, TTaskEngine>
   >;
@@ -465,56 +476,38 @@ function resolveDependencies<TGoalEngine, TTaskEngine>(
     nodeMap.set(node.id, node);
   });
 
-  const resolveNodeDependencies = (
+  const processNode = (
     node: TreeNode<TGoalEngine, TTaskEngine>,
   ): TreeNode<TGoalEngine, TTaskEngine> => {
     if (node.type !== 'goal') {
       return node;
     }
 
-    const rawDependsOn = pendingDependencies.get(node.id) || [];
+    const rawProperties = pendingRawProperties.get(node.id) || {};
 
-    const resolvedDependencies = rawDependsOn.map((depId) => {
-      const depNode = nodeMap.get(depId);
-      if (!depNode) {
-        throw new Error(
-          `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`,
-        );
-      }
-      return depNode as GoalNode<TGoalEngine, TTaskEngine>;
-    });
-
-    const resolvedChildren = node.children?.map(resolveNodeDependencies) as
+    const resolvedChildren = node.children?.map(processNode) as
       | Array<GoalNode<TGoalEngine, TTaskEngine>>
       | undefined;
 
-    // Re-map the goal props with resolved dependencies
-    const updatedEngine = mapper.mapGoalProps({
-      raw: {}, // Empty raw - we're just updating dependsOn
-      executionDetail: null,
-      dependsOn: resolvedDependencies,
+    // Call afterCreationMapper to transform engine props
+    const updatedEngine = mapper.afterCreationMapper!({
+      node,
+      allNodes: nodeMap,
+      rawProperties,
     });
-
-    // Merge the updated dependsOn into existing engine props
-    const mergedEngine: TGoalEngine = {
-      ...node.properties.engine,
-      ...(typeof updatedEngine === 'object' && updatedEngine !== null
-        ? { dependsOn: (updatedEngine as { dependsOn?: unknown }).dependsOn }
-        : {}),
-    };
 
     return {
       ...node,
       properties: {
         ...node.properties,
-        engine: mergedEngine,
+        engine: updatedEngine,
       },
       ...(resolvedChildren && { children: resolvedChildren }),
     };
   };
 
-  const result = tree.map(resolveNodeDependencies);
-  pendingDependencies.clear();
+  const result = tree.map(processNode);
+  pendingRawProperties.clear();
 
   return result;
 }
@@ -542,5 +535,6 @@ export function convertToTree<TGoalEngine, TTaskEngine>(
     });
   });
 
-  return resolveDependencies(unidirectionalTree, mapper);
+  // Run afterCreationMapper if provided (e.g., to resolve dependsOn)
+  return runAfterCreationMapper(unidirectionalTree, mapper);
 }

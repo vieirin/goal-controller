@@ -10,6 +10,7 @@ import type {
   RawGoalProps,
   RawTaskProps,
   Task,
+  TreeNode,
 } from '@goal-controller/goal-tree';
 import type {
   Decision,
@@ -95,6 +96,19 @@ export type EdgeGoalPropsResolved = EdgeGoalProps<
 >;
 
 /**
+ * Parse dependsOn string into array of goal IDs
+ */
+const parseDependsOn = (dependsOn: string | undefined): string[] => {
+  if (!dependsOn) {
+    return [];
+  }
+  return dependsOn
+    .split(',')
+    .map((d) => d.trim())
+    .filter(Boolean);
+};
+
+/**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
  */
 export const edgeEngineMapper: EngineMapper<
@@ -104,11 +118,9 @@ export const edgeEngineMapper: EngineMapper<
   mapGoalProps: ({
     raw,
     executionDetail,
-    dependsOn,
   }: {
     raw: RawGoalProps;
     executionDetail: GoalExecutionDetail | null;
-    dependsOn: Array<GoalNode<EdgeGoalPropsResolved, EdgeTaskProps>>;
   }) => {
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
@@ -116,7 +128,7 @@ export const edgeEngineMapper: EngineMapper<
     return {
       utility: raw.utility || '',
       cost: raw.cost || '',
-      dependsOn,
+      dependsOn: [], // Will be resolved by afterCreationMapper
       executionDetail,
       execCondition,
       decision: {
@@ -133,6 +145,38 @@ export const edgeEngineMapper: EngineMapper<
     return {
       execCondition,
       maxRetries: raw.maxRetries ? parseInt(raw.maxRetries) : 0,
+    };
+  },
+
+  afterCreationMapper: ({
+    node,
+    allNodes,
+    rawProperties,
+  }: {
+    node: GoalNode<EdgeGoalPropsResolved, EdgeTaskProps>;
+    allNodes: Map<string, TreeNode<EdgeGoalPropsResolved, EdgeTaskProps>>;
+    rawProperties: RawGoalProps;
+  }) => {
+    const depIds = parseDependsOn(rawProperties.dependsOn);
+
+    const resolvedDeps = depIds.map((id) => {
+      const depNode = allNodes.get(id);
+      if (!depNode) {
+        throw new Error(
+          `[INVALID MODEL]: Dependency ${id} not found for node ${node.id}`,
+        );
+      }
+      if (depNode.type !== 'goal') {
+        throw new Error(
+          `[INVALID MODEL]: Dependency ${id} for node ${node.id} must be a goal, got ${depNode.type}`,
+        );
+      }
+      return depNode;
+    });
+
+    return {
+      ...node.properties.engine,
+      dependsOn: resolvedDeps,
     };
   },
 };

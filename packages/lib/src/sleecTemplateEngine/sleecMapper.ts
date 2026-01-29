@@ -4,6 +4,7 @@
  */
 import type {
   EngineMapper,
+  GoalExecutionDetail,
   GoalNode,
   GoalTreeType,
   RawGoalProps,
@@ -52,15 +53,22 @@ const extractSleecTaskProps = (raw: RawTaskProps): SleecTaskProps => {
 
 /**
  * SLEEC Engine Mapper for creating SLEEC-compatible goal trees
+ * Note: SLEEC doesn't use dependsOn, so no afterCreationMapper is needed
  */
 export const sleecEngineMapper: EngineMapper<SleecGoalProps, SleecTaskProps> = {
-  mapGoalProps: ({ raw }: { raw: RawGoalProps }) => {
+  mapGoalProps: ({
+    raw,
+  }: {
+    raw: RawGoalProps;
+    executionDetail: GoalExecutionDetail | null;
+  }) => {
     return extractSleecGoalProps(raw);
   },
 
   mapTaskProps: ({ raw }: { raw: RawTaskProps }) => {
     return extractSleecTaskProps(raw);
   },
+  // No afterCreationMapper needed - SLEEC doesn't use dependsOn
 };
 
 /**
