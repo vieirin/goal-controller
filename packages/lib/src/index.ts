@@ -22,7 +22,7 @@ export type {
 } from '@goal-controller/goal-tree';
 
 // Re-export GoalTree and Model for convenience
-export { GoalTree, Model } from '@goal-controller/goal-tree';
+export type { GoalTree, Model } from '@goal-controller/goal-tree';
 
 // Edge engine types and mapper
 export {

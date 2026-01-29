@@ -1,6 +1,5 @@
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import {
-  GoalTree,
-  Model,
   edgeEngineMapper,
   sleecEngineMapper,
   type EdgeGoalTree,
