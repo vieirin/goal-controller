@@ -35,7 +35,12 @@
 // Main SDK Classes
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { GoalTree, type TreeQuery, type EngineMapper } from './GoalTree';
+export {
+  GoalTree,
+  createEngineMapper,
+  type TreeQuery,
+  type EngineMapper,
+} from './GoalTree';
 export { Model, type ModelNamespace } from './Model';
 export { Node, type NodeNamespace } from './Node';
 
@@ -66,9 +71,10 @@ export type {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type {
-  RawGoalProps,
-  RawTaskProps,
-  RawResourceProps,
+  // Generic raw props type
+  RawProps,
+  // Discriminated union for afterCreationMapper
+  RawPropertiesUnion,
   GoalExecutionDetail,
 } from './internal/creation';
 

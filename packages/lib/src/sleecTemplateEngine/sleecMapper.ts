@@ -2,18 +2,19 @@
  * SLEEC Engine Mapper
  * Maps raw iStar model properties to SLEEC engine-specific properties
  */
-import type {
-  EngineMapper,
-  GoalExecutionDetail,
-  GoalNode,
-  GoalTreeType,
-  RawGoalProps,
-  RawTaskProps,
-  Task,
+import {
+  createEngineMapper,
+  type GoalNode,
+  type GoalTreeType,
+  type RawProps,
+  type Task,
 } from '@goal-controller/goal-tree';
 import type { SleecGoalProps, SleecTaskProps } from './types';
 
-const SLEEC_GOAL_PROP_KEYS = [
+/**
+ * Allowed keys for SLEEC goal custom properties
+ */
+export const SLEEC_GOAL_KEYS = [
   'Type',
   'Source',
   'Class',
@@ -25,10 +26,25 @@ const SLEEC_GOAL_PROP_KEYS = [
   'ContextEvent',
 ] as const;
 
-const extractSleecGoalProps = (raw: RawGoalProps): SleecGoalProps => {
+/**
+ * Allowed keys for SLEEC task custom properties
+ */
+export const SLEEC_TASK_KEYS = [
+  'PreCond',
+  'TriggeringEvent',
+  'TemporalConstraint',
+  'PostCond',
+  'ObstacleEvent',
+] as const;
+
+// Type aliases for the allowed keys
+export type SleecGoalKey = (typeof SLEEC_GOAL_KEYS)[number];
+export type SleecTaskKey = (typeof SLEEC_TASK_KEYS)[number];
+
+const extractSleecGoalProps = (raw: RawProps<SleecGoalKey>): SleecGoalProps => {
   const sleecProps: SleecGoalProps = {};
 
-  for (const key of SLEEC_GOAL_PROP_KEYS) {
+  for (const key of SLEEC_GOAL_KEYS) {
     const value = raw[key];
     if (typeof value === 'string' && value.trim() !== '') {
       sleecProps[key] = value;
@@ -38,7 +54,7 @@ const extractSleecGoalProps = (raw: RawGoalProps): SleecGoalProps => {
   return sleecProps;
 };
 
-const extractSleecTaskProps = (raw: RawTaskProps): SleecTaskProps => {
+const extractSleecTaskProps = (raw: RawProps<SleecTaskKey>): SleecTaskProps => {
   const sleecProps: SleecTaskProps = {};
 
   if (raw.PreCond) sleecProps.PreCond = raw.PreCond;
@@ -55,28 +71,16 @@ const extractSleecTaskProps = (raw: RawTaskProps): SleecTaskProps => {
  * SLEEC Engine Mapper for creating SLEEC-compatible goal trees
  * Note: SLEEC doesn't use dependsOn, so no afterCreationMapper is needed
  * Note: SLEEC doesn't use resources, so skipResource is set to true
+ * All types are inferred from the allowedKeys arrays via createEngineMapper
  */
-export const sleecEngineMapper: EngineMapper<
-  SleecGoalProps,
-  SleecTaskProps,
-  never
-> = {
-  mapGoalProps: ({
-    raw,
-  }: {
-    raw: RawGoalProps;
-    executionDetail: GoalExecutionDetail | null;
-  }) => {
-    return extractSleecGoalProps(raw);
-  },
-
-  mapTaskProps: ({ raw }: { raw: RawTaskProps }) => {
-    return extractSleecTaskProps(raw);
-  },
-
-  // Skip resources - SLEEC doesn't use them
+export const sleecEngineMapper = createEngineMapper({
+  allowedGoalKeys: SLEEC_GOAL_KEYS,
+  allowedTaskKeys: SLEEC_TASK_KEYS,
   skipResource: true,
-};
+})({
+  mapGoalProps: ({ raw }) => extractSleecGoalProps(raw),
+  mapTaskProps: ({ raw }) => extractSleecTaskProps(raw),
+});
 
 /**
  * Type aliases for SLEEC-specific tree types

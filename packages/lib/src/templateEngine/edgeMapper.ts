@@ -2,17 +2,14 @@
  * Edge Engine Mapper
  * Maps raw iStar model properties to Edge/PRISM engine-specific properties
  */
-import type {
-  EngineMapper,
-  GoalExecutionDetail,
-  GoalNode,
-  GoalTreeType,
-  RawGoalProps,
-  RawResourceProps,
-  RawTaskProps,
-  Resource,
-  Task,
-  TreeNode,
+import {
+  createEngineMapper,
+  getAssertionVariables,
+  type GoalNode,
+  type GoalTreeType,
+  type RawProps,
+  type Resource,
+  type Task,
 } from '@goal-controller/goal-tree';
 import type {
   Decision,
@@ -22,7 +19,45 @@ import type {
   ExecCondition,
 } from './types';
 
-import { getAssertionVariables } from '@goal-controller/goal-tree';
+/**
+ * Allowed keys for Edge goal custom properties
+ */
+export const EDGE_GOAL_KEYS = [
+  'root',
+  'maxRetries',
+  'utility',
+  'cost',
+  'dependsOn',
+  'variables',
+  'type',
+  'maintain',
+  'assertion',
+] as const;
+
+/**
+ * Allowed keys for Edge task custom properties
+ */
+export const EDGE_TASK_KEYS = [
+  'maxRetries',
+  'type',
+  'maintain',
+  'assertion',
+] as const;
+
+/**
+ * Allowed keys for Edge resource custom properties
+ */
+export const EDGE_RESOURCE_KEYS = [
+  'type',
+  'initialValue',
+  'lowerBound',
+  'upperBound',
+] as const;
+
+// Type aliases for the allowed keys
+export type EdgeGoalKey = (typeof EDGE_GOAL_KEYS)[number];
+export type EdgeTaskKey = (typeof EDGE_TASK_KEYS)[number];
+export type EdgeResourceKey = (typeof EDGE_RESOURCE_KEYS)[number];
 
 const parseDecision = (
   decision: string | undefined,
@@ -69,7 +104,7 @@ const parseMaxRetries = (
 };
 
 const getMaintainCondition = (
-  customProperties: RawGoalProps | RawTaskProps,
+  customProperties: RawProps<EdgeGoalKey> | RawProps<EdgeTaskKey>,
   nodeType: 'goal' | 'task',
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
@@ -133,26 +168,23 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
 
 /**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
+ * All types are inferred from the allowedKeys arrays via createEngineMapper
  */
-export const edgeEngineMapper: EngineMapper<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
-> = {
-  mapGoalProps: ({
-    raw,
-    executionDetail,
-  }: {
-    raw: RawGoalProps;
-    executionDetail: GoalExecutionDetail | null;
-  }) => {
+export const edgeEngineMapper = createEngineMapper({
+  allowedGoalKeys: EDGE_GOAL_KEYS,
+  allowedTaskKeys: EDGE_TASK_KEYS,
+  allowedResourceKeys: EDGE_RESOURCE_KEYS,
+})({
+  mapGoalProps: ({ raw, executionDetail }) => {
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
 
     return {
       utility: raw.utility || '',
       cost: raw.cost || '',
-      dependsOn: [], // Will be resolved by afterCreationMapper
+      dependsOn: [] as Array<
+        GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
+      >,
       executionDetail,
       execCondition,
       decision: {
@@ -163,7 +195,7 @@ export const edgeEngineMapper: EngineMapper<
     };
   },
 
-  mapTaskProps: ({ raw }: { raw: RawTaskProps }) => {
+  mapTaskProps: ({ raw }) => {
     const execCondition = getMaintainCondition(raw, 'task');
 
     return {
@@ -172,7 +204,7 @@ export const edgeEngineMapper: EngineMapper<
     };
   },
 
-  mapResourceProps: ({ raw }: { raw: RawResourceProps }): EdgeResourceProps => {
+  mapResourceProps: ({ raw }) => {
     const { type, initialValue, lowerBound, upperBound } = raw;
 
     switch (type) {
@@ -184,7 +216,7 @@ export const edgeEngineMapper: EngineMapper<
         }
         return {
           variable: {
-            type: 'boolean',
+            type: 'boolean' as const,
             initialValue: initialValue === 'true',
           },
         };
@@ -229,7 +261,7 @@ export const edgeEngineMapper: EngineMapper<
 
         return {
           variable: {
-            type: 'int',
+            type: 'int' as const,
             initialValue: initialValueInt,
             lowerBound: lowerBoundInt,
             upperBound: upperBoundInt,
@@ -243,19 +275,14 @@ export const edgeEngineMapper: EngineMapper<
     }
   },
 
-  afterCreationMapper: ({
-    node,
-    allNodes,
-    rawProperties,
-  }: {
-    node: GoalNode<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>;
-    allNodes: Map<
-      string,
-      TreeNode<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>
-    >;
-    rawProperties: RawGoalProps;
-  }) => {
-    const depIds = parseDependsOn(rawProperties.dependsOn);
+  afterCreationMapper: ({ node, allNodes, rawProperties }) => {
+    // Only process goal nodes for dependsOn resolution
+    if (rawProperties.type !== 'goal' || node.type !== 'goal') {
+      // For non-goal nodes, return the existing engine props
+      return node.properties.engine;
+    }
+
+    const depIds = parseDependsOn(rawProperties.raw.dependsOn);
 
     const resolvedDeps = depIds.map((id) => {
       const depNode = allNodes.get(id);
@@ -277,7 +304,7 @@ export const edgeEngineMapper: EngineMapper<
       dependsOn: resolvedDeps,
     };
   },
-};
+});
 
 /**
  * Type aliases for Edge-specific tree types

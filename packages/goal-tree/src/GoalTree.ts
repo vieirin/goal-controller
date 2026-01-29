@@ -2,7 +2,11 @@
  * GoalTree SDK - Main class for working with goal trees
  */
 import { readFileSync } from 'fs';
-import { convertToTree, type EngineMapper } from './internal/creation';
+import {
+  convertToTree,
+  createEngineMapper,
+  type EngineMapper,
+} from './internal/creation';
 import {
   allByType as _allByType,
   allGoalsMap as _allGoalsMap,
@@ -21,6 +25,7 @@ import type {
   TreeNode,
   Type,
 } from './types/';
+export { createEngineMapper };
 
 /**
  * Query interface for tree operations
@@ -60,6 +65,7 @@ export class GoalTree<
   private readonly _nodes: Array<
     TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
   >;
+
   public readonly query: TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine>;
 
   private constructor(

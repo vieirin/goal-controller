@@ -15,8 +15,7 @@ export type {
   GoalNode,
   GoalTreeType,
   IStarModel,
-  RawGoalProps,
-  RawTaskProps,
+  RawProps,
   Relation,
   Type,
 } from '@goal-controller/goal-tree';
