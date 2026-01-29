@@ -161,8 +161,9 @@ const extractFluentNames = (tasks: SleecTask[]): string[] =>
 const extractObstacleEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => `Achieved${task.properties.engine?.ObstacleEvent}`)
-      .filter((event): event is string => !!event),
+      .map((task) => task.properties.engine?.ObstacleEvent)
+      .filter((event): event is string => !!event)
+      .map((event) => `Achieved${event}`),
   );
 
 const eventLine = (event: string): string => `    event ${event}`;

@@ -61,7 +61,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         const dependencyStatement = goalDependencyStatement(goal);
         pursueLogger.goalDependency(
           goal.id,
-          goal.properties.engine.dependsOn.map((dep) => dep.id),
+          (goal.properties.engine.dependsOn ?? []).map((dep) => dep.id),
         );
         const statement =
           `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
