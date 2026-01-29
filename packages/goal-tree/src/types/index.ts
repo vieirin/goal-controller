@@ -24,17 +24,11 @@ export type {
 export type {
   Relation,
   Type,
-  ExecCondition,
-  Decision,
-  GoalExecutionDetail,
-  SleecProps,
-  TaskEdgeProps,
-  TaskSleecProps,
-  GoalEdgeProps,
   BaseNode,
   GoalNode,
   Task,
   Resource,
   TreeNode,
   GoalTree,
+  GoalExecutionDetail,
 } from './goalTree';

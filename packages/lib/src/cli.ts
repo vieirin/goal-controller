@@ -13,6 +13,7 @@ import {
   saveLastSelectedModel,
 } from './cli/utils';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { edgeEngineMapper } from './templateEngine/edgeMapper';
 
 // Parse command line arguments for clean flag
 const args = process.argv.slice(2);
@@ -115,7 +116,7 @@ const mainMenu = async (): Promise<void> => {
     ]);
 
     const model = Model.load(selectedFile);
-    const tree = GoalTree.fromModel(model);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
     const json = tree.toJSON();
     await writeFile(`output/${path.parse(selectedFile).name}.json`, json);
     console.log(

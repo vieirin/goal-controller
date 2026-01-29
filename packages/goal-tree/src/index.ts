@@ -5,10 +5,16 @@
  *
  * @example
  * ```typescript
- * import { GoalTree, Node, Model } from '@goal-controller/goal-tree';
+ * import { GoalTree, Node, Model, type EngineMapper } from '@goal-controller/goal-tree';
  *
- * // Create a tree from a file
- * const tree = GoalTree.fromFile('model.json');
+ * // Define your engine mapper
+ * const myMapper: EngineMapper<MyGoalEngine, MyTaskEngine> = {
+ *   mapGoalProps: (props) => ({ ... }),
+ *   mapTaskProps: (props) => ({ ... }),
+ * };
+ *
+ * // Create a tree from a file with your engine
+ * const tree = GoalTree.fromFile('model.json', myMapper);
  *
  * // Query operations
  * const allGoals = tree.query.allByType('goal');
@@ -29,7 +35,7 @@
 // Main SDK Classes
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { GoalTree, type TreeQuery } from './GoalTree';
+export { GoalTree, type TreeQuery, type EngineMapper } from './GoalTree';
 export { Model, type ModelNamespace } from './Model';
 export { Node, type NodeNamespace } from './Node';
 
@@ -40,11 +46,6 @@ export { Node, type NodeNamespace } from './Node';
 export type {
   // iStar types
   Actor,
-  Decision,
-  // Props types
-  ExecCondition,
-  GoalEdgeProps,
-  GoalExecutionDetail,
   // Goal Tree types
   GoalNode,
   GoalTree as GoalTreeType,
@@ -54,16 +55,30 @@ export type {
   NodeType,
   Relation,
   Resource,
-  SleecProps,
   Task,
-  TaskEdgeProps,
-  TaskSleecProps,
   TreeNode,
   Type,
+  BaseNode,
 } from './types/';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Raw prop types for engine mappers
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type {
+  RawGoalProps,
+  RawTaskProps,
+  GoalExecutionDetail,
+} from './internal/creation';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal utilities (exported for advanced use cases)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export { cartesianProduct } from './internal/utils';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Parsers (for engine mappers)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export { getAssertionVariables } from './parsers/getAssertionVariables';

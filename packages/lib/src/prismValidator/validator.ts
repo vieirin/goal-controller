@@ -1,5 +1,7 @@
-import type { GoalTreeType } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
+import type { EdgeGoalTree } from '../templateEngine/edgeTypes';
+
+type GoalTreeType = EdgeGoalTree;
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -214,15 +216,15 @@ export const validatePrismModel = (
   const allGoalsMapResult = GoalTree.allGoalsMap(goalTree);
   allGoalsMapResult.forEach((goal) => {
     const goalType =
-      goal.properties.edge.executionDetail?.type === 'choice'
+      goal.properties.engine.executionDetail?.type === 'choice'
         ? 'choice'
-        : goal.properties.edge.executionDetail?.type === 'degradation'
+        : goal.properties.engine.executionDetail?.type === 'degradation'
           ? 'degradation'
-          : goal.properties.edge.executionDetail?.type === 'sequence'
+          : goal.properties.engine.executionDetail?.type === 'sequence'
             ? 'sequence'
-            : goal.properties.edge.executionDetail?.type === 'interleaved'
+            : goal.properties.engine.executionDetail?.type === 'interleaved'
               ? 'interleaved'
-              : goal.properties.edge.executionDetail?.type === 'alternative'
+              : goal.properties.engine.executionDetail?.type === 'alternative'
                 ? 'alternative'
                 : 'basic';
     goalTypes[goalType].expected++;

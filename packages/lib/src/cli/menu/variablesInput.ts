@@ -2,6 +2,7 @@ import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { edgeEngineMapper } from '../../templateEngine/edgeMapper';
 import { getVariablesFilePath } from '../../utils/variablesPath';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 
@@ -82,7 +83,7 @@ export const inputDefaultVariables = async (
 
     // At this point modelPath is guaranteed to be a string
     const model = Model.load(modelPath as string);
-    const tree = GoalTree.fromModel(model);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
     const contextVariables = tree.query.contextVariables();
     const achievabilityVariables = tree.query.taskAchievabilityVariables();
     const variables = [...contextVariables, ...achievabilityVariables];

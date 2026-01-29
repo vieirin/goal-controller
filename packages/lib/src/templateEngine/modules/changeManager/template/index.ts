@@ -1,11 +1,11 @@
-import type { Task } from '@goal-controller/goal-tree';
 import { taskTransitions } from './tasks/transitions';
 import { taskVariables } from './tasks/variables';
+import type { EdgeTask } from '../../../edgeTypes';
 
 export const changeManagerModuleTemplate = ({
   tasks,
 }: {
-  tasks: Task[];
+  tasks: EdgeTask[];
 }): string => {
   const { variables, transitions } = tasks.reduce(
     (acc, task) => {

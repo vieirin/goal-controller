@@ -1,4 +1,3 @@
-import type { GoalNode, Task } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import {
@@ -9,6 +8,7 @@ import {
   separator,
 } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
+import type { EdgeGoalNode, EdgeTask } from '../../../../edgeTypes';
 import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
@@ -19,12 +19,12 @@ import {
 } from './orGoal';
 
 // Type for nodes that can be pursued (goals and tasks, but not resources)
-type PursueableNode = GoalNode | Task;
+type PursueableNode = EdgeGoalNode | EdgeTask;
 
-export const goalDependencyStatement = (goal: GoalNode): string => {
-  return goal.properties.edge.dependsOn?.length
-    ? ` & (${goal.properties.edge.dependsOn
-        .map((dep: GoalNode) => hasBeenAchieved(dep, { condition: true }))
+export const goalDependencyStatement = (goal: EdgeGoalNode): string => {
+  return goal.properties.engine.dependsOn?.length
+    ? ` & (${goal.properties.engine.dependsOn
+        .map((dep) => hasBeenAchieved(dep as EdgeGoalNode, { condition: true }))
         .join(separator('and'))})`
     : '';
 };
@@ -36,7 +36,7 @@ const removeRepeatedConditions = (condition: string): string => {
     .join(' & ');
 };
 
-export const pursueStatements = (goal: GoalNode): string[] => {
+export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const logger = getLogger();
   const pursueLogger = logger.pursue;
 
@@ -61,11 +61,11 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         const dependencyStatement = goalDependencyStatement(goal);
         pursueLogger.goalDependency(
           goal.id,
-          goal.properties.edge.dependsOn.map((dep) => dep.id),
+          goal.properties.engine.dependsOn.map((dep) => dep.id),
         );
         const statement =
           `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
-            goal.properties.edge.execCondition?.maintain
+            goal.properties.engine.execCondition?.maintain
               ? `${achievedMaintain(goal.id)}=false`
               : `${achieved(goal.id)}=0`
           }` + (itself ? dependencyStatement : '');
@@ -134,7 +134,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
 
           if (goal.relationToChildren === 'or') {
             logger.trace(child.id, 'or goal detected', 2);
-            switch (goal.properties.edge.executionDetail?.type) {
+            switch (goal.properties.engine.executionDetail?.type) {
               case 'sequence': {
                 logger.error(
                   child.id,
@@ -183,7 +183,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 );
                 const pursueCondition = pursueDegradationGoal(
                   goal,
-                  goal.properties.edge.executionDetail.degradationList,
+                  goal.properties.engine.executionDetail.degradationList,
                   child.id,
                 );
                 const updatedLeft = pursueCondition
@@ -212,12 +212,12 @@ export const pursueStatements = (goal: GoalNode): string[] => {
           if (goal.relationToChildren === 'and') {
             logger.trace(child.id, 'and goal detected', 2);
             // organize pursue conditions by execution detail type
-            switch (goal.properties.edge.executionDetail?.type) {
+            switch (goal.properties.engine.executionDetail?.type) {
               case 'sequence': {
                 logger.trace(child.id, 'sequence execution detail detected', 2);
                 const pursueCondition = pursueAndSequentialGoal(
                   goal,
-                  goal.properties.edge.executionDetail.sequence,
+                  goal.properties.engine.executionDetail.sequence,
                   child.id,
                   Node.children(goal),
                 );
@@ -296,13 +296,13 @@ export const pursueStatements = (goal: GoalNode): string[] => {
         // parent goals have activation context independently of the maintain condition
         const activationContextCondition =
           ((isItself(child) || Node.isTask(child)) &&
-            child.properties.edge.execCondition &&
-            child.properties.edge.execCondition.assertion.sentence) ||
+            child.properties.engine.execCondition &&
+            child.properties.engine.execCondition.assertion.sentence) ||
           '';
 
         // child goals have maintain condition only if they are not itself
         const maintainContextGuard =
-          child.properties.edge.execCondition?.maintain?.sentence &&
+          child.properties.engine.execCondition?.maintain?.sentence &&
           !isItself(child)
             ? `${achievedMaintain(child.id)}=false`
             : '';
@@ -317,7 +317,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
                 .join(' & ')}`
             : statement.left;
 
-        if (child.properties.edge.execCondition) {
+        if (child.properties.engine.execCondition) {
           logger.trace(child.id, 'activation context guard detected', 2);
           pursueLogger.executionDetail.activationContext(maintainContextGuard);
         } else {
@@ -342,7 +342,7 @@ export const pursueStatements = (goal: GoalNode): string[] => {
       // if itself, skip the update failed counter statement
 
       // TODO: only update if child is part of a degradation goal
-      const maxRetries = child.properties.edge.maxRetries;
+      const maxRetries = child.properties.engine.maxRetries;
       const updateFailedCounterStatement =
         maxRetries > 0
           ? `(${failed(child.id)}'=min(${maxRetries}, ${failed(child.id)}+1))`

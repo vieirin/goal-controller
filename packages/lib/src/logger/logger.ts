@@ -1,11 +1,15 @@
+import type { Resource } from '@goal-controller/goal-tree';
 import fs from 'fs';
 import type {
+  EdgeGoalNode,
+  EdgeTask,
   GoalExecutionDetail,
-  GoalNode,
-  Resource,
-  Task,
-} from '@goal-controller/goal-tree';
+} from '../templateEngine/edgeTypes';
 import { ensureLogFileDirectory } from './filePath';
+
+// Type aliases for backwards compatibility
+type GoalNode = EdgeGoalNode;
+type Task = EdgeTask;
 
 type LoggerStore = {
   goalModules: number;
@@ -185,8 +189,8 @@ const createLogger = (
       store.totalGoals++;
 
       // Track execution detail type
-      if (goal.properties.edge.executionDetail) {
-        switch (goal.properties.edge.executionDetail.type) {
+      if (goal.properties.engine.executionDetail) {
+        switch (goal.properties.engine.executionDetail.type) {
           case 'degradation':
             store.goalTypeDegradation++;
             break;
@@ -218,14 +222,14 @@ const createLogger = (
       );
       write(
         `\tType: ${
-          goal.properties.edge.execCondition?.maintain?.sentence
+          goal.properties.engine.execCondition?.maintain?.sentence
             ? 'maintain'
             : 'achieve'
         }\n`,
       );
       write(`\tRelation to children: ${goal.relationToChildren ?? 'none'}\n`);
       write(
-        `\tExecution detail: ${goal.properties.edge.executionDetail?.type ?? 'none'}\n`,
+        `\tExecution detail: ${goal.properties.engine.executionDetail?.type ?? 'none'}\n`,
       );
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },

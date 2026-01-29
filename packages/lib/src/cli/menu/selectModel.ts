@@ -2,6 +2,7 @@ import { writeFile } from 'fs/promises';
 import path from 'path';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from '../../logger/logger';
+import { edgeEngineMapper } from '../../templateEngine/edgeMapper';
 import { generateValidatedPrismModel } from '../../templateEngine/engine';
 
 export const runModel = async (
@@ -11,7 +12,7 @@ export const runModel = async (
   const logger = initLogger(filePath);
   try {
     const model = Model.load(filePath);
-    const tree = GoalTree.fromModel(model);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
     // last part of the path
     const fileName = filePath.split('/').pop();
     if (!fileName) {

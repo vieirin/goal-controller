@@ -1,5 +1,6 @@
-import type { GoalNode, Relation, TreeNode } from '@goal-controller/goal-tree';
+import type { Relation } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeTask } from '../../../edgeTypes';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../common';
@@ -12,27 +13,25 @@ const isValidSeparator = (
   return ['and', 'or'].includes(relation ?? '');
 };
 
-export const achieveCondition = (goal: GoalNode): string => {
+export const achieveCondition = (goal: EdgeGoalNode): string => {
   if (isValidSeparator(goal.relationToChildren)) {
     const children = Node.children(goal);
     if (children.length) {
       return `(${children
-        .filter(
-          (child): child is Exclude<TreeNode, { type: 'resource' }> =>
-            !Node.isResource(child),
-        )
-        .map((child) =>
-          child.properties.edge.execCondition?.maintain
-            ? `${achievedMaintain(child.id)}=true`
-            : `${achievedVariable(child.id)}=1`,
-        )
+        .filter((child) => !Node.isResource(child))
+        .map((child) => {
+          const typedChild = child as EdgeGoalNode | EdgeTask;
+          return typedChild.properties.engine.execCondition?.maintain
+            ? `${achievedMaintain(typedChild.id)}=true`
+            : `${achievedVariable(typedChild.id)}=1`;
+        })
         .join(separator(goal.relationToChildren))})`;
     }
   }
   return '';
 };
 
-export const achieveStatement = (goal: GoalNode): string => {
+export const achieveStatement = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
 
   const leftStatement = [
@@ -44,7 +43,7 @@ export const achieveStatement = (goal: GoalNode): string => {
 
   const achievedUpdate = `${achieved(goal.id)}'=1`;
   const shouldHaveUpdateAchieved =
-    !goal.properties.edge.execCondition?.maintain;
+    !goal.properties.engine.execCondition?.maintain;
   const updateStatement = `(${pursued(goal.id)}'=0)${
     shouldHaveUpdateAchieved ? ` & (${achievedUpdate})` : ''
   };`;

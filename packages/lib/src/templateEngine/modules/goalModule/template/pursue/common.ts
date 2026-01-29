@@ -1,15 +1,15 @@
-import type { GoalNode, Task } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeTask } from '../../../../edgeTypes';
 import { achieved, pursued, separator } from '../../../../../mdp/common';
 import { achievedMaintain } from '../formulas';
 
-// Node type that has both id and properties.edge.execCondition
-type NodeWithExecCondition = GoalNode | Task;
+// Node type that has both id and properties.engine.execCondition
+type NodeWithExecCondition = EdgeGoalNode | EdgeTask;
 
 export const hasBeenAchieved = (
   node: NodeWithExecCondition,
   { condition, update }: { condition: boolean; update?: boolean },
 ): string => {
-  if (node.properties.edge.execCondition?.maintain) {
+  if (node.properties.engine.execCondition?.maintain) {
     if (update) {
       throw new Error(
         'Invalid update option for goal of type maintain, please verify',

@@ -7,46 +7,65 @@ import { allByType } from './traversal';
 const achievableFormulaVariable = (goalId: string): string =>
   `${goalId}_achievable`;
 
-export function getContextVariables(tree: GoalTree): string[] {
+/**
+ * Get context variables from a tree array.
+ * Works with any engine type - returns empty array if engine doesn't have execCondition.
+ */
+export function getContextVariables<TGoalEngine, TTaskEngine>(
+  tree: GoalTree<TGoalEngine, TTaskEngine>,
+): string[] {
   const variables = new Set<string>();
 
   const goals = allByType(tree, 'goal');
   const tasks = allByType(tree, 'task');
 
-  // Collect variables from goals
+  // Collect variables from goals (safely access potentially missing properties)
   goals.forEach((goal) => {
-    if (goal.properties?.edge?.execCondition?.maintain?.variables) {
-      goal.properties.edge.execCondition.maintain.variables.forEach(
-        (variable) => {
-          variables.add(variable.name);
-        },
-      );
+    const engine = goal.properties?.engine as
+      | {
+          execCondition?: {
+            maintain?: { variables: Array<{ name: string }> };
+            assertion?: { variables: Array<{ name: string }> };
+          };
+        }
+      | undefined;
+
+    if (engine?.execCondition?.maintain?.variables) {
+      engine.execCondition.maintain.variables.forEach((variable) => {
+        variables.add(variable.name);
+      });
     }
 
-    if (goal.properties?.edge?.execCondition?.assertion?.variables) {
-      goal.properties.edge.execCondition.assertion.variables.forEach(
-        (variable) => {
-          variables.add(variable.name);
-        },
-      );
+    if (engine?.execCondition?.assertion?.variables) {
+      engine.execCondition.assertion.variables.forEach((variable) => {
+        variables.add(variable.name);
+      });
     }
   });
 
   // Collect variables from tasks (tasks can also have assertions)
   tasks.forEach((task) => {
-    if (task.properties?.edge?.execCondition?.assertion?.variables) {
-      task.properties.edge.execCondition.assertion.variables.forEach(
-        (variable) => {
-          variables.add(variable.name);
-        },
-      );
+    const engine = task.properties?.engine as
+      | {
+          execCondition?: {
+            assertion?: { variables: Array<{ name: string }> };
+          };
+        }
+      | undefined;
+
+    if (engine?.execCondition?.assertion?.variables) {
+      engine.execCondition.assertion.variables.forEach((variable) => {
+        variables.add(variable.name);
+      });
     }
   });
 
   return Array.from(variables);
 }
 
-export function getTaskAchievabilityVariables(tree: GoalTree): string[] {
+export function getTaskAchievabilityVariables<TGoalEngine, TTaskEngine>(
+  tree: GoalTree<TGoalEngine, TTaskEngine>,
+): string[] {
   const tasks = allByType(tree, 'task');
   return tasks.map((task) => achievableFormulaVariable(task.id));
 }

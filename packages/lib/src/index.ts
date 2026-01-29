@@ -7,6 +7,7 @@ import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from './logger/logger';
 import { validate } from './prismValidator';
 import { sleecTemplateEngine } from './sleecTemplateEngine';
+import { sleecEngineMapper } from './sleecTemplateEngine/sleecMapper';
 import { generateValidatedPrismModel } from './templateEngine/engine';
 
 // Re-export from @goal-controller/goal-tree for backward compatibility
@@ -22,9 +23,38 @@ export type {
   GoalTreeType,
   IStarModel,
   Relation,
-  SleecProps,
   Type,
+  EngineMapper,
+  RawGoalProps,
+  RawTaskProps,
 } from '@goal-controller/goal-tree';
+
+// Edge engine types and mapper
+export type {
+  EdgeGoalProps,
+  EdgeTaskProps,
+  ExecCondition,
+  Decision,
+  GoalExecutionDetail,
+} from './templateEngine/types';
+export {
+  edgeEngineMapper,
+  type EdgeGoalNode,
+  type EdgeTask,
+  type EdgeGoalTree,
+} from './templateEngine/edgeMapper';
+
+// SLEEC engine types and mapper
+export type {
+  SleecGoalProps,
+  SleecTaskProps,
+} from './sleecTemplateEngine/types';
+export {
+  sleecEngineMapper,
+  type SleecGoalNode,
+  type SleecTask,
+  type SleecGoalTree,
+} from './sleecTemplateEngine/sleecMapper';
 
 // Core transformation engines (remain in lib)
 export { generateValidatedPrismModel, sleecTemplateEngine };
@@ -53,7 +83,7 @@ if (require.main === module) {
   }
 
   const model = Model.load(inputFile);
-  const tree = GoalTree.fromModel(model);
+  const tree = GoalTree.fromModel(model, sleecEngineMapper);
 
   const logger = initLogger(inputFile);
   const fileName = path.parse(inputFile).name;

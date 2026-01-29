@@ -1,5 +1,5 @@
-import type { GoalNode, TreeNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeTask } from '../../../../edgeTypes';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../common';
@@ -20,7 +20,7 @@ endmodule
 */
 
 export const pursueChoiceGoal = (
-  goal: GoalNode,
+  goal: EdgeGoalNode,
   alternative: string[],
   currentChildId: string,
 ): string => {
@@ -50,7 +50,7 @@ export const pursueChoiceGoal = (
 };
 
 export const pursueDegradationGoal = (
-  goal: GoalNode,
+  goal: EdgeGoalNode,
   degradationList: string[],
   currentChildId: string,
 ): string => {
@@ -67,7 +67,7 @@ export const pursueDegradationGoal = (
     );
     degradationLogger.init(currentChildId, degradationList);
     const maybeRetry =
-      goal.properties.edge.executionDetail?.retryMap?.[currentChildId];
+      goal.properties.engine.executionDetail?.retryMap?.[currentChildId];
     if (maybeRetry) {
       return hasFailedAtMostNTimes(currentChildId, maybeRetry - 1);
     }
@@ -77,7 +77,7 @@ export const pursueDegradationGoal = (
         // For degradation, we only need to check retry conditions (failures of earlier goals)
         // We don't need to check if the parent goal has been pursued (that's already in the base guard)
         const maybeRetry =
-          goal.properties.edge.executionDetail?.retryMap?.[goalId];
+          goal.properties.engine.executionDetail?.retryMap?.[goalId];
         const retryCondition =
           maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
 
@@ -97,15 +97,14 @@ export const pursueDegradationGoal = (
 
 // chooses either one of the children always
 export const pursueAlternativeGoal = (
-  goal: GoalNode,
+  goal: EdgeGoalNode,
   currentChildId: string,
 ): string => {
   const children = Node.children(goal);
   // Filter out resources - they don't have pursued state
-  const pursueableChildren = children.filter(
-    (child): child is Exclude<TreeNode, { type: 'resource' }> =>
-      !Node.isResource(child),
-  );
+  const pursueableChildren = children
+    .filter((child) => !Node.isResource(child))
+    .map((child) => child as EdgeGoalNode | EdgeTask);
   const otherGoals = pursueableChildren.filter(
     (child) => child.id !== currentChildId,
   );

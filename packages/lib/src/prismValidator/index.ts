@@ -1,5 +1,4 @@
 import { writeFileSync } from 'fs';
-import type { GoalTreeType } from '@goal-controller/goal-tree';
 import { ensureLogFileDirectory } from '../logger/filePath';
 import {
   formatValidationReport,
@@ -8,6 +7,7 @@ import {
 } from './report';
 import type { ValidationReport } from './types';
 import { validatePrismModel } from './validator';
+import type { EdgeGoalTree } from '../templateEngine/edgeTypes';
 
 export type { ValidationReport } from './types';
 export {
@@ -25,7 +25,7 @@ export {
  * @returns Validation report with expected, emitted, and missing elements
  */
 export const validate = (
-  goalTree: GoalTreeType,
+  goalTree: EdgeGoalTree,
   prismModel: string,
   modelFileName?: string,
 ): ValidationReport => {

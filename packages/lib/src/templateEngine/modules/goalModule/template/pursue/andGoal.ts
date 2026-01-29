@@ -1,11 +1,12 @@
-import type { GoalNode, Task, TreeNode } from '@goal-controller/goal-tree';
+import type { TreeNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeTask } from '../../../../edgeTypes';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { hasBeenAchieved } from './common';
 
 // Type for nodes that can be achieved (goals and tasks, but not resources)
-type AchievableNode = GoalNode | Task;
+type AchievableNode = EdgeGoalNode | EdgeTask;
 
 export const splitSequence = (
   sequence: string[],
@@ -21,7 +22,7 @@ export const splitSequence = (
 };
 
 export const pursueAndSequentialGoal = (
-  goal: GoalNode,
+  goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
   children: TreeNode[],

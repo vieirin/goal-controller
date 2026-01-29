@@ -19,21 +19,27 @@ export const Node = {
   /**
    * Check if a node is a GoalNode
    */
-  isGoal(node: TreeNode): node is GoalNode {
+  isGoal<TGoalEngine, TTaskEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine>,
+  ): node is GoalNode<TGoalEngine, TTaskEngine> {
     return node.type === 'goal';
   },
 
   /**
    * Check if a node is a Task
    */
-  isTask(node: TreeNode): node is Task {
+  isTask<TGoalEngine, TTaskEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine>,
+  ): node is Task<TTaskEngine> {
     return node.type === 'task';
   },
 
   /**
    * Check if a node is a Resource
    */
-  isResource(node: TreeNode): node is Resource {
+  isResource<TGoalEngine, TTaskEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine>,
+  ): node is Resource {
     return node.type === 'resource';
   },
 
@@ -44,14 +50,22 @@ export const Node = {
   /**
    * Get all children of a node (including tasks and resources)
    */
-  children(node: GoalNode | Task): TreeNode[] {
+  children<TGoalEngine, TTaskEngine>(
+    node: GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine>,
+  ): TreeNode<TGoalEngine, TTaskEngine>[] {
     return childrenWithTasksAndResources(node);
   },
 
   /**
    * Get children that have retry configuration (maxRetries > 0)
+   * Requires engine props to have maxRetries field
    */
-  childrenWithRetries(node: GoalNode): Array<GoalNode | Task> {
+  childrenWithRetries<
+    TGoalEngine extends { maxRetries: number },
+    TTaskEngine extends { maxRetries: number },
+  >(
+    node: GoalNode<TGoalEngine, TTaskEngine>,
+  ): Array<GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine>> {
     return _childrenWithMaxRetries(node);
   },
 

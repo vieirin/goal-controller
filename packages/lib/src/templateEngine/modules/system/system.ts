@@ -1,5 +1,6 @@
-import type { GoalTreeType, Resource, Task } from '@goal-controller/goal-tree';
+import type { Resource } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
+import type { EdgeGoalTree, EdgeTask } from '../../edgeTypes';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { getLogger } from '../../../logger/logger';
@@ -101,7 +102,7 @@ export const systemModule = ({
   clean = false,
   variables: variablesParam,
 }: {
-  gm: GoalTreeType;
+  gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
@@ -113,16 +114,16 @@ export const systemModule = ({
   // Also collect context variables from tasks
   const tasks = GoalTree.allByType(gm, 'task');
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task: Task) => {
-    if (task.properties.edge.execCondition?.assertion) {
-      task.properties.edge.execCondition.assertion.variables.forEach(
+  tasks.forEach((task: EdgeTask) => {
+    if (task.properties.engine.execCondition?.assertion) {
+      task.properties.engine.execCondition.assertion.variables.forEach(
         (v: { name: string }) => {
           taskContextVariables.add(v.name);
         },
       );
     }
-    if (task.properties.edge.execCondition?.maintain?.variables) {
-      task.properties.edge.execCondition.maintain.variables.forEach(
+    if (task.properties.engine.execCondition?.maintain?.variables) {
+      task.properties.engine.execCondition.maintain.variables.forEach(
         (v: { name: string }) => {
           taskContextVariables.add(v.name);
         },

@@ -1,5 +1,5 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode } from '../../../edgeTypes';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import {
@@ -8,7 +8,7 @@ import {
   pursuedVariable,
 } from '../../../common';
 
-export const variablesDefinition = (goal: GoalNode): string => {
+export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
   const defineVariable = (variable: string, upperBound: number): string => {
     logger.variableDefinition({
@@ -21,14 +21,14 @@ export const variablesDefinition = (goal: GoalNode): string => {
     return `${variable} : [0..${upperBound}] init 0;`;
   };
   const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
-  const achievedVariableStatement = !goal.properties.edge.execCondition
+  const achievedVariableStatement = !goal.properties.engine.execCondition
     ?.maintain
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
   const children = Node.children(goal);
   const chosenVariableStatement =
-    goal.properties.edge.executionDetail?.type === 'choice'
+    goal.properties.engine.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 
@@ -37,7 +37,7 @@ export const variablesDefinition = (goal: GoalNode): string => {
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
           .map((child) => {
-            const maxRetries = child.properties.edge.maxRetries;
+            const maxRetries = child.properties.engine.maxRetries;
             return defineVariable(failed(child.id), maxRetries);
           })
           .join('\n')

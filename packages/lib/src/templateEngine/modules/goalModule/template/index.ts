@@ -2,13 +2,13 @@ import { getLogger } from '../../../../logger/logger';
 import { achieveStatement } from './achieve';
 import { achievableGoalFormula, maintainConditionFormula } from './formulas';
 
-import type { GoalNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode } from '../../../edgeTypes';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
 
-export const goalModule = (goal: GoalNode): string => {
+export const goalModule = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
   logger.initGoal(goal);
 
@@ -21,7 +21,7 @@ export const goalModule = (goal: GoalNode): string => {
 
   return `// ID: ${goal.id}
 // Name: ${goal.name}
-// Type: ${goal.properties.edge.executionDetail?.type || 'basic'}
+// Type: ${goal.properties.engine.executionDetail?.type || 'basic'}
 // Relation to children: ${goal.relationToChildren}
 // Children: ${Node.children(goal)
     .map((child) => child.id)

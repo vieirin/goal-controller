@@ -1,5 +1,5 @@
-import type { GoalNode, GoalTreeType } from '@goal-controller/goal-tree';
 import { GoalTree, cartesianProduct } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeGoalTree } from './edgeTypes';
 import { getLogger } from '../logger/logger';
 
 // each decision variable is a tuple of values containing name:space
@@ -12,13 +12,13 @@ import { getLogger } from '../logger/logger';
 export const decisionVariablesForGoal = ({
   goal,
 }: {
-  goal: GoalNode;
+  goal: EdgeGoalNode;
 }): readonly [string[], Generator<number[]>, number[][]] => {
-  const spaceArray = goal.properties.edge.decision.decisionVars.map(
+  const spaceArray = goal.properties.engine.decision.decisionVars.map(
     (decision: { variable: string; space: number }) =>
       Array.from({ length: decision.space }, (_, i) => i),
   );
-  const variableArray = goal.properties.edge.decision.decisionVars.map(
+  const variableArray = goal.properties.engine.decision.decisionVars.map(
     (decision: { variable: string; space: number }) => decision.variable,
   );
 
@@ -39,7 +39,7 @@ export const decisionVariableName = (
 export const decisionVariablesTemplate = ({
   gm,
 }: {
-  gm: GoalTreeType;
+  gm: EdgeGoalTree;
 }): string => {
   if (!process.env.EXPERIMENTAL_DECISION_VARIABLES) {
     return '';
@@ -49,9 +49,9 @@ export const decisionVariablesTemplate = ({
   const allGoals = GoalTree.allByType(gm, 'goal');
 
   const goalsWithDecisionVariables = allGoals.filter(
-    (goal: GoalNode) => goal.properties.edge.decision.decisionVars.length,
+    (goal) => goal.properties.engine.decision.decisionVars.length,
   );
-  goalsWithDecisionVariables.forEach((goal: GoalNode) => {
+  goalsWithDecisionVariables.forEach((goal) => {
     const [vars, decisionVars, spaceArray] = decisionVariablesForGoal({ goal });
 
     spaceArray.forEach((space, i) => {

@@ -1,4 +1,7 @@
 import type { Task } from '@goal-controller/goal-tree';
+import type { SleecTaskProps } from './types';
+
+type SleecTask = Task<SleecTaskProps>;
 import { generateFluents } from './fluents';
 import {
   fluentOperations,
@@ -59,7 +62,7 @@ const semanticSortScaleValues = (values: string[]): string[] => {
  * Variables in {name} format that are used with = value are scales,
  * otherwise they are booleans.
  */
-export const extractMeasures = (tasks: Task[]): Measure[] => {
+export const extractMeasures = (tasks: SleecTask[]): Measure[] => {
   const measures = new Map<string, MeasureType>();
   const scaleValuesMap = new Map<string, Set<string>>();
 
@@ -70,8 +73,8 @@ export const extractMeasures = (tasks: Task[]): Measure[] => {
 
   for (const task of tasks) {
     const conditions = [
-      task.properties.sleec?.PreCond,
-      task.properties.sleec?.PostCond,
+      task.properties.engine?.PreCond,
+      task.properties.engine?.PostCond,
     ].filter(Boolean) as string[];
 
     for (const condition of conditions) {
@@ -122,17 +125,17 @@ export const extractMeasures = (tasks: Task[]): Measure[] => {
 /**
  * Extracts external triggering events from tasks (e.g., MeetingUser, PatientAsleep)
  */
-const extractTriggeringEvents = (tasks: Task[]): Set<string> =>
+const extractTriggeringEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => task.properties.sleec?.TriggeringEvent)
+      .map((task) => task.properties.engine?.TriggeringEvent)
       .filter((event): event is string => !!event),
   );
 
 /**
  * Generates fluent-based events for each task (Start/Pursuing/Achieved/ReportFailure)
  */
-const extractFluentEvents = (tasks: Task[]): Set<string> =>
+const extractFluentEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
       .filter((task) => task.name)
@@ -144,7 +147,7 @@ const extractFluentEvents = (tasks: Task[]): Set<string> =>
 /**
  * Extracts fluent names from tasks
  */
-const extractFluentNames = (tasks: Task[]): string[] =>
+const extractFluentNames = (tasks: SleecTask[]): string[] =>
   tasks
     .map((task) => getFluentName(task))
     .filter((name): name is string => !!name)
@@ -155,10 +158,10 @@ const extractFluentNames = (tasks: Task[]): string[] =>
  * Extracts events that other tasks avoid (from ObstacleEvent property)
  * The ObstacleEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
  */
-const extractObstacleEvents = (tasks: Task[]): Set<string> =>
+const extractObstacleEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => `Achieved${task.properties.sleec?.ObstacleEvent}`)
+      .map((task) => `Achieved${task.properties.engine?.ObstacleEvent}`)
       .filter((event): event is string => !!event),
   );
 
@@ -171,7 +174,7 @@ const measureLine = (measure: Measure): string =>
 /**
  * Generates the def_start section with all events and measures
  */
-export const generateDefinitions = (tasks: Task[]): string => {
+export const generateDefinitions = (tasks: SleecTask[]): string => {
   const triggeringEvents = extractTriggeringEvents(tasks);
   const fluentEvents = extractFluentEvents(tasks);
   const ObstacleEvents = extractObstacleEvents(tasks);

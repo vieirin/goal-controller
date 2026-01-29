@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
-import type { GoalTreeType, Task } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
+import type { EdgeGoalTree } from '../../edgeTypes';
 import { getLogger } from '../../../logger/logger';
 import { changeManagerModuleTemplate } from './template';
 import { taskAchievabilityVariables } from './template/achievabilityVariables/taskAchievabilityVariables';
@@ -11,7 +11,7 @@ export const changeManagerModule = ({
   fileName,
   variables,
 }: {
-  gm: GoalTreeType;
+  gm: EdgeGoalTree;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }): string => {

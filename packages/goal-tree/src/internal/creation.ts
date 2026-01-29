@@ -2,12 +2,10 @@
  * Internal tree creation logic
  */
 import type { Dictionary } from 'lodash';
-import { getAssertionVariables } from '../parsers/getAssertionVariables';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
   Actor,
-  CustomProperties,
-  ExecCondition,
+  GoalExecutionDetail,
   GoalNode,
   GoalTree,
   Link,
@@ -16,38 +14,68 @@ import type {
   NodeType,
   Relation,
   Resource,
-  SleecProps,
 } from '../types/';
 import type { BaseNode, Task, TreeNode } from '../types/goalTree';
 import { allByType } from './traversal';
 
-const SLEEC_PROP_KEYS = [
-  'Type',
-  'Source',
-  'Class',
-  'NormPrinciple',
-  'Proxy',
-  'AddedValue',
-  'Condition',
-  'Event',
-  'ContextEvent',
-] as const;
+/**
+ * Raw custom properties extracted from the iStar model
+ * These are passed to the engine mapper to create engine-specific properties
+ */
+export type RawGoalProps = {
+  root?: string;
+  maxRetries?: string;
+  utility?: string;
+  cost?: string;
+  dependsOn?: string;
+  variables?: string;
+  type?: string;
+  maintain?: string;
+  assertion?: string;
+  // SLEEC props
+  Type?: string;
+  Source?: string;
+  Class?: string;
+  NormPrinciple?: string;
+  Proxy?: string;
+  AddedValue?: string;
+  Condition?: string;
+  Event?: string;
+  ContextEvent?: string;
+};
 
-const extractSleecProps = (
-  customProps: Record<string, unknown>,
-): SleecProps | undefined => {
-  const sleecProps: SleecProps = {};
-  let hasAnyProp = false;
+export type RawTaskProps = {
+  maxRetries?: string;
+  type?: string;
+  maintain?: string;
+  assertion?: string;
+  // SLEEC props
+  PreCond?: string;
+  TriggeringEvent?: string;
+  TemporalConstraint?: string;
+  PostCond?: string;
+  ObstacleEvent?: string;
+};
 
-  for (const key of SLEEC_PROP_KEYS) {
-    const value = customProps[key];
-    if (typeof value === 'string' && value.trim() !== '') {
-      sleecProps[key] = value;
-      hasAnyProp = true;
-    }
-  }
+export type { GoalExecutionDetail };
 
-  return hasAnyProp ? sleecProps : undefined;
+/**
+ * Engine mapper interface for creating engine-specific properties
+ */
+export type EngineMapper<TGoalEngine, TTaskEngine> = {
+  /**
+   * Map raw goal properties to engine-specific goal properties
+   */
+  mapGoalProps: (props: {
+    raw: RawGoalProps;
+    executionDetail: GoalExecutionDetail | null;
+    dependsOn: Array<GoalNode<TGoalEngine, TTaskEngine>>;
+  }) => TGoalEngine;
+
+  /**
+   * Map raw task properties to engine-specific task properties
+   */
+  mapTaskProps: (props: { raw: RawTaskProps }) => TTaskEngine;
 };
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
@@ -75,84 +103,6 @@ const parseDependsOn = ({ dependsOn }: { dependsOn: string }): string[] => {
 
 // Temporary storage for raw dependency IDs during tree creation
 const pendingDependencies = new Map<string, string[]>();
-
-const parseDecision = ({
-  decision,
-}: {
-  decision: string | undefined;
-}): Array<{ variable: string; space: number }> => {
-  if (!decision) {
-    return [];
-  }
-  const parsedDecision = decision.split(',').map((d) => d.split(':'));
-  parsedDecision.forEach((d) => {
-    if (d.length !== 2) {
-      throw new Error(
-        `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`,
-      );
-    }
-    if (isNaN(parseInt(d[1] ?? ''))) {
-      throw new Error(`[INVALID DECISION] space must be a number: got ${d[1]}`);
-    }
-  });
-
-  return parsedDecision.map((d) => ({
-    variable: d[0]?.trim() ?? '',
-    space: parseInt(d[1] ?? ''),
-  }));
-};
-
-const getMaintainCondition = (
-  goalName: string,
-  customProperties: CustomProperties['customProperties'],
-  nodeType: 'goal' | 'task' | 'resource',
-): ExecCondition | undefined => {
-  if (customProperties.type === 'maintain') {
-    if (!customProperties.maintain && !customProperties.assertion) {
-      // TODO: lock this as an error in the future
-      console.warn(
-        `[INVALID MODEL]: Maintain condition for ${nodeType} [${goalName}] must have maintain and assertion: got maintain:${
-          customProperties.maintain || "'empty condition'"
-        } and assertion:${customProperties.assertion || "'empty condition'"}`,
-      );
-    }
-
-    return {
-      maintain: {
-        sentence: customProperties.maintain ?? '',
-        variables: getAssertionVariables({
-          assertionSentence: customProperties.maintain ?? '',
-        }),
-      },
-      assertion: {
-        sentence: customProperties.assertion ?? '',
-        variables: getAssertionVariables({
-          assertionSentence: customProperties.assertion ?? '',
-        }),
-      },
-    };
-  }
-
-  // For both goal and task types, handle assertions
-  if (
-    !!customProperties.assertion &&
-    (nodeType === 'goal' || nodeType === 'task')
-  ) {
-    // Validate the assertion using the parser (getAssertionVariables will throw if invalid)
-    const assertionVariables = getAssertionVariables({
-      assertionSentence: customProperties.assertion,
-    });
-
-    return {
-      assertion: {
-        sentence: customProperties.assertion,
-        variables: assertionVariables,
-      },
-    };
-  }
-
-  return undefined;
-};
 
 const createResource = (
   resource: BaseNode & { properties: Dictionary<string> },
@@ -219,11 +169,13 @@ const createResource = (
   }
 };
 
-const convertNonGoalChildren = (children: TreeNode[]) => {
+function convertNonGoalChildren<TGoalEngine, TTaskEngine>(
+  children: Array<TreeNode<TGoalEngine, TTaskEngine>>,
+) {
   return children.reduce<{
     resources: Resource[];
-    children: GoalNode[];
-    tasks: Task[];
+    children: Array<GoalNode<TGoalEngine, TTaskEngine>>;
+    tasks: Array<Task<TTaskEngine>>;
   }>(
     (acc, child) => {
       if (child.type === 'resource') {
@@ -246,17 +198,19 @@ const convertNonGoalChildren = (children: TreeNode[]) => {
       tasks: [],
     },
   );
-};
+}
 
-const createNode = ({
+function createNode<TGoalEngine, TTaskEngine>({
   node,
   relation,
   children,
+  mapper,
 }: {
   node: Node;
   relation: Relation;
-  children: TreeNode[];
-}): TreeNode => {
+  children: Array<TreeNode<TGoalEngine, TTaskEngine>>;
+  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
+}): TreeNode<TGoalEngine, TTaskEngine> {
   const { id, goalName, executionDetail } = getGoalDetail({
     goalText: node.text,
   });
@@ -270,10 +224,9 @@ const createNode = ({
     );
   }
 
-  const { root, uniqueChoice, maxRetries, ...customProperties } =
+  const { root, uniqueChoice, ...customProperties } =
     node.customProperties || {};
 
-  const decisionVars = parseDecision({ decision: customProperties.variables });
   const {
     resources,
     tasks,
@@ -297,14 +250,6 @@ const createNode = ({
     );
   }
 
-  const execCondition = getMaintainCondition(
-    `${id}:${goalName}`,
-    customProperties,
-    nodeType,
-  );
-
-  const sleec = extractSleecProps(customProperties);
-
   if (nodeType === 'resource') {
     const resourceNode: BaseNode & { properties: Dictionary<string> } = {
       id,
@@ -323,32 +268,19 @@ const createNode = ({
   }
 
   if (nodeType === 'task') {
-    const taskSleec =
-      customProperties.PreCond ||
-      customProperties.TriggeringEvent ||
-      customProperties.TemporalConstraint ||
-      customProperties.PostCond ||
-      customProperties.ObstacleEvent
-        ? {
-            ...(customProperties.PreCond && {
-              PreCond: customProperties.PreCond,
-            }),
-            ...(customProperties.TriggeringEvent && {
-              TriggeringEvent: customProperties.TriggeringEvent,
-            }),
-            ...(customProperties.TemporalConstraint && {
-              TemporalConstraint: customProperties.TemporalConstraint,
-            }),
-            ...(customProperties.PostCond && {
-              PostCond: customProperties.PostCond,
-            }),
-            ...(customProperties.ObstacleEvent && {
-              ObstacleEvent: customProperties.ObstacleEvent,
-            }),
-          }
-        : undefined;
+    const rawTaskProps: RawTaskProps = {
+      maxRetries: customProperties.maxRetries,
+      type: customProperties.type,
+      maintain: customProperties.maintain,
+      assertion: customProperties.assertion,
+      PreCond: customProperties.PreCond,
+      TriggeringEvent: customProperties.TriggeringEvent,
+      TemporalConstraint: customProperties.TemporalConstraint,
+      PostCond: customProperties.PostCond,
+      ObstacleEvent: customProperties.ObstacleEvent,
+    };
 
-    const taskNode: Task = {
+    const taskNode: Task<TTaskEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
@@ -357,11 +289,7 @@ const createNode = ({
       tasks,
       resources,
       properties: {
-        edge: {
-          execCondition,
-          maxRetries: maxRetries ? parseInt(maxRetries) : 0,
-        },
-        ...(taskSleec && { sleec: taskSleec }),
+        engine: mapper.mapTaskProps({ raw: rawTaskProps }),
       },
     };
     return taskNode;
@@ -375,7 +303,28 @@ const createNode = ({
       pendingDependencies.set(id, rawDependsOn);
     }
 
-    const goalNode: GoalNode = {
+    const rawGoalProps: RawGoalProps = {
+      root,
+      maxRetries: customProperties.maxRetries,
+      utility: customProperties.utility,
+      cost: customProperties.cost,
+      dependsOn: customProperties.dependsOn,
+      variables: customProperties.variables,
+      type: customProperties.type,
+      maintain: customProperties.maintain,
+      assertion: customProperties.assertion,
+      Type: customProperties.Type,
+      Source: customProperties.Source,
+      Class: customProperties.Class,
+      NormPrinciple: customProperties.NormPrinciple,
+      Proxy: customProperties.Proxy,
+      AddedValue: customProperties.AddedValue,
+      Condition: customProperties.Condition,
+      Event: customProperties.Event,
+      ContextEvent: customProperties.ContextEvent,
+    };
+
+    const goalNode: GoalNode<TGoalEngine, TTaskEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
@@ -385,19 +334,11 @@ const createNode = ({
       properties: {
         ...(root?.toLowerCase() === 'true' && { root: true }),
         isQuality: isQualityNode,
-        edge: {
-          utility: customProperties.utility || '',
-          cost: customProperties.cost || '',
-          dependsOn: [],
+        engine: mapper.mapGoalProps({
+          raw: rawGoalProps,
           executionDetail,
-          execCondition,
-          decision: {
-            decisionVars,
-            hasDecision: decisionVars.length > 0,
-          },
-          maxRetries: maxRetries ? parseInt(maxRetries) : 0,
-        },
-        ...(sleec && { sleec }),
+          dependsOn: [], // Will be resolved later
+        }),
       },
       ...(tasks.length > 0 && { tasks }),
     };
@@ -407,17 +348,19 @@ const createNode = ({
   throw new Error(
     `[INVALID NODE TYPE]: Unsupported node type: ${nodeType as string}`,
   );
-};
+}
 
-const nodeChildren = ({
+function nodeChildren<TGoalEngine, TTaskEngine>({
   actor,
   id,
   links,
+  mapper,
 }: {
   actor: Actor;
   links: Link[];
   id?: string;
-}): [TreeNode[], Relation] => {
+  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
+}): [Array<TreeNode<TGoalEngine, TTaskEngine>>, Relation] {
   if (!id) {
     return [[], 'none'];
   }
@@ -457,7 +400,7 @@ const nodeChildren = ({
   }
 
   const children = nodeLinks
-    .map((link): TreeNode | undefined => {
+    .map((link): TreeNode<TGoalEngine, TTaskEngine> | undefined => {
       const isOutgoingQualification =
         link.type === 'istar.QualificationLink' && link.source === id;
       const childNodeId = isOutgoingQualification ? link.target : link.source;
@@ -471,48 +414,60 @@ const nodeChildren = ({
         actor,
         id: node.id,
         links,
+        mapper,
       });
 
       return createNode({
         node,
         relation,
         children: granChildren,
+        mapper,
       });
     })
-    .filter((n): n is TreeNode => !!n);
+    .filter((n): n is TreeNode<TGoalEngine, TTaskEngine> => !!n);
 
   return [children, relations[0] ?? 'none'];
-};
+}
 
-const nodeToTree = ({
+function nodeToTree<TGoalEngine, TTaskEngine>({
   actor,
   iStarLinks,
   node,
+  mapper,
 }: {
   actor: Actor;
   iStarLinks: Link[];
   node: Node;
-}): TreeNode => {
+  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
+}): TreeNode<TGoalEngine, TTaskEngine> {
   const [children, relation] = nodeChildren({
     actor,
     id: node.id,
     links: iStarLinks,
+    mapper,
   });
 
-  return createNode({ node, children, relation });
-};
+  return createNode({ node, children, relation, mapper });
+}
 
-const resolveDependencies = (tree: GoalTree): GoalTree => {
-  const allGoals = allByType(tree, 'goal');
-  const allTasks = allByType(tree, 'task');
+function resolveDependencies<TGoalEngine, TTaskEngine>(
+  tree: GoalTree<TGoalEngine, TTaskEngine>,
+  mapper: EngineMapper<TGoalEngine, TTaskEngine>,
+): GoalTree<TGoalEngine, TTaskEngine> {
+  const allGoals = allByType(tree, 'goal') as Array<
+    GoalNode<TGoalEngine, TTaskEngine>
+  >;
+  const allTasks = allByType(tree, 'task') as Array<Task<TTaskEngine>>;
   const allResources = allByType(tree, 'resource');
 
-  const nodeMap = new Map<string, TreeNode>();
+  const nodeMap = new Map<string, TreeNode<TGoalEngine, TTaskEngine>>();
   [...allGoals, ...allTasks, ...allResources].forEach((node) => {
     nodeMap.set(node.id, node);
   });
 
-  const resolveNodeDependencies = (node: TreeNode): TreeNode => {
+  const resolveNodeDependencies = (
+    node: TreeNode<TGoalEngine, TTaskEngine>,
+  ): TreeNode<TGoalEngine, TTaskEngine> => {
     if (node.type !== 'goal') {
       return node;
     }
@@ -526,21 +481,33 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
           `[INVALID MODEL]: Dependency ${depId} not found for node ${node.id}`,
         );
       }
-      return depNode as GoalNode;
+      return depNode as GoalNode<TGoalEngine, TTaskEngine>;
     });
 
     const resolvedChildren = node.children?.map(resolveNodeDependencies) as
-      | GoalNode[]
+      | Array<GoalNode<TGoalEngine, TTaskEngine>>
       | undefined;
+
+    // Re-map the goal props with resolved dependencies
+    const updatedEngine = mapper.mapGoalProps({
+      raw: {}, // Empty raw - we're just updating dependsOn
+      executionDetail: null,
+      dependsOn: resolvedDependencies,
+    });
+
+    // Merge the updated dependsOn into existing engine props
+    const mergedEngine: TGoalEngine = {
+      ...node.properties.engine,
+      ...(typeof updatedEngine === 'object' && updatedEngine !== null
+        ? { dependsOn: (updatedEngine as { dependsOn?: unknown }).dependsOn }
+        : {}),
+    };
 
     return {
       ...node,
       properties: {
         ...node.properties,
-        edge: {
-          ...node.properties.edge,
-          dependsOn: resolvedDependencies,
-        },
+        engine: mergedEngine,
       },
       ...(resolvedChildren && { children: resolvedChildren }),
     };
@@ -550,12 +517,15 @@ const resolveDependencies = (tree: GoalTree): GoalTree => {
   pendingDependencies.clear();
 
   return result;
-};
+}
 
 /**
- * Convert an iStar model to a GoalTree
+ * Convert an iStar model to a GoalTree with engine-specific properties
  */
-export function convertToTree(model: Model): GoalTree {
+export function convertToTree<TGoalEngine, TTaskEngine>(
+  model: Model,
+  mapper: EngineMapper<TGoalEngine, TTaskEngine>,
+): GoalTree<TGoalEngine, TTaskEngine> {
   const unidirectionalTree = model.actors.map((actor) => {
     const rootNode = actor.nodes.find((item) => item.customProperties.root);
     if (!rootNode) {
@@ -568,8 +538,9 @@ export function convertToTree(model: Model): GoalTree {
       actor,
       node: rootNode,
       iStarLinks: [...model.links],
+      mapper,
     });
   });
 
-  return resolveDependencies(unidirectionalTree);
+  return resolveDependencies(unidirectionalTree, mapper);
 }

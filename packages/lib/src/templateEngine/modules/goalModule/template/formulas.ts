@@ -1,5 +1,5 @@
-import type { GoalNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode } from '../../../edgeTypes';
 import { getLogger } from '../../../../logger/logger';
 import { parenthesis } from '../../../../mdp/common';
 import { achievableFormulaVariable } from '../../../common';
@@ -8,28 +8,28 @@ export const achievedMaintain = (goalId: string): string => {
   return `${goalId}_achieved_maintain`;
 };
 
-export const maintainConditionFormula = (goal: GoalNode): string => {
-  if (!goal.properties.edge.execCondition?.maintain) {
+export const maintainConditionFormula = (goal: EdgeGoalNode): string => {
+  if (!goal.properties.engine.execCondition?.maintain) {
     return '';
   }
   const logger = getLogger();
 
   const prismLine = `formula ${achievedMaintain(goal.id)} = ${
-    goal.properties.edge.execCondition.maintain.sentence ||
+    goal.properties.engine.execCondition.maintain.sentence ||
     'ASSERTION_UNDEFINED'
   };`;
 
   logger.maintainFormulaDefinition(
     goal.id,
     achievedMaintain(goal.id),
-    goal.properties.edge.execCondition.maintain.sentence ||
+    goal.properties.engine.execCondition.maintain.sentence ||
       'ASSERTION_UNDEFINED',
     prismLine,
   );
   return prismLine;
 };
 
-export const achievableGoalFormula = (goal: GoalNode): string => {
+export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
   const children = Node.children(goal);
   const formulaName = `${achievableFormulaVariable(goal.id)}`;
   const logger = getLogger();

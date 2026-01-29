@@ -10,22 +10,6 @@ export type Relation = 'or' | 'and' | 'neededBy' | 'none';
 
 export type Type = 'goal' | 'task' | 'resource';
 
-export type ExecCondition = {
-  maintain?: {
-    sentence: string;
-    variables: Array<{ name: string; value: boolean | null }>;
-  };
-  assertion: {
-    sentence: string;
-    variables: Array<{ name: string; value: boolean | null }>;
-  };
-};
-
-export type Decision = {
-  decisionVars: Array<{ variable: string; space: number }>;
-  hasDecision: boolean;
-};
-
 export type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }
@@ -37,41 +21,6 @@ export type GoalExecutionDetail = (
   retryMap?: Dictionary<number>;
 };
 
-export type SleecProps = {
-  Type?: string;
-  Source?: string;
-  Class?: string;
-  NormPrinciple?: string;
-  Proxy?: string;
-  AddedValue?: string;
-  Condition?: string;
-  Event?: string;
-  ContextEvent?: string;
-};
-
-export type TaskEdgeProps = {
-  execCondition?: ExecCondition;
-  maxRetries: number;
-};
-
-export type TaskSleecProps = {
-  PreCond?: string;
-  TriggeringEvent?: string;
-  TemporalConstraint?: string;
-  PostCond?: string;
-  ObstacleEvent?: string;
-};
-
-export type GoalEdgeProps = {
-  utility: string;
-  cost: string;
-  dependsOn: GoalNode[];
-  executionDetail: GoalExecutionDetail | null;
-  execCondition?: ExecCondition;
-  decision: Decision;
-  maxRetries: number;
-};
-
 export type BaseNode = {
   iStarId: id;
   id: string;
@@ -80,28 +29,29 @@ export type BaseNode = {
   name: string | null;
 };
 
-export type Task = BaseNode & {
+export type Task<TEngine = unknown> = BaseNode & {
   type: 'task';
-  tasks: Task[];
+  tasks: Array<Task<TEngine>>;
   resources: Resource[];
   properties: {
-    edge: TaskEdgeProps;
-    sleec?: TaskSleecProps;
+    engine: TEngine;
   };
 };
 
-export type GoalNode = BaseNode & {
+export type GoalNode<
+  TGoalEngine = unknown,
+  TTaskEngine = unknown,
+> = BaseNode & {
   type: 'goal';
   /** Goal children - only GoalNodes, not Tasks (tasks are in the tasks property) */
-  children?: GoalNode[];
+  children?: Array<GoalNode<TGoalEngine, TTaskEngine>>;
   properties: {
     root?: boolean;
     isQuality: boolean;
-    edge: GoalEdgeProps;
-    sleec?: SleecProps;
+    engine: TGoalEngine;
   };
   /** Task children - leaf goals have tasks */
-  tasks?: Task[];
+  tasks?: Array<Task<TTaskEngine>>;
 };
 
 export type Resource = BaseNode & {
@@ -119,6 +69,11 @@ export type Resource = BaseNode & {
       };
 };
 
-export type TreeNode = GoalNode | Task | Resource;
+export type TreeNode<TGoalEngine = unknown, TTaskEngine = unknown> =
+  | GoalNode<TGoalEngine, TTaskEngine>
+  | Task<TTaskEngine>
+  | Resource;
 
-export type GoalTree = TreeNode[];
+export type GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> = Array<
+  TreeNode<TGoalEngine, TTaskEngine>
+>;

@@ -1,4 +1,4 @@
-import type { Task } from '@goal-controller/goal-tree';
+import type { EdgeTask } from '../../../../edgeTypes';
 import { getLogger } from '../../../../../logger/logger';
 import { parenthesis } from '../../../../../mdp/common';
 import {
@@ -13,7 +13,7 @@ import {
   hasBeenPursued,
 } from '../../../goalModule/template/pursue/common';
 
-const pursueTask = (task: Task): string => {
+const pursueTask = (task: EdgeTask): string => {
   const logger = getLogger();
   const leftStatement = `${hasBeenPursued(task, {
     condition: false,
@@ -35,7 +35,7 @@ const pursueTask = (task: Task): string => {
   return prismLabelStatement;
 };
 
-const achieveTask = (task: Task): string => {
+const achieveTask = (task: EdgeTask): string => {
   const logger = getLogger();
   const leftStatement = `${hasBeenAchievedAndPursued(task, {
     achieved: true,
@@ -54,7 +54,7 @@ const achieveTask = (task: Task): string => {
   return prismLabelStatement;
 };
 
-const tryTask = (task: Task): string => {
+const tryTask = (task: EdgeTask): string => {
   const logger = getLogger();
   const taskAchievabilityVariable = achievableFormulaVariable(task.id);
 
@@ -79,13 +79,13 @@ const tryTask = (task: Task): string => {
     updateStatement,
     tryStatement,
     'try',
-    task.properties.edge.maxRetries,
+    task.properties.engine.maxRetries,
   );
 
   return tryStatement;
 };
 
-export const taskTransitions = (task: Task): string => {
+export const taskTransitions = (task: EdgeTask): string => {
   return `
   // Task ${task.id}: ${task.name}
   ${pursueTask(task)}

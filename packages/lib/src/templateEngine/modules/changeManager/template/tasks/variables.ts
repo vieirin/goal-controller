@@ -1,4 +1,4 @@
-import type { Task } from '@goal-controller/goal-tree';
+import type { EdgeTask } from '../../../../edgeTypes';
 import { getLogger } from '../../../../../logger/logger';
 import { achievedVariable, failed, pursuedVariable } from '../../../../common';
 
@@ -16,8 +16,8 @@ const defineVariable = (variable: string): string => {
   return `${variable}: [0..${upperBound}] init 0;`;
 };
 
-export const maxRetriesVariable = (task: Task): string => {
-  const maxRetries = task.properties.edge.maxRetries;
+export const maxRetriesVariable = (task: EdgeTask): string => {
+  const maxRetries = task.properties.engine.maxRetries;
   if (maxRetries === 0) {
     return '';
   }
@@ -33,7 +33,7 @@ export const maxRetriesVariable = (task: Task): string => {
   return `${failed(task.id)}: [0..${maxRetries}] init 0;`;
 };
 
-export const taskVariables = (task: Task): string => {
+export const taskVariables = (task: EdgeTask): string => {
   const logger = getLogger();
   logger.initTask(task);
 
