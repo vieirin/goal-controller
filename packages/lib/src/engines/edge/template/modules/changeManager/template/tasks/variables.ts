@@ -22,9 +22,16 @@ const defineVariable = (variable: string): string => {
 
 export const maxRetriesVariable = (task: EdgeTask): string => {
   const maxRetries = task.properties.engine.maxRetries;
-  if (maxRetries === 0) {
+
+  // Only emit variable if maxRetries is a finite positive integer
+  if (
+    typeof maxRetries !== 'number' ||
+    !Number.isFinite(maxRetries) ||
+    maxRetries <= 0
+  ) {
     return '';
   }
+
   const logger = getLogger();
 
   logger.variableDefinition({

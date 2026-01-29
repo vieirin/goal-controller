@@ -34,8 +34,11 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {
-    const children = Node.children(goal);
-    if (children.length > 0) {
+    // Filter out resources - only goals and tasks can be chosen
+    const pursueableChildren = Node.children(goal).filter(
+      (child) => !Node.isResource(child),
+    );
+    if (pursueableChildren.length > 0) {
       variables.push(chosenVariable(goal.id));
     }
   }
@@ -52,10 +55,13 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 const calculateGoalTransitions = (goal: GoalNode): string[] => {
   const transitions: string[] = [];
 
-  // Always has pursue transitions: one for itself + one for each child
+  // Always has pursue transitions: one for itself + one for each pursueable child
   transitions.push(pursueTransition(goal.id));
-  const children = Node.children(goal);
-  children.forEach((child) => {
+  // Filter out resources - only goals and tasks can be pursued
+  const pursueableChildren = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  );
+  pursueableChildren.forEach((child) => {
     transitions.push(pursueTransition(child.id));
   });
 

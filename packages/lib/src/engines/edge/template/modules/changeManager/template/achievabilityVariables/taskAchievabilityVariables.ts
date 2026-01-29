@@ -10,7 +10,20 @@ export const taskAchievabilityVariable = (
 ): string => {
   const logger = getLogger();
   const variableName = achievableFormulaVariable(task.id);
-  const variableValue = variableValues[variableName] ?? DEFAULT_ACHIEVABILITY;
+
+  // Check if variable is explicitly configured or using default
+  const isConfigured = variableName in variableValues;
+  const variableValue = isConfigured
+    ? variableValues[variableName]!
+    : DEFAULT_ACHIEVABILITY;
+
+  if (!isConfigured) {
+    logger.info(
+      `[WARNING] Task ${task.id}: using default achievability ${DEFAULT_ACHIEVABILITY} for ${variableName} (not configured in variables file)`,
+      0,
+    );
+  }
+
   const achievabilityConst = `const double ${variableName} = ${variableValue};`;
   logger.achievabilityTaskConstant(task.id, variableName, variableValue);
 

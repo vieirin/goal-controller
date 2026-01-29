@@ -18,7 +18,7 @@ export const goalModules = ({ gm }: { gm: EdgeGoalTree }): string => {
 ${goals
   .sort(
     (a: EdgeGoalNode, b: EdgeGoalNode) =>
-      Number(a.id.match(/\d+/)?.[0]) - Number(b.id.match(/\d+/)?.[0]),
+      Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)),
   )
   .map(goalModule)
   .join('\n\n')}

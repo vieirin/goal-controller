@@ -39,6 +39,16 @@ const mainMenu = async (): Promise<void> => {
 
   if (process.env.MODE === 'last' && lastSelectedModel) {
     const variables = loadVariables(lastSelectedModel);
+    // Validate that variables were actually loaded (not empty due to error)
+    if (Object.keys(variables).length === 0) {
+      console.error(
+        'Variables file not found or empty for the last selected model.',
+      );
+      console.error(
+        'Please run the CLI without MODE=last to configure variables first.',
+      );
+      return;
+    }
     await runModel(lastSelectedModel, variables, cleanFlag);
     return;
   }
