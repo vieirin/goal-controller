@@ -322,3 +322,4 @@ export type EdgeGoalTree = GoalTreeType<
   EdgeTaskProps,
   EdgeResourceProps
 >;
+

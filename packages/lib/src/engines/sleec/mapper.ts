@@ -89,3 +89,4 @@ export const sleecEngineMapper = createEngineMapper({
 export type SleecGoalNode = GoalNode<SleecGoalProps, SleecTaskProps, never>;
 export type SleecTask = Task<SleecTaskProps, never>;
 export type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps, never>;
+

@@ -230,3 +230,4 @@ export const generateDefinitions = (tasks: SleecTask[]): string => {
 ${lines}
 def_end`;
 };
+

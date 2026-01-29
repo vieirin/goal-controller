@@ -39,3 +39,4 @@ export const generateTaskRules = (tasks: SleecTask[]): string => {
         .join('\n')}
 rule_end`;
 };
+

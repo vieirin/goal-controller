@@ -26,3 +26,4 @@ export type Measure = {
   type: MeasureType;
   scaleValues?: string[];
 };
+
