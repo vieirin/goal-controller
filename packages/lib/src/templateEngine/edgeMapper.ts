@@ -179,12 +179,14 @@ export const edgeEngineMapper = createEngineMapper({
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
 
+    const dependsOn: Array<
+      GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
+    > = [];
+
     return {
       utility: raw.utility || '',
       cost: raw.cost || '',
-      dependsOn: [] as Array<
-        GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
-      >,
+      dependsOn,
       executionDetail,
       execCondition,
       decision: {
