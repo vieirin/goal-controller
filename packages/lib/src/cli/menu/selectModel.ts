@@ -7,6 +7,7 @@ import { generateValidatedPrismModel } from '../../engines/edge';
 
 export const runModel = async (
   filePath: string,
+  variables: Record<string, boolean | number>,
   clean: boolean = false,
 ): Promise<void> => {
   const logger = initLogger(filePath);
@@ -22,6 +23,7 @@ export const runModel = async (
       gm: tree.nodes,
       fileName,
       clean,
+      variables,
     });
     await writeFile(`output/${path.parse(fileName).name}.prism`, output);
     console.log('The file was saved successfully!');

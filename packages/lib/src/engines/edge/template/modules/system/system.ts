@@ -2,7 +2,6 @@ import { GoalTree } from '@goal-controller/goal-tree';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { getLogger } from '../../../logger/logger';
-import { getVariablesFilePath } from '../../../../../utils/variablesPath';
 import type { EdgeGoalTree, EdgeResource, EdgeTask } from '../../../types';
 import { systemModuleTemplate } from './template';
 
@@ -99,12 +98,12 @@ export const systemModule = ({
   gm,
   fileName,
   clean = false,
-  variables: variablesParam,
+  variables: defaultVariableValues,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
-  variables?: Record<string, boolean | number>;
+  variables: Record<string, boolean | number>;
 }): string => {
   const logger = getLogger();
   logger.initSystem();
@@ -145,35 +144,13 @@ export const systemModule = ({
     (varName) => !resourceIds.has(varName),
   );
 
-  // If variables are provided directly, use them; otherwise try to read from file
-  if (variablesParam) {
-    const oldTransitions = clean ? [] : extractOldSystemTransitions(fileName);
-    return systemModuleTemplate({
-      variables,
-      resources,
-      defaultVariableValues: variablesParam,
-      oldTransitions,
-    });
-  }
-
-  try {
-    const variablesFilePath = getVariablesFilePath(fileName);
-    const defaultVariableValues =
-      variables.length > 0
-        ? JSON.parse(readFileSync(variablesFilePath, 'utf8'))
-        : {};
-    const oldTransitions = clean ? [] : extractOldSystemTransitions(fileName);
-    return systemModuleTemplate({
-      variables,
-      resources,
-      defaultVariableValues,
-      oldTransitions,
-    });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error reading variables file:', error);
-    throw new Error('Error reading variables file');
-  }
+  const oldTransitions = clean ? [] : extractOldSystemTransitions(fileName);
+  return systemModuleTemplate({
+    variables,
+    resources,
+    defaultVariableValues,
+    oldTransitions,
+  });
 };
 
 export const __test_only_exports__ = {

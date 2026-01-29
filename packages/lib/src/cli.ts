@@ -1,4 +1,4 @@
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import path from 'path';
@@ -15,6 +15,16 @@ import {
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { edgeEngineMapper } from './engines/edge';
 
+const loadVariables = (modelPath: string): Record<string, boolean | number> => {
+  const variablesFilePath = getVariablesFilePath(modelPath);
+  try {
+    return JSON.parse(readFileSync(variablesFilePath, 'utf8'));
+  } catch (error) {
+    console.error('Error reading variables file:', error);
+    return {};
+  }
+};
+
 // Parse command line arguments for clean flag
 const args = process.argv.slice(2);
 const cleanFlag = args.includes('--clean') || args.includes('-c');
@@ -28,7 +38,8 @@ const mainMenu = async (): Promise<void> => {
   ];
 
   if (process.env.MODE === 'last' && lastSelectedModel) {
-    await runModel(lastSelectedModel, cleanFlag);
+    const variables = loadVariables(lastSelectedModel);
+    await runModel(lastSelectedModel, variables, cleanFlag);
     return;
   }
 
@@ -59,7 +70,8 @@ const mainMenu = async (): Promise<void> => {
       );
       await inputDefaultVariables(lastSelectedModel);
     }
-    await runModel(lastSelectedModel, cleanFlag);
+    const variables = loadVariables(lastSelectedModel);
+    await runModel(lastSelectedModel, variables, cleanFlag);
   } else if (action === 'run') {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
@@ -91,7 +103,8 @@ const mainMenu = async (): Promise<void> => {
       await inputDefaultVariables(selectedFile);
     }
 
-    await runModel(selectedFile, cleanFlag);
+    const variables = loadVariables(selectedFile);
+    await runModel(selectedFile, variables, cleanFlag);
   } else if (action === 'variables') {
     await inputDefaultVariables();
   } else if (action === 'dumpTree') {
