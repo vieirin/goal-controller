@@ -26,7 +26,6 @@ goal-controller/
 │   │   │           ├── mapper.ts      # iStar to SLEEC property mapper
 │   │   │           ├── types.ts       # SLEEC-specific types
 │   │   │           └── template/      # SLEEC specification templates
-│   │   │               └── README.md  # SLEEC engine architecture & documentation
 │   │   └── out/      # Compiled JavaScript
 │   ├── goal-tree/    # Goal model data structures
 │   └── ui/           # Next.js web application for transformations
@@ -45,7 +44,7 @@ This repository includes two transformation engines for converting goal models:
 2. **SLEEC Engine** (`packages/lib/src/engines/sleec/`) - Generates SLEEC specifications for runtime monitoring
    - `mapper.ts` - Maps iStar model properties to SLEEC-specific properties
    - `template/` - Contains SLEEC specification templates
-   - See [SLEEC Engine Documentation](packages/lib/src/engines/sleec/template/README.md) for architecture and implementation details
+   - See [Transformation Example (SLEEC)](#transformation-example-sleec) section below for architecture and implementation details
 
 ---
 

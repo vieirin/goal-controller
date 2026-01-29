@@ -14,7 +14,7 @@ export const taskAchievabilityVariable = (
   // Check if variable is explicitly configured or using default
   const isConfigured = variableName in variableValues;
   const variableValue = isConfigured
-    ? variableValues[variableName]!
+    ? variableValues[variableName]
     : DEFAULT_ACHIEVABILITY;
 
   if (!isConfigured) {
@@ -25,7 +25,7 @@ export const taskAchievabilityVariable = (
   }
 
   const achievabilityConst = `const double ${variableName} = ${variableValue};`;
-  logger.achievabilityTaskConstant(task.id, variableName, variableValue);
+  logger.achievabilityTaskConstant(task.id, variableName, variableValue ?? -1);
 
   return achievabilityConst;
 };
