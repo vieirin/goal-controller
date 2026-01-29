@@ -107,8 +107,7 @@ const getMaintainCondition = (
   if (customProperties.type === 'maintain') {
     if (!('maintain' in customProperties)) {
       throw new Error(
-        `[INVALID MODEL]: Maintain condition for ${nodeType} must have maintain and assertion: got none"
-                } and assertion:${customProperties.assertion || "'empty condition'"}`,
+        `[INVALID MODEL]: Maintain condition for ${nodeType} must have 'maintain' and 'assertion'; got maintain: none, assertion: ${customProperties.assertion || "'empty condition'"}`,
       );
     }
     if (!customProperties.maintain || !customProperties.assertion) {
