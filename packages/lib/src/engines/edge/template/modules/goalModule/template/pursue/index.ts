@@ -1,4 +1,4 @@
-import { Node } from '@goal-controller/goal-tree';
+import { Node, type GoalNode } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
@@ -21,10 +21,32 @@ import {
 // Type for nodes that can be pursued (goals and tasks, but not resources)
 type PursueableNode = EdgeGoalNode | EdgeTask;
 
+/**
+ * Type guard to check if a node from dependsOn is a valid EdgeGoalNode.
+ * The dependsOn array is resolved in afterCreationMapper to contain actual goal nodes,
+ * but the generic type doesn't fully capture this - this guard narrows the type safely.
+ */
+const isEdgeGoalNode = (
+  node: GoalNode<unknown, unknown, unknown>,
+): node is EdgeGoalNode => {
+  return (
+    node !== null &&
+    typeof node === 'object' &&
+    'id' in node &&
+    'properties' in node &&
+    typeof node.properties === 'object' &&
+    node.properties !== null &&
+    'engine' in node.properties
+  );
+};
+
 export const goalDependencyStatement = (goal: EdgeGoalNode): string => {
-  return goal.properties.engine.dependsOn?.length
-    ? ` & (${goal.properties.engine.dependsOn
-        .map((dep) => hasBeenAchieved(dep as EdgeGoalNode, { condition: true }))
+  const dependencies = goal.properties.engine.dependsOn ?? [];
+  const validDependencies = dependencies.filter(isEdgeGoalNode);
+
+  return validDependencies.length > 0
+    ? ` & (${validDependencies
+        .map((dep) => hasBeenAchieved(dep, { condition: true }))
         .join(separator('and'))})`
     : '';
 };

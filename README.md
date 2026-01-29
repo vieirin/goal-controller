@@ -447,7 +447,7 @@ ${purposes}`;
 // Usage:
 const model = Model.load('examples/goalModel-sleec.txt');
 const tree = GoalTree.fromModel(model, sleecEngineMapper);
-const sleecSpec = sleecTemplateEngine(tree.nodes);
+const sleecSpec = sleecTemplateEngine(tree);
 
 console.log(sleecSpec);
 ```
