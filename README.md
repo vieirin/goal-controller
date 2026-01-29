@@ -112,52 +112,103 @@ flowchart LR
 
 #### Step 1: Define Engine-Specific Types
 
-Create types for the properties your engine needs. See [`packages/lib/src/engines/sleec/types.ts`](packages/lib/src/engines/sleec/types.ts):
+The mapper transforms **raw string properties** from iStar into **rich typed structures**. Define types that represent your engine's domain model. See [`packages/lib/src/engines/sleec/types.ts`](packages/lib/src/engines/sleec/types.ts) and [`packages/lib/src/engines/edge/types.ts`](packages/lib/src/engines/edge/types.ts):
 
 ```typescript
-// types.ts
+// types.ts - Complex types transformed FROM raw iStar strings
+
+// Nested structure parsed from "varName:3,otherVar:5" string
+export type Decision = {
+  hasDecision: boolean;
+  decisionVars: Array<{ variable: string; space: number }>;
+};
+
+// Structured condition parsed from assertion strings
+export type ExecCondition = {
+  maintain?: { sentence: string; variables: string[] };
+  assertion?: { sentence: string; variables: string[] };
+};
+
 export type MyEngineGoalProps = {
-  priority?: string;
-  deadline?: string;
+  priority: 'low' | 'normal' | 'high';  // Enum from string
+  deadline: number | null;               // Number from string "300"
+  decision: Decision;                    // Parsed from "var:3,other:5"
+  execCondition?: ExecCondition;         // Parsed from assertion syntax
+  dependsOn: GoalNode[];                 // Resolved node references
 };
 
 export type MyEngineTaskProps = {
-  precondition?: string;
-  postcondition?: string;
-  timeout?: string;
+  maxRetries: number;                    // Parsed from string "3"
+  isOptional: boolean;                   // Parsed from string "true"
+  tags: string[];                        // Parsed from "tag1,tag2,tag3"
+  execCondition?: ExecCondition;
 };
 ```
 
 #### Step 2: Define Allowed Keys
 
-Specify which iStar `customProperties` keys your engine extracts. See [`packages/lib/src/engines/sleec/mapper.ts`](packages/lib/src/engines/sleec/mapper.ts):
+Specify which iStar `customProperties` string keys your engine extracts. The mapper will receive these as `raw` strings:
 
 ```typescript
 // mapper.ts
-export const MY_ENGINE_GOAL_KEYS = ['priority', 'deadline'] as const;
-export const MY_ENGINE_TASK_KEYS = ['precondition', 'postcondition', 'timeout'] as const;
+// These are the RAW string keys from iStar customProperties
+export const MY_ENGINE_GOAL_KEYS = [
+  'priority',      // Raw: "high" → Typed: 'high' (enum)
+  'deadline',      // Raw: "300"  → Typed: 300 (number)
+  'variables',     // Raw: "var:3,other:5" → Typed: Decision object
+  'assertion',     // Raw: "x > 0 & y < 10" → Typed: ExecCondition
+  'dependsOn',     // Raw: "G2,G3" → Typed: GoalNode[] (resolved in afterCreationMapper)
+] as const;
+
+export const MY_ENGINE_TASK_KEYS = [
+  'maxRetries',    // Raw: "3" → Typed: 3 (number)
+  'optional',      // Raw: "true" → Typed: true (boolean)
+  'tags',          // Raw: "critical,async" → Typed: ["critical", "async"]
+  'assertion',
+] as const;
 ```
 
 #### Step 3: Create the Engine Mapper
 
-Use `createEngineMapper` factory for type-safe property mapping:
+Transform raw strings into typed structures using parsing functions:
 
 ```typescript
 import { createEngineMapper } from '@goal-controller/goal-tree';
 
+// Parser: "var:3,other:5" → { hasDecision: true, decisionVars: [...] }
+const parseDecision = (raw: string | undefined): Decision => {
+  if (!raw) return { hasDecision: false, decisionVars: [] };
+  
+  const vars = raw.split(',').map(pair => {
+    const [variable, space] = pair.split(':');
+    return { variable: variable.trim(), space: parseInt(space, 10) };
+  });
+  
+  return { hasDecision: vars.length > 0, decisionVars: vars };
+};
+
+// Parser: "low" | "normal" | "high" with validation
+const parsePriority = (raw: string | undefined): 'low' | 'normal' | 'high' => {
+  const valid = ['low', 'normal', 'high'] as const;
+  return valid.includes(raw as any) ? (raw as 'low' | 'normal' | 'high') : 'normal';
+};
+
 export const myEngineMapper = createEngineMapper({
   allowedGoalKeys: MY_ENGINE_GOAL_KEYS,
   allowedTaskKeys: MY_ENGINE_TASK_KEYS,
-  skipResource: true,  // Set to false and provide mapResourceProps if needed
+  skipResource: true,
 })({
   mapGoalProps: ({ raw }) => ({
-    priority: raw.priority || 'normal',
-    deadline: raw.deadline,
+    priority: parsePriority(raw.priority),           // "high" → 'high'
+    deadline: raw.deadline ? parseInt(raw.deadline, 10) : null,  // "300" → 300
+    decision: parseDecision(raw.variables),          // "var:3" → { hasDecision: true, ... }
+    dependsOn: [],  // Resolved later in afterCreationMapper
   }),
+  
   mapTaskProps: ({ raw }) => ({
-    precondition: raw.precondition,
-    postcondition: raw.postcondition,
-    timeout: raw.timeout ? parseInt(raw.timeout) : undefined,
+    maxRetries: raw.maxRetries ? parseInt(raw.maxRetries, 10) : 0,  // "3" → 3
+    isOptional: raw.optional === 'true',             // "true" → true
+    tags: raw.tags ? raw.tags.split(',').map(t => t.trim()) : [],  // "a,b" → ["a","b"]
   }),
 });
 ```
