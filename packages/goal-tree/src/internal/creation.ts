@@ -194,6 +194,12 @@ function createNode<
     );
   }
 
+  if (filteredChildren.length > 0 && nodeType === 'task') {
+    throw new Error(
+      `[INVALID MODEL]: Task ${id}:${goalName} cannot have goal children. Tasks can only have resources and other tasks as children.`,
+    );
+  }
+
   if (nodeType === 'resource') {
     // Skip resource if skipResource is true
     if (mapper.skipResource === true) {
