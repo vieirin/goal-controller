@@ -1,4 +1,4 @@
-import { GoalTree } from '@goal-controller/lib';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { NextRequest } from 'next/server';
 import { ApiResponse } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';

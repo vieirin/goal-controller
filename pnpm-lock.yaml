@@ -150,6 +150,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@goal-controller/goal-tree':
+        specifier: workspace:*
+        version: link:../goal-tree
       '@goal-controller/lib':
         specifier: workspace:*
         version: link:../lib

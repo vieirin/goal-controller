@@ -21,6 +21,9 @@ export type {
   Type,
 } from '@goal-controller/goal-tree';
 
+// Re-export GoalTree and Model for convenience
+export { GoalTree, Model } from '@goal-controller/goal-tree';
+
 // Edge engine types and mapper
 export {
   edgeEngineMapper,

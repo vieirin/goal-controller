@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@goal-controller/goal-tree": "workspace:*",
     "@goal-controller/lib": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "lucide-react": "^0.300.0",
