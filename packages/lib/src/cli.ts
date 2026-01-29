@@ -13,7 +13,7 @@ import {
   saveLastSelectedModel,
 } from './cli/utils';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { edgeEngineMapper } from './templateEngine/edgeMapper';
+import { edgeEngineMapper } from './engines/edge';
 
 // Parse command line arguments for clean flag
 const args = process.argv.slice(2);

@@ -1,8 +1,8 @@
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
-import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { edgeEngineMapper } from '../../templateEngine/edgeMapper';
+import { edgeEngineMapper } from '../../engines/edge';
 import { getVariablesFilePath } from '../../utils/variablesPath';
 import { getFilesInDirectory, getLastSelectedModel } from '../utils';
 

@@ -14,25 +14,38 @@ goal-controller/
 ├── packages/
 │   ├── lib/          # Core transformation engines (PRISM/SLEEC) + CLI tools
 │   │   ├── src/
-│   │   │   ├── templateEngine/        # PRISM model generator
-│   │   │   ├── sleecTemplateEngine/   # SLEEC specification generator
-│   │   │   │   └── README.md          # SLEEC engine architecture & documentation
-│   │   │   ├── GoalTree/              # Goal model data structures
-│   │   │   └── prismValidator/        # PRISM model validation
+│   │   │   └── engines/               # Transformation engines
+│   │   │       ├── edge/              # PRISM/Edge model generator
+│   │   │       │   ├── mapper.ts      # iStar to Edge property mapper
+│   │   │       │   ├── types.ts       # Edge-specific types
+│   │   │       │   ├── template/      # PRISM model generation templates
+│   │   │       │   ├── validator/     # PRISM model validation
+│   │   │       │   ├── logger/        # Generation logging & metrics
+│   │   │       │   └── mdp/           # MDP common utilities
+│   │   │       └── sleec/             # SLEEC specification generator
+│   │   │           ├── mapper.ts      # iStar to SLEEC property mapper
+│   │   │           ├── types.ts       # SLEEC-specific types
+│   │   │           └── template/      # SLEEC specification templates
+│   │   │               └── README.md  # SLEEC engine architecture & documentation
 │   │   └── out/      # Compiled JavaScript
+│   ├── goal-tree/    # Goal model data structures
 │   └── ui/           # Next.js web application for transformations
 ├── examples/         # Example goal models
 ├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
 └── output/          # Generated PRISM/SLEEC models
 ```
 
-### Template Engines
+### Transformation Engines
 
-This repository includes two template engines for transforming goal models:
+This repository includes two transformation engines for converting goal models:
 
-1. **PRISM Template Engine** (`packages/lib/src/templateEngine/`) - Generates PRISM models for probabilistic verification
-2. **SLEEC Template Engine** (`packages/lib/src/sleecTemplateEngine/`) - Generates SLEEC specifications for runtime monitoring
-   - See [SLEEC Engine Documentation](packages/lib/src/sleecTemplateEngine/README.md) for architecture and implementation details
+1. **Edge/PRISM Engine** (`packages/lib/src/engines/edge/`) - Generates PRISM models for probabilistic verification
+   - `mapper.ts` - Maps iStar model properties to Edge-specific properties
+   - `template/` - Contains PRISM model generation templates
+2. **SLEEC Engine** (`packages/lib/src/engines/sleec/`) - Generates SLEEC specifications for runtime monitoring
+   - `mapper.ts` - Maps iStar model properties to SLEEC-specific properties
+   - `template/` - Contains SLEEC specification templates
+   - See [SLEEC Engine Documentation](packages/lib/src/engines/sleec/template/README.md) for architecture and implementation details
 
 ### Quick Start
 

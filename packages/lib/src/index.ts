@@ -4,11 +4,10 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import { initLogger } from './logger/logger';
-import { validate } from './prismValidator';
-import { sleecTemplateEngine } from './sleecTemplateEngine';
-import { sleecEngineMapper } from './sleecTemplateEngine/sleecMapper';
-import { generateValidatedPrismModel } from './templateEngine/engine';
+import { generateValidatedPrismModel } from './engines/edge';
+import { initLogger } from './engines/edge/logger/logger';
+import { validate } from './engines/edge/validator';
+import { sleecEngineMapper, sleecTemplateEngine } from './engines/sleec';
 
 export type {
   EngineMapper,
@@ -29,14 +28,14 @@ export {
   type EdgeGoalNode,
   type EdgeGoalTree,
   type EdgeTask,
-} from './templateEngine/edgeMapper';
+} from './engines/edge';
 export type {
   Decision,
   EdgeGoalProps,
   EdgeTaskProps,
   ExecCondition,
   GoalExecutionDetail,
-} from './templateEngine/types';
+} from './engines/edge';
 
 // SLEEC engine types and mapper
 export {
@@ -44,11 +43,8 @@ export {
   type SleecGoalNode,
   type SleecGoalTree,
   type SleecTask,
-} from './sleecTemplateEngine/sleecMapper';
-export type {
-  SleecGoalProps,
-  SleecTaskProps,
-} from './sleecTemplateEngine/types';
+} from './engines/sleec';
+export type { SleecGoalProps, SleecTaskProps } from './engines/sleec';
 
 // Core transformation engines (remain in lib)
 export { generateValidatedPrismModel, sleecTemplateEngine };
@@ -57,7 +53,7 @@ export { generateValidatedPrismModel, sleecTemplateEngine };
 export { validate };
 
 // Logger
-export type { LoggerReport } from './logger/logger';
+export type { LoggerReport } from './engines/edge/logger/logger';
 export { initLogger };
 
 // CLI entry point - if this file is executed directly, run the CLI script

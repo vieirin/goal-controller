@@ -1,9 +1,9 @@
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { initLogger } from '../../logger/logger';
-import { edgeEngineMapper } from '../../templateEngine/edgeMapper';
-import { generateValidatedPrismModel } from '../../templateEngine/engine';
+import { initLogger } from '../../engines/edge/logger/logger';
+import { edgeEngineMapper } from '../../engines/edge';
+import { generateValidatedPrismModel } from '../../engines/edge';
 
 export const runModel = async (
   filePath: string,
