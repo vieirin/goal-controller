@@ -1,7 +1,6 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalTree } from '../mapper';
 
-type GoalTreeType = EdgeGoalTree;
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
 import type {
@@ -15,6 +14,8 @@ import type {
   SystemValidation,
   ValidationReport,
 } from './types';
+
+type GoalTreeType = EdgeGoalTree;
 
 const createElementCount = (
   expected: string[],

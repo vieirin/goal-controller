@@ -2,18 +2,15 @@ import type { Task } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import { achievableFormulaVariable } from '../../../../../template/common';
 
+const DEFAULT_ACHIEVABILITY = 0.5;
+
 export const taskAchievabilityVariable = (
   task: Task,
   variableValues: Record<string, number>,
 ): string => {
   const logger = getLogger();
   const variableName = achievableFormulaVariable(task.id);
-  const variableValue = variableValues[variableName];
-  if (variableValue === undefined || variableValue === null) {
-    throw new Error(
-      `Variable value not found for task ${task.id}: ${variableName}`,
-    );
-  }
+  const variableValue = variableValues[variableName] ?? DEFAULT_ACHIEVABILITY;
   const achievabilityConst = `const double ${variableName} = ${variableValue};`;
   logger.achievabilityTaskConstant(task.id, variableName, variableValue);
 
