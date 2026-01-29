@@ -214,7 +214,7 @@ function createNode<
 
     // Store raw properties for afterCreationMapper
     context.rawPropertiesMap.set(id, {
-      type: 'resource',
+      nodeType: 'resource',
       raw: rawResourceProps,
     });
 
@@ -237,7 +237,7 @@ function createNode<
     );
 
     // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { type: 'task', raw: rawTaskProps });
+    context.rawPropertiesMap.set(id, { nodeType: 'task', raw: rawTaskProps });
 
     const taskNode: Task<TTaskEngine, TResourceEngine> = {
       id,
@@ -262,7 +262,7 @@ function createNode<
     );
 
     // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { type: 'goal', raw: rawGoalProps });
+    context.rawPropertiesMap.set(id, { nodeType: 'goal', raw: rawGoalProps });
 
     const goalNode: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> = {
       id,
@@ -472,13 +472,13 @@ function runAfterCreationMapper<
   const processGoal = (
     goal: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> => {
-    // Get raw properties - discriminated union with type: 'goal' | 'task' | 'resource'
+    // Get raw properties - discriminated union with nodeType: 'goal' | 'task' | 'resource'
     const defaultRawProperties: RawPropertiesUnion<
       TGoalKeys,
       TTaskKeys,
       TResourceKeys
     > = {
-      type: 'goal',
+      nodeType: 'goal',
       raw: {},
     };
     const rawProperties =
@@ -487,8 +487,8 @@ function runAfterCreationMapper<
     const resolvedChildren = goal.children?.map(processGoal);
 
     // Call afterCreationMapper to transform engine props
-    // Validate that rawProperties.type matches the node type before casting
-    if (rawProperties.type !== 'goal') {
+    // Validate that rawProperties.nodeType matches the node type before casting
+    if (rawProperties.nodeType !== 'goal') {
       // If this happens, just return the original engine
       // This should not occur in practice, but provides safety
       return {

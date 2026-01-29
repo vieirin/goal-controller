@@ -13,15 +13,16 @@ export type RawProps<TKeys extends string> = Partial<Record<TKeys, string>>;
 /**
  * Discriminated union for raw properties in afterCreationMapper
  * Allows the hook to handle goals, tasks, and resources with type-safe access
+ * Uses `nodeType` instead of `type` to avoid conflicts with user-defined `type` properties
  */
 export type RawPropertiesUnion<
   TGoalKeys extends string,
   TTaskKeys extends string,
   TResourceKeys extends string,
 > =
-  | { type: 'goal'; raw: RawProps<TGoalKeys> }
-  | { type: 'task'; raw: RawProps<TTaskKeys> }
-  | { type: 'resource'; raw: RawProps<TResourceKeys> };
+  | { nodeType: 'goal'; raw: RawProps<TGoalKeys> }
+  | { nodeType: 'task'; raw: RawProps<TTaskKeys> }
+  | { nodeType: 'resource'; raw: RawProps<TResourceKeys> };
 
 /**
  * Resource mapper configuration - discriminated union

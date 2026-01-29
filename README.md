@@ -220,7 +220,7 @@ For engines that need to resolve references between nodes (like Edge's `dependsO
 
 ```typescript
 afterCreationMapper: ({ node, allNodes, rawProperties }) => {
-  if (rawProperties.type !== 'goal') return node.properties.engine;
+  if (rawProperties.nodeType !== 'goal') return node.properties.engine;
   
   const depIds = parseDependsOn(rawProperties.raw.dependsOn);
   const resolvedDeps = depIds.map(id => allNodes.get(id));

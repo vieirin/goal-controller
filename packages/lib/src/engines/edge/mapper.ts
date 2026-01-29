@@ -299,7 +299,7 @@ export const edgeEngineMapper = createEngineMapper<
 
   afterCreationMapper: ({ node, allNodes, rawProperties }) => {
     // Only process goal nodes for dependsOn resolution
-    if (rawProperties.type !== 'goal' || node.type !== 'goal') {
+    if (rawProperties.nodeType !== 'goal' || node.type !== 'goal') {
       // For non-goal nodes, return the existing engine props
       return node.properties.engine;
     }
