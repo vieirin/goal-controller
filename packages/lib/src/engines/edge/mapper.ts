@@ -170,13 +170,13 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
 
 /**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
- * All types are inferred from the allowedKeys arrays via createEngineMapper
+ * Key types are inferred from the allowedKeys arrays, engine types are explicit
  */
 export const edgeEngineMapper = createEngineMapper({
   allowedGoalKeys: EDGE_GOAL_KEYS,
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,
-})({
+})<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>({
   mapGoalProps: ({ raw, executionDetail }) => {
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
