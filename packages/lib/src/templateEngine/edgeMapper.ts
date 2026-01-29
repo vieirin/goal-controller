@@ -37,12 +37,7 @@ export const EDGE_GOAL_KEYS = [
 /**
  * Allowed keys for Edge task custom properties
  */
-export const EDGE_TASK_KEYS = [
-  'maxRetries',
-  'type',
-  'maintain',
-  'assertion',
-] as const;
+export const EDGE_TASK_KEYS = ['maxRetries', 'type', 'assertion'] as const;
 
 /**
  * Allowed keys for Edge resource custom properties
@@ -110,7 +105,13 @@ const getMaintainCondition = (
   nodeType: 'goal' | 'task',
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
-    if (!customProperties.maintain && !customProperties.assertion) {
+    if (!('maintain' in customProperties)) {
+      throw new Error(
+        `[INVALID MODEL]: Maintain condition for ${nodeType} must have maintain and assertion: got none"
+                } and assertion:${customProperties.assertion || "'empty condition'"}`,
+      );
+    }
+    if (!customProperties.maintain || !customProperties.assertion) {
       console.warn(
         `[INVALID MODEL]: Maintain condition for ${nodeType} must have maintain and assertion: got maintain:${
           customProperties.maintain || "'empty condition'"
