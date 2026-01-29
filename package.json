@@ -20,7 +20,7 @@
     "build:goal-tree": "pnpm --filter @goal-controller/goal-tree run build",
     "build:lib": "pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
-    "test": "pnpm --filter @goal-controller/lib run test",
+    "test": "pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run test",
     "grammar": "cd packages/lib && make grammar",
     "clean": "pnpm --recursive run clean && rm -rf node_modules packages/*/node_modules",
     "setup-hooks": "bash hooks/setup.sh"
