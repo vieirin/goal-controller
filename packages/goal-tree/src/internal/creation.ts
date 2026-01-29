@@ -102,14 +102,6 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
   }
 };
 
-const parseDependsOn = ({ dependsOn }: { dependsOn: string }): string[] => {
-  if (!dependsOn) {
-    return [];
-  }
-  const parsedDependency = dependsOn.split(',');
-  return parsedDependency.map((d) => d.trim());
-};
-
 // Temporary storage for raw goal properties during tree creation
 // Used by afterCreationMapper to access raw properties after tree is built
 const pendingRawProperties = new Map<string, RawGoalProps>();
@@ -499,11 +491,13 @@ function runAfterCreationMapper<TGoalEngine, TTaskEngine>(
         | undefined;
 
       // Call afterCreationMapper to transform engine props
-      const updatedEngine = mapper.afterCreationMapper!({
-        node,
-        allNodes: nodeMap,
-        rawProperties,
-      });
+      const updatedEngine = mapper.afterCreationMapper
+        ? mapper.afterCreationMapper({
+            node,
+            allNodes: nodeMap,
+            rawProperties,
+          })
+        : node.properties.engine;
 
       return {
         ...node,
