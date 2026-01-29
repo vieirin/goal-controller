@@ -1,5 +1,5 @@
 import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode } from '../../../edgeTypes';
+import type { EdgeGoalNode, EdgeTask } from '../../../edgeTypes';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import {
@@ -36,7 +36,7 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const maxRetriesVariableStatement =
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
-          .map((child) => {
+          .map((child: EdgeGoalNode | EdgeTask) => {
             const maxRetries = child.properties.engine.maxRetries;
             return defineVariable(failed(child.id), maxRetries);
           })

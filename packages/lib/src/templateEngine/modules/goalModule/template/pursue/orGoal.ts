@@ -102,21 +102,22 @@ export const pursueAlternativeGoal = (
 ): string => {
   const children = Node.children(goal);
   // Filter out resources - they don't have pursued state
-  const pursueableChildren = children
-    .filter((child) => !Node.isResource(child))
-    .map((child) => child as EdgeGoalNode | EdgeTask);
+  type PursueableNode = EdgeGoalNode | EdgeTask;
+  const pursueableChildren = children.filter(
+    (child): child is PursueableNode => !Node.isResource(child),
+  );
   const otherGoals = pursueableChildren.filter(
-    (child) => child.id !== currentChildId,
+    (child: PursueableNode) => child.id !== currentChildId,
   );
   const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
 
   alternativeLogger(
     currentChildId,
-    otherGoals.map((child) => child.id),
+    otherGoals.map((child: PursueableNode) => child.id),
   );
 
   return otherGoals
-    .map((child) => {
+    .map((child: PursueableNode) => {
       return `${pursued(child.id)}=0`;
     })
     .join(separator('and'));

@@ -145,7 +145,11 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = Node.children(goal).map((child) => child.id);
+                const children = Node.children(goal)
+                  .filter(
+                    (child): child is PursueableNode => !Node.isResource(child),
+                  )
+                  .map((child) => child.id);
                 if (!children) {
                   logger.error(
                     child.id,
