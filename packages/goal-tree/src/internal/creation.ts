@@ -27,7 +27,7 @@ export { createEngineMapper } from './engineMapper';
 export type {
   EngineMapper,
   RawPropertiesUnion,
-  RawProps
+  RawProps,
 } from './engineMapper';
 export type { GoalExecutionDetail };
 
@@ -503,10 +503,10 @@ function runAfterCreationMapper<
     const updatedEngine =
       'afterCreationMapper' in mapper && mapper.afterCreationMapper
         ? mapper.afterCreationMapper({
-          node: goal,
-          allNodes: nodeMap,
-          rawProperties,
-        })
+            node: goal,
+            allNodes: nodeMap,
+            rawProperties,
+          })
         : goal.properties.engine;
 
     // Runtime validation before type assertion
