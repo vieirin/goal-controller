@@ -22,4 +22,3 @@ export type SleecTaskProps = {
   PostCond?: string;
   ObstacleEvent?: string;
 };
-
