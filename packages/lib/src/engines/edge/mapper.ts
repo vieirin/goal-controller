@@ -13,10 +13,10 @@ import {
 } from '@goal-controller/goal-tree';
 import type {
   Decision,
-  EdgeGoalProps,
   EdgeResourceProps,
   EdgeTaskProps,
   ExecCondition,
+  GoalExecutionDetail,
 } from './types';
 
 /**
@@ -150,10 +150,18 @@ const getMaintainCondition = (
   return undefined;
 };
 
-// Resolved types with concrete GoalNode reference
-export type EdgeGoalPropsResolved = EdgeGoalProps<
-  GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
->;
+// Using an interface allows circular references (interfaces are lazily evaluated)
+// This gives us proper typing: dependsOn[0].properties.engine is EdgeGoalPropsResolved
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export interface EdgeGoalPropsResolved {
+  utility: string;
+  cost: string;
+  dependsOn: EdgeGoalNode[];
+  executionDetail: GoalExecutionDetail | null;
+  execCondition?: ExecCondition;
+  decision: Decision;
+  maxRetries: number;
+}
 
 /**
  * Parse dependsOn string into array of goal IDs
@@ -170,13 +178,16 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
 
 /**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
- * Key types are inferred from the allowedKeys arrays, engine types are explicit
+ * Engine types are explicit, key types are inferred from the allowedKeys arrays
  */
-export const edgeEngineMapper = createEngineMapper({
+export const edgeEngineMapper = createEngineMapper<
+  EdgeGoalPropsResolved,
+  EdgeTaskProps,
+  EdgeResourceProps
+>()({
   allowedGoalKeys: EDGE_GOAL_KEYS,
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,
-})<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>({
   mapGoalProps: ({ raw, executionDetail }) => {
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');

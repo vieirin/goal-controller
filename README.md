@@ -192,18 +192,20 @@ const parsePriority = (raw: string | undefined): 'low' | 'normal' | 'high' => {
   return valid.includes(raw as any) ? (raw as 'low' | 'normal' | 'high') : 'normal';
 };
 
-export const myEngineMapper = createEngineMapper({
+export const myEngineMapper = createEngineMapper<
+  MyEngineGoalProps,
+  MyEngineTaskProps,
+  never  // No resources
+>()({
   allowedGoalKeys: MY_ENGINE_GOAL_KEYS,
   allowedTaskKeys: MY_ENGINE_TASK_KEYS,
   skipResource: true,
-})({
   mapGoalProps: ({ raw }) => ({
     priority: parsePriority(raw.priority),           // "high" → 'high'
     deadline: raw.deadline ? parseInt(raw.deadline, 10) : null,  // "300" → 300
     decision: parseDecision(raw.variables),          // "var:3" → { hasDecision: true, ... }
     dependsOn: [],  // Resolved later in afterCreationMapper
   }),
-  
   mapTaskProps: ({ raw }) => ({
     maxRetries: raw.maxRetries ? parseInt(raw.maxRetries, 10) : 0,  // "3" → 3
     isOptional: raw.optional === 'true',             // "true" → true

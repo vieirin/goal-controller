@@ -90,34 +90,31 @@ export type EngineMapper<
 
 /**
  * Curried helper to create an engine mapper with full type inference.
- * First call provides the keys (inferring key types), second call provides the mappers.
+ * First call provides the engine types (explicit), second call provides keys and mappers (keys inferred).
  *
  * @example
- * const mapper = createEngineMapper({
+ * const mapper = createEngineMapper<GoalProps, TaskProps, ResourceProps>()({
  *   allowedGoalKeys: ['utility', 'cost'] as const,
  *   allowedTaskKeys: ['maxRetries'] as const,
  *   allowedResourceKeys: ['type', 'value'] as const,
- * })({
  *   mapGoalProps: ({ raw }) => ({ utility: raw.utility }), // raw is typed!
  *   mapTaskProps: ({ raw }) => ({ retries: raw.maxRetries }),
  *   mapResourceProps: ({ raw }) => ({ type: raw.type }),
  * });
  */
 export function createEngineMapper<
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string = never,
->(
-  keys: {
-    allowedGoalKeys: readonly TGoalKeys[];
-    allowedTaskKeys: readonly TTaskKeys[];
-  } & (
-    | { allowedResourceKeys: readonly TResourceKeys[]; skipResource?: false }
-    | { allowedResourceKeys?: undefined; skipResource: true }
-  ),
-) {
-  return <TGoalEngine, TTaskEngine, TResourceEngine = never>(
-    mappers: {
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine = never,
+>() {
+  return <
+    TGoalKeys extends string,
+    TTaskKeys extends string,
+    TResourceKeys extends string = never,
+  >(
+    config: {
+      allowedGoalKeys: readonly TGoalKeys[];
+      allowedTaskKeys: readonly TTaskKeys[];
       mapGoalProps: (props: {
         raw: RawProps<TGoalKeys>;
         executionDetail: GoalExecutionDetail | null;
@@ -133,11 +130,17 @@ export function createEngineMapper<
       }) => TGoalEngine | TTaskEngine | TResourceEngine;
     } & (
       | {
+          allowedResourceKeys: readonly TResourceKeys[];
+          skipResource?: false;
           mapResourceProps: (props: {
             raw: RawProps<TResourceKeys>;
           }) => TResourceEngine;
         }
-      | { mapResourceProps?: never }
+      | {
+          allowedResourceKeys?: undefined;
+          skipResource: true;
+          mapResourceProps?: never;
+        }
     ),
   ): EngineMapper<
     TGoalEngine,
@@ -147,7 +150,7 @@ export function createEngineMapper<
     TTaskKeys,
     TResourceKeys
   > => {
-    const skipResource = keys.allowedResourceKeys === undefined;
+    const skipResource = config.allowedResourceKeys === undefined;
 
     // If skipResource is explicitly set (no allowedResourceKeys), skip resource mapping
     if (skipResource) {
@@ -159,8 +162,11 @@ export function createEngineMapper<
         TTaskKeys,
         TResourceKeys
       > = {
-        ...keys,
-        ...mappers,
+        allowedGoalKeys: config.allowedGoalKeys,
+        allowedTaskKeys: config.allowedTaskKeys,
+        mapGoalProps: config.mapGoalProps,
+        mapTaskProps: config.mapTaskProps,
+        afterCreationMapper: config.afterCreationMapper,
         skipResource: true,
         mapResourceProps: undefined,
         allowedResourceKeys: undefined,
@@ -169,17 +175,28 @@ export function createEngineMapper<
     }
 
     // If allowedResourceKeys is defined, mapResourceProps MUST be provided
-    if (!mappers.mapResourceProps) {
+    if (!config.mapResourceProps) {
       throw new Error(
         '[INVALID MAPPER]: allowedResourceKeys is defined but mapResourceProps is missing. ' +
           'Either provide mapResourceProps or set skipResource: true.',
       );
     }
 
-    const result = {
-      ...keys,
-      ...mappers,
-      mapResourceProps: mappers.mapResourceProps,
+    const result: EngineMapper<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys
+    > = {
+      allowedGoalKeys: config.allowedGoalKeys,
+      allowedTaskKeys: config.allowedTaskKeys,
+      allowedResourceKeys: config.allowedResourceKeys,
+      mapGoalProps: config.mapGoalProps,
+      mapTaskProps: config.mapTaskProps,
+      mapResourceProps: config.mapResourceProps,
+      afterCreationMapper: config.afterCreationMapper,
     };
     return result;
   };
