@@ -29,10 +29,10 @@ export type BaseNode = {
   name: string | null;
 };
 
-export type Task<TEngine = unknown> = BaseNode & {
+export type Task<TEngine = unknown, TResourceEngine = unknown> = BaseNode & {
   type: 'task';
-  tasks: Array<Task<TEngine>>;
-  resources: Resource[];
+  tasks: Array<Task<TEngine, TResourceEngine>>;
+  resources: Array<Resource<TResourceEngine>>;
   properties: {
     engine: TEngine;
   };
@@ -41,39 +41,38 @@ export type Task<TEngine = unknown> = BaseNode & {
 export type GoalNode<
   TGoalEngine = unknown,
   TTaskEngine = unknown,
+  TResourceEngine = unknown,
 > = BaseNode & {
   type: 'goal';
   /** Goal children - only GoalNodes, not Tasks (tasks are in the tasks property) */
-  children?: Array<GoalNode<TGoalEngine, TTaskEngine>>;
+  children?: Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
   properties: {
     root?: boolean;
     isQuality: boolean;
     engine: TGoalEngine;
   };
   /** Task children - leaf goals have tasks */
-  tasks?: Array<Task<TTaskEngine>>;
+  tasks?: Array<Task<TTaskEngine, TResourceEngine>>;
 };
 
-export type Resource = BaseNode & {
+export type Resource<TEngine = unknown> = BaseNode & {
   type: 'resource';
-  variable:
-    | {
-        type: 'boolean';
-        initialValue: boolean;
-      }
-    | {
-        type: 'int';
-        initialValue: number;
-        lowerBound: number;
-        upperBound: number;
-      };
+  properties: {
+    engine: TEngine;
+  };
 };
 
-export type TreeNode<TGoalEngine = unknown, TTaskEngine = unknown> =
-  | GoalNode<TGoalEngine, TTaskEngine>
-  | Task<TTaskEngine>
-  | Resource;
+export type TreeNode<
+  TGoalEngine = unknown,
+  TTaskEngine = unknown,
+  TResourceEngine = unknown,
+> =
+  | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  | Task<TTaskEngine, TResourceEngine>
+  | Resource<TResourceEngine>;
 
-export type GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> = Array<
-  TreeNode<TGoalEngine, TTaskEngine>
->;
+export type GoalTree<
+  TGoalEngine = unknown,
+  TTaskEngine = unknown,
+  TResourceEngine = unknown,
+> = Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;

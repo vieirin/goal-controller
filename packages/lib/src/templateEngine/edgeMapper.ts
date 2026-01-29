@@ -8,13 +8,16 @@ import type {
   GoalNode,
   GoalTreeType,
   RawGoalProps,
+  RawResourceProps,
   RawTaskProps,
+  Resource,
   Task,
   TreeNode,
 } from '@goal-controller/goal-tree';
 import type {
   Decision,
   EdgeGoalProps,
+  EdgeResourceProps,
   EdgeTaskProps,
   ExecCondition,
 } from './types';
@@ -112,7 +115,7 @@ const getMaintainCondition = (
 
 // Resolved types with concrete GoalNode reference
 export type EdgeGoalPropsResolved = EdgeGoalProps<
-  GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps>
+  GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
 >;
 
 /**
@@ -133,7 +136,8 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
  */
 export const edgeEngineMapper: EngineMapper<
   EdgeGoalPropsResolved,
-  EdgeTaskProps
+  EdgeTaskProps,
+  EdgeResourceProps
 > = {
   mapGoalProps: ({
     raw,
@@ -168,13 +172,87 @@ export const edgeEngineMapper: EngineMapper<
     };
   },
 
+  mapResourceProps: ({ raw }: { raw: RawResourceProps }): EdgeResourceProps => {
+    const { type, initialValue, lowerBound, upperBound } = raw;
+
+    switch (type) {
+      case 'bool': {
+        if (!initialValue) {
+          throw new Error(
+            '[INVALID RESOURCE]: Resource must have an initial value',
+          );
+        }
+        return {
+          variable: {
+            type: 'boolean',
+            initialValue: initialValue === 'true',
+          },
+        };
+      }
+      case 'int': {
+        // Check for null/undefined/empty string explicitly to allow "0" as valid value
+        if (
+          initialValue == null ||
+          lowerBound == null ||
+          upperBound == null ||
+          initialValue === '' ||
+          lowerBound === '' ||
+          upperBound === ''
+        ) {
+          throw new Error(
+            '[INVALID RESOURCE]: Resource must have an initial value, lower bound, and upper bound',
+          );
+        }
+
+        const lowerBoundInt = parseInt(lowerBound);
+        const upperBoundInt = parseInt(upperBound);
+
+        if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
+          throw new Error(
+            '[INVALID RESOURCE]: Resource must have valid lower and upper bounds',
+          );
+        }
+
+        if (lowerBoundInt > upperBoundInt) {
+          throw new Error(
+            '[INVALID RESOURCE]: Resource lower bound must be less than upper bound',
+          );
+        }
+
+        const initialValueInt = parseInt(initialValue);
+
+        if (isNaN(initialValueInt)) {
+          throw new Error(
+            '[INVALID RESOURCE]: Resource must have a valid initial value',
+          );
+        }
+
+        return {
+          variable: {
+            type: 'int',
+            initialValue: initialValueInt,
+            lowerBound: lowerBoundInt,
+            upperBound: upperBoundInt,
+          },
+        };
+      }
+      default:
+        throw new Error(
+          `[INVALID RESOURCE]: Unsupported resource type: ${type}`,
+        );
+    }
+  },
+
   afterCreationMapper: ({
     node,
     allNodes,
     rawProperties,
   }: {
-    node: GoalNode<EdgeGoalPropsResolved, EdgeTaskProps>;
-    allNodes: Map<string, TreeNode<EdgeGoalPropsResolved, EdgeTaskProps>>;
+    node: GoalNode<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>;
+    allNodes: Map<
+      string,
+      TreeNode<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>
+    >;
     rawProperties: RawGoalProps;
   }) => {
     const depIds = parseDependsOn(rawProperties.dependsOn);
@@ -204,6 +282,15 @@ export const edgeEngineMapper: EngineMapper<
 /**
  * Type aliases for Edge-specific tree types
  */
-export type EdgeGoalNode = GoalNode<EdgeGoalPropsResolved, EdgeTaskProps>;
-export type EdgeTask = Task<EdgeTaskProps>;
-export type EdgeGoalTree = GoalTreeType<EdgeGoalPropsResolved, EdgeTaskProps>;
+export type EdgeGoalNode = GoalNode<
+  EdgeGoalPropsResolved,
+  EdgeTaskProps,
+  EdgeResourceProps
+>;
+export type EdgeTask = Task<EdgeTaskProps, EdgeResourceProps>;
+export type EdgeResource = Resource<EdgeResourceProps>;
+export type EdgeGoalTree = GoalTreeType<
+  EdgeGoalPropsResolved,
+  EdgeTaskProps,
+  EdgeResourceProps
+>;

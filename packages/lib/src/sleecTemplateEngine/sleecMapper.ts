@@ -54,8 +54,13 @@ const extractSleecTaskProps = (raw: RawTaskProps): SleecTaskProps => {
 /**
  * SLEEC Engine Mapper for creating SLEEC-compatible goal trees
  * Note: SLEEC doesn't use dependsOn, so no afterCreationMapper is needed
+ * Note: SLEEC doesn't use resources, so skipResource is set to true
  */
-export const sleecEngineMapper: EngineMapper<SleecGoalProps, SleecTaskProps> = {
+export const sleecEngineMapper: EngineMapper<
+  SleecGoalProps,
+  SleecTaskProps,
+  never
+> = {
   mapGoalProps: ({
     raw,
   }: {
@@ -68,12 +73,15 @@ export const sleecEngineMapper: EngineMapper<SleecGoalProps, SleecTaskProps> = {
   mapTaskProps: ({ raw }: { raw: RawTaskProps }) => {
     return extractSleecTaskProps(raw);
   },
-  // No afterCreationMapper needed - SLEEC doesn't use dependsOn
+
+  // Skip resources - SLEEC doesn't use them
+  skipResource: true,
 };
 
 /**
  * Type aliases for SLEEC-specific tree types
+ * Note: TResourceEngine is `never` because SLEEC skips resources
  */
-export type SleecGoalNode = GoalNode<SleecGoalProps, SleecTaskProps>;
-export type SleecTask = Task<SleecTaskProps>;
-export type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps>;
+export type SleecGoalNode = GoalNode<SleecGoalProps, SleecTaskProps, never>;
+export type SleecTask = Task<SleecTaskProps, never>;
+export type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps, never>;

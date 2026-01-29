@@ -13,10 +13,14 @@ import type {
 /**
  * Get all children of a node including tasks and resources
  */
-export function childrenWithTasksAndResources<TGoalEngine, TTaskEngine>(
-  node: TreeNode<TGoalEngine, TTaskEngine>,
-): TreeNode<TGoalEngine, TTaskEngine>[] {
-  const result: TreeNode<TGoalEngine, TTaskEngine>[] = [];
+export function childrenWithTasksAndResources<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+>(
+  node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
+  const result: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] = [];
 
   // Resources have no children
   if (node.type === 'resource') {
@@ -42,26 +46,26 @@ export function childrenWithTasksAndResources<TGoalEngine, TTaskEngine>(
 }
 
 // Overloads for type-specific returns
-export function allByType<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
+export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   type: 'goal',
-): GoalNode<TGoalEngine, TTaskEngine>[];
-export function allByType<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
+): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>[];
+export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   type: 'task',
-): Task<TTaskEngine>[];
-export function allByType<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
+): Task<TTaskEngine, TResourceEngine>[];
+export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   type: 'resource',
-): Resource[];
-export function allByType<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
+): Resource<TResourceEngine>[];
+export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   type: Type,
-): TreeNode<TGoalEngine, TTaskEngine>[];
-export function allByType<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
+): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[];
+export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   type: Type,
-): TreeNode<TGoalEngine, TTaskEngine>[] {
+): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
   const allCurrent = gm
     .flatMap((node) => {
       const children = childrenWithTasksAndResources(node);
@@ -72,28 +76,27 @@ export function allByType<TGoalEngine, TTaskEngine>(
     })
     .filter((node) => node.type === type)
     .sort((a, b) => a.id.localeCompare(b.id))
-    .reduce<Record<string, TreeNode<TGoalEngine, TTaskEngine>>>(
-      (acc, current) => {
-        if (acc[current.id]) {
-          return { ...acc };
-        }
-        return { ...acc, [current.id]: current };
-      },
-      {},
-    );
+    .reduce<
+      Record<string, TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>
+    >((acc, current) => {
+      if (acc[current.id]) {
+        return { ...acc };
+      }
+      return { ...acc, [current.id]: current };
+    }, {});
 
   return Object.values(allCurrent);
 }
 
-export function allGoalsMap<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
-): Map<string, GoalNode<TGoalEngine, TTaskEngine>> {
+export function allGoalsMap<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
+): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
   return new Map(allByType(gm, 'goal').map((goal) => [goal.id, goal]));
 }
 
-export function leafGoals<TGoalEngine, TTaskEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine>,
-): GoalNode<TGoalEngine, TTaskEngine>[] {
+export function leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
+  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
+): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
   return allByType(gm, 'goal').filter((goal) => !!goal.tasks);
 }
 
@@ -104,13 +107,19 @@ export function leafGoals<TGoalEngine, TTaskEngine>(
 export function childrenWithMaxRetries<
   TGoalEngine extends { maxRetries: number },
   TTaskEngine extends { maxRetries: number },
+  TResourceEngine,
 >(
-  node: GoalNode<TGoalEngine, TTaskEngine>,
-): Array<GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine>> {
+  node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+): Array<
+  | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  | Task<TTaskEngine, TResourceEngine>
+> {
   return childrenWithTasksAndResources(node).filter(
     (
       child,
-    ): child is GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine> => {
+    ): child is
+      | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+      | Task<TTaskEngine, TResourceEngine> => {
       if (child.type === 'resource') return false;
       return child.properties.engine.maxRetries > 0;
     },

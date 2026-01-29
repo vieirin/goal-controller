@@ -1,10 +1,9 @@
-import type { Resource } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
-import type { EdgeGoalTree, EdgeTask } from '../../edgeTypes';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { getLogger } from '../../../logger/logger';
 import { getVariablesFilePath } from '../../../utils/variablesPath';
+import type { EdgeGoalTree, EdgeResource, EdgeTask } from '../../edgeTypes';
 import { systemModuleTemplate } from './template';
 
 /**
@@ -140,7 +139,7 @@ export const systemModule = ({
   // Exclude resource IDs from context variables
   const resources = GoalTree.allByType(gm, 'resource');
   const resourceIds = new Set(
-    resources.map((resource: Resource) => resource.id),
+    resources.map((resource: EdgeResource) => resource.id),
   );
   const variables = Array.from(allContextVars).filter(
     (varName) => !resourceIds.has(varName),

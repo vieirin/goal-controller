@@ -13,29 +13,31 @@ export type NodeType =
   | 'istar.Quality';
 
 export type CustomPropertiesData = {
+  // common
   Description?: string;
   root?: string;
+
+  // EDGE goal/task properties
+  maxRetries?: string;
+
+  // EDGE goal properties
   cost?: string;
-  alt?: string;
   utility?: string;
   dependsOn?: string;
   variables?: string;
-  uniqueChoice?: string;
   type?: string;
-  maxRetries?: string;
-  selected?: string;
+
+  // EDGE Goal properties: Maintain/assertion properties
+  maintain?: string;
+  assertion?: string;
+
+  // SLEEC Task properties
   PreCond?: string;
   TriggeringEvent?: string;
   TemporalConstraint?: string;
   PostCond?: string;
   ObstacleEvent?: string;
-  // Resource-specific properties
-  initialValue?: string;
-  lowerBound?: string;
-  upperBound?: string;
-  // Maintain/assertion properties
-  maintain?: string;
-  assertion?: string;
+
   // SLEEC properties
   Type?: string;
   Source?: string;
@@ -46,6 +48,12 @@ export type CustomPropertiesData = {
   Condition?: string;
   Event?: string;
   ContextEvent?: string;
+
+  // Resource-specific properties
+  initialValue?: string;
+  lowerBound?: string;
+  upperBound?: string;
+
   // Allow additional string properties
   [key: string]: string | undefined;
 };

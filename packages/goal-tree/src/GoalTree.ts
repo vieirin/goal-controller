@@ -7,7 +7,6 @@ import {
   allByType as _allByType,
   allGoalsMap as _allGoalsMap,
   leafGoals as _leafGoals,
-  childrenWithMaxRetries,
 } from './internal/traversal';
 import {
   getContextVariables,
@@ -26,17 +25,22 @@ import type {
 /**
  * Query interface for tree operations
  */
-export type TreeQuery<TGoalEngine, TTaskEngine> = {
+export type TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine> = {
   /** Get all nodes of a specific type */
-  allByType: ((type: 'goal') => GoalNode<TGoalEngine, TTaskEngine>[]) &
-    ((type: 'task') => Task<TTaskEngine>[]) &
-    ((type: 'resource') => Resource[]);
+  allByType: ((
+    type: 'goal',
+  ) => Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>) &
+    ((type: 'task') => Array<Task<TTaskEngine, TResourceEngine>>) &
+    ((type: 'resource') => Array<Resource<TResourceEngine>>);
 
   /** Get a map of all goals by their ID */
-  allGoalsMap: () => Map<string, GoalNode<TGoalEngine, TTaskEngine>>;
+  allGoalsMap: () => Map<
+    string,
+    GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  >;
 
   /** Get all leaf goals (goals with tasks) */
-  leafGoals: () => GoalNode<TGoalEngine, TTaskEngine>[];
+  leafGoals: () => Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
 
   /** Get all context variables from the tree (requires execCondition in engine) */
   contextVariables: () => string[];
@@ -48,11 +52,19 @@ export type TreeQuery<TGoalEngine, TTaskEngine> = {
 /**
  * Main GoalTree class representing an iStar goal model
  */
-export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
-  private readonly _nodes: TreeNode<TGoalEngine, TTaskEngine>[];
-  public readonly query: TreeQuery<TGoalEngine, TTaskEngine>;
+export class GoalTree<
+  TGoalEngine = unknown,
+  TTaskEngine = unknown,
+  TResourceEngine = unknown,
+> {
+  private readonly _nodes: Array<
+    TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  >;
+  public readonly query: TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine>;
 
-  private constructor(nodes: TreeNode<TGoalEngine, TTaskEngine>[]) {
+  private constructor(
+    nodes: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>,
+  ) {
     this._nodes = nodes;
     this.query = this.createQueryInterface();
   }
@@ -64,10 +76,10 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
   /**
    * Create a GoalTree from an iStar model with a specific engine mapper
    */
-  static fromModel<TGoalEngine, TTaskEngine>(
+  static fromModel<TGoalEngine, TTaskEngine, TResourceEngine>(
     model: Model,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine>,
-  ): GoalTree<TGoalEngine, TTaskEngine> {
+    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const nodes = convertToTree(model, mapper);
     return new GoalTree(nodes);
   }
@@ -75,34 +87,32 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
   /**
    * Create a GoalTree from a pistar model file with a specific engine mapper
    */
-  static fromFile<TGoalEngine, TTaskEngine>(
+  static fromFile<TGoalEngine, TTaskEngine, TResourceEngine>(
     filename: string,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine>,
-  ): GoalTree<TGoalEngine, TTaskEngine> {
+    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const modelFile = readFileSync(filename);
-    const model = JSON.parse(modelFile.toString()) as Model;
-    validateModel(model);
+    const model = parseModel(modelFile.toString());
     return GoalTree.fromModel(model, mapper);
   }
 
   /**
    * Create a GoalTree from JSON string with a specific engine mapper
    */
-  static fromJSON<TGoalEngine, TTaskEngine>(
+  static fromJSON<TGoalEngine, TTaskEngine, TResourceEngine>(
     json: string,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine>,
-  ): GoalTree<TGoalEngine, TTaskEngine> {
-    const model = JSON.parse(json) as Model;
-    validateModel(model);
+    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
+    const model = parseModel(json);
     return GoalTree.fromModel(model, mapper);
   }
 
   /**
    * Create a GoalTree from existing nodes (for internal use or testing)
    */
-  static fromNodes<TGoalEngine, TTaskEngine>(
-    nodes: TreeNode<TGoalEngine, TTaskEngine>[],
-  ): GoalTree<TGoalEngine, TTaskEngine> {
+  static fromNodes<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>,
+  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     return new GoalTree(nodes);
   }
 
@@ -111,14 +121,14 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /** Get all nodes in the tree */
-  get nodes(): TreeNode<TGoalEngine, TTaskEngine>[] {
+  get nodes(): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return this._nodes;
   }
 
   /** Get the root goal node */
-  get root(): GoalNode<TGoalEngine, TTaskEngine> | undefined {
+  get root(): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined {
     return this._nodes.find(
-      (node): node is GoalNode<TGoalEngine, TTaskEngine> =>
+      (node): node is GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
         node.type === 'goal' && node.properties.root === true,
     );
   }
@@ -137,10 +147,12 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
     let level = 1;
     // eslint-disable-next-line no-console
     console.log(this._nodes);
-    let children = (this._nodes[0] as GoalNode<TGoalEngine, TTaskEngine>)
-      ?.children;
+    const firstNode = this._nodes[0];
+    let children = firstNode?.type === 'goal' ? firstNode.children : undefined;
     while ((children?.length ?? 0) > 0) {
-      const newChildren: GoalNode<TGoalEngine, TTaskEngine>[] = [];
+      const newChildren: Array<
+        GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+      > = [];
       // eslint-disable-next-line no-console
       console.log('=== children ===', { level });
       children?.forEach((element) => {
@@ -160,49 +172,49 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /** Get all nodes of a specific type from a tree array */
-  static allByType<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: 'goal',
-  ): GoalNode<TGoalEngine, TTaskEngine>[];
-  static allByType<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: 'task',
-  ): Task<TTaskEngine>[];
-  static allByType<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  ): Array<Task<TTaskEngine, TResourceEngine>>;
+  static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: 'resource',
-  ): Resource[];
-  static allByType<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  ): Array<Resource<TResourceEngine>>;
+  static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: Type,
-  ): TreeNode<TGoalEngine, TTaskEngine>[] {
+  ): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return _allByType(nodes, type);
   }
 
   /** Get a map of all goals from a tree array */
-  static allGoalsMap<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
-  ): Map<string, GoalNode<TGoalEngine, TTaskEngine>> {
+  static allGoalsMap<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return _allGoalsMap(nodes);
   }
 
   /** Get leaf goals from a tree array */
-  static leafGoals<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
-  ): GoalNode<TGoalEngine, TTaskEngine>[] {
+  static leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return _leafGoals(nodes);
   }
 
   /** Get context variables from a tree array */
-  static contextVariables<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  static contextVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): string[] {
     return getContextVariables(nodes);
   }
 
   /** Get task achievability variables from a tree array */
-  static taskAchievabilityVariables<TGoalEngine, TTaskEngine>(
-    nodes: GoalTreeArray<TGoalEngine, TTaskEngine>,
+  static taskAchievabilityVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
+    nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): string[] {
     return getTaskAchievabilityVariables(nodes);
   }
@@ -211,13 +223,27 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
   // Private Methods
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private createQueryInterface(): TreeQuery<TGoalEngine, TTaskEngine> {
+  private createQueryInterface(): TreeQuery<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine
+  > {
     const nodes = this._nodes;
 
+    // Create properly typed allByType function using overloads
+    function allByType(
+      type: 'goal',
+    ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+    function allByType(type: 'task'): Array<Task<TTaskEngine, TResourceEngine>>;
+    function allByType(type: 'resource'): Array<Resource<TResourceEngine>>;
+    function allByType(
+      type: 'goal' | 'task' | 'resource',
+    ): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
+      return _allByType(nodes, type);
+    }
+
     return {
-      allByType: ((type: 'goal' | 'task' | 'resource') => {
-        return _allByType(nodes, type);
-      }) as TreeQuery<TGoalEngine, TTaskEngine>['allByType'],
+      allByType,
 
       allGoalsMap: () => _allGoalsMap(nodes),
 
@@ -234,8 +260,41 @@ export class GoalTree<TGoalEngine = unknown, TTaskEngine = unknown> {
 export type { EngineMapper } from './internal/creation';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Model Validation (used internally)
+// Model Parsing and Validation (used internally)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Type guard to check if a value is a valid Model structure.
+ */
+function isModel(value: unknown): value is Model {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  // Check for required properties using 'in' operator
+  if (!('actors' in value) || !('links' in value)) {
+    return false;
+  }
+
+  // After 'in' checks, we can safely access these properties
+  // TypeScript narrows to { actors: unknown; links: unknown }
+  return Array.isArray(value.actors) && Array.isArray(value.links);
+}
+
+/**
+ * Parse JSON string and validate it as a Model.
+ * Uses type guard to avoid 'as' type assertion.
+ */
+function parseModel(json: string): Model {
+  const parsed: unknown = JSON.parse(json);
+
+  if (!isModel(parsed)) {
+    throw new Error('Invalid model: missing or invalid actors or links');
+  }
+
+  validateModel(parsed);
+  return parsed;
+}
 
 function validateModel(model: Model): void {
   const root = model.actors

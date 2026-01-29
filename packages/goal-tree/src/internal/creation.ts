@@ -1,7 +1,6 @@
 /**
  * Internal tree creation logic
  */
-import type { Dictionary } from 'lodash';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
   Actor,
@@ -57,12 +56,34 @@ export type RawTaskProps = {
   ObstacleEvent?: string;
 };
 
+export type RawResourceProps = {
+  type?: string;
+  initialValue?: string;
+  lowerBound?: string;
+  upperBound?: string;
+};
+
 export type { GoalExecutionDetail };
+
+/**
+ * Resource mapper configuration - discriminated union
+ * Either skip resources entirely, or provide a mapper function
+ */
+type ResourceMapperConfig<TResourceEngine> =
+  | { skipResource: true; mapResourceProps?: never }
+  | {
+      skipResource?: false;
+      mapResourceProps: (props: { raw: RawResourceProps }) => TResourceEngine;
+    };
 
 /**
  * Engine mapper interface for creating engine-specific properties
  */
-export type EngineMapper<TGoalEngine, TTaskEngine> = {
+export type EngineMapper<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine = unknown,
+> = {
   /**
    * Map raw goal properties to engine-specific goal properties
    */
@@ -81,11 +102,11 @@ export type EngineMapper<TGoalEngine, TTaskEngine> = {
    * Called for each goal node after the full tree is built
    */
   afterCreationMapper?: (props: {
-    node: GoalNode<TGoalEngine, TTaskEngine>;
-    allNodes: Map<string, TreeNode<TGoalEngine, TTaskEngine>>;
+    node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>;
+    allNodes: Map<string, TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
     rawProperties: RawGoalProps;
   }) => TGoalEngine;
-};
+} & ResourceMapperConfig<TResourceEngine>;
 
 const convertIstarType = ({ type }: { type: NodeType }) => {
   switch (type) {
@@ -102,90 +123,35 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
   }
 };
 
-// Temporary storage for raw goal properties during tree creation
-// Used by afterCreationMapper to access raw properties after tree is built
-const pendingRawProperties = new Map<string, RawGoalProps>();
-
-const createResource = (
-  resource: BaseNode & { properties: Dictionary<string> },
-): Resource => {
-  const { type } = resource.properties;
-  switch (type) {
-    case 'bool': {
-      const { initialValue } = resource.properties;
-      if (!initialValue) {
-        throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value`,
-        );
-      }
-      return {
-        ...resource,
-        type: 'resource',
-        variable: { type: 'boolean', initialValue: initialValue === 'true' },
-      };
-    }
-    case 'int': {
-      const { initialValue, lowerBound, upperBound } = resource.properties;
-
-      // Check for null/undefined/empty string explicitly to allow "0" as valid value
-      if (
-        initialValue == null ||
-        lowerBound == null ||
-        upperBound == null ||
-        initialValue === '' ||
-        lowerBound === '' ||
-        upperBound === ''
-      ) {
-        throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have an initial value, lower bound, and upper bound`,
-        );
-      }
-
-      const lowerBoundInt = parseInt(lowerBound);
-      const upperBoundInt = parseInt(upperBound);
-
-      if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
-        throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`,
-        );
-      }
-
-      if (lowerBoundInt > upperBoundInt) {
-        throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid lower and upper bound, lower bound must be less than upper bound`,
-        );
-      }
-
-      const initialValueInt = parseInt(initialValue);
-
-      if (isNaN(initialValueInt)) {
-        throw new Error(
-          `[INVALID RESOURCE]: Resource ${resource.id} must have a valid initial value`,
-        );
-      }
-      return {
-        ...resource,
-        type: 'resource',
-        variable: {
-          type: 'int',
-          initialValue: initialValueInt,
-          lowerBound: lowerBoundInt,
-          upperBound: upperBoundInt,
-        },
-      };
-    }
-    default:
-      throw new Error(`[INVALID RESOURCE]: Unsupported resource type: ${type}`);
-  }
+/**
+ * Context object for tree creation - avoids module-level state
+ * that could cause race conditions with concurrent calls
+ */
+type CreationContext = {
+  /** Storage for raw goal properties, used by afterCreationMapper */
+  rawPropertiesMap: Map<string, RawGoalProps>;
 };
 
-function convertNonGoalChildren<TGoalEngine, TTaskEngine>(
-  children: Array<TreeNode<TGoalEngine, TTaskEngine>>,
+function createResource<TResourceEngine>(
+  resource: BaseNode & { rawProps: RawResourceProps },
+  mapResourceProps: (props: { raw: RawResourceProps }) => TResourceEngine,
+): Resource<TResourceEngine> {
+  return {
+    ...resource,
+    type: 'resource',
+    properties: {
+      engine: mapResourceProps({ raw: resource.rawProps }),
+    },
+  };
+}
+
+function convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(
+  children: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>,
 ) {
   return children.reduce<{
-    resources: Resource[];
-    children: Array<GoalNode<TGoalEngine, TTaskEngine>>;
-    tasks: Array<Task<TTaskEngine>>;
+    resources: Array<Resource<TResourceEngine>>;
+    children: Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+    tasks: Array<Task<TTaskEngine, TResourceEngine>>;
   }>(
     (acc, child) => {
       if (child.type === 'resource') {
@@ -210,17 +176,19 @@ function convertNonGoalChildren<TGoalEngine, TTaskEngine>(
   );
 }
 
-function createNode<TGoalEngine, TTaskEngine>({
+function createNode<TGoalEngine, TTaskEngine, TResourceEngine>({
   node,
   relation,
   children,
   mapper,
+  context,
 }: {
   node: Node;
   relation: Relation;
-  children: Array<TreeNode<TGoalEngine, TTaskEngine>>;
-  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
-}): TreeNode<TGoalEngine, TTaskEngine> {
+  children: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
+}): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const { id, goalName, executionDetail } = getGoalDetail({
     goalText: node.text,
   });
@@ -241,7 +209,9 @@ function createNode<TGoalEngine, TTaskEngine>({
     resources,
     tasks,
     children: filteredChildren,
-  } = convertNonGoalChildren(children);
+  } = convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(
+    children,
+  );
 
   if (
     !children.length &&
@@ -261,20 +231,28 @@ function createNode<TGoalEngine, TTaskEngine>({
   }
 
   if (nodeType === 'resource') {
-    const resourceNode: BaseNode & { properties: Dictionary<string> } = {
+    // Skip resource if skipResource is true
+    if (mapper.skipResource === true) {
+      return null;
+    }
+
+    // TypeScript now knows mapper has mapResourceProps (discriminated union)
+    const rawResourceProps: RawResourceProps = {
+      type: customProperties.type || '',
+      initialValue: customProperties.initialValue || '',
+      lowerBound: customProperties.lowerBound || '',
+      upperBound: customProperties.upperBound || '',
+    };
+
+    const resourceNode: BaseNode & { rawProps: RawResourceProps } = {
       id,
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
       type: 'resource',
-      properties: {
-        type: customProperties.type || '',
-        initialValue: customProperties.initialValue || '',
-        lowerBound: customProperties.lowerBound || '',
-        upperBound: customProperties.upperBound || '',
-      },
+      rawProps: rawResourceProps,
     };
-    return createResource(resourceNode);
+    return createResource(resourceNode, mapper.mapResourceProps);
   }
 
   if (nodeType === 'task') {
@@ -290,7 +268,7 @@ function createNode<TGoalEngine, TTaskEngine>({
       ObstacleEvent: customProperties.ObstacleEvent,
     };
 
-    const taskNode: Task<TTaskEngine> = {
+    const taskNode: Task<TTaskEngine, TResourceEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
@@ -328,9 +306,9 @@ function createNode<TGoalEngine, TTaskEngine>({
     };
 
     // Store raw properties for afterCreationMapper
-    pendingRawProperties.set(id, rawGoalProps);
+    context.rawPropertiesMap.set(id, rawGoalProps);
 
-    const goalNode: GoalNode<TGoalEngine, TTaskEngine> = {
+    const goalNode: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
@@ -355,17 +333,19 @@ function createNode<TGoalEngine, TTaskEngine>({
   );
 }
 
-function nodeChildren<TGoalEngine, TTaskEngine>({
+function nodeChildren<TGoalEngine, TTaskEngine, TResourceEngine>({
   actor,
   id,
   links,
   mapper,
+  context,
 }: {
   actor: Actor;
   links: Link[];
   id?: string;
-  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
-}): [Array<TreeNode<TGoalEngine, TTaskEngine>>, Relation] {
+  mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
+}): [Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>, Relation] {
   if (!id) {
     return [[], 'none'];
   }
@@ -405,140 +385,162 @@ function nodeChildren<TGoalEngine, TTaskEngine>({
   }
 
   const children = nodeLinks
-    .map((link): TreeNode<TGoalEngine, TTaskEngine> | undefined => {
-      const isOutgoingQualification =
-        link.type === 'istar.QualificationLink' && link.source === id;
-      const childNodeId = isOutgoingQualification ? link.target : link.source;
+    .map(
+      (
+        link,
+      ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined => {
+        const isOutgoingQualification =
+          link.type === 'istar.QualificationLink' && link.source === id;
+        const childNodeId = isOutgoingQualification ? link.target : link.source;
 
-      const node = actor.nodes.find((item) => item.id === childNodeId);
-      if (!node) {
-        return undefined;
-      }
+        const node = actor.nodes.find((item) => item.id === childNodeId);
+        if (!node) {
+          return undefined;
+        }
 
-      const [granChildren, relation] = nodeChildren({
-        actor,
-        id: node.id,
-        links,
-        mapper,
-      });
+        const [granChildren, relation] = nodeChildren({
+          actor,
+          id: node.id,
+          links,
+          mapper,
+          context,
+        });
 
-      return createNode({
-        node,
-        relation,
-        children: granChildren,
-        mapper,
-      });
-    })
-    .filter((n): n is TreeNode<TGoalEngine, TTaskEngine> => !!n);
+        // createNode returns null for skipped resources
+        const createdNode = createNode({
+          node,
+          relation,
+          children: granChildren,
+          mapper,
+          context,
+        });
+
+        return createdNode ?? undefined;
+      },
+    )
+    .filter(
+      (n): n is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> => !!n,
+    );
 
   return [children, relations[0] ?? 'none'];
 }
 
-function nodeToTree<TGoalEngine, TTaskEngine>({
+function nodeToTree<TGoalEngine, TTaskEngine, TResourceEngine>({
   actor,
   iStarLinks,
   node,
   mapper,
+  context,
 }: {
   actor: Actor;
   iStarLinks: Link[];
   node: Node;
-  mapper: EngineMapper<TGoalEngine, TTaskEngine>;
-}): TreeNode<TGoalEngine, TTaskEngine> {
+  mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
+}): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const [children, relation] = nodeChildren({
     actor,
     id: node.id,
     links: iStarLinks,
     mapper,
+    context,
   });
 
-  return createNode({ node, children, relation, mapper });
+  return createNode({ node, children, relation, mapper, context });
 }
 
-function runAfterCreationMapper<TGoalEngine, TTaskEngine>(
-  tree: GoalTree<TGoalEngine, TTaskEngine>,
-  mapper: EngineMapper<TGoalEngine, TTaskEngine>,
-): GoalTree<TGoalEngine, TTaskEngine> {
+function runAfterCreationMapper<TGoalEngine, TTaskEngine, TResourceEngine>(
+  tree: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
+  mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+  context: CreationContext,
+): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
   // If no afterCreationMapper is provided, return tree as-is
-  if (!mapper.afterCreationMapper) {
-    pendingRawProperties.clear();
+  if (!('afterCreationMapper' in mapper) || !mapper.afterCreationMapper) {
     return tree;
   }
 
-  try {
-    const allGoals = allByType(tree, 'goal') as Array<
-      GoalNode<TGoalEngine, TTaskEngine>
-    >;
-    const allTasks = allByType(tree, 'task') as Array<Task<TTaskEngine>>;
-    const allResources = allByType(tree, 'resource');
+  const allGoals = allByType(tree, 'goal');
+  const allTasks = allByType(tree, 'task');
+  const allResources = allByType(tree, 'resource');
 
-    const nodeMap = new Map<string, TreeNode<TGoalEngine, TTaskEngine>>();
-    [...allGoals, ...allTasks, ...allResources].forEach((node) => {
-      nodeMap.set(node.id, node);
-    });
+  const nodeMap = new Map<
+    string,
+    TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  >();
+  [...allGoals, ...allTasks, ...allResources].forEach((node) => {
+    nodeMap.set(node.id, node);
+  });
 
-    const processNode = (
-      node: TreeNode<TGoalEngine, TTaskEngine>,
-    ): TreeNode<TGoalEngine, TTaskEngine> => {
-      if (node.type !== 'goal') {
-        return node;
-      }
+  const processGoal = (
+    goal: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> => {
+    const rawProperties = context.rawPropertiesMap.get(goal.id) || {};
 
-      const rawProperties = pendingRawProperties.get(node.id) || {};
+    const resolvedChildren = goal.children?.map(processGoal);
 
-      const resolvedChildren = node.children?.map(processNode) as
-        | Array<GoalNode<TGoalEngine, TTaskEngine>>
-        | undefined;
-
-      // Call afterCreationMapper to transform engine props
-      const updatedEngine = mapper.afterCreationMapper
+    // Call afterCreationMapper to transform engine props
+    const updatedEngine =
+      'afterCreationMapper' in mapper && mapper.afterCreationMapper
         ? mapper.afterCreationMapper({
-            node,
+            node: goal,
             allNodes: nodeMap,
             rawProperties,
           })
-        : node.properties.engine;
+        : goal.properties.engine;
 
-      return {
-        ...node,
-        properties: {
-          ...node.properties,
-          engine: updatedEngine,
-        },
-        ...(resolvedChildren && { children: resolvedChildren }),
-      };
+    return {
+      ...goal,
+      properties: {
+        ...goal.properties,
+        engine: updatedEngine,
+      },
+      ...(resolvedChildren && { children: resolvedChildren }),
     };
+  };
 
-    return tree.map(processNode);
-  } finally {
-    // Always clear pending raw properties, even on error
-    pendingRawProperties.clear();
-  }
+  // Process only goal nodes (top-level nodes in tree are goals)
+  return tree.map((node) => {
+    if (node.type === 'goal') {
+      return processGoal(node);
+    }
+    return node;
+  });
 }
 
 /**
  * Convert an iStar model to a GoalTree with engine-specific properties
  */
-export function convertToTree<TGoalEngine, TTaskEngine>(
+export function convertToTree<TGoalEngine, TTaskEngine, TResourceEngine>(
   model: Model,
-  mapper: EngineMapper<TGoalEngine, TTaskEngine>,
-): GoalTree<TGoalEngine, TTaskEngine> {
-  const unidirectionalTree = model.actors.map((actor) => {
-    const rootNode = actor.nodes.find((item) => item.customProperties.root);
-    if (!rootNode) {
-      throw new Error(
-        '[Invalid model]: Root node not found during tree creation',
-      );
-    }
+  mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
+  // Create per-call context to avoid race conditions with concurrent calls
+  const context: CreationContext = {
+    rawPropertiesMap: new Map<string, RawGoalProps>(),
+  };
 
-    return nodeToTree({
-      actor,
-      node: rootNode,
-      iStarLinks: [...model.links],
-      mapper,
-    });
-  });
+  const unidirectionalTree = model.actors
+    .map((actor) => {
+      const rootNode = actor.nodes.find((item) => item.customProperties.root);
+      if (!rootNode) {
+        throw new Error(
+          '[Invalid model]: Root node not found during tree creation',
+        );
+      }
+
+      return nodeToTree({
+        actor,
+        node: rootNode,
+        iStarLinks: [...model.links],
+        mapper,
+        context,
+      });
+    })
+    .filter(
+      (node): node is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
+        node !== null,
+    );
 
   // Run afterCreationMapper if provided (e.g., to resolve dependsOn)
-  return runAfterCreationMapper(unidirectionalTree, mapper);
+  return runAfterCreationMapper(unidirectionalTree, mapper, context);
 }

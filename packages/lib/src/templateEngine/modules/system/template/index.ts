@@ -1,5 +1,5 @@
-import type { Resource } from '@goal-controller/goal-tree';
 import { defineVariable, resourceVariableName } from './variable';
+import type { EdgeResource } from '../../../edgeTypes';
 
 export const systemModuleTemplate = ({
   variables,
@@ -8,27 +8,28 @@ export const systemModuleTemplate = ({
   oldTransitions,
 }: {
   variables: string[];
-  resources: Resource[];
+  resources: Array<EdgeResource>;
   defaultVariableValues: Record<string, number | boolean>;
   oldTransitions?: string[];
 }): string => {
   const resourceVariables = resources.map((resource) => {
-    if (resource.variable.type === 'boolean') {
+    const { variable } = resource.properties.engine;
+    if (variable.type === 'boolean') {
       return defineVariable(
         resourceVariableName(resource),
-        resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
-        resource.variable.type,
+        variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
+        variable.type,
         'resource',
       );
     }
 
     return defineVariable(
       resourceVariableName(resource),
-      resource.variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
-      resource.variable.type,
+      variable.initialValue ?? 'MISSING_VARIABLE_DEFINITION',
+      variable.type,
       'resource',
-      resource.variable.lowerBound,
-      resource.variable.upperBound,
+      variable.lowerBound,
+      variable.upperBound,
     );
   });
   return `module System

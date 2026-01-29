@@ -47,3 +47,21 @@ export type EdgeGoalProps<TGoalNode = unknown> = {
   decision: Decision;
   maxRetries: number;
 };
+
+// Resource variable types for Edge engine
+export type EdgeResourceVariable =
+  | {
+      type: 'boolean';
+      initialValue: boolean;
+    }
+  | {
+      type: 'int';
+      initialValue: number;
+      lowerBound: number;
+      upperBound: number;
+    };
+
+// Resource properties for Edge engine
+export type EdgeResourceProps = {
+  variable: EdgeResourceVariable;
+};

@@ -7,6 +7,7 @@
 export type {
   EdgeGoalNode,
   EdgeTask,
+  EdgeResource,
   EdgeGoalTree,
   EdgeGoalPropsResolved,
 } from './edgeMapper';
@@ -15,6 +16,8 @@ export type {
 export type {
   EdgeGoalProps,
   EdgeTaskProps,
+  EdgeResourceProps,
+  EdgeResourceVariable,
   ExecCondition,
   Decision,
   GoalExecutionDetail,

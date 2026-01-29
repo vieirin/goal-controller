@@ -1,7 +1,7 @@
-import type { Resource } from '@goal-controller/goal-tree';
+import type { EdgeResource } from '../../../edgeTypes';
 import { getLogger } from '../../../../logger/logger';
 
-export const resourceVariableName = (resource: Resource): string =>
+export const resourceVariableName = (resource: EdgeResource): string =>
   `${resource.id}`;
 
 export const defineVariable = (

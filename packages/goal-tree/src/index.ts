@@ -68,6 +68,7 @@ export type {
 export type {
   RawGoalProps,
   RawTaskProps,
+  RawResourceProps,
   GoalExecutionDetail,
 } from './internal/creation';
 

@@ -19,27 +19,27 @@ export const Node = {
   /**
    * Check if a node is a GoalNode
    */
-  isGoal<TGoalEngine, TTaskEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine>,
-  ): node is GoalNode<TGoalEngine, TTaskEngine> {
+  isGoal<TGoalEngine, TTaskEngine, TResourceEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): node is GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> {
     return node.type === 'goal';
   },
 
   /**
    * Check if a node is a Task
    */
-  isTask<TGoalEngine, TTaskEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine>,
-  ): node is Task<TTaskEngine> {
+  isTask<TGoalEngine, TTaskEngine, TResourceEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): node is Task<TTaskEngine, TResourceEngine> {
     return node.type === 'task';
   },
 
   /**
    * Check if a node is a Resource
    */
-  isResource<TGoalEngine, TTaskEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine>,
-  ): node is Resource {
+  isResource<TGoalEngine, TTaskEngine, TResourceEngine>(
+    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): node is Resource<TResourceEngine> {
     return node.type === 'resource';
   },
 
@@ -50,9 +50,11 @@ export const Node = {
   /**
    * Get all children of a node (including tasks and resources)
    */
-  children<TGoalEngine, TTaskEngine>(
-    node: GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine>,
-  ): TreeNode<TGoalEngine, TTaskEngine>[] {
+  children<TGoalEngine, TTaskEngine, TResourceEngine>(
+    node:
+      | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+      | Task<TTaskEngine, TResourceEngine>,
+  ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
     return childrenWithTasksAndResources(node);
   },
 
@@ -63,9 +65,13 @@ export const Node = {
   childrenWithRetries<
     TGoalEngine extends { maxRetries: number },
     TTaskEngine extends { maxRetries: number },
+    TResourceEngine,
   >(
-    node: GoalNode<TGoalEngine, TTaskEngine>,
-  ): Array<GoalNode<TGoalEngine, TTaskEngine> | Task<TTaskEngine>> {
+    node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
+  ): Array<
+    | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
+    | Task<TTaskEngine, TResourceEngine>
+  > {
     return _childrenWithMaxRetries(node);
   },
 
