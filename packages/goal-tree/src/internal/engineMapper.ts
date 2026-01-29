@@ -148,7 +148,9 @@ export function createEngineMapper<
     TResourceKeys
   > => {
     const skipResource = keys.allowedResourceKeys === undefined;
-    if (skipResource || !mappers.mapResourceProps) {
+
+    // If skipResource is explicitly set (no allowedResourceKeys), skip resource mapping
+    if (skipResource) {
       const result: EngineMapper<
         TGoalEngine,
         TTaskEngine,
@@ -165,6 +167,15 @@ export function createEngineMapper<
       };
       return result;
     }
+
+    // If allowedResourceKeys is defined, mapResourceProps MUST be provided
+    if (!mappers.mapResourceProps) {
+      throw new Error(
+        '[INVALID MAPPER]: allowedResourceKeys is defined but mapResourceProps is missing. ' +
+          'Either provide mapResourceProps or set skipResource: true.',
+      );
+    }
+
     const result = {
       ...keys,
       ...mappers,

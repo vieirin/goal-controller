@@ -210,9 +210,10 @@ export const edgeEngineMapper = createEngineMapper({
 
     switch (type) {
       case 'bool': {
-        if (!initialValue) {
+        // Validate initialValue is strictly 'true' or 'false'
+        if (initialValue !== 'true' && initialValue !== 'false') {
           throw new Error(
-            '[INVALID RESOURCE]: Resource must have an initial value',
+            `[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: ${initialValue === undefined ? 'undefined' : `"${initialValue}"`}`,
           );
         }
         return {
@@ -233,30 +234,40 @@ export const edgeEngineMapper = createEngineMapper({
           upperBound === ''
         ) {
           throw new Error(
-            '[INVALID RESOURCE]: Resource must have an initial value, lower bound, and upper bound',
+            '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound',
           );
         }
 
-        const lowerBoundInt = parseInt(lowerBound);
-        const upperBoundInt = parseInt(upperBound);
+        const lowerBoundInt = parseInt(lowerBound, 10);
+        const upperBoundInt = parseInt(upperBound, 10);
 
         if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
           throw new Error(
-            '[INVALID RESOURCE]: Resource must have valid lower and upper bounds',
+            '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
           );
         }
 
         if (lowerBoundInt > upperBoundInt) {
           throw new Error(
-            '[INVALID RESOURCE]: Resource lower bound must be less than upper bound',
+            `[INVALID RESOURCE]: Resource lower bound (${lowerBoundInt}) must be less than or equal to upper bound (${upperBoundInt})`,
           );
         }
 
-        const initialValueInt = parseInt(initialValue);
+        const initialValueInt = parseInt(initialValue, 10);
 
         if (isNaN(initialValueInt)) {
           throw new Error(
-            '[INVALID RESOURCE]: Resource must have a valid initial value',
+            `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
+          );
+        }
+
+        // Validate initialValue is within bounds
+        if (
+          initialValueInt < lowerBoundInt ||
+          initialValueInt > upperBoundInt
+        ) {
+          throw new Error(
+            `[INVALID RESOURCE]: Initial value (${initialValueInt}) must be within bounds [${lowerBoundInt}, ${upperBoundInt}]`,
           );
         }
 
