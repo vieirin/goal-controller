@@ -42,7 +42,7 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
     case 'istar.Quality':
       return 'goal';
     default:
-      throw new Error('Invalid node type: ' + type);
+      throw new Error('[INVALID_MODEL]: Invalid node type: ' + type);
   }
 };
 
@@ -279,7 +279,7 @@ function createNode<
   }
 
   throw new Error(
-    `[INVALID NODE TYPE]: Unsupported node type: ${nodeType as string}`,
+    `[INVALID_MODEL]: Unsupported node type: ${nodeType as string}`,
   );
 }
 
@@ -481,21 +481,40 @@ function runAfterCreationMapper<
     const resolvedChildren = goal.children?.map(processGoal);
 
     // Call afterCreationMapper to transform engine props
-    // For goal nodes, the mapper should return TGoalEngine
-    const updatedEngine: TGoalEngine =
+    // Validate that rawProperties.type matches the node type before casting
+    if (rawProperties.type !== 'goal') {
+      // If this happens, just return the original engine
+      // This should not occur in practice, but provides safety
+      return {
+        ...goal,
+        properties: {
+          ...goal.properties,
+        },
+        ...(resolvedChildren && { children: resolvedChildren }),
+      };
+    }
+
+    const updatedEngine =
       'afterCreationMapper' in mapper && mapper.afterCreationMapper
-        ? (mapper.afterCreationMapper({
+        ? mapper.afterCreationMapper({
             node: goal,
             allNodes: nodeMap,
             rawProperties,
-          }) as TGoalEngine)
+          })
         : goal.properties.engine;
+
+    // Runtime validation before type assertion
+    if (typeof updatedEngine !== 'object' || updatedEngine === null) {
+      throw new Error(
+        `[INVALID_MAPPER]: afterCreationMapper for goal ${goal.id} must return an object`,
+      );
+    }
 
     return {
       ...goal,
       properties: {
         ...goal.properties,
-        engine: updatedEngine,
+        engine: updatedEngine as TGoalEngine,
       },
       ...(resolvedChildren && { children: resolvedChildren }),
     };
@@ -541,7 +560,7 @@ export function convertToTree<
       const rootNode = actor.nodes.find((item) => item.customProperties.root);
       if (!rootNode) {
         throw new Error(
-          '[Invalid model]: Root node not found during tree creation',
+          '[INVALID_MODEL]: Root node not found during tree creation',
         );
       }
 

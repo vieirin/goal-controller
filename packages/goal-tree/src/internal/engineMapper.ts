@@ -165,16 +165,10 @@ export function createEngineMapper<
       };
       return result;
     }
-    const result: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys
-    > = {
+    const result = {
       ...keys,
       ...mappers,
+      mapResourceProps: mappers.mapResourceProps,
     };
     return result;
   };

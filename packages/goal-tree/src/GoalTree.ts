@@ -1,7 +1,6 @@
 /**
  * GoalTree SDK - Main class for working with goal trees
  */
-import { readFileSync } from 'fs';
 import {
   convertToTree,
   createEngineMapper,
@@ -16,10 +15,11 @@ import {
   getContextVariables,
   getTaskAchievabilityVariables,
 } from './internal/variables';
+import { Model } from './Model';
 import type {
   GoalNode,
   GoalTree as GoalTreeArray,
-  Model,
+  Model as IStarModel,
   Resource,
   Task,
   TreeNode,
@@ -83,7 +83,7 @@ export class GoalTree<
    * Create a GoalTree from an iStar model with a specific engine mapper
    */
   static fromModel<TGoalEngine, TTaskEngine, TResourceEngine>(
-    model: Model,
+    model: IStarModel,
     mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const nodes = convertToTree(model, mapper);
@@ -97,8 +97,7 @@ export class GoalTree<
     filename: string,
     mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
-    const modelFile = readFileSync(filename);
-    const model = parseModel(modelFile.toString());
+    const model = Model.load(filename);
     return GoalTree.fromModel(model, mapper);
   }
 
@@ -109,7 +108,7 @@ export class GoalTree<
     json: string,
     mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
-    const model = parseModel(json);
+    const model = Model.parse(json);
     return GoalTree.fromModel(model, mapper);
   }
 
@@ -148,36 +147,24 @@ export class GoalTree<
     return JSON.stringify(this._nodes, null, 2);
   }
 
-  /** Print the tree structure to console (for debugging) */
-  print(): void {
-    let level = 1;
-    // eslint-disable-next-line no-console
-    console.log(this._nodes);
-    const firstNode = this._nodes[0];
-    let children = firstNode?.type === 'goal' ? firstNode.children : undefined;
-    while ((children?.length ?? 0) > 0) {
-      const newChildren: Array<
-        GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-      > = [];
-      // eslint-disable-next-line no-console
-      console.log('=== children ===', { level });
-      children?.forEach((element) => {
-        // eslint-disable-next-line no-console
-        console.log(element);
-        if (element.children) {
-          newChildren.push(...element.children);
-        }
-      });
-      level += 1;
-      children = [...newChildren];
-    }
-  }
-
   // ─────────────────────────────────────────────────────────────────────────────
   // Static Query Methods (for working with raw arrays)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /** Get all nodes of a specific type from a tree array */
+  /**
+   * Get all nodes of a specific type from a tree array
+   *
+   * This is a static method for working with raw node arrays.
+   * If you have a GoalTree instance, use tree.query.allByType() instead.
+   *
+   * @param nodes - The goal tree array
+   * @param type - The node type to filter by ('goal', 'task', or 'resource')
+   * @returns Array of nodes matching the specified type
+   *
+   * @example
+   * const goals = GoalTree.allByType(treeArray, 'goal');
+   * const tasks = GoalTree.allByType(treeArray, 'task');
+   */
   static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: 'goal',
@@ -197,28 +184,78 @@ export class GoalTree<
     return _allByType(nodes, type);
   }
 
-  /** Get a map of all goals from a tree array */
+  /**
+   * Get a map of all goals by their ID from a tree array
+   *
+   * This is a static method for working with raw node arrays.
+   * If you have a GoalTree instance, use tree.query.allGoalsMap() instead.
+   *
+   * @param nodes - The goal tree array
+   * @returns Map of goal IDs to GoalNode objects
+   *
+   * @example
+   * const goalsMap = GoalTree.allGoalsMap(treeArray);
+   * const goalById = goalsMap.get('G1');
+   */
   static allGoalsMap<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return _allGoalsMap(nodes);
   }
 
-  /** Get leaf goals from a tree array */
+  /**
+   * Get all leaf goals (goals with tasks) from a tree array
+   *
+   * Leaf goals are goals that have associated tasks but no child goals.
+   * This is a static method for working with raw node arrays.
+   * If you have a GoalTree instance, use tree.query.leafGoals() instead.
+   *
+   * @param nodes - The goal tree array
+   * @returns Array of leaf goal nodes
+   *
+   * @example
+   * const leafGoals = GoalTree.leafGoals(treeArray);
+   */
   static leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
     return _leafGoals(nodes);
   }
 
-  /** Get context variables from a tree array */
+  /**
+   * Get all context variables from a tree array
+   *
+   * Context variables are extracted from execution conditions (maintain/assertion)
+   * in goal and task nodes. Requires execCondition in the engine properties.
+   * This is a static method for working with raw node arrays.
+   * If you have a GoalTree instance, use tree.query.contextVariables() instead.
+   *
+   * @param nodes - The goal tree array
+   * @returns Array of unique context variable names
+   *
+   * @example
+   * const contextVars = GoalTree.contextVariables(treeArray);
+   */
   static contextVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): string[] {
     return getContextVariables(nodes);
   }
 
-  /** Get task achievability variables from a tree array */
+  /**
+   * Get achievability variables for all tasks in a tree array
+   *
+   * Task achievability variables represent whether a task can be achieved,
+   * typically used in formal verification models (e.g., PRISM).
+   * This is a static method for working with raw node arrays.
+   * If you have a GoalTree instance, use tree.query.taskAchievabilityVariables() instead.
+   *
+   * @param nodes - The goal tree array
+   * @returns Array of task achievability variable names
+   *
+   * @example
+   * const taskVars = GoalTree.taskAchievabilityVariables(treeArray);
+   */
   static taskAchievabilityVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): string[] {
@@ -264,78 +301,3 @@ export class GoalTree<
 
 // Re-export EngineMapper type
 export type { EngineMapper } from './internal/creation';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Model Parsing and Validation (used internally)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Type guard to check if a value is a valid Model structure.
- */
-function isModel(value: unknown): value is Model {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  // Check for required properties using 'in' operator
-  if (!('actors' in value) || !('links' in value)) {
-    return false;
-  }
-
-  // After 'in' checks, we can safely access these properties
-  // TypeScript narrows to { actors: unknown; links: unknown }
-  return Array.isArray(value.actors) && Array.isArray(value.links);
-}
-
-/**
- * Parse JSON string and validate it as a Model.
- * Uses type guard to avoid 'as' type assertion.
- */
-function parseModel(json: string): Model {
-  const parsed: unknown = JSON.parse(json);
-
-  if (!isModel(parsed)) {
-    throw new Error('Invalid model: missing or invalid actors or links');
-  }
-
-  validateModel(parsed);
-  return parsed;
-}
-
-function validateModel(model: Model): void {
-  const root = model.actors
-    .map((item) =>
-      item.nodes.reduce((hasRoot, node) => {
-        // Exclude Quality nodes from root check
-        if (node.type === 'istar.Quality') {
-          return hasRoot;
-        }
-        // Check if this node has outgoing links
-        const isRoot = !model.links.find((link) => link.source === node.id);
-        // Also exclude nodes that are targets of QualificationLinks
-        const isQualifiedByQuality = model.links.some((link) => {
-          if (link.type !== 'istar.QualificationLink') return false;
-          if (link.target !== node.id) return false;
-          const sourceNode = item.nodes.find((n) => n.id === link.source);
-          return sourceNode?.type === 'istar.Quality';
-        });
-
-        if (isQualifiedByQuality) {
-          return hasRoot;
-        }
-
-        if (isRoot && hasRoot) {
-          throw new Error('invalid number of roots, one allowed');
-        }
-        if (isRoot) {
-          node.customProperties.root = 'true';
-        }
-        return isRoot || hasRoot;
-      }, false),
-    )
-    .every((isValid) => isValid);
-
-  if (!root) {
-    throw new Error('invalid number of root, one allowed');
-  }
-}

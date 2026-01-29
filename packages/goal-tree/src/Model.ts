@@ -5,6 +5,24 @@ import { readFileSync } from 'fs';
 import type { Model as IStarModel } from './types/';
 
 /**
+ * Type guard to check if a value is a valid Model structure.
+ */
+export function isModel(value: unknown): value is IStarModel {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  // Check for required properties using 'in' operator
+  if (!('actors' in value) || !('links' in value)) {
+    return false;
+  }
+
+  // After 'in' checks, we can safely access these properties
+  // TypeScript narrows to { actors: unknown; links: unknown }
+  return Array.isArray(value.actors) && Array.isArray(value.links);
+}
+
+/**
  * Validate an iStar model
  * @throws Error if the model is invalid
  */
@@ -31,7 +49,9 @@ function validateModel(model: IStarModel): void {
         }
 
         if (isRoot && hasRoot) {
-          throw new Error('invalid number of roots, one allowed');
+          throw new Error(
+            '[INVALID_MODEL]: Invalid number of roots, one allowed',
+          );
         }
         if (isRoot) {
           node.customProperties.root = 'true';
@@ -42,7 +62,7 @@ function validateModel(model: IStarModel): void {
     .every((isValid) => isValid);
 
   if (!root) {
-    throw new Error('invalid number of root, one allowed');
+    throw new Error('[INVALID_MODEL]: Invalid number of roots, one allowed');
   }
 }
 
@@ -51,18 +71,28 @@ function validateModel(model: IStarModel): void {
  */
 function loadModel(filename: string): IStarModel {
   const modelFile = readFileSync(filename);
-  const model = JSON.parse(modelFile.toString()) as IStarModel;
-  validateModel(model);
-  return model;
+  const parsed: unknown = JSON.parse(modelFile.toString());
+
+  if (!isModel(parsed)) {
+    throw new Error('[INVALID_MODEL]: Missing or invalid actors or links');
+  }
+
+  validateModel(parsed);
+  return parsed;
 }
 
 /**
  * Parse an iStar model from JSON string
  */
 function parseModel(json: string): IStarModel {
-  const model = JSON.parse(json) as IStarModel;
-  validateModel(model);
-  return model;
+  const parsed: unknown = JSON.parse(json);
+
+  if (!isModel(parsed)) {
+    throw new Error('[INVALID_MODEL]: Missing or invalid actors or links');
+  }
+
+  validateModel(parsed);
+  return parsed;
 }
 
 /**

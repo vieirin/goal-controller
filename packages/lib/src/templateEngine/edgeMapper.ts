@@ -69,11 +69,13 @@ const parseDecision = (
   parsedDecision.forEach((d) => {
     if (d.length !== 2) {
       throw new Error(
-        `[INVALID DECISION] decision must be a variable and space: got ${decision}, expected format variable:space`,
+        `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
       );
     }
     if (isNaN(parseInt(d[1] ?? ''))) {
-      throw new Error(`[INVALID DECISION] space must be a number: got ${d[1]}`);
+      throw new Error(
+        `[INVALID DECISION]: space must be a number: got ${d[1]}`,
+      );
     }
   });
 
@@ -97,7 +99,7 @@ const parseMaxRetries = (
   const parsed = parseInt(maxRetries, 10);
   if (isNaN(parsed) || parsed < 0) {
     throw new Error(
-      `[INVALID ${nodeType.toUpperCase()}] maxRetries must be a non-negative integer: got "${maxRetries}"`,
+      `[INVALID ${nodeType.toUpperCase()}]: maxRetries must be a non-negative integer: got "${maxRetries}"`,
     );
   }
   return parsed;
@@ -179,14 +181,10 @@ export const edgeEngineMapper = createEngineMapper({
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
 
-    const dependsOn: Array<
-      GoalNode<EdgeGoalProps<unknown>, EdgeTaskProps, EdgeResourceProps>
-    > = [];
-
     return {
       utility: raw.utility || '',
       cost: raw.cost || '',
-      dependsOn,
+      dependsOn: [],
       executionDetail,
       execCondition,
       decision: {
