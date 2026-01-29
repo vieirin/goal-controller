@@ -2,8 +2,10 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "rootDir": "..",
+    "noEmit": true
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "../src/**/*"],
   "exclude": []
 }

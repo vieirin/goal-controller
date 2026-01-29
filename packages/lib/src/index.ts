@@ -1,60 +1,52 @@
 #!/usr/bin/env node
 
 // Import for CLI usage and re-export
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from './logger/logger';
 import { validate } from './prismValidator';
 import { sleecTemplateEngine } from './sleecTemplateEngine';
 import { sleecEngineMapper } from './sleecTemplateEngine/sleecMapper';
 import { generateValidatedPrismModel } from './templateEngine/engine';
 
-// Re-export from @goal-controller/goal-tree for backward compatibility
-export {
-  GoalTree,
-  Model,
-  Node,
-  cartesianProduct,
-} from '@goal-controller/goal-tree';
-
 export type {
+  EngineMapper,
   GoalNode,
   GoalTreeType,
   IStarModel,
-  Relation,
-  Type,
-  EngineMapper,
   RawGoalProps,
   RawTaskProps,
+  Relation,
+  Type,
 } from '@goal-controller/goal-tree';
 
 // Edge engine types and mapper
-export type {
-  EdgeGoalProps,
-  EdgeTaskProps,
-  ExecCondition,
-  Decision,
-  GoalExecutionDetail,
-} from './templateEngine/types';
 export {
   edgeEngineMapper,
   type EdgeGoalNode,
-  type EdgeTask,
   type EdgeGoalTree,
+  type EdgeTask,
 } from './templateEngine/edgeMapper';
+export type {
+  Decision,
+  EdgeGoalProps,
+  EdgeTaskProps,
+  ExecCondition,
+  GoalExecutionDetail,
+} from './templateEngine/types';
 
 // SLEEC engine types and mapper
+export {
+  sleecEngineMapper,
+  type SleecGoalNode,
+  type SleecGoalTree,
+  type SleecTask,
+} from './sleecTemplateEngine/sleecMapper';
 export type {
   SleecGoalProps,
   SleecTaskProps,
 } from './sleecTemplateEngine/types';
-export {
-  sleecEngineMapper,
-  type SleecGoalNode,
-  type SleecTask,
-  type SleecGoalTree,
-} from './sleecTemplateEngine/sleecMapper';
 
 // Core transformation engines (remain in lib)
 export { generateValidatedPrismModel, sleecTemplateEngine };

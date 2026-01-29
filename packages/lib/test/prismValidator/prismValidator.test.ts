@@ -1,10 +1,10 @@
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { initLogger } from '../../src/logger/logger';
 import { formatValidationReport, validate } from '../../src/prismValidator';
-import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';
 import { edgeEngineMapper } from '../../src/templateEngine/edgeMapper';
+import { __test_only_exports__ as templateEngineInternals } from '../../src/templateEngine/engine';
 
 const experimentExamples = [
   '1-minimal',
