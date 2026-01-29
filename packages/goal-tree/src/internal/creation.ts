@@ -23,12 +23,12 @@ import type {
 import { allByType } from './traversal';
 
 // Re-export types from engineMapper for backwards compatibility
+export { createEngineMapper } from './engineMapper';
 export type {
   EngineMapper,
   RawPropertiesUnion,
   RawProps,
 } from './engineMapper';
-export { createEngineMapper } from './engineMapper';
 export type { GoalExecutionDetail };
 
 const convertIstarType = ({ type }: { type: NodeType }) => {

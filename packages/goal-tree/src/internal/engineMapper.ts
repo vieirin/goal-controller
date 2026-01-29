@@ -175,7 +175,6 @@ export function createEngineMapper<
     > = {
       ...keys,
       ...mappers,
-      mapResourceProps: mappers.mapResourceProps,
     };
     return result;
   };
