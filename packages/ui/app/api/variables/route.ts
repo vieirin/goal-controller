@@ -1,7 +1,4 @@
-import {
-  getTaskAchievabilityVariables,
-  treeContextVariables,
-} from '@goal-controller/lib';
+import { GoalTree } from '@goal-controller/goal-tree';
 import { NextRequest } from 'next/server';
 import { ApiResponse } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
@@ -31,8 +28,8 @@ export async function POST(request: NextRequest) {
     const { tree } = parseResult;
 
     // Extract variables
-    const contextVariables = treeContextVariables(tree);
-    const taskVariables = getTaskAchievabilityVariables(tree);
+    const contextVariables = GoalTree.contextVariables(tree);
+    const taskVariables = GoalTree.taskAchievabilityVariables(tree);
     const allVariables = [...contextVariables, ...taskVariables];
 
     return ApiResponse.success({

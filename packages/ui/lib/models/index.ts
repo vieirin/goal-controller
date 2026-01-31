@@ -1,7 +1,9 @@
 export type { VariableValues } from './variables';
 export {
   GoalModel,
-  type ParseResult,
+  type EdgeParseResult,
+  type SleecParseResult,
   type ParseError,
-  type ParseModelResult,
+  type EdgeParseModelResult,
+  type SleecParseModelResult,
 } from './goal';

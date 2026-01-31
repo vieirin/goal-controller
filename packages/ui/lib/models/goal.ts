@@ -1,14 +1,22 @@
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import {
-  convertToTree,
-  validateModel,
-  type GoalTree,
-  type Model,
+  edgeEngineMapper,
+  sleecEngineMapper,
+  type EdgeGoalTree,
+  type SleecGoalTree,
+  type IStarModel,
 } from '@goal-controller/lib';
 
-export interface ParseResult {
+export interface EdgeParseResult {
   success: true;
-  model: Model;
-  tree: GoalTree;
+  model: IStarModel;
+  tree: EdgeGoalTree;
+}
+
+export interface SleecParseResult {
+  success: true;
+  model: IStarModel;
+  tree: SleecGoalTree;
 }
 
 export interface ParseError {
@@ -17,18 +25,21 @@ export interface ParseError {
   stage: 'parse' | 'validate' | 'tree';
 }
 
-export type ParseModelResult = ParseResult | ParseError;
+export type EdgeParseModelResult = EdgeParseResult | ParseError;
+export type SleecParseModelResult = SleecParseResult | ParseError;
 
 /**
  * Goal model - handles parsing, validation, and tree conversion operations
  */
 export const GoalModel = {
   /**
-   * Parse model JSON, validate it, and convert to tree in one operation
+   * Parse and validate model, returning the raw model (no tree)
    */
-  parse(modelJson: string): ParseModelResult {
+  parseModel(
+    modelJson: string,
+  ): { success: true; model: IStarModel } | ParseError {
     // Parse JSON
-    let model: Model;
+    let model: IStarModel;
     try {
       model = JSON.parse(modelJson);
     } catch (error) {
@@ -41,7 +52,7 @@ export const GoalModel = {
 
     // Validate model
     try {
-      validateModel({ model });
+      Model.validate(model);
     } catch (error) {
       return {
         success: false,
@@ -50,10 +61,22 @@ export const GoalModel = {
       };
     }
 
-    // Convert to tree
-    let tree: GoalTree;
+    return { success: true, model };
+  },
+
+  /**
+   * Parse model JSON, validate it, and convert to Edge tree
+   */
+  parseForEdge(modelJson: string): EdgeParseModelResult {
+    const parseResult = this.parseModel(modelJson);
+    if (!parseResult.success) {
+      return parseResult;
+    }
+
+    // Convert to Edge tree
+    let tree: EdgeGoalTree;
     try {
-      tree = convertToTree({ model });
+      tree = GoalTree.fromModel(parseResult.model, edgeEngineMapper).nodes;
     } catch (error) {
       return {
         success: false,
@@ -64,15 +87,53 @@ export const GoalModel = {
 
     return {
       success: true,
-      model,
+      model: parseResult.model,
       tree,
     };
   },
 
   /**
+   * Parse model JSON, validate it, and convert to SLEEC tree
+   */
+  parseForSleec(modelJson: string): SleecParseModelResult {
+    const parseResult = this.parseModel(modelJson);
+    if (!parseResult.success) {
+      return parseResult;
+    }
+
+    // Convert to SLEEC tree
+    let tree: SleecGoalTree;
+    try {
+      tree = GoalTree.fromModel(parseResult.model, sleecEngineMapper).nodes;
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
+
+    return {
+      success: true,
+      model: parseResult.model,
+      tree,
+    };
+  },
+
+  /**
+   * Legacy parse method - uses Edge tree (deprecated, use parseForEdge)
+   * @deprecated Use parseForEdge or parseForSleec instead
+   */
+  parse(modelJson: string): EdgeParseModelResult {
+    return this.parseForEdge(modelJson);
+  },
+
+  /**
    * Check if a parse result is successful
    */
-  isSuccess(result: ParseModelResult): result is ParseResult {
+  isSuccess(
+    result: EdgeParseModelResult | SleecParseModelResult,
+  ): result is EdgeParseResult | SleecParseResult {
     return result.success;
   },
 

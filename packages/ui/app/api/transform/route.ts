@@ -10,8 +10,13 @@ import { GoalModel } from '../../../lib/models';
 
 export async function POST(request: NextRequest) {
   try {
-    const { modelJson, engine, clean = false, fileName, variables } = await request.json();
-
+    const {
+      modelJson,
+      engine,
+      clean = false,
+      fileName,
+      variables,
+    } = await request.json();
 
     if (!modelJson) {
       return ApiResponse.badRequest('Model JSON is required');
@@ -19,25 +24,6 @@ export async function POST(request: NextRequest) {
 
     if (!engine || !['prism', 'sleec'].includes(engine)) {
       return ApiResponse.badRequest('Valid engine (prism/sleec) is required');
-    }
-
-    // Parse and validate model
-    const parseResult = GoalModel.parse(modelJson);
-
-    if (!parseResult.success) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[API] Parse error:', parseResult.error);
-      }
-      return ApiResponse.error(
-        parseResult.error,
-        GoalModel.getErrorStatus(parseResult.stage)
-      );
-    }
-
-    const { tree } = parseResult;
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[API] Model parsed and tree converted successfully');
     }
 
     // Initialize logger (in-memory mode for API)
@@ -48,20 +34,48 @@ export async function POST(request: NextRequest) {
     let report: LoggerReport | null = null;
     try {
       if (engine === 'prism') {
+        // Parse and validate model with Edge mapper for PRISM
+        const parseResult = GoalModel.parseForEdge(modelJson);
+
+        if (!parseResult.success) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[API] Parse error:', parseResult.error);
+          }
+          return ApiResponse.error(
+            parseResult.error,
+            GoalModel.getErrorStatus(parseResult.stage),
+          );
+        }
+
         if (process.env.NODE_ENV === 'development') {
+          console.log('[API] Model parsed and tree converted successfully');
           console.log('[API] Generating PRISM model...');
         }
         output = generateValidatedPrismModel({
-          gm: tree,
+          gm: parseResult.tree,
           fileName: fileName || 'model',
           clean,
           variables,
         });
       } else {
+        // Parse and validate model with SLEEC mapper
+        const parseResult = GoalModel.parseForSleec(modelJson);
+
+        if (!parseResult.success) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[API] Parse error:', parseResult.error);
+          }
+          return ApiResponse.error(
+            parseResult.error,
+            GoalModel.getErrorStatus(parseResult.stage),
+          );
+        }
+
         if (process.env.NODE_ENV === 'development') {
+          console.log('[API] Model parsed and tree converted successfully');
           console.log('[API] Generating SLEEC model...');
         }
-        output = sleecTemplateEngine(tree);
+        output = sleecTemplateEngine(parseResult.tree);
       }
 
       // Get logger report
@@ -80,7 +94,7 @@ export async function POST(request: NextRequest) {
       console.error('[API] Generation error:', generationError);
       return ApiResponse.serverError(
         `Generation failed: ${ApiResponse.extractMessage(generationError)}`,
-        ApiResponse.extractDetails(generationError)
+        ApiResponse.extractDetails(generationError),
       );
     }
   } catch (error) {
