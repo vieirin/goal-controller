@@ -17,4 +17,3 @@ export const getVariablesFilePath = (modelPath: string): string => {
   // Return the default path (will fail with helpful error if file doesn't exist)
   return relativePath;
 };
-

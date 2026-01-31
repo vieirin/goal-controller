@@ -21,4 +21,3 @@ export const changeManagerModuleTemplate = ({
   ${transitions.join('\n')}
 endmodule`;
 };
-
