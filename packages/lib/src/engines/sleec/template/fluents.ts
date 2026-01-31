@@ -26,3 +26,4 @@ const fluentLine = (task: Task): string | undefined => {
 export const generateFluents = (tasks: Task[]): string[] => {
   return tasks.map(fluentLine).filter((line): line is string => !!line);
 };
+

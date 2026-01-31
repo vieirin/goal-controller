@@ -33,3 +33,4 @@ export const generatePurposes = (tree: SleecGoalTree): string => {
     .join('\n')}
 purpose_end`;
 };
+

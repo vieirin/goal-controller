@@ -15,3 +15,4 @@ export const tryTransition = (goalId: string): string => `try_${goalId}`;
 export const achievableFormulaVariable = (goalId: string): string =>
   `${goalId}_achievable`;
 export const failed = (goalId: string): string => `${goalId}_failed`;
+
