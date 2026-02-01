@@ -31,7 +31,7 @@ clean:
 
 # CLI commands (for backwards compatibility)
 cli: grammar build-lib
-	cd packages/lib && node --experimental-strip-types src/cli.ts
+	node packages/lib/out/cli.js
 
 run: grammar build-lib
 	@if [ -z "$(FILE)" ]; then \
