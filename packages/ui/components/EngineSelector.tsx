@@ -5,6 +5,8 @@ interface EngineSelectorProps {
   onEngineChange: (engine: 'prism' | 'sleec') => void;
   clean: boolean;
   onCleanChange: (clean: boolean) => void;
+  generateDecisionVars: boolean;
+  onGenerateDecisionVarsChange: (generateDecisionVars: boolean) => void;
 }
 
 export default function EngineSelector({
@@ -12,31 +14,37 @@ export default function EngineSelector({
   onEngineChange,
   clean,
   onCleanChange,
+  generateDecisionVars,
+  onGenerateDecisionVarsChange,
 }: EngineSelectorProps) {
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className='block text-sm font-medium text-gray-700 mb-2'>
           Target Engine
         </label>
-        <div className="flex gap-4">
-          <label className="flex items-center">
+        <div className='flex gap-4'>
+          <label className='flex items-center'>
             <input
-              type="radio"
-              value="prism"
+              type='radio'
+              value='prism'
               checked={engine === 'prism'}
-              onChange={(e) => onEngineChange(e.target.value as 'prism' | 'sleec')}
-              className="mr-2"
+              onChange={(e) =>
+                onEngineChange(e.target.value as 'prism' | 'sleec')
+              }
+              className='mr-2'
             />
             <span>PRISM</span>
           </label>
-          <label className="flex items-center">
+          <label className='flex items-center'>
             <input
-              type="radio"
-              value="sleec"
+              type='radio'
+              value='sleec'
               checked={engine === 'sleec'}
-              onChange={(e) => onEngineChange(e.target.value as 'prism' | 'sleec')}
-              className="mr-2"
+              onChange={(e) =>
+                onEngineChange(e.target.value as 'prism' | 'sleec')
+              }
+              className='mr-2'
             />
             <span>SLEEC</span>
           </label>
@@ -44,15 +52,28 @@ export default function EngineSelector({
       </div>
 
       {engine === 'prism' && (
-        <div>
-          <label className="flex items-center">
+        <div className='space-y-2'>
+          <label className='flex items-center'>
             <input
-              type="checkbox"
+              type='checkbox'
               checked={clean}
               onChange={(e) => onCleanChange(e.target.checked)}
-              className="mr-2"
+              className='mr-2'
             />
-            <span className="text-sm text-gray-700">Clean mode (no comments)</span>
+            <span className='text-sm text-gray-700'>
+              Clean mode (no comments)
+            </span>
+          </label>
+          <label className='flex items-center'>
+            <input
+              type='checkbox'
+              checked={generateDecisionVars}
+              onChange={(e) => onGenerateDecisionVarsChange(e.target.checked)}
+              className='mr-2'
+            />
+            <span className='text-sm text-gray-700'>
+              Generate decision variables
+            </span>
           </label>
         </div>
       )}

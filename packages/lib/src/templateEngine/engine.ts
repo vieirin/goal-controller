@@ -10,15 +10,17 @@ const edgeDTMCTemplate = ({
   fileName,
   clean = false,
   variables,
+  generateDecisionVars = true,
 }: {
   gm: GoalTree;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
+  generateDecisionVars?: boolean;
 }): string => {
   const dtmcModel = `dtmc
 
-${decisionVariablesTemplate({ gm })}
+${decisionVariablesTemplate({ gm, enabled: generateDecisionVars })}
 
 ${goalModules({ gm })}
 
@@ -34,13 +36,21 @@ export const generateValidatedPrismModel = ({
   fileName,
   clean = false,
   variables,
+  generateDecisionVars = true,
 }: {
   gm: GoalTree;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
+  generateDecisionVars?: boolean;
 }): string => {
-  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables });
+  const prismModel = edgeDTMCTemplate({
+    gm,
+    fileName,
+    clean,
+    variables,
+    generateDecisionVars,
+  });
   // const all = [
   //   ...allByType({ gm, type: 'goal' }),
   //   ...allByType({ gm, type: 'task' }),

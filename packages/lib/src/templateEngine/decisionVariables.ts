@@ -89,7 +89,17 @@ const hasDecisionSpace = (goal: GoalNode): boolean => {
   return hasDecisionVars || hasChildren;
 };
 
-export const decisionVariablesTemplate = ({ gm }: { gm: GoalTree }): string => {
+export const decisionVariablesTemplate = ({
+  gm,
+  enabled = true,
+}: {
+  gm: GoalTree;
+  enabled?: boolean;
+}): string => {
+  if (!enabled) {
+    return '';
+  }
+
   const logger = getLogger();
   const decisionVariables: string[] = [];
   const allGoals = allByType({ gm, type: 'goal' });

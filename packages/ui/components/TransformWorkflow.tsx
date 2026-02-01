@@ -16,6 +16,7 @@ interface TransformRequest {
   modelJson: string;
   engine: 'prism' | 'sleec';
   clean: boolean;
+  generateDecisionVars: boolean;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }
@@ -86,6 +87,8 @@ export default function TransformWorkflow() {
     isValidMode ? modeParam : 'prism',
   );
   const [clean, setClean] = useState<boolean>(false);
+  const [generateDecisionVars, setGenerateDecisionVars] =
+    useState<boolean>(true);
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
@@ -177,6 +180,7 @@ export default function TransformWorkflow() {
       modelJson: modelContent,
       engine,
       clean,
+      generateDecisionVars,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
       ...(engine === 'prism' &&
         Object.keys(variables).length > 0 && { variables }),
@@ -227,6 +231,8 @@ export default function TransformWorkflow() {
                   onEngineChange={setEngine}
                   clean={clean}
                   onCleanChange={setClean}
+                  generateDecisionVars={generateDecisionVars}
+                  onGenerateDecisionVarsChange={setGenerateDecisionVars}
                 />
               </div>
             )}
