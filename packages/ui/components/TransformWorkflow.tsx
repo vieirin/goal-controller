@@ -12,11 +12,15 @@ import OutputViewer from './OutputViewer';
 import ReportViewer from './ReportViewer';
 import VariablesEditor from './VariablesEditor';
 
+// Default achievability space (should match lib default)
+const DEFAULT_ACHIEVABILITY_SPACE = 4;
+
 interface TransformRequest {
   modelJson: string;
   engine: 'prism' | 'sleec';
   clean: boolean;
   generateDecisionVars: boolean;
+  achievabilitySpace: number;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }
@@ -103,6 +107,9 @@ export default function TransformWorkflow() {
   const [clean, setClean] = useState<boolean>(false);
   const [generateDecisionVars, setGenerateDecisionVars] =
     useState<boolean>(true);
+  const [achievabilitySpace, setAchievabilitySpace] = useState<number>(
+    DEFAULT_ACHIEVABILITY_SPACE,
+  );
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
@@ -195,6 +202,7 @@ export default function TransformWorkflow() {
       engine,
       clean,
       generateDecisionVars,
+      achievabilitySpace,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
       ...(engine === 'prism' &&
         Object.keys(variables).length > 0 && { variables }),
@@ -247,6 +255,8 @@ export default function TransformWorkflow() {
                   onCleanChange={setClean}
                   generateDecisionVars={generateDecisionVars}
                   onGenerateDecisionVarsChange={setGenerateDecisionVars}
+                  achievabilitySpace={achievabilitySpace}
+                  onAchievabilitySpaceChange={setAchievabilitySpace}
                 />
               </div>
             )}

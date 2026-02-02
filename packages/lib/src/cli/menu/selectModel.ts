@@ -3,12 +3,25 @@ import path from 'path';
 import { loadPistarModel } from '../../GoalTree';
 import { convertToTree } from '../../GoalTree/creation';
 import { initLogger } from '../../logger/logger';
+import { DEFAULT_ACHIEVABILITY_SPACE } from '../../templateEngine/decisionVariables';
 import { generateValidatedPrismModel } from '../../templateEngine/engine';
+
+export interface RunModelOptions {
+  clean?: boolean;
+  generateDecisionVars?: boolean;
+  achievabilitySpace?: number;
+}
 
 export const runModel = async (
   filePath: string,
-  clean: boolean = false,
+  options: RunModelOptions = {},
 ): Promise<void> => {
+  const {
+    clean = false,
+    generateDecisionVars = true,
+    achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+  } = options;
+
   const logger = initLogger(filePath);
   try {
     const model = loadPistarModel({ filename: filePath });
@@ -22,6 +35,8 @@ export const runModel = async (
       gm: tree,
       fileName,
       clean,
+      generateDecisionVars,
+      achievabilitySpace,
     });
     await writeFile(`output/${path.parse(fileName).name}.prism`, output);
     console.log('The file was saved successfully!');

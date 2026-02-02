@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import path from 'path';
-import { runModel } from './cli/menu/selectModel';
+import { runModel, type RunModelOptions } from './cli/menu/selectModel';
 import {
   getVariablesFilePath,
   inputDefaultVariables,
@@ -15,10 +15,38 @@ import {
 import { loadPistarModel } from './GoalTree';
 import { convertToTree } from './GoalTree/creation';
 import { dumpTreeToJSON } from './GoalTree/utils';
+import { DEFAULT_ACHIEVABILITY_SPACE } from './templateEngine/decisionVariables';
 
-// Parse command line arguments for clean flag
+// Parse command line arguments
 const args = process.argv.slice(2);
 const cleanFlag = args.includes('--clean') || args.includes('-c');
+
+// Parse achievability space from args or env
+const parseAchievabilitySpace = (): number => {
+  // Check command line argument: --achievability-space=N or -a=N
+  const argMatch = args.find(
+    (arg) => arg.startsWith('--achievability-space=') || arg.startsWith('-a='),
+  );
+  if (argMatch) {
+    const value = parseInt(argMatch.split('=')[1] ?? '', 10);
+    if (!isNaN(value) && value > 0) {
+      return value;
+    }
+  }
+
+  // Check environment variable
+  const envValue = process.env.ACHIEVABILITY_SPACE;
+  if (envValue) {
+    const value = parseInt(envValue, 10);
+    if (!isNaN(value) && value > 0) {
+      return value;
+    }
+  }
+
+  return DEFAULT_ACHIEVABILITY_SPACE;
+};
+
+const achievabilitySpace = parseAchievabilitySpace();
 
 const mainMenu = async (): Promise<void> => {
   const lastSelectedModel = await getLastSelectedModel();
@@ -28,8 +56,13 @@ const mainMenu = async (): Promise<void> => {
     { name: 'Dump tree to JSON', value: 'dumpTree' },
   ];
 
+  const runOptions: RunModelOptions = {
+    clean: cleanFlag,
+    achievabilitySpace,
+  };
+
   if (process.env.MODE === 'last' && lastSelectedModel) {
-    await runModel(lastSelectedModel, cleanFlag);
+    await runModel(lastSelectedModel, runOptions);
     return;
   }
 
@@ -60,7 +93,7 @@ const mainMenu = async (): Promise<void> => {
       );
       await inputDefaultVariables(lastSelectedModel);
     }
-    await runModel(lastSelectedModel, cleanFlag);
+    await runModel(lastSelectedModel, runOptions);
   } else if (action === 'run') {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
@@ -92,7 +125,7 @@ const mainMenu = async (): Promise<void> => {
       await inputDefaultVariables(selectedFile);
     }
 
-    await runModel(selectedFile, cleanFlag);
+    await runModel(selectedFile, runOptions);
   } else if (action === 'variables') {
     await inputDefaultVariables();
   } else if (action === 'dumpTree') {

@@ -14,6 +14,9 @@ import { generateValidatedPrismModel } from './templateEngine/engine';
 // Core transformation engines
 export { generateValidatedPrismModel, sleecTemplateEngine };
 
+// Decision variables config
+export { DEFAULT_ACHIEVABILITY_SPACE } from './templateEngine/decisionVariables';
+
 // Goal Tree utilities
 export { convertToTree, dumpTreeToJSON, loadPistarModel, validateModel };
 

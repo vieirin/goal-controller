@@ -2,8 +2,8 @@ import type { GoalNode, GoalTree } from '../GoalTree/types';
 import { allByType, cartesianProduct } from '../GoalTree/utils';
 import { getLogger } from '../logger/logger';
 
-// Hardcoded achievability discretization space (values 0-3)
-const ACHIEVABILITY_SPACE = 4;
+// Default achievability discretization space (values 0-3)
+export const DEFAULT_ACHIEVABILITY_SPACE = 4;
 
 // Return type for decisionVariablesForGoal
 export type DecisionVariablesResult = {
@@ -25,8 +25,10 @@ export type DecisionVariablesResult = {
 // decision_G0_achievabilityG1_0_achievabilityG2_0_t0_loc0
 export const decisionVariablesForGoal = ({
   goal,
+  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
 }: {
   goal: GoalNode;
+  achievabilitySpace?: number;
 }): DecisionVariablesResult => {
   // Decision variable spaces
   const decisionSpaces = goal.decisionVars.map((decision) =>
@@ -37,7 +39,7 @@ export const decisionVariablesForGoal = ({
   // Child goal achievability spaces
   const childGoalIds = (goal.children ?? []).map((child) => child.id);
   const achievabilitySpaces = childGoalIds.map(() =>
-    Array.from({ length: ACHIEVABILITY_SPACE }, (_, i) => i),
+    Array.from({ length: achievabilitySpace }, (_, i) => i),
   );
 
   // Combine: achievability spaces first, then decision variable spaces
@@ -92,9 +94,11 @@ const hasDecisionSpace = (goal: GoalNode): boolean => {
 export const decisionVariablesTemplate = ({
   gm,
   enabled = true,
+  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
 }: {
   gm: GoalTree;
   enabled?: boolean;
+  achievabilitySpace?: number;
 }): string => {
   if (!enabled) {
     return '';
@@ -114,7 +118,7 @@ export const decisionVariablesTemplate = ({
       decisionSpaces,
       childGoalIds,
       achievabilitySpaces,
-    } = decisionVariablesForGoal({ goal });
+    } = decisionVariablesForGoal({ goal, achievabilitySpace });
 
     // Log decision variable spaces
     decisionSpaces.forEach((space, i) => {

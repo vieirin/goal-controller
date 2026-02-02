@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       engine,
       clean = false,
       generateDecisionVars = true,
+      achievabilitySpace = 4,
       fileName,
       variables,
     } = await request.json();
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
           clean,
           variables,
           generateDecisionVars,
+          achievabilitySpace,
         });
       } else {
         if (process.env.NODE_ENV === 'development') {

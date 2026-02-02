@@ -7,6 +7,8 @@ interface EngineSelectorProps {
   onCleanChange: (clean: boolean) => void;
   generateDecisionVars: boolean;
   onGenerateDecisionVarsChange: (generateDecisionVars: boolean) => void;
+  achievabilitySpace: number;
+  onAchievabilitySpaceChange: (achievabilitySpace: number) => void;
 }
 
 export default function EngineSelector({
@@ -16,6 +18,8 @@ export default function EngineSelector({
   onCleanChange,
   generateDecisionVars,
   onGenerateDecisionVarsChange,
+  achievabilitySpace,
+  onAchievabilitySpaceChange,
 }: EngineSelectorProps) {
   return (
     <div className='space-y-4'>
@@ -52,7 +56,7 @@ export default function EngineSelector({
       </div>
 
       {engine === 'prism' && (
-        <div className='space-y-2'>
+        <div className='space-y-3'>
           <label className='flex items-center'>
             <input
               type='checkbox'
@@ -75,6 +79,26 @@ export default function EngineSelector({
               Generate decision variables
             </span>
           </label>
+          {generateDecisionVars && (
+            <div className='flex items-center gap-2'>
+              <label className='text-sm text-gray-700'>
+                Achievability space:
+              </label>
+              <input
+                type='number'
+                min='1'
+                max='100'
+                value={achievabilitySpace}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  if (!isNaN(value) && value > 0) {
+                    onAchievabilitySpaceChange(value);
+                  }
+                }}
+                className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
