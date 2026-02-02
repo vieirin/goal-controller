@@ -85,8 +85,10 @@ export async function POST(request: NextRequest) {
       return ApiResponse.success({ output, report });
     } catch (generationError) {
       console.error('[API] Generation error:', generationError);
-      return ApiResponse.serverError(
+      // Use 422 Unprocessable Entity for lib errors (processing errors, not server crashes)
+      return ApiResponse.error(
         `Generation failed: ${ApiResponse.extractMessage(generationError)}`,
+        422,
         ApiResponse.extractDetails(generationError),
       );
     }

@@ -36,6 +36,17 @@ interface VariablesResponse {
   error?: string;
 }
 
+// Custom error class to capture error details from API
+class TransformError extends Error {
+  details?: string;
+
+  constructor(message: string, details?: string) {
+    super(message);
+    this.name = 'TransformError';
+    this.details = details;
+  }
+}
+
 const transformModel = async (
   request: TransformRequest,
 ): Promise<TransformResponse> => {
@@ -50,7 +61,10 @@ const transformModel = async (
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    throw new Error(data.error || 'Transformation failed');
+    throw new TransformError(
+      data.error || 'Transformation failed',
+      data.details,
+    );
   }
 
   return data;
@@ -304,6 +318,17 @@ export default function TransformWorkflow() {
             <div className='max-w-md mx-auto mt-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
               <p className='font-medium'>Error:</p>
               <p className='text-sm'>{transformMutation.error?.message}</p>
+              {transformMutation.error instanceof TransformError &&
+                transformMutation.error.details && (
+                  <details className='mt-2'>
+                    <summary className='text-xs cursor-pointer hover:underline'>
+                      Show details
+                    </summary>
+                    <pre className='mt-2 text-xs bg-red-100 p-2 rounded overflow-auto max-h-48'>
+                      {transformMutation.error.details}
+                    </pre>
+                  </details>
+                )}
             </div>
           )}
         </div>

@@ -36,9 +36,7 @@ export const ApiResponse = {
       {
         success: false,
         error: message,
-        ...(details && process.env.NODE_ENV === 'development'
-          ? { details }
-          : {}),
+        ...(details ? { details } : {}),
       },
       { status },
     );
