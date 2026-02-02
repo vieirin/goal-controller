@@ -222,13 +222,24 @@ export default function TransformWorkflow() {
           Transform goal models to PRISM or SLEEC specifications
         </p>
 
-        {/* Configuration Section */}
-        <div
-          ref={resizeRef}
-          className='relative'
-          style={{ height: `${configHeight}px` }}
-        >
-          <div className='grid grid-cols-1 lg:grid-cols-4 gap-6 h-full overflow-hidden pb-4'>
+        {/* Configuration Section - auto height on mobile, fixed height on desktop for resizing */}
+        <div ref={resizeRef} className='relative'>
+          <div
+            className='grid grid-cols-1 lg:grid-cols-4 gap-6 pb-4 h-auto lg:overflow-hidden'
+            style={
+              {
+                '--config-height': `${configHeight}px`,
+              } as React.CSSProperties
+            }
+          >
+            {/* CSS variable for responsive height - only applied on lg screens via Tailwind */}
+            <style>{`
+              @media (min-width: 1024px) {
+                [style*="--config-height"] {
+                  height: var(--config-height) !important;
+                }
+              }
+            `}</style>
             <div className='bg-white rounded-lg shadow-md p-6'>
               <h2 className='text-xl font-semibold mb-4'>1. Upload Model</h2>
               <FileUploader onFileUpload={handleFileUpload} />
