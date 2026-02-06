@@ -216,10 +216,11 @@ export default function TransformWorkflow() {
     <div className='min-h-screen p-8 bg-slate-50'>
       <div className='max-w-full mx-auto px-4'>
         <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-          Goal Controller
+          Goal Transformer
         </h1>
         <p className='text-gray-600 mb-8'>
-          Transform goal models to PRISM or SLEEC specifications
+          Transform goal models to{' '}
+          {isValidMode ? engine.toUpperCase() : 'PRISM or SLEEC'} specifications
         </p>
 
         {/* Configuration Section - auto height on mobile, fixed height on desktop for resizing */}
