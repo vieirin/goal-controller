@@ -30,8 +30,9 @@ clean:
 	pnpm run clean
 
 # CLI commands (for backwards compatibility)
+# ACHIEVABILITY_SPACE: number of achievability discretization levels (default: 4)
 cli: grammar build-lib
-	node packages/lib/out/cli.js
+	ACHIEVABILITY_SPACE=$(or $(ACHIEVABILITY_SPACE),4) node packages/lib/out/cli.js
 
 run: grammar build-lib
 	@if [ -z "$(FILE)" ]; then \

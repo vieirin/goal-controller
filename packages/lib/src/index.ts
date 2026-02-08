@@ -22,6 +22,9 @@ export type {
 // Re-export GoalTree and Model for runtime usage (Model.load, GoalTree.fromModel)
 export { GoalTree, Model };
 
+// Decision variables config
+export { DEFAULT_ACHIEVABILITY_SPACE } from './engines/edge/template/decisionVariables';
+
 // Edge engine types and mapper
 export {
   edgeEngineMapper,

@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
       modelJson,
       engine,
       clean = false,
+      generateDecisionVars = true,
+      achievabilitySpace = 4,
       fileName,
       variables,
     } = await request.json();
@@ -56,6 +58,8 @@ export async function POST(request: NextRequest) {
           fileName: fileName || 'model',
           clean,
           variables,
+          generateDecisionVars,
+          achievabilitySpace,
         });
       } else {
         // Parse and validate model with SLEEC mapper
@@ -92,8 +96,10 @@ export async function POST(request: NextRequest) {
       return ApiResponse.success({ output, report });
     } catch (generationError) {
       console.error('[API] Generation error:', generationError);
-      return ApiResponse.serverError(
+      // Use 422 Unprocessable Entity for lib errors (processing errors, not server crashes)
+      return ApiResponse.error(
         `Generation failed: ${ApiResponse.extractMessage(generationError)}`,
+        422,
         ApiResponse.extractDetails(generationError),
       );
     }

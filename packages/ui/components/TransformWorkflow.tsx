@@ -3,6 +3,7 @@
 import type { LoggerReport } from '@goal-controller/lib';
 import { useMutation } from '@tanstack/react-query';
 import { GripVertical, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
@@ -11,10 +12,15 @@ import OutputViewer from './OutputViewer';
 import ReportViewer from './ReportViewer';
 import VariablesEditor from './VariablesEditor';
 
+// Default achievability space (should match lib default)
+const DEFAULT_ACHIEVABILITY_SPACE = 4;
+
 interface TransformRequest {
   modelJson: string;
   engine: 'prism' | 'sleec';
   clean: boolean;
+  generateDecisionVars: boolean;
+  achievabilitySpace: number;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }
@@ -34,6 +40,17 @@ interface VariablesResponse {
   error?: string;
 }
 
+// Custom error class to capture error details from API
+class TransformError extends Error {
+  details?: string;
+
+  constructor(message: string, details?: string) {
+    super(message);
+    this.name = 'TransformError';
+    this.details = details;
+  }
+}
+
 const transformModel = async (
   request: TransformRequest,
 ): Promise<TransformResponse> => {
@@ -48,7 +65,10 @@ const transformModel = async (
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    throw new Error(data.error || 'Transformation failed');
+    throw new TransformError(
+      data.error || 'Transformation failed',
+      data.details,
+    );
   }
 
   return data;
@@ -75,10 +95,21 @@ const fetchVariables = async (
 };
 
 export default function TransformWorkflow() {
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get('mode') as 'prism' | 'sleec' | null;
+  const isValidMode = modeParam === 'prism' || modeParam === 'sleec';
+
   const [modelContent, setModelContent] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [engine, setEngine] = useState<'prism' | 'sleec'>('prism');
+  const [engine, setEngine] = useState<'prism' | 'sleec'>(
+    isValidMode ? modeParam : 'prism',
+  );
   const [clean, setClean] = useState<boolean>(false);
+  const [generateDecisionVars, setGenerateDecisionVars] =
+    useState<boolean>(true);
+  const [achievabilitySpace, setAchievabilitySpace] = useState<number>(
+    DEFAULT_ACHIEVABILITY_SPACE,
+  );
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
@@ -95,6 +126,13 @@ export default function TransformWorkflow() {
   const transformMutation = useMutation({
     mutationFn: transformModel,
   });
+
+  // Sync engine state with URL mode param
+  useEffect(() => {
+    if (isValidMode) {
+      setEngine(modeParam);
+    }
+  }, [isValidMode, modeParam]);
 
   // Fetch variables when model content changes
   useEffect(() => {
@@ -163,6 +201,8 @@ export default function TransformWorkflow() {
       modelJson: modelContent,
       engine,
       clean,
+      generateDecisionVars,
+      achievabilitySpace,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
       ...(engine === 'prism' &&
         Object.keys(variables).length > 0 && { variables }),
@@ -176,19 +216,31 @@ export default function TransformWorkflow() {
     <div className='min-h-screen p-8 bg-slate-50'>
       <div className='max-w-full mx-auto px-4'>
         <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-          Goal Controller
+          Goal Transformer
         </h1>
         <p className='text-gray-600 mb-8'>
-          Transform goal models to PRISM or SLEEC specifications
+          Transform goal models to{' '}
+          {isValidMode ? engine.toUpperCase() : 'PRISM or SLEEC'} specifications
         </p>
 
-        {/* Configuration Section */}
-        <div
-          ref={resizeRef}
-          className='relative'
-          style={{ height: `${configHeight}px` }}
-        >
-          <div className='grid grid-cols-1 lg:grid-cols-4 gap-6 h-full overflow-hidden pb-4'>
+        {/* Configuration Section - auto height on mobile, fixed height on desktop for resizing */}
+        <div ref={resizeRef} className='relative'>
+          <div
+            className='grid grid-cols-1 lg:grid-cols-4 gap-6 pb-4 h-auto lg:overflow-hidden'
+            style={
+              {
+                '--config-height': `${configHeight}px`,
+              } as React.CSSProperties
+            }
+          >
+            {/* CSS variable for responsive height - only applied on lg screens via Tailwind */}
+            <style>{`
+              @media (min-width: 1024px) {
+                [style*="--config-height"] {
+                  height: var(--config-height) !important;
+                }
+              }
+            `}</style>
             <div className='bg-white rounded-lg shadow-md p-6'>
               <h2 className='text-xl font-semibold mb-4'>1. Upload Model</h2>
               <FileUploader onFileUpload={handleFileUpload} />
@@ -205,15 +257,21 @@ export default function TransformWorkflow() {
               </div>
             )}
 
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
-              <EngineSelector
-                engine={engine}
-                onEngineChange={setEngine}
-                clean={clean}
-                onCleanChange={setClean}
-              />
-            </div>
+            {!isValidMode && (
+              <div className='bg-white rounded-lg shadow-md p-6'>
+                <h2 className='text-xl font-semibold mb-4'>2. Configure</h2>
+                <EngineSelector
+                  engine={engine}
+                  onEngineChange={setEngine}
+                  clean={clean}
+                  onCleanChange={setClean}
+                  generateDecisionVars={generateDecisionVars}
+                  onGenerateDecisionVarsChange={setGenerateDecisionVars}
+                  achievabilitySpace={achievabilitySpace}
+                  onAchievabilitySpaceChange={setAchievabilitySpace}
+                />
+              </div>
+            )}
 
             {engine === 'prism' && modelContent && (
               <div className='bg-white rounded-lg shadow-md p-6 overflow-hidden flex flex-col h-full'>
@@ -247,8 +305,8 @@ export default function TransformWorkflow() {
           </div>
         </div>
 
-        {/* Resize Handle */}
-        <div className='relative w-full py-4 mb-4'>
+        {/* Resize Handle - hidden on mobile */}
+        <div className='hidden lg:block relative w-full py-4 mb-4'>
           <div
             className='flex items-center justify-center cursor-row-resize group'
             onMouseDown={handleMouseDown}
@@ -282,6 +340,17 @@ export default function TransformWorkflow() {
             <div className='max-w-md mx-auto mt-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg'>
               <p className='font-medium'>Error:</p>
               <p className='text-sm'>{transformMutation.error?.message}</p>
+              {transformMutation.error instanceof TransformError &&
+                transformMutation.error.details && (
+                  <details className='mt-2'>
+                    <summary className='text-xs cursor-pointer hover:underline'>
+                      Show details
+                    </summary>
+                    <pre className='mt-2 text-xs bg-red-100 p-2 rounded overflow-auto max-h-48'>
+                      {transformMutation.error.details}
+                    </pre>
+                  </details>
+                )}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { validate } from '../validator';
-import { decisionVariablesTemplate } from './decisionVariables';
+import { decisionVariablesTemplate, DEFAULT_ACHIEVABILITY_SPACE } from './decisionVariables';
 import type { EdgeGoalTree } from '../types';
 import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules } from './modules/goalModule/goalModules';
@@ -9,16 +9,20 @@ const edgeDTMCTemplate = ({
   gm,
   fileName,
   clean = false,
-  variables,
+  variables = {},
+  generateDecisionVars = true,
+  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
-  variables: Record<string, boolean | number>;
+  variables?: Record<string, boolean | number>;
+  generateDecisionVars?: boolean;
+  achievabilitySpace?: number;
 }): string => {
   const dtmcModel = `dtmc
 
-${decisionVariablesTemplate({ gm })}
+${decisionVariablesTemplate({ gm, enabled: generateDecisionVars, achievabilitySpace })}
 
 ${goalModules({ gm })}
 
@@ -33,14 +37,18 @@ export const generateValidatedPrismModel = ({
   gm,
   fileName,
   clean = false,
-  variables,
+  variables = {},
+  generateDecisionVars = true,
+  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
-  variables: Record<string, boolean | number>;
+  variables?: Record<string, boolean | number>;
+  generateDecisionVars?: boolean;
+  achievabilitySpace?: number;
 }): string => {
-  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables });
+  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables, generateDecisionVars, achievabilitySpace });
 
   const report = validate(gm, prismModel, fileName);
   if (report.summary.totalMissing > 0) {

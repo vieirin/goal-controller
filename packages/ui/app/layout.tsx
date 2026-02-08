@@ -3,7 +3,7 @@ import './globals.css';
 import QueryProvider from './QueryProvider';
 
 export const metadata: Metadata = {
-  title: 'Goal Controller - Model Transformation',
+  title: 'Goal Transformer - Model Transformation',
   description: 'Transform goal models to PRISM or SLEEC specifications',
 };
 
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <body>
         <QueryProvider>{children}</QueryProvider>
       </body>

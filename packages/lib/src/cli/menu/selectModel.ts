@@ -6,12 +6,26 @@ import {
   generateValidatedPrismModel,
 } from '../../engines/edge';
 import { initLogger } from '../../engines/edge/logger/logger';
+import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
+
+export interface RunModelOptions {
+  clean?: boolean;
+  generateDecisionVars?: boolean;
+  achievabilitySpace?: number;
+  variables?: Record<string, boolean | number>;
+}
 
 export const runModel = async (
   filePath: string,
-  variables: Record<string, boolean | number>,
-  clean: boolean = false,
+  options: RunModelOptions = {},
 ): Promise<void> => {
+  const {
+    clean = false,
+    generateDecisionVars = true,
+    achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+    variables,
+  } = options;
+
   const logger = initLogger(filePath);
   try {
     const model = Model.load(filePath);
@@ -26,6 +40,8 @@ export const runModel = async (
       fileName,
       clean,
       variables,
+      generateDecisionVars,
+      achievabilitySpace,
     });
     await writeFile(`output/${path.parse(fileName).name}.prism`, output);
     console.log('The file was saved successfully!');
