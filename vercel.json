@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && corepack enable && corepack prepare pnpm@8.15.0 --activate && pnpm run build:lib && cd packages/ui && pnpm run build",
+  "buildCommand": "cd ../.. && corepack enable && corepack prepare pnpm@8.15.0 --activate && pnpm run build:goal-tree && pnpm run build:lib && cd packages/ui && pnpm run build",
   "outputDirectory": ".next",
   "devCommand": "pnpm run dev",
   "installCommand": "cd ../.. && corepack enable && corepack prepare pnpm@8.15.0 --activate && pnpm install --no-frozen-lockfile",

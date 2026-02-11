@@ -1,4 +1,4 @@
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import inquirer from 'inquirer';
 import path from 'path';
@@ -12,10 +12,19 @@ import {
   getLastSelectedModel,
   saveLastSelectedModel,
 } from './cli/utils';
-import { loadPistarModel } from './GoalTree';
-import { convertToTree } from './GoalTree/creation';
-import { dumpTreeToJSON } from './GoalTree/utils';
-import { DEFAULT_ACHIEVABILITY_SPACE } from './templateEngine/decisionVariables';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { edgeEngineMapper } from './engines/edge';
+import { DEFAULT_ACHIEVABILITY_SPACE } from './engines/edge/template/decisionVariables';
+
+const loadVariables = (modelPath: string): Record<string, boolean | number> => {
+  const variablesFilePath = getVariablesFilePath(modelPath);
+  try {
+    return JSON.parse(readFileSync(variablesFilePath, 'utf8'));
+  } catch (error) {
+    console.error('Error reading variables file:', error);
+    return {};
+  }
+};
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -62,7 +71,18 @@ const mainMenu = async (): Promise<void> => {
   };
 
   if (process.env.MODE === 'last' && lastSelectedModel) {
-    await runModel(lastSelectedModel, runOptions);
+    const variables = loadVariables(lastSelectedModel);
+    // Validate that variables were actually loaded (not empty due to error)
+    if (Object.keys(variables).length === 0) {
+      console.error(
+        'Variables file not found or empty for the last selected model.',
+      );
+      console.error(
+        'Please run the CLI without MODE=last to configure variables first.',
+      );
+      return;
+    }
+    await runModel(lastSelectedModel, { ...runOptions, variables });
     return;
   }
 
@@ -93,7 +113,8 @@ const mainMenu = async (): Promise<void> => {
       );
       await inputDefaultVariables(lastSelectedModel);
     }
-    await runModel(lastSelectedModel, runOptions);
+    const variables = loadVariables(lastSelectedModel);
+    await runModel(lastSelectedModel, { ...runOptions, variables });
   } else if (action === 'run') {
     const files = await getFilesInDirectory('examples');
     if (files.length === 0) {
@@ -125,7 +146,8 @@ const mainMenu = async (): Promise<void> => {
       await inputDefaultVariables(selectedFile);
     }
 
-    await runModel(selectedFile, runOptions);
+    const variables = loadVariables(selectedFile);
+    await runModel(selectedFile, { ...runOptions, variables });
   } else if (action === 'variables') {
     await inputDefaultVariables();
   } else if (action === 'dumpTree') {
@@ -149,9 +171,9 @@ const mainMenu = async (): Promise<void> => {
       },
     ]);
 
-    const model = loadPistarModel({ filename: selectedFile });
-    const tree = convertToTree({ model });
-    const json = dumpTreeToJSON({ gm: tree });
+    const model = Model.load(selectedFile);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
+    const json = tree.toJSON();
     await writeFile(`output/${path.parse(selectedFile).name}.json`, json);
     console.log(
       `The file ${path.parse(selectedFile).name}.json was saved successfully!`,

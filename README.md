@@ -14,25 +14,476 @@ goal-controller/
 ├── packages/
 │   ├── lib/          # Core transformation engines (PRISM/SLEEC) + CLI tools
 │   │   ├── src/
-│   │   │   ├── templateEngine/        # PRISM model generator
-│   │   │   ├── sleecTemplateEngine/   # SLEEC specification generator
-│   │   │   │   └── README.md          # SLEEC engine architecture & documentation
-│   │   │   ├── GoalTree/              # Goal model data structures
-│   │   │   └── prismValidator/        # PRISM model validation
+│   │   │   └── engines/               # Transformation engines
+│   │   │       ├── edge/              # PRISM/Edge model generator
+│   │   │       │   ├── mapper.ts      # iStar to Edge property mapper
+│   │   │       │   ├── types.ts       # Edge-specific types
+│   │   │       │   ├── template/      # PRISM model generation templates
+│   │   │       │   ├── validator/     # PRISM model validation
+│   │   │       │   ├── logger/        # Generation logging & metrics
+│   │   │       │   └── mdp/           # MDP common utilities
+│   │   │       └── sleec/             # SLEEC specification generator
+│   │   │           ├── mapper.ts      # iStar to SLEEC property mapper
+│   │   │           ├── types.ts       # SLEEC-specific types
+│   │   │           └── template/      # SLEEC specification templates
 │   │   └── out/      # Compiled JavaScript
+│   ├── goal-tree/    # Goal model data structures
 │   └── ui/           # Next.js web application for transformations
 ├── examples/         # Example goal models
 ├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
 └── output/          # Generated PRISM/SLEEC models
 ```
 
-### Template Engines
+### Transformation Engines
 
-This repository includes two template engines for transforming goal models:
+This repository includes two transformation engines for converting goal models:
 
-1. **PRISM Template Engine** (`packages/lib/src/templateEngine/`) - Generates PRISM models for probabilistic verification
-2. **SLEEC Template Engine** (`packages/lib/src/sleecTemplateEngine/`) - Generates SLEEC specifications for runtime monitoring
-   - See [SLEEC Engine Documentation](packages/lib/src/sleecTemplateEngine/README.md) for architecture and implementation details
+1. **Edge/PRISM Engine** (`packages/lib/src/engines/edge/`) - Generates PRISM models for probabilistic verification
+   - `mapper.ts` - Maps iStar model properties to Edge-specific properties
+   - `template/` - Contains PRISM model generation templates
+2. **SLEEC Engine** (`packages/lib/src/engines/sleec/`) - Generates SLEEC specifications for runtime monitoring
+   - `mapper.ts` - Maps iStar model properties to SLEEC-specific properties
+   - `template/` - Contains SLEEC specification templates
+   - See [Transformation Example (SLEEC)](#transformation-example-sleec) section below for architecture and implementation details
+
+---
+
+## Engine Development Tutorial
+
+This tutorial explains how to create new transformation engines for converting goal models to different target formats.
+
+### Architecture Overview
+
+The transformation system follows a **two-phase architecture**:
+
+```mermaid
+flowchart LR
+    subgraph input [Input]
+        iStar[iStar Model JSON]
+    end
+    subgraph goalTree [goal-tree Package]
+        Parser[Model Parser]
+        Mapper[Engine Mapper]
+        Tree[GoalTree Instance]
+    end
+    subgraph engine [Engine Package]
+        Template[Template Engine]
+    end
+    subgraph output [Output]
+        Target[Target Format]
+    end
+    iStar --> Parser --> Mapper --> Tree --> Template --> Target
+```
+
+**Phase 1 - Creation (Mapper):** Transforms raw iStar properties into typed, engine-specific properties during tree construction.
+
+**Phase 2 - Transformation (Template):** Generates output by querying the typed tree and combining generated sections.
+
+```mermaid
+flowchart TB
+    subgraph phase1 [Phase 1: Creation - Mapper]
+        RawProps[Raw iStar Properties]
+        AllowedKeys[Allowed Keys Filter]
+        MapFn[Map Functions]
+        TypedProps[Typed Engine Properties]
+        RawProps --> AllowedKeys --> MapFn --> TypedProps
+    end
+    subgraph phase2 [Phase 2: Transformation - Template]
+        Query[Query GoalTree]
+        Generate[Generate Output Strings]
+        Combine[Combine Sections]
+        Query --> Generate --> Combine
+    end
+    TypedProps --> Query
+```
+
+### Creating a New Engine
+
+Follow these steps to create a new transformation engine. We'll use SLEEC as a reference (simpler) and Edge for advanced patterns.
+
+```mermaid
+flowchart LR
+    Keys[Define Allowed Keys] --> Factory[createEngineMapper]
+    Factory --> MapFns[Provide Map Functions]
+    MapFns --> Mapper[Engine Mapper]
+    Mapper --> GoalTree[Use with GoalTree.fromModel]
+```
+
+#### Step 1: Define Engine-Specific Types
+
+The mapper transforms **raw string properties** from iStar into **rich typed structures**. Define types that represent your engine's domain model. See [`packages/lib/src/engines/sleec/types.ts`](packages/lib/src/engines/sleec/types.ts) and [`packages/lib/src/engines/edge/types.ts`](packages/lib/src/engines/edge/types.ts):
+
+```typescript
+// types.ts - Complex types transformed FROM raw iStar strings
+
+// Nested structure parsed from "varName:3,otherVar:5" string
+export type Decision = {
+  hasDecision: boolean;
+  decisionVars: Array<{ variable: string; space: number }>;
+};
+
+// Structured condition parsed from assertion strings
+export type ExecCondition = {
+  maintain?: { sentence: string; variables: string[] };
+  assertion?: { sentence: string; variables: string[] };
+};
+
+export type MyEngineGoalProps = {
+  priority: 'low' | 'normal' | 'high';  // Enum from string
+  deadline: number | null;               // Number from string "300"
+  decision: Decision;                    // Parsed from "var:3,other:5"
+  execCondition?: ExecCondition;         // Parsed from assertion syntax
+  dependsOn: GoalNode[];                 // Resolved node references
+};
+
+export type MyEngineTaskProps = {
+  maxRetries: number;                    // Parsed from string "3"
+  isOptional: boolean;                   // Parsed from string "true"
+  tags: string[];                        // Parsed from "tag1,tag2,tag3"
+  execCondition?: ExecCondition;
+};
+```
+
+#### Step 2: Define Allowed Keys
+
+Specify which iStar `customProperties` string keys your engine extracts. The mapper will receive these as `raw` strings:
+
+```typescript
+// mapper.ts
+// These are the RAW string keys from iStar customProperties
+export const MY_ENGINE_GOAL_KEYS = [
+  'priority',      // Raw: "high" → Typed: 'high' (enum)
+  'deadline',      // Raw: "300"  → Typed: 300 (number)
+  'variables',     // Raw: "var:3,other:5" → Typed: Decision object
+  'assertion',     // Raw: "x > 0 & y < 10" → Typed: ExecCondition
+  'dependsOn',     // Raw: "G2,G3" → Typed: GoalNode[] (resolved in afterCreationMapper)
+] as const;
+
+export const MY_ENGINE_TASK_KEYS = [
+  'maxRetries',    // Raw: "3" → Typed: 3 (number)
+  'optional',      // Raw: "true" → Typed: true (boolean)
+  'tags',          // Raw: "critical,async" → Typed: ["critical", "async"]
+  'assertion',
+] as const;
+```
+
+#### Step 3: Create the Engine Mapper
+
+Transform raw strings into typed structures using parsing functions:
+
+```typescript
+import { createEngineMapper } from '@goal-controller/goal-tree';
+
+// Parser: "var:3,other:5" → { hasDecision: true, decisionVars: [...] }
+const parseDecision = (raw: string | undefined): Decision => {
+  if (!raw) return { hasDecision: false, decisionVars: [] };
+  
+  const vars = raw.split(',').map(pair => {
+    const [variable, space] = pair.split(':');
+    return { variable: variable.trim(), space: parseInt(space, 10) };
+  });
+  
+  return { hasDecision: vars.length > 0, decisionVars: vars };
+};
+
+// Parser: "low" | "normal" | "high" with validation
+const parsePriority = (raw: string | undefined): 'low' | 'normal' | 'high' => {
+  const valid = ['low', 'normal', 'high'] as const;
+  return valid.includes(raw as any) ? (raw as 'low' | 'normal' | 'high') : 'normal';
+};
+
+export const myEngineMapper = createEngineMapper<
+  MyEngineGoalProps,
+  MyEngineTaskProps,
+  never  // No resources
+>()({
+  allowedGoalKeys: MY_ENGINE_GOAL_KEYS,
+  allowedTaskKeys: MY_ENGINE_TASK_KEYS,
+  skipResource: true,
+  mapGoalProps: ({ raw }) => ({
+    priority: parsePriority(raw.priority),           // "high" → 'high'
+    deadline: raw.deadline ? parseInt(raw.deadline, 10) : null,  // "300" → 300
+    decision: parseDecision(raw.variables),          // "var:3" → { hasDecision: true, ... }
+    dependsOn: [],  // Resolved later in afterCreationMapper
+  }),
+  mapTaskProps: ({ raw }) => ({
+    maxRetries: raw.maxRetries ? parseInt(raw.maxRetries, 10) : 0,  // "3" → 3
+    isOptional: raw.optional === 'true',             // "true" → true
+    tags: raw.tags ? raw.tags.split(',').map(t => t.trim()) : [],  // "a,b" → ["a","b"]
+  }),
+});
+```
+
+**Advanced: Cross-node references with `afterCreationMapper`**
+
+For engines that need to resolve references between nodes (like Edge's `dependsOn`), see [`packages/lib/src/engines/edge/mapper.ts`](packages/lib/src/engines/edge/mapper.ts):
+
+```typescript
+afterCreationMapper: ({ node, allNodes, rawProperties }) => {
+  if (rawProperties.nodeType !== 'goal') return node.properties.engine;
+  
+  const depIds = parseDependsOn(rawProperties.raw.dependsOn);
+  const resolvedDeps = depIds.map(id => allNodes.get(id));
+  
+  return { ...node.properties.engine, dependsOn: resolvedDeps };
+}
+```
+
+#### Step 4: Create the Template Engine
+
+Create functions that query the tree and generate output sections.
+
+### Transformation Example (SLEEC)
+
+This section demonstrates how to transform from a GoalTree using the SLEEC engine as an example.
+
+```mermaid
+flowchart TB
+    Tree[GoalTree] --> Tasks[query.allByType task]
+    Tree --> Goals[query.allByType goal]
+    Tasks --> Defs[generateDefinitions]
+    Tasks --> Rules[generateTaskRules]
+    Goals --> Purposes[generatePurposes]
+    Defs --> Output[SLEEC Specification]
+    Rules --> Output
+    Purposes --> Output
+```
+
+#### Loading and Creating the Tree
+
+```typescript
+import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { sleecEngineMapper } from '@goal-controller/lib';
+
+// Load from file
+const model = Model.load('examples/goalModel-sleec.txt');
+const tree = GoalTree.fromModel(model, sleecEngineMapper);
+
+// Or from JSON string
+const tree = GoalTree.fromJSON(jsonString, sleecEngineMapper);
+```
+
+#### Querying the Tree
+
+Access typed engine properties through the query interface:
+
+```typescript
+// Get all tasks with typed engine properties
+const tasks = tree.query.allByType('task');
+
+tasks.forEach(task => {
+  console.log(task.name);                              // "Track Vital Signs"
+  console.log(task.properties.engine.PreCond);         // "{dataCollected}"
+  console.log(task.properties.engine.TriggeringEvent); // "PatientAsleep"
+  console.log(task.properties.engine.TemporalConstraint); // "300 seconds"
+});
+
+// Get all goals
+const goals = tree.query.allByType('goal');
+
+// Get leaf goals (goals with tasks, no child goals)
+const leafGoals = tree.query.leafGoals();
+```
+
+#### generateDefinitions - Extract Events and Measures
+
+This function extracts triggering events from task properties and generates SLEEC event definitions:
+
+```typescript
+import type { Task } from '@goal-controller/goal-tree';
+import type { SleecTaskProps } from './types';
+
+type SleecTask = Task<SleecTaskProps>;
+
+const generateDefinitions = (tasks: SleecTask[]): string => {
+  // Extract unique triggering events from typed task properties
+  const events = tasks
+    .map(task => task.properties.engine?.TriggeringEvent)
+    .filter((event): event is string => !!event);
+  
+  const uniqueEvents = [...new Set(events)].sort();
+  const eventLines = uniqueEvents
+    .map(event => `    event ${event}`)
+    .join('\n');
+
+  // Extract boolean measures from PreCond/PostCond
+  const measureRegex = /\{(\w+)\}/g;
+  const measures = new Set<string>();
+  
+  tasks.forEach(task => {
+    const conditions = [
+      task.properties.engine?.PreCond,
+      task.properties.engine?.PostCond,
+    ].filter(Boolean);
+    
+    conditions.forEach(cond => {
+      let match;
+      while ((match = measureRegex.exec(cond!)) !== null) {
+        measures.add(match[1]);
+      }
+    });
+  });
+
+  const measureLines = [...measures].sort()
+    .map(m => `    measure ${m}: boolean`)
+    .join('\n');
+
+  return `def_start
+${eventLines}
+
+${measureLines}
+def_end`;
+};
+
+// Example output:
+// def_start
+//     event DataCollected
+//     event PatientAsleep
+//     event MeetingUser
+//
+//     measure dataCollected: boolean
+//     measure dataProcessed: boolean
+// def_end
+```
+
+#### generateTaskRules - Generate Behavioral Rules
+
+This function generates SLEEC rules from task properties:
+
+```typescript
+const generateTaskRules = (tasks: SleecTask[]): string => {
+  const rules = tasks.map(task => {
+    const { PreCond, TriggeringEvent, PostCond, TemporalConstraint } = 
+      task.properties.engine;
+    
+    // Create fluent name from task name (remove spaces)
+    const fluentName = task.name?.replaceAll(' ', '') || task.id;
+    const ruleId = task.id.replace('.', '_');
+    
+    return `
+    Rule${ruleId}_1 when ${TriggeringEvent} and ${PreCond} then Start${fluentName}
+    Rule${ruleId}_2 when Start${fluentName} then Pursuing${fluentName} within ${TemporalConstraint}
+    Rule${ruleId}_3 when Pursuing${fluentName} and ${PostCond} then Achieved${fluentName}`;
+  }).join('\n');
+
+  return `rule_start${rules}
+rule_end`;
+};
+
+// Example output:
+// rule_start
+//     RuleT5_1 when PatientAsleep and {patientDiscomfort} then StartTrackVitalSigns
+//     RuleT5_2 when StartTrackVitalSigns then PursuingTrackVitalSigns within 300 seconds
+//     RuleT5_3 when PursuingTrackVitalSigns and {dataCollected} then AchievedTrackVitalSigns
+// rule_end
+```
+
+#### generatePurposes - Generate Goal Purposes
+
+This function generates purpose statements from goal properties:
+
+```typescript
+import { GoalTree, type GoalTreeType } from '@goal-controller/goal-tree';
+import type { SleecGoalProps, SleecTaskProps } from './types';
+
+type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps>;
+
+const generatePurposes = (tree: SleecGoalTree): string => {
+  const goals = GoalTree.allByType(tree, 'goal');
+  
+  const purposes = goals
+    .filter(goal => 
+      ['Achieve', 'Maintain'].includes(goal.properties.engine?.Type || '')
+    )
+    .map((goal, index) => {
+      const { Condition, Event, ContextEvent, Type } = goal.properties.engine || {};
+      
+      if (!Condition || !Event || !ContextEvent) {
+        throw new Error(`Goal ${goal.name} missing required properties`);
+      }
+      
+      const label = `P${index + 1}`;
+      
+      if (Type === 'Achieve') {
+        return `${label} when ${ContextEvent} and ${Condition} then ${Event}`;
+      }
+      // Maintain type
+      return `${label} exists ${Event} and ${Condition} while ${ContextEvent}`;
+    });
+
+  return `purpose_start
+  ${purposes.join('\n  ')}
+purpose_end`;
+};
+
+// Example output:
+// purpose_start
+//   P1 when SystemActive and {emergencyDetected} then AlertMedicalStaff
+// purpose_end
+```
+
+#### Complete Template Engine
+
+Combine all generators into the final template engine:
+
+```typescript
+import { GoalTree, type GoalTreeType } from '@goal-controller/goal-tree';
+import type { SleecGoalProps, SleecTaskProps } from './types';
+
+export const sleecTemplateEngine = (
+  tree: GoalTreeType<SleecGoalProps, SleecTaskProps>
+): string => {
+  const tasks = GoalTree.allByType(tree, 'task');
+  
+  const definitions = generateDefinitions(tasks);
+  const rules = generateTaskRules(tasks);
+  const purposes = generatePurposes(tree);
+  
+  return `${definitions}
+
+${rules}
+
+${purposes}`;
+};
+
+// Usage:
+const model = Model.load('examples/goalModel-sleec.txt');
+const tree = GoalTree.fromModel(model, sleecEngineMapper);
+const sleecSpec = sleecTemplateEngine(tree);
+
+console.log(sleecSpec);
+```
+
+#### Sample Complete Output
+
+```sleec
+def_start
+    event DataCollected
+    event MeetingUser
+    event PatientAsleep
+    event PatientOutdoors
+
+    measure dataCollected: boolean
+    measure dataProcessed: boolean
+    measure patientDiscomfort: scale(low, moderate, high)
+def_end
+
+rule_start
+    RuleT5_1 when PatientAsleep and {patientDiscomfort} then StartTrackVitalSigns
+    RuleT5_2 when StartTrackVitalSigns then PursuingTrackVitalSigns within 300 seconds
+    RuleT5_3 when PursuingTrackVitalSigns and {dataCollected} then AchievedTrackVitalSigns
+
+    RuleT7_1 when DataCollected and {dataSaved} then StartProcessData
+    RuleT7_2 when StartProcessData then PursuingProcessData within 60 seconds
+    RuleT7_3 when PursuingProcessData and {dataProcessed} then AchievedProcessData
+rule_end
+
+purpose_start
+  P1 when SystemActive and {emergencyDetected} then AlertMedicalStaff
+purpose_end
+```
+
+---
 
 ### Quick Start
 

@@ -10,7 +10,29 @@
       "Bash(npm test)",
       "Bash(npm test:*)",
       "Bash(git add:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git -C /Users/vieira.neto/vieirin/goal-controller status)",
+      "Bash(git -C /Users/vieira.neto/vieirin/goal-controller log --oneline -20 -- packages/lib/src/GoalTree/)",
+      "Bash(git -C /Users/vieira.neto/vieirin/goal-controller log --oneline -10)",
+      "Bash(find:*)",
+      "Bash(pnpm run build:goal-tree:*)",
+      "Bash(tsc:*)",
+      "Bash(pnpm exec tsc --help:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm run build:ui:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git checkout:*)",
+      "Bash(perl:*)",
+      "Bash(npx mocha:*)",
+      "Bash(pnpm run build:lib:*)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(pnpm -w run build:goal-tree)",
+      "Bash(git status:*)",
+      "Bash(pnpm -w run build:lib:*)",
+      "Bash(npx tsc:*)",
+      "Bash(gh pr view:*)",
+      "Bash(pnpm --filter @goal-controller/lib exec tsc:*)"
     ]
   }
 }

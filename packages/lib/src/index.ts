@@ -1,46 +1,62 @@
 #!/usr/bin/env node
 
 // Import for CLI usage and re-export
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import { loadPistarModel, validateModel } from './GoalTree';
-import { convertToTree } from './GoalTree/creation';
-import { dumpTreeToJSON } from './GoalTree/utils';
-import { initLogger } from './logger/logger';
-import { validate } from './prismValidator';
-import { sleecTemplateEngine } from './sleecTemplateEngine';
-import { generateValidatedPrismModel } from './templateEngine/engine';
+import { generateValidatedPrismModel } from './engines/edge';
+import { initLogger } from './engines/edge/logger/logger';
+import { validate } from './engines/edge/validator';
+import { sleecEngineMapper, sleecTemplateEngine } from './engines/sleec';
 
-// Core transformation engines
-export { generateValidatedPrismModel, sleecTemplateEngine };
+export type {
+  EngineMapper,
+  GoalNode,
+  GoalTreeType,
+  IStarModel,
+  RawProps,
+  Relation,
+  Type,
+} from '@goal-controller/goal-tree';
+
+// Re-export GoalTree and Model for runtime usage (Model.load, GoalTree.fromModel)
+export { GoalTree, Model };
 
 // Decision variables config
-export { DEFAULT_ACHIEVABILITY_SPACE } from './templateEngine/decisionVariables';
+export { DEFAULT_ACHIEVABILITY_SPACE } from './engines/edge/template/decisionVariables';
 
-// Goal Tree utilities
-export { convertToTree, dumpTreeToJSON, loadPistarModel, validateModel };
-
-// Variable extraction
+// Edge engine types and mapper
 export {
-  getTaskAchievabilityVariables,
-  treeContextVariables,
-} from './GoalTree/treeVariables';
+  edgeEngineMapper,
+  type EdgeGoalNode,
+  type EdgeGoalTree,
+  type EdgeTask,
+} from './engines/edge';
+export type {
+  Decision,
+  EdgeGoalProps,
+  EdgeTaskProps,
+  ExecCondition,
+  GoalExecutionDetail,
+} from './engines/edge';
+
+// SLEEC engine types and mapper
+export {
+  sleecEngineMapper,
+  type SleecGoalNode,
+  type SleecGoalTree,
+  type SleecTask,
+} from './engines/sleec';
+export type { SleecGoalProps, SleecTaskProps } from './engines/sleec';
+
+// Core transformation engines (remain in lib)
+export { generateValidatedPrismModel, sleecTemplateEngine };
 
 // Validation
 export { validate };
 
-// Types
-export type {
-  GoalNode,
-  GoalTree,
-  Model,
-  Relation,
-  SleecProps,
-  Type,
-} from './GoalTree/types';
-
 // Logger
-export type { LoggerReport } from './logger/logger';
+export type { LoggerReport } from './engines/edge/logger/logger';
 export { initLogger };
 
 // CLI entry point - if this file is executed directly, run the CLI script
@@ -59,8 +75,8 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  const model = loadPistarModel({ filename: inputFile });
-  const tree = convertToTree({ model });
+  const model = Model.load(inputFile);
+  const tree = GoalTree.fromModel(model, sleecEngineMapper);
 
   const logger = initLogger(inputFile);
   const fileName = path.parse(inputFile).name;
@@ -68,7 +84,7 @@ if (require.main === module) {
 
   writeFile(
     outputPath,
-    sleecTemplateEngine(tree),
+    sleecTemplateEngine(tree.nodes),
     function (err: Error | null) {
       if (err) {
         console.log(err);

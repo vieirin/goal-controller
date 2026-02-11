@@ -11,12 +11,13 @@
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
-    "test": "mocha",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha",
     "grammar": "make grammar",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
+    "@goal-controller/goal-tree": "workspace:*",
     "antlr4": "^4.13.0",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",

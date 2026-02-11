@@ -1,15 +1,18 @@
+import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { loadPistarModel } from '../../GoalTree';
-import { convertToTree } from '../../GoalTree/creation';
-import { initLogger } from '../../logger/logger';
-import { DEFAULT_ACHIEVABILITY_SPACE } from '../../templateEngine/decisionVariables';
-import { generateValidatedPrismModel } from '../../templateEngine/engine';
+import {
+  edgeEngineMapper,
+  generateValidatedPrismModel,
+} from '../../engines/edge';
+import { initLogger } from '../../engines/edge/logger/logger';
+import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
 
 export interface RunModelOptions {
   clean?: boolean;
   generateDecisionVars?: boolean;
   achievabilitySpace?: number;
+  variables?: Record<string, boolean | number>;
 }
 
 export const runModel = async (
@@ -20,21 +23,23 @@ export const runModel = async (
     clean = false,
     generateDecisionVars = true,
     achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+    variables,
   } = options;
 
   const logger = initLogger(filePath);
   try {
-    const model = loadPistarModel({ filename: filePath });
-    const tree = convertToTree({ model });
+    const model = Model.load(filePath);
+    const tree = GoalTree.fromModel(model, edgeEngineMapper);
     // last part of the path
     const fileName = filePath.split('/').pop();
     if (!fileName) {
       throw new Error('File name not found');
     }
     const output = generateValidatedPrismModel({
-      gm: tree,
+      gm: tree.nodes,
       fileName,
       clean,
+      variables,
       generateDecisionVars,
       achievabilitySpace,
     });
