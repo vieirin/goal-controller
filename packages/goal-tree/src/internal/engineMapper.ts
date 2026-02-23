@@ -75,7 +75,10 @@ export type EngineMapper<
   /**
    * Map raw task properties to engine-specific task properties
    */
-  mapTaskProps: (props: { raw: RawProps<TTaskKeys> }) => TTaskEngine;
+  mapTaskProps: (props: {
+    raw: RawProps<TTaskKeys>;
+    name: string;
+  }) => TTaskEngine;
 
   /**
    * Optional: Transform props after tree is created (e.g., resolve dependsOn)
@@ -120,7 +123,10 @@ export function createEngineMapper<
         raw: RawProps<TGoalKeys>;
         executionDetail: GoalExecutionDetail | null;
       }) => TGoalEngine;
-      mapTaskProps: (props: { raw: RawProps<TTaskKeys> }) => TTaskEngine;
+      mapTaskProps: (props: {
+        raw: RawProps<TTaskKeys>;
+        name: string;
+      }) => TTaskEngine;
       afterCreationMapper?: (props: {
         node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>;
         allNodes: Map<

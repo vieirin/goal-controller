@@ -9,6 +9,8 @@ interface EngineSelectorProps {
   onGenerateDecisionVarsChange: (generateDecisionVars: boolean) => void;
   achievabilitySpace: number;
   onAchievabilitySpaceChange: (achievabilitySpace: number) => void;
+  generateFluents: boolean;
+  onGenerateFluentsChange: (generateFluents: boolean) => void;
 }
 
 export default function EngineSelector({
@@ -20,6 +22,8 @@ export default function EngineSelector({
   onGenerateDecisionVarsChange,
   achievabilitySpace,
   onAchievabilitySpaceChange,
+  generateFluents,
+  onGenerateFluentsChange,
 }: EngineSelectorProps) {
   return (
     <div className='space-y-4'>
@@ -99,6 +103,22 @@ export default function EngineSelector({
               />
             </div>
           )}
+        </div>
+      )}
+
+      {engine === 'sleec' && (
+        <div className='space-y-3'>
+          <label className='flex items-center'>
+            <input
+              type='checkbox'
+              checked={generateFluents}
+              onChange={(e) => onGenerateFluentsChange(e.target.checked)}
+              className='mr-2'
+            />
+            <span className='text-sm text-gray-700'>
+              Generate fluent definitions
+            </span>
+          </label>
         </div>
       )}
     </div>

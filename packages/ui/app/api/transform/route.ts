@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       clean = false,
       generateDecisionVars = true,
       achievabilitySpace = 4,
+      generateFluents = true,
       fileName,
       variables,
     } = await request.json();
@@ -79,19 +80,12 @@ export async function POST(request: NextRequest) {
           console.log('[API] Model parsed and tree converted successfully');
           console.log('[API] Generating SLEEC model...');
         }
-        output = sleecTemplateEngine(parseResult.tree);
+        output = sleecTemplateEngine(parseResult.tree, { generateFluents });
       }
 
       // Get logger report
       report = logger.getReport();
       logger.close();
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[API] Output generated successfully:', {
-          outputLength: output.length,
-          firstLines: output.split('\n').slice(0, 3).join('\n'),
-        });
-      }
 
       return ApiResponse.success({ output, report });
     } catch (generationError) {

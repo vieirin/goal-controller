@@ -1,7 +1,5 @@
 import type { Task } from '@goal-controller/goal-tree';
 import type { SleecTaskProps } from '../types';
-
-type SleecTask = Task<SleecTaskProps>;
 import { generateFluents } from './fluents';
 import {
   fluentOperations,
@@ -10,6 +8,8 @@ import {
   type Measure,
   type MeasureType,
 } from './shared';
+
+type SleecTask = Task<SleecTaskProps>;
 
 /**
  * Sorts scale values semantically based on common patterns (low → moderate → high).
@@ -161,7 +161,7 @@ const extractFluentNames = (tasks: SleecTask[]): string[] =>
 const extractObstacleEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => task.properties.engine?.ObstacleEvent)
+      .map((task) => task.properties.engine?.Obstacle)
       .filter((event): event is string => !!event)
       .map((event) => `Achieved${event}`),
   );
@@ -172,10 +172,19 @@ const measureLine = (measure: Measure): string =>
     ? `    measure ${measure.name}: scale(${measure.scaleValues.join(', ')})`
     : `    measure ${measure.name}: boolean`;
 
+export type GenerateDefinitionsOptions = {
+  /** Whether to generate fluent definitions. Defaults to true. */
+  generateFluents?: boolean;
+};
+
 /**
  * Generates the def_start section with all events and measures
  */
-export const generateDefinitions = (tasks: SleecTask[]): string => {
+export const generateDefinitions = (
+  tasks: SleecTask[],
+  options: GenerateDefinitionsOptions = {},
+): string => {
+  const { generateFluents: shouldGenerateFluents = true } = options;
   const triggeringEvents = extractTriggeringEvents(tasks);
   const fluentEvents = extractFluentEvents(tasks);
   const ObstacleEvents = extractObstacleEvents(tasks);
@@ -204,7 +213,7 @@ export const generateDefinitions = (tasks: SleecTask[]): string => {
   const measureLines = measures.map(measureLine);
 
   // Fluent definitions (fluent TaskName <{StartTaskName}, {AchievedTaskName}>)
-  const fluentLines = generateFluents(tasks);
+  const fluentLines = shouldGenerateFluents ? generateFluents(tasks) : [];
 
   // Combine all sections with empty line separators between them
   const sections = [

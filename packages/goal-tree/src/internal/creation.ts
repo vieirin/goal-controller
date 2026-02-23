@@ -248,7 +248,7 @@ function createNode<
       tasks,
       resources,
       properties: {
-        engine: mapper.mapTaskProps({ raw: rawTaskProps }),
+        engine: mapper.mapTaskProps({ raw: rawTaskProps, name: goalName }),
       },
     };
     return taskNode;

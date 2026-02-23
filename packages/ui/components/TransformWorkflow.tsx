@@ -21,6 +21,7 @@ interface TransformRequest {
   clean: boolean;
   generateDecisionVars: boolean;
   achievabilitySpace: number;
+  generateFluents: boolean;
   fileName: string;
   variables?: Record<string, boolean | number>;
 }
@@ -110,6 +111,7 @@ export default function TransformWorkflow() {
   const [achievabilitySpace, setAchievabilitySpace] = useState<number>(
     DEFAULT_ACHIEVABILITY_SPACE,
   );
+  const [generateFluents, setGenerateFluents] = useState<boolean>(false);
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
@@ -203,6 +205,7 @@ export default function TransformWorkflow() {
       clean,
       generateDecisionVars,
       achievabilitySpace,
+      generateFluents,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
       ...(engine === 'prism' &&
         Object.keys(variables).length > 0 && { variables }),
@@ -269,6 +272,8 @@ export default function TransformWorkflow() {
                   onGenerateDecisionVarsChange={setGenerateDecisionVars}
                   achievabilitySpace={achievabilitySpace}
                   onAchievabilitySpaceChange={setAchievabilitySpace}
+                  generateFluents={generateFluents}
+                  onGenerateFluentsChange={setGenerateFluents}
                 />
               </div>
             )}

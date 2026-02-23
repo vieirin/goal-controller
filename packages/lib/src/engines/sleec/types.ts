@@ -20,5 +20,5 @@ export type SleecTaskProps = {
   TriggeringEvent?: string;
   TemporalConstraint?: string;
   PostCond?: string;
-  ObstacleEvent?: string;
+  Obstacle?: string;
 };

@@ -34,7 +34,7 @@ export const SLEEC_TASK_KEYS = [
   'TriggeringEvent',
   'TemporalConstraint',
   'PostCond',
-  'ObstacleEvent',
+  'Obstacle',
 ] as const;
 
 // Type aliases for the allowed keys
@@ -54,15 +54,42 @@ const extractSleecGoalProps = (raw: RawProps<SleecGoalKey>): SleecGoalProps => {
   return sleecProps;
 };
 
-const extractSleecTaskProps = (raw: RawProps<SleecTaskKey>): SleecTaskProps => {
-  const sleecProps: SleecTaskProps = {};
+const REQUIRED_TASK_KEYS = [
+  'PreCond',
+  'TriggeringEvent',
+  'PostCond',
+  'TemporalConstraint',
+] as const;
 
-  if (raw.PreCond) sleecProps.PreCond = raw.PreCond;
-  if (raw.TriggeringEvent) sleecProps.TriggeringEvent = raw.TriggeringEvent;
-  if (raw.TemporalConstraint)
-    sleecProps.TemporalConstraint = raw.TemporalConstraint;
-  if (raw.PostCond) sleecProps.PostCond = raw.PostCond;
-  if (raw.ObstacleEvent) sleecProps.ObstacleEvent = raw.ObstacleEvent;
+const extractSleecTaskProps = (
+  raw: RawProps<SleecTaskKey>,
+  taskName: string,
+): SleecTaskProps => {
+  const missing = REQUIRED_TASK_KEYS.filter((key) => {
+    const value = raw[key];
+    return !value || value.trim() === '';
+  });
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Task "${taskName}" is missing required SLEEC properties: ${missing.join(', ')}. ` +
+        `All tasks must define: ${REQUIRED_TASK_KEYS.join(', ')}.`,
+    );
+  }
+
+  const preCond = raw.PreCond as string;
+  const triggeringEvent = raw.TriggeringEvent as string;
+  const postCond = raw.PostCond as string;
+  const temporalConstraint = raw.TemporalConstraint as string;
+
+  const sleecProps: SleecTaskProps = {
+    PreCond: preCond,
+    TriggeringEvent: triggeringEvent,
+    PostCond: postCond,
+    TemporalConstraint: temporalConstraint,
+  };
+
+  if (raw.Obstacle) sleecProps.Obstacle = raw.Obstacle;
 
   return sleecProps;
 };
@@ -82,7 +109,7 @@ export const sleecEngineMapper = createEngineMapper<
   allowedTaskKeys: SLEEC_TASK_KEYS,
   skipResource: true,
   mapGoalProps: ({ raw }) => extractSleecGoalProps(raw),
-  mapTaskProps: ({ raw }) => extractSleecTaskProps(raw),
+  mapTaskProps: ({ raw, name }) => extractSleecTaskProps(raw, name),
 });
 
 /**
