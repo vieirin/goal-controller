@@ -22,7 +22,7 @@ export const getGoalDetail = ({
   goalText: string;
 }): {
   id: string;
-  goalName: string | null;
+  goalName: string;
   executionDetail: GoalExecutionDetail | null;
 } => {
   const chars = new CharStream(goalText); // replace this with a FileStream as required
