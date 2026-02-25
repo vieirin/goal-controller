@@ -41,17 +41,7 @@ export const generateTaskRules = (tasks: SleecTask[]): string => {
         'Stop',
       )} within ${engine.TemporalConstraint}
       
-      ${
-        engine.Obstacle
-          ? `Rule${renameTaskId(task.id)}_4 when ${taskFluentName(
-              task,
-              'Pursuing',
-            )} and ${engine.Obstacle} then ${taskFluentName(task, 'Stop')}
-      `
-          : ''
-      }
-      
-      Rule${renameTaskId(task.id)}_${engine.Obstacle ? 5 : 4} when ${taskFluentName(
+      Rule${renameTaskId(task.id)}_4 when ${taskFluentName(
         task,
         'Stop',
       )} and ${engine.PostCond} then ${taskFluentName(
@@ -60,7 +50,17 @@ export const generateTaskRules = (tasks: SleecTask[]): string => {
       )} unless (not ${engine.PostCond}) then ${taskFluentName(
         task,
         'ReportFailure',
-      )}`;
+      )}
+        
+      ${
+        engine.Obstacle
+          ? `Rule${renameTaskId(task.id)}_5 when ${taskFluentName(
+              task,
+              'Pursuing',
+            )} and ${engine.Obstacle} then ${taskFluentName(task, 'Stop')}
+      `
+          : ''
+      }`.trim();
         })
         .join('\n')}
 rule_end`;
