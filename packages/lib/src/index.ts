@@ -4,10 +4,13 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import { generateValidatedPrismModel } from './engines/edge';
+import {
+  edgeEngineMapper,
+  generateValidatedPrismModel,
+} from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';
-import { sleecEngineMapper, sleecTemplateEngine } from './engines/sleec';
+import { sleecTemplateEngine } from './engines/sleec';
 
 export type {
   EngineMapper,
@@ -76,15 +79,15 @@ if (require.main === module) {
   }
 
   const model = Model.load(inputFile);
-  const tree = GoalTree.fromModel(model, sleecEngineMapper);
+  const tree = GoalTree.fromModel(model, edgeEngineMapper);
 
   const logger = initLogger(inputFile);
-  const fileName = path.parse(inputFile).name;
-  const outputPath = `output/${fileName}.prism`;
+  const fileName = path.basename(inputFile);
+  const outputPath = `output/${path.parse(inputFile).name}.prism`;
 
   writeFile(
     outputPath,
-    sleecTemplateEngine(tree.nodes),
+    generateValidatedPrismModel({ gm: tree.nodes, fileName }),
     function (err: Error | null) {
       if (err) {
         console.log(err);
