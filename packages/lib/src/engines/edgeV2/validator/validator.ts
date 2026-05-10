@@ -50,7 +50,7 @@ const validateGoal = (
   const emittedVariables = goalModule?.variables.map((v) => v.name) || [];
   const emittedTransitions = goalModule?.transitions.map((t) => t.label) || [];
   // Filter formulas that belong to this goal
-  // Formulas are named like: G1_achieved, G1_achieved_maintain
+  // Formulas are named like: G1_achievable, G1_achieved, G1_achieved_maintain
   // We need to match formulas that start with goalId + '_' to avoid matching
   // G10, G11, etc. when looking for G1
   const emittedFormulas = parsedModel.formulas
@@ -83,7 +83,7 @@ const validateGoal = (
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
   const goalVariablePattern = new RegExp(
-    `^${goalId}_(state|pursued|achieved|chosen|failed)$`,
+    `^${goalId}_(state|pursued|achieved|chosen|failed|achievable)$`,
   );
 
   const emittedContextVars =

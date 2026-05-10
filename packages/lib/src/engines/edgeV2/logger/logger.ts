@@ -260,7 +260,7 @@ const createLogger = (
     achievabilityFormulaDefinition: (
       goalId: string,
       formula: string,
-      type: 'AND' | 'OR' | 'SINGLE_GOAL',
+      type: 'AND' | 'OR' | 'SINGLE_GOAL' | 'LEAF',
       sentence: string,
       prismLine: string,
     ) => {

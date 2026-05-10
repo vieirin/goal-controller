@@ -1,8 +1,8 @@
 import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
-import { separator } from '../../../../mdp/common';
+import { parenthesis, separator } from '../../../../mdp/common';
 import type { EdgeGoalNode } from '../../../../types';
-import { achievedVariable } from '../../../common';
+import { achievableFormulaVariable, achievedVariable } from '../../../common';
 
 export const achievedMaintain = (goalId: string): string => {
   return `${goalId}_achieved_maintain`;
@@ -27,6 +27,82 @@ export const maintainConditionFormula = (goal: EdgeGoalNode): string => {
     prismLine,
   );
   return prismLine;
+};
+
+/** Same combinators as Edge v1: `*` for AND children, inclusion–exclusion for OR. */
+export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
+  const children = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  );
+  const formulaName = achievableFormulaVariable(goal.id);
+  const logger = getLogger();
+
+  if (children.length === 0) {
+    const formula = `formula ${formulaName} = 1;`;
+    logger.achievabilityFormulaDefinition(
+      goal.id,
+      formulaName,
+      'LEAF',
+      '1',
+      formula,
+    );
+    return formula;
+  }
+
+  if (children.length === 1) {
+    const firstChild = children[0];
+    if (!firstChild) {
+      throw new Error(
+        `Expected at least one child for goal ${goal.id} but children array is empty`,
+      );
+    }
+    const sentence = achievableFormulaVariable(firstChild.id);
+    const formula = `formula ${formulaName} = ${sentence};`;
+    logger.achievabilityFormulaDefinition(
+      goal.id,
+      formulaName,
+      'SINGLE_GOAL',
+      sentence,
+      formula,
+    );
+    return formula;
+  }
+
+  const childrenVariables = children.map((child) =>
+    achievableFormulaVariable(child.id),
+  );
+  const productPart = childrenVariables.join(' * ');
+
+  switch (goal.relationToChildren) {
+    case 'and': {
+      const andFormula = `formula ${formulaName} = ${productPart};`;
+      logger.achievabilityFormulaDefinition(
+        goal.id,
+        formulaName,
+        'AND',
+        productPart,
+        andFormula,
+      );
+      return andFormula;
+    }
+    case 'or': {
+      const sumPart = childrenVariables.join(' + ');
+      const formulaValue = `${sumPart} - ${parenthesis(productPart)}`;
+      const orFormula = `formula ${formulaName} = ${formulaValue};`;
+      logger.achievabilityFormulaDefinition(
+        goal.id,
+        formulaName,
+        'OR',
+        formulaValue,
+        orFormula,
+      );
+      return orFormula;
+    }
+    default:
+      throw new Error(
+        `Invalid relation to children: ${goal.relationToChildren ?? 'none'}`,
+      );
+  }
 };
 
 export const achievedGoalFormula = (goal: EdgeGoalNode): string => {
