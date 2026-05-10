@@ -9,6 +9,7 @@ import {
 } from '../../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { chosenVariable } from '../../../../common';
+import { pursueableChildren } from '../../../../prismGuards';
 import { achievedMaintain } from '../formulas';
 import { degradationRetryCapFromMap } from '../variables';
 import { pursueAndInterleavedGoal, pursueAndSequentialGoal } from './andGoal';
@@ -59,12 +60,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const logger = getLogger();
   const pursueLogger = logger.pursue;
 
-  // Filter out resources - they cannot be pursued
-  const allChildren = Node.children(goal);
-  const pursueableChildren = allChildren.filter(
-    (child): child is PursueableNode => !Node.isResource(child),
-  );
-  const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren];
+  const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren(goal)];
 
   const isItself = (child: PursueableNode): boolean => child.id === goal.id;
   const pursueLines = goalsToPursue
@@ -164,10 +160,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                if (
-                  Node.children(goal).filter((c) => !Node.isResource(c))
-                    .length === 0
-                ) {
+                if (pursueableChildren(goal).length === 0) {
                   logger.error(
                     goal.id,
                     'choice execution detail detected without pursueable children',

@@ -2,8 +2,8 @@ import type { TreeNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
-import { achievable, achieved, separator } from '../../../../../mdp/common';
-import { decisionVariable } from '../../../../common';
+import { achieved, separator } from '../../../../../mdp/common';
+import { achievableGtDecision } from '../../../../prismGuards';
 import { hasBeenAchieved } from './common';
 
 // Type for nodes that can be achieved (goals and tasks, but not resources)
@@ -15,12 +15,9 @@ const priorSequentialSiblingGuard = (node: AchievableNode): string =>
     ? hasBeenAchieved(node, { condition: true })
     : achieved(node.id);
 
-/** Matches EDGE snippets: `G0_achievable*10.0 > decision_G0`. */
-const ACHIEVABILITY_DECISION_SCALE = 10.0;
-
 /** Interleaved AND: per-child guard from snippets (`G1_achievable*10.0 > decision_G1`). */
 export const pursueAndInterleavedGoal = (childId: string): string =>
-  `${achievable(childId)}*${ACHIEVABILITY_DECISION_SCALE} > ${decisionVariable(childId)}`;
+  achievableGtDecision(childId);
 
 export const splitSequence = (
   sequence: string[],
@@ -66,7 +63,7 @@ export const pursueAndSequentialGoal = (
   sequenceLogger(goal.id, childId, leftGoals, rightGoals);
 
   if (goal.relationToChildren === 'and') {
-    const decisionGuard = `${achievable(goal.id)}*${ACHIEVABILITY_DECISION_SCALE} > ${decisionVariable(goal.id)}`;
+    const decisionGuard = achievableGtDecision(goal.id);
     const previousAchieved = leftGoals.map((id) => {
       const node = childrenMap.get(id);
       if (!node) {

@@ -1,5 +1,5 @@
 import type { Resource } from '@goal-controller/goal-tree';
-import { GoalTree, Node } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
 
 // Type aliases for this file
@@ -16,7 +16,8 @@ import {
   pursueTransition,
   underscoredOrDecisionVariable,
 } from '../template/common';
-import { coercePositiveIntRetry } from '../retryCoercion';
+import { cappedDegradationChildren } from '../template/modules/goalModule/template/variables';
+import { pursueableChildren } from '../template/prismGuards';
 import type { ExpectedElements } from './types';
 
 const achievedMaintain = (goalId: string): string => {
@@ -39,34 +40,14 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {
-    // Filter out resources - only goals and tasks can be chosen
-    const pursueableChildren = Node.children(goal).filter(
-      (child) => !Node.isResource(child),
-    );
-    if (pursueableChildren.length > 0) {
+    if (pursueableChildren(goal).length > 0) {
       variables.push(chosenVariable(goal.id));
     }
   }
 
   // Degradation OR: one failed counter per sibling id in retryMap (parent module)
-  if (
-    goal.relationToChildren === 'or' &&
-    goal.properties.engine.executionDetail?.type === 'degradation'
-  ) {
-    const ed = goal.properties.engine.executionDetail;
-    const pursueableIds = new Set(
-      Node.children(goal)
-        .filter((child) => !Node.isResource(child))
-        .map((c) => c.id),
-    );
-    const retryMap = ed.retryMap;
-    if (retryMap) {
-      for (const [siblingId, raw] of Object.entries(retryMap)) {
-        if (!pursueableIds.has(siblingId)) continue;
-        if (coercePositiveIntRetry(raw) === null) continue;
-        variables.push(failed(siblingId));
-      }
-    }
+  for (const { child } of cappedDegradationChildren(goal)) {
+    variables.push(failed(child.id));
   }
 
   return variables;
@@ -77,12 +58,11 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 
   // Always has pursue transitions: one for itself + one for each pursueable child
   transitions.push(pursueTransition(goal.id));
-  // Filter out resources - only goals and tasks can be pursued
-  const pursueableChildren = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
-  );
+  const children = pursueableChildren(goal);
   const executionDetail = goal.properties.engine.executionDetail;
-  pursueableChildren.forEach((child) => {
+  const cappedChildren = cappedDegradationChildren(goal);
+
+  children.forEach((child) => {
     transitions.push(pursueTransition(child.id));
     if (
       goal.relationToChildren === 'or' &&
@@ -92,13 +72,10 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
     }
     if (
       goal.relationToChildren === 'or' &&
-      executionDetail?.type === 'degradation'
+      executionDetail?.type === 'degradation' &&
+      cappedChildren.some(({ child: c }) => c.id === child.id)
     ) {
-      if (
-        coercePositiveIntRetry(executionDetail.retryMap?.[child.id]) !== null
-      ) {
-        transitions.push(pursueTransition(child.id));
-      }
+      transitions.push(pursueTransition(child.id));
     }
   });
 
@@ -109,20 +86,15 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
   if (
     goal.relationToChildren === 'or' &&
     executionDetail?.type === 'choice' &&
-    pursueableChildren.length > 0
+    children.length > 0
   ) {
-    for (let i = 0; i <= pursueableChildren.length; i++) {
+    for (let i = 0; i <= children.length; i++) {
       transitions.push(`skip_${goal.id}`);
     }
   } else if (
     goal.relationToChildren === 'or' &&
     executionDetail?.type === 'degradation'
   ) {
-    const cappedChildren = pursueableChildren.filter((child) => {
-      return (
-        coercePositiveIntRetry(executionDetail.retryMap?.[child.id]) !== null
-      );
-    });
     if (cappedChildren.length > 0) {
       // Per capped sibling: one retry-skip (`failed<N`) + one failover-skip (`failed=N`).
       for (let i = 0; i < cappedChildren.length * 2; i++) {

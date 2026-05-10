@@ -1,9 +1,9 @@
-import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
-import type { EdgeGoalNode } from '../../../../types';
+import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { coercePositiveIntRetry } from '../../../../retryCoercion';
 import { chosenVariable } from '../../../common';
+import { pursueableChildren } from '../../../prismGuards';
 
 const goalStateVariable = (goalId: string): string => `${goalId}_state`;
 
@@ -18,28 +18,30 @@ export const degradationRetryCapFromMap = (
   return coercePositiveIntRetry(ed.retryMap?.[childId]);
 };
 
+/**
+ * Ordered list of `{ child, cap }` for every pursueable child in an OR
+ * degradation goal whose retryMap entry has a positive integer cap.
+ * Single source of truth for pursue, skip, and validator expected counts.
+ */
+export const cappedDegradationChildren = (
+  goal: EdgeGoalNode,
+): Array<{ child: EdgeGoalNode | EdgeTask; cap: number }> => {
+  if (goal.relationToChildren !== 'or') return [];
+  const ed = goal.properties.engine.executionDetail;
+  if (ed?.type !== 'degradation') return [];
+  return pursueableChildren(goal).flatMap((child) => {
+    const cap = coercePositiveIntRetry(ed.retryMap?.[child.id]);
+    return cap !== null ? [{ child, cap }] : [];
+  });
+};
+
 const degradationSiblingFailedVariableLines = (
   goal: EdgeGoalNode,
   defineVariable: (variable: string, upperBound: number) => string,
 ): string[] => {
-  if (goal.relationToChildren !== 'or') return [];
-  const ed = goal.properties.engine.executionDetail;
-  if (ed?.type !== 'degradation') return [];
-  const pursueableIds = new Set(
-    Node.children(goal)
-      .filter((c) => !Node.isResource(c))
-      .map((c) => c.id),
+  return cappedDegradationChildren(goal).map(({ child, cap }) =>
+    defineVariable(failed(child.id), cap),
   );
-  const lines: string[] = [];
-  const retryMap = ed.retryMap;
-  if (!retryMap) return lines;
-  for (const [siblingId, raw] of Object.entries(retryMap)) {
-    if (!pursueableIds.has(siblingId)) continue;
-    const cap = coercePositiveIntRetry(raw);
-    if (cap === null) continue;
-    lines.push(defineVariable(failed(siblingId), cap));
-  }
-  return lines;
 };
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
@@ -56,9 +58,7 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
   };
   const stateVariableStatement = defineVariable(goalStateVariable(goal.id), 1);
 
-  const pursueableChildrenCount = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
-  ).length;
+  const pursueableChildrenCount = pursueableChildren(goal).length;
   const chosenVariableStatement =
     goal.properties.engine.executionDetail?.type === 'choice' &&
     pursueableChildrenCount > 0

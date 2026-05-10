@@ -1,19 +1,17 @@
-import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
-import {
-  achievable,
-  goalState,
-  pursued,
-  separator,
-} from '../../../../../mdp/common';
+import { achievable, separator } from '../../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import {
   chosenVariable,
   decisionVariable,
   underscoredOrDecisionVariable,
 } from '../../../../common';
-
-const ACHIEVABILITY_DECISION_SCALE = 10.0;
+import {
+  ACHIEVABILITY_DECISION_SCALE,
+  achievableGtDecision,
+  childIdle,
+  pursueableChildren as sharedPursueableChildren,
+} from '../../../../prismGuards';
 
 /*
 G1: Goal[T1|T2]
@@ -65,13 +63,9 @@ export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
   currentChildId: string,
 ): string => {
-  const children = Node.children(goal);
-  // Filter out resources - they don't have pursued state
   type PursueableNode = EdgeGoalNode | EdgeTask;
-  const pursueableChildren = children.filter(
-    (child): child is PursueableNode => !Node.isResource(child),
-  );
-  const otherGoals = pursueableChildren.filter(
+  const pursueableNodes = sharedPursueableChildren(goal) as PursueableNode[];
+  const otherGoals = pursueableNodes.filter(
     (child: PursueableNode) => child.id !== currentChildId,
   );
   const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
@@ -81,15 +75,10 @@ export const pursueAlternativeGoal = (
     otherGoals.map((child: PursueableNode) => child.id),
   );
 
-  const scale = ACHIEVABILITY_DECISION_SCALE;
-  const parentVsDecision = `${achievable(goal.id)}*${scale} > ${decisionVariable(goal.id)}`;
+  const parentVsDecision = achievableGtDecision(goal.id);
 
   const siblingIdle = otherGoals
-    .map((child: PursueableNode) => {
-      return Node.isTask(child)
-        ? `${pursued(child.id)}=0`
-        : `${goalState(child.id)}=0`;
-    })
+    .map((child: PursueableNode) => childIdle(child))
     .join(separator('and'));
 
   const parts: string[] = [parentVsDecision];
@@ -97,17 +86,17 @@ export const pursueAlternativeGoal = (
     parts.push(siblingIdle);
   }
 
-  if (pursueableChildren.length >= 2) {
-    const first = pursueableChildren[0];
+  if (pursueableNodes.length >= 2) {
+    const first = pursueableNodes[0];
     if (!first) {
       throw new Error(
         `Pursueable children unexpectedly empty for alternative goal ${goal.id}`,
       );
     }
-    const sumAchievable = pursueableChildren
+    const sumAchievable = pursueableNodes
       .map((c) => achievable(c.id))
       .join('+');
-    const ratioExpr = `(${achievable(first.id)}/(${sumAchievable}))*${scale}`;
+    const ratioExpr = `(${achievable(first.id)}/(${sumAchievable}))*${ACHIEVABILITY_DECISION_SCALE}`;
     const underscored = underscoredOrDecisionVariable(goal.id);
     parts.push(
       currentChildId === first.id
