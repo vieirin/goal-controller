@@ -20,6 +20,8 @@ export const parenthesis = (s: string): string => (s ? `(${s})` : s);
 
 export const achieved = (goalId: string): string => `${goalId}_achieved`;
 export const achievable = (goalId: string): string => `${goalId}_achievable`;
+/** Goal pursuit flag in Edge V2 PRISM modules (snippets: g0, g1, … as 0/1). */
+export const goalState = (goalId: string): string => `${goalId}_state`;
 export const pursued = (goalId: string): string => `${goalId}_pursued`;
 export const achievedOrPursued = (goalId: string): string =>
   pursued(`${achieved(goalId)}_or`);

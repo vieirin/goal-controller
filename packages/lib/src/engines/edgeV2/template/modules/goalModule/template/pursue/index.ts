@@ -3,8 +3,8 @@ import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
   failed,
+  goalState,
   parenthesis,
-  pursued,
   separator,
 } from '../../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
@@ -86,10 +86,10 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
           (goal.properties.engine.dependsOn ?? []).map((dep) => dep.id),
         );
         const statement =
-          `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
+          `[pursue_${child.id}] ${goalState(goal.id)}=${itself ? 0 : 1} & ${
             goal.properties.engine.execCondition?.maintain
               ? `${achievedMaintain(goal.id)}=false`
-              : `${achieved(goal.id)}=0`
+              : `!${achieved(goal.id)}`
           }` + (itself ? dependencyStatement : '');
         pursueLogger.defaultPursueCondition(statement);
 
@@ -98,7 +98,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
 
       const calcRightStatement = (): string => {
         if (itself) {
-          const update = `(${pursued(goal.id)}'=1)`;
+          const update = `(${goalState(goal.id)}'=1)`;
           pursueLogger.update(update);
           return update;
         }

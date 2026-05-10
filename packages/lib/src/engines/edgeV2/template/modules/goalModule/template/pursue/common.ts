@@ -1,5 +1,11 @@
+import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import { achieved, pursued, separator } from '../../../../../mdp/common';
+import {
+  achieved,
+  goalState,
+  pursued,
+  separator,
+} from '../../../../../mdp/common';
 import { achievedMaintain } from '../formulas';
 
 // Node type that has both id and properties.engine.execCondition
@@ -9,6 +15,10 @@ export const hasBeenAchieved = (
   node: NodeWithExecCondition,
   { condition, update }: { condition: boolean; update?: boolean },
 ): string => {
+  if (node.type === 'task') {
+    return `${achieved(node.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
+  }
+
   if (node.properties.engine.execCondition?.maintain) {
     if (update) {
       throw new Error(
@@ -18,14 +28,20 @@ export const hasBeenAchieved = (
     return `${achievedMaintain(node.id)}=${condition ? 'true' : 'false'}`;
   }
 
-  return `${achieved(node.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
+  if (update) {
+    throw new Error(
+      'Invalid update option for goal achieved formula, please verify',
+    );
+  }
+  return condition ? `${achieved(node.id)}` : `!${achieved(node.id)}`;
 };
 
 export const hasBeenPursued = (
   node: NodeWithExecCondition,
   { condition, update }: { condition: boolean; update?: boolean },
 ): string => {
-  return `${pursued(node.id)}${update ? "'" : ''}=${condition ? 1 : 0}`;
+  const name = Node.isTask(node) ? pursued(node.id) : goalState(node.id);
+  return `${name}${update ? "'" : ''}=${condition ? 1 : 0}`;
 };
 
 export const hasBeenAchievedAndPursued = (

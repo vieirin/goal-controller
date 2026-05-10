@@ -1,6 +1,6 @@
 import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
-import { pursued, separator } from '../../../../../mdp/common';
+import { goalState, pursued, separator } from '../../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { chosenVariable } from '../../../../common';
 import { hasFailedAtLeastNTimes, hasFailedAtMostNTimes } from './common';
@@ -118,7 +118,9 @@ export const pursueAlternativeGoal = (
 
   return otherGoals
     .map((child: PursueableNode) => {
-      return `${pursued(child.id)}=0`;
+      return Node.isTask(child)
+        ? `${pursued(child.id)}=0`
+        : `${goalState(child.id)}=0`;
     })
     .join(separator('and'));
 };
