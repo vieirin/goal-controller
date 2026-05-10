@@ -205,6 +205,14 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2,
                 );
+                // Basic OR (no execution detail): same alternative-style guards as annotated OR goals.
+                if (!isItself(child)) {
+                  const pursueCondition = pursueAlternativeGoal(goal, child.id);
+                  return [
+                    child,
+                    { left: left + ` & ${pursueCondition}`, right },
+                  ];
+                }
                 return [child, { left, right }];
             }
           }
@@ -269,7 +277,17 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2,
                 );
-                // interleaved goals fall under the default case
+                // Basic AND (no execution detail): same per-child decision threshold as interleaved.
+                if (!isItself(child)) {
+                  const pursueCondition = pursueAndInterleavedGoal(child.id);
+                  return [
+                    child,
+                    {
+                      left: `${left} & ${pursueCondition}`,
+                      right,
+                    },
+                  ];
+                }
                 return [child, { left, right }];
             }
           }
