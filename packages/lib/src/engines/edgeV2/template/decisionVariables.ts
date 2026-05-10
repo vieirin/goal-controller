@@ -1,12 +1,11 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalTree } from '../types';
-import { decisionVariable } from './common';
+import { decisionVariable, underscoredOrDecisionVariable } from './common';
 import { goalNumberId } from './modules/goalModule/goalModules';
 
 /**
- * Uninterpreted decision constants at the top of the model (PRISM
- * `const int decision_<goalId>;`, same idea as the Edge engine’s top-level
- * decision constants).
+ * Uninterpreted decision constants after `dtmc`: every goal gets
+ * `decision_<id>`; OR goals also get `_decision_<id>` (snippet tie-break).
  */
 export const decisionVariablesTemplate = ({
   gm,
@@ -16,6 +15,12 @@ export const decisionVariablesTemplate = ({
   const goals = GoalTree.allByType(gm, 'goal');
   return goals
     .sort((a, b) => Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)))
-    .map((g) => `const int ${decisionVariable(g.id)};`)
+    .flatMap((g) => {
+      const lines = [`const int ${decisionVariable(g.id)};`];
+      if (g.relationToChildren === 'or') {
+        lines.push(`const int ${underscoredOrDecisionVariable(g.id)};`);
+      }
+      return lines;
+    })
     .join('\n');
 };

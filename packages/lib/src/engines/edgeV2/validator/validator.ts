@@ -3,7 +3,6 @@ import type { EdgeGoalTree } from '../mapper';
 
 import { calculateExpectedElements } from './expectedElements';
 import { parsePrismModel } from './parser';
-import { decisionVariable } from '../template/common';
 import type {
   ChangeManagerValidation,
   ElementCount,
@@ -49,14 +48,12 @@ const validateGoal = (
 ): GoalValidation => {
   const goalModule = parsedModel.goalModules.get(goalId);
   const moduleVarNames = goalModule?.variables.map((v) => v.name) || [];
-  const decName = decisionVariable(goalId);
-  const expectsDecision = expected.variables.includes(decName);
-  const emittedVariables = [
-    ...moduleVarNames,
-    ...(expectsDecision && parsedModel.nondetConstants.includes(decName)
-      ? [decName]
-      : []),
-  ];
+  const fromNondet = expected.variables.filter((name) =>
+    parsedModel.nondetConstants.includes(name),
+  );
+  const emittedVariables = Array.from(
+    new Set([...moduleVarNames, ...fromNondet]),
+  );
   const emittedTransitions = goalModule?.transitions.map((t) => t.label) || [];
   // Filter formulas that belong to this goal
   // Formulas are named like: G1_achievable, G1_achieved, G1_achieved_maintain
@@ -92,7 +89,7 @@ const validateGoal = (
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
   const goalVariablePattern = new RegExp(
-    `^${goalId}_(state|pursued|achieved|chosen|failed|achievable)$`,
+    `^(${goalId}_(state|pursued|achieved|chosen|failed|achievable)|_decision_${goalId})$`,
   );
 
   const emittedContextVars =

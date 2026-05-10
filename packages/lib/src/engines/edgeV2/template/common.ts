@@ -6,6 +6,9 @@ export const chosenVariable = (goalId: string): string => `${goalId}_chosen`;
 /** One PRISM int per goal module for nondeterministic resolution (snippets: decision_G0). */
 export const decisionVariable = (goalId: string): string =>
   `decision_${goalId}`;
+/** OR-goal secondary nondet constant (snippets: _decision_G0 for child choice/shares). */
+export const underscoredOrDecisionVariable = (goalId: string): string =>
+  `_decision_${goalId}`;
 
 // Transition labels
 export const pursueTransition = (goalId: string): string => `pursue_${goalId}`;

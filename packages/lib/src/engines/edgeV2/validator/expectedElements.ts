@@ -14,6 +14,7 @@ import {
   chosenVariable,
   decisionVariable,
   pursueTransition,
+  underscoredOrDecisionVariable,
 } from '../template/common';
 import type { ExpectedElements } from './types';
 
@@ -30,6 +31,10 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 
   // One nondeterministic-resolution int per goal module
   variables.push(decisionVariable(goal.id));
+
+  if (goal.relationToChildren === 'or') {
+    variables.push(underscoredOrDecisionVariable(goal.id));
+  }
 
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {
