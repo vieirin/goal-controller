@@ -1,6 +1,6 @@
 import { getLogger } from '../../../../logger/logger';
 import { achieveStatement } from './achieve';
-import { achievableGoalFormula, maintainConditionFormula } from './formulas';
+import { achievedGoalFormula, maintainConditionFormula } from './formulas';
 
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode } from '../../../../types';
@@ -14,7 +14,7 @@ export const goalModule = (goal: EdgeGoalNode): string => {
 
   const formulaStatements = [
     maintainConditionFormula(goal),
-    achievableGoalFormula(goal),
+    achievedGoalFormula(goal),
   ]
     .filter(Boolean)
     .join('\n');

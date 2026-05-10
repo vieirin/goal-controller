@@ -8,7 +8,6 @@ type Task = EdgeTask;
 type GoalTreeType = EdgeGoalTree;
 import { failed } from '../mdp/common';
 import {
-  achievableFormulaVariable,
   achievedTransition,
   achievedVariable,
   chosenVariable,
@@ -77,8 +76,8 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 const calculateGoalFormulas = (goal: GoalNode): string[] => {
   const formulas: string[] = [];
 
-  // Always has achievability formula
-  formulas.push(achievableFormulaVariable(goal.id));
+  // Always has achieved formula (derived from child goals/tasks)
+  formulas.push(achievedVariable(goal.id));
 
   // Has maintain formula if maintain goal
   if (goal.properties.engine.execCondition?.maintain) {
