@@ -259,6 +259,7 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
   let systemModule: ModuleInfo | undefined;
   const formulas: FormulaInfo[] = [];
   const constants = new Map<string, number>();
+  const nondetConstants: string[] = [];
 
   let i = 0;
 
@@ -275,6 +276,13 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
   // Parse modules
   while (i < lines.length) {
     const line = lines[i]?.trim() || '';
+
+    const constIntNondet = line.match(/^\s*const\s+int\s+(\w+)\s*;\s*$/);
+    if (constIntNondet?.[1]) {
+      nondetConstants.push(constIntNondet[1]);
+      i++;
+      continue;
+    }
 
     // Check if it's a module
     if (line.startsWith('module ')) {
@@ -320,5 +328,6 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
     systemModule,
     formulas,
     constants,
+    nondetConstants,
   };
 };

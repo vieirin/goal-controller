@@ -37,6 +37,8 @@ export type ParsedPrismModel = {
   systemModule?: ModuleInfo;
   formulas: FormulaInfo[];
   constants: Map<string, number>;
+  /** Top-level `const int x;` nondeterministic constants (e.g. decision_G0). */
+  nondetConstants: string[];
 };
 
 export type ElementCount = {

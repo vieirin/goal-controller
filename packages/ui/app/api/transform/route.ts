@@ -91,7 +91,6 @@ export async function POST(request: NextRequest) {
           fileName: fileName || 'model',
           clean,
           variables,
-          achievabilitySpace,
         });
       } else {
         // Parse and validate model with SLEEC mapper
