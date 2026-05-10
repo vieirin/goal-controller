@@ -1,0 +1,261 @@
+import type { Resource } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
+import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
+
+// Type aliases for this file
+type GoalNode = EdgeGoalNode;
+type Task = EdgeTask;
+type GoalTreeType = EdgeGoalTree;
+import { failed } from '../mdp/common';
+import {
+  achievableFormulaVariable,
+  achievedTransition,
+  achievedVariable,
+  chosenVariable,
+  decisionVariable,
+  pursueTransition,
+  underscoredOrDecisionVariable,
+} from '../template/common';
+import { cappedDegradationChildren } from '../template/modules/goalModule/template/variables';
+import { pursueableChildren } from '../template/prismGuards';
+import type { ExpectedElements } from './types';
+
+const achievedMaintain = (goalId: string): string => {
+  return `${goalId}_achieved_maintain`;
+};
+const goalStateVariable = (goalId: string): string => `${goalId}_state`;
+
+const calculateGoalVariables = (goal: GoalNode): string[] => {
+  const variables: string[] = [];
+
+  // Always has state variable
+  variables.push(goalStateVariable(goal.id));
+
+  // One nondeterministic-resolution int per goal module
+  variables.push(decisionVariable(goal.id));
+
+  if (goal.relationToChildren === 'or') {
+    variables.push(underscoredOrDecisionVariable(goal.id));
+  }
+
+  // Has chosen if choice execution detail
+  if (goal.properties.engine.executionDetail?.type === 'choice') {
+    if (pursueableChildren(goal).length > 0) {
+      variables.push(chosenVariable(goal.id));
+    }
+  }
+
+  // Degradation OR: one failed counter per sibling id in retryMap (parent module)
+  for (const { child } of cappedDegradationChildren(goal)) {
+    variables.push(failed(child.id));
+  }
+
+  return variables;
+};
+
+const calculateGoalTransitions = (goal: GoalNode): string[] => {
+  const transitions: string[] = [];
+
+  // Always has pursue transitions: one for itself + one for each pursueable child
+  transitions.push(pursueTransition(goal.id));
+  const children = pursueableChildren(goal);
+  const executionDetail = goal.properties.engine.executionDetail;
+  const cappedChildren = cappedDegradationChildren(goal);
+
+  children.forEach((child) => {
+    transitions.push(pursueTransition(child.id));
+    if (
+      goal.relationToChildren === 'or' &&
+      executionDetail?.type === 'choice'
+    ) {
+      transitions.push(pursueTransition(child.id));
+    }
+    if (
+      goal.relationToChildren === 'or' &&
+      executionDetail?.type === 'degradation' &&
+      cappedChildren.some(({ child: c }) => c.id === child.id)
+    ) {
+      transitions.push(pursueTransition(child.id));
+    }
+  });
+
+  // Always has achieve transition
+  transitions.push(achievedTransition(goal.id));
+
+  // Skip: OR choice emits one line per chosen branch (0 = uncommitted) plus default; else single skip
+  if (
+    goal.relationToChildren === 'or' &&
+    executionDetail?.type === 'choice' &&
+    children.length > 0
+  ) {
+    for (let i = 0; i <= children.length; i++) {
+      transitions.push(`skip_${goal.id}`);
+    }
+  } else if (
+    goal.relationToChildren === 'or' &&
+    executionDetail?.type === 'degradation'
+  ) {
+    if (cappedChildren.length > 0) {
+      // Per capped sibling: one retry-skip (`failed<N`) + one failover-skip (`failed=N`).
+      for (let i = 0; i < cappedChildren.length * 2; i++) {
+        transitions.push(`skip_${goal.id}`);
+      }
+    } else {
+      transitions.push(`skip_${goal.id}`);
+    }
+  } else {
+    transitions.push(`skip_${goal.id}`);
+  }
+
+  return transitions;
+};
+
+const calculateGoalFormulas = (goal: GoalNode): string[] => {
+  const formulas: string[] = [];
+
+  // Achievability formula (Edge v1 combinators over child `_achievable`)
+  formulas.push(achievableFormulaVariable(goal.id));
+
+  // Achieved formula (derived from child goals/tasks)
+  formulas.push(achievedVariable(goal.id));
+
+  // Has maintain formula if maintain goal
+  if (goal.properties.engine.execCondition?.maintain) {
+    formulas.push(achievedMaintain(goal.id));
+  }
+
+  return formulas;
+};
+
+const calculateGoalContextVariables = (goal: GoalNode): string[] => {
+  const variables: string[] = [];
+
+  // Only count context variables from the goal's own assertion
+  // These appear in the first pursue line of the goal's module
+  // We don't count maintain variables because they're used in formulas, not pursue lines
+  // We don't count children's context variables because they don't appear in the goal's first pursue line
+  if (goal.properties.engine.execCondition?.assertion) {
+    goal.properties.engine.execCondition.assertion.variables.forEach(
+      (v: { name: string }) => {
+        variables.push(v.name);
+      },
+    );
+  }
+
+  return variables;
+};
+
+const calculateChangeManagerTaskVariables = (
+  tasks: Task[],
+): Map<string, string[]> => {
+  const taskVariables = new Map<string, string[]>();
+
+  tasks.forEach((task: Task) => {
+    const variables: string[] = [];
+    variables.push(`${task.id}_pursued`);
+    variables.push(achievedVariable(task.id));
+
+    taskVariables.set(task.id, variables);
+  });
+
+  return taskVariables;
+};
+
+const calculateChangeManagerTaskTransitions = (
+  tasks: Task[],
+): Map<string, string[]> => {
+  const taskTransitions = new Map<string, string[]>();
+
+  tasks.forEach((task: Task) => {
+    const transitions: string[] = [];
+    transitions.push(pursueTransition(task.id));
+    transitions.push(`try_${task.id}`);
+    transitions.push(achievedTransition(task.id));
+    taskTransitions.set(task.id, transitions);
+  });
+
+  return taskTransitions;
+};
+
+export const calculateExpectedElements = (
+  goalTree: GoalTreeType,
+): ExpectedElements => {
+  const goals = GoalTree.allByType(goalTree, 'goal');
+  const tasks = GoalTree.allByType(goalTree, 'task');
+  const resources = GoalTree.allByType(goalTree, 'resource');
+
+  const goalElements = new Map<
+    string,
+    {
+      variables: string[];
+      transitions: string[];
+      formulas: string[];
+      contextVariables: string[];
+    }
+  >();
+
+  // Calculate expected elements for each goal
+  goals.forEach((goal: GoalNode) => {
+    goalElements.set(goal.id, {
+      variables: calculateGoalVariables(goal),
+      transitions: calculateGoalTransitions(goal),
+      formulas: calculateGoalFormulas(goal),
+      contextVariables: calculateGoalContextVariables(goal),
+    });
+  });
+
+  // Calculate ChangeManager elements
+  const changeManagerTaskVariables = calculateChangeManagerTaskVariables(tasks);
+  const changeManagerTaskTransitions =
+    calculateChangeManagerTaskTransitions(tasks);
+
+  // Calculate System elements
+  // Context variables from goals (using existing function)
+  const goalContextVariables = GoalTree.contextVariables(goalTree);
+
+  // Also collect context variables from tasks
+  const taskContextVariables = new Set<string>();
+  tasks.forEach((task: Task) => {
+    if (task.properties.engine.execCondition?.assertion) {
+      task.properties.engine.execCondition.assertion.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
+    }
+    if (task.properties.engine.execCondition?.maintain?.variables) {
+      task.properties.engine.execCondition.maintain.variables.forEach(
+        (v: { name: string }) => {
+          taskContextVariables.add(v.name);
+        },
+      );
+    }
+  });
+
+  // Resource IDs to exclude from context variables (resources are separate)
+  const resourceIds = new Set(
+    resources.map((resource: Resource) => resource.id),
+  );
+
+  // Combine goal and task context variables, but exclude resource IDs
+  const allContextVars = new Set([
+    ...goalContextVariables,
+    ...Array.from(taskContextVariables),
+  ]);
+  const contextVariables = Array.from(allContextVars).filter(
+    (varName) => !resourceIds.has(varName),
+  );
+  const resourceVariables = resources.map((resource: Resource) => resource.id);
+
+  return {
+    goals: goalElements,
+    changeManager: {
+      taskVariables: changeManagerTaskVariables,
+      taskTransitions: changeManagerTaskTransitions,
+    },
+    system: {
+      contextVariables,
+      resourceVariables,
+    },
+  };
+};

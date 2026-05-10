@@ -52,6 +52,15 @@ export {
 } from './engines/sleec';
 export type { SleecGoalProps, SleecTaskProps } from './engines/sleec';
 
+// Edge V2 (PRISM / EDGE snippets encoding)
+export {
+  edgeEngineMapper as edgeV2EngineMapper,
+  type EdgeGoalNode as EdgeV2GoalNode,
+  type EdgeGoalTree as EdgeV2GoalTree,
+  type EdgeTask as EdgeV2Task,
+} from './engines/edgeV2';
+export { generateValidatedPrismModel as generateValidatedEdgeV2PrismModel } from './engines/edgeV2/template';
+
 // Core transformation engines (remain in lib)
 export { generateValidatedPrismModel, sleecTemplateEngine };
 
@@ -61,6 +70,7 @@ export { validate };
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
 export { initLogger };
+export { initLogger as initEdgeV2Logger } from './engines/edgeV2/logger/logger';
 
 // CLI entry point - if this file is executed directly, run the CLI script
 

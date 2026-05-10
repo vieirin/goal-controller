@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { GripVertical, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import type { TransformEngine } from '../lib/transformEngine';
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
 import ModelViewer from './ModelViewer';
@@ -17,7 +18,7 @@ const DEFAULT_ACHIEVABILITY_SPACE = 4;
 
 interface TransformRequest {
   modelJson: string;
-  engine: 'prism' | 'sleec';
+  engine: TransformEngine;
   clean: boolean;
   generateDecisionVars: boolean;
   achievabilitySpace: number;
@@ -75,15 +76,16 @@ const transformModel = async (
   return data;
 };
 
-const fetchVariables = async (
-  modelJson: string,
-): Promise<VariablesResponse> => {
+const fetchVariables = async (params: {
+  modelJson: string;
+  engine: TransformEngine;
+}): Promise<VariablesResponse> => {
   const response = await fetch('/api/variables', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ modelJson }),
+    body: JSON.stringify(params),
   });
 
   const data = await response.json();
@@ -97,12 +99,13 @@ const fetchVariables = async (
 
 export default function TransformWorkflow() {
   const searchParams = useSearchParams();
-  const modeParam = searchParams.get('mode') as 'prism' | 'sleec' | null;
-  const isValidMode = modeParam === 'prism' || modeParam === 'sleec';
+  const modeParam = searchParams.get('mode') as TransformEngine | null;
+  const isValidMode =
+    modeParam === 'prism' || modeParam === 'sleec' || modeParam === 'edgeV2';
 
   const [modelContent, setModelContent] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [engine, setEngine] = useState<'prism' | 'sleec'>(
+  const [engine, setEngine] = useState<TransformEngine>(
     isValidMode ? modeParam : 'prism',
   );
   const [clean, setClean] = useState<boolean>(false);
@@ -136,16 +139,16 @@ export default function TransformWorkflow() {
     }
   }, [isValidMode, modeParam]);
 
-  // Fetch variables when model content changes
+  // Fetch variables when model content or engine changes (mapper-specific keys)
   useEffect(() => {
     if (modelContent) {
-      variablesMutation.mutate(modelContent);
+      variablesMutation.mutate({ modelJson: modelContent, engine });
     } else {
       variablesMutation.reset();
       setVariables({});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modelContent]);
+  }, [modelContent, engine]);
 
   const handleFileUpload = (content: string, name: string) => {
     setModelContent(content);
@@ -207,7 +210,7 @@ export default function TransformWorkflow() {
       achievabilitySpace,
       generateFluents,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
-      ...(engine === 'prism' &&
+      ...((engine === 'prism' || engine === 'edgeV2') &&
         Object.keys(variables).length > 0 && { variables }),
     });
   };
@@ -223,7 +226,12 @@ export default function TransformWorkflow() {
         </h1>
         <p className='text-gray-600 mb-8'>
           Transform goal models to{' '}
-          {isValidMode ? engine.toUpperCase() : 'PRISM or SLEEC'} specifications
+          {isValidMode
+            ? engine === 'edgeV2'
+              ? 'Edge V2 (PRISM)'
+              : engine.toUpperCase()
+            : 'PRISM, Edge V2, or SLEEC'}{' '}
+          specifications
         </p>
 
         {/* Configuration Section - auto height on mobile, fixed height on desktop for resizing */}
@@ -278,7 +286,7 @@ export default function TransformWorkflow() {
               </div>
             )}
 
-            {engine === 'prism' && modelContent && (
+            {(engine === 'prism' || engine === 'edgeV2') && modelContent && (
               <div className='bg-white rounded-lg shadow-md p-6 overflow-hidden flex flex-col h-full'>
                 <h2 className='text-xl font-semibold mb-4 flex-shrink-0'>
                   3. Variables

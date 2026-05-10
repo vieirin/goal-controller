@@ -1,8 +1,10 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import {
   edgeEngineMapper,
+  edgeV2EngineMapper,
   sleecEngineMapper,
   type EdgeGoalTree,
+  type EdgeV2GoalTree,
   type SleecGoalTree,
   type IStarModel,
 } from '@goal-controller/lib';
@@ -19,6 +21,12 @@ export interface SleecParseResult {
   tree: SleecGoalTree;
 }
 
+export interface EdgeV2ParseResult {
+  success: true;
+  model: IStarModel;
+  tree: EdgeV2GoalTree;
+}
+
 export interface ParseError {
   success: false;
   error: string;
@@ -27,6 +35,7 @@ export interface ParseError {
 
 export type EdgeParseModelResult = EdgeParseResult | ParseError;
 export type SleecParseModelResult = SleecParseResult | ParseError;
+export type EdgeV2ParseModelResult = EdgeV2ParseResult | ParseError;
 
 /**
  * Goal model - handles parsing, validation, and tree conversion operations
@@ -121,6 +130,33 @@ export const GoalModel = {
   },
 
   /**
+   * Parse model JSON, validate it, and convert to Edge V2 tree (EDGE / PRISM snippets)
+   */
+  parseForEdgeV2(modelJson: string): EdgeV2ParseModelResult {
+    const parseResult = this.parseModel(modelJson);
+    if (!parseResult.success) {
+      return parseResult;
+    }
+
+    let tree: EdgeV2GoalTree;
+    try {
+      tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper).nodes;
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
+
+    return {
+      success: true,
+      model: parseResult.model,
+      tree,
+    };
+  },
+
+  /**
    * Legacy parse method - uses Edge tree (deprecated, use parseForEdge)
    * @deprecated Use parseForEdge or parseForSleec instead
    */
@@ -132,8 +168,11 @@ export const GoalModel = {
    * Check if a parse result is successful
    */
   isSuccess(
-    result: EdgeParseModelResult | SleecParseModelResult,
-  ): result is EdgeParseResult | SleecParseResult {
+    result:
+      | EdgeParseModelResult
+      | SleecParseModelResult
+      | EdgeV2ParseModelResult,
+  ): result is EdgeParseResult | SleecParseResult | EdgeV2ParseResult {
     return result.success;
   },
 

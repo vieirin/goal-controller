@@ -1,5 +1,7 @@
 import {
+  generateValidatedEdgeV2PrismModel,
   generateValidatedPrismModel,
+  initEdgeV2Logger,
   initLogger,
   sleecTemplateEngine,
   type LoggerReport,
@@ -25,12 +27,17 @@ export async function POST(request: NextRequest) {
       return ApiResponse.badRequest('Model JSON is required');
     }
 
-    if (!engine || !['prism', 'sleec'].includes(engine)) {
-      return ApiResponse.badRequest('Valid engine (prism/sleec) is required');
+    if (!engine || !['prism', 'sleec', 'edgeV2'].includes(engine)) {
+      return ApiResponse.badRequest(
+        'Valid engine (prism/sleec/edgeV2) is required',
+      );
     }
 
-    // Initialize logger (in-memory mode for API)
-    const logger = initLogger(fileName || 'model', false, true);
+    // Logger is engine-specific: Edge V2 template calls getLogger() from the edgeV2 module.
+    const logger =
+      engine === 'edgeV2'
+        ? initEdgeV2Logger(fileName || 'model', false, true)
+        : initLogger(fileName || 'model', false, true);
 
     // Generate output
     let output: string;
@@ -61,6 +68,29 @@ export async function POST(request: NextRequest) {
           variables,
           generateDecisionVars,
           achievabilitySpace,
+        });
+      } else if (engine === 'edgeV2') {
+        const parseResult = GoalModel.parseForEdgeV2(modelJson);
+
+        if (!parseResult.success) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[API] Parse error:', parseResult.error);
+          }
+          return ApiResponse.error(
+            parseResult.error,
+            GoalModel.getErrorStatus(parseResult.stage),
+          );
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[API] Model parsed and tree converted successfully');
+          console.log('[API] Generating Edge V2 PRISM model...');
+        }
+        output = generateValidatedEdgeV2PrismModel({
+          gm: parseResult.tree,
+          fileName: fileName || 'model',
+          clean,
+          variables,
         });
       } else {
         // Parse and validate model with SLEEC mapper
