@@ -1,5 +1,57 @@
 import type { ValidationReport } from './types';
 
+/** Short, log-friendly list of what failed structural validation. */
+export const summarizeValidationFailures = (
+  report: ValidationReport,
+): string => {
+  const lines: string[] = [];
+  lines.push(`Missing count: ${report.summary.totalMissing}`);
+  report.goals.forEach((v, goalId) => {
+    const parts: string[] = [];
+    if (v.module.missing > 0) {
+      parts.push('goal module not found in PRISM output');
+    }
+    if (v.variables.missing > 0) {
+      parts.push(`variables [${v.variables.details.missing.join(', ')}]`);
+    }
+    if (v.transitions.missing > 0) {
+      parts.push(`transitions [${v.transitions.details.missing.join(', ')}]`);
+    }
+    if (v.formulas.missing > 0) {
+      parts.push(`formulas [${v.formulas.details.missing.join(', ')}]`);
+    }
+    if (v.contextVariables.missing > 0) {
+      parts.push(
+        `contextVariables [${v.contextVariables.details.missing.join(', ')}]`,
+      );
+    }
+    if (parts.length > 0) {
+      lines.push(`  ${goalId}: ${parts.join('; ')}`);
+    }
+  });
+  if (report.changeManager.taskVariables.missing > 0) {
+    lines.push(
+      `  ChangeManager task variables: [${report.changeManager.taskVariables.details.missing.join(', ')}]`,
+    );
+  }
+  if (report.changeManager.taskTransitions.missing > 0) {
+    lines.push(
+      `  ChangeManager task transitions: [${report.changeManager.taskTransitions.details.missing.join(', ')}]`,
+    );
+  }
+  if (report.system.contextVariables.missing > 0) {
+    lines.push(
+      `  System contextVariables: [${report.system.contextVariables.details.missing.join(', ')}]`,
+    );
+  }
+  if (report.system.resourceVariables.missing > 0) {
+    lines.push(
+      `  System resourceVariables: [${report.system.resourceVariables.details.missing.join(', ')}]`,
+    );
+  }
+  return lines.join('\n');
+};
+
 export const serializeValidationReportToJSON = (
   report: ValidationReport,
 ): Record<string, unknown> => {

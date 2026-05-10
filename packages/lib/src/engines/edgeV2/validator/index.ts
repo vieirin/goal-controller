@@ -4,6 +4,7 @@ import {
   formatValidationReport,
   getValidationSummary,
   serializeValidationReportToJSON,
+  summarizeValidationFailures,
 } from './report';
 import type { ValidationReport } from './types';
 import { validatePrismModel } from './validator';
@@ -14,6 +15,7 @@ export {
   formatValidationReport,
   getValidationSummary,
   serializeValidationReportToJSON,
+  summarizeValidationFailures,
   validatePrismModel,
 };
 

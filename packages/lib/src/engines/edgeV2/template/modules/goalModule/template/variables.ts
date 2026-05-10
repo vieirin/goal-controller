@@ -2,30 +2,44 @@ import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import type { EdgeGoalNode } from '../../../../types';
+import { coercePositiveIntRetry } from '../../../../retryCoercion';
 import { chosenVariable } from '../../../common';
 
 const goalStateVariable = (goalId: string): string => `${goalId}_state`;
 
-const degradationFailedUpperBound = (goal: EdgeGoalNode): number => {
-  const retryMap =
-    goal.properties.engine.executionDetail?.type === 'degradation'
-      ? goal.properties.engine.executionDetail.retryMap
-      : undefined;
+/** Retry cap N for degradation pursue lines (`sibling_failed < N` / `= N`), or null if absent from retryMap. */
+export const degradationRetryCapFromMap = (
+  goal: EdgeGoalNode,
+  childId: string,
+): number | null => {
+  if (goal.relationToChildren !== 'or') return null;
+  const ed = goal.properties.engine.executionDetail;
+  if (ed?.type !== 'degradation') return null;
+  return coercePositiveIntRetry(ed.retryMap?.[childId]);
+};
 
-  if (retryMap) {
-    const retryValues = Object.values(retryMap).filter(
-      (value): value is number =>
-        typeof value === 'number' && Number.isFinite(value) && value > 0,
-    );
-    if (retryValues.length > 0) {
-      return Math.max(...retryValues);
-    }
+const degradationSiblingFailedVariableLines = (
+  goal: EdgeGoalNode,
+  defineVariable: (variable: string, upperBound: number) => string,
+): string[] => {
+  if (goal.relationToChildren !== 'or') return [];
+  const ed = goal.properties.engine.executionDetail;
+  if (ed?.type !== 'degradation') return [];
+  const pursueableIds = new Set(
+    Node.children(goal)
+      .filter((c) => !Node.isResource(c))
+      .map((c) => c.id),
+  );
+  const lines: string[] = [];
+  const retryMap = ed.retryMap;
+  if (!retryMap) return lines;
+  for (const [siblingId, raw] of Object.entries(retryMap)) {
+    if (!pursueableIds.has(siblingId)) continue;
+    const cap = coercePositiveIntRetry(raw);
+    if (cap === null) continue;
+    lines.push(defineVariable(failed(siblingId), cap));
   }
-
-  // Fallback when degradation exists without explicit retry map value.
-  return goal.properties.engine.maxRetries > 0
-    ? goal.properties.engine.maxRetries
-    : 1;
+  return lines;
 };
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
@@ -51,15 +65,15 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
       ? defineVariable(chosenVariable(goal.id), pursueableChildrenCount)
       : null;
 
-  const failedVariableStatement =
-    goal.properties.engine.executionDetail?.type === 'degradation'
-      ? defineVariable(failed(goal.id), degradationFailedUpperBound(goal))
-      : null;
+  const degradationFailedLines = degradationSiblingFailedVariableLines(
+    goal,
+    defineVariable,
+  );
 
   return [
     stateVariableStatement,
     chosenVariableStatement,
-    failedVariableStatement,
+    ...degradationFailedLines,
   ]
     .filter(Boolean)
     .join('\n  ');

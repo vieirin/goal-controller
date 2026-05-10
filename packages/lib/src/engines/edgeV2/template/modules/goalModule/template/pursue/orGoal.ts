@@ -1,9 +1,19 @@
 import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
-import { goalState, pursued, separator } from '../../../../../mdp/common';
+import {
+  achievable,
+  goalState,
+  pursued,
+  separator,
+} from '../../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import { chosenVariable } from '../../../../common';
-import { hasFailedAtLeastNTimes, hasFailedAtMostNTimes } from './common';
+import {
+  chosenVariable,
+  decisionVariable,
+  underscoredOrDecisionVariable,
+} from '../../../../common';
+
+const ACHIEVABILITY_DECISION_SCALE = 10.0;
 
 /*
 G1: Goal[T1|T2]
@@ -49,53 +59,8 @@ export const pursueChoiceGoal = (
   return '';
 };
 
-export const pursueDegradationGoal = (
-  goal: EdgeGoalNode,
-  degradationList: string[],
-  currentChildId: string,
-): string => {
-  if (goal.relationToChildren === 'and') {
-    throw new Error(
-      `Alternative goals are not supported for AND joints. Found in goal ${goal.id}`,
-    );
-  }
-  const { degradation: degradationLogger } = getLogger().pursue.executionDetail;
-
-  if (goal.relationToChildren === 'or') {
-    const otherGoals = degradationList.filter(
-      (goalId) => goalId !== currentChildId,
-    );
-    degradationLogger.init(currentChildId, degradationList);
-    const maybeRetry =
-      goal.properties.engine.executionDetail?.retryMap?.[currentChildId];
-    if (maybeRetry) {
-      return hasFailedAtMostNTimes(currentChildId, maybeRetry - 1);
-    }
-
-    const result = otherGoals
-      .map((goalId) => {
-        // For degradation, we only need to check retry conditions (failures of earlier goals)
-        // We don't need to check if the parent goal has been pursued (that's already in the base guard)
-        const maybeRetry =
-          goal.properties.engine.executionDetail?.retryMap?.[goalId];
-        const retryCondition =
-          maybeRetry && hasFailedAtLeastNTimes(goalId, maybeRetry);
-
-        if (maybeRetry) {
-          degradationLogger.retry(currentChildId, goalId, maybeRetry);
-        }
-
-        return retryCondition || '';
-      })
-      .filter(Boolean)
-      .join(separator('and'));
-    return result;
-  }
-
-  return '';
-};
-
-// chooses either one of the children always
+// chooses either one of the children always (snippets: parent achievability vs decision,
+// siblings idle, then (G1_ach/(G1_ach+G2_ach))*10 >/<= _decision_parent)
 export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
   currentChildId: string,
@@ -116,11 +81,40 @@ export const pursueAlternativeGoal = (
     otherGoals.map((child: PursueableNode) => child.id),
   );
 
-  return otherGoals
+  const scale = ACHIEVABILITY_DECISION_SCALE;
+  const parentVsDecision = `${achievable(goal.id)}*${scale} > ${decisionVariable(goal.id)}`;
+
+  const siblingIdle = otherGoals
     .map((child: PursueableNode) => {
       return Node.isTask(child)
         ? `${pursued(child.id)}=0`
         : `${goalState(child.id)}=0`;
     })
     .join(separator('and'));
+
+  const parts: string[] = [parentVsDecision];
+  if (siblingIdle) {
+    parts.push(siblingIdle);
+  }
+
+  if (pursueableChildren.length >= 2) {
+    const first = pursueableChildren[0];
+    if (!first) {
+      throw new Error(
+        `Pursueable children unexpectedly empty for alternative goal ${goal.id}`,
+      );
+    }
+    const sumAchievable = pursueableChildren
+      .map((c) => achievable(c.id))
+      .join('+');
+    const ratioExpr = `(${achievable(first.id)}/(${sumAchievable}))*${scale}`;
+    const underscored = underscoredOrDecisionVariable(goal.id);
+    parts.push(
+      currentChildId === first.id
+        ? `${ratioExpr} > ${underscored}`
+        : `${ratioExpr} <= ${underscored}`,
+    );
+  }
+
+  return parts.join(separator('and'));
 };

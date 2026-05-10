@@ -10,13 +10,10 @@ import {
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { chosenVariable } from '../../../../common';
 import { achievedMaintain } from '../formulas';
+import { degradationRetryCapFromMap } from '../variables';
 import { pursueAndInterleavedGoal, pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
-import {
-  pursueAlternativeGoal,
-  pursueChoiceGoal,
-  pursueDegradationGoal,
-} from './orGoal';
+import { pursueAlternativeGoal } from './orGoal';
 
 // Type for nodes that can be pursued (goals and tasks, but not resources)
 type PursueableNode = EdgeGoalNode | EdgeTask;
@@ -134,8 +131,8 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         // skips itself and handles or and and goals
         // or goal:
         //   - alternatives: pursueAlternativeGoal(goal, child.id)
-        //   - choice: pursueChoiceGoal(goal, children, child.id)
-        //   - degradation: pursueDegradationGoal(goal, goal.executionDetail.degradationList, child.id)
+        //   - choice: two [pursue_child] per child — commit (chosen=0 + alternative guards) then execute (chosen=k + child achievable vs decision)
+        //   - degradation: per-sibling failed from retryMap — retry/failover flatMap, or alternative-only if no map entry
         // and goal:
         //   - sequence: pursueAndSequentialGoal(goal, goal.executionDetail.sequence, child.id, [...(goal.children ?? []), ...(goal.tasks ?? [])])
         //    - interleaved: return [child, { left, right }]
@@ -167,12 +164,10 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = Node.children(goal)
-                  .filter(
-                    (child): child is PursueableNode => !Node.isResource(child),
-                  )
-                  .map((child) => child.id);
-                if (children.length === 0) {
+                if (
+                  Node.children(goal).filter((c) => !Node.isResource(c))
+                    .length === 0
+                ) {
                   logger.error(
                     goal.id,
                     'choice execution detail detected without pursueable children',
@@ -185,21 +180,8 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   child.id,
                   'choice execution detail detected with children',
                 );
-                const pursueCondition = pursueChoiceGoal(
-                  goal,
-                  children,
-                  child.id,
-                );
-
-                const updatedRight =
-                  index > 0
-                    ? parenthesis(`${chosenVariable(goal.id)}'=${index}`)
-                    : right;
-
-                return [
-                  child,
-                  { left: left + ` & ${pursueCondition}`, right: updatedRight },
-                ];
+                // Commit vs execute split in flatMap after this step
+                return [child, { left, right }];
               }
               case 'degradation': {
                 logger.trace(
@@ -207,15 +189,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   'degradation execution detail detected',
                   2,
                 );
-                const pursueCondition = pursueDegradationGoal(
-                  goal,
-                  goal.properties.engine.executionDetail.degradationList,
-                  child.id,
-                );
-                const updatedLeft = pursueCondition
-                  ? `${left} & ${pursueCondition}`
-                  : left;
-                return [child, { left: updatedLeft, right }];
+                return [child, { left, right }];
               }
               case 'alternative': {
                 logger.trace(
@@ -318,6 +292,52 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         return executionDetail;
       },
     )
+    .flatMap(
+      (
+        entry: [PursueableNode, { left: string; right: string }],
+      ): Array<[PursueableNode, { left: string; right: string }]> => {
+        const [child, { left }] = entry;
+        if (
+          goal.relationToChildren === 'or' &&
+          goal.properties.engine.executionDetail?.type === 'degradation' &&
+          !isItself(child)
+        ) {
+          const cap = degradationRetryCapFromMap(goal, child.id);
+          if (cap !== null) {
+            const retryLeft = `${left} & ${failed(child.id)}<${cap} & ${pursueAndInterleavedGoal(child.id)}`;
+            const retryRight = parenthesis(
+              `${failed(child.id)}'=min(${cap}, ${failed(child.id)}+1)`,
+            );
+            const failoverLeft = `${left} & ${failed(child.id)}=${cap} & ${pursueAlternativeGoal(goal, child.id)}`;
+            const failoverRight = 'true';
+            return [
+              [child, { left: retryLeft, right: retryRight }],
+              [child, { left: failoverLeft, right: failoverRight }],
+            ];
+          }
+          const altOnlyLeft = `${left} & ${pursueAlternativeGoal(goal, child.id)}`;
+          return [[child, { left: altOnlyLeft, right: 'true' }]];
+        }
+        if (
+          goal.relationToChildren === 'or' &&
+          goal.properties.engine.executionDetail?.type === 'choice' &&
+          !isItself(child)
+        ) {
+          const branchIndex = goalsToPursue.indexOf(child);
+          const commitLeft = `${left} & ${chosenVariable(goal.id)}=0 & ${pursueAlternativeGoal(goal, child.id)}`;
+          const commitRight = parenthesis(
+            `${chosenVariable(goal.id)}'=${branchIndex}`,
+          );
+          const execLeft = `${left} & ${chosenVariable(goal.id)}=${branchIndex} & ${pursueAndInterleavedGoal(child.id)}`;
+          const execRight = 'true';
+          return [
+            [child, { left: commitLeft, right: commitRight }],
+            [child, { left: execLeft, right: execRight }],
+          ];
+        }
+        return [entry];
+      },
+    )
     .map(
       ([child, statement]): [
         PursueableNode,
@@ -382,7 +402,12 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
           ? `(${failed(child.id)}'=min(${maxRetries}, ${failed(child.id)}+1))`
           : '';
 
-      if (!updateFailedCounterStatement || isItself(child)) {
+      if (
+        !updateFailedCounterStatement ||
+        isItself(child) ||
+        (goal.relationToChildren === 'or' &&
+          goal.properties.engine.executionDetail?.type === 'degradation')
+      ) {
         return [child, statement] as const;
       }
 

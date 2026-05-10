@@ -16,6 +16,7 @@ import {
   pursueTransition,
   underscoredOrDecisionVariable,
 } from '../template/common';
+import { coercePositiveIntRetry } from '../retryCoercion';
 import type { ExpectedElements } from './types';
 
 const achievedMaintain = (goalId: string): string => {
@@ -47,9 +48,25 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
     }
   }
 
-  // Degradation goals have their own failed counter variable
-  if (goal.properties.engine.executionDetail?.type === 'degradation') {
-    variables.push(failed(goal.id));
+  // Degradation OR: one failed counter per sibling id in retryMap (parent module)
+  if (
+    goal.relationToChildren === 'or' &&
+    goal.properties.engine.executionDetail?.type === 'degradation'
+  ) {
+    const ed = goal.properties.engine.executionDetail;
+    const pursueableIds = new Set(
+      Node.children(goal)
+        .filter((child) => !Node.isResource(child))
+        .map((c) => c.id),
+    );
+    const retryMap = ed.retryMap;
+    if (retryMap) {
+      for (const [siblingId, raw] of Object.entries(retryMap)) {
+        if (!pursueableIds.has(siblingId)) continue;
+        if (coercePositiveIntRetry(raw) === null) continue;
+        variables.push(failed(siblingId));
+      }
+    }
   }
 
   return variables;
@@ -64,8 +81,25 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
   const pursueableChildren = Node.children(goal).filter(
     (child) => !Node.isResource(child),
   );
+  const executionDetail = goal.properties.engine.executionDetail;
   pursueableChildren.forEach((child) => {
     transitions.push(pursueTransition(child.id));
+    if (
+      goal.relationToChildren === 'or' &&
+      executionDetail?.type === 'choice'
+    ) {
+      transitions.push(pursueTransition(child.id));
+    }
+    if (
+      goal.relationToChildren === 'or' &&
+      executionDetail?.type === 'degradation'
+    ) {
+      if (
+        coercePositiveIntRetry(executionDetail.retryMap?.[child.id]) !== null
+      ) {
+        transitions.push(pursueTransition(child.id));
+      }
+    }
   });
 
   // Always has achieve transition

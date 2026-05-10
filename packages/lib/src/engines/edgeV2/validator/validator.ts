@@ -17,12 +17,24 @@ import type {
 
 type GoalTreeType = EdgeGoalTree;
 
+/**
+ * Multiset-style matching so duplicate transition labels (e.g. two `pursue_G1` commands)
+ * require the same multiplicity in the emitted model.
+ */
 const createElementCount = (
   expected: string[],
   emitted: string[],
 ): ElementCount & { details: ElementDetails } => {
-  const emittedSet = new Set(emitted);
-  const missing = expected.filter((item) => !emittedSet.has(item));
+  const emittedRemaining = [...emitted];
+  const missing: string[] = [];
+  for (const item of expected) {
+    const idx = emittedRemaining.indexOf(item);
+    if (idx === -1) {
+      missing.push(item);
+    } else {
+      emittedRemaining.splice(idx, 1);
+    }
+  }
 
   return {
     expected: expected.length,
@@ -30,7 +42,7 @@ const createElementCount = (
     missing: missing.length,
     details: {
       expected,
-      emitted: Array.from(emittedSet),
+      emitted: Array.from(new Set(emitted)),
       missing,
     },
   };
