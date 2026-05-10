@@ -6,9 +6,15 @@ import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode } from '../../../../types';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
-import { variablesDefinition } from './variables';
+import {
+  type GoalModuleVariablesOptions,
+  variablesDefinition,
+} from './variables';
 
-export const goalModule = (goal: EdgeGoalNode): string => {
+export const goalModule = (
+  goal: EdgeGoalNode,
+  variablesOptions?: GoalModuleVariablesOptions,
+): string => {
   const logger = getLogger();
   logger.initGoal(goal);
 
@@ -27,7 +33,7 @@ export const goalModule = (goal: EdgeGoalNode): string => {
     .map((child) => child.id)
     .join(', ')}
 module ${goal.id}
-  ${variablesDefinition(goal)}
+  ${variablesDefinition(goal, variablesOptions)}
 
   ${pursueStatements(goal).join('\n  ')}
 

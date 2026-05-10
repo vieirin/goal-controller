@@ -11,6 +11,7 @@ import {
   achievedTransition,
   achievedVariable,
   chosenVariable,
+  decisionVariable,
   pursueTransition,
 } from '../template/common';
 import type { ExpectedElements } from './types';
@@ -25,6 +26,9 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
 
   // Always has state variable
   variables.push(goalStateVariable(goal.id));
+
+  // One nondeterministic-resolution int per goal module
+  variables.push(decisionVariable(goal.id));
 
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {

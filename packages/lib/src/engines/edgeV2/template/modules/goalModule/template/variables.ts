@@ -2,9 +2,15 @@ import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
 import type { EdgeGoalNode } from '../../../../types';
-import { chosenVariable } from '../../../common';
+import { chosenVariable, decisionVariable } from '../../../common';
+import { DEFAULT_EDGE_V2_DECISION_UPPER } from '../../../decisionConstants';
 
 const goalStateVariable = (goalId: string): string => `${goalId}_state`;
+
+export type GoalModuleVariablesOptions = {
+  /** Inclusive max for `decision_<goalId> : [0..N]` */
+  decisionUpperBound?: number;
+};
 
 const degradationFailedUpperBound = (goal: EdgeGoalNode): number => {
   const retryMap =
@@ -28,7 +34,10 @@ const degradationFailedUpperBound = (goal: EdgeGoalNode): number => {
     : 1;
 };
 
-export const variablesDefinition = (goal: EdgeGoalNode): string => {
+export const variablesDefinition = (
+  goal: EdgeGoalNode,
+  options?: GoalModuleVariablesOptions,
+): string => {
   const logger = getLogger();
   const defineVariable = (variable: string, upperBound: number): string => {
     logger.variableDefinition({
@@ -41,6 +50,13 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
     return `${variable} : [0..${upperBound}] init 0;`;
   };
   const stateVariableStatement = defineVariable(goalStateVariable(goal.id), 1);
+
+  const decisionUpperBound =
+    options?.decisionUpperBound ?? DEFAULT_EDGE_V2_DECISION_UPPER;
+  const decisionVariableStatement = defineVariable(
+    decisionVariable(goal.id),
+    decisionUpperBound,
+  );
 
   const pursueableChildrenCount = Node.children(goal).filter(
     (child) => !Node.isResource(child),
@@ -58,6 +74,7 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
 
   return [
     stateVariableStatement,
+    decisionVariableStatement,
     chosenVariableStatement,
     failedVariableStatement,
   ]

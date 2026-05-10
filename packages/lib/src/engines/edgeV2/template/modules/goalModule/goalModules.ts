@@ -1,5 +1,6 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree } from '../../../types';
+import type { GoalModuleVariablesOptions } from './template/variables';
 import { goalModule } from './template';
 
 /**
@@ -19,7 +20,13 @@ export const goalNumberId = (goalId: string): string => {
   return match[1];
 };
 
-export const goalModules = ({ gm }: { gm: EdgeGoalTree }): string => {
+export const goalModules = ({
+  gm,
+  variablesOptions,
+}: {
+  gm: EdgeGoalTree;
+  variablesOptions?: GoalModuleVariablesOptions;
+}): string => {
   const goals = GoalTree.allByType(gm, 'goal');
   return `
 ${goals
@@ -27,7 +34,7 @@ ${goals
     (a: EdgeGoalNode, b: EdgeGoalNode) =>
       Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)),
   )
-  .map(goalModule)
+  .map((g) => goalModule(g, variablesOptions))
   .join('\n\n')}
 `;
 };

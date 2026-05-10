@@ -3,6 +3,9 @@ export const pursuedVariable = (goalId: string): string => `${goalId}_pursued`;
 export const achievedVariable = (goalId: string): string =>
   `${goalId}_achieved`;
 export const chosenVariable = (goalId: string): string => `${goalId}_chosen`;
+/** One PRISM int per goal module for nondeterministic resolution (snippets: decision_G0). */
+export const decisionVariable = (goalId: string): string =>
+  `decision_${goalId}`;
 
 // Transition labels
 export const pursueTransition = (goalId: string): string => `pursue_${goalId}`;
