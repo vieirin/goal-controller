@@ -123,6 +123,26 @@ export default function EngineSelector({
               )}
             </>
           )}
+          {engine === 'edgeV2' && (
+            <div className='flex items-center gap-2'>
+              <label className='text-sm text-gray-700'>
+                Decision variable max (0..N):
+              </label>
+              <input
+                type='number'
+                min='1'
+                max='100'
+                value={achievabilitySpace}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  if (!isNaN(value) && value > 0) {
+                    onAchievabilitySpaceChange(value);
+                  }
+                }}
+                className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+              />
+            </div>
+          )}
         </div>
       )}
 
