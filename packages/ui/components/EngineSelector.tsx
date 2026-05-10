@@ -1,8 +1,10 @@
 'use client';
 
+import type { TransformEngine } from '../lib/transformEngine';
+
 interface EngineSelectorProps {
-  engine: 'prism' | 'sleec';
-  onEngineChange: (engine: 'prism' | 'sleec') => void;
+  engine: TransformEngine;
+  onEngineChange: (engine: TransformEngine) => void;
   clean: boolean;
   onCleanChange: (clean: boolean) => void;
   generateDecisionVars: boolean;
@@ -38,7 +40,7 @@ export default function EngineSelector({
               value='prism'
               checked={engine === 'prism'}
               onChange={(e) =>
-                onEngineChange(e.target.value as 'prism' | 'sleec')
+                onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
@@ -47,10 +49,22 @@ export default function EngineSelector({
           <label className='flex items-center'>
             <input
               type='radio'
+              value='edgeV2'
+              checked={engine === 'edgeV2'}
+              onChange={(e) =>
+                onEngineChange(e.target.value as TransformEngine)
+              }
+              className='mr-2'
+            />
+            <span>Edge V2</span>
+          </label>
+          <label className='flex items-center'>
+            <input
+              type='radio'
               value='sleec'
               checked={engine === 'sleec'}
               onChange={(e) =>
-                onEngineChange(e.target.value as 'prism' | 'sleec')
+                onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
@@ -59,7 +73,7 @@ export default function EngineSelector({
         </div>
       </div>
 
-      {engine === 'prism' && (
+      {(engine === 'prism' || engine === 'edgeV2') && (
         <div className='space-y-3'>
           <label className='flex items-center'>
             <input
@@ -72,36 +86,42 @@ export default function EngineSelector({
               Clean mode (no comments)
             </span>
           </label>
-          <label className='flex items-center'>
-            <input
-              type='checkbox'
-              checked={generateDecisionVars}
-              onChange={(e) => onGenerateDecisionVarsChange(e.target.checked)}
-              className='mr-2'
-            />
-            <span className='text-sm text-gray-700'>
-              Generate decision variables
-            </span>
-          </label>
-          {generateDecisionVars && (
-            <div className='flex items-center gap-2'>
-              <label className='text-sm text-gray-700'>
-                Achievability space:
-              </label>
-              <input
-                type='number'
-                min='1'
-                max='100'
-                value={achievabilitySpace}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10);
-                  if (!isNaN(value) && value > 0) {
-                    onAchievabilitySpaceChange(value);
+          {engine === 'prism' && (
+            <>
+              <label className='flex items-center'>
+                <input
+                  type='checkbox'
+                  checked={generateDecisionVars}
+                  onChange={(e) =>
+                    onGenerateDecisionVarsChange(e.target.checked)
                   }
-                }}
-                className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
+                  className='mr-2'
+                />
+                <span className='text-sm text-gray-700'>
+                  Generate decision variables
+                </span>
+              </label>
+              {generateDecisionVars && (
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm text-gray-700'>
+                    Achievability space:
+                  </label>
+                  <input
+                    type='number'
+                    min='1'
+                    max='100'
+                    value={achievabilitySpace}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value > 0) {
+                        onAchievabilitySpaceChange(value);
+                      }
+                    }}
+                    className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
