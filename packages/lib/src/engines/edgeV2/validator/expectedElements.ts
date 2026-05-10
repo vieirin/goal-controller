@@ -105,8 +105,35 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
   // Always has achieve transition
   transitions.push(achievedTransition(goal.id));
 
-  // Always has skip transition
-  transitions.push(`skip_${goal.id}`);
+  // Skip: OR choice emits one line per chosen branch (0 = uncommitted) plus default; else single skip
+  if (
+    goal.relationToChildren === 'or' &&
+    executionDetail?.type === 'choice' &&
+    pursueableChildren.length > 0
+  ) {
+    for (let i = 0; i <= pursueableChildren.length; i++) {
+      transitions.push(`skip_${goal.id}`);
+    }
+  } else if (
+    goal.relationToChildren === 'or' &&
+    executionDetail?.type === 'degradation'
+  ) {
+    const cappedChildren = pursueableChildren.filter((child) => {
+      return (
+        coercePositiveIntRetry(executionDetail.retryMap?.[child.id]) !== null
+      );
+    });
+    if (cappedChildren.length > 0) {
+      // Per capped sibling: one retry-skip (`failed<N`) + one failover-skip (`failed=N`).
+      for (let i = 0; i < cappedChildren.length * 2; i++) {
+        transitions.push(`skip_${goal.id}`);
+      }
+    } else {
+      transitions.push(`skip_${goal.id}`);
+    }
+  } else {
+    transitions.push(`skip_${goal.id}`);
+  }
 
   return transitions;
 };

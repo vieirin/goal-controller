@@ -9,7 +9,7 @@ import {
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode } from '../../../../types';
 import { pursueStatements } from './pursue';
-import { skipStatement } from './skip';
+import { skipStatements } from './skip';
 import { variablesDefinition } from './variables';
 
 export const goalModule = (goal: EdgeGoalNode): string => {
@@ -38,7 +38,7 @@ module ${goal.id}
 
   ${achieveStatement(goal)}
   
-  ${skipStatement(goal)}
+  ${skipStatements(goal).join('\n  ')}
 endmodule
 
 ${formulaStatements}
