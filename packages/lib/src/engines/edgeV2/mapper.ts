@@ -17,6 +17,7 @@ import type {
   ExecCondition,
   GoalExecutionDetail,
 } from './types';
+import { parseStrictInt } from './retryCoercion';
 
 /**
  * Allowed keys for Edge goal custom properties
@@ -214,12 +215,12 @@ export const edgeEngineMapper = createEngineMapper<
           );
         }
 
-        const lowerBoundInt = parseInt(lowerBound, 10);
-        const upperBoundInt = parseInt(upperBound, 10);
+        const lowerBoundInt = parseStrictInt(lowerBound);
+        const upperBoundInt = parseStrictInt(upperBound);
 
         if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
           throw new Error(
-            '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
+            `[INVALID RESOURCE]: Resource bounds must be plain integers, got: lowerBound="${lowerBound}" upperBound="${upperBound}"`,
           );
         }
 
@@ -229,11 +230,11 @@ export const edgeEngineMapper = createEngineMapper<
           );
         }
 
-        const initialValueInt = parseInt(initialValue, 10);
+        const initialValueInt = parseStrictInt(initialValue);
 
         if (isNaN(initialValueInt)) {
           throw new Error(
-            `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
+            `[INVALID RESOURCE]: Resource initial value must be a plain integer, got: "${initialValue}"`,
           );
         }
 
