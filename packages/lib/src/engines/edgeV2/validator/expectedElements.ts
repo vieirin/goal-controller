@@ -11,7 +11,6 @@ import {
   achievedTransition,
   achievedVariable,
   chosenVariable,
-  pursuedVariable,
   pursueTransition,
 } from '../template/common';
 import type { ExpectedElements } from './types';
@@ -19,17 +18,13 @@ import type { ExpectedElements } from './types';
 const achievedMaintain = (goalId: string): string => {
   return `${goalId}_achieved_maintain`;
 };
+const goalStateVariable = (goalId: string): string => `${goalId}_state`;
 
 const calculateGoalVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];
 
-  // Always has pursued
-  variables.push(pursuedVariable(goal.id));
-
-  // Has achieved if not maintain goal
-  if (!goal.properties.engine.execCondition?.maintain) {
-    variables.push(achievedVariable(goal.id));
-  }
+  // Always has state variable
+  variables.push(goalStateVariable(goal.id));
 
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {
@@ -42,11 +37,10 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
     }
   }
 
-  // Has failed variables for children with maxRetries
-  const childrenWithRetries = Node.childrenWithRetries(goal);
-  childrenWithRetries.forEach((child) => {
-    variables.push(failed(child.id));
-  });
+  // Degradation goals have their own failed counter variable
+  if (goal.properties.engine.executionDetail?.type === 'degradation') {
+    variables.push(failed(goal.id));
+  }
 
   return variables;
 };

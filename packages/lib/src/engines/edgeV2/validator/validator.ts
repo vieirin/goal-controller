@@ -79,11 +79,11 @@ const validateGoal = (
   );
 
   // Extract context variables from the first pursue transition's guard
-  // Filter out goal-specific variables (like G5_pursued, G5_achieved, etc.)
+  // Filter out goal-specific variables (like G5_state, G5_chosen, etc.)
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
   const goalVariablePattern = new RegExp(
-    `^${goalId}_(pursued|achieved|chosen|failed)$`,
+    `^${goalId}_(state|pursued|achieved|chosen|failed)$`,
   );
 
   const emittedContextVars =

@@ -1,12 +1,32 @@
 import { Node } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
-import type { EdgeGoalNode, EdgeTask } from '../../../../types';
-import {
-  achievedVariable,
-  chosenVariable,
-  pursuedVariable,
-} from '../../../common';
+import type { EdgeGoalNode } from '../../../../types';
+import { chosenVariable } from '../../../common';
+
+const goalStateVariable = (goalId: string): string => `${goalId}_state`;
+
+const degradationFailedUpperBound = (goal: EdgeGoalNode): number => {
+  const retryMap =
+    goal.properties.engine.executionDetail?.type === 'degradation'
+      ? goal.properties.engine.executionDetail.retryMap
+      : undefined;
+
+  if (retryMap) {
+    const retryValues = Object.values(retryMap).filter(
+      (value): value is number =>
+        typeof value === 'number' && Number.isFinite(value) && value > 0,
+    );
+    if (retryValues.length > 0) {
+      return Math.max(...retryValues);
+    }
+  }
+
+  // Fallback when degradation exists without explicit retry map value.
+  return goal.properties.engine.maxRetries > 0
+    ? goal.properties.engine.maxRetries
+    : 1;
+};
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
@@ -20,34 +40,26 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
     });
     return `${variable} : [0..${upperBound}] init 0;`;
   };
-  const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
-  const achievedVariableStatement = !goal.properties.engine.execCondition
-    ?.maintain
-    ? defineVariable(achievedVariable(goal.id), 1)
-    : null;
+  const stateVariableStatement = defineVariable(goalStateVariable(goal.id), 1);
 
-  const children = Node.children(goal);
+  const pursueableChildrenCount = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  ).length;
   const chosenVariableStatement =
-    goal.properties.engine.executionDetail?.type === 'choice'
-      ? defineVariable(chosenVariable(goal.id), children.length)
+    goal.properties.engine.executionDetail?.type === 'choice' &&
+    pursueableChildrenCount > 0
+      ? defineVariable(chosenVariable(goal.id), pursueableChildrenCount)
       : null;
 
-  const childrenWithMaxRetries = Node.childrenWithRetries(goal);
-  const maxRetriesVariableStatement =
-    childrenWithMaxRetries.length > 0
-      ? childrenWithMaxRetries
-          .map((child: EdgeGoalNode | EdgeTask) => {
-            const maxRetries = child.properties.engine.maxRetries;
-            return defineVariable(failed(child.id), maxRetries);
-          })
-          .join('\n')
+  const failedVariableStatement =
+    goal.properties.engine.executionDetail?.type === 'degradation'
+      ? defineVariable(failed(goal.id), degradationFailedUpperBound(goal))
       : null;
 
   return [
-    pursuedVariableStatement,
-    achievedVariableStatement,
+    stateVariableStatement,
     chosenVariableStatement,
-    maxRetriesVariableStatement,
+    failedVariableStatement,
   ]
     .filter(Boolean)
     .join('\n  ');
