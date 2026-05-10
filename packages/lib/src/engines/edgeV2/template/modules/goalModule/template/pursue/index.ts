@@ -10,7 +10,7 @@ import {
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { chosenVariable } from '../../../../common';
 import { achievedMaintain } from '../formulas';
-import { pursueAndSequentialGoal } from './andGoal';
+import { pursueAndInterleavedGoal, pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
 import {
   pursueAlternativeGoal,
@@ -278,8 +278,17 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   2,
                 );
                 pursueLogger.executionDetail.interleaved();
-                // interleaved goals fall under the default case
-                return [child, { left, right }];
+                if (isItself(child)) {
+                  return [child, { left, right }];
+                }
+                const pursueCondition = pursueAndInterleavedGoal(child.id);
+                return [
+                  child,
+                  {
+                    left: `${left} & ${pursueCondition}`,
+                    right,
+                  },
+                ];
               }
               default:
                 logger.info(
