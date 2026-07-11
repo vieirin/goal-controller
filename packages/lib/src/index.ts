@@ -10,6 +10,11 @@ import {
 } from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';
+import {
+  edgeEngineMapper as edgeV2EngineMapper,
+  generateValidatedPrismModel as generateEdgeV2PrismModel,
+} from './engines/edgeV2';
+import { initLogger as initEdgeV2Logger } from './engines/edgeV2/logger/logger';
 import { sleecTemplateEngine } from './engines/sleec';
 
 export type {
@@ -35,6 +40,13 @@ export {
   type EdgeGoalTree,
   type EdgeTask,
 } from './engines/edge';
+
+// EdgeV2 engine mapper and template
+export {
+  edgeV2EngineMapper,
+  generateEdgeV2PrismModel,
+  initEdgeV2Logger,
+};
 export type {
   Decision,
   EdgeGoalProps,

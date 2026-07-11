@@ -5,6 +5,8 @@ import { useMutation } from '@tanstack/react-query';
 import { GripVertical, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import type { TransformEngine } from '@/lib/types';
+import { isPrismEngine, normalizeEngineMode } from '@/lib/types';
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
 import ModelViewer from './ModelViewer';
@@ -17,7 +19,7 @@ const DEFAULT_ACHIEVABILITY_SPACE = 4;
 
 interface TransformRequest {
   modelJson: string;
-  engine: 'prism' | 'sleec';
+  engine: TransformEngine;
   clean: boolean;
   generateDecisionVars: boolean;
   achievabilitySpace: number;
@@ -97,13 +99,13 @@ const fetchVariables = async (
 
 export default function TransformWorkflow() {
   const searchParams = useSearchParams();
-  const modeParam = searchParams.get('mode') as 'prism' | 'sleec' | null;
-  const isValidMode = modeParam === 'prism' || modeParam === 'sleec';
+  const modeParam = normalizeEngineMode(searchParams.get('mode'));
+  const isValidMode = modeParam !== null;
 
   const [modelContent, setModelContent] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [engine, setEngine] = useState<'prism' | 'sleec'>(
-    isValidMode ? modeParam : 'prism',
+  const [engine, setEngine] = useState<TransformEngine>(
+    modeParam ?? 'edge',
   );
   const [clean, setClean] = useState<boolean>(false);
   const [generateDecisionVars, setGenerateDecisionVars] =
@@ -207,7 +209,7 @@ export default function TransformWorkflow() {
       achievabilitySpace,
       generateFluents,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
-      ...(engine === 'prism' &&
+      ...(isPrismEngine(engine) &&
         Object.keys(variables).length > 0 && { variables }),
     });
   };
@@ -223,7 +225,7 @@ export default function TransformWorkflow() {
         </h1>
         <p className='text-gray-600 mb-8'>
           Transform goal models to{' '}
-          {isValidMode ? engine.toUpperCase() : 'PRISM or SLEEC'} specifications
+          {isValidMode ? engine.toUpperCase() : 'Edge, EdgeV2, or SLEEC'} specifications
         </p>
 
         {/* Configuration Section - auto height on mobile, fixed height on desktop for resizing */}
@@ -278,7 +280,7 @@ export default function TransformWorkflow() {
               </div>
             )}
 
-            {engine === 'prism' && modelContent && (
+            {isPrismEngine(engine) && modelContent && (
               <div className='bg-white rounded-lg shadow-md p-6 overflow-hidden flex flex-col h-full'>
                 <h2 className='text-xl font-semibold mb-4 flex-shrink-0'>
                   3. Variables

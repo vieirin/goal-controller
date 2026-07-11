@@ -1,6 +1,7 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import {
   edgeEngineMapper,
+  edgeV2EngineMapper,
   sleecEngineMapper,
   type EdgeGoalTree,
   type SleecGoalTree,
@@ -77,6 +78,33 @@ export const GoalModel = {
     let tree: EdgeGoalTree;
     try {
       tree = GoalTree.fromModel(parseResult.model, edgeEngineMapper).nodes;
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
+
+    return {
+      success: true,
+      model: parseResult.model,
+      tree,
+    };
+  },
+
+  /**
+   * Parse model JSON, validate it, and convert to EdgeV2 tree
+   */
+  parseForEdgeV2(modelJson: string): EdgeParseModelResult {
+    const parseResult = this.parseModel(modelJson);
+    if (!parseResult.success) {
+      return parseResult;
+    }
+
+    let tree: EdgeGoalTree;
+    try {
+      tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper).nodes;
     } catch (error) {
       return {
         success: false,

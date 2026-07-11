@@ -1,11 +1,13 @@
 'use client';
 
+import type { TransformEngine } from '@/lib/types';
+import { isPrismEngine } from '@/lib/types';
 import { Download, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 
 interface OutputViewerProps {
   output: string;
-  engine: 'prism' | 'sleec';
+  engine: TransformEngine;
   fileName: string;
 }
 
@@ -19,7 +21,7 @@ export default function OutputViewer({ output, engine, fileName }: OutputViewerP
   };
 
   const handleDownload = () => {
-    const fileExtension = engine === 'prism' ? 'prism' : 'sleec';
+    const fileExtension = isPrismEngine(engine) ? 'prism' : 'sleec';
     const baseFileName = fileName.replace(/\.(txt|json)$/, '');
     const blob = new Blob([output], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

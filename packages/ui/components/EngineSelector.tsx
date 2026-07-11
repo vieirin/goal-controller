@@ -1,8 +1,11 @@
 'use client';
 
+import type { TransformEngine } from '@/lib/types';
+import { isPrismEngine } from '@/lib/types';
+
 interface EngineSelectorProps {
-  engine: 'prism' | 'sleec';
-  onEngineChange: (engine: 'prism' | 'sleec') => void;
+  engine: TransformEngine;
+  onEngineChange: (engine: TransformEngine) => void;
   clean: boolean;
   onCleanChange: (clean: boolean) => void;
   generateDecisionVars: boolean;
@@ -35,14 +38,26 @@ export default function EngineSelector({
           <label className='flex items-center'>
             <input
               type='radio'
-              value='prism'
-              checked={engine === 'prism'}
+              value='edge'
+              checked={engine === 'edge'}
               onChange={(e) =>
-                onEngineChange(e.target.value as 'prism' | 'sleec')
+                onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
-            <span>PRISM</span>
+            <span>Edge</span>
+          </label>
+          <label className='flex items-center'>
+            <input
+              type='radio'
+              value='edgev2'
+              checked={engine === 'edgev2'}
+              onChange={(e) =>
+                onEngineChange(e.target.value as TransformEngine)
+              }
+              className='mr-2'
+            />
+            <span>EdgeV2</span>
           </label>
           <label className='flex items-center'>
             <input
@@ -50,7 +65,7 @@ export default function EngineSelector({
               value='sleec'
               checked={engine === 'sleec'}
               onChange={(e) =>
-                onEngineChange(e.target.value as 'prism' | 'sleec')
+                onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
@@ -59,7 +74,7 @@ export default function EngineSelector({
         </div>
       </div>
 
-      {engine === 'prism' && (
+      {isPrismEngine(engine) && (
         <div className='space-y-3'>
           <label className='flex items-center'>
             <input

@@ -1,0 +1,22 @@
+---
+description: When working on edgeV2, never modify the legacy edge/ engine
+alwaysApply: true
+---
+
+# EdgeV2 vs Edge Engine
+
+When working on **edgeV2**, leave the legacy **edge** engine untouched.
+
+## Do
+
+- Implement, fix, and refactor only under `packages/lib/src/engines/edgeV2/`
+- Prefer copying or adapting patterns from `edge/` into `edgeV2/` when needed
+- Read `edge/` for reference only
+
+## Do not
+
+- Edit, delete, or refactor files under `packages/lib/src/engines/edge/`
+- "Keep them in sync" by changing both engines
+- Fix bugs in `edge/` unless the user explicitly asks to change the legacy engine
+
+If a change seems to require touching `edge/`, stop and ask first.
