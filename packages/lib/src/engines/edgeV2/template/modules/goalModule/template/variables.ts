@@ -1,11 +1,10 @@
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
-import { failed } from '../../../../mdp/common';
 import {
-  achievedVariable,
   chosenVariable,
-  pursuedVariable,
+  goalFailedVariable,
+  stateVariable,
 } from '../../../../template/common';
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
@@ -20,35 +19,36 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
     });
     return `${variable} : [0..${upperBound}] init 0;`;
   };
-  const pursuedVariableStatement = defineVariable(pursuedVariable(goal.id), 1);
-  const achievedVariableStatement = !goal.properties.engine.execCondition
-    ?.maintain
-    ? defineVariable(achievedVariable(goal.id), 1)
-    : null;
 
-  const children = Node.children(goal);
+  const stateVariableStatement = defineVariable(stateVariable(goal.id), 1);
+
+  const pursueableChildren = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  );
+  const isOrChoice =
+    goal.relationToChildren === 'or' &&
+    goal.properties.engine.executionDetail?.type === 'choice';
   const chosenVariableStatement =
-    goal.properties.engine.executionDetail?.type === 'choice'
-      ? defineVariable(chosenVariable(goal.id), children.length)
+    isOrChoice && pursueableChildren.length > 0
+      ? defineVariable(chosenVariable(goal.id), pursueableChildren.length)
       : null;
 
-  const childrenWithMaxRetries = Node.childrenWithRetries(goal);
+  const isDegradation =
+    goal.properties.engine.executionDetail?.type === 'degradation';
+  const childrenWithMaxRetries = isDegradation
+    ? Node.childrenWithRetries(goal)
+    : [];
   const maxRetriesVariableStatement =
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
           .map((child: EdgeGoalNode | EdgeTask) => {
             const maxRetries = child.properties.engine.maxRetries;
-            return defineVariable(failed(child.id), maxRetries);
+            return defineVariable(goalFailedVariable(child.id), maxRetries);
           })
-          .join('\n')
+          .join('\n  ')
       : null;
 
-  return [
-    pursuedVariableStatement,
-    achievedVariableStatement,
-    chosenVariableStatement,
-    maxRetriesVariableStatement,
-  ]
+  return [stateVariableStatement, chosenVariableStatement, maxRetriesVariableStatement]
     .filter(Boolean)
     .join('\n  ');
 };

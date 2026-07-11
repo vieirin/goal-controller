@@ -6,14 +6,14 @@ import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
 type GoalNode = EdgeGoalNode;
 type Task = EdgeTask;
 type GoalTreeType = EdgeGoalTree;
-import { failed } from '../mdp/common';
 import {
   achievableFormulaVariable,
   achievedTransition,
   achievedVariable,
   chosenVariable,
-  pursuedVariable,
+  goalFailedVariable,
   pursueTransition,
+  stateVariable,
 } from '../template/common';
 import type { ExpectedElements } from './types';
 
@@ -24,17 +24,14 @@ const achievedMaintain = (goalId: string): string => {
 const calculateGoalVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];
 
-  // Always has pursued
-  variables.push(pursuedVariable(goal.id));
+  // Always has state (pursued / not pursued)
+  variables.push(stateVariable(goal.id));
 
-  // Has achieved if not maintain goal
-  if (!goal.properties.engine.execCondition?.maintain) {
-    variables.push(achievedVariable(goal.id));
-  }
-
-  // Has chosen if choice execution detail
-  if (goal.properties.engine.executionDetail?.type === 'choice') {
-    // Filter out resources - only goals and tasks can be chosen
+  // OR + choice: chosen child index
+  if (
+    goal.relationToChildren === 'or' &&
+    goal.properties.engine.executionDetail?.type === 'choice'
+  ) {
     const pursueableChildren = Node.children(goal).filter(
       (child) => !Node.isResource(child),
     );
@@ -43,11 +40,12 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
     }
   }
 
-  // Has failed variables for children with maxRetries
-  const childrenWithRetries = Node.childrenWithRetries(goal);
-  childrenWithRetries.forEach((child) => {
-    variables.push(failed(child.id));
-  });
+  // Degradation: failed counters for children with maxRetries
+  if (goal.properties.engine.executionDetail?.type === 'degradation') {
+    Node.childrenWithRetries(goal).forEach((child) => {
+      variables.push(goalFailedVariable(child.id));
+    });
+  }
 
   return variables;
 };
