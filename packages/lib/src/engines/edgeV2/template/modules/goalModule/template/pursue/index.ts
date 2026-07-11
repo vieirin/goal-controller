@@ -1,17 +1,18 @@
 import { Node, type GoalNode } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
+import { separator } from '../../../../../mdp/common';
 import {
-  achieved,
-  failed,
-  parenthesis,
-  pursued,
-  separator,
-} from '../../../../../mdp/common';
-import { chosenVariable } from '../../../../../template/common';
+  achievedFormula,
+  stateVariable,
+} from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
+import {
+  childShouldPursue,
+  joinGuards,
+  type PursueStatement,
+} from './decisionGuards';
 import {
   pursueAlternativeGoal,
   pursueChoiceGoal,
@@ -58,6 +59,9 @@ const removeRepeatedConditions = (condition: string): string => {
     .join(' & ');
 };
 
+const appendGuards = (baseLeft: string, extra: string): string =>
+  extra ? `${baseLeft} & ${extra}` : baseLeft;
+
 export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const logger = getLogger();
   const pursueLogger = logger.pursue;
@@ -71,11 +75,10 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
 
   const isItself = (child: PursueableNode): boolean => child.id === goal.id;
   const pursueLines = goalsToPursue
-
-    .map((child, _): [PursueableNode, { left: string; right: string }] => {
-      // first map, responsible for writing the first column of the pursue lines
-      // itself: [pursue_G1] G1_pursued=0 & G1_achieved=0 -> (G1_pursued'=1)
-      // non-itself: [pursue_G2] G1_pursued=1 & G1_achieved=0 -> true
+    .map((child, _): [PursueableNode, PursueStatement] => {
+      // first map — base column (EDGEV2.txt):
+      // itself:     [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1)
+      // non-itself: [pursue_G1] !g0_achieved & g0_state=1 -> true
       const itself = isItself(child);
       pursueLogger.pursue(child, 1);
 
@@ -85,20 +88,18 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
           goal.id,
           (goal.properties.engine.dependsOn ?? []).map((dep) => dep.id),
         );
+        const notAchieved = `!${achievedFormula(goal.id)}`;
         const statement =
-          `[pursue_${child.id}] ${pursued(goal.id)}=${itself ? 0 : 1} & ${
-            goal.properties.engine.execCondition?.maintain
-              ? `${achievedMaintain(goal.id)}=false`
-              : `${achieved(goal.id)}=0`
-          }` + (itself ? dependencyStatement : '');
-        pursueLogger.defaultPursueCondition(statement);
+          `[pursue_${child.id}] ${notAchieved} & ${stateVariable(goal.id)}=${
+            itself ? 0 : 1
+          }` + (itself ? dependencyStatement : '');        pursueLogger.defaultPursueCondition(statement);
 
         return statement;
       };
 
       const calcRightStatement = (): string => {
         if (itself) {
-          const update = `(${pursued(goal.id)}'=1)`;
+          const update = `(${stateVariable(goal.id)}'=1)`;
           pursueLogger.update(update);
           return update;
         }
@@ -112,46 +113,26 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
       };
 
       if (isItself(child)) {
-        return [
-          child,
-          {
-            left,
-            right,
-          },
-        ] as const;
+        return [child, { left, right }] as const;
       }
       pursueLogger.stepStatement(1, left, right);
 
       return [child, { left, right }] as const;
     })
-    .map(
-      (
-        [child, { left, right }],
-        index,
-      ): [PursueableNode, { left: string; right: string }] => {
-        // second map, responsible for writing the second column of the pursue lines
-        // defines how a goal should be pursued based on the execution detail
-        // skips itself and handles or and and goals
-        // or goal:
-        //   - alternatives: pursueAlternativeGoal(goal, child.id)
-        //   - choice: pursueChoiceGoal(goal, children, child.id)
-        //   - degradation: pursueDegradationGoal(goal, goal.executionDetail.degradationList, child.id)
-        // and goal:
-        //   - sequence: pursueAndSequentialGoal(goal, goal.executionDetail.sequence, child.id, [...(goal.children ?? []), ...(goal.tasks ?? [])])
-        //    - interleaved: return [child, { left, right }]
-        const calcExecutionDetail = (): [
-          PursueableNode,
-          { left: string; right: string },
-        ] => {
+    .flatMap(
+      ([child, { left, right }]): Array<
+        [PursueableNode, PursueStatement]
+      > => {
+        // second map — execution detail (EDGEV2.txt); may emit multiple lines
+        const calcExecutionDetail = (): PursueStatement[] => {
           pursueLogger.pursue(child, 2);
 
           if (isItself(child)) {
-            // skip itself
             logger.info(
               '[EXECUTION DETAIL: SKIP] Skipping condition generation for itself on runtime guard generation step',
               2,
             );
-            return [child, { left, right }];
+            return [{ left, right }];
           }
 
           if (goal.relationToChildren === 'or') {
@@ -167,11 +148,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = Node.children(goal)
-                  .filter(
-                    (child): child is PursueableNode => !Node.isResource(child),
-                  )
-                  .map((child) => child.id);
+                const children = pursueableChildren.map((c) => c.id);
                 if (children.length === 0) {
                   logger.error(
                     goal.id,
@@ -185,21 +162,12 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   child.id,
                   'choice execution detail detected with children',
                 );
-                const pursueCondition = pursueChoiceGoal(
-                  goal,
-                  children,
-                  child.id,
+                return pursueChoiceGoal(goal, children, child.id).map(
+                  (fragment) => ({
+                    left: appendGuards(left, fragment.left),
+                    right: fragment.right,
+                  }),
                 );
-
-                const updatedRight =
-                  index > 0
-                    ? parenthesis(`${chosenVariable(goal.id)}'=${index}`)
-                    : right;
-
-                return [
-                  child,
-                  { left: left + ` & ${pursueCondition}`, right: updatedRight },
-                ];
               }
               case 'degradation': {
                 logger.trace(
@@ -207,15 +175,14 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   'degradation execution detail detected',
                   2,
                 );
-                const pursueCondition = pursueDegradationGoal(
+                return pursueDegradationGoal(
                   goal,
                   goal.properties.engine.executionDetail.degradationList,
                   child.id,
-                );
-                const updatedLeft = pursueCondition
-                  ? `${left} & ${pursueCondition}`
-                  : left;
-                return [child, { left: updatedLeft, right }];
+                ).map((fragment) => ({
+                  left: appendGuards(left, fragment.left),
+                  right: fragment.right,
+                }));
               }
               case 'alternative': {
                 logger.trace(
@@ -224,20 +191,24 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   2,
                 );
                 const pursueCondition = pursueAlternativeGoal(goal, child.id);
-                return [child, { left: left + ` & ${pursueCondition}`, right }];
+                return [
+                  {
+                    left: appendGuards(left, pursueCondition),
+                    right,
+                  },
+                ];
               }
               default:
                 logger.info(
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2,
                 );
-                return [child, { left, right }];
+                return [{ left, right }];
             }
           }
 
           if (goal.relationToChildren === 'and') {
             logger.trace(child.id, 'and goal detected', 2);
-            // organize pursue conditions by execution detail type
             switch (goal.properties.engine.executionDetail?.type) {
               case 'sequence': {
                 logger.trace(child.id, 'sequence execution detail detected', 2);
@@ -245,12 +216,10 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   goal,
                   goal.properties.engine.executionDetail.sequence,
                   child.id,
-                  Node.children(goal),
                 );
                 return [
-                  child,
                   {
-                    left: left + ` & ${pursueCondition}`,
+                    left: appendGuards(left, pursueCondition),
                     right,
                   },
                 ];
@@ -278,16 +247,19 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   2,
                 );
                 pursueLogger.executionDetail.interleaved();
-                // interleaved goals fall under the default case
-                return [child, { left, right }];
+                return [
+                  {
+                    left: appendGuards(left, childShouldPursue(child.id)),
+                    right,
+                  },
+                ];
               }
               default:
                 logger.info(
                   `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
                   2,
                 );
-                // interleaved goals fall under the default case
-                return [child, { left, right }];
+                return [{ left, right }];
             }
           }
 
@@ -295,52 +267,38 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
             `[EXECUTION DETAIL: ERROR] ${child.id} is not an OR or AND goal`,
             2,
           );
-          return [child, { left, right }];
+          return [{ left, right }];
         };
 
-        const executionDetail = calcExecutionDetail();
+        const statements = calcExecutionDetail();
+        statements.forEach((statement) => {
+          pursueLogger.stepStatement(2, statement.left, statement.right);
+        });
 
-        pursueLogger.stepStatement(
-          2,
-          executionDetail[1].left,
-          executionDetail[1].right,
+        return statements.map(
+          (statement) => [child, statement] as [PursueableNode, PursueStatement],
         );
-
-        return executionDetail;
       },
     )
     .map(
-      ([child, statement]): [
-        PursueableNode,
-        { left: string; right: string },
-      ] => {
-        // third map, responsible for writing the third column of the pursue lines
-        // defines the activation context and maintain context guards
-        // if itself add context guard only if it has an activation context
-        // if child add context guard only if it has a maintain condition
-
-        // parent goals have activation context independently of the maintain condition
+      ([child, statement]): [PursueableNode, PursueStatement] => {
+        // third map — activation / maintain context guards
         const activationContextCondition =
           ((isItself(child) || Node.isTask(child)) &&
             child.properties.engine.execCondition?.assertion?.sentence) ||
           '';
 
-        // child goals have maintain condition only if they are not itself
         const maintainContextGuard =
           child.properties.engine.execCondition?.maintain?.sentence &&
           !isItself(child)
-            ? `${achievedMaintain(child.id)}=false`
+            ? `!${achievedFormula(child.id)}`
             : '';
 
-        const left =
-          activationContextCondition || maintainContextGuard
-            ? `${statement.left} & ${[
-                activationContextCondition,
-                maintainContextGuard,
-              ]
-                .filter(Boolean)
-                .join(' & ')}`
-            : statement.left;
+        const left = joinGuards(
+          statement.left,
+          activationContextCondition || null,
+          maintainContextGuard || null,
+        );
 
         if (child.properties.engine.execCondition) {
           logger.trace(child.id, 'activation context guard detected', 2);
@@ -355,45 +313,13 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
           child,
           {
             left,
-            right: `${statement.right}`,
+            right: statement.right,
           },
         ];
       },
     )
-    .map(([child, statement]) => {
-      // fourth map, responsible for writing the update of the failed counter variable
-      // defines the update failed counter statement
-      // if child has a max retries, update the failed counter variable
-      // if itself, skip the update failed counter statement
-
-      // TODO: only update if child is part of a degradation goal
-      const maxRetries = child.properties.engine.maxRetries;
-      const updateFailedCounterStatement =
-        maxRetries > 0
-          ? `(${failed(child.id)}'=min(${maxRetries}, ${failed(child.id)}+1))`
-          : '';
-
-      if (!updateFailedCounterStatement || isItself(child)) {
-        return [child, statement] as const;
-      }
-
-      const rightStatement =
-        // overwrite default true with update failed counter statement
-        statement.right === 'true'
-          ? updateFailedCounterStatement
-          : `${statement.right} & ${updateFailedCounterStatement}`;
-      return [
-        child,
-        {
-          left: statement.left,
-          right: rightStatement,
-        },
-      ] as const;
-    })
     .map(([_, statement]) => {
-      // fifth map
-      // cleans up the left and right statements by removing repeated conditions
-      // TODO: decision variables stage, dependencies
+      // fourth map — dedupe (decision thresholds already in calcExecutionDetail)
       return {
         left: `${removeRepeatedConditions(statement.left)}`,
         right: `${removeRepeatedConditions(statement.right)}`,

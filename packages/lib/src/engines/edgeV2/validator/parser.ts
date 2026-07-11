@@ -55,7 +55,7 @@ const extractVariablesFromGuard = (guard: string): string[] => {
 
   // Match variable patterns in the guard
   // Patterns: var=value, var'=value, var>=value, var<=value, var!=value, var>value, var<value
-  // Also handle formulas like var_achieved_maintain=true/false
+  // Also handle formulas like var_achieved=true/false
   const variablePattern = /(\w+)(?:'|>=|<=|!=|>|<|=)/g;
   let match;
 

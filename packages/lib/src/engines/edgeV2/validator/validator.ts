@@ -49,12 +49,16 @@ const validateGoal = (
   const goalModule = parsedModel.goalModules.get(goalId);
   const emittedVariables = goalModule?.variables.map((v) => v.name) || [];
   const emittedTransitions = goalModule?.transitions.map((t) => t.label) || [];
-  // Filter formulas that belong to this goal
-  // Formulas are named like: G1_achievable, G1_achieved_maintain
-  // We need to match formulas that start with goalId + '_' to avoid matching
-  // G10, G11, etc. when looking for G1
+  // Formulas may use original id (G1_achievable) or lowercase EDGEV2 names (g1_achieved)
+  const lowerGoalId = goalId.toLowerCase();
   const emittedFormulas = parsedModel.formulas
-    .filter((f) => f.name === goalId || f.name.startsWith(`${goalId}_`))
+    .filter(
+      (f) =>
+        f.name === goalId ||
+        f.name === lowerGoalId ||
+        f.name.startsWith(`${goalId}_`) ||
+        f.name.startsWith(`${lowerGoalId}_`),
+    )
     .map((f) => f.name);
 
   // Check if module exists
@@ -79,11 +83,11 @@ const validateGoal = (
   );
 
   // Extract context variables from the first pursue transition's guard
-  // Filter out goal-specific variables (like G5_pursued, G5_achieved, etc.)
+  // Filter out goal-specific variables (EDGEV2: g1_state / g1_achieved / g1_chosen / g1_failed)
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
   const goalVariablePattern = new RegExp(
-    `^${goalId}_(pursued|achieved|chosen|failed)$`,
+    `^(${goalId}|${lowerGoalId})_(pursued|achieved|chosen|failed|state)$`,
   );
 
   const emittedContextVars =

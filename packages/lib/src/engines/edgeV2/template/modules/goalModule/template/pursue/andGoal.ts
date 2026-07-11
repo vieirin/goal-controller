@@ -1,12 +1,8 @@
-import type { TreeNode } from '@goal-controller/goal-tree';
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
+import type { EdgeGoalNode } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
-import { hasBeenAchieved } from './common';
-
-// Type for nodes that can be achieved (goals and tasks, but not resources)
-type AchievableNode = EdgeGoalNode | EdgeTask;
+import { achievedFormula } from '../../../../../template/common';
+import { joinGuards, parentShouldPursue } from './decisionGuards';
 
 export const splitSequence = (
   sequence: string[],
@@ -21,11 +17,14 @@ export const splitSequence = (
   return [sequence.slice(0, sequenceIndex), sequence.slice(sequenceIndex + 1)];
 };
 
+/**
+ * AND + sequence (EDGEV2):
+ *   G0_achievable*10.0 > decision_G0 [& g{prev}_achieved ...]
+ */
 export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
-  children: TreeNode[],
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -33,60 +32,19 @@ export const pursueAndSequentialGoal = (
     );
   }
 
-  const [leftGoals, rightGoals] = splitSequence(sequence, childId);
+  const [leftGoals] = splitSequence(sequence, childId);
 
   if (!goal.relationToChildren) {
     return '';
   }
 
-  // Filter out resources - they cannot be achieved
-  const achievableChildren = children.filter(
-    (child): child is AchievableNode => !Node.isResource(child),
-  );
-
-  const childrenMap = new Map<string, AchievableNode>(
-    achievableChildren.map((child) => [child.id, child]),
-  );
-
-  const resolveAndGoal = (): string => {
-    if (leftGoals.length === 0) {
-      const child = childrenMap.get(childId);
-      if (!child) {
-        throw new Error(
-          `Child with ID ${childId} not found in children map for goal ${goal.id}`,
-        );
-      }
-      return hasBeenAchieved(child, { condition: false });
-    }
-
-    return [
-      ...leftGoals.map((goalId) => {
-        const child = childrenMap.get(goalId);
-        if (!child) {
-          throw new Error(
-            `Child with ID ${goalId} not found in children map for goal ${goal.id}`,
-          );
-        }
-        return hasBeenAchieved(child, { condition: true });
-      }),
-      ...rightGoals.map((goalId) => {
-        const child = childrenMap.get(goalId);
-        if (!child) {
-          throw new Error(
-            `Child with ID ${goalId} not found in children map for goal ${goal.id}`,
-          );
-        }
-        return hasBeenAchieved(child, { condition: false });
-      }),
-    ].join(separator('and'));
-  };
-
   const { sequence: sequenceLogger } = getLogger().pursue.executionDetail;
-  sequenceLogger(goal.id, childId, leftGoals, rightGoals);
+  sequenceLogger(goal.id, childId, leftGoals, []);
 
-  if (goal.relationToChildren === 'and') {
-    return resolveAndGoal();
-  }
+  const priors =
+    leftGoals.length > 0
+      ? leftGoals.map((id) => achievedFormula(id)).join(separator('and'))
+      : '';
 
-  return '';
+  return joinGuards(parentShouldPursue(goal.id), priors);
 };

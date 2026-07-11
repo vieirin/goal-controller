@@ -1,32 +1,82 @@
 import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode } from '../../../../types';
+import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
-import { parenthesis } from '../../../../mdp/common';
-import { achievableFormulaVariable } from '../../../../template/common';
+import { parenthesis, separator } from '../../../../mdp/common';
+import {
+  achievableFormulaVariable,
+  achievedFormula,
+  achievedVariable,
+} from '../../../../template/common';
 
-export const achievedMaintain = (goalId: string): string => {
-  return `${goalId}_achieved_maintain`;
-};
+/** @deprecated Use achievedFormula — maintain goals share g*_achieved */
+export const achievedMaintain = achievedFormula;
 
 export const maintainConditionFormula = (goal: EdgeGoalNode): string => {
   if (!goal.properties.engine.execCondition?.maintain) {
     return '';
   }
   const logger = getLogger();
+  const name = achievedFormula(goal.id);
 
-  const prismLine = `formula ${achievedMaintain(goal.id)} = ${
+  const prismLine = `formula ${name} = ${
     goal.properties.engine.execCondition.maintain.sentence ||
     'ASSERTION_UNDEFINED'
   };`;
 
   logger.maintainFormulaDefinition(
     goal.id,
-    achievedMaintain(goal.id),
+    name,
     goal.properties.engine.execCondition.maintain.sentence ||
       'ASSERTION_UNDEFINED',
     prismLine,
   );
   return prismLine;
+};
+
+/** Child achieved ref: goal → g*_achieved formula; task → T*_achieved var */
+const childAchievedRef = (child: EdgeGoalNode | EdgeTask): string =>
+  Node.isTask(child) ? achievedVariable(child.id) : achievedFormula(child.id);
+
+/**
+ * EDGEV2 achieved formula:
+ *   formula g0_achieved = (g1_achieved & g2_achieved);  // AND
+ *   formula g0_achieved = (g1_achieved | g2_achieved);  // OR
+ * Skipped for maintain goals (maintainConditionFormula emits g*_achieved from the maintain sentence).
+ */
+export const achievedGoalFormula = (goal: EdgeGoalNode): string => {
+  if (goal.properties.engine.execCondition?.maintain) {
+    return '';
+  }
+
+  const children = Node.children(goal).filter(
+    (child): child is EdgeGoalNode | EdgeTask => !Node.isResource(child),
+  );
+  if (children.length === 0) {
+    return '';
+  }
+
+  const formulaName = achievedFormula(goal.id);
+  const childRefs = children.map(childAchievedRef);
+
+  let sentence: string;
+  if (children.length === 1) {
+    sentence = childRefs[0]!;
+  } else {
+    switch (goal.relationToChildren) {
+      case 'and':
+        sentence = parenthesis(childRefs.join(separator('and')));
+        break;
+      case 'or':
+        sentence = parenthesis(childRefs.join(separator('or')));
+        break;
+      default:
+        throw new Error(
+          `Invalid relation to children for achieved formula: ${goal.relationToChildren ?? 'none'}`,
+        );
+    }
+  }
+
+  return `formula ${formulaName} = ${sentence};`;
 };
 
 export const achievableGoalFormula = (goal: EdgeGoalNode): string => {

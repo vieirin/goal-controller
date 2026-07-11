@@ -3,6 +3,10 @@ const varId = (goalId: string): string => goalId.toLowerCase();
 
 export const stateVariable = (goalId: string): string => `${varId(goalId)}_state`;
 export const pursuedVariable = (goalId: string): string => `${goalId}_pursued`;
+/** Achieved formula name for goals (EDGEV2): g<id>_achieved */
+export const achievedFormula = (goalId: string): string =>
+  `${varId(goalId)}_achieved`;
+/** Module/task achieved var — preserves id case (tasks still use T1_achieved) */
 export const achievedVariable = (goalId: string): string =>
   `${goalId}_achieved`;
 export const chosenVariable = (goalId: string): string =>

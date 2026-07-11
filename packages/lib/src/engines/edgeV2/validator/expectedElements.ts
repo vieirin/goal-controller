@@ -8,6 +8,7 @@ type Task = EdgeTask;
 type GoalTreeType = EdgeGoalTree;
 import {
   achievableFormulaVariable,
+  achievedFormula,
   achievedTransition,
   achievedVariable,
   chosenVariable,
@@ -16,10 +17,6 @@ import {
   stateVariable,
 } from '../template/common';
 import type { ExpectedElements } from './types';
-
-const achievedMaintain = (goalId: string): string => {
-  return `${goalId}_achieved_maintain`;
-};
 
 const calculateGoalVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];
@@ -78,9 +75,16 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
   // Always has achievability formula
   formulas.push(achievableFormulaVariable(goal.id));
 
-  // Has maintain formula if maintain goal
+  // Achieved formula (EDGEV2): children composition, or maintain sentence
   if (goal.properties.engine.execCondition?.maintain) {
-    formulas.push(achievedMaintain(goal.id));
+    formulas.push(achievedFormula(goal.id));
+  } else {
+    const hasPursueableChildren = Node.children(goal).some(
+      (child) => !Node.isResource(child),
+    );
+    if (hasPursueableChildren) {
+      formulas.push(achievedFormula(goal.id));
+    }
   }
 
   return formulas;

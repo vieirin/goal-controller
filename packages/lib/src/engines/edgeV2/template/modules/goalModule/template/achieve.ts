@@ -1,54 +1,45 @@
-import type { Relation } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
-import { achieved, pursued, separator } from '../../../../mdp/common';
-import { achievedVariable } from '../../../../template/common';
-import { achievedMaintain } from './formulas';
-import { hasBeenPursued } from './pursue/common';
+import { separator } from '../../../../mdp/common';
+import {
+  achievedFormula,
+  pursuedVariable,
+  stateVariable,
+} from '../../../../template/common';
 
-const isValidSeparator = (
-  relation: Relation | null,
-): relation is 'and' | 'or' => {
-  return ['and', 'or'].includes(relation ?? '');
-};
+/** Child idle: goals use g*_state=0; tasks still use T*_pursued=0 */
+const childIdle = (child: EdgeGoalNode | EdgeTask): string =>
+  Node.isTask(child)
+    ? `${pursuedVariable(child.id)}=0`
+    : `${stateVariable(child.id)}=0`;
 
-export const achieveCondition = (goal: EdgeGoalNode): string => {
-  if (isValidSeparator(goal.relationToChildren)) {
-    // Filter out resources first, then check if there are any pursueable children
-    const pursueableChildren = Node.children(goal).filter(
-      (child) => !Node.isResource(child),
-    );
-    if (pursueableChildren.length) {
-      return `(${pursueableChildren
-        .map((child) => {
-          const typedChild = child as EdgeGoalNode | EdgeTask;
-          return typedChild.properties.engine.execCondition?.maintain
-            ? `${achievedMaintain(typedChild.id)}=true`
-            : `${achievedVariable(typedChild.id)}=1`;
-        })
-        .join(separator(goal.relationToChildren))})`;
-    }
+const childrenIdle = (goal: EdgeGoalNode): string => {
+  const children = Node.children(goal).filter(
+    (child): child is EdgeGoalNode | EdgeTask => !Node.isResource(child),
+  );
+  if (children.length === 0) {
+    return '';
   }
-  return '';
+  return children.map(childIdle).join(separator('and'));
 };
 
+/**
+ * EDGEV2:
+ *   [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g2_state=0 -> (g0_state'=0);
+ */
 export const achieveStatement = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
 
   const leftStatement = [
-    hasBeenPursued(goal, { condition: true }),
-    achieveCondition(goal),
+    `${stateVariable(goal.id)}=1`,
+    achievedFormula(goal.id),
+    childrenIdle(goal),
   ]
     .filter(Boolean)
     .join(separator('and'));
 
-  const achievedUpdate = `${achieved(goal.id)}'=1`;
-  const shouldHaveUpdateAchieved =
-    !goal.properties.engine.execCondition?.maintain;
-  const updateStatement = `(${pursued(goal.id)}'=0)${
-    shouldHaveUpdateAchieved ? ` & (${achievedUpdate})` : ''
-  };`;
+  const updateStatement = `(${stateVariable(goal.id)}'=0);`;
 
   const prismLabelStatement = `[achieved_${goal.id}] ${leftStatement} -> ${updateStatement}`;
 

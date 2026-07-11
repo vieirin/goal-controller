@@ -1,4 +1,4 @@
-import { validate } from '../validator';
+import { validate, formatValidationReport } from '../validator';
 import { decisionVariablesTemplate, DEFAULT_ACHIEVABILITY_SPACE } from './decisionVariables';
 import type { EdgeGoalTree } from '../types';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -52,7 +52,9 @@ export const generateValidatedPrismModel = ({
 
   const report = validate(gm, prismModel, fileName);
   if (report.summary.totalMissing > 0) {
-    throw new Error('PRISM model is not valid');
+    throw new Error(
+      `PRISM model is not valid\n${formatValidationReport(report)}`,
+    );
   }
   return prismModel;
 };
