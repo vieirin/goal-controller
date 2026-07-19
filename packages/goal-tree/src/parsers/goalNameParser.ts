@@ -5,6 +5,7 @@ import RTRegexListener from '../antlr/RTRegexListener';
 import type {
   ExprContext,
   GAlternativeContext,
+  GAnyOrderContext,
   GChoiceContext,
   GDegradationContext,
   GIdContinuedContext,
@@ -37,6 +38,7 @@ export const getGoalDetail = ({
   let degradationList: string[] = [];
   let interleaved: string[] = [];
   let sequence: string[] = [];
+  let anyOrder: string[] = [];
   let retry: Dictionary<number> = {};
   let choice: boolean = false;
   class RTNotationTreeWalker extends RTRegexListener {
@@ -48,7 +50,7 @@ export const getGoalDetail = ({
         // Goal with ID, like G1
         return [expr.getText()];
       } else if (expr.getChildCount() === 3) {
-        // Binary operation (e.g., G1|G2, G1->G2, G1#G2, G1;G2)
+        // Binary operation (e.g., G1|G2, G1?G2, G1+G2, G1->G2, G1#G2, G1;G2)
         const left = this.extractGoalIds(expr.getChild(0) as ExprContext);
         const right = this.extractGoalIds(expr.getChild(2) as ExprContext);
         return [...left, ...right];
@@ -94,6 +96,13 @@ export const getGoalDetail = ({
         .filter(Boolean);
     };
 
+    exitGAnyOrder = (ctx: GAnyOrderContext) => {
+      anyOrder = ctx
+        .expr_list()
+        .flatMap((e) => this.extractGoalIds(e))
+        .filter(Boolean);
+    };
+
     exitGRetry = (ctx: GRetryContext) => {
       const goalToRetry = ctx.expr().getText();
       const amountOfRetries = ctx.FLOAT().getText();
@@ -101,7 +110,7 @@ export const getGoalDetail = ({
     };
 
     exitGChoice = (ctx: GChoiceContext) => {
-      choice = ctx._op.text === '+';
+      choice = ctx._op.text === '?';
     };
   }
 
@@ -132,6 +141,14 @@ export const getGoalDetail = ({
       id,
       goalName: goalSanitizedName.trim(),
       executionDetail: { type: 'sequence', sequence },
+    };
+  }
+
+  if (anyOrder.length > 0) {
+    return {
+      id,
+      goalName: goalSanitizedName.trim(),
+      executionDetail: { type: 'anyOrder', anyOrder },
     };
   }
 
