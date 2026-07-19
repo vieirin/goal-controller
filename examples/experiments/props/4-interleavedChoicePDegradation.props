@@ -1,5 +1,5 @@
 // ======================================================
-// CHOICE OR  (+)   —  G2: Configure flight [+]
+// CHOICE OR  (?)   —  G2: Configure flight [G7?G8]
 //   Children: G7 (Standard Mode) and G8 (High-Priority)
 //   Encoding: G2_chosen ∈ {0,1,2}, set by pursue_G7 / pursue_G8
 // ======================================================
@@ -114,7 +114,7 @@ P>=1 [
   G ( (G1_achieved=1) => (G5_achieved=1 & G6_achieved=1) )
 ];
 
-// G2 — Choice OR [+] (already partly covered above):
+// G2 — Choice OR [G7?G8] (already partly covered above):
 //      When G2 completes, exactly one branch has been achieved.
 //      (Given the model, “at most one” + “at least one” gives exactly one.)
 P>=1 [

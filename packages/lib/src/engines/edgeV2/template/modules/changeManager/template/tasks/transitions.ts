@@ -1,12 +1,12 @@
+import type { EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import { parenthesis } from '../../../../../mdp/common';
-import type { EdgeTask } from '../../../../../types';
 import {
   achievableFormulaVariable,
   achievedTransition,
   pursueTransition,
   tryTransition,
-} from '../../../../common';
+} from '../../../../../template/common';
 import {
   hasBeenAchieved,
   hasBeenAchievedAndPursued,

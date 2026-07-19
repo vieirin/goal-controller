@@ -130,7 +130,7 @@ export const GoalModel = {
   },
 
   /**
-   * Parse model JSON, validate it, and convert to Edge V2 tree (EDGE / PRISM snippets)
+   * Parse model JSON, validate it, and convert to Edge V2 tree
    */
   parseForEdgeV2(modelJson: string): EdgeV2ParseModelResult {
     const parseResult = this.parseModel(modelJson);

@@ -18,6 +18,7 @@ interface LoggerReport {
     goalTypeAlternative: number;
     goalTypeSequence: number;
     goalTypeInterleaved: number;
+    goalTypeAnyOrder?: number;
     goalModules: number;
     goalVariables: number;
     goalPursueLines: number;
@@ -143,6 +144,12 @@ export default function ReportViewer({ report }: ReportViewerProps) {
                   <span>Interleaved:</span>
                   <span className="font-medium">
                     {summary.goalTypeInterleaved}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Any Order:</span>
+                  <span className="font-medium">
+                    {summary.goalTypeAnyOrder ?? 0}
                   </span>
                 </div>
               </div>

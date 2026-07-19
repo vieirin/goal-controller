@@ -1,15 +1,11 @@
 import { getLogger } from '../../../../logger/logger';
 import { achieveStatement } from './achieve';
-import {
-  achievableGoalFormula,
-  achievedGoalFormula,
-  maintainConditionFormula,
-} from './formulas';
+import { achievableGoalFormula, achievedGoalFormula, maintainConditionFormula } from './formulas';
 
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode } from '../../../../types';
 import { pursueStatements } from './pursue';
-import { skipStatements } from './skip';
+import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
 
 export const goalModule = (goal: EdgeGoalNode): string => {
@@ -18,8 +14,8 @@ export const goalModule = (goal: EdgeGoalNode): string => {
 
   const formulaStatements = [
     maintainConditionFormula(goal),
-    achievableGoalFormula(goal),
     achievedGoalFormula(goal),
+    achievableGoalFormula(goal),
   ]
     .filter(Boolean)
     .join('\n');
@@ -38,7 +34,7 @@ module ${goal.id}
 
   ${achieveStatement(goal)}
   
-  ${skipStatements(goal).join('\n  ')}
+  ${skipStatement(goal)}
 endmodule
 
 ${formulaStatements}

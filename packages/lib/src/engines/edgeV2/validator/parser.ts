@@ -55,7 +55,7 @@ const extractVariablesFromGuard = (guard: string): string[] => {
 
   // Match variable patterns in the guard
   // Patterns: var=value, var'=value, var>=value, var<=value, var!=value, var>value, var<value
-  // Also handle formulas like var_achieved_maintain=true/false
+  // Also handle formulas like var_achieved=true/false
   const variablePattern = /(\w+)(?:'|>=|<=|!=|>|<|=)/g;
   let match;
 
@@ -168,6 +168,7 @@ const parseModule = (
     | 'degradation'
     | 'sequence'
     | 'interleaved'
+    | 'anyOrder'
     | 'alternative'
     | 'basic'
     | undefined;
@@ -188,6 +189,9 @@ const parseModule = (
       break;
     } else if (typeStr === 'interleaved') {
       goalType = 'interleaved';
+      break;
+    } else if (typeStr === 'anyorder') {
+      goalType = 'anyOrder';
       break;
     } else if (typeStr === 'alternative') {
       goalType = 'alternative';
@@ -259,7 +263,6 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
   let systemModule: ModuleInfo | undefined;
   const formulas: FormulaInfo[] = [];
   const constants = new Map<string, number>();
-  const nondetConstants: string[] = [];
 
   let i = 0;
 
@@ -276,13 +279,6 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
   // Parse modules
   while (i < lines.length) {
     const line = lines[i]?.trim() || '';
-
-    const constIntNondet = line.match(/^\s*const\s+int\s+(\w+)\s*;\s*$/);
-    if (constIntNondet?.[1]) {
-      nondetConstants.push(constIntNondet[1]);
-      i++;
-      continue;
-    }
 
     // Check if it's a module
     if (line.startsWith('module ')) {
@@ -328,6 +324,5 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
     systemModule,
     formulas,
     constants,
-    nondetConstants,
   };
 };

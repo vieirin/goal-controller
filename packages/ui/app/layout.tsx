@@ -4,7 +4,7 @@ import QueryProvider from './QueryProvider';
 
 export const metadata: Metadata = {
   title: 'Goal Transformer - Model Transformation',
-  description: 'Transform goal models to PRISM or SLEEC specifications',
+  description: 'Transform goal models to Edge, EdgeV2, or SLEEC specifications',
 };
 
 export default function RootLayout({

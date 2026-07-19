@@ -12,12 +12,12 @@ import {
   type Task,
 } from '@goal-controller/goal-tree';
 import type {
+  Decision,
   EdgeResourceProps,
   EdgeTaskProps,
   ExecCondition,
   GoalExecutionDetail,
 } from './types';
-import { parseStrictInt } from './retryCoercion';
 
 /**
  * Allowed keys for Edge goal custom properties
@@ -28,6 +28,7 @@ export const EDGE_GOAL_KEYS = [
   'utility',
   'cost',
   'dependsOn',
+  'variables',
   'type',
   'maintain',
   'assertion',
@@ -52,6 +53,32 @@ export const EDGE_RESOURCE_KEYS = [
 export type EdgeGoalKey = (typeof EDGE_GOAL_KEYS)[number];
 export type EdgeTaskKey = (typeof EDGE_TASK_KEYS)[number];
 export type EdgeResourceKey = (typeof EDGE_RESOURCE_KEYS)[number];
+
+const parseDecision = (
+  decision: string | undefined,
+): Array<{ variable: string; space: number }> => {
+  if (!decision) {
+    return [];
+  }
+  const parsedDecision = decision.split(',').map((d) => d.split(':'));
+  parsedDecision.forEach((d) => {
+    if (d.length !== 2) {
+      throw new Error(
+        `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
+      );
+    }
+    if (isNaN(parseInt(d[1] ?? ''))) {
+      throw new Error(
+        `[INVALID DECISION]: space must be a number: got ${d[1]}`,
+      );
+    }
+  });
+
+  return parsedDecision.map((d) => ({
+    variable: d[0]?.trim() ?? '',
+    space: parseInt(d[1] ?? '', 10),
+  }));
+};
 
 /**
  * Parse and validate maxRetries value
@@ -132,6 +159,7 @@ export interface EdgeGoalPropsResolved {
   dependsOn: EdgeGoalNode[];
   executionDetail: GoalExecutionDetail | null;
   execCondition?: ExecCondition;
+  decision: Decision;
   maxRetries: number;
 }
 
@@ -161,6 +189,7 @@ export const edgeEngineMapper = createEngineMapper<
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,
   mapGoalProps: ({ raw, executionDetail }) => {
+    const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
 
     return {
@@ -169,6 +198,10 @@ export const edgeEngineMapper = createEngineMapper<
       dependsOn: [],
       executionDetail,
       execCondition,
+      decision: {
+        decisionVars,
+        hasDecision: decisionVars.length > 0,
+      } satisfies Decision,
       maxRetries: parseMaxRetries(raw.maxRetries, 'goal'),
     };
   },
@@ -215,12 +248,12 @@ export const edgeEngineMapper = createEngineMapper<
           );
         }
 
-        const lowerBoundInt = parseStrictInt(lowerBound);
-        const upperBoundInt = parseStrictInt(upperBound);
+        const lowerBoundInt = parseInt(lowerBound, 10);
+        const upperBoundInt = parseInt(upperBound, 10);
 
         if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
           throw new Error(
-            `[INVALID RESOURCE]: Resource bounds must be plain integers, got: lowerBound="${lowerBound}" upperBound="${upperBound}"`,
+            '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
           );
         }
 
@@ -230,11 +263,11 @@ export const edgeEngineMapper = createEngineMapper<
           );
         }
 
-        const initialValueInt = parseStrictInt(initialValue);
+        const initialValueInt = parseInt(initialValue, 10);
 
         if (isNaN(initialValueInt)) {
           throw new Error(
-            `[INVALID RESOURCE]: Resource initial value must be a plain integer, got: "${initialValue}"`,
+            `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
           );
         }
 

@@ -1,57 +1,45 @@
-import type { Relation } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
-import { getLogger } from '../../../../logger/logger';
-import {
-  achieved,
-  goalState,
-  pursued,
-  separator,
-} from '../../../../mdp/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
-import { achievedMaintain } from './formulas';
-import { hasBeenPursued } from './pursue/common';
+import { getLogger } from '../../../../logger/logger';
+import { separator } from '../../../../mdp/common';
+import {
+  achievedFormula,
+  pursuedVariable,
+  stateVariable,
+} from '../../../../template/common';
 
-const isValidSeparator = (
-  relation: Relation | null,
-): relation is 'and' | 'or' => {
-  return ['and', 'or'].includes(relation ?? '');
-};
-
+/** Child idle: goals use g*_state=0; tasks still use T*_pursued=0 */
 const childIdle = (child: EdgeGoalNode | EdgeTask): string =>
-  child.type === 'task' ? `${pursued(child.id)}=0` : `${goalState(child.id)}=0`;
+  Node.isTask(child)
+    ? `${pursuedVariable(child.id)}=0`
+    : `${stateVariable(child.id)}=0`;
 
-export const achieveCondition = (goal: EdgeGoalNode): string => {
-  if (!isValidSeparator(goal.relationToChildren)) {
-    return '';
-  }
-  const pursueableChildren = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
+const childrenIdle = (goal: EdgeGoalNode): string => {
+  const children = Node.children(goal).filter(
+    (child): child is EdgeGoalNode | EdgeTask => !Node.isResource(child),
   );
-  if (!pursueableChildren.length) {
+  if (children.length === 0) {
     return '';
   }
-  return pursueableChildren
-    .map((child) => childIdle(child as EdgeGoalNode | EdgeTask))
-    .join(' & ');
+  return children.map(childIdle).join(separator('and'));
 };
 
+/**
+ * EDGEV2:
+ *   [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g2_state=0 -> (g0_state'=0);
+ */
 export const achieveStatement = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
 
-  const achievedGuard = goal.properties.engine.execCondition?.maintain
-    ? `${achievedMaintain(goal.id)}=true`
-    : `${achieved(goal.id)}`;
-
-  const cond = achieveCondition(goal);
   const leftStatement = [
-    hasBeenPursued(goal, { condition: true }),
-    achievedGuard,
-    cond,
+    `${stateVariable(goal.id)}=1`,
+    achievedFormula(goal.id),
+    childrenIdle(goal),
   ]
     .filter(Boolean)
     .join(separator('and'));
 
-  const updateStatement = `(${goalState(goal.id)}'=0);`;
+  const updateStatement = `(${stateVariable(goal.id)}'=0);`;
 
   const prismLabelStatement = `[achieved_${goal.id}] ${leftStatement} -> ${updateStatement}`;
 

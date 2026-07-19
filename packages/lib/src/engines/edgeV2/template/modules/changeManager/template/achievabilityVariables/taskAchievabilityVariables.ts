@@ -1,6 +1,6 @@
 import type { Task } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
-import { achievableFormulaVariable } from '../../../../common';
+import { achievableFormulaVariable } from '../../../../../template/common';
 
 const DEFAULT_ACHIEVABILITY = 0.5;
 

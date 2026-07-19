@@ -12,6 +12,7 @@
  *
  * Available Engines:
  * - **Edge**: Generates PRISM models for probabilistic verification
+ * - **EdgeV2**: Next-generation Edge PRISM model generator
  * - **SLEEC**: Generates SLEEC specifications for runtime monitoring
  */
 

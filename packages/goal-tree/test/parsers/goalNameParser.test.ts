@@ -57,6 +57,34 @@ describe('GoalNameParser', () => {
       });
     });
 
+    it('should handle any-order (unordered AND) goals', () => {
+      const goalText = 'G0: Any Order Goal [G1+G2]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G0',
+        goalName: 'Any Order Goal',
+        executionDetail: {
+          type: 'anyOrder',
+          anyOrder: ['G1', 'G2'],
+        },
+      });
+    });
+
+    it('should handle any-order with multiple children', () => {
+      const goalText = 'G1: Unordered Tasks [G2+G3+G4+G5]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G1',
+        goalName: 'Unordered Tasks',
+        executionDetail: {
+          type: 'anyOrder',
+          anyOrder: ['G2', 'G3', 'G4', 'G5'],
+        },
+      });
+    });
+
     it('should handle degradation goals', () => {
       const goalText = 'G8: Degradation Goal [G9->G10]';
       const result = getGoalDetail({ goalText });
@@ -72,12 +100,25 @@ describe('GoalNameParser', () => {
     });
 
     it('should handle choice goals', () => {
-      const goalText = 'G11: Choice Goal +';
+      const goalText = 'G11: Choice Goal [G12?G13]';
       const result = getGoalDetail({ goalText });
 
       assert.deepStrictEqual(result, {
         id: 'G11',
         goalName: 'Choice Goal',
+        executionDetail: {
+          type: 'choice',
+        },
+      });
+    });
+
+    it('should handle choice with multiple children', () => {
+      const goalText = 'G1: Multiple Choices [G2?G3?G4?G5]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G1',
+        goalName: 'Multiple Choices',
         executionDetail: {
           type: 'choice',
         },

@@ -63,7 +63,7 @@ P>0 [ F (G2_pursued=1 & G7_pursued=1 & G6_pursued=0) ];
 
 // ======================================================
 // 3. Choice semantics
-//    - G3: [+] over G9, G10, G11
+//    - G3: [G9?G10?G11] over G9, G10, G11
 // ======================================================
 
 // At most one of G9, G10, G11 can be pursued at a time

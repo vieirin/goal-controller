@@ -1,23 +1,13 @@
-import type { TreeNode } from '@goal-controller/goal-tree';
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
-import { achieved, separator } from '../../../../../mdp/common';
-import { achievableGtDecision } from '../../../../prismGuards';
-import { hasBeenAchieved } from './common';
-
-// Type for nodes that can be achieved (goals and tasks, but not resources)
-type AchievableNode = EdgeGoalNode | EdgeTask;
-
-/** Snippets use `G1_achieved` on sequential pursues; maintain goals still expose `G*_achieved`. */
-const priorSequentialSiblingGuard = (node: AchievableNode): string =>
-  node.type === 'task'
-    ? hasBeenAchieved(node, { condition: true })
-    : achieved(node.id);
-
-/** Interleaved AND: per-child guard from snippets (`G1_achievable*10.0 > decision_G1`). */
-export const pursueAndInterleavedGoal = (childId: string): string =>
-  achievableGtDecision(childId);
+import { parenthesis, separator } from '../../../../../mdp/common';
+import { achievedFormula, stateVariable } from '../../../../../template/common';
+import type { EdgeGoalNode } from '../../../../../types';
+import {
+  joinGuards,
+  otherChildrenNotPursued,
+  parentShouldPursue,
+  selectChildByDecision,
+} from './decisionGuards';
 
 export const splitSequence = (
   sequence: string[],
@@ -32,11 +22,14 @@ export const splitSequence = (
   return [sequence.slice(0, sequenceIndex), sequence.slice(sequenceIndex + 1)];
 };
 
+/**
+ * AND + sequence (EDGEV2):
+ *   G0_achievable*10.0 > decision_G0 [& g{prev}_achieved ...]
+ */
 export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
-  children: TreeNode[],
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -44,37 +37,68 @@ export const pursueAndSequentialGoal = (
     );
   }
 
-  const [leftGoals, rightGoals] = splitSequence(sequence, childId);
+  const [leftGoals] = splitSequence(sequence, childId);
 
   if (!goal.relationToChildren) {
     return '';
   }
 
-  // Filter out resources - they cannot be achieved
-  const achievableChildren = children.filter(
-    (child): child is AchievableNode => !Node.isResource(child),
-  );
-
-  const childrenMap = new Map<string, AchievableNode>(
-    achievableChildren.map((child) => [child.id, child]),
-  );
-
   const { sequence: sequenceLogger } = getLogger().pursue.executionDetail;
-  sequenceLogger(goal.id, childId, leftGoals, rightGoals);
+  sequenceLogger(goal.id, childId, leftGoals, []);
 
-  if (goal.relationToChildren === 'and') {
-    const decisionGuard = achievableGtDecision(goal.id);
-    const previousAchieved = leftGoals.map((id) => {
-      const node = childrenMap.get(id);
-      if (!node) {
-        throw new Error(
-          `Child with ID ${id} not found in children map for goal ${goal.id}`,
-        );
-      }
-      return priorSequentialSiblingGuard(node);
-    });
-    return [decisionGuard, ...previousAchieved].join(separator('and'));
+  const priors =
+    leftGoals.length > 0
+      ? leftGoals.map((id) => achievedFormula(id)).join(separator('and'))
+      : '';
+
+  return joinGuards(parentShouldPursue(goal.id), priors);
+};
+
+/**
+ * AND + anyOrder (EDGEV2):
+ *   G0_achievable*10.0 > decision_G0
+ *   & g{sibling}_state!=1
+ *   & (g{sibling}_state=1 | ratio vs _decision_G0)
+ *
+ * Children may run in any order, but not concurrently; `_decision` picks who goes first.
+ */
+export const pursueAndAnyOrderGoal = (
+  goal: EdgeGoalNode,
+  anyOrder: string[],
+  childId: string,
+): string => {
+  if (goal.relationToChildren === 'or') {
+    throw new Error(
+      `Any-order goals are not supported for OR joints. Found in goal ${goal.id}`,
+    );
   }
 
-  return '';
+  if (!anyOrder.includes(childId)) {
+    throw new Error(
+      `Child ID ${childId} not found in anyOrder ${anyOrder.join(', ')}`,
+    );
+  }
+
+  const { anyOrder: anyOrderLogger } = getLogger().pursue.executionDetail;
+  anyOrderLogger(
+    childId,
+    anyOrder.filter((id) => id !== childId),
+  );
+
+  const siblings = anyOrder.filter((id) => id !== childId);
+  const select = selectChildByDecision(goal.id, anyOrder, childId);
+
+  if (siblings.length === 0) {
+    return joinGuards(parentShouldPursue(goal.id), select);
+  }
+
+  const siblingPursued = siblings
+    .map((id) => `${stateVariable(id)}=1`)
+    .join(' | ');
+
+  return joinGuards(
+    parentShouldPursue(goal.id),
+    otherChildrenNotPursued(anyOrder, childId),
+    parenthesis(`${siblingPursued} | ${select}`),
+  );
 };

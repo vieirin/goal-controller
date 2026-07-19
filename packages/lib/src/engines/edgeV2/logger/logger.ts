@@ -32,6 +32,7 @@ type LoggerStore = {
   goalTypeAlternative: number;
   goalTypeSequence: number;
   goalTypeInterleaved: number;
+  goalTypeAnyOrder: number;
   totalTasks: number;
   totalResources: number;
   totalNodes: number;
@@ -53,6 +54,7 @@ type LoggerReport = {
     goalTypeAlternative: number;
     goalTypeSequence: number;
     goalTypeInterleaved: number;
+    goalTypeAnyOrder: number;
     goalModules: number;
     goalVariables: number;
     goalPursueLines: number;
@@ -117,6 +119,7 @@ export const createStore = (): LoggerStore => {
     goalTypeAlternative: 0,
     goalTypeSequence: 0,
     goalTypeInterleaved: 0,
+    goalTypeAnyOrder: 0,
     totalTasks: 0,
     totalResources: 0,
     totalNodes: 0,
@@ -175,6 +178,11 @@ const createLogger = (
   };
 
   const loggerInstance = {
+    decisionVariable: (decisionVariable: [string, number]) => {
+      write(
+        `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`,
+      );
+    },
     initGoal: (goal: GoalNode) => {
       store.goalModules++;
       store.totalGoals++;
@@ -196,6 +204,9 @@ const createLogger = (
             break;
           case 'interleaved':
             store.goalTypeInterleaved++;
+            break;
+          case 'anyOrder':
+            store.goalTypeAnyOrder++;
             break;
         }
       }
@@ -260,7 +271,7 @@ const createLogger = (
     achievabilityFormulaDefinition: (
       goalId: string,
       formula: string,
-      type: 'AND' | 'OR' | 'SINGLE_GOAL' | 'LEAF',
+      type: 'AND' | 'OR' | 'SINGLE_GOAL',
       sentence: string,
       prismLine: string,
     ) => {
@@ -405,6 +416,13 @@ const createLogger = (
             '\t\t[EXECUTION DETAIL: INTERLEAVED] interleaved goals have no guard condition\n',
           );
         },
+        anyOrder: (currentGoal: string, siblings: string[]) => {
+          write(
+            `\t\t[EXECUTION DETAIL: ANY ORDER] ${currentGoal} siblings: ${
+              siblings.length > 0 ? siblings.join(', ') : 'none'
+            }\n`,
+          );
+        },
         activationContext: (sentence: string) => {
           write(
             `\t\t[EXECUTION DETAIL: CONTEXT] Guard statement: ${sentence}\n`,
@@ -542,6 +560,7 @@ const createLogger = (
       summaryLines.push(
         `[GOAL TYPE: INTERLEAVED] ${store.goalTypeInterleaved}\n`,
       );
+      summaryLines.push(`[GOAL TYPE: ANY ORDER] ${store.goalTypeAnyOrder}\n`);
       summaryLines.push('----------GOAL SUMMARY----------\n');
       summaryLines.push(`[GOAL MODULES] ${store.goalModules}\n`);
       summaryLines.push(`[GOAL VARIABLES] ${store.goalVariables}\n`);
@@ -589,6 +608,7 @@ const createLogger = (
           goalTypeAlternative: store.goalTypeAlternative,
           goalTypeSequence: store.goalTypeSequence,
           goalTypeInterleaved: store.goalTypeInterleaved,
+          goalTypeAnyOrder: store.goalTypeAnyOrder,
           goalModules: store.goalModules,
           goalVariables: store.goalVariables,
           goalPursueLines: store.goalPursueLines,
@@ -639,6 +659,7 @@ const createLogger = (
       write(`[GOAL TYPE: ALTERNATIVE] ${store.goalTypeAlternative}\n`);
       write(`[GOAL TYPE: SEQUENCE] ${store.goalTypeSequence}\n`);
       write(`[GOAL TYPE: INTERLEAVED] ${store.goalTypeInterleaved}\n`);
+      write(`[GOAL TYPE: ANY ORDER] ${store.goalTypeAnyOrder}\n`);
       write('----------GOAL SUMMARY----------\n');
       write(`[GOAL MODULES] ${store.goalModules}\n`);
       write(`[GOAL VARIABLES] ${store.goalVariables}\n`);

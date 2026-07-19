@@ -1,53 +1,47 @@
 import type { Resource } from '@goal-controller/goal-tree';
-import { GoalTree } from '@goal-controller/goal-tree';
+import { GoalTree, Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
 
 // Type aliases for this file
 type GoalNode = EdgeGoalNode;
 type Task = EdgeTask;
 type GoalTreeType = EdgeGoalTree;
-import { failed } from '../mdp/common';
 import {
   achievableFormulaVariable,
+  achievedFormula,
   achievedTransition,
   achievedVariable,
   chosenVariable,
-  decisionVariable,
+  goalFailedVariable,
   pursueTransition,
-  underscoredOrDecisionVariable,
+  stateVariable,
 } from '../template/common';
-import { cappedDegradationChildren } from '../template/modules/goalModule/template/variables';
-import { pursueableChildren } from '../template/prismGuards';
 import type { ExpectedElements } from './types';
-
-const achievedMaintain = (goalId: string): string => {
-  return `${goalId}_achieved_maintain`;
-};
-const goalStateVariable = (goalId: string): string => `${goalId}_state`;
 
 const calculateGoalVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];
 
-  // Always has state variable
-  variables.push(goalStateVariable(goal.id));
+  // Always has state (pursued / not pursued)
+  variables.push(stateVariable(goal.id));
 
-  // One nondeterministic-resolution int per goal module
-  variables.push(decisionVariable(goal.id));
-
-  if (goal.relationToChildren === 'or') {
-    variables.push(underscoredOrDecisionVariable(goal.id));
-  }
-
-  // Has chosen if choice execution detail
-  if (goal.properties.engine.executionDetail?.type === 'choice') {
-    if (pursueableChildren(goal).length > 0) {
+  // OR + choice: chosen child index
+  if (
+    goal.relationToChildren === 'or' &&
+    goal.properties.engine.executionDetail?.type === 'choice'
+  ) {
+    const pursueableChildren = Node.children(goal).filter(
+      (child) => !Node.isResource(child),
+    );
+    if (pursueableChildren.length > 0) {
       variables.push(chosenVariable(goal.id));
     }
   }
 
-  // Degradation OR: one failed counter per sibling id in retryMap (parent module)
-  for (const { child } of cappedDegradationChildren(goal)) {
-    variables.push(failed(child.id));
+  // Degradation: failed counters for children with maxRetries
+  if (goal.properties.engine.executionDetail?.type === 'degradation') {
+    Node.childrenWithRetries(goal).forEach((child) => {
+      variables.push(goalFailedVariable(child.id));
+    });
   }
 
   return variables;
@@ -58,54 +52,19 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 
   // Always has pursue transitions: one for itself + one for each pursueable child
   transitions.push(pursueTransition(goal.id));
-  const children = pursueableChildren(goal);
-  const executionDetail = goal.properties.engine.executionDetail;
-  const cappedChildren = cappedDegradationChildren(goal);
-
-  children.forEach((child) => {
+  // Filter out resources - only goals and tasks can be pursued
+  const pursueableChildren = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  );
+  pursueableChildren.forEach((child) => {
     transitions.push(pursueTransition(child.id));
-    if (
-      goal.relationToChildren === 'or' &&
-      executionDetail?.type === 'choice'
-    ) {
-      transitions.push(pursueTransition(child.id));
-    }
-    if (
-      goal.relationToChildren === 'or' &&
-      executionDetail?.type === 'degradation' &&
-      cappedChildren.some(({ child: c }) => c.id === child.id)
-    ) {
-      transitions.push(pursueTransition(child.id));
-    }
   });
 
   // Always has achieve transition
   transitions.push(achievedTransition(goal.id));
 
-  // Skip: OR choice emits one line per chosen branch (0 = uncommitted) plus default; else single skip
-  if (
-    goal.relationToChildren === 'or' &&
-    executionDetail?.type === 'choice' &&
-    children.length > 0
-  ) {
-    for (let i = 0; i <= children.length; i++) {
-      transitions.push(`skip_${goal.id}`);
-    }
-  } else if (
-    goal.relationToChildren === 'or' &&
-    executionDetail?.type === 'degradation'
-  ) {
-    if (cappedChildren.length > 0) {
-      // Per capped sibling: one retry-skip (`failed<N`) + one failover-skip (`failed=N`).
-      for (let i = 0; i < cappedChildren.length * 2; i++) {
-        transitions.push(`skip_${goal.id}`);
-      }
-    } else {
-      transitions.push(`skip_${goal.id}`);
-    }
-  } else {
-    transitions.push(`skip_${goal.id}`);
-  }
+  // Always has skip transition
+  transitions.push(`skip_${goal.id}`);
 
   return transitions;
 };
@@ -113,15 +72,19 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 const calculateGoalFormulas = (goal: GoalNode): string[] => {
   const formulas: string[] = [];
 
-  // Achievability formula (Edge v1 combinators over child `_achievable`)
+  // Always has achievability formula
   formulas.push(achievableFormulaVariable(goal.id));
 
-  // Achieved formula (derived from child goals/tasks)
-  formulas.push(achievedVariable(goal.id));
-
-  // Has maintain formula if maintain goal
+  // Achieved formula (EDGEV2): children composition, or maintain sentence
   if (goal.properties.engine.execCondition?.maintain) {
-    formulas.push(achievedMaintain(goal.id));
+    formulas.push(achievedFormula(goal.id));
+  } else {
+    const hasPursueableChildren = Node.children(goal).some(
+      (child) => !Node.isResource(child),
+    );
+    if (hasPursueableChildren) {
+      formulas.push(achievedFormula(goal.id));
+    }
   }
 
   return formulas;

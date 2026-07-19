@@ -1,14 +1,18 @@
-// Variable names
+// Variable names (goal module vars use lowercase id: G0 → g0_state)
+const varId = (goalId: string): string => goalId.toLowerCase();
+
+export const stateVariable = (goalId: string): string => `${varId(goalId)}_state`;
 export const pursuedVariable = (goalId: string): string => `${goalId}_pursued`;
+/** Achieved formula name for goals (EDGEV2): g<id>_achieved */
+export const achievedFormula = (goalId: string): string =>
+  `${varId(goalId)}_achieved`;
+/** Module/task achieved var — preserves id case (tasks still use T1_achieved) */
 export const achievedVariable = (goalId: string): string =>
   `${goalId}_achieved`;
-export const chosenVariable = (goalId: string): string => `${goalId}_chosen`;
-/** One PRISM int per goal module for nondeterministic resolution (snippets: decision_G0). */
-export const decisionVariable = (goalId: string): string =>
-  `decision_${goalId}`;
-/** OR-goal secondary nondet constant (snippets: _decision_G0 for child choice/shares). */
-export const underscoredOrDecisionVariable = (goalId: string): string =>
-  `_decision_${goalId}`;
+export const chosenVariable = (goalId: string): string =>
+  `${varId(goalId)}_chosen`;
+export const goalFailedVariable = (goalId: string): string =>
+  `${varId(goalId)}_failed`;
 
 // Transition labels
 export const pursueTransition = (goalId: string): string => `pursue_${goalId}`;
@@ -17,7 +21,7 @@ export const achievedTransition = (goalId: string): string =>
 export const failedTransition = (goalId: string): string => `failed_${goalId}`;
 export const tryTransition = (goalId: string): string => `try_${goalId}`;
 
-// formulas
+// formulas / task failed counters (preserve original id case)
 export const achievableFormulaVariable = (goalId: string): string =>
   `${goalId}_achievable`;
 export const failed = (goalId: string): string => `${goalId}_failed`;

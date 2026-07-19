@@ -1,14 +1,18 @@
 import {
-  generateValidatedEdgeV2PrismModel,
   generateValidatedPrismModel,
-  initEdgeV2Logger,
+  generateEdgeV2PrismModel,
   initLogger,
+  initEdgeV2Logger,
   sleecTemplateEngine,
   type LoggerReport,
 } from '@goal-controller/lib';
 import { NextRequest } from 'next/server';
 import { ApiResponse } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
+import {
+  isTransformEngine,
+  type TransformEngine,
+} from '../../../lib/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,15 +31,16 @@ export async function POST(request: NextRequest) {
       return ApiResponse.badRequest('Model JSON is required');
     }
 
-    if (!engine || !['prism', 'sleec', 'edgeV2'].includes(engine)) {
+    if (!engine || !isTransformEngine(engine)) {
       return ApiResponse.badRequest(
-        'Valid engine (prism/sleec/edgeV2) is required',
+        'Valid engine (edge/edgev2/sleec) is required',
       );
     }
 
-    // Logger is engine-specific: Edge V2 template calls getLogger() from the edgeV2 module.
+    const selectedEngine = engine as TransformEngine;
+
     const logger =
-      engine === 'edgeV2'
+      selectedEngine === 'edgev2'
         ? initEdgeV2Logger(fileName || 'model', false, true)
         : initLogger(fileName || 'model', false, true);
 
@@ -43,8 +48,7 @@ export async function POST(request: NextRequest) {
     let output: string;
     let report: LoggerReport | null = null;
     try {
-      if (engine === 'prism') {
-        // Parse and validate model with Edge mapper for PRISM
+      if (selectedEngine === 'edge') {
         const parseResult = GoalModel.parseForEdge(modelJson);
 
         if (!parseResult.success) {
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         if (process.env.NODE_ENV === 'development') {
           console.log('[API] Model parsed and tree converted successfully');
-          console.log('[API] Generating PRISM model...');
+          console.log('[API] Generating Edge model...');
         }
         output = generateValidatedPrismModel({
           gm: parseResult.tree,
@@ -69,7 +73,7 @@ export async function POST(request: NextRequest) {
           generateDecisionVars,
           achievabilitySpace,
         });
-      } else if (engine === 'edgeV2') {
+      } else if (selectedEngine === 'edgev2') {
         const parseResult = GoalModel.parseForEdgeV2(modelJson);
 
         if (!parseResult.success) {
@@ -84,13 +88,15 @@ export async function POST(request: NextRequest) {
 
         if (process.env.NODE_ENV === 'development') {
           console.log('[API] Model parsed and tree converted successfully');
-          console.log('[API] Generating Edge V2 PRISM model...');
+          console.log('[API] Generating EdgeV2 model...');
         }
-        output = generateValidatedEdgeV2PrismModel({
+        output = generateEdgeV2PrismModel({
           gm: parseResult.tree,
           fileName: fileName || 'model',
           clean,
           variables,
+          generateDecisionVars,
+          achievabilitySpace,
         });
       } else {
         // Parse and validate model with SLEEC mapper

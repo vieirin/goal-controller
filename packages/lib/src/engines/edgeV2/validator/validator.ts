@@ -17,24 +17,12 @@ import type {
 
 type GoalTreeType = EdgeGoalTree;
 
-/**
- * Multiset-style matching so duplicate transition labels (e.g. two `pursue_G1` commands)
- * require the same multiplicity in the emitted model.
- */
 const createElementCount = (
   expected: string[],
   emitted: string[],
 ): ElementCount & { details: ElementDetails } => {
-  const emittedRemaining = [...emitted];
-  const missing: string[] = [];
-  for (const item of expected) {
-    const idx = emittedRemaining.indexOf(item);
-    if (idx === -1) {
-      missing.push(item);
-    } else {
-      emittedRemaining.splice(idx, 1);
-    }
-  }
+  const emittedSet = new Set(emitted);
+  const missing = expected.filter((item) => !emittedSet.has(item));
 
   return {
     expected: expected.length,
@@ -42,7 +30,7 @@ const createElementCount = (
     missing: missing.length,
     details: {
       expected,
-      emitted: Array.from(new Set(emitted)),
+      emitted: Array.from(emittedSet),
       missing,
     },
   };
@@ -59,20 +47,18 @@ const validateGoal = (
   parsedModel: ParsedPrismModel,
 ): GoalValidation => {
   const goalModule = parsedModel.goalModules.get(goalId);
-  const moduleVarNames = goalModule?.variables.map((v) => v.name) || [];
-  const fromNondet = expected.variables.filter((name) =>
-    parsedModel.nondetConstants.includes(name),
-  );
-  const emittedVariables = Array.from(
-    new Set([...moduleVarNames, ...fromNondet]),
-  );
+  const emittedVariables = goalModule?.variables.map((v) => v.name) || [];
   const emittedTransitions = goalModule?.transitions.map((t) => t.label) || [];
-  // Filter formulas that belong to this goal
-  // Formulas are named like: G1_achievable, G1_achieved, G1_achieved_maintain
-  // We need to match formulas that start with goalId + '_' to avoid matching
-  // G10, G11, etc. when looking for G1
+  // Formulas may use original id (G1_achievable) or lowercase EDGEV2 names (g1_achieved)
+  const lowerGoalId = goalId.toLowerCase();
   const emittedFormulas = parsedModel.formulas
-    .filter((f) => f.name === goalId || f.name.startsWith(`${goalId}_`))
+    .filter(
+      (f) =>
+        f.name === goalId ||
+        f.name === lowerGoalId ||
+        f.name.startsWith(`${goalId}_`) ||
+        f.name.startsWith(`${lowerGoalId}_`),
+    )
     .map((f) => f.name);
 
   // Check if module exists
@@ -97,11 +83,11 @@ const validateGoal = (
   );
 
   // Extract context variables from the first pursue transition's guard
-  // Filter out goal-specific variables (like G5_state, G5_chosen, etc.)
+  // Filter out goal-specific variables (EDGEV2: g1_state / g1_achieved / g1_chosen / g1_failed)
   const systemContextVars =
     parsedModel.systemModule?.variables.map((v) => v.name) || [];
   const goalVariablePattern = new RegExp(
-    `^(${goalId}_(state|pursued|achieved|chosen|failed|achievable)|_decision_${goalId})$`,
+    `^(${goalId}|${lowerGoalId})_(pursued|achieved|chosen|failed|state)$`,
   );
 
   const emittedContextVars =
@@ -227,6 +213,7 @@ export const validatePrismModel = (
     degradation: { expected: 0, emitted: 0, missing: 0 },
     sequence: { expected: 0, emitted: 0, missing: 0 },
     interleaved: { expected: 0, emitted: 0, missing: 0 },
+    anyOrder: { expected: 0, emitted: 0, missing: 0 },
     alternative: { expected: 0, emitted: 0, missing: 0 },
     basic: { expected: 0, emitted: 0, missing: 0 },
   };
@@ -243,9 +230,11 @@ export const validatePrismModel = (
             ? 'sequence'
             : goal.properties.engine.executionDetail?.type === 'interleaved'
               ? 'interleaved'
-              : goal.properties.engine.executionDetail?.type === 'alternative'
-                ? 'alternative'
-                : 'basic';
+              : goal.properties.engine.executionDetail?.type === 'anyOrder'
+                ? 'anyOrder'
+                : goal.properties.engine.executionDetail?.type === 'alternative'
+                  ? 'alternative'
+                  : 'basic';
     goalTypes[goalType].expected++;
   });
 

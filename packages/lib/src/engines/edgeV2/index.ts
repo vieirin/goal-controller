@@ -25,6 +25,7 @@ export {
 
 // Types
 export type {
+  Decision,
   EdgeGoalProps,
   EdgeResourceProps,
   EdgeResourceVariable,

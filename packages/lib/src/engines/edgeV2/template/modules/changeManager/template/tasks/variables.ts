@@ -1,6 +1,10 @@
-import { getLogger } from '../../../../../logger/logger';
 import type { EdgeTask } from '../../../../../types';
-import { achievedVariable, failed, pursuedVariable } from '../../../../common';
+import { getLogger } from '../../../../../logger/logger';
+import {
+  achievedVariable,
+  failed,
+  pursuedVariable,
+} from '../../../../../template/common';
 
 const defineVariable = (variable: string): string => {
   const upperBound = 1;

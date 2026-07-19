@@ -1,6 +1,7 @@
 'use client';
 
-import type { TransformEngine } from '../lib/transformEngine';
+import type { TransformEngine } from '@/lib/types';
+import { isPrismEngine } from '@/lib/types';
 
 interface EngineSelectorProps {
   engine: TransformEngine;
@@ -37,26 +38,26 @@ export default function EngineSelector({
           <label className='flex items-center'>
             <input
               type='radio'
-              value='prism'
-              checked={engine === 'prism'}
+              value='edge'
+              checked={engine === 'edge'}
               onChange={(e) =>
                 onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
-            <span>PRISM</span>
+            <span>Edge</span>
           </label>
           <label className='flex items-center'>
             <input
               type='radio'
-              value='edgeV2'
-              checked={engine === 'edgeV2'}
+              value='edgev2'
+              checked={engine === 'edgev2'}
               onChange={(e) =>
                 onEngineChange(e.target.value as TransformEngine)
               }
               className='mr-2'
             />
-            <span>Edge V2</span>
+            <span>EdgeV2</span>
           </label>
           <label className='flex items-center'>
             <input
@@ -73,7 +74,7 @@ export default function EngineSelector({
         </div>
       </div>
 
-      {(engine === 'prism' || engine === 'edgeV2') && (
+      {isPrismEngine(engine) && (
         <div className='space-y-3'>
           <label className='flex items-center'>
             <input
@@ -86,42 +87,36 @@ export default function EngineSelector({
               Clean mode (no comments)
             </span>
           </label>
-          {engine === 'prism' && (
-            <>
-              <label className='flex items-center'>
-                <input
-                  type='checkbox'
-                  checked={generateDecisionVars}
-                  onChange={(e) =>
-                    onGenerateDecisionVarsChange(e.target.checked)
-                  }
-                  className='mr-2'
-                />
-                <span className='text-sm text-gray-700'>
-                  Generate decision variables
-                </span>
+          <label className='flex items-center'>
+            <input
+              type='checkbox'
+              checked={generateDecisionVars}
+              onChange={(e) => onGenerateDecisionVarsChange(e.target.checked)}
+              className='mr-2'
+            />
+            <span className='text-sm text-gray-700'>
+              Generate decision variables
+            </span>
+          </label>
+          {generateDecisionVars && (
+            <div className='flex items-center gap-2'>
+              <label className='text-sm text-gray-700'>
+                Achievability space:
               </label>
-              {generateDecisionVars && (
-                <div className='flex items-center gap-2'>
-                  <label className='text-sm text-gray-700'>
-                    Achievability space:
-                  </label>
-                  <input
-                    type='number'
-                    min='1'
-                    max='100'
-                    value={achievabilitySpace}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      if (!isNaN(value) && value > 0) {
-                        onAchievabilitySpaceChange(value);
-                      }
-                    }}
-                    className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  />
-                </div>
-              )}
-            </>
+              <input
+                type='number'
+                min='1'
+                max='100'
+                value={achievabilitySpace}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  if (!isNaN(value) && value > 0) {
+                    onAchievabilitySpaceChange(value);
+                  }
+                }}
+                className='w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+              />
+            </div>
           )}
         </div>
       )}

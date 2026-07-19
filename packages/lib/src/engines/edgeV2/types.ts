@@ -16,10 +16,16 @@ export type ExecCondition = {
   };
 };
 
+export type Decision = {
+  decisionVars: Array<{ variable: string; space: number }>;
+  hasDecision: boolean;
+};
+
 export type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }
   | { type: 'sequence'; sequence: string[] }
+  | { type: 'anyOrder'; anyOrder: string[] }
   | { type: 'degradation'; degradationList: string[] }
   | { type: 'decisionMaking'; dm: string[] }
   | { type: 'choice' }
@@ -39,6 +45,7 @@ export type EdgeGoalProps<TGoalNode = unknown> = {
   dependsOn: TGoalNode[];
   executionDetail: GoalExecutionDetail | null;
   execCondition?: ExecCondition;
+  decision: Decision;
   maxRetries: number;
 };
 

@@ -1,0 +1,158 @@
+// edgeV2 PRISM sketch — names aligned to packages/lib/src/engines/edgeV2
+//
+// Types (GoalExecutionDetail / Relation):
+//   relationToChildren: 'and' | 'or'
+//   executionDetail.type: 'sequence' | 'interleaved' | 'anyOrder' | 'alternative' | 'choice' | 'degradation'
+//     (also in types but unused here: 'decisionMaking')
+//
+// Module vars (template/common.ts):
+//   stateVariable(id)      → g<id>_state : [0..1]     // 0 not pursued, 1 pursued
+//   chosenVariable(id)     → g<id>_chosen : [0..n]    // OR + choice only
+//   goalFailedVariable(c)  → g<c.id>_failed : [0..N]  // degradation + child maxRetries
+//
+// Decision consts (decisionVariables.ts):
+//   decisionVariableName(id)    → decision_G<id>   // every goal
+//   selectionDecisionVariableName(id)  → _decision_G<id>  // OR goals + AND anyOrder
+//
+// Formulas / transitions:
+//   achieved is a formula (not a module var): g<id>_achieved
+//   labels: pursue_G<id>, skip_G<id>, achieved_G<id>
+//   achievability: G<id>_achievable
+
+
+// ─── AND + sequence ─────────────────────────────────────────────────────────
+// relationToChildren: 'and'
+// executionDetail: { type: 'sequence', sequence: ['G1', 'G2'] }
+
+module G0
+  g0_state : [0..1] init 0; // stateVariable('G0') — 0 not pursued, 1 currently pursued
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+  [pursue_G1] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 -> true; // decide whether to pursue a child or skip
+  [pursue_G2] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 & g1_achieved -> true; // sequence: G1 must be achieved first
+
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state'=0); // skip only when no child is pursued
+
+  [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g2_state=0 -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved & g2_achieved);
+
+
+// ─── AND any order ──────────────────────────────────────────────────────────
+// relationToChildren: 'and'
+// executionDetail: { type: 'anyOrder', anyOrder: ['G1', 'G2'] }  // notation: [G1+G2]
+// decision: decision_G0 + _decision_G0 (child selection among idle siblings)
+
+module G0
+  g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+  [pursue_G1] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 & g2_state!=1 & (g2_state=1 | (G1_achievable/(G1_achievable+G2_achievable))*10.0 > _decision_G0) -> true;
+  [pursue_G2] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 & g1_state!=1 & (g1_state=1 | (G1_achievable/(G1_achievable+G2_achievable))*10.0 <= _decision_G0) -> true;
+
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state'=0);
+
+  [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g2_state=0 -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved & g2_achieved);
+formula G0_achievable = G1_achievable * G2_achievable;
+
+
+// ─── AND + interleaved ──────────────────────────────────────────────────────
+// relationToChildren: 'and'
+// executionDetail: { type: 'interleaved', interleaved: ['G1', 'G2'] }
+
+module G0
+  g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+  [pursue_G1] !g0_achieved & g0_state=1 & G1_achievable*10.0 > decision_G1 -> true;
+  [pursue_G2] !g0_achieved & g0_state=1 & G2_achievable*10.0 > decision_G2 -> true; // skip G0 if neither child should be pursued (avoids pursue-skip livelock)
+
+  [skip_G0] g0_state=1 & g1_state=0 & g2_state=0 & !g0_achieved & !(G2_achievable*10.0 > decision_G2 | G1_achievable*10.0 > decision_G1) -> (g0_state'=0);
+
+  [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g2_state=0 -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved & g2_achieved);
+
+
+// ─── OR + alternative ───────────────────────────────────────────────────────
+// relationToChildren: 'or'
+// executionDetail: { type: 'alternative', alternative: ['G1', 'G2'] }
+// decision: decision_G0 + _decision_G0 (OR)
+
+module G0
+  g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+  [pursue_G1] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 & g2_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 > _decision_G0 -> true;
+  [pursue_G2] !g0_achieved & g0_state=1 & G0_achievable*10.0 > decision_G0 & g1_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 <= _decision_G0 -> true;
+
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state'=0);
+
+  [achieved_G0] g0_state=1 & g1_state=0 & g2_state=0 & g0_achieved -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved | g2_achieved);
+
+
+// ─── OR + choice ("choose once") ────────────────────────────────────────────
+// relationToChildren: 'or'
+// executionDetail: { type: 'choice' }
+// module vars: stateVariable + chosenVariable (n = #pursueable children)
+
+module G0
+  g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
+  g0_chosen : [0..2] init 0; // 0 not chosen, 1 chose G1, 2 chose G2
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+  [pursue_G1] !g0_achieved & g0_state=1 & g0_chosen=0 & G0_achievable*10.0 > decision_G0 & g2_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 > _decision_G0 -> (g0_chosen'=1);
+  [pursue_G2] !g0_achieved & g0_state=1 & g0_chosen=0 & G0_achievable*10.0 > decision_G0 & g1_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 <= _decision_G0 -> (g0_chosen'=2);
+
+  [pursue_G1] !g0_achieved & g0_state=1 & g0_chosen=1 & G1_achievable*10.0 > decision_G1 -> true;
+  [pursue_G2] !g0_achieved & g0_state=1 & g0_chosen=2 & G2_achievable*10.0 > decision_G2 -> true;
+
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & g0_chosen=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state'=0);
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g0_chosen=1 & G1_achievable*10.0 <= decision_G1 -> (g0_state'=0); // skip when g0_chosen=1
+  [skip_G0] !g0_achieved & g0_state=1 & g2_state=0 & g0_chosen=2 & G2_achievable*10.0 <= decision_G2 -> (g0_state'=0);
+
+  [achieved_G0] g0_state=1 & g1_state=0 & g2_state=0 & g0_achieved -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved | g2_achieved);
+
+
+// ─── OR + degradation ───────────────────────────────────────────────────────
+// relationToChildren: 'or'
+// executionDetail: { type: 'degradation', degradationList: ['G1', 'G2'], retryMap?: { G1: N } }
+// module vars: stateVariable + goalFailedVariable(child) for childrenWithMaxRetries
+// Note: older sketches used parent g0_failed; codegen uses per-child g1_failed (below).
+
+module G0
+  g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
+  g1_failed : [0..N] init 0; // goalFailedVariable('G1') — retry G1 up to N times
+
+  [pursue_G0] !g0_achieved & g0_state=0 & GUARD -> (g0_state'=1); // triggering the goal from upper layer
+
+  [pursue_G1] !g0_achieved & g0_state=1 & g1_failed<N & G1_achievable*10.0 > decision_G1 -> (g1_failed'=g1_failed+1); // retry G1 up to N
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g1_failed<N & G1_achievable*10.0 <= decision_G1 -> (g0_state'=0);
+
+  [pursue_G1] !g0_achieved & g0_state=1 & g1_failed=N & G0_achievable*10.0 > decision_G0 & g2_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 > _decision_G0 -> true;
+  [pursue_G2] !g0_achieved & g0_state=1 & g1_failed=N & G0_achievable*10.0 > decision_G0 & g1_state=0 & (G1_achievable/(G1_achievable+G2_achievable))*10.0 <= _decision_G0 -> true;
+
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g1_failed<N & G1_achievable*10.0 <= decision_G1 -> (g0_state'=0);
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & g1_failed=N & G0_achievable*10.0 <= decision_G0 -> (g0_state'=0);
+
+  [achieved_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & g0_achieved -> (g0_state'=0);
+
+endmodule
+
+formula g0_achieved = (g1_achieved | g2_achieved);

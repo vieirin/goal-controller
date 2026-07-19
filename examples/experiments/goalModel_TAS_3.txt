@@ -103,7 +103,7 @@
         },
         {
           "id": "1300f48c-890f-41f9-9d53-faf08becfcce",
-          "text": "G11: Analyse data [+]",
+          "text": "G11: Analyse data [G14?G15]",
           "type": "istar.Goal",
           "x": 411,
           "y": 355,
@@ -113,7 +113,7 @@
         },
         {
           "id": "ef565838-6961-4f79-87eb-b9db1e57c409",
-          "text": "G12: Administer medicine [G16|G17]",
+          "text": "G12: Administer medicine [G16?G17]",
           "type": "istar.Goal",
           "x": 605,
           "y": 355,
@@ -201,7 +201,7 @@
         },
         {
           "id": "c6de8c50-a3a9-4dbd-b9c1-e2c8315ae1f6",
-          "text": "G19: Trigger Alarm Service [+]",
+          "text": "G19: Trigger Alarm Service [G20?G21]",
           "type": "istar.Goal",
           "x": 1037,
           "y": 345,

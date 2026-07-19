@@ -1,34 +1,57 @@
 import { GoalTree } from '@goal-controller/goal-tree';
-import type { EdgeGoalTree } from '../types';
-import { decisionVariable, underscoredOrDecisionVariable } from './common';
-import { goalNumberId } from './modules/goalModule/goalModules';
+import type { EdgeGoalNode, EdgeGoalTree } from '../types';
+import { getLogger } from '../logger/logger';
 
-/**
- * Uninterpreted decision constants after `dtmc`: every goal gets
- * `decision_<id>`; OR goals also get `_decision_<id>` (snippet tie-break);
- * every task gets `decision_<id>` for child pursue thresholds under basic AND.
- */
+// Kept for template API compatibility; v2 decision vars are no longer discretized by achievability space
+export const DEFAULT_ACHIEVABILITY_SPACE = 4;
+
+export const decisionVariableName = (goalId: string): string =>
+  `decision_${goalId}`;
+
+/** Child-selection const `_decision_G<id>` — used by OR joints and AND anyOrder. */
+export const selectionDecisionVariableName = (goalId: string): string =>
+  `_decision_${goalId}`;
+
+const isOrGoal = (goal: EdgeGoalNode): boolean =>
+  goal.relationToChildren === 'or';
+
+const isAnyOrderAndGoal = (goal: EdgeGoalNode): boolean =>
+  goal.relationToChildren === 'and' &&
+  goal.properties.engine.executionDetail?.type === 'anyOrder';
+
+/** Decision vars for a goal: always decision_G<id>; OR and AND+anyOrder also get _decision_G<id>. */
+export const decisionVariableNamesForGoal = (goal: EdgeGoalNode): string[] => {
+  const names = [decisionVariableName(goal.id)];
+  if (isOrGoal(goal) || isAnyOrderAndGoal(goal)) {
+    names.push(selectionDecisionVariableName(goal.id));
+  }
+  return names;
+};
+
 export const decisionVariablesTemplate = ({
   gm,
+  enabled = true,
 }: {
   gm: EdgeGoalTree;
+  enabled?: boolean;
+  /** @deprecated Unused in edgeV2; kept for call-site compatibility */
+  achievabilitySpace?: number;
 }): string => {
-  const goals = GoalTree.allByType(gm, 'goal');
-  const tasks = GoalTree.allByType(gm, 'task');
+  if (!enabled) {
+    return '';
+  }
 
-  const goalLines = goals
-    .sort((a, b) => Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)))
-    .flatMap((g) => {
-      const lines = [`const int ${decisionVariable(g.id)};`];
-      if (g.relationToChildren === 'or') {
-        lines.push(`const int ${underscoredOrDecisionVariable(g.id)};`);
-      }
-      return lines;
+  const logger = getLogger();
+  const decisionVariables: string[] = [];
+  const allGoals = GoalTree.allByType(gm, 'goal');
+
+  allGoals.forEach((goal) => {
+    const names = decisionVariableNamesForGoal(goal);
+    names.forEach((name) => {
+      logger.decisionVariable([name, 1]);
+      decisionVariables.push(`const int ${name};`);
     });
+  });
 
-  const taskLines = tasks
-    .sort((a, b) => Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)))
-    .map((t) => `const int ${decisionVariable(t.id)};`);
-
-  return [...goalLines, ...taskLines].join('\n');
+  return decisionVariables.join('\n');
 };

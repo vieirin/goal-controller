@@ -32,7 +32,7 @@
         },
         {
           "id": "912c8be2-1e4d-4b6a-b45c-9169f9fba033",
-          "text": "G2: Configure flight [+]",
+          "text": "G2: Configure flight [G7?G8]",
           "type": "istar.Goal",
           "x": 627,
           "y": 282,
