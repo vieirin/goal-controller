@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "bash -c 'pnpm --filter @goal-controller/lib run watch & trap \"kill 0\" EXIT; next dev --turbopack'",
+    "dev:next": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
