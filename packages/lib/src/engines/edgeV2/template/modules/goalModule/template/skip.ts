@@ -7,6 +7,7 @@ import {
   pursuedVariable,
   stateVariable,
 } from '../../../../template/common';
+import { parentShouldSkip } from './pursue/decisionGuards';
 
 /** Child idle: goals use g*_state=0; tasks still use T*_pursued=0 */
 const childIdle = (child: EdgeGoalNode | EdgeTask): string =>
@@ -25,15 +26,23 @@ const childrenIdle = (goal: EdgeGoalNode): string => {
 };
 
 /**
- * EDGEV2 (base; decision thresholds may be added later):
- *   [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 -> (g0_state'=0);
+ * EDGEV2:
+ *   [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 [& G0_achievable*10.0 <= decision_G0] -> (g0_state'=0);
+ *
+ * Parent decision threshold is included for sequence and anyOrder (EDGEV2 sketch).
  */
 export const skipStatement = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
+  const executionType = goal.properties.engine.executionDetail?.type;
+  const includeParentSkipThreshold =
+    goal.relationToChildren === 'and' &&
+    (executionType === 'sequence' || executionType === 'anyOrder');
+
   const leftStatement = [
     `!${achievedFormula(goal.id)}`,
     `${stateVariable(goal.id)}=1`,
     childrenIdle(goal),
+    includeParentSkipThreshold ? parentShouldSkip(goal.id) : '',
   ]
     .filter(Boolean)
     .join(separator('and'));

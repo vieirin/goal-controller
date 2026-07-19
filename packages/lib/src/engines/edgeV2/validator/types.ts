@@ -26,6 +26,7 @@ export type ModuleInfo = {
     | 'degradation'
     | 'sequence'
     | 'interleaved'
+    | 'anyOrder'
     | 'alternative'
     | 'basic';
   lineCount?: number;
@@ -74,6 +75,7 @@ export type GoalTypeCounts = {
   degradation: ElementCount;
   sequence: ElementCount;
   interleaved: ElementCount;
+  anyOrder: ElementCount;
   alternative: ElementCount;
   basic: ElementCount;
 };

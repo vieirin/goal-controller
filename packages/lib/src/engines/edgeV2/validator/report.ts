@@ -108,6 +108,11 @@ export const serializeValidationReportToJSON = (
         emitted: report.goalTypes.interleaved.emitted,
         missing: report.goalTypes.interleaved.missing,
       },
+      anyOrder: {
+        expected: report.goalTypes.anyOrder.expected,
+        emitted: report.goalTypes.anyOrder.emitted,
+        missing: report.goalTypes.anyOrder.missing,
+      },
       alternative: {
         expected: report.goalTypes.alternative.expected,
         emitted: report.goalTypes.alternative.emitted,
@@ -197,6 +202,9 @@ export const formatValidationReport = (report: ValidationReport): string => {
   );
   lines.push(
     `Interleaved: expected=${report.goalTypes.interleaved.expected}, emitted=${report.goalTypes.interleaved.emitted}, missing=${report.goalTypes.interleaved.missing}`,
+  );
+  lines.push(
+    `AnyOrder: expected=${report.goalTypes.anyOrder.expected}, emitted=${report.goalTypes.anyOrder.emitted}, missing=${report.goalTypes.anyOrder.missing}`,
   );
   lines.push(
     `Alternative: expected=${report.goalTypes.alternative.expected}, emitted=${report.goalTypes.alternative.emitted}, missing=${report.goalTypes.alternative.missing}`,

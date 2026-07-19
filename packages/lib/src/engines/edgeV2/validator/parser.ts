@@ -168,6 +168,7 @@ const parseModule = (
     | 'degradation'
     | 'sequence'
     | 'interleaved'
+    | 'anyOrder'
     | 'alternative'
     | 'basic'
     | undefined;
@@ -188,6 +189,9 @@ const parseModule = (
       break;
     } else if (typeStr === 'interleaved') {
       goalType = 'interleaved';
+      break;
+    } else if (typeStr === 'anyorder') {
+      goalType = 'anyOrder';
       break;
     } else if (typeStr === 'alternative') {
       goalType = 'alternative';

@@ -14,10 +14,14 @@ export const orDecisionVariableName = (goalId: string): string =>
 const isOrGoal = (goal: EdgeGoalNode): boolean =>
   goal.relationToChildren === 'or';
 
-/** Decision vars for a goal: always decision_G<id>; OR goals also get _decision_G<id>. */
+const isAnyOrderAndGoal = (goal: EdgeGoalNode): boolean =>
+  goal.relationToChildren === 'and' &&
+  goal.properties.engine.executionDetail?.type === 'anyOrder';
+
+/** Decision vars for a goal: always decision_G<id>; OR and AND+anyOrder also get _decision_G<id>. */
 export const decisionVariableNamesForGoal = (goal: EdgeGoalNode): string[] => {
   const names = [decisionVariableName(goal.id)];
-  if (isOrGoal(goal)) {
+  if (isOrGoal(goal) || isAnyOrderAndGoal(goal)) {
     names.push(orDecisionVariableName(goal.id));
   }
   return names;

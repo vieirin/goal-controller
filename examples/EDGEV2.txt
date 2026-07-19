@@ -2,7 +2,7 @@
 //
 // Types (GoalExecutionDetail / Relation):
 //   relationToChildren: 'and' | 'or'
-//   executionDetail.type: 'sequence' | 'interleaved' | 'alternative' | 'choice' | 'degradation'
+//   executionDetail.type: 'sequence' | 'interleaved' | 'anyOrder' | 'alternative' | 'choice' | 'degradation'
 //     (also in types but unused here: 'decisionMaking')
 //
 // Module vars (template/common.ts):
@@ -12,7 +12,7 @@
 //
 // Decision consts (decisionVariables.ts):
 //   decisionVariableName(id)    → decision_G<id>   // every goal
-//   orDecisionVariableName(id)  → _decision_G<id>  // OR goals only
+//   orDecisionVariableName(id)  → _decision_G<id>  // OR goals + AND anyOrder
 //
 // Formulas / transitions:
 //   achieved is a formula (not a module var): g<id>_achieved
@@ -43,7 +43,7 @@ formula g0_achieved = (g1_achieved & g2_achieved);
 // ─── AND any order ──────────────────────────────────────────────────────────
 // relationToChildren: 'and'
 // executionDetail: { type: 'anyOrder', anyOrder: ['G1', 'G2'] }  // notation: [G1+G2]
-// NOT IMPLEMENTED in codegen yet — notation/parser support only; do not generate.
+// decision: decision_G0 + _decision_G0 (child selection among idle siblings)
 
 module G0
   g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued
@@ -59,6 +59,7 @@ module G0
 endmodule
 
 formula g0_achieved = (g1_achieved & g2_achieved);
+formula G0_achievable = G1_achievable * G2_achievable;
 
 
 // ─── AND + interleaved ──────────────────────────────────────────────────────

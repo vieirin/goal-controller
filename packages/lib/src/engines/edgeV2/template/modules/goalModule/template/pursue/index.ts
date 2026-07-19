@@ -6,7 +6,7 @@ import {
   stateVariable,
 } from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import { pursueAndSequentialGoal } from './andGoal';
+import { pursueAndAnyOrderGoal, pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
 import {
   childShouldPursue,
@@ -250,6 +250,20 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 return [
                   {
                     left: appendGuards(left, childShouldPursue(child.id)),
+                    right,
+                  },
+                ];
+              }
+              case 'anyOrder': {
+                logger.trace(child.id, 'anyOrder execution detail detected', 2);
+                const pursueCondition = pursueAndAnyOrderGoal(
+                  goal,
+                  goal.properties.engine.executionDetail.anyOrder,
+                  child.id,
+                );
+                return [
+                  {
+                    left: appendGuards(left, pursueCondition),
                     right,
                   },
                 ];

@@ -213,6 +213,7 @@ export const validatePrismModel = (
     degradation: { expected: 0, emitted: 0, missing: 0 },
     sequence: { expected: 0, emitted: 0, missing: 0 },
     interleaved: { expected: 0, emitted: 0, missing: 0 },
+    anyOrder: { expected: 0, emitted: 0, missing: 0 },
     alternative: { expected: 0, emitted: 0, missing: 0 },
     basic: { expected: 0, emitted: 0, missing: 0 },
   };
@@ -229,9 +230,11 @@ export const validatePrismModel = (
             ? 'sequence'
             : goal.properties.engine.executionDetail?.type === 'interleaved'
               ? 'interleaved'
-              : goal.properties.engine.executionDetail?.type === 'alternative'
-                ? 'alternative'
-                : 'basic';
+              : goal.properties.engine.executionDetail?.type === 'anyOrder'
+                ? 'anyOrder'
+                : goal.properties.engine.executionDetail?.type === 'alternative'
+                  ? 'alternative'
+                  : 'basic';
     goalTypes[goalType].expected++;
   });
 

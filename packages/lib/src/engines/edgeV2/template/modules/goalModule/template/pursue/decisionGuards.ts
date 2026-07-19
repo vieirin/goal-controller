@@ -17,6 +17,16 @@ export const shouldPursue = (goalId: string): string =>
 export const parentShouldPursue = shouldPursue;
 export const childShouldPursue = shouldPursue;
 
+/** Other children not currently pursued: g*_state!=1 */
+export const otherChildrenNotPursued = (
+  childIds: string[],
+  currentChildId: string,
+): string =>
+  childIds
+    .filter((id) => id !== currentChildId)
+    .map((id) => `${stateVariable(id)}!=1`)
+    .join(' & ');
+
 /** Other children idle: g*_state=0 */
 export const otherChildrenIdle = (
   childIds: string[],
@@ -26,6 +36,12 @@ export const otherChildrenIdle = (
     .filter((id) => id !== currentChildId)
     .map((id) => `${stateVariable(id)}=0`)
     .join(' & ');
+
+/** G{id}_achievable*10.0 <= decision_G{id} */
+export const shouldSkip = (goalId: string): string =>
+  `${achievableFormulaVariable(goalId)}*10.0 <= ${decisionVariableName(goalId)}`;
+
+export const parentShouldSkip = shouldSkip;
 
 /**
  * OR child selection vs `_decision_G{parent}` on a 0..10 scale.
@@ -49,10 +65,11 @@ export const orSelectChild = (
   const sum = terms.join('+');
   const cum = (endExclusive: number): string => {
     const slice = terms.slice(0, endExclusive);
-    if (slice.length === 0) {
+    const [first, ...rest] = slice;
+    if (!first) {
       return '0';
     }
-    return slice.length === 1 ? slice[0]! : parenthesis(slice.join('+'));
+    return rest.length === 0 ? first : parenthesis(slice.join('+'));
   };
 
   const n = orderedChildIds.length;
