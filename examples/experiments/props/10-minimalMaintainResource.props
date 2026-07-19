@@ -89,7 +89,7 @@ P>=1 [ G (G2_achieved=1 => G6_achieved=1) ];
 
 
 // ======================================================
-// Choice semantics for G3: Configure Flight Profile [+]
+// Choice semantics for G3: Configure Flight Profile [G9?G10?G11]
 // Branches: G9, G10, G11 with battery-dependent guards on R0
 // ======================================================
 

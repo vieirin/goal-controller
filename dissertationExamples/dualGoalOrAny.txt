@@ -12,7 +12,7 @@
       "nodes": [
         {
           "id": "d201ecf8-634a-425e-8e6e-f59885442511",
-          "text": "G0: Collect sample [+]",
+          "text": "G0: Collect sample [T0?T1]",
           "type": "istar.Goal",
           "x": 373,
           "y": 152,

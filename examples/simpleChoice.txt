@@ -12,7 +12,7 @@
       "nodes": [
         {
           "id": "117b97d7-775b-41a9-8fec-9e923edde772",
-          "text": "G1: Goal [+]",
+          "text": "G1: Goal [G2?G3]",
           "type": "istar.Goal",
           "x": 311,
           "y": 205,

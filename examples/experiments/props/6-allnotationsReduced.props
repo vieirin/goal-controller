@@ -52,7 +52,7 @@ P>0 [ F ( G2_pursued=1 & G8_pursued=1 & G7_pursued=0 ) ];
 
 
 // ==============================
-// G3 – choice OR [+], non-idempotent
+// G3 – choice OR [?], non-idempotent
 // ==============================
 
 // Each profile is selectable

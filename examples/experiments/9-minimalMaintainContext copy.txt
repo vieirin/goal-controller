@@ -42,7 +42,7 @@
         },
         {
           "id": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c",
-          "text": "G3: Configure Flight Profile [+]",
+          "text": "G3: Configure Flight Profile [G9?G10?G11]",
           "type": "istar.Goal",
           "x": 813,
           "y": 305,

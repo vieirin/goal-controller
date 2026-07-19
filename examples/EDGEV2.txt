@@ -41,8 +41,9 @@ formula g0_achieved = (g1_achieved & g2_achieved);
 
 
 // ─── AND any order ──────────────────────────────────────────────────────────
-// NOT IMPLEMENTED — no GoalExecutionDetail type for "any order" / unordered AND.
-// (Kept as design sketch only; do not generate.)
+// relationToChildren: 'and'
+// executionDetail: { type: 'anyOrder', anyOrder: ['G1', 'G2'] }  // notation: [G1+G2]
+// NOT IMPLEMENTED in codegen yet — notation/parser support only; do not generate.
 
 module G0
   g0_state : [0..1] init 0; // 0 not pursued, 1 currently pursued

@@ -328,7 +328,7 @@
         },
         {
           "id": "e1d797d6-5d27-4b65-a6fd-7ce9597c007a",
-          "text": "G13: Prepare sample [+]",
+          "text": "G13: Prepare sample [G3?G4]",
           "type": "istar.Goal",
           "x": 471,
           "y": 302,

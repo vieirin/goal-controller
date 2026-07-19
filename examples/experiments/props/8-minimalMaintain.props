@@ -78,7 +78,7 @@ P>0  [ F (G2_pursued=1 & G7_pursued=1) ];
 
 
 // ======================================================
-// Choice semantics for G3: Configure Flight Profile [+]
+// Choice semantics for G3: Configure Flight Profile [G9?G10?G11]
 // Branches: G9, G10, G11
 // ======================================================
 

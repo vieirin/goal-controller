@@ -148,7 +148,7 @@ P>=1 [ G ( G9_achieved=1
 
 
 // ---------------------------------------------------------------------
-// Choice OR:  G11: Analyse data [+] with branches G14 (remote) / G15 (local)
+// Choice OR:  G11: Analyse data [G14?G15] with branches G14 (remote) / G15 (local)
 //   - Mutually exclusive, sticky choice via G11_chosen.
 // ---------------------------------------------------------------------
 
@@ -167,7 +167,7 @@ P>=1 [ G ( (G11_pursued=1 & G11_achieved=0 & G11_chosen=2)
 
 
 // ---------------------------------------------------------------------
-// Choice OR:  G19: Trigger Alarm Service [+] with G20/G21
+// Choice OR:  G19: Trigger Alarm Service [G20?G21] with G20/G21
 //   - Mutually exclusive alarm modes with sticky choice via G19_chosen.
 // ---------------------------------------------------------------------
 

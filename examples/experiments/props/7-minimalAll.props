@@ -71,7 +71,7 @@ P>=1 [ G ( ((T11_pursued=1 | T11_achieved=1)
 P>=1 [ G ( G14_achieved=1 => (T10_achieved=1 & T11_achieved=1) ) ];
 
 // =====================================================================
-// Choice OR       :  G3: Configure Flight Profile [+]
+// Choice OR       :  G3: Configure Flight Profile [G9?G10?G11]
 //   (G9, G10, G11) are mutually exclusive, with a sticky choice via G3_chosen.
 // =====================================================================
 
