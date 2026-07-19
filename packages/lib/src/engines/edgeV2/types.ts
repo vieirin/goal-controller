@@ -25,6 +25,7 @@ export type GoalExecutionDetail = (
   | { type: 'interleaved'; interleaved: string[] }
   | { type: 'alternative'; alternative: string[] }
   | { type: 'sequence'; sequence: string[] }
+  | { type: 'anyOrder'; anyOrder: string[] }
   | { type: 'degradation'; degradationList: string[] }
   | { type: 'decisionMaking'; dm: string[] }
   | { type: 'choice' }
