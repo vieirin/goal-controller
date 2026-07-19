@@ -47,8 +47,8 @@ export const goalDependencyStatement = (goal: EdgeGoalNode): string => {
 
   return validDependencies.length > 0
     ? ` & (${validDependencies
-        .map((dep) => hasBeenAchieved(dep, { condition: true }))
-        .join(separator('and'))})`
+      .map((dep) => hasBeenAchieved(dep, { condition: true }))
+      .join(separator('and'))})`
     : '';
 };
 
@@ -90,9 +90,9 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         );
         const notAchieved = `!${achievedFormula(goal.id)}`;
         const statement =
-          `[pursue_${child.id}] ${notAchieved} & ${stateVariable(goal.id)}=${
-            itself ? 0 : 1
-          }` + (itself ? dependencyStatement : '');        pursueLogger.defaultPursueCondition(statement);
+          `[pursue_${child.id}] ${notAchieved} & ${stateVariable(goal.id)}=${itself ? 0 : 1
+          }` + (itself ? dependencyStatement : '');
+        pursueLogger.defaultPursueCondition(statement);
 
         return statement;
       };
@@ -290,7 +290,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
 
         const maintainContextGuard =
           child.properties.engine.execCondition?.maintain?.sentence &&
-          !isItself(child)
+            !isItself(child)
             ? `!${achievedFormula(child.id)}`
             : '';
 
