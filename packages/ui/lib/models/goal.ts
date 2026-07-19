@@ -102,33 +102,6 @@ export const GoalModel = {
   },
 
   /**
-   * Parse model JSON, validate it, and convert to EdgeV2 tree
-   */
-  parseForEdgeV2(modelJson: string): EdgeParseModelResult {
-    const parseResult = this.parseModel(modelJson);
-    if (!parseResult.success) {
-      return parseResult;
-    }
-
-    let tree: EdgeGoalTree;
-    try {
-      tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper).nodes;
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
-    }
-
-    return {
-      success: true,
-      model: parseResult.model,
-      tree,
-    };
-  },
-
-  /**
    * Parse model JSON, validate it, and convert to SLEEC tree
    */
   parseForSleec(modelJson: string): SleecParseModelResult {
@@ -157,7 +130,7 @@ export const GoalModel = {
   },
 
   /**
-   * Parse model JSON, validate it, and convert to Edge V2 tree (EDGE / PRISM snippets)
+   * Parse model JSON, validate it, and convert to Edge V2 tree
    */
   parseForEdgeV2(modelJson: string): EdgeV2ParseModelResult {
     const parseResult = this.parseModel(modelJson);
