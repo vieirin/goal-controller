@@ -8,7 +8,8 @@ export const DEFAULT_ACHIEVABILITY_SPACE = 4;
 export const decisionVariableName = (goalId: string): string =>
   `decision_${goalId}`;
 
-export const orDecisionVariableName = (goalId: string): string =>
+/** Child-selection const `_decision_G<id>` — used by OR joints and AND anyOrder. */
+export const selectionDecisionVariableName = (goalId: string): string =>
   `_decision_${goalId}`;
 
 const isOrGoal = (goal: EdgeGoalNode): boolean =>
@@ -22,7 +23,7 @@ const isAnyOrderAndGoal = (goal: EdgeGoalNode): boolean =>
 export const decisionVariableNamesForGoal = (goal: EdgeGoalNode): string[] => {
   const names = [decisionVariableName(goal.id)];
   if (isOrGoal(goal) || isAnyOrderAndGoal(goal)) {
-    names.push(orDecisionVariableName(goal.id));
+    names.push(selectionDecisionVariableName(goal.id));
   }
   return names;
 };

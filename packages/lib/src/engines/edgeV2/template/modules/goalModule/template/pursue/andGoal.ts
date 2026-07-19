@@ -4,9 +4,9 @@ import { achievedFormula, stateVariable } from '../../../../../template/common';
 import type { EdgeGoalNode } from '../../../../../types';
 import {
   joinGuards,
-  orSelectChild,
   otherChildrenNotPursued,
   parentShouldPursue,
+  selectChildByDecision,
 } from './decisionGuards';
 
 export const splitSequence = (
@@ -86,7 +86,7 @@ export const pursueAndAnyOrderGoal = (
   );
 
   const siblings = anyOrder.filter((id) => id !== childId);
-  const select = orSelectChild(goal.id, anyOrder, childId);
+  const select = selectChildByDecision(goal.id, anyOrder, childId);
 
   if (siblings.length === 0) {
     return joinGuards(parentShouldPursue(goal.id), select);

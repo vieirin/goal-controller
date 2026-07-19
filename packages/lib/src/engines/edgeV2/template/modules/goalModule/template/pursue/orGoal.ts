@@ -12,8 +12,8 @@ import {
 import {
   childShouldPursue,
   joinGuards,
-  orSelectChild,
   otherChildrenIdle,
+  selectChildByDecision,
   parentShouldPursue,
   type PursueStatement,
 } from './decisionGuards';
@@ -44,7 +44,7 @@ export const pursueAlternativeGoal = (
   return joinGuards(
     parentShouldPursue(goal.id),
     otherChildrenIdle(children, currentChildId),
-    orSelectChild(goal.id, children, currentChildId),
+    selectChildByDecision(goal.id, children, currentChildId),
   );
 };
 
@@ -84,7 +84,7 @@ export const pursueChoiceGoal = (
       `${chosen}=0`,
       parentShouldPursue(goal.id),
       otherChildrenIdle(orderedChildren, currentChildId),
-      orSelectChild(goal.id, orderedChildren, currentChildId),
+      selectChildByDecision(goal.id, orderedChildren, currentChildId),
     ),
     right: `(${chosen}'=${chosenIndex})`,
   };
@@ -164,7 +164,7 @@ export const pursueDegradationGoal = (
     exhaustedGate || null,
     parentShouldPursue(goal.id),
     otherChildrenIdle(degradationList, currentChildId),
-    orSelectChild(goal.id, degradationList, currentChildId),
+    selectChildByDecision(goal.id, degradationList, currentChildId),
   );
 
   statements.push({

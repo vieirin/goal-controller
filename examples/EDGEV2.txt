@@ -12,7 +12,7 @@
 //
 // Decision consts (decisionVariables.ts):
 //   decisionVariableName(id)    → decision_G<id>   // every goal
-//   orDecisionVariableName(id)  → _decision_G<id>  // OR goals + AND anyOrder
+//   selectionDecisionVariableName(id)  → _decision_G<id>  // OR goals + AND anyOrder
 //
 // Formulas / transitions:
 //   achieved is a formula (not a module var): g<id>_achieved

@@ -5,7 +5,7 @@ import {
 } from '../../../../../template/common';
 import {
   decisionVariableName,
-  orDecisionVariableName,
+  selectionDecisionVariableName,
 } from '../../../../../template/decisionVariables';
 
 export type PursueStatement = { left: string; right: string };
@@ -44,11 +44,12 @@ export const shouldSkip = (goalId: string): string =>
 export const parentShouldSkip = shouldSkip;
 
 /**
- * OR child selection vs `_decision_G{parent}` on a 0..10 scale.
+ * Child selection vs `_decision_G{parent}` on a 0..10 scale.
+ * Used by OR joints and AND anyOrder.
  * N=2 matches EDGEV2: (G1/(G1+G2))*10.0 ?> _decision
  * N>2: ordered cumulative achievability bands.
  */
-export const orSelectChild = (
+export const selectChildByDecision = (
   parentGoalId: string,
   orderedChildIds: string[],
   currentChildId: string,
@@ -56,11 +57,11 @@ export const orSelectChild = (
   const index = orderedChildIds.indexOf(currentChildId);
   if (index < 0) {
     throw new Error(
-      `Child ${currentChildId} not in OR children [${orderedChildIds.join(', ')}]`,
+      `Child ${currentChildId} not in children [${orderedChildIds.join(', ')}]`,
     );
   }
 
-  const decision = orDecisionVariableName(parentGoalId);
+  const decision = selectionDecisionVariableName(parentGoalId);
   const terms = orderedChildIds.map((id) => achievableFormulaVariable(id));
   const sum = terms.join('+');
   const cum = (endExclusive: number): string => {
