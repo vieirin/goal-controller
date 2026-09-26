@@ -7,9 +7,11 @@
 cd "$(dirname "$0")/.."
 
 OUTPUT_DIR="output"
-INPUT_DIR="examples/experiments"
-INPUT_DIR_ALT="examples"
-LOGS_DIR="logs/examples/experiments"
+# Experiments target the edge engine (packages/lib/out/index.js)
+EXAMPLES_DIR="examples/edge"
+INPUT_DIR="$EXAMPLES_DIR/experiments"
+INPUT_DIR_ALT="$EXAMPLES_DIR"
+LOGS_DIR="logs/$EXAMPLES_DIR/experiments"
 
 # Build the library if not already built
 if [ ! -f "packages/lib/out/index.js" ]; then

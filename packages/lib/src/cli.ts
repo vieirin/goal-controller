@@ -116,7 +116,7 @@ const mainMenu = async (): Promise<void> => {
     const variables = loadVariables(lastSelectedModel);
     await runModel(lastSelectedModel, { ...runOptions, variables });
   } else if (action === 'run') {
-    const files = await getFilesInDirectory('examples');
+    const files = await getFilesInDirectory('examples/edge');
     if (files.length === 0) {
       console.log('No files found in the example directory.');
       await mainMenu();
@@ -151,7 +151,7 @@ const mainMenu = async (): Promise<void> => {
   } else if (action === 'variables') {
     await inputDefaultVariables();
   } else if (action === 'dumpTree') {
-    const files = await getFilesInDirectory('examples');
+    const files = await getFilesInDirectory('examples/edge');
     if (files.length === 0) {
       console.log('No files found in the example directory.');
       await mainMenu();

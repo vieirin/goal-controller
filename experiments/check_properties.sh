@@ -13,9 +13,10 @@ fi
 PRISM_BIN="$HOME/Downloads/prism-4.8.1-mac64-arm/bin/prism"
 STORM_BIN="storm"
 OUTPUT_DIR="output"
-PROPS_DIR="examples/experiments/props"
-PROPS_DIR_ALT="examples/props"
-RESULTS_DIR="examples/experiments/props/results"
+EXAMPLES_DIR="examples/edge"
+PROPS_DIR="$EXAMPLES_DIR/experiments/props"
+PROPS_DIR_ALT="$EXAMPLES_DIR/props"
+RESULTS_DIR="$EXAMPLES_DIR/experiments/props/results"
 
 # Detect number of CPU cores and calculate cores-2
 if [[ "$OSTYPE" == "darwin"* ]]; then

@@ -155,6 +155,7 @@ function createNode<
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const { id, goalName, executionDetail } = getGoalDetail({
     goalText: node.text,
+    grammar: mapper.grammar,
   });
 
   const nodeType = convertIstarType({ type: node.type });

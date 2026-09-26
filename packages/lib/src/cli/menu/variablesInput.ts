@@ -56,7 +56,7 @@ export const inputDefaultVariables = async (
 
     if (!selectedModel) {
       // Always show the model list first
-      const files = await getFilesInDirectory('examples');
+      const files = await getFilesInDirectory('examples/edge');
       if (files.length === 0) {
         console.log('No files found in the example directory.');
         return;

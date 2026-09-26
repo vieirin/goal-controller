@@ -36,7 +36,7 @@ cli: grammar build-lib
 
 run: grammar build-lib
 	@if [ -z "$(FILE)" ]; then \
-		echo "Error: FILE variable is required. Usage: make run FILE=examples/model.txt"; \
+		echo "Error: FILE variable is required. Usage: make run FILE=examples/edge/model.txt"; \
 		exit 1; \
 	fi
 	@echo "Processing $(FILE)..."
@@ -44,7 +44,7 @@ run: grammar build-lib
 
 generate: grammar build-lib
 	@if [ -z "$(FILE)" ]; then \
-		echo "Error: FILE variable is required. Usage: make generate FILE=examples/model.txt"; \
+		echo "Error: FILE variable is required. Usage: make generate FILE=examples/edge/model.txt"; \
 		exit 1; \
 	fi
 	@echo "Generating model from $(FILE)..."
