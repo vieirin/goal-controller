@@ -11,7 +11,8 @@ if [[ "$1" == "--prism" ]] || [[ "$1" == "-p" ]]; then
 fi
 
 LOGS_DIR="logs"
-RESULTS_DIR="examples/experiments/props/results"
+EXAMPLES_DIR="examples/edge"
+RESULTS_DIR="$EXAMPLES_DIR/experiments/props/results"
 OUTPUT_DIR="output"
 CSV_OUTPUT="metrics.csv"
 
@@ -35,12 +36,12 @@ find_log_file() {
     local model="$1"
     
     # Try different possible locations
-    if [ -f "$LOGS_DIR/examples/experiments/${model}.txt.log" ]; then
-        echo "$LOGS_DIR/examples/experiments/${model}.txt.log"
-    elif [ -f "$LOGS_DIR/examples/${model}.txt.log" ]; then
-        echo "$LOGS_DIR/examples/${model}.txt.log"
-    elif [ -f "$LOGS_DIR/examples/labSamplesWithSideEffect.txt.log" ] && [ "$model" == "labSamplesWithSideEffect" ]; then
-        echo "$LOGS_DIR/examples/labSamplesWithSideEffect.txt.log"
+    if [ -f "$LOGS_DIR/$EXAMPLES_DIR/experiments/${model}.txt.log" ]; then
+        echo "$LOGS_DIR/$EXAMPLES_DIR/experiments/${model}.txt.log"
+    elif [ -f "$LOGS_DIR/$EXAMPLES_DIR/${model}.txt.log" ]; then
+        echo "$LOGS_DIR/$EXAMPLES_DIR/${model}.txt.log"
+    elif [ -f "$LOGS_DIR/$EXAMPLES_DIR/labSamplesWithSideEffect.txt.log" ] && [ "$model" == "labSamplesWithSideEffect" ]; then
+        echo "$LOGS_DIR/$EXAMPLES_DIR/labSamplesWithSideEffect.txt.log"
     elif [ -f "$LOGS_DIR/${model}.txt.log" ]; then
         echo "$LOGS_DIR/${model}.txt.log"
     else

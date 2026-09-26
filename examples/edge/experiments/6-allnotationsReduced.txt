@@ -5,7 +5,7 @@
       "text": "Drone",
       "type": "istar.Actor",
       "x": 279,
-      "y": 179,
+      "y": 178,
       "customProperties": {
         "Description": ""
       },
@@ -14,8 +14,8 @@
           "id": "d06b4e46-f840-46a5-8a94-7909beeddf16",
           "text": "G0:  Perform Autonomous Urgent Delivery [G1;G2;G3;G4;G5]",
           "type": "istar.Goal",
-          "x": 552,
-          "y": 192,
+          "x": 553,
+          "y": 191,
           "customProperties": {
             "Description": ""
           }
@@ -24,39 +24,69 @@
           "id": "12397ca7-3beb-47a6-b46d-d4fb7957ebc4",
           "text": "G1: Prepare Mission and Payload [T1#T2]",
           "type": "istar.Goal",
-          "x": 340,
-          "y": 255,
+          "x": 341,
+          "y": 254,
           "customProperties": {
             "Description": ""
           }
         },
         {
           "id": "912c8be2-1e4d-4b6a-b45c-9169f9fba033",
-          "text": "G2: Reach Delivery Vicinity [G6#G7]",
+          "text": "G2: Reach Delivery Vicinity [G7#G8]",
           "type": "istar.Goal",
           "x": 557,
-          "y": 274,
+          "y": 273,
           "customProperties": {
-            "Description": "",
-            "assertion": "missionReady"
+            "Description": ""
+          }
+        },
+        {
+          "id": "73d6aa47-a298-43d9-9ed7-4e883af66b38",
+          "text": "G7: Navigate to cruise altitude",
+          "type": "istar.Goal",
+          "x": 517,
+          "y": 354,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "58a4f250-4d8e-4595-ac6e-f872ccc1af4f",
+          "text": "G8: Maintain Communication Link",
+          "type": "istar.Goal",
+          "x": 651,
+          "y": 348,
+          "customProperties": {
+            "Description": ""
           }
         },
         {
           "id": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c",
-          "text": "G3: Configure Flight Profile [G9?G10?G11]",
+          "text": "G3: Configure Flight Profile [+]",
           "type": "istar.Goal",
           "x": 813,
-          "y": 305,
+          "y": 304,
           "customProperties": {
-            "Description": ""
+            "Description": "",
+            "assertion": ""
           }
         },
         {
           "id": "40704ff8-33f0-4bc5-93ba-65aa729d9037",
           "text": "T3: Climb to cruise altitude",
           "type": "istar.Task",
-          "x": 475,
-          "y": 421,
+          "x": 513,
+          "y": 424,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "49c5aa21-dc6a-4027-878a-85893cd9b08f",
+          "text": "T4: Establish link with base",
+          "type": "istar.Task",
+          "x": 653,
+          "y": 428,
           "customProperties": {
             "Description": ""
           }
@@ -66,7 +96,7 @@
           "text": "G9: Energy-Saving Profile",
           "type": "istar.Goal",
           "x": 803,
-          "y": 367,
+          "y": 366,
           "customProperties": {
             "Description": ""
           }
@@ -76,7 +106,7 @@
           "text": "G10: Balanced Profile ",
           "type": "istar.Goal",
           "x": 919,
-          "y": 363,
+          "y": 362,
           "customProperties": {
             "Description": ""
           }
@@ -86,10 +116,9 @@
           "text": "T5: Set low speed and altitude limits",
           "type": "istar.Task",
           "x": 773,
-          "y": 454,
+          "y": 453,
           "customProperties": {
-            "Description": "",
-            "assertion": "R0<=3"
+            "Description": ""
           }
         },
         {
@@ -97,18 +126,17 @@
           "text": "T6: Set medium speed and altitude",
           "type": "istar.Task",
           "x": 912,
-          "y": 444,
+          "y": 443,
           "customProperties": {
-            "Description": "",
-            "assertion": "R0>=3"
+            "Description": ""
           }
         },
         {
           "id": "8f33b696-e0a4-40c2-a184-ba4001b6c216",
           "text": "G4: Maintain Safety Envelope [G12@2->G13]",
           "type": "istar.Goal",
-          "x": 1079,
-          "y": 289,
+          "x": 1080,
+          "y": 288,
           "customProperties": {
             "Description": ""
           }
@@ -118,7 +146,7 @@
           "text": "T1: Load mission plan",
           "type": "istar.Task",
           "x": 302,
-          "y": 338,
+          "y": 337,
           "customProperties": {
             "Description": ""
           }
@@ -128,7 +156,7 @@
           "text": "T2: Attach payload",
           "type": "istar.Task",
           "x": 397,
-          "y": 337,
+          "y": 336,
           "customProperties": {
             "Description": ""
           }
@@ -138,7 +166,7 @@
           "text": "G12: Visual Safety Mode",
           "type": "istar.Goal",
           "x": 1129,
-          "y": 357,
+          "y": 356,
           "customProperties": {
             "Description": "",
             "maxRetries": "5"
@@ -149,7 +177,7 @@
           "text": "G13: Sensor-Fusion Safety Mode",
           "type": "istar.Goal",
           "x": 1247,
-          "y": 360,
+          "y": 359,
           "customProperties": {
             "Description": ""
           }
@@ -159,7 +187,7 @@
           "text": "T8: Detect obstacles with camera",
           "type": "istar.Task",
           "x": 1153,
-          "y": 472,
+          "y": 471,
           "customProperties": {
             "Description": ""
           }
@@ -169,7 +197,7 @@
           "text": "T9: Fuse camera and lidar readings",
           "type": "istar.Task",
           "x": 1257,
-          "y": 468,
+          "y": 467,
           "customProperties": {
             "Description": ""
           }
@@ -178,8 +206,8 @@
           "id": "3d51bc0e-baa7-407c-b92b-8066be23018b",
           "text": "G11: Aggressive Profile ",
           "type": "istar.Goal",
-          "x": 1010,
-          "y": 359,
+          "x": 1011,
+          "y": 358,
           "customProperties": {
             "Description": ""
           }
@@ -189,18 +217,17 @@
           "text": "T7: Set high speed and direct routing",
           "type": "istar.Task",
           "x": 1017,
-          "y": 456,
+          "y": 455,
           "customProperties": {
-            "Description": "",
-            "assertion": "R0>4"
+            "Description": ""
           }
         },
         {
           "id": "a23247d8-974e-42f8-9349-b7f976f02b10",
-          "text": "G5: Standard Landing Delivery [G14|G15]",
+          "text": "G5: Standard Landing Delivery [G14->G15]",
           "type": "istar.Goal",
           "x": 1352,
-          "y": 286,
+          "y": 285,
           "customProperties": {
             "Description": ""
           }
@@ -210,10 +237,9 @@
           "text": "G14: Standard Landing Delivery [T10;T11]",
           "type": "istar.Goal",
           "x": 1364,
-          "y": 368,
+          "y": 367,
           "customProperties": {
-            "Description": "",
-            "assertion": "!hasMoreDelivery"
+            "Description": ""
           }
         },
         {
@@ -221,7 +247,7 @@
           "text": "G15: Emergency Air-Drop Delivery",
           "type": "istar.Goal",
           "x": 1501,
-          "y": 371,
+          "y": 370,
           "customProperties": {
             "Description": ""
           }
@@ -231,7 +257,7 @@
           "text": "T10: Descend to landing spot",
           "type": "istar.Task",
           "x": 1367,
-          "y": 472,
+          "y": 471,
           "customProperties": {
             "Description": ""
           }
@@ -241,7 +267,7 @@
           "text": "T12: Perform low-altitude air-drop",
           "type": "istar.Task",
           "x": 1587,
-          "y": 475,
+          "y": 474,
           "customProperties": {
             "Description": ""
           }
@@ -251,56 +277,9 @@
           "text": "T11: Release package on ground",
           "type": "istar.Task",
           "x": 1468,
-          "y": 475,
+          "y": 474,
           "customProperties": {
             "Description": ""
-          }
-        },
-        {
-          "id": "a1c29759-ccb0-4bba-ad8a-183d81af99c7",
-          "text": "G7: Maintain communication link",
-          "type": "istar.Goal",
-          "x": 654,
-          "y": 353,
-          "customProperties": {
-            "Description": "",
-            "assertion": "inFlight",
-            "maintain": "commLink",
-            "type": "maintain"
-          }
-        },
-        {
-          "id": "166753e7-9e5b-465c-883f-e6830a86a147",
-          "text": "G6: Reach altitude",
-          "type": "istar.Goal",
-          "x": 524,
-          "y": 354,
-          "customProperties": {
-            "Description": ""
-          }
-        },
-        {
-          "id": "584af384-782c-46ba-a3f6-1ddf49a9be49",
-          "text": "T4: Maintain link",
-          "type": "istar.Task",
-          "x": 662,
-          "y": 432,
-          "customProperties": {
-            "Description": ""
-          }
-        },
-        {
-          "id": "7f8cd0a8-1d83-4651-8ff6-054366b95400",
-          "text": "R0: Battery",
-          "type": "istar.Resource",
-          "x": 1227,
-          "y": 638,
-          "customProperties": {
-            "Description": "",
-            "type": "int",
-            "initialValue": "5",
-            "lowerBound": "0",
-            "upperBound": "5"
           }
         }
       ]
@@ -310,184 +289,160 @@
   "dependencies": [],
   "links": [
     {
-      "id": "680da1e1-0571-439e-906c-39264088241b",
+      "id": "f4e7d19c-5ded-4106-8553-3dbbc5af008e",
       "type": "istar.AndRefinementLink",
       "source": "12397ca7-3beb-47a6-b46d-d4fb7957ebc4",
       "target": "d06b4e46-f840-46a5-8a94-7909beeddf16"
     },
     {
-      "id": "6bf98ace-ea23-48d7-b7bf-3550ee9dad2e",
+      "id": "0e31a0d4-9b3f-4b9f-96c0-a0c12151c3c5",
       "type": "istar.AndRefinementLink",
       "source": "912c8be2-1e4d-4b6a-b45c-9169f9fba033",
       "target": "d06b4e46-f840-46a5-8a94-7909beeddf16"
     },
     {
-      "id": "bb911b66-bc93-439c-b196-1a79b92e7a33",
+      "id": "bc7e4464-718a-409e-8519-591c1fbe3be5",
+      "type": "istar.OrRefinementLink",
+      "source": "73d6aa47-a298-43d9-9ed7-4e883af66b38",
+      "target": "912c8be2-1e4d-4b6a-b45c-9169f9fba033"
+    },
+    {
+      "id": "bcea7b3c-cd1e-4886-8c8c-bfdadd823951",
+      "type": "istar.OrRefinementLink",
+      "source": "58a4f250-4d8e-4595-ac6e-f872ccc1af4f",
+      "target": "912c8be2-1e4d-4b6a-b45c-9169f9fba033"
+    },
+    {
+      "id": "7409b736-1068-472f-b2ad-fda966109fab",
       "type": "istar.AndRefinementLink",
       "source": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c",
       "target": "d06b4e46-f840-46a5-8a94-7909beeddf16"
     },
     {
-      "id": "c7a3ede7-876d-4b2f-bfcc-0eac4c643303",
+      "id": "1945ab79-1352-4bea-8d8a-95a03513df87",
+      "type": "istar.AndRefinementLink",
+      "source": "40704ff8-33f0-4bc5-93ba-65aa729d9037",
+      "target": "73d6aa47-a298-43d9-9ed7-4e883af66b38"
+    },
+    {
+      "id": "ee0603fc-e6ce-46f4-8ad5-92162ef41f7e",
+      "type": "istar.AndRefinementLink",
+      "source": "49c5aa21-dc6a-4027-878a-85893cd9b08f",
+      "target": "58a4f250-4d8e-4595-ac6e-f872ccc1af4f"
+    },
+    {
+      "id": "3106c385-09f0-4573-8311-526baeb9b512",
       "type": "istar.AndRefinementLink",
       "source": "dd5923e4-f558-400a-8648-4b996559104b",
       "target": "c39e2329-92ae-4b56-a962-d54af856a3f9"
     },
     {
-      "id": "acd722e5-9015-4a1c-86f5-cefebe92abef",
+      "id": "a5e08bd4-3017-47c8-bed0-899d79eb3883",
       "type": "istar.AndRefinementLink",
       "source": "2cf18e85-a86a-48fe-ab8f-3f5bd25b92e4",
       "target": "fb282049-a1db-4c64-b3c4-5c106a94dc8c"
     },
     {
-      "id": "21f28467-d948-4a43-9769-a16b093fc9e8",
+      "id": "83193422-1bdb-4d82-b78a-4f1dd7ad012d",
       "type": "istar.AndRefinementLink",
       "source": "8f33b696-e0a4-40c2-a184-ba4001b6c216",
       "target": "d06b4e46-f840-46a5-8a94-7909beeddf16"
     },
     {
-      "id": "ce18f8ad-4bc6-41a1-9085-9a73d7e20611",
+      "id": "f6158391-8700-405f-a3a0-fe1f220dbfa5",
       "type": "istar.AndRefinementLink",
       "source": "87fb850c-b952-4c37-88db-58b7333cd28f",
       "target": "72797a30-10e0-4672-8994-0b4666ca2fca"
     },
     {
-      "id": "d1d55e94-cfc5-41ef-aab0-8ea71cb0b590",
+      "id": "e85aee6f-53ab-4672-b1dd-260843644f7d",
       "type": "istar.AndRefinementLink",
       "source": "b95e060c-bb05-4385-a48d-bd4fec5b8cb0",
       "target": "ef27bea3-34b9-4fee-8490-d12abfc21f07"
     },
     {
-      "id": "d88d18d4-9dad-4ec1-a5ae-c91312ce9369",
+      "id": "4a93e0b2-ad67-4cb1-81e7-1cae9c09fe93",
       "type": "istar.OrRefinementLink",
       "source": "c39e2329-92ae-4b56-a962-d54af856a3f9",
       "target": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c"
     },
     {
-      "id": "5e42bae9-268d-4f78-b445-a15c86ba5fbd",
+      "id": "2a462644-338f-4e1c-a75c-c00f4cbd3de1",
       "type": "istar.OrRefinementLink",
       "source": "fb282049-a1db-4c64-b3c4-5c106a94dc8c",
       "target": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c"
     },
     {
-      "id": "eedaf5cc-36bc-42f0-8847-7386e9e93f8f",
+      "id": "93987eba-3c31-41a5-a849-62c371555b9c",
       "type": "istar.AndRefinementLink",
       "source": "7ec00c03-6a0e-4774-a0bc-cb5388642729",
       "target": "12397ca7-3beb-47a6-b46d-d4fb7957ebc4"
     },
     {
-      "id": "a4c48bbe-b16e-4cac-91cd-ccd51e704ee5",
+      "id": "436cd7bb-5b14-445b-a7ff-835c4b9b546c",
       "type": "istar.AndRefinementLink",
       "source": "094d5e4b-67b1-4a3d-ac67-56fb3df3f792",
       "target": "12397ca7-3beb-47a6-b46d-d4fb7957ebc4"
     },
     {
-      "id": "a1eb33d3-8609-4ccf-92af-fe7878a95c61",
+      "id": "c7df7805-728c-4c2d-93b4-68180195b4ad",
       "type": "istar.OrRefinementLink",
       "source": "3d51bc0e-baa7-407c-b92b-8066be23018b",
       "target": "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c"
     },
     {
-      "id": "40b61909-4e7b-4741-8a86-8b3334ed028d",
+      "id": "8e73bdde-56d0-4f23-a20e-66893e7e977b",
       "type": "istar.AndRefinementLink",
       "source": "b869d8c4-3e54-4fce-bc1b-da2405db65ce",
       "target": "3d51bc0e-baa7-407c-b92b-8066be23018b"
     },
     {
-      "id": "368afea1-20a6-49e3-900f-975a856f1a1b",
+      "id": "4539d0f5-6710-4bc0-b1f7-232bece50720",
       "type": "istar.AndRefinementLink",
       "source": "a23247d8-974e-42f8-9349-b7f976f02b10",
       "target": "d06b4e46-f840-46a5-8a94-7909beeddf16"
     },
     {
-      "id": "51d8e7bc-7b67-43a5-9f85-6c0e9b9ca7f0",
+      "id": "7129ab6d-05bd-485d-a81f-8e2904f8a7f3",
       "type": "istar.OrRefinementLink",
       "source": "f7cb1cfc-6b62-4990-9e08-e6f8102b6a6f",
       "target": "a23247d8-974e-42f8-9349-b7f976f02b10"
     },
     {
-      "id": "d17e49af-6bc8-4d3c-8154-25e286d19778",
+      "id": "3f8307d2-da0a-4eab-ae0d-2f980e7b4954",
       "type": "istar.OrRefinementLink",
       "source": "4052a1ef-617d-4a26-898d-82a8c9485d5d",
       "target": "a23247d8-974e-42f8-9349-b7f976f02b10"
     },
     {
-      "id": "721e137c-7304-49fb-9cd5-22e0b30731c9",
+      "id": "68d51582-9d77-40a9-a6ce-1ec1cb338130",
       "type": "istar.AndRefinementLink",
       "source": "2c5417fe-6fea-4658-a520-c62ece330287",
       "target": "f7cb1cfc-6b62-4990-9e08-e6f8102b6a6f"
     },
     {
-      "id": "6167b7da-b9c8-4073-9267-c006f7bc22e9",
+      "id": "416b74d8-ea37-489e-bae6-e02e9a2333b7",
       "type": "istar.AndRefinementLink",
       "source": "12979b40-b04f-4793-8ecd-45800e5a4021",
       "target": "4052a1ef-617d-4a26-898d-82a8c9485d5d"
     },
     {
-      "id": "f75a820b-1f01-4b42-8268-7450937b2fd2",
+      "id": "2f3e157d-f93d-4e0c-b211-1cfdcbaeab2d",
       "type": "istar.AndRefinementLink",
       "source": "fc43a0da-b9ab-4138-9645-cf206df4574d",
       "target": "f7cb1cfc-6b62-4990-9e08-e6f8102b6a6f"
     },
     {
-      "id": "b7c8e790-5af2-4e1e-9c8a-135eff29d031",
+      "id": "b46383d9-e6a6-4a61-82b6-e31940951ccc",
       "type": "istar.OrRefinementLink",
       "source": "72797a30-10e0-4672-8994-0b4666ca2fca",
       "target": "8f33b696-e0a4-40c2-a184-ba4001b6c216"
     },
     {
-      "id": "30c90008-61ab-4a27-835d-cc5b15ac0e54",
+      "id": "28b14db1-729e-4d83-be90-2199c425bce3",
       "type": "istar.OrRefinementLink",
       "source": "ef27bea3-34b9-4fee-8490-d12abfc21f07",
       "target": "8f33b696-e0a4-40c2-a184-ba4001b6c216"
-    },
-    {
-      "id": "5277b6a8-630c-4384-92b2-588bb5442796",
-      "type": "istar.AndRefinementLink",
-      "source": "166753e7-9e5b-465c-883f-e6830a86a147",
-      "target": "912c8be2-1e4d-4b6a-b45c-9169f9fba033"
-    },
-    {
-      "id": "f427ea3e-60dc-45f0-8c8f-742b14ff89c7",
-      "type": "istar.AndRefinementLink",
-      "source": "40704ff8-33f0-4bc5-93ba-65aa729d9037",
-      "target": "166753e7-9e5b-465c-883f-e6830a86a147"
-    },
-    {
-      "id": "8217dc06-0115-4d78-9938-5352ac531d0c",
-      "type": "istar.AndRefinementLink",
-      "source": "a1c29759-ccb0-4bba-ad8a-183d81af99c7",
-      "target": "912c8be2-1e4d-4b6a-b45c-9169f9fba033"
-    },
-    {
-      "id": "8149545d-5b0b-443c-b0b8-1ec52542e5a5",
-      "type": "istar.AndRefinementLink",
-      "source": "584af384-782c-46ba-a3f6-1ddf49a9be49",
-      "target": "a1c29759-ccb0-4bba-ad8a-183d81af99c7"
-    },
-    {
-      "id": "fff2dc3e-2fe8-4b5c-9c43-9df9d185276a",
-      "type": "istar.NeededByLink",
-      "source": "7f8cd0a8-1d83-4651-8ff6-054366b95400",
-      "target": "dd5923e4-f558-400a-8648-4b996559104b"
-    },
-    {
-      "id": "73a7cf7a-f2d6-4c91-a3d0-0921ee442ad3",
-      "type": "istar.NeededByLink",
-      "source": "7f8cd0a8-1d83-4651-8ff6-054366b95400",
-      "target": "b869d8c4-3e54-4fce-bc1b-da2405db65ce"
-    },
-    {
-      "id": "8b98728f-8ed7-43e7-87c3-a2250d428acb",
-      "type": "istar.NeededByLink",
-      "source": "7f8cd0a8-1d83-4651-8ff6-054366b95400",
-      "target": "12979b40-b04f-4793-8ecd-45800e5a4021"
-    },
-    {
-      "id": "1ea57a85-531b-4ee5-917e-1b306055f801",
-      "type": "istar.NeededByLink",
-      "source": "7f8cd0a8-1d83-4651-8ff6-054366b95400",
-      "target": "2cf18e85-a86a-48fe-ab8f-3f5bd25b92e4"
     }
   ],
   "display": {
@@ -500,9 +455,16 @@
       "height": 42.6796875
     },
     "912c8be2-1e4d-4b6a-b45c-9169f9fba033": {
-      "backgroundColor": "#FAF2B2",
       "width": 119.970703125,
       "height": 47.6796875
+    },
+    "73d6aa47-a298-43d9-9ed7-4e883af66b38": {
+      "width": 99.595703125,
+      "height": 35.1484375
+    },
+    "58a4f250-4d8e-4595-ac6e-f872ccc1af4f": {
+      "width": 105.720703125,
+      "height": 38.6796875
     },
     "ee59bf52-abc8-4d5e-8148-f8cd0ab0d52c": {
       "width": 128.970703125,
@@ -511,6 +473,10 @@
     "40704ff8-33f0-4bc5-93ba-65aa729d9037": {
       "width": 110.095703125,
       "height": 53.6796875
+    },
+    "49c5aa21-dc6a-4027-878a-85893cd9b08f": {
+      "width": 103.720703125,
+      "height": 46.6796875
     },
     "dd5923e4-f558-400a-8648-4b996559104b": {
       "width": 109.720703125,
@@ -541,23 +507,17 @@
       "height": 50.6796875
     },
     "f7cb1cfc-6b62-4990-9e08-e6f8102b6a6f": {
-      "backgroundColor": "#FAF2B2",
       "width": 123.595703125,
       "height": 45.6796875
     },
     "4052a1ef-617d-4a26-898d-82a8c9485d5d": {
       "width": 115.470703125,
       "height": 37.1796875
-    },
-    "a1c29759-ccb0-4bba-ad8a-183d81af99c7": {
-      "backgroundColor": "#5AEEFA",
-      "width": 106.970703125,
-      "height": 41.6796875
     }
   },
   "tool": "pistar.2.1.0",
   "istar": "2.0",
-  "saveDate": "Sat, 22 Nov 2025 20:54:21 GMT",
+  "saveDate": "Fri, 21 Nov 2025 00:58:13 GMT",
   "diagram": {
     "width": 1860,
     "height": 743,

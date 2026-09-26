@@ -21,7 +21,7 @@ const outputFileExists = (inputFileName: string): boolean => {
 describe('extractOldSystemTransitions', () => {
   describe('8-minimalMaintain', () => {
     it('should extract all transitions from System module', function () {
-      const fileName = '../../examples/experiments/8-minimalMaintain.txt';
+      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
@@ -63,7 +63,7 @@ describe('extractOldSystemTransitions', () => {
   describe('9-minimalMaintainContext', () => {
     it('should extract all transitions from System module', function () {
       const fileName =
-        '../../examples/experiments/9-minimalMaintainContext.txt';
+        '../../examples/edge/experiments/9-minimalMaintainContext.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
@@ -113,7 +113,7 @@ describe('extractOldSystemTransitions', () => {
   describe('10-minimalMaintainResource', () => {
     it('should extract all transitions from System module', function () {
       const fileName =
-        '../../examples/experiments/10-minimalMaintainResource.txt';
+        '../../examples/edge/experiments/10-minimalMaintainResource.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
@@ -162,7 +162,7 @@ describe('extractOldSystemTransitions', () => {
 
   describe('edge cases', () => {
     it('should return empty array for non-existent file', () => {
-      const fileName = '../../examples/experiments/non-existent-file.txt';
+      const fileName = '../../examples/edge/experiments/non-existent-file.txt';
       const transitions = extractOldSystemTransitions(fileName);
 
       assert.strictEqual(
@@ -173,7 +173,7 @@ describe('extractOldSystemTransitions', () => {
     });
 
     it('should preserve original line formatting', function () {
-      const fileName = '../../examples/experiments/8-minimalMaintain.txt';
+      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
@@ -193,7 +193,7 @@ describe('extractOldSystemTransitions', () => {
     });
 
     it('should only extract transitions from System module', function () {
-      const fileName = '../../examples/experiments/8-minimalMaintain.txt';
+      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
       if (!outputFileExists(fileName)) {
         this.skip(); // Skip if output file doesn't exist
       }
