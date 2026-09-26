@@ -10,6 +10,8 @@ import { NextRequest } from 'next/server';
 import { ApiResponse } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
 import {
+  EDGE_V2_TASK_LAYOUTS,
+  isEdgeV2TaskLayout,
   isTransformEngine,
   type TransformEngine,
 } from '../../../lib/types';
@@ -25,6 +27,7 @@ export async function POST(request: NextRequest) {
       generateFluents = true,
       fileName,
       variables,
+      taskLayout = 'taskModules',
     } = await request.json();
 
     if (!modelJson) {
@@ -90,6 +93,11 @@ export async function POST(request: NextRequest) {
           console.log('[API] Model parsed and tree converted successfully');
           console.log('[API] Generating EdgeV2 model...');
         }
+        if (!isEdgeV2TaskLayout(taskLayout)) {
+          return ApiResponse.badRequest(
+            `taskLayout must be one of: ${EDGE_V2_TASK_LAYOUTS.join(', ')}`,
+          );
+        }
         output = generateEdgeV2PrismModel({
           gm: parseResult.tree,
           fileName: fileName || 'model',
@@ -97,6 +105,7 @@ export async function POST(request: NextRequest) {
           variables,
           generateDecisionVars,
           achievabilitySpace,
+          taskLayout,
         });
       } else {
         // Parse and validate model with SLEEC mapper

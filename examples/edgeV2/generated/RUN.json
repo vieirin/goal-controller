@@ -1,0 +1,7 @@
+{
+ "date": "2026-09-26",
+ "engine": "fe5e3ef + uncommitted engine changes",
+ "command": "--check --timeout 120 --title edgeV2 vs EDGE reference \u2014 example set",
+ "checker": "storm",
+ "taskLayout": "taskModules"
+}

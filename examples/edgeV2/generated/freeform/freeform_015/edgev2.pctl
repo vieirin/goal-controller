@@ -1,0 +1,12 @@
+P=? [ G 0 + g1_state + g4_state <= 1 ] =1
+
+P=? [ G 0 + t2_state + t3_state <= 1 ] =1
+P=? [G t2_state=1 => g1_chosen=1 ] =1
+P=? [G t3_state=1 => g1_chosen=2 ] =1
+P=? [ G 0 + t5_state + t6_state <= 1 ] =1
+P>=1 [ G g1_state + g4_state <= 1 ]
+P>=1 [ G t2_state + t3_state <= 1 ]
+P>=1 [ G t2_state=1 => g1_chosen=1 ]
+P>=1 [ G t3_state=1 => g1_chosen=2 ]
+P>=1 [ G t5_state + t6_state <= 1 ]
+P=? [ F g0_achieved ]

@@ -1,12 +1,14 @@
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../types';
+import type { EdgeGoalNode } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
 import { parenthesis, separator } from '../../../../mdp/common';
 import {
   achievableFormulaVariable,
   achievedFormula,
-  achievedVariable,
+  chosenVariable,
+  relativeFormulaVariable,
 } from '../../../../template/common';
+import { construct, orderedChildIds, retriedChildren } from './children';
+import { hasFailedExactlyNTimes } from './pursue/common';
 
 /** @deprecated Use achievedFormula — maintain goals share g*_achieved */
 export const achievedMaintain = achievedFormula;
@@ -33,108 +35,105 @@ export const maintainConditionFormula = (goal: EdgeGoalNode): string => {
   return prismLine;
 };
 
-/** Child achieved ref: goal → g*_achieved formula; task → T*_achieved var */
-const childAchievedRef = (child: EdgeGoalNode | EdgeTask): string =>
-  Node.isTask(child) ? achievedVariable(child.id) : achievedFormula(child.id);
+const isAnd = (goal: EdgeGoalNode): boolean =>
+  ['sequence', 'anyOrder', 'interleaved'].includes(construct(goal));
 
 /**
- * EDGEV2 achieved formula:
- *   formula g0_achieved = (g1_achieved & g2_achieved);  // AND
- *   formula g0_achieved = (g1_achieved | g2_achieved);  // OR
- * Skipped for maintain goals (maintainConditionFormula emits g*_achieved from the maintain sentence).
+ * Achieved formula (children are goals or tasks, both expose x_achieved):
+ *   AND:          formula g0_achieved = (g1_achieved & g2_achieved);
+ *   OR:           formula g0_achieved = (g1_achieved | g2_achieved);
+ *   degradation:  formula g0_achieved = (g1_achieved | (g1_failed=K & g2_achieved));
+ *                 a fallback child only counts once the earlier retries are exhausted
+ * Skipped for maintain goals (maintainConditionFormula emits g*_achieved).
  */
 export const achievedGoalFormula = (goal: EdgeGoalNode): string => {
   if (goal.properties.engine.execCondition?.maintain) {
     return '';
   }
-
-  const children = Node.children(goal).filter(
-    (child): child is EdgeGoalNode | EdgeTask => !Node.isResource(child),
-  );
-  if (children.length === 0) {
+  const childIds = orderedChildIds(goal);
+  if (childIds.length === 0) {
     return '';
   }
 
-  const formulaName = achievedFormula(goal.id);
-  const childRefs = children.map(childAchievedRef);
-
-  let sentence: string;
-  if (children.length === 1) {
-    sentence = childRefs[0]!;
-  } else {
-    switch (goal.relationToChildren) {
-      case 'and':
-        sentence = parenthesis(childRefs.join(separator('and')));
-        break;
-      case 'or':
-        sentence = parenthesis(childRefs.join(separator('or')));
-        break;
-      default:
-        throw new Error(
-          `Invalid relation to children for achieved formula: ${goal.relationToChildren ?? 'none'}`,
-        );
-    }
+  let terms = childIds.map(achievedFormula);
+  if (construct(goal) === 'degradation') {
+    const chain = retriedChildren(goal);
+    terms = childIds.map((id, index) => {
+      const gate = chain
+        .filter((entry) => childIds.indexOf(entry.id) < index)
+        .map(({ id: retried, retries }) => hasFailedExactlyNTimes(retried, retries));
+      return gate.length > 0
+        ? parenthesis([...gate, achievedFormula(id)].join(separator('and')))
+        : achievedFormula(id);
+    });
   }
-
-  return `formula ${formulaName} = ${sentence};`;
+  const sentence = parenthesis(terms.join(separator(isAnd(goal) ? 'and' : 'or')));
+  return `formula ${achievedFormula(goal.id)} = ${sentence};`;
 };
 
+/**
+ * Achievability formula:
+ *   AND:     G0_achievable = g0_achieved ? 0 : 1 * (!g1_achieved ? G1_achievable : 1) * …
+ *            (remaining achievability: already achieved children no longer count)
+ *   OR:      G0_achievable = G1_achievable + G2_achievable - (G1_achievable * G2_achievable)
+ *   choice:  G0_achievable = g0_chosen=1 ? G1_achievable : … : <OR formula>
+ * The OR formula follows the EDGE reference (sum minus product of all children).
+ */
 export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
-  const children = Node.children(goal);
-  const formulaName = `${achievableFormulaVariable(goal.id)}`;
   const logger = getLogger();
-  if (children.length === 1) {
-    const firstChild = children[0];
-    if (!firstChild) {
-      throw new Error(
-        `Expected at least one child for goal ${goal.id} but children array is empty`,
-      );
-    }
-    const sentence = achievableFormulaVariable(firstChild.id);
-    const formula = `formula ${formulaName} = ${sentence};`;
-    logger.achievabilityFormulaDefinition(
-      goal.id,
-      formulaName,
-      'SINGLE_GOAL',
-      sentence,
-      formula,
+  const childIds = orderedChildIds(goal);
+  const formulaName = achievableFormulaVariable(goal.id);
+  if (childIds.length === 0) {
+    throw new Error(
+      `Expected at least one child for goal ${goal.id} but children array is empty`,
     );
-    return formula;
+  }
+  const achievables = childIds.map(achievableFormulaVariable);
+
+  let type: 'AND' | 'OR' | 'SINGLE_GOAL';
+  let value: string;
+  if (isAnd(goal)) {
+    type = 'AND';
+    const remaining = childIds
+      .map((id) => `(!${achievedFormula(id)} ? ${achievableFormulaVariable(id)} : 1)`)
+      .join(' * ');
+    value = `${achievedFormula(goal.id)} ? 0 : ${remaining}`;
+  } else {
+    type = 'OR';
+    const orValue =
+      achievables.length === 1
+        ? achievables.join('')
+        : `${achievables.join(' + ')} - ${parenthesis(achievables.join(' * '))}`;
+    value = orValue;
+    if (construct(goal) === 'choice') {
+      const chosen = chosenVariable(goal.id);
+      value =
+        achievables.map((a, index) => `${chosen}=${index + 1} ? ${a} : `).join('') +
+        parenthesis(orValue);
+    }
   }
 
-  const childrenVariables = children.map((child) =>
-    achievableFormulaVariable(child.id),
-  );
-  const productPart = childrenVariables.join(' * ');
+  const formula = `formula ${formulaName} = ${value};`;
+  logger.achievabilityFormulaDefinition(goal.id, formulaName, type, value, formula);
+  return formula;
+};
 
-  switch (goal.relationToChildren) {
-    case 'and': {
-      const andFormula = `formula ${formulaName} = ${productPart};`;
-      logger.achievabilityFormulaDefinition(
-        goal.id,
-        formulaName,
-        'AND',
-        productPart,
-        andFormula,
-      );
-      return andFormula;
-    }
-    case 'or': {
-      const sumPart = childrenVariables.join(' + ');
-      const formulaValue = `${sumPart} - ${parenthesis(productPart)}`;
-      const orFormula = `formula ${formulaName} = ${formulaValue};`;
-      logger.achievabilityFormulaDefinition(
-        goal.id,
-        formulaName,
-        'OR',
-        formulaValue,
-        orFormula,
-      );
-      return orFormula;
-    }
-    default:
-      throw new Error(
-        `Invalid relation to children: ${goal.relationToChildren ?? 'none'}`,
-      );
+/**
+ * AND anyOrder: each child's share among the siblings that are not achieved yet
+ *   formula G1_relative = g1_achieved ? 0 : G1_achievable/(G1_achievable + (g2_achieved ? 0 : G2_achievable));
+ */
+export const relativeFormulas = (goal: EdgeGoalNode): string => {
+  if (construct(goal) !== 'anyOrder') {
+    return '';
   }
+  const childIds = orderedChildIds(goal);
+  return childIds
+    .map((id) => {
+      const others = childIds
+        .filter((other) => other !== id)
+        .map((other) => ` + (${achievedFormula(other)} ? 0 : ${achievableFormulaVariable(other)})`)
+        .join('');
+      return `formula ${relativeFormulaVariable(id)} = ${achievedFormula(id)} ? 0 : ${achievableFormulaVariable(id)}/(${achievableFormulaVariable(id)}${others});`;
+    })
+    .join('\n');
 };

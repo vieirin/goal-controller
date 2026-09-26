@@ -1,28 +1,13 @@
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../types';
+import type { EdgeGoalNode } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
 import { separator } from '../../../../mdp/common';
-import {
-  achievedFormula,
-  pursuedVariable,
-  stateVariable,
-} from '../../../../template/common';
+import { achievedFormula, stateVariable } from '../../../../template/common';
+import { orderedChildIds } from './children';
 
-/** Child idle: goals use g*_state=0; tasks still use T*_pursued=0 */
-const childIdle = (child: EdgeGoalNode | EdgeTask): string =>
-  Node.isTask(child)
-    ? `${pursuedVariable(child.id)}=0`
-    : `${stateVariable(child.id)}=0`;
-
-const childrenIdle = (goal: EdgeGoalNode): string => {
-  const children = Node.children(goal).filter(
-    (child): child is EdgeGoalNode | EdgeTask => !Node.isResource(child),
-  );
-  if (children.length === 0) {
-    return '';
-  }
-  return children.map(childIdle).join(separator('and'));
-};
+const childrenIdle = (goal: EdgeGoalNode): string =>
+  orderedChildIds(goal)
+    .map((id) => `${stateVariable(id)}=0`)
+    .join(separator('and'));
 
 /**
  * EDGEV2:

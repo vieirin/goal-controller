@@ -54,6 +54,7 @@ const validateGoal = (
   const emittedFormulas = parsedModel.formulas
     .filter(
       (f) =>
+        expected.formulas.includes(f.name) ||
         f.name === goalId ||
         f.name === lowerGoalId ||
         f.name.startsWith(`${goalId}_`) ||
@@ -120,10 +121,15 @@ const validateChangeManager = (
   expected: ExpectedElements['changeManager'],
   parsedModel: ParsedPrismModel,
 ): ChangeManagerValidation => {
-  const changeManager = parsedModel.changeManagerModule;
-  const emittedVariables = changeManager?.variables.map((v) => v.name) || [];
-  const emittedTransitions =
-    changeManager?.transitions.map((t) => t.label) || [];
+  // tasks live in the ChangeManager module or in one module per task, depending on the layout
+  const taskModules = [
+    ...(parsedModel.changeManagerModule ? [parsedModel.changeManagerModule] : []),
+    ...parsedModel.taskModules.values(),
+  ];
+  const emittedVariables = taskModules.flatMap((m) => m.variables.map((v) => v.name));
+  const emittedTransitions = taskModules.flatMap((m) =>
+    m.transitions.map((t) => t.label),
+  );
 
   // Collect all expected task variables
   const allExpectedTaskVariables: string[] = [];

@@ -2,6 +2,7 @@
  * Engine Mapper types and factory function
  * Defines how raw iStar properties are mapped to engine-specific properties
  */
+import type { RTGrammar } from '../parsers/goalNameParser';
 import type { GoalExecutionDetail, TreeNode } from '../types/';
 
 /**
@@ -54,6 +55,11 @@ export type EngineMapper<
   TTaskKeys extends string = string,
   TResourceKeys extends string = string,
 > = {
+  /**
+   * RT notation grammar used to parse goal names (defaults to 'edge')
+   */
+  grammar?: RTGrammar;
+
   /**
    * Allowed keys for goal custom properties
    */
@@ -117,6 +123,7 @@ export function createEngineMapper<
     TResourceKeys extends string = never,
   >(
     config: {
+      grammar?: RTGrammar;
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
       mapGoalProps: (props: {
@@ -169,6 +176,7 @@ export function createEngineMapper<
         TTaskKeys,
         TResourceKeys
       > = {
+        grammar: config.grammar,
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
         mapGoalProps: config.mapGoalProps,
@@ -197,6 +205,7 @@ export function createEngineMapper<
       TTaskKeys,
       TResourceKeys
     > = {
+      grammar: config.grammar,
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,
       allowedResourceKeys: config.allowedResourceKeys,

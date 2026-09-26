@@ -1,0 +1,25 @@
+P>=1 [ G 0 + gT4 + gT5 <= 1 ];
+P>=1 [ G 0 + gT7 + gT8 <= 1 ];
+P>=1 [ G gT8=1 => gG6_failed=3 ];
+P>=1 [ G gG6_achieved => (gT7_achieved | (gG6_failed=3 & gT8_achieved)) ];
+P>=1 [ G 0 + gG3 + gG6 <= 1 ];
+P>=1 [G gG3=1 => (true )];
+P>=1 [G gG6=1 => (true & gG3_achieved )];
+P>=1 [ G 0 + gT11 + gT12 <= 1 ];
+P>=1 [G gT11=1 => (true )];
+P>=1 [G gT12=1 => (true & gT11_achieved )];
+P>=1 [ G 0 + gT14 + gT15 <= 1 ];
+P>=1 [G gT14=1 => (true )];
+P>=1 [G gT15=1 => (true & gT14_achieved )];
+P>=1 [ G 0 + gG10 + gG13 <= 1 ];
+P>=1 [ G 0 + gG2 + gG9 <= 1 ];
+P>=1 [ G 0 + gT19 + gT20 <= 1 ];
+P>=1 [ G 0 + gT22 + gT23 <= 1 ];
+P>=1 [G gT22=1 => gG21_chosen=1 ];
+P>=1 [G gT23=1 => gG21_chosen=2 ];
+P>=1 [ G 0 + gT26 + gT27 <= 1 ];
+P>=1 [ G gT27=1 => gG25_failed=3 ];
+P>=1 [ G gG25_achieved => (gT26_achieved | (gG25_failed=3 & gT27_achieved)) ];
+P>=1 [ G 0 + gG17 + gG24 <= 1 ];
+P>=1 [ G 0 + gG1 + gG16 <= 1 ];
+P=? [ F gG0_achieved ]

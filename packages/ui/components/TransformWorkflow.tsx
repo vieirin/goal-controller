@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { GripVertical, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import type { TransformEngine } from '@/lib/types';
+import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 import { isPrismEngine, normalizeEngineMode } from '@/lib/types';
 import EngineSelector from './EngineSelector';
 import FileUploader from './FileUploader';
@@ -26,6 +26,7 @@ interface TransformRequest {
   generateFluents: boolean;
   fileName: string;
   variables?: Record<string, boolean | number>;
+  taskLayout?: EdgeV2TaskLayout;
 }
 
 interface TransformResponse {
@@ -114,6 +115,7 @@ export default function TransformWorkflow() {
     DEFAULT_ACHIEVABILITY_SPACE,
   );
   const [generateFluents, setGenerateFluents] = useState<boolean>(false);
+  const [taskLayout, setTaskLayout] = useState<EdgeV2TaskLayout>('taskModules');
   const [variables, setVariables] = useState<Record<string, boolean | number>>(
     {},
   );
@@ -209,6 +211,7 @@ export default function TransformWorkflow() {
       achievabilitySpace,
       generateFluents,
       fileName: fileName.replace(/\.(txt|json)$/, ''),
+      ...(engine === 'edgev2' && { taskLayout }),
       ...(isPrismEngine(engine) &&
         Object.keys(variables).length > 0 && { variables }),
     });
@@ -276,6 +279,8 @@ export default function TransformWorkflow() {
                   onAchievabilitySpaceChange={setAchievabilitySpace}
                   generateFluents={generateFluents}
                   onGenerateFluentsChange={setGenerateFluents}
+                  taskLayout={taskLayout}
+                  onTaskLayoutChange={setTaskLayout}
                 />
               </div>
             )}

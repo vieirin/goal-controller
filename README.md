@@ -29,7 +29,10 @@ goal-controller/
 │   │   └── out/      # Compiled JavaScript
 │   ├── goal-tree/    # Goal model data structures
 │   └── ui/           # Next.js web application for transformations
-├── examples/         # Example goal models
+├── examples/         # Example goal models, grouped per engine
+│   ├── edge/         # Edge engine notation (choice: `[+]`), incl. experiments/
+│   ├── edgeV2/       # EdgeV2 notation (choice: `[G1?G2]`, any order: `[G1+G2]`)
+│   └── sleec/        # SLEEC engine models
 ├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
 └── output/          # Generated PRISM/SLEEC models
 ```
@@ -256,7 +259,7 @@ import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { sleecEngineMapper } from '@goal-controller/lib';
 
 // Load from file
-const model = Model.load('examples/goalModel-sleec.txt');
+const model = Model.load('examples/sleec/goalModel-sleec.txt');
 const tree = GoalTree.fromModel(model, sleecEngineMapper);
 
 // Or from JSON string
@@ -447,7 +450,7 @@ ${purposes}`;
 };
 
 // Usage:
-const model = Model.load('examples/goalModel-sleec.txt');
+const model = Model.load('examples/sleec/goalModel-sleec.txt');
 const tree = GoalTree.fromModel(model, sleecEngineMapper);
 const sleecSpec = sleecTemplateEngine(tree);
 
@@ -504,7 +507,7 @@ purpose_end
 
 4. **Run transformations:**
    ```bash
-   make run FILE=examples/simpleChoice.txt
+   make run FILE=examples/edge/simpleChoice.txt
    ```
 
 5. **Launch the web UI:**
@@ -565,7 +568,7 @@ You can use the interactive CLI to select and run models:
 
 1. Build the library package first:
    ```bash
-   make grammar  # Generate ANTLR parsers
+   make grammar  # Generate ANTLR parsers (one RT grammar per engine: packages/lib/grammar/<engine>/)
    pnpm run build:lib  # Build the library
    ```
 
@@ -573,14 +576,14 @@ You can use the interactive CLI to select and run models:
 
    **Using Makefile (Recommended):**
    ```bash
-   make run FILE=examples/simpleChoice.txt
+   make run FILE=examples/edge/simpleChoice.txt
    # or
-   make generate FILE=examples/simpleChoice.txt
+   make generate FILE=examples/edge/simpleChoice.txt
    ```
 
    **Using Node directly:**
    ```bash
-   node packages/lib/out/index.js examples/simpleChoice.txt
+   node packages/lib/out/index.js examples/edge/simpleChoice.txt
    ```
 
    Where `$GOAL_MODEL_FILE` is the downloaded goal model from [pistar](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
@@ -643,26 +646,26 @@ This section describes how to run experiments to collect metrics and analyze the
 
 #### 1. Add the Goal Model
 
-Add your goal model file (`.txt` format) to the `examples/experiments/` directory:
+Add your goal model file (`.txt` format) to the `examples/edge/experiments/` directory:
 
 ```bash
-cp your-goal-model.txt examples/experiments/your-goal-model.txt
+cp your-goal-model.txt examples/edge/experiments/your-goal-model.txt
 ```
 
 The goal model should be in the PiStar format, as exported from the [PiStar tool](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
 
 #### 2. Add PCTL Properties
 
-Create a properties file (`.props` format) with PCTL formulas to verify against your model. Place it in `examples/experiments/props/`:
+Create a properties file (`.props` format) with PCTL formulas to verify against your model. Place it in `examples/edge/experiments/props/`:
 
 ```bash
 # Create the props directory if it doesn't exist
-mkdir -p examples/experiments/props
+mkdir -p examples/edge/experiments/props
 
 # Add your properties file
 # The filename should match your goal model name (e.g., if your model is "myModel.txt",
 # create "myModel.props")
-cp your-properties.props examples/experiments/props/your-goal-model.props
+cp your-properties.props examples/edge/experiments/props/your-goal-model.props
 ```
 
 **Example properties file format:**
@@ -704,14 +707,14 @@ make run-experiment
 
 This command executes the following steps:
 
-1. **Generate PRISM models**: Converts all goal models in `examples/experiments/` to PRISM format
+1. **Generate PRISM models**: Converts all goal models in `examples/edge/experiments/` to PRISM format
 2. **Check properties**: Validates all properties using Storm model checker
 3. **Extract metrics**: Collects performance and model statistics
 
 The results are saved to:
 
 - PRISM models: `output/*.prism`
-- Property check results: `examples/experiments/props/results/*.result.storm`
+- Property check results: `examples/edge/experiments/props/results/*.result.storm`
 - Metrics: `metrics.csv`
 
 #### 5. Collect the Data
@@ -779,8 +782,8 @@ You can modify `experiments/plot_metrics.py` to:
 
 ```bash
 # 1. Add your files
-cp my-model.txt examples/experiments/
-cp my-properties.props examples/experiments/props/my-model.props
+cp my-model.txt examples/edge/experiments/
+cp my-properties.props examples/edge/experiments/props/my-model.props
 
 # 2. Launch container
 make experiment

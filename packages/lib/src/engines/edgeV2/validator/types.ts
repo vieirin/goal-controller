@@ -34,6 +34,8 @@ export type ModuleInfo = {
 
 export type ParsedPrismModel = {
   goalModules: Map<string, ModuleInfo>;
+  /** Per-task modules (taskModules layout), keyed by task id */
+  taskModules: Map<string, ModuleInfo>;
   changeManagerModule?: ModuleInfo;
   systemModule?: ModuleInfo;
   formulas: FormulaInfo[];

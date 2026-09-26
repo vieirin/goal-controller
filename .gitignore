@@ -24,6 +24,16 @@ data/
 logs/
 *.log
 
+# Python
+__pycache__/
+*.pyc
+
+# edgeV2 conformance harness scratch files (left behind if a run is interrupted)
+experiments/edgev2-conformance/**/.manifest.json
+experiments/edgev2-conformance/**/.prism.sh
+examples/edgeV2/generated/**/.manifest.json
+examples/edgeV2/generated/**/.prism.sh
+
 # Environment files
 .env*.local
 venv/

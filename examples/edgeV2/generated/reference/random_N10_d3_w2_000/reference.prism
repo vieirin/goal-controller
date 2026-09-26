@@ -1,0 +1,199 @@
+dtmc
+const int N=10;
+const double GT3_achievable = 0.8;
+formula gT3_achieved = (gT3_achieved_=1);
+const int decision_GT3 = 2;
+module taskT3 
+gT3: [0..1] init 0;
+gT3_achieved_: [0..1] init 0;
+[pursue_GT3] gT3=0 & gT3_achieved_=0 -> (gT3'=1);
+[try_GT3] gT3=1 & gT3_achieved_=0 -> GT3_achievable: (gT3_achieved_'=1) + 1-GT3_achievable: (gT3'=0);
+[achieved_GT3] gT3=1 & gT3_achieved_=1 -> (gT3'=0);
+endmodule
+
+
+const double GT4_achievable = 0.8;
+formula gT4_achieved = (gT4_achieved_=1);
+const int decision_GT4 = 2;
+module taskT4 
+gT4: [0..1] init 0;
+gT4_achieved_: [0..1] init 0;
+[pursue_GT4] gT4=0 & gT4_achieved_=0 -> (gT4'=1);
+[try_GT4] gT4=1 & gT4_achieved_=0 -> GT4_achievable: (gT4_achieved_'=1) + 1-GT4_achievable: (gT4'=0);
+[achieved_GT4] gT4=1 & gT4_achieved_=1 -> (gT4'=0);
+endmodule
+
+
+const int decision_GG2 = 2;
+const int decision_GG2_ = 4;
+module GG2 //interleaved 
+gG2: [0..1] init 0;
+[pursue_GG2] !gG2_achieved & gG2 = 0 -> (gG2'=1);
+[pursue_GT3] !gG2_achieved & gG2=1 & GT3_achievable*N>decision_GT3 -> true; 
+[pursue_GT4] !gG2_achieved & gG2=1 & GT4_achievable*N>decision_GT4 -> true; 
+[skip_GG2] !gG2_achieved & gG2=1 & gT3=0 & gT4=0 & !(GT3_achievable*N>decision_GT3 | GT4_achievable*N>decision_GT4 | false) -> (gG2'=0);
+[achieved_GG2] gG2=1 & gG2_achieved & gT3=0 & gT4=0 -> (gG2'=0); 
+ endmodule
+formula gG2_achieved = (true & gT3_achieved & gT4_achieved);
+formula GG2_achievable = gG2_achieved ? 0 : 1* (!gT3_achieved ? GT3_achievable : 1)* (!gT4_achieved ? GT4_achievable : 1);
+
+
+const double GT6_achievable = 0.8;
+formula gT6_achieved = (gT6_achieved_=1);
+const int decision_GT6 = 2;
+module taskT6 
+gT6: [0..1] init 0;
+gT6_achieved_: [0..1] init 0;
+[pursue_GT6] gT6=0 & gT6_achieved_=0 -> (gT6'=1);
+[try_GT6] gT6=1 & gT6_achieved_=0 -> GT6_achievable: (gT6_achieved_'=1) + 1-GT6_achievable: (gT6'=0);
+[achieved_GT6] gT6=1 & gT6_achieved_=1 -> (gT6'=0);
+endmodule
+
+
+const double GT7_achievable = 0.8;
+formula gT7_achieved = (gT7_achieved_=1);
+const int decision_GT7 = 2;
+module taskT7 
+gT7: [0..1] init 0;
+gT7_achieved_: [0..1] init 0;
+[pursue_GT7] gT7=0 & gT7_achieved_=0 -> (gT7'=1);
+[try_GT7] gT7=1 & gT7_achieved_=0 -> GT7_achievable: (gT7_achieved_'=1) + 1-GT7_achievable: (gT7'=0);
+[achieved_GT7] gT7=1 & gT7_achieved_=1 -> (gT7'=0);
+endmodule
+
+
+const int decision_GG5 = 2;
+const int decision_GG5_ = 4;
+module GG5 //fixed 
+gG5: [0..1] init 0;
+[pursue_GG5] !gG5_achieved & gG5 = 0 -> (gG5'=1);
+[pursue_GT6] !gG5_achieved & gG5=1 & GG5_achievable*N>decision_GG5 & gT7=0-> true; 
+[pursue_GT7] !gG5_achieved & gG5=1 & GG5_achievable*N>decision_GG5 & gT6_achieved & gT6=0-> true; 
+[skip_GG5] !gG5_achieved & gG5=1 & gT6=0 & gT7=0 & GG5_achievable * N <= decision_GG5 -> (gG5'=0);
+[achieved_GG5] gG5=1 & gG5_achieved & gT6=0 & gT7=0 -> (gG5'=0); 
+ endmodule
+formula gG5_achieved = (true & gT6_achieved & gT7_achieved);
+formula GG5_achievable = gG5_achieved ? 0 : 1* (!gT6_achieved ? GT6_achievable : 1)* (!gT7_achieved ? GT7_achievable : 1);
+
+
+const int decision_GG1 = 2;
+const int decision_GG1_ = 4;
+module GG1 //non-idempotent 
+gG1: [0..1] init 0;
+[pursue_GG1] !gG1_achieved & gG1 = 0 -> (gG1'=1);
+[pursue_GG2] !gG1_achieved & gG1=1 & GG1_achievable*N>decision_GG1 & gG5=0  & (GG2_achievable/(GG2_achievable+GG5_achievable+0))*N > decision_GG1_ -> true; 
+[pursue_GG5] !gG1_achieved & gG1=1 & GG1_achievable*N>decision_GG1 & gG2=0  & (GG5_achievable/(GG2_achievable+GG5_achievable+0))*N > decision_GG1_ & !(GG2_achievable/(GG2_achievable+GG5_achievable+0))*N > decision_GG1_ -> true; 
+[skip_GG1] !gG1_achieved & gG1=1 & gG2=0 & gG5=0 & GG1_achievable * N <= decision_GG1 -> (gG1'=0);
+[achieved_GG1] gG1=1 & gG1_achieved & gG2=0 & gG5=0 -> (gG1'=0); 
+ endmodule
+formula gG1_achieved = (false | gG2_achieved | gG5_achieved);
+formula GG1_achievable = 0 + GG2_achievable + GG5_achievable - (1 * GG2_achievable * GG5_achievable );
+
+
+const double GT10_achievable = 0.8;
+formula gT10_achieved = (gT10_achieved_=1);
+const int decision_GT10 = 2;
+module taskT10 
+gT10: [0..1] init 0;
+gT10_achieved_: [0..1] init 0;
+[pursue_GT10] gT10=0 & gT10_achieved_=0 -> (gT10'=1);
+[try_GT10] gT10=1 & gT10_achieved_=0 -> GT10_achievable: (gT10_achieved_'=1) + 1-GT10_achievable: (gT10'=0);
+[achieved_GT10] gT10=1 & gT10_achieved_=1 -> (gT10'=0);
+endmodule
+
+
+const double GT11_achievable = 0.8;
+formula gT11_achieved = (gT11_achieved_=1);
+const int decision_GT11 = 2;
+module taskT11 
+gT11: [0..1] init 0;
+gT11_achieved_: [0..1] init 0;
+[pursue_GT11] gT11=0 & gT11_achieved_=0 -> (gT11'=1);
+[try_GT11] gT11=1 & gT11_achieved_=0 -> GT11_achievable: (gT11_achieved_'=1) + 1-GT11_achievable: (gT11'=0);
+[achieved_GT11] gT11=1 & gT11_achieved_=1 -> (gT11'=0);
+endmodule
+
+
+const int decision_GG9 = 2;
+const int decision_GG9_ = 4;
+module GG9 //fixed 
+gG9: [0..1] init 0;
+[pursue_GG9] !gG9_achieved & gG9 = 0 -> (gG9'=1);
+[pursue_GT10] !gG9_achieved & gG9=1 & GG9_achievable*N>decision_GG9 & gT11=0-> true; 
+[pursue_GT11] !gG9_achieved & gG9=1 & GG9_achievable*N>decision_GG9 & gT10_achieved & gT10=0-> true; 
+[skip_GG9] !gG9_achieved & gG9=1 & gT10=0 & gT11=0 & GG9_achievable * N <= decision_GG9 -> (gG9'=0);
+[achieved_GG9] gG9=1 & gG9_achieved & gT10=0 & gT11=0 -> (gG9'=0); 
+ endmodule
+formula gG9_achieved = (true & gT10_achieved & gT11_achieved);
+formula GG9_achievable = gG9_achieved ? 0 : 1* (!gT10_achieved ? GT10_achievable : 1)* (!gT11_achieved ? GT11_achievable : 1);
+
+
+const double GT13_achievable = 0.8;
+formula gT13_achieved = (gT13_achieved_=1);
+const int decision_GT13 = 2;
+module taskT13 
+gT13: [0..1] init 0;
+gT13_achieved_: [0..1] init 0;
+[pursue_GT13] gT13=0 & gT13_achieved_=0 -> (gT13'=1);
+[try_GT13] gT13=1 & gT13_achieved_=0 -> GT13_achievable: (gT13_achieved_'=1) + 1-GT13_achievable: (gT13'=0);
+[achieved_GT13] gT13=1 & gT13_achieved_=1 -> (gT13'=0);
+endmodule
+
+
+const double GT14_achievable = 0.8;
+formula gT14_achieved = (gT14_achieved_=1);
+const int decision_GT14 = 2;
+module taskT14 
+gT14: [0..1] init 0;
+gT14_achieved_: [0..1] init 0;
+[pursue_GT14] gT14=0 & gT14_achieved_=0 -> (gT14'=1);
+[try_GT14] gT14=1 & gT14_achieved_=0 -> GT14_achievable: (gT14_achieved_'=1) + 1-GT14_achievable: (gT14'=0);
+[achieved_GT14] gT14=1 & gT14_achieved_=1 -> (gT14'=0);
+endmodule
+
+
+const int decision_GG12 = 2;
+const int decision_GG12_ = 4;
+module GG12 //interleaved 
+gG12: [0..1] init 0;
+[pursue_GG12] !gG12_achieved & gG12 = 0 -> (gG12'=1);
+[pursue_GT13] !gG12_achieved & gG12=1 & GT13_achievable*N>decision_GT13 -> true; 
+[pursue_GT14] !gG12_achieved & gG12=1 & GT14_achievable*N>decision_GT14 -> true; 
+[skip_GG12] !gG12_achieved & gG12=1 & gT13=0 & gT14=0 & !(GT13_achievable*N>decision_GT13 | GT14_achievable*N>decision_GT14 | false) -> (gG12'=0);
+[achieved_GG12] gG12=1 & gG12_achieved & gT13=0 & gT14=0 -> (gG12'=0); 
+ endmodule
+formula gG12_achieved = (true & gT13_achieved & gT14_achieved);
+formula GG12_achievable = gG12_achieved ? 0 : 1* (!gT13_achieved ? GT13_achievable : 1)* (!gT14_achieved ? GT14_achievable : 1);
+
+
+const int decision_GG8 = 2;
+const int decision_GG8_ = 4;
+module GG8 //non-idempotent 
+gG8: [0..1] init 0;
+[pursue_GG8] !gG8_achieved & gG8 = 0 -> (gG8'=1);
+[pursue_GG9] !gG8_achieved & gG8=1 & GG8_achievable*N>decision_GG8 & gG12=0  & (GG9_achievable/(GG9_achievable+GG12_achievable+0))*N > decision_GG8_ -> true; 
+[pursue_GG12] !gG8_achieved & gG8=1 & GG8_achievable*N>decision_GG8 & gG9=0  & (GG12_achievable/(GG9_achievable+GG12_achievable+0))*N > decision_GG8_ & !(GG9_achievable/(GG9_achievable+GG12_achievable+0))*N > decision_GG8_ -> true; 
+[skip_GG8] !gG8_achieved & gG8=1 & gG9=0 & gG12=0 & GG8_achievable * N <= decision_GG8 -> (gG8'=0);
+[achieved_GG8] gG8=1 & gG8_achieved & gG9=0 & gG12=0 -> (gG8'=0); 
+ endmodule
+formula gG8_achieved = (false | gG9_achieved | gG12_achieved);
+formula GG8_achievable = 0 + GG9_achievable + GG12_achievable - (1 * GG9_achievable * GG12_achievable );
+
+
+const int decision_GG0 = 2;
+const int decision_GG0_ = 4;
+module GG0 //committed 
+gG0: [0..1] init 0;
+gG0_chosen: [0..2] init 0;
+[pursue_GG0] !gG0_achieved & gG0 = 0 -> (gG0'=1);
+[pursue_GG1] !gG0_achieved & gG0=1 & gG0_chosen=0 & GG0_achievable*N>decision_GG0 & gG8=0  & (GG1_achievable/(GG1_achievable+GG8_achievable+0))*N > decision_GG0_ -> (gG0_chosen'=1); 
+[pursue_GG1] !gG0_achieved & gG0=1 & gG0_chosen=1 & GG1_achievable*N > decision_GG1 -> true;
+[pursue_GG8] !gG0_achieved & gG0=1 & gG0_chosen=0 & GG0_achievable*N>decision_GG0 & gG1=0  & (GG8_achievable/(GG1_achievable+GG8_achievable+0))*N > decision_GG0_ & !(GG1_achievable/(GG1_achievable+GG8_achievable+0))*N > decision_GG0_ -> (gG0_chosen'=2); 
+[pursue_GG8] !gG0_achieved & gG0=1 & gG0_chosen=2 & GG8_achievable*N > decision_GG8 -> true;
+[skip_GG0] gG0_chosen=0 & !gG0_achieved & gG0=1 & gG1=0 & gG8=0 & GG0_achievable * N <= decision_GG0 -> (gG0'=0);
+[skip_GG0] !gG0_achieved & gG0=1 & gG1=0 & gG0_chosen=1 & GG1_achievable*N <= decision_GG1 -> (gG0'=0);
+[skip_GG0] !gG0_achieved & gG0=1 & gG8=0 & gG0_chosen=2 & GG8_achievable*N <= decision_GG8 -> (gG0'=0);
+[achieved_GG0] gG0=1 & gG0_achieved & gG1=0 & gG8=0 -> (gG0'=0); 
+ endmodule
+formula gG0_achieved = (false | gG1_achieved | gG8_achieved);
+formula GG0_achievable = gG0_chosen=1 ? GG1_achievable:gG0_chosen=2 ? GG8_achievable:(0 + GG1_achievable + GG8_achievable - 1 * GG1_achievable * GG8_achievable );

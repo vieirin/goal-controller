@@ -7,7 +7,7 @@ import { edgeEngineMapper } from '../../../../../../../../src/engines/edge/mappe
 describe('Goal Dependency Statement', () => {
   it('should output G4_achieved_maintain = true for G2 dependency', () => {
     // Load the model
-    const model = Model.load('../../examples/goalModel_TAS_3_.txt');
+    const model = Model.load('../../examples/edge/goalModel_TAS_3_.txt');
 
     // Convert to tree
     const tree = GoalTree.fromModel(model, edgeEngineMapper);

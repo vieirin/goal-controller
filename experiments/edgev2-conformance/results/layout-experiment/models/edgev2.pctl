@@ -1,0 +1,77 @@
+P=? [ G 0 + t4_state + t5_state <= 1 ] =1
+P=? [ G t5_state=1 => t4_failed=3 ]=1
+ P=? [ G g3_achieved => (t4_achieved | (t4_failed=3 & t5_achieved)) ]=1 
+
+
+P=? [ G 0 + t7_state + t8_state <= 1 ] =1
+
+
+
+
+P=? [ G 0 + t11_state + t12_state <= 1 ] =1
+P=? [G t11_state=1 => (true )] = 1
+P=? [G t12_state=1 => (true & t11_achieved )] = 1
+
+
+
+P=? [ G 0 + t14_state + t15_state <= 1 ] =1
+P=? [G t14_state=1 => (true )] = 1
+P=? [G t15_state=1 => (true & t14_achieved )] = 1
+
+P=? [ G 0 + g10_state + g13_state <= 1 ] =1
+P=? [ G g13_state=1 => g10_failed=3 ]=1
+ P=? [ G g9_achieved => (g10_achieved | (g10_failed=3 & g13_achieved)) ]=1 
+P=? [ G 0 + g2_state + g9_state <= 1 ] =1
+
+
+
+P=? [ G 0 + t19_state + t20_state <= 1 ] =1
+P=? [G t19_state=1 => g18_chosen=1 ] =1
+P=? [G t20_state=1 => g18_chosen=2 ] =1
+
+
+P=? [ G 0 + t22_state + t23_state <= 1 ] =1
+P=? [G t22_state=1 => (true )] = 1
+P=? [G t23_state=1 => (true & t22_achieved )] = 1
+
+
+
+
+P=? [ G 0 + t26_state + t27_state <= 1 ] =1
+P=? [G t26_state=1 => g25_chosen=1 ] =1
+P=? [G t27_state=1 => g25_chosen=2 ] =1
+
+
+P=? [ G 0 + t29_state + t30_state <= 1 ] =1
+P=? [ G 0 + g25_state + g28_state <= 1 ] =1
+P=? [G g25_state=1 => (true )] = 1
+P=? [G g28_state=1 => (true & g25_achieved )] = 1
+
+
+P=? [ G 0 + g1_state + g16_state <= 1 ] =1
+P=? [ G g16_state=1 => g1_failed=3 ]=1
+ P=? [ G g0_achieved => (g1_achieved | (g1_failed=3 & g16_achieved)) ]=1
+P>=1 [ G g1_state + g16_state <= 1 ]
+P>=1 [ G g16_state=1 => g1_failed=3 ]
+P>=1 [ G g2_state + g9_state <= 1 ]
+P>=1 [ G t4_state + t5_state <= 1 ]
+P>=1 [ G t5_state=1 => t4_failed=3 ]
+P>=1 [ G t7_state + t8_state <= 1 ]
+P>=1 [ G g10_state + g13_state <= 1 ]
+P>=1 [ G g13_state=1 => g10_failed=3 ]
+P>=1 [ G t11_state + t12_state <= 1 ]
+P>=1 [ G t12_state=1 => (t11_achieved) ]
+P>=1 [ G t14_state + t15_state <= 1 ]
+P>=1 [ G t15_state=1 => (t14_achieved) ]
+P>=1 [ G t19_state + t20_state <= 1 ]
+P>=1 [ G t19_state=1 => g18_chosen=1 ]
+P>=1 [ G t20_state=1 => g18_chosen=2 ]
+P>=1 [ G t22_state + t23_state <= 1 ]
+P>=1 [ G t23_state=1 => (t22_achieved) ]
+P>=1 [ G g25_state + g28_state <= 1 ]
+P>=1 [ G g28_state=1 => (g25_achieved) ]
+P>=1 [ G t26_state + t27_state <= 1 ]
+P>=1 [ G t26_state=1 => g25_chosen=1 ]
+P>=1 [ G t27_state=1 => g25_chosen=2 ]
+P>=1 [ G t29_state + t30_state <= 1 ]
+P=? [ F g0_achieved ]

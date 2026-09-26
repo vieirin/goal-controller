@@ -4,7 +4,7 @@ import { GoalTree, Model } from '../../src/index';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
-  const model = Model.load('../../examples/goalModel_TAS_3_.txt');
+  const model = Model.load('../../examples/edge/goalModel_TAS_3_.txt');
 
   const tree = GoalTree.fromModel(model);
   const allGoals = tree.query.allGoalsMap();

@@ -28,7 +28,7 @@ export type GoalExecutionDetail = (
   | { type: 'anyOrder'; anyOrder: string[] }
   | { type: 'degradation'; degradationList: string[] }
   | { type: 'decisionMaking'; dm: string[] }
-  | { type: 'choice' }
+  | { type: 'choice'; choice?: string[] }
 ) & {
   retryMap?: Dictionary<number>;
 };

@@ -1,5 +1,5 @@
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../types';
+import type { EdgeGoalNode } from '../../../../types';
+import { construct, orderedChildIds, retriedChildren } from './children';
 import { getLogger } from '../../../../logger/logger';
 import {
   chosenVariable,
@@ -22,29 +22,17 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
 
   const stateVariableStatement = defineVariable(stateVariable(goal.id), 1);
 
-  const pursueableChildren = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
-  );
-  const isOrChoice =
-    goal.relationToChildren === 'or' &&
-    goal.properties.engine.executionDetail?.type === 'choice';
   const chosenVariableStatement =
-    isOrChoice && pursueableChildren.length > 0
-      ? defineVariable(chosenVariable(goal.id), pursueableChildren.length)
+    construct(goal) === 'choice'
+      ? defineVariable(chosenVariable(goal.id), orderedChildIds(goal).length)
       : null;
 
-  const isDegradation =
-    goal.properties.engine.executionDetail?.type === 'degradation';
-  const childrenWithMaxRetries = isDegradation
-    ? Node.childrenWithRetries(goal)
-    : [];
+  // degradation: one retry counter per retried child (notation @n or maxRetries)
+  const retries = retriedChildren(goal);
   const maxRetriesVariableStatement =
-    childrenWithMaxRetries.length > 0
-      ? childrenWithMaxRetries
-          .map((child: EdgeGoalNode | EdgeTask) => {
-            const maxRetries = child.properties.engine.maxRetries;
-            return defineVariable(goalFailedVariable(child.id), maxRetries);
-          })
+    retries.length > 0
+      ? retries
+          .map(({ id, retries: max }) => defineVariable(goalFailedVariable(id), max))
           .join('\n  ')
       : null;
 

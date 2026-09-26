@@ -1,0 +1,9 @@
+P=? [ G 0 + gG1 + gG4 <= 1 ] =1
+
+P=? [ G 0 + gT2 + gT3 <= 1 ] =1
+P=? [ G gT3=1 => gG1_failed=3 ]=1
+ P=? [ G gG1_achieved => (gT2_achieved | (gG1_failed=3 & gT3_achieved)) ]=1 
+P=? [ G 0 + gT5 + gT6 <= 1 ] =1
+P=? [ G gT6=1 => gG4_failed=3 ]=1
+ P=? [ G gG4_achieved => (gT5_achieved | (gG4_failed=3 & gT6_achieved)) ]=1
+P=? [ F gG0_achieved ]

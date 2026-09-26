@@ -1,6 +1,7 @@
-import { parenthesis } from '../../../../../mdp/common';
 import {
   achievableFormulaVariable,
+  DISCRETISATION_CONSTANT as N,
+  relativeFormulaVariable,
   stateVariable,
 } from '../../../../../template/common';
 import {
@@ -10,22 +11,18 @@ import {
 
 export type PursueStatement = { left: string; right: string };
 
-/** G{id}_achievable*10.0 > decision_G{id} */
-export const shouldPursue = (goalId: string): string =>
-  `${achievableFormulaVariable(goalId)}*10.0 > ${decisionVariableName(goalId)}`;
+/** G{id}_achievable*N > decision_G{id} */
+export const shouldPursue = (nodeId: string): string =>
+  `${achievableFormulaVariable(nodeId)}*${N} > ${decisionVariableName(nodeId)}`;
 
 export const parentShouldPursue = shouldPursue;
 export const childShouldPursue = shouldPursue;
 
-/** Other children not currently pursued: g*_state!=1 */
-export const otherChildrenNotPursued = (
-  childIds: string[],
-  currentChildId: string,
-): string =>
-  childIds
-    .filter((id) => id !== currentChildId)
-    .map((id) => `${stateVariable(id)}!=1`)
-    .join(' & ');
+/** G{id}_achievable*N <= decision_G{id} */
+export const shouldSkip = (nodeId: string): string =>
+  `${achievableFormulaVariable(nodeId)}*${N} <= ${decisionVariableName(nodeId)}`;
+
+export const parentShouldSkip = shouldSkip;
 
 /** Other children idle: g*_state=0 */
 export const otherChildrenIdle = (
@@ -37,62 +34,66 @@ export const otherChildrenIdle = (
     .map((id) => `${stateVariable(id)}=0`)
     .join(' & ');
 
-/** G{id}_achievable*10.0 <= decision_G{id} */
-export const shouldSkip = (goalId: string): string =>
-  `${achievableFormulaVariable(goalId)}*10.0 <= ${decisionVariableName(goalId)}`;
+/** All children idle: g*_state=0 */
+export const childrenIdle = (childIds: string[]): string =>
+  childIds.map((id) => `${stateVariable(id)}=0`).join(' & ');
 
-export const parentShouldSkip = shouldSkip;
+/** (G1_achievable/(G1_achievable+G2_achievable))*N > _decision_G0 */
+const shareAboveDecision = (
+  parentGoalId: string,
+  childIds: string[],
+  childId: string,
+): string =>
+  `(${achievableFormulaVariable(childId)}/(${childIds
+    .map(achievableFormulaVariable)
+    .join('+')}))*${N} > ${selectionDecisionVariableName(parentGoalId)}`;
+
+/** G1_relative*N > _decision_G0 (achievement-aware share, AND anyOrder) */
+const relativeAboveDecision = (parentGoalId: string, childId: string): string =>
+  `${relativeFormulaVariable(childId)}*${N} > ${selectionDecisionVariableName(parentGoalId)}`;
 
 /**
- * Child selection vs `_decision_G{parent}` on a 0..10 scale.
- * Used by OR joints and AND anyOrder.
- * N=2 matches EDGEV2: (G1/(G1+G2))*10.0 ?> _decision
- * N>2: ordered cumulative achievability bands.
+ * Priority cascade used by the EDGE reference to pick one child: the child's
+ * share must reach `_decision_G<parent>` and every higher-priority (earlier)
+ * child's share must not.
+ *   child i: share_i*N > _d & !(share_0*N > _d) & … & !(share_{i-1}*N > _d)
  */
+const cascade = (
+  orderedChildIds: string[],
+  childId: string,
+  above: (id: string) => string,
+): string => {
+  const index = orderedChildIds.indexOf(childId);
+  if (index < 0) {
+    throw new Error(
+      `Child ${childId} not in children [${orderedChildIds.join(', ')}]`,
+    );
+  }
+  return [
+    above(childId),
+    ...orderedChildIds.slice(0, index).map((id) => `!(${above(id)})`),
+  ].join(' & ');
+};
+
+/** OR goals: share of raw achievabilities (reference non-idempotent / committed / preferred). */
 export const selectChildByDecision = (
   parentGoalId: string,
   orderedChildIds: string[],
-  currentChildId: string,
-): string => {
-  const index = orderedChildIds.indexOf(currentChildId);
-  if (index < 0) {
-    throw new Error(
-      `Child ${currentChildId} not in children [${orderedChildIds.join(', ')}]`,
-    );
-  }
+  childId: string,
+): string =>
+  cascade(orderedChildIds, childId, (id) =>
+    shareAboveDecision(parentGoalId, orderedChildIds, id),
+  );
 
-  const decision = selectionDecisionVariableName(parentGoalId);
-  const terms = orderedChildIds.map((id) => achievableFormulaVariable(id));
-  const sum = terms.join('+');
-  const cum = (endExclusive: number): string => {
-    const slice = terms.slice(0, endExclusive);
-    const [first, ...rest] = slice;
-    if (!first) {
-      return '0';
-    }
-    return rest.length === 0 ? first : parenthesis(slice.join('+'));
-  };
-
-  const n = orderedChildIds.length;
-  if (n === 1) {
-    return 'true';
-  }
-
-  // band upper for first k children: sum(s0..s_{k-1})/S * 10
-  const bandUpper = (k: number): string =>
-    `${parenthesis(`${cum(k)}/(${sum})`)}*10.0`;
-
-  if (index === 0) {
-    // first: (s0/S)*10 > _decision
-    return `${bandUpper(1)} > ${decision}`;
-  }
-  if (index === n - 1) {
-    // last: sum(s0..s_{n-2})/S*10 <= _decision
-    return `${bandUpper(n - 1)} <= ${decision}`;
-  }
-  // middle: lower <= _decision < upper
-  return `${bandUpper(index)} <= ${decision} & ${bandUpper(index + 1)} > ${decision}`;
-};
+/** AND anyOrder: share of not-yet-achieved siblings (reference flexible). */
+export const selectChildByRelativeDecision = (
+  parentGoalId: string,
+  orderedChildIds: string[],
+  childId: string,
+): string =>
+  cascade(orderedChildIds, childId, (id) =>
+    relativeAboveDecision(parentGoalId, id),
+  );
 
 /** Append non-empty guard fragments with & */
 export const joinGuards = (

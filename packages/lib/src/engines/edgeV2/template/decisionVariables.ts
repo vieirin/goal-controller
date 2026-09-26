@@ -1,57 +1,64 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree } from '../types';
 import { getLogger } from '../logger/logger';
+import {
+  DEFAULT_DISCRETISATION,
+  DISCRETISATION_CONSTANT,
+} from './common';
+import { usesChildSelection } from './modules/goalModule/template/children';
 
-// Kept for template API compatibility; v2 decision vars are no longer discretized by achievability space
+// Kept for template API compatibility; edgeV2 uses `discretisation` (N) instead
 export const DEFAULT_ACHIEVABILITY_SPACE = 4;
 
-export const decisionVariableName = (goalId: string): string =>
-  `decision_${goalId}`;
+export const decisionVariableName = (nodeId: string): string =>
+  `decision_${nodeId}`;
 
-/** Child-selection const `_decision_G<id>` — used by OR joints and AND anyOrder. */
+/** Child-selection const `_decision_G<id>` — goals that pick one child by relative achievability. */
 export const selectionDecisionVariableName = (goalId: string): string =>
   `_decision_${goalId}`;
 
-const isOrGoal = (goal: EdgeGoalNode): boolean =>
-  goal.relationToChildren === 'or';
-
-const isAnyOrderAndGoal = (goal: EdgeGoalNode): boolean =>
-  goal.relationToChildren === 'and' &&
-  goal.properties.engine.executionDetail?.type === 'anyOrder';
-
-/** Decision vars for a goal: always decision_G<id>; OR and AND+anyOrder also get _decision_G<id>. */
+/** Decision vars for a goal: always decision_G<id>; child-selecting goals also get _decision_G<id>. */
 export const decisionVariableNamesForGoal = (goal: EdgeGoalNode): string[] => {
   const names = [decisionVariableName(goal.id)];
-  if (isOrGoal(goal) || isAnyOrderAndGoal(goal)) {
+  if (usesChildSelection(goal)) {
     names.push(selectionDecisionVariableName(goal.id));
   }
   return names;
 };
 
+/**
+ * EDGE reference preamble:
+ *   const int N=<discretisation>;
+ *   const int decision_G0;  const int _decision_G0;  const int decision_T1; ...
+ * Decision thresholds are left undefined: they are the controller's choices.
+ */
 export const decisionVariablesTemplate = ({
   gm,
   enabled = true,
+  discretisation = DEFAULT_DISCRETISATION,
 }: {
   gm: EdgeGoalTree;
   enabled?: boolean;
-  /** @deprecated Unused in edgeV2; kept for call-site compatibility */
-  achievabilitySpace?: number;
+  discretisation?: number;
 }): string => {
+  if (!Number.isInteger(discretisation) || discretisation <= 0) {
+    throw new Error(
+      `[INVALID OPTION]: discretisation must be a positive integer, got ${discretisation}`,
+    );
+  }
+  const scale = `const int ${DISCRETISATION_CONSTANT} = ${discretisation};`;
   if (!enabled) {
-    return '';
+    return scale;
   }
 
   const logger = getLogger();
-  const decisionVariables: string[] = [];
-  const allGoals = GoalTree.allByType(gm, 'goal');
-
-  allGoals.forEach((goal) => {
-    const names = decisionVariableNamesForGoal(goal);
-    names.forEach((name) => {
-      logger.decisionVariable([name, 1]);
-      decisionVariables.push(`const int ${name};`);
-    });
+  const names = [
+    ...GoalTree.allByType(gm, 'goal').flatMap(decisionVariableNamesForGoal),
+    ...GoalTree.allByType(gm, 'task').map((task) => decisionVariableName(task.id)),
+  ];
+  names.forEach((name) => {
+    logger.decisionVariable([name, discretisation]);
   });
 
-  return decisionVariables.join('\n');
+  return [scale, ...names.map((name) => `const int ${name};`)].join('\n');
 };

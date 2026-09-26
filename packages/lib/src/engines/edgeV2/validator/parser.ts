@@ -259,6 +259,7 @@ const parseModule = (
 export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
   const lines = prismModel.split('\n');
   const goalModules = new Map<string, ModuleInfo>();
+  const taskModules = new Map<string, ModuleInfo>();
   let changeManagerModule: ModuleInfo | undefined;
   let systemModule: ModuleInfo | undefined;
   const formulas: FormulaInfo[] = [];
@@ -290,6 +291,9 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
           changeManagerModule = module;
         } else if (module.name === 'System') {
           systemModule = module;
+        } else if (/^T\d+$/.test(module.name)) {
+          // taskModules layout: one module per task
+          taskModules.set(module.name, module);
         } else {
           // Assume it's a goal module
           goalModules.set(module.name, module);
@@ -320,6 +324,7 @@ export const parsePrismModel = (prismModel: string): ParsedPrismModel => {
 
   return {
     goalModules,
+    taskModules,
     changeManagerModule,
     systemModule,
     formulas,

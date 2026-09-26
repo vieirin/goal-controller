@@ -1,0 +1,8 @@
+P>=1 [ G g1_state + g5_state + g12_state <= 1 ];
+P>=1 [ G g2_state + t4_state <= 1 ];
+P>=1 [ G t4_state=1 => (g2_achieved) ];
+P>=1 [ G g6_state + g8_state <= 1 ];
+P>=1 [ G t9_state + t10_state + t11_state <= 1 ];
+P>=1 [ G t10_state=1 => (t9_achieved) ];
+P>=1 [ G t11_state=1 => (t9_achieved & t10_achieved) ];
+P=? [ F g0_achieved ]

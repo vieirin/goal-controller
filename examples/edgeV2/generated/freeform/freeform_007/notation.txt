@@ -1,0 +1,1 @@
+G0[G1+G5+G12] G1[G2;T4] G2(basic_and:T3) G5[G6+G8] G6(basic_and:T7) G8[T9;T10;T11] G12(basic_and:G13) G13(basic_or:T14)

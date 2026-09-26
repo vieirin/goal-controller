@@ -1,0 +1,15 @@
+P>=1 [ G 0 + gT3 + gT4 <= 1 ];
+P>=1 [ G gT4=1 => gG2_failed=3 ];
+P>=1 [ G gG2_achieved => (gT3_achieved | (gG2_failed=3 & gT4_achieved)) ];
+P>=1 [ G 0 + gT6 + gT7 <= 1 ];
+P>=1 [ G 0 + gG2 + gG5 <= 1 ];
+P>=1 [ G 0 + gT10 + gT11 <= 1 ];
+P>=1 [G gT10=1 => gG9_chosen=1 ];
+P>=1 [G gT11=1 => gG9_chosen=2 ];
+P>=1 [ G 0 + gT13 + gT14 <= 1 ];
+P>=1 [G gT13=1 => (true )];
+P>=1 [G gT14=1 => (true & gT13_achieved )];
+P>=1 [ G 0 + gG9 + gG12 <= 1 ];
+P>=1 [G gG9=1 => (true )];
+P>=1 [G gG12=1 => (true & gG9_achieved )];
+P=? [ F gG0_achieved ]

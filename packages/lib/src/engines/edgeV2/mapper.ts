@@ -185,6 +185,7 @@ export const edgeEngineMapper = createEngineMapper<
   EdgeTaskProps,
   EdgeResourceProps
 >()({
+  grammar: 'edgeV2',
   allowedGoalKeys: EDGE_GOAL_KEYS,
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,

@@ -1,9 +1,9 @@
 import type { EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import {
-  achievedVariable,
-  failed,
-  pursuedVariable,
+  achievedFormula,
+  stateVariable,
+  taskAchievedVariable,
 } from '../../../../../template/common';
 
 const defineVariable = (variable: string): string => {
@@ -20,36 +20,17 @@ const defineVariable = (variable: string): string => {
   return `${variable}: [0..${upperBound}] init 0;`;
 };
 
-export const maxRetriesVariable = (task: EdgeTask): string => {
-  const maxRetries = task.properties.engine.maxRetries;
-
-  // Only emit variable if maxRetries is a finite positive integer
-  if (
-    typeof maxRetries !== 'number' ||
-    !Number.isFinite(maxRetries) ||
-    maxRetries <= 0
-  ) {
-    return '';
-  }
-
-  const logger = getLogger();
-
-  logger.variableDefinition({
-    variable: failed(task.id),
-    upperBound: maxRetries,
-    initialValue: 0,
-    type: 'int',
-    context: 'task',
-  });
-  return `${failed(task.id)}: [0..${maxRetries}] init 0;`;
-};
-
+/** t1_state (0 idle, 1 pursued) and t1_achieved_ (backs the t1_achieved formula) */
 export const taskVariables = (task: EdgeTask): string => {
   const logger = getLogger();
   logger.initTask(task);
 
   return `
-  ${defineVariable(pursuedVariable(task.id))}
-  ${defineVariable(achievedVariable(task.id))}
+  ${defineVariable(stateVariable(task.id))}
+  ${defineVariable(taskAchievedVariable(task.id))}
 `.trim();
 };
+
+/** formula t1_achieved = (t1_achieved_=1); — same interface as goal achieved formulas */
+export const taskAchievedFormula = (task: EdgeTask): string =>
+  `formula ${achievedFormula(task.id)} = (${taskAchievedVariable(task.id)}=1);`;

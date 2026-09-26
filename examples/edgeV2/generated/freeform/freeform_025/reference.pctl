@@ -1,0 +1,12 @@
+P=? [ G 0 + gG1 + gG8 <= 1 ] =1
+P=? [G gG1=1 => (true )] = 1
+P=? [G gG8=1 => (true & gG1_achieved )] = 1
+
+P=? [ G 0 + gG9 + gG13 <= 1 ] =1
+P=? [G gG9=1 => gG8_chosen=1 ] =1
+P=? [G gG13=1 => gG8_chosen=2 ] =1
+P=? [ G 0 + gT10 + gT11 + gT12 <= 1 ] =1
+P=? [G gT10=1 => gG9_chosen=1 ] =1
+P=? [G gT11=1 => gG9_chosen=2 ] =1
+P=? [G gT12=1 => gG9_chosen=3 ] =1
+P=? [ F gG0_achieved ]

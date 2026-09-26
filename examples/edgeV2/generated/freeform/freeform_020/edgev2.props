@@ -1,0 +1,14 @@
+P>=1 [ G g1_state + g12_state <= 1 ];
+P>=1 [ G g12_state=1 => g1_failed=2 ];
+P>=1 [ G g2_state + g7_state <= 1 ];
+P>=1 [ G g7_state=1 => g2_failed=5 ];
+P>=1 [ G g3_state + t6_state <= 1 ];
+P>=1 [ G t4_state + t5_state <= 1 ];
+P>=1 [ G t5_state=1 => (t4_achieved) ];
+P>=1 [ G t8_state + g9_state <= 1 ];
+P>=1 [ G t10_state + t11_state <= 1 ];
+P>=1 [ G t13_state + g14_state + g16_state <= 1 ];
+P>=1 [ G t17_state + t18_state + t19_state <= 1 ];
+P>=1 [ G t18_state=1 => t17_failed=2 ];
+P>=1 [ G t19_state=1 => t17_failed=2 ];
+P=? [ F g0_achieved ]
