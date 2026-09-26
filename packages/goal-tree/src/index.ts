@@ -118,3 +118,8 @@ export { cartesianProduct } from './internal/utils';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export { getAssertionVariables } from './parsers/getAssertionVariables';
+export {
+  DEFAULT_RT_GRAMMAR,
+  getGoalDetail,
+  type RTGrammar,
+} from './parsers/goalNameParser';

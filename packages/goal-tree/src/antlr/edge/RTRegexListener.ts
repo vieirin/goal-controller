@@ -5,7 +5,6 @@ import {ParseTreeListener} from "antlr4";
 
 import { PrintExprContext } from "./RTRegexParser.js";
 import { BlankContext } from "./RTRegexParser.js";
-import { GAnyOrderContext } from "./RTRegexParser.js";
 import { GIdContext } from "./RTRegexParser.js";
 import { NameOnlyContext } from "./RTRegexParser.js";
 import { GInterleavedContext } from "./RTRegexParser.js";
@@ -52,18 +51,6 @@ export default class RTRegexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitBlank?: (ctx: BlankContext) => void;
-	/**
-	 * Enter a parse tree produced by the `gAnyOrder`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	enterGAnyOrder?: (ctx: GAnyOrderContext) => void;
-	/**
-	 * Exit a parse tree produced by the `gAnyOrder`
-	 * labeled alternative in `RTRegexParser.expr`.
-	 * @param ctx the parse tree
-	 */
-	exitGAnyOrder?: (ctx: GAnyOrderContext) => void;
 	/**
 	 * Enter a parse tree produced by the `gId`
 	 * labeled alternative in `RTRegexParser.expr`.

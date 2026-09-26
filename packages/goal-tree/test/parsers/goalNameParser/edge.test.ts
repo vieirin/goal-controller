@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { getGoalDetail } from '../../src/parsers/goalNameParser';
+import { getGoalDetail } from '../../../src/parsers/goalNameParser/edge';
 
-describe('GoalNameParser', () => {
+describe('GoalNameParser (edge grammar)', () => {
   describe('getGoalDetail', () => {
     it('should parse G6: Deliver Sample to Lab [G10;G11;G12] correctly', () => {
       const goalText = 'G6: Deliver Sample to Lab [G10;G11;G12]';
@@ -57,34 +57,6 @@ describe('GoalNameParser', () => {
       });
     });
 
-    it('should handle any-order (unordered AND) goals', () => {
-      const goalText = 'G0: Any Order Goal [G1+G2]';
-      const result = getGoalDetail({ goalText });
-
-      assert.deepStrictEqual(result, {
-        id: 'G0',
-        goalName: 'Any Order Goal',
-        executionDetail: {
-          type: 'anyOrder',
-          anyOrder: ['G1', 'G2'],
-        },
-      });
-    });
-
-    it('should handle any-order with multiple children', () => {
-      const goalText = 'G1: Unordered Tasks [G2+G3+G4+G5]';
-      const result = getGoalDetail({ goalText });
-
-      assert.deepStrictEqual(result, {
-        id: 'G1',
-        goalName: 'Unordered Tasks',
-        executionDetail: {
-          type: 'anyOrder',
-          anyOrder: ['G2', 'G3', 'G4', 'G5'],
-        },
-      });
-    });
-
     it('should handle degradation goals', () => {
       const goalText = 'G8: Degradation Goal [G9->G10]';
       const result = getGoalDetail({ goalText });
@@ -100,25 +72,12 @@ describe('GoalNameParser', () => {
     });
 
     it('should handle choice goals', () => {
-      const goalText = 'G11: Choice Goal [G12?G13]';
+      const goalText = 'G11: Choice Goal +';
       const result = getGoalDetail({ goalText });
 
       assert.deepStrictEqual(result, {
         id: 'G11',
         goalName: 'Choice Goal',
-        executionDetail: {
-          type: 'choice',
-        },
-      });
-    });
-
-    it('should handle choice with multiple children', () => {
-      const goalText = 'G1: Multiple Choices [G2?G3?G4?G5]';
-      const result = getGoalDetail({ goalText });
-
-      assert.deepStrictEqual(result, {
-        id: 'G1',
-        goalName: 'Multiple Choices',
         executionDetail: {
           type: 'choice',
         },
