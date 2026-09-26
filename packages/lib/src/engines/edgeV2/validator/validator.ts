@@ -54,6 +54,7 @@ const validateGoal = (
   const emittedFormulas = parsedModel.formulas
     .filter(
       (f) =>
+        expected.formulas.includes(f.name) ||
         f.name === goalId ||
         f.name === lowerGoalId ||
         f.name.startsWith(`${goalId}_`) ||

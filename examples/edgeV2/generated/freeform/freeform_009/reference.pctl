@@ -1,0 +1,3 @@
+P=? [ G 0 + gG1 + gG4 <= 1 ] =1
+P=? [ G 0 + gT5 + gT6 <= 1 ] =1
+P=? [ F gG0_achieved ]

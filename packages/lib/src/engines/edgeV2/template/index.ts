@@ -1,5 +1,6 @@
 import { validate, formatValidationReport } from '../validator';
-import { decisionVariablesTemplate, DEFAULT_ACHIEVABILITY_SPACE } from './decisionVariables';
+import { DEFAULT_DISCRETISATION } from './common';
+import { decisionVariablesTemplate } from './decisionVariables';
 import type { EdgeGoalTree } from '../types';
 import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules } from './modules/goalModule/goalModules';
@@ -11,18 +12,21 @@ const edgeDTMCTemplate = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
-  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+  discretisation = DEFAULT_DISCRETISATION,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
+  /** N in X_achievable*N > decision_X (default 10) */
+  discretisation?: number;
 }): string => {
   const dtmcModel = `dtmc
 
-${decisionVariablesTemplate({ gm, enabled: generateDecisionVars, achievabilitySpace })}
+${decisionVariablesTemplate({ gm, enabled: generateDecisionVars, discretisation })}
 
 ${goalModules({ gm })}
 
@@ -39,16 +43,19 @@ export const generateValidatedPrismModel = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
-  achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+  discretisation = DEFAULT_DISCRETISATION,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
+  /** N in X_achievable*N > decision_X (default 10) */
+  discretisation?: number;
 }): string => {
-  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables, generateDecisionVars, achievabilitySpace });
+  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables, generateDecisionVars, discretisation });
 
   const report = validate(gm, prismModel, fileName);
   if (report.summary.totalMissing > 0) {

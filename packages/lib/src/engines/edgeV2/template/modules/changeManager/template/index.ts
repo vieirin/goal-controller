@@ -1,5 +1,5 @@
 import { taskTransitions } from './tasks/transitions';
-import { taskVariables } from './tasks/variables';
+import { taskAchievedFormula, taskVariables } from './tasks/variables';
 import type { EdgeTask } from '../../../../types';
 
 export const changeManagerModuleTemplate = ({
@@ -19,5 +19,7 @@ export const changeManagerModuleTemplate = ({
   return `module ChangeManager
   ${variables.join('\n  ')}
   ${transitions.join('\n')}
-endmodule`;
+endmodule
+
+${tasks.map(taskAchievedFormula).join('\n')}`;
 };

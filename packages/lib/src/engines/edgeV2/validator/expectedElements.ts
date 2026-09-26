@@ -10,12 +10,18 @@ import {
   achievableFormulaVariable,
   achievedFormula,
   achievedTransition,
-  achievedVariable,
   chosenVariable,
   goalFailedVariable,
   pursueTransition,
+  relativeFormulaVariable,
   stateVariable,
+  taskAchievedVariable,
 } from '../template/common';
+import {
+  construct,
+  orderedChildIds,
+  retriedChildren,
+} from '../template/modules/goalModule/template/children';
 import type { ExpectedElements } from './types';
 
 const calculateGoalVariables = (goal: GoalNode): string[] => {
@@ -25,24 +31,14 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
   variables.push(stateVariable(goal.id));
 
   // OR + choice: chosen child index
-  if (
-    goal.relationToChildren === 'or' &&
-    goal.properties.engine.executionDetail?.type === 'choice'
-  ) {
-    const pursueableChildren = Node.children(goal).filter(
-      (child) => !Node.isResource(child),
-    );
-    if (pursueableChildren.length > 0) {
-      variables.push(chosenVariable(goal.id));
-    }
+  if (construct(goal) === 'choice') {
+    variables.push(chosenVariable(goal.id));
   }
 
-  // Degradation: failed counters for children with maxRetries
-  if (goal.properties.engine.executionDetail?.type === 'degradation') {
-    Node.childrenWithRetries(goal).forEach((child) => {
-      variables.push(goalFailedVariable(child.id));
-    });
-  }
+  // Degradation: retry counters for the retried children (notation @n or maxRetries)
+  retriedChildren(goal).forEach(({ id }) => {
+    variables.push(goalFailedVariable(id));
+  });
 
   return variables;
 };
@@ -52,12 +48,8 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
 
   // Always has pursue transitions: one for itself + one for each pursueable child
   transitions.push(pursueTransition(goal.id));
-  // Filter out resources - only goals and tasks can be pursued
-  const pursueableChildren = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
-  );
-  pursueableChildren.forEach((child) => {
-    transitions.push(pursueTransition(child.id));
+  orderedChildIds(goal).forEach((id) => {
+    transitions.push(pursueTransition(id));
   });
 
   // Always has achieve transition
@@ -74,6 +66,11 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
 
   // Always has achievability formula
   formulas.push(achievableFormulaVariable(goal.id));
+
+  // AND anyOrder: each child's relative share (named after the child)
+  if (construct(goal) === 'anyOrder') {
+    orderedChildIds(goal).forEach((id) => formulas.push(relativeFormulaVariable(id)));
+  }
 
   // Achieved formula (EDGEV2): children composition, or maintain sentence
   if (goal.properties.engine.execCondition?.maintain) {
@@ -115,8 +112,8 @@ const calculateChangeManagerTaskVariables = (
 
   tasks.forEach((task: Task) => {
     const variables: string[] = [];
-    variables.push(`${task.id}_pursued`);
-    variables.push(achievedVariable(task.id));
+    variables.push(stateVariable(task.id));
+    variables.push(taskAchievedVariable(task.id));
 
     taskVariables.set(task.id, variables);
   });

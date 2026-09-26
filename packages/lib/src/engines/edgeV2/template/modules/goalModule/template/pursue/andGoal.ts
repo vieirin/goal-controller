@@ -1,12 +1,12 @@
 import { getLogger } from '../../../../../logger/logger';
-import { parenthesis, separator } from '../../../../../mdp/common';
-import { achievedFormula, stateVariable } from '../../../../../template/common';
+import { separator } from '../../../../../mdp/common';
+import { achievedFormula } from '../../../../../template/common';
 import type { EdgeGoalNode } from '../../../../../types';
 import {
   joinGuards,
-  otherChildrenNotPursued,
+  otherChildrenIdle,
   parentShouldPursue,
-  selectChildByDecision,
+  selectChildByRelativeDecision,
 } from './decisionGuards';
 
 export const splitSequence = (
@@ -23,8 +23,8 @@ export const splitSequence = (
 };
 
 /**
- * AND + sequence (EDGEV2):
- *   G0_achievable*10.0 > decision_G0 [& g{prev}_achieved ...]
+ * AND + sequence (reference `fixed`):
+ *   G0_achievable*N > decision_G0 & g{prev}_achieved … & g{other}_state=0 …
  */
 export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
@@ -39,28 +39,24 @@ export const pursueAndSequentialGoal = (
 
   const [leftGoals] = splitSequence(sequence, childId);
 
-  if (!goal.relationToChildren) {
-    return '';
-  }
-
   const { sequence: sequenceLogger } = getLogger().pursue.executionDetail;
   sequenceLogger(goal.id, childId, leftGoals, []);
 
-  const priors =
-    leftGoals.length > 0
-      ? leftGoals.map((id) => achievedFormula(id)).join(separator('and'))
-      : '';
+  const priors = leftGoals.map((id) => achievedFormula(id)).join(separator('and'));
 
-  return joinGuards(parentShouldPursue(goal.id), priors);
+  return joinGuards(
+    parentShouldPursue(goal.id),
+    priors,
+    otherChildrenIdle(sequence, childId),
+  );
 };
 
 /**
- * AND + anyOrder (EDGEV2):
- *   G0_achievable*10.0 > decision_G0
- *   & g{sibling}_state!=1
- *   & (g{sibling}_state=1 | ratio vs _decision_G0)
- *
- * Children may run in any order, but not concurrently; `_decision` picks who goes first.
+ * AND + anyOrder (reference `flexible`): one child at a time, picked by its
+ * share among the not-yet-achieved siblings (G*_relative) with priority to
+ * earlier children:
+ *   G0_achievable*N > decision_G0 & g{other}_state=0 …
+ *   & G1_relative*N > _decision_G0 & !(G{earlier}_relative*N > _decision_G0) …
  */
 export const pursueAndAnyOrderGoal = (
   goal: EdgeGoalNode,
@@ -85,20 +81,9 @@ export const pursueAndAnyOrderGoal = (
     anyOrder.filter((id) => id !== childId),
   );
 
-  const siblings = anyOrder.filter((id) => id !== childId);
-  const select = selectChildByDecision(goal.id, anyOrder, childId);
-
-  if (siblings.length === 0) {
-    return joinGuards(parentShouldPursue(goal.id), select);
-  }
-
-  const siblingPursued = siblings
-    .map((id) => `${stateVariable(id)}=1`)
-    .join(' | ');
-
   return joinGuards(
     parentShouldPursue(goal.id),
-    otherChildrenNotPursued(anyOrder, childId),
-    parenthesis(`${siblingPursued} | ${select}`),
+    otherChildrenIdle(anyOrder, childId),
+    selectChildByRelativeDecision(goal.id, anyOrder, childId),
   );
 };

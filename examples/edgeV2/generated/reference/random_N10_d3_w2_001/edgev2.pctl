@@ -1,0 +1,34 @@
+P=? [ G 0 + t3_state + t4_state <= 1 ] =1
+P=? [ G t4_state=1 => t3_failed=3 ]=1
+ P=? [ G g2_achieved => (t3_achieved | (t3_failed=3 & t4_achieved)) ]=1 
+
+
+P=? [ G 0 + t6_state + t7_state <= 1 ] =1
+P=? [ G 0 + g2_state + g5_state <= 1 ] =1
+
+
+
+P=? [ G 0 + t10_state + t11_state <= 1 ] =1
+P=? [G t10_state=1 => g9_chosen=1 ] =1
+P=? [G t11_state=1 => g9_chosen=2 ] =1
+
+
+P=? [ G 0 + t13_state + t14_state <= 1 ] =1
+P=? [G t13_state=1 => (true )] = 1
+P=? [G t14_state=1 => (true & t13_achieved )] = 1
+
+P=? [ G 0 + g9_state + g12_state <= 1 ] =1
+P=? [G g9_state=1 => (true )] = 1
+P=? [G g12_state=1 => (true & g9_achieved )] = 1
+P>=1 [ G g2_state + g5_state <= 1 ]
+P>=1 [ G t3_state + t4_state <= 1 ]
+P>=1 [ G t4_state=1 => t3_failed=3 ]
+P>=1 [ G t6_state + t7_state <= 1 ]
+P>=1 [ G g9_state + g12_state <= 1 ]
+P>=1 [ G g12_state=1 => (g9_achieved) ]
+P>=1 [ G t10_state + t11_state <= 1 ]
+P>=1 [ G t10_state=1 => g9_chosen=1 ]
+P>=1 [ G t11_state=1 => g9_chosen=2 ]
+P>=1 [ G t13_state + t14_state <= 1 ]
+P>=1 [ G t14_state=1 => (t13_achieved) ]
+P=? [ F g0_achieved ]

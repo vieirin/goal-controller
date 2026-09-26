@@ -1,95 +1,49 @@
 import type { EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
-import { parenthesis } from '../../../../../mdp/common';
 import {
   achievableFormulaVariable,
   achievedTransition,
   pursueTransition,
+  stateVariable,
+  taskAchievedVariable,
   tryTransition,
 } from '../../../../../template/common';
-import {
-  hasBeenAchieved,
-  hasBeenAchievedAndPursued,
-  hasBeenPursued,
-} from '../../../goalModule/template/pursue/common';
 
-const pursueTask = (task: EdgeTask): string => {
-  const logger = getLogger();
-  const leftStatement = `${hasBeenPursued(task, {
-    condition: false,
-  })} & ${hasBeenAchieved(task, { condition: false })}`;
-  const updateStatement = `(${hasBeenPursued(task, {
-    condition: true,
-    update: true,
-  })})`;
-  const prismLabelStatement = `[${pursueTransition(
-    task.id,
-  )}] ${leftStatement} -> ${updateStatement};`;
-  logger.taskTranstions.transition(
+type TaskTransitionKind = 'pursue' | 'try' | 'achieve';
+
+const transition = (
+  task: EdgeTask,
+  kind: TaskTransitionKind,
+  label: string,
+  leftStatement: string,
+  updateStatement: string,
+): string => {
+  const prismLabelStatement = `[${label}] ${leftStatement} -> ${updateStatement};`;
+  getLogger().taskTranstions.transition(
     task.id,
     leftStatement,
     updateStatement,
     prismLabelStatement,
-    'pursue',
+    kind,
+    kind === 'try' ? task.properties.engine.maxRetries : undefined,
   );
   return prismLabelStatement;
 };
 
-const achieveTask = (task: EdgeTask): string => {
-  const logger = getLogger();
-  const leftStatement = `${hasBeenAchievedAndPursued(task, {
-    achieved: true,
-    pursued: true,
-  })}`;
-  const prismLabelStatement = `[${achievedTransition(
-    task.id,
-  )}] ${leftStatement} -> true;`;
-  logger.taskTranstions.transition(
-    task.id,
-    leftStatement,
-    'true',
-    prismLabelStatement,
-    'achieve',
-  );
-  return prismLabelStatement;
-};
-
-const tryTask = (task: EdgeTask): string => {
-  const logger = getLogger();
-  const taskAchievabilityVariable = achievableFormulaVariable(task.id);
-
-  const leftStatement = `[${tryTransition(
-    task.id,
-  )}] ${hasBeenAchievedAndPursued(task, {
-    achieved: false,
-    pursued: true,
-  })}`;
-  const updateStatement = `${taskAchievabilityVariable}: ${parenthesis(
-    hasBeenAchieved(task, {
-      condition: true,
-      update: true,
-    }),
-  )} + 1-${taskAchievabilityVariable}: ${parenthesis(
-    hasBeenPursued(task, { condition: false, update: true }),
-  )};`;
-  const tryStatement = `${leftStatement} -> ${updateStatement}`;
-  logger.taskTranstions.transition(
-    task.id,
-    leftStatement,
-    updateStatement,
-    tryStatement,
-    'try',
-    task.properties.engine.maxRetries,
-  );
-
-  return tryStatement;
-};
-
+/**
+ * Reference task encoding:
+ *   [pursue_T1]   t1_state=0 & t1_achieved_=0 -> (t1_state'=1);
+ *   [try_T1]      t1_state=1 & t1_achieved_=0 -> T1_achievable: (t1_achieved_'=1) + 1-T1_achievable: (t1_state'=0);
+ *   [achieved_T1] t1_state=1 & t1_achieved_=1 -> (t1_state'=0);
+ */
 export const taskTransitions = (task: EdgeTask): string => {
+  const state = stateVariable(task.id);
+  const achieved = taskAchievedVariable(task.id);
+  const achievable = achievableFormulaVariable(task.id);
   return `
   // Task ${task.id}: ${task.name}
-  ${pursueTask(task)}
-  ${tryTask(task)}
-  ${achieveTask(task)}
+  ${transition(task, 'pursue', pursueTransition(task.id), `${state}=0 & ${achieved}=0`, `(${state}'=1)`)}
+  ${transition(task, 'try', tryTransition(task.id), `${state}=1 & ${achieved}=0`, `${achievable}: (${achieved}'=1) + 1-${achievable}: (${state}'=0)`)}
+  ${transition(task, 'achieve', achievedTransition(task.id), `${state}=1 & ${achieved}=1`, `(${state}'=0)`)}
   `;
 };

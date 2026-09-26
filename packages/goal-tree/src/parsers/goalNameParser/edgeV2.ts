@@ -40,7 +40,7 @@ export const getGoalDetail = ({
   let sequence: string[] = [];
   let anyOrder: string[] = [];
   let retry: Dictionary<number> = {};
-  let choice: boolean = false;
+  let choice: string[] = [];
   class RTNotationTreeWalker extends RTRegexListener {
     extractGoalIds = (expr: ExprContext): string[] => {
       if (expr.getChildCount() === 1) {
@@ -110,7 +110,10 @@ export const getGoalDetail = ({
     };
 
     exitGChoice = (ctx: GChoiceContext) => {
-      choice = ctx._op.text === '?';
+      choice = ctx
+        .expr_list()
+        .flatMap((e) => this.extractGoalIds(e))
+        .filter(Boolean);
     };
   }
 
@@ -170,11 +173,11 @@ export const getGoalDetail = ({
     };
   }
 
-  if (choice) {
+  if (choice.length > 0) {
     return {
       id,
       goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'choice' },
+      executionDetail: { type: 'choice', choice },
     };
   }
 

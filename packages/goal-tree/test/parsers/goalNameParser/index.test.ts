@@ -24,6 +24,9 @@ describe('GoalNameParser grammar selection', () => {
       goalText: 'G11: Choice Goal [G12?G13]',
       grammar: 'edgeV2',
     });
-    assert.deepStrictEqual(result.executionDetail, { type: 'choice' });
+    assert.deepStrictEqual(result.executionDetail, {
+      type: 'choice',
+      choice: ['G12', 'G13'],
+    });
   });
 });

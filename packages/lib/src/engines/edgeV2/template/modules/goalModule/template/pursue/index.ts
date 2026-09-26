@@ -7,6 +7,7 @@ import {
 } from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { pursueAndAnyOrderGoal, pursueAndSequentialGoal } from './andGoal';
+import { construct, orderedChildIds, orderedChildren } from '../children';
 import { hasBeenAchieved } from './common';
 import {
   childShouldPursue,
@@ -67,10 +68,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const pursueLogger = logger.pursue;
 
   // Filter out resources - they cannot be pursued
-  const allChildren = Node.children(goal);
-  const pursueableChildren = allChildren.filter(
-    (child): child is PursueableNode => !Node.isResource(child),
-  );
+  const pursueableChildren = orderedChildren(goal);
   const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren];
 
   const isItself = (child: PursueableNode): boolean => child.id === goal.id;
@@ -135,153 +133,35 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
             return [{ left, right }];
           }
 
-          if (goal.relationToChildren === 'or') {
-            logger.trace(child.id, 'or goal detected', 2);
-            switch (goal.properties.engine.executionDetail?.type) {
-              case 'sequence': {
-                logger.error(
-                  child.id,
-                  'sequence execution detail detected in or goal',
-                );
-                throw new Error(
-                  'OR relation to children with sequence execution detail is not supported',
-                );
-              }
-              case 'choice': {
-                const children = pursueableChildren.map((c) => c.id);
-                if (children.length === 0) {
-                  logger.error(
-                    goal.id,
-                    'choice execution detail detected without pursueable children',
-                  );
-                  throw new Error(
-                    `[INVALID MODEL]: Goal "${goal.id}" has choice execution detail but no pursueable children (goals or tasks)`,
-                  );
-                }
-                logger.trace(
-                  child.id,
-                  'choice execution detail detected with children',
-                );
-                return pursueChoiceGoal(goal, children, child.id).map(
-                  (fragment) => ({
-                    left: appendGuards(left, fragment.left),
-                    right: fragment.right,
-                  }),
-                );
-              }
-              case 'degradation': {
-                logger.trace(
-                  child.id,
-                  'degradation execution detail detected',
-                  2,
-                );
-                return pursueDegradationGoal(
-                  goal,
-                  goal.properties.engine.executionDetail.degradationList,
-                  child.id,
-                ).map((fragment) => ({
+          const childIds = orderedChildIds(goal);
+          const withGuard = (fragment: string): PursueStatement[] => [
+            { left: appendGuards(left, fragment), right },
+          ];
+          const kind = construct(goal);
+          logger.trace(child.id, `${kind} execution detail`, 2);
+          switch (kind) {
+            case 'sequence':
+              return withGuard(pursueAndSequentialGoal(goal, childIds, child.id));
+            case 'anyOrder':
+              return withGuard(pursueAndAnyOrderGoal(goal, childIds, child.id));
+            case 'interleaved':
+              pursueLogger.executionDetail.interleaved();
+              return withGuard(childShouldPursue(child.id));
+            case 'alternative':
+              return withGuard(pursueAlternativeGoal(goal, child.id));
+            case 'choice':
+              return pursueChoiceGoal(goal, childIds, child.id).map((fragment) => ({
+                left: appendGuards(left, fragment.left),
+                right: fragment.right,
+              }));
+            case 'degradation':
+              return pursueDegradationGoal(goal, childIds, child.id).map(
+                (fragment) => ({
                   left: appendGuards(left, fragment.left),
                   right: fragment.right,
-                }));
-              }
-              case 'alternative': {
-                logger.trace(
-                  child.id,
-                  'alternative execution detail detected',
-                  2,
-                );
-                const pursueCondition = pursueAlternativeGoal(goal, child.id);
-                return [
-                  {
-                    left: appendGuards(left, pursueCondition),
-                    right,
-                  },
-                ];
-              }
-              default:
-                logger.info(
-                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
-                  2,
-                );
-                return [{ left, right }];
-            }
+                }),
+              );
           }
-
-          if (goal.relationToChildren === 'and') {
-            logger.trace(child.id, 'and goal detected', 2);
-            switch (goal.properties.engine.executionDetail?.type) {
-              case 'sequence': {
-                logger.trace(child.id, 'sequence execution detail detected', 2);
-                const pursueCondition = pursueAndSequentialGoal(
-                  goal,
-                  goal.properties.engine.executionDetail.sequence,
-                  child.id,
-                );
-                return [
-                  {
-                    left: appendGuards(left, pursueCondition),
-                    right,
-                  },
-                ];
-              }
-              case 'alternative': {
-                logger.trace(
-                  child.id,
-                  'alternative execution detail detected',
-                  3,
-                );
-                throw new Error(
-                  'AND relation to children with alternative execution detail is not supported',
-                );
-              }
-              case 'choice': {
-                logger.trace(child.id, 'choice execution detail detected', 2);
-                throw new Error(
-                  'AND relation to children with choice execution detail is not supported',
-                );
-              }
-              case 'interleaved': {
-                logger.trace(
-                  child.id,
-                  'interleaved execution detail detected',
-                  2,
-                );
-                pursueLogger.executionDetail.interleaved();
-                return [
-                  {
-                    left: appendGuards(left, childShouldPursue(child.id)),
-                    right,
-                  },
-                ];
-              }
-              case 'anyOrder': {
-                logger.trace(child.id, 'anyOrder execution detail detected', 2);
-                const pursueCondition = pursueAndAnyOrderGoal(
-                  goal,
-                  goal.properties.engine.executionDetail.anyOrder,
-                  child.id,
-                );
-                return [
-                  {
-                    left: appendGuards(left, pursueCondition),
-                    right,
-                  },
-                ];
-              }
-              default:
-                logger.info(
-                  `[EXECUTION DETAIL: SKIP] Skipping condition generation for ${child.id} on runtime guard generation step, no execution detail`,
-                  2,
-                );
-                return [{ left, right }];
-            }
-          }
-
-          logger.info(
-            `[EXECUTION DETAIL: ERROR] ${child.id} is not an OR or AND goal`,
-            2,
-          );
-          return [{ left, right }];
         };
 
         const statements = calcExecutionDetail();

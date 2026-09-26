@@ -1,10 +1,10 @@
-import { Node } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
+import type { EdgeGoalNode } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import {
   chosenVariable,
   goalFailedVariable,
 } from '../../../../../template/common';
+import { orderedChildIds, retriedChildren } from '../children';
 import {
   hasFailedExactlyNTimes,
   hasFailedLessThanNTimes,
@@ -13,27 +13,20 @@ import {
   childShouldPursue,
   joinGuards,
   otherChildrenIdle,
-  selectChildByDecision,
   parentShouldPursue,
+  selectChildByDecision,
   type PursueStatement,
 } from './decisionGuards';
 
-type PursueableNode = EdgeGoalNode | EdgeTask;
-
-const pursueableChildIds = (goal: EdgeGoalNode): string[] =>
-  Node.children(goal)
-    .filter((child): child is PursueableNode => !Node.isResource(child))
-    .map((child) => child.id);
-
 /**
- * OR + alternative (EDGEV2):
- *   parent decide & other state=0 & ratio vs _decision
+ * OR + alternative (reference `non-idempotent`):
+ *   G0_achievable*N > decision_G0 & g{other}_state=0 … & priority cascade on _decision_G0
  */
 export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
   currentChildId: string,
 ): string => {
-  const children = pursueableChildIds(goal);
+  const children = orderedChildIds(goal);
   const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
 
   alternativeLogger(
@@ -49,9 +42,9 @@ export const pursueAlternativeGoal = (
 };
 
 /**
- * OR + choice (EDGEV2) — two lines:
- * 1) choose: chosen=0 & parent decide & others idle & ratio -> (chosen'=i)
- * 2) continue: chosen=i & child decide -> true
+ * OR + choice (reference `committed`) — two lines per child:
+ * 1) choose once: chosen=0 & parent decide & others idle & cascade -> (chosen'=i)
+ * 2) keep the commitment: chosen=i & child decide -> true
  */
 export const pursueChoiceGoal = (
   goal: EdgeGoalNode,
@@ -97,29 +90,24 @@ export const pursueChoiceGoal = (
   return [chooseOnce, continueChosen];
 };
 
-const retryLimitForChild = (
+/** g{c}_failed=K for every retried child before `index` in the retry chain */
+export const retriesExhausted = (
   goal: EdgeGoalNode,
-  childId: string,
-): number | null => {
-  const fromMap = goal.properties.engine.executionDetail?.retryMap?.[childId];
-  if (typeof fromMap === 'number' && fromMap > 0) {
-    return fromMap;
-  }
-  const child = Node.children(goal).find((c) => c.id === childId);
-  if (!child || Node.isResource(child)) {
-    return null;
-  }
-  const maxRetries = child.properties.engine.maxRetries;
-  return typeof maxRetries === 'number' && maxRetries > 0 ? maxRetries : null;
-};
+  upTo: number = Number.POSITIVE_INFINITY,
+): string =>
+  retriedChildren(goal)
+    .slice(0, upTo)
+    .map(({ id, retries }) => hasFailedExactlyNTimes(id, retries))
+    .join(' & ');
 
 /**
- * OR + degradation (EDGEV2) — per child:
- * - If this child has retries: retry line failed<N & child decide -> (failed'=failed+1)
- * - Fallback (after retries exhausted on retrying children): failed=N & alternative-style select
- *
- * For children without their own retries, only emit the fallback line (gated on
- * exhausted retries of earlier degradation children that have maxRetries).
+ * OR + degradation (reference `preferred`).
+ * Retry phase — each retried child in notation order, once the earlier ones
+ * are exhausted:
+ *   g{prev}_failed=K … & g{c}_failed<K & G{c}_achievable*N > decision_G{c} -> (g{c}_failed'=g{c}_failed+1)
+ * Fallback phase — all retries exhausted, pick any child like an alternative:
+ *   g{c}_failed=K … & G0_achievable*N > decision_G0 & g{other}_state=0 … & cascade -> true
+ * `[G1@3->G2]` is exactly the reference `preferred` construct.
  */
 export const pursueDegradationGoal = (
   goal: EdgeGoalNode,
@@ -136,39 +124,30 @@ export const pursueDegradationGoal = (
   degradationLogger.init(currentChildId, degradationList);
 
   const statements: PursueStatement[] = [];
-  const ownRetries = retryLimitForChild(goal, currentChildId);
+  const chain = retriedChildren(goal);
+  const position = chain.findIndex(({ id }) => id === currentChildId);
 
-  const retryChildren = degradationList
-    .map((id) => ({ id, n: retryLimitForChild(goal, id) }))
-    .filter((x): x is { id: string; n: number } => x.n !== null);
-
-  if (ownRetries !== null) {
-    degradationLogger.retry(currentChildId, currentChildId, ownRetries);
+  if (position >= 0) {
+    const { retries } = chain[position]!;
+    degradationLogger.retry(currentChildId, currentChildId, retries);
     const failed = goalFailedVariable(currentChildId);
     statements.push({
       left: joinGuards(
-        hasFailedLessThanNTimes(currentChildId, ownRetries),
+        retriesExhausted(goal, position),
+        hasFailedLessThanNTimes(currentChildId, retries),
         childShouldPursue(currentChildId),
       ),
       right: `(${failed}'=${failed}+1)`,
     });
   }
 
-  // Fallback / OR-select phase once all retry counters are exhausted
-  const exhaustedGate = retryChildren
-    .map(({ id, n }) => hasFailedExactlyNTimes(id, n))
-    .join(' & ');
-
-  // If there are no retry children, still allow alternative-style fallback
-  const fallbackLeft = joinGuards(
-    exhaustedGate || null,
-    parentShouldPursue(goal.id),
-    otherChildrenIdle(degradationList, currentChildId),
-    selectChildByDecision(goal.id, degradationList, currentChildId),
-  );
-
   statements.push({
-    left: fallbackLeft,
+    left: joinGuards(
+      retriesExhausted(goal),
+      parentShouldPursue(goal.id),
+      otherChildrenIdle(degradationList, currentChildId),
+      selectChildByDecision(goal.id, degradationList, currentChildId),
+    ),
     right: 'true',
   });
 

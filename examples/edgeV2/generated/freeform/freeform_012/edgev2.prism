@@ -1,0 +1,129 @@
+dtmc
+
+const int N = 10;
+const int decision_G0;
+const int _decision_G0;
+const int decision_G1;
+const int _decision_G1;
+const int decision_G4;
+const int _decision_G4;
+const int decision_T2;
+const int decision_T3;
+const int decision_T5;
+const int decision_T6;
+
+
+// ID: G0
+// Name: goal
+// Type: alternative
+// Relation to children: or
+// Children: G1, G4
+module G0
+  g0_state : [0..1] init 0;
+
+  [pursue_G0] !g0_achieved & g0_state=0 -> (g0_state'=1);
+  [pursue_G1] !g0_achieved & g0_state=1 & G0_achievable*N > decision_G0 & g4_state=0 & (G1_achievable/(G1_achievable+G4_achievable))*N > _decision_G0 -> true;
+  [pursue_G4] !g0_achieved & g0_state=1 & G0_achievable*N > decision_G0 & g1_state=0 & (G4_achievable/(G1_achievable+G4_achievable))*N > _decision_G0 & !((G1_achievable/(G1_achievable+G4_achievable))*N > _decision_G0) -> true;
+
+  [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g4_state=0 -> (g0_state'=0);
+  
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g4_state=0 & G0_achievable*N <= decision_G0 -> (g0_state'=0);
+endmodule
+
+formula g0_achieved = (g1_achieved | g4_achieved);
+formula G0_achievable = G1_achievable + G4_achievable - (G1_achievable * G4_achievable);
+
+// ID: G1
+// Name: goal
+// Type: degradation
+// Relation to children: or
+// Children: T2, T3
+module G1
+  g1_state : [0..1] init 0;
+  t2_failed : [0..3] init 0;
+
+  [pursue_G1] !g1_achieved & g1_state=0 -> (g1_state'=1);
+  [pursue_T2] !g1_achieved & g1_state=1 & t2_failed<3 & T2_achievable*N > decision_T2 -> (t2_failed'=t2_failed+1);
+  [pursue_T2] !g1_achieved & g1_state=1 & t2_failed=3 & G1_achievable*N > decision_G1 & t3_state=0 & (T2_achievable/(T2_achievable+T3_achievable))*N > _decision_G1 -> true;
+  [pursue_T3] !g1_achieved & g1_state=1 & t2_failed=3 & G1_achievable*N > decision_G1 & t2_state=0 & (T3_achievable/(T2_achievable+T3_achievable))*N > _decision_G1 & !((T2_achievable/(T2_achievable+T3_achievable))*N > _decision_G1) -> true;
+
+  [achieved_G1] g1_state=1 & g1_achieved & t2_state=0 & t3_state=0 -> (g1_state'=0);
+  
+  [skip_G1] !g1_achieved & g1_state=1 & t2_state=0 & t2_failed<3 & T2_achievable*N <= decision_T2 -> (g1_state'=0);
+  [skip_G1] t2_failed=3 & !g1_achieved & g1_state=1 & t2_state=0 & t3_state=0 & G1_achievable*N <= decision_G1 -> (g1_state'=0);
+endmodule
+
+formula g1_achieved = (t2_achieved | (t2_failed=3 & t3_achieved));
+formula G1_achievable = T2_achievable + T3_achievable - (T2_achievable * T3_achievable);
+
+// ID: G4
+// Name: goal
+// Type: anyOrder
+// Relation to children: and
+// Children: T5, T6
+module G4
+  g4_state : [0..1] init 0;
+
+  [pursue_G4] !g4_achieved & g4_state=0 -> (g4_state'=1);
+  [pursue_T5] !g4_achieved & g4_state=1 & G4_achievable*N > decision_G4 & t6_state=0 & T5_relative*N > _decision_G4 -> true;
+  [pursue_T6] !g4_achieved & g4_state=1 & G4_achievable*N > decision_G4 & t5_state=0 & T6_relative*N > _decision_G4 & !(T5_relative*N > _decision_G4) -> true;
+
+  [achieved_G4] g4_state=1 & g4_achieved & t5_state=0 & t6_state=0 -> (g4_state'=0);
+  
+  [skip_G4] !g4_achieved & g4_state=1 & t5_state=0 & t6_state=0 & G4_achievable*N <= decision_G4 -> (g4_state'=0);
+endmodule
+
+formula g4_achieved = (t5_achieved & t6_achieved);
+formula G4_achievable = g4_achieved ? 0 : (!t5_achieved ? T5_achievable : 1) * (!t6_achieved ? T6_achievable : 1);
+formula T5_relative = t5_achieved ? 0 : T5_achievable/(T5_achievable + (t6_achieved ? 0 : T6_achievable));
+formula T6_relative = t6_achieved ? 0 : T6_achievable/(T6_achievable + (t5_achieved ? 0 : T5_achievable));
+
+
+const double T2_achievable = 0.8;
+const double T3_achievable = 0.8;
+const double T5_achievable = 0.8;
+const double T6_achievable = 0.8;
+
+module ChangeManager
+  t2_state: [0..1] init 0;
+  t2_achieved_: [0..1] init 0;
+  t3_state: [0..1] init 0;
+  t3_achieved_: [0..1] init 0;
+  t5_state: [0..1] init 0;
+  t5_achieved_: [0..1] init 0;
+  t6_state: [0..1] init 0;
+  t6_achieved_: [0..1] init 0;
+  
+  // Task T2: task
+  [pursue_T2] t2_state=0 & t2_achieved_=0 -> (t2_state'=1);
+  [try_T2] t2_state=1 & t2_achieved_=0 -> T2_achievable: (t2_achieved_'=1) + 1-T2_achievable: (t2_state'=0);
+  [achieved_T2] t2_state=1 & t2_achieved_=1 -> (t2_state'=0);
+  
+
+  // Task T3: task
+  [pursue_T3] t3_state=0 & t3_achieved_=0 -> (t3_state'=1);
+  [try_T3] t3_state=1 & t3_achieved_=0 -> T3_achievable: (t3_achieved_'=1) + 1-T3_achievable: (t3_state'=0);
+  [achieved_T3] t3_state=1 & t3_achieved_=1 -> (t3_state'=0);
+  
+
+  // Task T5: task
+  [pursue_T5] t5_state=0 & t5_achieved_=0 -> (t5_state'=1);
+  [try_T5] t5_state=1 & t5_achieved_=0 -> T5_achievable: (t5_achieved_'=1) + 1-T5_achievable: (t5_state'=0);
+  [achieved_T5] t5_state=1 & t5_achieved_=1 -> (t5_state'=0);
+  
+
+  // Task T6: task
+  [pursue_T6] t6_state=0 & t6_achieved_=0 -> (t6_state'=1);
+  [try_T6] t6_state=1 & t6_achieved_=0 -> T6_achievable: (t6_achieved_'=1) + 1-T6_achievable: (t6_state'=0);
+  [achieved_T6] t6_state=1 & t6_achieved_=1 -> (t6_state'=0);
+  
+endmodule
+
+formula t2_achieved = (t2_achieved_=1);
+formula t3_achieved = (t3_achieved_=1);
+formula t5_achieved = (t5_achieved_=1);
+formula t6_achieved = (t6_achieved_=1);
+
+module System
+  
+endmodule

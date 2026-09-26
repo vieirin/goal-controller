@@ -1,0 +1,669 @@
+dtmc
+
+const int N = 10;
+const int decision_G0;
+const int decision_G1;
+const int _decision_G1;
+const int decision_G10;
+const int decision_G15;
+const int _decision_G15;
+const int decision_G2;
+const int _decision_G2;
+const int decision_G20;
+const int decision_G22;
+const int _decision_G22;
+const int decision_G25;
+const int _decision_G25;
+const int decision_G30;
+const int _decision_G30;
+const int decision_G35;
+const int _decision_G35;
+const int decision_G36;
+const int _decision_G36;
+const int decision_G37;
+const int decision_G5;
+const int decision_G6;
+const int _decision_G6;
+const int decision_T11;
+const int decision_T12;
+const int decision_T13;
+const int decision_T14;
+const int decision_T16;
+const int decision_T17;
+const int decision_T18;
+const int decision_T19;
+const int decision_T21;
+const int decision_T23;
+const int decision_T24;
+const int decision_T26;
+const int decision_T27;
+const int decision_T28;
+const int decision_T29;
+const int decision_T3;
+const int decision_T31;
+const int decision_T32;
+const int decision_T33;
+const int decision_T34;
+const int decision_T38;
+const int decision_T39;
+const int decision_T4;
+const int decision_T40;
+const int decision_T41;
+const int decision_T42;
+const int decision_T7;
+const int decision_T8;
+const int decision_T9;
+
+
+// ID: G0
+// Name: goal
+// Type: interleaved
+// Relation to children: and
+// Children: G1, G35
+module G0
+  g0_state : [0..1] init 0;
+
+  [pursue_G0] !g0_achieved & g0_state=0 -> (g0_state'=1);
+  [pursue_G1] !g0_achieved & g0_state=1 & G1_achievable*N > decision_G1 -> true;
+  [pursue_G35] !g0_achieved & g0_state=1 & G35_achievable*N > decision_G35 -> true;
+
+  [achieved_G0] g0_state=1 & g0_achieved & g1_state=0 & g35_state=0 -> (g0_state'=0);
+  
+  [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g35_state=0 & !(G1_achievable*N > decision_G1 | G35_achievable*N > decision_G35) -> (g0_state'=0);
+endmodule
+
+formula g0_achieved = (g1_achieved & g35_achieved);
+formula G0_achievable = g0_achieved ? 0 : (!g1_achieved ? G1_achievable : 1) * (!g35_achieved ? G35_achievable : 1);
+
+// ID: G1
+// Name: goal
+// Type: alternative (no notation)
+// Relation to children: or
+// Children: G2, G5, G20
+module G1
+  g1_state : [0..1] init 0;
+
+  [pursue_G1] !g1_achieved & g1_state=0 -> (g1_state'=1);
+  [pursue_G2] !g1_achieved & g1_state=1 & G1_achievable*N > decision_G1 & g5_state=0 & g20_state=0 & (G2_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1 -> true;
+  [pursue_G5] !g1_achieved & g1_state=1 & G1_achievable*N > decision_G1 & g2_state=0 & g20_state=0 & (G5_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1 & !((G2_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1) -> true;
+  [pursue_G20] !g1_achieved & g1_state=1 & G1_achievable*N > decision_G1 & g2_state=0 & g5_state=0 & (G20_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1 & !((G2_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1) & !((G5_achievable/(G2_achievable+G5_achievable+G20_achievable))*N > _decision_G1) -> true;
+
+  [achieved_G1] g1_state=1 & g1_achieved & g2_state=0 & g5_state=0 & g20_state=0 -> (g1_state'=0);
+  
+  [skip_G1] !g1_achieved & g1_state=1 & g2_state=0 & g5_state=0 & g20_state=0 & G1_achievable*N <= decision_G1 -> (g1_state'=0);
+endmodule
+
+formula g1_achieved = (g2_achieved | g5_achieved | g20_achieved);
+formula G1_achievable = G2_achievable + G5_achievable + G20_achievable - (G2_achievable * G5_achievable * G20_achievable);
+
+// ID: G2
+// Name: goal
+// Type: degradation
+// Relation to children: or
+// Children: T3, T4
+module G2
+  g2_state : [0..1] init 0;
+  t3_failed : [0..5] init 0;
+
+  [pursue_G2] !g2_achieved & g2_state=0 -> (g2_state'=1);
+  [pursue_T3] !g2_achieved & g2_state=1 & t3_failed<5 & T3_achievable*N > decision_T3 -> (t3_failed'=t3_failed+1);
+  [pursue_T3] !g2_achieved & g2_state=1 & t3_failed=5 & G2_achievable*N > decision_G2 & t4_state=0 & (T3_achievable/(T3_achievable+T4_achievable))*N > _decision_G2 -> true;
+  [pursue_T4] !g2_achieved & g2_state=1 & t3_failed=5 & G2_achievable*N > decision_G2 & t3_state=0 & (T4_achievable/(T3_achievable+T4_achievable))*N > _decision_G2 & !((T3_achievable/(T3_achievable+T4_achievable))*N > _decision_G2) -> true;
+
+  [achieved_G2] g2_state=1 & g2_achieved & t3_state=0 & t4_state=0 -> (g2_state'=0);
+  
+  [skip_G2] !g2_achieved & g2_state=1 & t3_state=0 & t3_failed<5 & T3_achievable*N <= decision_T3 -> (g2_state'=0);
+  [skip_G2] t3_failed=5 & !g2_achieved & g2_state=1 & t3_state=0 & t4_state=0 & G2_achievable*N <= decision_G2 -> (g2_state'=0);
+endmodule
+
+formula g2_achieved = (t3_achieved | (t3_failed=5 & t4_achieved));
+formula G2_achievable = T3_achievable + T4_achievable - (T3_achievable * T4_achievable);
+
+// ID: G5
+// Name: goal
+// Type: interleaved (no notation)
+// Relation to children: and
+// Children: G6, G10, G15
+module G5
+  g5_state : [0..1] init 0;
+
+  [pursue_G5] !g5_achieved & g5_state=0 -> (g5_state'=1);
+  [pursue_G6] !g5_achieved & g5_state=1 & G6_achievable*N > decision_G6 -> true;
+  [pursue_G10] !g5_achieved & g5_state=1 & G10_achievable*N > decision_G10 -> true;
+  [pursue_G15] !g5_achieved & g5_state=1 & G15_achievable*N > decision_G15 -> true;
+
+  [achieved_G5] g5_state=1 & g5_achieved & g6_state=0 & g10_state=0 & g15_state=0 -> (g5_state'=0);
+  
+  [skip_G5] !g5_achieved & g5_state=1 & g6_state=0 & g10_state=0 & g15_state=0 & !(G6_achievable*N > decision_G6 | G10_achievable*N > decision_G10 | G15_achievable*N > decision_G15) -> (g5_state'=0);
+endmodule
+
+formula g5_achieved = (g6_achieved & g10_achieved & g15_achieved);
+formula G5_achievable = g5_achieved ? 0 : (!g6_achieved ? G6_achievable : 1) * (!g10_achieved ? G10_achievable : 1) * (!g15_achieved ? G15_achievable : 1);
+
+// ID: G6
+// Name: goal
+// Type: degradation
+// Relation to children: or
+// Children: T7, T8, T9
+module G6
+  g6_state : [0..1] init 0;
+  t7_failed : [0..3] init 0;
+
+  [pursue_G6] !g6_achieved & g6_state=0 -> (g6_state'=1);
+  [pursue_T7] !g6_achieved & g6_state=1 & t7_failed<3 & T7_achievable*N > decision_T7 -> (t7_failed'=t7_failed+1);
+  [pursue_T7] !g6_achieved & g6_state=1 & t7_failed=3 & G6_achievable*N > decision_G6 & t8_state=0 & t9_state=0 & (T7_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6 -> true;
+  [pursue_T8] !g6_achieved & g6_state=1 & t7_failed=3 & G6_achievable*N > decision_G6 & t7_state=0 & t9_state=0 & (T8_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6 & !((T7_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6) -> true;
+  [pursue_T9] !g6_achieved & g6_state=1 & t7_failed=3 & G6_achievable*N > decision_G6 & t7_state=0 & t8_state=0 & (T9_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6 & !((T7_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6) & !((T8_achievable/(T7_achievable+T8_achievable+T9_achievable))*N > _decision_G6) -> true;
+
+  [achieved_G6] g6_state=1 & g6_achieved & t7_state=0 & t8_state=0 & t9_state=0 -> (g6_state'=0);
+  
+  [skip_G6] !g6_achieved & g6_state=1 & t7_state=0 & t7_failed<3 & T7_achievable*N <= decision_T7 -> (g6_state'=0);
+  [skip_G6] t7_failed=3 & !g6_achieved & g6_state=1 & t7_state=0 & t8_state=0 & t9_state=0 & G6_achievable*N <= decision_G6 -> (g6_state'=0);
+endmodule
+
+formula g6_achieved = (t7_achieved | (t7_failed=3 & t8_achieved) | (t7_failed=3 & t9_achieved));
+formula G6_achievable = T7_achievable + T8_achievable + T9_achievable - (T7_achievable * T8_achievable * T9_achievable);
+
+// ID: G10
+// Name: goal
+// Type: sequence
+// Relation to children: and
+// Children: T11, T12, T13, T14
+module G10
+  g10_state : [0..1] init 0;
+
+  [pursue_G10] !g10_achieved & g10_state=0 -> (g10_state'=1);
+  [pursue_T11] !g10_achieved & g10_state=1 & G10_achievable*N > decision_G10 & t12_state=0 & t13_state=0 & t14_state=0 -> true;
+  [pursue_T12] !g10_achieved & g10_state=1 & G10_achievable*N > decision_G10 & t11_achieved & t11_state=0 & t13_state=0 & t14_state=0 -> true;
+  [pursue_T13] !g10_achieved & g10_state=1 & G10_achievable*N > decision_G10 & t11_achieved & t12_achieved & t11_state=0 & t12_state=0 & t14_state=0 -> true;
+  [pursue_T14] !g10_achieved & g10_state=1 & G10_achievable*N > decision_G10 & t11_achieved & t12_achieved & t13_achieved & t11_state=0 & t12_state=0 & t13_state=0 -> true;
+
+  [achieved_G10] g10_state=1 & g10_achieved & t11_state=0 & t12_state=0 & t13_state=0 & t14_state=0 -> (g10_state'=0);
+  
+  [skip_G10] !g10_achieved & g10_state=1 & t11_state=0 & t12_state=0 & t13_state=0 & t14_state=0 & G10_achievable*N <= decision_G10 -> (g10_state'=0);
+endmodule
+
+formula g10_achieved = (t11_achieved & t12_achieved & t13_achieved & t14_achieved);
+formula G10_achievable = g10_achieved ? 0 : (!t11_achieved ? T11_achievable : 1) * (!t12_achieved ? T12_achievable : 1) * (!t13_achieved ? T13_achievable : 1) * (!t14_achieved ? T14_achievable : 1);
+
+// ID: G15
+// Name: goal
+// Type: anyOrder
+// Relation to children: and
+// Children: T16, T17, T18, T19
+module G15
+  g15_state : [0..1] init 0;
+
+  [pursue_G15] !g15_achieved & g15_state=0 -> (g15_state'=1);
+  [pursue_T16] !g15_achieved & g15_state=1 & G15_achievable*N > decision_G15 & t17_state=0 & t18_state=0 & t19_state=0 & T16_relative*N > _decision_G15 -> true;
+  [pursue_T17] !g15_achieved & g15_state=1 & G15_achievable*N > decision_G15 & t16_state=0 & t18_state=0 & t19_state=0 & T17_relative*N > _decision_G15 & !(T16_relative*N > _decision_G15) -> true;
+  [pursue_T18] !g15_achieved & g15_state=1 & G15_achievable*N > decision_G15 & t16_state=0 & t17_state=0 & t19_state=0 & T18_relative*N > _decision_G15 & !(T16_relative*N > _decision_G15) & !(T17_relative*N > _decision_G15) -> true;
+  [pursue_T19] !g15_achieved & g15_state=1 & G15_achievable*N > decision_G15 & t16_state=0 & t17_state=0 & t18_state=0 & T19_relative*N > _decision_G15 & !(T16_relative*N > _decision_G15) & !(T17_relative*N > _decision_G15) & !(T18_relative*N > _decision_G15) -> true;
+
+  [achieved_G15] g15_state=1 & g15_achieved & t16_state=0 & t17_state=0 & t18_state=0 & t19_state=0 -> (g15_state'=0);
+  
+  [skip_G15] !g15_achieved & g15_state=1 & t16_state=0 & t17_state=0 & t18_state=0 & t19_state=0 & G15_achievable*N <= decision_G15 -> (g15_state'=0);
+endmodule
+
+formula g15_achieved = (t16_achieved & t17_achieved & t18_achieved & t19_achieved);
+formula G15_achievable = g15_achieved ? 0 : (!t16_achieved ? T16_achievable : 1) * (!t17_achieved ? T17_achievable : 1) * (!t18_achieved ? T18_achievable : 1) * (!t19_achieved ? T19_achievable : 1);
+formula T16_relative = t16_achieved ? 0 : T16_achievable/(T16_achievable + (t17_achieved ? 0 : T17_achievable) + (t18_achieved ? 0 : T18_achievable) + (t19_achieved ? 0 : T19_achievable));
+formula T17_relative = t17_achieved ? 0 : T17_achievable/(T17_achievable + (t16_achieved ? 0 : T16_achievable) + (t18_achieved ? 0 : T18_achievable) + (t19_achieved ? 0 : T19_achievable));
+formula T18_relative = t18_achieved ? 0 : T18_achievable/(T18_achievable + (t16_achieved ? 0 : T16_achievable) + (t17_achieved ? 0 : T17_achievable) + (t19_achieved ? 0 : T19_achievable));
+formula T19_relative = t19_achieved ? 0 : T19_achievable/(T19_achievable + (t16_achieved ? 0 : T16_achievable) + (t17_achieved ? 0 : T17_achievable) + (t18_achieved ? 0 : T18_achievable));
+
+// ID: G20
+// Name: goal
+// Type: interleaved
+// Relation to children: and
+// Children: T21, G22, G25, G30
+module G20
+  g20_state : [0..1] init 0;
+
+  [pursue_G20] !g20_achieved & g20_state=0 -> (g20_state'=1);
+  [pursue_T21] !g20_achieved & g20_state=1 & T21_achievable*N > decision_T21 -> true;
+  [pursue_G22] !g20_achieved & g20_state=1 & G22_achievable*N > decision_G22 -> true;
+  [pursue_G25] !g20_achieved & g20_state=1 & G25_achievable*N > decision_G25 -> true;
+  [pursue_G30] !g20_achieved & g20_state=1 & G30_achievable*N > decision_G30 -> true;
+
+  [achieved_G20] g20_state=1 & g20_achieved & t21_state=0 & g22_state=0 & g25_state=0 & g30_state=0 -> (g20_state'=0);
+  
+  [skip_G20] !g20_achieved & g20_state=1 & t21_state=0 & g22_state=0 & g25_state=0 & g30_state=0 & !(T21_achievable*N > decision_T21 | G22_achievable*N > decision_G22 | G25_achievable*N > decision_G25 | G30_achievable*N > decision_G30) -> (g20_state'=0);
+endmodule
+
+formula g20_achieved = (t21_achieved & g22_achieved & g25_achieved & g30_achieved);
+formula G20_achievable = g20_achieved ? 0 : (!t21_achieved ? T21_achievable : 1) * (!g22_achieved ? G22_achievable : 1) * (!g25_achieved ? G25_achievable : 1) * (!g30_achieved ? G30_achievable : 1);
+
+// ID: G22
+// Name: goal
+// Type: alternative
+// Relation to children: or
+// Children: T23, T24
+module G22
+  g22_state : [0..1] init 0;
+
+  [pursue_G22] !g22_achieved & g22_state=0 -> (g22_state'=1);
+  [pursue_T23] !g22_achieved & g22_state=1 & G22_achievable*N > decision_G22 & t24_state=0 & (T23_achievable/(T23_achievable+T24_achievable))*N > _decision_G22 -> true;
+  [pursue_T24] !g22_achieved & g22_state=1 & G22_achievable*N > decision_G22 & t23_state=0 & (T24_achievable/(T23_achievable+T24_achievable))*N > _decision_G22 & !((T23_achievable/(T23_achievable+T24_achievable))*N > _decision_G22) -> true;
+
+  [achieved_G22] g22_state=1 & g22_achieved & t23_state=0 & t24_state=0 -> (g22_state'=0);
+  
+  [skip_G22] !g22_achieved & g22_state=1 & t23_state=0 & t24_state=0 & G22_achievable*N <= decision_G22 -> (g22_state'=0);
+endmodule
+
+formula g22_achieved = (t23_achieved | t24_achieved);
+formula G22_achievable = T23_achievable + T24_achievable - (T23_achievable * T24_achievable);
+
+// ID: G25
+// Name: goal
+// Type: alternative
+// Relation to children: or
+// Children: T26, T27, T28, T29
+module G25
+  g25_state : [0..1] init 0;
+
+  [pursue_G25] !g25_achieved & g25_state=0 -> (g25_state'=1);
+  [pursue_T26] !g25_achieved & g25_state=1 & G25_achievable*N > decision_G25 & t27_state=0 & t28_state=0 & t29_state=0 & (T26_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25 -> true;
+  [pursue_T27] !g25_achieved & g25_state=1 & G25_achievable*N > decision_G25 & t26_state=0 & t28_state=0 & t29_state=0 & (T27_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25 & !((T26_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) -> true;
+  [pursue_T28] !g25_achieved & g25_state=1 & G25_achievable*N > decision_G25 & t26_state=0 & t27_state=0 & t29_state=0 & (T28_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25 & !((T26_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) & !((T27_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) -> true;
+  [pursue_T29] !g25_achieved & g25_state=1 & G25_achievable*N > decision_G25 & t26_state=0 & t27_state=0 & t28_state=0 & (T29_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25 & !((T26_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) & !((T27_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) & !((T28_achievable/(T26_achievable+T27_achievable+T28_achievable+T29_achievable))*N > _decision_G25) -> true;
+
+  [achieved_G25] g25_state=1 & g25_achieved & t26_state=0 & t27_state=0 & t28_state=0 & t29_state=0 -> (g25_state'=0);
+  
+  [skip_G25] !g25_achieved & g25_state=1 & t26_state=0 & t27_state=0 & t28_state=0 & t29_state=0 & G25_achievable*N <= decision_G25 -> (g25_state'=0);
+endmodule
+
+formula g25_achieved = (t26_achieved | t27_achieved | t28_achieved | t29_achieved);
+formula G25_achievable = T26_achievable + T27_achievable + T28_achievable + T29_achievable - (T26_achievable * T27_achievable * T28_achievable * T29_achievable);
+
+// ID: G30
+// Name: goal
+// Type: anyOrder
+// Relation to children: and
+// Children: T31, T32, T33, T34
+module G30
+  g30_state : [0..1] init 0;
+
+  [pursue_G30] !g30_achieved & g30_state=0 -> (g30_state'=1);
+  [pursue_T31] !g30_achieved & g30_state=1 & G30_achievable*N > decision_G30 & t32_state=0 & t33_state=0 & t34_state=0 & T31_relative*N > _decision_G30 -> true;
+  [pursue_T32] !g30_achieved & g30_state=1 & G30_achievable*N > decision_G30 & t31_state=0 & t33_state=0 & t34_state=0 & T32_relative*N > _decision_G30 & !(T31_relative*N > _decision_G30) -> true;
+  [pursue_T33] !g30_achieved & g30_state=1 & G30_achievable*N > decision_G30 & t31_state=0 & t32_state=0 & t34_state=0 & T33_relative*N > _decision_G30 & !(T31_relative*N > _decision_G30) & !(T32_relative*N > _decision_G30) -> true;
+  [pursue_T34] !g30_achieved & g30_state=1 & G30_achievable*N > decision_G30 & t31_state=0 & t32_state=0 & t33_state=0 & T34_relative*N > _decision_G30 & !(T31_relative*N > _decision_G30) & !(T32_relative*N > _decision_G30) & !(T33_relative*N > _decision_G30) -> true;
+
+  [achieved_G30] g30_state=1 & g30_achieved & t31_state=0 & t32_state=0 & t33_state=0 & t34_state=0 -> (g30_state'=0);
+  
+  [skip_G30] !g30_achieved & g30_state=1 & t31_state=0 & t32_state=0 & t33_state=0 & t34_state=0 & G30_achievable*N <= decision_G30 -> (g30_state'=0);
+endmodule
+
+formula g30_achieved = (t31_achieved & t32_achieved & t33_achieved & t34_achieved);
+formula G30_achievable = g30_achieved ? 0 : (!t31_achieved ? T31_achievable : 1) * (!t32_achieved ? T32_achievable : 1) * (!t33_achieved ? T33_achievable : 1) * (!t34_achieved ? T34_achievable : 1);
+formula T31_relative = t31_achieved ? 0 : T31_achievable/(T31_achievable + (t32_achieved ? 0 : T32_achievable) + (t33_achieved ? 0 : T33_achievable) + (t34_achieved ? 0 : T34_achievable));
+formula T32_relative = t32_achieved ? 0 : T32_achievable/(T32_achievable + (t31_achieved ? 0 : T31_achievable) + (t33_achieved ? 0 : T33_achievable) + (t34_achieved ? 0 : T34_achievable));
+formula T33_relative = t33_achieved ? 0 : T33_achievable/(T33_achievable + (t31_achieved ? 0 : T31_achievable) + (t32_achieved ? 0 : T32_achievable) + (t34_achieved ? 0 : T34_achievable));
+formula T34_relative = t34_achieved ? 0 : T34_achievable/(T34_achievable + (t31_achieved ? 0 : T31_achievable) + (t32_achieved ? 0 : T32_achievable) + (t33_achieved ? 0 : T33_achievable));
+
+// ID: G35
+// Name: goal
+// Type: choice
+// Relation to children: or
+// Children: G36, T42
+module G35
+  g35_state : [0..1] init 0;
+  g35_chosen : [0..2] init 0;
+
+  [pursue_G35] !g35_achieved & g35_state=0 -> (g35_state'=1);
+  [pursue_G36] !g35_achieved & g35_state=1 & g35_chosen=0 & G35_achievable*N > decision_G35 & t42_state=0 & (G36_achievable/(G36_achievable+T42_achievable))*N > _decision_G35 -> (g35_chosen'=1);
+  [pursue_G36] !g35_achieved & g35_state=1 & g35_chosen=1 & G36_achievable*N > decision_G36 -> true;
+  [pursue_T42] !g35_achieved & g35_state=1 & g35_chosen=0 & G35_achievable*N > decision_G35 & g36_state=0 & (T42_achievable/(G36_achievable+T42_achievable))*N > _decision_G35 & !((G36_achievable/(G36_achievable+T42_achievable))*N > _decision_G35) -> (g35_chosen'=2);
+  [pursue_T42] !g35_achieved & g35_state=1 & g35_chosen=2 & T42_achievable*N > decision_T42 -> true;
+
+  [achieved_G35] g35_state=1 & g35_achieved & g36_state=0 & t42_state=0 -> (g35_state'=0);
+  
+  [skip_G35] g35_chosen=0 & !g35_achieved & g35_state=1 & g36_state=0 & t42_state=0 & G35_achievable*N <= decision_G35 -> (g35_state'=0);
+  [skip_G35] !g35_achieved & g35_state=1 & g36_state=0 & g35_chosen=1 & G36_achievable*N <= decision_G36 -> (g35_state'=0);
+  [skip_G35] !g35_achieved & g35_state=1 & t42_state=0 & g35_chosen=2 & T42_achievable*N <= decision_T42 -> (g35_state'=0);
+endmodule
+
+formula g35_achieved = (g36_achieved | t42_achieved);
+formula G35_achievable = g35_chosen=1 ? G36_achievable : g35_chosen=2 ? T42_achievable : (G36_achievable + T42_achievable - (G36_achievable * T42_achievable));
+
+// ID: G36
+// Name: goal
+// Type: alternative (no notation)
+// Relation to children: or
+// Children: G37
+module G36
+  g36_state : [0..1] init 0;
+
+  [pursue_G36] !g36_achieved & g36_state=0 -> (g36_state'=1);
+  [pursue_G37] !g36_achieved & g36_state=1 & G36_achievable*N > decision_G36 & (G37_achievable/(G37_achievable))*N > _decision_G36 -> true;
+
+  [achieved_G36] g36_state=1 & g36_achieved & g37_state=0 -> (g36_state'=0);
+  
+  [skip_G36] !g36_achieved & g36_state=1 & g37_state=0 & G36_achievable*N <= decision_G36 -> (g36_state'=0);
+endmodule
+
+formula g36_achieved = (g37_achieved);
+formula G36_achievable = G37_achievable;
+
+// ID: G37
+// Name: goal
+// Type: interleaved
+// Relation to children: and
+// Children: T38, T39, T40, T41
+module G37
+  g37_state : [0..1] init 0;
+
+  [pursue_G37] !g37_achieved & g37_state=0 -> (g37_state'=1);
+  [pursue_T38] !g37_achieved & g37_state=1 & T38_achievable*N > decision_T38 -> true;
+  [pursue_T39] !g37_achieved & g37_state=1 & T39_achievable*N > decision_T39 -> true;
+  [pursue_T40] !g37_achieved & g37_state=1 & T40_achievable*N > decision_T40 -> true;
+  [pursue_T41] !g37_achieved & g37_state=1 & T41_achievable*N > decision_T41 -> true;
+
+  [achieved_G37] g37_state=1 & g37_achieved & t38_state=0 & t39_state=0 & t40_state=0 & t41_state=0 -> (g37_state'=0);
+  
+  [skip_G37] !g37_achieved & g37_state=1 & t38_state=0 & t39_state=0 & t40_state=0 & t41_state=0 & !(T38_achievable*N > decision_T38 | T39_achievable*N > decision_T39 | T40_achievable*N > decision_T40 | T41_achievable*N > decision_T41) -> (g37_state'=0);
+endmodule
+
+formula g37_achieved = (t38_achieved & t39_achieved & t40_achieved & t41_achieved);
+formula G37_achievable = g37_achieved ? 0 : (!t38_achieved ? T38_achievable : 1) * (!t39_achieved ? T39_achievable : 1) * (!t40_achieved ? T40_achievable : 1) * (!t41_achieved ? T41_achievable : 1);
+
+
+const double T11_achievable = 0.8;
+const double T12_achievable = 0.8;
+const double T13_achievable = 0.8;
+const double T14_achievable = 0.8;
+const double T16_achievable = 0.8;
+const double T17_achievable = 0.8;
+const double T18_achievable = 0.8;
+const double T19_achievable = 0.8;
+const double T21_achievable = 0.8;
+const double T23_achievable = 0.8;
+const double T24_achievable = 0.8;
+const double T26_achievable = 0.8;
+const double T27_achievable = 0.8;
+const double T28_achievable = 0.8;
+const double T29_achievable = 0.8;
+const double T3_achievable = 0.8;
+const double T31_achievable = 0.8;
+const double T32_achievable = 0.8;
+const double T33_achievable = 0.8;
+const double T34_achievable = 0.8;
+const double T38_achievable = 0.8;
+const double T39_achievable = 0.8;
+const double T4_achievable = 0.8;
+const double T40_achievable = 0.8;
+const double T41_achievable = 0.8;
+const double T42_achievable = 0.8;
+const double T7_achievable = 0.8;
+const double T8_achievable = 0.8;
+const double T9_achievable = 0.8;
+
+module ChangeManager
+  t11_state: [0..1] init 0;
+  t11_achieved_: [0..1] init 0;
+  t12_state: [0..1] init 0;
+  t12_achieved_: [0..1] init 0;
+  t13_state: [0..1] init 0;
+  t13_achieved_: [0..1] init 0;
+  t14_state: [0..1] init 0;
+  t14_achieved_: [0..1] init 0;
+  t16_state: [0..1] init 0;
+  t16_achieved_: [0..1] init 0;
+  t17_state: [0..1] init 0;
+  t17_achieved_: [0..1] init 0;
+  t18_state: [0..1] init 0;
+  t18_achieved_: [0..1] init 0;
+  t19_state: [0..1] init 0;
+  t19_achieved_: [0..1] init 0;
+  t21_state: [0..1] init 0;
+  t21_achieved_: [0..1] init 0;
+  t23_state: [0..1] init 0;
+  t23_achieved_: [0..1] init 0;
+  t24_state: [0..1] init 0;
+  t24_achieved_: [0..1] init 0;
+  t26_state: [0..1] init 0;
+  t26_achieved_: [0..1] init 0;
+  t27_state: [0..1] init 0;
+  t27_achieved_: [0..1] init 0;
+  t28_state: [0..1] init 0;
+  t28_achieved_: [0..1] init 0;
+  t29_state: [0..1] init 0;
+  t29_achieved_: [0..1] init 0;
+  t3_state: [0..1] init 0;
+  t3_achieved_: [0..1] init 0;
+  t31_state: [0..1] init 0;
+  t31_achieved_: [0..1] init 0;
+  t32_state: [0..1] init 0;
+  t32_achieved_: [0..1] init 0;
+  t33_state: [0..1] init 0;
+  t33_achieved_: [0..1] init 0;
+  t34_state: [0..1] init 0;
+  t34_achieved_: [0..1] init 0;
+  t38_state: [0..1] init 0;
+  t38_achieved_: [0..1] init 0;
+  t39_state: [0..1] init 0;
+  t39_achieved_: [0..1] init 0;
+  t4_state: [0..1] init 0;
+  t4_achieved_: [0..1] init 0;
+  t40_state: [0..1] init 0;
+  t40_achieved_: [0..1] init 0;
+  t41_state: [0..1] init 0;
+  t41_achieved_: [0..1] init 0;
+  t42_state: [0..1] init 0;
+  t42_achieved_: [0..1] init 0;
+  t7_state: [0..1] init 0;
+  t7_achieved_: [0..1] init 0;
+  t8_state: [0..1] init 0;
+  t8_achieved_: [0..1] init 0;
+  t9_state: [0..1] init 0;
+  t9_achieved_: [0..1] init 0;
+  
+  // Task T11: task
+  [pursue_T11] t11_state=0 & t11_achieved_=0 -> (t11_state'=1);
+  [try_T11] t11_state=1 & t11_achieved_=0 -> T11_achievable: (t11_achieved_'=1) + 1-T11_achievable: (t11_state'=0);
+  [achieved_T11] t11_state=1 & t11_achieved_=1 -> (t11_state'=0);
+  
+
+  // Task T12: task
+  [pursue_T12] t12_state=0 & t12_achieved_=0 -> (t12_state'=1);
+  [try_T12] t12_state=1 & t12_achieved_=0 -> T12_achievable: (t12_achieved_'=1) + 1-T12_achievable: (t12_state'=0);
+  [achieved_T12] t12_state=1 & t12_achieved_=1 -> (t12_state'=0);
+  
+
+  // Task T13: task
+  [pursue_T13] t13_state=0 & t13_achieved_=0 -> (t13_state'=1);
+  [try_T13] t13_state=1 & t13_achieved_=0 -> T13_achievable: (t13_achieved_'=1) + 1-T13_achievable: (t13_state'=0);
+  [achieved_T13] t13_state=1 & t13_achieved_=1 -> (t13_state'=0);
+  
+
+  // Task T14: task
+  [pursue_T14] t14_state=0 & t14_achieved_=0 -> (t14_state'=1);
+  [try_T14] t14_state=1 & t14_achieved_=0 -> T14_achievable: (t14_achieved_'=1) + 1-T14_achievable: (t14_state'=0);
+  [achieved_T14] t14_state=1 & t14_achieved_=1 -> (t14_state'=0);
+  
+
+  // Task T16: task
+  [pursue_T16] t16_state=0 & t16_achieved_=0 -> (t16_state'=1);
+  [try_T16] t16_state=1 & t16_achieved_=0 -> T16_achievable: (t16_achieved_'=1) + 1-T16_achievable: (t16_state'=0);
+  [achieved_T16] t16_state=1 & t16_achieved_=1 -> (t16_state'=0);
+  
+
+  // Task T17: task
+  [pursue_T17] t17_state=0 & t17_achieved_=0 -> (t17_state'=1);
+  [try_T17] t17_state=1 & t17_achieved_=0 -> T17_achievable: (t17_achieved_'=1) + 1-T17_achievable: (t17_state'=0);
+  [achieved_T17] t17_state=1 & t17_achieved_=1 -> (t17_state'=0);
+  
+
+  // Task T18: task
+  [pursue_T18] t18_state=0 & t18_achieved_=0 -> (t18_state'=1);
+  [try_T18] t18_state=1 & t18_achieved_=0 -> T18_achievable: (t18_achieved_'=1) + 1-T18_achievable: (t18_state'=0);
+  [achieved_T18] t18_state=1 & t18_achieved_=1 -> (t18_state'=0);
+  
+
+  // Task T19: task
+  [pursue_T19] t19_state=0 & t19_achieved_=0 -> (t19_state'=1);
+  [try_T19] t19_state=1 & t19_achieved_=0 -> T19_achievable: (t19_achieved_'=1) + 1-T19_achievable: (t19_state'=0);
+  [achieved_T19] t19_state=1 & t19_achieved_=1 -> (t19_state'=0);
+  
+
+  // Task T21: task
+  [pursue_T21] t21_state=0 & t21_achieved_=0 -> (t21_state'=1);
+  [try_T21] t21_state=1 & t21_achieved_=0 -> T21_achievable: (t21_achieved_'=1) + 1-T21_achievable: (t21_state'=0);
+  [achieved_T21] t21_state=1 & t21_achieved_=1 -> (t21_state'=0);
+  
+
+  // Task T23: task
+  [pursue_T23] t23_state=0 & t23_achieved_=0 -> (t23_state'=1);
+  [try_T23] t23_state=1 & t23_achieved_=0 -> T23_achievable: (t23_achieved_'=1) + 1-T23_achievable: (t23_state'=0);
+  [achieved_T23] t23_state=1 & t23_achieved_=1 -> (t23_state'=0);
+  
+
+  // Task T24: task
+  [pursue_T24] t24_state=0 & t24_achieved_=0 -> (t24_state'=1);
+  [try_T24] t24_state=1 & t24_achieved_=0 -> T24_achievable: (t24_achieved_'=1) + 1-T24_achievable: (t24_state'=0);
+  [achieved_T24] t24_state=1 & t24_achieved_=1 -> (t24_state'=0);
+  
+
+  // Task T26: task
+  [pursue_T26] t26_state=0 & t26_achieved_=0 -> (t26_state'=1);
+  [try_T26] t26_state=1 & t26_achieved_=0 -> T26_achievable: (t26_achieved_'=1) + 1-T26_achievable: (t26_state'=0);
+  [achieved_T26] t26_state=1 & t26_achieved_=1 -> (t26_state'=0);
+  
+
+  // Task T27: task
+  [pursue_T27] t27_state=0 & t27_achieved_=0 -> (t27_state'=1);
+  [try_T27] t27_state=1 & t27_achieved_=0 -> T27_achievable: (t27_achieved_'=1) + 1-T27_achievable: (t27_state'=0);
+  [achieved_T27] t27_state=1 & t27_achieved_=1 -> (t27_state'=0);
+  
+
+  // Task T28: task
+  [pursue_T28] t28_state=0 & t28_achieved_=0 -> (t28_state'=1);
+  [try_T28] t28_state=1 & t28_achieved_=0 -> T28_achievable: (t28_achieved_'=1) + 1-T28_achievable: (t28_state'=0);
+  [achieved_T28] t28_state=1 & t28_achieved_=1 -> (t28_state'=0);
+  
+
+  // Task T29: task
+  [pursue_T29] t29_state=0 & t29_achieved_=0 -> (t29_state'=1);
+  [try_T29] t29_state=1 & t29_achieved_=0 -> T29_achievable: (t29_achieved_'=1) + 1-T29_achievable: (t29_state'=0);
+  [achieved_T29] t29_state=1 & t29_achieved_=1 -> (t29_state'=0);
+  
+
+  // Task T3: task
+  [pursue_T3] t3_state=0 & t3_achieved_=0 -> (t3_state'=1);
+  [try_T3] t3_state=1 & t3_achieved_=0 -> T3_achievable: (t3_achieved_'=1) + 1-T3_achievable: (t3_state'=0);
+  [achieved_T3] t3_state=1 & t3_achieved_=1 -> (t3_state'=0);
+  
+
+  // Task T31: task
+  [pursue_T31] t31_state=0 & t31_achieved_=0 -> (t31_state'=1);
+  [try_T31] t31_state=1 & t31_achieved_=0 -> T31_achievable: (t31_achieved_'=1) + 1-T31_achievable: (t31_state'=0);
+  [achieved_T31] t31_state=1 & t31_achieved_=1 -> (t31_state'=0);
+  
+
+  // Task T32: task
+  [pursue_T32] t32_state=0 & t32_achieved_=0 -> (t32_state'=1);
+  [try_T32] t32_state=1 & t32_achieved_=0 -> T32_achievable: (t32_achieved_'=1) + 1-T32_achievable: (t32_state'=0);
+  [achieved_T32] t32_state=1 & t32_achieved_=1 -> (t32_state'=0);
+  
+
+  // Task T33: task
+  [pursue_T33] t33_state=0 & t33_achieved_=0 -> (t33_state'=1);
+  [try_T33] t33_state=1 & t33_achieved_=0 -> T33_achievable: (t33_achieved_'=1) + 1-T33_achievable: (t33_state'=0);
+  [achieved_T33] t33_state=1 & t33_achieved_=1 -> (t33_state'=0);
+  
+
+  // Task T34: task
+  [pursue_T34] t34_state=0 & t34_achieved_=0 -> (t34_state'=1);
+  [try_T34] t34_state=1 & t34_achieved_=0 -> T34_achievable: (t34_achieved_'=1) + 1-T34_achievable: (t34_state'=0);
+  [achieved_T34] t34_state=1 & t34_achieved_=1 -> (t34_state'=0);
+  
+
+  // Task T38: task
+  [pursue_T38] t38_state=0 & t38_achieved_=0 -> (t38_state'=1);
+  [try_T38] t38_state=1 & t38_achieved_=0 -> T38_achievable: (t38_achieved_'=1) + 1-T38_achievable: (t38_state'=0);
+  [achieved_T38] t38_state=1 & t38_achieved_=1 -> (t38_state'=0);
+  
+
+  // Task T39: task
+  [pursue_T39] t39_state=0 & t39_achieved_=0 -> (t39_state'=1);
+  [try_T39] t39_state=1 & t39_achieved_=0 -> T39_achievable: (t39_achieved_'=1) + 1-T39_achievable: (t39_state'=0);
+  [achieved_T39] t39_state=1 & t39_achieved_=1 -> (t39_state'=0);
+  
+
+  // Task T4: task
+  [pursue_T4] t4_state=0 & t4_achieved_=0 -> (t4_state'=1);
+  [try_T4] t4_state=1 & t4_achieved_=0 -> T4_achievable: (t4_achieved_'=1) + 1-T4_achievable: (t4_state'=0);
+  [achieved_T4] t4_state=1 & t4_achieved_=1 -> (t4_state'=0);
+  
+
+  // Task T40: task
+  [pursue_T40] t40_state=0 & t40_achieved_=0 -> (t40_state'=1);
+  [try_T40] t40_state=1 & t40_achieved_=0 -> T40_achievable: (t40_achieved_'=1) + 1-T40_achievable: (t40_state'=0);
+  [achieved_T40] t40_state=1 & t40_achieved_=1 -> (t40_state'=0);
+  
+
+  // Task T41: task
+  [pursue_T41] t41_state=0 & t41_achieved_=0 -> (t41_state'=1);
+  [try_T41] t41_state=1 & t41_achieved_=0 -> T41_achievable: (t41_achieved_'=1) + 1-T41_achievable: (t41_state'=0);
+  [achieved_T41] t41_state=1 & t41_achieved_=1 -> (t41_state'=0);
+  
+
+  // Task T42: task
+  [pursue_T42] t42_state=0 & t42_achieved_=0 -> (t42_state'=1);
+  [try_T42] t42_state=1 & t42_achieved_=0 -> T42_achievable: (t42_achieved_'=1) + 1-T42_achievable: (t42_state'=0);
+  [achieved_T42] t42_state=1 & t42_achieved_=1 -> (t42_state'=0);
+  
+
+  // Task T7: task
+  [pursue_T7] t7_state=0 & t7_achieved_=0 -> (t7_state'=1);
+  [try_T7] t7_state=1 & t7_achieved_=0 -> T7_achievable: (t7_achieved_'=1) + 1-T7_achievable: (t7_state'=0);
+  [achieved_T7] t7_state=1 & t7_achieved_=1 -> (t7_state'=0);
+  
+
+  // Task T8: task
+  [pursue_T8] t8_state=0 & t8_achieved_=0 -> (t8_state'=1);
+  [try_T8] t8_state=1 & t8_achieved_=0 -> T8_achievable: (t8_achieved_'=1) + 1-T8_achievable: (t8_state'=0);
+  [achieved_T8] t8_state=1 & t8_achieved_=1 -> (t8_state'=0);
+  
+
+  // Task T9: task
+  [pursue_T9] t9_state=0 & t9_achieved_=0 -> (t9_state'=1);
+  [try_T9] t9_state=1 & t9_achieved_=0 -> T9_achievable: (t9_achieved_'=1) + 1-T9_achievable: (t9_state'=0);
+  [achieved_T9] t9_state=1 & t9_achieved_=1 -> (t9_state'=0);
+  
+endmodule
+
+formula t11_achieved = (t11_achieved_=1);
+formula t12_achieved = (t12_achieved_=1);
+formula t13_achieved = (t13_achieved_=1);
+formula t14_achieved = (t14_achieved_=1);
+formula t16_achieved = (t16_achieved_=1);
+formula t17_achieved = (t17_achieved_=1);
+formula t18_achieved = (t18_achieved_=1);
+formula t19_achieved = (t19_achieved_=1);
+formula t21_achieved = (t21_achieved_=1);
+formula t23_achieved = (t23_achieved_=1);
+formula t24_achieved = (t24_achieved_=1);
+formula t26_achieved = (t26_achieved_=1);
+formula t27_achieved = (t27_achieved_=1);
+formula t28_achieved = (t28_achieved_=1);
+formula t29_achieved = (t29_achieved_=1);
+formula t3_achieved = (t3_achieved_=1);
+formula t31_achieved = (t31_achieved_=1);
+formula t32_achieved = (t32_achieved_=1);
+formula t33_achieved = (t33_achieved_=1);
+formula t34_achieved = (t34_achieved_=1);
+formula t38_achieved = (t38_achieved_=1);
+formula t39_achieved = (t39_achieved_=1);
+formula t4_achieved = (t4_achieved_=1);
+formula t40_achieved = (t40_achieved_=1);
+formula t41_achieved = (t41_achieved_=1);
+formula t42_achieved = (t42_achieved_=1);
+formula t7_achieved = (t7_achieved_=1);
+formula t8_achieved = (t8_achieved_=1);
+formula t9_achieved = (t9_achieved_=1);
+
+module System
+  
+endmodule

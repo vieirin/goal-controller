@@ -1,0 +1,5 @@
+FROM eclipse-temurin:17-jre
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN curl -fL -o /tmp/p.tgz https://www.prismmodelchecker.org/dl/prism-4.9-linux64-arm.tar.gz && mkdir -p /opt && tar -xzf /tmp/p.tgz -C /opt && mv /opt/prism-4.9-linux64-arm /opt/prism && cd /opt/prism && ./install.sh >/dev/null && rm /tmp/p.tgz
+ENV PATH=/opt/prism/bin:$PATH
+WORKDIR /work

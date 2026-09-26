@@ -108,6 +108,7 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Choice Goal',
         executionDetail: {
           type: 'choice',
+          choice: ['G12', 'G13'],
         },
       });
     });
@@ -121,6 +122,7 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Multiple Choices',
         executionDetail: {
           type: 'choice',
+          choice: ['G2', 'G3', 'G4', 'G5'],
         },
       });
     });
