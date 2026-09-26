@@ -9,15 +9,18 @@ import { skipStatement } from '../../../../../../../../src/engines/edgeV2/templa
 import { decisionVariableNamesForGoal } from '../../../../../../../../src/engines/edgeV2/template/decisionVariables';
 import { achievableGoalFormula } from '../../../../../../../../src/engines/edgeV2/template/modules/goalModule/template/formulas';
 import { initLogger } from '../../../../../../../../src/engines/edgeV2/logger/logger';
-import type { EdgeGoalNode } from '../../../../../../../../src/engines/edgeV2/types';
+import type {
+  Decision,
+  EdgeGoalNode,
+} from '../../../../../../../../src/engines/edgeV2/types';
 
-const emptyDecision = {
-  decisionVars: [] as Array<{ variable: string; space: number }>,
+const emptyDecision: Decision = {
+  decisionVars: [],
   hasDecision: false,
 };
 
-const childGoal = (id: string): EdgeGoalNode =>
-  ({
+const childGoal = (id: string): EdgeGoalNode => {
+  const goal: EdgeGoalNode = {
     iStarId: id,
     id,
     type: 'goal',
@@ -36,13 +39,15 @@ const childGoal = (id: string): EdgeGoalNode =>
         maxRetries: 0,
       },
     },
-  }) as EdgeGoalNode;
+  };
+  return goal;
+};
 
 const andParent = (
   executionDetail: EdgeGoalNode['properties']['engine']['executionDetail'],
   childIds: string[],
-): EdgeGoalNode =>
-  ({
+): EdgeGoalNode => {
+  const goal: EdgeGoalNode = {
     iStarId: 'G0',
     id: 'G0',
     type: 'goal',
@@ -61,7 +66,9 @@ const andParent = (
         maxRetries: 0,
       },
     },
-  }) as EdgeGoalNode;
+  };
+  return goal;
+};
 
 describe('edgeV2 AND anyOrder', () => {
   before(() => {
@@ -69,7 +76,7 @@ describe('edgeV2 AND anyOrder', () => {
   });
 
   describe('pursueAndAnyOrderGoal', () => {
-    it('matches EDGEV2 N=2 pursue guards', () => {
+    it('matches the reference flexible pursue guards (N=2)', () => {
       const goal = andParent(
         { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
         ['G1', 'G2'],
@@ -77,11 +84,11 @@ describe('edgeV2 AND anyOrder', () => {
 
       assert.strictEqual(
         pursueAndAnyOrderGoal(goal, ['G1', 'G2'], 'G1'),
-        'G0_achievable*10.0 > decision_G0 & g2_state!=1 & (g2_state=1 | (G1_achievable/(G1_achievable+G2_achievable))*10.0 > _decision_G0)',
+        'G0_achievable*N > decision_G0 & g2_state=0 & G1_relative*N > _decision_G0',
       );
       assert.strictEqual(
         pursueAndAnyOrderGoal(goal, ['G1', 'G2'], 'G2'),
-        'G0_achievable*10.0 > decision_G0 & g1_state!=1 & (g1_state=1 | (G1_achievable/(G1_achievable+G2_achievable))*10.0 <= _decision_G0)',
+        'G0_achievable*N > decision_G0 & g1_state=0 & G2_relative*N > _decision_G0 & !(G1_relative*N > _decision_G0)',
       );
     });
 
@@ -139,7 +146,7 @@ describe('edgeV2 AND anyOrder', () => {
       );
       assert.strictEqual(
         skipStatement(goal),
-        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state\'=0);',
+        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state\'=0);',
       );
     });
 
@@ -150,20 +157,20 @@ describe('edgeV2 AND anyOrder', () => {
       );
       assert.strictEqual(
         skipStatement(goal),
-        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*10.0 <= decision_G0 -> (g0_state\'=0);',
+        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state\'=0);',
       );
     });
   });
 
   describe('achievableGoalFormula', () => {
-    it('emits AND product for anyOrder parents', () => {
+    it('emits the remaining-achievability product for anyOrder parents', () => {
       const goal = andParent(
         { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
         ['G1', 'G2'],
       );
       assert.strictEqual(
         achievableGoalFormula(goal),
-        'formula G0_achievable = G1_achievable * G2_achievable;',
+        'formula G0_achievable = g0_achieved ? 0 : (!g1_achieved ? G1_achievable : 1) * (!g2_achieved ? G2_achievable : 1);',
       );
     });
   });
@@ -183,7 +190,7 @@ describe('edgeV2 AND anyOrder', () => {
       );
       assert.strictEqual(
         pursueAndSequentialGoal(goal, ['G1', 'G2'], 'G2'),
-        'G0_achievable*10.0 > decision_G0 & g1_achieved',
+        'G0_achievable*N > decision_G0 & g1_achieved & g1_state=0',
       );
     });
   });

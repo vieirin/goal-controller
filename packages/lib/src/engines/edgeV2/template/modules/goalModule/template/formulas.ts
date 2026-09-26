@@ -102,7 +102,7 @@ export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
     type = 'OR';
     const orValue =
       achievables.length === 1
-        ? achievables[0]!
+        ? achievables.join('')
         : `${achievables.join(' + ')} - ${parenthesis(achievables.join(' * '))}`;
     value = orValue;
     if (construct(goal) === 'choice') {

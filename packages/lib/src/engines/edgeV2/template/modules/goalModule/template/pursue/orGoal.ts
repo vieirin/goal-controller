@@ -126,9 +126,10 @@ export const pursueDegradationGoal = (
   const statements: PursueStatement[] = [];
   const chain = retriedChildren(goal);
   const position = chain.findIndex(({ id }) => id === currentChildId);
+  const retried = chain[position];
 
-  if (position >= 0) {
-    const { retries } = chain[position]!;
+  if (retried) {
+    const { retries } = retried;
     degradationLogger.retry(currentChildId, currentChildId, retries);
     const failed = goalFailedVariable(currentChildId);
     statements.push({

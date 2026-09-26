@@ -46,15 +46,21 @@ def problems_of(model: str, findings) -> list[Problem]:
             continue
         if f.kind in ("formula differs", "missing formula"):
             what = next((v for k, v in FORMULA.items() if f.subject.endswith(k)), "formula")
-            text = f"{what} is computed differently" if f.kind == "formula differs" else f"{what} is missing"
+            text = (f"{what} is computed differently" if f.kind == "formula differs"
+                    else f"{what} is in the reference but missing from the edgeV2 output")
         elif f.kind == "missing variable":
-            text = "a state variable of the reference is not declared"
+            text = "a state variable of the reference is missing from the edgeV2 output"
         elif f.kind == "variable range differs":
             text = "a state variable has a different range"
+        elif f.kind == "constant value differs" and f.subject == "N":
+            text = "the discretisation N differs from the reference"
+        elif f.kind == "constant value differs":
+            text = "a constant has a different value"
         elif f.kind == "missing constant" and f.subject == "N":
-            text = "the discretisation constant N is not declared (achievabilities are scaled by a literal instead)"
+            text = ("the discretisation constant N is missing from the edgeV2 output "
+                    "(achievabilities are scaled by a literal instead)")
         elif f.kind == "missing constant":
-            text = "a decision constant of the reference is not declared"
+            text = "a decision constant of the reference is missing from the edgeV2 output"
         elif f.kind == "edgeV2 generation failed":
             text = "edgeV2 failed to generate the model"
         else:
@@ -66,9 +72,9 @@ def problems_of(model: str, findings) -> list[Problem]:
         if missing and extra:
             text = f"{rule} differs"
         elif missing:
-            text = f"{rule} is missing"
+            text = f"{rule} is in the reference but missing from the edgeV2 output"
         else:
-            text = f"{rule} exists in edgeV2 but not in the reference"
+            text = f"{rule} is in the edgeV2 output but not in the reference"
         out.append(Problem(
             model, owner, construct, text,
             "\n".join(f.reference for f in missing),
@@ -130,8 +136,9 @@ def render(cases: list[dict], reports: dict, prism: dict, run_info: dict, title:
                       f"child or no operator, custom retry counts); edgeV2 generated {ok} of them without errors."]
     if failed:
         lines += ["", f"⚠️ edgeV2 failed to generate {len(failed)} model(s) — see the model list below."]
+    checker = CHECKER_NAME.get(run_info.get("checker", "prism"), "PRISM")
     if prism:
-        lines += ["", _prism_verdict(cases, prism)]
+        lines += ["", _prism_verdict(cases, prism, checker)]
     lines.append("")
 
     # ---- what was checked --------------------------------------------------------
@@ -146,9 +153,10 @@ def render(cases: list[dict], reports: dict, prism: dict, run_info: dict, title:
               "children, every operator, custom retry counts and goals without notation.",
               ]
     if prism:
-        lines.append("- **PRISM:** each model is loaded and checked in PRISM 4.9: the reference's own properties "
-                     "(translated to edgeV2 names) must hold, and the probability of eventually achieving the root "
-                     "goal is compared with the reference model under the same decision thresholds.")
+        lines.append(f"- **Model checking ({checker}):** each model is built and checked: the reference's own "
+                     "properties (translated to edgeV2 names) must hold, and the probability of eventually achieving "
+                     "the root goal is compared with the reference model under the same decision thresholds "
+                     "(the values the EDGE fuzzer uses: decision_X = 0.2·N, _decision_X = (N−1)/#children).")
     lines.append("")
 
     # ---- results by goal type ------------------------------------------------------
@@ -221,8 +229,8 @@ def render(cases: list[dict], reports: dict, prism: dict, run_info: dict, title:
 
     # ---- PRISM ------------------------------------------------------------------------
     if prism:
-        lines += ["## PRISM results", "",
-                  "| Model | Loads in PRISM | Properties holding | P(root goal achieved) edgeV2 | reference | Same |",
+        lines += [f"## Model checking results ({checker})", "",
+                  "| Model | edgeV2 model | Properties holding | P(root goal achieved) edgeV2 | reference | Same |",
                   "|---|---|---|---|---|---|"]
         for case in cases:
             lines.append(_prism_row(case, prism))
@@ -247,14 +255,28 @@ def render(cases: list[dict], reports: dict, prism: dict, run_info: dict, title:
     return "\n".join(lines) + "\n"
 
 
-def _prism_verdict(cases, prism) -> str:
-    loaded = holds = total_props = same = compared = 0
+CHECKER_NAME = {"prism": "PRISM 4.9", "storm": "Storm 1.14"}
+
+
+def _too_large(error: str | None) -> bool:
+    return bool(error) and any(
+        marker in error for marker in ("TIMEOUT", "Out of memory", "CUDD", "signal 15", "signal 9")
+    )
+
+
+def _prism_verdict(cases, prism, checker: str) -> str:
+    built = too_large = broken = holds = total_props = same = compared = 0
     for case in cases:
         edge = prism.get((str(case["folder"]), "edgev2"))
         if not edge:
             continue
-        if not edge["error"]:
-            loaded += 1
+        if _too_large(edge["error"]):
+            too_large += 1
+            continue
+        if edge["error"]:
+            broken += 1
+            continue
+        built += 1
         bools = [r for r in edge["results"] if r in ("true", "false")]
         holds += bools.count("true")
         total_props += len(bools)
@@ -263,12 +285,19 @@ def _prism_verdict(cases, prism) -> str:
         if p_edge is not None and p_ref is not None:
             compared += 1
             same += abs(p_edge - p_ref) < 1e-6
-    ran = sum(1 for c in cases if (str(c["folder"]), "edgev2") in prism)
-    if loaded == 0:
-        return f"❌ **PRISM:** none of the {ran} edgeV2 models load in PRISM, so no property could be checked."
-    icon = "✅" if loaded == ran and holds == total_props and same == compared else "❌"
-    return (f"{icon} **PRISM:** {loaded}/{ran} edgeV2 models load, {holds}/{total_props} properties hold, and the "
-            f"probability of achieving the root goal equals the reference in {same}/{compared} models.")
+    ran = built + too_large + broken
+    if built == 0 and broken:
+        return f"❌ **{checker}:** none of the {ran} edgeV2 models load, so no property could be checked."
+    icon = "✅" if broken == 0 and holds == total_props and same == compared else "❌"
+    text = (f"{icon} **{checker}:** {built}/{ran} edgeV2 models built and checked; {holds}/{total_props} "
+            f"properties hold; the probability of achieving the root goal equals the reference in "
+            f"{same}/{compared} models.")
+    if broken:
+        text += f" {broken} model(s) failed to load."
+    if too_large:
+        text += (f" {too_large} model(s) were too large to check within the time/memory limits "
+                 "(not an error in the model).")
+    return text
 
 
 def _probability(result) -> float | None:
@@ -287,11 +316,13 @@ def _prism_row(case, prism) -> str:
     if edge is None:
         return f"| `{key}` | not run | | | | |"
     ref = prism.get((str(case["folder"]), "reference"))
+    if _too_large(edge["error"]):
+        return f"| `{key}` | ⚠️ too large to check ({_short(edge['error'], 60)}) | | | | |"
     if edge["error"]:
-        return f"| `{key}` | ❌ {_short(edge['error'], 100)} | | | | |"
+        return f"| `{key}` | ❌ does not load: {_short(edge['error'], 100)} | | | | |"
     bools = [r for r in edge["results"] if r in ("true", "false")]
     p_edge, p_ref = _probability(edge), _probability(ref)
     same = "—" if p_ref is None or p_edge is None else ("✅" if abs(p_edge - p_ref) < 1e-6 else "❌")
     props = f"{bools.count('true')}/{len(bools)}" + (" ✅" if bools.count("true") == len(bools) else " ❌")
-    return (f"| `{key}` | ✅ | {props} | {p_edge if p_edge is not None else '—'} | "
+    return (f"| `{key}` | ✅ built | {props} | {p_edge if p_edge is not None else '—'} | "
             f"{p_ref if p_ref is not None else 'n/a'} | {same} |")

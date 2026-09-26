@@ -20,12 +20,13 @@ For every model a folder <out>/<suite>/<name>/ is written with
   reference.pctl      reference properties (+ P=? [F root achieved])
   errata.json         reference defects corrected before comparison
   findings.json       raw structural differences vs the reference
-  *.prism.log         PRISM output (with --prism)
+  *.storm.log         model-checker output (with --check; *.prism.log with --checker prism)
 and <out>/SUMMARY.md, the human-readable report.
 
 Usage
   python3 run.py                                   # committed example set
-  python3 run.py --prism                           # … and model-check it
+  python3 run.py --check                           # … and model-check it (Storm)
+  python3 run.py --check --checker prism           # … with PRISM instead
   python3 run.py --reference-filter '*' --freeform 60 --out /tmp/edgev2-full
   python3 run.py --report-only /tmp/edgev2-full    # re-render SUMMARY.md
 """
@@ -57,7 +58,8 @@ import report  # noqa: E402
 DEFAULT_REFERENCE_DIR = REPO.parent / "EDGE-XT" / "code" / "evaluation" / "generated_models"
 DEFAULT_OUT = REPO / "examples" / "edgeV2" / "generated"
 DEFAULT_REFERENCE_FILTER = "random_N10_d[234]_w2_00[0-2]"
-PRISM_IMAGE = "prism49"
+PRISM_IMAGE = "prism49"  # built from docker/Dockerfile.prism
+STORM_IMAGE = "movesrwth/storm:stable"
 
 
 # ---------------------------------------------------------------------------
@@ -192,30 +194,83 @@ def constants_for(model_text: str, root, n: int) -> str:
     return ",".join(values)
 
 
-def _prism_job(folder: Path, kind: str, constants: str, timeout: int) -> None:
-    """One PRISM run in its own container. PRISM gets `timeout` seconds, a hard
-    kill 10 s later if it ignores SIGTERM, and the container itself is killed
-    if docker does not return within timeout + 60 s."""
-    log = folder / f"{kind}.prism.log"
-    container = f"edgev2-prism-{uuid.uuid4().hex[:12]}"
-    command = (f"timeout -k 10 {timeout} prism -javamaxmem 4g {kind}.prism {kind}.pctl"
-               + (f" -const {constants}" if constants else ""))
+def storm_properties(pctl: str) -> str:
+    """Storm does not accept PRISM's `P=? [ φ ] =1`; use the equivalent `P>=1 [ φ ]`."""
+    props = []
+    for line in pctl.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = re.fullmatch(r"P=\?\s*\[(.*)\]\s*=\s*1", line)
+        props.append(f"P>=1 [{m.group(1)}]" if m else line)
+    return ";\n".join(props) + "\n"
+
+
+def storm_compatible_reference(prism: str) -> str:
+    """The reference negates comparisons without parentheses, e.g.
+    `!G1_relative*N>decision_G0_` or `!(G1/(G1+G2))*N > decision_G0_`. PRISM
+    reads `!` below comparisons (`!(… > …)`), Storm binds it to the operand and
+    rejects the model. Add the parentheses PRISM implies; the model is unchanged."""
+    out, i = [], 0
+    while i < len(prism):
+        if prism[i] == "!" and prism[i + 1:i + 2] != "=":
+            j = i + 1
+            if prism[j:j + 1] == "(":  # balanced group
+                depth = 0
+                while j < len(prism):
+                    depth += prism[j] == "("
+                    depth -= prism[j] == ")"
+                    j += 1
+                    if depth == 0:
+                        break
+            else:  # identifier
+                m = re.match(r"\w+", prism[j:])
+                j += m.end() if m else 0
+            tail = re.match(r"\s*\*\s*N\s*>\s*decision_G\w+_", prism[j:])
+            if tail:
+                out.append("!(" + prism[i + 1:j] + tail.group(0) + ")")
+                i = j + tail.end()
+                continue
+        out.append(prism[i])
+        i += 1
+    return "".join(out)
+
+
+def _check_job(folder: Path, kind: str, constants: str, checker: str, timeout: int) -> None:
+    """One model-checker run in its own container. The checker gets `timeout`
+    seconds, a hard kill 10 s later if it ignores SIGTERM, and the container
+    itself is killed if docker does not return within timeout + 60 s."""
+    log = folder / f"{kind}.{checker}.log"
+    container = f"edgev2-check-{uuid.uuid4().hex[:12]}"
+    if checker == "storm":
+        model = f"{kind}.prism"
+        if kind == "reference":
+            (folder / "reference.storm.prism").write_text(storm_compatible_reference((folder / model).read_text()))
+            model = "reference.storm.prism"
+        (folder / f"{kind}.props").write_text(storm_properties((folder / f"{kind}.pctl").read_text()))
+        command = (f"timeout -k 10 {timeout} storm --prism {model} --prop {kind}.props --timemem"
+                   + (f" --constants {constants}" if constants else ""))
+        image = STORM_IMAGE
+    else:
+        command = (f"timeout -k 10 {timeout} prism -javamaxmem 4g {kind}.prism {kind}.pctl"
+                   + (f" -const {constants}" if constants else ""))
+        image = PRISM_IMAGE
     try:
         result = subprocess.run(
             ["docker", "run", "--rm", "--name", container, "-v", f"{folder}:/work", "-w", "/work",
-             PRISM_IMAGE, "bash", "-c", command],
+             image, "bash", "-c", command],
             capture_output=True, text=True, timeout=timeout + 60,
         )
         output = result.stdout + result.stderr
         if result.returncode in (124, 137):
-            output += f"\nTIMEOUT: PRISM exceeded {timeout}s\n"
+            output += f"\nTIMEOUT: {checker} exceeded {timeout}s\n"
     except subprocess.TimeoutExpired:
         subprocess.run(["docker", "kill", container], capture_output=True)
         output = f"TIMEOUT: container killed after {timeout + 60}s\n"
     log.write_text(output)
 
 
-def run_prism(cases: list[dict], timeout: int, jobs: int) -> None:
+def run_checks(cases: list[dict], checker: str, timeout: int, jobs: int) -> None:
     work = []
     for case in cases:
         folder = case["folder"]
@@ -225,22 +280,32 @@ def run_prism(cases: list[dict], timeout: int, jobs: int) -> None:
         work.append((folder, "edgev2", constants_for(edge.read_text(), case["root"], case["n"])))
         if (folder / "reference.prism").exists():
             work.append((folder, "reference", ""))
-    print(f"running PRISM on {len(work)} models ({jobs} in parallel, {timeout}s limit each)")
+    print(f"model checking {len(work)} models with {checker} ({jobs} in parallel, {timeout}s limit each)")
     with ThreadPoolExecutor(max_workers=jobs) as pool:
-        list(pool.map(lambda job: _prism_job(*job, timeout), work))
+        list(pool.map(lambda job: _check_job(*job, checker, timeout), work))
 
 
-def read_prism_results(cases: list[dict]) -> dict:
+_RESULT = {
+    "prism": r"^Result:\s*(\S+)",
+    "storm": r"^Result \(for initial states\):\s*(\S+)",
+}
+_ERROR = {
+    "prism": r"^(Error:.*|TIMEOUT:.*)$",
+    "storm": r"^(ERROR.*|TIMEOUT:.*)$",
+}
+
+
+def read_check_results(cases: list[dict], checker: str) -> dict:
     results = {}
     for case in cases:
         for kind in ("edgev2", "reference"):
-            log_file = case["folder"] / f"{kind}.prism.log"
+            log_file = case["folder"] / f"{kind}.{checker}.log"
             if not log_file.exists():
                 continue
             log = log_file.read_text()
-            error = re.search(r"^(Error:.*|TIMEOUT:.*)$", log, flags=re.M)
+            error = re.search(_ERROR[checker], log, flags=re.M)
             results[(str(case["folder"]), kind)] = {
-                "results": re.findall(r"^Result:\s*(\S+)", log, flags=re.M),
+                "results": re.findall(_RESULT[checker], log, flags=re.M),
                 "error": error.group(0) if error else None,
             }
     return results
@@ -256,9 +321,11 @@ def main() -> None:
                         help="glob on reference model names (default: %(default)s)")
     parser.add_argument("--freeform", type=int, default=30, help="number of free-form models")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
-    parser.add_argument("--prism", action="store_true", help=f"model-check with PRISM (docker image {PRISM_IMAGE})")
-    parser.add_argument("--prism-timeout", type=int, default=300, help="seconds per PRISM run")
-    parser.add_argument("--prism-jobs", type=int, default=4, help="PRISM runs in parallel")
+    parser.add_argument("--check", action="store_true", help="model-check every model (docker)")
+    parser.add_argument("--checker", choices=["storm", "prism"], default="storm",
+                        help=f"storm ({STORM_IMAGE}, default) or prism ({PRISM_IMAGE})")
+    parser.add_argument("--timeout", type=int, default=300, help="seconds per model-checker run")
+    parser.add_argument("--jobs", type=int, default=4, help="model-checker runs in parallel")
     parser.add_argument("--report-only", type=Path, metavar="DIR",
                         help="re-render DIR/SUMMARY.md from an existing output folder")
     parser.add_argument("--title", default="", help="report title")
@@ -269,6 +336,7 @@ def main() -> None:
         cases = load_cases(out)
         run_file = out / "RUN.json"
         run_info = json.loads(run_file.read_text()) if run_file.exists() else {}
+        run_info.setdefault("checker", args.checker)
     else:
         out = args.out
         cases = []
@@ -280,13 +348,16 @@ def main() -> None:
         out.mkdir(parents=True, exist_ok=True)
         convert(write_cases(cases, out), out)
         run_info = {"date": datetime.date.today().isoformat(), "engine": report.engine_state(REPO),
-                    "command": " ".join(sys.argv[1:])}
+                    "command": " ".join(sys.argv[1:]), "checker": args.checker}
         (out / "RUN.json").write_text(json.dumps(run_info, indent=1))
 
     reports = compare_cases(cases)
-    if args.prism:
-        run_prism(cases, args.prism_timeout, args.prism_jobs)
-    summary = report.render(cases, reports, read_prism_results(cases), run_info, args.title)
+    if args.check:
+        run_checks(cases, args.checker, args.timeout, args.jobs)
+        run_info["checker"] = args.checker
+        (out / "RUN.json").write_text(json.dumps(run_info, indent=1))
+    checks = read_check_results(cases, run_info["checker"])
+    summary = report.render(cases, reports, checks, run_info, args.title)
     (out / "SUMMARY.md").write_text(summary)
     print(summary.split("## What was checked")[0].strip())
     print(f"\nfull report: {out / 'SUMMARY.md'}")

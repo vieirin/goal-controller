@@ -8,7 +8,7 @@ export const systemModuleTemplate = ({
   oldTransitions,
 }: {
   variables: string[];
-  resources: Array<EdgeResource>;
+  resources: EdgeResource[];
   defaultVariableValues: Record<string, number | boolean>;
   oldTransitions?: string[];
 }): string => {

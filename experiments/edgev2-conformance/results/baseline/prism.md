@@ -10,28 +10,28 @@ Where the differences are (number of goals or tasks affected): Task (16), Whole 
 
 2 further models use notation the reference cannot express (goals with one child or no operator, custom retry counts); edgeV2 generated 2 of them without errors.
 
-❌ **PRISM:** none of the 6 edgeV2 models load in PRISM, so no property could be checked.
+❌ **PRISM 4.9:** none of the 6 edgeV2 models load, so no property could be checked.
 
 ## What was checked
 
 - **Reference models** come from the EDGE fuzzer (`EDGE-XT/code/evaluation/goal_fuzzer.py`). Their goal trees are rebuilt, written as goal models in edgeV2 notation, and converted by edgeV2.
 - **Structure:** every PRISM rule and formula in the edgeV2 output is compared with the reference. Names are translated first (edgeV2 writes `g0_state` where the reference writes `gG0`). Two rules count as the same when they fire in exactly the same situations (checked on 400 random states) and have the same effect.
 - **Free-form models** exercise the notation beyond the reference: tasks at any depth, 1–4 children, every operator, custom retry counts and goals without notation.
-- **PRISM:** each model is loaded and checked in PRISM 4.9: the reference's own properties (translated to edgeV2 names) must hold, and the probability of eventually achieving the root goal is compared with the reference model under the same decision thresholds.
+- **Model checking (PRISM 4.9):** each model is built and checked: the reference's own properties (translated to edgeV2 names) must hold, and the probability of eventually achieving the root goal is compared with the reference model under the same decision thresholds (the values the EDGE fuzzer uses: decision_X = 0.2·N, _decision_X = (N−1)/#children).
 
 ## Results by goal type
 
 | Goal type | Notation | What it does | Compared with reference | Same as reference | Main problem |
 |---|---|---|---|---|---|
 | Sequence | `[A;B]` | does every child, one after another, in the written order | 3 | 0/3 ❌ | rule for starting a child differs |
-| Any order | `[A+B]` | does every child, one at a time, in any order | 1 | 0/1 ❌ | relative share used to pick the next child is missing |
+| Any order | `[A+B]` | does every child, one at a time, in any order | 1 | 0/1 ❌ | relative share used to pick the next child is in the reference but missing from the edgeV2 output |
 | Interleaved | `[A#B]` | does every child, possibly at the same time | 1 | 0/1 ❌ | achievability estimate (drives the pursue/skip decisions) is computed differently |
 | Alternative | `[A|B]` | needs one child; picks again after every failed attempt | 4 | 0/4 ❌ | rule for starting a child differs |
 | Choice | `[A?B]` | needs one child; picks once and sticks with it | 2 | 0/2 ❌ | achievability estimate (drives the pursue/skip decisions) is computed differently |
 | Degradation | `[A@3->B]` | retries the first child up to n times, then falls back to any child | 1 | 0/1 ❌ | "achieved" condition is computed differently |
 | AND without notation | `` | no operator written; edgeV2 treats it as interleaved | 0 | not in reference (generated 4) | — |
 | OR without notation | `` | no operator written; edgeV2 treats it as alternative | 0 | not in reference (generated 1) | — |
-| Task | `` | a leaf that succeeds with its achievability probability | 16 | 0/16 ❌ | a state variable of the reference is not declared |
+| Task | `` | a leaf that succeeds with its achievability probability | 16 | 0/16 ❌ | a state variable of the reference is missing from the edgeV2 output |
 
 ## Problems found
 
@@ -76,7 +76,7 @@ edgeV2:    [skip_G1] !g1_achieved & g1_state=1 & T2_pursued=0 & T3_pursued=0 & G
 
 ### Any order — 1 of 1 goals differ
 
-**Relative share used to pick the next child is missing** — 2× in 1 model(s). Example: `G4` in `reference/random_N10_d2_w2_002`
+**Relative share used to pick the next child is in the reference but missing from the edgeV2 output** — 2× in 1 model(s). Example: `G4` in `reference/random_N10_d2_w2_002`
 
 ```
 reference: formula T5_relative = t5_achieved ? 0 : T5_achievable/(T5_achievable + (t6_achieved ? 0 : T6_achievable))
@@ -226,7 +226,7 @@ reference: formula g0_achieved = (g1_achieved | (g1_failed=3 & g4_achieved))
 edgeV2:    formula g0_achieved = (g1_achieved | g4_achieved)
 ```
 
-**A state variable of the reference is not declared** — 1× in 1 model(s). Example: `G0` in `reference/random_N10_d2_w2_002`
+**A state variable of the reference is missing from the edgeV2 output** — 1× in 1 model(s). Example: `G0` in `reference/random_N10_d2_w2_002`
 
 ```
 reference: g1_failed : [0..3]
@@ -243,14 +243,14 @@ edgeV2:    [skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g4_state=0 -> (g0_
 
 ### Task — 16 of 16 tasks differ
 
-**A state variable of the reference is not declared** — 32× in 4 model(s). Example: `T2` in `freeform/freeform_000`
+**A state variable of the reference is missing from the edgeV2 output** — 32× in 4 model(s). Example: `T2` in `freeform/freeform_000`
 
 ```
 reference: t2_state : [0..1]
 edgeV2:    (not declared)
 ```
 
-**"achieved" condition is missing** — 16× in 4 model(s). Example: `T2` in `freeform/freeform_000`
+**"achieved" condition is in the reference but missing from the edgeV2 output** — 16× in 4 model(s). Example: `T2` in `freeform/freeform_000`
 
 ```
 reference: formula t2_achieved = (t2_achieved_=1)
@@ -278,7 +278,7 @@ reference: [try_T2] t2_state=1 & t2_achieved_=0 -> T2_achievable: (t2_achieved_'
 edgeV2:    [try_T2] t2_state=1 & !t2_achieved -> T2_achievable: (t2_achieved'=1) + 1-T2_achievable: (t2_state'=0)
 ```
 
-**A decision constant of the reference is not declared** — 6× in 3 model(s). Example: `T5` in `freeform/freeform_000`
+**A decision constant of the reference is missing from the edgeV2 output** — 6× in 3 model(s). Example: `T5` in `freeform/freeform_000`
 
 ```
 reference: const int decision_T5;
@@ -287,7 +287,7 @@ edgeV2:    (not declared)
 
 ### Whole model
 
-**The discretisation constant N is not declared (achievabilities are scaled by a literal instead)** — 4× in 4 model(s). Example: `model` in `freeform/freeform_000`
+**The discretisation constant N is missing from the edgeV2 output (achievabilities are scaled by a literal instead)** — 4× in 4 model(s). Example: `model` in `freeform/freeform_000`
 
 ```
 reference: const int N;
@@ -301,16 +301,16 @@ These are corrected in the reference before comparing, so they do not count as d
 - **Choice goals could never give up on their chosen child** (4 occurrences). In the reference, the rule that lets a choice goal give up once its chosen child is no longer worth pursuing requires the goal to be active and inactive at the same time (`g<id>=1 & g<id>=0`), so it can never fire and the goal gets stuck. The intent is clearly "the chosen child is idle" (`g<child>=0`); edgeV2 implements that.
 - **Choice-goal properties are glued together in the .pctl file** (2 occurrences). The reference writes the "only the chosen child runs" properties without a line break between them, so PRISM cannot parse them. A newline is inserted.
 
-## PRISM results
+## Model checking results (PRISM 4.9)
 
-| Model | Loads in PRISM | Properties holding | P(root goal achieved) edgeV2 | reference | Same |
+| Model | edgeV2 model | Properties holding | P(root goal achieved) edgeV2 | reference | Same |
 |---|---|---|---|---|---|
-| `freeform/freeform_000` | ❌ Error: Unknown variable "t2_state" in update ("t2_state", line 90, column 45). | | | | |
-| `freeform/freeform_001` | ❌ Error: Unknown variable "t10_state" in update ("t10_state", line 196, column 48). | | | | |
-| `freeform/freeform_002` | ❌ Error: Unknown variable "t10_state" in update ("t10_state", line 207, column 48). | | | | |
-| `reference/random_N10_d2_w2_000` | ❌ Error: Unknown variable "t2_state" in update ("t2_state", line 90, column 45). | | | | |
-| `reference/random_N10_d2_w2_001` | ❌ Error: Unknown variable "t2_state" in update ("t2_state", line 87, column 45). | | | | |
-| `reference/random_N10_d2_w2_002` | ❌ Error: Unknown variable "g1_failed" in update ("g1_failed", line 19, column 94). | | | | |
+| `freeform/freeform_000` | ❌ does not load: Error: Unknown variable "t2_state" in update ("t2_state", line 90, column 45). | | | | |
+| `freeform/freeform_001` | ❌ does not load: Error: Unknown variable "t10_state" in update ("t10_state", line 196, column 48). | | | | |
+| `freeform/freeform_002` | ❌ does not load: Error: Unknown variable "t10_state" in update ("t10_state", line 207, column 48). | | | | |
+| `reference/random_N10_d2_w2_000` | ❌ does not load: Error: Unknown variable "t2_state" in update ("t2_state", line 90, column 45). | | | | |
+| `reference/random_N10_d2_w2_001` | ❌ does not load: Error: Unknown variable "t2_state" in update ("t2_state", line 87, column 45). | | | | |
+| `reference/random_N10_d2_w2_002` | ❌ does not load: Error: Unknown variable "g1_failed" in update ("g1_failed", line 19, column 94). | | | | |
 
 ## Models
 

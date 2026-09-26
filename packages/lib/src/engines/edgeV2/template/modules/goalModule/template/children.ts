@@ -1,5 +1,6 @@
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
+import { getLogger } from '../../../../logger/logger';
 
 export type PursueableNode = EdgeGoalNode | EdgeTask;
 
@@ -23,17 +24,38 @@ export type Construct =
 const AND_CONSTRUCTS: Construct[] = ['sequence', 'anyOrder', 'interleaved'];
 const OR_CONSTRUCTS: Construct[] = ['alternative', 'choice', 'degradation'];
 
+// keyed by goal object, so each model (and each run in a long-lived process) warns again
+const warned = new WeakMap<EdgeGoalNode, Set<string>>();
+/** Log a model inconsistency once per goal and message (the model is still generated). */
+const warnOnce = (goal: EdgeGoalNode, message: string): void => {
+  const seen = warned.get(goal) ?? new Set<string>();
+  if (seen.has(message)) {
+    return;
+  }
+  seen.add(message);
+  warned.set(goal, seen);
+  getLogger().info(`[WARNING] ${message}`, 0);
+};
+
+/**
+ * The refinement links decide AND vs OR. A notation that contradicts them
+ * (e.g. `[G1#G2]` over OR links) is ignored, as before, and the goal gets the
+ * default construct for its links.
+ */
 export const construct = (goal: EdgeGoalNode): Construct => {
   const type = goal.properties.engine.executionDetail?.type;
   const relation = goal.relationToChildren;
+  const fallback: Construct = relation === 'or' ? 'alternative' : 'interleaved';
   if (!type || type === 'decisionMaking') {
-    return relation === 'or' ? 'alternative' : 'interleaved';
+    return fallback;
   }
   const allowed = relation === 'or' ? OR_CONSTRUCTS : AND_CONSTRUCTS;
   if (!allowed.includes(type)) {
-    throw new Error(
-      `[INVALID MODEL]: Goal ${goal.id} uses ${type} notation but refines its children with ${relation ?? 'no'} links (${type} requires ${OR_CONSTRUCTS.includes(type) ? 'OR' : 'AND'} refinement)`,
+    warnOnce(
+      goal,
+      `Goal ${goal.id} uses ${type} notation but refines its children with ${relation ?? 'no'} links; the notation is ignored and the goal is treated as ${fallback}`,
     );
+    return fallback;
   }
   return type;
 };
@@ -61,7 +83,8 @@ const notationOrder = (goal: EdgeGoalNode): string[] | undefined => {
 /**
  * Pursueable children (goals and tasks) in notation order — the order is the
  * priority used by sequence, child selection and degradation. Goals without
- * notation keep the model's link order.
+ * notation keep the model's link order; a notation that does not match the
+ * children is repaired with a warning (unknown ids dropped, unlisted appended).
  */
 export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
   const children = Node.children(goal).filter(
@@ -75,13 +98,18 @@ export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
   const unknown = order.filter((id) => !byId.has(id));
   const missing = children.filter((child) => !order.includes(child.id));
   if (unknown.length > 0 || missing.length > 0) {
-    throw new Error(
-      `[INVALID MODEL]: Goal ${goal.id} notation lists [${order.join(', ')}] but its children are [${children.map((c) => c.id).join(', ')}]` +
-        (unknown.length ? `; not children: ${unknown.join(', ')}` : '') +
-        (missing.length ? `; missing from notation: ${missing.map((c) => c.id).join(', ')}` : ''),
+    warnOnce(
+      goal,
+      `Goal ${goal.id} notation lists [${order.join(', ')}] but its children are [${children.map((c) => c.id).join(', ')}]` +
+        (unknown.length ? `; ignoring non-children ${unknown.join(', ')}` : '') +
+        (missing.length ? `; appending unlisted ${missing.map((c) => c.id).join(', ')}` : ''),
     );
   }
-  return order.map((id) => byId.get(id)!);
+  const listed = order.flatMap((id) => {
+    const child = byId.get(id);
+    return child ? [child] : [];
+  });
+  return [...listed, ...missing];
 };
 
 export const orderedChildIds = (goal: EdgeGoalNode): string[] =>

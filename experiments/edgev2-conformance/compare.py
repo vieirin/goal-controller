@@ -187,11 +187,23 @@ def compare(ref_text: str, edge_text: str, root, n: int, seed: int = 0) -> Repor
         if name not in used:
             continue  # declared by the fuzzer preamble but never referenced
         mapped = fn(name)
+        ref_value, edge_value = ref.constants[name], edge.constants.get(mapped)
+        if ref_value is not None and edge_value is not None and not _same_value(ref_value, edge_value):
+            owner = formula_owner(mapped)
+            report.findings.append(Finding(owner, construct_of.get(owner, "model"), "constant value differs", mapped,
+                                           reference=f"{mapped} = {ref_value}", edgev2=f"{mapped} = {edge_value}"))
         if mapped not in edge.constants:
             owner = formula_owner(mapped)
             report.findings.append(Finding(owner, construct_of.get(owner, "model"), "missing constant", mapped,
                                            reference=f"const int {mapped};", edgev2="(not declared)"))
     return report
+
+
+def _same_value(a: str, b: str) -> bool:
+    try:
+        return abs(float(a) - float(b)) < 1e-12
+    except ValueError:
+        return a.replace(" ", "") == b.replace(" ", "")
 
 
 def _formula_owner(name: str, ids: set[str]) -> str:

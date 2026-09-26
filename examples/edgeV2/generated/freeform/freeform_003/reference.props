@@ -1,0 +1,5 @@
+P>=1 [ G 0 + gG1 + gG4 <= 1 ];
+P>=1 [ G 0 + gT5 + gT6 <= 1 ];
+P>=1 [ G gT6=1 => gG4_failed=3 ];
+P>=1 [ G gG4_achieved => (gT5_achieved | (gG4_failed=3 & gT6_achieved)) ];
+P=? [ F gG0_achieved ]

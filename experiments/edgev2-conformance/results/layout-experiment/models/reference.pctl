@@ -1,0 +1,54 @@
+P=? [ G 0 + gT4 + gT5 <= 1 ] =1
+P=? [ G gT5=1 => gG3_failed=3 ]=1
+ P=? [ G gG3_achieved => (gT4_achieved | (gG3_failed=3 & gT5_achieved)) ]=1 
+
+
+P=? [ G 0 + gT7 + gT8 <= 1 ] =1
+
+
+
+
+P=? [ G 0 + gT11 + gT12 <= 1 ] =1
+P=? [G gT11=1 => (true )] = 1
+P=? [G gT12=1 => (true & gT11_achieved )] = 1
+
+
+
+P=? [ G 0 + gT14 + gT15 <= 1 ] =1
+P=? [G gT14=1 => (true )] = 1
+P=? [G gT15=1 => (true & gT14_achieved )] = 1
+
+P=? [ G 0 + gG10 + gG13 <= 1 ] =1
+P=? [ G gG13=1 => gG9_failed=3 ]=1
+ P=? [ G gG9_achieved => (gG10_achieved | (gG9_failed=3 & gG13_achieved)) ]=1 
+P=? [ G 0 + gG2 + gG9 <= 1 ] =1
+
+
+
+P=? [ G 0 + gT19 + gT20 <= 1 ] =1
+P=? [G gT19=1 => gG18_chosen=1 ] =1
+P=? [G gT20=1 => gG18_chosen=2 ] =1
+
+
+P=? [ G 0 + gT22 + gT23 <= 1 ] =1
+P=? [G gT22=1 => (true )] = 1
+P=? [G gT23=1 => (true & gT22_achieved )] = 1
+
+
+
+
+P=? [ G 0 + gT26 + gT27 <= 1 ] =1
+P=? [G gT26=1 => gG25_chosen=1 ] =1
+P=? [G gT27=1 => gG25_chosen=2 ] =1
+
+
+P=? [ G 0 + gT29 + gT30 <= 1 ] =1
+P=? [ G 0 + gG25 + gG28 <= 1 ] =1
+P=? [G gG25=1 => (true )] = 1
+P=? [G gG28=1 => (true & gG25_achieved )] = 1
+
+
+P=? [ G 0 + gG1 + gG16 <= 1 ] =1
+P=? [ G gG16=1 => gG0_failed=3 ]=1
+ P=? [ G gG0_achieved => (gG1_achieved | (gG0_failed=3 & gG16_achieved)) ]=1
+P=? [ F gG0_achieved ]

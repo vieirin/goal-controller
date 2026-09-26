@@ -1,0 +1,8 @@
+P>=1 [ G 0 + gG1 + gG4 <= 1 ];
+P>=1 [G gG1=1 => gG0_chosen=1 ];
+P>=1 [G gG4=1 => gG0_chosen=2 ];
+P>=1 [ G 0 + gT2 + gT3 <= 1 ];
+P>=1 [ G 0 + gT5 + gT6 <= 1 ];
+P>=1 [G gT5=1 => (true )];
+P>=1 [G gT6=1 => (true & gT5_achieved )];
+P=? [ F gG0_achieved ]

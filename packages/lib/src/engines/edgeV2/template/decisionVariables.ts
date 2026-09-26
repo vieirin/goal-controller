@@ -56,7 +56,9 @@ export const decisionVariablesTemplate = ({
     ...GoalTree.allByType(gm, 'goal').flatMap(decisionVariableNamesForGoal),
     ...GoalTree.allByType(gm, 'task').map((task) => decisionVariableName(task.id)),
   ];
-  names.forEach((name) => logger.decisionVariable([name, discretisation]));
+  names.forEach((name) => {
+    logger.decisionVariable([name, discretisation]);
+  });
 
   return [scale, ...names.map((name) => `const int ${name};`)].join('\n');
 };

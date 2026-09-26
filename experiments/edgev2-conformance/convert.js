@@ -23,7 +23,7 @@ for (const { goal, out, n } of manifest) {
       gm: tree.nodes,
       fileName: goal,
       variables,
-      achievabilitySpace: n,
+      discretisation: n,
     });
     logger.close?.();
     fs.writeFileSync(out, prism);

@@ -2,10 +2,6 @@ import type { Resource } from '@goal-controller/goal-tree';
 import { GoalTree, Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
 
-// Type aliases for this file
-type GoalNode = EdgeGoalNode;
-type Task = EdgeTask;
-type GoalTreeType = EdgeGoalTree;
 import {
   achievableFormulaVariable,
   achievedFormula,
@@ -23,6 +19,11 @@ import {
   retriedChildren,
 } from '../template/modules/goalModule/template/children';
 import type { ExpectedElements } from './types';
+
+// Type aliases for this file
+type GoalNode = EdgeGoalNode;
+type Task = EdgeTask;
+type GoalTreeType = EdgeGoalTree;
 
 const calculateGoalVariables = (goal: GoalNode): string[] => {
   const variables: string[] = [];

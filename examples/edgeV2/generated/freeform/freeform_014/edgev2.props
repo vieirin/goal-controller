@@ -1,0 +1,18 @@
+P>=1 [ G g4_state + g7_state + t12_state <= 1 ];
+P>=1 [ G t8_state + t9_state + t10_state + t11_state <= 1 ];
+P>=1 [ G t9_state=1 => t8_failed=5 ];
+P>=1 [ G t10_state=1 => t8_failed=5 ];
+P>=1 [ G t11_state=1 => t8_failed=5 ];
+P>=1 [ G g14_state + t16_state <= 1 ];
+P>=1 [ G g19_state + g28_state + t35_state + g36_state <= 1 ];
+P>=1 [ G g20_state + g25_state <= 1 ];
+P>=1 [ G g20_state=1 => g19_chosen=1 ];
+P>=1 [ G g25_state=1 => g19_chosen=2 ];
+P>=1 [ G t21_state + t22_state + t23_state + t24_state <= 1 ];
+P>=1 [ G t22_state=1 => (t21_achieved) ];
+P>=1 [ G t23_state=1 => (t21_achieved & t22_achieved) ];
+P>=1 [ G t24_state=1 => (t21_achieved & t22_achieved & t23_achieved) ];
+P>=1 [ G t26_state + t27_state <= 1 ];
+P>=1 [ G t29_state + g30_state <= 1 ];
+P>=1 [ G g30_state=1 => t29_failed=3 ];
+P=? [ F g0_achieved ]
