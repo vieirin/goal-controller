@@ -282,7 +282,7 @@ formula G11_achievable = G14_achievable + G15_achievable - (G14_achievable * G15
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// G12: Administer medicine  (OR + choice [G16|G17])
+// G12: Administer medicine  (OR + choice [G16?G17])
 // ═══════════════════════════════════════════════════════════════════════════════
 module G12
   g12_state : [0..1] init 0;
