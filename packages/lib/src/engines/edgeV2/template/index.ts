@@ -7,6 +7,7 @@ import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules, goalNumberId } from './modules/goalModule/goalModules';
 import { goalModule } from './modules/goalModule/template';
 import { orderedChildren } from './modules/goalModule/template/children';
+import { rewardsTemplate } from './modules/rewards';
 import { systemModule } from './modules/system/system';
 import { taskModule } from './modules/taskModule/taskModule';
 
@@ -69,6 +70,8 @@ const edgeDTMCTemplate = ({
 }): string => {
   const decisions = decisionVariablesTemplate({ gm, enabled: generateDecisionVars, discretisation });
   const system = systemModule({ gm, fileName, clean, variables });
+  const rewards = rewardsTemplate({ gm });
+  const rewardsSection = rewards ? `\n${rewards}\n` : '';
 
   if (taskLayout === 'changeManager') {
     const dtmcModel = `dtmc
@@ -80,7 +83,7 @@ ${goalModules({ gm })}
 ${changeManagerModule({ gm, variables })}
 
 ${system}
-`;
+${rewardsSection}`;
     return dtmcModel;
   }
 
@@ -91,7 +94,7 @@ ${decisions}
 ${treeOrderModules(gm, variables)}
 
 ${system}
-`;
+${rewardsSection}`;
 };
 
 export const generateValidatedPrismModel = ({
