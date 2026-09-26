@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Module-layout experiment (FINDINGS.md, "Found, documented, not changed").
+"""Module-layout experiment behind the `taskLayout` option (FINDINGS.md, "Task layout").
 
 Takes one edgeV2 output and rewrites only its module layout — the commands,
 formulas and constants are untouched — then builds every variant with PRISM's
 default (symbolic) engine and with Storm:
 
-  edgev2.prism            as generated: goals in id order, one ChangeManager with all tasks
+  edgev2.prism            changeManager layout: goals in id order, one ChangeManager with all tasks
   split.prism             one module per task, ChangeManager position kept (tasks last)
   goals_postorder.prism   goal modules children-first, ChangeManager kept
   postorder.prism         one module per task + children-first, like the reference
@@ -114,7 +114,7 @@ def main() -> None:
     constants = run.constants_for(original, root, n)
     rows = []
     for model, note in [
-        ("edgev2.prism", "as generated"),
+        ("edgev2.prism", "changeManager layout (previous output)"),
         ("split.prism", "one module per task, tasks last"),
         ("goals_postorder.prism", "goals children-first, one ChangeManager"),
         ("postorder.prism", "one module per task, children-first"),

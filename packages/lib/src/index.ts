@@ -47,6 +47,10 @@ export {
   generateEdgeV2PrismModel,
   initEdgeV2Logger,
 };
+export {
+  DEFAULT_TASK_LAYOUT as EDGE_V2_DEFAULT_TASK_LAYOUT,
+  type TaskLayout as EdgeV2TaskLayout,
+} from './engines/edgeV2/template/common';
 export type {
   EdgeGoalNode as EdgeV2GoalNode,
   EdgeGoalTree as EdgeV2GoalTree,

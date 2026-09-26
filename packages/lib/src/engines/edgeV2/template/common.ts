@@ -32,3 +32,11 @@ export const failed = (goalId: string): string => `${goalId}_failed`;
 /** Discretisation constant: achievabilities are compared as X_achievable*N > decision_X */
 export const DISCRETISATION_CONSTANT = 'N';
 export const DEFAULT_DISCRETISATION = 10;
+
+/**
+ * Where task commands live:
+ *   taskModules   — one module per task, declared next to its parent goal (EDGE reference layout)
+ *   changeManager — all tasks in a single ChangeManager module after the goals
+ */
+export type TaskLayout = 'taskModules' | 'changeManager';
+export const DEFAULT_TASK_LAYOUT: TaskLayout = 'taskModules';

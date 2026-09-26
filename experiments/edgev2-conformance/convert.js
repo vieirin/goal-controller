@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Batch-convert piStar goal models to edgeV2 PRISM models.
 // Usage: node convert.js manifest.json
-// manifest: [{ "goal": "path/goal.txt", "out": "path/edgev2.prism", "n": 10 }]
+// manifest: [{ "goal": "path/goal.txt", "out": "path/edgev2.prism", "n": 10, "taskLayout": "taskModules" }]
 // Every task gets achievability 0.8 (the reference fuzzer's value).
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,7 @@ const lib = require(path.resolve(__dirname, '../../packages/lib/out'));
 
 const manifest = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 let failures = 0;
-for (const { goal, out, n } of manifest) {
+for (const { goal, out, n, taskLayout } of manifest) {
   const errorFile = out.replace(/\.prism$/, '.error.txt');
   fs.rmSync(errorFile, { force: true });
   try {
@@ -24,6 +24,7 @@ for (const { goal, out, n } of manifest) {
       fileName: goal,
       variables,
       discretisation: n,
+      taskLayout,
     });
     logger.close?.();
     fs.writeFileSync(out, prism);

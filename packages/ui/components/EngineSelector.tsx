@@ -1,6 +1,6 @@
 'use client';
 
-import type { TransformEngine } from '@/lib/types';
+import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 import { isPrismEngine } from '@/lib/types';
 
 interface EngineSelectorProps {
@@ -14,6 +14,8 @@ interface EngineSelectorProps {
   onAchievabilitySpaceChange: (achievabilitySpace: number) => void;
   generateFluents: boolean;
   onGenerateFluentsChange: (generateFluents: boolean) => void;
+  taskLayout: EdgeV2TaskLayout;
+  onTaskLayoutChange: (taskLayout: EdgeV2TaskLayout) => void;
 }
 
 export default function EngineSelector({
@@ -27,6 +29,8 @@ export default function EngineSelector({
   onAchievabilitySpaceChange,
   generateFluents,
   onGenerateFluentsChange,
+  taskLayout,
+  onTaskLayoutChange,
 }: EngineSelectorProps) {
   return (
     <div className='space-y-4'>
@@ -118,6 +122,38 @@ export default function EngineSelector({
               />
             </div>
           )}
+        </div>
+      )}
+
+      {engine === 'edgev2' && (
+        <div className='space-y-2'>
+          <span className='block text-sm font-medium text-gray-700'>
+            Task layout
+          </span>
+          <label className='flex items-center'>
+            <input
+              type='radio'
+              value='taskModules'
+              checked={taskLayout === 'taskModules'}
+              onChange={() => onTaskLayoutChange('taskModules')}
+              className='mr-2'
+            />
+            <span className='text-sm text-gray-700'>
+              One module per task (EDGE reference layout)
+            </span>
+          </label>
+          <label className='flex items-center'>
+            <input
+              type='radio'
+              value='changeManager'
+              checked={taskLayout === 'changeManager'}
+              onChange={() => onTaskLayoutChange('changeManager')}
+              className='mr-2'
+            />
+            <span className='text-sm text-gray-700'>
+              Single ChangeManager module
+            </span>
+          </label>
         </div>
       )}
 

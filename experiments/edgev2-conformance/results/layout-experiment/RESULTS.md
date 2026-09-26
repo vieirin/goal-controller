@@ -4,7 +4,7 @@ Model: `G0[G1@3->G16] G1[G2+G9] G2[G3#G6] G3[T4@3->T5] G6[T7+T8] G9[G10@3->G13] 
 
 | model | layout | PRISM 4.9 (symbolic) | Storm 1.14 (sparse) |
 |---|---|---|---|
-| `edgev2.prism` | as generated | out of memory (CUDD) | 195 states in 0.035 s |
+| `edgev2.prism` | changeManager layout (previous output) | out of memory (CUDD) | 195 states in 0.035 s |
 | `split.prism` | one module per task, tasks last | out of memory (CUDD) | 195 states in 0.032 s |
 | `goals_postorder.prism` | goals children-first, one ChangeManager | out of memory (CUDD) | 195 states in 0.015 s |
 | `postorder.prism` | one module per task, children-first | 195 states in 0.29 s | 195 states in 0.013 s |

@@ -95,7 +95,7 @@ def build_freeform_suite(count: int) -> list[dict]:
     return cases
 
 
-def write_cases(cases: list[dict], out: Path) -> list[dict]:
+def write_cases(cases: list[dict], out: Path, task_layout: str) -> list[dict]:
     manifest = []
     for case in cases:
         folder = out / case["suite"] / case["name"]
@@ -117,7 +117,8 @@ def write_cases(cases: list[dict], out: Path) -> list[dict]:
             (folder / "reference.pctl").write_text(case["reference_pctl"].strip() + f"\nP=? [ F {root_ach} ]\n")
             pctl = models.translate_pctl(case["reference_pctl"], fn).strip() + "\n" + pctl
         (folder / "edgev2.pctl").write_text(pctl)
-        manifest.append({"goal": str(folder / "goal.txt"), "out": str(folder / "edgev2.prism"), "n": case["n"]})
+        manifest.append({"goal": str(folder / "goal.txt"), "out": str(folder / "edgev2.prism"), "n": case["n"],
+                         "taskLayout": task_layout})
     return manifest
 
 
@@ -328,6 +329,8 @@ def main() -> None:
     parser.add_argument("--jobs", type=int, default=4, help="model-checker runs in parallel")
     parser.add_argument("--report-only", type=Path, metavar="DIR",
                         help="re-render DIR/SUMMARY.md from an existing output folder")
+    parser.add_argument("--task-layout", choices=["taskModules", "changeManager"], default="taskModules",
+                        help="edgeV2 task layout: one module per task (default) or a single ChangeManager")
     parser.add_argument("--title", default="", help="report title")
     args = parser.parse_args()
 
@@ -346,9 +349,9 @@ def main() -> None:
             print(f"reference dir {args.reference_dir} not found; skipping reference suite")
         cases += build_freeform_suite(args.freeform)
         out.mkdir(parents=True, exist_ok=True)
-        convert(write_cases(cases, out), out)
+        convert(write_cases(cases, out, args.task_layout), out)
         run_info = {"date": datetime.date.today().isoformat(), "engine": report.engine_state(REPO),
-                    "command": " ".join(sys.argv[1:]), "checker": args.checker}
+                    "command": " ".join(sys.argv[1:]), "checker": args.checker, "taskLayout": args.task_layout}
         (out / "RUN.json").write_text(json.dumps(run_info, indent=1))
 
     reports = compare_cases(cases)

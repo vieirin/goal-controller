@@ -14,6 +14,7 @@ everything: [README.md](README.md).
 | edgeV2 models that load in PRISM | **0 of 6** (every model with a task failed) | 6 of 6 |
 | Reference properties holding on edgeV2 output (Storm, depth 2–4, 240 models) | — | 5 957 of 5 957 |
 | P(root goal achieved) equal to the reference | — | 204 of 204 |
+| Models PRISM (symbolic engine) builds, depth 2–4, 240 models, default `taskModules` layout | — | 233 of 240 (all 204 reference-suite models; the 7 left are free-form models with 48–66 tasks); 5 657 of 5 657 properties hold |
 | Free-form models using edgeV2-only notation that generate | 18 of 18 | 36 of 36 |
 
 Reports: `results/baseline/*.md` (before) and `results/after/*.md` (after).
@@ -94,6 +95,35 @@ All in `packages/lib/src/engines/edgeV2/` unless noted.
 - **Parser** (`packages/goal-tree/…/goalNameParser/edgeV2.ts`): `[A?B]` now
   records its children (`{ type: 'choice', choice: [...] }`).
 - **Validator** and unit tests updated to the new names.
+- **Task layout: PRISM's symbolic engine ran out of memory on medium models
+  because of module layout.** Model: reference `random_N10_d4_w2_000`
+  (EDGE-XT `code/evaluation/generated_models/random_N10_d4_w2_000.prism`;
+  15 goals, 16 tasks, 195 reachable states). The reference declares one module
+  per task, each right before its parent goal, root last. edgeV2 declares the
+  goals in id order and all tasks in one `ChangeManager` at the end. Rewriting
+  only the layout of the edgeV2 output (same commands, formulas, constants):
+
+  | layout | PRISM 4.9 (symbolic) | Storm 1.14 |
+  |---|---|---|
+  | `changeManager` layout (the previous output) | out of memory (CUDD) | 195 states, 0.035 s |
+  | one module per task, tasks last | out of memory | 195 states, 0.032 s |
+  | goals children-first, one ChangeManager | out of memory | 195 states, 0.015 s |
+  | one module per task, children-first (= `taskModules`) | **195 states, 0.29 s** | 195 states, 0.013 s |
+  | EDGE reference | 195 states, 0.24 s | 195 states, 0.016 s |
+
+  Both parts are needed. Files and script: `results/layout-experiment/`
+  (reproduce with `python3 layout_experiment.py`).
+
+  **Now implemented as an option.** `generateEdgeV2PrismModel({ …, taskLayout })`
+  accepts `'taskModules'` (default: one module per task, children-first, as
+  in the reference) or `'changeManager'` (the previous output, byte-identical).
+  The UI shows it as "Task layout" for EdgeV2, the API takes `taskLayout`, and
+  the harness takes `--task-layout`. Both layouts contain exactly the same
+  commands, formulas and constants. On the example set PRISM now builds 38 of
+  39 models (was 28 of 39); the one left is the largest free-form model
+  (56 tasks, 32 goals). On the wide run (240 models, depth 2–4, N = 5/10/20)
+  PRISM builds 233, including every reference-suite model
+  (`results/after/prism-wide-task-modules.md`).
 
 ## Defects in the reference that edgeV2 does not copy
 
@@ -114,28 +144,6 @@ Applied to the reference before comparing and counted in every report.
 
 ## Found, documented, not changed
 
-The output layout was deliberately kept as it is.
-
-- **PRISM's symbolic engine runs out of memory on medium models because of
-  module layout.** Model: reference `random_N10_d4_w2_000`
-  (EDGE-XT `code/evaluation/generated_models/random_N10_d4_w2_000.prism`;
-  15 goals, 16 tasks, 195 reachable states). The reference declares one module
-  per task, each right before its parent goal, root last. edgeV2 declares the
-  goals in id order and all tasks in one `ChangeManager` at the end. Rewriting
-  only the layout of the edgeV2 output (same commands, formulas, constants):
-
-  | layout | PRISM 4.9 (symbolic) | Storm 1.14 |
-  |---|---|---|
-  | as generated | out of memory (CUDD) | 195 states, 0.035 s |
-  | one module per task, tasks last | out of memory | 195 states, 0.032 s |
-  | goals children-first, one ChangeManager | out of memory | 195 states, 0.015 s |
-  | one module per task, children-first | **195 states, 0.29 s** | 195 states, 0.013 s |
-  | EDGE reference | 195 states, 0.24 s | 195 states, 0.016 s |
-
-  Both parts are needed. Recommendation: emit a module per task next to its
-  parent (children-first), or model-check with Storm / `prism -explicit`.
-  Files and script: `results/layout-experiment/` (reproduce with
-  `python3 layout_experiment.py`).
 - **The OR achievability formula is not a probability for three or more
   children.** Both the reference and edgeV2 use `sum − product`
   (`G1 + G2 + G3 − G1·G2·G3`), which can exceed 1 (0.8 each gives 1.888).

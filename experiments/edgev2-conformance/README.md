@@ -64,7 +64,9 @@ python3 run.py --reference-filter 'random_N*_d[234]_w2_*' --freeform 60 \
 python3 run.py --report-only /tmp/edgev2-full
 ```
 
-Useful options: `--checker prism` (use PRISM instead of Storm), `--timeout`
+Useful options: `--task-layout changeManager` (generate with the single
+ChangeManager module instead of one module per task, the default),
+`--checker prism` (use PRISM instead of Storm), `--timeout`
 (seconds per checker run; the checker is hard-killed 10 s later and its
 container 60 s after that), `--jobs` (parallel checker runs), `--freeform N`,
 `--reference-filter GLOB`, `--title`.
@@ -87,13 +89,14 @@ For PRISM on x86-64, change the download in `docker/Dockerfile.prism` to
 | `reference.storm.prism` | the reference with the parentheses Storm needs (see FINDINGS) |
 | `errata.json`, `findings.json` | corrected reference defects, raw differences |
 | `*.storm.log` / `*.prism.log` | model-checker output (git-ignored) |
-| `RUN.json` (in `<out>`) | date, engine commit, command, checker |
+| `RUN.json` (in `<out>`) | date, engine commit, command, checker, task layout |
 
 ## Results kept in the repository
 
 - `results/baseline/structure.md`, `results/baseline/prism.md` — edgeV2 at
   `19660b7`, before the fixes (60 models; PRISM on 6).
-- `results/after/` — the same reports for the fixed engine.
+- `results/after/` — the same reports for the fixed engine, plus
+  `prism-wide-task-modules.md` (PRISM on 240 models with the default task layout).
 - `results/layout-experiment/` — the module-layout experiment: reference,
   edgeV2 output, the rewritten variants and `RESULTS.md`
   (`python3 layout_experiment.py` regenerates them).

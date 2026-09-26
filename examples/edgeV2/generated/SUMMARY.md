@@ -1,6 +1,6 @@
 # edgeV2 vs EDGE reference — example set
 
-_Outputs generated 2026-09-26 by the edgeV2 engine at e9eb9ef + uncommitted engine changes · report rendered 2026-09-26 · 39 models (9 from the EDGE reference suite, 30 free-form)_
+_Outputs generated 2026-09-26 by the edgeV2 engine at fe5e3ef + uncommitted engine changes (task layout: taskModules) · report rendered 2026-09-26 · 39 models (9 from the EDGE reference suite, 30 free-form)_
 
 ## Verdict
 

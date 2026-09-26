@@ -113,7 +113,8 @@ def render(cases: list[dict], reports: dict, prism: dict, run_info: dict, title:
 
     lines = [f"# {title or 'edgeV2 vs EDGE reference — conformance report'}", ""]
     lines += [f"_Outputs generated {run_info.get('date', 'unknown date')} by the edgeV2 engine at "
-              f"{run_info.get('engine', 'unknown commit')} · report rendered {datetime.date.today().isoformat()} · "
+              f"{run_info.get('engine', 'unknown commit')} (task layout: {run_info.get('taskLayout', 'changeManager')}) · "
+              f"report rendered {datetime.date.today().isoformat()} · "
               f"{len(cases)} models ({sum(c['suite'] == 'reference' for c in cases)} from the EDGE reference suite, "
               f"{sum(c['suite'] == 'freeform' for c in cases)} free-form)_", ""]
 
