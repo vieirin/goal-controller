@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Play,
   Redo2,
+  Settings2,
   SlidersHorizontal,
   Undo2,
   Workflow,
@@ -274,6 +275,11 @@ function MobileTopBar() {
               <MenuItem icon={FolderOpen} onClick={() => { open(); close(); }}>
                 Open file…
               </MenuItem>
+              {wb.hasModel && (
+                <MenuItem icon={Settings2} onClick={() => { wb.openSettings(); close(); }}>
+                  Model settings…
+                </MenuItem>
+              )}
               <MenuItem icon={Undo2} disabled={!wb.canUndo} onClick={wb.undo}>
                 Undo model change
               </MenuItem>

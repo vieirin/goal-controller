@@ -1,17 +1,19 @@
 'use client';
 
-import { FilePlus2, FolderOpen, PanelBottomClose, PanelBottomOpen, Upload, Workflow } from 'lucide-react';
+import { FilePlus2, FolderOpen, History, PanelBottomClose, PanelBottomOpen, Upload, Workflow, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import BottomPanel from './BottomPanel';
 import DiagramModal, { EMPTY_PISTAR_MODEL } from './DiagramModal';
 import Explorer, { useExamples, useOpenExample } from './Explorer';
 import Inspector from './Inspector';
 import MobileShell from './MobileShell';
+import ModelSettingsModal from './ModelSettingsModal';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
@@ -83,15 +85,21 @@ function ShellLayout() {
     if (wb.hasModel) setDiagramOpen(true);
   }, [wb.hasModel]);
 
-  // a new model starts in the diagram editor
+  // a new model is set up first, then drawn in the diagram editor
+  const [diagramAfterSetup, setDiagramAfterSetup] = useState(false);
   const newModel = useCallback(() => {
-    wb.openModel('untitled.txt', EMPTY_PISTAR_MODEL);
-    setDiagramOpen(true);
+    wb.openModel('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true });
+    setDiagramAfterSetup(true);
   }, [wb]);
+  useEffect(() => {
+    if (!diagramAfterSetup || wb.settingsDialog) return;
+    setDiagramAfterSetup(false);
+    setDiagramOpen(true);
+  }, [diagramAfterSetup, wb.settingsDialog]);
 
   // keyboard shortcuts (the diagram editor handles its own while open)
   useEffect(() => {
-    if (diagramOpen) return undefined;
+    if (diagramOpen || wb.settingsDialog) return undefined;
     const exportModel = () => {
       if (!wb.hasModel) return;
       const name = /\.(txt|json)$/i.test(wb.fileName) ? wb.fileName : `${baseName(wb.fileName)}.txt`;
@@ -139,6 +147,7 @@ function ShellLayout() {
       >
         <MobileShell empty={<EmptyState onNewModel={newModel} />} />
         {diagramOpen && <DiagramModal onClose={() => setDiagramOpen(false)} />}
+        {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
       </ShellContext.Provider>
     );
   }
@@ -160,7 +169,7 @@ function ShellLayout() {
           event.preventDefault();
           setDragging(false);
           const file = event.dataTransfer.files[0];
-          if (file) wb.openModel(file.name, await readFile(file));
+          if (file) wb.openModel(file.name, await readFile(file), { setup: true });
         }}
       >
         <TopBar />
@@ -219,6 +228,7 @@ function ShellLayout() {
           </div>
         )}
         {diagramOpen && <DiagramModal onClose={() => setDiagramOpen(false)} />}
+        {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
       </div>
     </ShellContext.Provider>
   );
@@ -280,10 +290,11 @@ function ModelColumn() {
 }
 
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
+  const wb = useWorkbench();
   const { open, input } = useOpenFile();
   const examples = useExamples();
   const openExample = useOpenExample();
-  const featured = (examples.data ?? []).filter((e) => e.group === 'edgeV2').slice(0, 6);
+  const featured = (examples.data ?? []).filter((e) => e.group === 'edgeV2').slice(0, wb.recent.length > 0 ? 3 : 6);
   return (
     <section className='grid h-full place-items-center overflow-auto bg-white p-8' aria-label='Open a goal model'>
       {input}
@@ -303,9 +314,44 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
             <FilePlus2 className='h-4 w-4' aria-hidden /> New model
           </Button>
         </div>
+        {wb.recent.length > 0 && (
+          <div className='space-y-1.5'>
+            <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>Continue where you left off</h2>
+            <ul className='divide-y divide-line rounded-lg border border-line'>
+              {wb.recent.map((file) => (
+                <li key={file.fileName} className='group flex items-center hover:bg-panel'>
+                  <button
+                    type='button'
+                    onClick={() => wb.openModel(file.fileName, file.text, { savedText: file.savedText, settings: file.settings })}
+                    className='flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-[13px]'
+                  >
+                    <History className='h-3.5 w-3.5 shrink-0 text-ink-faint' aria-hidden />
+                    <span className='truncate font-mono text-xs text-ink'>{file.fileName}</span>
+                    {hasUnsavedEdits(file) && (
+                      <span className='shrink-0 rounded bg-trace/10 px-1 text-2xs text-trace' title='Has edits that were not exported'>
+                        edited
+                      </span>
+                    )}
+                    <span className='ml-auto shrink-0 pl-2 text-2xs text-ink-muted'>{recentAge(file.at)}</span>
+                  </button>
+                  <button
+                    type='button'
+                    aria-label={`Remove ${file.fileName} from recent`}
+                    onClick={() => wb.forgetRecent(file.fileName)}
+                    className='mr-1.5 rounded p-1 text-ink-faint hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'
+                  >
+                    <X className='h-3.5 w-3.5' aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {featured.length > 0 && (
           <div className='space-y-1.5'>
-            <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>Or try an example</h2>
+            <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+              {wb.recent.length > 0 ? 'Or start from an example' : 'Or try an example'}
+            </h2>
             <ul className='divide-y divide-line rounded-lg border border-line'>
               {featured.map((example) => (
                 <li key={example.path}>
@@ -357,7 +403,7 @@ function StatusBar() {
           'nothing selected'
         ) : null}
       </span>
-      {wb.hasModel && <span>autosaved in this browser</span>}
+      {wb.hasModel && <span title='Reopen it from Recent after a reload'>kept in Recent</span>}
     </footer>
   );
 }

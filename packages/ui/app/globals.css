@@ -39,6 +39,38 @@ body {
   font-family: var(--font-mono), ui-monospace, monospace !important;
   line-height: 1.55;
 }
+/* editor scrollbars are always shown (macOS hides overlay scrollbars): the
+   track also marks the edge between the output and the tree beside it */
+.cm-scroller::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+.cm-scroller::-webkit-scrollbar-track {
+  background-color: theme('colors.panel.DEFAULT');
+}
+.cm-scroller::-webkit-scrollbar-track:vertical {
+  border-left: 1px solid theme('colors.line.DEFAULT');
+}
+.cm-scroller::-webkit-scrollbar-track:horizontal {
+  border-top: 1px solid theme('colors.line.DEFAULT');
+}
+.cm-scroller::-webkit-scrollbar-thumb {
+  background-color: theme('colors.ink.faint');
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.ink.muted');
+}
+.cm-scroller::-webkit-scrollbar-corner {
+  background-color: theme('colors.panel.DEFAULT');
+}
+@supports not selector(::-webkit-scrollbar) {
+  .cm-scroller {
+    scrollbar-color: theme('colors.ink.faint') theme('colors.panel.DEFAULT');
+  }
+}
 .cm-trace-primary {
   background-color: theme('colors.trace.soft');
   box-shadow: inset 2px 0 0 theme('colors.trace.DEFAULT');

@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, FileCode2, FileJson, History, SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
-import { isPrismEngine } from '@/lib/types';
+import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ExampleFile } from '@/lib/workbench/types';
 import { useWorkbench } from './WorkbenchContext';
 import { cx } from './ui';
@@ -19,12 +20,16 @@ export const useExamples = () =>
     staleTime: Infinity,
   });
 
+const EXAMPLE_ENGINES: Record<string, TransformEngine> = { edge: 'edge', edgeV2: 'edgev2', sleec: 'sleec' };
+
 export const useOpenExample = () => {
   const { openModel } = useWorkbench();
   return async (example: ExampleFile) => {
     const response = await fetch(`/api/examples?path=${encodeURIComponent(example.path)}`);
     const data = await response.json();
-    if (data.success) openModel(data.fileName, data.content);
+    // examples are grouped by the engine they target
+    const engine = EXAMPLE_ENGINES[example.group];
+    if (data.success) openModel(data.fileName, data.content, engine ? { settings: { engine } } : undefined);
   };
 };
 
@@ -80,6 +85,8 @@ export default function Explorer() {
   const wb = useWorkbench();
   const examples = useExamples();
   const openExample = useOpenExample();
+  // the open model is already listed above
+  const others = wb.recent.filter((file) => !(wb.hasModel && file.fileName === wb.fileName));
   // engine folder → subfolder ('' for files at the top) → files
   const groups = new Map<string, Map<string, ExampleFile[]>>();
   (examples.data ?? []).forEach((example) => {
@@ -153,15 +160,23 @@ export default function Explorer() {
         </Section>
       )}
 
-      {wb.recent.length > 0 && (
+      {others.length > 0 && (
         <Section title='Recent'>
-          {wb.recent.map((file) => (
+          {others.map((file) => (
             <Row
               key={file.fileName}
               icon={History}
               label={file.fileName}
-              detail={new Date(file.at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-              onClick={() => wb.openModel(file.fileName, file.text)}
+              detail={
+                hasUnsavedEdits(file) ? (
+                  <span className='text-trace' title='Has edits that were not exported'>
+                    edited
+                  </span>
+                ) : (
+                  recentAge(file.at)
+                )
+              }
+              onClick={() => wb.openModel(file.fileName, file.text, { savedText: file.savedText, settings: file.settings })}
               trailing={
                 <button
                   type='button'

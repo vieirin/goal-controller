@@ -11,12 +11,14 @@ import {
   PanelLeftOpen,
   Play,
   Redo2,
+  Settings2,
   SlidersHorizontal,
   Undo2,
 } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import type { GenerationOptions } from '@/lib/workbench/types';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
 import { Button, IconButton, Kbd, Menu, MenuItem, Segmented, Switch, cx } from './ui';
@@ -46,7 +48,7 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
-        if (file) openModel(file.name, await readFile(file));
+        if (file) openModel(file.name, await readFile(file), { setup: true });
         event.target.value = '';
       }}
     />
@@ -101,6 +103,7 @@ export default function TopBar() {
             {wb.dirty && <span className='h-2 w-2 shrink-0 rounded-full bg-trace' aria-label='unsaved changes' />}
           </span>
         )}
+        {wb.hasModel && <IconButton icon={Settings2} label='Model settings (engine and options)' onClick={wb.openSettings} />}
         <IconButton icon={Undo2} label='Undo model change' shortcut='⌘Z' onClick={wb.undo} disabled={!wb.canUndo} />
         <IconButton icon={Redo2} label='Redo model change' shortcut='⇧⌘Z' onClick={wb.redo} disabled={!wb.canRedo} />
       </div>
@@ -184,80 +187,109 @@ export function EngineOptions() {
         </Button>
       )}
     >
-      {() => (
-        <div className='space-y-3 p-2 text-[13px]'>
-          {engine === 'edgev2' && (
-            <>
-              <label className='flex items-center justify-between gap-4'>
-                <span>
-                  Discretisation <span className='font-mono'>N</span>
-                  <span className='block text-2xs text-ink-muted'>decisions compare achievability × N</span>
-                </span>
-                <input
-                  type='number'
-                  min={1}
-                  max={100}
-                  value={options.discretisation}
-                  onChange={(e) => {
-                    const n = Number.parseInt(e.target.value, 10);
-                    if (Number.isInteger(n) && n > 0) setOptions({ discretisation: n });
-                  }}
-                  className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
-                />
-              </label>
-              <div className='space-y-1'>
-                <span className='block'>Task layout</span>
-                <Segmented
-                  size='sm'
-                  label='Task layout'
-                  value={options.taskLayout}
-                  onChange={(taskLayout) => setOptions({ taskLayout })}
-                  options={[
-                    { id: 'taskModules', label: 'Module per task', title: 'One module per task, next to its goal (EDGE reference)' },
-                    { id: 'changeManager', label: 'ChangeManager', title: 'All tasks in one ChangeManager module' },
-                  ]}
-                />
-              </div>
-            </>
-          )}
-          {engine === 'edge' && (
-            <label className='flex items-center justify-between gap-4'>
-              <span>
-                Achievability space
-                <span className='block text-2xs text-ink-muted'>levels for decision variables</span>
-              </span>
-              <input
-                type='number'
-                min={1}
-                max={100}
-                value={options.achievabilitySpace}
-                onChange={(e) => {
-                  const n = Number.parseInt(e.target.value, 10);
-                  if (Number.isInteger(n) && n > 0) setOptions({ achievabilitySpace: n });
-                }}
-                className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
-              />
-            </label>
-          )}
-          {isPrismEngine(engine) && (
-            <div className='space-y-2'>
-              <Switch
-                checked={options.generateDecisionVars}
-                onChange={(generateDecisionVars) => setOptions({ generateDecisionVars })}
-                label='Decision variables'
-              />
-              <Switch checked={options.clean} onChange={(clean) => setOptions({ clean })} label='Clean mode (no comments)' />
-            </div>
-          )}
-          {engine === 'sleec' && (
-            <Switch
-              checked={options.generateFluents}
-              onChange={(generateFluents) => setOptions({ generateFluents })}
-              label='Generate fluent definitions'
-            />
+      {(close) => (
+        <div className='p-2'>
+          <EngineOptionFields engine={engine} options={options} onChange={setOptions} />
+          {wb.hasModel && (
+            <button
+              type='button'
+              onClick={() => {
+                close();
+                wb.openSettings();
+              }}
+              className='mt-3 w-full border-t border-line pt-2 text-left text-2xs text-ink-muted hover:text-ink'
+            >
+              All model settings…
+            </button>
           )}
         </div>
       )}
     </Menu>
+  );
+}
+
+/** The options of one engine (shared by the options menu and the model settings dialog). */
+export function EngineOptionFields({
+  engine,
+  options,
+  onChange,
+}: {
+  engine: TransformEngine;
+  options: GenerationOptions;
+  onChange: (patch: Partial<GenerationOptions>) => void;
+}) {
+  return (
+    <div className='space-y-3 text-[13px]'>
+      {engine === 'edgev2' && (
+        <>
+          <label className='flex items-center justify-between gap-4'>
+            <span>
+              Discretisation <span className='font-mono'>N</span>
+              <span className='block text-2xs text-ink-muted'>decisions compare achievability × N</span>
+            </span>
+            <input
+              type='number'
+              min={1}
+              max={100}
+              value={options.discretisation}
+              onChange={(e) => {
+                const n = Number.parseInt(e.target.value, 10);
+                if (Number.isInteger(n) && n > 0) onChange({ discretisation: n });
+              }}
+              className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
+            />
+          </label>
+          <div className='space-y-1'>
+            <span className='block'>Task layout</span>
+            <Segmented
+              size='sm'
+              label='Task layout'
+              value={options.taskLayout}
+              onChange={(taskLayout) => onChange({ taskLayout })}
+              options={[
+                { id: 'taskModules', label: 'Module per task', title: 'One module per task, next to its goal (EDGE reference)' },
+                { id: 'changeManager', label: 'ChangeManager', title: 'All tasks in one ChangeManager module' },
+              ]}
+            />
+          </div>
+        </>
+      )}
+      {engine === 'edge' && (
+        <label className='flex items-center justify-between gap-4'>
+          <span>
+            Achievability space
+            <span className='block text-2xs text-ink-muted'>levels for decision variables</span>
+          </span>
+          <input
+            type='number'
+            min={1}
+            max={100}
+            value={options.achievabilitySpace}
+            onChange={(e) => {
+              const n = Number.parseInt(e.target.value, 10);
+              if (Number.isInteger(n) && n > 0) onChange({ achievabilitySpace: n });
+            }}
+            className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
+          />
+        </label>
+      )}
+      {isPrismEngine(engine) && (
+        <div className='flex flex-col items-start gap-2'>
+          <Switch
+            checked={options.generateDecisionVars}
+            onChange={(generateDecisionVars) => onChange({ generateDecisionVars })}
+            label='Decision variables'
+          />
+          <Switch checked={options.clean} onChange={(clean) => onChange({ clean })} label='Clean mode (no comments)' />
+        </div>
+      )}
+      {engine === 'sleec' && (
+        <Switch
+          checked={options.generateFluents}
+          onChange={(generateFluents) => onChange({ generateFluents })}
+          label='Generate fluent definitions'
+        />
+      )}
+    </div>
   );
 }

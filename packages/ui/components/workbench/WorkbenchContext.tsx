@@ -16,10 +16,10 @@ import { generationProblems, jsonProblem, treeProblems } from '@/lib/workbench/l
 import { buildViewTree, type ViewTree } from '@/lib/workbench/pistar';
 import { modelSignature } from '@/lib/workbench/signature';
 import {
+  loadPreferences,
   loadRecent,
-  loadWorkspace,
   rememberRecent,
-  saveWorkspace,
+  savePreferences,
   forgetRecent as forgetRecentFile,
   type RecentFile,
 } from '@/lib/workbench/storage';
@@ -28,6 +28,7 @@ import {
   DEFAULT_OPTIONS,
   type AnalyzeResponse,
   type GenerationOptions,
+  type ModelSettings,
   type Problem,
   type VariableInfo,
 } from '@/lib/workbench/types';
@@ -59,14 +60,21 @@ export type Run = {
 
 type VariableValues = Record<string, boolean | number>;
 
+/** Preferences kept across reloads (the model itself is not reopened). */
 type Persisted = {
-  fileName: string;
-  text: string;
-  savedText: string;
   engine: TransformEngine;
   options: GenerationOptions;
   live: boolean;
   variables: VariableValues;
+};
+
+export type OpenOptions = {
+  /** last exported version (a Recent entry with unsaved edits) */
+  savedText?: string;
+  /** settings to use instead of the current ones */
+  settings?: Partial<ModelSettings>;
+  /** ask for the model settings first (uploaded models) */
+  setup?: boolean;
 };
 
 export type Workbench = {
@@ -77,7 +85,7 @@ export type Workbench = {
   dirty: boolean;
   changeSource: ChangeSource;
   revision: number;
-  openModel: (fileName: string, text: string) => void;
+  openModel: (fileName: string, text: string, how?: OpenOptions) => void;
   setText: (text: string, source: ChangeSource) => void;
   renameFile: (fileName: string) => void;
   markSaved: () => void;
@@ -98,6 +106,13 @@ export type Workbench = {
   setEngine: (engine: TransformEngine) => void;
   options: GenerationOptions;
   setOptions: (patch: Partial<GenerationOptions>) => void;
+  /** engine, options and live mode together */
+  settings: ModelSettings;
+  applySettings: (settings: ModelSettings) => void;
+  /** model settings dialog: 'setup' right after a model is opened, 'edit' when asked for */
+  settingsDialog: 'setup' | 'edit' | null;
+  openSettings: () => void;
+  closeSettings: () => void;
 
   // analysis & variables
   analysis: AnalyzeResponse | null;
@@ -193,13 +208,42 @@ export function WorkbenchProvider({
   lockedEngine: TransformEngine | null;
   children: ReactNode;
 }) {
-  const initial = useRef<Persisted | null>(loadWorkspace<Persisted>());
+  const initial = useRef<Persisted | null>(null);
+  initial.current ??= loadPreferences<Persisted>();
 
-  // ---- model -------------------------------------------------------------
+  // ---- engine & options ----------------------------------------------------
+  const [engineState, setEngineState] = useState<TransformEngine>(
+    lockedEngine ?? initial.current?.engine ?? 'edgev2',
+  );
+  const engine = lockedEngine ?? engineState;
+  const setEngine = useCallback((next: TransformEngine) => setEngineState(next), []);
+  const [options, setOptionsState] = useState<GenerationOptions>({
+    ...DEFAULT_OPTIONS,
+    ...(initial.current?.options ?? {}),
+  });
+  const setOptions = useCallback(
+    (patch: Partial<GenerationOptions>) => setOptionsState((prev) => ({ ...prev, ...patch })),
+    [],
+  );
+  const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
+  const settings = useMemo<ModelSettings>(() => ({ engine, options, live }), [engine, options, live]);
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  const applySettings = useCallback((next: ModelSettings) => {
+    setEngineState(next.engine);
+    setOptionsState({ ...DEFAULT_OPTIONS, ...next.options });
+    setLive(next.live);
+  }, []);
+  const [settingsDialog, setSettingsDialog] = useState<'setup' | 'edit' | null>(null);
+  const openSettings = useCallback(() => setSettingsDialog('edit'), []);
+  const closeSettings = useCallback(() => setSettingsDialog(null), []);
+
+
+  // ---- model (every load starts empty; earlier work is reopened from Recent) ----
   const [model, setModel] = useState(() => ({
-    fileName: initial.current?.fileName ?? '',
-    text: initial.current?.text ?? '',
-    savedText: initial.current?.savedText ?? '',
+    fileName: '',
+    text: '',
+    savedText: '',
     source: 'restore' as ChangeSource,
     revision: 0,
   }));
@@ -207,6 +251,7 @@ export function WorkbenchProvider({
   const redoStack = useRef<string[]>([]);
   const lastPush = useRef(0);
   const [, forceHistory] = useState(0);
+  // read after loadPreferences, which may move an old autosave into Recent
   const [recent, setRecent] = useState<RecentFile[]>(() => loadRecent());
 
   // latest text, updated synchronously so the undo bookkeeping stays outside
@@ -279,25 +324,35 @@ export function WorkbenchProvider({
   modelRef.current = model;
 
   const openModel = useCallback(
-    (fileName: string, text: string) => {
+    (fileName: string, text: string, { savedText = text, settings: stored, setup = false }: OpenOptions = {}) => {
       const previous = modelRef.current;
-      if (previous.text && previous.text !== previous.savedText) {
-        // keep unsaved edits reachable from Recent
-        rememberRecent({ fileName: previous.fileName, text: previous.text });
+      if (previous.text.trim()) {
+        // keep the model being left (and its latest edits) in Recent
+        rememberRecent({
+          fileName: previous.fileName || 'untitled.txt',
+          text: previous.text,
+          savedText: previous.savedText,
+          settings: settingsRef.current,
+        });
       }
-      setRecent(rememberRecent({ fileName, text }));
+      const next = { ...settingsRef.current, ...stored };
+      applySettings(next);
+      setSettingsDialog(setup ? 'setup' : null);
+      setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
       textRef.current = text;
-      setModel((prev) => ({ fileName, text, savedText: text, source: 'open', revision: prev.revision + 1 }));
+      setModel((prev) => ({ fileName, text, savedText, source: 'open', revision: prev.revision + 1 }));
       undoStack.current = [];
       redoStack.current = [];
       setRuns([]);
       setSelection((prev) => ({ id: null, origin: null, seq: prev.seq + 1 }));
       forceHistory((n) => n + 1);
     },
-    [],
+    [applySettings],
   );
 
   const renameFile = useCallback((fileName: string) => {
+    // the entry under the old name is replaced by the next Recent sync
+    setRecent(forgetRecentFile(modelRef.current.fileName));
     setModel((prev) => ({ ...prev, fileName }));
   }, []);
 
@@ -306,22 +361,6 @@ export function WorkbenchProvider({
   }, []);
 
   const forgetRecent = useCallback((fileName: string) => setRecent(forgetRecentFile(fileName)), []);
-
-  // ---- engine & options ----------------------------------------------------
-  const [engineState, setEngineState] = useState<TransformEngine>(
-    lockedEngine ?? initial.current?.engine ?? 'edgev2',
-  );
-  const engine = lockedEngine ?? engineState;
-  const setEngine = useCallback((next: TransformEngine) => setEngineState(next), []);
-  const [options, setOptionsState] = useState<GenerationOptions>({
-    ...DEFAULT_OPTIONS,
-    ...(initial.current?.options ?? {}),
-  });
-  const setOptions = useCallback(
-    (patch: Partial<GenerationOptions>) => setOptionsState((prev) => ({ ...prev, ...patch })),
-    [],
-  );
-  const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
 
   // ---- structure (client-side, immediate) -----------------------------------
   const parsed = useMemo(() => {
@@ -494,12 +533,13 @@ export function WorkbenchProvider({
   // live: regenerate when what generation depends on changes
   const debouncedSignature = useDebounced(inputsSignature, 700);
   useEffect(() => {
-    if (!live || debouncedSignature === null || !model.text.trim()) return;
+    // a newly opened model waits for its settings
+    if (!live || settingsDialog === 'setup' || debouncedSignature === null || !model.text.trim()) return;
     if (current?.signature === debouncedSignature) return;
     generate();
     // current is read for comparison only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, debouncedSignature, generate]);
+  }, [live, settingsDialog, debouncedSignature, generate]);
 
   // last successful output (a failed run keeps showing the previous output)
   const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
@@ -535,12 +575,18 @@ export function WorkbenchProvider({
       .sort((a, b) => order[a.severity] - order[b.severity]);
   }, [parsed.error, tree, engine, analysis, current, stale, nodeIds]);
 
-  // ---- autosave -------------------------------------------------------------------
+  // ---- persistence ----------------------------------------------------------------
+  // the open model is kept in Recent (with its unsaved edits) instead of being reopened
+  // model and settings debounced together, so a switch never pairs one model with another's settings
+  const snapshot = useDebounced(useMemo(() => ({ model, settings }), [model, settings]), 500);
+  useEffect(() => {
+    const { fileName, text, savedText } = snapshot.model;
+    if (!text.trim()) return;
+    setRecent(rememberRecent({ fileName: fileName || 'untitled.txt', text, savedText, settings: snapshot.settings }));
+  }, [snapshot]);
+
   const persisted = useDebounced<Persisted>(
     {
-      fileName: model.fileName,
-      text: model.text,
-      savedText: model.savedText,
       engine: engineState,
       options,
       live,
@@ -549,7 +595,7 @@ export function WorkbenchProvider({
     500,
   );
   useEffect(() => {
-    saveWorkspace(persisted);
+    savePreferences(persisted);
   }, [persisted]);
 
   const value: Workbench = {
@@ -576,6 +622,11 @@ export function WorkbenchProvider({
     setEngine,
     options,
     setOptions,
+    settings,
+    applySettings,
+    settingsDialog,
+    openSettings,
+    closeSettings,
     analysis,
     analyzing,
     variables,

@@ -52,6 +52,14 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   generateFluents: false,
 };
 
+/** Per-model generation settings, chosen when a model is first opened. */
+export type ModelSettings = {
+  engine: TransformEngine;
+  options: GenerationOptions;
+  /** regenerate after each change */
+  live: boolean;
+};
+
 export type ExampleFile = { path: string; group: string; name: string };
 
 export type EngineName = TransformEngine;
