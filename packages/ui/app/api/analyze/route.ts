@@ -10,7 +10,7 @@ import {
   SLEEC_TASK_KEYS,
 } from '@goal-controller/lib';
 import { NextRequest } from 'next/server';
-import { ApiResponse } from '../../../lib/api';
+import { ApiResponse, readJson } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
 import { isTransformEngine, type TransformEngine } from '../../../lib/types';
 import type {
@@ -55,11 +55,15 @@ const firstNodeId = (message: string): string | undefined =>
  */
 export async function POST(request: NextRequest) {
   try {
-    const { modelJson, engine } = await request.json();
+    const body = await readJson<{ modelJson?: unknown; engine?: unknown }>(request);
+    if (!body) {
+      return ApiResponse.badRequest('The request body must be JSON');
+    }
+    const { modelJson, engine } = body;
     if (typeof modelJson !== 'string' || !modelJson) {
       return ApiResponse.badRequest('modelJson is required');
     }
-    if (!isTransformEngine(engine)) {
+    if (typeof engine !== 'string' || !isTransformEngine(engine)) {
       return ApiResponse.badRequest('engine must be one of: edge, edgev2, sleec');
     }
 

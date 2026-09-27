@@ -44,7 +44,7 @@ const ICON = { error: AlertCircle, warning: AlertTriangle, info: Info } as const
 const TONE = { error: 'text-danger', warning: 'text-caution', info: 'text-ink-muted' } as const;
 const SOURCE = { json: 'JSON', model: 'model', engine: 'engine', generation: 'generation' } as const;
 
-function ProblemsView() {
+export function ProblemsView() {
   const wb = useWorkbench();
   const [showInfo, setShowInfo] = useState(false);
   if (!wb.hasModel) return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
@@ -93,7 +93,7 @@ function ProblemsView() {
 
 // ---------------------------------------------------------------------------
 
-function VariablesView() {
+export function VariablesView() {
   const wb = useWorkbench();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'achievability' | 'context'>('all');
@@ -197,7 +197,7 @@ function VariablesView() {
         <thead className='sticky top-0 z-10 bg-white text-left text-2xs uppercase tracking-wider text-ink-muted shadow-[0_1px_0_#DDE3E1]'>
           <tr>
             <th className='px-3 py-1 font-semibold'>Variable</th>
-            <th className='px-3 py-1 font-semibold'>Used by</th>
+            <th className='hidden px-3 py-1 font-semibold sm:table-cell'>Used by</th>
             <th className='px-3 py-1 font-semibold'>Value</th>
           </tr>
         </thead>
@@ -206,13 +206,18 @@ function VariablesView() {
             const value = wb.values[variable.name];
             return (
               <tr key={variable.name} className='border-b border-line/60 hover:bg-panel/60'>
-                <td className='px-3 py-1'>
+                <td className='px-3 py-1.5'>
                   <span className='font-mono text-xs text-ink'>{variable.name}</span>
-                  <span className='ml-2 text-2xs text-ink-muted'>
+                  <span className='block text-2xs text-ink-muted sm:ml-2 sm:inline'>
                     {variable.kind === 'context' ? 'condition' : 'success probability'}
                   </span>
+                  <div className='mt-1 flex flex-wrap gap-1 sm:hidden'>
+                    {variable.usedBy.map((id) => (
+                      <NodeChip key={id} id={id} tone={nodeTone(wb.tree?.nodes.get(id))} onClick={() => wb.select(id, 'variables')} />
+                    ))}
+                  </div>
                 </td>
-                <td className='px-3 py-1'>
+                <td className='hidden px-3 py-1 sm:table-cell'>
                   <div className='flex flex-wrap gap-1'>
                     {variable.usedBy.map((id) => (
                       <NodeChip key={id} id={id} tone={nodeTone(wb.tree?.nodes.get(id))} onClick={() => wb.select(id, 'variables')} />
@@ -232,7 +237,7 @@ function VariablesView() {
                         value={Number(value)}
                         onChange={(e) => wb.setValue(variable.name, Number(e.target.value))}
                         aria-label={`${variable.name} probability`}
-                        className='w-32 accent-[#1F7A74]'
+                        className='w-20 accent-[#1F7A74] sm:w-32'
                       />
                       <input
                         type='number'
@@ -262,7 +267,7 @@ function VariablesView() {
 
 // ---------------------------------------------------------------------------
 
-function LogView() {
+export function LogView() {
   const wb = useWorkbench();
   const log = wb.runs.find((run) => run.report?.log)?.report?.log;
   if (!log) return <p className='p-3 text-[13px] text-ink-muted'>The generation log appears after the first generation.</p>;

@@ -169,7 +169,7 @@ export default function TopBar() {
   );
 }
 
-function EngineOptions() {
+export function EngineOptions() {
   const wb = useWorkbench();
   const { engine, options, setOptions } = wb;
   return (

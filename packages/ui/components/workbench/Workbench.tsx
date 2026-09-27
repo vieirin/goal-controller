@@ -5,11 +5,13 @@ import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode } from '@/lib/types';
+import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import BottomPanel from './BottomPanel';
 import DiagramModal, { EMPTY_PISTAR_MODEL } from './DiagramModal';
 import Explorer, { useExamples, useOpenExample } from './Explorer';
 import Inspector from './Inspector';
+import MobileShell from './MobileShell';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
@@ -35,6 +37,12 @@ function ShellLayout() {
   const [diagramOpen, setDiagramOpen] = useState(false);
   const explorerPanel = usePanelRef();
   const bottomPanel = usePanelRef();
+  const isMobile = useIsMobile();
+  // phones: the files drawer, closed after a file is opened
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [wb.fileName, wb.bottomRevealSeq, wb.modelTab, wb.outputTab]);
 
   // left bar: remembered; by default closed while a model is open
   const [explorerOpen, setExplorerOpen] = useState<boolean>(() => {
@@ -123,6 +131,17 @@ function ShellLayout() {
       window.removeEventListener('workbench:export-model', exportModel);
     };
   }, [wb, diagramOpen, openDiagram, toggleExplorer]);
+
+  if (isMobile) {
+    return (
+      <ShellContext.Provider
+        value={{ explorerOpen: drawerOpen, toggleExplorer: () => setDrawerOpen((open) => !open), openDiagram }}
+      >
+        <MobileShell empty={<EmptyState onNewModel={newModel} />} />
+        {diagramOpen && <DiagramModal onClose={() => setDiagramOpen(false)} />}
+      </ShellContext.Provider>
+    );
+  }
 
   return (
     <ShellContext.Provider value={{ explorerOpen, toggleExplorer, openDiagram }}>

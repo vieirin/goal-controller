@@ -161,18 +161,19 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
       aria-label='Diagram editor'
       className='fixed inset-0 z-50 flex flex-col bg-white'
     >
-      <header className='flex h-12 shrink-0 items-center gap-3 border-b border-line px-4'>
+      <header className='flex h-12 shrink-0 items-center gap-2 border-b border-line px-3 sm:gap-3 sm:px-4'>
         <div className='min-w-0'>
           <h2 className='truncate text-[14px] font-semibold text-ink'>
             Diagram · <span className='font-normal text-ink-soft'>{wb.fileName || 'untitled.txt'}</span>
           </h2>
-          <p className='text-2xs text-ink-muted'>
+          <p className='hidden text-2xs text-ink-muted sm:block'>
             {changed ? 'Unsaved diagram changes — they reach the model when you save.' : 'Edit the model with piStar; save to apply the changes.'}
           </p>
         </div>
         {confirmDiscard ? (
-          <div className='ml-auto flex items-center gap-2 rounded-md bg-caution-soft px-3 py-1.5 text-[13px] text-caution'>
-            Discard the changes made in the diagram?
+          <div className='ml-auto flex items-center gap-2 rounded-md bg-caution-soft px-2 py-1.5 text-[13px] text-caution sm:px-3'>
+            <span className='hidden sm:inline'>Discard the changes made in the diagram?</span>
+            <span className='sm:hidden'>Discard changes?</span>
             <Button variant='outline' onClick={() => setConfirmDiscard(false)}>
               Keep editing
             </Button>
@@ -183,10 +184,13 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
         ) : (
           <div className='ml-auto flex items-center gap-2'>
             <Button variant='outline' onClick={cancel}>
-              <X className='h-4 w-4' aria-hidden /> Cancel
+              <X className='h-4 w-4' aria-hidden /> <span className='hidden sm:inline'>Cancel</span>
             </Button>
             <Button variant='primary' onClick={save} disabled={!ready} ref={saveButton}>
-              Save and return <Kbd>⌘S</Kbd>
+              Save<span className='hidden sm:inline'> and return</span>
+              <span className='hidden sm:inline'>
+                <Kbd>⌘S</Kbd>
+              </span>
             </Button>
           </div>
         )}

@@ -7,7 +7,7 @@ import {
   type LoggerReport,
 } from '@goal-controller/lib';
 import { NextRequest } from 'next/server';
-import { ApiResponse } from '../../../lib/api';
+import { ApiResponse, readJson } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
 import {
   EDGE_V2_TASK_LAYOUTS,
@@ -16,8 +16,25 @@ import {
   type TransformEngine,
 } from '../../../lib/types';
 
+type TransformBody = {
+  modelJson?: string;
+  engine?: string;
+  clean?: boolean;
+  generateDecisionVars?: boolean;
+  achievabilitySpace?: number;
+  generateFluents?: boolean;
+  fileName?: string;
+  variables?: Record<string, boolean | number>;
+  taskLayout?: string;
+  discretisation?: number;
+};
+
 export async function POST(request: NextRequest) {
   try {
+    const body = await readJson<TransformBody>(request);
+    if (!body) {
+      return ApiResponse.badRequest('The request body must be JSON');
+    }
     const {
       modelJson,
       engine,
@@ -29,7 +46,7 @@ export async function POST(request: NextRequest) {
       variables,
       taskLayout = 'taskModules',
       discretisation = 10,
-    } = await request.json();
+    } = body;
 
     if (!modelJson) {
       return ApiResponse.badRequest('Model JSON is required');

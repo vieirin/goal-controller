@@ -102,7 +102,7 @@ function OutputActions({ run }: { run: Run | null }) {
           label='Jump to'
           trigger={({ toggle, open }) => (
             <Button onClick={toggle} aria-expanded={open} title='Jump to a module'>
-              <ListTree className='h-4 w-4' aria-hidden /> Outline
+              <ListTree className='h-4 w-4' aria-hidden /> <span className='hidden sm:inline'>Outline</span>
             </Button>
           )}
         >

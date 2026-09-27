@@ -207,7 +207,7 @@ export default function TreeView() {
     <div className='relative h-full select-none bg-[radial-gradient(#DDE3E1_1px,transparent_1px)] [background-size:18px_18px]'>
       <svg
         ref={svg}
-        className='h-full w-full cursor-grab outline-none active:cursor-grabbing'
+        className='h-full w-full cursor-grab touch-none outline-none active:cursor-grabbing'
         role='tree'
         aria-label='Goal tree'
         tabIndex={0}
@@ -315,7 +315,7 @@ export default function TreeView() {
         <span className='flex items-center gap-1'>
           <span className='h-0 w-4 border-t-2 border-dashed border-or' /> OR
         </span>
-        <span>↑↓←→ move · ⌘-scroll zoom</span>
+        <span className='hidden sm:inline'>↑↓←→ move · ⌘-scroll zoom</span>
       </div>
       <div className='absolute bottom-3 right-3 flex items-center gap-0.5 rounded-md border border-line bg-white p-0.5 shadow-sm'>
         <IconButton icon={Minus} label='Zoom out' onClick={() => zoomBy(1 / 1.2)} />
