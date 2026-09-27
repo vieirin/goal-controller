@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       fileName,
       variables,
       taskLayout = 'taskModules',
+      discretisation = 10,
     } = await request.json();
 
     if (!modelJson) {
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
           generateDecisionVars,
           achievabilitySpace,
           taskLayout,
+          discretisation,
         });
       } else {
         // Parse and validate model with SLEEC mapper

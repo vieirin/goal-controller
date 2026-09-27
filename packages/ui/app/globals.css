@@ -2,10 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
 body {
-  @apply bg-gray-50 text-gray-900;
+  @apply h-full overflow-hidden bg-panel font-sans text-ink antialiased;
 }
 
-.code-block {
-  @apply font-mono text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto;
+:focus-visible {
+  outline: 2px solid theme('colors.trace.DEFAULT');
+  outline-offset: 1px;
+}
+
+/* resizable panel separators (react-resizable-panels) */
+[data-separator] {
+  @apply relative bg-line transition-colors;
+  flex-basis: 1px;
+}
+[data-separator]::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+}
+[data-separator]:hover,
+[data-separator][data-separator-state='drag'] {
+  @apply bg-trace;
+}
+
+/* CodeMirror */
+.cm-editor {
+  height: 100%;
+  font-size: 12.5px;
+}
+.cm-editor.cm-focused {
+  outline: none;
+}
+.cm-scroller {
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  line-height: 1.55;
+}
+.cm-trace-primary {
+  background-color: theme('colors.trace.soft');
+  box-shadow: inset 2px 0 0 theme('colors.trace.DEFAULT');
+}
+.cm-trace-mention {
+  background-color: rgba(109, 74, 255, 0.05);
+}
+.cm-node-range {
+  background-color: rgba(109, 74, 255, 0.08);
+}
+.cm-clickable-line {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
 }

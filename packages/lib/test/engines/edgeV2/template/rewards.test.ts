@@ -39,7 +39,7 @@ describe('edgeV2 rewards', () => {
   it('appends the reward structures to the model in both task layouts', () => {
     const nodes = nodesOf(WITH_REWARDS);
     for (const taskLayout of ['taskModules', 'changeManager'] as const) {
-      const prism = generateValidatedPrismModel({ gm: nodes, fileName: WITH_REWARDS, taskLayout });
+      const prism = generateValidatedPrismModel({ gm: nodes, fileName: 'simpleChoiceRewards', taskLayout });
       assert.match(prism, /endmodule\n\nrewards "cost"\n[\s\S]*endrewards\n\nrewards "utility"\n[\s\S]*endrewards\n$/);
     }
   });
@@ -48,7 +48,7 @@ describe('edgeV2 rewards', () => {
     const nodes = nodesOf(WITHOUT_REWARDS);
     assert.strictEqual(rewardsTemplate({ gm: nodes }), '');
     assert.doesNotMatch(
-      generateValidatedPrismModel({ gm: nodes, fileName: WITHOUT_REWARDS }),
+      generateValidatedPrismModel({ gm: nodes, fileName: 'simpleChoice' }),
       /rewards/,
     );
   });

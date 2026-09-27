@@ -47,6 +47,19 @@ export {
   generateEdgeV2PrismModel,
   initEdgeV2Logger,
 };
+// Custom properties each engine reads from the goal model (for editors)
+export {
+  EDGE_GOAL_KEYS,
+  EDGE_RESOURCE_KEYS,
+  EDGE_TASK_KEYS,
+} from './engines/edge/mapper';
+export {
+  EDGE_GOAL_KEYS as EDGE_V2_GOAL_KEYS,
+  EDGE_RESOURCE_KEYS as EDGE_V2_RESOURCE_KEYS,
+  EDGE_TASK_KEYS as EDGE_V2_TASK_KEYS,
+} from './engines/edgeV2/mapper';
+export { SLEEC_GOAL_KEYS, SLEEC_TASK_KEYS } from './engines/sleec/mapper';
+
 export {
   DEFAULT_TASK_LAYOUT as EDGE_V2_DEFAULT_TASK_LAYOUT,
   type TaskLayout as EdgeV2TaskLayout,
