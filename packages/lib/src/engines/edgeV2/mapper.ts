@@ -37,7 +37,13 @@ export const EDGE_GOAL_KEYS = [
 /**
  * Allowed keys for Edge task custom properties
  */
-export const EDGE_TASK_KEYS = ['maxRetries', 'type', 'assertion'] as const;
+export const EDGE_TASK_KEYS = [
+  'maxRetries',
+  'type',
+  'assertion',
+  'utility',
+  'cost',
+] as const;
 
 /**
  * Allowed keys for Edge resource custom properties
@@ -213,6 +219,8 @@ export const edgeEngineMapper = createEngineMapper<
     return {
       execCondition,
       maxRetries: parseMaxRetries(raw.maxRetries, 'task'),
+      utility: raw.utility || '',
+      cost: raw.cost || '',
     };
   },
 

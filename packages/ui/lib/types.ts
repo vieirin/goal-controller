@@ -1,3 +1,7 @@
+/**
+ * The one spelling of engine names used across the UI and its API:
+ * 'edge' (legacy Edge), 'edgev2' (EdgeV2) and 'sleec'.
+ */
 export type TransformEngine = 'edge' | 'edgev2' | 'sleec';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
@@ -11,6 +15,10 @@ const TRANSFORM_ENGINES: TransformEngine[] = ['edge', 'edgev2', 'sleec'];
 export const isTransformEngine = (value: string | null): value is TransformEngine =>
   value !== null && TRANSFORM_ENGINES.includes(value as TransformEngine);
 
+/**
+ * Engine from the `?mode=` URL parameter. Old links used `mode=prism` for the
+ * Edge engine; this is the only place a legacy spelling is translated.
+ */
 export const normalizeEngineMode = (
   mode: string | null,
 ): TransformEngine | null => {

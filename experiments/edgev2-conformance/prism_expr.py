@@ -293,6 +293,7 @@ def parse_model(text: str) -> PrismModel:
                     raise SyntaxError(f"unrecognised module statement in {m.group(1)}: {stmt!r}")
         modules.append(Module(m.group(1), (m.group(2) or "").lstrip("/").strip(), variables, commands))
     rest = _COMMENT.sub("", module_re.sub("", text))
+    rest = re.sub(r"^\s*rewards\b.*?^\s*endrewards", "", rest, flags=re.S | re.M)  # reward structures are not compared
     for stmt in _statements(rest):
         if stmt in ("dtmc", "mdp", "ctmc") or not stmt:
             continue

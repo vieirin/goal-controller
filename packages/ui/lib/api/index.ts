@@ -1,4 +1,4 @@
-export { ApiResponse } from './response';
+export { ApiResponse, readJson } from './response';
 export type {
   ApiSuccessResponse,
   ApiErrorResponse,

@@ -17,6 +17,18 @@ export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 /**
  * API response utilities for consistent response formatting
  */
+/**
+ * Parse a JSON request body; null when it is missing or not JSON (e.g. a
+ * request the client cancelled while it was being sent).
+ */
+export const readJson = async <T = Record<string, unknown>>(request: Request): Promise<T | null> => {
+  try {
+    return (await request.json()) as T;
+  } catch {
+    return null;
+  }
+};
+
 export const ApiResponse = {
   /**
    * Create a success response

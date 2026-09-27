@@ -11,7 +11,7 @@ const MODEL = '../../examples/edgeV2/simpleChoice.txt';
 
 const generate = (taskLayout: TaskLayout): string => {
   const tree = GoalTree.fromModel(Model.load(MODEL), edgeEngineMapper);
-  return generateValidatedPrismModel({ gm: tree.nodes, fileName: MODEL, taskLayout });
+  return generateValidatedPrismModel({ gm: tree.nodes, fileName: 'simpleChoice', taskLayout });
 };
 
 const moduleNames = (prism: string): string[] =>
@@ -41,7 +41,7 @@ describe('edgeV2 task layout', () => {
     ]);
     const tree = GoalTree.fromModel(Model.load(MODEL), edgeEngineMapper);
     assert.strictEqual(
-      generateValidatedPrismModel({ gm: tree.nodes, fileName: MODEL }),
+      generateValidatedPrismModel({ gm: tree.nodes, fileName: 'simpleChoice' }),
       generate('taskModules'),
     );
   });
@@ -74,7 +74,7 @@ describe('edgeV2 task layout', () => {
       () =>
         generateValidatedPrismModel({
           gm: tree.nodes,
-          fileName: MODEL,
+          fileName: 'simpleChoice',
           // @ts-expect-error — invalid on purpose
           taskLayout: 'perGoal',
         }),

@@ -1,0 +1,57 @@
+import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
+
+export type Severity = 'error' | 'warning' | 'info';
+
+/** Something the modeller should look at, with the node it concerns if known. */
+export type Problem = {
+  severity: Severity;
+  message: string;
+  /** where it was found */
+  source: 'json' | 'model' | 'engine' | 'generation';
+  nodeId?: string;
+  /** 1-based, for JSON problems */
+  line?: number;
+  column?: number;
+};
+
+export type VariableInfo = {
+  name: string;
+  /** context: boolean condition; achievability: task success probability (0–1) */
+  kind: 'context' | 'achievability';
+  /** model nodes whose conditions or achievability use the variable */
+  usedBy: string[];
+};
+
+export type AnalyzeResponse = {
+  success: true;
+  variables: VariableInfo[];
+  problems: Problem[];
+  /** custom properties the engine reads, per node kind */
+  knownProperties: { goal: string[]; task: string[]; resource: string[] };
+};
+
+export type GenerationOptions = {
+  clean: boolean;
+  generateDecisionVars: boolean;
+  /** Edge only */
+  achievabilitySpace: number;
+  /** EdgeV2 only: N */
+  discretisation: number;
+  /** EdgeV2 only */
+  taskLayout: EdgeV2TaskLayout;
+  /** SLEEC only */
+  generateFluents: boolean;
+};
+
+export const DEFAULT_OPTIONS: GenerationOptions = {
+  clean: false,
+  generateDecisionVars: true,
+  achievabilitySpace: 4,
+  discretisation: 10,
+  taskLayout: 'taskModules',
+  generateFluents: false,
+};
+
+export type ExampleFile = { path: string; group: string; name: string };
+
+export type EngineName = TransformEngine;

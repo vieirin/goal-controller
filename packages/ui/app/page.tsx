@@ -1,10 +1,13 @@
-import TransformWorkflow from '@/components/TransformWorkflow';
-import { Suspense } from 'react';
+'use client';
+
+import dynamic from 'next/dynamic';
+
+// the workbench reads browser storage on start, so it renders on the client only
+const Workbench = dynamic(() => import('@/components/workbench/Workbench'), {
+  ssr: false,
+  loading: () => <div className='h-screen bg-panel' />,
+});
 
 export default function Home() {
-  return (
-    <Suspense fallback={<div className='min-h-screen p-8 bg-slate-50' />}>
-      <TransformWorkflow />
-    </Suspense>
-  );
+  return <Workbench />;
 }
