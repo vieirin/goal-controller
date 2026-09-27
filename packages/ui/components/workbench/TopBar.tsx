@@ -79,7 +79,7 @@ export default function TopBar() {
   };
 
   return (
-    <header className='flex h-12 shrink-0 items-center gap-3 border-b border-line bg-white px-3'>
+    <header className='flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-line bg-white px-3 xl:gap-3'>
       {input}
       <div className='flex min-w-0 items-center gap-2'>
         <IconButton
@@ -105,7 +105,7 @@ export default function TopBar() {
         <IconButton icon={Redo2} label='Redo model change' shortcut='⇧⌘Z' onClick={wb.redo} disabled={!wb.canRedo} />
       </div>
 
-      <div className='ml-auto flex items-center gap-2'>
+      <div className='ml-auto flex shrink-0 items-center gap-2'>
         {!wb.engineLocked && (
           <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
         )}
@@ -126,13 +126,14 @@ export default function TopBar() {
         >
           {wb.generating ? <Loader2 className='h-4 w-4 animate-spin' aria-hidden /> : <Play className='h-3.5 w-3.5' aria-hidden />}
           Generate
-          <span className='ml-1 font-mono text-2xs text-white/60'>⌘↵</span>
+          <span className='ml-1 hidden font-mono text-2xs text-white/60 xl:inline'>⌘↵</span>
         </Button>
         <Menu
           label='Export'
           trigger={({ toggle, open: isOpen }) => (
             <Button variant='outline' onClick={toggle} aria-expanded={isOpen} disabled={!wb.hasModel}>
-              <Download className='h-4 w-4' aria-hidden /> Export <ChevronDown className='h-3 w-3' aria-hidden />
+              <Download className='h-4 w-4' aria-hidden /> <span className='hidden lg:inline'>Export</span>{' '}
+              <ChevronDown className='h-3 w-3' aria-hidden />
             </Button>
           )}
         >
@@ -178,7 +179,7 @@ export function EngineOptions() {
       trigger={({ toggle, open }) => (
         <Button onClick={toggle} aria-expanded={open} title='Engine options'>
           <SlidersHorizontal className='h-4 w-4' aria-hidden />
-          <span className='font-mono text-xs text-ink-muted'>{optionsSummary(engine, wb)}</span>
+          <span className='hidden font-mono text-xs text-ink-muted xl:inline'>{optionsSummary(engine, wb)}</span>
           <ChevronDown className='h-3 w-3' aria-hidden />
         </Button>
       )}

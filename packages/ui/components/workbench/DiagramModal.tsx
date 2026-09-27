@@ -49,7 +49,6 @@ export const EMPTY_PISTAR_MODEL = `${JSON.stringify(
 export default function DiagramModal({ onClose }: { onClose: () => void }) {
   const wb = useWorkbench();
   const frame = useRef<HTMLIFrameElement>(null);
-  const saveButton = useRef<HTMLButtonElement>(null);
   const [ready, setReady] = useState(false);
   const [changed, setChanged] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
@@ -112,6 +111,9 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
         w.istar!.paper!.on('change:selection', (selection) => {
           selectedIStarId.current = selection.selectedCell?.id ?? null;
         });
+        // keyboard focus must be inside the iframe for piStar's own shortcuts (Delete,
+        // Backspace, ⌘Z) — its canvas cancels the mousedown that would normally move it there
+        w.document.addEventListener('pointerdown', () => w.focus(), true);
         w.document.addEventListener('keydown', (event) => {
           if ((event.metaKey || event.ctrlKey) && (event.key.toLowerCase() === 's' || event.key === 'Enter')) {
             event.preventDefault();
@@ -133,6 +135,7 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
           loading.current = false;
         }, 100);
         setReady(true);
+        w.focus();
       }, 150);
     }, 50);
   }, [save]);
@@ -149,10 +152,6 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, [save]);
-
-  useEffect(() => {
-    saveButton.current?.focus();
-  }, []);
 
   return (
     <div
@@ -186,7 +185,7 @@ export default function DiagramModal({ onClose }: { onClose: () => void }) {
             <Button variant='outline' onClick={cancel}>
               <X className='h-4 w-4' aria-hidden /> <span className='hidden sm:inline'>Cancel</span>
             </Button>
-            <Button variant='primary' onClick={save} disabled={!ready} ref={saveButton}>
+            <Button variant='primary' onClick={save} disabled={!ready}>
               Save<span className='hidden sm:inline'> and return</span>
               <span className='hidden sm:inline'>
                 <Kbd>⌘S</Kbd>

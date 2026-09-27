@@ -109,7 +109,7 @@ function ShellLayout() {
       } else if (key === 's') {
         event.preventDefault();
         exportModel();
-      } else if (key === 'e') {
+      } else if (key === 'e' && event.shiftKey) {
         event.preventDefault();
         openDiagram();
       } else if (key === 'b') {
@@ -254,7 +254,7 @@ function ModelColumn() {
               aria-pressed={inspectorOpen}
               onClick={() => setInspectorOpen((open) => !open)}
             />
-            <Button variant='outline' onClick={openDiagram} title='Edit the model in the diagram editor (⌘E)'>
+            <Button variant='outline' onClick={openDiagram} title='Edit the model in the diagram editor (⇧⌘E)'>
               <Workflow className='h-4 w-4' aria-hidden /> Edit diagram
             </Button>
           </>
@@ -323,7 +323,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
           </div>
         )}
         <p className='text-2xs text-ink-muted'>
-          <Kbd>⌘↵</Kbd> generate · <Kbd>⌘E</Kbd> edit diagram · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
+          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> edit diagram · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
         </p>
       </div>
     </section>
