@@ -1,16 +1,15 @@
 /**
  * Internal tree creation logic
  */
+import { childrenOf, isActor, type ElementKind } from '@istar-ts/core';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
-  Actor,
   GoalExecutionDetail,
   GoalNode,
   GoalTree,
   Link,
   Model,
   Node,
-  NodeType,
   Relation,
   Resource,
 } from '../types/';
@@ -31,8 +30,8 @@ export type {
 } from './engineMapper';
 export type { GoalExecutionDetail };
 
-const convertIstarType = ({ type }: { type: NodeType }) => {
-  switch (type) {
+const convertIstarType = ({ kind }: { kind: ElementKind }) => {
+  switch (kind) {
     case 'istar.Goal':
       return 'goal';
     case 'istar.Task':
@@ -42,7 +41,7 @@ const convertIstarType = ({ type }: { type: NodeType }) => {
     case 'istar.Quality':
       return 'goal';
     default:
-      throw new Error('[INVALID_MODEL]: Invalid node type: ' + type);
+      throw new Error('[INVALID_MODEL]: Invalid node type: ' + kind);
   }
 };
 
@@ -154,12 +153,12 @@ function createNode<
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const { id, goalName, executionDetail } = getGoalDetail({
-    goalText: node.text,
+    goalText: node.name,
     grammar: mapper.grammar,
   });
 
-  const nodeType = convertIstarType({ type: node.type });
-  const isQualityNode = node.type === 'istar.Quality';
+  const nodeType = convertIstarType({ kind: node.kind });
+  const isQualityNode = node.kind === 'istar.Quality';
 
   if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
@@ -298,14 +297,14 @@ function nodeChildren<
   TTaskKeys extends string,
   TResourceKeys extends string,
 >({
-  actor,
+  nodes,
   id,
   links,
   mapper,
   context,
 }: {
-  actor: Actor;
-  links: Link[];
+  nodes: readonly Node[];
+  links: readonly Link[];
   id?: string;
   mapper: EngineMapper<
     TGoalEngine,
@@ -322,17 +321,17 @@ function nodeChildren<
   }
 
   const incomingLinks = links.filter(
-    (link) => link.target === id && link.type !== 'istar.QualificationLink',
+    (link) => link.target === id && link.kind !== 'istar.QualificationLink',
   );
 
   const outgoingQualificationLinks = links.filter(
-    (link) => link.type === 'istar.QualificationLink' && link.source === id,
+    (link) => link.kind === 'istar.QualificationLink' && link.source === id,
   );
 
   const nodeLinks = [...incomingLinks, ...outgoingQualificationLinks];
 
-  const relations = nodeLinks.map((link: { type: Link['type'] | string }) => {
-    switch (link.type) {
+  const relations = nodeLinks.map((link) => {
+    switch (link.kind) {
       case 'istar.AndRefinementLink':
         return 'and';
       case 'istar.OrRefinementLink':
@@ -343,7 +342,7 @@ function nodeChildren<
         return 'and';
       default:
         throw new Error(
-          `[UNSUPPORTED LINK]: Please implement ${link.type} decoding`,
+          `[UNSUPPORTED LINK]: Please implement ${link.kind} decoding`,
         );
     }
   });
@@ -361,16 +360,16 @@ function nodeChildren<
         link,
       ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined => {
         const isOutgoingQualification =
-          link.type === 'istar.QualificationLink' && link.source === id;
+          link.kind === 'istar.QualificationLink' && link.source === id;
         const childNodeId = isOutgoingQualification ? link.target : link.source;
 
-        const node = actor.nodes.find((item) => item.id === childNodeId);
+        const node = nodes.find((item) => item.id === childNodeId);
         if (!node) {
           return undefined;
         }
 
         const [granChildren, relation] = nodeChildren({
-          actor,
+          nodes,
           id: node.id,
           links,
           mapper,
@@ -404,14 +403,14 @@ function nodeToTree<
   TTaskKeys extends string,
   TResourceKeys extends string,
 >({
-  actor,
+  nodes,
   iStarLinks,
   node,
   mapper,
   context,
 }: {
-  actor: Actor;
-  iStarLinks: Link[];
+  nodes: readonly Node[];
+  iStarLinks: readonly Link[];
   node: Node;
   mapper: EngineMapper<
     TGoalEngine,
@@ -424,7 +423,7 @@ function nodeToTree<
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const [children, relation] = nodeChildren({
-    actor,
+    nodes,
     id: node.id,
     links: iStarLinks,
     mapper,
@@ -562,9 +561,12 @@ export function convertToTree<
     rawPropertiesMap: new Map(),
   };
 
-  const unidirectionalTree = model.actors
+  const links = [...model.links.values()];
+  const unidirectionalTree = [...model.elements.values()]
+    .filter(isActor)
     .map((actor) => {
-      const rootNode = actor.nodes.find((item) => item.customProperties.root);
+      const nodes = childrenOf(model, actor.id);
+      const rootNode = nodes.find((item) => item.customProperties?.root);
       if (!rootNode) {
         throw new Error(
           '[INVALID_MODEL]: Root node not found during tree creation',
@@ -572,9 +574,9 @@ export function convertToTree<
       }
 
       return nodeToTree({
-        actor,
+        nodes,
         node: rootNode,
-        iStarLinks: [...model.links],
+        iStarLinks: links,
         mapper,
         context,
       });

@@ -1,8 +1,21 @@
 /**
  * piStar goal-model helpers for the workbench. Pure functions over the model
- * JSON text: they never touch ids or diagram layout, so an edited model can be
- * exported and opened again in piStar.
+ * JSON text, parsed and written with @istar-ts/core: they never touch ids or
+ * diagram layout, so an edited model can be exported and opened again in piStar.
  */
+import {
+  createEmptyModel,
+  inheritSourceLayout,
+  isNode,
+  parsePistar,
+  toPistar,
+  updateElement,
+  type IstarElement,
+  type IstarLink,
+  type IstarModel,
+  type LinkKind,
+  type ToPistarOptions,
+} from '@istar-ts/core';
 import type { TransformEngine } from '@/lib/types';
 
 export type NodeKind = 'goal' | 'task' | 'resource' | 'quality';
@@ -42,20 +55,8 @@ export type ViewTree = {
   byIStarId: Map<string, ViewNode>;
 };
 
-type PiStarNode = {
-  id: string;
-  text: string;
-  type: string;
-  customProperties?: Record<string, string>;
-  [key: string]: unknown;
-};
-type PiStarLink = { id: string; type: string; source: string; target: string };
-type PiStarModel = {
-  actors?: Array<{ nodes?: PiStarNode[] }>;
-  orphans?: PiStarNode[];
-  links?: PiStarLink[];
-  [key: string]: unknown;
-};
+/** A new, empty piStar model. */
+export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: '' })}\n`;
 
 // ---------------------------------------------------------------------------
 // Node text:  "G3: Prepare sample [T4@3->T5]"
@@ -139,34 +140,45 @@ export const CONSTRUCT_HELP: Record<Construct, string> = {
 // View tree
 // ---------------------------------------------------------------------------
 
-const kindOf = (type: string): NodeKind =>
-  type === 'istar.Task'
+/** Colour family of a node chip: how a goal refines its children, or task. */
+export const nodeTone = (node: ViewNode | undefined): 'and' | 'or' | 'task' | 'plain' =>
+  !node
+    ? 'plain'
+    : node.kind === 'task'
+      ? 'task'
+      : node.kind === 'goal'
+        ? node.relation === 'or'
+          ? 'or'
+          : node.relation === 'and'
+            ? 'and'
+            : 'plain'
+        : 'plain';
+
+const kindOf = (kind: IstarElement['kind']): NodeKind =>
+  kind === 'istar.Task'
     ? 'task'
-    : type === 'istar.Resource'
+    : kind === 'istar.Resource'
       ? 'resource'
-      : type === 'istar.Quality'
+      : kind === 'istar.Quality'
         ? 'quality'
         : 'goal';
 
-const allNodes = (model: PiStarModel): PiStarNode[] => [
-  ...(model.actors ?? []).flatMap((actor) => actor.nodes ?? []),
-  ...(model.orphans ?? []),
-];
-
-export const parseModel = (text: string): PiStarModel => JSON.parse(text) as PiStarModel;
+/** Intentional elements inside actors or on the paper (dependums are not part of the goal tree). */
+const goalElements = (model: IstarModel): IstarElement[] =>
+  [...model.elements.values()].filter((element) => isNode(element) && !element.isDependum);
 
 /** Build the goal tree from the piStar JSON (engine independent). */
 export const buildViewTree = (text: string, engine: TransformEngine): ViewTree => {
-  const model = parseModel(text);
+  const model = parsePistar(text);
   const nodes = new Map<string, ViewNode>();
   const byIStarId = new Map<string, ViewNode>();
 
-  for (const raw of allNodes(model)) {
-    const parsed = parseNodeText(raw.text ?? '');
+  for (const raw of goalElements(model)) {
+    const parsed = parseNodeText(raw.name);
     const node: ViewNode = {
       id: parsed.id ?? raw.id,
       iStarId: raw.id,
-      kind: kindOf(raw.type),
+      kind: kindOf(raw.kind),
       name: parsed.name,
       notation: parsed.notation,
       construct: notationConstruct(parsed.notation, engine),
@@ -174,7 +186,7 @@ export const buildViewTree = (text: string, engine: TransformEngine): ViewTree =
       children: [],
       parent: null,
       properties: { ...(raw.customProperties ?? {}) },
-      text: raw.text ?? '',
+      text: raw.name,
     };
     byIStarId.set(raw.id, node);
     if (!nodes.has(node.id)) {
@@ -182,12 +194,12 @@ export const buildViewTree = (text: string, engine: TransformEngine): ViewTree =
     }
   }
 
-  for (const link of model.links ?? []) {
+  for (const link of model.links.values()) {
     const child = byIStarId.get(link.source);
     const parent = byIStarId.get(link.target);
     if (!child || !parent) continue;
-    if (link.type === 'istar.AndRefinementLink' || link.type === 'istar.OrRefinementLink') {
-      parent.relation = link.type === 'istar.OrRefinementLink' ? 'or' : 'and';
+    if (link.kind === 'istar.AndRefinementLink' || link.kind === 'istar.OrRefinementLink') {
+      parent.relation = link.kind === 'istar.OrRefinementLink' ? 'or' : 'and';
     }
     if (!parent.children.includes(child.id)) {
       parent.children.push(child.id);
@@ -243,25 +255,30 @@ const detectIndent = (text: string): number | string => {
   return match[1].includes('\t') ? '\t' : match[1].length;
 };
 
-const rewrite = (text: string, mutate: (model: PiStarModel) => void): string => {
-  const model = parseModel(text);
-  mutate(model);
-  const indent = detectIndent(text);
-  return JSON.stringify(model, null, indent === 0 ? undefined : indent) + (text.endsWith('\n') ? '\n' : '');
+/**
+ * Write a model back as piStar JSON, in the indentation and trailing newline
+ * of `like` (the text it was read from). `toPistar` keeps piStar's key order.
+ */
+export const serializeModel = (model: IstarModel, like: string, options?: ToPistarOptions): string => {
+  const indent = detectIndent(like);
+  const pistar = toPistar(model, options);
+  const json = indent === 2 ? pistar : JSON.stringify(JSON.parse(pistar), null, indent === 0 ? undefined : indent);
+  return json + (like.endsWith('\n') ? '\n' : '');
 };
 
-const findNode = (model: PiStarModel, iStarId: string): PiStarNode => {
-  const node = allNodes(model).find((n) => n.id === iStarId);
-  if (!node) {
+const rewrite = (text: string, edit: (model: IstarModel) => IstarModel): string =>
+  serializeModel(edit(parsePistar(text)), text);
+
+const findNode = (model: IstarModel, iStarId: string): IstarElement => {
+  const node = model.elements.get(iStarId);
+  if (!node || !isNode(node)) {
     throw new Error(`node ${iStarId} not found`);
   }
   return node;
 };
 
 export const setNodeText = (text: string, iStarId: string, nodeText: string): string =>
-  rewrite(text, (model) => {
-    findNode(model, iStarId).text = nodeText;
-  });
+  rewrite(text, (model) => updateElement(model, findNode(model, iStarId).id, { name: nodeText }));
 
 /** Set (value) or remove (null) a custom property. */
 export const setNodeProperty = (
@@ -278,20 +295,23 @@ export const setNodeProperty = (
     } else {
       properties[key] = value;
     }
-    node.customProperties = properties;
+    return updateElement(model, node.id, { customProperties: properties });
   });
 
 /** Change how a node refines its children: rewrites the type of its child links. */
 export const setRefinement = (text: string, iStarId: string, relation: Relation): string =>
   rewrite(text, (model) => {
-    for (const link of model.links ?? []) {
-      if (
+    const kind: LinkKind = relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
+    // a link's kind can't be patched, so the links are rebuilt in place (same ids and order)
+    const links = new Map<string, IstarLink>(
+      [...model.links].map(([id, link]): [string, IstarLink] =>
         link.target === iStarId &&
-        (link.type === 'istar.AndRefinementLink' || link.type === 'istar.OrRefinementLink')
-      ) {
-        link.type = relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
-      }
-    }
+        (link.kind === 'istar.AndRefinementLink' || link.kind === 'istar.OrRefinementLink')
+          ? [id, { ...link, kind }]
+          : [id, link],
+      ),
+    );
+    return inheritSourceLayout(model, { ...model, links });
   });
 
 // ---------------------------------------------------------------------------

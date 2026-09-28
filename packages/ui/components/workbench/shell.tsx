@@ -6,13 +6,21 @@ import { createContext, useContext } from 'react';
 export type Shell = {
   explorerOpen: boolean;
   toggleExplorer: () => void;
-  openDiagram: () => void;
+  /** The model column alone: PRISM output and side bar collapsed. */
+  modelFullscreen: boolean;
+  toggleModelFullscreen: () => void;
+  /** View the model without editing it: no diagram palette, a summary Inspector, read-only source. */
+  modelReadOnly: boolean;
+  toggleModelReadOnly: () => void;
 };
 
 export const ShellContext = createContext<Shell>({
   explorerOpen: true,
   toggleExplorer: () => undefined,
-  openDiagram: () => undefined,
+  modelFullscreen: false,
+  toggleModelFullscreen: () => undefined,
+  modelReadOnly: false,
+  toggleModelReadOnly: () => undefined,
 });
 
 export const useShell = (): Shell => useContext(ShellContext);

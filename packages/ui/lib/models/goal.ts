@@ -1,4 +1,5 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { parsePistar } from '@istar-ts/core';
 import {
   edgeEngineMapper,
   edgeV2EngineMapper,
@@ -47,21 +48,21 @@ export const GoalModel = {
   parseModel(
     modelJson: string,
   ): { success: true; model: IStarModel } | ParseError {
-    // Parse JSON
+    // Parse the piStar file
     let model: IStarModel;
     try {
-      model = JSON.parse(modelJson);
+      model = parsePistar(modelJson);
     } catch (error) {
       return {
         success: false,
-        error: `Invalid JSON: ${error instanceof Error ? error.message : 'Unknown parse error'}`,
+        error: `Invalid model: ${error instanceof Error ? error.message : 'Unknown parse error'}`,
         stage: 'parse',
       };
     }
 
-    // Validate model
+    // Validate model (marks the root of each actor)
     try {
-      Model.validate(model);
+      model = Model.validate(model);
     } catch (error) {
       return {
         success: false,

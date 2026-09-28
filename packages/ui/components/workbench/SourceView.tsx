@@ -7,9 +7,11 @@ import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { nodeRanges } from '@/lib/workbench/pistar';
 import CodeEditor from './CodeEditor';
 import { useWorkbench } from './WorkbenchContext';
+import { useShell } from './shell';
 
 export default function SourceView() {
   const wb = useWorkbench();
+  const { modelReadOnly } = useShell();
   const { text, tree, selected, selectOrigin, selectSeq, problems, sourceLine } = wb;
   const [view, setView] = useState<EditorView | null>(null);
   const latest = useRef(wb);
@@ -95,6 +97,7 @@ export default function SourceView() {
       language='json'
       ariaLabel='Goal model source (piStar JSON)'
       onChange={(value) => wb.setText(value, 'source')}
+      readOnly={modelReadOnly}
       extensions={extensions}
       onReady={setView}
     />

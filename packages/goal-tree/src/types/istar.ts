@@ -1,17 +1,21 @@
 /**
- * Types for iStar models (from piStar tool)
- * These represent the raw model structure before conversion to goal tree
+ * Types for iStar models (piStar save files), provided by @istar-ts/core.
+ * These represent the model structure before conversion to goal tree.
  */
+import type {
+  IstarActor,
+  IstarElement,
+  IstarLink,
+  IstarModel,
+  NodeKind,
+} from '@istar-ts/core';
 
 export type id = string;
 
-export type NodeType =
-  | 'istar.Task'
-  | 'istar.Goal'
-  | 'istar.Actor'
-  | 'istar.Resource'
-  | 'istar.Quality';
+/** Kinds of intentional elements that can appear in a goal tree */
+export type NodeType = NodeKind;
 
+/** Custom properties this project reads from goal-model elements (values are strings, as piStar stores them) */
 export type CustomPropertiesData = {
   // common
   Description?: string;
@@ -58,54 +62,10 @@ export type CustomPropertiesData = {
   [key: string]: string | undefined;
 };
 
-export type CustomProperties = {
-  customProperties: CustomPropertiesData;
-};
+export type Node = IstarElement;
 
-export type Node = {
-  id: id;
-  text: string;
-  type: NodeType;
-  x: number;
-  y: number;
-} & CustomProperties;
+export type Actor = IstarActor;
 
-export type Actor = {
-  nodes: Node[];
-} & Node;
+export type Link = IstarLink;
 
-export type Link = {
-  id: id;
-  type:
-    | 'istar.AndRefinementLink'
-    | 'istar.OrRefinementLink'
-    | 'istar.NeededByLink'
-    | 'istar.QualificationLink';
-  source: string;
-  target: string;
-};
-
-export type Display = Record<string, DisplayItem>;
-
-export type DisplayItem = {
-  backgroundColor: string;
-  width?: number;
-  height?: number;
-};
-
-export type Diagram = {
-  width: number;
-  height: number;
-} & CustomProperties;
-
-export type Model = {
-  actors: Actor[];
-  orphans: never[];
-  dependencies: never[];
-  links: Link[];
-  display: Display;
-  tool: string;
-  istar: string;
-  saveDate: Date;
-  diagram: Diagram;
-};
+export type Model = IstarModel;

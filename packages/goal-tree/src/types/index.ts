@@ -10,13 +10,10 @@
 export type {
   id,
   NodeType,
-  CustomProperties,
+  CustomPropertiesData,
   Node,
   Actor,
   Link,
-  Display,
-  DisplayItem,
-  Diagram,
   Model,
 } from './istar';
 

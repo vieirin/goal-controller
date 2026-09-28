@@ -1,14 +1,13 @@
 'use client';
 
-import { AlertCircle, AlertTriangle, ChevronsUpDown, Download, Info, RotateCcw, Search, Upload } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { AlertCircle, AlertTriangle, Check, ChevronsUpDown, Download, Info, RotateCcw, Search, Upload } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { CONSTRUCT_HELP, CONSTRUCT_LABEL, type ViewNode } from '@/lib/workbench/pistar';
+import { CONSTRUCT_HELP, CONSTRUCT_LABEL, nodeTone, type ViewNode } from '@/lib/workbench/pistar';
 import type { Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
 import { readFile } from './TopBar';
-import { nodeTone } from './TreeView';
 import { useWorkbench, type BottomTab } from './WorkbenchContext';
 import { Button, IconButton, NodeChip, Segmented, Switch, Tabs, cx } from './ui';
 
@@ -50,6 +49,12 @@ const SOURCE = { json: 'JSON', model: 'model', engine: 'engine', generation: 'ge
 export function ProblemsView() {
   const wb = useWorkbench();
   const [showInfo, setShowInfo] = useState(false);
+  const [copied, setCopied] = useState<number | null>(null);
+  useEffect(() => {
+    if (copied === null) return undefined;
+    const timer = setTimeout(() => setCopied(null), 1200);
+    return () => clearTimeout(timer);
+  }, [copied]);
   if (!wb.hasModel) return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
   const shown = wb.problems.filter((p) => showInfo || p.severity !== 'info');
   const hiddenInfo = wb.problems.length - shown.length;
@@ -69,18 +74,36 @@ export function ProblemsView() {
           const Icon = ICON[problem.severity];
           const node = problem.nodeId ? wb.tree?.nodes.get(problem.nodeId) : undefined;
           return (
-            <li key={`${problem.message}-${index}`}>
+            <li key={`${problem.message}-${index}`} className='flex items-start gap-2 border-b border-line/60 px-3 py-1.5 text-[13px] hover:bg-panel'>
+              {/* clicking the problem copies it; the line and the node chip go to it */}
               <button
                 type='button'
-                onClick={() => go(problem)}
-                className='flex w-full items-start gap-2 border-b border-line/60 px-3 py-1.5 text-left text-[13px] hover:bg-panel'
+                title='Click to copy'
+                onClick={async () => {
+                  await navigator.clipboard.writeText(problem.message);
+                  setCopied(index);
+                }}
+                className='flex min-w-0 flex-1 items-start gap-2 text-left'
               >
-                <Icon className={cx('mt-0.5 h-4 w-4 shrink-0', TONE[problem.severity])} aria-label={problem.severity} />
-                <span className='min-w-0 flex-1 text-ink'>{problem.message}</span>
-                {problem.line && <span className='font-mono text-2xs text-ink-muted'>line {problem.line}</span>}
-                {node && <NodeChip id={node.id} tone={nodeTone(node)} />}
-                <span className='rounded bg-panel px-1 text-2xs text-ink-muted'>{SOURCE[problem.source]}</span>
+                {copied === index ? (
+                  <Check className='mt-0.5 h-4 w-4 shrink-0 text-and' aria-label='copied' />
+                ) : (
+                  <Icon className={cx('mt-0.5 h-4 w-4 shrink-0', TONE[problem.severity])} aria-label={problem.severity} />
+                )}
+                <span className='min-w-0 flex-1 text-ink'>{copied === index ? 'Copied to the clipboard' : problem.message}</span>
               </button>
+              {problem.line && (
+                <button
+                  type='button'
+                  onClick={() => go(problem)}
+                  title='Go to this line in the source'
+                  className='font-mono text-2xs text-ink-muted underline-offset-2 hover:text-ink hover:underline'
+                >
+                  line {problem.line}
+                </button>
+              )}
+              {node && <NodeChip id={node.id} tone={nodeTone(node)} onClick={() => go(problem)} />}
+              <span className='rounded bg-panel px-1 text-2xs text-ink-muted'>{SOURCE[problem.source]}</span>
             </li>
           );
         })}

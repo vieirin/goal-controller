@@ -15,8 +15,9 @@ import {
   Settings2,
   SlidersHorizontal,
   Undo2,
-  Workflow,
   X,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
@@ -27,7 +28,7 @@ import Inspector from './Inspector';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import { EngineOptions, useOpenFile } from './TopBar';
-import TreeView from './TreeView';
+import DiagramView from './DiagramView';
 import { useWorkbench, type ModelTab } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, IconButton, Menu, MenuItem, Segmented, Switch, Tabs, cx } from './ui';
@@ -210,9 +211,9 @@ function NavButton({
 
 function MobileModel() {
   const wb = useWorkbench();
-  const { openDiagram } = useShell();
+  const { modelReadOnly, toggleModelReadOnly } = useShell();
   const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'tree', label: 'Tree' },
+    { id: 'diagram', label: 'Diagram' },
     { id: 'source', label: 'Source' },
   ];
   return (
@@ -223,12 +224,15 @@ function MobileModel() {
         value={wb.modelTab}
         onChange={wb.setModelTab}
         trailing={
-          <Button variant='outline' onClick={openDiagram}>
-            <Workflow className='h-4 w-4' aria-hidden /> Diagram
-          </Button>
+          <IconButton
+            icon={modelReadOnly ? Lock : Unlock}
+            label={modelReadOnly ? 'Read-only: tap to edit the model' : 'Make the model read-only'}
+            aria-pressed={modelReadOnly}
+            onClick={toggleModelReadOnly}
+          />
         }
       />
-      <div className='min-h-0 flex-1'>{wb.modelTab === 'tree' ? <TreeView /> : <SourceView />}</div>
+      <div className='min-h-0 flex-1'>{wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}</div>
     </section>
   );
 }

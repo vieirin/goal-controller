@@ -1,15 +1,29 @@
 'use client';
 
-import { FilePlus2, FolderOpen, History, PanelBottomClose, PanelBottomOpen, Upload, Workflow, X } from 'lucide-react';
+import {
+  FilePlus2,
+  FolderOpen,
+  History,
+  Lock,
+  Maximize2,
+  Minimize2,
+  PanelBottomClose,
+  PanelBottomOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Unlock,
+  Upload,
+  X,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import BottomPanel from './BottomPanel';
-import DiagramModal, { EMPTY_PISTAR_MODEL } from './DiagramModal';
 import Explorer, { useExamples, useOpenExample } from './Explorer';
 import Inspector from './Inspector';
 import MobileShell from './MobileShell';
@@ -17,12 +31,13 @@ import ModelSettingsModal from './ModelSettingsModal';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
-import TreeView from './TreeView';
+import DiagramView from './DiagramView';
 import { WorkbenchProvider, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs } from './ui';
 
 const EXPLORER_KEY = 'goal-workbench:explorer-open';
+const READ_ONLY_KEY = 'goal-workbench:model-read-only';
 
 export default function Workbench() {
   const mode = normalizeEngineMode(useSearchParams().get('mode'));
@@ -49,8 +64,8 @@ function ShellLayout() {
     dragTimer.current = setTimeout(() => setDragging(false), 300);
   }, []);
   useEffect(() => () => clearTimeout(dragTimer.current), []);
-  const [diagramOpen, setDiagramOpen] = useState(false);
   const explorerPanel = usePanelRef();
+  const outputPanel = usePanelRef();
   const bottomPanel = usePanelRef();
   const isMobile = useIsMobile();
   // phones: the files drawer, closed after a file is opened
@@ -94,25 +109,64 @@ function ShellLayout() {
     if (bottomPanel.current?.isCollapsed()) bottomPanel.current.expand();
   }, [wb.bottomRevealSeq, bottomPanel]);
 
-  const openDiagram = useCallback(() => {
-    if (wb.hasModel) setDiagramOpen(true);
+  const [modelReadOnly, setModelReadOnly] = useState(() => window.localStorage.getItem(READ_ONLY_KEY) === 'true');
+  const toggleModelReadOnly = useCallback(() => {
+    setModelReadOnly((on) => {
+      window.localStorage.setItem(READ_ONLY_KEY, String(!on));
+      return !on;
+    });
+  }, []);
+
+  // full-screen model: collapses the PRISM output and the side bar, and restores them after
+  const [modelFullscreen, setModelFullscreen] = useState(false);
+  const fullscreenRef = useRef(false);
+  const explorerBeforeFullscreen = useRef(false);
+  const setFullscreen = useCallback(
+    (on: boolean) => {
+      if (on === fullscreenRef.current) return;
+      if (on) {
+        explorerBeforeFullscreen.current = !(explorerPanel.current?.isCollapsed() ?? true);
+        fullscreenRef.current = true;
+        explorerPanel.current?.collapse();
+        outputPanel.current?.collapse();
+      } else {
+        outputPanel.current?.expand();
+        if (explorerBeforeFullscreen.current) explorerPanel.current?.expand();
+        fullscreenRef.current = false;
+      }
+      setModelFullscreen(on);
+    },
+    [explorerPanel, outputPanel],
+  );
+  const toggleModelFullscreen = useCallback(() => {
+    if (wb.hasModel) setFullscreen(!fullscreenRef.current);
+  }, [wb.hasModel, setFullscreen]);
+  // closing the model leaves full screen (its panels are gone)
+  useEffect(() => {
+    if (!wb.hasModel && fullscreenRef.current) {
+      fullscreenRef.current = false;
+      setModelFullscreen(false);
+    }
   }, [wb.hasModel]);
 
-  // a new model is set up first, then drawn in the diagram editor
+  // a new model is set up first, then drawn in the diagram, full screen
   const [diagramAfterSetup, setDiagramAfterSetup] = useState(false);
   const newModel = useCallback(() => {
     wb.openModel('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true });
     setDiagramAfterSetup(true);
   }, [wb]);
   useEffect(() => {
-    if (!diagramAfterSetup || wb.settingsDialog) return;
+    if (!diagramAfterSetup || wb.settingsDialog) return undefined;
     setDiagramAfterSetup(false);
-    setDiagramOpen(true);
-  }, [diagramAfterSetup, wb.settingsDialog]);
+    wb.setModelTab('diagram');
+    // wait for the model panels to mount
+    const frame = requestAnimationFrame(() => setFullscreen(true));
+    return () => cancelAnimationFrame(frame);
+  }, [diagramAfterSetup, wb, setFullscreen]);
 
-  // keyboard shortcuts (the diagram editor handles its own while open)
+  // keyboard shortcuts
   useEffect(() => {
-    if (diagramOpen || wb.settingsDialog) return undefined;
+    if (wb.settingsDialog) return undefined;
     const exportModel = () => {
       if (!wb.hasModel) return;
       const name = /\.(txt|json)$/i.test(wb.fileName) ? wb.fileName : `${baseName(wb.fileName)}.txt`;
@@ -132,7 +186,7 @@ function ShellLayout() {
         exportModel();
       } else if (key === 'e' && event.shiftKey) {
         event.preventDefault();
-        openDiagram();
+        toggleModelFullscreen();
       } else if (key === 'b') {
         event.preventDefault();
         toggleExplorer();
@@ -142,7 +196,7 @@ function ShellLayout() {
         else wb.undo();
       } else if (event.key === '1' || event.key === '2') {
         event.preventDefault();
-        wb.setModelTab(event.key === '1' ? 'tree' : 'source');
+        wb.setModelTab(event.key === '1' ? 'diagram' : 'source');
       }
     };
     window.addEventListener('keydown', onKey);
@@ -151,22 +205,30 @@ function ShellLayout() {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('workbench:export-model', exportModel);
     };
-  }, [wb, diagramOpen, openDiagram, toggleExplorer]);
+  }, [wb, toggleModelFullscreen, toggleExplorer]);
 
   if (isMobile) {
     return (
       <ShellContext.Provider
-        value={{ explorerOpen: drawerOpen, toggleExplorer: () => setDrawerOpen((open) => !open), openDiagram }}
+        value={{
+          explorerOpen: drawerOpen,
+          toggleExplorer: () => setDrawerOpen((open) => !open),
+          modelFullscreen: false,
+          toggleModelFullscreen: () => undefined,
+          modelReadOnly,
+          toggleModelReadOnly,
+        }}
       >
         <MobileShell empty={<EmptyState onNewModel={newModel} />} />
-        {diagramOpen && <DiagramModal onClose={() => setDiagramOpen(false)} />}
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
       </ShellContext.Provider>
     );
   }
 
   return (
-    <ShellContext.Provider value={{ explorerOpen, toggleExplorer, openDiagram }}>
+    <ShellContext.Provider
+      value={{ explorerOpen, toggleExplorer, modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly }}
+    >
       <div
         className='flex h-screen flex-col bg-panel'
         onDragOver={(event) => {
@@ -196,7 +258,8 @@ function ShellLayout() {
                 onResize={(size) => {
                   const open = size.inPixels > 0;
                   setExplorerOpen(open);
-                  window.localStorage.setItem(EXPLORER_KEY, String(open));
+                  // collapsing it for full screen is not a preference
+                  if (!fullscreenRef.current) window.localStorage.setItem(EXPLORER_KEY, String(open));
                 }}
               >
                 <Explorer />
@@ -204,7 +267,20 @@ function ShellLayout() {
               <Separator />
               {wb.hasModel ? (
                 <>
-                  <Panel id='output' defaultSize='56%' minSize='25%'>
+                  <Panel
+                    id='output'
+                    panelRef={outputPanel}
+                    defaultSize='56%'
+                    minSize='25%'
+                    collapsible
+                    onResize={(size) => {
+                      // opening the output by hand leaves full screen
+                      if (size.inPixels > 0 && fullscreenRef.current) {
+                        fullscreenRef.current = false;
+                        setModelFullscreen(false);
+                      }
+                    }}
+                  >
                     <OutputPane />
                   </Panel>
                   <Separator />
@@ -237,21 +313,20 @@ function ShellLayout() {
             </span>
           </div>
         )}
-        {diagramOpen && <DiagramModal onClose={() => setDiagramOpen(false)} />}
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
       </div>
     </ShellContext.Provider>
   );
 }
 
-/** Tree / Source with the Inspector underneath. */
+/** Diagram / Source with the Inspector underneath (beside it in full screen). */
 function ModelColumn() {
   const wb = useWorkbench();
-  const { openDiagram } = useShell();
+  const { modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly } = useShell();
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'tree', label: 'Tree' },
+    { id: 'diagram', label: 'Diagram' },
     { id: 'source', label: 'Source' },
   ];
 
@@ -269,25 +344,44 @@ function ModelColumn() {
         trailing={
           <>
             <IconButton
-              icon={inspectorOpen ? PanelBottomClose : PanelBottomOpen}
+              icon={modelReadOnly ? Lock : Unlock}
+              label={modelReadOnly ? 'Read-only: click to edit the model' : 'Make the model read-only'}
+              aria-pressed={modelReadOnly}
+              onClick={toggleModelReadOnly}
+            />
+            <IconButton
+              icon={
+                modelFullscreen
+                  ? inspectorOpen
+                    ? PanelRightClose
+                    : PanelRightOpen
+                  : inspectorOpen
+                    ? PanelBottomClose
+                    : PanelBottomOpen
+              }
               label={inspectorOpen ? 'Hide the Inspector' : 'Show the Inspector'}
               aria-pressed={inspectorOpen}
               onClick={() => setInspectorOpen((open) => !open)}
             />
-            <Button variant='outline' onClick={openDiagram} title='Edit the goal model in the diagram editor (⇧⌘E)'>
-              <Workflow className='h-4 w-4' aria-hidden /> Edit goal model
-            </Button>
+            <IconButton
+              icon={modelFullscreen ? Minimize2 : Maximize2}
+              label={modelFullscreen ? 'Exit full screen' : 'Full screen: hide the PRISM output and the side bar'}
+              shortcut='⇧⌘E'
+              aria-pressed={modelFullscreen}
+              onClick={toggleModelFullscreen}
+            />
           </>
         }
       />
-      <Group orientation='vertical' className='min-h-0 flex-1'>
-        <Panel id='model-view' defaultSize='58%' minSize='25%'>
-          {wb.modelTab === 'tree' ? <TreeView /> : <SourceView />}
+      {/* keyed by orientation so each layout starts from its own default sizes */}
+      <Group key={modelFullscreen ? 'side' : 'below'} orientation={modelFullscreen ? 'horizontal' : 'vertical'} className='min-h-0 flex-1'>
+        <Panel id='model-view' defaultSize={modelFullscreen ? undefined : '58%'} minSize='25%'>
+          {wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}
         </Panel>
         {inspectorOpen && (
           <>
             <Separator />
-            <Panel id='inspector' defaultSize='42%' minSize='120px'>
+            <Panel id='inspector' defaultSize={modelFullscreen ? '380px' : '42%'} minSize={modelFullscreen ? '280px' : '120px'}>
               <aside className='h-full overflow-auto bg-white' aria-label='Inspector'>
                 <Inspector />
               </aside>
@@ -313,7 +407,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
           <h1 className='text-xl font-semibold text-ink'>Open a goal model</h1>
           <p className='text-[13px] text-ink-muted'>
             A piStar model (<span className='font-mono'>.txt</span> or <span className='font-mono'>.json</span>). Drop it anywhere on
-            this window, open it from disk, or draw a new one in the diagram editor.
+            this window, open it from disk, or draw a new one.
           </p>
         </div>
         <div className='flex flex-wrap gap-2'>
@@ -379,7 +473,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
           </div>
         )}
         <p className='text-2xs text-ink-muted'>
-          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> edit goal model · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
+          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> full-screen model · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
         </p>
       </div>
     </section>

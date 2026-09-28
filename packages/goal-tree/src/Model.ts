@@ -1,98 +1,90 @@
 /**
  * Model namespace - Utilities for working with iStar models
  */
+import {
+  childrenOf,
+  isActor,
+  parsePistar,
+  updateElement,
+} from '@istar-ts/core';
 import { readFileSync } from 'fs';
 import type { Model as IStarModel } from './types/';
 
 /**
- * Type guard to check if a value is a valid Model structure.
- */
-export function isModel(value: unknown): value is IStarModel {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  // Check for required properties using 'in' operator
-  if (!('actors' in value) || !('links' in value)) {
-    return false;
-  }
-
-  // After 'in' checks, we can safely access these properties
-  // TypeScript narrows to { actors: unknown; links: unknown }
-  return Array.isArray(value.actors) && Array.isArray(value.links);
-}
-
-/**
- * Validate an iStar model
+ * Validate an iStar model: every actor must have exactly one root (a node with
+ * no outgoing links, not counting qualities and the elements they qualify).
+ *
+ * @returns the model with each root marked by the `root: "true"` custom property
  * @throws Error if the model is invalid
  */
-function validateModel(model: IStarModel): void {
-  const root = model.actors
-    .map((item) =>
-      item.nodes.reduce((hasRoot, node) => {
-        // Exclude Quality nodes from root check
-        if (node.type === 'istar.Quality') {
-          return hasRoot;
-        }
-        // Check if this node has outgoing links
-        const isRoot = !model.links.find((link) => link.source === node.id);
-        // Also exclude nodes that are targets of QualificationLinks
-        const isQualifiedByQuality = model.links.some((link) => {
-          if (link.type !== 'istar.QualificationLink') return false;
-          if (link.target !== node.id) return false;
-          const sourceNode = item.nodes.find((n) => n.id === link.source);
-          return sourceNode?.type === 'istar.Quality';
-        });
+function validateModel(model: IStarModel): IStarModel {
+  const links = [...model.links.values()];
+  const actors = [...model.elements.values()].filter(isActor);
 
-        if (isQualifiedByQuality) {
-          return hasRoot;
-        }
+  let validated = model;
+  for (const actor of actors) {
+    const nodes = childrenOf(model, actor.id);
+    let hasRoot = false;
+    for (const node of nodes) {
+      // Exclude Quality nodes from root check
+      if (node.kind === 'istar.Quality') {
+        continue;
+      }
+      // Also exclude nodes that are targets of QualificationLinks
+      const isQualifiedByQuality = links.some(
+        (link) =>
+          link.kind === 'istar.QualificationLink' &&
+          link.target === node.id &&
+          nodes.find((n) => n.id === link.source)?.kind === 'istar.Quality',
+      );
+      if (isQualifiedByQuality) {
+        continue;
+      }
 
-        if (isRoot && hasRoot) {
-          throw new Error(
-            '[INVALID_MODEL]: Invalid number of roots, one allowed',
-          );
-        }
-        if (isRoot) {
-          node.customProperties.root = 'true';
-        }
-        return isRoot || hasRoot;
-      }, false),
-    )
-    .every((isValid) => isValid);
+      // A root has no outgoing links
+      if (links.some((link) => link.source === node.id)) {
+        continue;
+      }
+      if (hasRoot) {
+        throw new Error(
+          '[INVALID_MODEL]: Invalid number of roots, one allowed',
+        );
+      }
+      hasRoot = true;
+      validated = updateElement(validated, node.id, {
+        customProperties: { ...node.customProperties, root: 'true' },
+      });
+    }
 
-  if (!root) {
-    throw new Error('[INVALID_MODEL]: Invalid number of roots, one allowed');
-  }
-}
-
-/**
- * Load an iStar model from a file
- */
-function loadModel(filename: string): IStarModel {
-  const modelFile = readFileSync(filename);
-  const parsed: unknown = JSON.parse(modelFile.toString());
-
-  if (!isModel(parsed)) {
-    throw new Error('[INVALID_MODEL]: Missing or invalid actors or links');
+    if (!hasRoot) {
+      throw new Error('[INVALID_MODEL]: Invalid number of roots, one allowed');
+    }
   }
 
-  validateModel(parsed);
-  return parsed;
+  return validated;
 }
 
 /**
  * Parse an iStar model from JSON string
  */
 function parseModel(json: string): IStarModel {
-  const parsed: unknown = JSON.parse(json);
-
-  if (!isModel(parsed)) {
-    throw new Error('[INVALID_MODEL]: Missing or invalid actors or links');
+  let model: IStarModel;
+  try {
+    model = parsePistar(json);
+  } catch (error) {
+    throw new Error(
+      `[INVALID_MODEL]: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
-  validateModel(parsed);
-  return parsed;
+  return validateModel(model);
+}
+
+/**
+ * Load an iStar model from a file
+ */
+function loadModel(filename: string): IStarModel {
+  return parseModel(readFileSync(filename).toString());
 }
 
 /**
@@ -110,7 +102,7 @@ export const Model = {
   parse: parseModel,
 
   /**
-   * Validate an iStar model
+   * Validate an iStar model, returning it with its roots marked
    * @throws Error if the model is invalid
    */
   validate: validateModel,

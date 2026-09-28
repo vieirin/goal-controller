@@ -54,9 +54,9 @@
  *   const children = Node.children(node);
  * }
  *
- * // Model utilities
- * const model = Model.load('file.json');
- * Model.validate(model);
+ * // Model utilities (piStar files are parsed with @istar-ts/core)
+ * const model = Model.load('file.json'); // validated, root marked
+ * const checked = Model.validate(parsePistar(json));
  * ```
  */
 

@@ -40,9 +40,9 @@ import {
 /** Which part of the workbench last changed the model. */
 export type ChangeSource = 'open' | 'canvas' | 'source' | 'inspector' | 'undo' | 'restore';
 /** Which part of the workbench made the selection. */
-export type SelectOrigin = 'tree' | 'canvas' | 'source' | 'output' | 'inspector' | 'problems' | 'variables';
+export type SelectOrigin = 'canvas' | 'source' | 'output' | 'inspector' | 'problems' | 'variables';
 
-export type ModelTab = 'tree' | 'source';
+export type ModelTab = 'diagram' | 'source';
 export type OutputTab = 'output' | 'diff' | 'report';
 export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 
@@ -305,7 +305,7 @@ export function WorkbenchProvider({
   const select = useCallback((id: string | null, origin: SelectOrigin) => {
     setSelection((prev) => ({ id, origin, seq: prev.seq + 1 }));
   }, []);
-  const [modelTab, setModelTab] = useState<ModelTab>('tree');
+  const [modelTab, setModelTab] = useState<ModelTab>('diagram');
   const [outputTab, setOutputTab] = useState<OutputTab>('output');
   const [bottomTab, setBottomTabState] = useState<BottomTab>('problems');
   const [bottomRevealSeq, setBottomRevealSeq] = useState(0);

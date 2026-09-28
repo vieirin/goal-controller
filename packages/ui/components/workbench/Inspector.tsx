@@ -9,14 +9,15 @@ import {
   composeNodeText,
   isValidName,
   notationConstruct,
+  nodeTone,
   notationIds,
   setNodeProperty,
   setNodeText,
   setRefinement,
   type ViewNode,
 } from '@/lib/workbench/pistar';
-import { nodeTone } from './TreeView';
 import { useWorkbench } from './WorkbenchContext';
+import { useShell } from './shell';
 import { Button, NodeChip, Segmented, cx } from './ui';
 
 /** Local text state that commits after a short pause. */
@@ -81,6 +82,7 @@ const inputClass =
 
 export default function Inspector() {
   const wb = useWorkbench();
+  const { modelReadOnly } = useShell();
   const node = wb.selected ? wb.tree?.nodes.get(wb.selected) : undefined;
   if (!wb.tree) {
     return <p className='p-4 text-sm text-ink-muted'>Open a model to inspect its goals and tasks.</p>;
@@ -88,12 +90,107 @@ export default function Inspector() {
   if (!node) {
     return (
       <p className='p-4 text-[13px] text-ink-muted'>
-        Select a goal or task — in the tree, the source or the generated output — to inspect and edit it. Use Edit goal
-        model to add or remove goals, tasks and links. Counts and constructs are in the Model tab.
+        Select a goal or task — in the diagram, the source or the generated output — to inspect
+        {modelReadOnly ? ' it' : ' and edit it. Add or remove goals, tasks and links in the diagram'}. Counts and constructs
+        are in the Model tab.
       </p>
     );
   }
-  return <NodeInspector key={node.id} node={node} />;
+  return modelReadOnly ? <NodeSummary key={node.id} node={node} /> : <NodeInspector key={node.id} node={node} />;
+}
+
+const kindLabelOf = (node: ViewNode): string =>
+  node.kind === 'goal' ? 'Goal' : node.kind === 'task' ? 'Task' : node.kind === 'resource' ? 'Resource' : 'Quality';
+
+/** Chip, kind and construct, with a jump to the node's lines in the output. */
+function NodeHeader({ node }: { node: ViewNode }) {
+  const wb = useWorkbench();
+  const tone = nodeTone(node);
+  const traceLines = wb.trace?.lines.filter((line) => line.primary.includes(node.id)).length ?? 0;
+  return (
+    <div className='flex items-start justify-between gap-2'>
+      <div className='min-w-0'>
+        <div className='flex items-center gap-2'>
+          <NodeChip id={node.id} tone={tone} />
+          <span className='text-2xs uppercase tracking-wider text-ink-muted'>
+            {kindLabelOf(node)}
+            {node.kind === 'goal' && node.relation && ` · ${node.relation.toUpperCase()}`}
+          </span>
+        </div>
+        {node.construct && (
+          <p className='mt-1 text-[13px] text-ink-soft'>
+            <b className={tone === 'or' ? 'text-or' : 'text-and'}>{CONSTRUCT_LABEL[node.construct]}</b> —{' '}
+            {CONSTRUCT_HELP[node.construct]}
+          </p>
+        )}
+      </div>
+      {traceLines > 0 && (
+        <Button
+          variant='outline'
+          onClick={() => {
+            wb.setOutputTab('output');
+            wb.select(node.id, 'inspector');
+          }}
+          title='Scroll the generated output to this node'
+        >
+          {traceLines} lines <ArrowUpRight className='h-3.5 w-3.5' aria-hidden />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className='grid grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)] gap-2 py-1'>
+      <dt className='truncate text-2xs font-semibold uppercase tracking-wider text-ink-muted' title={label}>
+        {label}
+      </dt>
+      <dd className='min-w-0 break-words text-[13px] text-ink'>{children}</dd>
+    </div>
+  );
+}
+
+/** Read-only view of a node: what is set, nothing to edit. */
+function NodeSummary({ node }: { node: ViewNode }) {
+  const wb = useWorkbench();
+  const { tree } = wb;
+  const properties = Object.entries(node.properties).filter(([key, value]) => key !== 'root' && value !== '');
+  const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
+  return (
+    <div className='space-y-3 p-4'>
+      <NodeHeader node={node} />
+      <dl className='divide-y divide-line'>
+        <SummaryRow label='Name'>{node.name || <span className='text-ink-faint'>(no name)</span>}</SummaryRow>
+        {node.notation && (
+          <SummaryRow label='Notation'>
+            <span className='font-mono text-xs'>{node.notation}</span>
+          </SummaryRow>
+        )}
+        {node.children.length > 0 && (
+          <SummaryRow label='Children'>
+            <span className='flex flex-wrap gap-1'>
+              {node.children.map((id) => (
+                <NodeChip key={id} id={id} tone={nodeTone(tree?.nodes.get(id))} onClick={() => wb.select(id, 'inspector')} />
+              ))}
+            </span>
+          </SummaryRow>
+        )}
+        {properties.map(([key, value]) => (
+          <SummaryRow key={key} label={key}>
+            <span className='whitespace-pre-wrap font-mono text-xs'>{value}</span>
+          </SummaryRow>
+        ))}
+        {usedVariables.length > 0 && (
+          <SummaryRow label='Variables'>
+            <span className='font-mono text-xs'>
+              {usedVariables.map((v) => `${v.name} = ${String(wb.values[v.name])}`).join(', ')}
+            </span>
+          </SummaryRow>
+        )}
+      </dl>
+    </div>
+  );
 }
 
 function NodeInspector({ node }: { node: ViewNode }) {
@@ -111,7 +208,6 @@ function NodeInspector({ node }: { node: ViewNode }) {
   const draftConstruct = notationConstruct(notation.draft || null, engine);
   const listed = notationIds(notation.draft);
   const pursueable = node.children.filter((id) => tree?.nodes.get(id)?.kind !== 'resource');
-  const traceLines = wb.trace?.lines.filter((line) => line.primary.includes(node.id)).length ?? 0;
   const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
   const known = useMemo(
     () => wb.analysis?.knownProperties[node.kind === 'quality' ? 'goal' : node.kind] ?? [],
@@ -123,40 +219,9 @@ function NodeInspector({ node }: { node: ViewNode }) {
   );
   const [newKey, setNewKey] = useState('');
 
-  const tone = nodeTone(node);
-  const kindLabel = node.kind === 'goal' ? 'Goal' : node.kind === 'task' ? 'Task' : node.kind === 'resource' ? 'Resource' : 'Quality';
-
   return (
     <div className='space-y-4 p-4'>
-      <div className='flex items-start justify-between gap-2'>
-        <div className='min-w-0'>
-          <div className='flex items-center gap-2'>
-            <NodeChip id={node.id} tone={tone} />
-            <span className='text-2xs uppercase tracking-wider text-ink-muted'>
-              {kindLabel}
-              {node.kind === 'goal' && node.relation && ` · ${node.relation.toUpperCase()}`}
-            </span>
-          </div>
-          {node.construct && (
-            <p className='mt-1 text-[13px] text-ink-soft'>
-              <b className={tone === 'or' ? 'text-or' : 'text-and'}>{CONSTRUCT_LABEL[node.construct]}</b> —{' '}
-              {CONSTRUCT_HELP[node.construct]}
-            </p>
-          )}
-        </div>
-        {traceLines > 0 && (
-          <Button
-            variant='outline'
-            onClick={() => {
-              wb.setOutputTab('output');
-              wb.select(node.id, 'inspector');
-            }}
-            title='Scroll the generated output to this node'
-          >
-            {traceLines} lines <ArrowUpRight className='h-3.5 w-3.5' aria-hidden />
-          </Button>
-        )}
-      </div>
+      <NodeHeader node={node} />
 
       <Field
         label='Name'
