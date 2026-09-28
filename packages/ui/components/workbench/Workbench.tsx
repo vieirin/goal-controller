@@ -36,6 +36,19 @@ export default function Workbench() {
 function ShellLayout() {
   const wb = useWorkbench();
   const [dragging, setDragging] = useState(false);
+  // dragover fires every few ms while a file is over the window; when it stops
+  // (the file left the window, or the drag was cancelled) the drop target goes away
+  const dragTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hideDropTarget = useCallback(() => {
+    clearTimeout(dragTimer.current);
+    setDragging(false);
+  }, []);
+  const showDropTarget = useCallback(() => {
+    setDragging(true);
+    clearTimeout(dragTimer.current);
+    dragTimer.current = setTimeout(() => setDragging(false), 300);
+  }, []);
+  useEffect(() => () => clearTimeout(dragTimer.current), []);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const explorerPanel = usePanelRef();
   const bottomPanel = usePanelRef();
@@ -159,15 +172,12 @@ function ShellLayout() {
         onDragOver={(event) => {
           if (event.dataTransfer.types.includes('Files')) {
             event.preventDefault();
-            setDragging(true);
+            showDropTarget();
           }
-        }}
-        onDragLeave={(event) => {
-          if (event.currentTarget === event.target) setDragging(false);
         }}
         onDrop={async (event) => {
           event.preventDefault();
-          setDragging(false);
+          hideDropTarget();
           const file = event.dataTransfer.files[0];
           if (file) wb.openModel(file.name, await readFile(file), { setup: true });
         }}
@@ -264,8 +274,8 @@ function ModelColumn() {
               aria-pressed={inspectorOpen}
               onClick={() => setInspectorOpen((open) => !open)}
             />
-            <Button variant='outline' onClick={openDiagram} title='Edit the model in the diagram editor (⇧⌘E)'>
-              <Workflow className='h-4 w-4' aria-hidden /> Edit diagram
+            <Button variant='outline' onClick={openDiagram} title='Edit the goal model in the diagram editor (⇧⌘E)'>
+              <Workflow className='h-4 w-4' aria-hidden /> Edit goal model
             </Button>
           </>
         }
@@ -369,7 +379,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
           </div>
         )}
         <p className='text-2xs text-ink-muted'>
-          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> edit diagram · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
+          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> edit goal model · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
         </p>
       </div>
     </section>

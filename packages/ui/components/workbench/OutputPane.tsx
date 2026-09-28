@@ -2,12 +2,13 @@
 
 import { unifiedMergeView } from '@codemirror/merge';
 import { EditorView } from '@codemirror/view';
-import { AlertTriangle, Check, Copy, Download, ListTree, Loader2 } from 'lucide-react';
+import { AlertTriangle, Check, ChevronRight, Copy, Download, ListTree, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { isPrismEngine } from '@/lib/types';
 import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { lineOwner } from '@/lib/workbench/trace';
+import type { NodeKind, ViewTree } from '@/lib/workbench/pistar';
+import { lineOwner, type OutlineEntry } from '@/lib/workbench/trace';
 import CodeEditor from './CodeEditor';
 import { useWorkbench, type OutputTab, type Run } from './WorkbenchContext';
 import { Button, IconButton, Kbd, Menu, MenuItem, Tabs, cx } from './ui';
@@ -89,6 +90,116 @@ function Freshness() {
   return <div className={cx('flex items-center gap-1.5 border-b border-line px-3 py-1 text-2xs', tone)}>{text}</div>;
 }
 
+const OUTLINE_SECTIONS: Array<{ kind: NodeKind; title: string }> = [
+  { kind: 'goal', title: 'Goals' },
+  { kind: 'task', title: 'Tasks' },
+  { kind: 'resource', title: 'Resources' },
+  { kind: 'quality', title: 'Qualities' },
+];
+
+const byId = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true });
+
+/** Outline entries by the kind of node they belong to, ids in numeric order (G2 before G10). */
+const outlineSections = (
+  outline: OutlineEntry[],
+  tree: ViewTree | null,
+): Array<{ title: string; entries: Array<{ entry: OutlineEntry; name: string | null }> }> => {
+  const nodeOf = (entry: OutlineEntry) => (entry.owner ? tree?.nodes.get(entry.owner) : undefined);
+  const sections = OUTLINE_SECTIONS.map(({ kind, title }) => ({
+    title,
+    entries: outline
+      .filter((entry) => nodeOf(entry)?.kind === kind)
+      .sort((a, b) => byId(a.owner ?? '', b.owner ?? '') || a.line - b.line)
+      .map((entry) => ({ entry, name: nodeOf(entry)?.name ?? null })),
+  }));
+  // modules and reward structures not tied to a node, in file order
+  const other = outline.filter((entry) => !nodeOf(entry)).map((entry) => ({ entry, name: null }));
+  return [...sections, { title: 'Other', entries: other }].filter((section) => section.entries.length > 0);
+};
+
+/** Outline sections; each node can be expanded to list its direct children. */
+function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () => void }) {
+  const wb = useWorkbench();
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  // first module of each node, for jumping to a child
+  const lineOf = new Map<string, number>();
+  for (const entry of outline) if (entry.owner && !lineOf.has(entry.owner)) lineOf.set(entry.owner, entry.line);
+
+  const jump = (line: number | undefined, owner: string | null) => {
+    if (line) window.dispatchEvent(new CustomEvent('workbench:output-line', { detail: line }));
+    if (owner) wb.select(owner, 'output');
+    onDone();
+  };
+
+  return (
+    <div className='max-h-96 w-80 max-w-[calc(100vw-2rem)] overflow-y-auto overflow-x-hidden'>
+      {outlineSections(outline, wb.tree).map((section) => (
+        <section key={section.title} aria-label={section.title}>
+          <h3 className='sticky top-0 z-10 flex items-center justify-between bg-white px-2 pb-1 pt-2 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+            {section.title}
+            <span className='font-normal normal-case tracking-normal text-ink-faint'>{section.entries.length}</span>
+          </h3>
+          {section.entries.map(({ entry, name }) => {
+            const children = entry.owner ? (wb.tree?.nodes.get(entry.owner)?.children ?? []) : [];
+            const open = !!entry.owner && expanded.has(entry.owner);
+            return (
+              <div key={`${entry.label}-${entry.line}`}>
+                <div className='flex items-center'>
+                  {children.length > 0 && entry.owner ? (
+                    <button
+                      type='button'
+                      aria-expanded={open}
+                      aria-label={`${open ? 'Hide' : 'Show'} the children of ${entry.owner}`}
+                      onClick={() => toggle(entry.owner as string)}
+                      className='grid h-6 w-5 shrink-0 place-items-center rounded text-ink-faint hover:bg-panel hover:text-ink'
+                    >
+                      <ChevronRight className={cx('h-3.5 w-3.5 transition-transform', open && 'rotate-90')} aria-hidden />
+                    </button>
+                  ) : (
+                    <span className='w-5 shrink-0' aria-hidden />
+                  )}
+                  <div className='min-w-0 flex-1'>
+                    <MenuItem hint={`L${entry.line}`} onClick={() => jump(entry.line, entry.owner)}>
+                      <span className='flex min-w-0 items-baseline gap-2'>
+                        <span className='shrink-0 font-mono text-xs'>{entry.owner ?? entry.label}</span>
+                        {name && <span className='truncate text-xs text-ink-muted'>{name}</span>}
+                      </span>
+                    </MenuItem>
+                  </div>
+                </div>
+                {open && (
+                  <ul className='mb-1 ml-[1.1rem] border-l border-line pl-2'>
+                    {children.map((id) => {
+                      const child = wb.tree?.nodes.get(id);
+                      const line = lineOf.get(id);
+                      return (
+                        <li key={id}>
+                          <MenuItem hint={line ? `L${line}` : undefined} onClick={() => jump(line, id)}>
+                            <span className='flex min-w-0 items-baseline gap-2'>
+                              <span className='shrink-0 font-mono text-xs text-ink-soft'>{id}</span>
+                              {child && <span className='truncate text-xs text-ink-muted'>{child.name}</span>}
+                            </span>
+                          </MenuItem>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function OutputActions({ run }: { run: Run | null }) {
   const wb = useWorkbench();
   const [copied, setCopied] = useState(false);
@@ -106,23 +217,7 @@ function OutputActions({ run }: { run: Run | null }) {
             </Button>
           )}
         >
-          {(close) => (
-            <div className='max-h-80 overflow-auto'>
-              {outline.map((entry) => (
-                <MenuItem
-                  key={`${entry.label}-${entry.line}`}
-                  hint={`L${entry.line}`}
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('workbench:output-line', { detail: entry.line }));
-                    if (entry.owner) wb.select(entry.owner, 'output');
-                    close();
-                  }}
-                >
-                  <span className='font-mono text-xs'>{entry.label}</span>
-                </MenuItem>
-              ))}
-            </div>
-          )}
+          {(close) => <OutlineList outline={outline} onDone={close} />}
         </Menu>
       )}
       <IconButton
@@ -152,6 +247,8 @@ function TracedOutput({ output }: { output: string }) {
 
   const extensions = useMemo(
     () => [
+      // long guards wrap instead of scrolling sideways
+      EditorView.lineWrapping,
       EditorView.editorAttributes.of({ class: 'cm-clickable-line' }),
       EditorView.domEventHandlers({
         mousedown(event, editorView) {
@@ -225,21 +322,55 @@ function TracedOutput({ output }: { output: string }) {
 }
 
 /** Current output against an earlier run. */
+/** What differs between the inputs of two runs (from their signatures). */
+const changedInputs = (from: string, to: string): string => {
+  try {
+    const [model, engine, options, variables] = JSON.parse(from) as unknown[];
+    const [model2, engine2, options2, variables2] = JSON.parse(to) as unknown[];
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    const parts = [
+      !same(model, model2) && 'model',
+      !same(engine, engine2) && 'engine',
+      !same(options, options2) && 'options',
+      !same(variables, variables2) && 'variables',
+    ].filter(Boolean);
+    return parts.length > 0 ? `${parts.join(', ')} changed` : 'same inputs';
+  } catch {
+    return '';
+  }
+};
+
 function DiffView() {
   const { runs } = useWorkbench();
   const good = runs.filter((run) => run.output !== null);
   const [baseId, setBaseId] = useState<number | null>(null);
   const current = good[0];
-  const base = good.find((run) => run.id === baseId) ?? good[1];
+  // earlier outputs of the same engine that actually differ, newest of each first
+  const seen = new Set<string>(current?.output ? [current.output] : []);
+  const baselines = good.slice(1).filter((run) => {
+    if (!current || run.engine !== current.engine || run.output === null || seen.has(run.output)) return false;
+    seen.add(run.output);
+    return true;
+  });
+  const base = baselines.find((run) => run.id === baseId) ?? baselines[0];
   const extensions = useMemo(
     () =>
       base?.output !== undefined && base.output !== null
-        ? [unifiedMergeView({ original: base.output, mergeControls: false, gutter: true, collapseUnchanged: { margin: 3, minSize: 8 } })]
-        : [],
+        ? [
+            EditorView.lineWrapping,
+            unifiedMergeView({ original: base.output, mergeControls: false, gutter: true, collapseUnchanged: { margin: 3, minSize: 8 } }),
+          ]
+        : [EditorView.lineWrapping],
     [base],
   );
   if (!current || !base) {
-    return <Empty>The diff appears after the second generation: change the model and generate again.</Empty>;
+    return (
+      <Empty>
+        {good.length > 1
+          ? 'Nothing to compare: every generation so far produced this same output. Change the model, its options or variables to see what the change does.'
+          : 'The diff appears once a change to the model, its options or variables changes the output.'}
+      </Empty>
+    );
   }
   const count = (text: string) => new Set(text.split('\n'));
   const before = count(base.output ?? '');
@@ -249,31 +380,25 @@ function DiffView() {
   return (
     <div className='flex h-full min-h-0 flex-col'>
       <div className='flex items-center gap-2 border-b border-line px-3 py-1.5 text-2xs text-ink-muted'>
-        <span>
-          Latest ({time(current.at)}) compared with
-        </span>
+        <span className='shrink-0'>Latest ({time(current.at)}) compared with</span>
         <select
-          className='rounded border border-line-strong bg-white px-1 py-0.5 text-2xs text-ink'
+          className='min-w-0 rounded border border-line-strong bg-white px-1 py-0.5 text-2xs text-ink'
           value={base.id}
           onChange={(e) => setBaseId(Number(e.target.value))}
-          aria-label='Compare with run'
+          aria-label='Compare with an earlier output'
         >
-          {good.slice(1).map((run) => (
+          {baselines.map((run) => (
             <option key={run.id} value={run.id}>
-              run at {time(run.at)} ({run.engine})
+              {time(run.at)} · {changedInputs(run.signature, current.signature)}
             </option>
           ))}
         </select>
-        <span className='ml-auto font-mono'>
+        <span className='ml-auto shrink-0 font-mono'>
           <span className='text-and'>+{added}</span> <span className='text-danger'>−{removed}</span> lines
         </span>
       </div>
       <div className='min-h-0 flex-1' key={`${current.id}-${base.id}`}>
-        {added + removed === 0 ? (
-          <Empty>No differences: the latest output is identical to that run.</Empty>
-        ) : (
-          <CodeEditor value={current.output ?? ''} language='prism' readOnly ariaLabel='Output diff' extensions={extensions} />
-        )}
+        <CodeEditor value={current.output ?? ''} language='prism' readOnly ariaLabel='Output diff' extensions={extensions} />
       </div>
     </div>
   );

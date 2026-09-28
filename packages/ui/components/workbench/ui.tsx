@@ -269,8 +269,8 @@ export function MenuItem({
       {...rest}
     >
       {Icon && <Icon className='h-4 w-4 text-ink-muted' aria-hidden />}
-      <span className='flex-1'>{children}</span>
-      {hint && <span className='text-2xs text-ink-faint'>{hint}</span>}
+      <span className='min-w-0 flex-1'>{children}</span>
+      {hint && <span className='shrink-0 text-2xs text-ink-faint'>{hint}</span>}
     </button>
   );
 }

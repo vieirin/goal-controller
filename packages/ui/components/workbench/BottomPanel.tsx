@@ -4,6 +4,7 @@ import { AlertCircle, AlertTriangle, ChevronsUpDown, Download, Info, RotateCcw, 
 import { useMemo, useRef, useState } from 'react';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { CONSTRUCT_HELP, CONSTRUCT_LABEL, type ViewNode } from '@/lib/workbench/pistar';
 import type { Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
 import { readFile } from './TopBar';
@@ -18,10 +19,11 @@ export default function BottomPanel({ onToggle }: { onToggle: () => void }) {
   const tabs: Array<{ id: BottomTab; label: string; count?: number; tone?: 'danger' | 'caution' | null }> = [
     { id: 'problems', label: 'Problems', count: errors + warnings, tone: errors ? 'danger' : warnings ? 'caution' : null },
     { id: 'variables', label: 'Variables', count: wb.variables.length },
+    { id: 'model', label: 'Model' },
     { id: 'log', label: 'Log' },
   ];
   return (
-    <section className='flex h-full min-h-0 flex-col bg-white' aria-label='Problems, variables and log'>
+    <section className='flex h-full min-h-0 flex-col bg-white' aria-label='Problems, variables, model and log'>
       <Tabs
         label='Bottom panel'
         tabs={tabs}
@@ -32,6 +34,7 @@ export default function BottomPanel({ onToggle }: { onToggle: () => void }) {
       <div className='min-h-0 flex-1 overflow-hidden'>
         {wb.bottomTab === 'problems' && <ProblemsView />}
         {wb.bottomTab === 'variables' && <VariablesView />}
+        {wb.bottomTab === 'model' && <ModelDataView />}
         {wb.bottomTab === 'log' && <LogView />}
       </div>
     </section>
@@ -87,6 +90,49 @@ export function ProblemsView() {
           Show {hiddenInfo} info message{hiddenInfo > 1 ? 's' : ''}
         </button>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+const CONSTRUCT_ORDER = ['sequence', 'anyOrder', 'interleaved', 'alternative', 'choice', 'degradation'] as const;
+
+/** Goal, task and resource counts, plus how often each execution construct appears. */
+export function ModelDataView() {
+  const { tree, engine, hasModel } = useWorkbench();
+  if (!hasModel || !tree) return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
+  const nodes = [...tree.nodes.values()];
+  const count = (kind: ViewNode['kind']) => nodes.filter((n) => n.kind === kind).length;
+  const constructs = new Map<string, number>();
+  nodes.forEach((n) => {
+    if (n.construct) constructs.set(n.construct, (constructs.get(n.construct) ?? 0) + 1);
+  });
+  const listed = CONSTRUCT_ORDER.filter((construct) => constructs.has(construct));
+  return (
+    <div className='h-full overflow-auto p-3 text-[13px]'>
+      <div className='flex flex-wrap gap-x-4 gap-y-1 text-ink-soft'>
+        <span>
+          <b className='text-ink'>{count('goal')}</b> goals
+        </span>
+        <span>
+          <b className='text-ink'>{count('task')}</b> tasks
+        </span>
+        <span>
+          <b className='text-ink'>{count('resource')}</b> resources
+        </span>
+      </div>
+      {listed.length > 0 && (
+        <ul className='mt-3 space-y-0.5 text-ink-soft'>
+          {listed.map((construct) => (
+            <li key={construct}>
+              {constructs.get(construct)} × {CONSTRUCT_LABEL[construct]}{' '}
+              <span className='text-ink-muted'>— {CONSTRUCT_HELP[construct]}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {engine === 'sleec' && <p className='mt-3 text-ink-muted'>SLEEC ignores the execution notation.</p>}
     </div>
   );
 }

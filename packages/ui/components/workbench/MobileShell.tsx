@@ -21,7 +21,7 @@ import {
 import { useEffect, useState, type ReactNode } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { LogView, ProblemsView, VariablesView } from './BottomPanel';
+import { LogView, ModelDataView, ProblemsView, VariablesView } from './BottomPanel';
 import Explorer from './Explorer';
 import Inspector from './Inspector';
 import OutputPane from './OutputPane';
@@ -48,7 +48,7 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
   const wb = useWorkbench();
   const shell = useShell();
   const [view, setView] = useState<View>('output');
-  const [showLog, setShowLog] = useState(false);
+  const [detail, setDetail] = useState<'problems' | 'model' | 'log'>('problems');
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // selecting a node opens the Inspector sheet; the output's "lines" button goes to the output
@@ -68,8 +68,11 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
   // bottom-panel requests from elsewhere (problem counts, variable links)
   useEffect(() => {
     if (wb.bottomRevealSeq === 0) return;
-    setView(wb.bottomTab === 'variables' ? 'variables' : 'problems');
-    setShowLog(wb.bottomTab === 'log');
+    if (wb.bottomTab === 'variables') setView('variables');
+    else {
+      setView('problems');
+      setDetail(wb.bottomTab === 'log' ? 'log' : wb.bottomTab === 'model' ? 'model' : 'problems');
+    }
   }, [wb.bottomRevealSeq, wb.bottomTab]);
 
   const problems = wb.problems.filter((p) => p.severity !== 'info').length;
@@ -88,15 +91,18 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
         ) : view === 'problems' ? (
           <div className='flex h-full flex-col'>
             <Tabs
-              label='Problems and log'
+              label='Problems, model and log'
               tabs={[
                 { id: 'problems', label: 'Problems', count: problems, tone: hasErrors ? 'danger' : problems ? 'caution' : null },
+                { id: 'model', label: 'Model' },
                 { id: 'log', label: 'Log' },
               ]}
-              value={showLog ? 'log' : 'problems'}
-              onChange={(id) => setShowLog(id === 'log')}
+              value={detail}
+              onChange={setDetail}
             />
-            <div className='min-h-0 flex-1'>{showLog ? <LogView /> : <ProblemsView />}</div>
+            <div className='min-h-0 flex-1'>
+              {detail === 'log' ? <LogView /> : detail === 'model' ? <ModelDataView /> : <ProblemsView />}
+            </div>
           </div>
         ) : (
           <VariablesView />

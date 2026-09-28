@@ -71,6 +71,11 @@ body {
     scrollbar-color: theme('colors.ink.faint') theme('colors.panel.DEFAULT');
   }
 }
+/* wrapped lines: continuation rows are indented so they don't read as new lines */
+.cm-lineWrapping .cm-line {
+  padding-left: calc(4ch + 6px) !important;
+  text-indent: -4ch;
+}
 .cm-trace-primary {
   background-color: theme('colors.trace.soft');
   box-shadow: inset 2px 0 0 theme('colors.trace.DEFAULT');

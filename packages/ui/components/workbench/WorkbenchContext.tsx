@@ -44,7 +44,7 @@ export type SelectOrigin = 'tree' | 'canvas' | 'source' | 'output' | 'inspector'
 
 export type ModelTab = 'tree' | 'source';
 export type OutputTab = 'output' | 'diff' | 'report';
-export type BottomTab = 'problems' | 'variables' | 'log';
+export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 
 export type Run = {
   id: number;
@@ -168,6 +168,8 @@ export const useWorkbench = (): Workbench => {
 
 const defaultValue = (variable: VariableInfo): boolean | number =>
   variable.kind === 'context' ? false : 0.8;
+
+const analysisKey = (text: string, engine: TransformEngine): string => `${engine}\n${text}`;
 
 const useDebounced = <T,>(value: T, ms: number): T => {
   const [debounced, setDebounced] = useState(value);
@@ -380,7 +382,9 @@ export function WorkbenchProvider({
 
   // ---- analysis (server, debounced) ------------------------------------------
   const debouncedText = useDebounced(model.text, 400);
-  const [analysis, setAnalysis] = useState<AnalyzeResponse | null>(null);
+  const [analyzed, setAnalyzed] = useState<{ key: string; data: AnalyzeResponse } | null>(null);
+  const analysis = analyzed?.data ?? null;
+  const setAnalysis = useCallback((data: AnalyzeResponse | null, key = '') => setAnalyzed(data ? { key, data } : null), []);
   const [analyzing, setAnalyzing] = useState(false);
   useEffect(() => {
     if (!debouncedText.trim() || modelSignature(debouncedText) === null) return undefined;
@@ -394,26 +398,41 @@ export function WorkbenchProvider({
     })
       .then((response) => response.json())
       .then((data: AnalyzeResponse | { success: false; error: string }) => {
+        const key = analysisKey(debouncedText, engine);
         if (data.success) {
-          setAnalysis(data);
+          setAnalysis(data, key);
         } else {
-          setAnalysis({
-            success: true,
-            variables: [],
-            knownProperties: { goal: [], task: [], resource: [] },
-            problems: [{ severity: 'error', source: 'engine', message: data.error }],
-          });
+          setAnalysis(
+            {
+              success: true,
+              variables: [],
+              knownProperties: { goal: [], task: [], resource: [] },
+              problems: [{ severity: 'error', source: 'engine', message: data.error }],
+            },
+            key,
+          );
         }
       })
-      .catch(() => undefined)
+      .catch((error: Error) => {
+        if (error.name === 'AbortError') return;
+        // generation must not wait forever: keep the last variables, marked as done for this text
+        setAnalyzed((prev) => ({
+          key: analysisKey(debouncedText, engine),
+          data: prev?.data ?? { success: true, variables: [], knownProperties: { goal: [], task: [], resource: [] }, problems: [] },
+        }));
+      })
       .finally(() => {
         if (!controller.signal.aborted) setAnalyzing(false);
       });
     return () => controller.abort();
-  }, [debouncedText, engine]);
+  }, [debouncedText, engine, setAnalysis]);
   useEffect(() => {
     if (!model.text.trim()) setAnalysis(null);
-  }, [model.text]);
+  }, [model.text, setAnalysis]);
+  // PRISM generation needs the model's variables: until they are known the
+  // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
+  const variablesReady =
+    !isPrismEngine(engine) || (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
 
   // ---- variables -------------------------------------------------------------
   const variables = useMemo(
@@ -461,13 +480,20 @@ export function WorkbenchProvider({
   const [generating, setGenerating] = useState(false);
   const runId = useRef(0);
   const inflight = useRef<AbortController | null>(null);
-  const latest = useRef({ text: model.text, fileName: model.fileName, engine, options, values, inputsSignature });
-  latest.current = { text: model.text, fileName: model.fileName, engine, options, values, inputsSignature };
+  const latest = useRef({ text: model.text, fileName: model.fileName, engine, options, values, inputsSignature, variablesReady });
+  latest.current = { text: model.text, fileName: model.fileName, engine, options, values, inputsSignature, variablesReady };
+  // a generation asked for before the variables were known runs once they are
+  const [pendingGenerate, setPendingGenerate] = useState(false);
 
   const generate = useCallback(() => {
     const { text, fileName, engine: runEngine, options: runOptions, values: runValues, inputsSignature: signature } =
       latest.current;
     if (!text.trim() || signature === null) return;
+    if (!latest.current.variablesReady) {
+      setPendingGenerate(true);
+      return;
+    }
+    setPendingGenerate(false);
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
@@ -527,6 +553,10 @@ export function WorkbenchProvider({
       });
   }, []);
 
+  useEffect(() => {
+    if (pendingGenerate && variablesReady) generate();
+  }, [pendingGenerate, variablesReady, generate]);
+
   const current = runs[0] ?? null;
   const stale = !!current && current.signature !== inputsSignature;
 
@@ -534,12 +564,12 @@ export function WorkbenchProvider({
   const debouncedSignature = useDebounced(inputsSignature, 700);
   useEffect(() => {
     // a newly opened model waits for its settings
-    if (!live || settingsDialog === 'setup' || debouncedSignature === null || !model.text.trim()) return;
+    if (!live || settingsDialog === 'setup' || !variablesReady || debouncedSignature === null || !model.text.trim()) return;
     if (current?.signature === debouncedSignature) return;
     generate();
     // current is read for comparison only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, settingsDialog, debouncedSignature, generate]);
+  }, [live, settingsDialog, variablesReady, debouncedSignature, generate]);
 
   // last successful output (a failed run keeps showing the previous output)
   const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
@@ -637,7 +667,7 @@ export function WorkbenchProvider({
     live,
     setLive,
     generate,
-    generating,
+    generating: generating || pendingGenerate,
     runs,
     current,
     stale,

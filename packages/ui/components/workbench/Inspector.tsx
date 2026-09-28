@@ -85,49 +85,15 @@ export default function Inspector() {
   if (!wb.tree) {
     return <p className='p-4 text-sm text-ink-muted'>Open a model to inspect its goals and tasks.</p>;
   }
-  if (!node) return <ModelSummary />;
-  return <NodeInspector key={node.id} node={node} />;
-}
-
-function ModelSummary() {
-  const { tree, engine } = useWorkbench();
-  if (!tree) return null;
-  const nodes = [...tree.nodes.values()];
-  const count = (kind: ViewNode['kind']) => nodes.filter((n) => n.kind === kind).length;
-  const constructs = new Map<string, number>();
-  nodes.forEach((n) => {
-    if (n.construct) constructs.set(n.construct, (constructs.get(n.construct) ?? 0) + 1);
-  });
-  return (
-    <div className='space-y-3 p-4 text-[13px]'>
-      <p className='text-ink-muted'>
-        Select a goal or task — in the tree, the source or the generated output — to inspect and edit it. Use Edit
-        diagram to add or remove goals, tasks and links.
+  if (!node) {
+    return (
+      <p className='p-4 text-[13px] text-ink-muted'>
+        Select a goal or task — in the tree, the source or the generated output — to inspect and edit it. Use Edit goal
+        model to add or remove goals, tasks and links. Counts and constructs are in the Model tab.
       </p>
-      <div className='flex flex-wrap gap-x-4 gap-y-1 text-ink-soft'>
-        <span>
-          <b className='text-ink'>{count('goal')}</b> goals
-        </span>
-        <span>
-          <b className='text-ink'>{count('task')}</b> tasks
-        </span>
-        <span>
-          <b className='text-ink'>{count('resource')}</b> resources
-        </span>
-      </div>
-      {constructs.size > 0 && (
-        <ul className='space-y-0.5 text-ink-soft'>
-          {[...constructs.entries()].map(([construct, n]) => (
-            <li key={construct}>
-              {n} × {CONSTRUCT_LABEL[construct as keyof typeof CONSTRUCT_LABEL]}{' '}
-              <span className='text-ink-muted'>— {CONSTRUCT_HELP[construct as keyof typeof CONSTRUCT_HELP]}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {engine === 'sleec' && <p className='text-ink-muted'>SLEEC ignores the execution notation.</p>}
-    </div>
-  );
+    );
+  }
+  return <NodeInspector key={node.id} node={node} />;
 }
 
 function NodeInspector({ node }: { node: ViewNode }) {
