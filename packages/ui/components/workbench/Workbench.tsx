@@ -319,14 +319,14 @@ function ShellLayout() {
   );
 }
 
-/** Diagram / Source with the Inspector underneath (beside it in full screen). */
+/** Goal Model (diagram) / Source with the Inspector underneath (beside it in full screen). */
 function ModelColumn() {
   const wb = useWorkbench();
   const { modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly } = useShell();
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'diagram', label: 'Diagram' },
+    { id: 'diagram', label: 'Goal Model' },
     { id: 'source', label: 'Source' },
   ];
 

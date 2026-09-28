@@ -213,7 +213,7 @@ function MobileModel() {
   const wb = useWorkbench();
   const { modelReadOnly, toggleModelReadOnly } = useShell();
   const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'diagram', label: 'Diagram' },
+    { id: 'diagram', label: 'Goal Model' },
     { id: 'source', label: 'Source' },
   ];
   return (

@@ -9,9 +9,10 @@ import {
   useIstarEditor,
   useIstarStore,
   type ElementComponentProps,
+  type IstarCanvasHandle,
   type IstarExtension,
 } from '@istar-ts/react';
-import { createContext, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type ReactElement } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type ReactElement, type RefObject } from 'react';
 import { serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
 import { useWorkbench } from './WorkbenchContext';
@@ -61,8 +62,69 @@ const tryParse = (text: string): IstarModel | null => {
   }
 };
 
+/**
+ * Keeps the diagram fitted to its container until the user pans or zooms it: the
+ * canvas fits itself once, early, while the workbench panels are often still growing
+ * (worse without the palette, in read-only), and it does not follow later size changes.
+ * Opening another file or toggling read-only fits it again. Until the nodes are
+ * measured the fit reports no change, so it is retried for a moment.
+ */
+function useAutoFit(canvas: RefObject<IstarCanvasHandle | null>, container: RefObject<HTMLDivElement | null>, resetKey: string, shown: boolean) {
+  const userMoved = useRef(false);
+  useEffect(() => {
+    const el = container.current;
+    if (!el || !shown) return undefined;
+    userMoved.current = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let tries = 0;
+    const fit = () => {
+      clearTimeout(timer);
+      if (userMoved.current) return;
+      void canvas.current?.fitView().then((moved) => {
+        // nodes not measured yet: try again shortly
+        if (!moved && tries < 20) {
+          tries += 1;
+          timer = setTimeout(fit, 100);
+        }
+      });
+    };
+    const settle = () => {
+      clearTimeout(timer);
+      tries = 0;
+      // wait for the panels to stop moving
+      timer = setTimeout(fit, 120);
+    };
+    const observer = new ResizeObserver(settle);
+    observer.observe(el);
+    settle();
+    // panning or zooming by hand (wheel, dragging the paper, the zoom buttons) keeps the view
+    const onUserMove = (event: Event) => {
+      const target = event.target as Element;
+      if (event.type === 'wheel' || target.closest('.react-flow__pane, .react-flow__controls')) userMoved.current = true;
+    };
+    el.addEventListener('wheel', onUserMove, { passive: true });
+    el.addEventListener('pointerdown', onUserMove);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+      el.removeEventListener('wheel', onUserMove);
+      el.removeEventListener('pointerdown', onUserMove);
+    };
+  }, [canvas, container, resetKey, shown]);
+}
+
+/** True when the element is drawn inside the visible part of the diagram. */
+const isInView = (iStarId: string): boolean => {
+  const node = document.querySelector(`.istar-canvas .react-flow__node[data-id="${CSS.escape(iStarId)}"]`);
+  const pane = node?.closest('.react-flow');
+  if (!node || !pane) return false;
+  const a = node.getBoundingClientRect();
+  const b = pane.getBoundingClientRect();
+  return a.left >= b.left && a.right <= b.right && a.top >= b.top && a.bottom <= b.bottom;
+};
+
 /** Two-way selection sync between the diagram (piStar ids) and the workbench (RT ids). */
-function SelectionSync() {
+function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null> }) {
   const wb = useWorkbench();
   const { selection, select } = useIstarEditor();
   const latest = useRef(wb);
@@ -74,6 +136,8 @@ function SelectionSync() {
     const iStarId = wb.selected ? (wb.tree?.nodes.get(wb.selected)?.iStarId ?? null) : null;
     const current = selection?.type === 'element' ? selection.id : null;
     if (iStarId !== current) select(iStarId ? { type: 'element', id: iStarId } : null);
+    // bring a node selected elsewhere into view, keeping the zoom
+    if (iStarId && !isInView(iStarId)) void canvas.current?.centerOn(iStarId, { duration: 200 });
     // only when the workbench selection changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wb.selectSeq]);
@@ -96,6 +160,11 @@ function SelectionSync() {
 export default function DiagramView() {
   const wb = useWorkbench();
   const { modelFullscreen, modelReadOnly } = useShell();
+  const canvas = useRef<IstarCanvasHandle>(null);
+  const shown = !!wb.text.trim();
+
+  const container = useRef<HTMLDivElement>(null);
+  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}`, shown);
   const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   const { store } = useIstarStore(() => parsed ?? createEmptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
@@ -146,16 +215,16 @@ export default function DiagramView() {
   };
 
   if (!wb.text.trim()) {
-    return <div className='grid h-full place-items-center text-sm text-ink-muted'>The diagram appears once a model is open.</div>;
+    return <div className='grid h-full place-items-center text-sm text-ink-muted'>The goal model appears once a model is open.</div>;
   }
 
   return (
-    <div className='relative h-full' onKeyDownCapture={onKeyDownCapture}>
+    <div ref={container} className='relative h-full' onKeyDownCapture={onKeyDownCapture}>
       <SeverityContext.Provider value={severities}>
         <IstarProvider store={store} extensions={EXTENSIONS} readOnly={!parsed || modelReadOnly}>
-          <SelectionSync />
+          <SelectionSync canvas={canvas} />
           {/* full screen has the width for piStar's horizontal bar; read-only has none */}
-          <IstarCanvas fitView palette={modelReadOnly ? false : modelFullscreen ? 'top' : 'left'} className='h-full' />
+          <IstarCanvas ref={canvas} fitView palette={modelReadOnly ? false : modelFullscreen ? 'top' : 'left'} className='h-full' />
         </IstarProvider>
       </SeverityContext.Provider>
       {!parsed && (
