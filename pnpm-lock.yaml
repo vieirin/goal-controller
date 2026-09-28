@@ -18,13 +18,13 @@ importers:
         version: 5.9.3
       vercel:
         specifier: ^50.4.11
-        version: 50.4.11(typescript@5.9.3)
+        version: 50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
 
   packages/goal-tree:
     dependencies:
       '@istar-ts/core':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.3.1
+        version: 0.3.1
       antlr4:
         specifier: ^4.13.0
         version: 4.13.2
@@ -184,11 +184,11 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.3.1
+        version: 0.3.1
       '@istar-ts/react':
-        specifier: ^0.3.0
-        version: 0.3.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.3.1
+        version: 0.3.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -428,22 +428,22 @@ packages:
       '@edge-runtime/primitives': 4.1.0
     dev: true
 
-  /@emnapi/core@1.8.1:
-    resolution: {integrity: sha512-AvT9QFpxK0Zd8J0jopedNm+w/2fIzvtPKPjqyw9jwvBaReTTqPBk9Hixaz7KbjimP+QNz605/XnjFcDAL2pqBg==}
+  /@emnapi/core@1.11.3:
+    resolution: {integrity: sha512-zLpS5asjEb7lq8jYLq37N6XKaE41DIexlY1rF/z4/tIl3wo13Sqm28fRyfIsKZD+NZ8mM5RoKkpW/rBcuoSZSg==}
     dependencies:
-      '@emnapi/wasi-threads': 1.1.0
+      '@emnapi/wasi-threads': 1.2.3
       tslib: 2.8.1
     dev: true
     optional: true
 
-  /@emnapi/runtime@1.8.1:
-    resolution: {integrity: sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg==}
+  /@emnapi/runtime@1.11.3:
+    resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
     dependencies:
       tslib: 2.8.1
     optional: true
 
-  /@emnapi/wasi-threads@1.1.0:
-    resolution: {integrity: sha512-WI0DdZ8xFSbgMjR1sFsKABJ/C5OnRrjT06JXbZKexJGrDuPTzZdDYfFlsgcCXCyf+suG5QU2e/y1Wo2V/OapLQ==}
+  /@emnapi/wasi-threads@1.2.3:
+    resolution: {integrity: sha512-ELEBe8PsLvvJ6QMr0zLt8ffvOHW/dc1m3CEzNMg7aJUv3bMaoDtw2TXyDAwkYBuroxxuHEwhRTLJSe5sya547g==}
     dependencies:
       tslib: 2.8.1
     dev: true
@@ -994,7 +994,7 @@ packages:
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [wasm32]
     dependencies:
-      '@emnapi/runtime': 1.8.1
+      '@emnapi/runtime': 1.11.3
     dev: false
     optional: true
 
@@ -1271,17 +1271,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.3.0:
-    resolution: {integrity: sha512-G0tjNq0UKHa5hVGGBVxCWrlPOaS4tAc+YuzM423cvZu7gQnRg2DkNjFFnzN2kcvamj1knJJZhc3IFxSf75DHDg==}
+  /@istar-ts/core@0.3.1:
+    resolution: {integrity: sha512-OHbuEe30C/w6Bzx4v2/M3OoDhWQDhcpTmsk09Qwq/YSWt3KhEYdEKpNmZu5WpMt1QIKB0PpXUZsuNhMakJB0pw==}
     dev: false
 
-  /@istar-ts/react@0.3.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-WloOVb5bFbAwxTBrscCgLOlFwMjelsU31tnTX3wbaxfkYAtECaPFcqieZlAkxV8AN7lEhr7UVS2qIIP085H0pQ==}
+  /@istar-ts/react@0.3.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-l4MrHgOh7A7dgaRq1JWOW82vkse4YHtR1kpPKI5aJCmzNkpngCzGfmQQV5DxcdmpQV9nsG9h1/BPvQeedDVBiQ==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.3.0
+      '@istar-ts/core': 0.3.1
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -1369,18 +1369,22 @@ packages:
   /@napi-rs/wasm-runtime@0.2.12:
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
     dependencies:
-      '@emnapi/core': 1.8.1
-      '@emnapi/runtime': 1.8.1
-      '@tybys/wasm-util': 0.10.1
+      '@emnapi/core': 1.11.3
+      '@emnapi/runtime': 1.11.3
+      '@tybys/wasm-util': 0.10.4
     dev: true
     optional: true
 
-  /@napi-rs/wasm-runtime@1.1.1:
-    resolution: {integrity: sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A==}
+  /@napi-rs/wasm-runtime@1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3):
+    resolution: {integrity: sha512-AJxoUD2/15ESHbvpcyjU274nsAPLuOtPHCk0vKJM5pj//Fg/B1FXNWjPnXTT9PymCYYiHo4zPj0ZomXBKhoy7g==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
+      '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
     dependencies:
-      '@emnapi/core': 1.8.1
-      '@emnapi/runtime': 1.8.1
-      '@tybys/wasm-util': 0.10.1
+      '@emnapi/core': 1.11.3
+      '@emnapi/runtime': 1.11.3
+      '@tybys/wasm-util': 0.10.4
     dev: true
     optional: true
 
@@ -1573,12 +1577,15 @@ packages:
     dev: true
     optional: true
 
-  /@rolldown/binding-wasm32-wasi@1.0.0-beta.59:
+  /@rolldown/binding-wasm32-wasi@1.0.0-beta.59(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3):
     resolution: {integrity: sha512-yJoklQg7XIZq8nAg0bbkEXcDK6sfpjxQGxpg2Nd6ERNtvg+eOaEBRgPww0BVTrYFQzje1pB5qPwC2VnJHT3koQ==}
     engines: {node: '>=14.0.0'}
     cpu: [wasm32]
     dependencies:
-      '@napi-rs/wasm-runtime': 1.1.1
+      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     dev: true
     optional: true
 
@@ -1677,8 +1684,8 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@tybys/wasm-util@0.10.1:
-    resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
+  /@tybys/wasm-util@0.10.4:
+    resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
     dependencies:
       tslib: 2.8.1
     dev: true
@@ -2212,15 +2219,17 @@ packages:
     dev: true
     optional: true
 
-  /@vercel/backends@0.0.23(typescript@5.9.3):
+  /@vercel/backends@0.0.23(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3):
     resolution: {integrity: sha512-2HrEXoHKLaaeyoAJ2x7K1vTvHuBt/02XuX9hveTvWWjn61BUFbu4K5tLNW64XSqxXdQboPFYyHUJn/HHatxNLw==}
     dependencies:
-      '@vercel/cervel': 0.0.10(typescript@5.9.3)
+      '@vercel/cervel': 0.0.10(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
       '@vercel/introspection': 0.0.10
       '@vercel/nft': 1.1.1
       '@vercel/static-config': 3.1.2
       fs-extra: 11.1.0
     transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
       - encoding
       - rollup
       - supports-color
@@ -2242,17 +2251,20 @@ packages:
     resolution: {integrity: sha512-h5Zfk2mcBfAyNsLib6d7IxAeLeFrY97R2hCmN6JUCNQCPX2QbABhookgN95u9uphoYHOdof2O6Ik+wKZLfrBYw==}
     dev: true
 
-  /@vercel/cervel@0.0.10(typescript@5.9.3):
+  /@vercel/cervel@0.0.10(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3):
     resolution: {integrity: sha512-uctvhSFBcCOH/aUIkIXkJSCS2R5OOpVNsNkb+ViaMff8NGVMiDXDUyfaW8LGcNu4WWMKQe2FTRCqPcNdEmMrZg==}
     hasBin: true
     peerDependencies:
       typescript: ^4.0.0 || ^5.0.0
     dependencies:
       execa: 3.2.0
-      rolldown: 1.0.0-beta.59
+      rolldown: 1.0.0-beta.59(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       srvx: 0.8.9
       tsx: 4.21.0
       typescript: 5.9.3
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     dev: true
 
   /@vercel/detect-agent@1.0.0:
@@ -2277,10 +2289,10 @@ packages:
     resolution: {integrity: sha512-CqC01WZxbLUxoiVdh9B/poPbNpY9U+tO1N9oWHwTl5YAZxcqXmmWJ8KNMFItJCUUWdY3J3xv8LvAuQv2KZ5YdQ==}
     dev: true
 
-  /@vercel/express@0.1.33(typescript@5.9.3):
+  /@vercel/express@0.1.33(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3):
     resolution: {integrity: sha512-r5vIouEgWDaHPaPtlX3gTeTmZ22KSEA/yjqQSQwld+6g3UMwOfpwZHOiiiVFSMOq9f6YU81I3sRBLCPRoFOOKg==}
     dependencies:
-      '@vercel/cervel': 0.0.10(typescript@5.9.3)
+      '@vercel/cervel': 0.0.10(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
       '@vercel/nft': 1.1.1
       '@vercel/node': 5.5.27
       '@vercel/static-config': 3.1.2
@@ -2289,6 +2301,8 @@ packages:
       ts-morph: 12.0.0
       zod: 3.22.4
     transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
       - '@swc/core'
       - '@swc/wasm'
       - encoding
@@ -6063,7 +6077,7 @@ packages:
       glob: 7.2.3
     dev: true
 
-  /rolldown@1.0.0-beta.59:
+  /rolldown@1.0.0-beta.59(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3):
     resolution: {integrity: sha512-Slm000Gd8/AO9z4Kxl4r8mp/iakrbAuJ1L+7ddpkNxgQ+Vf37WPvY63l3oeyZcfuPD1DRrUYBsRPIXSOhvOsmw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
@@ -6081,9 +6095,12 @@ packages:
       '@rolldown/binding-linux-x64-gnu': 1.0.0-beta.59
       '@rolldown/binding-linux-x64-musl': 1.0.0-beta.59
       '@rolldown/binding-openharmony-arm64': 1.0.0-beta.59
-      '@rolldown/binding-wasm32-wasi': 1.0.0-beta.59
+      '@rolldown/binding-wasm32-wasi': 1.0.0-beta.59(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       '@rolldown/binding-win32-arm64-msvc': 1.0.0-beta.59
       '@rolldown/binding-win32-x64-msvc': 1.0.0-beta.59
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     dev: true
 
   /run-async@4.0.6:
@@ -6960,17 +6977,17 @@ packages:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
     dev: true
 
-  /vercel@50.4.11(typescript@5.9.3):
+  /vercel@50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3):
     resolution: {integrity: sha512-FTtU+cw+pXjswITKQU5vOzelbHG1GcIQ64DkI7EwiQZO3wwgX9tpHJhg33bTgyRFR5S3iJtjdiLKHdqdHMi7ng==}
     engines: {node: '>= 18'}
     hasBin: true
     dependencies:
-      '@vercel/backends': 0.0.23(typescript@5.9.3)
+      '@vercel/backends': 0.0.23(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
       '@vercel/blob': 1.0.2
       '@vercel/build-utils': 13.2.15
       '@vercel/detect-agent': 1.0.0
       '@vercel/elysia': 0.1.26
-      '@vercel/express': 0.1.33(typescript@5.9.3)
+      '@vercel/express': 0.1.33(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
       '@vercel/fastify': 0.1.29
       '@vercel/fun': 1.2.1
       '@vercel/go': 3.3.4
@@ -6992,6 +7009,8 @@ packages:
       form-data: 4.0.5
       jose: 5.9.6
     transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
       - '@swc/core'
       - '@swc/wasm'
       - encoding
