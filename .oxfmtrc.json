@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "examples/**",
+    "dissertationExamples/**",
+    "old_examples/**",
+    "experiments/**",
+    "input/**",
+    "output/**",
+    "logs/**",
+    "reference/**",
+    "result_plots/**",
+    "**/antlr/**"
+  ]
+}
