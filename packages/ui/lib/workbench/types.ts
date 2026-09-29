@@ -58,6 +58,11 @@ export type ModelSettings = {
   options: GenerationOptions;
   /** regenerate after each change */
   live: boolean;
+  /**
+   * piStar mode: free iStar modelling with the plain editor, no engine (no analysis,
+   * generation or engine problems). Missing in settings saved before it existed.
+   */
+  pistar?: boolean;
 };
 
 export type ExampleFile = { path: string; group: string; name: string };

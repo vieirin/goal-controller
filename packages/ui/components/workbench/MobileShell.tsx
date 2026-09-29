@@ -17,6 +17,7 @@ import {
   Undo2,
   X,
   Lock,
+  Shapes,
   Unlock,
 } from 'lucide-react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
@@ -228,12 +229,14 @@ function MobileModel() {
         value={wb.modelTab}
         onChange={wb.setModelTab}
         trailing={
-          <IconButton
-            icon={modelReadOnly ? Lock : Unlock}
-            label={modelReadOnly ? 'Read-only: tap to edit the model' : 'Make the model read-only'}
-            aria-pressed={modelReadOnly}
-            onClick={toggleModelReadOnly}
-          />
+          <>
+            <IconButton
+              icon={modelReadOnly ? Lock : Unlock}
+              label={modelReadOnly ? 'Read-only: tap to edit the model' : 'Make the model read-only'}
+              aria-pressed={modelReadOnly}
+              onClick={toggleModelReadOnly}
+            />
+          </>
         }
       />
       <div className='min-h-0 flex-1'>{wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}</div>
@@ -264,6 +267,15 @@ function MobileTopBar() {
         )}
       </div>
       {wb.hasModel && (
+        <IconButton
+          icon={Shapes}
+          label={shell.pistarMode ? 'piStar mode: tap to go back to the engines' : 'piStar mode: the plain iStar editor'}
+          aria-pressed={shell.pistarMode}
+          onClick={shell.togglePistarMode}
+          className={shell.pistarMode ? 'bg-trace-soft text-trace' : undefined}
+        />
+      )}
+      {wb.hasModel && !shell.pistarMode && (
         <Button variant='primary' onClick={wb.generate} disabled={!!wb.jsonError} aria-label='Generate'>
           {wb.generating ? <Loader2 className='h-4 w-4 animate-spin' aria-hidden /> : <Play className='h-3.5 w-3.5' aria-hidden />}
         </Button>
@@ -276,7 +288,7 @@ function MobileTopBar() {
       >
         {(close) => (
           <div className='w-[min(20rem,90vw)] space-y-2 p-1'>
-            {!wb.engineLocked && (
+            {!wb.engineLocked && !shell.pistarMode && (
               <div className='px-1 pt-1'>
                 <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
               </div>

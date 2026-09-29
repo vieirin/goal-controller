@@ -12,6 +12,9 @@ export type Shell = {
   /** View the model without editing it: no diagram palette, a summary Inspector, read-only source. */
   modelReadOnly: boolean;
   toggleModelReadOnly: () => void;
+  /** The plain @istar-ts/react editor, as piStar: default palette, no extensions, the model alone. */
+  pistarMode: boolean;
+  togglePistarMode: () => void;
 };
 
 export const ShellContext = createContext<Shell>({
@@ -21,6 +24,8 @@ export const ShellContext = createContext<Shell>({
   toggleModelFullscreen: () => undefined,
   modelReadOnly: false,
   toggleModelReadOnly: () => undefined,
+  pistarMode: false,
+  togglePistarMode: () => undefined,
 });
 
 export const useShell = (): Shell => useContext(ShellContext);

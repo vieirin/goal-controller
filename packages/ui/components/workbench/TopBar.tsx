@@ -12,10 +12,11 @@ import {
   Play,
   Redo2,
   Settings2,
+  Shapes,
   SlidersHorizontal,
   Undo2,
 } from 'lucide-react';
-import { useRef, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import type { GenerationOptions } from '@/lib/workbench/types';
@@ -67,6 +68,78 @@ const optionsSummary = (engine: TransformEngine, wb: ReturnType<typeof useWorkbe
   return options.generateFluents ? 'with fluents' : 'no fluents';
 };
 
+/** The logo goes home: it closes the open model, after asking. */
+function HomeLogo() {
+  const wb = useWorkbench();
+  const [confirming, setConfirming] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!confirming) return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setConfirming(false);
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (!box.current?.contains(event.target as Node)) setConfirming(false);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('pointerdown', onPointer);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', onPointer);
+    };
+  }, [confirming]);
+  const logo = (
+    <>
+      goal<span className='text-trace'>·</span>wb
+    </>
+  );
+  if (!wb.hasModel) {
+    return <span className='select-none font-mono text-[13px] font-bold tracking-tight text-ink'>{logo}</span>;
+  }
+  return (
+    <div ref={box} className='relative'>
+      <button
+        type='button'
+        onClick={() => setConfirming((open) => !open)}
+        title='Close the model and go home'
+        aria-expanded={confirming}
+        className='select-none rounded px-0.5 font-mono text-[13px] font-bold tracking-tight text-ink hover:bg-panel'
+      >
+        {logo}
+      </button>
+      {confirming && (
+        <div
+          role='alertdialog'
+          aria-label='Close the model'
+          className='absolute left-0 top-full z-50 mt-1.5 w-72 rounded-lg border border-line bg-white p-3 shadow-lg'
+        >
+          <p className='text-[13px] text-ink'>
+            Close <span className='font-mono text-xs'>{wb.fileName || 'untitled.txt'}</span> and go home?
+          </p>
+          <p className='mt-1 text-2xs text-ink-muted'>
+            It stays in Recent{wb.dirty ? ', with its unsaved edits' : ''}.
+          </p>
+          <div className='mt-3 flex justify-end gap-2'>
+            <Button variant='outline' onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='primary'
+              autoFocus
+              onClick={() => {
+                setConfirming(false);
+                wb.closeModel();
+              }}
+            >
+              Close model
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TopBar() {
   const wb = useWorkbench();
   const shell = useShell();
@@ -90,9 +163,7 @@ export default function TopBar() {
           shortcut='⌘B'
           onClick={shell.toggleExplorer}
         />
-        <span className='select-none font-mono text-[13px] font-bold tracking-tight text-ink'>
-          goal<span className='text-trace'>·</span>wb
-        </span>
+        <HomeLogo />
         <span className='h-5 w-px bg-line' aria-hidden />
         <Button onClick={open} title='Open a goal model (piStar .txt / .json)'>
           <FolderOpen className='h-4 w-4' aria-hidden /> Open
@@ -109,17 +180,36 @@ export default function TopBar() {
       </div>
 
       <div className='ml-auto flex shrink-0 items-center gap-2'>
-        {!wb.engineLocked && (
-          <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
+        {wb.hasModel && (
+          <Button
+            variant='outline'
+            onClick={shell.togglePistarMode}
+            aria-pressed={shell.pistarMode}
+            title={shell.pistarMode ? 'Back to the engines (generate PRISM or SLEEC)' : 'piStar mode: model freely with the plain iStar editor'}
+            className={cx(shell.pistarMode && 'border-trace bg-trace-soft text-trace')}
+          >
+            <Shapes className='h-4 w-4' aria-hidden /> piStar
+          </Button>
         )}
-        <EngineOptions />
-        <span className='h-5 w-px bg-line' aria-hidden />
-        <Switch
-          checked={wb.live}
-          onChange={wb.setLive}
-          label='Live'
-          description='Regenerate automatically after each change'
-        />
+        {/* piStar mode is the plain iStar editor: no engine to pick */}
+        {!shell.pistarMode && (
+          <>
+            {!wb.engineLocked && (
+              <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
+            )}
+            <EngineOptions />
+            <span className='h-5 w-px bg-line' aria-hidden />
+          </>
+        )}
+        {!shell.pistarMode && (
+          <Switch
+            checked={wb.live}
+            onChange={wb.setLive}
+            label='Live'
+            description='Regenerate automatically after each change'
+          />
+        )}
+        {!shell.pistarMode && (
         <Button
           variant='primary'
           onClick={wb.generate}
@@ -131,6 +221,7 @@ export default function TopBar() {
           Generate
           <span className='ml-1 hidden font-mono text-2xs text-white/60 xl:inline'>⌘↵</span>
         </Button>
+        )}
         <Menu
           label='Export'
           trigger={({ toggle, open: isOpen }) => (

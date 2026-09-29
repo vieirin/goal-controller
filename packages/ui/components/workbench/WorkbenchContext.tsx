@@ -86,6 +86,8 @@ export type Workbench = {
   changeSource: ChangeSource;
   revision: number;
   openModel: (fileName: string, text: string, how?: OpenOptions) => void;
+  /** close the model and go back to the start screen; it stays in Recent with its edits */
+  closeModel: () => void;
   setText: (text: string, source: ChangeSource) => void;
   renameFile: (fileName: string) => void;
   markSaved: () => void;
@@ -274,13 +276,15 @@ function WorkbenchState({
     [],
   );
   const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
-  const settings = useMemo<ModelSettings>(() => ({ engine, options, live }), [engine, options, live]);
+  const [pistar, setPistar] = useState(false);
+  const settings = useMemo<ModelSettings>(() => ({ engine, options, live, pistar }), [engine, options, live, pistar]);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const applySettings = useCallback((next: ModelSettings) => {
     setEngineState(next.engine);
     setOptionsState({ ...DEFAULT_OPTIONS, ...next.options });
     setLive(next.live);
+    setPistar(next.pistar ?? false);
   }, []);
   const [settingsDialog, setSettingsDialog] = useState<'setup' | 'edit' | null>(null);
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
@@ -375,7 +379,8 @@ function WorkbenchState({
           settings: settingsRef.current,
         });
       }
-      const next = { ...settingsRef.current, ...stored };
+      // a model's own settings say whether it is a piStar model (older ones: no)
+      const next = stored ? { ...settingsRef.current, pistar: false, ...stored } : settingsRef.current;
       applySettings(next);
       setSettingsDialog(setup ? 'setup' : null);
       setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
@@ -389,6 +394,30 @@ function WorkbenchState({
     },
     [applySettings, clearSelection],
   );
+
+  const closeModel = useCallback(() => {
+    const previous = modelRef.current;
+    if (previous.text.trim()) {
+      setRecent(
+        rememberRecent({
+          fileName: previous.fileName || 'untitled.txt',
+          text: previous.text,
+          savedText: previous.savedText,
+          settings: settingsRef.current,
+        }),
+      );
+    }
+    // the start screen is not a piStar model
+    applySettings({ ...settingsRef.current, pistar: false });
+    setSettingsDialog(null);
+    textRef.current = '';
+    setModel((prev) => ({ fileName: '', text: '', savedText: '', source: 'open', revision: prev.revision + 1 }));
+    undoStack.current = [];
+    redoStack.current = [];
+    setRuns([]);
+    clearSelection();
+    forceHistory((n) => n + 1);
+  }, [applySettings, clearSelection]);
 
   const renameFile = useCallback((fileName: string) => {
     // the entry under the old name is replaced by the next Recent sync
@@ -425,7 +454,8 @@ function WorkbenchState({
   const setAnalysis = useCallback((data: AnalyzeResponse | null, key = '') => setAnalyzed(data ? { key, data } : null), []);
   const [analyzing, setAnalyzing] = useState(false);
   useEffect(() => {
-    if (!debouncedText.trim() || modelSignature(debouncedText) === null) return undefined;
+    // piStar mode has no engine to analyse for
+    if (pistar || !debouncedText.trim() || modelSignature(debouncedText) === null) return undefined;
     const controller = new AbortController();
     setAnalyzing(true);
     fetch('/api/analyze', {
@@ -463,10 +493,10 @@ function WorkbenchState({
         if (!controller.signal.aborted) setAnalyzing(false);
       });
     return () => controller.abort();
-  }, [debouncedText, engine, setAnalysis]);
+  }, [debouncedText, engine, pistar, setAnalysis]);
   useEffect(() => {
-    if (!model.text.trim()) setAnalysis(null);
-  }, [model.text, setAnalysis]);
+    if (!model.text.trim() || pistar) setAnalysis(null);
+  }, [model.text, pistar, setAnalysis]);
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
@@ -602,12 +632,12 @@ function WorkbenchState({
   const debouncedSignature = useDebounced(inputsSignature, 700);
   useEffect(() => {
     // a newly opened model waits for its settings
-    if (!live || settingsDialog === 'setup' || !variablesReady || debouncedSignature === null || !model.text.trim()) return;
+    if (!live || pistar || settingsDialog === 'setup' || !variablesReady || debouncedSignature === null || !model.text.trim()) return;
     if (current?.signature === debouncedSignature) return;
     generate();
     // current is read for comparison only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, settingsDialog, variablesReady, debouncedSignature, generate]);
+  }, [live, pistar, settingsDialog, variablesReady, debouncedSignature, generate]);
 
   // last successful output (a failed run keeps showing the previous output)
   const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
@@ -620,6 +650,8 @@ function WorkbenchState({
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (parsed.error) list.push(parsed.error);
+    // piStar mode: only whether the file parses; the engine checks do not apply
+    if (pistar) return list;
     if (tree && !parsed.error) list.push(...treeProblems(tree, engine));
     if (analysis && !parsed.error) list.push(...analysis.problems);
     if (current && !stale) {
@@ -641,7 +673,7 @@ function WorkbenchState({
         return true;
       })
       .sort((a, b) => order[a.severity] - order[b.severity]);
-  }, [parsed.error, tree, engine, analysis, current, stale, nodeIds]);
+  }, [parsed.error, pistar, tree, engine, analysis, current, stale, nodeIds]);
 
   // ---- persistence ----------------------------------------------------------------
   // the open model is kept in Recent (with its unsaved edits) instead of being reopened
@@ -671,6 +703,7 @@ function WorkbenchState({
     changeSource: model.source,
     revision: model.revision,
     openModel,
+    closeModel,
     setText,
     renameFile,
     markSaved,

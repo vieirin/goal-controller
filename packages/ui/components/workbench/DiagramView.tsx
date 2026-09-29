@@ -51,7 +51,32 @@ const problemBadges: IstarExtension = {
     'istar.Quality': { component: ElementWithProblems },
   },
 };
-const EXTENSIONS = [problemBadges];
+/**
+ * Edge and EdgeV2 read goals, tasks and resources in an actor, linked by And/Or
+ * refinement and Needed-By: the palette offers only those (other kinds fail to convert).
+ */
+const edgePalette: IstarExtension = {
+  name: 'edge-palette',
+  elements: {
+    // Actor alone: no Actor/Agent/Role dropdown
+    'istar.Actor': { palette: { group: undefined } },
+    'istar.Agent': { palette: false },
+    'istar.Role': { palette: false },
+    'istar.Quality': { palette: false },
+  },
+  links: {
+    'istar.IsALink': { palette: false },
+    'istar.ParticipatesInLink': { palette: false },
+    'istar.DependencyLink': { palette: false },
+    'istar.ContributionLink': { palette: false },
+    'istar.QualificationLink': { palette: false },
+  },
+};
+
+// stable arrays: the provider rebuilds its registry when the extensions change
+const WORKBENCH_EXTENSIONS: readonly IstarExtension[] = [problemBadges];
+const EDGE_EXTENSIONS: readonly IstarExtension[] = [problemBadges, edgePalette];
+const NO_EXTENSIONS: readonly IstarExtension[] = [];
 
 const tryParse = (text: string): IstarModel | null => {
   if (!text.trim()) return createEmptyModel();
@@ -163,12 +188,14 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
 
 export default function DiagramView() {
   const wb = useWorkbench();
-  const { modelFullscreen, modelReadOnly } = useShell();
+  const { modelFullscreen, modelReadOnly, pistarMode } = useShell();
+  // piStar mode: the library as it ships (no extensions, default palette)
+  const extensions = pistarMode ? NO_EXTENSIONS : wb.engine === 'sleec' ? WORKBENCH_EXTENSIONS : EDGE_EXTENSIONS;
   const canvas = useRef<IstarCanvasHandle>(null);
   const shown = !!wb.text.trim();
 
   const container = useRef<HTMLDivElement>(null);
-  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}`, shown);
+  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}|${pistarMode}|${extensions.length}`, shown);
   const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   const { store } = useIstarStore(() => parsed ?? createEmptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
@@ -225,10 +252,10 @@ export default function DiagramView() {
   return (
     <div ref={container} className='relative h-full' onKeyDownCapture={onKeyDownCapture}>
       <SeverityContext.Provider value={severities}>
-        <IstarProvider store={store} extensions={EXTENSIONS} readOnly={!parsed || modelReadOnly}>
+        <IstarProvider store={store} extensions={extensions} readOnly={!parsed || modelReadOnly}>
           <SelectionSync canvas={canvas} />
           {/* full screen has the width for piStar's horizontal bar; read-only has none */}
-          <IstarCanvas ref={canvas} fitView palette={modelReadOnly ? false : modelFullscreen ? 'top' : 'left'} className='h-full' />
+          <IstarCanvas ref={canvas} fitView palette={pistarMode ? undefined : modelReadOnly ? false : modelFullscreen ? 'top' : 'left'} className='h-full' />
         </IstarProvider>
       </SeverityContext.Provider>
       {!parsed && (

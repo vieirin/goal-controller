@@ -14,6 +14,8 @@ const ENGINES: Array<{ id: TransformEngine; label: string; output: string; help:
   { id: 'sleec', label: 'SLEEC', output: 'SLEEC', help: 'SLEEC rules from the goal conditions' },
 ];
 
+const PISTAR = { label: 'piStar', output: 'iStar 2.0', help: 'Model freely with every iStar element; nothing is generated' };
+
 /**
  * Engine, options and file name of the open model. Shown when a model is
  * uploaded or created ('setup'), and on request from the options menu.
@@ -99,9 +101,9 @@ export default function ModelSettingsModal() {
                 Fixed to <span className='font-medium'>{ENGINES.find((e) => e.id === wb.engine)?.label}</span> by this page&apos;s link.
               </p>
             ) : (
-              <div className='grid gap-1.5 sm:grid-cols-3'>
+              <div className='grid gap-1.5 sm:grid-cols-2'>
                 {ENGINES.map((engine) => {
-                  const active = draft.engine === engine.id;
+                  const active = !draft.pistar && draft.engine === engine.id;
                   return (
                     <label
                       key={engine.id}
@@ -115,7 +117,7 @@ export default function ModelSettingsModal() {
                         name='engine'
                         value={engine.id}
                         checked={active}
-                        onChange={() => setDraft((d) => ({ ...d, engine: engine.id }))}
+                        onChange={() => setDraft((d) => ({ ...d, engine: engine.id, pistar: false }))}
                         className='sr-only'
                       />
                       <span className='flex items-baseline justify-between gap-2'>
@@ -126,10 +128,32 @@ export default function ModelSettingsModal() {
                     </label>
                   );
                 })}
+                <label
+                  className={cx(
+                    'flex cursor-pointer flex-col rounded-lg border px-3 py-2 text-left transition-colors',
+                    draft.pistar ? 'border-ink bg-panel ring-1 ring-ink' : 'border-line hover:border-line-strong',
+                  )}
+                >
+                  <input
+                    type='radio'
+                    name='engine'
+                    value='pistar'
+                    checked={!!draft.pistar}
+                    onChange={() => setDraft((d) => ({ ...d, pistar: true }))}
+                    className='sr-only'
+                  />
+                  <span className='flex items-baseline justify-between gap-2'>
+                    <span className='text-[13px] font-semibold text-ink'>{PISTAR.label}</span>
+                    <span className='font-mono text-2xs text-ink-muted'>{PISTAR.output}</span>
+                  </span>
+                  <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>{PISTAR.help}</span>
+                </label>
               </div>
             )}
           </fieldset>
 
+          {!draft.pistar && (
+          <>
           <fieldset>
             <legend className='mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>Options</legend>
             <EngineOptionFields
@@ -148,6 +172,8 @@ export default function ModelSettingsModal() {
             />
             <p className='mt-1 pl-9 text-2xs text-ink-muted'>Regenerate the output after each change to the model.</p>
           </div>
+          </>
+          )}
         </div>
 
         <footer className='flex items-center justify-end gap-2 border-t border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5'>

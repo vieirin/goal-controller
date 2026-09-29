@@ -18,11 +18,12 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
-import { normalizeEngineMode } from '@/lib/types';
+import { normalizeEngineMode, type TransformEngine } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
+import type { ModelSettings } from '@/lib/workbench/types';
 import BottomPanel from './BottomPanel';
 import Explorer, { useExamples, useOpenExample } from './Explorer';
 import Inspector from './Inspector';
@@ -34,7 +35,7 @@ import TopBar, { readFile, useOpenFile } from './TopBar';
 import DiagramView from './DiagramView';
 import { WorkbenchProvider, useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
-import { Button, IconButton, Kbd, Tabs } from './ui';
+import { Button, IconButton, Kbd, Tabs, cx } from './ui';
 
 const EXPLORER_KEY = 'goal-workbench:explorer-open';
 const READ_ONLY_KEY = 'goal-workbench:model-read-only';
@@ -141,6 +142,27 @@ function ShellLayout() {
   const toggleModelFullscreen = useCallback(() => {
     if (wb.hasModel) setFullscreen(!fullscreenRef.current);
   }, [wb.hasModel, setFullscreen]);
+
+  // piStar mode is a model setting: the plain editor on its own (the PRISM output and
+  // the side bar collapsed), whether it was chosen here, in the settings or with the file
+  const pistarMode = !!wb.settings.pistar;
+  const togglePistarMode = useCallback(() => {
+    if (wb.hasModel) wb.applySettings({ ...wb.settings, pistar: !wb.settings.pistar });
+  }, [wb]);
+  const layoutFor = useRef<{ pistar: boolean; file: string } | null>(null);
+  useEffect(() => {
+    if (!wb.hasModel) {
+      layoutFor.current = null;
+      return undefined;
+    }
+    const last = layoutFor.current;
+    layoutFor.current = { pistar: pistarMode, file: wb.fileName };
+    // follow a change of mode, and open a piStar model in its layout
+    if (last && last.pistar === pistarMode && (last.file === wb.fileName || !pistarMode)) return undefined;
+    // after the model panels mount
+    const frame = requestAnimationFrame(() => setFullscreen(pistarMode));
+    return () => cancelAnimationFrame(frame);
+  }, [pistarMode, wb.hasModel, wb.fileName, setFullscreen]);
   // closing the model leaves full screen (its panels are gone)
   useEffect(() => {
     if (!wb.hasModel && fullscreenRef.current) {
@@ -217,6 +239,8 @@ function ShellLayout() {
           toggleModelFullscreen: () => undefined,
           modelReadOnly,
           toggleModelReadOnly,
+          pistarMode,
+          togglePistarMode,
         }}
       >
         <MobileShell empty={<EmptyState onNewModel={newModel} />} />
@@ -227,7 +251,16 @@ function ShellLayout() {
 
   return (
     <ShellContext.Provider
-      value={{ explorerOpen, toggleExplorer, modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly }}
+      value={{
+        explorerOpen,
+        toggleExplorer,
+        modelFullscreen,
+        toggleModelFullscreen,
+        modelReadOnly,
+        toggleModelReadOnly,
+        pistarMode,
+        togglePistarMode,
+      }}
     >
       <div
         className='flex h-screen flex-col bg-panel'
@@ -405,6 +438,11 @@ function OpenInspectorOnSelect({ open }: { open: () => void }) {
   return null;
 }
 
+const ENGINE_LABEL: Record<TransformEngine, string> = { edgev2: 'EdgeV2', edge: 'Edge', sleec: 'SLEEC' };
+
+/** What a model is for: its engine, or piStar for free modelling. */
+const modelKindLabel = (settings: ModelSettings): string => (settings.pistar ? 'piStar' : ENGINE_LABEL[settings.engine]);
+
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
   const wb = useWorkbench();
   const { open, input } = useOpenFile();
@@ -446,6 +484,17 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                     {hasUnsavedEdits(file) && (
                       <span className='shrink-0 rounded bg-trace/10 px-1 text-2xs text-trace' title='Has edits that were not exported'>
                         edited
+                      </span>
+                    )}
+                    {file.settings && (
+                      <span
+                        className={cx(
+                          'shrink-0 rounded border px-1 text-2xs',
+                          file.settings.pistar ? 'border-trace/30 text-trace' : 'border-line text-ink-muted',
+                        )}
+                        title={file.settings.pistar ? 'Modelled freely in piStar mode' : 'Target engine'}
+                      >
+                        {modelKindLabel(file.settings)}
                       </span>
                     )}
                     <span className='ml-auto shrink-0 pl-2 text-2xs text-ink-muted'>{recentAge(file.at)}</span>
