@@ -19,6 +19,7 @@ import {
   Lock,
   Shapes,
   Unlock,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
@@ -32,15 +33,9 @@ import { EngineOptions, useOpenFile } from './TopBar';
 import DiagramView from './DiagramView';
 import { useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { useShell } from './shell';
-import { Button, IconButton, Menu, MenuItem, Segmented, Switch, Tabs, cx } from './ui';
+import { Button, IconButton, Menu, MenuItem, Switch, Tabs, cx } from './ui';
 
 type View = 'output' | 'model' | 'problems' | 'variables';
-
-const ENGINES: Array<{ id: TransformEngine; label: string }> = [
-  { id: 'edge', label: 'Edge' },
-  { id: 'edgev2', label: 'EdgeV2' },
-  { id: 'sleec', label: 'SLEEC' },
-];
 
 /** Opens or closes the Inspector sheet as the selection changes, without re-rendering the shell. */
 function SheetOnSelect({ onSelect }: { onSelect: (to: 'sheet' | 'output' | 'none') => void }) {
@@ -275,6 +270,11 @@ function MobileTopBar() {
           className={shell.pistarMode ? 'bg-trace-soft text-trace' : undefined}
         />
       )}
+      {wb.hasModel && shell.pistarMode && (
+        <Button variant='primary' onClick={() => wb.openConversion(wb.recordedEngine ?? wb.settings.engine)} aria-label='Convert to an engine'>
+          <ArrowRightLeft className='h-4 w-4' aria-hidden />
+        </Button>
+      )}
       {wb.hasModel && !shell.pistarMode && (
         <Button variant='primary' onClick={wb.generate} disabled={!!wb.jsonError} aria-label='Generate'>
           {wb.generating ? <Loader2 className='h-4 w-4 animate-spin' aria-hidden /> : <Play className='h-3.5 w-3.5' aria-hidden />}
@@ -288,15 +288,13 @@ function MobileTopBar() {
       >
         {(close) => (
           <div className='w-[min(20rem,90vw)] space-y-2 p-1'>
-            {!wb.engineLocked && !shell.pistarMode && (
-              <div className='px-1 pt-1'>
-                <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
+            {/* engine controls: only for an open model that is not a piStar model */}
+            {wb.hasModel && !shell.pistarMode && (
+              <div className='flex items-center justify-between px-1'>
+                <Switch checked={wb.live} onChange={wb.setLive} label='Live' description='Regenerate after each change' />
+                <EngineOptions />
               </div>
             )}
-            <div className='flex items-center justify-between px-1'>
-              <Switch checked={wb.live} onChange={wb.setLive} label='Live' description='Regenerate after each change' />
-              <EngineOptions />
-            </div>
             <div className='border-t border-line pt-1'>
               <MenuItem icon={FolderOpen} onClick={() => { open(); close(); }}>
                 Open file…
@@ -306,12 +304,16 @@ function MobileTopBar() {
                   Model settings…
                 </MenuItem>
               )}
-              <MenuItem icon={Undo2} disabled={!wb.canUndo} onClick={wb.undo}>
-                Undo model change
-              </MenuItem>
-              <MenuItem icon={Redo2} disabled={!wb.canRedo} onClick={wb.redo}>
-                Redo model change
-              </MenuItem>
+              {wb.hasModel && (
+                <>
+                  <MenuItem icon={Undo2} disabled={!wb.canUndo} onClick={wb.undo}>
+                    Undo model change
+                  </MenuItem>
+                  <MenuItem icon={Redo2} disabled={!wb.canRedo} onClick={wb.redo}>
+                    Redo model change
+                  </MenuItem>
+                </>
+              )}
             </div>
             {wb.hasModel && (
               <div className='border-t border-line pt-1'>

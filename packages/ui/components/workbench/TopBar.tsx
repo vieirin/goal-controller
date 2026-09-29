@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowRightLeft,
   ChevronDown,
   Download,
   FileJson,
@@ -23,12 +24,6 @@ import type { GenerationOptions } from '@/lib/workbench/types';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
 import { Button, IconButton, Kbd, Menu, MenuItem, Segmented, Switch, cx } from './ui';
-
-const ENGINES: Array<{ id: TransformEngine; label: string; title: string }> = [
-  { id: 'edge', label: 'Edge', title: 'Legacy Edge engine (PRISM)' },
-  { id: 'edgev2', label: 'EdgeV2', title: 'EdgeV2 engine (PRISM, EDGE reference encoding)' },
-  { id: 'sleec', label: 'SLEEC', title: 'SLEEC specification' },
-];
 
 const readFile = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -58,6 +53,8 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
 };
 
 export { readFile };
+
+const ENGINE_LABEL: Record<TransformEngine, string> = { edgev2: 'EdgeV2', edge: 'Edge', sleec: 'SLEEC' };
 
 const optionsSummary = (engine: TransformEngine, wb: ReturnType<typeof useWorkbench>): string => {
   const { options } = wb;
@@ -174,11 +171,31 @@ export default function TopBar() {
             {wb.dirty && <span className='h-2 w-2 shrink-0 rounded-full bg-trace' aria-label='unsaved changes' />}
           </span>
         )}
+        {wb.hasModel && (
+          // what the model is for: its engine, or piStar for free modelling
+          <button
+            type='button'
+            onClick={wb.openSettings}
+            title={wb.mode === 'pistar' ? 'piStar model (no engine): change it in the model settings' : `Target engine: ${ENGINE_LABEL[wb.mode]} (change it in the model settings)`}
+            className={cx(
+              'shrink-0 rounded border px-1.5 py-0.5 text-2xs font-medium',
+              wb.mode === 'pistar' ? 'border-trace/30 text-trace hover:bg-trace-soft' : 'border-line text-ink-soft hover:bg-panel',
+            )}
+          >
+            {wb.mode === 'pistar' ? 'piStar' : ENGINE_LABEL[wb.mode]}
+          </button>
+        )}
         {wb.hasModel && <IconButton icon={Settings2} label='Model settings (engine and options)' onClick={wb.openSettings} />}
-        <IconButton icon={Undo2} label='Undo model change' shortcut='⌘Z' onClick={wb.undo} disabled={!wb.canUndo} />
-        <IconButton icon={Redo2} label='Redo model change' shortcut='⇧⌘Z' onClick={wb.redo} disabled={!wb.canRedo} />
+        {wb.hasModel && (
+          <>
+            <IconButton icon={Undo2} label='Undo model change' shortcut='⌘Z' onClick={wb.undo} disabled={!wb.canUndo} />
+            <IconButton icon={Redo2} label='Redo model change' shortcut='⇧⌘Z' onClick={wb.redo} disabled={!wb.canRedo} />
+          </>
+        )}
       </div>
 
+      {/* model controls: nothing to act on at home */}
+      {wb.hasModel && (
       <div className='ml-auto flex shrink-0 items-center gap-2'>
         {wb.hasModel && (
           <Button
@@ -191,12 +208,27 @@ export default function TopBar() {
             <Shapes className='h-4 w-4' aria-hidden /> piStar
           </Button>
         )}
+        {wb.hasModel && shell.pistarMode && wb.recordedEngine && (
+          // the file is for an engine: model with that engine's palette, still in piStar mode
+          <Switch
+            checked={shell.enginePalette}
+            onChange={shell.setEnginePalette}
+            label={ENGINE_LABEL[wb.recordedEngine]}
+            description={`Use the ${ENGINE_LABEL[wb.recordedEngine]} palette (only the elements it reads)`}
+          />
+        )}
+        {wb.hasModel && shell.pistarMode && (
+          <Button
+            variant={wb.recordedEngine ? 'outline' : 'primary'}
+            onClick={() => wb.openConversion(wb.recordedEngine ?? wb.settings.engine)}
+            title='Convert the model to an engine: see which engines accept it'
+          >
+            <ArrowRightLeft className='h-4 w-4' aria-hidden /> Convert to…
+          </Button>
+        )}
         {/* piStar mode is the plain iStar editor: no engine to pick */}
         {!shell.pistarMode && (
           <>
-            {!wb.engineLocked && (
-              <Segmented label='Target engine' options={ENGINES} value={wb.engine} onChange={wb.setEngine} />
-            )}
             <EngineOptions />
             <span className='h-5 w-px bg-line' aria-hidden />
           </>
@@ -260,6 +292,7 @@ export default function TopBar() {
           )}
         </Menu>
       </div>
+      )}
     </header>
   );
 }

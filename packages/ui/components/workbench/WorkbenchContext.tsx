@@ -13,7 +13,7 @@ import {
 } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { generationProblems, jsonProblem, treeProblems } from '@/lib/workbench/localProblems';
-import { buildViewTree, type ViewTree } from '@/lib/workbench/pistar';
+import { buildViewTree, readModelMode, writeModelMode, type ModelMode, type ViewTree } from '@/lib/workbench/pistar';
 import { modelSignature } from '@/lib/workbench/signature';
 import {
   loadPreferences,
@@ -38,7 +38,7 @@ import {
 // ---------------------------------------------------------------------------
 
 /** Which part of the workbench last changed the model. */
-export type ChangeSource = 'open' | 'canvas' | 'source' | 'inspector' | 'undo' | 'restore';
+export type ChangeSource = 'open' | 'canvas' | 'source' | 'inspector' | 'undo' | 'restore' | 'convert';
 /** Which part of the workbench made the selection. */
 export type SelectOrigin = 'canvas' | 'source' | 'output' | 'inspector' | 'problems' | 'variables';
 
@@ -106,6 +106,22 @@ export type Workbench = {
   engine: TransformEngine;
   engineLocked: boolean;
   setEngine: (engine: TransformEngine) => void;
+  /** what the model is for: its engine, or 'pistar' for free modelling */
+  mode: ModelMode;
+  /**
+   * Switch the model to a mode. piStar mode is always possible; an engine goes through a
+   * conversion (see `conversion`) that checks the model is valid for it first.
+   */
+  requestMode: (mode: ModelMode) => void;
+  /** the engine recorded in the model file, if any (a piStar view of it can go straight back) */
+  recordedEngine: TransformEngine | null;
+  /** a conversion waiting for confirmation (ConvertDialog) */
+  conversion: { target: TransformEngine } | null;
+  /** open the conversion dialog (every engine checked), `target` selected first */
+  openConversion: (target: TransformEngine) => void;
+  /** apply a checked conversion: the converted model text, now for `target` */
+  applyConversion: (target: TransformEngine, text: string) => void;
+  cancelConversion: () => void;
   options: GenerationOptions;
   setOptions: (patch: Partial<GenerationOptions>) => void;
   /** engine, options and live mode together */
@@ -330,6 +346,64 @@ function WorkbenchState({
     [commit],
   );
 
+  // ---- mode: engines and piStar, and conversion between them ---------------
+  const recordedEngine = useMemo<TransformEngine | null>(() => {
+    const recorded = readModelMode(model.text);
+    return recorded && recorded !== 'pistar' ? recorded : null;
+  }, [model.text]);
+  const [conversion, setConversion] = useState<{ target: TransformEngine } | null>(null);
+  const requestMode = useCallback(
+    (target: ModelMode) => {
+      const current = settingsRef.current;
+      const currentMode: ModelMode = current.pistar ? 'pistar' : (lockedEngine ?? current.engine);
+      const text = textRef.current;
+      if (lockedEngine && target !== 'pistar' && target !== lockedEngine) return;
+      const recorded = (() => {
+        try {
+          return readModelMode(text);
+        } catch {
+          return null;
+        }
+      })();
+      if (target === currentMode) {
+        // same engine: record it in a file that does not say yet
+        if (target !== 'pistar' && text.trim() && recorded !== target) {
+          try {
+            setText(writeModelMode(text, target), 'convert');
+          } catch {
+            // a model that does not parse keeps its text
+          }
+        }
+        return;
+      }
+      if (target === 'pistar') {
+        // the piStar view of any model; the engine recorded in the file stays
+        // (only the mode: options applied just before, by the settings dialog, stay)
+        setPistar(true);
+        return;
+      }
+      if (recorded === target) {
+        // back to the engine the file is for: nothing to convert
+        setEngineState(target);
+        setPistar(false);
+        return;
+      }
+      setConversion({ target });
+    },
+    [lockedEngine, setText],
+  );
+  const applyConversion = useCallback(
+    (target: TransformEngine, text: string) => {
+      setText(text, 'convert');
+      setEngineState(target);
+      setPistar(false);
+      setConversion(null);
+    },
+    [setText],
+  );
+  const cancelConversion = useCallback(() => setConversion(null), []);
+  const openConversion = useCallback((target: TransformEngine) => setConversion({ target }), []);
+
   const undo = useCallback(() => {
     const previous = undoStack.current.pop();
     if (previous === undefined) return;
@@ -380,7 +454,11 @@ function WorkbenchState({
         });
       }
       // a model's own settings say whether it is a piStar model (older ones: no)
-      const next = stored ? { ...settingsRef.current, pistar: false, ...stored } : settingsRef.current;
+      // the file says what it is for: its recorded engine, or (none) a piStar model;
+      // options and live come from the settings kept with it
+      const recorded = readModelMode(text) ?? 'pistar';
+      const base = stored ? { ...settingsRef.current, ...stored } : settingsRef.current;
+      const next = recorded === 'pistar' ? { ...base, pistar: true } : { ...base, pistar: false, engine: recorded };
       applySettings(next);
       setSettingsDialog(setup ? 'setup' : null);
       setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
@@ -390,6 +468,7 @@ function WorkbenchState({
       redoStack.current = [];
       setRuns([]);
       clearSelection();
+      setConversion(null);
       forceHistory((n) => n + 1);
     },
     [applySettings, clearSelection],
@@ -416,6 +495,7 @@ function WorkbenchState({
     redoStack.current = [];
     setRuns([]);
     clearSelection();
+    setConversion(null);
     forceHistory((n) => n + 1);
   }, [applySettings, clearSelection]);
 
@@ -717,6 +797,13 @@ function WorkbenchState({
     jsonError: parsed.error,
     engine,
     engineLocked: lockedEngine !== null,
+    mode: pistar ? 'pistar' : engine,
+    recordedEngine,
+    requestMode,
+    conversion,
+    openConversion,
+    applyConversion,
+    cancelConversion,
     setEngine,
     options,
     setOptions,

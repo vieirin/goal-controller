@@ -46,8 +46,10 @@ export default function ModelSettingsModal() {
     event.preventDefault();
     const name = fileName.trim();
     if (name && name !== wb.fileName) wb.renameFile(name);
-    wb.applySettings(draft);
+    // options and live here; the engine (or piStar mode) through a checked conversion
+    wb.applySettings({ ...draft, engine: wb.settings.engine, pistar: wb.settings.pistar });
     wb.closeSettings();
+    wb.requestMode(draft.pistar ? 'pistar' : draft.engine);
   };
 
   const nodes = wb.tree ? [...wb.tree.nodes.values()] : [];

@@ -6,9 +6,11 @@
 import {
   createEmptyModel,
   inheritSourceLayout,
+  isActor,
   isNode,
   parsePistar,
   toPistar,
+  updateDiagram,
   updateElement,
   type IstarElement,
   type IstarLink,
@@ -373,4 +375,129 @@ export const jsonErrorPosition = (
     return { line, column: offset - before.lastIndexOf('\n'), offset };
   }
   return null;
+};
+
+// ---------------------------------------------------------------------------
+// Model mode (which engine the model is for) and conversion between modes
+// ---------------------------------------------------------------------------
+
+/** What a model is for: one of the engines, or free iStar modelling in piStar mode. */
+export type ModelMode = TransformEngine | 'pistar';
+
+const MODES: readonly ModelMode[] = ['edgev2', 'edge', 'sleec', 'pistar'];
+
+/**
+ * The engine is kept in the diagram's custom properties: piStar keeps them when it opens
+ * and saves a file (and shows them as ordinary properties), so the file stays a plain
+ * piStar model. A model without it is a piStar model: piStar mode is never written.
+ */
+export const MODE_PROPERTY = 'engine';
+
+const isMode = (value: unknown): value is ModelMode => MODES.includes(value as ModelMode);
+
+/** The engine recorded in the model; null when there is none (a piStar model, or an older file). */
+export const modelMode = (model: IstarModel): ModelMode | null => {
+  const value = model.diagram?.customProperties?.[MODE_PROPERTY];
+  return isMode(value) ? value : null;
+};
+
+export const readModelMode = (text: string): ModelMode | null => {
+  try {
+    return modelMode(parsePistar(text));
+  } catch {
+    return null;
+  }
+};
+
+const withMode = (model: IstarModel, mode: ModelMode): IstarModel => {
+  const { [MODE_PROPERTY]: _previous, ...rest } = model.diagram?.customProperties ?? {};
+  // piStar mode is the absence of an engine
+  return updateDiagram(model, { customProperties: mode === 'pistar' ? rest : { ...rest, [MODE_PROPERTY]: mode } });
+};
+
+/** Record the mode in the model text (formatting kept). */
+export const writeModelMode = (text: string, mode: ModelMode): string => rewrite(text, (model) => withMode(model, mode));
+
+const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
+const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
+  'istar.Goal': 'G',
+  // the engines read qualities as goals
+  'istar.Quality': 'G',
+  'istar.Task': 'T',
+  'istar.Resource': 'R',
+};
+const FIRST: Record<string, number> = { G: 0, T: 1, R: 1 };
+
+/** Next free RT id ("G4", "T3", "R2") for an element kind, from the names in the model. */
+export const nextRtId = (model: IstarModel, kind: IstarElement['kind']): string | null => {
+  const prefix = PREFIX[kind];
+  if (!prefix) return null;
+  let max = (FIRST[prefix] ?? 1) - 1;
+  for (const element of model.elements.values()) {
+    const match = RT_ID.exec(element.name);
+    if (match && match[1] === prefix) max = Math.max(max, Number(match[2]));
+  }
+  return `${prefix}${max + 1}`;
+};
+
+export type Conversion = {
+  /** the model text converted to the target mode (automatic fixes applied, mode recorded) */
+  text: string;
+  /** what the conversion changes by itself */
+  changes: string[];
+  /** what has to be fixed by hand before the model can be converted */
+  blockers: string[];
+};
+
+const EDGE_ELEMENTS = new Set(['istar.Actor', 'istar.Goal', 'istar.Task', 'istar.Resource']);
+const EDGE_LINKS = new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink', 'istar.NeededByLink']);
+const KIND_LABEL = (kind: string): string => kind.replace(/^istar\./, '').replace(/Link$/, ' link');
+const plural = (label: string): string => (label.endsWith('y') ? `${label.slice(0, -1)}ies` : `${label}s`);
+
+/**
+ * Converts a model to a mode: fixes what can be fixed safely (RT ids on unnamed elements;
+ * a type for Edge resources that have none) and lists what cannot (element and link kinds
+ * the engine does not read, a second actor). Whether the result is valid for the engine
+ * is for the engine to say.
+ */
+export const planConversion = (text: string, target: ModelMode): Conversion => {
+  let model = parsePistar(text);
+  const changes: string[] = [];
+  const blockers: string[] = [];
+  if (target !== 'pistar') {
+    // RT ids: every goal, task and resource name starts with one
+    for (const element of model.elements.values()) {
+      if (!isNode(element) || element.isDependum || RT_ID.test(element.name)) continue;
+      const id = nextRtId(model, element.kind);
+      if (!id) continue;
+      const name = `${id}: ${element.name.trim() || KIND_LABEL(element.kind)}`;
+      model = updateElement(model, element.id, { name });
+      changes.push(`"${element.name.trim() || KIND_LABEL(element.kind)}" is named ${name}`);
+    }
+  }
+  if (target === 'edge' || target === 'edgev2') {
+    const counts = new Map<string, number>();
+    for (const element of model.elements.values()) {
+      if (!EDGE_ELEMENTS.has(element.kind)) counts.set(element.kind, (counts.get(element.kind) ?? 0) + 1);
+      if (isNode(element) && !element.isDependum && !element.parent) {
+        blockers.push(`${element.name} is outside any actor: the Edge engines read the elements inside the actor`);
+      }
+      if (element.kind === 'istar.Resource' && !element.customProperties?.type) {
+        model = updateElement(model, element.id, {
+          customProperties: { ...element.customProperties, type: 'bool', initialValue: 'true' },
+        });
+        changes.push(`${element.name} becomes a Boolean resource (type bool, initial value true)`);
+      }
+    }
+    for (const link of model.links.values()) {
+      if (!EDGE_LINKS.has(link.kind)) counts.set(link.kind, (counts.get(link.kind) ?? 0) + 1);
+    }
+    for (const [kind, count] of counts) {
+      const label = KIND_LABEL(kind);
+      blockers.push(`${count} ${count > 1 ? plural(label) : label}: the Edge engines do not read ${plural(label)}`);
+    }
+    const actors = [...model.elements.values()].filter(isActor).length;
+    if (actors > 1) blockers.push(`${actors} actors: the Edge engines read a single actor`);
+  }
+  return { text: serializeModel(withMode(model, target), text), changes, blockers };
 };

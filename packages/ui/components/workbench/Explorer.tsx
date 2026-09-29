@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ExampleFile } from '@/lib/workbench/types';
+import { writeModelMode } from '@/lib/workbench/pistar';
 import { useWorkbench } from './WorkbenchContext';
 import { cx } from './ui';
 
@@ -29,7 +30,8 @@ export const useOpenExample = () => {
     const data = await response.json();
     // examples are grouped by the engine they target
     const engine = EXAMPLE_ENGINES[example.group];
-    if (data.success) openModel(data.fileName, data.content, engine ? { settings: { engine } } : undefined);
+    // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
+    if (data.success) openModel(data.fileName, engine ? writeModelMode(data.content, engine) : data.content, engine ? { settings: { engine } } : undefined);
   };
 };
 

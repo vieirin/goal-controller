@@ -29,6 +29,7 @@ import Explorer, { useExamples, useOpenExample } from './Explorer';
 import Inspector from './Inspector';
 import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
+import ConvertDialog from './ConvertDialog';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
@@ -146,8 +147,12 @@ function ShellLayout() {
   // piStar mode is a model setting: the plain editor on its own (the PRISM output and
   // the side bar collapsed), whether it was chosen here, in the settings or with the file
   const pistarMode = !!wb.settings.pistar;
+  // piStar mode with the recorded engine's palette (per file)
+  const [enginePalette, setEnginePalette] = useState(false);
+  useEffect(() => setEnginePalette(false), [wb.fileName]);
+  // leaving piStar mode converts the model back to its engine (a checked step)
   const togglePistarMode = useCallback(() => {
-    if (wb.hasModel) wb.applySettings({ ...wb.settings, pistar: !wb.settings.pistar });
+    if (wb.hasModel) wb.requestMode(wb.settings.pistar ? wb.settings.engine : 'pistar');
   }, [wb]);
   const layoutFor = useRef<{ pistar: boolean; file: string } | null>(null);
   useEffect(() => {
@@ -188,7 +193,7 @@ function ShellLayout() {
 
   // keyboard shortcuts
   useEffect(() => {
-    if (wb.settingsDialog) return undefined;
+    if (wb.settingsDialog || wb.conversion) return undefined;
     const exportModel = () => {
       if (!wb.hasModel) return;
       const name = /\.(txt|json)$/i.test(wb.fileName) ? wb.fileName : `${baseName(wb.fileName)}.txt`;
@@ -241,10 +246,13 @@ function ShellLayout() {
           toggleModelReadOnly,
           pistarMode,
           togglePistarMode,
+          enginePalette,
+          setEnginePalette,
         }}
       >
         <MobileShell empty={<EmptyState onNewModel={newModel} />} />
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
+        {wb.conversion && wb.hasModel && <ConvertDialog target={wb.conversion.target} />}
       </ShellContext.Provider>
     );
   }
@@ -260,6 +268,8 @@ function ShellLayout() {
         toggleModelReadOnly,
         pistarMode,
         togglePistarMode,
+        enginePalette,
+        setEnginePalette,
       }}
     >
       <div
@@ -347,6 +357,7 @@ function ShellLayout() {
           </div>
         )}
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
+        {wb.conversion && wb.hasModel && <ConvertDialog target={wb.conversion.target} />}
       </div>
     </ShellContext.Provider>
   );
@@ -355,7 +366,9 @@ function ShellLayout() {
 /** Goal Model (diagram) / Source with the Inspector underneath (beside it in full screen). */
 function ModelColumn() {
   const wb = useWorkbench();
-  const { modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly } = useShell();
+  const { modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly, pistarMode } = useShell();
+  // piStar mode shows the editor's own inspector beside the diagram instead
+  const showInspector = !pistarMode;
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs: Array<{ id: ModelTab; label: string }> = [
@@ -380,6 +393,7 @@ function ModelColumn() {
               aria-pressed={modelReadOnly}
               onClick={toggleModelReadOnly}
             />
+            {showInspector && (
             <IconButton
               icon={
                 modelFullscreen
@@ -394,6 +408,7 @@ function ModelColumn() {
               aria-pressed={inspectorOpen}
               onClick={() => setInspectorOpen((open) => !open)}
             />
+            )}
             <IconButton
               icon={modelFullscreen ? Minimize2 : Maximize2}
               label={modelFullscreen ? 'Exit full screen' : 'Full screen: hide the PRISM output and the side bar'}
@@ -409,7 +424,7 @@ function ModelColumn() {
         <Panel id='model-view' defaultSize={modelFullscreen ? undefined : '58%'} minSize='25%'>
           {wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}
         </Panel>
-        {inspectorOpen && (
+        {showInspector && inspectorOpen && (
           <>
             <Separator />
             <Panel id='inspector' defaultSize={modelFullscreen ? '380px' : '42%'} minSize={modelFullscreen ? '280px' : '120px'}>

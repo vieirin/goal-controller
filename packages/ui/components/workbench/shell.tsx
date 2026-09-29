@@ -15,6 +15,9 @@ export type Shell = {
   /** The plain @istar-ts/react editor, as piStar: default palette, no extensions, the model alone. */
   pistarMode: boolean;
   togglePistarMode: () => void;
+  /** in piStar mode, the palette of the engine the file records (Edge: only what it reads) */
+  enginePalette: boolean;
+  setEnginePalette: (on: boolean) => void;
 };
 
 export const ShellContext = createContext<Shell>({
@@ -26,6 +29,8 @@ export const ShellContext = createContext<Shell>({
   toggleModelReadOnly: () => undefined,
   pistarMode: false,
   togglePistarMode: () => undefined,
+  enginePalette: false,
+  setEnginePalette: () => undefined,
 });
 
 export const useShell = (): Shell => useContext(ShellContext);

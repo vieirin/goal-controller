@@ -1,10 +1,11 @@
 'use client';
 
-import '@istar-ts/react/styles.css';
-import { createEmptyModel, parsePistar, type IstarModel } from '@istar-ts/core';
+import './istar.module.css';
+import { createEmptyModel, isActor, parsePistar, type IstarModel } from '@istar-ts/core';
 import {
   DefaultElementComponent,
   IstarCanvas,
+  IstarInspector,
   IstarProvider,
   useIstarEditor,
   useIstarStore,
@@ -13,7 +14,7 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import { createContext, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type ReactElement, type RefObject } from 'react';
-import { serializeModel } from '@/lib/workbench/pistar';
+import { nextRtId, serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
@@ -51,6 +52,17 @@ const problemBadges: IstarExtension = {
     'istar.Quality': { component: ElementWithProblems },
   },
 };
+/** piStar's resource yellow (the Edge examples use it for every resource). */
+const EDGE_RESOURCE_FILL = '#FAF383';
+
+/** Edge resources are drawn yellow unless they have a colour of their own (nothing is written to the file). */
+function EdgeResource(props: ElementComponentProps): ReactElement {
+  const element = props.element.display?.backgroundColor
+    ? props.element
+    : { ...props.element, display: { ...props.element.display, backgroundColor: EDGE_RESOURCE_FILL } };
+  return <ElementWithProblems {...props} element={element} />;
+}
+
 /**
  * Edge and EdgeV2 read goals, tasks and resources in an actor, linked by And/Or
  * refinement and Needed-By: the palette offers only those (other kinds fail to convert).
@@ -63,7 +75,26 @@ const edgePalette: IstarExtension = {
     'istar.Agent': { palette: false },
     'istar.Role': { palette: false },
     'istar.Quality': { palette: false },
+    // resources are the engine's variables: one tool per type, with valid properties preset
+    'istar.Resource': {
+      component: EdgeResource,
+      palette: [
+        {
+          label: 'Boolean',
+          title: 'Boolean resource: click on an actor to add it (starts true)',
+          group: 'resource',
+          properties: { type: 'bool', initialValue: 'true' },
+        },
+        {
+          label: 'Integer',
+          title: 'Integer resource: click on an actor to add it (0 to 5, starts at 5)',
+          group: 'resource',
+          properties: { type: 'int', initialValue: '5', lowerBound: '0', upperBound: '5' },
+        },
+      ],
+    },
   },
+  paletteGroups: { resource: { label: 'Resource', title: 'Add a Boolean or Integer resource' } },
   links: {
     'istar.IsALink': { palette: false },
     'istar.ParticipatesInLink': { palette: false },
@@ -73,10 +104,25 @@ const edgePalette: IstarExtension = {
   },
 };
 
+/**
+ * The engines read an RT id at the start of each name ("G3: …"): new elements get the
+ * next free one. Qualities are goals to the engines, so they share the G numbering.
+ */
+const rtNumbering: IstarExtension = {
+  name: 'rt-numbering',
+  elements: {
+    'istar.Goal': { defaultName: ({ model }) => `${nextRtId(model, 'istar.Goal')}: Goal` },
+    'istar.Quality': { defaultName: ({ model }) => `${nextRtId(model, 'istar.Quality')}: Quality` },
+    'istar.Task': { defaultName: ({ model }) => `${nextRtId(model, 'istar.Task')}: Task` },
+    'istar.Resource': { defaultName: ({ model }) => `${nextRtId(model, 'istar.Resource')}: Resource` },
+  },
+};
+
 // stable arrays: the provider rebuilds its registry when the extensions change
-const WORKBENCH_EXTENSIONS: readonly IstarExtension[] = [problemBadges];
-const EDGE_EXTENSIONS: readonly IstarExtension[] = [problemBadges, edgePalette];
+const WORKBENCH_EXTENSIONS: readonly IstarExtension[] = [problemBadges, rtNumbering];
+const EDGE_EXTENSIONS: readonly IstarExtension[] = [problemBadges, rtNumbering, edgePalette];
 const NO_EXTENSIONS: readonly IstarExtension[] = [];
+const PISTAR_EDGE_PALETTE: readonly IstarExtension[] = [edgePalette];
 
 const tryParse = (text: string): IstarModel | null => {
   if (!text.trim()) return createEmptyModel();
@@ -148,6 +194,18 @@ const isInView = (iStarId: string): boolean => {
   return a.left >= b.left && a.right <= b.right && a.top >= b.top && a.bottom <= b.bottom;
 };
 
+/** Hands the editor's notice function to DiagramView, which sits outside the provider. */
+function NotifyBridge({ notify }: { notify: RefObject<((message: string) => void) | null> }) {
+  const editor = useIstarEditor();
+  useEffect(() => {
+    notify.current = (message) => editor.notify(message, 'error');
+    return () => {
+      notify.current = null;
+    };
+  }, [editor, notify]);
+  return null;
+}
+
 /** Two-way selection sync between the diagram (piStar ids) and the workbench (RT ids). */
 function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null> }) {
   const wb = useWorkbench();
@@ -188,15 +246,27 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
 
 export default function DiagramView() {
   const wb = useWorkbench();
-  const { modelFullscreen, modelReadOnly, pistarMode } = useShell();
+  const { modelFullscreen, modelReadOnly, pistarMode, enginePalette } = useShell();
+  const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   // piStar mode: the library as it ships (no extensions, default palette)
-  const extensions = pistarMode ? NO_EXTENSIONS : wb.engine === 'sleec' ? WORKBENCH_EXTENSIONS : EDGE_EXTENSIONS;
+  // (optionally with the palette of the engine the file records)
+  const extensions = pistarMode
+    ? enginePalette && (wb.recordedEngine === 'edge' || wb.recordedEngine === 'edgev2')
+      ? PISTAR_EDGE_PALETTE
+      : NO_EXTENSIONS
+    : wb.engine === 'sleec'
+      ? WORKBENCH_EXTENSIONS
+      : EDGE_EXTENSIONS;
+  const paletteKind = pistarMode ? 'pistar' : wb.engine === 'sleec' ? 'full' : 'edge';
+  // the Edge engines build one goal tree from one actor
+  const oneActor = useRef(false);
+  oneActor.current = paletteKind === 'edge';
+  const notify = useRef<((message: string) => void) | null>(null);
   const canvas = useRef<IstarCanvasHandle>(null);
   const shown = !!wb.text.trim();
 
   const container = useRef<HTMLDivElement>(null);
-  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}|${pistarMode}|${extensions.length}`, shown);
-  const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
+  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}|${paletteKind}`, shown);
   const { store } = useIstarStore(() => parsed ?? createEmptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
   const written = useRef<string | null>(null);
@@ -215,6 +285,19 @@ export default function DiagramView() {
     () =>
       store.subscribe((event) => {
         if (event.source === 'load') return;
+        // Edge engines: a second actor is taken back out right away
+        if (
+          oneActor.current &&
+          event.source === 'edit' &&
+          event.changes.some((change) => change.type === 'addElement' && isActor(event.model.elements.get(change.id))) &&
+          [...event.model.elements.values()].filter(isActor).length > 1
+        ) {
+          queueMicrotask(() => {
+            store.undo();
+            notify.current?.('The Edge engines read a single actor: add goals, tasks and resources inside the existing one.');
+          });
+          return;
+        }
         const current = latest.current;
         const text = serializeModel(event.model, current.text);
         written.current = text;
@@ -254,8 +337,9 @@ export default function DiagramView() {
       <SeverityContext.Provider value={severities}>
         <IstarProvider store={store} extensions={extensions} readOnly={!parsed || modelReadOnly}>
           <SelectionSync canvas={canvas} />
-          {/* full screen has the width for piStar's horizontal bar; read-only has none */}
-          <IstarCanvas ref={canvas} fitView palette={pistarMode ? undefined : modelReadOnly ? false : modelFullscreen ? 'top' : 'left'} className='h-full' />
+          <NotifyBridge notify={notify} />
+          {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
+          <IstarCanvas ref={canvas} fitView aside={pistarMode ? <IstarInspector /> : undefined} palette={modelReadOnly ? false : pistarMode || modelFullscreen ? 'top' : 'left'} className='h-full' />
         </IstarProvider>
       </SeverityContext.Provider>
       {!parsed && (
