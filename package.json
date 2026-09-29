@@ -37,6 +37,8 @@
   "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
     "typescript": "^5.8.3",
     "vercel": "^50.4.11"
   }
