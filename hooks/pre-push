@@ -56,16 +56,23 @@ else
   echo "✅ Format check passed."
   echo ""
 
-  echo "🔍 Running oxlint on ${COUNT} file(s)..."
-  # shellcheck disable=SC2046
-  if ! pnpm exec oxlint --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**' $(cat "$TMP"); then
+  # oxlint lints JS/TS only: given nothing else (a JSON or CSS change) it exits with an error
+  LINT="$(grep -E '\.(ts|tsx|js|jsx|mjs|cjs)$' "$TMP" || true)"
+  if [ -z "$LINT" ]; then
+    echo "✅ No JS/TS files in push range to lint."
     echo ""
-    echo "❌ Oxlint errors found. Push aborted."
-    echo "Run: pnpm lint:fix"
-    exit 1
+  else
+    echo "🔍 Running oxlint on $(printf '%s\n' "$LINT" | wc -l | tr -d ' ') file(s)..."
+    # shellcheck disable=SC2086
+    if ! pnpm exec oxlint --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**' $LINT; then
+      echo ""
+      echo "❌ Oxlint errors found. Push aborted."
+      echo "Run: pnpm lint:fix"
+      exit 1
+    fi
+    echo "✅ Oxlint passed."
+    echo ""
   fi
-  echo "✅ Oxlint passed."
-  echo ""
 fi
 
 echo "🔍 Running tests..."
