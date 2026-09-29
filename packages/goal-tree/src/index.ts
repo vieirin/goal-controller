@@ -55,7 +55,7 @@
  * }
  *
  * // Model utilities (piStar files are parsed with @istar-ts/core)
- * const model = Model.load('file.json'); // validated, root marked
+ * const model = Model.load('file.json'); // validated; roots resolved from the link graph
  * const checked = Model.validate(parsePistar(json));
  * ```
  */
@@ -64,14 +64,9 @@
 // Main SDK Classes
 // ─────────────────────────────────────────────────────────────────────────────
 
-export {
-  GoalTree,
-  createEngineMapper,
-  type TreeQuery,
-  type EngineMapper,
-} from './GoalTree';
-export { Model, type ModelNamespace } from './Model';
-export { Node, type NodeNamespace } from './Node';
+export { GoalTree, createEngineMapper, type TreeQuery, type EngineMapper } from "./GoalTree";
+export { Model, type ModelNamespace } from "./Model";
+export { Node, type NodeNamespace } from "./Node";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -93,7 +88,7 @@ export type {
   TreeNode,
   Type,
   BaseNode,
-} from './types/';
+} from "./types/";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Raw prop types for engine mappers
@@ -105,21 +100,17 @@ export type {
   // Discriminated union for afterCreationMapper
   RawPropertiesUnion,
   GoalExecutionDetail,
-} from './internal/creation';
+} from "./internal/creation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal utilities (exported for advanced use cases)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { cartesianProduct } from './internal/utils';
+export { cartesianProduct } from "./internal/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Parsers (for engine mappers)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { getAssertionVariables } from './parsers/getAssertionVariables';
-export {
-  DEFAULT_RT_GRAMMAR,
-  getGoalDetail,
-  type RTGrammar,
-} from './parsers/goalNameParser';
+export { getAssertionVariables } from "./parsers/getAssertionVariables";
+export { DEFAULT_RT_GRAMMAR, getGoalDetail, type RTGrammar } from "./parsers/goalNameParser";
