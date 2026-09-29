@@ -76,6 +76,7 @@ const edgePalette: IstarExtension = {
     'istar.Role': { palette: false },
     'istar.Quality': { palette: false },
     // resources are the engine's variables: one tool per type, with valid properties preset
+    // after Task (default order 36): Goal, Task, then Resource
     'istar.Resource': {
       component: EdgeResource,
       palette: [
@@ -83,12 +84,14 @@ const edgePalette: IstarExtension = {
           label: 'Boolean',
           title: 'Boolean resource: click on an actor to add it (starts true)',
           group: 'resource',
+          order: 37,
           properties: { type: 'bool', initialValue: 'true' },
         },
         {
           label: 'Integer',
           title: 'Integer resource: click on an actor to add it (0 to 5, starts at 5)',
           group: 'resource',
+          order: 37,
           properties: { type: 'int', initialValue: '5', lowerBound: '0', upperBound: '5' },
         },
       ],
