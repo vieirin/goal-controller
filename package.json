@@ -1,15 +1,17 @@
 {
   "name": "goal-controller-monorepo",
   "version": "1.0.0",
-  "description": "Controller Synthesis from Goal Models - Monorepo",
   "private": true,
-  "packageManager": "pnpm@8.15.0",
-  "pnpm": {
-    "onlyBuiltDependencies": []
+  "description": "Controller Synthesis from Goal Models - Monorepo",
+  "homepage": "https://github.com/vieirin/goal-controller#readme",
+  "bugs": {
+    "url": "https://github.com/vieirin/goal-controller/issues"
   },
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
+  "license": "ISC",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vieirin/goal-controller.git"
   },
   "scripts": {
     "dev": "concurrently \"pnpm run dev:goal-tree\" \"pnpm run dev:lib\" \"pnpm run dev:ui\"",
@@ -23,23 +25,25 @@
     "test": "pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run test",
     "grammar": "cd packages/lib && make grammar",
     "clean": "pnpm --recursive run clean && rm -rf node_modules packages/*/node_modules",
-    "setup-hooks": "bash hooks/setup.sh"
+    "setup-hooks": "bash hooks/setup.sh",
+    "lint": "oxlint . --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**'",
+    "lint:fix": "oxlint --fix . --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**'",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/vieirin/goal-controller.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/vieirin/goal-controller/issues"
-  },
-  "homepage": "https://github.com/vieirin/goal-controller#readme",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "typescript": "^5.8.3",
     "vercel": "^50.4.11"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "pnpm": {
+    "onlyBuiltDependencies": []
   }
 }

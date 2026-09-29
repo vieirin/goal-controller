@@ -1,42 +1,79 @@
 #!/bin/bash
 
-# Pre-push hook to run ESLint and tests before allowing push
-# This hook prevents pushing if there are linter errors or test failures
+# Block push if commits being pushed fail oxfmt --check or oxlint.
+# Also runs the test suite.
 
-echo "🔍 Running ESLint validation..."
+set -euo pipefail
 
-# Run ESLint on all TypeScript files (excluding antlr generated files)
-npx eslint "src/**/*.ts" --ignore-pattern "**/antlr/**" --format=compact
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
 
-# Capture the exit code
-ESLINT_EXIT_CODE=$?
+ZERO="0000000000000000000000000000000000000000"
+TMP="$(mktemp)"
+trap 'rm -f "$TMP"' EXIT
 
-if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$local_sha" = "$ZERO" ]; then
+    continue
+  fi
+  if [ "$remote_sha" = "$ZERO" ]; then
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      range="$(git merge-base origin/main "$local_sha")..$local_sha"
+    else
+      range="$local_sha"
+    fi
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  git diff --name-only "$range" | while IFS= read -r file; do
+    case "$file" in
+      *node_modules*|*antlr*) continue ;;
+    esac
+    case "$file" in
+      *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css)
+        if [ -f "$file" ]; then
+          printf '%s\n' "$file"
+        fi
+        ;;
+    esac
+  done
+done | awk 'NF && !seen[$0]++' >"$TMP"
+
+if [ ! -s "$TMP" ]; then
+  echo "✅ No source files in push range to lint/format-check."
+else
+  COUNT="$(wc -l <"$TMP" | tr -d ' ')"
+  echo "🔍 Checking format (oxfmt) on ${COUNT} file(s)..."
+  # shellcheck disable=SC2046
+  if ! pnpm exec oxfmt --check $(cat "$TMP"); then
+    echo ""
+    echo "❌ Format check failed. Push aborted."
+    echo "Run: pnpm format"
+    echo "Or commit again so the post-commit hook can amend formatting."
+    exit 1
+  fi
+  echo "✅ Format check passed."
   echo ""
-  echo "❌ ESLint errors found! Push aborted."
-  echo "Please fix all linter errors before pushing."
+
+  echo "🔍 Running oxlint on ${COUNT} file(s)..."
+  # shellcheck disable=SC2046
+  if ! pnpm exec oxlint --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**' $(cat "$TMP"); then
+    echo ""
+    echo "❌ Oxlint errors found. Push aborted."
+    echo "Run: pnpm lint:fix"
+    exit 1
+  fi
+  echo "✅ Oxlint passed."
   echo ""
-  echo "You can run 'npx eslint src/**/*.ts --ignore-pattern \"**/antlr/**\" --fix' to auto-fix some issues."
+fi
+
+echo "🔍 Running tests..."
+if ! pnpm test; then
+  echo ""
+  echo "❌ Tests failed. Push aborted."
   exit 1
 fi
 
-echo "✅ ESLint validation passed!"
-echo ""
-echo "🔍 Running tests before push..."
-
-# Run the test suite
-npm test
-
-# Capture the exit code
-TEST_EXIT_CODE=$?
-
-if [ $TEST_EXIT_CODE -ne 0 ]; then
-  echo ""
-  echo "❌ Tests failed! Push aborted."
-  echo "Please fix the failing tests before pushing."
-  exit 1
-fi
-
-echo "✅ All tests passed! Proceeding with push..."
+echo "✅ All checks passed. Proceeding with push..."
 exit 0
-

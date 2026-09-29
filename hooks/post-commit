@@ -1,60 +1,66 @@
 #!/bin/bash
 
-# Post-commit hook to run Prettier on committed files and amend the commit
-# This ensures all committed code is properly formatted
+# Format and auto-fix committed files with oxfmt/oxlint, then amend if needed.
+# Ensures pushes already contain linted, formatted code.
 
-echo "🎨 Running Prettier on committed files..."
+set -euo pipefail
 
-# Get the files from the last commit
-COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
 
-# Filter for TypeScript/JavaScript files that exist
-TS_JS_FILES=""
-while IFS= read -r file; do
-  if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [[ ! "$file" =~ node_modules ]] && [[ ! "$file" =~ antlr ]] && [ -f "$file" ]; then
-    TS_JS_FILES="$TS_JS_FILES $file"
+# Avoid rewriting commits that are already on the remote
+if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+  if git merge-base --is-ancestor HEAD '@{u}' 2>/dev/null; then
+    echo "⏭️  HEAD is already on the remote; skipping format amend."
+    exit 0
   fi
+fi
+
+echo "🎨 Running oxfmt + oxlint --fix on committed files..."
+
+COMMITTED_FILES="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+
+FILES=()
+while IFS= read -r file; do
+  case "$file" in
+    *node_modules*|*antlr*) continue ;;
+  esac
+  case "$file" in
+    *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css)
+      if [ -f "$file" ]; then
+        FILES+=("$file")
+      fi
+      ;;
+  esac
 done <<< "$COMMITTED_FILES"
 
-# Trim leading space
-TS_JS_FILES=$(echo "$TS_JS_FILES" | sed 's/^[[:space:]]*//')
-
-if [ -z "$TS_JS_FILES" ]; then
-  echo "✅ No TypeScript/JavaScript files to format."
+if [ ${#FILES[@]} -eq 0 ]; then
+  echo "✅ No source files to format or lint."
   exit 0
 fi
 
-# Run Prettier on the committed files
-echo "Formatting files:"
-for file in $TS_JS_FILES; do
+echo "Files:"
+for file in "${FILES[@]}"; do
   echo "  - $file"
 done
 
-# Run Prettier
-npx prettier --write $TS_JS_FILES > /dev/null 2>&1
-PRETTIER_EXIT_CODE=$?
+pnpm exec oxfmt "${FILES[@]}"
+pnpm exec oxlint --fix --ignore-pattern '**/antlr/**' "${FILES[@]}" || true
 
-if [ $PRETTIER_EXIT_CODE -ne 0 ]; then
-  echo "⚠️  Prettier encountered an error (this is usually fine if files are already formatted)"
-fi
-
-# Check if there are any changes after formatting and stage them
 HAS_CHANGES=false
-for file in $TS_JS_FILES; do
-  if ! git diff --quiet "$file"; then
-    git add "$file"
+for file in "${FILES[@]}"; do
+  if ! git diff --quiet -- "$file"; then
+    git add -- "$file"
     HAS_CHANGES=true
   fi
 done
 
-# If there are changes, amend the commit
 if [ "$HAS_CHANGES" = true ]; then
-  echo "📝 Amending commit with Prettier formatting..."
-  git commit --amend --no-edit --no-verify > /dev/null 2>&1
-  echo "✅ Commit amended with formatted code!"
+  echo "📝 Amending commit with lint/format fixes..."
+  git commit --amend --no-edit --no-verify >/dev/null
+  echo "✅ Commit amended."
 else
-  echo "✅ All files were already properly formatted."
+  echo "✅ Already linted and formatted."
 fi
 
 exit 0
-

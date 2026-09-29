@@ -1,54 +1,38 @@
 # Git Hooks
 
-This directory contains git hooks for the project.
-
 ## Setup
 
-To install all hooks, run the setup script:
-
 ```bash
+pnpm setup-hooks
+# or
 ./hooks/setup.sh
 ```
 
-Or manually install hooks:
+## Hooks
 
-```bash
-cp hooks/pre-push .git/hooks/pre-push
-chmod +x .git/hooks/pre-push
+### post-commit
 
-cp hooks/post-commit .git/hooks/post-commit
-chmod +x .git/hooks/post-commit
-```
-
-## Available Hooks
+Runs `oxfmt` and `oxlint --fix` on files in the new commit. If anything changes, amends the commit (`--no-verify` so hooks do not loop). Skips amend when `HEAD` is already on the remote.
 
 ### pre-push
 
-Runs ESLint validation and the test suite before allowing a push. If there are any linter errors or test failures, the push is aborted.
+Blocks the push unless, for source files in the commits being pushed:
 
-**What it does:**
-1. Runs ESLint on all TypeScript files (excluding `antlr` generated files)
-2. Runs the test suite (`npm test`)
-3. Aborts the push if either ESLint or tests fail
+1. `oxfmt --check` passes
+2. `oxlint` passes (generated `antlr` trees ignored)
+3. `pnpm test` passes
 
-**To bypass the hook (not recommended):**
+Bypass (not recommended):
+
 ```bash
 git push --no-verify
 ```
 
-**To auto-fix ESLint issues:**
+## Manual commands
+
 ```bash
-npx eslint "src/**/*.ts" --ignore-pattern "**/antlr/**" --fix
+pnpm format       # write formatting
+pnpm format:check
+pnpm lint
+pnpm lint:fix
 ```
-
-### post-commit
-
-Automatically runs Prettier on committed TypeScript/JavaScript files and amends the commit with formatted code. This ensures all committed code is properly formatted.
-
-**What it does:**
-1. Gets the files from the last commit
-2. Runs Prettier on TypeScript/JavaScript files
-3. If formatting changes are made, amends the commit automatically
-
-**Note:** The hook uses `--no-verify` when amending to prevent infinite loops with other hooks.
-

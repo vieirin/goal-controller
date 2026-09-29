@@ -1,38 +1,33 @@
 #!/bin/bash
 
-# Setup script to install git hooks
+# Install git hooks from this directory into .git/hooks
 
 HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GIT_HOOKS_DIR="$HOOKS_DIR/../.git/hooks"
 
 echo "Installing git hooks..."
 
-# Install pre-push hook
-if [ -f "$HOOKS_DIR/pre-push" ]; then
-  cp "$HOOKS_DIR/pre-push" "$GIT_HOOKS_DIR/pre-push"
-  chmod +x "$GIT_HOOKS_DIR/pre-push"
-  echo "✅ Installed pre-push hook"
-else
-  echo "❌ pre-push hook not found"
-  exit 1
-fi
+install_hook() {
+  local name="$1"
+  local required="${2:-true}"
+  if [ -f "$HOOKS_DIR/$name" ]; then
+    cp "$HOOKS_DIR/$name" "$GIT_HOOKS_DIR/$name"
+    chmod +x "$GIT_HOOKS_DIR/$name"
+    echo "✅ Installed $name hook"
+  elif [ "$required" = true ]; then
+    echo "❌ $name hook not found"
+    exit 1
+  else
+    echo "⚠️  $name hook not found (optional)"
+  fi
+}
 
-# Install post-commit hook
-if [ -f "$HOOKS_DIR/post-commit" ]; then
-  cp "$HOOKS_DIR/post-commit" "$GIT_HOOKS_DIR/post-commit"
-  chmod +x "$GIT_HOOKS_DIR/post-commit"
-  echo "✅ Installed post-commit hook"
-else
-  echo "⚠️  post-commit hook not found (optional)"
-fi
+install_hook pre-push true
+install_hook post-commit true
 
 echo ""
-echo "Git hooks installed successfully!"
+echo "Git hooks installed."
+echo "  post-commit — oxfmt + oxlint --fix, amend if needed"
+echo "  pre-push    — oxfmt --check, oxlint, then pnpm test"
 echo ""
-echo "The pre-push hook will run tests before allowing pushes."
-echo "The post-commit hook will format code with Prettier and amend commits."
-echo ""
-echo "To bypass hooks (not recommended):"
-echo "  - Pre-push: git push --no-verify"
-echo "  - Post-commit: git commit --no-verify (but this won't prevent the hook from running)"
-
+echo "Bypass (not recommended): git push --no-verify"
