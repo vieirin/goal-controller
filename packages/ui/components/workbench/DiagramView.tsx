@@ -25,7 +25,6 @@ import {
   type RefObject,
 } from "react";
 import { useSelection, useWorkbench } from "./WorkbenchContext";
-import "./istar.module.css";
 import { useShell } from "./shell";
 
 /**
