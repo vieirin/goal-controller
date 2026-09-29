@@ -15,7 +15,7 @@ import {
 import { createContext, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type ReactElement, type RefObject } from 'react';
 import { serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
-import { useWorkbench } from './WorkbenchContext';
+import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
 
 /**
@@ -129,18 +129,21 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
   const { selection, select } = useIstarEditor();
   const latest = useRef(wb);
   latest.current = wb;
+  const sel = useSelection();
+  const latestSel = useRef(sel);
+  latestSel.current = sel;
 
   // workbench → diagram
   useEffect(() => {
-    if (wb.selectOrigin === 'canvas') return;
-    const iStarId = wb.selected ? (wb.tree?.nodes.get(wb.selected)?.iStarId ?? null) : null;
+    if (sel.selectOrigin === 'canvas') return;
+    const iStarId = sel.selected ? (wb.tree?.nodes.get(sel.selected)?.iStarId ?? null) : null;
     const current = selection?.type === 'element' ? selection.id : null;
     if (iStarId !== current) select(iStarId ? { type: 'element', id: iStarId } : null);
     // bring a node selected elsewhere into view, keeping the zoom
     if (iStarId && !isInView(iStarId)) void canvas.current?.centerOn(iStarId, { duration: 200 });
     // only when the workbench selection changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wb.selectSeq]);
+  }, [sel.selectSeq]);
 
   // diagram → workbench, only when the diagram's selection actually changes
   // (on mount it starts empty, which must not clear the workbench's selection)
@@ -148,7 +151,8 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
   useEffect(() => {
     if (previous.current === selection) return;
     previous.current = selection;
-    const { tree, selected, select: selectNode } = latest.current;
+    const { tree, select: selectNode } = latest.current;
+    const { selected } = latestSel.current;
     const id = selection?.type === 'element' ? (tree?.byIStarId.get(selection.id)?.id ?? null) : null;
     if (selection?.type === 'link') return;
     if (id !== selected) selectNode(id, 'canvas');

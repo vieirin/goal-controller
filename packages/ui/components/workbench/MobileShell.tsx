@@ -19,7 +19,7 @@ import {
   Lock,
   Unlock,
 } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { LogView, ModelDataView, ProblemsView, VariablesView } from './BottomPanel';
@@ -29,7 +29,7 @@ import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import { EngineOptions, useOpenFile } from './TopBar';
 import DiagramView from './DiagramView';
-import { useWorkbench, type ModelTab } from './WorkbenchContext';
+import { useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, IconButton, Menu, MenuItem, Segmented, Switch, Tabs, cx } from './ui';
 
@@ -40,6 +40,17 @@ const ENGINES: Array<{ id: TransformEngine; label: string }> = [
   { id: 'edgev2', label: 'EdgeV2' },
   { id: 'sleec', label: 'SLEEC' },
 ];
+
+/** Opens or closes the Inspector sheet as the selection changes, without re-rendering the shell. */
+function SheetOnSelect({ onSelect }: { onSelect: (to: 'sheet' | 'output' | 'none') => void }) {
+  const { selected, selectOrigin, selectSeq } = useSelection();
+  useEffect(() => {
+    if (!selected) onSelect('none');
+    else if (selectOrigin === 'inspector') onSelect('output');
+    else if (selectOrigin !== 'output') onSelect('sheet');
+  }, [selectSeq, selected, selectOrigin, onSelect]);
+  return null;
+}
 
 /**
  * Phone layout: one full-screen view at a time with a bottom navigation bar,
@@ -53,18 +64,10 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // selecting a node opens the Inspector sheet; the output's "lines" button goes to the output
-  useEffect(() => {
-    if (!wb.selected) {
-      setSheetOpen(false);
-      return;
-    }
-    if (wb.selectOrigin === 'inspector') {
-      setSheetOpen(false);
-      setView('output');
-    } else if (wb.selectOrigin !== 'output') {
-      setSheetOpen(true);
-    }
-  }, [wb.selectSeq, wb.selected, wb.selectOrigin]);
+  const onSelect = useCallback((to: 'sheet' | 'output' | 'none') => {
+    setSheetOpen(to === 'sheet');
+    if (to === 'output') setView('output');
+  }, []);
 
   // bottom-panel requests from elsewhere (problem counts, variable links)
   useEffect(() => {
@@ -151,8 +154,9 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
         </div>
       )}
 
+      <SheetOnSelect onSelect={onSelect} />
       {/* Inspector sheet */}
-      {sheetOpen && wb.selected && (
+      {sheetOpen && (
         <div className='fixed inset-0 z-40 flex flex-col justify-end' role='dialog' aria-modal='true' aria-label='Inspector'>
           <button type='button' aria-label='Close the Inspector' className='flex-1 bg-ink/20' onClick={() => setSheetOpen(false)} />
           <div className='flex max-h-[75dvh] flex-col rounded-t-xl bg-white shadow-2xl'>

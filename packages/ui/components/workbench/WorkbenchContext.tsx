@@ -136,10 +136,7 @@ export type Workbench = {
   // problems
   problems: Problem[];
 
-  // selection & navigation
-  selected: string | null;
-  selectOrigin: SelectOrigin | null;
-  selectSeq: number;
+  // selection (what is selected: useSelection) & navigation
   select: (id: string | null, origin: SelectOrigin) => void;
   modelTab: ModelTab;
   setModelTab: (tab: ModelTab) => void;
@@ -161,6 +158,43 @@ export const useWorkbench = (): Workbench => {
   if (!value) throw new Error('useWorkbench must be used inside <WorkbenchProvider>');
   return value;
 };
+
+/**
+ * The selected node. Kept out of the workbench context so a click re-renders only
+ * what shows the selection, not the whole workbench.
+ */
+export type Selection = {
+  selected: string | null;
+  selectOrigin: SelectOrigin | null;
+  /** bumps on every select, also when the same node is selected again */
+  selectSeq: number;
+};
+
+type SelectionActions = {
+  select: (id: string | null, origin: SelectOrigin) => void;
+  clearSelection: () => void;
+};
+
+const SelectionContext = createContext<Selection>({ selected: null, selectOrigin: null, selectSeq: 0 });
+const SelectionActionsContext = createContext<SelectionActions | null>(null);
+
+export const useSelection = (): Selection => useContext(SelectionContext);
+
+function SelectionProvider({ children }: { children: ReactNode }) {
+  const [selection, setSelection] = useState<Selection>({ selected: null, selectOrigin: null, selectSeq: 0 });
+  const actions = useMemo<SelectionActions>(
+    () => ({
+      select: (selected, selectOrigin) => setSelection((prev) => ({ selected, selectOrigin, selectSeq: prev.selectSeq + 1 })),
+      clearSelection: () => setSelection((prev) => ({ selected: null, selectOrigin: null, selectSeq: prev.selectSeq + 1 })),
+    }),
+    [],
+  );
+  return (
+    <SelectionActionsContext.Provider value={actions}>
+      <SelectionContext.Provider value={selection}>{children}</SelectionContext.Provider>
+    </SelectionActionsContext.Provider>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -203,13 +237,25 @@ const COALESCE_MS = 600;
 // Provider
 // ---------------------------------------------------------------------------
 
-export function WorkbenchProvider({
+export function WorkbenchProvider(props: { lockedEngine: TransformEngine | null; children: ReactNode }) {
+  // the selection sits outside the workbench state: selecting does not re-render WorkbenchState
+  return (
+    <SelectionProvider>
+      <WorkbenchState {...props} />
+    </SelectionProvider>
+  );
+}
+
+function WorkbenchState({
   lockedEngine,
   children,
 }: {
   lockedEngine: TransformEngine | null;
   children: ReactNode;
 }) {
+  const selectionActions = useContext(SelectionActionsContext);
+  if (!selectionActions) throw new Error('WorkbenchState must be inside <SelectionProvider>');
+  const { select, clearSelection } = selectionActions;
   const initial = useRef<Persisted | null>(null);
   initial.current ??= loadPreferences<Persisted>();
 
@@ -296,15 +342,7 @@ export function WorkbenchProvider({
     commit(next, 'undo');
   }, [commit]);
 
-  // ---- selection & navigation ---------------------------------------------
-  const [selection, setSelection] = useState<{ id: string | null; origin: SelectOrigin | null; seq: number }>({
-    id: null,
-    origin: null,
-    seq: 0,
-  });
-  const select = useCallback((id: string | null, origin: SelectOrigin) => {
-    setSelection((prev) => ({ id, origin, seq: prev.seq + 1 }));
-  }, []);
+  // ---- navigation (the selection itself is in SelectionProvider) ----------
   const [modelTab, setModelTab] = useState<ModelTab>('diagram');
   const [outputTab, setOutputTab] = useState<OutputTab>('output');
   const [bottomTab, setBottomTabState] = useState<BottomTab>('problems');
@@ -346,10 +384,10 @@ export function WorkbenchProvider({
       undoStack.current = [];
       redoStack.current = [];
       setRuns([]);
-      setSelection((prev) => ({ id: null, origin: null, seq: prev.seq + 1 }));
+      clearSelection();
       forceHistory((n) => n + 1);
     },
-    [applySettings],
+    [applySettings, clearSelection],
   );
 
   const renameFile = useCallback((fileName: string) => {
@@ -615,13 +653,10 @@ export function WorkbenchProvider({
     setRecent(rememberRecent({ fileName: fileName || 'untitled.txt', text, savedText, settings: snapshot.settings }));
   }, [snapshot]);
 
+  // memoized: a new object on every render would restart the debounce and re-render
+  // the whole workbench twice a second, forever
   const persisted = useDebounced<Persisted>(
-    {
-      engine: engineState,
-      options,
-      live,
-      variables: storedValues,
-    },
+    useMemo(() => ({ engine: engineState, options, live, variables: storedValues }), [engineState, options, live, storedValues]),
     500,
   );
   useEffect(() => {
@@ -673,9 +708,6 @@ export function WorkbenchProvider({
     stale,
     trace,
     problems,
-    selected: selection.id,
-    selectOrigin: selection.origin,
-    selectSeq: selection.seq,
     select,
     modelTab,
     setModelTab,

@@ -32,7 +32,7 @@ import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
 import DiagramView from './DiagramView';
-import { WorkbenchProvider, useWorkbench, type ModelTab } from './WorkbenchContext';
+import { WorkbenchProvider, useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs } from './ui';
 
@@ -330,12 +330,10 @@ function ModelColumn() {
     { id: 'source', label: 'Source' },
   ];
 
-  useEffect(() => {
-    if (wb.selected) setInspectorOpen(true);
-  }, [wb.selectSeq, wb.selected]);
 
   return (
     <section className='flex h-full min-h-0 flex-col bg-white' aria-label='Goal model'>
+      <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
       <Tabs
         label='Model views'
         tabs={tabs}
@@ -391,6 +389,20 @@ function ModelColumn() {
       </Group>
     </section>
   );
+}
+
+/**
+ * Opens the Inspector when a node is selected. A component of its own so that a
+ * selection re-renders only this, not the model column around it.
+ */
+function OpenInspectorOnSelect({ open }: { open: () => void }) {
+  const { selected, selectSeq } = useSelection();
+  const latest = useRef(open);
+  latest.current = open;
+  useEffect(() => {
+    if (selected) latest.current();
+  }, [selectSeq, selected]);
+  return null;
 }
 
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
@@ -484,7 +496,8 @@ function StatusBar() {
   const wb = useWorkbench();
   const errors = wb.problems.filter((p) => p.severity === 'error').length;
   const warnings = wb.problems.filter((p) => p.severity === 'warning').length;
-  const selected = wb.selected ? wb.tree?.nodes.get(wb.selected) : undefined;
+  const { selected: selectedId } = useSelection();
+  const selected = selectedId ? wb.tree?.nodes.get(selectedId) : undefined;
   const engineLabel = wb.engine === 'edgev2' ? 'EdgeV2' : wb.engine === 'edge' ? 'Edge' : 'SLEEC';
   return (
     <footer className='flex h-6 shrink-0 items-center gap-4 border-t border-line bg-white px-3 text-2xs text-ink-muted'>

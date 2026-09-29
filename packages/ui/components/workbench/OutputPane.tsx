@@ -10,7 +10,7 @@ import { baseName, downloadText } from '@/lib/workbench/download';
 import type { NodeKind, ViewTree } from '@/lib/workbench/pistar';
 import { lineOwner, type OutlineEntry } from '@/lib/workbench/trace';
 import CodeEditor from './CodeEditor';
-import { useWorkbench, type OutputTab, type Run } from './WorkbenchContext';
+import { useSelection, useWorkbench, type OutputTab, type Run } from './WorkbenchContext';
 import { Button, IconButton, Kbd, Menu, MenuItem, Tabs, cx } from './ui';
 
 const time = (at: number): string =>
@@ -241,6 +241,7 @@ function OutputActions({ run }: { run: Run | null }) {
 /** Generated output with trace: the selected node's lines are highlighted; clicking a line selects its node. */
 function TracedOutput({ output }: { output: string }) {
   const wb = useWorkbench();
+  const sel = useSelection();
   const [view, setView] = useState<EditorView | null>(null);
   const latest = useRef(wb);
   latest.current = wb;
@@ -270,30 +271,30 @@ function TracedOutput({ output }: { output: string }) {
     const trace = wb.trace;
     const marks: LineMark[] = [];
     let firstPrimary: number | null = null;
-    if (wb.selected && trace) {
+    if (sel.selected && trace) {
       trace.lines.forEach((line, index) => {
-        if (line.primary.includes(wb.selected!)) {
+        if (line.primary.includes(sel.selected!)) {
           marks.push({ line: index + 1, className: 'cm-trace-primary' });
           firstPrimary ??= index + 1;
-        } else if (line.mentions.includes(wb.selected!)) {
+        } else if (line.mentions.includes(sel.selected!)) {
           marks.push({ line: index + 1, className: 'cm-trace-mention' });
         }
       });
     }
     // prefer the node's own module over the constant declarations at the top
-    const ownModule = wb.selected ? trace?.outline.find((entry) => entry.owner === wb.selected) : undefined;
+    const ownModule = sel.selected ? trace?.outline.find((entry) => entry.owner === sel.selected) : undefined;
     const target = ownModule?.line ?? firstPrimary;
     const doc = view.state.doc;
     view.dispatch({
       effects: [
         setLineMarks.of(marks),
-        ...(target && wb.selectOrigin !== 'output' && target <= doc.lines
+        ...(target && sel.selectOrigin !== 'output' && target <= doc.lines
           ? [EditorView.scrollIntoView(doc.line(target).from, { y: 'start', yMargin: 24 })]
           : []),
       ],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, wb.selectSeq, wb.trace]);
+  }, [view, sel.selectSeq, wb.trace]);
 
   // outline jumps
   useEffect(() => {

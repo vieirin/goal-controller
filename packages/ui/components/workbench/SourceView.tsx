@@ -6,13 +6,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { nodeRanges } from '@/lib/workbench/pistar';
 import CodeEditor from './CodeEditor';
-import { useWorkbench } from './WorkbenchContext';
+import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
 
 export default function SourceView() {
   const wb = useWorkbench();
   const { modelReadOnly } = useShell();
-  const { text, tree, selected, selectOrigin, selectSeq, problems, sourceLine } = wb;
+  const sel = useSelection();
+  const { selected, selectOrigin, selectSeq } = sel;
+  const { text, tree, problems, sourceLine } = wb;
+  const latestSelected = useRef(selected);
+  latestSelected.current = selected;
   const [view, setView] = useState<EditorView | null>(null);
   const latest = useRef(wb);
   latest.current = wb;
@@ -35,7 +39,7 @@ export default function SourceView() {
           if (at >= from && at <= to && (!best || to - from < best.size)) best = { iStarId, size: to - from };
         }
         const node = best ? latest.current.tree?.byIStarId.get(best.iStarId) : undefined;
-        if (node && node.id !== latest.current.selected) latest.current.select(node.id, 'source');
+        if (node && node.id !== latestSelected.current) latest.current.select(node.id, 'source');
       }),
     [],
   );

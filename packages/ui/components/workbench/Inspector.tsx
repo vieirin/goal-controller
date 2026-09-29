@@ -16,7 +16,7 @@ import {
   setRefinement,
   type ViewNode,
 } from '@/lib/workbench/pistar';
-import { useWorkbench } from './WorkbenchContext';
+import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, NodeChip, Segmented, cx } from './ui';
 
@@ -83,7 +83,8 @@ const inputClass =
 export default function Inspector() {
   const wb = useWorkbench();
   const { modelReadOnly } = useShell();
-  const node = wb.selected ? wb.tree?.nodes.get(wb.selected) : undefined;
+  const { selected } = useSelection();
+  const node = selected ? wb.tree?.nodes.get(selected) : undefined;
   if (!wb.tree) {
     return <p className='p-4 text-sm text-ink-muted'>Open a model to inspect its goals and tasks.</p>;
   }
