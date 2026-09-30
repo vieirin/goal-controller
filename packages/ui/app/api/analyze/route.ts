@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { ApiResponse, readJson } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
 import { KNOWN_PROPERTIES } from '../../../lib/models/knownProperties';
-import { isTransformEngine, type TransformEngine } from '../../../lib/types';
+import { isTransformEngine } from '../../../lib/types';
 import type {
   AnalyzeResponse,
   Problem,
