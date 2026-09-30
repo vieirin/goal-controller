@@ -34,7 +34,12 @@ import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
 import DiagramView from './DiagramView';
-import { WorkbenchProvider, useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
+import {
+  WorkbenchProvider,
+  useSelection,
+  useWorkbench,
+  type ModelTab,
+} from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs, cx } from './ui';
 
@@ -55,7 +60,9 @@ function ShellLayout() {
   const [dragging, setDragging] = useState(false);
   // dragover fires every few ms while a file is over the window; when it stops
   // (the file left the window, or the drag was cancelled) the drop target goes away
-  const dragTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const dragTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const hideDropTarget = useCallback(() => {
     clearTimeout(dragTimer.current);
     setDragging(false);
@@ -111,7 +118,9 @@ function ShellLayout() {
     if (bottomPanel.current?.isCollapsed()) bottomPanel.current.expand();
   }, [wb.bottomRevealSeq, bottomPanel]);
 
-  const [modelReadOnly, setModelReadOnly] = useState(() => window.localStorage.getItem(READ_ONLY_KEY) === 'true');
+  const [modelReadOnly, setModelReadOnly] = useState(
+    () => window.localStorage.getItem(READ_ONLY_KEY) === 'true',
+  );
   const toggleModelReadOnly = useCallback(() => {
     setModelReadOnly((on) => {
       window.localStorage.setItem(READ_ONLY_KEY, String(!on));
@@ -127,7 +136,9 @@ function ShellLayout() {
     (on: boolean) => {
       if (on === fullscreenRef.current) return;
       if (on) {
-        explorerBeforeFullscreen.current = !(explorerPanel.current?.isCollapsed() ?? true);
+        explorerBeforeFullscreen.current = !(
+          explorerPanel.current?.isCollapsed() ?? true
+        );
         fullscreenRef.current = true;
         explorerPanel.current?.collapse();
         outputPanel.current?.collapse();
@@ -152,7 +163,8 @@ function ShellLayout() {
   useEffect(() => setEnginePalette(false), [wb.fileName]);
   // leaving piStar mode converts the model back to its engine (a checked step)
   const togglePistarMode = useCallback(() => {
-    if (wb.hasModel) wb.requestMode(wb.settings.pistar ? wb.settings.engine : 'pistar');
+    if (wb.hasModel)
+      wb.requestMode(wb.settings.pistar ? wb.settings.engine : 'pistar');
   }, [wb]);
   const layoutFor = useRef<{ pistar: boolean; file: string } | null>(null);
   useEffect(() => {
@@ -163,7 +175,12 @@ function ShellLayout() {
     const last = layoutFor.current;
     layoutFor.current = { pistar: pistarMode, file: wb.fileName };
     // follow a change of mode, and open a piStar model in its layout
-    if (last && last.pistar === pistarMode && (last.file === wb.fileName || !pistarMode)) return undefined;
+    if (
+      last &&
+      last.pistar === pistarMode &&
+      (last.file === wb.fileName || !pistarMode)
+    )
+      return undefined;
     // after the model panels mount
     const frame = requestAnimationFrame(() => setFullscreen(pistarMode));
     return () => cancelAnimationFrame(frame);
@@ -196,7 +213,9 @@ function ShellLayout() {
     if (wb.settingsDialog || wb.conversion) return undefined;
     const exportModel = () => {
       if (!wb.hasModel) return;
-      const name = /\.(txt|json)$/i.test(wb.fileName) ? wb.fileName : `${baseName(wb.fileName)}.txt`;
+      const name = /\.(txt|json)$/i.test(wb.fileName)
+        ? wb.fileName
+        : `${baseName(wb.fileName)}.txt`;
       downloadText(name, wb.text, 'application/json');
       wb.markSaved();
     };
@@ -252,7 +271,9 @@ function ShellLayout() {
       >
         <MobileShell empty={<EmptyState onNewModel={newModel} />} />
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
-        {wb.conversion && wb.hasModel && <ConvertDialog target={wb.conversion.target} />}
+        {wb.conversion && wb.hasModel && (
+          <ConvertDialog target={wb.conversion.target} />
+        )}
       </ShellContext.Provider>
     );
   }
@@ -284,7 +305,8 @@ function ShellLayout() {
           event.preventDefault();
           hideDropTarget();
           const file = event.dataTransfer.files[0];
-          if (file) wb.openModel(file.name, await readFile(file), { setup: true });
+          if (file)
+            wb.openModel(file.name, await readFile(file), { setup: true });
         }}
       >
         <TopBar />
@@ -302,7 +324,8 @@ function ShellLayout() {
                   const open = size.inPixels > 0;
                   setExplorerOpen(open);
                   // collapsing it for full screen is not a preference
-                  if (!fullscreenRef.current) window.localStorage.setItem(EXPLORER_KEY, String(open));
+                  if (!fullscreenRef.current)
+                    window.localStorage.setItem(EXPLORER_KEY, String(open));
                 }}
               >
                 <Explorer />
@@ -339,10 +362,18 @@ function ShellLayout() {
             </Group>
           </Panel>
           <Separator />
-          <Panel id='bottom' panelRef={bottomPanel} defaultSize='30%' minSize='160px' collapsible collapsedSize='36px'>
+          <Panel
+            id='bottom'
+            panelRef={bottomPanel}
+            defaultSize='30%'
+            minSize='160px'
+            collapsible
+            collapsedSize='36px'
+          >
             <BottomPanel
               onToggle={() => {
-                if (bottomPanel.current?.isCollapsed()) bottomPanel.current.expand();
+                if (bottomPanel.current?.isCollapsed())
+                  bottomPanel.current.expand();
                 else bottomPanel.current?.collapse();
               }}
             />
@@ -352,12 +383,15 @@ function ShellLayout() {
         {dragging && (
           <div className='pointer-events-none fixed inset-2 z-50 grid place-items-center rounded-xl border-2 border-dashed border-trace bg-trace-soft/80'>
             <span className='flex items-center gap-2 text-lg font-semibold text-trace'>
-              <Upload className='h-5 w-5' aria-hidden /> Drop to open the goal model
+              <Upload className='h-5 w-5' aria-hidden /> Drop to open the goal
+              model
             </span>
           </div>
         )}
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}
-        {wb.conversion && wb.hasModel && <ConvertDialog target={wb.conversion.target} />}
+        {wb.conversion && wb.hasModel && (
+          <ConvertDialog target={wb.conversion.target} />
+        )}
       </div>
     </ShellContext.Provider>
   );
@@ -366,9 +400,16 @@ function ShellLayout() {
 /** Goal Model (diagram) / Source with the Inspector underneath (beside it in full screen). */
 function ModelColumn() {
   const wb = useWorkbench();
-  const { modelFullscreen, toggleModelFullscreen, modelReadOnly, toggleModelReadOnly, pistarMode } = useShell();
-  // piStar mode shows the editor's own inspector beside the diagram instead
-  const showInspector = !pistarMode;
+  const {
+    modelFullscreen,
+    toggleModelFullscreen,
+    modelReadOnly,
+    toggleModelReadOnly,
+    pistarMode,
+  } = useShell();
+  // the inspector follows the engine the model is for: a piStar model (no engine recorded)
+  // shows the editor's own inspector beside the diagram instead
+  const showInspector = !pistarMode || wb.recordedEngine !== null;
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs: Array<{ id: ModelTab; label: string }> = [
@@ -376,9 +417,11 @@ function ModelColumn() {
     { id: 'source', label: 'Source' },
   ];
 
-
   return (
-    <section className='flex h-full min-h-0 flex-col bg-white' aria-label='Goal model'>
+    <section
+      className='flex h-full min-h-0 flex-col bg-white'
+      aria-label='Goal model'
+    >
       <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
       <Tabs
         label='Model views'
@@ -389,29 +432,39 @@ function ModelColumn() {
           <>
             <IconButton
               icon={modelReadOnly ? Lock : Unlock}
-              label={modelReadOnly ? 'Read-only: click to edit the model' : 'Make the model read-only'}
+              label={
+                modelReadOnly
+                  ? 'Read-only: click to edit the model'
+                  : 'Make the model read-only'
+              }
               aria-pressed={modelReadOnly}
               onClick={toggleModelReadOnly}
             />
             {showInspector && (
-            <IconButton
-              icon={
-                modelFullscreen
-                  ? inspectorOpen
-                    ? PanelRightClose
-                    : PanelRightOpen
-                  : inspectorOpen
-                    ? PanelBottomClose
-                    : PanelBottomOpen
-              }
-              label={inspectorOpen ? 'Hide the Inspector' : 'Show the Inspector'}
-              aria-pressed={inspectorOpen}
-              onClick={() => setInspectorOpen((open) => !open)}
-            />
+              <IconButton
+                icon={
+                  modelFullscreen
+                    ? inspectorOpen
+                      ? PanelRightClose
+                      : PanelRightOpen
+                    : inspectorOpen
+                      ? PanelBottomClose
+                      : PanelBottomOpen
+                }
+                label={
+                  inspectorOpen ? 'Hide the Inspector' : 'Show the Inspector'
+                }
+                aria-pressed={inspectorOpen}
+                onClick={() => setInspectorOpen((open) => !open)}
+              />
             )}
             <IconButton
               icon={modelFullscreen ? Minimize2 : Maximize2}
-              label={modelFullscreen ? 'Exit full screen' : 'Full screen: hide the PRISM output and the side bar'}
+              label={
+                modelFullscreen
+                  ? 'Exit full screen'
+                  : 'Full screen: hide the PRISM output and the side bar'
+              }
               shortcut='⇧⌘E'
               aria-pressed={modelFullscreen}
               onClick={toggleModelFullscreen}
@@ -420,15 +473,30 @@ function ModelColumn() {
         }
       />
       {/* keyed by orientation so each layout starts from its own default sizes */}
-      <Group key={modelFullscreen ? 'side' : 'below'} orientation={modelFullscreen ? 'horizontal' : 'vertical'} className='min-h-0 flex-1'>
-        <Panel id='model-view' defaultSize={modelFullscreen ? undefined : '58%'} minSize='25%'>
+      <Group
+        key={modelFullscreen ? 'side' : 'below'}
+        orientation={modelFullscreen ? 'horizontal' : 'vertical'}
+        className='min-h-0 flex-1'
+      >
+        <Panel
+          id='model-view'
+          defaultSize={modelFullscreen ? undefined : '58%'}
+          minSize='25%'
+        >
           {wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}
         </Panel>
         {showInspector && inspectorOpen && (
           <>
             <Separator />
-            <Panel id='inspector' defaultSize={modelFullscreen ? '380px' : '42%'} minSize={modelFullscreen ? '280px' : '120px'}>
-              <aside className='h-full overflow-auto bg-white' aria-label='Inspector'>
+            <Panel
+              id='inspector'
+              defaultSize={modelFullscreen ? '380px' : '42%'}
+              minSize={modelFullscreen ? '280px' : '120px'}
+            >
+              <aside
+                className='h-full overflow-auto bg-white'
+                aria-label='Inspector'
+              >
                 <Inspector />
               </aside>
             </Panel>
@@ -453,26 +521,37 @@ function OpenInspectorOnSelect({ open }: { open: () => void }) {
   return null;
 }
 
-const ENGINE_LABEL: Record<TransformEngine, string> = { edgev2: 'EdgeV2', edge: 'Edge', sleec: 'SLEEC' };
+const ENGINE_LABEL: Record<TransformEngine, string> = {
+  edgev2: 'EdgeV2',
+  edge: 'Edge',
+  sleec: 'SLEEC',
+};
 
 /** What a model is for: its engine, or piStar for free modelling. */
-const modelKindLabel = (settings: ModelSettings): string => (settings.pistar ? 'piStar' : ENGINE_LABEL[settings.engine]);
+const modelKindLabel = (settings: ModelSettings): string =>
+  settings.pistar ? 'piStar' : ENGINE_LABEL[settings.engine];
 
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
   const wb = useWorkbench();
   const { open, input } = useOpenFile();
   const examples = useExamples();
   const openExample = useOpenExample();
-  const featured = (examples.data ?? []).filter((e) => e.group === 'edgeV2').slice(0, wb.recent.length > 0 ? 3 : 6);
+  const featured = (examples.data ?? [])
+    .filter((e) => e.group === 'edgeV2')
+    .slice(0, wb.recent.length > 0 ? 3 : 6);
   return (
-    <section className='grid h-full place-items-center overflow-auto bg-white p-8' aria-label='Open a goal model'>
+    <section
+      className='grid h-full place-items-center overflow-auto bg-white p-8'
+      aria-label='Open a goal model'
+    >
       {input}
       <div className='w-full max-w-md space-y-6'>
         <div className='space-y-1'>
           <h1 className='text-xl font-semibold text-ink'>Open a goal model</h1>
           <p className='text-[13px] text-ink-muted'>
-            A piStar model (<span className='font-mono'>.txt</span> or <span className='font-mono'>.json</span>). Drop it anywhere on
-            this window, open it from disk, or draw a new one.
+            A piStar model (<span className='font-mono'>.txt</span> or{' '}
+            <span className='font-mono'>.json</span>). Drop it anywhere on this
+            window, open it from disk, or draw a new one.
           </p>
         </div>
         <div className='flex flex-wrap gap-2'>
@@ -485,19 +564,37 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
         </div>
         {wb.recent.length > 0 && (
           <div className='space-y-1.5'>
-            <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>Continue where you left off</h2>
+            <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+              Continue where you left off
+            </h2>
             <ul className='divide-y divide-line rounded-lg border border-line'>
               {wb.recent.map((file) => (
-                <li key={file.fileName} className='group flex items-center hover:bg-panel'>
+                <li
+                  key={file.fileName}
+                  className='group flex items-center hover:bg-panel'
+                >
                   <button
                     type='button'
-                    onClick={() => wb.openModel(file.fileName, file.text, { savedText: file.savedText, settings: file.settings })}
+                    onClick={() =>
+                      wb.openModel(file.fileName, file.text, {
+                        savedText: file.savedText,
+                        settings: file.settings,
+                      })
+                    }
                     className='flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-[13px]'
                   >
-                    <History className='h-3.5 w-3.5 shrink-0 text-ink-faint' aria-hidden />
-                    <span className='truncate font-mono text-xs text-ink'>{file.fileName}</span>
+                    <History
+                      className='h-3.5 w-3.5 shrink-0 text-ink-faint'
+                      aria-hidden
+                    />
+                    <span className='truncate font-mono text-xs text-ink'>
+                      {file.fileName}
+                    </span>
                     {hasUnsavedEdits(file) && (
-                      <span className='shrink-0 rounded bg-trace/10 px-1 text-2xs text-trace' title='Has edits that were not exported'>
+                      <span
+                        className='shrink-0 rounded bg-trace/10 px-1 text-2xs text-trace'
+                        title='Has edits that were not exported'
+                      >
                         edited
                       </span>
                     )}
@@ -505,14 +602,22 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                       <span
                         className={cx(
                           'shrink-0 rounded border px-1 text-2xs',
-                          file.settings.pistar ? 'border-trace/30 text-trace' : 'border-line text-ink-muted',
+                          file.settings.pistar
+                            ? 'border-trace/30 text-trace'
+                            : 'border-line text-ink-muted',
                         )}
-                        title={file.settings.pistar ? 'Modelled freely in piStar mode' : 'Target engine'}
+                        title={
+                          file.settings.pistar
+                            ? 'Modelled freely in piStar mode'
+                            : 'Target engine'
+                        }
                       >
                         {modelKindLabel(file.settings)}
                       </span>
                     )}
-                    <span className='ml-auto shrink-0 pl-2 text-2xs text-ink-muted'>{recentAge(file.at)}</span>
+                    <span className='ml-auto shrink-0 pl-2 text-2xs text-ink-muted'>
+                      {recentAge(file.at)}
+                    </span>
                   </button>
                   <button
                     type='button'
@@ -530,7 +635,9 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
         {featured.length > 0 && (
           <div className='space-y-1.5'>
             <h2 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
-              {wb.recent.length > 0 ? 'Or start from an example' : 'Or try an example'}
+              {wb.recent.length > 0
+                ? 'Or start from an example'
+                : 'Or try an example'}
             </h2>
             <ul className='divide-y divide-line rounded-lg border border-line'>
               {featured.map((example) => (
@@ -540,8 +647,12 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                     onClick={() => void openExample(example)}
                     className='flex w-full items-center justify-between px-3 py-2 text-left text-[13px] hover:bg-panel'
                   >
-                    <span className='font-mono text-xs text-ink'>{example.name.split('/').pop()}</span>
-                    <span className='text-2xs text-ink-muted'>{example.group}</span>
+                    <span className='font-mono text-xs text-ink'>
+                      {example.name.split('/').pop()}
+                    </span>
+                    <span className='text-2xs text-ink-muted'>
+                      {example.group}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -549,7 +660,8 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
           </div>
         )}
         <p className='text-2xs text-ink-muted'>
-          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> full-screen model · <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
+          <Kbd>⌘↵</Kbd> generate · <Kbd>⇧⌘E</Kbd> full-screen model ·{' '}
+          <Kbd>⌘S</Kbd> export · <Kbd>⌘B</Kbd> side bar
         </p>
       </div>
     </section>
@@ -562,29 +674,45 @@ function StatusBar() {
   const warnings = wb.problems.filter((p) => p.severity === 'warning').length;
   const { selected: selectedId } = useSelection();
   const selected = selectedId ? wb.tree?.nodes.get(selectedId) : undefined;
-  const engineLabel = wb.engine === 'edgev2' ? 'EdgeV2' : wb.engine === 'edge' ? 'Edge' : 'SLEEC';
+  const engineLabel =
+    wb.engine === 'edgev2' ? 'EdgeV2' : wb.engine === 'edge' ? 'Edge' : 'SLEEC';
   return (
     <footer className='flex h-6 shrink-0 items-center gap-4 border-t border-line bg-white px-3 text-2xs text-ink-muted'>
       <span>{engineLabel}</span>
-      <button type='button' onClick={() => wb.setBottomTab('problems')} className='hover:text-ink'>
+      <button
+        type='button'
+        onClick={() => wb.setBottomTab('problems')}
+        className='hover:text-ink'
+      >
         <span className={errors ? 'text-danger' : ''}>{errors} errors</span> ·{' '}
-        <span className={warnings ? 'text-caution' : ''}>{warnings} warnings</span>
+        <span className={warnings ? 'text-caution' : ''}>
+          {warnings} warnings
+        </span>
       </button>
       {wb.current && (
         <span>
-          {wb.generating ? 'generating…' : wb.stale ? 'output out of date' : wb.current.error ? 'last generation failed' : 'output up to date'}
+          {wb.generating
+            ? 'generating…'
+            : wb.stale
+              ? 'output out of date'
+              : wb.current.error
+                ? 'last generation failed'
+                : 'output up to date'}
         </span>
       )}
       <span className='ml-auto'>
         {selected ? (
           <>
-            <span className='font-mono text-ink'>{selected.id}</span> {selected.name}
+            <span className='font-mono text-ink'>{selected.id}</span>{' '}
+            {selected.name}
           </>
         ) : wb.hasModel ? (
           'nothing selected'
         ) : null}
       </span>
-      {wb.hasModel && <span title='Reopen it from Recent after a reload'>kept in Recent</span>}
+      {wb.hasModel && (
+        <span title='Reopen it from Recent after a reload'>kept in Recent</span>
+      )}
     </footer>
   );
 }

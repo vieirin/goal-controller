@@ -1,37 +1,14 @@
 import { GoalTree } from '@goal-controller/goal-tree';
-import {
-  EDGE_GOAL_KEYS,
-  EDGE_RESOURCE_KEYS,
-  EDGE_TASK_KEYS,
-  EDGE_V2_GOAL_KEYS,
-  EDGE_V2_RESOURCE_KEYS,
-  EDGE_V2_TASK_KEYS,
-  SLEEC_GOAL_KEYS,
-  SLEEC_TASK_KEYS,
-} from '@goal-controller/lib';
 import { NextRequest } from 'next/server';
 import { ApiResponse, readJson } from '../../../lib/api';
 import { GoalModel } from '../../../lib/models';
+import { KNOWN_PROPERTIES } from '../../../lib/models/knownProperties';
 import { isTransformEngine, type TransformEngine } from '../../../lib/types';
 import type {
   AnalyzeResponse,
   Problem,
   VariableInfo,
 } from '../../../lib/workbench/types';
-
-const KNOWN_PROPERTIES: Record<TransformEngine, AnalyzeResponse['knownProperties']> = {
-  edge: {
-    goal: [...EDGE_GOAL_KEYS],
-    task: [...EDGE_TASK_KEYS],
-    resource: [...EDGE_RESOURCE_KEYS],
-  },
-  edgev2: {
-    goal: [...EDGE_V2_GOAL_KEYS],
-    task: [...EDGE_V2_TASK_KEYS],
-    resource: [...EDGE_V2_RESOURCE_KEYS],
-  },
-  sleec: { goal: [...SLEEC_GOAL_KEYS], task: [...SLEEC_TASK_KEYS], resource: [] },
-};
 
 type WithCondition = {
   id: string;
@@ -55,7 +32,9 @@ const firstNodeId = (message: string): string | undefined =>
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await readJson<{ modelJson?: unknown; engine?: unknown }>(request);
+    const body = await readJson<{ modelJson?: unknown; engine?: unknown }>(
+      request,
+    );
     if (!body) {
       return ApiResponse.badRequest('The request body must be JSON');
     }
@@ -64,7 +43,9 @@ export async function POST(request: NextRequest) {
       return ApiResponse.badRequest('modelJson is required');
     }
     if (typeof engine !== 'string' || !isTransformEngine(engine)) {
-      return ApiResponse.badRequest('engine must be one of: edge, edgev2, sleec');
+      return ApiResponse.badRequest(
+        'engine must be one of: edge, edgev2, sleec',
+      );
     }
 
     const parsed =
@@ -84,7 +65,12 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       const problem: Problem = {
         severity: 'error',
-        source: parsed.stage === 'parse' ? 'json' : parsed.stage === 'validate' ? 'model' : 'engine',
+        source:
+          parsed.stage === 'parse'
+            ? 'json'
+            : parsed.stage === 'validate'
+              ? 'model'
+              : 'engine',
         message: parsed.error,
         nodeId: firstNodeId(parsed.error),
       };
@@ -93,7 +79,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (engine !== 'sleec') {
-      const tree = parsed.tree as Parameters<typeof GoalTree.contextVariables>[0];
+      const tree = parsed.tree as Parameters<
+        typeof GoalTree.contextVariables
+      >[0];
       const nodes = [
         ...GoalTree.allByType(tree, 'goal'),
         ...GoalTree.allByType(tree, 'task'),

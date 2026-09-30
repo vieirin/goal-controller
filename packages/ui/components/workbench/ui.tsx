@@ -3,6 +3,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type ButtonHTMLAttributes,
@@ -23,7 +24,12 @@ export function Tabs<T extends string>({
   label,
   trailing,
 }: {
-  tabs: Array<{ id: T; label: string; count?: number; tone?: 'danger' | 'caution' | null }>;
+  tabs: Array<{
+    id: T;
+    label: string;
+    count?: number;
+    tone?: 'danger' | 'caution' | null;
+  }>;
   value: T;
   onChange: (id: T) => void;
   label: string;
@@ -31,7 +37,11 @@ export function Tabs<T extends string>({
 }) {
   return (
     <div className='flex h-9 shrink-0 items-stretch gap-1 border-b border-line bg-panel px-2'>
-      <div role='tablist' aria-label={label} className='flex items-stretch gap-1'>
+      <div
+        role='tablist'
+        aria-label={label}
+        className='flex items-stretch gap-1'
+      >
         {tabs.map((tab) => {
           const active = tab.id === value;
           return (
@@ -42,7 +52,9 @@ export function Tabs<T extends string>({
               onClick={() => onChange(tab.id)}
               className={cx(
                 'relative flex items-center gap-1.5 px-2.5 text-[13px] transition-colors',
-                active ? 'font-semibold text-ink' : 'text-ink-muted hover:text-ink',
+                active
+                  ? 'font-semibold text-ink'
+                  : 'text-ink-muted hover:text-ink',
               )}
             >
               {tab.label}
@@ -60,12 +72,16 @@ export function Tabs<T extends string>({
                   {tab.count}
                 </span>
               )}
-              {active && <span className='absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-ink' />}
+              {active && (
+                <span className='absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-ink' />
+              )}
             </button>
           );
         })}
       </div>
-      {trailing && <div className='ml-auto flex items-center gap-1'>{trailing}</div>}
+      {trailing && (
+        <div className='ml-auto flex items-center gap-1'>{trailing}</div>
+      )}
     </div>
   );
 }
@@ -78,7 +94,11 @@ export function IconButton({
   shortcut,
   className,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { icon: LucideIcon; label: string; shortcut?: string }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: LucideIcon;
+  label: string;
+  shortcut?: string;
+}) {
   return (
     <button
       type='button'
@@ -100,15 +120,19 @@ export function Button({
   className,
   children,
   ...rest
-}: ComponentPropsWithRef<'button'> & { variant?: 'primary' | 'quiet' | 'outline' }) {
+}: ComponentPropsWithRef<'button'> & {
+  variant?: 'primary' | 'quiet' | 'outline';
+}) {
   return (
     <button
       type='button'
       className={cx(
         'inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-[13px] font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
         variant === 'primary' && 'bg-ink text-white hover:bg-ink-soft',
-        variant === 'outline' && 'border border-line-strong bg-white text-ink hover:border-ink-muted',
-        variant === 'quiet' && 'text-ink-soft hover:bg-panel-deep hover:text-ink',
+        variant === 'outline' &&
+          'border border-line-strong bg-white text-ink hover:border-ink-muted',
+        variant === 'quiet' &&
+          'text-ink-soft hover:bg-panel-deep hover:text-ink',
         className,
       )}
       {...rest}
@@ -134,7 +158,11 @@ export function Segmented<T extends string>({
   size?: 'sm' | 'md';
 }) {
   return (
-    <div role='radiogroup' aria-label={label} className='inline-flex rounded-md bg-panel-deep p-0.5'>
+    <div
+      role='radiogroup'
+      aria-label={label}
+      className='inline-flex rounded-md bg-panel-deep p-0.5'
+    >
       {options.map((option) => {
         const active = option.id === value;
         return (
@@ -148,7 +176,9 @@ export function Segmented<T extends string>({
             className={cx(
               'rounded-[5px] font-medium transition-colors',
               size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-[13px]',
-              active ? 'bg-white text-ink shadow-sm' : 'text-ink-muted hover:text-ink',
+              active
+                ? 'bg-white text-ink shadow-sm'
+                : 'text-ink-muted hover:text-ink',
             )}
           >
             {option.label}
@@ -192,7 +222,9 @@ export function Switch({
           )}
         />
       </span>
-      <span className='text-[13px] text-ink-soft group-hover:text-ink'>{label}</span>
+      <span className='text-[13px] text-ink-soft group-hover:text-ink'>
+        {label}
+      </span>
     </button>
   );
 }
@@ -260,7 +292,10 @@ export function MenuItem({
   children,
   hint,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { icon?: LucideIcon; hint?: ReactNode }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon?: LucideIcon;
+  hint?: ReactNode;
+}) {
   return (
     <button
       type='button'
@@ -301,8 +336,149 @@ export function NodeChip({
   // a plain label when not clickable (it may sit inside another button)
   if (!onClick) return <span className={className}>{id}</span>;
   return (
-    <button type='button' onClick={onClick} title={`Select ${id}`} className={className}>
+    <button
+      type='button'
+      onClick={onClick}
+      title={`Select ${id}`}
+      className={className}
+    >
       {id}
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+type CreatableOption = { value: string; hint?: string };
+
+/**
+ * A text input with a filtered list of options that also creates new values: pick an
+ * option, or type a name that is not in the list and choose "Add". Arrow keys move,
+ * Enter picks, Escape closes.
+ */
+export function CreatableSelect({
+  options,
+  onSelect,
+  placeholder,
+  label,
+  createLabel = (value) => `Add "${value}"`,
+  className,
+}: {
+  options: readonly CreatableOption[];
+  /** called with the picked or new value; the input clears */
+  onSelect: (value: string) => void;
+  placeholder?: string;
+  label: string;
+  createLabel?: (value: string) => string;
+  className?: string;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const listId = useId();
+
+  const typed = query.trim();
+  const matches = options.filter((o) =>
+    o.value.toLowerCase().includes(typed.toLowerCase()),
+  );
+  const canCreate = typed !== '' && !options.some((o) => o.value === typed);
+  const items: Array<{ value: string; hint?: string; create?: boolean }> = [
+    ...matches,
+    ...(canCreate ? [{ value: typed, create: true }] : []),
+  ];
+  const current = Math.min(active, Math.max(items.length - 1, 0));
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointer = (event: PointerEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false);
+    };
+    window.addEventListener('pointerdown', onPointer);
+    return () => window.removeEventListener('pointerdown', onPointer);
+  }, [open]);
+
+  const pick = (value: string) => {
+    onSelect(value);
+    setQuery('');
+    setActive(0);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={box} className={cx('relative', className)}>
+      <input
+        role='combobox'
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-autocomplete='list'
+        aria-activedescendant={
+          open && items[current] ? `${listId}-${current}` : undefined
+        }
+        value={query}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setActive(0);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setOpen(true);
+            setActive((i) => Math.min(i + 1, items.length - 1));
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive((i) => Math.max(i - 1, 0));
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const item = items[current];
+            if (open && item) pick(item.value);
+            else if (typed) pick(typed);
+          } else if (e.key === 'Escape') {
+            setOpen(false);
+          }
+        }}
+        className='w-full rounded-md border border-line-strong bg-white px-2 py-1 font-mono text-xs text-ink placeholder:font-sans placeholder:text-ink-faint focus:border-trace focus:outline-none'
+      />
+      {open && items.length > 0 && (
+        <ul
+          id={listId}
+          role='listbox'
+          aria-label={label}
+          className='absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-md border border-line bg-white py-1 shadow-lg'
+        >
+          {items.map((item, index) => (
+            <li
+              key={`${item.create ? 'create:' : ''}${item.value}`}
+              id={`${listId}-${index}`}
+              role='option'
+              aria-selected={index === current}
+              // keep the focus in the input
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={() => setActive(index)}
+              onClick={() => pick(item.value)}
+              className={cx(
+                'flex cursor-pointer items-baseline justify-between gap-2 px-2 py-1 text-xs',
+                index === current ? 'bg-trace-soft text-ink' : 'text-ink-soft',
+              )}
+            >
+              {item.create ? (
+                <span className='text-trace'>{createLabel(item.value)}</span>
+              ) : (
+                <span className='font-mono'>{item.value}</span>
+              )}
+              {item.hint && (
+                <span className='shrink-0 text-2xs text-ink-muted'>
+                  {item.hint}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

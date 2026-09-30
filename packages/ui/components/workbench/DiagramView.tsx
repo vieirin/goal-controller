@@ -501,7 +501,9 @@ export default function DiagramView() {
           <IstarCanvas
             ref={canvas}
             fitView
-            aside={pistarMode ? <IstarInspector /> : undefined}
+            aside={
+              pistarMode && !wb.recordedEngine ? <IstarInspector /> : undefined
+            }
             palette={
               modelReadOnly
                 ? false
