@@ -29,8 +29,8 @@ importers:
   packages/goal-tree:
     dependencies:
       '@istar-ts/core':
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       antlr4:
         specifier: ^4.13.0
         version: 4.13.2
@@ -190,11 +190,11 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       '@istar-ts/react':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.7.0
+        version: 0.7.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -1277,17 +1277,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.6.0:
-    resolution: {integrity: sha512-VNMed9Cudk1dkfv9JQLsqDpGyHW5Nud1geyI3JzYuMLr6+cO14FJHmmsQ3FqTMfaKxgjhX3nfVQUw5LOqP525A==}
+  /@istar-ts/core@0.7.0:
+    resolution: {integrity: sha512-z1zYbQy9YgTOWaCsVtU+mDY+kZoNs/Mp03rJUYfY/2y7/YqvuObT20jH9fyTrdVnX82QtHRB+2ZOEwS5ntla/A==}
     dev: false
 
-  /@istar-ts/react@0.6.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-sRDpNm2LdKtpmmB+JpKM6YSzqPx+Ciyzz1p8wzec0WMFc+6vp2sr1FbNRXsP22nlzPIgu4/Btr3DoqNFK5fGzw==}
+  /@istar-ts/react@0.7.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-fWfTEgo3Cf2fkeRmIV4FfSxrxwT9b33hdvXmkQq7g8+mb0imbe0F81JBrS5qinJ43cq5BQ3PiFOXQ/zSDYfdoA==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.6.0
+      '@istar-ts/core': 0.7.0
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
