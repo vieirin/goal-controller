@@ -1,8 +1,13 @@
-"use client";
+'use client';
 
-import { nextRtId, serializeModel } from "@/lib/workbench/pistar";
-import type { Severity } from "@/lib/workbench/types";
-import { createEmptyModel, isActor, parsePistar, type IstarModel } from "@istar-ts/core";
+import { nextRtId, serializeModel } from '@/lib/workbench/pistar';
+import type { Severity } from '@/lib/workbench/types';
+import {
+  createEmptyModel,
+  isActor,
+  parsePistar,
+  type IstarModel,
+} from '@istar-ts/core';
 import {
   DefaultElementComponent,
   IstarCanvas,
@@ -13,7 +18,7 @@ import {
   type ElementComponentProps,
   type IstarCanvasHandle,
   type IstarExtension,
-} from "@istar-ts/react";
+} from '@istar-ts/react';
 import {
   createContext,
   useContext,
@@ -23,9 +28,9 @@ import {
   type KeyboardEvent,
   type ReactElement,
   type RefObject,
-} from "react";
-import { useSelection, useWorkbench } from "./WorkbenchContext";
-import { useShell } from "./shell";
+} from 'react';
+import { useSelection, useWorkbench } from './WorkbenchContext';
+import { useShell } from './shell';
 
 /**
  * The goal model as an editable iStar diagram (@istar-ts/react), kept in sync
@@ -39,12 +44,16 @@ const SeverityContext = createContext<ReadonlyMap<string, Severity>>(new Map());
 function ElementWithProblems(props: ElementComponentProps): ReactElement {
   const severity = useContext(SeverityContext).get(props.element.id);
   return (
-    <div className="relative h-full w-full">
+    <div className='relative h-full w-full'>
       <DefaultElementComponent {...props} />
       {severity && (
         <span
-          className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-[1.5px] border-white ${severity === "error" ? "bg-danger" : "bg-caution"}`}
-          title={severity === "error" ? "Has errors — see Problems" : "Has warnings — see Problems"}
+          className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-[1.5px] border-white ${severity === 'error' ? 'bg-danger' : 'bg-caution'}`}
+          title={
+            severity === 'error'
+              ? 'Has errors — see Problems'
+              : 'Has warnings — see Problems'
+          }
         />
       )}
     </div>
@@ -52,26 +61,76 @@ function ElementWithProblems(props: ElementComponentProps): ReactElement {
 }
 
 const problemBadges: IstarExtension = {
-  name: "problem-badges",
+  name: 'problem-badges',
   elements: {
-    "istar.Goal": { component: ElementWithProblems },
-    "istar.Task": { component: ElementWithProblems },
-    "istar.Resource": { component: ElementWithProblems },
-    "istar.Quality": { component: ElementWithProblems },
+    'istar.Goal': { component: ElementWithProblems },
+    'istar.Task': { component: ElementWithProblems },
+    'istar.Resource': { component: ElementWithProblems },
+    'istar.Quality': { component: ElementWithProblems },
   },
 };
 /** piStar's resource yellow (the Edge examples use it for every resource). */
-const EDGE_RESOURCE_FILL = "#FAF383";
+const EDGE_RESOURCE_FILL = '#FAF383';
 
-/** Edge resources are drawn yellow unless they have a colour of their own (nothing is written to the file). */
+/** What an Edge resource variable is, for its badge: "bool = true", "int 0..5 = 5"; and what is wrong with it. */
+const resourceVariable = (
+  properties: Readonly<Record<string, string>> | undefined,
+): { label: string; issue: string | null } => {
+  const { type, initialValue, lowerBound, upperBound } = properties ?? {};
+  if (type === 'bool') {
+    const ok = initialValue === 'true' || initialValue === 'false';
+    return {
+      label: `bool = ${initialValue ?? '?'}`,
+      issue: ok ? null : 'the initial value must be true or false',
+    };
+  }
+  if (type === 'int') {
+    const whole = (v: string | undefined): number | null =>
+      v !== undefined && /^-?\d+$/.test(v) ? Number(v) : null;
+    const low = whole(lowerBound);
+    const high = whole(upperBound);
+    const value = whole(initialValue);
+    const label = `int ${lowerBound ?? '?'}..${upperBound ?? '?'} = ${initialValue ?? '?'}`;
+    if (low === null || high === null || value === null)
+      return { label, issue: 'needs whole-number bounds and initial value' };
+    if (low > high)
+      return { label, issue: 'the lower bound is above the upper bound' };
+    if (value < low || value > high)
+      return { label, issue: 'the initial value is outside the bounds' };
+    return { label, issue: null };
+  }
+  return {
+    label: type ? `${type}?` : 'no type',
+    issue: 'the type must be bool or int',
+  };
+};
+
+/**
+ * Edge resources are variables: drawn yellow unless they have a colour of their own (nothing
+ * is written to the file), with a badge at the bottom showing the type and initial value.
+ */
 function EdgeResource(props: ElementComponentProps): ReactElement {
   const element = props.element.display?.backgroundColor
     ? props.element
     : {
         ...props.element,
-        display: { ...props.element.display, backgroundColor: EDGE_RESOURCE_FILL },
+        display: {
+          ...props.element.display,
+          backgroundColor: EDGE_RESOURCE_FILL,
+        },
       };
-  return <ElementWithProblems {...props} element={element} />;
+  const { label, issue } = resourceVariable(props.element.customProperties);
+  return (
+    <div className='relative h-full w-full'>
+      <ElementWithProblems {...props} element={element} />
+      <span
+        className={`pointer-events-none absolute -bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border bg-white px-1.5 font-mono text-[10px] leading-4 ${issue ? 'border-danger text-danger' : 'border-ink-muted text-ink-soft'}`}
+        title={issue ? `${label}: ${issue}` : label}
+      >
+        {label}
+      </span>
+    </div>
+  );
 }
 
 /**
@@ -79,42 +138,50 @@ function EdgeResource(props: ElementComponentProps): ReactElement {
  * refinement and Needed-By: the palette offers only those (other kinds fail to convert).
  */
 const edgePalette: IstarExtension = {
-  name: "edge-palette",
+  name: 'edge-palette',
   elements: {
     // Actor alone: no Actor/Agent/Role dropdown
-    "istar.Actor": { palette: { group: undefined } },
-    "istar.Agent": { palette: false },
-    "istar.Role": { palette: false },
-    "istar.Quality": { palette: false },
+    'istar.Actor': { palette: { group: undefined } },
+    'istar.Agent': { palette: false },
+    'istar.Role': { palette: false },
+    'istar.Quality': { palette: false },
     // resources are the engine's variables: one tool per type, with valid properties preset
     // after Task (default order 36): Goal, Task, then Resource
-    "istar.Resource": {
+    'istar.Resource': {
       component: EdgeResource,
       palette: [
         {
-          label: "Boolean",
-          title: "Boolean resource: click on an actor to add it (starts true)",
-          group: "resource",
+          label: 'Boolean',
+          title: 'Boolean resource: click on an actor to add it (starts true)',
+          group: 'resource',
           order: 37,
-          properties: { type: "bool", initialValue: "true" },
+          properties: { type: 'bool', initialValue: 'true' },
         },
         {
-          label: "Integer",
-          title: "Integer resource: click on an actor to add it (0 to 5, starts at 5)",
-          group: "resource",
+          label: 'Integer',
+          title:
+            'Integer resource: click on an actor to add it (0 to 5, starts at 5)',
+          group: 'resource',
           order: 37,
-          properties: { type: "int", initialValue: "5", lowerBound: "0", upperBound: "5" },
+          properties: {
+            type: 'int',
+            initialValue: '5',
+            lowerBound: '0',
+            upperBound: '5',
+          },
         },
       ],
     },
   },
-  paletteGroups: { resource: { label: "Resource", title: "Add a Boolean or Integer resource" } },
+  paletteGroups: {
+    resource: { label: 'Resource', title: 'Add a Boolean or Integer resource' },
+  },
   links: {
-    "istar.IsALink": { palette: false },
-    "istar.ParticipatesInLink": { palette: false },
-    "istar.DependencyLink": { palette: false },
-    "istar.ContributionLink": { palette: false },
-    "istar.QualificationLink": { palette: false },
+    'istar.IsALink': { palette: false },
+    'istar.ParticipatesInLink': { palette: false },
+    'istar.DependencyLink': { palette: false },
+    'istar.ContributionLink': { palette: false },
+    'istar.QualificationLink': { palette: false },
   },
 };
 
@@ -123,20 +190,35 @@ const edgePalette: IstarExtension = {
  * next free one. Qualities are goals to the engines, so they share the G numbering.
  */
 const rtNumbering: IstarExtension = {
-  name: "rt-numbering",
+  name: 'rt-numbering',
   elements: {
-    "istar.Goal": { defaultName: ({ model }) => `${nextRtId(model, "istar.Goal")}: Goal` },
-    "istar.Quality": { defaultName: ({ model }) => `${nextRtId(model, "istar.Quality")}: Quality` },
-    "istar.Task": { defaultName: ({ model }) => `${nextRtId(model, "istar.Task")}: Task` },
-    "istar.Resource": {
-      defaultName: ({ model }) => `${nextRtId(model, "istar.Resource")}: Resource`,
+    'istar.Goal': {
+      defaultName: ({ model }) => `${nextRtId(model, 'istar.Goal')}: Goal`,
+    },
+    'istar.Quality': {
+      defaultName: ({ model }) =>
+        `${nextRtId(model, 'istar.Quality')}: Quality`,
+    },
+    'istar.Task': {
+      defaultName: ({ model }) => `${nextRtId(model, 'istar.Task')}: Task`,
+    },
+    'istar.Resource': {
+      defaultName: ({ model }) =>
+        `${nextRtId(model, 'istar.Resource')}: Resource`,
     },
   },
 };
 
 // stable arrays: the provider rebuilds its registry when the extensions change
-const WORKBENCH_EXTENSIONS: readonly IstarExtension[] = [problemBadges, rtNumbering];
-const EDGE_EXTENSIONS: readonly IstarExtension[] = [problemBadges, rtNumbering, edgePalette];
+const WORKBENCH_EXTENSIONS: readonly IstarExtension[] = [
+  problemBadges,
+  rtNumbering,
+];
+const EDGE_EXTENSIONS: readonly IstarExtension[] = [
+  problemBadges,
+  rtNumbering,
+  edgePalette,
+];
 const NO_EXTENSIONS: readonly IstarExtension[] = [];
 const PISTAR_EDGE_PALETTE: readonly IstarExtension[] = [edgePalette];
 
@@ -192,16 +274,19 @@ function useAutoFit(
     // panning or zooming by hand (wheel, dragging the paper, the zoom buttons) keeps the view
     const onUserMove = (event: Event) => {
       const target = event.target as Element;
-      if (event.type === "wheel" || target.closest(".react-flow__pane, .react-flow__controls"))
+      if (
+        event.type === 'wheel' ||
+        target.closest('.react-flow__pane, .react-flow__controls')
+      )
         userMoved.current = true;
     };
-    el.addEventListener("wheel", onUserMove, { passive: true });
-    el.addEventListener("pointerdown", onUserMove);
+    el.addEventListener('wheel', onUserMove, { passive: true });
+    el.addEventListener('pointerdown', onUserMove);
     return () => {
       observer.disconnect();
       clearTimeout(timer);
-      el.removeEventListener("wheel", onUserMove);
-      el.removeEventListener("pointerdown", onUserMove);
+      el.removeEventListener('wheel', onUserMove);
+      el.removeEventListener('pointerdown', onUserMove);
     };
   }, [canvas, container, resetKey, shown]);
 }
@@ -211,18 +296,27 @@ const isInView = (iStarId: string): boolean => {
   const node = document.querySelector(
     `.istar-canvas .react-flow__node[data-id="${CSS.escape(iStarId)}"]`,
   );
-  const pane = node?.closest(".react-flow");
+  const pane = node?.closest('.react-flow');
   if (!node || !pane) return false;
   const a = node.getBoundingClientRect();
   const b = pane.getBoundingClientRect();
-  return a.left >= b.left && a.right <= b.right && a.top >= b.top && a.bottom <= b.bottom;
+  return (
+    a.left >= b.left &&
+    a.right <= b.right &&
+    a.top >= b.top &&
+    a.bottom <= b.bottom
+  );
 };
 
 /** Hands the editor's notice function to DiagramView, which sits outside the provider. */
-function NotifyBridge({ notify }: { notify: RefObject<((message: string) => void) | null> }) {
+function NotifyBridge({
+  notify,
+}: {
+  notify: RefObject<((message: string) => void) | null>;
+}) {
   const editor = useIstarEditor();
   useEffect(() => {
-    notify.current = (message) => editor.notify(message, "error");
+    notify.current = (message) => editor.notify(message, 'error');
     return () => {
       notify.current = null;
     };
@@ -231,7 +325,11 @@ function NotifyBridge({ notify }: { notify: RefObject<((message: string) => void
 }
 
 /** Two-way selection sync between the diagram (piStar ids) and the workbench (RT ids). */
-function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null> }) {
+function SelectionSync({
+  canvas,
+}: {
+  canvas: RefObject<IstarCanvasHandle | null>;
+}) {
   const wb = useWorkbench();
   const { selection, select } = useIstarEditor();
   const latest = useRef(wb);
@@ -242,12 +340,16 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
 
   // workbench → diagram
   useEffect(() => {
-    if (sel.selectOrigin === "canvas") return;
-    const iStarId = sel.selected ? (wb.tree?.nodes.get(sel.selected)?.iStarId ?? null) : null;
-    const current = selection?.type === "element" ? selection.id : null;
-    if (iStarId !== current) select(iStarId ? { type: "element", id: iStarId } : null);
+    if (sel.selectOrigin === 'canvas') return;
+    const iStarId = sel.selected
+      ? (wb.tree?.nodes.get(sel.selected)?.iStarId ?? null)
+      : null;
+    const current = selection?.type === 'element' ? selection.id : null;
+    if (iStarId !== current)
+      select(iStarId ? { type: 'element', id: iStarId } : null);
     // bring a node selected elsewhere into view, keeping the zoom
-    if (iStarId && !isInView(iStarId)) void canvas.current?.centerOn(iStarId, { duration: 200 });
+    if (iStarId && !isInView(iStarId))
+      void canvas.current?.centerOn(iStarId, { duration: 200 });
     // only when the workbench selection changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel.selectSeq]);
@@ -261,9 +363,11 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
     const { tree, select: selectNode } = latest.current;
     const { selected } = latestSel.current;
     const id =
-      selection?.type === "element" ? (tree?.byIStarId.get(selection.id)?.id ?? null) : null;
-    if (selection?.type === "link") return;
-    if (id !== selected) selectNode(id, "canvas");
+      selection?.type === 'element'
+        ? (tree?.byIStarId.get(selection.id)?.id ?? null)
+        : null;
+    if (selection?.type === 'link') return;
+    if (id !== selected) selectNode(id, 'canvas');
   }, [selection]);
 
   return null;
@@ -271,27 +375,38 @@ function SelectionSync({ canvas }: { canvas: RefObject<IstarCanvasHandle | null>
 
 export default function DiagramView() {
   const wb = useWorkbench();
-  const { modelFullscreen, modelReadOnly, pistarMode, enginePalette } = useShell();
+  const { modelFullscreen, modelReadOnly, pistarMode, enginePalette } =
+    useShell();
   const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   // piStar mode: the library as it ships (no extensions, default palette)
   // (optionally with the palette of the engine the file records)
   const extensions = pistarMode
-    ? enginePalette && (wb.recordedEngine === "edge" || wb.recordedEngine === "edgev2")
+    ? enginePalette &&
+      (wb.recordedEngine === 'edge' || wb.recordedEngine === 'edgev2')
       ? PISTAR_EDGE_PALETTE
       : NO_EXTENSIONS
-    : wb.engine === "sleec"
+    : wb.engine === 'sleec'
       ? WORKBENCH_EXTENSIONS
       : EDGE_EXTENSIONS;
-  const paletteKind = pistarMode ? "pistar" : wb.engine === "sleec" ? "full" : "edge";
+  const paletteKind = pistarMode
+    ? 'pistar'
+    : wb.engine === 'sleec'
+      ? 'full'
+      : 'edge';
   // the Edge engines build one goal tree from one actor
   const oneActor = useRef(false);
-  oneActor.current = paletteKind === "edge";
+  oneActor.current = paletteKind === 'edge';
   const notify = useRef<((message: string) => void) | null>(null);
   const canvas = useRef<IstarCanvasHandle>(null);
   const shown = !!wb.text.trim();
 
   const container = useRef<HTMLDivElement>(null);
-  useAutoFit(canvas, container, `${wb.fileName}|${modelReadOnly}|${paletteKind}`, shown);
+  useAutoFit(
+    canvas,
+    container,
+    `${wb.fileName}|${modelReadOnly}|${paletteKind}`,
+    shown,
+  );
   const { store } = useIstarStore(() => parsed ?? createEmptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
   const written = useRef<string | null>(null);
@@ -309,21 +424,22 @@ export default function DiagramView() {
   useEffect(
     () =>
       store.subscribe((event) => {
-        if (event.source === "load") return;
+        if (event.source === 'load') return;
         // Edge engines: a second actor is taken back out right away
         if (
           oneActor.current &&
-          event.source === "edit" &&
+          event.source === 'edit' &&
           event.changes.some(
             (change) =>
-              change.type === "addElement" && isActor(event.model.elements.get(change.id)),
+              change.type === 'addElement' &&
+              isActor(event.model.elements.get(change.id)),
           ) &&
           [...event.model.elements.values()].filter(isActor).length > 1
         ) {
           queueMicrotask(() => {
             store.undo();
             notify.current?.(
-              "The Edge engines read a single actor: add goals, tasks and resources inside the existing one.",
+              'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
             );
           });
           return;
@@ -331,7 +447,7 @@ export default function DiagramView() {
         const current = latest.current;
         const text = serializeModel(event.model, current.text);
         written.current = text;
-        current.setText(text, "canvas");
+        current.setText(text, 'canvas');
       }),
     [store],
   );
@@ -339,9 +455,10 @@ export default function DiagramView() {
   const severities = useMemo(() => {
     const map = new Map<string, Severity>();
     for (const problem of wb.problems) {
-      if (!problem.nodeId || problem.severity === "info") continue;
+      if (!problem.nodeId || problem.severity === 'info') continue;
       const iStarId = wb.tree?.nodes.get(problem.nodeId)?.iStarId;
-      if (iStarId && map.get(iStarId) !== "error") map.set(iStarId, problem.severity);
+      if (iStarId && map.get(iStarId) !== 'error')
+        map.set(iStarId, problem.severity);
     }
     return map;
   }, [wb.problems, wb.tree]);
@@ -349,27 +466,35 @@ export default function DiagramView() {
   // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
   const onKeyDownCapture = (event: KeyboardEvent) => {
     if (modelReadOnly || !(event.metaKey || event.ctrlKey)) return;
-    if ((event.target as HTMLElement).closest("input, textarea")) return;
+    if ((event.target as HTMLElement).closest('input, textarea')) return;
     const key = event.key.toLowerCase();
-    if (key !== "z" && key !== "y") return;
+    if (key !== 'z' && key !== 'y') return;
     event.preventDefault();
     event.stopPropagation();
-    if (key === "y" || event.shiftKey) wb.redo();
+    if (key === 'y' || event.shiftKey) wb.redo();
     else wb.undo();
   };
 
   if (!wb.text.trim()) {
     return (
-      <div className="grid h-full place-items-center text-sm text-ink-muted">
+      <div className='grid h-full place-items-center text-sm text-ink-muted'>
         The goal model appears once a model is open.
       </div>
     );
   }
 
   return (
-    <div ref={container} className="relative h-full" onKeyDownCapture={onKeyDownCapture}>
+    <div
+      ref={container}
+      className='relative h-full'
+      onKeyDownCapture={onKeyDownCapture}
+    >
       <SeverityContext.Provider value={severities}>
-        <IstarProvider store={store} extensions={extensions} readOnly={!parsed || modelReadOnly}>
+        <IstarProvider
+          store={store}
+          extensions={extensions}
+          readOnly={!parsed || modelReadOnly}
+        >
           <SelectionSync canvas={canvas} />
           <NotifyBridge notify={notify} />
           {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
@@ -377,14 +502,21 @@ export default function DiagramView() {
             ref={canvas}
             fitView
             aside={pistarMode ? <IstarInspector /> : undefined}
-            palette={modelReadOnly ? false : pistarMode || modelFullscreen ? "top" : "left"}
-            className="h-full"
+            palette={
+              modelReadOnly
+                ? false
+                : pistarMode || modelFullscreen
+                  ? 'top'
+                  : 'left'
+            }
+            className='h-full'
           />
         </IstarProvider>
       </SeverityContext.Provider>
       {!parsed && (
-        <div className="pointer-events-none absolute inset-x-3 top-3 rounded-md bg-caution-soft px-3 py-1.5 text-2xs text-caution">
-          The model text doesn’t parse — showing the last valid diagram, read-only until it’s fixed.
+        <div className='pointer-events-none absolute inset-x-3 top-3 rounded-md bg-caution-soft px-3 py-1.5 text-2xs text-caution'>
+          The model text doesn’t parse — showing the last valid diagram,
+          read-only until it’s fixed.
         </div>
       )}
     </div>
