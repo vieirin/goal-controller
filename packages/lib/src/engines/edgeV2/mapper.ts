@@ -12,10 +12,10 @@ import {
   type Task,
 } from '@goal-controller/goal-tree';
 import {
-  edgeV2GoalChecks,
+  edgeGoalChecks,
   firstGoalOrTaskIssue,
   firstResourceIssue,
-} from './checks';
+} from '../edgeChecks';
 import type {
   Decision,
   EdgeResourceProps,
@@ -328,7 +328,7 @@ export const edgeEngineMapper = createEngineMapper<
       return node.properties.engine;
     }
 
-    const dependsOnMessage = edgeV2GoalChecks.dependsOn?.(rawProperties.raw, {
+    const dependsOnMessage = edgeGoalChecks.dependsOn?.(rawProperties.raw, {
       self: node.id,
       kindOf: (id) => allNodes.get(id)?.type,
     });

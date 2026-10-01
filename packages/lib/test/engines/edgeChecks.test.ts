@@ -1,52 +1,52 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import {
-  edgeV2GoalChecks,
-  edgeV2TaskChecks,
-  edgeV2ResourceChecks,
-} from '../../../src/engines/edgeV2/checks';
+  edgeGoalChecks,
+  edgeTaskChecks,
+  edgeResourceChecks,
+} from '../../src/engines/edgeChecks';
 
 const noDeps = { self: '', kindOf: () => undefined };
 
-describe('edgeV2 checks', () => {
+describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('maxRetries', () => {
     it('flags a negative value on a goal', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
+        edgeGoalChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
         '[INVALID GOAL]: maxRetries must be a non-negative integer: got "-1"',
       );
     });
 
     it('flags a non-numeric value on a task', () => {
       assert.strictEqual(
-        edgeV2TaskChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
+        edgeTaskChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
         '[INVALID TASK]: maxRetries must be a non-negative integer: got "abc"',
       );
     });
 
     it('is fine when unset', () => {
-      assert.strictEqual(edgeV2GoalChecks.maxRetries?.({}, noDeps), null);
+      assert.strictEqual(edgeGoalChecks.maxRetries?.({}, noDeps), null);
     });
   });
 
   describe('variables (decision)', () => {
     it('flags a pair with no space', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.variables?.({ variables: 'x' }, noDeps),
+        edgeGoalChecks.variables?.({ variables: 'x' }, noDeps),
         '[INVALID DECISION]: decision must be a variable and space: got x, expected format variable:space',
       );
     });
 
     it('flags a non-numeric space', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.variables?.({ variables: 'x:abc' }, noDeps),
+        edgeGoalChecks.variables?.({ variables: 'x:abc' }, noDeps),
         '[INVALID DECISION]: space must be a number: got abc',
       );
     });
 
     it('is fine when valid', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.variables?.({ variables: 'x:3' }, noDeps),
+        edgeGoalChecks.variables?.({ variables: 'x:3' }, noDeps),
         null,
       );
     });
@@ -55,7 +55,7 @@ describe('edgeV2 checks', () => {
   describe('maintain', () => {
     it('flags type: maintain with no maintain property', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.maintain?.(
+        edgeGoalChecks.maintain?.(
           { type: 'maintain', assertion: 'battery > 20' },
           noDeps,
         ),
@@ -65,7 +65,7 @@ describe('edgeV2 checks', () => {
 
     it('is fine once maintain is present', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.maintain?.(
+        edgeGoalChecks.maintain?.(
           {
             type: 'maintain',
             maintain: 'battery > 0',
@@ -78,14 +78,14 @@ describe('edgeV2 checks', () => {
     });
 
     it('has no task entry: a task can never satisfy it (maintain is not an allowed task key)', () => {
-      assert.ok(!('maintain' in edgeV2TaskChecks));
+      assert.ok(!('maintain' in edgeTaskChecks));
     });
   });
 
   describe('dependsOn', () => {
     it('flags a missing id with the mapper\'s "not found" message', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.dependsOn?.(
+        edgeGoalChecks.dependsOn?.(
           { dependsOn: 'G9' },
           { self: 'G1', kindOf: () => undefined },
         ),
@@ -95,7 +95,7 @@ describe('edgeV2 checks', () => {
 
     it('flags a non-goal id with the mapper\'s "must be a goal" message', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.dependsOn?.(
+        edgeGoalChecks.dependsOn?.(
           { dependsOn: 'T1' },
           { self: 'G1', kindOf: () => 'task' },
         ),
@@ -105,7 +105,7 @@ describe('edgeV2 checks', () => {
 
     it('is fine when every id is a goal', () => {
       assert.strictEqual(
-        edgeV2GoalChecks.dependsOn?.(
+        edgeGoalChecks.dependsOn?.(
           { dependsOn: 'G2, G3' },
           { self: 'G1', kindOf: () => 'goal' },
         ),
@@ -117,7 +117,7 @@ describe('edgeV2 checks', () => {
   describe('resource', () => {
     it('bool: rejects anything but true/false', () => {
       assert.strictEqual(
-        edgeV2ResourceChecks.initialValue?.(
+        edgeResourceChecks.initialValue?.(
           { type: 'bool', initialValue: 'yes' },
           noDeps,
         ),
@@ -130,17 +130,11 @@ describe('edgeV2 checks', () => {
         '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound';
       const raw = { type: 'int' };
       assert.strictEqual(
-        edgeV2ResourceChecks.initialValue?.(raw, noDeps),
+        edgeResourceChecks.initialValue?.(raw, noDeps),
         message,
       );
-      assert.strictEqual(
-        edgeV2ResourceChecks.lowerBound?.(raw, noDeps),
-        message,
-      );
-      assert.strictEqual(
-        edgeV2ResourceChecks.upperBound?.(raw, noDeps),
-        message,
-      );
+      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), message);
+      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
     });
 
     it('int: flags non-numeric bounds, only on the bad one', () => {
@@ -151,10 +145,10 @@ describe('edgeV2 checks', () => {
         upperBound: '5',
       };
       assert.strictEqual(
-        edgeV2ResourceChecks.lowerBound?.(raw, noDeps),
+        edgeResourceChecks.lowerBound?.(raw, noDeps),
         '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
       );
-      assert.strictEqual(edgeV2ResourceChecks.upperBound?.(raw, noDeps), null);
+      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
     });
 
     it('int: attaches the bounds error to both lowerBound and upperBound', () => {
@@ -166,14 +160,8 @@ describe('edgeV2 checks', () => {
       };
       const message =
         '[INVALID RESOURCE]: Resource lower bound (5) must be less than or equal to upper bound (2)';
-      assert.strictEqual(
-        edgeV2ResourceChecks.lowerBound?.(raw, noDeps),
-        message,
-      );
-      assert.strictEqual(
-        edgeV2ResourceChecks.upperBound?.(raw, noDeps),
-        message,
-      );
+      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), message);
+      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
     });
 
     it('int: flags a non-numeric initial value', () => {
@@ -184,7 +172,7 @@ describe('edgeV2 checks', () => {
         upperBound: '5',
       };
       assert.strictEqual(
-        edgeV2ResourceChecks.initialValue?.(raw, noDeps),
+        edgeResourceChecks.initialValue?.(raw, noDeps),
         '[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "x"',
       );
     });
@@ -197,10 +185,10 @@ describe('edgeV2 checks', () => {
         upperBound: '5',
       };
       assert.strictEqual(
-        edgeV2ResourceChecks.initialValue?.(raw, noDeps),
+        edgeResourceChecks.initialValue?.(raw, noDeps),
         '[INVALID RESOURCE]: Initial value (9) must be within bounds [0, 5]',
       );
-      assert.strictEqual(edgeV2ResourceChecks.lowerBound?.(raw, noDeps), null);
+      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
     });
 
     it('is fine for a valid int resource', () => {
@@ -210,17 +198,14 @@ describe('edgeV2 checks', () => {
         lowerBound: '0',
         upperBound: '5',
       };
-      assert.strictEqual(
-        edgeV2ResourceChecks.initialValue?.(raw, noDeps),
-        null,
-      );
-      assert.strictEqual(edgeV2ResourceChecks.lowerBound?.(raw, noDeps), null);
-      assert.strictEqual(edgeV2ResourceChecks.upperBound?.(raw, noDeps), null);
+      assert.strictEqual(edgeResourceChecks.initialValue?.(raw, noDeps), null);
+      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
+      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
     });
 
     it('rejects an unsupported type', () => {
       assert.strictEqual(
-        edgeV2ResourceChecks.type?.({ type: 'string' }, noDeps),
+        edgeResourceChecks.type?.({ type: 'string' }, noDeps),
         '[INVALID RESOURCE]: Unsupported resource type: string',
       );
     });

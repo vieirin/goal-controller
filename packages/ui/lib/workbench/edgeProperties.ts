@@ -3,8 +3,8 @@
  * input to edit it with, whether it applies given the element's other properties (an int
  * resource has bounds, a bool one does not; a maintain goal needs a maintain condition),
  * and what the engine would reject in it (`validate`, the engine's own check function —
- * see @goal-controller/lib's edge{,V2}{Goal,Task,Resource}Checks). Mirrors
- * packages/lib/src/engines/edge{,V2}/mapper.ts.
+ * see @goal-controller/lib's edge{Goal,Task,Resource}Checks, shared by both engines today).
+ * Mirrors packages/lib/src/engines/edge{,V2}/mapper.ts.
  */
 import {
   edgeEngineMapper,
@@ -12,9 +12,6 @@ import {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
-  edgeV2GoalChecks,
-  edgeV2TaskChecks,
-  edgeV2ResourceChecks,
   type Check,
 } from '@goal-controller/lib';
 
@@ -80,19 +77,13 @@ const GOAL_TYPE: PropertyInput = {
   ],
 };
 
-type GoalChecks = Partial<Record<EdgeKeys['goal'], Check>>;
-type TaskChecks = Partial<Record<EdgeKeys['task'], Check>>;
-type ResourceChecks = Partial<Record<EdgeKeys['resource'], Check>>;
-
 /** utility, cost: the same key set on both goals and tasks, both engines, no engine check. */
 const SHARED: readonly PropertySpec<'utility' | 'cost'>[] = [
   { key: 'utility', input: { kind: 'number' } },
   { key: 'cost', input: { kind: 'number' } },
 ];
 
-const makeGoalSpecs = (
-  checks: GoalChecks,
-): readonly PropertySpec<EdgeKeys['goal']>[] => [
+const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
   // always offered as a choice: unset is "achieve", the default
   { key: 'type', input: GOAL_TYPE, required: () => true },
   {
@@ -104,7 +95,7 @@ const makeGoalSpecs = (
     applies: isMaintain,
     required: isMaintain,
     notApplying: () => 'Only read when type is maintain',
-    validate: checks.maintain,
+    validate: edgeGoalChecks.maintain,
   },
   {
     key: 'assertion',
@@ -114,24 +105,22 @@ const makeGoalSpecs = (
   {
     key: 'maxRetries',
     input: { kind: 'integer', min: 0 },
-    validate: checks.maxRetries,
+    validate: edgeGoalChecks.maxRetries,
   },
   ...SHARED,
   {
     key: 'dependsOn',
     input: { kind: 'text', placeholder: 'goal ids, comma-separated: G2, G5' },
-    validate: checks.dependsOn,
+    validate: edgeGoalChecks.dependsOn,
   },
   {
     key: 'variables',
     input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
-    validate: checks.variables,
+    validate: edgeGoalChecks.variables,
   },
 ];
 
-const makeTaskSpecs = (
-  checks: TaskChecks,
-): readonly PropertySpec<EdgeKeys['task']>[] => [
+const TASK_SPECS: readonly PropertySpec<EdgeKeys['task']>[] = [
   // tasks have no maintain condition (not among the task keys): type is free text
   { key: 'type', input: { kind: 'text' } },
   {
@@ -141,14 +130,12 @@ const makeTaskSpecs = (
   {
     key: 'maxRetries',
     input: { kind: 'integer', min: 0 },
-    validate: checks.maxRetries,
+    validate: edgeTaskChecks.maxRetries,
   },
   ...SHARED,
 ];
 
-const makeResourceSpecs = (
-  checks: ResourceChecks,
-): readonly PropertySpec<EdgeKeys['resource']>[] => [
+const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
   {
     key: 'type',
     input: {
@@ -159,7 +146,7 @@ const makeResourceSpecs = (
       ],
     },
     required: () => true,
-    validate: checks.type,
+    validate: edgeResourceChecks.type,
   },
   {
     key: 'initialValue',
@@ -174,7 +161,7 @@ const makeResourceSpecs = (
             ],
           },
     required: () => true,
-    validate: checks.initialValue,
+    validate: edgeResourceChecks.initialValue,
   },
   {
     key: 'lowerBound',
@@ -183,7 +170,7 @@ const makeResourceSpecs = (
     required: isInt,
     notApplying: (p) =>
       `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-    validate: checks.lowerBound,
+    validate: edgeResourceChecks.lowerBound,
   },
   {
     key: 'upperBound',
@@ -192,23 +179,15 @@ const makeResourceSpecs = (
     required: isInt,
     notApplying: (p) =>
       `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-    validate: checks.upperBound,
+    validate: edgeResourceChecks.upperBound,
   },
 ];
 
-/** Edge and EdgeV2 read the same custom properties, but each checks its own (see
- * packages/lib/src/engines/edge{,V2}/mapper.ts and checks.ts). */
+/** Edge and EdgeV2 read the same custom properties, and check them the same way today
+ * (see packages/lib/src/engines/edge{,V2}/mapper.ts and edgeChecks.ts). */
 export const PROPERTY_SPECS = {
-  edge: {
-    goal: makeGoalSpecs(edgeGoalChecks),
-    task: makeTaskSpecs(edgeTaskChecks),
-    resource: makeResourceSpecs(edgeResourceChecks),
-  },
-  edgev2: {
-    goal: makeGoalSpecs(edgeV2GoalChecks),
-    task: makeTaskSpecs(edgeV2TaskChecks),
-    resource: makeResourceSpecs(edgeV2ResourceChecks),
-  },
+  edge: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
+  edgev2: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
 } satisfies {
   edge: SpecsFor<typeof edgeEngineMapper>;
   edgev2: SpecsFor<typeof edgeV2EngineMapper>;

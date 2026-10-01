@@ -1,5 +1,10 @@
-import type { Check } from '../checks';
-import type { EdgeGoalKey, EdgeResourceKey, EdgeTaskKey } from './mapper';
+/**
+ * The property checks edge/mapper.ts and edgeV2/mapper.ts both make (they're near-copies
+ * of each other): a shared module, since the checks are identical today. Split it if the
+ * two engines' rules ever diverge.
+ */
+import type { Check } from './checks';
+import type { EdgeGoalKey, EdgeResourceKey, EdgeTaskKey } from './edge/mapper';
 
 type Issue = { key: string; message: string };
 
@@ -161,7 +166,7 @@ export const firstResourceIssue = (
   raw: Partial<Record<string, string>>,
 ): string | null => resourceIssues(raw)[0]?.message ?? null;
 
-export const edgeV2GoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
+export const edgeGoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
   variables: (raw) =>
     goalOrTaskIssues('goal', raw).find((i) => i.key === 'variables')?.message ??
     null,
@@ -177,13 +182,13 @@ export const edgeV2GoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
 // 'maintain' isn't an allowed task key (EDGE_TASK_KEYS), so a task can never satisfy
 // getMaintainCondition's 'maintain' in raw check once type is 'maintain': mapTaskProps
 // always throws it, through firstGoalOrTaskIssue, with no key to attach it to in the UI.
-export const edgeV2TaskChecks: Partial<Record<EdgeTaskKey, Check>> = {
+export const edgeTaskChecks: Partial<Record<EdgeTaskKey, Check>> = {
   maxRetries: (raw) =>
     goalOrTaskIssues('task', raw).find((i) => i.key === 'maxRetries')
       ?.message ?? null,
 };
 
-export const edgeV2ResourceChecks: Partial<Record<EdgeResourceKey, Check>> = {
+export const edgeResourceChecks: Partial<Record<EdgeResourceKey, Check>> = {
   type: (raw) =>
     resourceIssues(raw).find((i) => i.key === 'type')?.message ?? null,
   initialValue: (raw) =>

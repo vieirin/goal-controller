@@ -90,12 +90,7 @@ export {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
-} from './engines/edge/checks';
-export {
-  edgeV2GoalChecks,
-  edgeV2TaskChecks,
-  edgeV2ResourceChecks,
-} from './engines/edgeV2/checks';
+} from './engines/edgeChecks';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

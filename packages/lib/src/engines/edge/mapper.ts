@@ -15,7 +15,7 @@ import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
   firstResourceIssue,
-} from './checks';
+} from '../edgeChecks';
 import type {
   Decision,
   EdgeResourceProps,
