@@ -114,6 +114,7 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
   goal: 'goals',
   task: 'tasks',
   resource: 'resources',
+  quality: 'qualities',
 };
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
@@ -133,11 +134,13 @@ const ENGINE_KEYS: Record<
       goal: 'EDGE_GOAL_KEYS',
       task: 'EDGE_TASK_KEYS',
       resource: 'EDGE_RESOURCE_KEYS',
+      quality: 'allowedQualityKeys',
     },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
   edge: {
@@ -146,20 +149,27 @@ const ENGINE_KEYS: Record<
       goal: 'EDGE_GOAL_KEYS',
       task: 'EDGE_TASK_KEYS',
       resource: 'EDGE_RESOURCE_KEYS',
+      quality: 'allowedQualityKeys',
     },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
-    lists: { goal: 'SLEEC_GOAL_KEYS', task: 'SLEEC_TASK_KEYS' },
+    lists: {
+      goal: 'SLEEC_GOAL_KEYS',
+      task: 'SLEEC_TASK_KEYS',
+      quality: 'SLEEC_QUALITY_KEYS',
+    },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
 };
@@ -470,14 +480,14 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
   const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
     KNOWN_PROPERTIES;
   const known = useMemo(
-    () => knownProperties?.[node.kind === 'quality' ? 'goal' : node.kind] ?? [],
+    () => knownProperties?.[node.kind] ?? [],
     [knownProperties, node.kind],
   );
   // Edge engines: how each property is edited and whether it applies, given the others
   const specs = useMemo(
     () =>
       engine === 'edge' || engine === 'edgev2'
-        ? PROPERTY_SPECS[engine][node.kind === 'quality' ? 'goal' : node.kind]
+        ? PROPERTY_SPECS[engine][node.kind]
         : [],
     [engine, node.kind],
   );
@@ -499,13 +509,15 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
     return [...new Set([...fromSpec, ...set])];
   }, [specs, node.properties]);
   // what a validate function may refer to: this node's id, and other RT ids' kinds
-  // (dependsOn), qualities counting as goals like the engines read them
+  // (dependsOn). Qualities are not goals for engine checks.
   const checkContext = useMemo(
     () => ({
       self: node.id,
       kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
         const kind = tree?.nodes.get(id)?.kind;
-        return kind === 'quality' ? 'goal' : kind;
+        return kind === 'goal' || kind === 'task' || kind === 'resource'
+          ? kind
+          : undefined;
       },
     }),
     [node.id, tree],
@@ -720,7 +732,7 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
                 knownProperties && !known.includes(key) && key !== 'Description'
                   ? whereAccepted(
                       key,
-                      node.kind === 'quality' ? 'goal' : node.kind,
+                      node.kind,
                       engine,
                       knownProperties,
                       allKnown,

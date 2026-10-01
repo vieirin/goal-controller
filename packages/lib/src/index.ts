@@ -52,7 +52,11 @@ export {
   EDGE_RESOURCE_KEYS as EDGE_V2_RESOURCE_KEYS,
   EDGE_TASK_KEYS as EDGE_V2_TASK_KEYS,
 } from './engines/edgeV2/mapper';
-export { SLEEC_GOAL_KEYS, SLEEC_TASK_KEYS } from './engines/sleec/mapper';
+export {
+  SLEEC_GOAL_KEYS,
+  SLEEC_TASK_KEYS,
+  SLEEC_QUALITY_KEYS,
+} from './engines/sleec/mapper';
 
 export {
   DEFAULT_TASK_LAYOUT as EDGE_V2_DEFAULT_TASK_LAYOUT,

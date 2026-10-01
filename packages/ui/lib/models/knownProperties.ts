@@ -10,6 +10,7 @@ type Mapper = {
   allowedGoalKeys: readonly string[];
   allowedTaskKeys: readonly string[];
   allowedResourceKeys?: readonly string[];
+  allowedQualityKeys?: readonly string[];
   skipResource?: boolean;
 };
 
@@ -17,6 +18,7 @@ const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
   goal: [...m.allowedGoalKeys],
   task: [...m.allowedTaskKeys],
   resource: m.skipResource ? [] : [...(m.allowedResourceKeys ?? [])],
+  quality: [...(m.allowedQualityKeys ?? [])],
 });
 
 /** The custom properties each engine reads, per node kind, read from its mapper. */

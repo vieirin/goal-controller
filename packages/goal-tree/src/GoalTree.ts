@@ -82,9 +82,25 @@ export class GoalTree<
   /**
    * Create a GoalTree from an iStar model with a specific engine mapper
    */
-  static fromModel<TGoalEngine, TTaskEngine, TResourceEngine>(
+  static fromModel<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys extends string = string,
+    TTaskKeys extends string = string,
+    TResourceKeys extends string = string,
+    TQualityKeys extends string = never,
+  >(
     model: IStarModel,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+    mapper: EngineMapper<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys,
+      TQualityKeys
+    >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const nodes = convertToTree(model, mapper);
     return new GoalTree(nodes);
@@ -93,9 +109,25 @@ export class GoalTree<
   /**
    * Create a GoalTree from a pistar model file with a specific engine mapper
    */
-  static fromFile<TGoalEngine, TTaskEngine, TResourceEngine>(
+  static fromFile<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys extends string = string,
+    TTaskKeys extends string = string,
+    TResourceKeys extends string = string,
+    TQualityKeys extends string = never,
+  >(
     filename: string,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+    mapper: EngineMapper<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys,
+      TQualityKeys
+    >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.load(filename);
     return GoalTree.fromModel(model, mapper);
@@ -104,9 +136,25 @@ export class GoalTree<
   /**
    * Create a GoalTree from JSON string with a specific engine mapper
    */
-  static fromJSON<TGoalEngine, TTaskEngine, TResourceEngine>(
+  static fromJSON<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys extends string = string,
+    TTaskKeys extends string = string,
+    TResourceKeys extends string = string,
+    TQualityKeys extends string = never,
+  >(
     json: string,
-    mapper: EngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+    mapper: EngineMapper<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys,
+      TQualityKeys
+    >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.parse(json);
     return GoalTree.fromModel(model, mapper);

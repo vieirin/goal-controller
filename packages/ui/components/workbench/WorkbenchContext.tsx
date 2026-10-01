@@ -688,6 +688,7 @@ function WorkbenchState({
             goal: [],
             task: [],
             resource: [],
+            quality: [],
           },
           problems: [
             {

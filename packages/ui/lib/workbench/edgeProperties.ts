@@ -53,7 +53,14 @@ type KeysOf<M> = M extends {
   allowedTaskKeys: readonly (infer T)[];
   allowedResourceKeys: readonly (infer R)[];
 }
-  ? { goal: G; task: T; resource: R }
+  ? {
+      goal: G;
+      task: T;
+      resource: R;
+      quality: M extends { allowedQualityKeys: readonly (infer Q)[] }
+        ? Q
+        : never;
+    }
   : never;
 
 /** A spec list per node kind, each entry's key checked against the engine's keys. */
@@ -63,7 +70,7 @@ type SpecsFor<M> = {
 
 type EdgeKeys = KeysOf<typeof edgeEngineMapper>;
 
-/** The node kinds an engine mapper has keys for (quality isn't one: it's read as a goal). */
+/** The node kinds an engine mapper has keys for. */
 export type NodeKindKey = keyof EdgeKeys;
 
 const isMaintain = (p: Properties) => p.type === 'maintain';
@@ -186,8 +193,18 @@ const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
 /** Edge and EdgeV2 read the same custom properties, and check them the same way today
  * (see packages/lib/src/engines/edge{,V2}/mapper.ts and edgeChecks.ts). */
 export const PROPERTY_SPECS = {
-  edge: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
-  edgev2: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
+  edge: {
+    goal: GOAL_SPECS,
+    task: TASK_SPECS,
+    resource: RESOURCE_SPECS,
+    quality: [],
+  },
+  edgev2: {
+    goal: GOAL_SPECS,
+    task: TASK_SPECS,
+    resource: RESOURCE_SPECS,
+    quality: [],
+  },
 } satisfies {
   edge: SpecsFor<typeof edgeEngineMapper>;
   edgev2: SpecsFor<typeof edgeV2EngineMapper>;

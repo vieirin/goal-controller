@@ -15,8 +15,10 @@ export {
   type SleecGoalTree,
   SLEEC_GOAL_KEYS,
   SLEEC_TASK_KEYS,
+  SLEEC_QUALITY_KEYS,
   type SleecGoalKey,
   type SleecTaskKey,
+  type SleecQualityKey,
 } from './mapper';
 
 // Types
