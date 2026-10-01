@@ -22,7 +22,10 @@ export const DEFAULT_RT_GRAMMAR: RTGrammar = 'edge';
 
 const goalDetailParsers: Record<
   RTGrammar,
-  (props: { goalText: string }) => GoalDetail
+  (props: {
+    goalText: string;
+    onSyntaxError?: (message: string) => void;
+  }) => GoalDetail
 > = {
   edge: getEdgeGoalDetail,
   edgeV2: getEdgeV2GoalDetail,
@@ -31,7 +34,10 @@ const goalDetailParsers: Record<
 export const getGoalDetail = ({
   goalText,
   grammar = DEFAULT_RT_GRAMMAR,
+  onSyntaxError,
 }: {
   goalText: string;
   grammar?: RTGrammar;
-}): GoalDetail => goalDetailParsers[grammar]({ goalText });
+  /** receives syntax errors instead of the console */
+  onSyntaxError?: (message: string) => void;
+}): GoalDetail => goalDetailParsers[grammar]({ goalText, onSyntaxError });

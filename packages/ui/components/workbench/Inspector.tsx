@@ -17,9 +17,7 @@ import {
   CONSTRUCT_LABEL,
   composeNodeText,
   isValidName,
-  notationConstruct,
   nodeTone,
-  notationIds,
   setNodeColor,
   setNodeProperty,
   setNodeText,
@@ -417,8 +415,9 @@ function NodeInspector({ node }: { node: ViewNode }) {
     ),
   );
 
-  const draftConstruct = notationConstruct(notation.draft || null, engine);
-  const listed = notationIds(notation.draft);
+  // what the engine's grammar reads in the saved notation (computed on the server)
+  const draftConstruct = node.construct;
+  const listed = node.order;
   const pursueable = node.children.filter(
     (id) => tree?.nodes.get(id)?.kind !== 'resource',
   );
@@ -505,11 +504,16 @@ function NodeInspector({ node }: { node: ViewNode }) {
         <Field
           label='Execution notation'
           hint={
-            notation.draft.trim()
-              ? draftConstruct
-                ? `${CONSTRUCT_LABEL[draftConstruct]} — ${CONSTRUCT_HELP[draftConstruct]}`
-                : 'No operator this engine understands.'
-              : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
+            notation.draft.trim() !== (node.notation ?? '')
+              ? // the grammar reads it once it is saved
+                'Checking the notation…'
+              : notation.draft.trim()
+                ? node.notationError
+                  ? `Not valid for this engine: ${node.notationError}`
+                  : draftConstruct
+                    ? `${CONSTRUCT_LABEL[draftConstruct]} — ${CONSTRUCT_HELP[draftConstruct]}`
+                    : 'No operator this engine understands.'
+                : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
           }
         >
           <input

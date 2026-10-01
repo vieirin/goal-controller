@@ -12,8 +12,20 @@ import {
   type ReactNode,
 } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
-import { generationProblems, jsonProblem, treeProblems } from '@/lib/workbench/localProblems';
-import { buildViewTree, readModelMode, writeModelMode, type ModelMode, type ViewTree } from '@/lib/workbench/pistar';
+import {
+  generationProblems,
+  jsonProblem,
+  treeProblems,
+} from '@/lib/workbench/localProblems';
+import type { GoalView } from '@goal-controller/goal-tree';
+import { parsePistar } from '@istar-ts/core';
+import {
+  readModelMode,
+  viewTreeFrom,
+  writeModelMode,
+  type ModelMode,
+  type ViewTree,
+} from '@/lib/workbench/pistar';
 import { modelSignature } from '@/lib/workbench/signature';
 import {
   loadPreferences,
@@ -38,9 +50,22 @@ import {
 // ---------------------------------------------------------------------------
 
 /** Which part of the workbench last changed the model. */
-export type ChangeSource = 'open' | 'canvas' | 'source' | 'inspector' | 'undo' | 'restore' | 'convert';
+export type ChangeSource =
+  | 'open'
+  | 'canvas'
+  | 'source'
+  | 'inspector'
+  | 'undo'
+  | 'restore'
+  | 'convert';
 /** Which part of the workbench made the selection. */
-export type SelectOrigin = 'canvas' | 'source' | 'output' | 'inspector' | 'problems' | 'variables';
+export type SelectOrigin =
+  | 'canvas'
+  | 'source'
+  | 'output'
+  | 'inspector'
+  | 'problems'
+  | 'variables';
 
 export type ModelTab = 'diagram' | 'source';
 export type OutputTab = 'output' | 'diff' | 'report';
@@ -173,7 +198,8 @@ const WorkbenchContext = createContext<Workbench | null>(null);
 
 export const useWorkbench = (): Workbench => {
   const value = useContext(WorkbenchContext);
-  if (!value) throw new Error('useWorkbench must be used inside <WorkbenchProvider>');
+  if (!value)
+    throw new Error('useWorkbench must be used inside <WorkbenchProvider>');
   return value;
 };
 
@@ -193,23 +219,43 @@ type SelectionActions = {
   clearSelection: () => void;
 };
 
-const SelectionContext = createContext<Selection>({ selected: null, selectOrigin: null, selectSeq: 0 });
+const SelectionContext = createContext<Selection>({
+  selected: null,
+  selectOrigin: null,
+  selectSeq: 0,
+});
 const SelectionActionsContext = createContext<SelectionActions | null>(null);
 
 export const useSelection = (): Selection => useContext(SelectionContext);
 
 function SelectionProvider({ children }: { children: ReactNode }) {
-  const [selection, setSelection] = useState<Selection>({ selected: null, selectOrigin: null, selectSeq: 0 });
+  const [selection, setSelection] = useState<Selection>({
+    selected: null,
+    selectOrigin: null,
+    selectSeq: 0,
+  });
   const actions = useMemo<SelectionActions>(
     () => ({
-      select: (selected, selectOrigin) => setSelection((prev) => ({ selected, selectOrigin, selectSeq: prev.selectSeq + 1 })),
-      clearSelection: () => setSelection((prev) => ({ selected: null, selectOrigin: null, selectSeq: prev.selectSeq + 1 })),
+      select: (selected, selectOrigin) =>
+        setSelection((prev) => ({
+          selected,
+          selectOrigin,
+          selectSeq: prev.selectSeq + 1,
+        })),
+      clearSelection: () =>
+        setSelection((prev) => ({
+          selected: null,
+          selectOrigin: null,
+          selectSeq: prev.selectSeq + 1,
+        })),
     }),
     [],
   );
   return (
     <SelectionActionsContext.Provider value={actions}>
-      <SelectionContext.Provider value={selection}>{children}</SelectionContext.Provider>
+      <SelectionContext.Provider value={selection}>
+        {children}
+      </SelectionContext.Provider>
     </SelectionActionsContext.Provider>
   );
 }
@@ -221,7 +267,8 @@ function SelectionProvider({ children }: { children: ReactNode }) {
 const defaultValue = (variable: VariableInfo): boolean | number =>
   variable.kind === 'context' ? false : 0.8;
 
-const analysisKey = (text: string, engine: TransformEngine): string => `${engine}\n${text}`;
+const analysisKey = (text: string, engine: TransformEngine): string =>
+  `${engine}\n${text}`;
 
 const useDebounced = <T,>(value: T, ms: number): T => {
   const [debounced, setDebounced] = useState(value);
@@ -232,7 +279,10 @@ const useDebounced = <T,>(value: T, ms: number): T => {
   return debounced;
 };
 
-const optionsFor = (engine: TransformEngine, options: GenerationOptions): Record<string, unknown> =>
+const optionsFor = (
+  engine: TransformEngine,
+  options: GenerationOptions,
+): Record<string, unknown> =>
   engine === 'edgev2'
     ? {
         clean: options.clean,
@@ -255,7 +305,10 @@ const COALESCE_MS = 600;
 // Provider
 // ---------------------------------------------------------------------------
 
-export function WorkbenchProvider(props: { lockedEngine: TransformEngine | null; children: ReactNode }) {
+export function WorkbenchProvider(props: {
+  lockedEngine: TransformEngine | null;
+  children: ReactNode;
+}) {
   // the selection sits outside the workbench state: selecting does not re-render WorkbenchState
   return (
     <SelectionProvider>
@@ -272,7 +325,8 @@ function WorkbenchState({
   children: ReactNode;
 }) {
   const selectionActions = useContext(SelectionActionsContext);
-  if (!selectionActions) throw new Error('WorkbenchState must be inside <SelectionProvider>');
+  if (!selectionActions)
+    throw new Error('WorkbenchState must be inside <SelectionProvider>');
   const { select, clearSelection } = selectionActions;
   const initial = useRef<Persisted | null>(null);
   initial.current ??= loadPreferences<Persisted>();
@@ -282,18 +336,25 @@ function WorkbenchState({
     lockedEngine ?? initial.current?.engine ?? 'edgev2',
   );
   const engine = lockedEngine ?? engineState;
-  const setEngine = useCallback((next: TransformEngine) => setEngineState(next), []);
+  const setEngine = useCallback(
+    (next: TransformEngine) => setEngineState(next),
+    [],
+  );
   const [options, setOptionsState] = useState<GenerationOptions>({
     ...DEFAULT_OPTIONS,
-    ...(initial.current?.options ?? {}),
+    ...initial.current?.options,
   });
   const setOptions = useCallback(
-    (patch: Partial<GenerationOptions>) => setOptionsState((prev) => ({ ...prev, ...patch })),
+    (patch: Partial<GenerationOptions>) =>
+      setOptionsState((prev) => ({ ...prev, ...patch })),
     [],
   );
   const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
   const [pistar, setPistar] = useState(false);
-  const settings = useMemo<ModelSettings>(() => ({ engine, options, live, pistar }), [engine, options, live, pistar]);
+  const settings = useMemo<ModelSettings>(
+    () => ({ engine, options, live, pistar }),
+    [engine, options, live, pistar],
+  );
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const applySettings = useCallback((next: ModelSettings) => {
@@ -302,10 +363,11 @@ function WorkbenchState({
     setLive(next.live);
     setPistar(next.pistar ?? false);
   }, []);
-  const [settingsDialog, setSettingsDialog] = useState<'setup' | 'edit' | null>(null);
+  const [settingsDialog, setSettingsDialog] = useState<'setup' | 'edit' | null>(
+    null,
+  );
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
   const closeSettings = useCallback(() => setSettingsDialog(null), []);
-
 
   // ---- model (every load starts empty; earlier work is reopened from Recent) ----
   const [model, setModel] = useState(() => ({
@@ -327,7 +389,12 @@ function WorkbenchState({
   const textRef = useRef(model.text);
   const commit = useCallback((text: string, source: ChangeSource) => {
     textRef.current = text;
-    setModel((prev) => ({ ...prev, text, source, revision: prev.revision + 1 }));
+    setModel((prev) => ({
+      ...prev,
+      text,
+      source,
+      revision: prev.revision + 1,
+    }));
     forceHistory((n) => n + 1);
   }, []);
 
@@ -336,8 +403,13 @@ function WorkbenchState({
       if (textRef.current === text) return;
       const now = Date.now();
       // coalesce bursts (typing, dragging) into one undo step
-      if (now - lastPush.current > COALESCE_MS || undoStack.current.length === 0) {
-        undoStack.current = [...undoStack.current, textRef.current].slice(-UNDO_LIMIT);
+      if (
+        now - lastPush.current > COALESCE_MS ||
+        undoStack.current.length === 0
+      ) {
+        undoStack.current = [...undoStack.current, textRef.current].slice(
+          -UNDO_LIMIT,
+        );
       }
       lastPush.current = now;
       redoStack.current = [];
@@ -351,13 +423,18 @@ function WorkbenchState({
     const recorded = readModelMode(model.text);
     return recorded && recorded !== 'pistar' ? recorded : null;
   }, [model.text]);
-  const [conversion, setConversion] = useState<{ target: TransformEngine } | null>(null);
+  const [conversion, setConversion] = useState<{
+    target: TransformEngine;
+  } | null>(null);
   const requestMode = useCallback(
     (target: ModelMode) => {
       const current = settingsRef.current;
-      const currentMode: ModelMode = current.pistar ? 'pistar' : (lockedEngine ?? current.engine);
+      const currentMode: ModelMode = current.pistar
+        ? 'pistar'
+        : (lockedEngine ?? current.engine);
       const text = textRef.current;
-      if (lockedEngine && target !== 'pistar' && target !== lockedEngine) return;
+      if (lockedEngine && target !== 'pistar' && target !== lockedEngine)
+        return;
       const recorded = (() => {
         try {
           return readModelMode(text);
@@ -402,7 +479,10 @@ function WorkbenchState({
     [setText],
   );
   const cancelConversion = useCallback(() => setConversion(null), []);
-  const openConversion = useCallback((target: TransformEngine) => setConversion({ target }), []);
+  const openConversion = useCallback(
+    (target: TransformEngine) => setConversion({ target }),
+    [],
+  );
 
   const undo = useCallback(() => {
     const previous = undoStack.current.pop();
@@ -429,7 +509,10 @@ function WorkbenchState({
     setBottomTabState(tab);
     setBottomRevealSeq((n) => n + 1);
   }, []);
-  const [sourceLine, setSourceLine] = useState<{ line: number; seq: number } | null>(null);
+  const [sourceLine, setSourceLine] = useState<{
+    line: number;
+    seq: number;
+  } | null>(null);
   const revealSourceLine = useCallback((line: number) => {
     setModelTab('source');
     setSourceLine((prev) => ({ line, seq: (prev?.seq ?? 0) + 1 }));
@@ -442,7 +525,11 @@ function WorkbenchState({
   modelRef.current = model;
 
   const openModel = useCallback(
-    (fileName: string, text: string, { savedText = text, settings: stored, setup = false }: OpenOptions = {}) => {
+    (
+      fileName: string,
+      text: string,
+      { savedText = text, settings: stored, setup = false }: OpenOptions = {},
+    ) => {
       const previous = modelRef.current;
       if (previous.text.trim()) {
         // keep the model being left (and its latest edits) in Recent
@@ -457,13 +544,24 @@ function WorkbenchState({
       // the file says what it is for: its recorded engine, or (none) a piStar model;
       // options and live come from the settings kept with it
       const recorded = readModelMode(text) ?? 'pistar';
-      const base = stored ? { ...settingsRef.current, ...stored } : settingsRef.current;
-      const next = recorded === 'pistar' ? { ...base, pistar: true } : { ...base, pistar: false, engine: recorded };
+      const base = stored
+        ? { ...settingsRef.current, ...stored }
+        : settingsRef.current;
+      const next =
+        recorded === 'pistar'
+          ? { ...base, pistar: true }
+          : { ...base, pistar: false, engine: recorded };
       applySettings(next);
       setSettingsDialog(setup ? 'setup' : null);
       setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
       textRef.current = text;
-      setModel((prev) => ({ fileName, text, savedText, source: 'open', revision: prev.revision + 1 }));
+      setModel((prev) => ({
+        fileName,
+        text,
+        savedText,
+        source: 'open',
+        revision: prev.revision + 1,
+      }));
       undoStack.current = [];
       redoStack.current = [];
       setRuns([]);
@@ -490,7 +588,13 @@ function WorkbenchState({
     applySettings({ ...settingsRef.current, pistar: false });
     setSettingsDialog(null);
     textRef.current = '';
-    setModel((prev) => ({ fileName: '', text: '', savedText: '', source: 'open', revision: prev.revision + 1 }));
+    setModel((prev) => ({
+      fileName: '',
+      text: '',
+      savedText: '',
+      source: 'open',
+      revision: prev.revision + 1,
+    }));
     undoStack.current = [];
     redoStack.current = [];
     setRuns([]);
@@ -509,33 +613,77 @@ function WorkbenchState({
     setModel((prev) => ({ ...prev, savedText: prev.text }));
   }, []);
 
-  const forgetRecent = useCallback((fileName: string) => setRecent(forgetRecentFile(fileName)), []);
+  const forgetRecent = useCallback(
+    (fileName: string) => setRecent(forgetRecentFile(fileName)),
+    [],
+  );
 
-  // ---- structure (client-side, immediate) -----------------------------------
+  // ---- structure -------------------------------------------------------------
+  // whether the file parses: immediate, in the browser
   const parsed = useMemo(() => {
-    if (!model.text.trim()) return { tree: null, error: null };
+    if (!model.text.trim()) return { error: null };
     try {
-      return { tree: buildViewTree(model.text, engine), error: null };
+      parsePistar(model.text);
+      return { error: null };
     } catch (error) {
-      return { tree: null, error: jsonProblem(model.text, error as Error) };
+      return { error: jsonProblem(model.text, error as Error) };
     }
-  }, [model.text, engine]);
-  // keep showing the last good tree while the JSON is being edited
-  const lastTree = useRef<ViewTree | null>(null);
-  if (parsed.tree) lastTree.current = parsed.tree;
-  if (!model.text.trim()) lastTree.current = null;
-  const tree = parsed.tree ?? lastTree.current;
-  const nodeIds = useMemo(() => new Set(tree ? [...tree.nodes.keys()] : []), [tree]);
+  }, [model.text]);
+  // the tree: goal-tree's view of the model, read by the server with the engine's grammar
+  // (/api/tree); the last one of the same file stays while the next is computed, or while
+  // the JSON is being fixed
+  const [served, setServed] = useState<{
+    fileName: string;
+    tree: ViewTree;
+  } | null>(null);
+  useEffect(() => {
+    if (!model.text.trim() || parsed.error) return undefined;
+    const controller = new AbortController();
+    const fileName = model.fileName;
+    fetch('/api/tree', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modelJson: model.text, engine }),
+      signal: controller.signal,
+    })
+      .then((response) => response.json())
+      .then((data: { success: boolean; view?: GoalView }) => {
+        if (data.success && data.view)
+          setServed({ fileName, tree: viewTreeFrom(data.view) });
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [model.text, model.fileName, engine, parsed.error]);
+  const tree =
+    model.text.trim() && served?.fileName === model.fileName
+      ? served.tree
+      : null;
+  const nodeIds = useMemo(
+    () => new Set(tree ? [...tree.nodes.keys()] : []),
+    [tree],
+  );
 
   // ---- analysis (server, debounced) ------------------------------------------
   const debouncedText = useDebounced(model.text, 400);
-  const [analyzed, setAnalyzed] = useState<{ key: string; data: AnalyzeResponse } | null>(null);
+  const [analyzed, setAnalyzed] = useState<{
+    key: string;
+    data: AnalyzeResponse;
+  } | null>(null);
   const analysis = analyzed?.data ?? null;
-  const setAnalysis = useCallback((data: AnalyzeResponse | null, key = '') => setAnalyzed(data ? { key, data } : null), []);
+  const setAnalysis = useCallback(
+    (data: AnalyzeResponse | null, key = '') =>
+      setAnalyzed(data ? { key, data } : null),
+    [],
+  );
   const [analyzing, setAnalyzing] = useState(false);
   useEffect(() => {
     // piStar mode has no engine to analyse for
-    if (pistar || !debouncedText.trim() || modelSignature(debouncedText) === null) return undefined;
+    if (
+      pistar ||
+      !debouncedText.trim() ||
+      modelSignature(debouncedText) === null
+    )
+      return undefined;
     const controller = new AbortController();
     setAnalyzing(true);
     fetch('/api/analyze', {
@@ -555,7 +703,9 @@ function WorkbenchState({
               success: true,
               variables: [],
               knownProperties: { goal: [], task: [], resource: [] },
-              problems: [{ severity: 'error', source: 'engine', message: data.error }],
+              problems: [
+                { severity: 'error', source: 'engine', message: data.error },
+              ],
             },
             key,
           );
@@ -566,7 +716,12 @@ function WorkbenchState({
         // generation must not wait forever: keep the last variables, marked as done for this text
         setAnalyzed((prev) => ({
           key: analysisKey(debouncedText, engine),
-          data: prev?.data ?? { success: true, variables: [], knownProperties: { goal: [], task: [], resource: [] }, problems: [] },
+          data: prev?.data ?? {
+            success: true,
+            variables: [],
+            knownProperties: { goal: [], task: [], resource: [] },
+            problems: [],
+          },
         }));
       })
       .finally(() => {
@@ -580,14 +735,17 @@ function WorkbenchState({
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
-    !isPrismEngine(engine) || (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
+    !isPrismEngine(engine) ||
+    (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
 
   // ---- variables -------------------------------------------------------------
   const variables = useMemo(
-    () => (isPrismEngine(engine) ? analysis?.variables ?? [] : []),
+    () => (isPrismEngine(engine) ? (analysis?.variables ?? []) : []),
     [analysis, engine],
   );
-  const [storedValues, setStoredValues] = useState<VariableValues>(initial.current?.variables ?? {});
+  const [storedValues, setStoredValues] = useState<VariableValues>(
+    initial.current?.variables ?? {},
+  );
   const values = useMemo(() => {
     const result: VariableValues = {};
     for (const variable of variables) {
@@ -600,7 +758,8 @@ function WorkbenchState({
     return result;
   }, [variables, storedValues]);
   const setValue = useCallback(
-    (name: string, value: boolean | number) => setStoredValues((prev) => ({ ...prev, [name]: value })),
+    (name: string, value: boolean | number) =>
+      setStoredValues((prev) => ({ ...prev, [name]: value })),
     [],
   );
   const setValues = useCallback(
@@ -622,20 +781,47 @@ function WorkbenchState({
     const content = modelSignature(model.text);
     return content === null
       ? null
-      : JSON.stringify([content, engine, optionsFor(engine, options), isPrismEngine(engine) ? values : null]);
+      : JSON.stringify([
+          content,
+          engine,
+          optionsFor(engine, options),
+          isPrismEngine(engine) ? values : null,
+        ]);
   }, [model.text, engine, options, values]);
 
   const [generating, setGenerating] = useState(false);
   const runId = useRef(0);
   const inflight = useRef<AbortController | null>(null);
-  const latest = useRef({ text: model.text, fileName: model.fileName, engine, options, values, inputsSignature, variablesReady });
-  latest.current = { text: model.text, fileName: model.fileName, engine, options, values, inputsSignature, variablesReady };
+  const latest = useRef({
+    text: model.text,
+    fileName: model.fileName,
+    engine,
+    options,
+    values,
+    inputsSignature,
+    variablesReady,
+  });
+  latest.current = {
+    text: model.text,
+    fileName: model.fileName,
+    engine,
+    options,
+    values,
+    inputsSignature,
+    variablesReady,
+  };
   // a generation asked for before the variables were known runs once they are
   const [pendingGenerate, setPendingGenerate] = useState(false);
 
   const generate = useCallback(() => {
-    const { text, fileName, engine: runEngine, options: runOptions, values: runValues, inputsSignature: signature } =
-      latest.current;
+    const {
+      text,
+      fileName,
+      engine: runEngine,
+      options: runOptions,
+      values: runValues,
+      inputsSignature: signature,
+    } = latest.current;
     if (!text.trim() || signature === null) return;
     if (!latest.current.variablesReady) {
       setPendingGenerate(true);
@@ -656,7 +842,8 @@ function WorkbenchState({
         engine: runEngine,
         fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
         ...optionsFor(runEngine, runOptions),
-        ...(isPrismEngine(runEngine) && Object.keys(runValues).length > 0 && { variables: runValues }),
+        ...(isPrismEngine(runEngine) &&
+          Object.keys(runValues).length > 0 && { variables: runValues }),
       }),
     })
       .then(async (response) => {
@@ -669,8 +856,10 @@ function WorkbenchState({
           durationMs: performance.now() - started,
           signature,
           output: data.success ? data.output : null,
-          report: data.success ? data.report ?? null : null,
-          error: data.success ? null : [data.error, data.details].filter(Boolean).join('\n'),
+          report: data.success ? (data.report ?? null) : null,
+          error: data.success
+            ? null
+            : [data.error, data.details].filter(Boolean).join('\n'),
         };
         setRuns((prev) => [run, ...prev].slice(0, 20));
       })
@@ -712,12 +901,27 @@ function WorkbenchState({
   const debouncedSignature = useDebounced(inputsSignature, 700);
   useEffect(() => {
     // a newly opened model waits for its settings
-    if (!live || pistar || settingsDialog === 'setup' || !variablesReady || debouncedSignature === null || !model.text.trim()) return;
+    if (
+      !live ||
+      pistar ||
+      settingsDialog === 'setup' ||
+      !variablesReady ||
+      debouncedSignature === null ||
+      !model.text.trim()
+    )
+      return;
     if (current?.signature === debouncedSignature) return;
     generate();
     // current is read for comparison only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, pistar, settingsDialog, variablesReady, debouncedSignature, generate]);
+  }, [
+    live,
+    pistar,
+    settingsDialog,
+    variablesReady,
+    debouncedSignature,
+    generate,
+  ]);
 
   // last successful output (a failed run keeps showing the previous output)
   const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
@@ -735,11 +939,25 @@ function WorkbenchState({
     if (tree && !parsed.error) list.push(...treeProblems(tree, engine));
     if (analysis && !parsed.error) list.push(...analysis.problems);
     if (current && !stale) {
-      const checked = new Set(list.filter((p) => p.source === 'model' && p.nodeId).map((p) => p.nodeId));
+      const checked = new Set(
+        list
+          .filter((p) => p.source === 'model' && p.nodeId)
+          .map((p) => p.nodeId),
+      );
       list.push(
-        ...generationProblems(current.error, current.report?.log ?? null, nodeIds).filter(
+        ...generationProblems(
+          current.error,
+          current.report?.log ?? null,
+          nodeIds,
+        ).filter(
           // the engine repeats notation problems the model check already reports
-          (p) => !(p.severity === 'warning' && p.nodeId && checked.has(p.nodeId) && /notation/i.test(p.message)),
+          (p) =>
+            !(
+              p.severity === 'warning' &&
+              p.nodeId &&
+              checked.has(p.nodeId) &&
+              /notation/i.test(p.message)
+            ),
         ),
       );
     }
@@ -758,17 +976,30 @@ function WorkbenchState({
   // ---- persistence ----------------------------------------------------------------
   // the open model is kept in Recent (with its unsaved edits) instead of being reopened
   // model and settings debounced together, so a switch never pairs one model with another's settings
-  const snapshot = useDebounced(useMemo(() => ({ model, settings }), [model, settings]), 500);
+  const snapshot = useDebounced(
+    useMemo(() => ({ model, settings }), [model, settings]),
+    500,
+  );
   useEffect(() => {
     const { fileName, text, savedText } = snapshot.model;
     if (!text.trim()) return;
-    setRecent(rememberRecent({ fileName: fileName || 'untitled.txt', text, savedText, settings: snapshot.settings }));
+    setRecent(
+      rememberRecent({
+        fileName: fileName || 'untitled.txt',
+        text,
+        savedText,
+        settings: snapshot.settings,
+      }),
+    );
   }, [snapshot]);
 
   // memoized: a new object on every render would restart the debounce and re-render
   // the whole workbench twice a second, forever
   const persisted = useDebounced<Persisted>(
-    useMemo(() => ({ engine: engineState, options, live, variables: storedValues }), [engineState, options, live, storedValues]),
+    useMemo(
+      () => ({ engine: engineState, options, live, variables: storedValues }),
+      [engineState, options, live, storedValues],
+    ),
     500,
   );
   useEffect(() => {
@@ -840,5 +1071,9 @@ function WorkbenchState({
     revealSourceLine,
   };
 
-  return <WorkbenchContext.Provider value={value}>{children}</WorkbenchContext.Provider>;
+  return (
+    <WorkbenchContext.Provider value={value}>
+      {children}
+    </WorkbenchContext.Provider>
+  );
 }

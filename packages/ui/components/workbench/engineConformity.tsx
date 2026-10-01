@@ -10,8 +10,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TransformEngine } from '@/lib/types';
 import { treeProblems } from '@/lib/workbench/localProblems';
 import {
-  buildViewTree,
   planConversion,
+  viewTreeFrom,
   type Conversion,
 } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
@@ -36,12 +36,25 @@ export type Check =
   | { state: 'done'; errors: Problem[]; warnings: Problem[] };
 export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 
-const localProblems = (text: string, engine: TransformEngine): Problem[] => {
-  try {
-    return treeProblems(buildViewTree(text, engine), engine);
-  } catch {
-    return [];
-  }
+/** The workbench's own model checks, on the view the server reads with the engine's grammar. */
+const localProblems = async (
+  text: string,
+  engine: TransformEngine,
+  signal: AbortSignal,
+): Promise<Problem[]> => {
+  const response = await fetch('/api/tree', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ modelJson: text, engine }),
+    signal,
+  });
+  const data = (await response.json()) as {
+    success: boolean;
+    view?: Parameters<typeof viewTreeFrom>[0];
+  };
+  return data.success && data.view
+    ? treeProblems(viewTreeFrom(data.view), engine)
+    : [];
 };
 
 /**
@@ -80,35 +93,42 @@ export function useEngineConformity(
       const plan = plans[id];
       if (!plan || 'error' in plan || plan.blockers.length > 0) continue;
       setChecks((prev) => ({ ...prev, [id]: { state: 'checking' } }));
-      fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modelJson: plan.text, engine: id }),
-        signal: controller.signal,
-      })
-        .then((response) => response.json())
-        .then((data: AnalyzeResponse | { success: false; error: string }) => {
-          const all: Problem[] = [
-            ...(data.success
-              ? data.problems
-              : [
-                  {
-                    severity: 'error' as const,
-                    source: 'engine' as const,
-                    message: data.error,
-                  },
-                ]),
-            ...localProblems(plan.text, id),
-          ];
-          setChecks((prev) => ({
-            ...prev,
-            [id]: {
-              state: 'done',
-              errors: all.filter((p) => p.severity === 'error'),
-              warnings: all.filter((p) => p.severity === 'warning'),
-            },
-          }));
-        })
+      Promise.all([
+        fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ modelJson: plan.text, engine: id }),
+          signal: controller.signal,
+        }).then((response) => response.json()),
+        localProblems(plan.text, id, controller.signal),
+      ])
+        .then(
+          ([data, local]: [
+            AnalyzeResponse | { success: false; error: string },
+            Problem[],
+          ]) => {
+            const all: Problem[] = [
+              ...(data.success
+                ? data.problems
+                : [
+                    {
+                      severity: 'error' as const,
+                      source: 'engine' as const,
+                      message: data.error,
+                    },
+                  ]),
+              ...local,
+            ];
+            setChecks((prev) => ({
+              ...prev,
+              [id]: {
+                state: 'done',
+                errors: all.filter((p) => p.severity === 'error'),
+                warnings: all.filter((p) => p.severity === 'warning'),
+              },
+            }));
+          },
+        )
         .catch((error: Error) => {
           if (error.name === 'AbortError') return;
           setChecks((prev) => ({

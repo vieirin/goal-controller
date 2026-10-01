@@ -18,19 +18,15 @@ import {
   type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
+// types only: the view is computed on the server (the package pulls in fs and ANTLR)
+import type { GoalView, ViewConstruct } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 
 export type NodeKind = 'goal' | 'task' | 'resource' | 'quality';
 export type Relation = 'and' | 'or';
 
 /** Execution construct written in a goal's RT notation */
-export type Construct =
-  | 'sequence'
-  | 'anyOrder'
-  | 'interleaved'
-  | 'alternative'
-  | 'choice'
-  | 'degradation';
+export type Construct = ViewConstruct;
 
 export type ViewNode = {
   /** RT id, e.g. "G3" (falls back to the piStar id when the text has none) */
@@ -50,6 +46,10 @@ export type ViewNode = {
   text: string;
   /** fill colour saved in the diagram (display.backgroundColor), if any */
   color: string | null;
+  /** RT ids the notation lists, in order */
+  order: string[];
+  /** why the engine's grammar could not read the text, if it could not */
+  notationError: string | null;
 };
 
 export type ViewTree = {
@@ -66,23 +66,6 @@ export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: ''
 // Node text:  "G3: Prepare sample [T4@3->T5]"
 // ---------------------------------------------------------------------------
 
-const TEXT_RE =
-  /^\s*([A-Za-z]+\d+[A-Za-z0-9.]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
-
-export const parseNodeText = (
-  text: string,
-): { id: string | null; name: string; notation: string | null } => {
-  const match = TEXT_RE.exec(text);
-  if (!match) {
-    return { id: null, name: text.trim(), notation: null };
-  }
-  return {
-    id: match[1] ?? null,
-    name: (match[2] ?? '').trim(),
-    notation: match[3] !== undefined ? match[3].trim() : null,
-  };
-};
-
 export const composeNodeText = (
   id: string,
   name: string,
@@ -96,36 +79,6 @@ export const composeNodeText = (
 export const isValidName = (name: string): boolean =>
   /^[A-Za-z\- ']*$/.test(name);
 
-/**
- * The construct a notation expresses, per engine grammar. Edge (legacy) uses a
- * standalone `+` for choice; EdgeV2 uses `A?B` for choice and `A+B` for any order.
- */
-export const notationConstruct = (
-  notation: string | null,
-  engine: TransformEngine,
-): Construct | null => {
-  if (!notation) {
-    return null;
-  }
-  const n = notation.replace(/\s+/g, '');
-  if (n.includes('->')) return 'degradation';
-  if (n.includes(';')) return 'sequence';
-  if (n.includes('#')) return 'interleaved';
-  if (n.includes('|')) return 'alternative';
-  if (engine === 'edge') {
-    return n === '+' ? 'choice' : null;
-  }
-  if (n.includes('?')) return 'choice';
-  if (n.includes('+')) return 'anyOrder';
-  return null;
-};
-
-/** Ids referenced by a notation, in order: "T4@3->T5" → ["T4", "T5"] */
-export const notationIds = (notation: string | null): string[] =>
-  notation
-    ? Array.from(notation.matchAll(/[A-Za-z]+\d+[A-Za-z0-9]*/g), (m) => m[0])
-    : [];
-
 export const CONSTRUCT_LABEL: Record<Construct, string> = {
   sequence: 'Sequence',
   anyOrder: 'Any order',
@@ -133,6 +86,7 @@ export const CONSTRUCT_LABEL: Record<Construct, string> = {
   alternative: 'Alternative',
   choice: 'Choice',
   degradation: 'Degradation',
+  decisionMaking: 'Decision making',
 };
 
 export const CONSTRUCT_HELP: Record<Construct, string> = {
@@ -142,6 +96,7 @@ export const CONSTRUCT_HELP: Record<Construct, string> = {
   alternative: 'needs one child; picks again after each failed attempt',
   choice: 'needs one child; picks once and keeps it',
   degradation: 'retries the first child, then falls back to any child',
+  decisionMaking: 'the controller decides which children to pursue',
 };
 
 // ---------------------------------------------------------------------------
@@ -164,107 +119,20 @@ export const nodeTone = (
             : 'plain'
         : 'plain';
 
-const kindOf = (kind: IstarElement['kind']): NodeKind =>
-  kind === 'istar.Task'
-    ? 'task'
-    : kind === 'istar.Resource'
-      ? 'resource'
-      : kind === 'istar.Quality'
-        ? 'quality'
-        : 'goal';
-
-/** Intentional elements inside actors or on the paper (dependums are not part of the goal tree). */
-const goalElements = (model: IstarModel): IstarElement[] =>
-  [...model.elements.values()].filter(
-    (element) => isNode(element) && !element.isDependum,
-  );
-
-/** Build the goal tree from the piStar JSON (engine independent). */
-export const buildViewTree = (
-  text: string,
-  engine: TransformEngine,
-): ViewTree => {
-  const model = parsePistar(text);
+/**
+ * The workbench's tree from goal-tree's `goalView` (computed by the server with the
+ * engine's grammar, see /api/tree): nodes by RT id (the first one when ids repeat) and by
+ * piStar id.
+ */
+export const viewTreeFrom = (view: GoalView): ViewTree => {
   const nodes = new Map<string, ViewNode>();
   const byIStarId = new Map<string, ViewNode>();
-
-  for (const raw of goalElements(model)) {
-    const parsed = parseNodeText(raw.name);
-    const node: ViewNode = {
-      id: parsed.id ?? raw.id,
-      iStarId: raw.id,
-      kind: kindOf(raw.kind),
-      name: parsed.name,
-      notation: parsed.notation,
-      construct: notationConstruct(parsed.notation, engine),
-      relation: null,
-      children: [],
-      parent: null,
-      properties: { ...raw.customProperties },
-      text: raw.name,
-      color:
-        typeof raw.display?.backgroundColor === 'string'
-          ? raw.display.backgroundColor
-          : null,
-    };
-    byIStarId.set(raw.id, node);
-    if (!nodes.has(node.id)) {
-      nodes.set(node.id, node);
-    }
+  for (const node of view.nodes) {
+    const viewNode: ViewNode = { ...node, construct: node.construct };
+    byIStarId.set(node.iStarId, viewNode);
+    if (!nodes.has(node.id)) nodes.set(node.id, viewNode);
   }
-
-  for (const link of model.links.values()) {
-    const child = byIStarId.get(link.source);
-    const parent = byIStarId.get(link.target);
-    if (!child || !parent) continue;
-    if (
-      link.kind === 'istar.AndRefinementLink' ||
-      link.kind === 'istar.OrRefinementLink'
-    ) {
-      parent.relation = link.kind === 'istar.OrRefinementLink' ? 'or' : 'and';
-    }
-    if (!parent.children.includes(child.id)) {
-      parent.children.push(child.id);
-    }
-    child.parent ??= parent.id;
-  }
-
-  // children in notation order (the priority), then any unlisted ones
-  for (const node of nodes.values()) {
-    const order = notationIds(node.notation);
-    if (order.length > 0) {
-      node.children.sort((a, b) => {
-        const ia = order.indexOf(a);
-        const ib = order.indexOf(b);
-        return (ia < 0 ? Infinity : ia) - (ib < 0 ? Infinity : ib);
-      });
-    }
-  }
-
-  const explicitRoots = [...nodes.values()].filter(
-    (n) => n.properties.root === 'true',
-  );
-  const roots = (
-    explicitRoots.length > 0
-      ? explicitRoots
-      : [...nodes.values()].filter((n) => !n.parent && n.kind !== 'resource')
-  ).map((n) => n.id);
-  // anything unreachable from the roots is shown as its own root
-  const reachable = new Set<string>();
-  const visit = (id: string): void => {
-    if (reachable.has(id)) return;
-    reachable.add(id);
-    nodes.get(id)?.children.forEach(visit);
-  };
-  roots.forEach(visit);
-  for (const node of nodes.values()) {
-    if (!reachable.has(node.id) && !node.parent) {
-      roots.push(node.id);
-      visit(node.id);
-    }
-  }
-
-  return { nodes, roots, byIStarId };
+  return { nodes, roots: view.roots, byIStarId };
 };
 
 // ---------------------------------------------------------------------------

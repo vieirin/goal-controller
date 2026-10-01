@@ -18,8 +18,11 @@ import type { GoalExecutionDetail } from '../../types/';
 
 export const getGoalDetail = ({
   goalText,
+  onSyntaxError,
 }: {
   goalText: string;
+  /** receives syntax errors instead of the console (lenient callers report them) */
+  onSyntaxError?: (message: string) => void;
 }): {
   id: string;
   goalName: string;
@@ -29,6 +32,25 @@ export const getGoalDetail = ({
   const lexer = new RTRegex(chars);
   const tokens = new CommonTokenStream(lexer);
   const parser = new RTRegexParser(tokens);
+  if (onSyntaxError) {
+    const listener = {
+      syntaxError: (
+        _r: unknown,
+        _s: unknown,
+        line: number,
+        column: number,
+        msg: string,
+      ) => onSyntaxError(`${line}:${column} ${msg}`),
+      reportAmbiguity: () => undefined,
+      reportAttemptingFullContext: () => undefined,
+      reportContextSensitivity: () => undefined,
+    };
+    lexer.removeErrorListeners();
+    parser.removeErrorListeners();
+    // antlr4's ErrorListener is a class with these four methods
+    lexer.addErrorListener(listener as never);
+    parser.addErrorListener(listener as never);
+  }
   const tree = parser.rt();
   let id: string = '';
   let goalName: string | null = null;

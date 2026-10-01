@@ -1,8 +1,8 @@
 /**
  * Internal tree creation logic
  */
-import { childrenOf, isActor, type ElementKind } from "@istar-ts/core";
-import { getGoalDetail } from "../parsers/goalNameParser";
+import { childrenOf, isActor, type ElementKind } from '@istar-ts/core';
+import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
   GoalExecutionDetail,
   GoalNode,
@@ -12,29 +12,37 @@ import type {
   Node,
   Relation,
   Resource,
-} from "../types/";
-import type { BaseNode, Task, TreeNode } from "../types/goalTree";
-import type { EngineMapper, RawPropertiesUnion, RawProps } from "./engineMapper";
-import { findActorRoot } from "./roots";
-import { allByType } from "./traversal";
+} from '../types/';
+import type { BaseNode, Task, TreeNode } from '../types/goalTree';
+import type {
+  EngineMapper,
+  RawPropertiesUnion,
+  RawProps,
+} from './engineMapper';
+import { findActorRoot, linkEnds, linkRelation } from './roots';
+import { allByType } from './traversal';
 
 // Re-export types from engineMapper for backwards compatibility
-export { createEngineMapper } from "./engineMapper";
-export type { EngineMapper, RawPropertiesUnion, RawProps } from "./engineMapper";
+export { createEngineMapper } from './engineMapper';
+export type {
+  EngineMapper,
+  RawPropertiesUnion,
+  RawProps,
+} from './engineMapper';
 export type { GoalExecutionDetail };
 
 const convertIstarType = ({ kind }: { kind: ElementKind }) => {
   switch (kind) {
-    case "istar.Goal":
-      return "goal";
-    case "istar.Task":
-      return "task";
-    case "istar.Resource":
-      return "resource";
-    case "istar.Quality":
-      return "goal";
+    case 'istar.Goal':
+      return 'goal';
+    case 'istar.Task':
+      return 'task';
+    case 'istar.Resource':
+      return 'resource';
+    case 'istar.Quality':
+      return 'goal';
     default:
-      throw new Error("[INVALID_MODEL]: Invalid node type: " + kind);
+      throw new Error('[INVALID_MODEL]: Invalid node type: ' + kind);
   }
 };
 
@@ -66,16 +74,21 @@ type CreationContext<
   TResourceKeys extends string,
 > = {
   /** Storage for raw properties with discriminated union, used by afterCreationMapper */
-  rawPropertiesMap: Map<string, RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys>>;
+  rawPropertiesMap: Map<
+    string,
+    RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys>
+  >;
 };
 
 function createResource<TResourceEngine, TResourceKeys extends string>(
   resource: BaseNode & { rawProps: RawProps<TResourceKeys> },
-  mapResourceProps: (props: { raw: RawProps<TResourceKeys> }) => TResourceEngine,
+  mapResourceProps: (props: {
+    raw: RawProps<TResourceKeys>;
+  }) => TResourceEngine,
 ): Resource<TResourceEngine> {
   return {
     ...resource,
-    type: "resource",
+    type: 'resource',
     properties: {
       engine: mapResourceProps({ raw: resource.rawProps }),
     },
@@ -91,13 +104,13 @@ function convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(
     tasks: Array<Task<TTaskEngine, TResourceEngine>>;
   }>(
     (acc, child) => {
-      if (child.type === "resource") {
+      if (child.type === 'resource') {
         return {
           ...acc,
           resources: [...acc.resources, child],
         };
       }
-      if (child.type === "task") {
+      if (child.type === 'task') {
         return {
           ...acc,
           tasks: [...acc.tasks, child],
@@ -147,39 +160,57 @@ function createNode<
     goalText: node.name,
     grammar: mapper.grammar,
   });
-
-  const nodeType = convertIstarType({ kind: node.kind });
-  const isQualityNode = node.kind === "istar.Quality";
-
-  if (nodeType === "resource" && children.length > 0) {
-    throw new Error(`[INVALID MODEL]: Resource node ${goalName} can't have children`);
+  // every element the engines read is named after its RT id ("G4: …")
+  if (!id) {
+    throw new Error(
+      `[INVALID MODEL]: "${node.name.trim()}" has no id: start its name with one, like G4: ${node.name.trim() || 'name'}`,
+    );
   }
 
-  const { root, uniqueChoice, ...customProperties } = node.customProperties || {};
+  const nodeType = convertIstarType({ kind: node.kind });
+  const isQualityNode = node.kind === 'istar.Quality';
+
+  if (nodeType === 'resource' && children.length > 0) {
+    throw new Error(
+      `[INVALID MODEL]: Resource node ${goalName} can't have children`,
+    );
+  }
+
+  const { root, uniqueChoice, ...customProperties } =
+    node.customProperties || {};
 
   const {
     resources,
     tasks,
     children: filteredChildren,
-  } = convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(children);
+  } = convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(
+    children,
+  );
 
-  if (!children.length && !tasks.length && nodeType === "goal" && !isQualityNode) {
-    throw new Error(`[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`);
+  if (
+    !children.length &&
+    !tasks.length &&
+    nodeType === 'goal' &&
+    !isQualityNode
+  ) {
+    throw new Error(
+      `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`,
+    );
   }
 
-  if (resources.length > 0 && nodeType !== "task") {
+  if (resources.length > 0 && nodeType !== 'task') {
     throw new Error(
       `[INVALID MODEL]: Only tasks can have resources, node ${id}:${goalName} is not a task, it is a ${nodeType} instead`,
     );
   }
 
-  if (filteredChildren.length > 0 && nodeType === "task") {
+  if (filteredChildren.length > 0 && nodeType === 'task') {
     throw new Error(
       `[INVALID MODEL]: Task ${id}:${goalName} cannot have goal children. Tasks can only have resources and other tasks as children.`,
     );
   }
 
-  if (nodeType === "resource") {
+  if (nodeType === 'resource') {
     // Skip resource if skipResource is true
     if (mapper.skipResource === true) {
       return null;
@@ -193,7 +224,7 @@ function createNode<
 
     // Store raw properties for afterCreationMapper
     context.rawPropertiesMap.set(id, {
-      nodeType: "resource",
+      nodeType: 'resource',
       raw: rawResourceProps,
     });
 
@@ -202,25 +233,28 @@ function createNode<
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      type: "resource",
+      type: 'resource',
       rawProps: rawResourceProps,
     };
     return createResource(resourceNode, mapper.mapResourceProps);
   }
 
-  if (nodeType === "task") {
+  if (nodeType === 'task') {
     // Extract raw props using allowed keys from mapper
-    const rawTaskProps = extractRawProps({ ...customProperties, root }, mapper.allowedTaskKeys);
+    const rawTaskProps = extractRawProps(
+      { ...customProperties, root },
+      mapper.allowedTaskKeys,
+    );
 
     // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { nodeType: "task", raw: rawTaskProps });
+    context.rawPropertiesMap.set(id, { nodeType: 'task', raw: rawTaskProps });
 
     const taskNode: Task<TTaskEngine, TResourceEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      type: "task",
+      type: 'task',
       tasks,
       resources,
       properties: {
@@ -230,19 +264,22 @@ function createNode<
     return taskNode;
   }
 
-  if (nodeType === "goal") {
+  if (nodeType === 'goal') {
     // Extract raw props using allowed keys from mapper
-    const rawGoalProps = extractRawProps({ ...customProperties, root }, mapper.allowedGoalKeys);
+    const rawGoalProps = extractRawProps(
+      { ...customProperties, root },
+      mapper.allowedGoalKeys,
+    );
 
     // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { nodeType: "goal", raw: rawGoalProps });
+    context.rawPropertiesMap.set(id, { nodeType: 'goal', raw: rawGoalProps });
 
     const goalNode: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> = {
       id,
       name: goalName,
       iStarId: node.id,
       relationToChildren: relation,
-      type: "goal",
+      type: 'goal',
       children: filteredChildren,
       properties: {
         ...(isRoot && { root: true }),
@@ -257,7 +294,9 @@ function createNode<
     return goalNode;
   }
 
-  throw new Error(`[INVALID_MODEL]: Unsupported node type: ${nodeType as string}`);
+  throw new Error(
+    `[INVALID_MODEL]: Unsupported node type: ${nodeType as string}`,
+  );
 }
 
 function nodeChildren<
@@ -288,32 +327,27 @@ function nodeChildren<
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
 }): [Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>, Relation] {
   if (!id) {
-    return [[], "none"];
+    return [[], 'none'];
   }
 
   const incomingLinks = links.filter(
-    (link) => link.target === id && link.kind !== "istar.QualificationLink",
+    (link) => link.target === id && link.kind !== 'istar.QualificationLink',
   );
 
   const outgoingQualificationLinks = links.filter(
-    (link) => link.kind === "istar.QualificationLink" && link.source === id,
+    (link) => link.kind === 'istar.QualificationLink' && link.source === id,
   );
 
   const nodeLinks = [...incomingLinks, ...outgoingQualificationLinks];
 
   const relations = nodeLinks.map((link) => {
-    switch (link.kind) {
-      case "istar.AndRefinementLink":
-        return "and";
-      case "istar.OrRefinementLink":
-        return "or";
-      case "istar.NeededByLink":
-        return "neededBy";
-      case "istar.QualificationLink":
-        return "and";
-      default:
-        throw new Error(`[UNSUPPORTED LINK]: Please implement ${link.kind} decoding`);
+    const relation = linkRelation(link);
+    if (!relation) {
+      throw new Error(
+        `[UNSUPPORTED LINK]: Please implement ${link.kind} decoding`,
+      );
     }
+    return relation;
   });
 
   const allEqual = relations.every((v) => v === relations[0]);
@@ -324,37 +358,42 @@ function nodeChildren<
   }
 
   const children = nodeLinks
-    .map((link): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined => {
-      const isOutgoingQualification = link.kind === "istar.QualificationLink" && link.source === id;
-      const childNodeId = isOutgoingQualification ? link.target : link.source;
+    .map(
+      (
+        link,
+      ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined => {
+        const [, childNodeId] = linkEnds(link);
 
-      const node = nodes.find((item) => item.id === childNodeId);
-      if (!node) {
-        return undefined;
-      }
+        const node = nodes.find((item) => item.id === childNodeId);
+        if (!node) {
+          return undefined;
+        }
 
-      const [granChildren, relation] = nodeChildren({
-        nodes,
-        id: node.id,
-        links,
-        mapper,
-        context,
-      });
+        const [granChildren, relation] = nodeChildren({
+          nodes,
+          id: node.id,
+          links,
+          mapper,
+          context,
+        });
 
-      // createNode returns null for skipped resources
-      const createdNode = createNode({
-        node,
-        relation,
-        children: granChildren,
-        mapper,
-        context,
-      });
+        // createNode returns null for skipped resources
+        const createdNode = createNode({
+          node,
+          relation,
+          children: granChildren,
+          mapper,
+          context,
+        });
 
-      return createdNode ?? undefined;
-    })
-    .filter((n): n is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> => !!n);
+        return createdNode ?? undefined;
+      },
+    )
+    .filter(
+      (n): n is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> => !!n,
+    );
 
-  return [children, relations[0] ?? "none"];
+  return [children, relations[0] ?? 'none'];
 }
 
 function nodeToTree<
@@ -417,15 +456,18 @@ function runAfterCreationMapper<
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>,
 ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
   // If no afterCreationMapper is provided, return tree as-is
-  if (!("afterCreationMapper" in mapper) || !mapper.afterCreationMapper) {
+  if (!('afterCreationMapper' in mapper) || !mapper.afterCreationMapper) {
     return tree;
   }
 
-  const allGoals = allByType(tree, "goal");
-  const allTasks = allByType(tree, "task");
-  const allResources = allByType(tree, "resource");
+  const allGoals = allByType(tree, 'goal');
+  const allTasks = allByType(tree, 'task');
+  const allResources = allByType(tree, 'resource');
 
-  const nodeMap = new Map<string, TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>();
+  const nodeMap = new Map<
+    string,
+    TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
+  >();
   [...allGoals, ...allTasks, ...allResources].forEach((node) => {
     nodeMap.set(node.id, node);
   });
@@ -434,17 +476,22 @@ function runAfterCreationMapper<
     goal: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> => {
     // Get raw properties - discriminated union with nodeType: 'goal' | 'task' | 'resource'
-    const defaultRawProperties: RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys> = {
-      nodeType: "goal",
+    const defaultRawProperties: RawPropertiesUnion<
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys
+    > = {
+      nodeType: 'goal',
       raw: {},
     };
-    const rawProperties = context.rawPropertiesMap.get(goal.id) ?? defaultRawProperties;
+    const rawProperties =
+      context.rawPropertiesMap.get(goal.id) ?? defaultRawProperties;
 
     const resolvedChildren = goal.children?.map(processGoal);
 
     // Call afterCreationMapper to transform engine props
     // Validate that rawProperties.nodeType matches the node type before casting
-    if (rawProperties.nodeType !== "goal") {
+    if (rawProperties.nodeType !== 'goal') {
       // If this happens, just return the original engine
       // This should not occur in practice, but provides safety
       return {
@@ -457,7 +504,7 @@ function runAfterCreationMapper<
     }
 
     const updatedEngine =
-      "afterCreationMapper" in mapper && mapper.afterCreationMapper
+      'afterCreationMapper' in mapper && mapper.afterCreationMapper
         ? mapper.afterCreationMapper({
             node: goal,
             allNodes: nodeMap,
@@ -466,7 +513,7 @@ function runAfterCreationMapper<
         : goal.properties.engine;
 
     // Runtime validation before type assertion
-    if (typeof updatedEngine !== "object" || updatedEngine === null) {
+    if (typeof updatedEngine !== 'object' || updatedEngine === null) {
       throw new Error(
         `[INVALID_MAPPER]: afterCreationMapper for goal ${goal.id} must return an object`,
       );
@@ -484,7 +531,7 @@ function runAfterCreationMapper<
 
   // Process only goal nodes (top-level nodes in tree are goals)
   return tree.map((node) => {
-    if (node.type === "goal") {
+    if (node.type === 'goal') {
       return processGoal(node);
     }
     return node;
@@ -533,7 +580,10 @@ export function convertToTree<
         isRoot: true,
       });
     })
-    .filter((node): node is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> => node !== null);
+    .filter(
+      (node): node is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
+        node !== null,
+    );
 
   // Run afterCreationMapper if provided (e.g., to resolve dependsOn)
   return runAfterCreationMapper(unidirectionalTree, mapper, context);

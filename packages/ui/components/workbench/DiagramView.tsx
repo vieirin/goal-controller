@@ -234,7 +234,12 @@ const EDGE_EXTENSIONS: readonly IstarExtension[] = [
   edgePalette,
 ];
 const NO_EXTENSIONS: readonly IstarExtension[] = [];
-const PISTAR_EDGE_PALETTE: readonly IstarExtension[] = [edgePalette];
+const PISTAR_EDGE_PALETTE: readonly IstarExtension[] = [
+  rtNumbering,
+  edgePalette,
+];
+// the piStar view of a model that is for an engine still numbers new elements (G4: …)
+const PISTAR_NUMBERED: readonly IstarExtension[] = [rtNumbering];
 
 const tryParse = (text: string): IstarModel | null => {
   if (!text.trim()) return createEmptyModel();
@@ -398,7 +403,9 @@ export default function DiagramView() {
     ? enginePalette &&
       (wb.recordedEngine === 'edge' || wb.recordedEngine === 'edgev2')
       ? PISTAR_EDGE_PALETTE
-      : NO_EXTENSIONS
+      : wb.recordedEngine
+        ? PISTAR_NUMBERED
+        : NO_EXTENSIONS
     : wb.engine === 'sleec'
       ? WORKBENCH_EXTENSIONS
       : EDGE_EXTENSIONS;
