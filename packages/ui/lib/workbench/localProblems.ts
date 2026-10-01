@@ -9,6 +9,19 @@ import type { Problem } from './types';
 
 const AND_CONSTRUCTS = new Set(['sequence', 'anyOrder', 'interleaved']);
 
+/**
+ * RT id mentioned in an engine/generation message, if any.
+ * Prefers explicit "for node X" / "(node X)" over the first G/T/R id (dependsOn
+ * messages name the dependency first).
+ */
+export const nodeIdInMessage = (message: string): string | undefined => {
+  const marked =
+    /\(node ([GTR]\d+[A-Za-z0-9]*)\)/.exec(message)?.[1] ??
+    /\bfor node ([GTR]\d+[A-Za-z0-9]*)\b/.exec(message)?.[1];
+  if (marked) return marked;
+  return /\b([GTR]\d+[A-Za-z0-9]*)\b/.exec(message)?.[1];
+};
+
 export const jsonProblem = (text: string, error: Error): Problem => {
   const position = jsonErrorPosition(text, error.message);
   return {
@@ -121,11 +134,10 @@ export const generationProblems = (
   log: string | null,
   nodeIds: Set<string>,
 ): Problem[] => {
-  const nodeOf = (message: string): string | undefined =>
-    Array.from(
-      message.matchAll(/\b([GT]\d+[A-Za-z0-9]*)\b/g),
-      (m) => m[1],
-    ).find((id): id is string => !!id && nodeIds.has(id));
+  const nodeOf = (message: string): string | undefined => {
+    const marked = nodeIdInMessage(message);
+    return marked && nodeIds.has(marked) ? marked : undefined;
+  };
   const problems: Problem[] = [];
   if (error) {
     // the message; the server's stack trace (if any) stays in the Log

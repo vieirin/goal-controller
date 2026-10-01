@@ -2,6 +2,7 @@ import { GoalTree } from '@goal-controller/goal-tree';
 import { GoalModel } from './goalModel';
 import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
 import type { TransformEngine } from '../lib/types';
+import { nodeIdInMessage } from '../lib/workbench/localProblems';
 import type {
   AnalyzeResponse,
   Problem,
@@ -19,9 +20,6 @@ type WithCondition = {
     };
   };
 };
-
-const firstNodeId = (message: string): string | undefined =>
-  /\b([GT]\d+[A-Za-z0-9]*)\b/.exec(message)?.[1];
 
 /**
  * { modelJson, engine } → engine-specific variables (with the nodes that use them),
@@ -56,7 +54,7 @@ export const analyze = (
             ? 'model'
             : 'engine',
       message: parsed.error,
-      nodeId: firstNodeId(parsed.error),
+      nodeId: nodeIdInMessage(parsed.error),
     };
     response.problems.push(problem);
     return response;

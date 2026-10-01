@@ -84,13 +84,14 @@ function createResource<TResourceEngine, TResourceKeys extends string>(
   resource: BaseNode & { rawProps: RawProps<TResourceKeys> },
   mapResourceProps: (props: {
     raw: RawProps<TResourceKeys>;
+    id: string;
   }) => TResourceEngine,
 ): Resource<TResourceEngine> {
   return {
     ...resource,
     type: 'resource',
     properties: {
-      engine: mapResourceProps({ raw: resource.rawProps }),
+      engine: mapResourceProps({ raw: resource.rawProps, id: resource.id }),
     },
   };
 }
@@ -260,7 +261,11 @@ function createNode<
       tasks,
       resources,
       properties: {
-        engine: mapper.mapTaskProps({ raw: rawTaskProps, name: goalName }),
+        engine: mapper.mapTaskProps({
+          raw: rawTaskProps,
+          name: goalName,
+          id,
+        }),
       },
     };
     return taskNode;
@@ -295,6 +300,7 @@ function createNode<
         engine: mapper.mapGoalProps({
           raw: rawGoalProps,
           executionDetail,
+          id,
         }),
       },
       ...(tasks.length > 0 && { tasks }),
