@@ -192,6 +192,11 @@ export default function Explorer() {
 
       {groups.size > 0 && (
         <Section title='Examples'>
+          {openExampleError && (
+            <p role='alert' className='px-6 py-1 text-2xs text-danger'>
+              {openExampleError}
+            </p>
+          )}
           {[...groups.entries()].map(([group, folders]) => (
             <Section key={group} title={group} defaultOpen={group === 'edgeV2'}>
               {folders.get('')?.map(fileRow)}
