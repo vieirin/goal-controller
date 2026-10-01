@@ -80,4 +80,86 @@ describe('extractOldSystemTransitions', () => {
       assert.ok(!transition.includes('[try_T'));
     });
   });
+
+  // Real hand-edited System modules from EDGE experiment runs: the engine
+  // never emits [achieved_*] transitions itself (see previousOutput.test.ts),
+  // so these are the kind of modeller-authored probabilities previousOutput
+  // exists to preserve across regenerations.
+  describe('real experiment outputs', () => {
+    it('8-minimalMaintain: extracts all 4 transitions', () => {
+      const prism = `dtmc
+
+module System
+  commLink: bool init false;
+  inFlight: bool init false;
+  [achieved_T3] true -> (inFlight'=true);
+  [achieved_T4] true -> (commLink'=true);
+  [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+  [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+endmodule
+`;
+      const transitions = extractOldSystemTransitions(prism);
+
+      assert.strictEqual(transitions.length, 4);
+      assert.ok(transitions.some((t) => t.includes('[achieved_T3]')));
+      assert.ok(transitions.some((t) => t.includes('[achieved_T4]')));
+      assert.ok(transitions.some((t) => t.includes('[achieved_T7]')));
+      assert.ok(transitions.some((t) => t.includes('[achieved_T6]')));
+      assert.ok(transitions.some((t) => t.includes("(inFlight'=true)")));
+      assert.ok(transitions.some((t) => t.includes("(commLink'=true)")));
+    });
+
+    it('9-minimalMaintainContext: extracts all 7 transitions', () => {
+      const prism = `dtmc
+
+module System
+  lowBattery: bool init false;
+  hasMoreDelivery: bool init false;
+  missionReady: bool init false;
+  commLink: bool init false;
+  inFlight: bool init false;
+  [achieved_T1] true -> (missionReady'=true);
+  [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
+  [achieved_T7] true -> (lowBattery'=true);
+  [achieved_T3] true -> (inFlight'=true);
+  [achieved_T4] true -> (commLink'=true);
+  [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+  [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+endmodule
+`;
+      const transitions = extractOldSystemTransitions(prism);
+
+      assert.strictEqual(transitions.length, 7);
+      assert.ok(transitions.some((t) => t.includes('[achieved_T1]')));
+      assert.ok(transitions.some((t) => t.includes("(missionReady'=true)")));
+      assert.ok(transitions.some((t) => t.includes("(lowBattery'=true)")));
+      assert.ok(transitions.some((t) => t.includes("(hasMoreDelivery'=true)")));
+    });
+
+    it('10-minimalMaintainResource: extracts all 7 transitions, including a resource update', () => {
+      const prism = `dtmc
+
+module System
+  hasMoreDelivery: bool init true;
+  missionReady: bool init true;
+  commLink: bool init true;
+  inFlight: bool init true;
+  R0: [0..5] init 5;
+
+  [achieved_T1] true -> (missionReady'=true);
+  [achieved_T4] true -> 0.3: (hasMoreDelivery'=true) + 0.7: (hasMoreDelivery'=false);
+  [achieved_T7] true -> (R0'=max(0, R0-2));
+  [achieved_T3] true -> (inFlight'=true) & (R0'=max(0, R0-1)) ;
+  [achieved_T4] true -> (commLink'=true);
+  [achieved_T7] true -> 0.6: (commLink'=false) + 0.4: (commLink'=commLink);
+  [achieved_T6] true -> 0.3: (commLink'=false) + 0.7: (commLink'=commLink);
+endmodule
+`;
+      const transitions = extractOldSystemTransitions(prism);
+
+      assert.strictEqual(transitions.length, 7);
+      assert.ok(transitions.some((t) => t.includes("(R0'=max(0, R0-2))")));
+      assert.ok(transitions.some((t) => t.includes("(R0'=max(0, R0-1))")));
+    });
+  });
 });

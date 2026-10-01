@@ -2,8 +2,9 @@
 
 // Import for CLI usage and re-export
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { existsSync, readFileSync, writeFile } from 'fs';
+import { writeFile } from 'fs';
 import path from 'path';
+import { readPreviousOutput } from './cli/utils';
 import { edgeEngineMapper, generateValidatedPrismModel } from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';
@@ -112,15 +113,7 @@ if (require.main === module) {
   const fileName = path.basename(inputFile);
   const baseName = path.parse(inputFile).name;
   const outputPath = `output/${baseName}.prism`;
-
-  // Supports both monorepo and direct execution
-  const previousOutputPath = [
-    `output/${baseName}.prism`,
-    `../../output/${baseName}.prism`,
-  ].find((p) => existsSync(p));
-  const previousOutput = previousOutputPath
-    ? readFileSync(previousOutputPath, 'utf8')
-    : undefined;
+  const previousOutput = readPreviousOutput(baseName);
 
   writeFile(
     outputPath,

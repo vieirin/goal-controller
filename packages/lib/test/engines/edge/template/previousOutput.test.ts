@@ -28,15 +28,35 @@ describe('generateValidatedPrismModel: previousOutput', () => {
     initLogger('previousOutput-test', false, true);
   });
 
-  it('keeps the System module transitions from a previous output', () => {
+  const systemModuleOf = (prism: string): string =>
+    prism.slice(
+      prism.indexOf('module System'),
+      prism.indexOf('endmodule', prism.indexOf('module System')),
+    );
+
+  it('carries a hand-edited System transition forward into the next generation', () => {
+    // The engine never emits [achieved_*] transitions itself (they're
+    // hand-tuned probabilities); previousOutput is how they survive a
+    // regeneration after the modeller edits the PRISM file directly.
+    const clean = generate({ clean: true });
+    const handEdited = clean.replace(
+      'module System',
+      "module System\n  [achieved_T3] true -> 0.6: (inFlight'=true) + 0.4: (inFlight'=false);",
+    );
+
+    const regenerated = generate({ previousOutput: handEdited });
+
+    assert.ok(systemModuleOf(regenerated).includes('[achieved_T3]'));
+    assert.ok(
+      systemModuleOf(regenerated).includes(
+        "0.6: (inFlight'=true) + 0.4: (inFlight'=false)",
+      ),
+    );
+  });
+
+  it('keeps the System module unchanged when there is nothing to carry forward', () => {
     const first = generate({ clean: true });
     const second = generate({ previousOutput: first });
-
-    const systemModuleOf = (prism: string): string =>
-      prism.slice(
-        prism.indexOf('module System'),
-        prism.indexOf('endmodule', prism.indexOf('module System')),
-      );
 
     assert.strictEqual(systemModuleOf(second), systemModuleOf(first));
   });

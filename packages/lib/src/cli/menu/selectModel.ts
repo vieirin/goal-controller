@@ -1,5 +1,4 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { existsSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../engines/edge';
 import { initLogger } from '../../engines/edge/logger/logger';
 import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
+import { readPreviousOutput } from '../utils';
 
 export interface RunModelOptions {
   clean?: boolean;
@@ -15,16 +15,6 @@ export interface RunModelOptions {
   achievabilitySpace?: number;
   variables?: Record<string, boolean | number>;
 }
-
-// Supports both monorepo and direct execution
-const readPreviousOutput = (baseName: string): string | undefined => {
-  const possiblePaths = [
-    `output/${baseName}.prism`, // From project root
-    `../../output/${baseName}.prism`, // From packages/lib (monorepo)
-  ];
-  const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
-  return oldPrismFilePath ? readFileSync(oldPrismFilePath, 'utf8') : undefined;
-};
 
 export const runModel = async (
   filePath: string,
