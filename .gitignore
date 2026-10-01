@@ -55,3 +55,6 @@ packages/goal-tree/tsconfig.tsbuildinfo
 packages/ui/tsconfig.tsbuildinfo
 
 .plan/
+
+# build-time manifest (packages/ui/scripts/examples-manifest.mjs)
+packages/ui/public/examples.json
