@@ -1,4 +1,5 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { existsSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import {
@@ -14,6 +15,16 @@ export interface RunModelOptions {
   achievabilitySpace?: number;
   variables?: Record<string, boolean | number>;
 }
+
+// Supports both monorepo and direct execution
+const readPreviousOutput = (baseName: string): string | undefined => {
+  const possiblePaths = [
+    `output/${baseName}.prism`, // From project root
+    `../../output/${baseName}.prism`, // From packages/lib (monorepo)
+  ];
+  const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
+  return oldPrismFilePath ? readFileSync(oldPrismFilePath, 'utf8') : undefined;
+};
 
 export const runModel = async (
   filePath: string,
@@ -35,9 +46,13 @@ export const runModel = async (
     if (!fileName) {
       throw new Error('File name not found');
     }
+    const previousOutput = clean
+      ? undefined
+      : readPreviousOutput(path.parse(fileName).name);
     const output = generateValidatedPrismModel({
       gm: tree.nodes,
       fileName,
+      previousOutput,
       clean,
       variables,
       generateDecisionVars,

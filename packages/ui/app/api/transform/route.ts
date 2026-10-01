@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
           variables,
           generateDecisionVars,
           achievabilitySpace,
+          writeReport: false,
         });
       } else if (selectedEngine === 'edgev2') {
         const parseResult = GoalModel.parseForEdgeV2(modelJson);
@@ -125,6 +126,7 @@ export async function POST(request: NextRequest) {
           achievabilitySpace,
           taskLayout,
           discretisation,
+          writeReport: false,
         });
       } else {
         // Parse and validate model with SLEEC mapper

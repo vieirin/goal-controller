@@ -1,225 +1,83 @@
 import * as assert from 'assert';
-import { existsSync } from 'fs';
 import { describe, it } from 'mocha';
 import { __test_only_exports__ } from '../../../../../../src/engines/edge/template/modules/system/system';
 
 const { extractOldSystemTransitions } = __test_only_exports__;
 
-// Helper to check if output file exists
-// Note: extractOldSystemTransitions looks for output/${baseName}.prism relative to cwd
-// When running from packages/lib, check both local and root output folders
-const outputFileExists = (inputFileName: string): boolean => {
-  const baseName = inputFileName.split('/').pop()?.replace('.txt', '') || '';
-  // Check where extractOldSystemTransitions will look (output/ relative to cwd)
-  // AND where the files actually are (../../output from packages/lib)
-  return (
-    existsSync(`output/${baseName}.prism`) ||
-    existsSync(`../../output/${baseName}.prism`)
-  );
-};
+const prismWithSystemModule = `dtmc
+
+module Goal_G1
+  [pursue_G1] true -> true;
+endmodule
+
+module ChangeManager
+  [try_T1] true -> true;
+endmodule
+
+module System
+  // sets inFlight when T3 is achieved
+  [achieved_T3] true -> (inFlight'=true);
+  [achieved_T4] true -> (commLink'=true);
+  [achieved_T7] true -> (missionReady'=true);
+  [achieved_T6] true -> (R0'=max(0, R0-2));
+endmodule
+`;
 
 describe('extractOldSystemTransitions', () => {
-  describe('8-minimalMaintain', () => {
-    it('should extract all transitions from System module', function () {
-      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
-      if (!outputFileExists(fileName)) {
-        this.skip(); // Skip if output file doesn't exist
-      }
-      const transitions = extractOldSystemTransitions(fileName);
+  it('extracts every transition from the System module', () => {
+    const transitions = extractOldSystemTransitions(prismWithSystemModule);
 
-      // Should have 4 transitions
-      assert.strictEqual(transitions.length, 4, 'Should extract 4 transitions');
-
-      // Verify each transition is present
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T3]')),
-        'Should contain [achieved_T3] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T4]')),
-        'Should contain [achieved_T4] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T7]')),
-        'Should contain [achieved_T7] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T6]')),
-        'Should contain [achieved_T6] transition',
-      );
-
-      // Verify transitions contain the expected content
-      assert.ok(
-        transitions.some((t) => t.includes("(inFlight'=true)")),
-        'Should contain inFlight update',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes("(commLink'=true)")),
-        'Should contain commLink=true update',
-      );
-    });
+    // 4 transitions, plus the comment line preceding [achieved_T3]
+    assert.strictEqual(transitions.length, 5);
+    assert.ok(transitions.some((t) => t.includes('[achieved_T3]')));
+    assert.ok(transitions.some((t) => t.includes('[achieved_T4]')));
+    assert.ok(transitions.some((t) => t.includes('[achieved_T7]')));
+    assert.ok(transitions.some((t) => t.includes('[achieved_T6]')));
+    assert.ok(transitions.some((t) => t.includes("(inFlight'=true)")));
+    assert.ok(transitions.some((t) => t.includes("(commLink'=true)")));
+    assert.ok(transitions.some((t) => t.includes("(R0'=max(0, R0-2))")));
   });
 
-  describe('9-minimalMaintainContext', () => {
-    it('should extract all transitions from System module', function () {
-      const fileName =
-        '../../examples/edge/experiments/9-minimalMaintainContext.txt';
-      if (!outputFileExists(fileName)) {
-        this.skip(); // Skip if output file doesn't exist
-      }
-      const transitions = extractOldSystemTransitions(fileName);
+  it('includes preceding comment lines for a transition', () => {
+    const transitions = extractOldSystemTransitions(prismWithSystemModule);
 
-      // Should have 7 transitions
-      assert.strictEqual(transitions.length, 7, 'Should extract 7 transitions');
-
-      // Verify each transition is present
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T1]')),
-        'Should contain [achieved_T1] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T4]')),
-        'Should contain [achieved_T4] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T7]')),
-        'Should contain [achieved_T7] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T3]')),
-        'Should contain [achieved_T3] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T6]')),
-        'Should contain [achieved_T6] transition',
-      );
-
-      // Verify transitions contain the expected content
-      assert.ok(
-        transitions.some((t) => t.includes("(missionReady'=true)")),
-        'Should contain missionReady update',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes("(lowBattery'=true)")),
-        'Should contain lowBattery update',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes("(hasMoreDelivery'=true)")),
-        'Should contain hasMoreDelivery update',
-      );
-    });
+    assert.ok(
+      transitions.some((t) =>
+        t.includes('// sets inFlight when T3 is achieved'),
+      ),
+      'Should keep the comment preceding a transition',
+    );
   });
 
-  describe('10-minimalMaintainResource', () => {
-    it('should extract all transitions from System module', function () {
-      const fileName =
-        '../../examples/edge/experiments/10-minimalMaintainResource.txt';
-      if (!outputFileExists(fileName)) {
-        this.skip(); // Skip if output file doesn't exist
-      }
-      const transitions = extractOldSystemTransitions(fileName);
+  it('returns an empty array when there is no System module', () => {
+    const transitions = extractOldSystemTransitions(
+      'dtmc\n\nmodule Goal_G1\nendmodule\n',
+    );
 
-      // Should have 7 transitions
-      assert.strictEqual(transitions.length, 7, 'Should extract 7 transitions');
-
-      // Verify each transition is present
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T1]')),
-        'Should contain [achieved_T1] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T4]')),
-        'Should contain [achieved_T4] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T7]')),
-        'Should contain [achieved_T7] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T3]')),
-        'Should contain [achieved_T3] transition',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes('[achieved_T6]')),
-        'Should contain [achieved_T6] transition',
-      );
-
-      // Verify transitions contain the expected content
-      assert.ok(
-        transitions.some((t) => t.includes("(missionReady'=true)")),
-        'Should contain missionReady update',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes("(R0'=max(0, R0-2))")),
-        'Should contain R0 update with max function',
-      );
-      assert.ok(
-        transitions.some((t) => t.includes("(R0'=max(0, R0-1))")),
-        'Should contain R0 update with max function (different value)',
-      );
-    });
+    assert.strictEqual(transitions.length, 0);
   });
 
-  describe('edge cases', () => {
-    it('should return empty array for non-existent file', () => {
-      const fileName = '../../examples/edge/experiments/non-existent-file.txt';
-      const transitions = extractOldSystemTransitions(fileName);
+  it('returns an empty array for empty input', () => {
+    assert.strictEqual(extractOldSystemTransitions('').length, 0);
+  });
 
-      assert.strictEqual(
-        transitions.length,
-        0,
-        'Should return empty array for non-existent file',
-      );
-    });
+  it('preserves original line formatting', () => {
+    const transitions = extractOldSystemTransitions(prismWithSystemModule);
 
-    it('should preserve original line formatting', function () {
-      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
-      if (!outputFileExists(fileName)) {
-        this.skip(); // Skip if output file doesn't exist
-      }
-      const transitions = extractOldSystemTransitions(fileName);
-
-      // All transitions should preserve their original formatting
-      transitions.forEach((transition) => {
-        assert.ok(
-          transition.includes('[') && transition.includes(']'),
-          'Transition should preserve bracket format',
-        );
-        assert.ok(
-          transition.includes('->'),
-          'Transition should preserve arrow format',
-        );
+    transitions
+      .filter((t) => !t.trim().startsWith('//'))
+      .forEach((transition) => {
+        assert.ok(transition.includes('[') && transition.includes(']'));
+        assert.ok(transition.includes('->'));
       });
-    });
+  });
 
-    it('should only extract transitions from System module', function () {
-      const fileName = '../../examples/edge/experiments/8-minimalMaintain.txt';
-      if (!outputFileExists(fileName)) {
-        this.skip(); // Skip if output file doesn't exist
-      }
-      const transitions = extractOldSystemTransitions(fileName);
+  it('only extracts transitions from the System module', () => {
+    const transitions = extractOldSystemTransitions(prismWithSystemModule);
 
-      // Verify no transitions from other modules are included
-      transitions.forEach((transition) => {
-        // Should not contain goal module transitions
-        assert.ok(
-          !transition.includes('[pursue_G'),
-          'Should not contain goal pursue transitions',
-        );
-        assert.ok(
-          !transition.includes('[skip_G'),
-          'Should not contain goal skip transitions',
-        );
-        // Should not contain ChangeManager transitions
-        assert.ok(
-          !transition.includes('[pursue_T'),
-          'Should not contain task pursue transitions',
-        );
-        assert.ok(
-          !transition.includes('[try_T'),
-          'Should not contain task try transitions',
-        );
-      });
+    transitions.forEach((transition) => {
+      assert.ok(!transition.includes('[pursue_G'));
+      assert.ok(!transition.includes('[try_T'));
     });
   });
 });

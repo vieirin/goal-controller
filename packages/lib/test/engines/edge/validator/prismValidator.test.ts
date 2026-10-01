@@ -36,7 +36,6 @@ describe('PRISM Validator - Experiment Examples', () => {
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree.nodes,
-          fileName: inputFile,
           variables: {},
         });
         logger.close();
@@ -151,7 +150,6 @@ describe('PRISM Validator - Experiment Examples', () => {
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree.nodes,
-          fileName: inputFile,
           variables: {},
         });
         logger.close();
@@ -182,7 +180,6 @@ describe('PRISM Validator - Experiment Examples', () => {
         const logger = initLogger(inputFile, false, true);
         const prismModel = templateEngineInternals.edgeDTMCTemplate({
           gm: tree.nodes,
-          fileName: inputFile,
           variables: {},
         });
         logger.close();

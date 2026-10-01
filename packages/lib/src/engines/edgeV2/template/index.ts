@@ -1,6 +1,10 @@
 import { validate, formatValidationReport } from '../validator';
 import { GoalTree, Node } from '@goal-controller/goal-tree';
-import { DEFAULT_DISCRETISATION, DEFAULT_TASK_LAYOUT, type TaskLayout } from './common';
+import {
+  DEFAULT_DISCRETISATION,
+  DEFAULT_TASK_LAYOUT,
+  type TaskLayout,
+} from './common';
 import { decisionVariablesTemplate } from './decisionVariables';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
 import { changeManagerModule } from './modules/changeManager/changeManager';
@@ -43,13 +47,15 @@ const treeOrderModules = (
     Number(goalNumberId(a.id)) - Number(goalNumberId(b.id));
   // root first; anything not reachable from it keeps a deterministic order afterwards
   goals.filter((goal) => goal.properties.root).forEach(visit);
-  [...goals, ...GoalTree.allByType(gm, 'task')].sort(byNumericId).forEach(visit);
+  [...goals, ...GoalTree.allByType(gm, 'task')]
+    .sort(byNumericId)
+    .forEach(visit);
   return modules.join('\n\n');
 };
 
 const edgeDTMCTemplate = ({
   gm,
-  fileName,
+  previousOutput,
   clean = false,
   variables = {},
   generateDecisionVars = true,
@@ -57,7 +63,7 @@ const edgeDTMCTemplate = ({
   taskLayout = DEFAULT_TASK_LAYOUT,
 }: {
   gm: EdgeGoalTree;
-  fileName: string;
+  previousOutput?: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
@@ -68,8 +74,12 @@ const edgeDTMCTemplate = ({
   /** 'taskModules' (one module per task, reference layout) or 'changeManager' (all tasks in one module) */
   taskLayout?: TaskLayout;
 }): string => {
-  const decisions = decisionVariablesTemplate({ gm, enabled: generateDecisionVars, discretisation });
-  const system = systemModule({ gm, fileName, clean, variables });
+  const decisions = decisionVariablesTemplate({
+    gm,
+    enabled: generateDecisionVars,
+    discretisation,
+  });
+  const system = systemModule({ gm, previousOutput, clean, variables });
   const rewards = rewardsTemplate({ gm });
   const rewardsSection = rewards ? `\n${rewards}\n` : '';
 
@@ -100,14 +110,17 @@ ${rewardsSection}`;
 export const generateValidatedPrismModel = ({
   gm,
   fileName,
+  previousOutput,
   clean = false,
   variables = {},
   generateDecisionVars = true,
   discretisation = DEFAULT_DISCRETISATION,
   taskLayout = DEFAULT_TASK_LAYOUT,
+  writeReport = true,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
+  previousOutput?: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
@@ -117,6 +130,7 @@ export const generateValidatedPrismModel = ({
   discretisation?: number;
   /** 'taskModules' (one module per task, reference layout) or 'changeManager' (all tasks in one module) */
   taskLayout?: TaskLayout;
+  writeReport?: boolean;
 }): string => {
   if (taskLayout !== 'taskModules' && taskLayout !== 'changeManager') {
     throw new Error(
@@ -125,7 +139,7 @@ export const generateValidatedPrismModel = ({
   }
   const prismModel = edgeDTMCTemplate({
     gm,
-    fileName,
+    previousOutput,
     clean,
     variables,
     generateDecisionVars,
@@ -133,7 +147,7 @@ export const generateValidatedPrismModel = ({
     taskLayout,
   });
 
-  const report = validate(gm, prismModel, fileName);
+  const report = validate(gm, prismModel, writeReport ? fileName : undefined);
   if (report.summary.totalMissing > 0) {
     throw new Error(
       `PRISM model is not valid\n${formatValidationReport(report)}`,
