@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /**
- * Builds packages/ui/public/examples.json at build/dev time: the static site has no
- * server to list examples/ from, so the list is a manifest baked in ahead of time
- * (services/examples.ts fetches it, and reads the files themselves from GitHub raw URLs).
- * Ports listExamples/isGoalModel from the former examples API route.
+ * Builds the examples manifest at build/dev time: the static site has no server to
+ * list examples/ from, so the list is baked in. Written as an importable JSON module
+ * (services/examples.ts imports it) and also to public/ for a static URL if needed.
  */
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -12,7 +11,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // examples/ at the repository root (this script runs from packages/ui)
 const EXAMPLES_ROOT = path.resolve(__dirname, '..', '..', '..', 'examples');
-const OUT_FILE = path.resolve(__dirname, '..', 'public', 'examples.json');
+const LIB_FILE = path.resolve(__dirname, '..', 'lib', 'examples-manifest.json');
+const PUBLIC_FILE = path.resolve(__dirname, '..', 'public', 'examples.json');
 // generated conformance models are not hand-written examples
 const SKIP_DIRS = new Set(['generated', 'props', 'results']);
 
@@ -48,8 +48,11 @@ const listExamples = async (dir, group) => {
 
 const examples = await listExamples(EXAMPLES_ROOT, '').catch(() => []);
 examples.sort((a, b) => a.path.localeCompare(b.path));
-await fs.mkdir(path.dirname(OUT_FILE), { recursive: true });
-await fs.writeFile(OUT_FILE, JSON.stringify(examples));
+const body = `${JSON.stringify(examples, null, 2)}\n`;
+await fs.mkdir(path.dirname(LIB_FILE), { recursive: true });
+await fs.mkdir(path.dirname(PUBLIC_FILE), { recursive: true });
+await fs.writeFile(LIB_FILE, body);
+await fs.writeFile(PUBLIC_FILE, body);
 console.log(
-  `${examples.length} examples written to ${path.relative(process.cwd(), OUT_FILE)}`,
+  `${examples.length} examples → ${path.relative(process.cwd(), LIB_FILE)}`,
 );

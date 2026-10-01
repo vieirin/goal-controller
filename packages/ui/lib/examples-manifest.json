@@ -1,0 +1,187 @@
+[
+  {
+    "path": "edge/anotherSimple.txt",
+    "group": "edge",
+    "name": "anotherSimple.txt"
+  },
+  {
+    "path": "edge/experiments/1-minimal.txt",
+    "group": "edge",
+    "name": "experiments/1-minimal.txt"
+  },
+  {
+    "path": "edge/experiments/10-minimalMaintainResource.txt",
+    "group": "edge",
+    "name": "experiments/10-minimalMaintainResource.txt"
+  },
+  {
+    "path": "edge/experiments/2-OrVariation.txt",
+    "group": "edge",
+    "name": "experiments/2-OrVariation.txt"
+  },
+  {
+    "path": "edge/experiments/3-interleavedPaltPseq.txt",
+    "group": "edge",
+    "name": "experiments/3-interleavedPaltPseq.txt"
+  },
+  {
+    "path": "edge/experiments/4-interleavedChoicePDegradation.txt",
+    "group": "edge",
+    "name": "experiments/4-interleavedChoicePDegradation.txt"
+  },
+  {
+    "path": "edge/experiments/5-allAnnotations.txt",
+    "group": "edge",
+    "name": "experiments/5-allAnnotations.txt"
+  },
+  {
+    "path": "edge/experiments/6-allnotationsReduced.txt",
+    "group": "edge",
+    "name": "experiments/6-allnotationsReduced.txt"
+  },
+  {
+    "path": "edge/experiments/7-minimalAll.txt",
+    "group": "edge",
+    "name": "experiments/7-minimalAll.txt"
+  },
+  {
+    "path": "edge/experiments/8-minimalMaintain.txt",
+    "group": "edge",
+    "name": "experiments/8-minimalMaintain.txt"
+  },
+  {
+    "path": "edge/experiments/9-minimalMaintainContext.txt",
+    "group": "edge",
+    "name": "experiments/9-minimalMaintainContext.txt"
+  },
+  {
+    "path": "edge/experiments/goalModel_TAS_3.txt",
+    "group": "edge",
+    "name": "experiments/goalModel_TAS_3.txt"
+  },
+  {
+    "path": "edge/experiments/labSamplesWithSideEffect.txt",
+    "group": "edge",
+    "name": "experiments/labSamplesWithSideEffect.txt"
+  },
+  {
+    "path": "edge/goalModel_TAS_3_.txt",
+    "group": "edge",
+    "name": "goalModel_TAS_3_.txt"
+  },
+  {
+    "path": "edge/labSamplesWithSideEffect_.txt",
+    "group": "edge",
+    "name": "labSamplesWithSideEffect_.txt"
+  },
+  {
+    "path": "edge/simpleAlternative.txt",
+    "group": "edge",
+    "name": "simpleAlternative.txt"
+  },
+  {
+    "path": "edge/simpleChoice.txt",
+    "group": "edge",
+    "name": "simpleChoice.txt"
+  },
+  {
+    "path": "edge/simpleDegradation.txt",
+    "group": "edge",
+    "name": "simpleDegradation.txt"
+  },
+  {
+    "path": "edge/simpleInterleaved.txt",
+    "group": "edge",
+    "name": "simpleInterleaved.txt"
+  },
+  {
+    "path": "edge/simpleMaintain.txt",
+    "group": "edge",
+    "name": "simpleMaintain.txt"
+  },
+  {
+    "path": "edge/simpleSequential.txt",
+    "group": "edge",
+    "name": "simpleSequential.txt"
+  },
+  {
+    "path": "edgeV2/experiments/10-minimalMaintainResource.txt",
+    "group": "edgeV2",
+    "name": "experiments/10-minimalMaintainResource.txt"
+  },
+  {
+    "path": "edgeV2/experiments/4-interleavedChoicePDegradation.txt",
+    "group": "edgeV2",
+    "name": "experiments/4-interleavedChoicePDegradation.txt"
+  },
+  {
+    "path": "edgeV2/experiments/5-allAnnotations.txt",
+    "group": "edgeV2",
+    "name": "experiments/5-allAnnotations.txt"
+  },
+  {
+    "path": "edgeV2/experiments/6-allnotationsReduced.txt",
+    "group": "edgeV2",
+    "name": "experiments/6-allnotationsReduced.txt"
+  },
+  {
+    "path": "edgeV2/experiments/7-minimalAll.txt",
+    "group": "edgeV2",
+    "name": "experiments/7-minimalAll.txt"
+  },
+  {
+    "path": "edgeV2/experiments/8-minimalMaintain.txt",
+    "group": "edgeV2",
+    "name": "experiments/8-minimalMaintain.txt"
+  },
+  {
+    "path": "edgeV2/experiments/9-minimalMaintainContext.txt",
+    "group": "edgeV2",
+    "name": "experiments/9-minimalMaintainContext.txt"
+  },
+  {
+    "path": "edgeV2/experiments/goalModel_TAS_3.txt",
+    "group": "edgeV2",
+    "name": "experiments/goalModel_TAS_3.txt"
+  },
+  {
+    "path": "edgeV2/experiments/labSamplesWithSideEffect.txt",
+    "group": "edgeV2",
+    "name": "experiments/labSamplesWithSideEffect.txt"
+  },
+  {
+    "path": "edgeV2/goalModel_TAS_3_.txt",
+    "group": "edgeV2",
+    "name": "goalModel_TAS_3_.txt"
+  },
+  {
+    "path": "edgeV2/labSamplesWithSideEffect_.txt",
+    "group": "edgeV2",
+    "name": "labSamplesWithSideEffect_.txt"
+  },
+  {
+    "path": "edgeV2/simpleChoice.txt",
+    "group": "edgeV2",
+    "name": "simpleChoice.txt"
+  },
+  {
+    "path": "edgeV2/simpleChoiceRewards.txt",
+    "group": "edgeV2",
+    "name": "simpleChoiceRewards.txt"
+  },
+  {
+    "path": "sleec/goalModel - 2026-01-23T112755.270.txt",
+    "group": "sleec",
+    "name": "goalModel - 2026-01-23T112755.270.txt"
+  },
+  {
+    "path": "sleec/goalModel-sleec.txt",
+    "group": "sleec",
+    "name": "goalModel-sleec.txt"
+  },
+  {
+    "path": "sleec/goalModel-sleec2.txt",
+    "group": "sleec",
+    "name": "goalModel-sleec2.txt"
+  }
+]

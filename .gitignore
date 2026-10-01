@@ -56,5 +56,5 @@ packages/ui/tsconfig.tsbuildinfo
 
 .plan/
 
-# build-time manifest (packages/ui/scripts/examples-manifest.mjs)
+# public/ copy of the manifest (lib/examples-manifest.json is committed)
 packages/ui/public/examples.json

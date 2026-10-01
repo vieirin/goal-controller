@@ -1,19 +1,12 @@
 import type { ExampleFile } from '../lib/workbench/types';
+import examples from '../lib/examples-manifest.json';
 
-/** Set by CI to the commit SHA, so the manifest and the files it lists always match. */
+/** Set by CI to the commit SHA, so the files the list points at match that commit. */
 const REF = process.env.NEXT_PUBLIC_EXAMPLES_REF || 'main';
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
-/** The example list, built at build time (scripts/examples-manifest.mjs) into public/. */
-export const listExamples = async (): Promise<ExampleFile[]> => {
-  const response = await fetch(`${BASE_PATH}/examples.json`);
-  if (!response.ok) {
-    throw new Error(
-      `Couldn't load the example list: ${response.status} ${response.statusText}`,
-    );
-  }
-  return (await response.json()) as ExampleFile[];
-};
+/** The example list, baked in at build time (scripts/examples-manifest.mjs). */
+export const listExamples = async (): Promise<ExampleFile[]> =>
+  examples as ExampleFile[];
 
 /** An example's contents, read straight from GitHub (the repo is public). */
 export const loadExample = async (
