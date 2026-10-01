@@ -85,6 +85,17 @@ export { generateValidatedPrismModel, sleecTemplateEngine };
 
 // Validation
 export { validate };
+export type { Check, CheckContext } from './engines/checks';
+export {
+  edgeGoalChecks,
+  edgeTaskChecks,
+  edgeResourceChecks,
+} from './engines/edge/checks';
+export {
+  edgeV2GoalChecks,
+  edgeV2TaskChecks,
+  edgeV2ResourceChecks,
+} from './engines/edgeV2/checks';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

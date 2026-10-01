@@ -1,10 +1,22 @@
 /**
  * How the Edge engines (Edge, EdgeV2) read each custom property, for the Inspector: the
- * input to edit it with, and whether it applies given the element's other properties
- * (an int resource has bounds, a bool one does not; a maintain goal needs a maintain
- * condition). Mirrors packages/lib/src/engines/edge{,V2}/mapper.ts.
+ * input to edit it with, whether it applies given the element's other properties (an int
+ * resource has bounds, a bool one does not; a maintain goal needs a maintain condition),
+ * and what the engine would reject in it (`validate`, the engine's own check function —
+ * see @goal-controller/lib's edge{,V2}{Goal,Task,Resource}Checks). Mirrors
+ * packages/lib/src/engines/edge{,V2}/mapper.ts.
  */
-import { edgeEngineMapper, edgeV2EngineMapper } from '@goal-controller/lib';
+import {
+  edgeEngineMapper,
+  edgeV2EngineMapper,
+  edgeGoalChecks,
+  edgeTaskChecks,
+  edgeResourceChecks,
+  edgeV2GoalChecks,
+  edgeV2TaskChecks,
+  edgeV2ResourceChecks,
+  type Check,
+} from '@goal-controller/lib';
 
 export type Properties = Readonly<Record<string, string | undefined>>;
 
@@ -34,22 +46,8 @@ export type PropertySpec<K extends string = string> = {
   notApplying?: (properties: Properties) => string;
   /** shown as a row even when unset (the engine needs it) */
   required?: (properties: Properties) => boolean;
-  /**
-   * What is wrong with a value, as the engine would reject it (null when fine). Gets the
-   * element's properties with this value in place, and what else it may refer to.
-   */
-  validate?: (
-    value: string,
-    properties: Properties,
-    context: ValidationContext,
-  ) => string | null;
-};
-
-export type ValidationContext = {
-  /** RT id of the element being edited */
-  self: string;
-  /** RT ids of the goals in the model (dependsOn targets) */
-  goalIds: readonly string[];
+  /** what the engine would reject in a value (null when fine); the engine's own check */
+  validate?: Check;
 };
 
 /** The keys an engine mapper reads, per node kind. */
@@ -71,18 +69,6 @@ type EdgeKeys = KeysOf<typeof edgeEngineMapper>;
 /** The node kinds an engine mapper has keys for (quality isn't one: it's read as a goal). */
 export type NodeKindKey = keyof EdgeKeys;
 
-const WHOLE = /^-?\d+$/;
-const whole = (v: string | undefined): number | null =>
-  v !== undefined && WHOLE.test(v.trim()) ? Number(v) : null;
-
-const boundsError = (p: Properties): string | null => {
-  const low = whole(p.lowerBound);
-  const high = whole(p.upperBound);
-  return low !== null && high !== null && low > high
-    ? `The lower bound (${low}) is above the upper bound (${high})`
-    : null;
-};
-
 const isMaintain = (p: Properties) => p.type === 'maintain';
 const isInt = (p: Properties) => p.type === 'int';
 
@@ -94,21 +80,19 @@ const GOAL_TYPE: PropertyInput = {
   ],
 };
 
-/** maxRetries, utility, cost: the same key set on both goals and tasks, both engines. */
-const SHARED: readonly PropertySpec<'maxRetries' | 'utility' | 'cost'>[] = [
-  {
-    key: 'maxRetries',
-    input: { kind: 'integer', min: 0 },
-    validate: (v) =>
-      v === '' || /^\d+$/.test(v.trim())
-        ? null
-        : 'Use a non-negative whole number',
-  },
+type GoalChecks = Partial<Record<EdgeKeys['goal'], Check>>;
+type TaskChecks = Partial<Record<EdgeKeys['task'], Check>>;
+type ResourceChecks = Partial<Record<EdgeKeys['resource'], Check>>;
+
+/** utility, cost: the same key set on both goals and tasks, both engines, no engine check. */
+const SHARED: readonly PropertySpec<'utility' | 'cost'>[] = [
   { key: 'utility', input: { kind: 'number' } },
   { key: 'cost', input: { kind: 'number' } },
 ];
 
-const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
+const makeGoalSpecs = (
+  checks: GoalChecks,
+): readonly PropertySpec<EdgeKeys['goal']>[] => [
   // always offered as a choice: unset is "achieve", the default
   { key: 'type', input: GOAL_TYPE, required: () => true },
   {
@@ -120,65 +104,51 @@ const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
     applies: isMaintain,
     required: isMaintain,
     notApplying: () => 'Only read when type is maintain',
-    validate: (v, p) =>
-      isMaintain(p) && !v.trim()
-        ? 'A maintain goal needs the condition it keeps'
-        : null,
+    validate: checks.maintain,
   },
   {
     key: 'assertion',
     input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
     required: isMaintain,
-    validate: (v, p) =>
-      isMaintain(p) && !v.trim() ? 'A maintain goal needs an assertion' : null,
+  },
+  {
+    key: 'maxRetries',
+    input: { kind: 'integer', min: 0 },
+    validate: checks.maxRetries,
   },
   ...SHARED,
   {
     key: 'dependsOn',
     input: { kind: 'text', placeholder: 'goal ids, comma-separated: G2, G5' },
-    validate: (v, _p, { self, goalIds }) => {
-      const ids = v
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean);
-      if (ids.includes(self)) return `${self} cannot depend on itself`;
-      const unknown = ids.filter((id) => !goalIds.includes(id));
-      return unknown.length > 0
-        ? `${unknown.join(', ')} ${unknown.length > 1 ? 'are not goals' : 'is not a goal'} in this model`
-        : null;
-    },
+    validate: checks.dependsOn,
   },
   {
     key: 'variables',
     input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
-    validate: (v) => {
-      if (!v.trim()) return null;
-      const bad = v.split(',').filter((part) => {
-        const pieces = part.split(':');
-        return (
-          pieces.length !== 2 ||
-          !pieces[0]?.trim() ||
-          Number.isNaN(parseInt(pieces[1] ?? '', 10))
-        );
-      });
-      return bad.length > 0
-        ? `Use name:space pairs with a number as space (got "${bad[0]?.trim()}")`
-        : null;
-    },
+    validate: checks.variables,
   },
 ];
 
-const TASK_SPECS: readonly PropertySpec<EdgeKeys['task']>[] = [
+const makeTaskSpecs = (
+  checks: TaskChecks,
+): readonly PropertySpec<EdgeKeys['task']>[] => [
   // tasks have no maintain condition (not among the task keys): type is free text
   { key: 'type', input: { kind: 'text' } },
   {
     key: 'assertion',
     input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
   },
+  {
+    key: 'maxRetries',
+    input: { kind: 'integer', min: 0 },
+    validate: checks.maxRetries,
+  },
   ...SHARED,
 ];
 
-const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
+const makeResourceSpecs = (
+  checks: ResourceChecks,
+): readonly PropertySpec<EdgeKeys['resource']>[] => [
   {
     key: 'type',
     input: {
@@ -189,8 +159,7 @@ const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
       ],
     },
     required: () => true,
-    validate: (v) =>
-      v === 'bool' || v === 'int' ? null : 'The type must be bool or int',
+    validate: checks.type,
   },
   {
     key: 'initialValue',
@@ -205,21 +174,7 @@ const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
             ],
           },
     required: () => true,
-    validate: (v, p) => {
-      if (p.type === 'bool')
-        return v === 'true' || v === 'false'
-          ? null
-          : 'A bool resource starts true or false';
-      if (p.type !== 'int') return null;
-      const value = whole(v);
-      if (value === null) return 'An int resource starts at a whole number';
-      const low = whole(p.lowerBound);
-      const high = whole(p.upperBound);
-      if (low !== null && value < low) return `Below the lower bound (${low})`;
-      if (high !== null && value > high)
-        return `Above the upper bound (${high})`;
-      return null;
-    },
+    validate: checks.initialValue,
   },
   {
     key: 'lowerBound',
@@ -228,12 +183,7 @@ const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
     required: isInt,
     notApplying: (p) =>
       `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-    validate: (v, p) =>
-      !isInt(p)
-        ? null
-        : whole(v) === null
-          ? 'Use a whole number'
-          : boundsError(p),
+    validate: checks.lowerBound,
   },
   {
     key: 'upperBound',
@@ -242,19 +192,23 @@ const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
     required: isInt,
     notApplying: (p) =>
       `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-    validate: (v, p) =>
-      !isInt(p)
-        ? null
-        : whole(v) === null
-          ? 'Use a whole number'
-          : boundsError(p),
+    validate: checks.upperBound,
   },
 ];
 
-/** Edge and EdgeV2 read the same custom properties (see packages/lib/src/engines/edge{,V2}/mapper.ts). */
+/** Edge and EdgeV2 read the same custom properties, but each checks its own (see
+ * packages/lib/src/engines/edge{,V2}/mapper.ts and checks.ts). */
 export const PROPERTY_SPECS = {
-  edge: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
-  edgev2: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
+  edge: {
+    goal: makeGoalSpecs(edgeGoalChecks),
+    task: makeTaskSpecs(edgeTaskChecks),
+    resource: makeResourceSpecs(edgeResourceChecks),
+  },
+  edgev2: {
+    goal: makeGoalSpecs(edgeV2GoalChecks),
+    task: makeTaskSpecs(edgeV2TaskChecks),
+    resource: makeResourceSpecs(edgeV2ResourceChecks),
+  },
 } satisfies {
   edge: SpecsFor<typeof edgeEngineMapper>;
   edgev2: SpecsFor<typeof edgeV2EngineMapper>;

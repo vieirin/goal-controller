@@ -498,15 +498,15 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
       .map((spec) => spec.key);
     return [...new Set([...fromSpec, ...set])];
   }, [specs, node.properties]);
-  // what validators may refer to: the element itself and the goals (dependsOn)
-  const validation = useMemo(
+  // what a validate function may refer to: this node's id, and other RT ids' kinds
+  // (dependsOn), qualities counting as goals like the engines read them
+  const checkContext = useMemo(
     () => ({
       self: node.id,
-      goalIds: tree
-        ? [...tree.nodes.values()]
-            .filter((n) => n.kind === 'goal')
-            .map((n) => n.id)
-        : [],
+      kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
+        const kind = tree?.nodes.get(id)?.kind;
+        return kind === 'quality' ? 'goal' : kind;
+      },
     }),
     [node.id, tree],
   );
@@ -705,9 +705,8 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
                 applies(key) && specOf(key)?.validate
                   ? (value) =>
                       specOf(key)!.validate!(
-                        value,
                         { ...node.properties, [key]: value },
-                        validation,
+                        checkContext,
                       )
                   : undefined
               }
