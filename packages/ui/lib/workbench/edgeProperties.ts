@@ -4,6 +4,7 @@
  * (an int resource has bounds, a bool one does not; a maintain goal needs a maintain
  * condition). Mirrors packages/lib/src/engines/edge{,V2}/mapper.ts.
  */
+import { edgeEngineMapper, edgeV2EngineMapper } from '@goal-controller/lib';
 
 export type Properties = Readonly<Record<string, string | undefined>>;
 
@@ -23,8 +24,8 @@ export type PropertyInput =
       options: ReadonlyArray<{ value: string; label: string }>;
     };
 
-export type PropertySpec = {
-  key: string;
+export type PropertySpec<K extends string = string> = {
+  key: K;
   /** how to edit it; may depend on the other properties (a resource's initial value) */
   input: PropertyInput | ((properties: Properties) => PropertyInput);
   /** whether the engine reads it, given the other properties (default: always) */
@@ -51,6 +52,25 @@ export type ValidationContext = {
   goalIds: readonly string[];
 };
 
+/** The keys an engine mapper reads, per node kind. */
+type KeysOf<M> = M extends {
+  allowedGoalKeys: readonly (infer G)[];
+  allowedTaskKeys: readonly (infer T)[];
+  allowedResourceKeys: readonly (infer R)[];
+}
+  ? { goal: G; task: T; resource: R }
+  : never;
+
+/** A spec list per node kind, each entry's key checked against the engine's keys. */
+type SpecsFor<M> = {
+  [K in keyof KeysOf<M>]: readonly PropertySpec<KeysOf<M>[K] & string>[];
+};
+
+type EdgeKeys = KeysOf<typeof edgeEngineMapper>;
+
+/** The node kinds an engine mapper has keys for (quality isn't one: it's read as a goal). */
+export type NodeKindKey = keyof EdgeKeys;
+
 const WHOLE = /^-?\d+$/;
 const whole = (v: string | undefined): number | null =>
   v !== undefined && WHOLE.test(v.trim()) ? Number(v) : null;
@@ -74,7 +94,8 @@ const GOAL_TYPE: PropertyInput = {
   ],
 };
 
-const SHARED: PropertySpec[] = [
+/** maxRetries, utility, cost: the same key set on both goals and tasks, both engines. */
+const SHARED: readonly PropertySpec<'maxRetries' | 'utility' | 'cost'>[] = [
   {
     key: 'maxRetries',
     input: { kind: 'integer', min: 0 },
@@ -87,153 +108,156 @@ const SHARED: PropertySpec[] = [
   { key: 'cost', input: { kind: 'number' } },
 ];
 
-export const EDGE_PROPERTIES: Record<
-  'goal' | 'task' | 'resource',
-  readonly PropertySpec[]
-> = {
-  goal: [
-    // always offered as a choice: unset is "achieve", the default
-    { key: 'type', input: GOAL_TYPE, required: () => true },
-    {
-      key: 'maintain',
-      input: {
-        kind: 'long',
-        placeholder: 'condition kept while the goal is pursued',
-      },
-      applies: isMaintain,
-      required: isMaintain,
-      notApplying: () => 'Only read when type is maintain',
-      validate: (v, p) =>
-        isMaintain(p) && !v.trim()
-          ? 'A maintain goal needs the condition it keeps'
-          : null,
+const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
+  // always offered as a choice: unset is "achieve", the default
+  { key: 'type', input: GOAL_TYPE, required: () => true },
+  {
+    key: 'maintain',
+    input: {
+      kind: 'long',
+      placeholder: 'condition kept while the goal is pursued',
     },
-    {
-      key: 'assertion',
-      input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
-      required: isMaintain,
-      validate: (v, p) =>
-        isMaintain(p) && !v.trim()
-          ? 'A maintain goal needs an assertion'
-          : null,
+    applies: isMaintain,
+    required: isMaintain,
+    notApplying: () => 'Only read when type is maintain',
+    validate: (v, p) =>
+      isMaintain(p) && !v.trim()
+        ? 'A maintain goal needs the condition it keeps'
+        : null,
+  },
+  {
+    key: 'assertion',
+    input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
+    required: isMaintain,
+    validate: (v, p) =>
+      isMaintain(p) && !v.trim() ? 'A maintain goal needs an assertion' : null,
+  },
+  ...SHARED,
+  {
+    key: 'dependsOn',
+    input: { kind: 'text', placeholder: 'goal ids, comma-separated: G2, G5' },
+    validate: (v, _p, { self, goalIds }) => {
+      const ids = v
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+      if (ids.includes(self)) return `${self} cannot depend on itself`;
+      const unknown = ids.filter((id) => !goalIds.includes(id));
+      return unknown.length > 0
+        ? `${unknown.join(', ')} ${unknown.length > 1 ? 'are not goals' : 'is not a goal'} in this model`
+        : null;
     },
-    ...SHARED,
-    {
-      key: 'dependsOn',
-      input: { kind: 'text', placeholder: 'goal ids, comma-separated: G2, G5' },
-      validate: (v, _p, { self, goalIds }) => {
-        const ids = v
-          .split(',')
-          .map((id) => id.trim())
-          .filter(Boolean);
-        if (ids.includes(self)) return `${self} cannot depend on itself`;
-        const unknown = ids.filter((id) => !goalIds.includes(id));
-        return unknown.length > 0
-          ? `${unknown.join(', ')} ${unknown.length > 1 ? 'are not goals' : 'is not a goal'} in this model`
-          : null;
-      },
+  },
+  {
+    key: 'variables',
+    input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
+    validate: (v) => {
+      if (!v.trim()) return null;
+      const bad = v.split(',').filter((part) => {
+        const pieces = part.split(':');
+        return (
+          pieces.length !== 2 ||
+          !pieces[0]?.trim() ||
+          Number.isNaN(parseInt(pieces[1] ?? '', 10))
+        );
+      });
+      return bad.length > 0
+        ? `Use name:space pairs with a number as space (got "${bad[0]?.trim()}")`
+        : null;
     },
-    {
-      key: 'variables',
-      input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
-      validate: (v) => {
-        if (!v.trim()) return null;
-        const bad = v.split(',').filter((part) => {
-          const pieces = part.split(':');
-          return (
-            pieces.length !== 2 ||
-            !pieces[0]?.trim() ||
-            Number.isNaN(parseInt(pieces[1] ?? '', 10))
-          );
-        });
-        return bad.length > 0
-          ? `Use name:space pairs with a number as space (got "${bad[0]?.trim()}")`
-          : null;
-      },
+  },
+];
+
+const TASK_SPECS: readonly PropertySpec<EdgeKeys['task']>[] = [
+  // tasks have no maintain condition (not among the task keys): type is free text
+  { key: 'type', input: { kind: 'text' } },
+  {
+    key: 'assertion',
+    input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
+  },
+  ...SHARED,
+];
+
+const RESOURCE_SPECS: readonly PropertySpec<EdgeKeys['resource']>[] = [
+  {
+    key: 'type',
+    input: {
+      kind: 'select',
+      options: [
+        { value: 'bool', label: 'bool' },
+        { value: 'int', label: 'int' },
+      ],
     },
-  ],
-  task: [
-    // tasks have no maintain condition (not among the task keys): type is free text
-    { key: 'type', input: { kind: 'text' } },
-    {
-      key: 'assertion',
-      input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
-    },
-    ...SHARED,
-  ],
-  resource: [
-    {
-      key: 'type',
-      input: {
-        kind: 'select',
-        options: [
-          { value: 'bool', label: 'bool' },
-          { value: 'int', label: 'int' },
-        ],
-      },
-      required: () => true,
-      validate: (v) =>
-        v === 'bool' || v === 'int' ? null : 'The type must be bool or int',
-    },
-    {
-      key: 'initialValue',
-      input: (p) =>
-        isInt(p)
-          ? { kind: 'integer' }
-          : {
-              kind: 'select',
-              options: [
-                { value: 'true', label: 'true' },
-                { value: 'false', label: 'false' },
-              ],
-            },
-      required: () => true,
-      validate: (v, p) => {
-        if (p.type === 'bool')
-          return v === 'true' || v === 'false'
-            ? null
-            : 'A bool resource starts true or false';
-        if (p.type !== 'int') return null;
-        const value = whole(v);
-        if (value === null) return 'An int resource starts at a whole number';
-        const low = whole(p.lowerBound);
-        const high = whole(p.upperBound);
-        if (low !== null && value < low)
-          return `Below the lower bound (${low})`;
-        if (high !== null && value > high)
-          return `Above the upper bound (${high})`;
-        return null;
-      },
-    },
-    {
-      key: 'lowerBound',
-      input: { kind: 'integer' },
-      applies: isInt,
-      required: isInt,
-      notApplying: (p) =>
-        `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-      validate: (v, p) =>
-        !isInt(p)
+    required: () => true,
+    validate: (v) =>
+      v === 'bool' || v === 'int' ? null : 'The type must be bool or int',
+  },
+  {
+    key: 'initialValue',
+    input: (p) =>
+      isInt(p)
+        ? { kind: 'integer' }
+        : {
+            kind: 'select',
+            options: [
+              { value: 'true', label: 'true' },
+              { value: 'false', label: 'false' },
+            ],
+          },
+    required: () => true,
+    validate: (v, p) => {
+      if (p.type === 'bool')
+        return v === 'true' || v === 'false'
           ? null
-          : whole(v) === null
-            ? 'Use a whole number'
-            : boundsError(p),
+          : 'A bool resource starts true or false';
+      if (p.type !== 'int') return null;
+      const value = whole(v);
+      if (value === null) return 'An int resource starts at a whole number';
+      const low = whole(p.lowerBound);
+      const high = whole(p.upperBound);
+      if (low !== null && value < low) return `Below the lower bound (${low})`;
+      if (high !== null && value > high)
+        return `Above the upper bound (${high})`;
+      return null;
     },
-    {
-      key: 'upperBound',
-      input: { kind: 'integer' },
-      applies: isInt,
-      required: isInt,
-      notApplying: (p) =>
-        `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
-      validate: (v, p) =>
-        !isInt(p)
-          ? null
-          : whole(v) === null
-            ? 'Use a whole number'
-            : boundsError(p),
-    },
-  ],
+  },
+  {
+    key: 'lowerBound',
+    input: { kind: 'integer' },
+    applies: isInt,
+    required: isInt,
+    notApplying: (p) =>
+      `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
+    validate: (v, p) =>
+      !isInt(p)
+        ? null
+        : whole(v) === null
+          ? 'Use a whole number'
+          : boundsError(p),
+  },
+  {
+    key: 'upperBound',
+    input: { kind: 'integer' },
+    applies: isInt,
+    required: isInt,
+    notApplying: (p) =>
+      `Not used while type is ${p.type ?? 'unset'} (bounds are for int resources)`,
+    validate: (v, p) =>
+      !isInt(p)
+        ? null
+        : whole(v) === null
+          ? 'Use a whole number'
+          : boundsError(p),
+  },
+];
+
+/** Edge and EdgeV2 read the same custom properties (see packages/lib/src/engines/edge{,V2}/mapper.ts). */
+export const PROPERTY_SPECS = {
+  edge: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
+  edgev2: { goal: GOAL_SPECS, task: TASK_SPECS, resource: RESOURCE_SPECS },
+} satisfies {
+  edge: SpecsFor<typeof edgeEngineMapper>;
+  edgev2: SpecsFor<typeof edgeV2EngineMapper>;
 };
 
 export const inputOf = (

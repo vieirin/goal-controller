@@ -1,34 +1,35 @@
 import {
-  EDGE_GOAL_KEYS,
-  EDGE_RESOURCE_KEYS,
-  EDGE_TASK_KEYS,
-  EDGE_V2_GOAL_KEYS,
-  EDGE_V2_RESOURCE_KEYS,
-  EDGE_V2_TASK_KEYS,
-  SLEEC_GOAL_KEYS,
-  SLEEC_TASK_KEYS,
+  edgeEngineMapper,
+  edgeV2EngineMapper,
+  sleecEngineMapper,
 } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
 
-/** The custom properties each engine reads, per node kind. */
+/** The custom properties each engine reads, per node kind, read from its mapper. */
 export const KNOWN_PROPERTIES: Record<
   TransformEngine,
   AnalyzeResponse['knownProperties']
 > = {
   edge: {
-    goal: [...EDGE_GOAL_KEYS],
-    task: [...EDGE_TASK_KEYS],
-    resource: [...EDGE_RESOURCE_KEYS],
+    goal: [...edgeEngineMapper.allowedGoalKeys],
+    task: [...edgeEngineMapper.allowedTaskKeys],
+    resource: edgeEngineMapper.skipResource
+      ? []
+      : [...edgeEngineMapper.allowedResourceKeys],
   },
   edgev2: {
-    goal: [...EDGE_V2_GOAL_KEYS],
-    task: [...EDGE_V2_TASK_KEYS],
-    resource: [...EDGE_V2_RESOURCE_KEYS],
+    goal: [...edgeV2EngineMapper.allowedGoalKeys],
+    task: [...edgeV2EngineMapper.allowedTaskKeys],
+    resource: edgeV2EngineMapper.skipResource
+      ? []
+      : [...edgeV2EngineMapper.allowedResourceKeys],
   },
   sleec: {
-    goal: [...SLEEC_GOAL_KEYS],
-    task: [...SLEEC_TASK_KEYS],
-    resource: [],
+    goal: [...sleecEngineMapper.allowedGoalKeys],
+    task: [...sleecEngineMapper.allowedTaskKeys],
+    resource: sleecEngineMapper.skipResource
+      ? []
+      : [...sleecEngineMapper.allowedResourceKeys],
   },
 };

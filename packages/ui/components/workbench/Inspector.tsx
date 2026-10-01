@@ -7,9 +7,10 @@ import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
   DEFAULT_ELEMENT_FILL,
-  EDGE_PROPERTIES,
   EDGE_RESOURCE_FILL,
+  PROPERTY_SPECS,
   inputOf,
+  type NodeKindKey,
   type PropertyInput,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
@@ -109,7 +110,6 @@ const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
 };
 
-type NodeKindKey = 'goal' | 'task' | 'resource';
 const KIND_PLURAL: Record<NodeKindKey, string> = {
   goal: 'goals',
   task: 'tasks',
@@ -477,7 +477,7 @@ function NodeInspector({ node }: { node: GoalViewNode }) {
   const specs = useMemo(
     () =>
       engine === 'edge' || engine === 'edgev2'
-        ? EDGE_PROPERTIES[node.kind === 'quality' ? 'goal' : node.kind]
+        ? PROPERTY_SPECS[engine][node.kind === 'quality' ? 'goal' : node.kind]
         : [],
     [engine, node.kind],
   );
