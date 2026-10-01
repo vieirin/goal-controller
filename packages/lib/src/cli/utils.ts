@@ -1,21 +1,7 @@
-import { existsSync, readFileSync } from 'fs';
 import { readdir, readFile, stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 const LAST_SELECTED_DB = 'lastSelected.db';
-
-/**
- * Reads a previous PRISM output for `baseName`, if one exists.
- * Supports both monorepo and direct execution.
- */
-export const readPreviousOutput = (baseName: string): string | undefined => {
-  const possiblePaths = [
-    `output/${baseName}.prism`, // From project root
-    `../../output/${baseName}.prism`, // From packages/lib (monorepo)
-  ];
-  const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
-  return oldPrismFilePath ? readFileSync(oldPrismFilePath, 'utf8') : undefined;
-};
 
 export const getFilesInDirectory = async (
   directory: string,

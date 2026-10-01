@@ -4,7 +4,7 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import { readPreviousOutput } from './cli/utils';
+import { readPreviousOutput } from './cli/previousOutput';
 import { edgeEngineMapper, generateValidatedPrismModel } from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';

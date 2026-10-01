@@ -7,7 +7,7 @@ import {
 } from '../../engines/edge';
 import { initLogger } from '../../engines/edge/logger/logger';
 import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
-import { readPreviousOutput } from '../utils';
+import { readPreviousOutput } from '../previousOutput';
 
 export interface RunModelOptions {
   clean?: boolean;
