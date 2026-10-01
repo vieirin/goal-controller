@@ -1,182 +1,19 @@
-import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { parsePistar } from '@istar-ts/core';
-import {
-  edgeEngineMapper,
-  edgeV2EngineMapper,
-  sleecEngineMapper,
-  type EdgeGoalTree,
-  type EdgeV2GoalTree,
-  type SleecGoalTree,
-  type IStarModel,
-} from '@goal-controller/lib';
+import { GoalModel as Parsing } from '../../services/goalModel';
+import type { ParseError } from '../../services/goalModel';
 
-export interface EdgeParseResult {
-  success: true;
-  model: IStarModel;
-  tree: EdgeGoalTree;
-}
+export type {
+  EdgeParseResult,
+  SleecParseResult,
+  EdgeV2ParseResult,
+  ParseError,
+  EdgeParseModelResult,
+  SleecParseModelResult,
+  EdgeV2ParseModelResult,
+} from '../../services/goalModel';
 
-export interface SleecParseResult {
-  success: true;
-  model: IStarModel;
-  tree: SleecGoalTree;
-}
-
-export interface EdgeV2ParseResult {
-  success: true;
-  model: IStarModel;
-  tree: EdgeV2GoalTree;
-}
-
-export interface ParseError {
-  success: false;
-  error: string;
-  stage: 'parse' | 'validate' | 'tree';
-}
-
-export type EdgeParseModelResult = EdgeParseResult | ParseError;
-export type SleecParseModelResult = SleecParseResult | ParseError;
-export type EdgeV2ParseModelResult = EdgeV2ParseResult | ParseError;
-
-/**
- * Goal model - handles parsing, validation, and tree conversion operations
- */
+/** Adds the HTTP status code lookup the routes need to services/goalModel's parsing. */
 export const GoalModel = {
-  /**
-   * Parse and validate model, returning the raw model (no tree)
-   */
-  parseModel(
-    modelJson: string,
-  ): { success: true; model: IStarModel } | ParseError {
-    // Parse the piStar file
-    let model: IStarModel;
-    try {
-      model = parsePistar(modelJson);
-    } catch (error) {
-      return {
-        success: false,
-        error: `Invalid model: ${error instanceof Error ? error.message : 'Unknown parse error'}`,
-        stage: 'parse',
-      };
-    }
-
-    // Validate model (marks the root of each actor)
-    try {
-      model = Model.validate(model);
-    } catch (error) {
-      return {
-        success: false,
-        error: `Validation failed: ${error instanceof Error ? error.message : 'Unknown validation error'}`,
-        stage: 'validate',
-      };
-    }
-
-    return { success: true, model };
-  },
-
-  /**
-   * Parse model JSON, validate it, and convert to Edge tree
-   */
-  parseForEdge(modelJson: string): EdgeParseModelResult {
-    const parseResult = this.parseModel(modelJson);
-    if (!parseResult.success) {
-      return parseResult;
-    }
-
-    // Convert to Edge tree
-    let tree: EdgeGoalTree;
-    try {
-      tree = GoalTree.fromModel(parseResult.model, edgeEngineMapper).nodes;
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
-    }
-
-    return {
-      success: true,
-      model: parseResult.model,
-      tree,
-    };
-  },
-
-  /**
-   * Parse model JSON, validate it, and convert to SLEEC tree
-   */
-  parseForSleec(modelJson: string): SleecParseModelResult {
-    const parseResult = this.parseModel(modelJson);
-    if (!parseResult.success) {
-      return parseResult;
-    }
-
-    // Convert to SLEEC tree
-    let tree: SleecGoalTree;
-    try {
-      tree = GoalTree.fromModel(parseResult.model, sleecEngineMapper).nodes;
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
-    }
-
-    return {
-      success: true,
-      model: parseResult.model,
-      tree,
-    };
-  },
-
-  /**
-   * Parse model JSON, validate it, and convert to Edge V2 tree
-   */
-  parseForEdgeV2(modelJson: string): EdgeV2ParseModelResult {
-    const parseResult = this.parseModel(modelJson);
-    if (!parseResult.success) {
-      return parseResult;
-    }
-
-    let tree: EdgeV2GoalTree;
-    try {
-      tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper).nodes;
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
-    }
-
-    return {
-      success: true,
-      model: parseResult.model,
-      tree,
-    };
-  },
-
-  /**
-   * Legacy parse method - uses Edge tree (deprecated, use parseForEdge)
-   * @deprecated Use parseForEdge or parseForSleec instead
-   */
-  parse(modelJson: string): EdgeParseModelResult {
-    return this.parseForEdge(modelJson);
-  },
-
-  /**
-   * Check if a parse result is successful
-   */
-  isSuccess(
-    result:
-      | EdgeParseModelResult
-      | SleecParseModelResult
-      | EdgeV2ParseModelResult,
-  ): result is EdgeParseResult | SleecParseResult | EdgeV2ParseResult {
-    return result.success;
-  },
-
+  ...Parsing,
   /**
    * Get HTTP status code for a parse error stage
    */

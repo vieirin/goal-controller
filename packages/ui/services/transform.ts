@@ -47,42 +47,45 @@ export const transform = (
       ? initEdgeV2Logger(fileName || 'model', false, true)
       : initLogger(fileName || 'model', false, true);
 
-  let output: string;
-  if (engine === 'edge') {
-    const parseResult = GoalModel.parseForEdge(modelJson);
-    if (!parseResult.success) throw new Error(parseResult.error);
-    output = generateValidatedPrismModel({
-      gm: parseResult.tree,
-      fileName: fileName || 'model',
-      clean,
-      variables,
-      generateDecisionVars,
-      achievabilitySpace,
-      previousOutput,
-      writeReport: false,
-    });
-  } else if (engine === 'edgev2') {
-    const parseResult = GoalModel.parseForEdgeV2(modelJson);
-    if (!parseResult.success) throw new Error(parseResult.error);
-    output = generateEdgeV2PrismModel({
-      gm: parseResult.tree,
-      fileName: fileName || 'model',
-      clean,
-      variables,
-      generateDecisionVars,
-      achievabilitySpace,
-      taskLayout,
-      discretisation,
-      previousOutput,
-      writeReport: false,
-    });
-  } else {
-    const parseResult = GoalModel.parseForSleec(modelJson);
-    if (!parseResult.success) throw new Error(parseResult.error);
-    output = sleecTemplateEngine(parseResult.tree, { generateFluents });
-  }
+  try {
+    let output: string;
+    if (engine === 'edge') {
+      const parseResult = GoalModel.parseForEdge(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      output = generateValidatedPrismModel({
+        gm: parseResult.tree,
+        fileName: fileName || 'model',
+        clean,
+        variables,
+        generateDecisionVars,
+        achievabilitySpace,
+        previousOutput,
+        writeReport: false,
+      });
+    } else if (engine === 'edgev2') {
+      const parseResult = GoalModel.parseForEdgeV2(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      output = generateEdgeV2PrismModel({
+        gm: parseResult.tree,
+        fileName: fileName || 'model',
+        clean,
+        variables,
+        generateDecisionVars,
+        achievabilitySpace,
+        taskLayout,
+        discretisation,
+        previousOutput,
+        writeReport: false,
+      });
+    } else {
+      const parseResult = GoalModel.parseForSleec(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      output = sleecTemplateEngine(parseResult.tree, { generateFluents });
+    }
 
-  const report = logger.getReport();
-  logger.close();
-  return { output, report };
+    const report = logger.getReport();
+    return { output, report };
+  } finally {
+    logger.close();
+  }
 };
