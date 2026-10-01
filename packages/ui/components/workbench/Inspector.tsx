@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -22,7 +23,6 @@ import {
   setNodeProperty,
   setNodeText,
   setRefinement,
-  type ViewNode,
 } from '@/lib/workbench/pistar';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
@@ -269,7 +269,7 @@ export default function Inspector() {
   );
 }
 
-const kindLabelOf = (node: ViewNode): string =>
+const kindLabelOf = (node: GoalViewNode): string =>
   node.kind === 'goal'
     ? 'Goal'
     : node.kind === 'task'
@@ -279,7 +279,7 @@ const kindLabelOf = (node: ViewNode): string =>
         : 'Quality';
 
 /** Chip, kind and construct, with a jump to the node's lines in the output. */
-function NodeHeader({ node }: { node: ViewNode }) {
+function NodeHeader({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const tone = nodeTone(node);
   const traceLines =
@@ -367,13 +367,13 @@ function QualificationChips({ ids }: { ids: readonly string[] }) {
   );
 }
 
-const qualificationLabel = (node: ViewNode) =>
+const qualificationLabel = (node: GoalViewNode) =>
   node.kind === 'quality' ? 'Qualifies' : 'Qualified by';
-const qualificationIds = (node: ViewNode) =>
+const qualificationIds = (node: GoalViewNode) =>
   node.kind === 'quality' ? node.qualifies : node.qualities;
 
 /** Read-only view of a node: what is set, nothing to edit. */
-function NodeSummary({ node }: { node: ViewNode }) {
+function NodeSummary({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const { tree } = wb;
   const properties = Object.entries(node.properties).filter(
@@ -432,7 +432,7 @@ function NodeSummary({ node }: { node: ViewNode }) {
   );
 }
 
-function NodeInspector({ node }: { node: ViewNode }) {
+function NodeInspector({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const { engine, tree } = wb;
   const edit = (update: (text: string) => string) =>

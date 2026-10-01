@@ -77,6 +77,7 @@ export {
   type GoalView,
   type GoalViewNode,
   type ViewConstruct,
+  type ViewKind,
 } from './view';
 
 // ─────────────────────────────────────────────────────────────────────────────

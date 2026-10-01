@@ -9,11 +9,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import type { TransformEngine } from '@/lib/types';
 import { treeProblems } from '@/lib/workbench/localProblems';
-import {
-  planConversion,
-  viewTreeFrom,
-  type Conversion,
-} from '@/lib/workbench/pistar';
+import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
 import { cx } from './ui';
@@ -40,7 +36,7 @@ export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 /** The workbench's own model checks, on the view read with the engine's grammar. */
 const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
-    return treeProblems(viewTreeFrom(treeView(text, engine)), engine);
+    return treeProblems(treeView(text, engine), engine);
   } catch {
     return [];
   }

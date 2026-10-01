@@ -2,8 +2,9 @@
  * Problems found in the browser, as the model is edited (no round-trip):
  * JSON syntax, and notation that disagrees with the diagram.
  */
+import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { isValidName, jsonErrorPosition, type ViewTree } from './pistar';
+import { isValidName, jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 
 const AND_CONSTRUCTS = new Set(['sequence', 'anyOrder', 'interleaved']);
@@ -19,7 +20,7 @@ export const jsonProblem = (text: string, error: Error): Problem => {
 };
 
 export const treeProblems = (
-  tree: ViewTree,
+  tree: GoalView,
   engine: TransformEngine,
 ): Problem[] => {
   const problems: Problem[] = [];

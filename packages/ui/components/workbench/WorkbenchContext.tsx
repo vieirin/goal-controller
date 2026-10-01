@@ -17,13 +17,12 @@ import {
   jsonProblem,
   treeProblems,
 } from '@/lib/workbench/localProblems';
+import type { GoalView } from '@goal-controller/goal-tree';
 import { parsePistar } from '@istar-ts/core';
 import {
   readModelMode,
-  viewTreeFrom,
   writeModelMode,
   type ModelMode,
-  type ViewTree,
 } from '@/lib/workbench/pistar';
 import { modelSignature } from '@/lib/workbench/signature';
 import { analyze, transform, treeView } from '@/services';
@@ -124,7 +123,7 @@ export type Workbench = {
   forgetRecent: (fileName: string) => void;
 
   // structure
-  tree: ViewTree | null;
+  tree: GoalView | null;
   jsonError: Problem | null;
 
   // engine
@@ -633,14 +632,13 @@ function WorkbenchState({
   // of the same file stays while the JSON is being fixed
   const [served, setServed] = useState<{
     fileName: string;
-    tree: ViewTree;
+    tree: GoalView;
   } | null>(null);
   useEffect(() => {
     if (!model.text.trim() || parsed.error) return;
     const fileName = model.fileName;
     try {
-      const view = treeView(model.text, engine);
-      setServed({ fileName, tree: viewTreeFrom(view) });
+      setServed({ fileName, tree: treeView(model.text, engine) });
     } catch {
       // kept: the previous view stays until the model parses again
     }
@@ -680,13 +678,17 @@ function WorkbenchState({
     try {
       setAnalysis(analyze(debouncedText, engine), key);
     } catch (error) {
-      // generation must not wait forever: keep the last variables, marked as done for this text
+      // keep the last variables and known properties, but always surface the failure
       setAnalyzed((prev) => ({
         key,
-        data: prev?.data ?? {
+        data: {
           success: true,
-          variables: [],
-          knownProperties: { goal: [], task: [], resource: [] },
+          variables: prev?.data.variables ?? [],
+          knownProperties: prev?.data.knownProperties ?? {
+            goal: [],
+            task: [],
+            resource: [],
+          },
           problems: [
             {
               severity: 'error',

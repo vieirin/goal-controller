@@ -46,7 +46,10 @@ export type GoalViewNode = {
 };
 
 export type GoalView = {
-  nodes: GoalViewNode[];
+  /** by RT id; the first element wins when ids repeat */
+  nodes: Map<string, GoalViewNode>;
+  /** by piStar id: every element, repeated RT ids included */
+  byIStarId: Map<string, GoalViewNode>;
   /** each actor's root candidates, then anything not reachable from them */
   roots: string[];
 };
@@ -176,9 +179,9 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
       qualified.qualities.push(quality.id);
   }
 
-  const nodes = [...byIStarId.values()];
   const byId = new Map<string, GoalViewNode>();
-  for (const node of nodes) if (!byId.has(node.id)) byId.set(node.id, node);
+  for (const node of byIStarId.values())
+    if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
     .filter(isActor)
     .flatMap((actor) => actorRootCandidates(model, actor.id))
@@ -200,5 +203,5 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
     }
   }
 
-  return { nodes, roots: [...new Set(roots)] };
+  return { nodes: byId, byIStarId, roots: [...new Set(roots)] };
 }
