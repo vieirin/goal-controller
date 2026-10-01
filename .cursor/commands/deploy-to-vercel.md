@@ -24,6 +24,8 @@ Make sure you're logged in to Vercel CLI first with `vercel login` if needed.
 ## Static export notes
 
 The UI is a static Next export (`output: 'export'`). Build writes `packages/ui/out/`.
+Vercel Root Directory is `packages/ui` — config lives in `packages/ui/vercel.json`
+(`outputDirectory: "out"`).
 
 Env vars (set at build time):
 
