@@ -39,11 +39,20 @@ const goalOrTaskIssues = (
     }
   }
 
-  if (raw.type === 'maintain' && !('maintain' in raw)) {
-    issues.push({
-      key: 'maintain',
-      message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: none, assertion: ${raw.assertion || "'empty condition'"}`,
-    });
+  if (raw.type === 'maintain') {
+    // absent or blank: the Inspector validates with maintain:'' while typing, and the
+    // mapper used to only throw when the key was missing
+    if (!raw.maintain?.trim()) {
+      issues.push({
+        key: 'maintain',
+        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: none, assertion: ${raw.assertion?.trim() || "'empty condition'"}`,
+      });
+    } else if (!raw.assertion?.trim()) {
+      issues.push({
+        key: 'assertion',
+        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${raw.maintain}, assertion: 'empty condition'`,
+      });
+    }
   }
 
   if (raw.maxRetries) {
@@ -172,6 +181,9 @@ export const edgeGoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
     null,
   maintain: (raw) =>
     goalOrTaskIssues('goal', raw).find((i) => i.key === 'maintain')?.message ??
+    null,
+  assertion: (raw) =>
+    goalOrTaskIssues('goal', raw).find((i) => i.key === 'assertion')?.message ??
     null,
   maxRetries: (raw) =>
     goalOrTaskIssues('goal', raw).find((i) => i.key === 'maxRetries')

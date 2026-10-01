@@ -63,7 +63,27 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       );
     });
 
-    it('is fine once maintain is present', () => {
+    it('flags type: maintain with a blank maintain value', () => {
+      assert.strictEqual(
+        edgeGoalChecks.maintain?.(
+          { type: 'maintain', maintain: '  ', assertion: 'battery > 20' },
+          noDeps,
+        ),
+        "[INVALID MODEL]: Maintain condition for goal must have 'maintain' and 'assertion'; got maintain: none, assertion: battery > 20",
+      );
+    });
+
+    it('flags type: maintain with maintain set but assertion blank', () => {
+      assert.strictEqual(
+        edgeGoalChecks.assertion?.(
+          { type: 'maintain', maintain: 'battery > 0', assertion: '' },
+          noDeps,
+        ),
+        "[INVALID MODEL]: Maintain condition for goal must have 'maintain' and 'assertion'; got maintain: battery > 0, assertion: 'empty condition'",
+      );
+    });
+
+    it('is fine once maintain and assertion are present', () => {
       assert.strictEqual(
         edgeGoalChecks.maintain?.(
           {

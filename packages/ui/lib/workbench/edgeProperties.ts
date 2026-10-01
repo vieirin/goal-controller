@@ -108,6 +108,7 @@ const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
     key: 'assertion',
     input: { kind: 'long', placeholder: 'condition, e.g. battery > 20' },
     required: isMaintain,
+    validate: edgeGoalChecks.assertion,
   },
   {
     key: 'maxRetries',
