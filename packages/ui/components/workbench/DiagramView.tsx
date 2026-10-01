@@ -1,5 +1,6 @@
 'use client';
 
+import { EDGE_RESOURCE_FILL } from '@/lib/workbench/edgeProperties';
 import { nextRtId, serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@istar-ts/core';
 import {
   DefaultElementComponent,
+  elementIcon,
   IstarCanvas,
   IstarInspector,
   IstarProvider,
@@ -69,8 +71,6 @@ const problemBadges: IstarExtension = {
     'istar.Quality': { component: ElementWithProblems },
   },
 };
-/** piStar's resource yellow (the Edge examples use it for every resource). */
-const EDGE_RESOURCE_FILL = '#FAF383';
 
 /** What an Edge resource variable is, for its badge: "bool = true", "int 0..5 = 5"; and what is wrong with it. */
 const resourceVariable = (
@@ -133,6 +133,18 @@ function EdgeResource(props: ElementComponentProps): ReactElement {
   );
 }
 
+/** The Resource palette icon with a bubble below it naming the variable type, like the badge on resources. */
+function ResourceToolIcon({ type }: { type: 'bool' | 'int' }): ReactElement {
+  return (
+    <span className='relative inline-flex flex-col items-center'>
+      {elementIcon('istar.Resource')}
+      <span className='-mt-2 rounded-full border border-ink-muted bg-white px-1 font-mono text-[9px] leading-3 text-ink-soft'>
+        {type}
+      </span>
+    </span>
+  );
+}
+
 /**
  * Edge and EdgeV2 read goals, tasks and resources in an actor, linked by And/Or
  * refinement and Needed-By: the palette offers only those (other kinds fail to convert).
@@ -153,6 +165,7 @@ const edgePalette: IstarExtension = {
         {
           label: 'Boolean',
           title: 'Boolean resource: click on an actor to add it (starts true)',
+          icon: <ResourceToolIcon type='bool' />,
           group: 'resource',
           order: 37,
           properties: { type: 'bool', initialValue: 'true' },
@@ -161,6 +174,7 @@ const edgePalette: IstarExtension = {
           label: 'Integer',
           title:
             'Integer resource: click on an actor to add it (0 to 5, starts at 5)',
+          icon: <ResourceToolIcon type='int' />,
           group: 'resource',
           order: 37,
           properties: {

@@ -4,6 +4,13 @@ import { ArrowUpRight, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { TransformEngine } from '@/lib/types';
+import {
+  DEFAULT_ELEMENT_FILL,
+  EDGE_PROPERTIES,
+  EDGE_RESOURCE_FILL,
+  inputOf,
+  type PropertyInput,
+} from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
   CONSTRUCT_HELP,
@@ -13,6 +20,7 @@ import {
   notationConstruct,
   nodeTone,
   notationIds,
+  setNodeColor,
   setNodeProperty,
   setNodeText,
   setRefinement,
@@ -429,14 +437,45 @@ function NodeInspector({ node }: { node: ViewNode }) {
     () => knownProperties?.[node.kind === 'quality' ? 'goal' : node.kind] ?? [],
     [knownProperties, node.kind],
   );
-  // the properties set on the node; the engine's other ones are offered when adding one
-  const keys = useMemo(
-    () => Object.keys(node.properties).filter((k) => k !== 'root'),
-    [node.properties],
+  // Edge engines: how each property is edited and whether it applies, given the others
+  const specs = useMemo(
+    () =>
+      engine === 'edge' || engine === 'edgev2'
+        ? EDGE_PROPERTIES[node.kind === 'quality' ? 'goal' : node.kind]
+        : [],
+    [engine, node.kind],
   );
-  const suggestions = useMemo(
-    () => known.filter((k) => k !== 'root' && !(k in node.properties)),
-    [known, node.properties],
+  const specOf = (key: string) => specs.find((spec) => spec.key === key);
+  const applies = (key: string) =>
+    specOf(key)?.applies?.(node.properties) ?? true;
+  // rows: in the spec's order, the properties that apply and are set or needed; then any
+  // other set property. The engine's other applicable ones are offered when adding one
+  const keys = useMemo(() => {
+    const set = Object.keys(node.properties).filter((k) => k !== 'root');
+    const fromSpec = specs
+      .filter(
+        (spec) =>
+          spec.key in node.properties ||
+          ((spec.applies?.(node.properties) ?? true) &&
+            (spec.required?.(node.properties) ?? false)),
+      )
+      .map((spec) => spec.key);
+    return [...new Set([...fromSpec, ...set])];
+  }, [specs, node.properties]);
+  // what validators may refer to: the element itself and the goals (dependsOn)
+  const validation = useMemo(
+    () => ({
+      self: node.id,
+      goalIds: tree
+        ? [...tree.nodes.values()]
+            .filter((n) => n.kind === 'goal')
+            .map((n) => n.id)
+        : [],
+    }),
+    [node.id, tree],
+  );
+  const suggestions = known.filter(
+    (k) => k !== 'root' && !keys.includes(k) && applies(k),
   );
 
   return (
@@ -584,6 +623,19 @@ function NodeInspector({ node }: { node: ViewNode }) {
         </Field>
       )}
 
+      <ColorField
+        color={node.color}
+        // what the diagram draws when no colour is saved (Edge resources are yellow)
+        fallback={
+          node.kind === 'resource' && (engine === 'edge' || engine === 'edgev2')
+            ? EDGE_RESOURCE_FILL
+            : DEFAULT_ELEMENT_FILL
+        }
+        onChange={(color) =>
+          edit((text) => setNodeColor(text, node.iStarId, color))
+        }
+      />
+
       <div className='space-y-1.5'>
         <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
           Properties
@@ -594,6 +646,25 @@ function NodeInspector({ node }: { node: ViewNode }) {
             name={key}
             value={node.properties[key]}
             engineKnows={known.includes(key)}
+            input={
+              specOf(key) ? inputOf(specOf(key)!, node.properties) : undefined
+            }
+            validate={
+              applies(key) && specOf(key)?.validate
+                ? (value) =>
+                    specOf(key)!.validate!(
+                      value,
+                      { ...node.properties, [key]: value },
+                      validation,
+                    )
+                : undefined
+            }
+            notApplying={
+              !applies(key) && node.properties[key] !== undefined
+                ? (specOf(key)?.notApplying?.(node.properties) ??
+                  'Not used with the other properties set')
+                : null
+            }
             notReadBy={
               knownProperties && !known.includes(key) && key !== 'Description'
                 ? whereAccepted(
@@ -662,12 +733,21 @@ function PropertyRow({
   name,
   value,
   engineKnows,
+  input,
+  validate,
+  notApplying,
   notReadBy,
   onChange,
 }: {
   name: string;
   value: string | undefined;
   engineKnows: boolean;
+  /** how to edit it (Edge engines); default: by name (numbers, long text) */
+  input?: PropertyInput;
+  /** set, but not read with the element's other properties (bounds on a bool resource) */
+  notApplying?: string | null;
+  /** what the engine would reject in a value (null when fine) */
+  validate?: (value: string) => string | null;
   /** why the engine ignores this property and where it would be read, when it does not read it */
   notReadBy: string | null;
   onChange: (value: string | null) => void;
@@ -675,27 +755,42 @@ function PropertyRow({
   const draft = useDraft(value ?? '', (next) =>
     onChange(next === '' && value === undefined ? null : next),
   );
-  const kind = NUMERIC_KEYS[name];
+  const kind =
+    input?.kind === 'integer' || input?.kind === 'number'
+      ? input.kind
+      : input
+        ? undefined
+        : NUMERIC_KEYS[name];
+  const signed = input?.kind === 'integer' && input.min === undefined;
   const invalid =
     !!draft.draft &&
     ((kind === 'number' && !/^\d+(\.\d+)?$/.test(draft.draft)) ||
-      (kind === 'integer' && !/^\d+$/.test(draft.draft)));
-  const long =
-    name === 'Description' || name === 'assertion' || name === 'maintain';
+      (kind === 'integer' &&
+        !(signed ? /^-?\d+$/ : /^\d+$/).test(draft.draft)));
+  const long = input
+    ? input.kind === 'long'
+    : name === 'Description' || name === 'assertion' || name === 'maintain';
+  const note = notReadBy ?? notApplying ?? null;
+  // checked as typed: a select's value, or the text being edited
+  const current = input?.kind === 'select' ? (value ?? '') : draft.draft;
+  const error =
+    (invalid
+      ? kind === 'integer'
+        ? 'Use a whole number'
+        : 'Use a non-negative number'
+      : null) ??
+    validate?.(current) ??
+    null;
   return (
     <div className='grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_auto] items-start gap-1.5'>
       <span
         className={cx(
           'truncate pt-1.5 font-mono text-xs',
-          notReadBy
-            ? 'text-caution'
-            : engineKnows
-              ? 'text-ink'
-              : 'text-ink-muted',
+          note ? 'text-caution' : engineKnows ? 'text-ink' : 'text-ink-muted',
         )}
         title={
-          notReadBy
-            ? `${name}: ${notReadBy}`
+          note
+            ? `${name}: ${note}`
             : engineKnows
               ? `${name} (read by this engine)`
               : name
@@ -703,12 +798,56 @@ function PropertyRow({
       >
         {name}
       </span>
-      {long ? (
+      {input?.kind === 'select' ? (
+        <select
+          className={cx(
+            inputClass,
+            'font-mono text-xs',
+            error && 'border-danger',
+          )}
+          aria-invalid={!!error}
+          value={value ?? ''}
+          aria-label={name}
+          onChange={(e) =>
+            onChange(e.target.value === '' ? null : e.target.value)
+          }
+        >
+          {/* a needed choice with no "not set" option: ask for one */}
+          {value === undefined &&
+            !input.options.some((o) => o.value === '') && (
+              <option value='' disabled>
+                choose…
+              </option>
+            )}
+          {/* a value the options do not list stays visible */}
+          {value !== undefined &&
+            value !== '' &&
+            !input.options.some((o) => o.value === value) && (
+              <option value={value}>{value} (not an option)</option>
+            )}
+          {input.options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      ) : long ? (
         <textarea
           rows={name === 'Description' ? 2 : 1}
-          className={cx(inputClass, 'resize-y font-mono text-xs')}
+          className={cx(
+            inputClass,
+            'resize-y font-mono text-xs',
+            error && 'border-danger',
+          )}
+          aria-invalid={!!error}
           value={draft.draft}
-          placeholder={value === undefined ? 'not set' : ''}
+          placeholder={
+            value === undefined
+              ? input && 'placeholder' in input && input.placeholder
+                ? input.placeholder
+                : 'not set'
+              : ''
+          }
           onChange={(e) => draft.change(e.target.value)}
           onBlur={draft.flush}
         />
@@ -717,19 +856,15 @@ function PropertyRow({
           className={cx(
             inputClass,
             'font-mono text-xs',
-            invalid && 'border-danger',
+            error && 'border-danger',
           )}
           value={draft.draft}
           placeholder={value === undefined ? 'not set' : ''}
-          inputMode={kind ? 'decimal' : undefined}
-          aria-invalid={invalid}
-          title={
-            invalid
-              ? kind === 'integer'
-                ? 'Use a whole number'
-                : 'Use a non-negative number'
-              : undefined
+          inputMode={
+            kind === 'integer' ? 'numeric' : kind ? 'decimal' : undefined
           }
+          aria-invalid={!!error}
+          title={error ?? undefined}
           onChange={(e) => draft.change(e.target.value)}
           onBlur={draft.flush}
         />
@@ -747,11 +882,79 @@ function PropertyRow({
       ) : (
         <span className='w-5' />
       )}
-      {notReadBy && (
-        <span className='col-span-3 -mt-0.5 pl-[calc(5.5rem+0.375rem)] text-2xs text-caution'>
-          {notReadBy}
+      {error && (
+        <span
+          role='alert'
+          className='col-span-3 -mt-0.5 pl-[calc(5.5rem+0.375rem)] text-2xs text-danger'
+        >
+          {error}
         </span>
       )}
+      {note && (
+        <span className='col-span-3 -mt-0.5 pl-[calc(5.5rem+0.375rem)] text-2xs text-caution'>
+          {note}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** "#abc", "#aabbcc" or "rgb(…)" as "#aabbcc" (what a colour input takes); null otherwise. */
+const toHex = (color: string): string | null => {
+  const c = color.trim();
+  if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c);
+  if (short)
+    return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`.toLowerCase();
+  const rgb = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(c);
+  if (rgb)
+    return `#${rgb
+      .slice(1, 4)
+      .map((n) => Number(n).toString(16).padStart(2, '0'))
+      .join('')}`;
+  return null;
+};
+
+/** The element's fill: a colour picker, its hex value, and a reset to the default fill. */
+function ColorField({
+  color,
+  fallback,
+  onChange,
+}: {
+  color: string | null;
+  fallback: string;
+  onChange: (color: string | null) => void;
+}) {
+  const shown = (color && toHex(color)) ?? toHex(fallback) ?? '#ffffff';
+  return (
+    <div className='space-y-1'>
+      <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+        Color
+      </span>
+      <div className='flex items-center gap-2'>
+        <input
+          type='color'
+          aria-label='Element color'
+          value={shown}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          className='h-7 w-10 cursor-pointer rounded border border-line-strong bg-white p-0.5'
+        />
+        <span className='font-mono text-xs text-ink-soft'>
+          {color
+            ? (toHex(color)?.toUpperCase() ?? color)
+            : `default (${fallback.toUpperCase()})`}
+        </span>
+        {color && (
+          <button
+            type='button'
+            onClick={() => onChange(null)}
+            className='ml-auto rounded px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-panel hover:text-ink'
+            title='Back to the default fill'
+          >
+            Reset
+          </button>
+        )}
+      </div>
     </div>
   );
 }

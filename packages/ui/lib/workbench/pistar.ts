@@ -48,6 +48,8 @@ export type ViewNode = {
   parent: string | null;
   properties: Record<string, string>;
   text: string;
+  /** fill colour saved in the diagram (display.backgroundColor), if any */
+  color: string | null;
 };
 
 export type ViewTree = {
@@ -64,7 +66,8 @@ export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: ''
 // Node text:  "G3: Prepare sample [T4@3->T5]"
 // ---------------------------------------------------------------------------
 
-const TEXT_RE = /^\s*([A-Za-z]+\d+[A-Za-z0-9.]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
+const TEXT_RE =
+  /^\s*([A-Za-z]+\d+[A-Za-z0-9.]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
 
 export const parseNodeText = (
   text: string,
@@ -90,7 +93,8 @@ export const composeNodeText = (
 };
 
 /** Names may only use letters, spaces, hyphens and apostrophes (RT grammar). */
-export const isValidName = (name: string): boolean => /^[A-Za-z\- ']*$/.test(name);
+export const isValidName = (name: string): boolean =>
+  /^[A-Za-z\- ']*$/.test(name);
 
 /**
  * The construct a notation expresses, per engine grammar. Edge (legacy) uses a
@@ -118,7 +122,9 @@ export const notationConstruct = (
 
 /** Ids referenced by a notation, in order: "T4@3->T5" → ["T4", "T5"] */
 export const notationIds = (notation: string | null): string[] =>
-  notation ? Array.from(notation.matchAll(/[A-Za-z]+\d+[A-Za-z0-9]*/g), (m) => m[0]) : [];
+  notation
+    ? Array.from(notation.matchAll(/[A-Za-z]+\d+[A-Za-z0-9]*/g), (m) => m[0])
+    : [];
 
 export const CONSTRUCT_LABEL: Record<Construct, string> = {
   sequence: 'Sequence',
@@ -143,7 +149,9 @@ export const CONSTRUCT_HELP: Record<Construct, string> = {
 // ---------------------------------------------------------------------------
 
 /** Colour family of a node chip: how a goal refines its children, or task. */
-export const nodeTone = (node: ViewNode | undefined): 'and' | 'or' | 'task' | 'plain' =>
+export const nodeTone = (
+  node: ViewNode | undefined,
+): 'and' | 'or' | 'task' | 'plain' =>
   !node
     ? 'plain'
     : node.kind === 'task'
@@ -167,10 +175,15 @@ const kindOf = (kind: IstarElement['kind']): NodeKind =>
 
 /** Intentional elements inside actors or on the paper (dependums are not part of the goal tree). */
 const goalElements = (model: IstarModel): IstarElement[] =>
-  [...model.elements.values()].filter((element) => isNode(element) && !element.isDependum);
+  [...model.elements.values()].filter(
+    (element) => isNode(element) && !element.isDependum,
+  );
 
 /** Build the goal tree from the piStar JSON (engine independent). */
-export const buildViewTree = (text: string, engine: TransformEngine): ViewTree => {
+export const buildViewTree = (
+  text: string,
+  engine: TransformEngine,
+): ViewTree => {
   const model = parsePistar(text);
   const nodes = new Map<string, ViewNode>();
   const byIStarId = new Map<string, ViewNode>();
@@ -187,8 +200,12 @@ export const buildViewTree = (text: string, engine: TransformEngine): ViewTree =
       relation: null,
       children: [],
       parent: null,
-      properties: { ...(raw.customProperties ?? {}) },
+      properties: { ...raw.customProperties },
       text: raw.name,
+      color:
+        typeof raw.display?.backgroundColor === 'string'
+          ? raw.display.backgroundColor
+          : null,
     };
     byIStarId.set(raw.id, node);
     if (!nodes.has(node.id)) {
@@ -200,7 +217,10 @@ export const buildViewTree = (text: string, engine: TransformEngine): ViewTree =
     const child = byIStarId.get(link.source);
     const parent = byIStarId.get(link.target);
     if (!child || !parent) continue;
-    if (link.kind === 'istar.AndRefinementLink' || link.kind === 'istar.OrRefinementLink') {
+    if (
+      link.kind === 'istar.AndRefinementLink' ||
+      link.kind === 'istar.OrRefinementLink'
+    ) {
       parent.relation = link.kind === 'istar.OrRefinementLink' ? 'or' : 'and';
     }
     if (!parent.children.includes(child.id)) {
@@ -221,7 +241,9 @@ export const buildViewTree = (text: string, engine: TransformEngine): ViewTree =
     }
   }
 
-  const explicitRoots = [...nodes.values()].filter((n) => n.properties.root === 'true');
+  const explicitRoots = [...nodes.values()].filter(
+    (n) => n.properties.root === 'true',
+  );
   const roots = (
     explicitRoots.length > 0
       ? explicitRoots
@@ -261,15 +283,28 @@ const detectIndent = (text: string): number | string => {
  * Write a model back as piStar JSON, in the indentation and trailing newline
  * of `like` (the text it was read from). `toPistar` keeps piStar's key order.
  */
-export const serializeModel = (model: IstarModel, like: string, options?: ToPistarOptions): string => {
+export const serializeModel = (
+  model: IstarModel,
+  like: string,
+  options?: ToPistarOptions,
+): string => {
   const indent = detectIndent(like);
   const pistar = toPistar(model, options);
-  const json = indent === 2 ? pistar : JSON.stringify(JSON.parse(pistar), null, indent === 0 ? undefined : indent);
+  const json =
+    indent === 2
+      ? pistar
+      : JSON.stringify(
+          JSON.parse(pistar),
+          null,
+          indent === 0 ? undefined : indent,
+        );
   return json + (like.endsWith('\n') ? '\n' : '');
 };
 
-const rewrite = (text: string, edit: (model: IstarModel) => IstarModel): string =>
-  serializeModel(edit(parsePistar(text)), text);
+const rewrite = (
+  text: string,
+  edit: (model: IstarModel) => IstarModel,
+): string => serializeModel(edit(parsePistar(text)), text);
 
 const findNode = (model: IstarModel, iStarId: string): IstarElement => {
   const node = model.elements.get(iStarId);
@@ -279,10 +314,29 @@ const findNode = (model: IstarModel, iStarId: string): IstarElement => {
   return node;
 };
 
-export const setNodeText = (text: string, iStarId: string, nodeText: string): string =>
-  rewrite(text, (model) => updateElement(model, findNode(model, iStarId).id, { name: nodeText }));
+export const setNodeText = (
+  text: string,
+  iStarId: string,
+  nodeText: string,
+): string =>
+  rewrite(text, (model) =>
+    updateElement(model, findNode(model, iStarId).id, { name: nodeText }),
+  );
 
 /** Set (value) or remove (null) a custom property. */
+/** Set (colour) or clear (null) an element's fill, kept in the diagram like piStar does. */
+export const setNodeColor = (
+  text: string,
+  iStarId: string,
+  color: string | null,
+): string =>
+  rewrite(text, (model) =>
+    updateElement(model, findNode(model, iStarId).id, {
+      // undefined removes the key
+      display: { backgroundColor: color ?? undefined },
+    }),
+  );
+
 export const setNodeProperty = (
   text: string,
   iStarId: string,
@@ -291,7 +345,7 @@ export const setNodeProperty = (
 ): string =>
   rewrite(text, (model) => {
     const node = findNode(model, iStarId);
-    const properties = { ...(node.customProperties ?? {}) };
+    const properties = { ...node.customProperties };
     if (value === null) {
       delete properties[key];
     } else {
@@ -301,14 +355,20 @@ export const setNodeProperty = (
   });
 
 /** Change how a node refines its children: rewrites the type of its child links. */
-export const setRefinement = (text: string, iStarId: string, relation: Relation): string =>
+export const setRefinement = (
+  text: string,
+  iStarId: string,
+  relation: Relation,
+): string =>
   rewrite(text, (model) => {
-    const kind: LinkKind = relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
+    const kind: LinkKind =
+      relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
     // a link's kind can't be patched, so the links are rebuilt in place (same ids and order)
     const links = new Map<string, IstarLink>(
       [...model.links].map(([id, link]): [string, IstarLink] =>
         link.target === iStarId &&
-        (link.kind === 'istar.AndRefinementLink' || link.kind === 'istar.OrRefinementLink')
+        (link.kind === 'istar.AndRefinementLink' ||
+          link.kind === 'istar.OrRefinementLink')
           ? [id, { ...link, kind }]
           : [id, link],
       ),
@@ -321,10 +381,17 @@ export const setRefinement = (text: string, iStarId: string, relation: Relation)
 // ---------------------------------------------------------------------------
 
 /** [from, to) of the JSON object of each node, keyed by piStar id. */
-export const nodeRanges = (text: string, iStarIds: Iterable<string>): Map<string, [number, number]> => {
+export const nodeRanges = (
+  text: string,
+  iStarIds: Iterable<string>,
+): Map<string, [number, number]> => {
   const ranges = new Map<string, [number, number]>();
   for (const iStarId of iStarIds) {
-    const at = text.search(new RegExp(`"id"\\s*:\\s*"${iStarId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+    const at = text.search(
+      new RegExp(
+        `"id"\\s*:\\s*"${iStarId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`,
+      ),
+    );
     if (at < 0) continue;
     const from = text.lastIndexOf('{', at);
     const to = matchingBrace(text, from);
@@ -364,7 +431,13 @@ export const jsonErrorPosition = (
   if (lineCol) {
     const line = Number(lineCol[1]);
     const column = Number(lineCol[2]);
-    const offset = text.split('\n').slice(0, line - 1).reduce((sum, l) => sum + l.length + 1, 0) + column - 1;
+    const offset =
+      text
+        .split('\n')
+        .slice(0, line - 1)
+        .reduce((sum, l) => sum + l.length + 1, 0) +
+      column -
+      1;
     return { line, column, offset };
   }
   const position = /position (\d+)/.exec(message);
@@ -393,7 +466,8 @@ const MODES: readonly ModelMode[] = ['edgev2', 'edge', 'sleec', 'pistar'];
  */
 export const MODE_PROPERTY = 'engine';
 
-const isMode = (value: unknown): value is ModelMode => MODES.includes(value as ModelMode);
+const isMode = (value: unknown): value is ModelMode =>
+  MODES.includes(value as ModelMode);
 
 /** The engine recorded in the model; null when there is none (a piStar model, or an older file). */
 export const modelMode = (model: IstarModel): ModelMode | null => {
@@ -410,13 +484,18 @@ export const readModelMode = (text: string): ModelMode | null => {
 };
 
 const withMode = (model: IstarModel, mode: ModelMode): IstarModel => {
-  const { [MODE_PROPERTY]: _previous, ...rest } = model.diagram?.customProperties ?? {};
+  const { [MODE_PROPERTY]: _previous, ...rest } =
+    model.diagram?.customProperties ?? {};
   // piStar mode is the absence of an engine
-  return updateDiagram(model, { customProperties: mode === 'pistar' ? rest : { ...rest, [MODE_PROPERTY]: mode } });
+  return updateDiagram(model, {
+    customProperties:
+      mode === 'pistar' ? rest : { ...rest, [MODE_PROPERTY]: mode },
+  });
 };
 
 /** Record the mode in the model text (formatting kept). */
-export const writeModelMode = (text: string, mode: ModelMode): string => rewrite(text, (model) => withMode(model, mode));
+export const writeModelMode = (text: string, mode: ModelMode): string =>
+  rewrite(text, (model) => withMode(model, mode));
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
@@ -429,7 +508,10 @@ const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
 const FIRST: Record<string, number> = { G: 0, T: 1, R: 1 };
 
 /** Next free RT id ("G4", "T3", "R2") for an element kind, from the names in the model. */
-export const nextRtId = (model: IstarModel, kind: IstarElement['kind']): string | null => {
+export const nextRtId = (
+  model: IstarModel,
+  kind: IstarElement['kind'],
+): string | null => {
   const prefix = PREFIX[kind];
   if (!prefix) return null;
   let max = (FIRST[prefix] ?? 1) - 1;
@@ -449,10 +531,21 @@ export type Conversion = {
   blockers: string[];
 };
 
-const EDGE_ELEMENTS = new Set(['istar.Actor', 'istar.Goal', 'istar.Task', 'istar.Resource']);
-const EDGE_LINKS = new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink', 'istar.NeededByLink']);
-const KIND_LABEL = (kind: string): string => kind.replace(/^istar\./, '').replace(/Link$/, ' link');
-const plural = (label: string): string => (label.endsWith('y') ? `${label.slice(0, -1)}ies` : `${label}s`);
+const EDGE_ELEMENTS = new Set([
+  'istar.Actor',
+  'istar.Goal',
+  'istar.Task',
+  'istar.Resource',
+]);
+const EDGE_LINKS = new Set([
+  'istar.AndRefinementLink',
+  'istar.OrRefinementLink',
+  'istar.NeededByLink',
+]);
+const KIND_LABEL = (kind: string): string =>
+  kind.replace(/^istar\./, '').replace(/Link$/, ' link');
+const plural = (label: string): string =>
+  label.endsWith('y') ? `${label.slice(0, -1)}ies` : `${label}s`;
 
 /**
  * Converts a model to a mode: fixes what can be fixed safely (RT ids on unnamed elements;
@@ -467,37 +560,60 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
   if (target !== 'pistar') {
     // RT ids: every goal, task and resource name starts with one
     for (const element of model.elements.values()) {
-      if (!isNode(element) || element.isDependum || RT_ID.test(element.name)) continue;
+      if (!isNode(element) || element.isDependum || RT_ID.test(element.name))
+        continue;
       const id = nextRtId(model, element.kind);
       if (!id) continue;
       const name = `${id}: ${element.name.trim() || KIND_LABEL(element.kind)}`;
       model = updateElement(model, element.id, { name });
-      changes.push(`"${element.name.trim() || KIND_LABEL(element.kind)}" is named ${name}`);
+      changes.push(
+        `"${element.name.trim() || KIND_LABEL(element.kind)}" is named ${name}`,
+      );
     }
   }
   if (target === 'edge' || target === 'edgev2') {
     const counts = new Map<string, number>();
     for (const element of model.elements.values()) {
-      if (!EDGE_ELEMENTS.has(element.kind)) counts.set(element.kind, (counts.get(element.kind) ?? 0) + 1);
+      if (!EDGE_ELEMENTS.has(element.kind))
+        counts.set(element.kind, (counts.get(element.kind) ?? 0) + 1);
       if (isNode(element) && !element.isDependum && !element.parent) {
-        blockers.push(`${element.name} is outside any actor: the Edge engines read the elements inside the actor`);
+        blockers.push(
+          `${element.name} is outside any actor: the Edge engines read the elements inside the actor`,
+        );
       }
-      if (element.kind === 'istar.Resource' && !element.customProperties?.type) {
+      if (
+        element.kind === 'istar.Resource' &&
+        !element.customProperties?.type
+      ) {
         model = updateElement(model, element.id, {
-          customProperties: { ...element.customProperties, type: 'bool', initialValue: 'true' },
+          customProperties: {
+            ...element.customProperties,
+            type: 'bool',
+            initialValue: 'true',
+          },
         });
-        changes.push(`${element.name} becomes a Boolean resource (type bool, initial value true)`);
+        changes.push(
+          `${element.name} becomes a Boolean resource (type bool, initial value true)`,
+        );
       }
     }
     for (const link of model.links.values()) {
-      if (!EDGE_LINKS.has(link.kind)) counts.set(link.kind, (counts.get(link.kind) ?? 0) + 1);
+      if (!EDGE_LINKS.has(link.kind))
+        counts.set(link.kind, (counts.get(link.kind) ?? 0) + 1);
     }
     for (const [kind, count] of counts) {
       const label = KIND_LABEL(kind);
-      blockers.push(`${count} ${count > 1 ? plural(label) : label}: the Edge engines do not read ${plural(label)}`);
+      blockers.push(
+        `${count} ${count > 1 ? plural(label) : label}: the Edge engines do not read ${plural(label)}`,
+      );
     }
     const actors = [...model.elements.values()].filter(isActor).length;
-    if (actors > 1) blockers.push(`${actors} actors: the Edge engines read a single actor`);
+    if (actors > 1)
+      blockers.push(`${actors} actors: the Edge engines read a single actor`);
   }
-  return { text: serializeModel(withMode(model, target), text), changes, blockers };
+  return {
+    text: serializeModel(withMode(model, target), text),
+    changes,
+    blockers,
+  };
 };
