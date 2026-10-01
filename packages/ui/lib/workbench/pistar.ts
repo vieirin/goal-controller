@@ -18,7 +18,7 @@ import {
   type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
-// types only: the view is computed on the server (the package pulls in fs and ANTLR)
+// types only: the view is computed in services/tree.ts
 import type { GoalView, ViewConstruct } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 

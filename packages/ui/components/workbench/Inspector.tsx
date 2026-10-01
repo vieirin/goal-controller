@@ -1,8 +1,8 @@
 'use client';
 
 import { ArrowUpRight, X } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
   DEFAULT_ELEMENT_FILL,
@@ -108,25 +108,6 @@ const ENGINE_LABEL: Record<TransformEngine, string> = {
   edge: 'Edge',
   sleec: 'SLEEC',
 };
-
-/** The custom properties an engine reads, per node kind (cached: they do not change). */
-const useKnownProperties = (
-  engine: TransformEngine,
-): AnalyzeResponse['knownProperties'] | undefined =>
-  useQuery({
-    queryKey: ['known-properties', engine],
-    queryFn: async () => {
-      const response = await fetch(`/api/properties?engine=${engine}`);
-      const data = (await response.json()) as {
-        success: boolean;
-        knownProperties?: AnalyzeResponse['knownProperties'];
-      };
-      if (!data.success || !data.knownProperties)
-        throw new Error('could not load the engine properties');
-      return data.knownProperties;
-    },
-    staleTime: Infinity,
-  }).data;
 
 type NodeKindKey = 'goal' | 'task' | 'resource';
 const KIND_PLURAL: Record<NodeKindKey, string> = {
@@ -485,14 +466,9 @@ function NodeInspector({ node }: { node: ViewNode }) {
   const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
   // what the engine reads: independent of the model, so also known in the piStar view (no analysis)
   const knownProperties =
-    useKnownProperties(engine) ?? wb.analysis?.knownProperties;
-  const allKnown: Partial<
-    Record<TransformEngine, AnalyzeResponse['knownProperties']>
-  > = {
-    edgev2: useKnownProperties('edgev2'),
-    edge: useKnownProperties('edge'),
-    sleec: useKnownProperties('sleec'),
-  };
+    KNOWN_PROPERTIES[engine] ?? wb.analysis?.knownProperties;
+  const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
+    KNOWN_PROPERTIES;
   const known = useMemo(
     () => knownProperties?.[node.kind === 'quality' ? 'goal' : node.kind] ?? [],
     [knownProperties, node.kind],
