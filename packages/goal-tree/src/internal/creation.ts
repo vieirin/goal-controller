@@ -330,15 +330,10 @@ function nodeChildren<
     return [[], 'none'];
   }
 
-  const incomingLinks = links.filter(
+  // the refinements into it (a Qualification link into it attaches a Quality, no child)
+  const nodeLinks = links.filter(
     (link) => link.target === id && link.kind !== 'istar.QualificationLink',
   );
-
-  const outgoingQualificationLinks = links.filter(
-    (link) => link.kind === 'istar.QualificationLink' && link.source === id,
-  );
-
-  const nodeLinks = [...incomingLinks, ...outgoingQualificationLinks];
 
   const relations = nodeLinks.map((link) => {
     const relation = linkRelation(link);

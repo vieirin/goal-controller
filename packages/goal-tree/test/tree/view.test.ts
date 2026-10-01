@@ -113,16 +113,26 @@ describe('goalView (lenient)', () => {
     assert.strictEqual(v.node('T1')?.parent, null);
   });
 
-  it('makes a Quality the parent of what it qualifies, as the engines read it', () => {
+  it('attaches a Quality to what it qualifies, outside the refinements', () => {
     const v = view(
       [
         goal('G1'),
+        goal('G2'),
         task('T1'),
-        { id: 'eQ1', text: 'Q1: fast', type: 'istar.Quality' },
+        { id: 'eQ', text: 'Autonomy', type: 'istar.Quality' },
       ],
-      [and('T1', 'G1'), link('istar.QualificationLink')('Q1', 'G1')],
+      [
+        and('G2', 'G1'),
+        and('T1', 'G2'),
+        link('istar.QualificationLink')('Q', 'G2'),
+        link('istar.QualificationLink')('Q', 'G1'),
+      ],
     );
-    assert.deepStrictEqual(v.node('Q1')?.children, ['G1']);
-    assert.strictEqual(v.node('G1')?.parent, 'Q1');
+    assert.strictEqual(v.node('G2')?.parent, 'G1');
+    assert.deepStrictEqual(v.node('G2')?.qualities, ['eQ']);
+    assert.deepStrictEqual(v.node('eQ')?.qualifies, ['G2', 'G1']);
+    assert.deepStrictEqual(v.node('eQ')?.children, []);
+    // the Quality is not a tree of its own
+    assert.deepStrictEqual(v.roots, ['G1']);
   });
 });

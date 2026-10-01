@@ -28,7 +28,12 @@ import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, CreatableSelect, NodeChip, Segmented, cx } from './ui';
 
-/** Local text state that commits after a short pause. */
+/**
+ * Local text state that commits after a short pause. While it is being edited, the value
+ * coming back is not taken: the tree is computed on the server, so it echoes a commit a
+ * request later and would overwrite what was typed since. It is taken again once it
+ * catches up with the draft (or shortly after the field is left).
+ */
 const useDraft = (
   value: string,
   commit: (next: string) => void,
@@ -38,19 +43,41 @@ const useDraft = (
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commitRef = useRef(commit);
   commitRef.current = commit;
+  const editing = useRef(false);
+  const latest = useRef(value);
+  const current = useRef(value);
+  current.current = value;
   useEffect(() => {
-    setDraft(value);
+    if (!editing.current) setDraft(value);
+    else if (value === latest.current) editing.current = false;
   }, [value]);
   const change = (next: string) => {
+    editing.current = true;
+    latest.current = next;
     setDraft(next);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => commitRef.current(next), delay);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      commitRef.current(next);
+    }, delay);
   };
   const flush = () => {
     if (timer.current) {
       clearTimeout(timer.current);
       timer.current = null;
       commitRef.current(draft);
+    }
+    // stop editing once the server catches up, or soon anyway (a commit may come back
+    // normalized, e.g. trimmed, and never equal the draft)
+    if (value === latest.current) editing.current = false;
+    else {
+      const left = latest.current;
+      setTimeout(() => {
+        // typing again since: still editing
+        if (!editing.current || latest.current !== left) return;
+        editing.current = false;
+        setDraft(current.current);
+      }, 1500);
     }
   };
   return { draft, change, flush };
@@ -335,6 +362,35 @@ function SummaryRow({
   );
 }
 
+/**
+ * The other end of a node's Qualification links: the Qualities qualifying it, or what a
+ * Quality qualifies. Named when the element has no RT id (Qualities often do not).
+ */
+function QualificationChips({ ids }: { ids: readonly string[] }) {
+  const wb = useWorkbench();
+  return (
+    <span className='flex flex-wrap gap-1'>
+      {ids.map((id) => {
+        const other = wb.tree?.nodes.get(id);
+        return (
+          <NodeChip
+            key={id}
+            id={id}
+            label={other && other.id === other.iStarId ? other.name : id}
+            tone={nodeTone(other)}
+            onClick={() => wb.select(id, 'inspector')}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
+const qualificationLabel = (node: ViewNode) =>
+  node.kind === 'quality' ? 'Qualifies' : 'Qualified by';
+const qualificationIds = (node: ViewNode) =>
+  node.kind === 'quality' ? node.qualifies : node.qualities;
+
 /** Read-only view of a node: what is set, nothing to edit. */
 function NodeSummary({ node }: { node: ViewNode }) {
   const wb = useWorkbench();
@@ -367,6 +423,11 @@ function NodeSummary({ node }: { node: ViewNode }) {
                 />
               ))}
             </span>
+          </SummaryRow>
+        )}
+        {qualificationIds(node).length > 0 && (
+          <SummaryRow label={qualificationLabel(node)}>
+            <QualificationChips ids={qualificationIds(node)} />
           </SummaryRow>
         )}
         {properties.map(([key, value]) => (
@@ -627,6 +688,15 @@ function NodeInspector({ node }: { node: ViewNode }) {
         </Field>
       )}
 
+      {qualificationIds(node).length > 0 && (
+        <Field
+          label={qualificationLabel(node)}
+          hint='Qualification links in the diagram: a Quality qualifies an element, it does not refine it.'
+        >
+          <QualificationChips ids={qualificationIds(node)} />
+        </Field>
+      )}
+
       <ColorField
         color={node.color}
         // what the diagram draws when no colour is saved (Edge resources are yellow)
@@ -644,47 +714,50 @@ function NodeInspector({ node }: { node: ViewNode }) {
         <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
           Properties
         </span>
-        {keys.map((key) => (
-          <PropertyRow
-            key={key}
-            name={key}
-            value={node.properties[key]}
-            engineKnows={known.includes(key)}
-            input={
-              specOf(key) ? inputOf(specOf(key)!, node.properties) : undefined
-            }
-            validate={
-              applies(key) && specOf(key)?.validate
-                ? (value) =>
-                    specOf(key)!.validate!(
-                      value,
-                      { ...node.properties, [key]: value },
-                      validation,
+        {/* one grid for every row: the names get their width, the inputs the rest */}
+        <div className='grid grid-cols-[minmax(0,max-content)_minmax(8rem,1fr)_auto] gap-1.5'>
+          {keys.map((key) => (
+            <PropertyRow
+              key={key}
+              name={key}
+              value={node.properties[key]}
+              engineKnows={known.includes(key)}
+              input={
+                specOf(key) ? inputOf(specOf(key)!, node.properties) : undefined
+              }
+              validate={
+                applies(key) && specOf(key)?.validate
+                  ? (value) =>
+                      specOf(key)!.validate!(
+                        value,
+                        { ...node.properties, [key]: value },
+                        validation,
+                      )
+                  : undefined
+              }
+              notApplying={
+                !applies(key) && node.properties[key] !== undefined
+                  ? (specOf(key)?.notApplying?.(node.properties) ??
+                    'Not used with the other properties set')
+                  : null
+              }
+              notReadBy={
+                knownProperties && !known.includes(key) && key !== 'Description'
+                  ? whereAccepted(
+                      key,
+                      node.kind === 'quality' ? 'goal' : node.kind,
+                      engine,
+                      knownProperties,
+                      allKnown,
                     )
-                : undefined
-            }
-            notApplying={
-              !applies(key) && node.properties[key] !== undefined
-                ? (specOf(key)?.notApplying?.(node.properties) ??
-                  'Not used with the other properties set')
-                : null
-            }
-            notReadBy={
-              knownProperties && !known.includes(key) && key !== 'Description'
-                ? whereAccepted(
-                    key,
-                    node.kind === 'quality' ? 'goal' : node.kind,
-                    engine,
-                    knownProperties,
-                    allKnown,
-                  )
-                : null
-            }
-            onChange={(value) =>
-              edit((text) => setNodeProperty(text, node.iStarId, key, value))
-            }
-          />
-        ))}
+                  : null
+              }
+              onChange={(value) =>
+                edit((text) => setNodeProperty(text, node.iStarId, key, value))
+              }
+            />
+          ))}
+        </div>
         <CreatableSelect
           className='pt-1'
           label='Add a property'
@@ -786,7 +859,8 @@ function PropertyRow({
     validate?.(current) ??
     null;
   return (
-    <div className='grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_auto] items-start gap-1.5'>
+    // a row of the properties grid (its columns: name, input, remove)
+    <div className='col-span-3 grid grid-cols-subgrid items-start gap-y-1.5'>
       <span
         className={cx(
           'truncate pt-1.5 font-mono text-xs',
@@ -889,13 +963,13 @@ function PropertyRow({
       {error && (
         <span
           role='alert'
-          className='col-span-3 -mt-0.5 pl-[calc(5.5rem+0.375rem)] text-2xs text-danger'
+          className='col-span-2 col-start-2 -mt-0.5 text-2xs text-danger'
         >
           {error}
         </span>
       )}
       {note && (
-        <span className='col-span-3 -mt-0.5 pl-[calc(5.5rem+0.375rem)] text-2xs text-caution'>
+        <span className='col-span-2 col-start-2 -mt-0.5 text-2xs text-caution'>
           {note}
         </span>
       )}

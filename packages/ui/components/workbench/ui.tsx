@@ -313,10 +313,13 @@ export function MenuItem({
 /** A model node reference: "G3", coloured by what it is; click selects it. */
 export function NodeChip({
   id,
+  label = id,
   tone,
   onClick,
 }: {
   id: string;
+  /** what the chip reads (default: the id) */
+  label?: string;
   tone: 'and' | 'or' | 'task' | 'plain';
   onClick?: () => void;
 }) {
@@ -334,15 +337,15 @@ export function NodeChip({
     onClick && 'hover:ring-1 hover:ring-trace',
   );
   // a plain label when not clickable (it may sit inside another button)
-  if (!onClick) return <span className={className}>{id}</span>;
+  if (!onClick) return <span className={className}>{label}</span>;
   return (
     <button
       type='button'
       onClick={onClick}
-      title={`Select ${id}`}
+      title={`Select ${label}`}
       className={className}
     >
-      {id}
+      {label}
     </button>
   );
 }

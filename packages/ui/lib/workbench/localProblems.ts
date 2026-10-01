@@ -24,6 +24,9 @@ export const treeProblems = (
 ): Problem[] => {
   const problems: Problem[] = [];
   for (const node of tree.nodes.values()) {
+    // a Quality that only qualifies is not read by the engines (no RT id needed)
+    if (node.kind === 'quality' && !node.parent && node.children.length === 0)
+      continue;
     // the view falls back to the piStar id when the text has no RT id
     if (node.id === node.iStarId) {
       problems.push({

@@ -42,6 +42,10 @@ export type ViewNode = {
   relation: Relation | null;
   children: string[];
   parent: string | null;
+  /** RT ids of the Qualities qualifying it (Qualification links, not refinements) */
+  qualities: string[];
+  /** a Quality's: RT ids of the elements it qualifies */
+  qualifies: string[];
   properties: Record<string, string>;
   text: string;
   /** fill colour saved in the diagram (display.backgroundColor), if any */

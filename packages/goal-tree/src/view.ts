@@ -1,7 +1,7 @@
 /**
  * The goal model as an editor shows it: parents and children through the links the
- * engines read (as `convertToTree` follows them, without rejecting anything) plus what
- * each element's text says, read with the engine's own RT grammar (`getGoalDetail`):
+ * engines read (as `convertToTree` follows them, without rejecting anything), the
+ * Qualities qualifying each element, and what each element's text says, read with the engine's own RT grammar (`getGoalDetail`):
  * its RT id, name, notation and the construct the notation expresses. Never throws: a text
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
@@ -36,6 +36,10 @@ export type GoalViewNode = {
   /** RT ids: in notation order, then the others */
   children: string[];
   parent: string | null;
+  /** RT ids of the Qualities qualifying it (Qualification links: not refinements) */
+  qualities: string[];
+  /** a Quality's: RT ids of the elements it qualifies */
+  qualifies: string[];
   properties: Record<string, string>;
   /** fill colour saved in the diagram, if any */
   color: string | null;
@@ -121,6 +125,8 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
       relation: null,
       children: [],
       parent: null,
+      qualities: [],
+      qualifies: [],
       properties: { ...element.customProperties },
       color:
         typeof element.display?.backgroundColor === 'string'
@@ -131,7 +137,12 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
 
   // in model order: the first link decides the relation and, for a child with several
   // parents (a resource needed by several tasks), the parent
+  const qualifications: Array<[quality: string, qualified: string]> = [];
   for (const link of model.links.values()) {
+    if (link.kind === 'istar.QualificationLink') {
+      qualifications.push([link.source, link.target]);
+      continue;
+    }
     const relation = linkRelation(link);
     const [parentId, childId] = linkEnds(link);
     const parent = byIStarId.get(parentId);
@@ -155,6 +166,16 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
     node.parent = parent ? (byIStarId.get(parent)?.id ?? null) : null;
   }
 
+  for (const [qualityId, qualifiedId] of qualifications) {
+    const quality = byIStarId.get(qualityId);
+    const qualified = byIStarId.get(qualifiedId);
+    if (!quality || !qualified) continue;
+    if (!quality.qualifies.includes(qualified.id))
+      quality.qualifies.push(qualified.id);
+    if (!qualified.qualities.includes(quality.id))
+      qualified.qualities.push(quality.id);
+  }
+
   const nodes = [...byIStarId.values()];
   const byId = new Map<string, GoalViewNode>();
   for (const node of nodes) if (!byId.has(node.id)) byId.set(node.id, node);
@@ -171,7 +192,9 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
   };
   roots.forEach(visit);
   for (const node of byId.values()) {
-    if (!reachable.has(node.id) && !node.parent) {
+    // a Quality outside the refinements only qualifies: it is not a tree of its own
+    const onlyQualifies = node.kind === 'quality' && node.children.length === 0;
+    if (!reachable.has(node.id) && !node.parent && !onlyQualifies) {
       roots.push(node.id);
       visit(node.id);
     }

@@ -11,13 +11,15 @@ import {
   type IstarModel,
 } from '@istar-ts/core';
 
-/** How a link refines its parent, or null for a kind the engines do not read. */
+/**
+ * How a link refines its parent, or null for a kind that is not a refinement. A
+ * Qualification link is not one: it attaches a Quality to what it qualifies.
+ */
 export function linkRelation(
   link: IstarLink,
 ): 'and' | 'or' | 'neededBy' | null {
   switch (link.kind) {
     case 'istar.AndRefinementLink':
-    case 'istar.QualificationLink':
       return 'and';
     case 'istar.OrRefinementLink':
       return 'or';
@@ -28,11 +30,9 @@ export function linkRelation(
   }
 }
 
-/** [parent, child] of a link: a Quality is refined into what it qualifies. */
+/** [parent, child] of a refinement link: it points from the child to the parent. */
 export function linkEnds(link: IstarLink): [parent: string, child: string] {
-  return link.kind === 'istar.QualificationLink'
-    ? [link.source, link.target]
-    : [link.target, link.source];
+  return [link.target, link.source];
 }
 
 /**
@@ -63,7 +63,7 @@ export function actorRootCandidates(
   const nodes = childrenOf(model, actorId);
   const byId = new Map(nodes.map((node) => [node.id, node]));
 
-  const roots = nodes.filter((node) => {
+  return nodes.filter((node) => {
     if (node.kind === 'istar.Quality') return false;
 
     const links = linksOf(model, node.id);
@@ -77,6 +77,4 @@ export function actorRootCandidates(
 
     return !links.some((link) => link.source === node.id);
   });
-
-  return roots;
 }
