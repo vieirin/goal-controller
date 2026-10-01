@@ -200,10 +200,10 @@ export const edgeEngineMapper = createEngineMapper<
   allowedGoalKeys: EDGE_GOAL_KEYS,
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,
-  mapGoalProps: ({ raw, executionDetail }) => {
+  mapGoalProps: ({ raw, executionDetail, id }) => {
     // dependsOn needs the whole tree: checked later, in afterCreationMapper
     const issue = firstGoalOrTaskIssue('goal', raw);
-    if (issue) throw new Error(issue);
+    if (issue) throw new Error(`${issue} (node ${id})`);
 
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
@@ -222,9 +222,9 @@ export const edgeEngineMapper = createEngineMapper<
     };
   },
 
-  mapTaskProps: ({ raw }) => {
+  mapTaskProps: ({ raw, id }) => {
     const issue = firstGoalOrTaskIssue('task', raw);
-    if (issue) throw new Error(issue);
+    if (issue) throw new Error(`${issue} (node ${id})`);
 
     const execCondition = getMaintainCondition(raw, 'task');
 
@@ -236,9 +236,9 @@ export const edgeEngineMapper = createEngineMapper<
     };
   },
 
-  mapResourceProps: ({ raw }) => {
+  mapResourceProps: ({ raw, id }) => {
     const issue = firstResourceIssue(raw);
-    if (issue) throw new Error(issue);
+    if (issue) throw new Error(`${issue} (node ${id})`);
 
     const { type, initialValue, lowerBound, upperBound } = raw;
 

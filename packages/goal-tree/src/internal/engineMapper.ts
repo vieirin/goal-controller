@@ -39,6 +39,7 @@ type ResourceMapperConfig<TResourceEngine, TResourceKeys extends string> =
       skipResource?: false;
       mapResourceProps: (props: {
         raw: RawProps<TResourceKeys>;
+        id: string;
       }) => TResourceEngine;
       allowedResourceKeys: readonly TResourceKeys[];
     };
@@ -80,10 +81,12 @@ export type EngineMapper<
   /**
    * Map raw goal properties to engine-specific goal properties.
    * Raw may also hold Quality keys when the node is a Quality (same mapping path).
+   * `id` is the RT id (G4, …), for error messages the Problems panel can navigate to.
    */
   mapGoalProps: (props: {
     raw: RawProps<TGoalKeys | TQualityKeys>;
     executionDetail: GoalExecutionDetail | null;
+    id: string;
   }) => TGoalEngine;
 
   /**
@@ -92,6 +95,7 @@ export type EngineMapper<
   mapTaskProps: (props: {
     raw: RawProps<TTaskKeys>;
     name: string;
+    id: string;
   }) => TTaskEngine;
 
   /**
@@ -139,10 +143,12 @@ export function createEngineMapper<
       mapGoalProps: (props: {
         raw: RawProps<TGoalKeys | TQualityKeys>;
         executionDetail: GoalExecutionDetail | null;
+        id: string;
       }) => TGoalEngine;
       mapTaskProps: (props: {
         raw: RawProps<TTaskKeys>;
         name: string;
+        id: string;
       }) => TTaskEngine;
       afterCreationMapper?: (props: {
         node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>;
@@ -158,6 +164,7 @@ export function createEngineMapper<
           skipResource?: false;
           mapResourceProps: (props: {
             raw: RawProps<TResourceKeys>;
+            id: string;
           }) => TResourceEngine;
         }
       | {
