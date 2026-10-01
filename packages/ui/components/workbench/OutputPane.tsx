@@ -2,19 +2,36 @@
 
 import { unifiedMergeView } from '@codemirror/merge';
 import { EditorView } from '@codemirror/view';
-import { AlertTriangle, Check, ChevronRight, Copy, Download, ListTree, Loader2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  ChevronRight,
+  Copy,
+  Download,
+  ListTree,
+  Loader2,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GoalView, ViewKind } from '@goal-controller/goal-tree';
 import { isPrismEngine } from '@/lib/types';
 import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import type { NodeKind, ViewTree } from '@/lib/workbench/pistar';
 import { lineOwner, type OutlineEntry } from '@/lib/workbench/trace';
 import CodeEditor from './CodeEditor';
-import { useSelection, useWorkbench, type OutputTab, type Run } from './WorkbenchContext';
+import {
+  useSelection,
+  useWorkbench,
+  type OutputTab,
+  type Run,
+} from './WorkbenchContext';
 import { Button, IconButton, Kbd, Menu, MenuItem, Tabs, cx } from './ui';
 
 const time = (at: number): string =>
-  new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  new Date(at).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
 export default function OutputPane() {
   const wb = useWorkbench();
@@ -25,8 +42,17 @@ export default function OutputPane() {
     { id: 'report', label: 'Report' },
   ];
   return (
-    <section className='flex h-full min-h-0 flex-col bg-white' aria-label='Generated output'>
-      <Tabs label='Output views' tabs={tabs} value={wb.outputTab} onChange={wb.setOutputTab} trailing={<OutputActions run={lastGood} />} />
+    <section
+      className='flex h-full min-h-0 flex-col bg-white'
+      aria-label='Generated output'
+    >
+      <Tabs
+        label='Output views'
+        tabs={tabs}
+        value={wb.outputTab}
+        onChange={wb.setOutputTab}
+        trailing={<OutputActions run={lastGood} />}
+      />
       <Freshness />
       <div className='min-h-0 flex-1'>
         {!wb.hasModel ? (
@@ -34,11 +60,16 @@ export default function OutputPane() {
         ) : !lastGood ? (
           wb.generating ? (
             <Empty>
-              <Loader2 className='h-4 w-4 animate-spin' aria-hidden /> Generating…
+              <Loader2 className='h-4 w-4 animate-spin' aria-hidden />{' '}
+              Generating…
             </Empty>
           ) : (
             <Empty>
-              Press <Kbd>⌘↵</Kbd> to generate{wb.live ? ', or edit the model — Live regenerates on every change' : ''}.
+              Press <Kbd>⌘↵</Kbd> to generate
+              {wb.live
+                ? ', or edit the model — Live regenerates on every change'
+                : ''}
+              .
             </Empty>
           )
         ) : wb.outputTab === 'output' ? (
@@ -54,7 +85,11 @@ export default function OutputPane() {
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <div className='flex h-full items-center justify-center gap-2 p-6 text-center text-sm text-ink-muted'>{children}</div>;
+  return (
+    <div className='flex h-full items-center justify-center gap-2 p-6 text-center text-sm text-ink-muted'>
+      {children}
+    </div>
+  );
 }
 
 /** One line saying whether the output matches the model. */
@@ -73,38 +108,61 @@ function Freshness() {
     tone = 'bg-danger-soft text-danger';
     text = (
       <>
-        <AlertTriangle className='h-3 w-3' aria-hidden /> Generation failed at {time(current.at)} — showing the last successful output. See Problems.
+        <AlertTriangle className='h-3 w-3' aria-hidden /> Generation failed at{' '}
+        {time(current.at)} — showing the last successful output. See Problems.
       </>
     );
   } else if (stale) {
     tone = 'bg-caution-soft text-caution';
-    text = live ? 'Model changed — regenerating…' : <>Model changed since {time(current!.at)} — press <Kbd>⌘↵</Kbd> to regenerate.</>;
+    text = live ? (
+      'Model changed — regenerating…'
+    ) : (
+      <>
+        Model changed since {time(current!.at)} — press <Kbd>⌘↵</Kbd> to
+        regenerate.
+      </>
+    );
   } else if (current) {
     text = (
       <>
-        <Check className='h-3 w-3 text-and' aria-hidden /> Up to date · generated {time(current.at)} in{' '}
-        {(current.durationMs / 1000).toFixed(2)} s · {(current.output ?? '').split('\n').length} lines
+        <Check className='h-3 w-3 text-and' aria-hidden /> Up to date ·
+        generated {time(current.at)} in {(current.durationMs / 1000).toFixed(2)}{' '}
+        s · {(current.output ?? '').split('\n').length} lines
       </>
     );
   }
-  return <div className={cx('flex items-center gap-1.5 border-b border-line px-3 py-1 text-2xs', tone)}>{text}</div>;
+  return (
+    <div
+      className={cx(
+        'flex items-center gap-1.5 border-b border-line px-3 py-1 text-2xs',
+        tone,
+      )}
+    >
+      {text}
+    </div>
+  );
 }
 
-const OUTLINE_SECTIONS: Array<{ kind: NodeKind; title: string }> = [
+const OUTLINE_SECTIONS: Array<{ kind: ViewKind; title: string }> = [
   { kind: 'goal', title: 'Goals' },
   { kind: 'task', title: 'Tasks' },
   { kind: 'resource', title: 'Resources' },
   { kind: 'quality', title: 'Qualities' },
 ];
 
-const byId = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true });
+const byId = (a: string, b: string): number =>
+  a.localeCompare(b, undefined, { numeric: true });
 
 /** Outline entries by the kind of node they belong to, ids in numeric order (G2 before G10). */
 const outlineSections = (
   outline: OutlineEntry[],
-  tree: ViewTree | null,
-): Array<{ title: string; entries: Array<{ entry: OutlineEntry; name: string | null }> }> => {
-  const nodeOf = (entry: OutlineEntry) => (entry.owner ? tree?.nodes.get(entry.owner) : undefined);
+  tree: GoalView | null,
+): Array<{
+  title: string;
+  entries: Array<{ entry: OutlineEntry; name: string | null }>;
+}> => {
+  const nodeOf = (entry: OutlineEntry) =>
+    entry.owner ? tree?.nodes.get(entry.owner) : undefined;
   const sections = OUTLINE_SECTIONS.map(({ kind, title }) => ({
     title,
     entries: outline
@@ -113,12 +171,22 @@ const outlineSections = (
       .map((entry) => ({ entry, name: nodeOf(entry)?.name ?? null })),
   }));
   // modules and reward structures not tied to a node, in file order
-  const other = outline.filter((entry) => !nodeOf(entry)).map((entry) => ({ entry, name: null }));
-  return [...sections, { title: 'Other', entries: other }].filter((section) => section.entries.length > 0);
+  const other = outline
+    .filter((entry) => !nodeOf(entry))
+    .map((entry) => ({ entry, name: null }));
+  return [...sections, { title: 'Other', entries: other }].filter(
+    (section) => section.entries.length > 0,
+  );
 };
 
 /** Outline sections; each node can be expanded to list its direct children. */
-function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () => void }) {
+function OutlineList({
+  outline,
+  onDone,
+}: {
+  outline: OutlineEntry[];
+  onDone: () => void;
+}) {
   const wb = useWorkbench();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const toggle = (id: string) =>
@@ -129,10 +197,15 @@ function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () 
     });
   // first module of each node, for jumping to a child
   const lineOf = new Map<string, number>();
-  for (const entry of outline) if (entry.owner && !lineOf.has(entry.owner)) lineOf.set(entry.owner, entry.line);
+  for (const entry of outline)
+    if (entry.owner && !lineOf.has(entry.owner))
+      lineOf.set(entry.owner, entry.line);
 
   const jump = (line: number | undefined, owner: string | null) => {
-    if (line) window.dispatchEvent(new CustomEvent('workbench:output-line', { detail: line }));
+    if (line)
+      window.dispatchEvent(
+        new CustomEvent('workbench:output-line', { detail: line }),
+      );
     if (owner) wb.select(owner, 'output');
     onDone();
   };
@@ -143,10 +216,14 @@ function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () 
         <section key={section.title} aria-label={section.title}>
           <h3 className='sticky top-0 z-10 flex items-center justify-between bg-white px-2 pb-1 pt-2 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
             {section.title}
-            <span className='font-normal normal-case tracking-normal text-ink-faint'>{section.entries.length}</span>
+            <span className='font-normal normal-case tracking-normal text-ink-faint'>
+              {section.entries.length}
+            </span>
           </h3>
           {section.entries.map(({ entry, name }) => {
-            const children = entry.owner ? (wb.tree?.nodes.get(entry.owner)?.children ?? []) : [];
+            const children = entry.owner
+              ? (wb.tree?.nodes.get(entry.owner)?.children ?? [])
+              : [];
             const open = !!entry.owner && expanded.has(entry.owner);
             return (
               <div key={`${entry.label}-${entry.line}`}>
@@ -159,16 +236,31 @@ function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () 
                       onClick={() => toggle(entry.owner as string)}
                       className='grid h-6 w-5 shrink-0 place-items-center rounded text-ink-faint hover:bg-panel hover:text-ink'
                     >
-                      <ChevronRight className={cx('h-3.5 w-3.5 transition-transform', open && 'rotate-90')} aria-hidden />
+                      <ChevronRight
+                        className={cx(
+                          'h-3.5 w-3.5 transition-transform',
+                          open && 'rotate-90',
+                        )}
+                        aria-hidden
+                      />
                     </button>
                   ) : (
                     <span className='w-5 shrink-0' aria-hidden />
                   )}
                   <div className='min-w-0 flex-1'>
-                    <MenuItem hint={`L${entry.line}`} onClick={() => jump(entry.line, entry.owner)}>
+                    <MenuItem
+                      hint={`L${entry.line}`}
+                      onClick={() => jump(entry.line, entry.owner)}
+                    >
                       <span className='flex min-w-0 items-baseline gap-2'>
-                        <span className='shrink-0 font-mono text-xs'>{entry.owner ?? entry.label}</span>
-                        {name && <span className='truncate text-xs text-ink-muted'>{name}</span>}
+                        <span className='shrink-0 font-mono text-xs'>
+                          {entry.owner ?? entry.label}
+                        </span>
+                        {name && (
+                          <span className='truncate text-xs text-ink-muted'>
+                            {name}
+                          </span>
+                        )}
                       </span>
                     </MenuItem>
                   </div>
@@ -180,10 +272,19 @@ function OutlineList({ outline, onDone }: { outline: OutlineEntry[]; onDone: () 
                       const line = lineOf.get(id);
                       return (
                         <li key={id}>
-                          <MenuItem hint={line ? `L${line}` : undefined} onClick={() => jump(line, id)}>
+                          <MenuItem
+                            hint={line ? `L${line}` : undefined}
+                            onClick={() => jump(line, id)}
+                          >
                             <span className='flex min-w-0 items-baseline gap-2'>
-                              <span className='shrink-0 font-mono text-xs text-ink-soft'>{id}</span>
-                              {child && <span className='truncate text-xs text-ink-muted'>{child.name}</span>}
+                              <span className='shrink-0 font-mono text-xs text-ink-soft'>
+                                {id}
+                              </span>
+                              {child && (
+                                <span className='truncate text-xs text-ink-muted'>
+                                  {child.name}
+                                </span>
+                              )}
                             </span>
                           </MenuItem>
                         </li>
@@ -212,8 +313,13 @@ function OutputActions({ run }: { run: Run | null }) {
         <Menu
           label='Jump to'
           trigger={({ toggle, open }) => (
-            <Button onClick={toggle} aria-expanded={open} title='Jump to a module'>
-              <ListTree className='h-4 w-4' aria-hidden /> <span className='hidden sm:inline'>Outline</span>
+            <Button
+              onClick={toggle}
+              aria-expanded={open}
+              title='Jump to a module'
+            >
+              <ListTree className='h-4 w-4' aria-hidden />{' '}
+              <span className='hidden sm:inline'>Outline</span>
             </Button>
           )}
         >
@@ -232,7 +338,12 @@ function OutputActions({ run }: { run: Run | null }) {
       <IconButton
         icon={Download}
         label='Download output'
-        onClick={() => downloadText(`${baseName(wb.fileName)}.${isPrismEngine(run.engine) ? 'prism' : 'sleec'}`, output)}
+        onClick={() =>
+          downloadText(
+            `${baseName(wb.fileName)}.${isPrismEngine(run.engine) ? 'prism' : 'sleec'}`,
+            output,
+          )
+        }
       />
     </>
   );
@@ -253,7 +364,10 @@ function TracedOutput({ output }: { output: string }) {
       EditorView.editorAttributes.of({ class: 'cm-clickable-line' }),
       EditorView.domEventHandlers({
         mousedown(event, editorView) {
-          const pos = editorView.posAtCoords({ x: event.clientX, y: event.clientY });
+          const pos = editorView.posAtCoords({
+            x: event.clientX,
+            y: event.clientY,
+          });
           if (pos === null) return false;
           const line = editorView.state.doc.lineAt(pos).number;
           const owner = lineOwner(latest.current.trace?.lines[line - 1]);
@@ -282,14 +396,21 @@ function TracedOutput({ output }: { output: string }) {
       });
     }
     // prefer the node's own module over the constant declarations at the top
-    const ownModule = sel.selected ? trace?.outline.find((entry) => entry.owner === sel.selected) : undefined;
+    const ownModule = sel.selected
+      ? trace?.outline.find((entry) => entry.owner === sel.selected)
+      : undefined;
     const target = ownModule?.line ?? firstPrimary;
     const doc = view.state.doc;
     view.dispatch({
       effects: [
         setLineMarks.of(marks),
         ...(target && sel.selectOrigin !== 'output' && target <= doc.lines
-          ? [EditorView.scrollIntoView(doc.line(target).from, { y: 'start', yMargin: 24 })]
+          ? [
+              EditorView.scrollIntoView(doc.line(target).from, {
+                y: 'start',
+                yMargin: 24,
+              }),
+            ]
           : []),
       ],
     });
@@ -303,7 +424,12 @@ function TracedOutput({ output }: { output: string }) {
       const line = (event as CustomEvent<number>).detail;
       const doc = view.state.doc;
       if (line >= 1 && line <= doc.lines) {
-        view.dispatch({ effects: EditorView.scrollIntoView(doc.line(line).from, { y: 'start', yMargin: 24 }) });
+        view.dispatch({
+          effects: EditorView.scrollIntoView(doc.line(line).from, {
+            y: 'start',
+            yMargin: 24,
+          }),
+        });
       }
     };
     window.addEventListener('workbench:output-line', onJump);
@@ -328,7 +454,8 @@ const changedInputs = (from: string, to: string): string => {
   try {
     const [model, engine, options, variables] = JSON.parse(from) as unknown[];
     const [model2, engine2, options2, variables2] = JSON.parse(to) as unknown[];
-    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    const same = (a: unknown, b: unknown) =>
+      JSON.stringify(a) === JSON.stringify(b);
     const parts = [
       !same(model, model2) && 'model',
       !same(engine, engine2) && 'engine',
@@ -349,7 +476,13 @@ function DiffView() {
   // earlier outputs of the same engine that actually differ, newest of each first
   const seen = new Set<string>(current?.output ? [current.output] : []);
   const baselines = good.slice(1).filter((run) => {
-    if (!current || run.engine !== current.engine || run.output === null || seen.has(run.output)) return false;
+    if (
+      !current ||
+      run.engine !== current.engine ||
+      run.output === null ||
+      seen.has(run.output)
+    )
+      return false;
     seen.add(run.output);
     return true;
   });
@@ -359,7 +492,12 @@ function DiffView() {
       base?.output !== undefined && base.output !== null
         ? [
             EditorView.lineWrapping,
-            unifiedMergeView({ original: base.output, mergeControls: false, gutter: true, collapseUnchanged: { margin: 3, minSize: 8 } }),
+            unifiedMergeView({
+              original: base.output,
+              mergeControls: false,
+              gutter: true,
+              collapseUnchanged: { margin: 3, minSize: 8 },
+            }),
           ]
         : [EditorView.lineWrapping],
     [base],
@@ -381,7 +519,9 @@ function DiffView() {
   return (
     <div className='flex h-full min-h-0 flex-col'>
       <div className='flex items-center gap-2 border-b border-line px-3 py-1.5 text-2xs text-ink-muted'>
-        <span className='shrink-0'>Latest ({time(current.at)}) compared with</span>
+        <span className='shrink-0'>
+          Latest ({time(current.at)}) compared with
+        </span>
         <select
           className='min-w-0 rounded border border-line-strong bg-white px-1 py-0.5 text-2xs text-ink'
           value={base.id}
@@ -395,21 +535,39 @@ function DiffView() {
           ))}
         </select>
         <span className='ml-auto shrink-0 font-mono'>
-          <span className='text-and'>+{added}</span> <span className='text-danger'>−{removed}</span> lines
+          <span className='text-and'>+{added}</span>{' '}
+          <span className='text-danger'>−{removed}</span> lines
         </span>
       </div>
       <div className='min-h-0 flex-1' key={`${current.id}-${base.id}`}>
-        <CodeEditor value={current.output ?? ''} language='prism' readOnly ariaLabel='Output diff' extensions={extensions} />
+        <CodeEditor
+          value={current.output ?? ''}
+          language='prism'
+          readOnly
+          ariaLabel='Output diff'
+          extensions={extensions}
+        />
       </div>
     </div>
   );
 }
 
 function ReportView({ run }: { run: Run }) {
-  const summary = run.report?.summary as Record<string, number | string> | undefined;
-  if (!summary) return <Empty>This engine does not produce a generation report.</Empty>;
+  const summary = run.report?.summary as
+    | Record<string, number | string>
+    | undefined;
+  if (!summary)
+    return <Empty>This engine does not produce a generation report.</Empty>;
   const rows: Array<[string, Array<[string, string]>]> = [
-    ['Model', [['Goals', 'totalGoals'], ['Tasks', 'totalTasks'], ['Resources', 'totalResources'], ['Variables', 'totalVariables']]],
+    [
+      'Model',
+      [
+        ['Goals', 'totalGoals'],
+        ['Tasks', 'totalTasks'],
+        ['Resources', 'totalResources'],
+        ['Variables', 'totalVariables'],
+      ],
+    ],
     [
       'Goal types',
       [
@@ -436,18 +594,26 @@ function ReportView({ run }: { run: Run }) {
   return (
     <div className='h-full overflow-auto p-4'>
       <p className='mb-3 text-[13px] text-ink-soft'>
-        Generated in <b className='text-ink'>{String(summary.elapsedTime ?? '')}</b>
+        Generated in{' '}
+        <b className='text-ink'>{String(summary.elapsedTime ?? '')}</b>
       </p>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
         {rows.map(([title, entries]) => (
           <dl key={title} className='space-y-1'>
-            <dt className='mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>{title}</dt>
+            <dt className='mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+              {title}
+            </dt>
             {entries
               .filter(([, key]) => summary[key] !== undefined)
               .map(([label, key]) => (
-                <div key={key} className='flex justify-between border-b border-line/60 py-0.5 text-[13px]'>
+                <div
+                  key={key}
+                  className='flex justify-between border-b border-line/60 py-0.5 text-[13px]'
+                >
                   <span className='text-ink-soft'>{label}</span>
-                  <span className='font-mono text-ink'>{String(summary[key])}</span>
+                  <span className='font-mono text-ink'>
+                    {String(summary[key])}
+                  </span>
                 </div>
               ))}
           </dl>

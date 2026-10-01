@@ -11,6 +11,11 @@ import {
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
+import {
+  edgeGoalChecks,
+  firstGoalOrTaskIssue,
+  firstResourceIssue,
+} from '../edgeChecks';
 import type {
   Decision,
   EdgeResourceProps,
@@ -196,6 +201,10 @@ export const edgeEngineMapper = createEngineMapper<
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,
   mapGoalProps: ({ raw, executionDetail }) => {
+    // dependsOn needs the whole tree: checked later, in afterCreationMapper
+    const issue = firstGoalOrTaskIssue('goal', raw);
+    if (issue) throw new Error(issue);
+
     const decisionVars = parseDecision(raw.variables);
     const execCondition = getMaintainCondition(raw, 'goal');
 
@@ -214,6 +223,9 @@ export const edgeEngineMapper = createEngineMapper<
   },
 
   mapTaskProps: ({ raw }) => {
+    const issue = firstGoalOrTaskIssue('task', raw);
+    if (issue) throw new Error(issue);
+
     const execCondition = getMaintainCondition(raw, 'task');
 
     return {
@@ -225,6 +237,9 @@ export const edgeEngineMapper = createEngineMapper<
   },
 
   mapResourceProps: ({ raw }) => {
+    const issue = firstResourceIssue(raw);
+    if (issue) throw new Error(issue);
+
     const { type, initialValue, lowerBound, upperBound } = raw;
 
     switch (type) {
@@ -313,22 +328,14 @@ export const edgeEngineMapper = createEngineMapper<
       return node.properties.engine;
     }
 
-    const depIds = parseDependsOn(rawProperties.raw.dependsOn);
-
-    const resolvedDeps = depIds.map((id) => {
-      const depNode = allNodes.get(id);
-      if (!depNode) {
-        throw new Error(
-          `[INVALID MODEL]: Dependency ${id} not found for node ${node.id}`,
-        );
-      }
-      if (depNode.type !== 'goal') {
-        throw new Error(
-          `[INVALID MODEL]: Dependency ${id} for node ${node.id} must be a goal, got ${depNode.type}`,
-        );
-      }
-      return depNode;
+    const dependsOnMessage = edgeGoalChecks.dependsOn?.(rawProperties.raw, {
+      self: node.id,
+      kindOf: (id) => allNodes.get(id)?.type,
     });
+    if (dependsOnMessage) throw new Error(dependsOnMessage);
+
+    const depIds = parseDependsOn(rawProperties.raw.dependsOn);
+    const resolvedDeps = depIds.map((id) => allNodes.get(id) as EdgeGoalNode);
 
     return {
       ...node.properties.engine,

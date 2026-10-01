@@ -27,7 +27,12 @@ export type AnalyzeResponse = {
   variables: VariableInfo[];
   problems: Problem[];
   /** custom properties the engine reads, per node kind */
-  knownProperties: { goal: string[]; task: string[]; resource: string[] };
+  knownProperties: {
+    goal: string[];
+    task: string[];
+    resource: string[];
+    quality: string[];
+  };
 };
 
 export type GenerationOptions = {

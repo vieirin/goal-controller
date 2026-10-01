@@ -36,6 +36,10 @@ export type GoalExecutionDetail = (
 export type EdgeTaskProps = {
   execCondition?: ExecCondition;
   maxRetries: number;
+  /** reward on completion ("utility" reward structure), as written in the model */
+  utility: string;
+  /** reward on pursuit ("cost" reward structure), as written in the model */
+  cost: string;
 };
 
 // Forward reference type - will be resolved when GoalNode is generic

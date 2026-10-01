@@ -4,10 +4,8 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { writeFile } from 'fs';
 import path from 'path';
-import {
-  edgeEngineMapper,
-  generateValidatedPrismModel,
-} from './engines/edge';
+import { readPreviousOutput } from './cli/previousOutput';
+import { edgeEngineMapper, generateValidatedPrismModel } from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';
 import {
@@ -42,11 +40,7 @@ export {
 } from './engines/edge';
 
 // EdgeV2 engine mapper and template
-export {
-  edgeV2EngineMapper,
-  generateEdgeV2PrismModel,
-  initEdgeV2Logger,
-};
+export { edgeV2EngineMapper, generateEdgeV2PrismModel, initEdgeV2Logger };
 // Custom properties each engine reads from the goal model (for editors)
 export {
   EDGE_GOAL_KEYS,
@@ -58,7 +52,11 @@ export {
   EDGE_RESOURCE_KEYS as EDGE_V2_RESOURCE_KEYS,
   EDGE_TASK_KEYS as EDGE_V2_TASK_KEYS,
 } from './engines/edgeV2/mapper';
-export { SLEEC_GOAL_KEYS, SLEEC_TASK_KEYS } from './engines/sleec/mapper';
+export {
+  SLEEC_GOAL_KEYS,
+  SLEEC_TASK_KEYS,
+  SLEEC_QUALITY_KEYS,
+} from './engines/sleec/mapper';
 
 export {
   DEFAULT_TASK_LAYOUT as EDGE_V2_DEFAULT_TASK_LAYOUT,
@@ -91,6 +89,12 @@ export { generateValidatedPrismModel, sleecTemplateEngine };
 
 // Validation
 export { validate };
+export type { Check, CheckContext } from './engines/checks';
+export {
+  edgeGoalChecks,
+  edgeTaskChecks,
+  edgeResourceChecks,
+} from './engines/edgeChecks';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
@@ -117,11 +121,13 @@ if (require.main === module) {
 
   const logger = initLogger(inputFile);
   const fileName = path.basename(inputFile);
-  const outputPath = `output/${path.parse(inputFile).name}.prism`;
+  const baseName = path.parse(inputFile).name;
+  const outputPath = `output/${baseName}.prism`;
+  const previousOutput = readPreviousOutput(baseName);
 
   writeFile(
     outputPath,
-    generateValidatedPrismModel({ gm: tree.nodes, fileName }),
+    generateValidatedPrismModel({ gm: tree.nodes, fileName, previousOutput }),
     function (err: Error | null) {
       if (err) {
         console.log(err);

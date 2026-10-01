@@ -18,50 +18,12 @@ import {
   type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
-// types only: the view is computed on the server (the package pulls in fs and ANTLR)
-import type { GoalView, ViewConstruct } from '@goal-controller/goal-tree';
+// types only: the view is computed in services/tree.ts
+import type { GoalViewNode, ViewConstruct } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 
-export type NodeKind = 'goal' | 'task' | 'resource' | 'quality';
+/** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
-
-/** Execution construct written in a goal's RT notation */
-export type Construct = ViewConstruct;
-
-export type ViewNode = {
-  /** RT id, e.g. "G3" (falls back to the piStar id when the text has none) */
-  id: string;
-  /** piStar node id (uuid) */
-  iStarId: string;
-  kind: NodeKind;
-  name: string;
-  /** raw text inside [...] */
-  notation: string | null;
-  construct: Construct | null;
-  /** how this node refines its children (from the link types) */
-  relation: Relation | null;
-  children: string[];
-  parent: string | null;
-  /** RT ids of the Qualities qualifying it (Qualification links, not refinements) */
-  qualities: string[];
-  /** a Quality's: RT ids of the elements it qualifies */
-  qualifies: string[];
-  properties: Record<string, string>;
-  text: string;
-  /** fill colour saved in the diagram (display.backgroundColor), if any */
-  color: string | null;
-  /** RT ids the notation lists, in order */
-  order: string[];
-  /** why the engine's grammar could not read the text, if it could not */
-  notationError: string | null;
-};
-
-export type ViewTree = {
-  nodes: Map<string, ViewNode>;
-  roots: string[];
-  /** nodes by piStar id */
-  byIStarId: Map<string, ViewNode>;
-};
 
 /** A new, empty piStar model. */
 export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: '' })}\n`;
@@ -83,7 +45,7 @@ export const composeNodeText = (
 export const isValidName = (name: string): boolean =>
   /^[A-Za-z\- ']*$/.test(name);
 
-export const CONSTRUCT_LABEL: Record<Construct, string> = {
+export const CONSTRUCT_LABEL: Record<ViewConstruct, string> = {
   sequence: 'Sequence',
   anyOrder: 'Any order',
   interleaved: 'Interleaved',
@@ -93,7 +55,7 @@ export const CONSTRUCT_LABEL: Record<Construct, string> = {
   decisionMaking: 'Decision making',
 };
 
-export const CONSTRUCT_HELP: Record<Construct, string> = {
+export const CONSTRUCT_HELP: Record<ViewConstruct, string> = {
   sequence: 'does every child, one after another',
   anyOrder: 'does every child, one at a time, in any order',
   interleaved: 'does every child, possibly at the same time',
@@ -109,7 +71,7 @@ export const CONSTRUCT_HELP: Record<Construct, string> = {
 
 /** Colour family of a node chip: how a goal refines its children, or task. */
 export const nodeTone = (
-  node: ViewNode | undefined,
+  node: GoalViewNode | undefined,
 ): 'and' | 'or' | 'task' | 'plain' =>
   !node
     ? 'plain'
@@ -122,22 +84,6 @@ export const nodeTone = (
             ? 'and'
             : 'plain'
         : 'plain';
-
-/**
- * The workbench's tree from goal-tree's `goalView` (computed by the server with the
- * engine's grammar, see /api/tree): nodes by RT id (the first one when ids repeat) and by
- * piStar id.
- */
-export const viewTreeFrom = (view: GoalView): ViewTree => {
-  const nodes = new Map<string, ViewNode>();
-  const byIStarId = new Map<string, ViewNode>();
-  for (const node of view.nodes) {
-    const viewNode: ViewNode = { ...node, construct: node.construct };
-    byIStarId.set(node.iStarId, viewNode);
-    if (!nodes.has(node.id)) nodes.set(node.id, viewNode);
-  }
-  return { nodes, roots: view.roots, byIStarId };
-};
 
 // ---------------------------------------------------------------------------
 // Edits (text in, text out; formatting of the file is kept)

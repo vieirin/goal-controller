@@ -21,12 +21,11 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import { parsePistar } from '@istar-ts/core';
 import {
   readModelMode,
-  viewTreeFrom,
   writeModelMode,
   type ModelMode,
-  type ViewTree,
 } from '@/lib/workbench/pistar';
 import { modelSignature } from '@/lib/workbench/signature';
+import { analyze, transform, treeView } from '@/services';
 import {
   loadPreferences,
   loadRecent,
@@ -124,7 +123,7 @@ export type Workbench = {
   forgetRecent: (fileName: string) => void;
 
   // structure
-  tree: ViewTree | null;
+  tree: GoalView | null;
   jsonError: Problem | null;
 
   // engine
@@ -629,30 +628,20 @@ function WorkbenchState({
       return { error: jsonProblem(model.text, error as Error) };
     }
   }, [model.text]);
-  // the tree: goal-tree's view of the model, read by the server with the engine's grammar
-  // (/api/tree); the last one of the same file stays while the next is computed, or while
-  // the JSON is being fixed
+  // the tree: goal-tree's view of the model, read with the engine's grammar; the last one
+  // of the same file stays while the JSON is being fixed
   const [served, setServed] = useState<{
     fileName: string;
-    tree: ViewTree;
+    tree: GoalView;
   } | null>(null);
   useEffect(() => {
-    if (!model.text.trim() || parsed.error) return undefined;
-    const controller = new AbortController();
+    if (!model.text.trim() || parsed.error) return;
     const fileName = model.fileName;
-    fetch('/api/tree', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ modelJson: model.text, engine }),
-      signal: controller.signal,
-    })
-      .then((response) => response.json())
-      .then((data: { success: boolean; view?: GoalView }) => {
-        if (data.success && data.view)
-          setServed({ fileName, tree: viewTreeFrom(data.view) });
-      })
-      .catch(() => undefined);
-    return () => controller.abort();
+    try {
+      setServed({ fileName, tree: treeView(model.text, engine) });
+    } catch {
+      // kept: the previous view stays until the model parses again
+    }
   }, [model.text, model.fileName, engine, parsed.error]);
   const tree =
     model.text.trim() && served?.fileName === model.fileName
@@ -683,51 +672,36 @@ function WorkbenchState({
       !debouncedText.trim() ||
       modelSignature(debouncedText) === null
     )
-      return undefined;
-    const controller = new AbortController();
+      return;
     setAnalyzing(true);
-    fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ modelJson: debouncedText, engine }),
-      signal: controller.signal,
-    })
-      .then((response) => response.json())
-      .then((data: AnalyzeResponse | { success: false; error: string }) => {
-        const key = analysisKey(debouncedText, engine);
-        if (data.success) {
-          setAnalysis(data, key);
-        } else {
-          setAnalysis(
-            {
-              success: true,
-              variables: [],
-              knownProperties: { goal: [], task: [], resource: [] },
-              problems: [
-                { severity: 'error', source: 'engine', message: data.error },
-              ],
-            },
-            key,
-          );
-        }
-      })
-      .catch((error: Error) => {
-        if (error.name === 'AbortError') return;
-        // generation must not wait forever: keep the last variables, marked as done for this text
-        setAnalyzed((prev) => ({
-          key: analysisKey(debouncedText, engine),
-          data: prev?.data ?? {
-            success: true,
-            variables: [],
-            knownProperties: { goal: [], task: [], resource: [] },
-            problems: [],
+    const key = analysisKey(debouncedText, engine);
+    try {
+      setAnalysis(analyze(debouncedText, engine), key);
+    } catch (error) {
+      // keep the last variables and known properties, but always surface the failure
+      setAnalyzed((prev) => ({
+        key,
+        data: {
+          success: true,
+          variables: prev?.data.variables ?? [],
+          knownProperties: prev?.data.knownProperties ?? {
+            goal: [],
+            task: [],
+            resource: [],
+            quality: [],
           },
-        }));
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setAnalyzing(false);
-      });
-    return () => controller.abort();
+          problems: [
+            {
+              severity: 'error',
+              source: 'engine',
+              message: error instanceof Error ? error.message : String(error),
+            },
+          ],
+        },
+      }));
+    } finally {
+      setAnalyzing(false);
+    }
   }, [debouncedText, engine, pistar, setAnalysis]);
   useEffect(() => {
     if (!model.text.trim() || pistar) setAnalysis(null);
@@ -791,7 +765,6 @@ function WorkbenchState({
 
   const [generating, setGenerating] = useState(false);
   const runId = useRef(0);
-  const inflight = useRef<AbortController | null>(null);
   const latest = useRef({
     text: model.text,
     fileName: model.fileName,
@@ -800,6 +773,7 @@ function WorkbenchState({
     values,
     inputsSignature,
     variablesReady,
+    runs,
   });
   latest.current = {
     text: model.text,
@@ -809,6 +783,7 @@ function WorkbenchState({
     values,
     inputsSignature,
     variablesReady,
+    runs,
   };
   // a generation asked for before the variables were known runs once they are
   const [pendingGenerate, setPendingGenerate] = useState(false);
@@ -821,6 +796,7 @@ function WorkbenchState({
       options: runOptions,
       values: runValues,
       inputsSignature: signature,
+      runs: priorRuns,
     } = latest.current;
     if (!text.trim() || signature === null) return;
     if (!latest.current.variablesReady) {
@@ -828,66 +804,50 @@ function WorkbenchState({
       return;
     }
     setPendingGenerate(false);
-    inflight.current?.abort();
-    const controller = new AbortController();
-    inflight.current = controller;
     const started = performance.now();
     setGenerating(true);
-    fetch('/api/transform', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const previousOutput = runOptions.clean
+      ? undefined
+      : (priorRuns.find(
+          (run) => run.engine === runEngine && run.output !== null,
+        )?.output ?? undefined);
+    let run: Run;
+    try {
+      const result = transform({
         modelJson: text,
         engine: runEngine,
         fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
+        previousOutput,
         ...optionsFor(runEngine, runOptions),
         ...(isPrismEngine(runEngine) &&
           Object.keys(runValues).length > 0 && { variables: runValues }),
-      }),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        runId.current += 1;
-        const run: Run = {
-          id: runId.current,
-          at: Date.now(),
-          engine: runEngine,
-          durationMs: performance.now() - started,
-          signature,
-          output: data.success ? data.output : null,
-          report: data.success ? (data.report ?? null) : null,
-          error: data.success
-            ? null
-            : [data.error, data.details].filter(Boolean).join('\n'),
-        };
-        setRuns((prev) => [run, ...prev].slice(0, 20));
-      })
-      .catch((error: Error) => {
-        if (error.name === 'AbortError') return;
-        runId.current += 1;
-        setRuns((prev) =>
-          [
-            {
-              id: runId.current,
-              at: Date.now(),
-              engine: runEngine,
-              durationMs: performance.now() - started,
-              signature,
-              output: null,
-              report: null,
-              error: `Could not reach the generator: ${error.message}`,
-            },
-            ...prev,
-          ].slice(0, 20),
-        );
-      })
-      .finally(() => {
-        if (inflight.current === controller) {
-          inflight.current = null;
-          setGenerating(false);
-        }
       });
+      runId.current += 1;
+      run = {
+        id: runId.current,
+        at: Date.now(),
+        engine: runEngine,
+        durationMs: performance.now() - started,
+        signature,
+        output: result.output,
+        report: result.report,
+        error: null,
+      };
+    } catch (error) {
+      runId.current += 1;
+      run = {
+        id: runId.current,
+        at: Date.now(),
+        engine: runEngine,
+        durationMs: performance.now() - started,
+        signature,
+        output: null,
+        report: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+    setRuns((prev) => [run, ...prev].slice(0, 20));
+    setGenerating(false);
   }, []);
 
   useEffect(() => {

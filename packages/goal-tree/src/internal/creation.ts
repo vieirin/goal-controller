@@ -133,6 +133,7 @@ function createNode<
   TGoalKeys extends string,
   TTaskKeys extends string,
   TResourceKeys extends string,
+  TQualityKeys extends string,
 >({
   node,
   relation,
@@ -150,7 +151,8 @@ function createNode<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   >;
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
   /** True for the actor's structurally resolved root goal. */
@@ -265,14 +267,20 @@ function createNode<
   }
 
   if (nodeType === 'goal') {
-    // Extract raw props using allowed keys from mapper
+    // Qualities still map as goals (isQuality); only which raw keys are read differs
+    const allowedKeys: readonly (TGoalKeys | TQualityKeys)[] = isQualityNode
+      ? (mapper.allowedQualityKeys ?? [])
+      : mapper.allowedGoalKeys;
     const rawGoalProps = extractRawProps(
       { ...customProperties, root },
-      mapper.allowedGoalKeys,
+      allowedKeys,
     );
 
     // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { nodeType: 'goal', raw: rawGoalProps });
+    context.rawPropertiesMap.set(id, {
+      nodeType: 'goal',
+      raw: rawGoalProps as RawProps<TGoalKeys>,
+    });
 
     const goalNode: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> = {
       id,
@@ -306,6 +314,7 @@ function nodeChildren<
   TGoalKeys extends string,
   TTaskKeys extends string,
   TResourceKeys extends string,
+  TQualityKeys extends string,
 >({
   nodes,
   id,
@@ -322,7 +331,8 @@ function nodeChildren<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   >;
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
 }): [Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>, Relation] {
@@ -398,6 +408,7 @@ function nodeToTree<
   TGoalKeys extends string,
   TTaskKeys extends string,
   TResourceKeys extends string,
+  TQualityKeys extends string,
 >({
   nodes,
   iStarLinks,
@@ -415,7 +426,8 @@ function nodeToTree<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   >;
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
   isRoot?: boolean;
@@ -438,6 +450,7 @@ function runAfterCreationMapper<
   TGoalKeys extends string,
   TTaskKeys extends string,
   TResourceKeys extends string,
+  TQualityKeys extends string,
 >(
   tree: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
   mapper: EngineMapper<
@@ -446,7 +459,8 @@ function runAfterCreationMapper<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   >,
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>,
 ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
@@ -543,6 +557,7 @@ export function convertToTree<
   TGoalKeys extends string = string,
   TTaskKeys extends string = string,
   TResourceKeys extends string = string,
+  TQualityKeys extends string = never,
 >(
   model: Model,
   mapper: EngineMapper<
@@ -551,7 +566,8 @@ export function convertToTree<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   >,
 ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
   // Create per-call context to avoid race conditions with concurrent calls

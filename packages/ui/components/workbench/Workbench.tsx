@@ -535,7 +535,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
   const wb = useWorkbench();
   const { open, input } = useOpenFile();
   const examples = useExamples();
-  const openExample = useOpenExample();
+  const { open: openExample, error: openExampleError } = useOpenExample();
   const featured = (examples.data ?? [])
     .filter((e) => e.group === 'edgeV2')
     .slice(0, wb.recent.length > 0 ? 3 : 6);
@@ -639,6 +639,11 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                 ? 'Or start from an example'
                 : 'Or try an example'}
             </h2>
+            {openExampleError && (
+              <p className='text-2xs text-rose-700' role='alert'>
+                {openExampleError}
+              </p>
+            )}
             <ul className='divide-y divide-line rounded-lg border border-line'>
               {featured.map((example) => (
                 <li key={example.path}>

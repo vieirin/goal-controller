@@ -1,14 +1,16 @@
 'use client';
 
 import { ArrowUpRight, X } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { GoalViewNode } from '@goal-controller/goal-tree';
+import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
   DEFAULT_ELEMENT_FILL,
-  EDGE_PROPERTIES,
   EDGE_RESOURCE_FILL,
+  PROPERTY_SPECS,
   inputOf,
+  type NodeKindKey,
   type PropertyInput,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
@@ -22,7 +24,6 @@ import {
   setNodeProperty,
   setNodeText,
   setRefinement,
-  type ViewNode,
 } from '@/lib/workbench/pistar';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
@@ -109,30 +110,11 @@ const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
 };
 
-/** The custom properties an engine reads, per node kind (cached: they do not change). */
-const useKnownProperties = (
-  engine: TransformEngine,
-): AnalyzeResponse['knownProperties'] | undefined =>
-  useQuery({
-    queryKey: ['known-properties', engine],
-    queryFn: async () => {
-      const response = await fetch(`/api/properties?engine=${engine}`);
-      const data = (await response.json()) as {
-        success: boolean;
-        knownProperties?: AnalyzeResponse['knownProperties'];
-      };
-      if (!data.success || !data.knownProperties)
-        throw new Error('could not load the engine properties');
-      return data.knownProperties;
-    },
-    staleTime: Infinity,
-  }).data;
-
-type NodeKindKey = 'goal' | 'task' | 'resource';
 const KIND_PLURAL: Record<NodeKindKey, string> = {
   goal: 'goals',
   task: 'tasks',
   resource: 'resources',
+  quality: 'qualities',
 };
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
@@ -152,11 +134,13 @@ const ENGINE_KEYS: Record<
       goal: 'EDGE_GOAL_KEYS',
       task: 'EDGE_TASK_KEYS',
       resource: 'EDGE_RESOURCE_KEYS',
+      quality: 'allowedQualityKeys',
     },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
   edge: {
@@ -165,20 +149,27 @@ const ENGINE_KEYS: Record<
       goal: 'EDGE_GOAL_KEYS',
       task: 'EDGE_TASK_KEYS',
       resource: 'EDGE_RESOURCE_KEYS',
+      quality: 'allowedQualityKeys',
     },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
-    lists: { goal: 'SLEEC_GOAL_KEYS', task: 'SLEEC_TASK_KEYS' },
+    lists: {
+      goal: 'SLEEC_GOAL_KEYS',
+      task: 'SLEEC_TASK_KEYS',
+      quality: 'SLEEC_QUALITY_KEYS',
+    },
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
       resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
     },
   },
 };
@@ -288,7 +279,7 @@ export default function Inspector() {
   );
 }
 
-const kindLabelOf = (node: ViewNode): string =>
+const kindLabelOf = (node: GoalViewNode): string =>
   node.kind === 'goal'
     ? 'Goal'
     : node.kind === 'task'
@@ -298,7 +289,7 @@ const kindLabelOf = (node: ViewNode): string =>
         : 'Quality';
 
 /** Chip, kind and construct, with a jump to the node's lines in the output. */
-function NodeHeader({ node }: { node: ViewNode }) {
+function NodeHeader({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const tone = nodeTone(node);
   const traceLines =
@@ -386,13 +377,13 @@ function QualificationChips({ ids }: { ids: readonly string[] }) {
   );
 }
 
-const qualificationLabel = (node: ViewNode) =>
+const qualificationLabel = (node: GoalViewNode) =>
   node.kind === 'quality' ? 'Qualifies' : 'Qualified by';
-const qualificationIds = (node: ViewNode) =>
+const qualificationIds = (node: GoalViewNode) =>
   node.kind === 'quality' ? node.qualifies : node.qualities;
 
 /** Read-only view of a node: what is set, nothing to edit. */
-function NodeSummary({ node }: { node: ViewNode }) {
+function NodeSummary({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const { tree } = wb;
   const properties = Object.entries(node.properties).filter(
@@ -451,7 +442,7 @@ function NodeSummary({ node }: { node: ViewNode }) {
   );
 }
 
-function NodeInspector({ node }: { node: ViewNode }) {
+function NodeInspector({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const { engine, tree } = wb;
   const edit = (update: (text: string) => string) =>
@@ -485,23 +476,18 @@ function NodeInspector({ node }: { node: ViewNode }) {
   const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
   // what the engine reads: independent of the model, so also known in the piStar view (no analysis)
   const knownProperties =
-    useKnownProperties(engine) ?? wb.analysis?.knownProperties;
-  const allKnown: Partial<
-    Record<TransformEngine, AnalyzeResponse['knownProperties']>
-  > = {
-    edgev2: useKnownProperties('edgev2'),
-    edge: useKnownProperties('edge'),
-    sleec: useKnownProperties('sleec'),
-  };
+    KNOWN_PROPERTIES[engine] ?? wb.analysis?.knownProperties;
+  const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
+    KNOWN_PROPERTIES;
   const known = useMemo(
-    () => knownProperties?.[node.kind === 'quality' ? 'goal' : node.kind] ?? [],
+    () => knownProperties?.[node.kind] ?? [],
     [knownProperties, node.kind],
   );
   // Edge engines: how each property is edited and whether it applies, given the others
   const specs = useMemo(
     () =>
       engine === 'edge' || engine === 'edgev2'
-        ? EDGE_PROPERTIES[node.kind === 'quality' ? 'goal' : node.kind]
+        ? PROPERTY_SPECS[engine][node.kind]
         : [],
     [engine, node.kind],
   );
@@ -522,15 +508,17 @@ function NodeInspector({ node }: { node: ViewNode }) {
       .map((spec) => spec.key);
     return [...new Set([...fromSpec, ...set])];
   }, [specs, node.properties]);
-  // what validators may refer to: the element itself and the goals (dependsOn)
-  const validation = useMemo(
+  // what a validate function may refer to: this node's id, and other RT ids' kinds
+  // (dependsOn). Qualities are not goals for engine checks.
+  const checkContext = useMemo(
     () => ({
       self: node.id,
-      goalIds: tree
-        ? [...tree.nodes.values()]
-            .filter((n) => n.kind === 'goal')
-            .map((n) => n.id)
-        : [],
+      kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
+        const kind = tree?.nodes.get(id)?.kind;
+        return kind === 'goal' || kind === 'task' || kind === 'resource'
+          ? kind
+          : undefined;
+      },
     }),
     [node.id, tree],
   );
@@ -729,9 +717,8 @@ function NodeInspector({ node }: { node: ViewNode }) {
                 applies(key) && specOf(key)?.validate
                   ? (value) =>
                       specOf(key)!.validate!(
-                        value,
                         { ...node.properties, [key]: value },
-                        validation,
+                        checkContext,
                       )
                   : undefined
               }
@@ -745,7 +732,7 @@ function NodeInspector({ node }: { node: ViewNode }) {
                 knownProperties && !known.includes(key) && key !== 'Description'
                   ? whereAccepted(
                       key,
-                      node.kind === 'quality' ? 'goal' : node.kind,
+                      node.kind,
                       engine,
                       knownProperties,
                       allKnown,

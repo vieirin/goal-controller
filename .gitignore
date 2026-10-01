@@ -53,3 +53,8 @@ packages/lib/out/
 packages/lib/tsconfig.tsbuildinfo
 packages/goal-tree/tsconfig.tsbuildinfo
 packages/ui/tsconfig.tsbuildinfo
+
+.plan/
+
+# public/ copy of the manifest (lib/examples-manifest.json is committed)
+packages/ui/public/examples.json

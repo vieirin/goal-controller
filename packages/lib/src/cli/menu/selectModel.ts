@@ -7,6 +7,7 @@ import {
 } from '../../engines/edge';
 import { initLogger } from '../../engines/edge/logger/logger';
 import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
+import { readPreviousOutput } from '../previousOutput';
 
 export interface RunModelOptions {
   clean?: boolean;
@@ -35,9 +36,13 @@ export const runModel = async (
     if (!fileName) {
       throw new Error('File name not found');
     }
+    const previousOutput = clean
+      ? undefined
+      : readPreviousOutput(path.parse(fileName).name);
     const output = generateValidatedPrismModel({
       gm: tree.nodes,
       fileName,
+      previousOutput,
       clean,
       variables,
       generateDecisionVars,

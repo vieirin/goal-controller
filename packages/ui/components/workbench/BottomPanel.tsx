@@ -13,13 +13,13 @@ import {
   Upload,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
   nodeTone,
-  type ViewNode,
 } from '@/lib/workbench/pistar';
 import type { Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
@@ -227,7 +227,7 @@ export function ModelDataView() {
   if (!hasModel || !tree)
     return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
   const nodes = [...tree.nodes.values()];
-  const count = (kind: ViewNode['kind']) =>
+  const count = (kind: GoalViewNode['kind']) =>
     nodes.filter((n) => n.kind === kind).length;
   const constructs = new Map<string, number>();
   nodes.forEach((n) => {

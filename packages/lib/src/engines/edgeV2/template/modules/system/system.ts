@@ -1,107 +1,82 @@
 import { GoalTree } from '@goal-controller/goal-tree';
-import { existsSync, readFileSync } from 'fs';
-import path from 'path';
 import { getLogger } from '../../../logger/logger';
 import type { EdgeGoalTree, EdgeResource, EdgeTask } from '../../../types';
 import { systemModuleTemplate } from './template';
 
 /**
- * Extracts transition lines from the System module in an existing PRISM file
- * @param fileName The input file name (e.g., "examples/experiments/1-minimal.txt")
- * @returns Array of transition lines from the System module, or empty array if file doesn't exist or has no transitions
+ * Extracts transition lines from the System module in a previous PRISM output
+ * @param previousOutput The previous PRISM model's text
+ * @returns Array of transition lines from the System module, or empty array if there are none
  */
-const extractOldSystemTransitions = (fileName: string): string[] => {
-  // Extract base name from fileName (e.g., "examples/experiments/1-minimal.txt" -> "1-minimal")
-  const parsedPath = path.parse(fileName);
-  const baseName = parsedPath.name;
+const extractOldSystemTransitions = (previousOutput: string): string[] => {
+  const lines = previousOutput.split('\n');
 
-  // Try multiple paths to find the output file (supports both monorepo and direct execution)
-  const possiblePaths = [
-    `output/${baseName}.prism`, // From project root
-    `../../output/${baseName}.prism`, // From packages/lib (monorepo)
-  ];
+  let inSystemModule = false;
+  const transitions: string[] = [];
 
-  const oldPrismFilePath = possiblePaths.find((p) => existsSync(p));
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
 
-  // Check if the old PRISM file exists
-  if (!oldPrismFilePath) {
-    return [];
-  }
+    const trimmedLine = line.trim();
 
-  try {
-    const prismContent = readFileSync(oldPrismFilePath, 'utf8');
-    const lines = prismContent.split('\n');
-
-    let inSystemModule = false;
-    const transitions: string[] = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line) continue;
-
-      const trimmedLine = line.trim();
-
-      // Check if we're entering the System module
-      if (trimmedLine === 'module System') {
-        inSystemModule = true;
-        continue;
-      }
-
-      // Check if we're leaving the System module
-      if (inSystemModule && trimmedLine === 'endmodule') {
-        break;
-      }
-
-      // If we're in the System module, check for transitions
-      if (inSystemModule) {
-        // Match transition pattern: [label] guard -> update;
-        const transitionMatch = trimmedLine.match(
-          /^\s*\[([^\]]+)\]\s*.+?\s*->\s*.+?\s*;?\s*$/,
-        );
-        if (transitionMatch) {
-          // Collect preceding comment lines
-          const precedingComments: string[] = [];
-          let j = i - 1;
-          while (j >= 0) {
-            const prevLine = lines[j];
-            if (!prevLine) {
-              j--;
-              continue;
-            }
-            const prevTrimmed = prevLine.trim();
-            // Stop if we hit a non-comment, non-empty line
-            if (prevTrimmed && !prevTrimmed.startsWith('//')) {
-              break;
-            }
-            // Collect comment lines (preserve order by unshifting)
-            if (prevTrimmed.startsWith('//')) {
-              precedingComments.unshift(prevLine);
-            }
-            j--;
-          }
-
-          // Add preceding comments and the transition line
-          transitions.push(...precedingComments);
-          transitions.push(line);
-        }
-      }
+    // Check if we're entering the System module
+    if (trimmedLine === 'module System') {
+      inSystemModule = true;
+      continue;
     }
 
-    return transitions;
-  } catch (error) {
-    // If there's an error reading the file, return empty array
-    return [];
+    // Check if we're leaving the System module
+    if (inSystemModule && trimmedLine === 'endmodule') {
+      break;
+    }
+
+    // If we're in the System module, check for transitions
+    if (inSystemModule) {
+      // Match transition pattern: [label] guard -> update;
+      const transitionMatch = trimmedLine.match(
+        /^\s*\[([^\]]+)\]\s*.+?\s*->\s*.+?\s*;?\s*$/,
+      );
+      if (transitionMatch) {
+        // Collect preceding comment lines
+        const precedingComments: string[] = [];
+        let j = i - 1;
+        while (j >= 0) {
+          const prevLine = lines[j];
+          if (!prevLine) {
+            j--;
+            continue;
+          }
+          const prevTrimmed = prevLine.trim();
+          // Stop if we hit a non-comment, non-empty line
+          if (prevTrimmed && !prevTrimmed.startsWith('//')) {
+            break;
+          }
+          // Collect comment lines (preserve order by unshifting)
+          if (prevTrimmed.startsWith('//')) {
+            precedingComments.unshift(prevLine);
+          }
+          j--;
+        }
+
+        // Add preceding comments and the transition line
+        transitions.push(...precedingComments);
+        transitions.push(line);
+      }
+    }
   }
+
+  return transitions;
 };
 
 export const systemModule = ({
   gm,
-  fileName,
+  previousOutput,
   clean = false,
   variables: defaultVariableValues,
 }: {
   gm: EdgeGoalTree;
-  fileName: string;
+  previousOutput?: string;
   clean?: boolean;
   variables: Record<string, boolean | number>;
 }): string => {
@@ -144,7 +119,8 @@ export const systemModule = ({
     (varName) => !resourceIds.has(varName),
   );
 
-  const oldTransitions = clean ? [] : extractOldSystemTransitions(fileName);
+  const oldTransitions =
+    clean || !previousOutput ? [] : extractOldSystemTransitions(previousOutput);
   return systemModuleTemplate({
     variables,
     resources,

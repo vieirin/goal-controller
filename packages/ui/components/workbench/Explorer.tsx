@@ -1,41 +1,67 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, FileCode2, FileJson, History, SlidersHorizontal, X } from 'lucide-react';
+import {
+  ChevronRight,
+  FileCode2,
+  FileJson,
+  History,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ExampleFile } from '@/lib/workbench/types';
 import { writeModelMode } from '@/lib/workbench/pistar';
+import { listExamples, loadExample } from '@/services/examples';
 import { useWorkbench } from './WorkbenchContext';
 import { cx } from './ui';
 
 export const useExamples = () =>
   useQuery({
     queryKey: ['examples'],
-    queryFn: async (): Promise<ExampleFile[]> => {
-      const response = await fetch('/api/examples');
-      const data = await response.json();
-      return data.success ? (data.examples as ExampleFile[]) : [];
-    },
+    queryFn: listExamples,
     staleTime: Infinity,
   });
 
-const EXAMPLE_ENGINES: Record<string, TransformEngine> = { edge: 'edge', edgeV2: 'edgev2', sleec: 'sleec' };
+const EXAMPLE_ENGINES: Record<string, TransformEngine> = {
+  edge: 'edge',
+  edgeV2: 'edgev2',
+  sleec: 'sleec',
+};
 
 export const useOpenExample = () => {
   const { openModel } = useWorkbench();
-  return async (example: ExampleFile) => {
-    const response = await fetch(`/api/examples?path=${encodeURIComponent(example.path)}`);
-    const data = await response.json();
-    // examples are grouped by the engine they target
-    const engine = EXAMPLE_ENGINES[example.group];
-    // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
-    if (data.success) openModel(data.fileName, engine ? writeModelMode(data.content, engine) : data.content, engine ? { settings: { engine } } : undefined);
+  const [error, setError] = useState<string | null>(null);
+  const open = async (example: ExampleFile) => {
+    try {
+      const { fileName, content } = await loadExample(example.path);
+      // examples are grouped by the engine they target
+      const engine = EXAMPLE_ENGINES[example.group];
+      // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
+      openModel(
+        fileName,
+        engine ? writeModelMode(content, engine) : content,
+        engine ? { settings: { engine } } : undefined,
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   };
+  return { open, error };
 };
 
-function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function Section({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div>
@@ -45,7 +71,10 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
         onClick={() => setOpen(!open)}
         className='flex w-full items-center gap-1 px-2 py-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-muted hover:text-ink'
       >
-        <ChevronRight className={cx('h-3 w-3 transition-transform', open && 'rotate-90')} aria-hidden />
+        <ChevronRight
+          className={cx('h-3 w-3 transition-transform', open && 'rotate-90')}
+          aria-hidden
+        />
         {title}
       </button>
       {open && <div className='pb-2'>{children}</div>}
@@ -68,7 +97,12 @@ const Row = ({
   active?: boolean;
   trailing?: React.ReactNode;
 }) => (
-  <div className={cx('group flex items-center gap-1 pr-1', active && 'bg-trace-soft')}>
+  <div
+    className={cx(
+      'group flex items-center gap-1 pr-1',
+      active && 'bg-trace-soft',
+    )}
+  >
     <button
       type='button'
       onClick={onClick}
@@ -77,7 +111,11 @@ const Row = ({
     >
       <Icon className='h-3.5 w-3.5 shrink-0 text-ink-faint' aria-hidden />
       <span className='truncate'>{label}</span>
-      {detail && <span className='ml-auto shrink-0 pl-1 text-2xs text-ink-faint'>{detail}</span>}
+      {detail && (
+        <span className='ml-auto shrink-0 pl-1 text-2xs text-ink-faint'>
+          {detail}
+        </span>
+      )}
     </button>
     {trailing}
   </div>
@@ -86,15 +124,18 @@ const Row = ({
 export default function Explorer() {
   const wb = useWorkbench();
   const examples = useExamples();
-  const openExample = useOpenExample();
+  const { open: openExample, error: openExampleError } = useOpenExample();
   // the open model is already listed above
-  const others = wb.recent.filter((file) => !(wb.hasModel && file.fileName === wb.fileName));
+  const others = wb.recent.filter(
+    (file) => !(wb.hasModel && file.fileName === wb.fileName),
+  );
   // engine folder → subfolder ('' for files at the top) → files
   const groups = new Map<string, Map<string, ExampleFile[]>>();
   (examples.data ?? []).forEach((example) => {
     const slash = example.name.lastIndexOf('/');
     const folder = slash >= 0 ? example.name.slice(0, slash) : '';
-    const byFolder = groups.get(example.group) ?? new Map<string, ExampleFile[]>();
+    const byFolder =
+      groups.get(example.group) ?? new Map<string, ExampleFile[]>();
     byFolder.set(folder, [...(byFolder.get(folder) ?? []), example]);
     groups.set(example.group, byFolder);
   });
@@ -134,7 +175,13 @@ export default function Explorer() {
             <Row
               icon={FileCode2}
               label={`output.${isPrismEngine(wb.engine) ? 'prism' : 'sleec'}`}
-              detail={!lastOutput ? '—' : wb.stale ? <span className='text-caution'>stale</span> : null}
+              detail={
+                !lastOutput ? (
+                  '—'
+                ) : wb.stale ? (
+                  <span className='text-caution'>stale</span>
+                ) : null
+              }
               onClick={() => wb.setOutputTab('output')}
             />
           </>
@@ -162,6 +209,12 @@ export default function Explorer() {
         </Section>
       )}
 
+      {openExampleError && (
+        <p className='px-3 py-2 text-2xs text-rose-700' role='alert'>
+          {openExampleError}
+        </p>
+      )}
+
       {others.length > 0 && (
         <Section title='Recent'>
           {others.map((file) => (
@@ -171,14 +224,22 @@ export default function Explorer() {
               label={file.fileName}
               detail={
                 hasUnsavedEdits(file) ? (
-                  <span className='text-trace' title='Has edits that were not exported'>
+                  <span
+                    className='text-trace'
+                    title='Has edits that were not exported'
+                  >
                     edited
                   </span>
                 ) : (
                   recentAge(file.at)
                 )
               }
-              onClick={() => wb.openModel(file.fileName, file.text, { savedText: file.savedText, settings: file.settings })}
+              onClick={() =>
+                wb.openModel(file.fileName, file.text, {
+                  savedText: file.savedText,
+                  settings: file.settings,
+                })
+              }
               trailing={
                 <button
                   type='button'

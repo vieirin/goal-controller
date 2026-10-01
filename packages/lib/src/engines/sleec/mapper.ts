@@ -37,9 +37,16 @@ export const SLEEC_TASK_KEYS = [
   'Obstacle',
 ] as const;
 
+/**
+ * Allowed keys for SLEEC Quality custom properties (also in SLEEC_GOAL_KEYS).
+ * Examples put NormPrinciple/Proxy on the Quality "Autonomy".
+ */
+export const SLEEC_QUALITY_KEYS = ['NormPrinciple', 'Proxy'] as const;
+
 // Type aliases for the allowed keys
 export type SleecGoalKey = (typeof SLEEC_GOAL_KEYS)[number];
 export type SleecTaskKey = (typeof SLEEC_TASK_KEYS)[number];
+export type SleecQualityKey = (typeof SLEEC_QUALITY_KEYS)[number];
 
 const extractSleecGoalProps = (raw: RawProps<SleecGoalKey>): SleecGoalProps => {
   const sleecProps: SleecGoalProps = {};
@@ -107,6 +114,7 @@ export const sleecEngineMapper = createEngineMapper<
 >()({
   allowedGoalKeys: SLEEC_GOAL_KEYS,
   allowedTaskKeys: SLEEC_TASK_KEYS,
+  allowedQualityKeys: SLEEC_QUALITY_KEYS,
   skipResource: true,
   mapGoalProps: ({ raw }) => extractSleecGoalProps(raw),
   mapTaskProps: ({ raw, name }) => extractSleecTaskProps(raw, name),

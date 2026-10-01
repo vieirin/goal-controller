@@ -1,5 +1,8 @@
 import { validate } from '../validator';
-import { decisionVariablesTemplate, DEFAULT_ACHIEVABILITY_SPACE } from './decisionVariables';
+import {
+  decisionVariablesTemplate,
+  DEFAULT_ACHIEVABILITY_SPACE,
+} from './decisionVariables';
 import type { EdgeGoalTree } from '../types';
 import { changeManagerModule } from './modules/changeManager/changeManager';
 import { goalModules } from './modules/goalModule/goalModules';
@@ -7,14 +10,14 @@ import { systemModule } from './modules/system/system';
 
 const edgeDTMCTemplate = ({
   gm,
-  fileName,
+  previousOutput,
   clean = false,
   variables = {},
   generateDecisionVars = true,
   achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
 }: {
   gm: EdgeGoalTree;
-  fileName: string;
+  previousOutput?: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
@@ -28,7 +31,7 @@ ${goalModules({ gm })}
 
 ${changeManagerModule({ gm, variables })}
 
-${systemModule({ gm, fileName, clean, variables })}
+${systemModule({ gm, previousOutput, clean, variables })}
 `;
   return dtmcModel;
 };
@@ -36,21 +39,32 @@ ${systemModule({ gm, fileName, clean, variables })}
 export const generateValidatedPrismModel = ({
   gm,
   fileName,
+  previousOutput,
   clean = false,
   variables = {},
   generateDecisionVars = true,
   achievabilitySpace = DEFAULT_ACHIEVABILITY_SPACE,
+  writeReport = true,
 }: {
   gm: EdgeGoalTree;
   fileName: string;
+  previousOutput?: string;
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
   achievabilitySpace?: number;
+  writeReport?: boolean;
 }): string => {
-  const prismModel = edgeDTMCTemplate({ gm, fileName, clean, variables, generateDecisionVars, achievabilitySpace });
+  const prismModel = edgeDTMCTemplate({
+    gm,
+    previousOutput,
+    clean,
+    variables,
+    generateDecisionVars,
+    achievabilitySpace,
+  });
 
-  const report = validate(gm, prismModel, fileName);
+  const report = validate(gm, prismModel, writeReport ? fileName : undefined);
   if (report.summary.totalMissing > 0) {
     throw new Error('PRISM model is not valid');
   }

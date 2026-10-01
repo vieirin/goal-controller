@@ -176,19 +176,4 @@ export const GoalModel = {
   ): result is EdgeParseResult | SleecParseResult | EdgeV2ParseResult {
     return result.success;
   },
-
-  /**
-   * Get HTTP status code for a parse error stage
-   */
-  getErrorStatus(stage: ParseError['stage']): number {
-    switch (stage) {
-      case 'parse':
-      case 'validate':
-        return 400; // Bad request - client error
-      case 'tree':
-        return 500; // Internal error - server/processing error
-      default:
-        return 500;
-    }
-  },
 };

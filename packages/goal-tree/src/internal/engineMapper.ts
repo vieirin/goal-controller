@@ -45,7 +45,7 @@ type ResourceMapperConfig<TResourceEngine, TResourceKeys extends string> =
 
 /**
  * Engine mapper interface for creating engine-specific properties
- * TGoalKeys, TTaskKeys, TResourceKeys define which custom properties are extracted
+ * TGoalKeys, TTaskKeys, TResourceKeys, TQualityKeys define which custom properties are extracted
  */
 export type EngineMapper<
   TGoalEngine,
@@ -54,6 +54,7 @@ export type EngineMapper<
   TGoalKeys extends string = string,
   TTaskKeys extends string = string,
   TResourceKeys extends string = string,
+  TQualityKeys extends string = never,
 > = {
   /**
    * RT notation grammar used to parse goal names (defaults to 'edge')
@@ -71,10 +72,17 @@ export type EngineMapper<
   allowedTaskKeys: readonly TTaskKeys[];
 
   /**
-   * Map raw goal properties to engine-specific goal properties
+   * Allowed keys for Quality custom properties. When undeclared, Qualities accept none.
+   * Qualities are still mapped as goal nodes (isQuality); only the raw keys differ.
+   */
+  allowedQualityKeys?: readonly TQualityKeys[];
+
+  /**
+   * Map raw goal properties to engine-specific goal properties.
+   * Raw may also hold Quality keys when the node is a Quality (same mapping path).
    */
   mapGoalProps: (props: {
-    raw: RawProps<TGoalKeys>;
+    raw: RawProps<TGoalKeys | TQualityKeys>;
     executionDetail: GoalExecutionDetail | null;
   }) => TGoalEngine;
 
@@ -121,13 +129,15 @@ export function createEngineMapper<
     TGoalKeys extends string,
     TTaskKeys extends string,
     TResourceKeys extends string = never,
+    TQualityKeys extends string = never,
   >(
     config: {
       grammar?: RTGrammar;
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
+      allowedQualityKeys?: readonly TQualityKeys[];
       mapGoalProps: (props: {
-        raw: RawProps<TGoalKeys>;
+        raw: RawProps<TGoalKeys | TQualityKeys>;
         executionDetail: GoalExecutionDetail | null;
       }) => TGoalEngine;
       mapTaskProps: (props: {
@@ -162,7 +172,8 @@ export function createEngineMapper<
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
-    TResourceKeys
+    TResourceKeys,
+    TQualityKeys
   > => {
     const skipResource = config.allowedResourceKeys === undefined;
 
@@ -174,11 +185,13 @@ export function createEngineMapper<
         TResourceEngine,
         TGoalKeys,
         TTaskKeys,
-        TResourceKeys
+        TResourceKeys,
+        TQualityKeys
       > = {
         grammar: config.grammar,
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
+        allowedQualityKeys: config.allowedQualityKeys,
         mapGoalProps: config.mapGoalProps,
         mapTaskProps: config.mapTaskProps,
         afterCreationMapper: config.afterCreationMapper,
@@ -203,11 +216,13 @@ export function createEngineMapper<
       TResourceEngine,
       TGoalKeys,
       TTaskKeys,
-      TResourceKeys
+      TResourceKeys,
+      TQualityKeys
     > = {
       grammar: config.grammar,
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,
+      allowedQualityKeys: config.allowedQualityKeys,
       allowedResourceKeys: config.allowedResourceKeys,
       mapGoalProps: config.mapGoalProps,
       mapTaskProps: config.mapTaskProps,

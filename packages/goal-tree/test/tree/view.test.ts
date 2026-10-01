@@ -58,7 +58,7 @@ const neededBy = link('istar.NeededByLink');
 
 const view = (nodes: El[], links: Ln[]) => {
   const v = goalView(model(nodes, links), 'edgeV2');
-  return { ...v, node: (id: string) => v.nodes.find((n) => n.id === id) };
+  return { ...v, node: (id: string) => v.nodes.get(id) };
 };
 
 describe('goalView (lenient)', () => {
