@@ -60,7 +60,7 @@ export const treeProblems = (
     }
 
     if (!node.notation || engine === 'sleec') continue;
-    // read by the engine's grammar on the server (see /api/tree)
+    // read by the engine's RT grammar when building the view tree
     if (node.notationError) {
       problems.push({
         severity: 'warning',

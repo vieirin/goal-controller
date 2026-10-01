@@ -3,7 +3,7 @@
  * Builds packages/ui/public/examples.json at build/dev time: the static site has no
  * server to list examples/ from, so the list is a manifest baked in ahead of time
  * (services/examples.ts fetches it, and reads the files themselves from GitHub raw URLs).
- * Ports listExamples/isGoalModel from the former app/api/examples/route.ts.
+ * Ports listExamples/isGoalModel from the former examples API route.
  */
 import { promises as fs } from 'fs';
 import path from 'path';

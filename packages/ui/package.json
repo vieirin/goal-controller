@@ -3,12 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/examples-manifest.mjs",
-    "dev": "bash -c 'pnpm --filter @goal-controller/lib run watch & trap \"kill 0\" EXIT; next dev --turbopack'",
-    "dev:next": "next dev --turbopack",
+    "dev": "bash -c 'pnpm --filter @goal-controller/lib run watch & trap \"kill 0\" EXIT; pnpm run dev:next'",
+    "dev:next": "node scripts/examples-manifest.mjs && next dev --turbopack",
     "prebuild": "node scripts/examples-manifest.mjs",
     "build": "next build",
-    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {

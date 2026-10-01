@@ -33,17 +33,24 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine> = {
 
 export const useOpenExample = () => {
   const { openModel } = useWorkbench();
-  return async (example: ExampleFile) => {
-    const { fileName, content } = await loadExample(example.path);
-    // examples are grouped by the engine they target
-    const engine = EXAMPLE_ENGINES[example.group];
-    // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
-    openModel(
-      fileName,
-      engine ? writeModelMode(content, engine) : content,
-      engine ? { settings: { engine } } : undefined,
-    );
+  const [error, setError] = useState<string | null>(null);
+  const open = async (example: ExampleFile) => {
+    try {
+      const { fileName, content } = await loadExample(example.path);
+      // examples are grouped by the engine they target
+      const engine = EXAMPLE_ENGINES[example.group];
+      // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
+      openModel(
+        fileName,
+        engine ? writeModelMode(content, engine) : content,
+        engine ? { settings: { engine } } : undefined,
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   };
+  return { open, error };
 };
 
 function Section({
@@ -117,7 +124,7 @@ const Row = ({
 export default function Explorer() {
   const wb = useWorkbench();
   const examples = useExamples();
-  const openExample = useOpenExample();
+  const { open: openExample, error: openExampleError } = useOpenExample();
   // the open model is already listed above
   const others = wb.recent.filter(
     (file) => !(wb.hasModel && file.fileName === wb.fileName),
@@ -200,6 +207,12 @@ export default function Explorer() {
             </Section>
           ))}
         </Section>
+      )}
+
+      {openExampleError && (
+        <p className='px-3 py-2 text-2xs text-rose-700' role='alert'>
+          {openExampleError}
+        </p>
       )}
 
       {others.length > 0 && (
