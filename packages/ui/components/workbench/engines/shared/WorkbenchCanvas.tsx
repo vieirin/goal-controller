@@ -173,18 +173,20 @@ function SelectionSync({
   // diagram → workbench, only when the diagram's selection actually changes
   // (on mount it starts empty, which must not clear the workbench's selection)
   const previous = useRef(selection);
+  // an element just added to the diagram isn't in the tree until it's rebuilt from the new text
+  const unresolved = useRef<string | null>(null);
+  const tree = wb.tree;
   useEffect(() => {
-    if (previous.current === selection) return;
+    const changed = previous.current !== selection;
+    if (!changed && !unresolved.current) return;
     previous.current = selection;
-    const { tree, select: selectNode } = latest.current;
-    const { selected } = latestSel.current;
-    const id =
-      selection?.type === 'element'
-        ? (tree?.byIStarId.get(selection.id)?.id ?? null)
-        : null;
     if (selection?.type === 'link') return;
-    if (id !== selected) selectNode(id, 'canvas');
-  }, [selection]);
+    const iStarId = selection?.type === 'element' ? selection.id : null;
+    const id = iStarId ? (tree?.byIStarId.get(iStarId)?.id ?? null) : null;
+    unresolved.current = iStarId && !id ? iStarId : null;
+    if (!changed && !id) return;
+    if (id !== latestSel.current.selected) latest.current.select(id, 'canvas');
+  }, [selection, tree]);
 
   return null;
 }
