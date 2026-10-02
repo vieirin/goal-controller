@@ -94,6 +94,7 @@ export {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
+  firstResourceIssue,
 } from './engines/edgeChecks';
 
 // Logger

@@ -12,8 +12,11 @@ import {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
+  firstResourceIssue,
   type Check,
 } from '@goal-controller/lib';
+
+export { firstResourceIssue };
 
 export type Properties = Readonly<Record<string, string | undefined>>;
 
