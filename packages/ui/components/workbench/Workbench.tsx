@@ -26,14 +26,14 @@ import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ModelSettings } from '@/lib/workbench/types';
 import BottomPanel from './BottomPanel';
 import Explorer, { useExamples, useOpenExample } from './Explorer';
-import Inspector from './Inspector';
+import ModelInspector from './engines/ModelInspector';
 import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import TopBar, { readFile, useOpenFile } from './TopBar';
-import DiagramView from './DiagramView';
+import ModelDiagram from './engines/ModelDiagram';
 import {
   WorkbenchProvider,
   useSelection,
@@ -405,11 +405,9 @@ function ModelColumn() {
     toggleModelFullscreen,
     modelReadOnly,
     toggleModelReadOnly,
-    pistarMode,
   } = useShell();
-  // the inspector follows the engine the model is for: a piStar model (no engine recorded)
-  // shows the editor's own inspector beside the diagram instead
-  const showInspector = !pistarMode || wb.recordedEngine !== null;
+  // piStar mode shows the editor's own inspector beside the diagram instead
+  const showInspector = wb.mode !== 'pistar';
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs: Array<{ id: ModelTab; label: string }> = [
@@ -483,7 +481,7 @@ function ModelColumn() {
           defaultSize={modelFullscreen ? undefined : '58%'}
           minSize='25%'
         >
-          {wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}
+          {wb.modelTab === 'diagram' ? <ModelDiagram /> : <SourceView />}
         </Panel>
         {showInspector && inspectorOpen && (
           <>
@@ -497,7 +495,7 @@ function ModelColumn() {
                 className='h-full overflow-auto bg-white'
                 aria-label='Inspector'
               >
-                <Inspector />
+                <ModelInspector />
               </aside>
             </Panel>
           </>

@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import type { GenerationOptions } from '@/lib/workbench/types';
+import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
 import {
@@ -284,15 +285,18 @@ export default function TopBar() {
               <Shapes className='h-4 w-4' aria-hidden /> piStar
             </Button>
           )}
-          {wb.hasModel && shell.pistarMode && wb.recordedEngine && (
-            // the file is for an engine: model with that engine's palette, still in piStar mode
-            <Switch
-              checked={shell.enginePalette}
-              onChange={shell.setEnginePalette}
-              label={ENGINE_LABEL[wb.recordedEngine]}
-              description={`Use the ${ENGINE_LABEL[wb.recordedEngine]} palette (only the elements it reads)`}
-            />
-          )}
+          {wb.hasModel &&
+            shell.pistarMode &&
+            wb.recordedEngine &&
+            pistarPaletteFor(wb.recordedEngine) && (
+              // the file is for an engine with a palette of its own: model with it, still in piStar mode
+              <Switch
+                checked={shell.enginePalette}
+                onChange={shell.setEnginePalette}
+                label={ENGINE_LABEL[wb.recordedEngine]}
+                description={`Use the ${ENGINE_LABEL[wb.recordedEngine]} palette (only the elements it reads)`}
+              />
+            )}
           {wb.hasModel && shell.pistarMode && (
             <Button
               variant={wb.recordedEngine ? 'outline' : 'primary'}
