@@ -1,6 +1,9 @@
 'use client';
 
-import { EDGE_RESOURCE_FILL } from '@/lib/workbench/edgeProperties';
+import {
+  EDGE_RESOURCE_FILL,
+  firstResourceIssue,
+} from '@/lib/workbench/edgeProperties';
 import { nextRtId, serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
 import {
@@ -72,37 +75,20 @@ const problemBadges: IstarExtension = {
   },
 };
 
-/** What an Edge resource variable is, for its badge: "bool = true", "int 0..5 = 5"; and what is wrong with it. */
+/** What an Edge resource variable is, for its badge: "bool = true", "int 0..5 = 5"; issue from the shared engine check. */
 const resourceVariable = (
   properties: Readonly<Record<string, string>> | undefined,
 ): { label: string; issue: string | null } => {
   const { type, initialValue, lowerBound, upperBound } = properties ?? {};
-  if (type === 'bool') {
-    const ok = initialValue === 'true' || initialValue === 'false';
-    return {
-      label: `bool = ${initialValue ?? '?'}`,
-      issue: ok ? null : 'the initial value must be true or false',
-    };
-  }
-  if (type === 'int') {
-    const whole = (v: string | undefined): number | null =>
-      v !== undefined && /^-?\d+$/.test(v) ? Number(v) : null;
-    const low = whole(lowerBound);
-    const high = whole(upperBound);
-    const value = whole(initialValue);
-    const label = `int ${lowerBound ?? '?'}..${upperBound ?? '?'} = ${initialValue ?? '?'}`;
-    if (low === null || high === null || value === null)
-      return { label, issue: 'needs whole-number bounds and initial value' };
-    if (low > high)
-      return { label, issue: 'the lower bound is above the upper bound' };
-    if (value < low || value > high)
-      return { label, issue: 'the initial value is outside the bounds' };
-    return { label, issue: null };
-  }
-  return {
-    label: type ? `${type}?` : 'no type',
-    issue: 'the type must be bool or int',
-  };
+  const label =
+    type === 'bool'
+      ? `bool = ${initialValue ?? '?'}`
+      : type === 'int'
+        ? `int ${lowerBound ?? '?'}..${upperBound ?? '?'} = ${initialValue ?? '?'}`
+        : type
+          ? `${type}?`
+          : 'no type';
+  return { label, issue: firstResourceIssue(properties ?? {}) };
 };
 
 /**
