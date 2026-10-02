@@ -24,13 +24,18 @@ import {
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { LogView, ModelDataView, ProblemsView, VariablesView } from './BottomPanel';
+import {
+  LogView,
+  ModelDataView,
+  ProblemsView,
+  VariablesView,
+} from './BottomPanel';
 import Explorer from './Explorer';
-import Inspector from './Inspector';
+import ModelInspector from './engines/ModelInspector';
 import OutputPane from './OutputPane';
 import SourceView from './SourceView';
 import { EngineOptions, useOpenFile } from './TopBar';
-import DiagramView from './DiagramView';
+import ModelDiagram from './engines/ModelDiagram';
 import { useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, IconButton, Menu, MenuItem, Switch, Tabs, cx } from './ui';
@@ -38,7 +43,11 @@ import { Button, IconButton, Menu, MenuItem, Switch, Tabs, cx } from './ui';
 type View = 'output' | 'model' | 'problems' | 'variables';
 
 /** Opens or closes the Inspector sheet as the selection changes, without re-rendering the shell. */
-function SheetOnSelect({ onSelect }: { onSelect: (to: 'sheet' | 'output' | 'none') => void }) {
+function SheetOnSelect({
+  onSelect,
+}: {
+  onSelect: (to: 'sheet' | 'output' | 'none') => void;
+}) {
   const { selected, selectOrigin, selectSeq } = useSelection();
   useEffect(() => {
     if (!selected) onSelect('none');
@@ -56,7 +65,9 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
   const wb = useWorkbench();
   const shell = useShell();
   const [view, setView] = useState<View>('output');
-  const [detail, setDetail] = useState<'problems' | 'model' | 'log'>('problems');
+  const [detail, setDetail] = useState<'problems' | 'model' | 'log'>(
+    'problems',
+  );
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // selecting a node opens the Inspector sheet; the output's "lines" button goes to the output
@@ -71,7 +82,13 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
     if (wb.bottomTab === 'variables') setView('variables');
     else {
       setView('problems');
-      setDetail(wb.bottomTab === 'log' ? 'log' : wb.bottomTab === 'model' ? 'model' : 'problems');
+      setDetail(
+        wb.bottomTab === 'log'
+          ? 'log'
+          : wb.bottomTab === 'model'
+            ? 'model'
+            : 'problems',
+      );
     }
   }, [wb.bottomRevealSeq, wb.bottomTab]);
 
@@ -93,7 +110,12 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
             <Tabs
               label='Problems, model and log'
               tabs={[
-                { id: 'problems', label: 'Problems', count: problems, tone: hasErrors ? 'danger' : problems ? 'caution' : null },
+                {
+                  id: 'problems',
+                  label: 'Problems',
+                  count: problems,
+                  tone: hasErrors ? 'danger' : problems ? 'caution' : null,
+                },
                 { id: 'model', label: 'Model' },
                 { id: 'log', label: 'Log' },
               ]}
@@ -101,7 +123,13 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
               onChange={setDetail}
             />
             <div className='min-h-0 flex-1'>
-              {detail === 'log' ? <LogView /> : detail === 'model' ? <ModelDataView /> : <ProblemsView />}
+              {detail === 'log' ? (
+                <LogView />
+              ) : detail === 'model' ? (
+                <ModelDataView />
+              ) : (
+                <ProblemsView />
+              )}
             </div>
           </div>
         ) : (
@@ -114,8 +142,19 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
           className='grid shrink-0 grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]'
           aria-label='Views'
         >
-          <NavButton icon={FileCode2} label={isPrismEngine(wb.engine) ? 'PRISM' : 'SLEEC'} active={view === 'output'} onClick={() => setView('output')} badge={wb.stale ? '•' : undefined} />
-          <NavButton icon={GitFork} label='Model' active={view === 'model'} onClick={() => setView('model')} />
+          <NavButton
+            icon={FileCode2}
+            label={isPrismEngine(wb.engine) ? 'PRISM' : 'SLEEC'}
+            active={view === 'output'}
+            onClick={() => setView('output')}
+            badge={wb.stale ? '•' : undefined}
+          />
+          <NavButton
+            icon={GitFork}
+            label='Model'
+            active={view === 'model'}
+            onClick={() => setView('model')}
+          />
           <NavButton
             icon={AlertTriangle}
             label='Problems'
@@ -129,39 +168,73 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
             label='Variables'
             active={view === 'variables'}
             onClick={() => setView('variables')}
-            badge={wb.variables.length ? String(wb.variables.length) : undefined}
+            badge={
+              wb.variables.length ? String(wb.variables.length) : undefined
+            }
           />
         </nav>
       )}
 
       {/* files drawer */}
       {shell.explorerOpen && (
-        <div className='fixed inset-0 z-40 flex' role='dialog' aria-modal='true' aria-label='Files'>
+        <div
+          className='fixed inset-0 z-40 flex'
+          role='dialog'
+          aria-modal='true'
+          aria-label='Files'
+        >
           <div className='flex w-[82vw] max-w-xs flex-col bg-panel shadow-xl'>
             <div className='flex h-12 items-center justify-between border-b border-line px-3'>
               <span className='text-[13px] font-semibold text-ink'>Files</span>
-              <IconButton icon={X} label='Close files' onClick={shell.toggleExplorer} />
+              <IconButton
+                icon={X}
+                label='Close files'
+                onClick={shell.toggleExplorer}
+              />
             </div>
             <div className='min-h-0 flex-1'>
               <Explorer />
             </div>
           </div>
-          <button type='button' aria-label='Close files' className='flex-1 bg-ink/30' onClick={shell.toggleExplorer} />
+          <button
+            type='button'
+            aria-label='Close files'
+            className='flex-1 bg-ink/30'
+            onClick={shell.toggleExplorer}
+          />
         </div>
       )}
 
-      <SheetOnSelect onSelect={onSelect} />
+      {/* piStar mode: the editor's own inspector is beside the diagram */}
+      {wb.mode !== 'pistar' && <SheetOnSelect onSelect={onSelect} />}
       {/* Inspector sheet */}
       {sheetOpen && (
-        <div className='fixed inset-0 z-40 flex flex-col justify-end' role='dialog' aria-modal='true' aria-label='Inspector'>
-          <button type='button' aria-label='Close the Inspector' className='flex-1 bg-ink/20' onClick={() => setSheetOpen(false)} />
+        <div
+          className='fixed inset-0 z-40 flex flex-col justify-end'
+          role='dialog'
+          aria-modal='true'
+          aria-label='Inspector'
+        >
+          <button
+            type='button'
+            aria-label='Close the Inspector'
+            className='flex-1 bg-ink/20'
+            onClick={() => setSheetOpen(false)}
+          />
           <div className='flex max-h-[75dvh] flex-col rounded-t-xl bg-white shadow-2xl'>
             <div className='flex items-center justify-between border-b border-line px-3 py-1.5'>
-              <span className='mx-auto h-1 w-10 rounded-full bg-line-strong' aria-hidden />
-              <IconButton icon={X} label='Close the Inspector' onClick={() => setSheetOpen(false)} />
+              <span
+                className='mx-auto h-1 w-10 rounded-full bg-line-strong'
+                aria-hidden
+              />
+              <IconButton
+                icon={X}
+                label='Close the Inspector'
+                onClick={() => setSheetOpen(false)}
+              />
             </div>
             <div className='min-h-0 flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]'>
-              <Inspector />
+              <ModelInspector />
             </div>
           </div>
         </div>
@@ -190,7 +263,10 @@ function NavButton({
       type='button'
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className={cx('relative flex flex-col items-center gap-0.5 py-2 text-2xs', active ? 'text-ink' : 'text-ink-muted')}
+      className={cx(
+        'relative flex flex-col items-center gap-0.5 py-2 text-2xs',
+        active ? 'text-ink' : 'text-ink-muted',
+      )}
     >
       <Icon className='h-5 w-5' aria-hidden />
       {label}
@@ -198,13 +274,19 @@ function NavButton({
         <span
           className={cx(
             'absolute right-[22%] top-1 min-w-4 rounded-full px-1 text-[10px] font-semibold leading-4',
-            badgeTone === 'danger' ? 'bg-danger text-white' : badgeTone === 'caution' ? 'bg-caution-soft text-caution' : 'bg-line text-ink-soft',
+            badgeTone === 'danger'
+              ? 'bg-danger text-white'
+              : badgeTone === 'caution'
+                ? 'bg-caution-soft text-caution'
+                : 'bg-line text-ink-soft',
           )}
         >
           {badge}
         </span>
       )}
-      {active && <span className='absolute inset-x-6 top-0 h-0.5 rounded-full bg-ink' />}
+      {active && (
+        <span className='absolute inset-x-6 top-0 h-0.5 rounded-full bg-ink' />
+      )}
     </button>
   );
 }
@@ -227,14 +309,20 @@ function MobileModel() {
           <>
             <IconButton
               icon={modelReadOnly ? Lock : Unlock}
-              label={modelReadOnly ? 'Read-only: tap to edit the model' : 'Make the model read-only'}
+              label={
+                modelReadOnly
+                  ? 'Read-only: tap to edit the model'
+                  : 'Make the model read-only'
+              }
               aria-pressed={modelReadOnly}
               onClick={toggleModelReadOnly}
             />
           </>
         }
       />
-      <div className='min-h-0 flex-1'>{wb.modelTab === 'diagram' ? <DiagramView /> : <SourceView />}</div>
+      <div className='min-h-0 flex-1'>
+        {wb.modelTab === 'diagram' ? <ModelDiagram /> : <SourceView />}
+      </div>
     </section>
   );
 }
@@ -248,12 +336,23 @@ function MobileTopBar() {
   return (
     <header className='flex h-12 shrink-0 items-center gap-1 border-b border-line bg-white px-2'>
       {input}
-      <IconButton icon={MenuIcon} label='Files and examples' onClick={shell.toggleExplorer} />
+      <IconButton
+        icon={MenuIcon}
+        label='Files and examples'
+        onClick={shell.toggleExplorer}
+      />
       <div className='min-w-0 flex-1 px-1'>
         {wb.hasModel ? (
           <span className='flex items-center gap-1.5 text-[13px]'>
-            <span className='truncate font-medium text-ink'>{wb.fileName || 'untitled.txt'}</span>
-            {wb.dirty && <span className='h-2 w-2 shrink-0 rounded-full bg-trace' aria-label='unsaved changes' />}
+            <span className='truncate font-medium text-ink'>
+              {wb.fileName || 'untitled.txt'}
+            </span>
+            {wb.dirty && (
+              <span
+                className='h-2 w-2 shrink-0 rounded-full bg-trace'
+                aria-label='unsaved changes'
+              />
+            )}
           </span>
         ) : (
           <span className='font-mono text-[13px] font-bold text-ink'>
@@ -264,26 +363,50 @@ function MobileTopBar() {
       {wb.hasModel && (
         <IconButton
           icon={Shapes}
-          label={shell.pistarMode ? 'piStar mode: tap to go back to the engines' : 'piStar mode: the plain iStar editor'}
+          label={
+            shell.pistarMode
+              ? 'piStar mode: tap to go back to the engines'
+              : 'piStar mode: the plain iStar editor'
+          }
           aria-pressed={shell.pistarMode}
           onClick={shell.togglePistarMode}
           className={shell.pistarMode ? 'bg-trace-soft text-trace' : undefined}
         />
       )}
       {wb.hasModel && shell.pistarMode && (
-        <Button variant='primary' onClick={() => wb.openConversion(wb.recordedEngine ?? wb.settings.engine)} aria-label='Convert to an engine'>
+        <Button
+          variant='primary'
+          onClick={() =>
+            wb.openConversion(wb.recordedEngine ?? wb.settings.engine)
+          }
+          aria-label='Convert to an engine'
+        >
           <ArrowRightLeft className='h-4 w-4' aria-hidden />
         </Button>
       )}
       {wb.hasModel && !shell.pistarMode && (
-        <Button variant='primary' onClick={wb.generate} disabled={!!wb.jsonError} aria-label='Generate'>
-          {wb.generating ? <Loader2 className='h-4 w-4 animate-spin' aria-hidden /> : <Play className='h-3.5 w-3.5' aria-hidden />}
+        <Button
+          variant='primary'
+          onClick={wb.generate}
+          disabled={!!wb.jsonError}
+          aria-label='Generate'
+        >
+          {wb.generating ? (
+            <Loader2 className='h-4 w-4 animate-spin' aria-hidden />
+          ) : (
+            <Play className='h-3.5 w-3.5' aria-hidden />
+          )}
         </Button>
       )}
       <Menu
         label='More'
         trigger={({ toggle, open: isOpen }) => (
-          <IconButton icon={MoreHorizontal} label='More actions' aria-expanded={isOpen} onClick={toggle} />
+          <IconButton
+            icon={MoreHorizontal}
+            label='More actions'
+            aria-expanded={isOpen}
+            onClick={toggle}
+          />
         )}
       >
         {(close) => (
@@ -291,25 +414,50 @@ function MobileTopBar() {
             {/* engine controls: only for an open model that is not a piStar model */}
             {wb.hasModel && !shell.pistarMode && (
               <div className='flex items-center justify-between px-1'>
-                <Switch checked={wb.live} onChange={wb.setLive} label='Live' description='Regenerate after each change' />
+                <Switch
+                  checked={wb.live}
+                  onChange={wb.setLive}
+                  label='Live'
+                  description='Regenerate after each change'
+                />
                 <EngineOptions />
               </div>
             )}
             <div className='border-t border-line pt-1'>
-              <MenuItem icon={FolderOpen} onClick={() => { open(); close(); }}>
+              <MenuItem
+                icon={FolderOpen}
+                onClick={() => {
+                  open();
+                  close();
+                }}
+              >
                 Open file…
               </MenuItem>
               {wb.hasModel && (
-                <MenuItem icon={Settings2} onClick={() => { wb.openSettings(); close(); }}>
+                <MenuItem
+                  icon={Settings2}
+                  onClick={() => {
+                    wb.openSettings();
+                    close();
+                  }}
+                >
                   Model settings…
                 </MenuItem>
               )}
               {wb.hasModel && (
                 <>
-                  <MenuItem icon={Undo2} disabled={!wb.canUndo} onClick={wb.undo}>
+                  <MenuItem
+                    icon={Undo2}
+                    disabled={!wb.canUndo}
+                    onClick={wb.undo}
+                  >
                     Undo model change
                   </MenuItem>
-                  <MenuItem icon={Redo2} disabled={!wb.canRedo} onClick={wb.redo}>
+                  <MenuItem
+                    icon={Redo2}
+                    disabled={!wb.canRedo}
+                    onClick={wb.redo}
+                  >
                     Redo model change
                   </MenuItem>
                 </>
@@ -320,7 +468,9 @@ function MobileTopBar() {
                 <MenuItem
                   icon={FileJson}
                   onClick={() => {
-                    const name = /\.(txt|json)$/i.test(wb.fileName) ? wb.fileName : `${baseName(wb.fileName)}.txt`;
+                    const name = /\.(txt|json)$/i.test(wb.fileName)
+                      ? wb.fileName
+                      : `${baseName(wb.fileName)}.txt`;
                     downloadText(name, wb.text, 'application/json');
                     wb.markSaved();
                     close();
@@ -332,7 +482,11 @@ function MobileTopBar() {
                   icon={Download}
                   disabled={!lastOutput}
                   onClick={() => {
-                    if (lastOutput) downloadText(`${baseName(wb.fileName)}.${outputExtension}`, lastOutput);
+                    if (lastOutput)
+                      downloadText(
+                        `${baseName(wb.fileName)}.${outputExtension}`,
+                        lastOutput,
+                      );
                     close();
                   }}
                 >

@@ -6,12 +6,10 @@ import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
-  DEFAULT_ELEMENT_FILL,
-  EDGE_RESOURCE_FILL,
-  PROPERTY_SPECS,
   inputOf,
   type NodeKindKey,
   type PropertyInput,
+  type PropertySpec,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
@@ -25,9 +23,15 @@ import {
   setNodeText,
   setRefinement,
 } from '@/lib/workbench/pistar';
-import { useSelection, useWorkbench } from './WorkbenchContext';
-import { useShell } from './shell';
-import { Button, CreatableSelect, NodeChip, Segmented, cx } from './ui';
+import { useSelection, useWorkbench } from '../../WorkbenchContext';
+import { useShell } from '../../shell';
+import { CreatableSelect, Button, NodeChip, Segmented, cx } from '../../ui';
+
+/**
+ * The inspector pieces every engine's inspector is built from (engines/<engine>/): the
+ * selected node, its name, refinement, qualifications, colour, properties and variables,
+ * and the read-only summary. What an engine adds (the Edge notation editor) lives with it.
+ */
 
 /**
  * Local text state that commits after a short pause. While it is being edited, the value
@@ -35,7 +39,7 @@ import { Button, CreatableSelect, NodeChip, Segmented, cx } from './ui';
  * request later and would overwrite what was typed since. It is taken again once it
  * catches up with the draft (or shortly after the field is left).
  */
-const useDraft = (
+export const useDraft = (
   value: string,
   commit: (next: string) => void,
   delay = 300,
@@ -84,27 +88,7 @@ const useDraft = (
   return { draft, change, flush };
 };
 
-const OPERATORS: Record<
-  Exclude<TransformEngine, 'sleec'>,
-  Array<{ op: string; construct: keyof typeof CONSTRUCT_LABEL }>
-> = {
-  edgev2: [
-    { op: ';', construct: 'sequence' },
-    { op: '+', construct: 'anyOrder' },
-    { op: '#', construct: 'interleaved' },
-    { op: '|', construct: 'alternative' },
-    { op: '?', construct: 'choice' },
-    { op: '->', construct: 'degradation' },
-  ],
-  edge: [
-    { op: ';', construct: 'sequence' },
-    { op: '#', construct: 'interleaved' },
-    { op: '|', construct: 'alternative' },
-    { op: '->', construct: 'degradation' },
-  ],
-};
-
-const ENGINE_LABEL: Record<TransformEngine, string> = {
+export const ENGINE_LABEL: Record<TransformEngine, string> = {
   edgev2: 'EdgeV2',
   edge: 'Edge',
   sleec: 'SLEEC',
@@ -191,7 +175,7 @@ const howToAccept = (
  * Why the engine ignores a property here, where it is read instead (another kind of element,
  * another engine), and which structure to update for the engine to read it here.
  */
-const whereAccepted = (
+export const whereAccepted = (
   key: string,
   kind: NodeKindKey,
   engine: TransformEngine,
@@ -225,7 +209,7 @@ const NUMERIC_KEYS: Record<string, 'number' | 'integer'> = {
   maxRetries: 'integer',
 };
 
-function Field({
+export function Field({
   label,
   hint,
   children,
@@ -245,39 +229,8 @@ function Field({
   );
 }
 
-const inputClass =
+export const inputClass =
   'w-full rounded-md border border-line-strong bg-white px-2 py-1 text-[13px] text-ink placeholder:text-ink-faint focus:border-trace focus:outline-none';
-
-export default function Inspector() {
-  const wb = useWorkbench();
-  const { modelReadOnly } = useShell();
-  const { selected } = useSelection();
-  const node = selected ? wb.tree?.nodes.get(selected) : undefined;
-  if (!wb.tree) {
-    return (
-      <p className='p-4 text-sm text-ink-muted'>
-        Open a model to inspect its goals and tasks.
-      </p>
-    );
-  }
-  if (!node) {
-    return (
-      <p className='p-4 text-[13px] text-ink-muted'>
-        Select a goal or task — in the diagram, the source or the generated
-        output — to inspect
-        {modelReadOnly
-          ? ' it'
-          : ' and edit it. Add or remove goals, tasks and links in the diagram'}
-        . Counts and constructs are in the Model tab.
-      </p>
-    );
-  }
-  return modelReadOnly ? (
-    <NodeSummary key={node.id} node={node} />
-  ) : (
-    <NodeInspector key={node.id} node={node} />
-  );
-}
 
 const kindLabelOf = (node: GoalViewNode): string =>
   node.kind === 'goal'
@@ -289,7 +242,7 @@ const kindLabelOf = (node: GoalViewNode): string =>
         : 'Quality';
 
 /** Chip, kind and construct, with a jump to the node's lines in the output. */
-function NodeHeader({ node }: { node: GoalViewNode }) {
+export function NodeHeader({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const tone = nodeTone(node);
   const traceLines =
@@ -357,7 +310,7 @@ function SummaryRow({
  * The other end of a node's Qualification links: the Qualities qualifying it, or what a
  * Quality qualifies. Named when the element has no RT id (Qualities often do not).
  */
-function QualificationChips({ ids }: { ids: readonly string[] }) {
+export function QualificationChips({ ids }: { ids: readonly string[] }) {
   const wb = useWorkbench();
   return (
     <span className='flex flex-wrap gap-1'>
@@ -377,13 +330,13 @@ function QualificationChips({ ids }: { ids: readonly string[] }) {
   );
 }
 
-const qualificationLabel = (node: GoalViewNode) =>
+export const qualificationLabel = (node: GoalViewNode) =>
   node.kind === 'quality' ? 'Qualifies' : 'Qualified by';
-const qualificationIds = (node: GoalViewNode) =>
+export const qualificationIds = (node: GoalViewNode) =>
   node.kind === 'quality' ? node.qualifies : node.qualities;
 
 /** Read-only view of a node: what is set, nothing to edit. */
-function NodeSummary({ node }: { node: GoalViewNode }) {
+export function NodeSummary({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const { tree } = wb;
   const properties = Object.entries(node.properties).filter(
@@ -442,358 +395,7 @@ function NodeSummary({ node }: { node: GoalViewNode }) {
   );
 }
 
-function NodeInspector({ node }: { node: GoalViewNode }) {
-  const wb = useWorkbench();
-  const { engine, tree } = wb;
-  const edit = (update: (text: string) => string) =>
-    wb.setText(update(wb.text), 'inspector');
-
-  const name = useDraft(node.name, (next) =>
-    edit((text) =>
-      setNodeText(
-        text,
-        node.iStarId,
-        composeNodeText(node.id, next, node.notation),
-      ),
-    ),
-  );
-  const notation = useDraft(node.notation ?? '', (next) =>
-    edit((text) =>
-      setNodeText(
-        text,
-        node.iStarId,
-        composeNodeText(node.id, node.name, next || null),
-      ),
-    ),
-  );
-
-  // what the engine's grammar reads in the saved notation (computed on the server)
-  const draftConstruct = node.construct;
-  const listed = node.order;
-  const pursueable = node.children.filter(
-    (id) => tree?.nodes.get(id)?.kind !== 'resource',
-  );
-  const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
-  // what the engine reads: independent of the model, so also known in the piStar view (no analysis)
-  const knownProperties =
-    KNOWN_PROPERTIES[engine] ?? wb.analysis?.knownProperties;
-  const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
-    KNOWN_PROPERTIES;
-  const known = useMemo(
-    () => knownProperties?.[node.kind] ?? [],
-    [knownProperties, node.kind],
-  );
-  // Edge engines: how each property is edited and whether it applies, given the others
-  const specs = useMemo(
-    () =>
-      engine === 'edge' || engine === 'edgev2'
-        ? PROPERTY_SPECS[engine][node.kind]
-        : [],
-    [engine, node.kind],
-  );
-  const specOf = (key: string) => specs.find((spec) => spec.key === key);
-  const applies = (key: string) =>
-    specOf(key)?.applies?.(node.properties) ?? true;
-  // rows: in the spec's order, the properties that apply and are set or needed; then any
-  // other set property. The engine's other applicable ones are offered when adding one
-  const keys = useMemo(() => {
-    const set = Object.keys(node.properties).filter((k) => k !== 'root');
-    const fromSpec = specs
-      .filter(
-        (spec) =>
-          spec.key in node.properties ||
-          ((spec.applies?.(node.properties) ?? true) &&
-            (spec.required?.(node.properties) ?? false)),
-      )
-      .map((spec) => spec.key);
-    return [...new Set([...fromSpec, ...set])];
-  }, [specs, node.properties]);
-  // what a validate function may refer to: this node's id, and other RT ids' kinds
-  // (dependsOn). Qualities are not goals for engine checks.
-  const checkContext = useMemo(
-    () => ({
-      self: node.id,
-      kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
-        const kind = tree?.nodes.get(id)?.kind;
-        return kind === 'goal' || kind === 'task' || kind === 'resource'
-          ? kind
-          : undefined;
-      },
-    }),
-    [node.id, tree],
-  );
-  const suggestions = known.filter(
-    (k) => k !== 'root' && !keys.includes(k) && applies(k),
-  );
-
-  return (
-    <div className='space-y-4 p-4'>
-      <NodeHeader node={node} />
-
-      <Field
-        label='Name'
-        hint={
-          !isValidName(name.draft)
-            ? 'Only letters, spaces, hyphens and apostrophes are allowed in names.'
-            : undefined
-        }
-      >
-        <input
-          className={cx(
-            inputClass,
-            !isValidName(name.draft) && 'border-caution',
-          )}
-          value={name.draft}
-          onChange={(e) => name.change(e.target.value)}
-          onBlur={name.flush}
-        />
-      </Field>
-
-      {node.kind === 'goal' && engine !== 'sleec' && (
-        <Field
-          label='Execution notation'
-          hint={
-            notation.draft.trim() !== (node.notation ?? '')
-              ? // the grammar reads it once it is saved
-                'Checking the notation…'
-              : notation.draft.trim()
-                ? node.notationError
-                  ? `Not valid for this engine: ${node.notationError}`
-                  : draftConstruct
-                    ? `${CONSTRUCT_LABEL[draftConstruct]} — ${CONSTRUCT_HELP[draftConstruct]}`
-                    : 'No operator this engine understands.'
-                : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
-          }
-        >
-          <input
-            className={cx(inputClass, 'font-mono')}
-            value={notation.draft}
-            placeholder={pursueable.join(';') || 'G1;G2'}
-            onChange={(e) => notation.change(e.target.value)}
-            onBlur={notation.flush}
-            spellCheck={false}
-          />
-          {pursueable.length > 0 && (
-            <div className='flex flex-wrap items-center gap-1 pt-1'>
-              <span className='text-2xs text-ink-muted'>Children:</span>
-              {pursueable.map((id) => (
-                <span
-                  key={id}
-                  className={cx(
-                    listed.length > 0 &&
-                      !listed.includes(id) &&
-                      'rounded ring-1 ring-caution',
-                  )}
-                  title={
-                    listed.length > 0 && !listed.includes(id)
-                      ? 'Missing from the notation'
-                      : undefined
-                  }
-                >
-                  <NodeChip
-                    id={id}
-                    tone={nodeTone(tree?.nodes.get(id))}
-                    onClick={() => wb.select(id, 'inspector')}
-                  />
-                </span>
-              ))}
-              {listed
-                .filter((id) => !pursueable.includes(id))
-                .map((id) => (
-                  <span
-                    key={id}
-                    className='rounded bg-danger-soft px-1 font-mono text-2xs text-danger'
-                    title='Not a child of this goal'
-                  >
-                    {id}?
-                  </span>
-                ))}
-            </div>
-          )}
-          {pursueable.length > 1 && (
-            <div className='flex flex-wrap gap-1 pt-1'>
-              {OPERATORS[engine].map(({ op, construct }) => (
-                <button
-                  key={op}
-                  type='button'
-                  title={`${CONSTRUCT_LABEL[construct]}: ${CONSTRUCT_HELP[construct]}`}
-                  onClick={() => notation.change(pursueable.join(op))}
-                  className='rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink'
-                >
-                  <span className='font-mono font-semibold'>{op}</span>{' '}
-                  {CONSTRUCT_LABEL[construct]}
-                </button>
-              ))}
-              {draftConstruct === 'degradation' &&
-                !/@\d/.test(notation.draft) && (
-                  <button
-                    type='button'
-                    title='Retry the first child up to 3 times before falling back'
-                    onClick={() =>
-                      notation.change(
-                        notation.draft.replace(/^([A-Za-z]+\d+\w*)/, '$1@3'),
-                      )
-                    }
-                    className='rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink'
-                  >
-                    <span className='font-mono font-semibold'>@3</span> retries
-                  </button>
-                )}
-              {engine === 'edge' && (
-                <button
-                  type='button'
-                  title='Choice (Edge notation: a standalone +)'
-                  onClick={() => notation.change('+')}
-                  className='rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink'
-                >
-                  <span className='font-mono font-semibold'>+</span> Choice
-                </button>
-              )}
-            </div>
-          )}
-        </Field>
-      )}
-
-      {node.kind === 'goal' && node.children.length > 0 && (
-        <Field
-          label='Refinement'
-          hint='How the goal is refined into its children (the link type in the diagram).'
-        >
-          <div>
-            <Segmented
-              size='sm'
-              label='Refinement'
-              value={node.relation ?? 'and'}
-              onChange={(relation) =>
-                edit((text) => setRefinement(text, node.iStarId, relation))
-              }
-              options={[
-                { id: 'and', label: 'AND', title: 'All children are needed' },
-                { id: 'or', label: 'OR', title: 'One child is enough' },
-              ]}
-            />
-          </div>
-        </Field>
-      )}
-
-      {qualificationIds(node).length > 0 && (
-        <Field
-          label={qualificationLabel(node)}
-          hint='Qualification links in the diagram: a Quality qualifies an element, it does not refine it.'
-        >
-          <QualificationChips ids={qualificationIds(node)} />
-        </Field>
-      )}
-
-      <ColorField
-        color={node.color}
-        // what the diagram draws when no colour is saved (Edge resources are yellow)
-        fallback={
-          node.kind === 'resource' && (engine === 'edge' || engine === 'edgev2')
-            ? EDGE_RESOURCE_FILL
-            : DEFAULT_ELEMENT_FILL
-        }
-        onChange={(color) =>
-          edit((text) => setNodeColor(text, node.iStarId, color))
-        }
-      />
-
-      <div className='space-y-1.5'>
-        <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
-          Properties
-        </span>
-        {/* one grid for every row: the names get their width, the inputs the rest */}
-        <div className='grid grid-cols-[minmax(0,max-content)_minmax(8rem,1fr)_auto] gap-1.5'>
-          {keys.map((key) => (
-            <PropertyRow
-              key={key}
-              name={key}
-              value={node.properties[key]}
-              engineKnows={known.includes(key)}
-              input={
-                specOf(key) ? inputOf(specOf(key)!, node.properties) : undefined
-              }
-              validate={
-                applies(key) && specOf(key)?.validate
-                  ? (value) =>
-                      specOf(key)!.validate!(
-                        { ...node.properties, [key]: value },
-                        checkContext,
-                      )
-                  : undefined
-              }
-              notApplying={
-                !applies(key) && node.properties[key] !== undefined
-                  ? (specOf(key)?.notApplying?.(node.properties) ??
-                    'Not used with the other properties set')
-                  : null
-              }
-              notReadBy={
-                knownProperties && !known.includes(key) && key !== 'Description'
-                  ? whereAccepted(
-                      key,
-                      node.kind,
-                      engine,
-                      knownProperties,
-                      allKnown,
-                    )
-                  : null
-              }
-              onChange={(value) =>
-                edit((text) => setNodeProperty(text, node.iStarId, key, value))
-              }
-            />
-          ))}
-        </div>
-        <CreatableSelect
-          className='pt-1'
-          label='Add a property'
-          placeholder={
-            suggestions.length > 0
-              ? `Add a property: pick one ${ENGINE_LABEL[engine]} reads, or type a name`
-              : 'Add a property: type a name'
-          }
-          options={suggestions.map((key) => ({
-            value: key,
-            hint: ENGINE_LABEL[engine],
-          }))}
-          createLabel={(key) =>
-            key in node.properties
-              ? `${key} is already set`
-              : `Add "${key}" (not read by ${ENGINE_LABEL[engine]})`
-          }
-          onSelect={(key) => {
-            if (!key || key in node.properties) return;
-            edit((text) => setNodeProperty(text, node.iStarId, key, ''));
-          }}
-        />
-      </div>
-
-      {usedVariables.length > 0 && (
-        <div className='space-y-1'>
-          <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
-            Variables
-          </span>
-          <div className='flex flex-wrap gap-1'>
-            {usedVariables.map((v) => (
-              <button
-                key={v.name}
-                type='button'
-                onClick={() => wb.setBottomTab('variables')}
-                className='rounded border border-line bg-white px-1.5 py-0.5 font-mono text-2xs text-ink-soft hover:border-trace'
-                title='Edit in the Variables panel'
-              >
-                {v.name} = {String(wb.values[v.name])}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PropertyRow({
+export function PropertyRow({
   name,
   value,
   engineKnows,
@@ -981,7 +583,7 @@ const toHex = (color: string): string | null => {
 };
 
 /** The element's fill: a colour picker, its hex value, and a reset to the default fill. */
-function ColorField({
+export function ColorField({
   color,
   fallback,
   onChange,
@@ -1019,6 +621,303 @@ function ColorField({
             Reset
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The selected node, for an engine's inspector: what to say with no model or no
+ * selection, and the read-only summary (the same for every engine); otherwise `children`
+ * renders the engine's editor, keyed by node so its drafts start over.
+ */
+export function SelectedNode({
+  children,
+}: {
+  children: (node: GoalViewNode) => ReactNode;
+}) {
+  const wb = useWorkbench();
+  const { modelReadOnly } = useShell();
+  const { selected } = useSelection();
+  const node = selected ? wb.tree?.nodes.get(selected) : undefined;
+  if (!wb.tree) {
+    return (
+      <p className='p-4 text-sm text-ink-muted'>
+        Open a model to inspect its goals and tasks.
+      </p>
+    );
+  }
+  if (!node) {
+    return (
+      <p className='p-4 text-[13px] text-ink-muted'>
+        Select a goal or task — in the diagram, the source or the generated
+        output — to inspect
+        {modelReadOnly
+          ? ' it'
+          : ' and edit it. Add or remove goals, tasks and links in the diagram'}
+        . Counts and constructs are in the Model tab.
+      </p>
+    );
+  }
+  return modelReadOnly ? (
+    <NodeSummary key={node.id} node={node} />
+  ) : (
+    children(node)
+  );
+}
+
+/** Writes an edit of the model text, as the inspector's. */
+export const useEditModel = () => {
+  const wb = useWorkbench();
+  return (update: (text: string) => string) =>
+    wb.setText(update(wb.text), 'inspector');
+};
+
+export function NameField({ node }: { node: GoalViewNode }) {
+  const edit = useEditModel();
+  const name = useDraft(node.name, (next) =>
+    edit((text) =>
+      setNodeText(
+        text,
+        node.iStarId,
+        composeNodeText(node.id, next, node.notation),
+      ),
+    ),
+  );
+  return (
+    <Field
+      label='Name'
+      hint={
+        !isValidName(name.draft)
+          ? 'Only letters, spaces, hyphens and apostrophes are allowed in names.'
+          : undefined
+      }
+    >
+      <input
+        className={cx(inputClass, !isValidName(name.draft) && 'border-caution')}
+        value={name.draft}
+        onChange={(e) => name.change(e.target.value)}
+        onBlur={name.flush}
+      />
+    </Field>
+  );
+}
+
+export function RefinementField({ node }: { node: GoalViewNode }) {
+  const edit = useEditModel();
+  if (node.kind !== 'goal' || node.children.length === 0) return null;
+  return (
+    <Field
+      label='Refinement'
+      hint='How the goal is refined into its children (the link type in the diagram).'
+    >
+      <div>
+        <Segmented
+          size='sm'
+          label='Refinement'
+          value={node.relation ?? 'and'}
+          onChange={(relation) =>
+            edit((text) => setRefinement(text, node.iStarId, relation))
+          }
+          options={[
+            { id: 'and', label: 'AND', title: 'All children are needed' },
+            { id: 'or', label: 'OR', title: 'One child is enough' },
+          ]}
+        />
+      </div>
+    </Field>
+  );
+}
+
+export function QualificationField({ node }: { node: GoalViewNode }) {
+  if (qualificationIds(node).length === 0) return null;
+  return (
+    <Field
+      label={qualificationLabel(node)}
+      hint='Qualification links in the diagram: a Quality qualifies an element, it does not refine it.'
+    >
+      <QualificationChips ids={qualificationIds(node)} />
+    </Field>
+  );
+}
+
+/** The element's fill, with what the diagram draws when none is saved. */
+export function NodeColorField({
+  node,
+  fallback,
+}: {
+  node: GoalViewNode;
+  fallback: string;
+}) {
+  const edit = useEditModel();
+  return (
+    <ColorField
+      color={node.color}
+      fallback={fallback}
+      onChange={(color) =>
+        edit((text) => setNodeColor(text, node.iStarId, color))
+      }
+    />
+  );
+}
+
+/**
+ * The node's custom properties: what the engine reads and what it ignores (and where it
+ * would be read). `specs`, when the engine has them, say how each is edited, whether it
+ * applies given the others, and what the engine would reject.
+ */
+export function PropertiesField({
+  node,
+  engine,
+  specs = [],
+}: {
+  node: GoalViewNode;
+  engine: TransformEngine;
+  specs?: readonly PropertySpec[];
+}) {
+  const wb = useWorkbench();
+  const { tree } = wb;
+  const edit = useEditModel();
+  // what the engine reads: independent of the model, so also known in the piStar view (no analysis)
+  const knownProperties =
+    KNOWN_PROPERTIES[engine] ?? wb.analysis?.knownProperties;
+  const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
+    KNOWN_PROPERTIES;
+  const known = useMemo(
+    () => knownProperties?.[node.kind] ?? [],
+    [knownProperties, node.kind],
+  );
+  const specOf = (key: string) => specs.find((spec) => spec.key === key);
+  const applies = (key: string) =>
+    specOf(key)?.applies?.(node.properties) ?? true;
+  // rows: in the spec's order, the properties that apply and are set or needed; then any
+  // other set property. The engine's other applicable ones are offered when adding one
+  const keys = useMemo(() => {
+    const set = Object.keys(node.properties).filter((k) => k !== 'root');
+    const fromSpec = specs
+      .filter(
+        (spec) =>
+          spec.key in node.properties ||
+          ((spec.applies?.(node.properties) ?? true) &&
+            (spec.required?.(node.properties) ?? false)),
+      )
+      .map((spec) => spec.key);
+    return [...new Set([...fromSpec, ...set])];
+  }, [specs, node.properties]);
+  // what a validate function may refer to: this node's id, and other RT ids' kinds
+  // (dependsOn). Qualities are not goals for engine checks.
+  const checkContext = useMemo(
+    () => ({
+      self: node.id,
+      kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
+        const kind = tree?.nodes.get(id)?.kind;
+        return kind === 'goal' || kind === 'task' || kind === 'resource'
+          ? kind
+          : undefined;
+      },
+    }),
+    [node.id, tree],
+  );
+  const suggestions = known.filter(
+    (k) => k !== 'root' && !keys.includes(k) && applies(k),
+  );
+
+  return (
+    <div className='space-y-1.5'>
+      <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+        Properties
+      </span>
+      {/* one grid for every row: the names get their width, the inputs the rest */}
+      <div className='grid grid-cols-[minmax(0,max-content)_minmax(8rem,1fr)_auto] gap-1.5'>
+        {keys.map((key) => (
+          <PropertyRow
+            key={key}
+            name={key}
+            value={node.properties[key]}
+            engineKnows={known.includes(key)}
+            input={
+              specOf(key) ? inputOf(specOf(key)!, node.properties) : undefined
+            }
+            validate={
+              applies(key) && specOf(key)?.validate
+                ? (value) =>
+                    specOf(key)!.validate!(
+                      { ...node.properties, [key]: value },
+                      checkContext,
+                    )
+                : undefined
+            }
+            notApplying={
+              !applies(key) && node.properties[key] !== undefined
+                ? (specOf(key)?.notApplying?.(node.properties) ??
+                  'Not used with the other properties set')
+                : null
+            }
+            notReadBy={
+              knownProperties && !known.includes(key) && key !== 'Description'
+                ? whereAccepted(
+                    key,
+                    node.kind,
+                    engine,
+                    knownProperties,
+                    allKnown,
+                  )
+                : null
+            }
+            onChange={(value) =>
+              edit((text) => setNodeProperty(text, node.iStarId, key, value))
+            }
+          />
+        ))}
+      </div>
+      <CreatableSelect
+        className='pt-1'
+        label='Add a property'
+        placeholder={
+          suggestions.length > 0
+            ? `Add a property: pick one ${ENGINE_LABEL[engine]} reads, or type a name`
+            : 'Add a property: type a name'
+        }
+        options={suggestions.map((key) => ({
+          value: key,
+          hint: ENGINE_LABEL[engine],
+        }))}
+        createLabel={(key) =>
+          key in node.properties
+            ? `${key} is already set`
+            : `Add "${key}" (not read by ${ENGINE_LABEL[engine]})`
+        }
+        onSelect={(key) => {
+          if (!key || key in node.properties) return;
+          edit((text) => setNodeProperty(text, node.iStarId, key, ''));
+        }}
+      />
+    </div>
+  );
+}
+
+/** The variables the generated model has for this node, edited in the Variables panel. */
+export function VariablesField({ node }: { node: GoalViewNode }) {
+  const wb = useWorkbench();
+  const usedVariables = wb.variables.filter((v) => v.usedBy.includes(node.id));
+  if (usedVariables.length === 0) return null;
+  return (
+    <div className='space-y-1'>
+      <span className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+        Variables
+      </span>
+      <div className='flex flex-wrap gap-1'>
+        {usedVariables.map((v) => (
+          <button
+            key={v.name}
+            type='button'
+            onClick={() => wb.setBottomTab('variables')}
+            className='rounded border border-line bg-white px-1.5 py-0.5 font-mono text-2xs text-ink-soft hover:border-trace'
+            title='Edit in the Variables panel'
+          >
+            {v.name} = {String(wb.values[v.name])}
+          </button>
+        ))}
       </div>
     </div>
   );
