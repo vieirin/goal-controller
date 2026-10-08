@@ -2,14 +2,14 @@
 
 import type { LSPClient } from '@codemirror/lsp-client';
 import { EditorView } from '@codemirror/view';
-import { STRUCTURE_NOTIFICATION } from '@goal-controller/rt-language/structure';
+import { CONTEXT_NOTIFICATION } from '@goal-controller/rt-language/context';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
 import {
   lineId,
   notationDocument,
   notationEdits,
-  notationStructure,
+  notationContext,
 } from '@/lib/workbench/notation';
 import { setNodeText } from '@/lib/workbench/pistar';
 import { createRtClient } from '@/lib/workbench/rtLsp';
@@ -72,13 +72,20 @@ export default function NotationView() {
       worker.terminate();
     };
   }, []);
+  const variableNames = useMemo(
+    () =>
+      wb.variables
+        .filter((variable) => variable.kind === 'context')
+        .map((variable) => variable.name),
+    [wb.variables],
+  );
   useEffect(() => {
     if (!client || !tree) return;
-    const structure = notationStructure(tree);
+    const context = notationContext(tree, variableNames);
     void client.initializing.then(() =>
-      client.notification(STRUCTURE_NOTIFICATION, structure),
+      client.notification(CONTEXT_NOTIFICATION, context),
     );
-  }, [client, tree]);
+  }, [client, tree, variableNames]);
 
   // text → model, debounced; lines map to elements by their id
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);

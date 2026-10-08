@@ -9,4 +9,5 @@ export {
   type ParsedNodeText,
   type RtExpr,
 } from './parse.js';
-export { STRUCTURE_NOTIFICATION, type RtStructureRecord } from './structure.js';
+export * from './context.js';
+export * from './properties.js';

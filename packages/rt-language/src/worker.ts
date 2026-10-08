@@ -6,12 +6,20 @@ import {
   BrowserMessageWriter,
   createConnection,
 } from 'vscode-languageserver/browser';
+import {
+  CONTEXT_NOTIFICATION,
+  type RtContextRecord,
+  type RtPropertyRules,
+} from './context.js';
 import { createRtServices } from './lsp.js';
-import { STRUCTURE_NOTIFICATION, type RtStructureRecord } from './structure.js';
 
-/** Runs the RT language server inside a Web Worker, talking LSP over postMessage. */
+/**
+ * Runs the RT language server inside a Web Worker, talking LSP over postMessage.
+ * `rules` are the engine's property rules (its checks), injected by the editor.
+ */
 export const startRtWorkerServer = (
   scope: DedicatedWorkerGlobalScope,
+  { rules }: { rules?: RtPropertyRules } = {},
 ): void => {
   const connection = createConnection(
     new BrowserMessageReader(scope),
@@ -21,14 +29,15 @@ export const startRtWorkerServer = (
     connection,
     ...EmptyFileSystem,
   });
+  RtNotation.context.Context.rules = rules;
   connection.onNotification(
-    STRUCTURE_NOTIFICATION,
-    async (record: RtStructureRecord) => {
-      RtNotation.structure.Structure.set(record);
+    CONTEXT_NOTIFICATION,
+    async (record: RtContextRecord) => {
+      RtNotation.context.Context.set(record);
       const uris = shared.workspace.LangiumDocuments.all
         .map((document) => document.uri)
         .toArray();
-      // re-validates the open documents against the new structure
+      // re-validates the open documents against the new context
       await shared.workspace.DocumentBuilder.update(uris, []);
     },
   );

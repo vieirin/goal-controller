@@ -4,7 +4,7 @@
     {
       "id": "rt-notation",
       "grammar": "src/rt-notation.langium",
-      "fileExtensions": [".rt"]
+      "fileExtensions": [".rt", ".rtp"]
     }
   ],
   "out": "src/generated",

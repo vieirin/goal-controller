@@ -16,7 +16,7 @@ import { RtNotationGrammar } from './grammar.js';
 
 export const RtNotationLanguageMetaData = {
   languageId: 'rt-notation',
-  fileExtensions: ['.rt'],
+  fileExtensions: ['.rt', '.rtp'],
   caseInsensitive: false,
   mode: 'development',
 } as const satisfies LanguageMetaData;

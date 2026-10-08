@@ -14,12 +14,14 @@ import {
   RtNotationGeneratedModule,
   RtNotationGeneratedSharedModule,
 } from './generated/module.js';
-import { PROPERTY_MODES, RtLexer, type RtPropertyKey } from './lexer.js';
-import { RtStructure } from './structure.js';
+import type { DependsOnValue } from './generated/ast.js';
+import { RtLexer } from './lexer.js';
+import { PROPERTY_MODES, type RtPropertyKey } from './properties.js';
+import { RtContext } from './context.js';
 import { registerRtValidationChecks, RtValidator } from './validator.js';
 
 export type RtAddedServices = {
-  structure: { Structure: RtStructure };
+  context: { Context: RtContext };
   validation: { RtValidator: RtValidator };
 };
 
@@ -33,11 +35,22 @@ export const RtCoreModule: Module<
   parser: {
     Lexer: (services) => new RtLexer(services),
   },
-  structure: {
-    Structure: () => new RtStructure(),
+  context: {
+    Context: () => new RtContext(),
   },
   validation: {
-    RtValidator: (services) => new RtValidator(services.structure.Structure),
+    RtValidator: (services) => {
+      const validator = new RtValidator(services.context.Context);
+      validator.dependsOnOf = (value) =>
+        value
+          ? parseValue<DependsOnValue>(
+              services,
+              'dependsOn',
+              value,
+            ).value.ids.map((id) => id.name)
+          : [];
+      return validator;
+    },
   },
 };
 

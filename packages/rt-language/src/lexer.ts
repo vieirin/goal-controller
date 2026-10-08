@@ -4,6 +4,7 @@ import {
   type IToken,
 } from 'chevrotain';
 import { DefaultLexer, type LexerResult } from 'langium';
+import { PROPERTY_MODES, type RtPropertyKey } from './properties.js';
 
 type Rules = ReadonlyArray<readonly [name: string, pattern: RegExp]>;
 
@@ -101,21 +102,6 @@ const MODES = {
 } as const;
 
 export type RtLexerMode = keyof typeof MODES;
-
-/** The property keys a property line starts with, and how each value is lexed. */
-export const PROPERTY_MODES = {
-  maintain: 'assertion',
-  assertion: 'assertion',
-  dependsOn: 'dependsOn',
-  variables: 'value',
-  utility: 'value',
-  cost: 'value',
-  maxRetries: 'value',
-  type: 'value',
-  root: 'value',
-} as const satisfies Record<string, RtLexerMode>;
-
-export type RtPropertyKey = keyof typeof PROPERTY_MODES;
 
 const PROPERTY_KEY = new RegExp(
   `(${Object.keys(PROPERTY_MODES).join('|')})(?![A-Za-z0-9_])`,

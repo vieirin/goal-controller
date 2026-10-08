@@ -6,7 +6,33 @@ import { createRtServices } from '../src/lsp.js';
 
 const { RtNotation } = createRtServices(EmptyFileSystem);
 const validate = validationHelper<Document>(RtNotation);
-const structure = RtNotation.structure.Structure;
+const context = RtNotation.context.Context;
+const KIND = { G: 'goal', T: 'task', R: 'resource' } as const;
+
+/** a context from each element's children (kinds from the id's letter) */
+const structure = {
+  set(
+    children: Record<string, string[]> | undefined,
+    properties: Record<string, Record<string, string>> = {},
+    variables: string[] = [],
+  ) {
+    context.set(
+      children && {
+        elements: Object.fromEntries(
+          Object.entries(children).map(([id, kids]) => [
+            id,
+            {
+              kind: KIND[id[0] as keyof typeof KIND],
+              children: kids,
+              properties: properties[id] ?? {},
+            },
+          ]),
+        ),
+        variables,
+      },
+    );
+  },
+};
 
 const MODEL = [
   'G0: Root [G1#G2]',

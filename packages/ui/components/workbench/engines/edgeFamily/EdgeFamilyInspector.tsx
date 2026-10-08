@@ -14,7 +14,7 @@ import {
 import {
   MISSING_FROM_NOTATION,
   NOT_A_CHILD,
-} from '@goal-controller/rt-language/structure';
+} from '@goal-controller/rt-language/context';
 import { useWorkbench } from '../../WorkbenchContext';
 import { NodeChip, cx } from '../../ui';
 import {

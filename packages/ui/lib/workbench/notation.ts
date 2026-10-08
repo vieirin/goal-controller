@@ -4,7 +4,7 @@
  * only: structure stays in the diagram). Text edits map back to element texts.
  */
 import type { GoalView, GoalViewNode } from '@goal-controller/goal-tree';
-import type { RtStructureRecord } from '@goal-controller/rt-language/structure';
+import type { RtContextRecord } from '@goal-controller/rt-language/context';
 import { composeNodeText } from './pistar';
 
 const INDENT = '  ';
@@ -61,13 +61,32 @@ export const notationEdits = (
   return edits;
 };
 
-/** What the language server checks notations against: elements and their children. */
-export const notationStructure = (tree: GoalView): RtStructureRecord =>
-  Object.fromEntries(
+/**
+ * What the language server checks the text against: the elements (kind, goal/task
+ * children, custom properties) and the workbench's variables.
+ */
+export const notationContext = (
+  tree: GoalView,
+  variables: readonly string[],
+): RtContextRecord => ({
+  elements: Object.fromEntries(
     [...tree.nodes.values()]
-      .filter(isNotationNode)
+      .filter((node) => node.kind !== 'quality')
       .map((node) => [
         node.id,
-        node.children.filter((id) => isNotationNode(tree.nodes.get(id))),
+        {
+          kind: node.kind as 'goal' | 'task' | 'resource',
+          children: node.children.filter((id) =>
+            isNotationNode(tree.nodes.get(id)),
+          ),
+          properties: Object.fromEntries(
+            Object.entries(node.properties).filter(
+              (entry): entry is [string, string] =>
+                typeof entry[1] === 'string',
+            ),
+          ),
+        },
       ]),
-  );
+  ),
+  variables: [...variables],
+});
