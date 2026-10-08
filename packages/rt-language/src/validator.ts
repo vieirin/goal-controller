@@ -9,6 +9,7 @@ import {
   MISSING_FROM_NOTATION,
   NOT_A_CHILD,
   NOT_IN_DIAGRAM,
+  NOTATION_SEVERITY,
   type RtContext,
   type RtElementKind,
   type RtProperties,
@@ -107,22 +108,29 @@ export class RtValidator {
     const element = this.context.element(line.name);
     const mismatch = relationMismatch(element?.construct, element?.relation);
     if (mismatch) {
-      accept('error', mismatch, { node: line, property: 'notation' });
+      accept(NOTATION_SEVERITY.relationMismatch, mismatch, {
+        node: line,
+        property: 'notation',
+      });
     }
     const children = this.context.childrenOf(line.name) ?? [];
     const refs = AstUtils.streamAst(line.notation).filter(isRef).toArray();
     const listed = new Set(refs.map((ref) => ref.ref.$refText));
     for (const ref of refs) {
       if (!children.includes(ref.ref.$refText)) {
-        accept('error', NOT_A_CHILD, { node: ref });
+        accept(NOTATION_SEVERITY.notAChild, NOT_A_CHILD, { node: ref });
       }
     }
     for (const child of children) {
       if (!listed.has(child)) {
-        accept('warning', `${MISSING_FROM_NOTATION}: ${child}`, {
-          node: line,
-          property: 'notation',
-        });
+        accept(
+          NOTATION_SEVERITY.missingFromNotation,
+          `${MISSING_FROM_NOTATION}: ${child}`,
+          {
+            node: line,
+            property: 'notation',
+          },
+        );
       }
     }
   }

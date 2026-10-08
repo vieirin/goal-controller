@@ -15,6 +15,7 @@ import {
 import {
   MISSING_FROM_NOTATION,
   NOT_A_CHILD,
+  NOTATION_SEVERITY,
 } from '@goal-controller/rt-language/context';
 import { useWorkbench } from '../../WorkbenchContext';
 import { NodeChip, cx } from '../../ui';
@@ -73,21 +74,41 @@ function NotationField({
     listed.length > 0 ? pursueable.filter((id) => !listed.includes(id)) : [];
   // what is wrong with the saved notation, shown when hovering the field
   const saved = notation.draft.trim() === (node.notation ?? '');
-  const errors = saved
-    ? [
-        ...(node.notationError
-          ? [`Not valid for this engine: ${node.notationError}`]
-          : []),
-        ...notChildren.map((id) => `${id}: ${NOT_A_CHILD}`),
-        ...[relationMismatch(node.construct, node.relation)].filter(
-          (mismatch): mismatch is string => mismatch !== null,
-        ),
-      ]
-    : [];
-  const problems = [
-    ...errors,
-    ...(saved ? missing.map((id) => `${id}: ${MISSING_FROM_NOTATION}`) : []),
-  ];
+  // the grammar error, then the structure mismatches at their shared severity
+  const mismatch = relationMismatch(node.construct, node.relation);
+  const issues: Array<{ severity: 'error' | 'warning'; message: string }> =
+    saved
+      ? [
+          ...(node.notationError
+            ? [
+                {
+                  severity: 'error' as const,
+                  message: `Not valid for this engine: ${node.notationError}`,
+                },
+              ]
+            : []),
+          ...notChildren.map((id) => ({
+            severity: NOTATION_SEVERITY.notAChild,
+            message: `${id}: ${NOT_A_CHILD}`,
+          })),
+          ...(mismatch
+            ? [
+                {
+                  severity: NOTATION_SEVERITY.relationMismatch,
+                  message: mismatch,
+                },
+              ]
+            : []),
+          ...missing.map((id) => ({
+            severity: NOTATION_SEVERITY.missingFromNotation,
+            message: `${id}: ${MISSING_FROM_NOTATION}`,
+          })),
+        ]
+      : [];
+  const errors = issues
+    .filter((issue) => issue.severity === 'error')
+    .map((issue) => issue.message);
+  const problems = issues.map((issue) => issue.message);
 
   return (
     <Field

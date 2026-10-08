@@ -231,3 +231,36 @@ describe('rt-language property completion, hover and definition', () => {
     });
   });
 });
+
+describe('go-to-definition for clients without linkSupport', () => {
+  beforeEach(() => context.set(MODEL as never));
+  afterEach(() => context.set(undefined));
+
+  it('answers with plain Locations (uri and range)', async () => {
+    const provider = RtNotation.lsp.DefinitionProvider as unknown as {
+      linkSupport: boolean;
+      getDefinition: typeof RtNotation.lsp.DefinitionProvider.getDefinition;
+    };
+    provider.linkSupport = false;
+    try {
+      const document = await parse(
+        'G0: Root [G1#T1]\n  assertion R1 > 3\nR1: Battery {int 0..10 = 5}',
+      );
+      const result = await provider.getDefinition(document, {
+        textDocument: { uri: document.uri.toString() },
+        position: { line: 1, character: 13 },
+      });
+      expect(result).to.deep.equal([
+        {
+          uri: document.uri.toString(),
+          range: {
+            start: { line: 2, character: 0 },
+            end: { line: 2, character: 27 },
+          },
+        },
+      ]);
+    } finally {
+      provider.linkSupport = true;
+    }
+  });
+});

@@ -7,6 +7,7 @@ import type { TransformEngine } from '@/lib/types';
 import { isValidName, jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 import { relationMismatch } from '@goal-controller/rt-language/constructs';
+import { NOTATION_SEVERITY } from '@goal-controller/rt-language/context';
 
 /**
  * RT id mentioned in an engine/generation message, if any.
@@ -98,7 +99,7 @@ export const treeProblems = (
         : [];
     if (notChildren.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: NOTATION_SEVERITY.notAChild,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: the notation [${node.notation}] lists ${notChildren.join(', ')}, which ${notChildren.length > 1 ? 'are not children' : 'is not a child'} of ${node.id}`,
@@ -106,7 +107,7 @@ export const treeProblems = (
     }
     if (unlisted.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: NOTATION_SEVERITY.missingFromNotation,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
@@ -115,7 +116,7 @@ export const treeProblems = (
     const mismatch = relationMismatch(node.construct, node.relation);
     if (mismatch) {
       problems.push({
-        severity: 'error',
+        severity: NOTATION_SEVERITY.relationMismatch,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: [${node.notation}] ${mismatch}`,

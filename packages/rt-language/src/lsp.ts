@@ -12,7 +12,7 @@ import {
   type Module,
   type ParseResult,
   type ParserOptions,
-  type URI,
+  URI,
 } from 'langium';
 import {
   AstNodeHoverProvider,
@@ -20,6 +20,7 @@ import {
   createDefaultSharedModule,
   DefaultCompletionProvider,
   DefaultDefinitionProvider,
+  DefaultDocumentUpdateHandler,
   type CompletionAcceptor,
   type CompletionContext,
   type CompletionProviderOptions,
@@ -39,7 +40,9 @@ import {
   type DefinitionParams,
   type Hover,
   type HoverParams,
+  type TextDocumentChangeEvent,
 } from 'vscode-languageserver';
+import type { TextDocument } from 'langium';
 import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
@@ -398,9 +401,29 @@ export class RtHoverProvider extends AstNodeHoverProvider {
   }
 }
 
-/** An id in an assertion or a dependsOn leads to its element's line. */
+/**
+ * An id in an assertion or a dependsOn leads to its element's line. Answers
+ * with plain Locations to a client without `linkSupport` (as LSP requires; the
+ * CodeMirror client reads `uri`/`range` only).
+ */
 export class RtDefinitionProvider extends DefaultDefinitionProvider {
+  /** set from the client's capabilities when it connects */
+  linkSupport = true;
+
   override async getDefinition(
+    document: LangiumDocument,
+    params: DefinitionParams,
+  ): Promise<LocationLink[] | undefined> {
+    const links = await this.definitionLinks(document, params);
+    if (!links || this.linkSupport) return links;
+    // LSP allows Location[] here; Langium's signature only names links
+    return links.map((link) => ({
+      uri: link.targetUri,
+      range: link.targetSelectionRange,
+    })) as unknown as LocationLink[];
+  }
+
+  private async definitionLinks(
     document: LangiumDocument,
     params: DefinitionParams,
   ): Promise<LocationLink[] | undefined> {
@@ -437,12 +460,28 @@ export const RtLspModule: Module<RtServices, PartialLangiumServices> = {
   },
 };
 
+/**
+ * Forgets a document when the editor closes it (an inspector field that
+ * unmounts): the server holds no files, so a closed document could not be
+ * re-read by a later build, which would then fail for every document.
+ */
+export class RtDocumentUpdateHandler extends DefaultDocumentUpdateHandler {
+  didCloseDocument(event: TextDocumentChangeEvent<TextDocument>): void {
+    void this.workspaceLock.write((token) =>
+      this.documentBuilder.update([], [URI.parse(event.document.uri)], token),
+    );
+  }
+}
+
 export const RtSharedModule: Module<
   LangiumSharedServices,
   PartialLangiumSharedServices
 > = {
   workspace: {
     LangiumDocumentFactory: (services) => new RtDocumentFactory(services),
+  },
+  lsp: {
+    DocumentUpdateHandler: (services) => new RtDocumentUpdateHandler(services),
   },
 };
 
@@ -465,5 +504,12 @@ export const createRtServices = (
   );
   shared.ServiceRegistry.register(RtNotation);
   registerRtValidationChecks(RtNotation);
+  shared.lsp.LanguageServer.onInitialize((params) => {
+    const definitions = RtNotation.lsp.DefinitionProvider;
+    if (definitions instanceof RtDefinitionProvider) {
+      definitions.linkSupport =
+        params.capabilities.textDocument?.definition?.linkSupport ?? false;
+    }
+  });
   return { shared, RtNotation };
 };

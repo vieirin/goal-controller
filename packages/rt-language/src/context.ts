@@ -54,6 +54,18 @@ export const NOT_A_CHILD = 'Not a child of this goal';
 export const MISSING_FROM_NOTATION = 'Missing from the notation';
 export const NOT_IN_DIAGRAM = 'Add this element in the diagram';
 
+/**
+ * How serious each notation/structure mismatch is, for every editor (Notation
+ * view, inspector, Problems). The engine generates in each case, but it drops
+ * what it cannot use: a notation naming a non-child or contradicting the links
+ * is not what the model says (error); an unlisted child is appended (warning).
+ */
+export const NOTATION_SEVERITY = {
+  notAChild: 'error',
+  relationMismatch: 'error',
+  missingFromNotation: 'warning',
+} as const;
+
 export type RtResource = {
   type: string;
   lowerBound?: number;

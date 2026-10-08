@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { EmptyFileSystem } from 'langium';
+import { EmptyFileSystem, URI } from 'langium';
 import { startLanguageServer } from 'langium/lsp';
 import {
   BrowserMessageReader,
@@ -34,10 +34,11 @@ export const startRtWorkerServer = (
     CONTEXT_NOTIFICATION,
     async (record: RtContextRecord) => {
       RtNotation.context.Context.set(record);
-      const uris = shared.workspace.LangiumDocuments.all
-        .map((document) => document.uri)
-        .toArray();
-      // re-validates the open documents against the new context
+      // re-validates the open documents against the new context (a closed one
+      // has no text left to re-read: the server holds no files)
+      const uris = shared.workspace.TextDocuments.all().map((document) =>
+        URI.parse(document.uri),
+      );
       await shared.workspace.DocumentBuilder.update(uris, []);
     },
   );
