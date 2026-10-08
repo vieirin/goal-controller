@@ -16,11 +16,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { nodeTone } from '@/lib/workbench/pistar';
 import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
-  nodeTone,
-} from '@/lib/workbench/pistar';
+} from '@goal-controller/rt-language/constructs';
 import type { Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
 import { readFile } from './TopBar';

@@ -6,13 +6,11 @@ import {
   EDGE_RESOURCE_FILL,
   PROPERTY_SPECS,
 } from '@/lib/workbench/edgeProperties';
+import { composeNodeText, nodeTone, setNodeText } from '@/lib/workbench/pistar';
 import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
-  composeNodeText,
-  nodeTone,
-  setNodeText,
-} from '@/lib/workbench/pistar';
+} from '@goal-controller/rt-language/constructs';
 import { useWorkbench } from '../../WorkbenchContext';
 import { NodeChip, cx } from '../../ui';
 import {

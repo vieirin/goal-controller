@@ -9,9 +9,17 @@ import { isActor, isNode, type IstarModel } from '@istar-ts/core';
 import { getGoalDetail, type RTGrammar } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
+import type { RtConstruct } from '@goal-controller/rt-language';
 
 /** The construct a notation expresses (`sequence` for `[G1;G2]`, …). */
 export type ViewConstruct = GoalExecutionDetail['type'];
+
+// rt-language declares the same union for its labels (it cannot depend on goal-tree)
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+export type ConstructsMatchRtLanguage =
+  Same<ViewConstruct, RtConstruct> extends true ? true : never;
+const constructsMatch: ConstructsMatchRtLanguage = true;
+void constructsMatch;
 
 export type ViewKind = 'goal' | 'task' | 'resource' | 'quality';
 

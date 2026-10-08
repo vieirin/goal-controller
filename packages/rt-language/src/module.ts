@@ -13,21 +13,36 @@ import {
   RtNotationGeneratedSharedModule,
 } from './generated/module.js';
 import { RtLexer } from './lexer.js';
+import { RtStructure } from './structure.js';
+import { registerRtValidationChecks, RtValidator } from './validator.js';
+
+export type RtAddedServices = {
+  structure: { Structure: RtStructure };
+  validation: { RtValidator: RtValidator };
+};
+
+export type RtCoreServices = LangiumCoreServices & RtAddedServices;
 
 /** Services shared by the engine parser and the language server. */
 export const RtCoreModule: Module<
-  LangiumCoreServices,
-  PartialLangiumCoreServices
+  RtCoreServices,
+  PartialLangiumCoreServices & RtAddedServices
 > = {
   parser: {
     Lexer: (services) => new RtLexer(services),
   },
+  structure: {
+    Structure: () => new RtStructure(),
+  },
+  validation: {
+    RtValidator: (services) => new RtValidator(services.structure.Structure),
+  },
 };
 
-/** Parser-only services (no LSP), for parsing goal names. */
+/** Parser and validator services (no LSP), for parsing goal names and tests. */
 export const createRtCoreServices = (): {
   shared: LangiumSharedCoreServices;
-  RtNotation: LangiumCoreServices;
+  RtNotation: RtCoreServices;
 } => {
   const shared = inject(
     createDefaultSharedCoreModule(EmptyFileSystem),
@@ -39,5 +54,6 @@ export const createRtCoreServices = (): {
     RtCoreModule,
   );
   shared.ServiceRegistry.register(RtNotation);
+  registerRtValidationChecks(RtNotation);
   return { shared, RtNotation };
 };

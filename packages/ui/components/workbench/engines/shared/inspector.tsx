@@ -13,8 +13,6 @@ import {
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
-  CONSTRUCT_HELP,
-  CONSTRUCT_LABEL,
   composeNodeText,
   isValidName,
   nodeTone,
@@ -23,6 +21,10 @@ import {
   setNodeText,
   setRefinement,
 } from '@/lib/workbench/pistar';
+import {
+  CONSTRUCT_HELP,
+  CONSTRUCT_LABEL,
+} from '@goal-controller/rt-language/constructs';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
 import { CreatableSelect, Button, NodeChip, Segmented, cx } from '../../ui';
