@@ -8,6 +8,11 @@ export type RtStructureRecord = Readonly<Record<string, readonly string[]>>;
 
 export const STRUCTURE_NOTIFICATION = 'rt/structure';
 
+/** What the editors say about a notation that does not match the structure. */
+export const NOT_A_CHILD = 'Not a child of this goal';
+export const MISSING_FROM_NOTATION = 'Missing from the notation';
+export const NOT_IN_DIAGRAM = 'Add this element in the diagram';
+
 export class RtStructure {
   private children: ReadonlyMap<string, readonly string[]> | undefined;
 

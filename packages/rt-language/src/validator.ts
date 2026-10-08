@@ -7,7 +7,12 @@ import {
   type RtNotationAstType,
 } from './generated/ast.js';
 import type { RtCoreServices } from './module.js';
-import type { RtStructure } from './structure.js';
+import {
+  MISSING_FROM_NOTATION,
+  NOT_A_CHILD,
+  NOT_IN_DIAGRAM,
+  type RtStructure,
+} from './structure.js';
 
 /** Element-level checks; grammar errors and unknown ids come from Langium itself. */
 export class RtValidator {
@@ -39,7 +44,7 @@ export class RtValidator {
   checkNodeLine(line: NodeLine, accept: ValidationAcceptor): void {
     if (!this.structure.known) return;
     if (!this.structure.has(line.name)) {
-      accept('error', 'Add this element in the diagram', {
+      accept('error', NOT_IN_DIAGRAM, {
         node: line,
         property: 'name',
       });
@@ -51,12 +56,12 @@ export class RtValidator {
     const listed = new Set(refs.map((ref) => ref.ref.$refText));
     for (const ref of refs) {
       if (!children.includes(ref.ref.$refText)) {
-        accept('error', 'Not a child of this goal', { node: ref });
+        accept('error', NOT_A_CHILD, { node: ref });
       }
     }
     for (const child of children) {
       if (!listed.has(child)) {
-        accept('warning', `Missing from the notation: ${child}`, {
+        accept('warning', `${MISSING_FROM_NOTATION}: ${child}`, {
           node: line,
           property: 'notation',
         });

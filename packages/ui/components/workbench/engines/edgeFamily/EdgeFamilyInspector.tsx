@@ -11,6 +11,10 @@ import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
 } from '@goal-controller/rt-language/constructs';
+import {
+  MISSING_FROM_NOTATION,
+  NOT_A_CHILD,
+} from '@goal-controller/rt-language/structure';
 import { useWorkbench } from '../../WorkbenchContext';
 import { NodeChip, cx } from '../../ui';
 import {
@@ -63,6 +67,20 @@ function NotationField({
   const pursueable = node.children.filter(
     (id) => tree?.nodes.get(id)?.kind !== 'resource',
   );
+  const notChildren = listed.filter((id) => !pursueable.includes(id));
+  const missing =
+    listed.length > 0 ? pursueable.filter((id) => !listed.includes(id)) : [];
+  // what is wrong with the saved notation, shown when hovering the field
+  const saved = notation.draft.trim() === (node.notation ?? '');
+  const problems = saved
+    ? [
+        ...(node.notationError
+          ? [`Not valid for this engine: ${node.notationError}`]
+          : []),
+        ...notChildren.map((id) => `${id}: ${NOT_A_CHILD}`),
+        ...missing.map((id) => `${id}: ${MISSING_FROM_NOTATION}`),
+      ]
+    : [];
 
   return (
     <Field
@@ -81,7 +99,16 @@ function NotationField({
       }
     >
       <input
-        className={cx(inputClass, 'font-mono')}
+        className={cx(
+          inputClass,
+          'font-mono',
+          problems.length > 0 &&
+            (node.notationError || notChildren.length > 0
+              ? 'border-danger'
+              : 'border-caution'),
+        )}
+        title={problems.length > 0 ? problems.join('\n') : undefined}
+        aria-invalid={problems.length > 0 || undefined}
         value={notation.draft}
         placeholder={pursueable.join(';') || 'G1;G2'}
         onChange={(e) => notation.change(e.target.value)}
@@ -95,15 +122,9 @@ function NotationField({
             <span
               key={id}
               className={cx(
-                listed.length > 0 &&
-                  !listed.includes(id) &&
-                  'rounded ring-1 ring-caution',
+                missing.includes(id) && 'rounded ring-1 ring-caution',
               )}
-              title={
-                listed.length > 0 && !listed.includes(id)
-                  ? 'Missing from the notation'
-                  : undefined
-              }
+              title={missing.includes(id) ? MISSING_FROM_NOTATION : undefined}
             >
               <NodeChip
                 id={id}
@@ -112,17 +133,15 @@ function NotationField({
               />
             </span>
           ))}
-          {listed
-            .filter((id) => !pursueable.includes(id))
-            .map((id) => (
-              <span
-                key={id}
-                className='rounded bg-danger-soft px-1 font-mono text-2xs text-danger'
-                title='Not a child of this goal'
-              >
-                {id}?
-              </span>
-            ))}
+          {notChildren.map((id) => (
+            <span
+              key={id}
+              className='rounded bg-danger-soft px-1 font-mono text-2xs text-danger'
+              title={NOT_A_CHILD}
+            >
+              {id}?
+            </span>
+          ))}
         </div>
       )}
       {pursueable.length > 1 && (
