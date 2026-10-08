@@ -48,3 +48,34 @@ export const RT_OPERATORS: ReadonlyArray<{
 ];
 
 export const RETRY_HELP = 'retries the goal on its left up to N times (G1@3)';
+
+export type RtRelation = 'and' | 'or';
+
+/**
+ * The refinement links each construct needs: AND constructs pursue every child,
+ * OR constructs one of them. The edgeV2 engine ignores a notation whose
+ * construct contradicts its goal's links (it uses the links' default instead).
+ */
+export const CONSTRUCT_RELATION: Record<
+  Exclude<RtConstruct, 'decisionMaking'>,
+  RtRelation
+> = {
+  sequence: 'and',
+  anyOrder: 'and',
+  interleaved: 'and',
+  alternative: 'or',
+  choice: 'or',
+  degradation: 'or',
+};
+
+/** Why a goal's notation contradicts its refinement links, if it does. */
+export const relationMismatch = (
+  construct: RtConstruct | null | undefined,
+  relation: RtRelation | null | undefined,
+): string | null => {
+  if (!construct || construct === 'decisionMaking' || !relation) return null;
+  const needs = CONSTRUCT_RELATION[construct];
+  return needs === relation
+    ? null
+    : `${CONSTRUCT_LABEL[construct]} needs ${needs.toUpperCase()} refinement links, but this goal is refined with ${relation.toUpperCase()} links (the engine ignores the notation)`;
+};

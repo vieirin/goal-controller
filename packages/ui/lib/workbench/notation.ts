@@ -79,6 +79,8 @@ export const notationContext = (
           children: node.children.filter((id) =>
             isNotationNode(tree.nodes.get(id)),
           ),
+          relation: node.relation,
+          construct: node.construct,
           properties: Object.fromEntries(
             Object.entries(node.properties).filter(
               (entry): entry is [string, string] =>

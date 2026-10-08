@@ -4,6 +4,7 @@ import {
   type ValidationAcceptor,
   type ValidationChecks,
 } from 'langium';
+import { relationMismatch } from './constructs.js';
 import {
   MISSING_FROM_NOTATION,
   NOT_A_CHILD,
@@ -103,6 +104,11 @@ export class RtValidator {
       return;
     }
     if (!line.notation) return;
+    const element = this.context.element(line.name);
+    const mismatch = relationMismatch(element?.construct, element?.relation);
+    if (mismatch) {
+      accept('error', mismatch, { node: line, property: 'notation' });
+    }
     const children = this.context.childrenOf(line.name) ?? [];
     const refs = AstUtils.streamAst(line.notation).filter(isRef).toArray();
     const listed = new Set(refs.map((ref) => ref.ref.$refText));

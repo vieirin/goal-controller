@@ -71,6 +71,9 @@ importers:
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree
+      '@goal-controller/rt-language':
+        specifier: workspace:^
+        version: link:../rt-language
       antlr4:
         specifier: ^4.13.0
         version: 4.13.2

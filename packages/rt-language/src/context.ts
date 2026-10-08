@@ -5,6 +5,8 @@
  * server starts, so the rules stay the engine's own). Without it the checks that
  * need the model are skipped.
  */
+import type { RtConstruct, RtRelation } from './constructs.js';
+
 export type RtElementKind = 'goal' | 'task' | 'resource';
 
 export type RtContextElement = {
@@ -13,6 +15,10 @@ export type RtContextElement = {
   children: readonly string[];
   /** its custom properties, as stored */
   properties: Readonly<Record<string, string>>;
+  /** how it refines its children (AND/OR links), if it does */
+  relation?: RtRelation | null;
+  /** the construct its saved notation expresses, as the engine reads it */
+  construct?: RtConstruct | null;
 };
 
 export type RtContextRecord = {
@@ -90,6 +96,10 @@ export class RtContext {
   /** an element's kind: from the model, else from its RT id's letter */
   kindOfLine(id: string): RtElementKind | undefined {
     return this.kindOf(id) ?? RT_KIND[id[0] ?? ''];
+  }
+
+  element(id: string): RtContextElement | undefined {
+    return this.record?.elements[id];
   }
 
   propertiesOf(id: string): Readonly<Record<string, string>> {

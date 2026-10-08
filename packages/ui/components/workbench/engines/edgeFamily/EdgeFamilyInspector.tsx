@@ -10,6 +10,7 @@ import { composeNodeText, nodeTone, setNodeText } from '@/lib/workbench/pistar';
 import {
   CONSTRUCT_HELP,
   CONSTRUCT_LABEL,
+  relationMismatch,
 } from '@goal-controller/rt-language/constructs';
 import {
   MISSING_FROM_NOTATION,
@@ -78,6 +79,9 @@ function NotationField({
           ? [`Not valid for this engine: ${node.notationError}`]
           : []),
         ...notChildren.map((id) => `${id}: ${NOT_A_CHILD}`),
+        ...[relationMismatch(node.construct, node.relation)].filter(
+          (mismatch): mismatch is string => mismatch !== null,
+        ),
       ]
     : [];
   const problems = [

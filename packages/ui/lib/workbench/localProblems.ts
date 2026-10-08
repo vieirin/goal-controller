@@ -6,8 +6,7 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { isValidName, jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
-
-const AND_CONSTRUCTS = new Set(['sequence', 'anyOrder', 'interleaved']);
+import { relationMismatch } from '@goal-controller/rt-language/constructs';
 
 /**
  * RT id mentioned in an engine/generation message, if any.
@@ -113,16 +112,14 @@ export const treeProblems = (
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
       });
     }
-    if (node.construct && node.relation) {
-      const needs = AND_CONSTRUCTS.has(node.construct) ? 'and' : 'or';
-      if (needs !== node.relation) {
-        problems.push({
-          severity: 'warning',
-          source: 'model',
-          nodeId: node.id,
-          message: `${node.id}: [${node.notation}] needs ${needs.toUpperCase()} refinement links but ${node.id} uses ${node.relation.toUpperCase()}; the engine will ignore the notation`,
-        });
-      }
+    const mismatch = relationMismatch(node.construct, node.relation);
+    if (mismatch) {
+      problems.push({
+        severity: 'error',
+        source: 'model',
+        nodeId: node.id,
+        message: `${node.id}: [${node.notation}] ${mismatch}`,
+      });
     }
   }
   return problems;
