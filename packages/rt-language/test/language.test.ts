@@ -1,7 +1,14 @@
 import { expect } from 'chai';
 import { EmptyFileSystem } from 'langium';
 import { expectCompletion, expectHover, validationHelper } from 'langium/test';
-import type { Document } from '../src/generated/ast.js';
+import type { Document, NodeLine, PropertyLine } from '../src/generated/ast.js';
+import {
+  propertyLine,
+  readPropertyLine,
+  readResourceLine,
+  resourceDecl,
+  RESOURCE_KEYS,
+} from '../src/properties.js';
 import { createRtServices } from '../src/lsp.js';
 
 const { RtNotation } = createRtServices(EmptyFileSystem);
@@ -164,6 +171,73 @@ describe('rt-language document with properties and resources', () => {
       'RawProperty',
       'NodeLine',
       'NodeLine',
+    ]);
+  });
+});
+
+describe('property and resource line helpers agree with the grammar', () => {
+  const { RtNotation: core } = createRtServices(EmptyFileSystem);
+
+  it('round-trips resource declarations', () => {
+    for (const properties of [
+      { type: 'int', lowerBound: '0', upperBound: '100', initialValue: '80' },
+      { type: 'int', lowerBound: '-5', upperBound: '5', initialValue: '-1' },
+      { type: 'bool', initialValue: 'false' },
+      { type: 'bool' },
+    ]) {
+      const line = `R1: Battery ${resourceDecl(properties)}`;
+      const parsed = core.parser.LangiumParser.parse<Document>(line);
+      expect(parsed.parserErrors).to.deep.equal([]);
+      const decl = (parsed.value.lines[0] as NodeLine).resource!;
+      const fromGrammar = Object.fromEntries(
+        RESOURCE_KEYS.flatMap((key) =>
+          decl[key] !== undefined ? [[key, decl[key]]] : [],
+        ),
+      );
+      const fromHelper = readResourceLine(line);
+      expect(fromHelper.text).to.equal('R1: Battery');
+      expect(
+        Object.fromEntries(
+          Object.entries(fromHelper.resource ?? {}).filter(
+            ([, value]) => value !== undefined,
+          ),
+        ),
+      ).to.deep.equal(fromGrammar);
+      expect(fromGrammar).to.deep.equal(properties);
+    }
+  });
+
+  it('round-trips property lines', () => {
+    for (const [key, value] of [
+      ['maintain', 'battery > 20 & ok'],
+      ['dependsOn', 'G1, G2'],
+      ['variables', 'x:3, y:2'],
+      ['utility', '0.5'],
+    ] as const) {
+      const line = `  ${propertyLine(key, value)}`;
+      expect(readPropertyLine(line)).to.deep.equal({ key, value });
+      const parsed = core.parser.LangiumParser.parse<Document>(
+        `G1: Goal\n${line}`,
+      );
+      expect(parsed.parserErrors).to.deep.equal([]);
+      const property = parsed.value.lines[1] as PropertyLine;
+      expect(property.key).to.equal(key);
+      expect(property.value.$cstNode?.text.trim()).to.equal(value);
+    }
+  });
+});
+
+describe('property lines end at their line break', () => {
+  it('does not read the next element as an empty dependsOn', async () => {
+    const { document, diagnostics } = await validate(
+      'G21: Trigger [T11]\n  dependsOn\n  T11: Enact\n    assertion ok',
+    );
+    expect(diagnostics.filter((d) => d.severity === 1)).to.deep.equal([]);
+    expect(document.parseResult.value.lines.map((l) => l.$type)).to.deep.equal([
+      'NodeLine',
+      'DependsOnProperty',
+      'NodeLine',
+      'ConditionProperty',
     ]);
   });
 });

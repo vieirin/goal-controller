@@ -128,6 +128,7 @@ export class RtLexer extends DefaultLexer {
     const singleValue = startMode !== 'rt';
     let mode: RtLexerMode = startMode;
     let lineStart = !singleValue;
+    let propertyLine = false;
     let offset = 0;
     let line = 1;
     let column = 1;
@@ -169,8 +170,10 @@ export class RtLexer extends DefaultLexer {
         LINE_BREAK.lastIndex = offset;
         const lineBreak = LINE_BREAK.exec(text);
         if (lineBreak) {
+          // ends a property line for the parser too (an empty value stops here)
+          push(propertyLine ? 'EOL' : 'LINEBREAK', lineBreak[0]);
           mode = 'rt';
-          push('LINEBREAK', lineBreak[0]);
+          propertyLine = false;
           lineStart = true;
           continue;
         }
@@ -181,6 +184,7 @@ export class RtLexer extends DefaultLexer {
           if (key) {
             push(key, key);
             mode = PROPERTY_MODES[key];
+            propertyLine = true;
             continue;
           }
         }

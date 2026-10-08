@@ -11,7 +11,7 @@ import {
   notationEdits,
   notationContext,
 } from '@/lib/workbench/notation';
-import { setNodeText } from '@/lib/workbench/pistar';
+import { setNodeProperty, setNodeText } from '@/lib/workbench/pistar';
 import { createRtClient } from '@/lib/workbench/rtLsp';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
@@ -105,7 +105,10 @@ export default function NotationView() {
       if (edits.length === 0) return;
       setText(
         edits.reduce(
-          (model, edit) => setNodeText(model, edit.iStarId, edit.text),
+          (model, edit) =>
+            'key' in edit
+              ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
+              : setNodeText(model, edit.iStarId, edit.text),
           text,
         ),
         'notation',
@@ -123,8 +126,11 @@ export default function NotationView() {
           !update.transactions.some((tr) => tr.isUserEvent('select'))
         )
           return;
-        const { state } = update;
-        const id = lineId(state.doc.lineAt(state.selection.main.head).text);
+        const { doc } = update.state;
+        // a property line belongs to the element line above it
+        let line = doc.lineAt(update.state.selection.main.head).number;
+        let id = lineId(doc.line(line).text);
+        while (!id && line > 1) id = lineId(doc.line(--line).text);
         const node = id ? latest.current.tree?.nodes.get(id) : undefined;
         if (node && node.id !== latestSelected.current) {
           latest.current.select(node.id, 'notation');

@@ -576,140 +576,153 @@ export const RtNotationGrammar = (): Grammar =>
       "$type": "ParserRule",
       "name": "PropertyLine",
       "definition": {
-        "$type": "Alternatives",
+        "$type": "Group",
         "elements": [
           {
-            "$type": "Group",
+            "$type": "Alternatives",
             "elements": [
               {
-                "$type": "Action",
-                "inferredType": {
-                  "$type": "InferredType",
-                  "name": "ConditionProperty"
-                }
-              },
-              {
-                "$type": "Assignment",
-                "feature": "key",
-                "operator": "=",
-                "terminal": {
-                  "$type": "Alternatives",
-                  "elements": [
-                    {
-                      "$type": "Keyword",
-                      "value": "maintain"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "assertion"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Action",
+                    "inferredType": {
+                      "$type": "InferredType",
+                      "name": "ConditionProperty"
                     }
-                  ]
-                }
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "key",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "Alternatives",
+                      "elements": [
+                        {
+                          "$type": "Keyword",
+                          "value": "maintain"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "assertion"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "value",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@12"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
               },
               {
-                "$type": "Assignment",
-                "feature": "value",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@12"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Action",
+                    "inferredType": {
+                      "$type": "InferredType",
+                      "name": "DependsOnProperty"
+                    }
                   },
-                  "arguments": []
-                }
+                  {
+                    "$type": "Assignment",
+                    "feature": "key",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "Keyword",
+                      "value": "dependsOn"
+                    }
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "value",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@13"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Action",
+                    "inferredType": {
+                      "$type": "InferredType",
+                      "name": "RawProperty"
+                    }
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "key",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "Alternatives",
+                      "elements": [
+                        {
+                          "$type": "Keyword",
+                          "value": "variables"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "utility"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "cost"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "maxRetries"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "type"
+                        },
+                        {
+                          "$type": "Keyword",
+                          "value": "root"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "value",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@15"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
               }
             ]
           },
           {
-            "$type": "Group",
-            "elements": [
-              {
-                "$type": "Action",
-                "inferredType": {
-                  "$type": "InferredType",
-                  "name": "DependsOnProperty"
-                }
-              },
-              {
-                "$type": "Assignment",
-                "feature": "key",
-                "operator": "=",
-                "terminal": {
-                  "$type": "Keyword",
-                  "value": "dependsOn"
-                }
-              },
-              {
-                "$type": "Assignment",
-                "feature": "value",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@13"
-                  },
-                  "arguments": []
-                }
-              }
-            ]
-          },
-          {
-            "$type": "Group",
-            "elements": [
-              {
-                "$type": "Action",
-                "inferredType": {
-                  "$type": "InferredType",
-                  "name": "RawProperty"
-                }
-              },
-              {
-                "$type": "Assignment",
-                "feature": "key",
-                "operator": "=",
-                "terminal": {
-                  "$type": "Alternatives",
-                  "elements": [
-                    {
-                      "$type": "Keyword",
-                      "value": "variables"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "utility"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "cost"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "maxRetries"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "type"
-                    },
-                    {
-                      "$type": "Keyword",
-                      "value": "root"
-                    }
-                  ]
-                }
-              },
-              {
-                "$type": "Assignment",
-                "feature": "value",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@15"
-                  },
-                  "arguments": []
-                }
-              }
-            ]
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@30"
+            },
+            "arguments": [],
+            "cardinality": "?"
           }
         ]
       },
@@ -1284,6 +1297,17 @@ export const RtNotationGrammar = (): Grammar =>
       "definition": {
         "$type": "RegexToken",
         "regex": "/[^\\\\r\\\\n]+/",
+        "parenthesized": false
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "EOL",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "/(?:[\\\\r\\\\n]+)[ \\\\t]*/",
         "parenthesized": false
       },
       "fragment": false,

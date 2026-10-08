@@ -57,10 +57,13 @@ DeclValue returns string:
 // for parsing one value on its own (the inspector's fields, the engine).
 // ---------------------------------------------------------------------------
 
+// a property line ends at its line break (EOL), so an empty value does not
+// read the next line
 PropertyLine:
-    {infer ConditionProperty} key=('maintain' | 'assertion') value=AssertionValue
+    ({infer ConditionProperty} key=('maintain' | 'assertion') value=AssertionValue
     | {infer DependsOnProperty} key='dependsOn' value=DependsOnValue
-    | {infer RawProperty} key=('variables' | 'utility' | 'cost' | 'maxRetries' | 'type' | 'root') value=RawValue;
+    | {infer RawProperty} key=('variables' | 'utility' | 'cost' | 'maxRetries' | 'type' | 'root') value=RawValue)
+    EOL?;
 
 AssertionValue:
     {infer AssertionValue} expr=AssertExpr?;
@@ -110,6 +113,8 @@ terminal A_INT: /[1-9][0-9]*/;
 terminal DECL_NUM: /-?[0-9]+/;
 terminal DECL_WORD: /[A-Za-z_][A-Za-z0-9_]*/;
 terminal VALUE: /[^\r\n]+/;
+// the line break ending a property line (other line breaks are hidden)
+terminal EOL: /(?:[\r\n]+)[ \t]*/;
 
 hidden terminal WS: /[ \t]+/;
 // a line break plus the next line's indentation (indentation is presentation only)

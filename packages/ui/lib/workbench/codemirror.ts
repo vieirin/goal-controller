@@ -16,6 +16,7 @@ import {
 } from '@codemirror/state';
 import { Decoration, EditorView, type DecorationSet } from '@codemirror/view';
 import { tags as t } from '@lezer/highlight';
+import { PROPERTY_MODES } from '@goal-controller/rt-language/properties';
 
 // ---------------------------------------------------------------------------
 // PRISM language (enough for highlighting generated models)
@@ -88,12 +89,53 @@ export const prismLanguage = StreamLanguage.define(prismParser);
 // RT notation (`G1: Name [G2;G3@2->T4]`), for the notation view
 // ---------------------------------------------------------------------------
 
-const rtParser: StreamParser<{ inNotation: boolean; named: boolean }> = {
+const PROPERTY_KEY = new RegExp(
+  `^(${Object.keys(PROPERTY_MODES).join('|')})(?![\\w])`,
+);
+
+const rtParser: StreamParser<{
+  inNotation: boolean;
+  named: boolean;
+  property: boolean;
+  decl: boolean;
+}> = {
   name: 'rt',
-  startState: () => ({ inNotation: false, named: false }),
+  startState: () => ({
+    inNotation: false,
+    named: false,
+    property: false,
+    decl: false,
+  }),
   token(stream, state) {
-    if (stream.sol()) state.named = false;
+    if (stream.sol()) {
+      state.named = false;
+      state.property = false;
+      state.decl = false;
+      state.inNotation = false;
+    }
     if (stream.eatSpace()) return null;
+    // a property line under an element: `maintain battery > 20`
+    if (!state.named && !state.property && stream.match(PROPERTY_KEY)) {
+      state.property = true;
+      return 'propertyName';
+    }
+    if (state.property || state.decl) {
+      if (state.decl && stream.eat('}')) {
+        state.decl = false;
+        return 'brace';
+      }
+      if (stream.match(/^(true|false)\b/)) return 'bool';
+      if (stream.match(/^-?\d+(\.\d+)?/)) return 'number';
+      if (stream.match(/^(int|bool)\b/) && state.decl) return 'typeName';
+      if (stream.match(/^[A-Za-z_]\w*/)) return 'variableName';
+      if (stream.match(/^(!=|<=|>=|\.\.|[&|!<>=(),:])/)) return 'operator';
+      stream.next();
+      return null;
+    }
+    if (stream.eat('{')) {
+      state.decl = true;
+      return 'brace';
+    }
     if (stream.eat('[')) {
       state.inNotation = true;
       return 'bracket';
@@ -110,7 +152,7 @@ const rtParser: StreamParser<{ inNotation: boolean; named: boolean }> = {
       }
     }
     if (!state.inNotation) {
-      stream.match(/^[^[]+/);
+      stream.match(/^[^[{]+/);
       return 'string';
     }
     if (stream.match('skip')) return 'keyword';

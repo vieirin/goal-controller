@@ -15,6 +15,7 @@ export const RtNotationTerminals = {
   DECL_NUM: /-?[0-9]+/,
   DECL_WORD: /[A-Za-z_][A-Za-z0-9_]*/,
   VALUE: /[^\r\n]+/,
+  EOL: /(?:[\r\n]+)[ \t]*/,
   WS: /[ \t]+/,
   LINEBREAK: /[\r\n]+[ \t]*/,
 };
