@@ -16,6 +16,7 @@ import type {
 } from '../../antlr/edgeV2/RTRegexParser';
 import RTRegexParser from '../../antlr/edgeV2/RTRegexParser';
 import type { GoalExecutionDetail } from '../../types/';
+import { toExecutionDetail } from './executionDetail';
 
 export const getGoalDetail = ({
   goalText,
@@ -141,67 +142,18 @@ export const getGoalDetail = ({
 
   const walker = new RTNotationTreeWalker();
   ParseTreeWalker.DEFAULT.walk(walker, tree);
-  const goalSanitizedName = goalName ?? '';
 
-  if (degradationList.length > 0) {
-    const executionDetail: any = {
-      type: 'degradation',
+  return {
+    id,
+    goalName: (goalName ?? '').trim(),
+    executionDetail: toExecutionDetail({
+      alternative,
       degradationList,
-    };
-
-    // Only include retryMap if it's not empty
-    if (Object.keys(retry).length > 0) {
-      executionDetail.retryMap = retry;
-    }
-
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail,
-    };
-  }
-
-  if (sequence.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'sequence', sequence },
-    };
-  }
-
-  if (anyOrder.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'anyOrder', anyOrder },
-    };
-  }
-
-  if (alternative.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: {
-        type: 'alternative',
-        alternative,
-      },
-    };
-  }
-  if (interleaved.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'interleaved', interleaved },
-    };
-  }
-
-  if (choice.length > 0) {
-    return {
-      id,
-      goalName: goalSanitizedName.trim(),
-      executionDetail: { type: 'choice', choice },
-    };
-  }
-
-  return { id, goalName: goalSanitizedName.trim(), executionDetail: null };
+      interleaved,
+      sequence,
+      anyOrder,
+      retry,
+      choice,
+    }),
+  };
 };

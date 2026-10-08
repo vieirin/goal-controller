@@ -41,6 +41,8 @@ export {
 
 // EdgeV2 engine mapper and template
 export { edgeV2EngineMapper, generateEdgeV2PrismModel, initEdgeV2Logger };
+// EdgeLangium: edgeV2 with the Langium RT grammar (generates with generateEdgeV2PrismModel)
+export { edgeLangiumEngineMapper } from './engines/edgeLangium';
 // Custom properties each engine reads from the goal model (for editors)
 export {
   EDGE_GOAL_KEYS,

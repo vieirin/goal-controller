@@ -189,160 +189,165 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
 
 /**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
- * Engine types are explicit, key types are inferred from the allowedKeys arrays
+ * Engine types are explicit, key types are inferred from the allowedKeys arrays.
+ * The grammar that reads the RT notation is a parameter: edgeV2's ANTLR grammar,
+ * or the Langium grammar of @goal-controller/rt-language (edgeLangium).
  */
-export const edgeEngineMapper = createEngineMapper<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
->()({
-  grammar: 'edgeV2',
-  allowedGoalKeys: EDGE_GOAL_KEYS,
-  allowedTaskKeys: EDGE_TASK_KEYS,
-  allowedResourceKeys: EDGE_RESOURCE_KEYS,
-  mapGoalProps: ({ raw, executionDetail, id }) => {
-    // dependsOn needs the whole tree: checked later, in afterCreationMapper
-    const issue = firstGoalOrTaskIssue('goal', raw);
-    if (issue) throw new Error(`${issue} (node ${id})`);
+export const createEdgeV2Mapper = (grammar: 'edgeV2' | 'edgeLangium') =>
+  createEngineMapper<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>()(
+    {
+      grammar,
+      allowedGoalKeys: EDGE_GOAL_KEYS,
+      allowedTaskKeys: EDGE_TASK_KEYS,
+      allowedResourceKeys: EDGE_RESOURCE_KEYS,
+      mapGoalProps: ({ raw, executionDetail, id }) => {
+        // dependsOn needs the whole tree: checked later, in afterCreationMapper
+        const issue = firstGoalOrTaskIssue('goal', raw);
+        if (issue) throw new Error(`${issue} (node ${id})`);
 
-    const decisionVars = parseDecision(raw.variables);
-    const execCondition = getMaintainCondition(raw, 'goal');
-
-    return {
-      utility: raw.utility || '',
-      cost: raw.cost || '',
-      dependsOn: [],
-      executionDetail,
-      execCondition,
-      decision: {
-        decisionVars,
-        hasDecision: decisionVars.length > 0,
-      } satisfies Decision,
-      maxRetries: parseMaxRetries(raw.maxRetries, 'goal'),
-    };
-  },
-
-  mapTaskProps: ({ raw, id }) => {
-    const issue = firstGoalOrTaskIssue('task', raw);
-    if (issue) throw new Error(`${issue} (node ${id})`);
-
-    const execCondition = getMaintainCondition(raw, 'task');
-
-    return {
-      execCondition,
-      maxRetries: parseMaxRetries(raw.maxRetries, 'task'),
-      utility: raw.utility || '',
-      cost: raw.cost || '',
-    };
-  },
-
-  mapResourceProps: ({ raw, id }) => {
-    const issue = firstResourceIssue(raw);
-    if (issue) throw new Error(`${issue} (node ${id})`);
-
-    const { type, initialValue, lowerBound, upperBound } = raw;
-
-    switch (type) {
-      case 'bool': {
-        // Validate initialValue is strictly 'true' or 'false'
-        if (initialValue !== 'true' && initialValue !== 'false') {
-          throw new Error(
-            `[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: ${initialValue === undefined ? 'undefined' : `"${initialValue}"`}`,
-          );
-        }
-        return {
-          variable: {
-            type: 'boolean' as const,
-            initialValue: initialValue === 'true',
-          },
-        };
-      }
-      case 'int': {
-        // Check for null/undefined/empty string explicitly to allow "0" as valid value
-        if (
-          initialValue == null ||
-          lowerBound == null ||
-          upperBound == null ||
-          initialValue === '' ||
-          lowerBound === '' ||
-          upperBound === ''
-        ) {
-          throw new Error(
-            '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound',
-          );
-        }
-
-        const lowerBoundInt = parseInt(lowerBound, 10);
-        const upperBoundInt = parseInt(upperBound, 10);
-
-        if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
-          throw new Error(
-            '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
-          );
-        }
-
-        if (lowerBoundInt > upperBoundInt) {
-          throw new Error(
-            `[INVALID RESOURCE]: Resource lower bound (${lowerBoundInt}) must be less than or equal to upper bound (${upperBoundInt})`,
-          );
-        }
-
-        const initialValueInt = parseInt(initialValue, 10);
-
-        if (isNaN(initialValueInt)) {
-          throw new Error(
-            `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
-          );
-        }
-
-        // Validate initialValue is within bounds
-        if (
-          initialValueInt < lowerBoundInt ||
-          initialValueInt > upperBoundInt
-        ) {
-          throw new Error(
-            `[INVALID RESOURCE]: Initial value (${initialValueInt}) must be within bounds [${lowerBoundInt}, ${upperBoundInt}]`,
-          );
-        }
+        const decisionVars = parseDecision(raw.variables);
+        const execCondition = getMaintainCondition(raw, 'goal');
 
         return {
-          variable: {
-            type: 'int' as const,
-            initialValue: initialValueInt,
-            lowerBound: lowerBoundInt,
-            upperBound: upperBoundInt,
-          },
+          utility: raw.utility || '',
+          cost: raw.cost || '',
+          dependsOn: [],
+          executionDetail,
+          execCondition,
+          decision: {
+            decisionVars,
+            hasDecision: decisionVars.length > 0,
+          } satisfies Decision,
+          maxRetries: parseMaxRetries(raw.maxRetries, 'goal'),
         };
-      }
-      default:
-        throw new Error(
-          `[INVALID RESOURCE]: Unsupported resource type: ${type}`,
+      },
+
+      mapTaskProps: ({ raw, id }) => {
+        const issue = firstGoalOrTaskIssue('task', raw);
+        if (issue) throw new Error(`${issue} (node ${id})`);
+
+        const execCondition = getMaintainCondition(raw, 'task');
+
+        return {
+          execCondition,
+          maxRetries: parseMaxRetries(raw.maxRetries, 'task'),
+          utility: raw.utility || '',
+          cost: raw.cost || '',
+        };
+      },
+
+      mapResourceProps: ({ raw, id }) => {
+        const issue = firstResourceIssue(raw);
+        if (issue) throw new Error(`${issue} (node ${id})`);
+
+        const { type, initialValue, lowerBound, upperBound } = raw;
+
+        switch (type) {
+          case 'bool': {
+            // Validate initialValue is strictly 'true' or 'false'
+            if (initialValue !== 'true' && initialValue !== 'false') {
+              throw new Error(
+                `[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: ${initialValue === undefined ? 'undefined' : `"${initialValue}"`}`,
+              );
+            }
+            return {
+              variable: {
+                type: 'boolean' as const,
+                initialValue: initialValue === 'true',
+              },
+            };
+          }
+          case 'int': {
+            // Check for null/undefined/empty string explicitly to allow "0" as valid value
+            if (
+              initialValue == null ||
+              lowerBound == null ||
+              upperBound == null ||
+              initialValue === '' ||
+              lowerBound === '' ||
+              upperBound === ''
+            ) {
+              throw new Error(
+                '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound',
+              );
+            }
+
+            const lowerBoundInt = parseInt(lowerBound, 10);
+            const upperBoundInt = parseInt(upperBound, 10);
+
+            if (isNaN(lowerBoundInt) || isNaN(upperBoundInt)) {
+              throw new Error(
+                '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
+              );
+            }
+
+            if (lowerBoundInt > upperBoundInt) {
+              throw new Error(
+                `[INVALID RESOURCE]: Resource lower bound (${lowerBoundInt}) must be less than or equal to upper bound (${upperBoundInt})`,
+              );
+            }
+
+            const initialValueInt = parseInt(initialValue, 10);
+
+            if (isNaN(initialValueInt)) {
+              throw new Error(
+                `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
+              );
+            }
+
+            // Validate initialValue is within bounds
+            if (
+              initialValueInt < lowerBoundInt ||
+              initialValueInt > upperBoundInt
+            ) {
+              throw new Error(
+                `[INVALID RESOURCE]: Initial value (${initialValueInt}) must be within bounds [${lowerBoundInt}, ${upperBoundInt}]`,
+              );
+            }
+
+            return {
+              variable: {
+                type: 'int' as const,
+                initialValue: initialValueInt,
+                lowerBound: lowerBoundInt,
+                upperBound: upperBoundInt,
+              },
+            };
+          }
+          default:
+            throw new Error(
+              `[INVALID RESOURCE]: Unsupported resource type: ${type}`,
+            );
+        }
+      },
+
+      afterCreationMapper: ({ node, allNodes, rawProperties }) => {
+        // Only process goal nodes for dependsOn resolution
+        if (rawProperties.nodeType !== 'goal' || node.type !== 'goal') {
+          // For non-goal nodes, return the existing engine props
+          return node.properties.engine;
+        }
+
+        const dependsOnMessage = edgeGoalChecks.dependsOn?.(rawProperties.raw, {
+          self: node.id,
+          kindOf: (id) => allNodes.get(id)?.type,
+        });
+        if (dependsOnMessage) throw new Error(dependsOnMessage);
+
+        const depIds = parseDependsOn(rawProperties.raw.dependsOn);
+        const resolvedDeps = depIds.map(
+          (id) => allNodes.get(id) as EdgeGoalNode,
         );
-    }
-  },
 
-  afterCreationMapper: ({ node, allNodes, rawProperties }) => {
-    // Only process goal nodes for dependsOn resolution
-    if (rawProperties.nodeType !== 'goal' || node.type !== 'goal') {
-      // For non-goal nodes, return the existing engine props
-      return node.properties.engine;
-    }
+        return {
+          ...node.properties.engine,
+          dependsOn: resolvedDeps,
+        };
+      },
+    },
+  );
 
-    const dependsOnMessage = edgeGoalChecks.dependsOn?.(rawProperties.raw, {
-      self: node.id,
-      kindOf: (id) => allNodes.get(id)?.type,
-    });
-    if (dependsOnMessage) throw new Error(dependsOnMessage);
-
-    const depIds = parseDependsOn(rawProperties.raw.dependsOn);
-    const resolvedDeps = depIds.map((id) => allNodes.get(id) as EdgeGoalNode);
-
-    return {
-      ...node.properties.engine,
-      dependsOn: resolvedDeps,
-    };
-  },
-});
+export const edgeEngineMapper = createEdgeV2Mapper('edgeV2');
 
 /**
  * Type aliases for Edge-specific tree types

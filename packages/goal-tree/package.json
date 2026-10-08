@@ -8,7 +8,8 @@
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
     "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
-    "clean": "rm -rf out tsconfig.tsbuildinfo"
+    "clean": "rm -rf out tsconfig.tsbuildinfo",
+    "test:parsers": "TS_NODE_PROJECT=./tsconfig.test.json mocha --no-config -r ts-node/register --extension ts \"test/parsers/**/*.test.ts\""
   },
   "dependencies": {
     "@goal-controller/rt-language": "workspace:^",

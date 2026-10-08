@@ -1,5 +1,6 @@
 import type { GoalExecutionDetail } from '../../types/';
 import { getGoalDetail as getEdgeGoalDetail } from './edge';
+import { getGoalDetail as getEdgeLangiumGoalDetail } from './edgeLangium';
 import { getGoalDetail as getEdgeV2GoalDetail } from './edgeV2';
 
 export type GoalDetail = {
@@ -15,8 +16,10 @@ export type GoalDetail = {
  *
  * - `edge`: original notation, choice is a standalone `+`
  * - `edgeV2`: choice is `G1?G2`, `+` is the any-order operator `G1+G2`
+ * - `edgeLangium`: edgeV2's notation read by the Langium grammar of
+ *   @goal-controller/rt-language (the one the notation editor uses)
  */
-export type RTGrammar = 'edge' | 'edgeV2';
+export type RTGrammar = 'edge' | 'edgeV2' | 'edgeLangium';
 
 export const DEFAULT_RT_GRAMMAR: RTGrammar = 'edge';
 
@@ -29,6 +32,7 @@ const goalDetailParsers: Record<
 > = {
   edge: getEdgeGoalDetail,
   edgeV2: getEdgeV2GoalDetail,
+  edgeLangium: getEdgeLangiumGoalDetail,
 };
 
 export const getGoalDetail = ({

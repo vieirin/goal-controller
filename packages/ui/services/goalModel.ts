@@ -2,6 +2,7 @@ import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { parsePistar } from '@istar-ts/core';
 import {
   edgeEngineMapper,
+  edgeLangiumEngineMapper,
   edgeV2EngineMapper,
   sleecEngineMapper,
   type EdgeGoalTree,
@@ -151,6 +152,29 @@ export const GoalModel = {
     modelJson: string,
     options: ParseOptions = {},
   ): EdgeV2ParseModelResult {
+    return this.parseWithEdgeV2Mapper(modelJson, options, edgeV2EngineMapper);
+  },
+
+  /**
+   * Parse model JSON, validate it, and convert to an Edge V2 tree, reading the
+   * RT notation with the Langium grammar (edgeLangium)
+   */
+  parseForEdgeLangium(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): EdgeV2ParseModelResult {
+    return this.parseWithEdgeV2Mapper(
+      modelJson,
+      options,
+      edgeLangiumEngineMapper,
+    );
+  },
+
+  parseWithEdgeV2Mapper(
+    modelJson: string,
+    options: ParseOptions,
+    mapper: typeof edgeV2EngineMapper,
+  ): EdgeV2ParseModelResult {
     const parseResult = this.parseModel(modelJson, options);
     if (!parseResult.success) {
       return parseResult;
@@ -158,7 +182,7 @@ export const GoalModel = {
 
     let tree: EdgeV2GoalTree;
     try {
-      tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper).nodes;
+      tree = GoalTree.fromModel(parseResult.model, mapper).nodes;
     } catch (error) {
       return {
         success: false,
