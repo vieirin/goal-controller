@@ -28,6 +28,7 @@ goal-controller/
 │   │   │           └── template/      # SLEEC specification templates
 │   │   └── out/      # Compiled JavaScript
 │   ├── goal-tree/    # Goal model data structures
+│   ├── rt-language/  # Langium grammar + language server for the RT notation (edgeLangium)
 │   └── ui/           # Next.js web application for transformations
 ├── examples/         # Example goal models, grouped per engine
 │   ├── edge/         # Edge engine notation (choice: `[+]`), incl. experiments/
@@ -48,6 +49,39 @@ This repository includes two transformation engines for converting goal models:
    - `mapper.ts` - Maps iStar model properties to SLEEC-specific properties
    - `template/` - Contains SLEEC specification templates
    - See [Transformation Example (SLEEC)](#transformation-example-sleec) section below for architecture and implementation details
+3. **EdgeLangium** (`packages/lib/src/engines/edgeLangium/`): EdgeV2's semantics and PRISM templates, with the RT notation read by a Langium grammar. See below.
+
+### EdgeLangium engine and the notation view
+
+EdgeLangium is a prototype of blended textual and graphical editing of the RT notation (`G1: Name [G2;G3]`). A single Langium grammar, `packages/rt-language/src/rt-notation.langium`, serves two clients:
+
+```
+                    rt-notation.langium (+ RtLexer)
+                     │                       │
+    CJS bundle (langium inlined)       ESM build
+                     │                       │
+   goal-tree 'edgeLangium' grammar    Web Worker language server
+   → lib edgeLangiumEngineMapper      → @codemirror/lsp-client
+     (= createEdgeV2Mapper)             in the UI's Notation tab
+   → edgeV2 PRISM templates             (diagnostics, completion, hover)
+```
+
+- **Engine.** `createEdgeV2Mapper(grammar)` builds edgeV2's mapper for either RT front end, so `edgeLangiumEngineMapper` reuses edgeV2's mapper and templates. A differential test in goal-tree (`test/parsers/goalNameParser/edgeLangium.test.ts`) checks that ANTLR edgeV2 and Langium return deep-equal `GoalDetail`, and reject the same inputs, for every node text in `examples/`, `dissertationExamples/` and `experiments/` plus hand-written edge cases. A lib test checks that EdgeLangium's PRISM output is byte-identical to EdgeV2's for every edgeV2 example model.
+- **Notation tab** (UI, EdgeLangium models only). The whole model is shown as RT text, one line per goal and task, indented by depth (the indentation is presentation only).
+  - Structure (refinement links) stays graphical; names and notations are textual.
+  - An edited line is written to its element like the inspector writes it, so undo, the diagram and generation follow.
+  - Selection syncs both ways.
+  - The language server receives the diagram's structure (`rt/structure`). It reports ids that are not children, children missing from the notation, and lines whose element is not in the diagram.
+- **Lexing.** Langium's lexer (Chevrotain) takes the first matching token; ANTLR takes the longest. `RtLexer` reproduces ANTLR's longest-match rule, so a space still belongs to a WORD (`[G1; G2]` is an error) and `Goal` is a WORD, not `G`.
+- **Known divergences.** ANTLR's edgeV2 grammar also accepts shapes that never appear in the corpora. The Langium grammar rejects them on purpose, and the differential test lists exactly these:
+  - `G1, G2` inside a notation (`gArgs`)
+  - `G2G3` (`gIdContinued`)
+  - operators after the closing bracket (`G1: A [G2];G3`)
+  - a notation without id and name (`G1;G2`)
+  - an id without a name (`G1`)
+  - a name without an id (`:Name`)
+  - a bare notation (`[G1;G2]`)
+  - `: word expr` inside a notation
 
 ---
 
