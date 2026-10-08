@@ -73,6 +73,30 @@ EdgeLangium is a prototype of blended textual and graphical editing of the RT no
   - Selection syncs both ways.
   - The language server receives the diagram's structure (`rt/structure`). It reports ids that are not children, children missing from the notation, and lines whose element is not in the diagram.
 - **Lexing.** Langium's lexer (Chevrotain) takes the first matching token; ANTLR takes the longest. `RtLexer` reproduces ANTLR's longest-match rule, so a space still belongs to a WORD (`[G1; G2]` is an error) and `Goal` is a WORD, not `G`.
+- **Properties and resources.** The Notation view also shows each element's properties on the lines under it, and resources with their declaration:
+
+  ```
+  G1: Monitor Sample Track System
+    maintain !sampleLoaded
+    assertion sampleLoaded
+    type maintain
+    T1: Process Lab Sample Delivery Request
+      assertion R0=true
+      R0: Hospital Delivery Service {bool = true}
+  ```
+
+  - `maintain`/`assertion` use a port of `AssertionRegex.g4`; `dependsOn` lists goal ids; `variables`, `utility`, `cost`, `maxRetries`, `type` and `root` are raw values.
+  - A resource declaration is `{int <lower>..<upper> = <initial>}` or `{bool = <true|false>}`. It round-trips to the `type`, `lowerBound`, `upperBound` and `initialValue` properties.
+  - Editing a line writes the property with the inspector's setter. Removing a line clears the property, except while another line under that element is being typed.
+  - In the inspector, `assertion`, `maintain`, `dependsOn` and `variables` are one-line editors on the same language server.
+- **Property checks.** The rules are the engine's own: the UI hands `PROPERTY_SPECS` (lib's `edgeChecks`) to the worker. The language server adds checks that need several elements:
+  - `x = true|false` on an int resource, and `x <op> N` on a bool one (errors);
+  - `N` outside the resource's bounds (warning);
+  - unknown identifiers (hint);
+  - `dependsOn` on itself or in a cycle (warning).
+
+  A notation that names a non-child, or whose construct contradicts the goal's AND/OR links, is an error in every editor (`NOTATION_SEVERITY`). The engine drops such a notation silently.
+- **Assertion grammar quirk.** `AssertionRegex.g4`'s `INT` is `[1-9][0-9]*`, so `x > 0` does not parse. That is probably a bug in the original grammar, but the Langium port reproduces it on purpose: the assertion differential test (`test/parsers/assertionVariables.test.ts`) requires the same results as ANTLR.
 - **Known divergences.** ANTLR's edgeV2 grammar also accepts shapes that never appear in the corpora. The Langium grammar rejects them on purpose, and the differential test lists exactly these:
   - `G1, G2` inside a notation (`gArgs`)
   - `G2G3` (`gIdContinued`)
