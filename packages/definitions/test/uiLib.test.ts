@@ -4,7 +4,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parsePistar } from '../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '../../goal-tree/out';
-import { edgeV2 } from '../src';
+import { StringStream } from '../../ui/node_modules/@codemirror/language';
+import { edgeV2, type EngineDefinition } from '../src';
+import { documentParser } from '../../ui/lib/workbench/definitionLanguage';
+import { istar4RationalAgents as ra } from './fixtures/istar4RationalAgents';
 import {
   contextOf,
   elementOfLine,
@@ -43,5 +46,45 @@ describe('ui notationDocument', () => {
       line: `G0: ${g0.name} [${g0.notation}]`,
       error: null,
     });
+  });
+});
+
+describe('ui definitionLanguage', () => {
+  /** A line's tokens and styles, as the Notation view's highlighter reads them. */
+  const tokens = (definition: EngineDefinition, line: string) => {
+    const parser = documentParser(definition);
+    const state = parser.startState!(2);
+    const stream = new StringStream(line, 2, 2);
+    const read: [string, string | null][] = [];
+    while (!stream.eol()) {
+      stream.start = stream.pos;
+      const style = parser.token(stream, state);
+      if (stream.current().trim()) read.push([stream.current(), style]);
+    }
+    return read;
+  };
+  const styled = (read: [string, string | null][], style: string) =>
+    read
+      .filter(([, s]) => s === style)
+      .map(([text]) => text)
+      .join('');
+
+  it('reads annotations before the id', () => {
+    const read = tokens(ra, '<<action>> {type = duty} T1: Book a room');
+    expect(read.slice(0, 1)).to.deep.equal([['<<', 'brace']]);
+    expect(styled(read, 'meta')).to.equal('actiontypeduty');
+    expect(styled(read, 'operator')).to.equal('=');
+    expect(read.find(([, s]) => s === 'labelName')).to.deep.equal([
+      'T1',
+      'labelName',
+    ]);
+  });
+
+  it('reads a line without annotations as before', () => {
+    const line = '{Id = G1} G1: A [T1;T2]';
+    expect(styled(tokens(edgeV2, line), 'meta')).to.equal('');
+    expect(styled(tokens(ra, line.slice(10)), 'labelName')).to.equal(
+      styled(tokens(edgeV2, line.slice(10)), 'labelName'),
+    );
   });
 });

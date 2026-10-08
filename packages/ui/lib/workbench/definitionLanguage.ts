@@ -97,10 +97,12 @@ type DeclarationTokens = {
 };
 
 type DocumentState = {
-  part: 'start' | 'name' | 'notation' | 'declaration' | 'value';
+  part: 'start' | 'annotation' | 'name' | 'notation' | 'declaration' | 'value';
   value: ((stream: StringStream) => string | null) | null;
   /** the declaration of the line's element, when its kind has one */
   declaration: DeclarationTokens | null;
+  /** the annotation being read, before the line's id */
+  annotation: DeclarationTokens | null;
 };
 
 const declarationTokens = (
@@ -121,8 +123,10 @@ const declarationTokens = (
   ),
 });
 
-/** The Notation view's document language. */
-export const documentLanguage = (definition: EngineDefinition) => {
+/** The Notation view's document tokens, line by line. */
+export const documentParser = (
+  definition: EngineDefinition,
+): StreamParser<DocumentState> => {
   const id = new RegExp(`^(?:${elementIdPattern(definition)})`);
   const operand = new RegExp(`^(?:${operandPattern(definition)})`);
   const line = Object.values(definition.elements)[0]?.line ?? '';
@@ -137,6 +141,17 @@ export const documentLanguage = (definition: EngineDefinition) => {
       ? declarationTokens(element.declaration)
       : null,
   }));
+  // any kind's annotations: the line's kind is not known before its id
+  const annotations = [
+    ...new Map(
+      Object.values(definition.elements)
+        .flatMap((element) => element.annotations ?? [])
+        .map((annotation) => [
+          annotation.delimiters.join(' '),
+          declarationTokens(annotation),
+        ]),
+    ).values(),
+  ];
   const keywords = anyOf(definition.notation.operand.keywords);
   const operators = anyOf(definition.notation.operators.map((o) => o.symbol));
   const key = new RegExp(
@@ -157,18 +172,30 @@ export const documentLanguage = (definition: EngineDefinition) => {
     ),
   );
 
-  const parser: StreamParser<DocumentState> = {
+  return {
     name: definition.id,
-    startState: () => ({ part: 'start', value: null, declaration: null }),
+    startState: () => ({
+      part: 'start',
+      value: null,
+      declaration: null,
+      annotation: null,
+    }),
     token(stream, state) {
       if (stream.sol()) {
         state.part = 'start';
         state.value = null;
         state.declaration = null;
+        state.annotation = null;
       }
       if (stream.eatSpace()) return null;
       switch (state.part) {
         case 'start': {
+          const annotation = annotations.find((a) => stream.match(a.open));
+          if (annotation) {
+            state.part = 'annotation';
+            state.annotation = annotation;
+            return 'brace';
+          }
           if (stream.match(id)) {
             const written = stream.current();
             state.part = 'name';
@@ -231,13 +258,28 @@ export const documentLanguage = (definition: EngineDefinition) => {
           if (stream.match(/^[A-Za-z_]\w*/)) return 'typeName';
           stream.next();
           return null;
+        case 'annotation':
+          if (stream.match(state.annotation!.close)) {
+            state.part = 'start';
+            return 'brace';
+          }
+          if (
+            state.annotation!.literals &&
+            stream.match(state.annotation!.literals)
+          )
+            return 'operator';
+          stream.next();
+          return 'meta';
         case 'value':
           return state.value ? state.value(stream) : (stream.next(), null);
       }
     },
   };
-  return StreamLanguage.define(parser);
 };
+
+/** The Notation view's document language. */
+export const documentLanguage = (definition: EngineDefinition) =>
+  StreamLanguage.define(documentParser(definition));
 
 /** A property field's language, when its value config has one. */
 export const valueLanguage = (
