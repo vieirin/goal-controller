@@ -1,0 +1,12 @@
+{
+  "projectName": "RtNotation",
+  "languages": [
+    {
+      "id": "rt-notation",
+      "grammar": "src/rt-notation.langium",
+      "fileExtensions": [".rt"]
+    }
+  ],
+  "out": "src/generated",
+  "importExtension": ".js"
+}

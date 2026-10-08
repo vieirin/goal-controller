@@ -1,0 +1,46 @@
+{
+  "name": "@goal-controller/rt-language",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Langium grammar, language server and parser for the RT goal notation",
+  "type": "module",
+  "dependencies": {
+    "chevrotain": "~13.2.0",
+    "langium": "4.4.0",
+    "vscode-languageserver": "~10.1.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^22.6.0",
+    "chai": "^4.3.10",
+    "esbuild": "^0.28.2",
+    "langium-cli": "4.4.0",
+    "mocha": "^10.2.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.3"
+  },
+  "main": "out/cjs/index.cjs",
+  "types": "out/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/esm/index.d.ts",
+      "import": "./out/esm/index.js",
+      "require": "./out/cjs/index.cjs"
+    },
+    "./lsp": {
+      "types": "./out/esm/lsp.d.ts",
+      "import": "./out/esm/lsp.js"
+    },
+    "./worker": {
+      "types": "./out/esm/worker.d.ts",
+      "import": "./out/esm/worker.js"
+    }
+  },
+  "scripts": {
+    "generate": "langium generate",
+    "build": "rm -rf out && tsc && esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=out/cjs/index.cjs --log-level=warning",
+    "test": "mocha",
+    "clean": "rm -rf out"
+  }
+}

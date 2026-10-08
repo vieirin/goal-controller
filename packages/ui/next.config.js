@@ -15,6 +15,12 @@ const nextConfig = {
         fs: false,
         path: false,
       };
+    } else {
+      // the RT language server only runs in a browser Web Worker
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@goal-controller/rt-language/worker': false,
+      };
     }
     return config;
   },

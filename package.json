@@ -18,18 +18,19 @@
     "dev:goal-tree": "pnpm --filter @goal-controller/goal-tree run watch",
     "dev:lib": "pnpm --filter @goal-controller/lib run watch",
     "dev:ui": "pnpm --filter @goal-controller/ui run dev:next",
-    "build": "pnpm run build:goal-tree && pnpm run build:lib && pnpm run build:ui",
-    "build:goal-tree": "pnpm --filter @goal-controller/goal-tree run build",
+    "build": "pnpm run build:rt-language && pnpm run build:goal-tree && pnpm run build:lib && pnpm run build:ui",
+    "build:goal-tree": "pnpm run build:rt-language && pnpm --filter @goal-controller/goal-tree run build",
     "build:lib": "pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
-    "test": "pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run test",
+    "test": "pnpm run build:goal-tree && pnpm --filter @goal-controller/rt-language run test && pnpm --filter @goal-controller/lib run test",
     "grammar": "cd packages/lib && make grammar",
     "clean": "pnpm --recursive run clean && rm -rf node_modules packages/*/node_modules",
     "setup-hooks": "bash hooks/setup.sh",
     "lint": "oxlint . --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**'",
     "lint:fix": "oxlint --fix . --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**'",
     "format": "oxfmt .",
-    "format:check": "oxfmt --check ."
+    "format:check": "oxfmt --check .",
+    "build:rt-language": "pnpm --filter @goal-controller/rt-language run build"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

@@ -11,6 +11,7 @@
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@goal-controller/rt-language": "workspace:^",
     "@istar-ts/core": "^0.7.0",
     "antlr4": "^4.13.0",
     "lodash": "^4.17.21"
