@@ -22,6 +22,12 @@ export type ElementDefinition = {
   /** the element's line, with `{id}` and `{name}` */
   line: string;
   /**
+   * what this kind annotates its line with, before the id
+   * (`<<action>> {type = duty}`): properties in their delimiters, read and
+   * written like the declaration, each written only when its first property is set
+   */
+  annotations?: readonly DeclarationDefinition[];
+  /**
    * the syntax of what this kind declares on its line, after the name (a
    * resource's `{int 0..100 = 80}`): the properties it sets, in its delimiters
    */
@@ -262,10 +268,37 @@ const conditionKey = (c: unknown): string | null =>
         : null
     : null;
 
+/** The properties a declaration's parts set, in order. */
+export const declarationKeys = (
+  declaration: DeclarationDefinition,
+): string[] => {
+  const keys = (parts: readonly DeclarationPart[]): string[] =>
+    parts.flatMap((part) =>
+      'key' in part
+        ? [part.key]
+        : 'optional' in part
+          ? keys(part.optional)
+          : [],
+    );
+  return keys(declaration.parts);
+};
+
+/** The keys a kind writes on its element line (annotations and declaration), not on property lines. */
+export const elementLineKeys = (
+  element: ElementDefinition | undefined,
+): string[] =>
+  element
+    ? [
+        ...(element.annotations ?? []),
+        ...(element.declaration ? [element.declaration] : []),
+      ].flatMap(declarationKeys)
+    : [];
+
 /**
  * Type-checks and freezes a definition, and checks what the types cannot:
- * every name it uses (constructs, languages, condition keys) is one it
- * declares, and the property-line order lists each operand kind's key once.
+ * every name it uses (constructs, languages, condition keys, the keys an
+ * element line declares) is one it declares, and the property-line order lists
+ * each operand kind's key once (but those its element line writes).
  */
 export const defineEngine = <const D extends EngineDefinition>(
   definition: D,
@@ -301,10 +334,19 @@ export const defineEngine = <const D extends EngineDefinition>(
           fail(`${kind}.${property.key} depends on unknown ${key}`);
     }
   }
+  const elements = definition.elements as EngineDefinition['elements'];
+  for (const [kind, element] of Object.entries(elements)) {
+    const keys = definition.properties[kind as ElementKind].map((p) => p.key);
+    for (const key of elementLineKeys(element))
+      if (!keys.includes(key)) fail(`${kind} line declares unknown ${key}`);
+  }
   const lineKeys = new Set(
-    notation.operand.kinds.flatMap((kind) =>
-      definition.properties[kind].map((p) => p.key),
-    ),
+    notation.operand.kinds.flatMap((kind) => {
+      const onElementLine = elementLineKeys(elements[kind]);
+      return definition.properties[kind]
+        .map((p) => p.key)
+        .filter((key) => !onElementLine.includes(key));
+    }),
   );
   const order = new Set(definition.propertyLineOrder);
   if (

@@ -5,20 +5,24 @@
  * only: structure stays in the diagram). Text edits map back to element texts
  * and properties. Every syntax decision comes from the definition.
  */
-import type {
-  DefinitionContext,
-  ElementKind,
-  EngineDefinition,
-  Relation,
-} from '../schema';
 import {
   declarationKeys,
+  type DefinitionContext,
+  type ElementKind,
+  type EngineDefinition,
+  type Relation,
+} from '../schema';
+import {
+  annotationsOf,
   declarationOf,
   elementLine,
   lineId,
   propertyLine,
+  readAnnotations,
   readPropertyLine,
   readDeclaration,
+  splitAnnotations,
+  writeAnnotations,
   writeDeclaration,
 } from './lines';
 
@@ -70,6 +74,10 @@ export const notationDocument = (
   const visit = (id: string, depth: number) => {
     const node = tree.nodes.get(id);
     if (!node || seen.has(id)) return;
+    const annotations = writeAnnotations(
+      annotationsOf(definition, node.kind),
+      node.properties,
+    );
     const declaration = declarationOf(definition, node.kind);
     if (declaration) {
       seen.add(id);
@@ -79,6 +87,7 @@ export const notationDocument = (
             definition,
             node,
             writeDeclaration(declaration, node.properties),
+            annotations,
           ),
       );
       ids.push(id);
@@ -86,7 +95,10 @@ export const notationDocument = (
     }
     if (!isNotationNode(definition, node)) return;
     seen.add(id);
-    lines.push(definition.indent.repeat(depth) + nodeLine(definition, node));
+    lines.push(
+      definition.indent.repeat(depth) +
+        elementLine(definition, node, null, annotations),
+    );
     ids.push(id);
     for (const key of definition.propertyLineOrder) {
       const value = node.properties[key];
@@ -123,6 +135,18 @@ export const notationEdits = (
   tree: DocumentTree,
 ): NotationEdit[] => {
   const edits: NotationEdit[] = [];
+  // what an element line sets: each key changed, added, or removed (unset)
+  const setKeys = (
+    node: DocumentNode,
+    keys: readonly string[],
+    read: Readonly<Record<string, string | undefined>>,
+  ) => {
+    for (const key of keys) {
+      const value = read[key] ?? null;
+      if (value !== (node.properties[key] ?? null))
+        edits.push({ iStarId: node.iStarId, key, value });
+    }
+  };
   type Block = {
     node: DocumentNode;
     properties: Map<string, string>;
@@ -130,12 +154,25 @@ export const notationEdits = (
   };
   const blocks: Block[] = [];
   let current: Block | null = null;
-  for (const line of doc.split('\n')) {
-    const id = lineId(definition, line);
+  for (const written of doc.split('\n')) {
+    const id = lineId(definition, written);
     if (id) {
       const node = tree.nodes.get(id);
       current = null;
       if (!node) continue;
+      const { groups, rest: line } = splitAnnotations(definition, written);
+      const annotations = annotationsOf(definition, node.kind);
+      const annotated = readAnnotations(
+        annotations,
+        groups.map((group) => group.text),
+      );
+      // an unreadable annotation (being typed) changes none of them yet
+      if (!annotated.read.includes(null))
+        setKeys(
+          node,
+          annotations.flatMap(declarationKeys),
+          annotated.properties,
+        );
       const declaration = declarationOf(definition, node.kind);
       if (declaration) {
         const { text, properties, declared } = readDeclaration(
@@ -145,14 +182,8 @@ export const notationEdits = (
         if (text !== nodeLine(definition, node))
           edits.push({ iStarId: node.iStarId, text });
         // an unreadable declaration (being typed) changes nothing yet
-        if (properties || !declared) {
-          for (const key of declarationKeys(declaration)) {
-            const value = properties?.[key] ?? null;
-            if (value !== (node.properties[key] ?? null)) {
-              edits.push({ iStarId: node.iStarId, key, value });
-            }
-          }
-        }
+        if (properties || !declared)
+          setKeys(node, declarationKeys(declaration), properties ?? {});
         continue;
       }
       if (!isNotationNode(definition, node)) continue;
@@ -163,8 +194,8 @@ export const notationEdits = (
       blocks.push(current);
       continue;
     }
-    if (!current || !line.trim()) continue;
-    const property = readPropertyLine(definition, line);
+    if (!current || !written.trim()) continue;
+    const property = readPropertyLine(definition, written);
     if (property) current.properties.set(property.key, property.value);
     else current.unreadable = true;
   }

@@ -28,6 +28,7 @@ import {
   type DocumentNode,
   type EngineDefinition,
 } from '../src';
+import { node } from './support/document';
 
 describe('defineEngine', () => {
   it('freezes the definition', () => {
@@ -290,16 +291,6 @@ describe('properties', () => {
 });
 
 describe('document', () => {
-  const node = (
-    n: Partial<DocumentNode> & Pick<DocumentNode, 'id' | 'kind'>,
-  ): DocumentNode => ({
-    iStarId: `i-${n.id}`,
-    name: n.id,
-    notation: null,
-    properties: {},
-    children: [],
-    ...n,
-  });
   const tree = {
     roots: ['G1'],
     nodes: new Map<string, DocumentNode>([

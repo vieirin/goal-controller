@@ -14,11 +14,14 @@ import type {
   Severity,
 } from '../schema';
 import {
+  annotationsOf,
   lineId,
   declarationOf,
   readDeclaration,
   readElementLine,
+  readAnnotations,
   readPropertyLine,
+  splitAnnotations,
 } from './lines';
 import { relationMismatch, operandPattern } from './operators';
 import { evaluateCondition, fillTemplate, propertyOf } from './properties';
@@ -96,6 +99,18 @@ const propertyDiagnostics = (
   return diagnostics;
 };
 
+/** An element's properties with what its line declares (an undefined value unsets). */
+const withDeclared = (
+  stored: Readonly<Record<string, string>>,
+  declared: Readonly<Record<string, string | undefined>>,
+): Record<string, string> => {
+  const merged: Record<string, string> = { ...stored };
+  for (const [key, value] of Object.entries(declared))
+    if (value === undefined) delete merged[key];
+    else merged[key] = value;
+  return merged;
+};
+
 export type DocumentDiagnosticsOptions = {
   runCheck?: RunCheck;
   /**
@@ -147,15 +162,22 @@ export const documentDiagnostics = (
   };
 
   let offset = 0;
-  for (const text of doc.split('\n')) {
+  for (const written of doc.split('\n')) {
     const lineFrom = offset;
-    offset += text.length + 1;
-    const indent = text.length - text.trimStart().length;
-    const id = lineId(definition, text);
+    offset += written.length + 1;
+    const indent = written.length - written.trimStart().length;
+    const id = lineId(definition, written);
     if (id) {
       closeBlock();
       started = true;
-      const idFrom = lineFrom + text.indexOf(id);
+      // the line after its annotations, from restFrom on in the document
+      const {
+        groups,
+        rest: text,
+        offset: restOffset,
+      } = splitAnnotations(definition, written);
+      const restFrom = lineFrom + restOffset;
+      const idFrom = restFrom + text.indexOf(id);
       const idTo = idFrom + id.length;
       if (seen.has(id)) {
         diagnostics.push({
@@ -172,12 +194,44 @@ export const documentDiagnostics = (
         diagnostics.push(problem(definition, 'notInDiagram', idFrom, idTo));
         continue;
       }
+      const annotated = readAnnotations(
+        annotationsOf(definition, element.kind),
+        groups.map((group) => group.text),
+      );
+      const spans = new Map<string, { from: number; to: number }>();
+      annotated.read.forEach((read, index) => {
+        const { text: group, from } = groups[index]!;
+        const span = {
+          from: lineFrom + from,
+          to: lineFrom + from + group.length,
+        };
+        if (!read)
+          diagnostics.push({
+            ...span,
+            severity: 'error',
+            message: 'This annotation cannot be read',
+          });
+        else for (const key of Object.keys(read)) spans.set(key, span);
+      });
+      diagnostics.push(
+        ...propertyDiagnostics(
+          definition,
+          element.kind,
+          id,
+          withDeclared(element.properties, annotated.properties),
+          [...spans.keys()].filter(
+            (key) => annotated.properties[key] !== undefined,
+          ),
+          (key) => spans.get(key)!,
+          runCheck,
+        ),
+      );
       const declaration = declarationOf(definition, element.kind);
       if (declaration) {
         const { declared, properties } = readDeclaration(declaration, text);
         const [declOpen] = declaration.delimiters;
-        const from = lineFrom + text.lastIndexOf(declOpen);
-        const span = { from, to: lineFrom + text.trimEnd().length };
+        const from = restFrom + text.lastIndexOf(declOpen);
+        const span = { from, to: restFrom + text.trimEnd().length };
         if (declared && !properties) {
           diagnostics.push({
             ...span,
@@ -185,16 +239,12 @@ export const documentDiagnostics = (
             message: 'This declaration cannot be read',
           });
         } else if (properties) {
-          const merged: Record<string, string> = { ...element.properties };
-          for (const [key, value] of Object.entries(properties))
-            if (value === undefined) delete merged[key];
-            else merged[key] = value;
           diagnostics.push(
             ...propertyDiagnostics(
               definition,
               element.kind,
               id,
-              merged,
+              withDeclared(element.properties, properties),
               Object.keys(properties),
               () => span,
               runCheck,
@@ -208,8 +258,8 @@ export const documentDiagnostics = (
       const was = saved[id];
       if (was?.error && was.line === text.trim()) {
         diagnostics.push({
-          from: lineFrom + indent,
-          to: lineFrom + text.trimEnd().length,
+          from: restFrom + text.length - text.trimStart().length,
+          to: restFrom + text.trimEnd().length,
           severity: 'error',
           message: `Not valid for this engine: ${was.error}`,
         });
@@ -217,10 +267,10 @@ export const documentDiagnostics = (
       }
       if (!readElementLine(definition, text)?.notation) continue;
       const openAt = text.indexOf(open);
-      const notationFrom = lineFrom + openAt + open.length;
-      const notationTo = lineFrom + text.lastIndexOf(close);
+      const notationFrom = restFrom + openAt + open.length;
+      const notationTo = restFrom + text.lastIndexOf(close);
       const listed: string[] = [];
-      const inner = text.slice(openAt + open.length, notationTo - lineFrom);
+      const inner = text.slice(openAt + open.length, notationTo - restFrom);
       for (const match of inner.matchAll(operand)) {
         listed.push(match[0]);
         if (!element.children.includes(match[0])) {
@@ -259,12 +309,12 @@ export const documentDiagnostics = (
             );
       continue;
     }
-    if (!text.trim()) continue;
+    if (!written.trim()) continue;
     const span = {
       from: lineFrom + indent,
-      to: lineFrom + text.trimEnd().length,
+      to: lineFrom + written.trimEnd().length,
     };
-    const property = readPropertyLine(definition, text);
+    const property = readPropertyLine(definition, written);
     if (!started) {
       diagnostics.push({
         ...span,
