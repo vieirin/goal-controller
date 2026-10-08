@@ -288,14 +288,16 @@ const optionsFor = (
         generateDecisionVars: options.generateDecisionVars,
         discretisation: options.discretisation,
         taskLayout: options.taskLayout,
+        reduce: options.reduce,
       }
     : engine === 'edge'
       ? {
           clean: options.clean,
           generateDecisionVars: options.generateDecisionVars,
           achievabilitySpace: options.achievabilitySpace,
+          reduce: options.reduce,
         }
-      : { generateFluents: options.generateFluents };
+      : { generateFluents: options.generateFluents, reduce: options.reduce };
 
 const UNDO_LIMIT = 100;
 const COALESCE_MS = 600;

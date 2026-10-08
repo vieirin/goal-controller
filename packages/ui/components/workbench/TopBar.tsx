@@ -75,11 +75,12 @@ const optionsSummary = (
   wb: ReturnType<typeof useWorkbench>,
 ): string => {
   const { options } = wb;
+  const reduced = options.reduce ? ' · reduced' : '';
   if (engine === 'edgev2') {
-    return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}`;
+    return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}${reduced}`;
   }
-  if (engine === 'edge') return `space ${options.achievabilitySpace}`;
-  return options.generateFluents ? 'with fluents' : 'no fluents';
+  if (engine === 'edge') return `space ${options.achievabilitySpace}${reduced}`;
+  return `${options.generateFluents ? 'with fluents' : 'no fluents'}${reduced}`;
 };
 
 /** The logo goes home: it closes the open model, after asking. */
@@ -551,6 +552,71 @@ export function EngineOptionFields({
           onChange={(generateFluents) => onChange({ generateFluents })}
           label='Generate fluent definitions'
         />
+      )}
+      <ReduceOption
+        checked={options.reduce}
+        onChange={(reduce) => onChange({ reduce })}
+      />
+    </div>
+  );
+}
+
+/** Reducing is asked for once, with what it does: turning it off is not. */
+function ReduceOption({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (reduce: boolean) => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <div className='border-t border-line pt-3'>
+      <Switch
+        checked={checked || confirming}
+        onChange={(next) => {
+          if (next) setConfirming(true);
+          else {
+            setConfirming(false);
+            onChange(false);
+          }
+        }}
+        label='Reduce single-child goals'
+        description='Generate without the goals that have a single child'
+      />
+      {confirming && (
+        <div
+          role='alertdialog'
+          aria-label='Reduce single-child goals'
+          className='mt-2 rounded-lg border border-line bg-panel p-3 text-2xs text-ink-soft'
+        >
+          <p>
+            Before generating, every goal with a single child is removed, and
+            its child is linked to the first parent with more than one child (or
+            to the root), with that parent&apos;s AND/OR refinement. The
+            parent&apos;s notation names the child in place of the removed goal.
+          </p>
+          <p className='mt-1.5'>
+            The properties of a removed goal (conditions, utility, cost, …) and
+            its other links are not generated. Only the generated output
+            changes: the model and the diagram stay as they are.
+          </p>
+          <div className='mt-2.5 flex justify-end gap-2'>
+            <Button variant='outline' onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='primary'
+              autoFocus
+              onClick={() => {
+                setConfirming(false);
+                onChange(true);
+              }}
+            >
+              Reduce
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

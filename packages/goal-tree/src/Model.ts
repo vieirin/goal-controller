@@ -1,10 +1,11 @@
 /**
  * Model namespace - Utilities for working with iStar models
  */
-import { isActor, parsePistar, updateElement } from "@istar-ts/core";
-import { readFileSync } from "fs";
-import { findActorRoot } from "./internal/roots";
-import type { Model as IStarModel } from "./types/";
+import { isActor, parsePistar, updateElement } from '@istar-ts/core';
+import { readFileSync } from 'fs';
+import { reduceModel, singleChildGoals } from './internal/reduce';
+import { findActorRoot } from './internal/roots';
+import type { Model as IStarModel } from './types/';
 
 /**
  * Validate an iStar model: every actor must have exactly one root (resolved
@@ -20,7 +21,7 @@ function validateModel(model: IStarModel): IStarModel {
   for (const actor of actors) {
     const root = findActorRoot(model, actor.id);
     validated = updateElement(validated, root.id, {
-      customProperties: { ...root.customProperties, root: "true" },
+      customProperties: { ...root.customProperties, root: 'true' },
     });
   }
 
@@ -35,7 +36,9 @@ function parseModel(json: string): IStarModel {
   try {
     model = parsePistar(json);
   } catch (error) {
-    throw new Error(`[INVALID_MODEL]: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `[INVALID_MODEL]: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   return validateModel(model);
@@ -67,6 +70,17 @@ export const Model = {
    * @throws Error if the model is invalid
    */
   validate: validateModel,
+
+  /**
+   * piStar ids of the goals with a single child (AND/OR refinements) and a parent
+   */
+  singleChildGoals,
+
+  /**
+   * Remove the single-child goals, refining each one's child into the first ancestor
+   * with more than one child (or the root). Returns the reduced model and the removed ids.
+   */
+  reduce: reduceModel,
 } as const;
 
 // Export type for the namespace

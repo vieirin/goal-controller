@@ -46,6 +46,8 @@ export type GenerationOptions = {
   taskLayout: EdgeV2TaskLayout;
   /** SLEEC only */
   generateFluents: boolean;
+  /** generate from the model without its single-child goals (the model itself is kept) */
+  reduce: boolean;
 };
 
 export const DEFAULT_OPTIONS: GenerationOptions = {
@@ -55,6 +57,7 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   discretisation: 10,
   taskLayout: 'taskModules',
   generateFluents: false,
+  reduce: false,
 };
 
 /** Per-model generation settings, chosen when a model is first opened. */
