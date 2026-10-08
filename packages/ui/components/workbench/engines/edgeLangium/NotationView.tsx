@@ -1,21 +1,18 @@
 'use client';
 
-import type { LSPClient } from '@codemirror/lsp-client';
 import { EditorView } from '@codemirror/view';
-import { CONTEXT_NOTIFICATION } from '@goal-controller/rt-language/context';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
 import {
   lineId,
   notationDocument,
   notationEdits,
-  notationContext,
 } from '@/lib/workbench/notation';
 import { setNodeProperty, setNodeText } from '@/lib/workbench/pistar';
-import { createRtClient } from '@/lib/workbench/rtLsp';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
+import { useRtLanguage } from './useRtLanguage';
 
 const DOCUMENT_URI = 'file:///model.rt';
 const EDIT_DELAY_MS = 300;
@@ -62,30 +59,8 @@ export default function NotationView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canonical]);
 
-  // one language server per view
-  const [client, setClient] = useState<LSPClient | null>(null);
-  useEffect(() => {
-    const { client: next, worker } = createRtClient();
-    setClient(next);
-    return () => {
-      next.disconnect();
-      worker.terminate();
-    };
-  }, []);
-  const variableNames = useMemo(
-    () =>
-      wb.variables
-        .filter((variable) => variable.kind === 'context')
-        .map((variable) => variable.name),
-    [wb.variables],
-  );
-  useEffect(() => {
-    if (!client || !tree) return;
-    const context = notationContext(tree, variableNames);
-    void client.initializing.then(() =>
-      client.notification(CONTEXT_NOTIFICATION, context),
-    );
-  }, [client, tree, variableNames]);
+  // the page's language server, told about the model
+  const client = useRtLanguage();
 
   // text → model, debounced; lines map to elements by their id
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);

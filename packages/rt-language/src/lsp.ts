@@ -201,19 +201,23 @@ export class RtCompletionProvider extends DefaultCompletionProvider {
 
   /** Resources (with their declaration) and the workbench's variables. */
   private assertionNames() {
+    const resources = this.context.resourceIds();
     return [
-      ...this.context.resourceIds().map((id) => ({
+      ...resources.map((id) => ({
         label: id,
         kind: CompletionItemKind.Variable,
         detail: resourceSummary(this.context, id),
         sortText: '0',
       })),
-      ...this.context.variables.map((name) => ({
-        label: name,
-        kind: CompletionItemKind.Variable,
-        detail: 'variable',
-        sortText: '1',
-      })),
+      // the workbench's variables include the resources the model reads
+      ...this.context.variables
+        .filter((name) => !resources.includes(name))
+        .map((name) => ({
+          label: name,
+          kind: CompletionItemKind.Variable,
+          detail: 'variable',
+          sortText: '1',
+        })),
     ];
   }
 

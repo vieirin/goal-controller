@@ -26,6 +26,7 @@ import {
   CONSTRUCT_LABEL,
 } from '@goal-controller/rt-language/constructs';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
+import RtValueEditor from '../edgeLangium/RtValueEditor';
 import { useShell } from '../../shell';
 import { CreatableSelect, Button, NodeChip, Segmented, cx } from '../../ui';
 
@@ -409,6 +410,14 @@ export function NodeSummary({ node }: { node: GoalViewNode }) {
   );
 }
 
+/** The properties EdgeLangium edits on its language server (the rest are plain values). */
+const LANGUAGE_FIELDS = new Set([
+  'assertion',
+  'maintain',
+  'dependsOn',
+  'variables',
+]);
+
 export function PropertyRow({
   name,
   value,
@@ -417,10 +426,13 @@ export function PropertyRow({
   validate,
   notApplying,
   notReadBy,
+  languageField,
   onChange,
 }: {
   name: string;
   value: string | undefined;
+  /** edit it on the RT language server, as this element's (RT id) property */
+  languageField?: string;
   engineKnows: boolean;
   /** how to edit it (Edge engines); default: by name (numbers, long text) */
   input?: PropertyInput;
@@ -512,6 +524,22 @@ export function PropertyRow({
             </option>
           ))}
         </select>
+      ) : languageField ? (
+        <RtValueEditor
+          id={languageField}
+          property={name}
+          value={draft.draft}
+          placeholder={
+            value === undefined
+              ? input && 'placeholder' in input && input.placeholder
+                ? input.placeholder
+                : 'not set'
+              : ''
+          }
+          invalid={!!error}
+          onChange={draft.change}
+          onBlur={draft.flush}
+        />
       ) : long ? (
         <textarea
           rows={name === 'Description' ? 2 : 1}
@@ -880,6 +908,11 @@ export function PropertiesField({
                     allKnown,
                   )
                 : null
+            }
+            languageField={
+              wb.engine === 'edgelangium' && LANGUAGE_FIELDS.has(key)
+                ? node.id
+                : undefined
             }
             onChange={(value) =>
               edit((text) => setNodeProperty(text, node.iStarId, key, value))
