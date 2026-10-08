@@ -72,30 +72,34 @@ function NotationField({
     listed.length > 0 ? pursueable.filter((id) => !listed.includes(id)) : [];
   // what is wrong with the saved notation, shown when hovering the field
   const saved = notation.draft.trim() === (node.notation ?? '');
-  const problems = saved
+  const errors = saved
     ? [
         ...(node.notationError
           ? [`Not valid for this engine: ${node.notationError}`]
           : []),
         ...notChildren.map((id) => `${id}: ${NOT_A_CHILD}`),
-        ...missing.map((id) => `${id}: ${MISSING_FROM_NOTATION}`),
       ]
     : [];
+  const problems = [
+    ...errors,
+    ...(saved ? missing.map((id) => `${id}: ${MISSING_FROM_NOTATION}`) : []),
+  ];
 
   return (
     <Field
       label='Execution notation'
+      hintTone={errors.length > 0 ? 'error' : 'muted'}
       hint={
-        notation.draft.trim() !== (node.notation ?? '')
+        !saved
           ? // the grammar reads it once it is saved
             'Checking the notation…'
-          : notation.draft.trim()
-            ? node.notationError
-              ? `Not valid for this engine: ${node.notationError}`
-              : draftConstruct
+          : errors.length > 0
+            ? errors.join('\n')
+            : notation.draft.trim()
+              ? draftConstruct
                 ? `${CONSTRUCT_LABEL[draftConstruct]} — ${CONSTRUCT_HELP[draftConstruct]}`
                 : 'No operator this engine understands.'
-            : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
+              : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
       }
     >
       <input
@@ -103,9 +107,7 @@ function NotationField({
           inputClass,
           'font-mono',
           problems.length > 0 &&
-            (node.notationError || notChildren.length > 0
-              ? 'border-danger'
-              : 'border-caution'),
+            (errors.length > 0 ? '!border-danger' : '!border-caution'),
         )}
         title={problems.length > 0 ? problems.join('\n') : undefined}
         aria-invalid={problems.length > 0 || undefined}

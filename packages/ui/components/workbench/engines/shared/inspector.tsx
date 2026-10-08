@@ -211,10 +211,13 @@ const NUMERIC_KEYS: Record<string, 'number' | 'integer'> = {
 export function Field({
   label,
   hint,
+  hintTone = 'muted',
   children,
 }: {
   label: string;
   hint?: ReactNode;
+  /** `error`: the hint says what is wrong with the value */
+  hintTone?: 'muted' | 'error';
   children: ReactNode;
 }) {
   return (
@@ -223,11 +226,23 @@ export function Field({
         {label}
       </span>
       {children}
-      {hint && <span className='block text-2xs text-ink-muted'>{hint}</span>}
+      {hint && (
+        <span
+          role={hintTone === 'error' ? 'alert' : undefined}
+          className={cx(
+            'block whitespace-pre-line text-2xs',
+            hintTone === 'error' ? 'text-danger' : 'text-ink-muted',
+          )}
+        >
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
 
+/** An inspector input; mark a problem with `!border-danger` or `!border-caution` (the `!`
+ * beats the base border colour, which Tailwind emits later) */
 export const inputClass =
   'w-full rounded-md border border-line-strong bg-white px-2 py-1 text-[13px] text-ink placeholder:text-ink-faint focus:border-trace focus:outline-none';
 
@@ -469,7 +484,7 @@ export function PropertyRow({
           className={cx(
             inputClass,
             'font-mono text-xs',
-            error && 'border-danger',
+            error && '!border-danger',
           )}
           aria-invalid={!!error}
           value={value ?? ''}
@@ -503,7 +518,7 @@ export function PropertyRow({
           className={cx(
             inputClass,
             'resize-y font-mono text-xs',
-            error && 'border-danger',
+            error && '!border-danger',
           )}
           aria-invalid={!!error}
           value={draft.draft}
@@ -522,7 +537,7 @@ export function PropertyRow({
           className={cx(
             inputClass,
             'font-mono text-xs',
-            error && 'border-danger',
+            error && '!border-danger',
           )}
           value={draft.draft}
           placeholder={value === undefined ? 'not set' : ''}
@@ -693,7 +708,10 @@ export function NameField({ node }: { node: GoalViewNode }) {
       }
     >
       <input
-        className={cx(inputClass, !isValidName(name.draft) && 'border-caution')}
+        className={cx(
+          inputClass,
+          !isValidName(name.draft) && '!border-caution',
+        )}
         value={name.draft}
         onChange={(e) => name.change(e.target.value)}
         onBlur={name.flush}
