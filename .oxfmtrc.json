@@ -17,6 +17,7 @@
     "logs/**",
     "reference/**",
     "result_plots/**",
-    "**/antlr/**"
+    "**/antlr/**",
+    "packages/definitions/test/reference/**"
   ]
 }
