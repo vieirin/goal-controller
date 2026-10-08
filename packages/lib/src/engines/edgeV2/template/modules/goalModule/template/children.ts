@@ -1,3 +1,4 @@
+import { constructsWith, edgeV2 } from '@goal-controller/definitions';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
@@ -21,8 +22,11 @@ export type Construct =
   | 'choice'
   | 'degradation';
 
-const AND_CONSTRUCTS: Construct[] = ['sequence', 'anyOrder', 'interleaved'];
-const OR_CONSTRUCTS: Construct[] = ['alternative', 'choice', 'degradation'];
+// which links each construct needs, and the default for each: the definition's
+const CONSTRUCTS_WITH = {
+  and: constructsWith(edgeV2, 'and'),
+  or: constructsWith(edgeV2, 'or'),
+};
 
 // keyed by goal object, so each model (and each run in a long-lived process) warns again
 const warned = new WeakMap<EdgeGoalNode, Set<string>>();
@@ -45,11 +49,13 @@ const warnOnce = (goal: EdgeGoalNode, message: string): void => {
 export const construct = (goal: EdgeGoalNode): Construct => {
   const type = goal.properties.engine.executionDetail?.type;
   const relation = goal.relationToChildren;
-  const fallback: Construct = relation === 'or' ? 'alternative' : 'interleaved';
+  const fallback =
+    edgeV2.notation.defaultConstruct[relation === 'or' ? 'or' : 'and'];
   if (!type || type === 'decisionMaking') {
     return fallback;
   }
-  const allowed = relation === 'or' ? OR_CONSTRUCTS : AND_CONSTRUCTS;
+  const allowed: readonly string[] =
+    CONSTRUCTS_WITH[relation === 'or' ? 'or' : 'and'];
   if (!allowed.includes(type)) {
     warnOnce(
       goal,
@@ -101,8 +107,12 @@ export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
     warnOnce(
       goal,
       `Goal ${goal.id} notation lists [${order.join(', ')}] but its children are [${children.map((c) => c.id).join(', ')}]` +
-        (unknown.length ? `; ignoring non-children ${unknown.join(', ')}` : '') +
-        (missing.length ? `; appending unlisted ${missing.map((c) => c.id).join(', ')}` : ''),
+        (unknown.length
+          ? `; ignoring non-children ${unknown.join(', ')}`
+          : '') +
+        (missing.length
+          ? `; appending unlisted ${missing.map((c) => c.id).join(', ')}`
+          : ''),
     );
   }
   const listed = order.flatMap((id) => {
@@ -117,7 +127,9 @@ export const orderedChildIds = (goal: EdgeGoalNode): string[] =>
 
 /** Goals that pick one child by relative achievability vs `_decision_G<id>`. */
 export const usesChildSelection = (goal: EdgeGoalNode): boolean =>
-  ['anyOrder', 'alternative', 'choice', 'degradation'].includes(construct(goal));
+  ['anyOrder', 'alternative', 'choice', 'degradation'].includes(
+    construct(goal),
+  );
 
 /**
  * Degradation retry chain: children that are retried before the goal falls
@@ -131,9 +143,10 @@ export const retriedChildren = (
   if (construct(goal) !== 'degradation') {
     return [];
   }
-  const retryMap = goal.properties.engine.executionDetail?.type === 'degradation'
-    ? goal.properties.engine.executionDetail.retryMap ?? {}
-    : {};
+  const retryMap =
+    goal.properties.engine.executionDetail?.type === 'degradation'
+      ? (goal.properties.engine.executionDetail.retryMap ?? {})
+      : {};
   return orderedChildren(goal)
     .map((child) => {
       const fromNotation = retryMap[child.id];

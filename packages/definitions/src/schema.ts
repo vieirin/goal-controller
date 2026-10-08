@@ -223,9 +223,15 @@ export type PropertyKeyOf<
 > = D['properties'][K][number]['key'];
 
 /** The check names a definition refers to. */
-export type CheckNameOf<
-  D extends { properties: Record<ElementKind, readonly { check?: string }[]> },
-> = NonNullable<D['properties'][ElementKind][number]['check']>;
+export type CheckNameOf<D extends { properties: object }> = CheckOfList<
+  D['properties'][keyof D['properties']]
+>;
+
+type CheckOfList<L> = L extends readonly (infer P)[]
+  ? P extends { check: infer C extends string }
+    ? C
+    : never
+  : never;
 
 /** The constructs a definition declares. */
 export type ConstructOf<D extends { notation: { constructs: object } }> =

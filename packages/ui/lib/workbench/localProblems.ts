@@ -4,10 +4,10 @@
  */
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { isValidName, jsonErrorPosition } from './pistar';
+import { notationDefinitionOf } from './definitions';
+import { constructDefinition, isValidName } from '@goal-controller/definitions';
+import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
-
-const AND_CONSTRUCTS = new Set(['sequence', 'anyOrder', 'interleaved']);
 
 /**
  * RT id mentioned in an engine/generation message, if any.
@@ -54,7 +54,7 @@ export const treeProblems = (
     }
     if (node.kind === 'resource') continue;
 
-    if (!isValidName(node.name)) {
+    if (!isValidName(notationDefinitionOf(engine), node.kind, node.name)) {
       problems.push({
         severity: 'warning',
         source: 'model',
@@ -113,8 +113,12 @@ export const treeProblems = (
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
       });
     }
-    if (node.construct && node.relation) {
-      const needs = AND_CONSTRUCTS.has(node.construct) ? 'and' : 'or';
+    // the links the construct needs, as the engine's definition says
+    const needs = node.construct
+      ? constructDefinition(notationDefinitionOf(engine), node.construct)
+          ?.relation
+      : undefined;
+    if (needs && node.relation) {
       if (needs !== node.relation) {
         problems.push({
           severity: 'warning',

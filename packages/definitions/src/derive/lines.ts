@@ -2,7 +2,7 @@
  * The line syntax of the Notation view, from a definition: element lines
  * (with their notation or declaration), and property lines under them.
  */
-import type { DeclarationPart, EngineDefinition } from '../schema';
+import type { DeclarationPart, ElementKind, EngineDefinition } from '../schema';
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -204,4 +204,14 @@ export const readDeclaration = (
         )
       : null,
   };
+};
+
+/** Whether a name only uses the characters the kind's names may (an unknown kind: any). */
+export const isValidName = (
+  definition: Pick<EngineDefinition, 'elements'>,
+  kind: ElementKind,
+  name: string,
+): boolean => {
+  const element = (definition.elements as EngineDefinition['elements'])[kind];
+  return !element || new RegExp(`^${element.nameCharset}*$`).test(name);
 };

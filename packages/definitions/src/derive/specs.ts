@@ -2,7 +2,7 @@
  * The inspector's property specs, from a definition: the input each property
  * is edited with, whether it applies given the element's other properties,
  * whether it is needed, and the engine check rejecting a bad value (bound by
- * name from the engine's check registry).
+ * name from the engine library's check registry, whatever its check type).
  */
 import type { ElementKind, EngineDefinition, ValueConfig } from '../schema';
 import {
@@ -23,20 +23,8 @@ export type PropertyInput =
       options: ReadonlyArray<{ value: string; label: string }>;
     };
 
-export type CheckContext = {
-  /** id of the element being checked */
-  self: string;
-  /** the kind of another id in the model, if it exists */
-  kindOf: (id: string) => ElementKind | undefined;
-};
-
-/** What is wrong with a property value (null when fine), given all of them. */
-export type PropertyCheck = (
-  raw: Partial<Record<string, string>>,
-  context: CheckContext,
-) => string | null;
-
-export type PropertySpec<K extends string = string> = {
+/** `C`: the engine library's check function type (the definition only names checks). */
+export type PropertySpec<K extends string = string, C = unknown> = {
   key: K;
   /** how to edit it; may depend on the other properties */
   input: PropertyInput | ((properties: Properties) => PropertyInput);
@@ -46,8 +34,8 @@ export type PropertySpec<K extends string = string> = {
   notApplying?: (properties: Properties) => string;
   /** shown as a row even when unset (the engine needs it) */
   required?: (properties: Properties) => boolean;
-  /** what the engine would reject in a value (null when fine) */
-  validate?: PropertyCheck;
+  /** what the engine would reject in a value: its check, bound by name */
+  validate?: C;
 };
 
 const BOOL_OPTIONS = [
@@ -83,22 +71,22 @@ export const inputFor = (
 };
 
 export const inputOf = (
-  spec: PropertySpec,
+  spec: Pick<PropertySpec, 'input'>,
   properties: Properties,
 ): PropertyInput =>
   typeof spec.input === 'function' ? spec.input(properties) : spec.input;
 
 /** The inspector specs per kind; throws if a check is not in the registry. */
-export const specsFromDefinition = (
+export const specsFromDefinition = <C>(
   definition: Pick<EngineDefinition, 'id' | 'properties'>,
-  registry: Readonly<Record<string, PropertyCheck>>,
-): Record<ElementKind, PropertySpec[]> => {
-  const specs = (kind: ElementKind): PropertySpec[] =>
+  registry: Readonly<Record<string, C>>,
+): Record<ElementKind, PropertySpec<string, C>[]> => {
+  const specs = (kind: ElementKind): PropertySpec<string, C>[] =>
     definition.properties[kind]
       .filter((property) => property.inspector !== false)
       .map((property) => {
         const placeholder = property.input?.placeholder;
-        const spec: PropertySpec = {
+        const spec: PropertySpec<string, C> = {
           key: property.key,
           input:
             'when' in property.value

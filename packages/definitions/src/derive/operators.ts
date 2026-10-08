@@ -1,4 +1,5 @@
 import type {
+  ConstructDefinition,
   ConstructOf,
   EngineDefinition,
   Operator,
@@ -138,3 +139,12 @@ export const constructsWith = <D extends Pick<EngineDefinition, 'notation'>>(
   (Object.keys(definition.notation.constructs) as ConstructOf<D>[]).filter(
     (c) => definition.notation.constructs[c]?.relation === relation,
   );
+
+/** A construct's label, help and relation, by name (undefined if not declared). */
+export const constructDefinition = (
+  definition: Pick<EngineDefinition, 'notation'>,
+  construct: string,
+): ConstructDefinition | undefined =>
+  (
+    definition.notation.constructs as EngineDefinition['notation']['constructs']
+  )[construct];

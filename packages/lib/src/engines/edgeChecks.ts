@@ -3,6 +3,7 @@
  * of each other): a shared module, since the checks are identical today. Split it if the
  * two engines' rules ever diverge.
  */
+import { edge, type CheckNameOf } from '@goal-controller/definitions';
 import type { Check } from './checks';
 import type { EdgeGoalKey, EdgeResourceKey, EdgeTaskKey } from './edge/mapper';
 
@@ -210,3 +211,22 @@ export const edgeResourceChecks: Partial<Record<EdgeResourceKey, Check>> = {
   upperBound: (raw) =>
     resourceIssues(raw).find((i) => i.key === 'upperBound')?.message ?? null,
 };
+
+/**
+ * The checks the Edge definitions name (`check: 'edge.goal.dependsOn'`), by
+ * name: where an editor binds a definition's properties to these functions.
+ */
+export const edgeCheckRegistry = {
+  'edge.goal.variables': edgeGoalChecks.variables!,
+  'edge.goal.maintain': edgeGoalChecks.maintain!,
+  'edge.goal.assertion': edgeGoalChecks.assertion!,
+  'edge.goal.maxRetries': edgeGoalChecks.maxRetries!,
+  'edge.goal.dependsOn': edgeGoalChecks.dependsOn!,
+  'edge.task.maxRetries': edgeTaskChecks.maxRetries!,
+  'edge.resource.type': edgeResourceChecks.type!,
+  'edge.resource.initialValue': edgeResourceChecks.initialValue!,
+  'edge.resource.lowerBound': edgeResourceChecks.lowerBound!,
+  'edge.resource.upperBound': edgeResourceChecks.upperBound!,
+} satisfies Record<EdgeCheckName, Check>;
+
+export type EdgeCheckName = CheckNameOf<typeof edge>;

@@ -17,6 +17,7 @@
     "dev": "node --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
+    "@goal-controller/definitions": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
     "antlr4": "^4.13.0",
     "lodash": "^4.17.21",

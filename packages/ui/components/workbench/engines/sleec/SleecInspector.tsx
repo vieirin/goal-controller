@@ -1,7 +1,7 @@
 'use client';
 
 import type { GoalViewNode } from '@goal-controller/goal-tree';
-import { DEFAULT_ELEMENT_FILL } from '@/lib/workbench/edgeProperties';
+import { DEFAULT_ELEMENT_FILL } from '@goal-controller/definitions';
 import {
   NameField,
   NodeColorField,

@@ -1,9 +1,7 @@
 'use client';
 
-import {
-  EDGE_RESOURCE_FILL,
-  firstResourceIssue,
-} from '@/lib/workbench/edgeProperties';
+import { ENGINE_DEFINITIONS } from '@/lib/workbench/definitions';
+import { firstResourceIssue } from '@/lib/workbench/edgeProperties';
 import { isActor } from '@istar-ts/core';
 import {
   elementIcon,
@@ -46,7 +44,8 @@ function EdgeResource(props: ElementComponentProps): ReactElement {
         ...props.element,
         display: {
           ...props.element.display,
-          backgroundColor: EDGE_RESOURCE_FILL,
+          // the Edge definitions share their resource fill
+          backgroundColor: ENGINE_DEFINITIONS.edge.elements.resource.fill,
         },
       };
   const { label, issue } = resourceVariable(props.element.customProperties);

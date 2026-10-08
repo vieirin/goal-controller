@@ -94,7 +94,9 @@ export {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
+  edgeCheckRegistry,
   firstResourceIssue,
+  type EdgeCheckName,
 } from './engines/edgeChecks';
 
 // Logger

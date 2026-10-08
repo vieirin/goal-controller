@@ -1,18 +1,10 @@
 'use client';
 
 import type { GoalViewNode, ViewConstruct } from '@goal-controller/goal-tree';
-import {
-  DEFAULT_ELEMENT_FILL,
-  EDGE_RESOURCE_FILL,
-  PROPERTY_SPECS,
-} from '@/lib/workbench/edgeProperties';
-import {
-  CONSTRUCT_HELP,
-  CONSTRUCT_LABEL,
-  composeNodeText,
-  nodeTone,
-  setNodeText,
-} from '@/lib/workbench/pistar';
+import { elementLine, fillOf } from '@goal-controller/definitions';
+import { ENGINE_DEFINITIONS } from '@/lib/workbench/definitions';
+import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
+import { nodeTone, setNodeText } from '@/lib/workbench/pistar';
 import { useWorkbench } from '../../WorkbenchContext';
 import { NodeChip, cx } from '../../ui';
 import {
@@ -42,11 +34,14 @@ export type NotationOperator = {
 /** A goal's execution notation ("G2;G3"), with the operators this engine reads. */
 function NotationField({
   node,
+  engine,
   operators,
 }: {
   node: GoalViewNode;
+  engine: 'edge' | 'edgev2';
   operators: readonly NotationOperator[];
 }) {
+  const { constructs } = ENGINE_DEFINITIONS[engine].notation;
   const wb = useWorkbench();
   const { tree } = wb;
   const edit = useEditModel();
@@ -55,7 +50,11 @@ function NotationField({
       setNodeText(
         text,
         node.iStarId,
-        composeNodeText(node.id, node.name, next || null),
+        elementLine(ENGINE_DEFINITIONS[engine], {
+          id: node.id,
+          name: node.name,
+          notation: next || null,
+        }),
       ),
     ),
   );
@@ -77,7 +76,7 @@ function NotationField({
             ? node.notationError
               ? `Not valid for this engine: ${node.notationError}`
               : draftConstruct
-                ? `${CONSTRUCT_LABEL[draftConstruct]} — ${CONSTRUCT_HELP[draftConstruct]}`
+                ? `${constructs[draftConstruct].label} — ${constructs[draftConstruct].help}`
                 : 'No operator this engine understands.'
             : `No notation: ${node.relation === 'or' ? 'alternative' : 'interleaved'} by default.`
       }
@@ -135,7 +134,7 @@ function NotationField({
               type='button'
               title={
                 title ??
-                `${CONSTRUCT_LABEL[construct]}: ${CONSTRUCT_HELP[construct]}`
+                `${constructs[construct].label}: ${constructs[construct].help}`
               }
               onClick={() =>
                 notation.change(write ? write(pursueable) : pursueable.join(op))
@@ -143,7 +142,7 @@ function NotationField({
               className='rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink'
             >
               <span className='font-mono font-semibold'>{op}</span>{' '}
-              {CONSTRUCT_LABEL[construct]}
+              {constructs[construct].label}
             </button>
           ))}
           {draftConstruct === 'degradation' && !/@\d/.test(notation.draft) && (
@@ -184,16 +183,14 @@ export default function EdgeFamilyInspector({
       <NodeHeader node={node} />
       <NameField node={node} />
       {node.kind === 'goal' && (
-        <NotationField node={node} operators={operators} />
+        <NotationField node={node} engine={engine} operators={operators} />
       )}
       <RefinementField node={node} />
       <QualificationField node={node} />
       <NodeColorField
         node={node}
         // Edge resources are drawn yellow when no colour is saved
-        fallback={
-          node.kind === 'resource' ? EDGE_RESOURCE_FILL : DEFAULT_ELEMENT_FILL
-        }
+        fallback={fillOf(ENGINE_DEFINITIONS[engine], node.kind)}
       />
       <PropertiesField
         node={node}

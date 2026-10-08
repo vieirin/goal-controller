@@ -11,6 +11,7 @@ import {
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
+import { edge, propertyKeys } from '@goal-controller/definitions';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
@@ -24,41 +25,10 @@ import type {
   GoalExecutionDetail,
 } from './types';
 
-/**
- * Allowed keys for Edge goal custom properties
- */
-export const EDGE_GOAL_KEYS = [
-  'root',
-  'maxRetries',
-  'utility',
-  'cost',
-  'dependsOn',
-  'variables',
-  'type',
-  'maintain',
-  'assertion',
-] as const;
-
-/**
- * Allowed keys for Edge task custom properties
- */
-export const EDGE_TASK_KEYS = [
-  'maxRetries',
-  'type',
-  'assertion',
-  'utility',
-  'cost',
-] as const;
-
-/**
- * Allowed keys for Edge resource custom properties
- */
-export const EDGE_RESOURCE_KEYS = [
-  'type',
-  'initialValue',
-  'lowerBound',
-  'upperBound',
-] as const;
+// the custom properties it reads, per kind: from the engine's definition
+export const EDGE_GOAL_KEYS = propertyKeys(edge, 'goal');
+export const EDGE_TASK_KEYS = propertyKeys(edge, 'task');
+export const EDGE_RESOURCE_KEYS = propertyKeys(edge, 'resource');
 
 // Type aliases for the allowed keys
 export type EdgeGoalKey = (typeof EDGE_GOAL_KEYS)[number];

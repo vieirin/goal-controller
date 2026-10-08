@@ -89,6 +89,9 @@ importers:
 
   packages/lib:
     dependencies:
+      '@goal-controller/definitions':
+        specifier: workspace:*
+        version: link:../definitions
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree
@@ -207,6 +210,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.43.13
         version: 6.43.13
+      '@goal-controller/definitions':
+        specifier: workspace:*
+        version: link:../definitions
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree

@@ -64,3 +64,11 @@ export const propertyOf = (
   key: string,
 ): PropertyDefinition | undefined =>
   definition.properties[kind].find((p) => p.key === key);
+
+/** The fill a kind is drawn with when no colour is saved. */
+export const fillOf = (
+  definition: Pick<EngineDefinition, 'elements' | 'defaultFill'>,
+  kind: ElementKind,
+): string =>
+  (definition.elements as EngineDefinition['elements'])[kind]?.fill ??
+  definition.defaultFill;

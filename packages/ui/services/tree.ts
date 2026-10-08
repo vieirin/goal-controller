@@ -5,13 +5,11 @@ import {
   type RTGrammar,
 } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
+import { notationDefinitionOf } from '@/lib/workbench/definitions';
 
-/** The RT grammar each engine reads goal texts with (its mapper's `grammar`). */
-const GRAMMAR: Record<TransformEngine, RTGrammar> = {
-  edgev2: 'edgeV2',
-  edge: 'edge',
-  sleec: 'edge',
-};
+/** The RT grammar each engine reads goal texts with: its definition's (SLEEC: Edge's). */
+const grammarOf = (engine: TransformEngine): RTGrammar =>
+  notationDefinitionOf(engine).grammar;
 
 /**
  * The goal model as the workbench shows it (goal-tree's `goalView`): structure, RT ids,
@@ -23,5 +21,5 @@ export const treeView = (
   engine: TransformEngine,
 ): GoalView => {
   const model = parsePistar(modelJson);
-  return goalView(model, GRAMMAR[engine]);
+  return goalView(model, grammarOf(engine));
 };

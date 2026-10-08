@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import {
+  constructDefinition,
   constructOf,
   constructsWith,
   defineEngine,
@@ -8,6 +9,7 @@ import {
   edgeV2,
   elementLine,
   evaluateCondition,
+  fillOf,
   lineId,
   notationDocument,
   notationEdits,
@@ -20,6 +22,7 @@ import {
   relationMismatch,
   specsFromDefinition,
   inputOf,
+  isValidName,
   writeDeclaration,
   type DocumentNode,
   type EngineDefinition,
@@ -259,7 +262,7 @@ describe('properties', () => {
       {
         get: (_, name: string) => () => (calls.push(name), null),
       },
-    ) as Record<string, () => null>;
+    ) as Record<string, (...args: unknown[]) => null>;
     const specs = specsFromDefinition(edgeV2, registry);
     expect(specs.goal.map((s) => s.key)).to.not.include('root');
     const initial = specs.resource.find((s) => s.key === 'initialValue')!;
@@ -337,5 +340,29 @@ describe('document', () => {
     expect(
       notationEdits(edgeV2, text.replace('  type maintain', '  typ'), tree),
     ).to.deep.equal([]);
+  });
+});
+
+describe('fillOf', () => {
+  it('falls back to the default fill', () => {
+    expect(fillOf(edgeV2, 'resource')).to.equal('#FAF383');
+    expect(fillOf(edgeV2, 'goal')).to.equal('#CDFECD');
+    expect(fillOf(edgeV2, 'quality')).to.equal('#CDFECD');
+  });
+});
+
+describe('names and constructs', () => {
+  it('checks names with the kind charset', () => {
+    expect(isValidName(edgeV2, 'goal', "Don't stop - go")).to.equal(true);
+    expect(isValidName(edgeV2, 'goal', 'G2 [x]')).to.equal(false);
+    expect(isValidName(edgeV2, 'quality', 'any: thing')).to.equal(true);
+  });
+
+  it('looks constructs up by name', () => {
+    expect(constructDefinition(edgeV2, 'choice')?.relation).to.equal('or');
+    expect(constructDefinition(edgeV2, 'decisionMaking')?.relation).to.equal(
+      undefined,
+    );
+    expect(constructDefinition(edgeV2, 'nope')).to.equal(undefined);
   });
 });

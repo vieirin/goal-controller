@@ -1,10 +1,8 @@
-import {
-  edgeEngineMapper,
-  edgeV2EngineMapper,
-  sleecEngineMapper,
-} from '@goal-controller/lib';
+import { propertyKeys } from '@goal-controller/definitions';
+import { sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
+import { ENGINE_DEFINITIONS } from '../workbench/definitions';
 
 type Mapper = {
   allowedGoalKeys: readonly string[];
@@ -21,12 +19,24 @@ const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
   quality: [...(m.allowedQualityKeys ?? [])],
 });
 
-/** The custom properties each engine reads, per node kind, read from its mapper. */
+const definedKeys = (
+  definition: (typeof ENGINE_DEFINITIONS)[keyof typeof ENGINE_DEFINITIONS],
+): AnalyzeResponse['knownProperties'] => ({
+  goal: [...propertyKeys(definition, 'goal')],
+  task: [...propertyKeys(definition, 'task')],
+  resource: [...propertyKeys(definition, 'resource')],
+  quality: [...propertyKeys(definition, 'quality')],
+});
+
+/**
+ * The custom properties each engine reads, per node kind: from its definition (the Edge
+ * engines), or from its mapper (SLEEC has no definition).
+ */
 export const KNOWN_PROPERTIES: Record<
   TransformEngine,
   AnalyzeResponse['knownProperties']
 > = {
-  edge: keysOf(edgeEngineMapper),
-  edgev2: keysOf(edgeV2EngineMapper),
+  edge: definedKeys(ENGINE_DEFINITIONS.edge),
+  edgev2: definedKeys(ENGINE_DEFINITIONS.edgev2),
   sleec: keysOf(sleecEngineMapper),
 };
