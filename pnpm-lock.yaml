@@ -26,6 +26,30 @@ importers:
         specifier: ^50.4.11
         version: 50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
 
+  packages/definitions:
+    devDependencies:
+      '@types/chai':
+        specifier: ^4.3.11
+        version: 4.3.20
+      '@types/mocha':
+        specifier: ^10.0.6
+        version: 10.0.10
+      '@types/node':
+        specifier: ^22.6.0
+        version: 22.19.7
+      chai:
+        specifier: ^4.3.10
+        version: 4.5.0
+      mocha:
+        specifier: ^10.2.0
+        version: 10.8.2
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.19.7)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/goal-tree:
     dependencies:
       '@istar-ts/core':
