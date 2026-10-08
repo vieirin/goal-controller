@@ -183,7 +183,7 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
   for (const node of byIStarId.values())
     if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
-    .filter(isActor)
+    .filter((element) => isActor(element))
     .flatMap((actor) => actorRootCandidates(model, actor.id))
     .map((element) => byIStarId.get(element.id)?.id)
     .filter((id): id is string => !!id);

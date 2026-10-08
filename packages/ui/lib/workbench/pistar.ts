@@ -388,7 +388,9 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
         `${count} ${count > 1 ? plural(label) : label}: the Edge engines do not read ${plural(label)}`,
       );
     }
-    const actors = [...model.elements.values()].filter(isActor).length;
+    const actors = [...model.elements.values()].filter((element) =>
+      isActor(element),
+    ).length;
     if (actors > 1)
       blockers.push(`${actors} actors: the Edge engines read a single actor`);
   }

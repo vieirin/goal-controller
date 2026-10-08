@@ -134,6 +134,8 @@ export const oneActorOnly: RejectEdit = (event) =>
     (change) =>
       change.type === 'addElement' &&
       isActor(event.model.elements.get(change.id)),
-  ) && [...event.model.elements.values()].filter(isActor).length > 1
+  ) &&
+  [...event.model.elements.values()].filter((element) => isActor(element))
+    .length > 1
     ? 'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.'
     : null;

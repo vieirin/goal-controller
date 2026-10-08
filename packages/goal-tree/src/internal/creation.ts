@@ -583,7 +583,7 @@ export function convertToTree<
 
   const links = [...model.links.values()];
   const unidirectionalTree = [...model.elements.values()]
-    .filter(isActor)
+    .filter((element) => isActor(element))
     .map((actor) => {
       const nodes = childrenOf(model, actor.id);
       const rootNode = findActorRoot(model, actor.id);

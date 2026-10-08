@@ -15,7 +15,9 @@ import type { Model as IStarModel } from './types/';
  * @throws Error if the model is invalid
  */
 function validateModel(model: IStarModel): IStarModel {
-  const actors = [...model.elements.values()].filter(isActor);
+  const actors = [...model.elements.values()].filter((element) =>
+    isActor(element),
+  );
 
   let validated = model;
   for (const actor of actors) {
