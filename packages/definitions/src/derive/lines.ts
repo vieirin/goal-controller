@@ -2,13 +2,18 @@
  * The line syntax of the Notation view, from a definition: element lines
  * (with their notation or declaration), and property lines under them.
  */
-import type { DeclarationPart, ElementKind, EngineDefinition } from '../schema';
+import type {
+  DeclarationDefinition,
+  DeclarationPart,
+  ElementKind,
+  EngineDefinition,
+} from '../schema';
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 type Lines = Pick<
   EngineDefinition,
-  'elements' | 'notation' | 'declaration' | 'propertyLine' | 'propertyLineOrder'
+  'elements' | 'notation' | 'propertyLine' | 'propertyLineOrder'
 >;
 
 // every kind of a definition shares one element line
@@ -115,9 +120,16 @@ export const readPropertyLine = (
     : null;
 };
 
+/** The declaration a kind's line carries, if its element declares one. */
+export const declarationOf = (
+  definition: Pick<EngineDefinition, 'elements'>,
+  kind: ElementKind,
+): DeclarationDefinition | undefined =>
+  (definition.elements as EngineDefinition['elements'])[kind]?.declaration;
+
 /** The properties a declaration sets, in its order. */
 export const declarationKeys = (
-  definition: Pick<Lines, 'declaration'>,
+  declaration: DeclarationDefinition,
 ): string[] => {
   const keys = (parts: readonly DeclarationPart[]): string[] =>
     parts.flatMap((part) =>
@@ -127,7 +139,7 @@ export const declarationKeys = (
           ? keys(part.optional)
           : [],
     );
-  return keys(definition.declaration.parts);
+  return keys(declaration.parts);
 };
 
 export type DeclaredProperties = Partial<Record<string, string>>;
@@ -137,7 +149,7 @@ export type DeclaredProperties = Partial<Record<string, string>>;
  * writes is unset: there is nothing to declare).
  */
 export const writeDeclaration = (
-  definition: Pick<Lines, 'declaration'>,
+  declaration: DeclarationDefinition,
   properties: DeclaredProperties,
 ): string | null => {
   const write = (parts: readonly DeclarationPart[]): string | null => {
@@ -152,10 +164,10 @@ export const writeDeclaration = (
     }
     return text;
   };
-  const [open, close] = definition.declaration.delimiters;
-  const body = write(definition.declaration.parts);
+  const [open, close] = declaration.delimiters;
+  const body = write(declaration.parts);
   // the first property is what is declared: without it there is nothing
-  const [first] = declarationKeys(definition);
+  const [first] = declarationKeys(declaration);
   return body !== null && first !== undefined && properties[first]
     ? `${open}${body}${close}`
     : null;
@@ -180,27 +192,27 @@ const declarationPattern = (parts: readonly DeclarationPart[]): string =>
  * is null when the line has none or it cannot be read (`declared` tells which).
  */
 export const readDeclaration = (
-  definition: Pick<Lines, 'declaration'>,
+  declaration: DeclarationDefinition,
   line: string,
 ): {
   text: string;
   properties: DeclaredProperties | null;
   declared: boolean;
 } => {
-  const [open, close] = definition.declaration.delimiters.map(escape);
+  const [open, close] = declaration.delimiters.map(escape);
   const match = new RegExp(`^(.*?)\\s*${open}([^${close}]*)${close}\\s*$`).exec(
     line,
   );
   if (!match) return { text: line.trim(), properties: null, declared: false };
   const decl = new RegExp(
-    `^\\s*${declarationPattern(definition.declaration.parts)}\\s*$`,
+    `^\\s*${declarationPattern(declaration.parts)}\\s*$`,
   ).exec(match[2]!);
   return {
     text: match[1]!.trim(),
     declared: true,
     properties: decl
       ? Object.fromEntries(
-          declarationKeys(definition).map((key, i) => [key, decl[i + 1]]),
+          declarationKeys(declaration).map((key, i) => [key, decl[i + 1]]),
         )
       : null,
   };

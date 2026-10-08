@@ -9,6 +9,7 @@ import type { StringStream } from '@codemirror/language';
 import {
   elementIdPattern,
   operandPattern,
+  type DeclarationDefinition,
   type EngineDefinition,
   type LanguageDefinition,
   type ValueConfig,
@@ -88,10 +89,37 @@ const lineValue = (
   return undefined;
 };
 
+/** How a declaration reads: its delimiters and literals (as tokens). */
+type DeclarationTokens = {
+  open: string;
+  close: string;
+  literals: RegExp | null;
+};
+
 type DocumentState = {
   part: 'start' | 'name' | 'notation' | 'declaration' | 'value';
   value: ((stream: StringStream) => string | null) | null;
+  /** the declaration of the line's element, when its kind has one */
+  declaration: DeclarationTokens | null;
 };
+
+const declarationTokens = (
+  declaration: DeclarationDefinition,
+): DeclarationTokens => ({
+  open: declaration.delimiters[0],
+  close: declaration.delimiters[1],
+  literals: anyOf(
+    declaration.parts.flatMap(function literalsOf(part): string[] {
+      return 'literal' in part
+        ? part.literal.trim()
+          ? [part.literal.trim()]
+          : []
+        : 'optional' in part
+          ? part.optional.flatMap(literalsOf)
+          : [];
+    }),
+  ),
+});
 
 /** The Notation view's document language. */
 export const documentLanguage = (definition: EngineDefinition) => {
@@ -102,38 +130,50 @@ export const documentLanguage = (definition: EngineDefinition) => {
     .slice(line.indexOf('{id}') + 4, line.indexOf('{name}'))
     .trim();
   const [open, close] = definition.notation.delimiters;
-  const [declOpen, declClose] = definition.declaration.delimiters;
+  // each kind's id, with the declaration its line carries (if any)
+  const kinds = Object.values(definition.elements).map((element) => ({
+    id: new RegExp(`^${escape(element.prefix)}${element.idPattern}$`),
+    declaration: element.declaration
+      ? declarationTokens(element.declaration)
+      : null,
+  }));
   const keywords = anyOf(definition.notation.operand.keywords);
   const operators = anyOf(definition.notation.operators.map((o) => o.symbol));
   const key = new RegExp(
     `^(?:${definition.propertyLineOrder.map(escape).join('|')})(?![\\w])`,
   );
-  const literals = anyOf(
-    definition.declaration.parts.flatMap(function literalsOf(part): string[] {
-      return 'literal' in part
-        ? part.literal.trim()
-          ? [part.literal.trim()]
-          : []
-        : 'optional' in part
-          ? part.optional.flatMap(literalsOf)
-          : [];
-    }),
+  // a name runs up to the notation, or to its kind's declaration
+  const nameStop = new RegExp(`^[^${escape(open)}]+`);
+  const nameStops = new Map(
+    kinds.flatMap(({ declaration }) =>
+      declaration
+        ? [
+            [
+              declaration,
+              new RegExp(`^[^${escape(open)}${escape(declaration.open)}]+`),
+            ] as const,
+          ]
+        : [],
+    ),
   );
-  const nameStop = new RegExp(`^[^${escape(open)}${escape(declOpen)}]+`);
 
   const parser: StreamParser<DocumentState> = {
     name: definition.id,
-    startState: () => ({ part: 'start', value: null }),
+    startState: () => ({ part: 'start', value: null, declaration: null }),
     token(stream, state) {
       if (stream.sol()) {
         state.part = 'start';
         state.value = null;
+        state.declaration = null;
       }
       if (stream.eatSpace()) return null;
       switch (state.part) {
         case 'start': {
           if (stream.match(id)) {
+            const written = stream.current();
             state.part = 'name';
+            state.declaration =
+              kinds.find((kind) => kind.id.test(written))?.declaration ?? null;
             return 'labelName';
           }
           const matched = stream.match(key);
@@ -154,11 +194,17 @@ export const documentLanguage = (definition: EngineDefinition) => {
             state.part = 'notation';
             return 'bracket';
           }
-          if (stream.match(declOpen)) {
+          if (state.declaration && stream.match(state.declaration.open)) {
             state.part = 'declaration';
             return 'brace';
           }
-          stream.match(nameStop);
+          if (
+            !stream.match(
+              (state.declaration && nameStops.get(state.declaration)) ||
+                nameStop,
+            )
+          )
+            stream.next();
           return 'string';
         case 'notation':
           if (stream.match(close)) {
@@ -172,11 +218,15 @@ export const documentLanguage = (definition: EngineDefinition) => {
           stream.next();
           return null;
         case 'declaration':
-          if (stream.match(declClose)) {
+          if (stream.match(state.declaration!.close)) {
             state.part = 'name';
             return 'brace';
           }
-          if (literals && stream.match(literals)) return 'operator';
+          if (
+            state.declaration!.literals &&
+            stream.match(state.declaration!.literals)
+          )
+            return 'operator';
           if (stream.match(/^-?\d+/)) return 'number';
           if (stream.match(/^[A-Za-z_]\w*/)) return 'typeName';
           stream.next();

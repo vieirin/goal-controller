@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import {
   constructDefinition,
   constructOf,
+  declarationOf,
   constructsWith,
   defineEngine,
   edge,
@@ -150,6 +151,8 @@ describe('operatorsFor', () => {
   });
 });
 
+const RESOURCE = edgeV2.elements.resource.declaration;
+
 describe('lines', () => {
   it('writes and reads element lines', () => {
     const line = elementLine(edgeV2, {
@@ -188,6 +191,12 @@ describe('lines', () => {
     expect(readPropertyLine(edgeV2, 'unknown 3')).to.equal(null);
   });
 
+  it('finds the declaration on the element that has one', () => {
+    expect(declarationOf(edgeV2, 'resource')).to.equal(RESOURCE);
+    expect(declarationOf(edgeV2, 'goal')).to.equal(undefined);
+    expect(declarationOf(edgeV2, 'quality')).to.equal(undefined);
+  });
+
   it('writes and reads declarations', () => {
     const int = {
       type: 'int',
@@ -195,27 +204,27 @@ describe('lines', () => {
       upperBound: '100',
       initialValue: '80',
     };
-    expect(writeDeclaration(edgeV2, int)).to.equal('{int 0..100 = 80}');
+    expect(writeDeclaration(RESOURCE, int)).to.equal('{int 0..100 = 80}');
     expect(
-      writeDeclaration(edgeV2, { type: 'bool', initialValue: 'false' }),
+      writeDeclaration(RESOURCE, { type: 'bool', initialValue: 'false' }),
     ).to.equal('{bool = false}');
-    expect(writeDeclaration(edgeV2, { type: 'int', lowerBound: '0' })).to.equal(
-      '{int}',
-    );
-    expect(writeDeclaration(edgeV2, { initialValue: '3' })).to.equal(null);
     expect(
-      readDeclaration(edgeV2, 'R1: Battery {int 0 .. 100=80}'),
+      writeDeclaration(RESOURCE, { type: 'int', lowerBound: '0' }),
+    ).to.equal('{int}');
+    expect(writeDeclaration(RESOURCE, { initialValue: '3' })).to.equal(null);
+    expect(
+      readDeclaration(RESOURCE, 'R1: Battery {int 0 .. 100=80}'),
     ).to.deep.equal({
       text: 'R1: Battery',
       declared: true,
       properties: int,
     });
-    expect(readDeclaration(edgeV2, 'R1: Battery {int 0..}')).to.deep.equal({
+    expect(readDeclaration(RESOURCE, 'R1: Battery {int 0..}')).to.deep.equal({
       text: 'R1: Battery',
       declared: true,
       properties: null,
     });
-    expect(readDeclaration(edgeV2, 'R1: Battery').declared).to.equal(false);
+    expect(readDeclaration(RESOURCE, 'R1: Battery').declared).to.equal(false);
   });
 });
 

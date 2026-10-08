@@ -13,6 +13,7 @@ import type {
 } from '../schema';
 import {
   declarationKeys,
+  declarationOf,
   elementLine,
   lineId,
   propertyLine,
@@ -42,20 +43,8 @@ export type DocumentTree = {
 
 type Document = Pick<
   EngineDefinition,
-  | 'elements'
-  | 'notation'
-  | 'declaration'
-  | 'propertyLine'
-  | 'propertyLineOrder'
-  | 'indent'
+  'elements' | 'notation' | 'propertyLine' | 'propertyLineOrder' | 'indent'
 >;
-
-/** Whether a node's line carries a declaration (its kind has the slot). */
-const isDeclared = (
-  definition: Pick<EngineDefinition, 'elements'>,
-  node: DocumentNode,
-): boolean =>
-  definition.elements[node.kind]?.slots.includes('declaration') ?? false;
 
 const isNotationNode = (
   definition: Pick<EngineDefinition, 'notation'>,
@@ -81,14 +70,15 @@ export const notationDocument = (
   const visit = (id: string, depth: number) => {
     const node = tree.nodes.get(id);
     if (!node || seen.has(id)) return;
-    if (isDeclared(definition, node)) {
+    const declaration = declarationOf(definition, node.kind);
+    if (declaration) {
       seen.add(id);
       lines.push(
         definition.indent.repeat(depth) +
           elementLine(
             definition,
             node,
-            writeDeclaration(definition, node.properties),
+            writeDeclaration(declaration, node.properties),
           ),
       );
       ids.push(id);
@@ -146,16 +136,17 @@ export const notationEdits = (
       const node = tree.nodes.get(id);
       current = null;
       if (!node) continue;
-      if (isDeclared(definition, node)) {
+      const declaration = declarationOf(definition, node.kind);
+      if (declaration) {
         const { text, properties, declared } = readDeclaration(
-          definition,
+          declaration,
           line,
         );
         if (text !== nodeLine(definition, node))
           edits.push({ iStarId: node.iStarId, text });
         // an unreadable declaration (being typed) changes nothing yet
         if (properties || !declared) {
-          for (const key of declarationKeys(definition)) {
+          for (const key of declarationKeys(declaration)) {
             const value = properties?.[key] ?? null;
             if (value !== (node.properties[key] ?? null)) {
               edits.push({ iStarId: node.iStarId, key, value });

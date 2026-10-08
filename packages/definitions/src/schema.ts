@@ -21,8 +21,11 @@ export type ElementDefinition = {
   idPattern: string;
   /** the element's line, with `{id}` and `{name}` */
   line: string;
-  /** what may follow the line: a notation, a declaration (each in its delimiters) */
-  slots: readonly ('notation' | 'declaration')[];
+  /**
+   * the syntax of what this kind declares on its line, after the name (a
+   * resource's `{int 0..100 = 80}`): the properties it sets, in its delimiters
+   */
+  declaration?: DeclarationDefinition;
   /** a regex character class source: the characters a name may use */
   nameCharset: string;
   /** the fill the diagram draws it with when no colour is saved */
@@ -183,7 +186,6 @@ export type EngineDefinition = {
   propertyLine: { separator: string; keyPattern: string };
   /** the order property lines are written in, for every operand kind alike */
   propertyLineOrder: readonly string[];
-  declaration: DeclarationDefinition;
   /** how far each depth is indented in the Notation view (presentation only) */
   indent: string;
   /** `{construct}`, `{needs}`, `{relation}` in relationMismatch's message */

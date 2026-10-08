@@ -15,6 +15,7 @@ import type {
 } from '../schema';
 import {
   lineId,
+  declarationOf,
   readDeclaration,
   readElementLine,
   readPropertyLine,
@@ -40,7 +41,6 @@ type Definition = Pick<
   EngineDefinition,
   | 'elements'
   | 'notation'
-  | 'declaration'
   | 'properties'
   | 'propertyLine'
   | 'propertyLineOrder'
@@ -172,10 +172,10 @@ export const documentDiagnostics = (
         diagnostics.push(problem(definition, 'notInDiagram', idFrom, idTo));
         continue;
       }
-      const slots = definition.elements[element.kind]?.slots ?? [];
-      if (slots.includes('declaration')) {
-        const { declared, properties } = readDeclaration(definition, text);
-        const [declOpen] = definition.declaration.delimiters;
+      const declaration = declarationOf(definition, element.kind);
+      if (declaration) {
+        const { declared, properties } = readDeclaration(declaration, text);
+        const [declOpen] = declaration.delimiters;
         const from = lineFrom + text.lastIndexOf(declOpen);
         const span = { from, to: lineFrom + text.trimEnd().length };
         if (declared && !properties) {

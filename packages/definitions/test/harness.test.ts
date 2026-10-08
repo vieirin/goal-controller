@@ -214,7 +214,9 @@ describe('harness 3: property config', () => {
     });
 
     it(`${definition.id}: resource keys equal RESOURCE_KEYS`, () => {
-      expect(declarationKeys(definition)).to.deep.equal([...RESOURCE_KEYS]);
+      expect(
+        declarationKeys(definition.elements.resource.declaration),
+      ).to.deep.equal([...RESOURCE_KEYS]);
       expect([...propertyKeys(definition, 'resource')].sort()).to.deep.equal(
         [...RESOURCE_KEYS].sort(),
       );

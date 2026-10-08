@@ -20,24 +20,47 @@ export const DEFAULT_ELEMENT_FILL = '#CDFECD';
 const ID = '(?:[0-9]+\\.?[0-9]*X?|X|[0-9][a-z])';
 const NAME = "[A-Za-z\\- ']";
 
-const element = (
-  prefix: string,
-  fill: string,
-  slots: ElementDefinition['slots'],
-): ElementDefinition => ({
+const NUMBER = '-?\\d+';
+const WORD = '[A-Za-z_]\\w*';
+
+/** A resource's declaration: `{int 0..100 = 80}`, `{bool = false}`. */
+const resourceDeclaration: DeclarationDefinition = {
+  delimiters: ['{', '}'],
+  parts: [
+    { key: 'type', pattern: WORD },
+    {
+      optional: [
+        { literal: ' ' },
+        { key: 'lowerBound', pattern: NUMBER },
+        { literal: '..' },
+        { key: 'upperBound', pattern: NUMBER },
+      ],
+    },
+    {
+      optional: [
+        { literal: ' = ' },
+        { key: 'initialValue', pattern: `${NUMBER}|${WORD}` },
+      ],
+    },
+  ],
+};
+
+const element = (prefix: string, fill: string): ElementDefinition => ({
   prefix,
   idPattern: ID,
   line: '{id}: {name}',
-  slots,
   nameCharset: NAME,
   fill,
 });
 
 export const edgeElements = {
-  goal: element('G', DEFAULT_ELEMENT_FILL, ['notation']),
-  task: element('T', DEFAULT_ELEMENT_FILL, ['notation']),
+  goal: element('G', DEFAULT_ELEMENT_FILL),
+  task: element('T', DEFAULT_ELEMENT_FILL),
   // piStar's resource yellow: Edge resources are drawn with it unless they have a colour
-  resource: element('R', '#FAF383', ['notation', 'declaration']),
+  resource: {
+    ...element('R', '#FAF383'),
+    declaration: resourceDeclaration,
+  },
 };
 
 /**
@@ -93,31 +116,6 @@ export const RETRY = {
   action: 'Retry the first child up to {retries} times before falling back',
 } as const;
 
-const NUMBER = '-?\\d+';
-const WORD = '[A-Za-z_]\\w*';
-
-/** A resource's declaration: `{int 0..100 = 80}`, `{bool = false}`. */
-const declaration: DeclarationDefinition = {
-  delimiters: ['{', '}'],
-  parts: [
-    { key: 'type', pattern: WORD },
-    {
-      optional: [
-        { literal: ' ' },
-        { key: 'lowerBound', pattern: NUMBER },
-        { literal: '..' },
-        { key: 'upperBound', pattern: NUMBER },
-      ],
-    },
-    {
-      optional: [
-        { literal: ' = ' },
-        { key: 'initialValue', pattern: `${NUMBER}|${WORD}` },
-      ],
-    },
-  ],
-};
-
 /**
  * How serious each notation/structure mismatch is, for every editor (Notation
  * view, inspector, Problems). The engine generates in each case, but it drops
@@ -148,7 +146,6 @@ export const edgeFamily = {
   properties: edgeProperties,
   propertyLine: { separator: ' ', keyPattern: '[A-Za-z]+' },
   propertyLineOrder: edgePropertyLineOrder,
-  declaration,
   indent: '  ',
   problems,
   languages: { assertion: assertionLanguage },
