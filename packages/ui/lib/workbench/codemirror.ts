@@ -8,7 +8,12 @@ import {
   syntaxHighlighting,
   type StreamParser,
 } from '@codemirror/language';
-import { RangeSetBuilder, StateEffect, StateField, type Extension } from '@codemirror/state';
+import {
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  type Extension,
+} from '@codemirror/state';
 import { Decoration, EditorView, type DecorationSet } from '@codemirror/view';
 import { tags as t } from '@lezer/highlight';
 
@@ -17,8 +22,21 @@ import { tags as t } from '@lezer/highlight';
 // ---------------------------------------------------------------------------
 
 const KEYWORDS = new Set([
-  'dtmc', 'mdp', 'ctmc', 'module', 'endmodule', 'formula', 'const', 'label',
-  'rewards', 'endrewards', 'init', 'endinit', 'global', 'system', 'endsystem',
+  'dtmc',
+  'mdp',
+  'ctmc',
+  'module',
+  'endmodule',
+  'formula',
+  'const',
+  'label',
+  'rewards',
+  'endrewards',
+  'init',
+  'endinit',
+  'global',
+  'system',
+  'endsystem',
 ]);
 const TYPES = new Set(['int', 'double', 'bool']);
 const ATOMS = new Set(['true', 'false']);
@@ -32,7 +50,7 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       stream.skipToEnd();
       return 'comment';
     }
-    if (stream.peek() === '[' ) {
+    if (stream.peek() === '[') {
       stream.next();
       state.inLabel = true;
       return 'bracket';
@@ -56,7 +74,8 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       if (ATOMS.has(text)) return 'atom';
       return 'variableName';
     }
-    if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/)) return 'operator';
+    if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/))
+      return 'operator';
     stream.next();
     return null;
   },
@@ -64,6 +83,46 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
 };
 
 export const prismLanguage = StreamLanguage.define(prismParser);
+
+// ---------------------------------------------------------------------------
+// RT notation (`G1: Name [G2;G3@2->T4]`), for the notation view
+// ---------------------------------------------------------------------------
+
+const rtParser: StreamParser<{ inNotation: boolean; named: boolean }> = {
+  name: 'rt',
+  startState: () => ({ inNotation: false, named: false }),
+  token(stream, state) {
+    if (stream.sol()) state.named = false;
+    if (stream.eatSpace()) return null;
+    if (stream.eat('[')) {
+      state.inNotation = true;
+      return 'bracket';
+    }
+    if (stream.eat(']')) {
+      state.inNotation = false;
+      return 'bracket';
+    }
+    if (!state.inNotation && !state.named) {
+      if (stream.match(/^[GTR][0-9][0-9a-zA-Z.]*/)) return 'labelName';
+      if (stream.eat(':')) {
+        state.named = true;
+        return 'punctuation';
+      }
+    }
+    if (!state.inNotation) {
+      stream.match(/^[^[]+/);
+      return 'string';
+    }
+    if (stream.match('skip')) return 'keyword';
+    if (stream.match(/^[GTR][0-9][0-9a-zA-Z.]*/)) return 'labelName';
+    if (stream.match(/^@[0-9.]+/)) return 'number';
+    if (stream.match(/^(->|[;#+|?])/)) return 'operator';
+    stream.next();
+    return null;
+  },
+};
+
+export const rtLanguage = StreamLanguage.define(rtParser);
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -97,10 +156,18 @@ export const workbenchTheme: Extension = [
     },
     '.cm-cursor': { borderLeftColor: '#6D4AFF' },
     '.cm-tooltip': { border: '1px solid #DDE3E1', borderRadius: '6px' },
-    '.cm-changedLine': { backgroundColor: 'rgba(31, 122, 116, 0.07) !important' },
-    '.cm-deletedChunk': { backgroundColor: 'rgba(194, 65, 45, 0.07) !important' },
-    '.cm-insertedLine, .cm-changedText': { backgroundColor: 'rgba(31, 122, 116, 0.12) !important' },
-    '.cm-deletedLine, .cm-deletedText': { backgroundColor: 'rgba(194, 65, 45, 0.12) !important' },
+    '.cm-changedLine': {
+      backgroundColor: 'rgba(31, 122, 116, 0.07) !important',
+    },
+    '.cm-deletedChunk': {
+      backgroundColor: 'rgba(194, 65, 45, 0.07) !important',
+    },
+    '.cm-insertedLine, .cm-changedText': {
+      backgroundColor: 'rgba(31, 122, 116, 0.12) !important',
+    },
+    '.cm-deletedLine, .cm-deletedText': {
+      backgroundColor: 'rgba(194, 65, 45, 0.12) !important',
+    },
     '.cm-collapsedLines': {
       backgroundColor: '#F3F5F4',
       color: '#6B7679',
@@ -154,7 +221,12 @@ export const rangeMarksField = StateField.define<DecorationSet>({
           effect.value
             .filter((mark) => mark.from < mark.to && mark.to <= length)
             .sort((a, b) => a.from - b.from)
-            .map((mark) => Decoration.mark({ class: mark.className }).range(mark.from, mark.to)),
+            .map((mark) =>
+              Decoration.mark({ class: mark.className }).range(
+                mark.from,
+                mark.to,
+              ),
+            ),
         );
       }
     }

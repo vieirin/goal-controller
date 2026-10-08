@@ -4,7 +4,7 @@ import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
-import type { TransformEngine } from '@/lib/types';
+import { ENGINE_LABEL, type TransformEngine } from '@/lib/types';
 import {
   inputOf,
   type NodeKindKey,
@@ -90,12 +90,6 @@ export const useDraft = (
   return { draft, change, flush };
 };
 
-export const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: 'EdgeV2',
-  edge: 'Edge',
-  sleec: 'SLEEC',
-};
-
 const KIND_PLURAL: Record<NodeKindKey, string> = {
   goal: 'goals',
   task: 'tasks',
@@ -105,30 +99,33 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
 
-/** Where each engine declares the properties it reads, per element kind (packages/lib). */
-const ENGINE_KEYS: Record<
-  TransformEngine,
-  {
-    file: string;
-    lists: Partial<Record<NodeKindKey, string>>;
-    map: Record<NodeKindKey, string>;
-  }
-> = {
-  edgev2: {
-    file: 'packages/lib/src/engines/edgeV2/mapper.ts',
-    lists: {
-      goal: 'EDGE_GOAL_KEYS',
-      task: 'EDGE_TASK_KEYS',
-      resource: 'EDGE_RESOURCE_KEYS',
-      quality: 'allowedQualityKeys',
-    },
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
+type EngineKeys = {
+  file: string;
+  lists: Partial<Record<NodeKindKey, string>>;
+  map: Record<NodeKindKey, string>;
+};
+
+const EDGEV2_KEYS: EngineKeys = {
+  file: 'packages/lib/src/engines/edgeV2/mapper.ts',
+  lists: {
+    goal: 'EDGE_GOAL_KEYS',
+    task: 'EDGE_TASK_KEYS',
+    resource: 'EDGE_RESOURCE_KEYS',
+    quality: 'allowedQualityKeys',
   },
+  map: {
+    goal: 'mapGoalProps',
+    task: 'mapTaskProps',
+    resource: 'mapResourceProps',
+    quality: 'mapGoalProps',
+  },
+};
+
+/** Where each engine declares the properties it reads, per element kind (packages/lib). */
+const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
+  edgev2: EDGEV2_KEYS,
+  // edgeLangium is edgeV2's mapper with another RT parser
+  edgelangium: EDGEV2_KEYS,
   edge: {
     file: 'packages/lib/src/engines/edge/mapper.ts',
     lists: {

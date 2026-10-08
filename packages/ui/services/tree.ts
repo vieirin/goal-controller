@@ -9,6 +9,7 @@ import type { TransformEngine } from '@/lib/types';
 /** The RT grammar each engine reads goal texts with (its mapper's `grammar`). */
 const GRAMMAR: Record<TransformEngine, RTGrammar> = {
   edgev2: 'edgeV2',
+  edgelangium: 'edgeLangium',
   edge: 'edge',
   sleec: 'edge',
 };

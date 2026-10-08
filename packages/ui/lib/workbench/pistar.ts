@@ -20,7 +20,7 @@ import {
 } from '@istar-ts/core';
 // types only: the view is computed in services/tree.ts
 import type { GoalViewNode } from '@goal-controller/goal-tree';
-import type { TransformEngine } from '@/lib/types';
+import { isEdgeV2Engine, type TransformEngine } from '@/lib/types';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
@@ -255,7 +255,13 @@ export const jsonErrorPosition = (
 /** What a model is for: one of the engines, or free iStar modelling in piStar mode. */
 export type ModelMode = TransformEngine | 'pistar';
 
-const MODES: readonly ModelMode[] = ['edgev2', 'edge', 'sleec', 'pistar'];
+const MODES: readonly ModelMode[] = [
+  'edgev2',
+  'edgelangium',
+  'edge',
+  'sleec',
+  'pistar',
+];
 
 /**
  * The engine is kept in the diagram's custom properties: piStar keeps them when it opens
@@ -369,7 +375,7 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       );
     }
   }
-  if (target === 'edge' || target === 'edgev2') {
+  if (target === 'edge' || (target !== 'pistar' && isEdgeV2Engine(target))) {
     const counts = new Map<string, number>();
     for (const element of model.elements.values()) {
       if (!EDGE_ELEMENTS.has(element.kind))

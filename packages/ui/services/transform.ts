@@ -7,7 +7,11 @@ import {
   type LoggerReport,
 } from '@goal-controller/lib';
 import { GoalModel } from './goalModel';
-import type { EdgeV2TaskLayout, TransformEngine } from '../lib/types';
+import {
+  isEdgeV2Engine,
+  type EdgeV2TaskLayout,
+  type TransformEngine,
+} from '../lib/types';
 
 export type TransformOptions = {
   modelJson: string;
@@ -45,10 +49,9 @@ export const transform = (
     previousOutput,
   } = options;
 
-  const logger =
-    engine === 'edgev2'
-      ? initEdgeV2Logger(fileName || 'model', false, true)
-      : initLogger(fileName || 'model', false, true);
+  const logger = isEdgeV2Engine(engine)
+    ? initEdgeV2Logger(fileName || 'model', false, true)
+    : initLogger(fileName || 'model', false, true);
 
   try {
     let output: string;
@@ -65,8 +68,11 @@ export const transform = (
         previousOutput,
         writeReport: false,
       });
-    } else if (engine === 'edgev2') {
-      const parseResult = GoalModel.parseForEdgeV2(modelJson, { reduce });
+    } else if (isEdgeV2Engine(engine)) {
+      const parseResult =
+        engine === 'edgelangium'
+          ? GoalModel.parseForEdgeLangium(modelJson, { reduce })
+          : GoalModel.parseForEdgeV2(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
       output = generateEdgeV2PrismModel({
         gm: parseResult.tree,

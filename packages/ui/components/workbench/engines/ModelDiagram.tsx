@@ -15,6 +15,7 @@ export default function ModelDiagram() {
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':
+    case 'edgelangium':
       return <EdgeV2Diagram />;
     case 'sleec':
       return <SleecDiagram />;

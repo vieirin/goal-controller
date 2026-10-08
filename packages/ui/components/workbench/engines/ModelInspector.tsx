@@ -17,6 +17,8 @@ export default function ModelInspector() {
     case 'edge':
       return <EdgeInspector />;
     case 'edgev2':
+    // edgeLangium reads what edgeV2 reads; its notation view is a model tab
+    case 'edgelangium':
       return <EdgeV2Inspector />;
     case 'sleec':
       return <SleecInspector />;

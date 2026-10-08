@@ -18,7 +18,12 @@ import {
   Undo2,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import {
+  ENGINE_LABEL,
+  isEdgeV2Engine,
+  isPrismEngine,
+  type TransformEngine,
+} from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import type { GenerationOptions } from '@/lib/workbench/types';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
@@ -64,19 +69,13 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
 
 export { readFile };
 
-const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: 'EdgeV2',
-  edge: 'Edge',
-  sleec: 'SLEEC',
-};
-
 const optionsSummary = (
   engine: TransformEngine,
   wb: ReturnType<typeof useWorkbench>,
 ): string => {
   const { options } = wb;
   const reduced = options.reduce ? ' · reduced' : '';
-  if (engine === 'edgev2') {
+  if (isEdgeV2Engine(engine)) {
     return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}${reduced}`;
   }
   if (engine === 'edge') return `space ${options.achievabilitySpace}${reduced}`;
@@ -462,7 +461,7 @@ export function EngineOptionFields({
 }) {
   return (
     <div className='space-y-3 text-[13px]'>
-      {engine === 'edgev2' && (
+      {isEdgeV2Engine(engine) && (
         <>
           <label className='flex items-center justify-between gap-4'>
             <span>

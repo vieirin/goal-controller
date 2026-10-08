@@ -11,7 +11,11 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import {
+  isEdgeV2Engine,
+  isPrismEngine,
+  type TransformEngine,
+} from '@/lib/types';
 import {
   generationProblems,
   jsonProblem,
@@ -53,6 +57,7 @@ export type ChangeSource =
   | 'open'
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'inspector'
   | 'undo'
   | 'restore'
@@ -61,12 +66,14 @@ export type ChangeSource =
 export type SelectOrigin =
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'output'
   | 'inspector'
   | 'problems'
   | 'variables';
 
-export type ModelTab = 'diagram' | 'source';
+/** `notation`: the whole-model RT text, for EdgeLangium models only */
+export type ModelTab = 'diagram' | 'source' | 'notation';
 export type OutputTab = 'output' | 'diff' | 'report';
 export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 
@@ -282,7 +289,7 @@ const optionsFor = (
   engine: TransformEngine,
   options: GenerationOptions,
 ): Record<string, unknown> =>
-  engine === 'edgev2'
+  isEdgeV2Engine(engine)
     ? {
         clean: options.clean,
         generateDecisionVars: options.generateDecisionVars,

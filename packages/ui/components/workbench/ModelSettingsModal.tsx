@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import type { TransformEngine } from '@/lib/types';
+import { ENGINE_LABEL, type TransformEngine } from '@/lib/types';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
 import { ConformityStatus, useEngineConformity } from './engineConformity';
@@ -17,14 +17,25 @@ const ENGINES: Array<{
 }> = [
   {
     id: 'edgev2',
-    label: 'EdgeV2',
+    label: ENGINE_LABEL.edgev2,
     output: 'PRISM',
     help: 'EDGE reference encoding, with cost and utility rewards',
   },
-  { id: 'edge', label: 'Edge', output: 'PRISM', help: 'Legacy Edge encoding' },
+  {
+    id: 'edgelangium',
+    label: ENGINE_LABEL.edgelangium,
+    output: 'PRISM',
+    help: 'EdgeV2, edited as text too: a notation view backed by a Langium language server',
+  },
+  {
+    id: 'edge',
+    label: ENGINE_LABEL.edge,
+    output: 'PRISM',
+    help: 'Legacy Edge encoding',
+  },
   {
     id: 'sleec',
-    label: 'SLEEC',
+    label: ENGINE_LABEL.sleec,
     output: 'SLEEC',
     help: 'SLEEC rules from the goal conditions',
   },
@@ -36,7 +47,12 @@ const PISTAR = {
   help: 'Model freely with every iStar element; nothing is generated',
 };
 
-const ENGINE_IDS: readonly TransformEngine[] = ['edgev2', 'edge', 'sleec'];
+const ENGINE_IDS: readonly TransformEngine[] = [
+  'edgev2',
+  'edgelangium',
+  'edge',
+  'sleec',
+];
 
 /**
  * Engine, options and file name of the open model. Shown when a model is

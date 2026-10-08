@@ -1,5 +1,6 @@
 import {
   edgeEngineMapper,
+  edgeLangiumEngineMapper,
   edgeV2EngineMapper,
   sleecEngineMapper,
 } from '@goal-controller/lib';
@@ -28,5 +29,6 @@ export const KNOWN_PROPERTIES: Record<
 > = {
   edge: keysOf(edgeEngineMapper),
   edgev2: keysOf(edgeV2EngineMapper),
+  edgelangium: keysOf(edgeLangiumEngineMapper),
   sleec: keysOf(sleecEngineMapper),
 };

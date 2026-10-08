@@ -32,6 +32,10 @@
       "types": "./out/esm/constructs.d.ts",
       "import": "./out/esm/constructs.js"
     },
+    "./structure": {
+      "types": "./out/esm/structure.d.ts",
+      "import": "./out/esm/structure.js"
+    },
     "./lsp": {
       "types": "./out/esm/lsp.d.ts",
       "import": "./out/esm/lsp.js"

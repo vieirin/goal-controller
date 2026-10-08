@@ -33,9 +33,11 @@ export const analyze = (
   const parsed =
     engine === 'edgev2'
       ? GoalModel.parseForEdgeV2(modelJson)
-      : engine === 'sleec'
-        ? GoalModel.parseForSleec(modelJson)
-        : GoalModel.parseForEdge(modelJson);
+      : engine === 'edgelangium'
+        ? GoalModel.parseForEdgeLangium(modelJson)
+        : engine === 'sleec'
+          ? GoalModel.parseForSleec(modelJson)
+          : GoalModel.parseForEdge(modelJson);
 
   const response: AnalyzeResponse = {
     success: true,

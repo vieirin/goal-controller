@@ -7,7 +7,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { TransformEngine } from '@/lib/types';
+import { ENGINE_LABEL, type TransformEngine } from '@/lib/types';
 import { treeProblems } from '@/lib/workbench/localProblems';
 import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
@@ -19,13 +19,12 @@ export const ENGINES: Array<{
   label: string;
   output: string;
 }> = [
-  { id: 'edgev2', label: 'EdgeV2', output: 'PRISM' },
-  { id: 'edge', label: 'Edge', output: 'PRISM' },
-  { id: 'sleec', label: 'SLEEC', output: 'SLEEC' },
+  { id: 'edgev2', label: ENGINE_LABEL.edgev2, output: 'PRISM' },
+  { id: 'edgelangium', label: ENGINE_LABEL.edgelangium, output: 'PRISM' },
+  { id: 'edge', label: ENGINE_LABEL.edge, output: 'PRISM' },
+  { id: 'sleec', label: ENGINE_LABEL.sleec, output: 'SLEEC' },
 ];
-export const ENGINE_LABEL = Object.fromEntries(
-  ENGINES.map((e) => [e.id, e.label]),
-) as Record<TransformEngine, string>;
+export { ENGINE_LABEL };
 
 export type Plan = Conversion | { error: string };
 export type Check =

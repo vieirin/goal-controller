@@ -21,6 +21,7 @@ export const pistarPaletteFor = (
     case 'edge':
       return EDGE_PALETTE;
     case 'edgev2':
+    case 'edgelangium':
       return EDGEV2_PALETTE;
     case 'sleec':
       return null;
