@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { exprText, parseNodeText } from '../src/index.js';
+import { exprText, parseAssertion, parseNodeText } from '../src/index.js';
 
 describe('parseNodeText', () => {
   it('reads id, name and notation', () => {
@@ -66,5 +66,33 @@ describe('parseNodeText', () => {
 
   it('requires a name after the colon', () => {
     expect(parseNodeText('G1:[G2]').errors).to.have.length.above(0);
+  });
+});
+
+describe('parseAssertion', () => {
+  it('reads AssertionRegex.g4 conditions', () => {
+    expect(parseAssertion('battery > 20 & ok = true').expr).to.deep.equal({
+      kind: 'and',
+      left: { kind: 'compare', variable: 'battery', op: '>', value: '20' },
+      right: { kind: 'assign', variable: 'ok', value: true },
+    });
+    expect(parseAssertion('').errors).to.deep.equal([]);
+  });
+
+  it('negates everything after `!`, like ANTLR', () => {
+    expect(parseAssertion('!a & b').expr).to.include({ kind: 'not' });
+  });
+
+  it('rejects `x > 0`: the original INT has no zero', () => {
+    expect(parseAssertion('x > 0').errors).to.have.length.greaterThan(0);
+  });
+});
+
+describe('notation document lines', () => {
+  it('keeps property lines and resource declarations out of goal names', () => {
+    expect(parseNodeText('maintain battery > 3').errors).to.have.length(1);
+    expect(
+      parseNodeText('R1: Battery {int 0..100 = 80}').errors,
+    ).to.have.length(1);
   });
 });

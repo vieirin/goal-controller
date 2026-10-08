@@ -3,7 +3,9 @@
 export * from './constructs.js';
 export {
   exprText,
+  parseAssertion,
   parseNodeText,
+  type RtAssertion,
   type ParsedNodeText,
   type RtExpr,
 } from './parse.js';

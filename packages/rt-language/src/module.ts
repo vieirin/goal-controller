@@ -1,4 +1,6 @@
 import {
+  type AstNode,
+  type ParseResult,
   createDefaultCoreModule,
   createDefaultSharedCoreModule,
   EmptyFileSystem,
@@ -12,7 +14,7 @@ import {
   RtNotationGeneratedModule,
   RtNotationGeneratedSharedModule,
 } from './generated/module.js';
-import { RtLexer } from './lexer.js';
+import { PROPERTY_MODES, RtLexer, type RtPropertyKey } from './lexer.js';
 import { RtStructure } from './structure.js';
 import { registerRtValidationChecks, RtValidator } from './validator.js';
 
@@ -56,4 +58,24 @@ export const createRtCoreServices = (): {
   shared.ServiceRegistry.register(RtNotation);
   registerRtValidationChecks(RtNotation);
   return { shared, RtNotation };
+};
+
+/** The rule that reads one value of each lexer mode on its own. */
+const VALUE_RULE = {
+  assertion: 'AssertionValue',
+  dependsOn: 'DependsOnValue',
+  value: 'RawValue',
+} as const;
+
+/** Parses one property value on its own (an inspector field, the engine). */
+export const parseValue = <T extends AstNode>(
+  services: LangiumCoreServices,
+  key: RtPropertyKey,
+  text: string,
+): ParseResult<T> => {
+  const mode = PROPERTY_MODES[key];
+  (services.parser.Lexer as RtLexer).startMode = mode;
+  return services.parser.LangiumParser.parse<T>(text, {
+    rule: VALUE_RULE[mode],
+  });
 };

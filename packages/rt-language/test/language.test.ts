@@ -111,3 +111,33 @@ describe('rt-language completion and hover', () => {
     });
   });
 });
+
+describe('rt-language document with properties and resources', () => {
+  it('reads property lines under elements and resource declarations', async () => {
+    const text = [
+      'G0: Root [G1]',
+      '  maintain battery > 20 & ok',
+      '  type maintain',
+      '  dependsOn G1',
+      '  G1: One',
+      '    variables x:3, y:2',
+      'R1: Battery {int 0..100 = 80}',
+      'R2: Alarm {bool = false}',
+    ].join('\n');
+    const result = await validate(text);
+    expect(
+      result.diagnostics.filter((d) => d.severity === 1).map((d) => d.message),
+    ).to.deep.equal([]);
+    const lines = result.document.parseResult.value.lines;
+    expect(lines.map((l) => l.$type)).to.deep.equal([
+      'NodeLine',
+      'ConditionProperty',
+      'RawProperty',
+      'DependsOnProperty',
+      'NodeLine',
+      'RawProperty',
+      'NodeLine',
+      'NodeLine',
+    ]);
+  });
+});

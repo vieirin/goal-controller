@@ -111,9 +111,13 @@ const parseMaxRetries = (
   return parsed;
 };
 
+/** The RT grammars edgeV2's mapper reads with: its ANTLR grammar or the Langium one. */
+type EdgeV2Grammar = 'edgeV2' | 'edgeLangium';
+
 const getMaintainCondition = (
   customProperties: RawProps<EdgeGoalKey> | RawProps<EdgeTaskKey>,
   nodeType: 'goal' | 'task',
+  grammar: EdgeV2Grammar,
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
     if (!('maintain' in customProperties)) {
@@ -133,12 +137,14 @@ const getMaintainCondition = (
       maintain: {
         sentence: customProperties.maintain ?? '',
         variables: getAssertionVariables({
+          grammar,
           assertionSentence: customProperties.maintain ?? '',
         }),
       },
       assertion: {
         sentence: customProperties.assertion ?? '',
         variables: getAssertionVariables({
+          grammar,
           assertionSentence: customProperties.assertion ?? '',
         }),
       },
@@ -147,6 +153,7 @@ const getMaintainCondition = (
 
   if (customProperties.assertion) {
     const assertionVariables = getAssertionVariables({
+      grammar,
       assertionSentence: customProperties.assertion,
     });
 
@@ -193,7 +200,7 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
  * The grammar that reads the RT notation is a parameter: edgeV2's ANTLR grammar,
  * or the Langium grammar of @goal-controller/rt-language (edgeLangium).
  */
-export const createEdgeV2Mapper = (grammar: 'edgeV2' | 'edgeLangium') =>
+export const createEdgeV2Mapper = (grammar: EdgeV2Grammar) =>
   createEngineMapper<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>()(
     {
       grammar,
@@ -206,7 +213,7 @@ export const createEdgeV2Mapper = (grammar: 'edgeV2' | 'edgeLangium') =>
         if (issue) throw new Error(`${issue} (node ${id})`);
 
         const decisionVars = parseDecision(raw.variables);
-        const execCondition = getMaintainCondition(raw, 'goal');
+        const execCondition = getMaintainCondition(raw, 'goal', grammar);
 
         return {
           utility: raw.utility || '',
@@ -226,7 +233,7 @@ export const createEdgeV2Mapper = (grammar: 'edgeV2' | 'edgeLangium') =>
         const issue = firstGoalOrTaskIssue('task', raw);
         if (issue) throw new Error(`${issue} (node ${id})`);
 
-        const execCondition = getMaintainCondition(raw, 'task');
+        const execCondition = getMaintainCondition(raw, 'task', grammar);
 
         return {
           execCondition,

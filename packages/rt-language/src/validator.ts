@@ -1,6 +1,7 @@
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import { AstUtils } from 'langium';
 import {
+  isNodeLine,
   isRef,
   type Document,
   type NodeLine,
@@ -21,7 +22,7 @@ export class RtValidator {
   checkDocument(document: Document, accept: ValidationAcceptor): void {
     const seen = new Set<string>();
     let previous: NodeLine | undefined;
-    for (const line of document.lines) {
+    for (const line of document.lines.filter(isNodeLine)) {
       if (seen.has(line.name)) {
         accept('error', `Duplicate id ${line.name}`, {
           node: line,

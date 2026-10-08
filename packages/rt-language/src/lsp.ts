@@ -115,7 +115,10 @@ export class RtCompletionProvider extends DefaultCompletionProvider {
           acceptor(context, {
             label: child,
             kind: CompletionItemKind.Reference,
-            detail: lines.find((l) => l.name === child)?.label.trim(),
+            detail: lines
+              .filter(isNodeLine)
+              .find((l) => l.name === child)
+              ?.label.trim(),
             sortText: '0',
           });
         }

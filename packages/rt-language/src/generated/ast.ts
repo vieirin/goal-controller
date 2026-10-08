@@ -10,18 +10,35 @@ export const RtNotationTerminals = {
   DIGIT_SUBID: /[0-9][a-z]/,
   FLOAT: /[0-9]+\.?[0-9]*/,
   WORD: /[A-Za-z\- ']+/,
-  WS: /\t+/,
+  A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/,
+  A_INT: /[1-9][0-9]*/,
+  DECL_NUM: /-?[0-9]+/,
+  DECL_WORD: /[A-Za-z_][A-Za-z0-9_]*/,
+  VALUE: /[^\r\n]+/,
+  WS: /[ \t]+/,
   LINEBREAK: /[\r\n]+[ \t]*/,
 };
 
 export type RtNotationTerminalNames = keyof typeof RtNotationTerminals;
 
 export type RtNotationKeywordNames =
+  | '!'
+  | '!='
   | '#'
+  | '&'
+  | '('
+  | ')'
   | '+'
+  | ','
   | '->'
+  | '..'
   | ':'
   | ';'
+  | '<'
+  | '<='
+  | '='
+  | '>'
+  | '>='
   | '?'
   | '@'
   | 'G'
@@ -30,12 +47,178 @@ export type RtNotationKeywordNames =
   | 'X'
   | '['
   | ']'
+  | 'assertion'
+  | 'cost'
+  | 'dependsOn'
+  | 'false'
+  | 'maintain'
+  | 'maxRetries'
+  | 'root'
   | 'skip'
-  | '|';
+  | 'true'
+  | 'type'
+  | 'utility'
+  | 'variables'
+  | '{'
+  | '|'
+  | '}';
 
 export type RtNotationTokenNames =
   | RtNotationTerminalNames
   | RtNotationKeywordNames;
+
+export interface AssertAssign extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertAssign';
+  value: AssertBool;
+  variable: string;
+}
+
+export const AssertAssign = {
+  $type: 'AssertAssign',
+  value: 'value',
+  variable: 'variable',
+} as const;
+
+export function isAssertAssign(item: unknown): item is AssertAssign {
+  return reflection.isInstance(item, AssertAssign.$type);
+}
+
+export interface AssertBinary extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertBinary';
+  left: AssertExpr;
+  operator: '&' | '|';
+  right: AssertExpr;
+}
+
+export const AssertBinary = {
+  $type: 'AssertBinary',
+  left: 'left',
+  operator: 'operator',
+  right: 'right',
+} as const;
+
+export function isAssertBinary(item: unknown): item is AssertBinary {
+  return reflection.isInstance(item, AssertBinary.$type);
+}
+
+export type AssertBool = 'false' | 'true';
+
+export function isAssertBool(item: unknown): item is AssertBool {
+  return item === 'true' || item === 'false';
+}
+
+export interface AssertCompare extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertCompare';
+  op: Comparator;
+  value: string;
+  variable: string;
+}
+
+export const AssertCompare = {
+  $type: 'AssertCompare',
+  op: 'op',
+  value: 'value',
+  variable: 'variable',
+} as const;
+
+export function isAssertCompare(item: unknown): item is AssertCompare {
+  return reflection.isInstance(item, AssertCompare.$type);
+}
+
+export interface AssertConst extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertConst';
+  value: AssertBool;
+}
+
+export const AssertConst = {
+  $type: 'AssertConst',
+  value: 'value',
+} as const;
+
+export function isAssertConst(item: unknown): item is AssertConst {
+  return reflection.isInstance(item, AssertConst.$type);
+}
+
+export type AssertExpr =
+  | AssertAssign
+  | AssertBinary
+  | AssertCompare
+  | AssertConst
+  | AssertNot
+  | AssertParen
+  | AssertVar;
+
+export const AssertExpr = {
+  $type: 'AssertExpr',
+} as const;
+
+export function isAssertExpr(item: unknown): item is AssertExpr {
+  return reflection.isInstance(item, AssertExpr.$type);
+}
+
+export interface AssertionValue extends langium.AstNode {
+  readonly $container: ConditionProperty;
+  readonly $type: 'AssertionValue';
+  expr?: AssertExpr;
+}
+
+export const AssertionValue = {
+  $type: 'AssertionValue',
+  expr: 'expr',
+} as const;
+
+export function isAssertionValue(item: unknown): item is AssertionValue {
+  return reflection.isInstance(item, AssertionValue.$type);
+}
+
+export interface AssertNot extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertNot';
+  expr: AssertExpr;
+}
+
+export const AssertNot = {
+  $type: 'AssertNot',
+  expr: 'expr',
+} as const;
+
+export function isAssertNot(item: unknown): item is AssertNot {
+  return reflection.isInstance(item, AssertNot.$type);
+}
+
+export interface AssertParen extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertParen';
+  expr: AssertExpr;
+}
+
+export const AssertParen = {
+  $type: 'AssertParen',
+  expr: 'expr',
+} as const;
+
+export function isAssertParen(item: unknown): item is AssertParen {
+  return reflection.isInstance(item, AssertParen.$type);
+}
+
+export interface AssertVar extends langium.AstNode {
+  readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+  readonly $type: 'AssertVar';
+  variable: string;
+}
+
+export const AssertVar = {
+  $type: 'AssertVar',
+  variable: 'variable',
+} as const;
+
+export function isAssertVar(item: unknown): item is AssertVar {
+  return reflection.isInstance(item, AssertVar.$type);
+}
 
 export interface BinaryExpr extends langium.AstNode {
   readonly $container: BinaryExpr | Bracket | NodeLine | RetryExpr;
@@ -71,9 +254,101 @@ export function isBracket(item: unknown): item is Bracket {
   return reflection.isInstance(item, Bracket.$type);
 }
 
+export type Comparator = '!=' | '<' | '<=' | '=' | '>' | '>=';
+
+export function isComparator(item: unknown): item is Comparator {
+  return (
+    item === '=' ||
+    item === '!=' ||
+    item === '<' ||
+    item === '<=' ||
+    item === '>' ||
+    item === '>='
+  );
+}
+
+export interface ConditionProperty extends langium.AstNode {
+  readonly $container: Document;
+  readonly $type: 'ConditionProperty';
+  key: 'assertion' | 'maintain';
+  value: AssertionValue;
+}
+
+export const ConditionProperty = {
+  $type: 'ConditionProperty',
+  key: 'key',
+  value: 'value',
+} as const;
+
+export function isConditionProperty(item: unknown): item is ConditionProperty {
+  return reflection.isInstance(item, ConditionProperty.$type);
+}
+
+export type DeclNumber = string;
+
+export function isDeclNumber(item: unknown): item is DeclNumber {
+  return typeof item === 'string' && /-?[0-9]+/.test(item);
+}
+
+export type DeclValue = string;
+
+export function isDeclValue(item: unknown): item is DeclValue {
+  return (
+    typeof item === 'string' &&
+    (/-?[0-9]+/.test(item) || /[A-Za-z_][A-Za-z0-9_]*/.test(item))
+  );
+}
+
+export interface DependsOnId extends langium.AstNode {
+  readonly $container: DependsOnValue;
+  readonly $type: 'DependsOnId';
+  name: NodeId;
+}
+
+export const DependsOnId = {
+  $type: 'DependsOnId',
+  name: 'name',
+} as const;
+
+export function isDependsOnId(item: unknown): item is DependsOnId {
+  return reflection.isInstance(item, DependsOnId.$type);
+}
+
+export interface DependsOnProperty extends langium.AstNode {
+  readonly $container: Document;
+  readonly $type: 'DependsOnProperty';
+  key: 'dependsOn';
+  value: DependsOnValue;
+}
+
+export const DependsOnProperty = {
+  $type: 'DependsOnProperty',
+  key: 'key',
+  value: 'value',
+} as const;
+
+export function isDependsOnProperty(item: unknown): item is DependsOnProperty {
+  return reflection.isInstance(item, DependsOnProperty.$type);
+}
+
+export interface DependsOnValue extends langium.AstNode {
+  readonly $container: DependsOnProperty;
+  readonly $type: 'DependsOnValue';
+  ids: Array<DependsOnId>;
+}
+
+export const DependsOnValue = {
+  $type: 'DependsOnValue',
+  ids: 'ids',
+} as const;
+
+export function isDependsOnValue(item: unknown): item is DependsOnValue {
+  return reflection.isInstance(item, DependsOnValue.$type);
+}
+
 export interface Document extends langium.AstNode {
   readonly $type: 'Document';
-  lines: Array<NodeLine>;
+  lines: Array<Line>;
 }
 
 export const Document = {
@@ -95,6 +370,16 @@ export function isExpr(item: unknown): item is Expr {
   return reflection.isInstance(item, Expr.$type);
 }
 
+export type Line = NodeLine | PropertyLine;
+
+export const Line = {
+  $type: 'Line',
+} as const;
+
+export function isLine(item: unknown): item is Line {
+  return reflection.isInstance(item, Line.$type);
+}
+
 export type NodeId = string;
 
 export function isNodeId(item: unknown): item is NodeId {
@@ -107,6 +392,7 @@ export interface NodeLine extends langium.AstNode {
   label: string;
   name: NodeId;
   notation?: Expr;
+  resource?: ResourceDecl;
 }
 
 export const NodeLine = {
@@ -114,10 +400,53 @@ export const NodeLine = {
   label: 'label',
   name: 'name',
   notation: 'notation',
+  resource: 'resource',
 } as const;
 
 export function isNodeLine(item: unknown): item is NodeLine {
   return reflection.isInstance(item, NodeLine.$type);
+}
+
+export type PropertyLine = ConditionProperty | DependsOnProperty | RawProperty;
+
+export const PropertyLine = {
+  $type: 'PropertyLine',
+} as const;
+
+export function isPropertyLine(item: unknown): item is PropertyLine {
+  return reflection.isInstance(item, PropertyLine.$type);
+}
+
+export interface RawProperty extends langium.AstNode {
+  readonly $container: Document;
+  readonly $type: 'RawProperty';
+  key: 'cost' | 'maxRetries' | 'root' | 'type' | 'utility' | 'variables';
+  value: RawValue;
+}
+
+export const RawProperty = {
+  $type: 'RawProperty',
+  key: 'key',
+  value: 'value',
+} as const;
+
+export function isRawProperty(item: unknown): item is RawProperty {
+  return reflection.isInstance(item, RawProperty.$type);
+}
+
+export interface RawValue extends langium.AstNode {
+  readonly $container: RawProperty;
+  readonly $type: 'RawValue';
+  text?: string;
+}
+
+export const RawValue = {
+  $type: 'RawValue',
+  text: 'text',
+} as const;
+
+export function isRawValue(item: unknown): item is RawValue {
+  return reflection.isInstance(item, RawValue.$type);
 }
 
 export interface Ref extends langium.AstNode {
@@ -133,6 +462,27 @@ export const Ref = {
 
 export function isRef(item: unknown): item is Ref {
   return reflection.isInstance(item, Ref.$type);
+}
+
+export interface ResourceDecl extends langium.AstNode {
+  readonly $container: NodeLine;
+  readonly $type: 'ResourceDecl';
+  initialValue?: DeclValue;
+  lowerBound?: DeclNumber;
+  type: string;
+  upperBound?: DeclNumber;
+}
+
+export const ResourceDecl = {
+  $type: 'ResourceDecl',
+  initialValue: 'initialValue',
+  lowerBound: 'lowerBound',
+  type: 'type',
+  upperBound: 'upperBound',
+} as const;
+
+export function isResourceDecl(item: unknown): item is ResourceDecl {
+  return reflection.isInstance(item, ResourceDecl.$type);
 }
 
 export interface RetryExpr extends langium.AstNode {
@@ -166,18 +516,129 @@ export function isSkip(item: unknown): item is Skip {
 }
 
 export type RtNotationAstType = {
+  AssertAssign: AssertAssign;
+  AssertBinary: AssertBinary;
+  AssertCompare: AssertCompare;
+  AssertConst: AssertConst;
+  AssertExpr: AssertExpr;
+  AssertNot: AssertNot;
+  AssertParen: AssertParen;
+  AssertVar: AssertVar;
+  AssertionValue: AssertionValue;
   BinaryExpr: BinaryExpr;
   Bracket: Bracket;
+  ConditionProperty: ConditionProperty;
+  DependsOnId: DependsOnId;
+  DependsOnProperty: DependsOnProperty;
+  DependsOnValue: DependsOnValue;
   Document: Document;
   Expr: Expr;
+  Line: Line;
   NodeLine: NodeLine;
+  PropertyLine: PropertyLine;
+  RawProperty: RawProperty;
+  RawValue: RawValue;
   Ref: Ref;
+  ResourceDecl: ResourceDecl;
   RetryExpr: RetryExpr;
   Skip: Skip;
 };
 
 export class RtNotationAstReflection extends langium.AbstractAstReflection {
   override readonly types = {
+    AssertAssign: {
+      name: AssertAssign.$type,
+      properties: {
+        value: {
+          name: AssertAssign.value,
+        },
+        variable: {
+          name: AssertAssign.variable,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertBinary: {
+      name: AssertBinary.$type,
+      properties: {
+        left: {
+          name: AssertBinary.left,
+        },
+        operator: {
+          name: AssertBinary.operator,
+        },
+        right: {
+          name: AssertBinary.right,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertCompare: {
+      name: AssertCompare.$type,
+      properties: {
+        op: {
+          name: AssertCompare.op,
+        },
+        value: {
+          name: AssertCompare.value,
+        },
+        variable: {
+          name: AssertCompare.variable,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertConst: {
+      name: AssertConst.$type,
+      properties: {
+        value: {
+          name: AssertConst.value,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertExpr: {
+      name: AssertExpr.$type,
+      properties: {},
+      superTypes: [],
+    },
+    AssertNot: {
+      name: AssertNot.$type,
+      properties: {
+        expr: {
+          name: AssertNot.expr,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertParen: {
+      name: AssertParen.$type,
+      properties: {
+        expr: {
+          name: AssertParen.expr,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertVar: {
+      name: AssertVar.$type,
+      properties: {
+        variable: {
+          name: AssertVar.variable,
+        },
+      },
+      superTypes: [AssertExpr.$type],
+    },
+    AssertionValue: {
+      name: AssertionValue.$type,
+      properties: {
+        expr: {
+          name: AssertionValue.expr,
+          optional: true,
+        },
+      },
+      superTypes: [],
+    },
     BinaryExpr: {
       name: BinaryExpr.$type,
       properties: {
@@ -202,6 +663,50 @@ export class RtNotationAstReflection extends langium.AbstractAstReflection {
       },
       superTypes: [Expr.$type],
     },
+    ConditionProperty: {
+      name: ConditionProperty.$type,
+      properties: {
+        key: {
+          name: ConditionProperty.key,
+        },
+        value: {
+          name: ConditionProperty.value,
+        },
+      },
+      superTypes: [PropertyLine.$type],
+    },
+    DependsOnId: {
+      name: DependsOnId.$type,
+      properties: {
+        name: {
+          name: DependsOnId.name,
+        },
+      },
+      superTypes: [],
+    },
+    DependsOnProperty: {
+      name: DependsOnProperty.$type,
+      properties: {
+        key: {
+          name: DependsOnProperty.key,
+        },
+        value: {
+          name: DependsOnProperty.value,
+        },
+      },
+      superTypes: [PropertyLine.$type],
+    },
+    DependsOnValue: {
+      name: DependsOnValue.$type,
+      properties: {
+        ids: {
+          name: DependsOnValue.ids,
+          defaultValue: [],
+          optional: true,
+        },
+      },
+      superTypes: [],
+    },
     Document: {
       name: Document.$type,
       properties: {
@@ -218,6 +723,11 @@ export class RtNotationAstReflection extends langium.AbstractAstReflection {
       properties: {},
       superTypes: [],
     },
+    Line: {
+      name: Line.$type,
+      properties: {},
+      superTypes: [],
+    },
     NodeLine: {
       name: NodeLine.$type,
       properties: {
@@ -229,6 +739,37 @@ export class RtNotationAstReflection extends langium.AbstractAstReflection {
         },
         notation: {
           name: NodeLine.notation,
+          optional: true,
+        },
+        resource: {
+          name: NodeLine.resource,
+          optional: true,
+        },
+      },
+      superTypes: [Line.$type],
+    },
+    PropertyLine: {
+      name: PropertyLine.$type,
+      properties: {},
+      superTypes: [Line.$type],
+    },
+    RawProperty: {
+      name: RawProperty.$type,
+      properties: {
+        key: {
+          name: RawProperty.key,
+        },
+        value: {
+          name: RawProperty.value,
+        },
+      },
+      superTypes: [PropertyLine.$type],
+    },
+    RawValue: {
+      name: RawValue.$type,
+      properties: {
+        text: {
+          name: RawValue.text,
           optional: true,
         },
       },
@@ -243,6 +784,27 @@ export class RtNotationAstReflection extends langium.AbstractAstReflection {
         },
       },
       superTypes: [Expr.$type],
+    },
+    ResourceDecl: {
+      name: ResourceDecl.$type,
+      properties: {
+        initialValue: {
+          name: ResourceDecl.initialValue,
+          optional: true,
+        },
+        lowerBound: {
+          name: ResourceDecl.lowerBound,
+          optional: true,
+        },
+        type: {
+          name: ResourceDecl.type,
+        },
+        upperBound: {
+          name: ResourceDecl.upperBound,
+          optional: true,
+        },
+      },
+      superTypes: [],
     },
     RetryExpr: {
       name: RetryExpr.$type,
