@@ -33,10 +33,9 @@ import {
 import Explorer from './Explorer';
 import ModelInspector from './engines/ModelInspector';
 import OutputPane from './OutputPane';
-import SourceView from './SourceView';
+import { ModelTabView, modelTabsFor } from './modelTabs';
 import { EngineOptions, useOpenFile } from './TopBar';
-import ModelDiagram from './engines/ModelDiagram';
-import { useSelection, useWorkbench, type ModelTab } from './WorkbenchContext';
+import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
 import { Button, IconButton, Menu, MenuItem, Switch, Tabs, cx } from './ui';
 
@@ -294,10 +293,7 @@ function NavButton({
 function MobileModel() {
   const wb = useWorkbench();
   const { modelReadOnly, toggleModelReadOnly } = useShell();
-  const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'diagram', label: 'Goal Model' },
-    { id: 'source', label: 'Source' },
-  ];
+  const tabs = modelTabsFor(wb.engine);
   return (
     <section className='flex h-full flex-col' aria-label='Goal model'>
       <Tabs
@@ -321,7 +317,7 @@ function MobileModel() {
         }
       />
       <div className='min-h-0 flex-1'>
-        {wb.modelTab === 'diagram' ? <ModelDiagram /> : <SourceView />}
+        <ModelTabView />
       </div>
     </section>
   );

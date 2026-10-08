@@ -53,6 +53,7 @@ export type ChangeSource =
   | 'open'
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'inspector'
   | 'undo'
   | 'restore'
@@ -61,12 +62,14 @@ export type ChangeSource =
 export type SelectOrigin =
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'output'
   | 'inspector'
   | 'problems'
   | 'variables';
 
-export type ModelTab = 'diagram' | 'source';
+/** `notation`: the whole model as the engine's notation (engines with a definition) */
+export type ModelTab = 'diagram' | 'source' | 'notation';
 export type OutputTab = 'output' | 'diff' | 'report';
 export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 

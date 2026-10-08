@@ -212,10 +212,13 @@ const NUMERIC_KEYS: Record<string, 'number' | 'integer'> = {
 export function Field({
   label,
   hint,
+  hintTone = 'muted',
   children,
 }: {
   label: string;
   hint?: ReactNode;
+  /** `error`: the hint says what is wrong with the value */
+  hintTone?: 'muted' | 'error';
   children: ReactNode;
 }) {
   return (
@@ -224,7 +227,17 @@ export function Field({
         {label}
       </span>
       {children}
-      {hint && <span className='block text-2xs text-ink-muted'>{hint}</span>}
+      {hint && (
+        <span
+          role={hintTone === 'error' ? 'alert' : undefined}
+          className={cx(
+            'block whitespace-pre-line text-2xs',
+            hintTone === 'error' ? 'text-danger' : 'text-ink-muted',
+          )}
+        >
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
@@ -398,6 +411,15 @@ export function NodeSummary({ node }: { node: GoalViewNode }) {
   );
 }
 
+/** A property value's editor, in place of the row's default input. */
+export type PropertyEditor = (props: {
+  value: string;
+  placeholder: string;
+  invalid: boolean;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+}) => ReactNode;
+
 export function PropertyRow({
   name,
   value,
@@ -406,11 +428,14 @@ export function PropertyRow({
   validate,
   notApplying,
   notReadBy,
+  editor,
   onChange,
 }: {
   name: string;
   value: string | undefined;
   engineKnows: boolean;
+  /** edits the value instead of the default input (e.g. an engine's value language) */
+  editor?: PropertyEditor;
   /** how to edit it (Edge engines); default: by name (numbers, long text) */
   input?: PropertyInput;
   /** set, but not read with the element's other properties (bounds on a bool resource) */
@@ -501,6 +526,19 @@ export function PropertyRow({
             </option>
           ))}
         </select>
+      ) : editor ? (
+        editor({
+          value: draft.draft,
+          placeholder:
+            value === undefined
+              ? input && 'placeholder' in input && input.placeholder
+                ? input.placeholder
+                : 'not set'
+              : '',
+          invalid: !!error,
+          onChange: draft.change,
+          onBlur: draft.flush,
+        })
       ) : long ? (
         <textarea
           rows={name === 'Description' ? 2 : 1}
@@ -779,10 +817,13 @@ export function PropertiesField({
   node,
   engine,
   specs = [],
+  editorFor,
 }: {
   node: GoalViewNode;
   engine: TransformEngine;
   specs?: readonly PropertySpec[];
+  /** a key's editor, when the engine has one for it */
+  editorFor?: (key: string) => PropertyEditor | undefined;
 }) {
   const wb = useWorkbench();
   const { tree } = wb;
@@ -873,6 +914,7 @@ export function PropertiesField({
                   )
                 : null
             }
+            editor={editorFor?.(key)}
             onChange={(value) =>
               edit((text) => setNodeProperty(text, node.iStarId, key, value))
             }

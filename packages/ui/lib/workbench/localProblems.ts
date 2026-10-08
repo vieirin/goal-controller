@@ -5,7 +5,7 @@
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { notationDefinitionOf } from './definitions';
-import { constructDefinition, isValidName } from '@goal-controller/definitions';
+import { isValidName, relationMismatch } from '@goal-controller/definitions';
 import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 
@@ -97,9 +97,11 @@ export const treeProblems = (
             );
           })
         : [];
+    // each mismatch at the severity the engine's definition gives it
+    const definition = notationDefinitionOf(engine);
     if (notChildren.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: definition.problems.notAChild.severity,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: the notation [${node.notation}] lists ${notChildren.join(', ')}, which ${notChildren.length > 1 ? 'are not children' : 'is not a child'} of ${node.id}`,
@@ -107,26 +109,24 @@ export const treeProblems = (
     }
     if (unlisted.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: definition.problems.missingFromNotation.severity,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
       });
     }
-    // the links the construct needs, as the engine's definition says
-    const needs = node.construct
-      ? constructDefinition(notationDefinitionOf(engine), node.construct)
-          ?.relation
-      : undefined;
-    if (needs && node.relation) {
-      if (needs !== node.relation) {
-        problems.push({
-          severity: 'warning',
-          source: 'model',
-          nodeId: node.id,
-          message: `${node.id}: [${node.notation}] needs ${needs.toUpperCase()} refinement links but ${node.id} uses ${node.relation.toUpperCase()}; the engine will ignore the notation`,
-        });
-      }
+    const mismatch = relationMismatch(
+      definition,
+      node.construct,
+      node.relation,
+    );
+    if (mismatch) {
+      problems.push({
+        severity: definition.problems.relationMismatch.severity,
+        source: 'model',
+        nodeId: node.id,
+        message: `${node.id}: [${node.notation}] ${mismatch}`,
+      });
     }
   }
   return problems;

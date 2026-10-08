@@ -4,6 +4,7 @@
   "spec": "test/**/*.test.ts",
   "recursive": true,
   "timeout": 10000,
+  "node-option": ["no-experimental-strip-types"],
   "ts-node": {
     "project": "./tsconfig.test.json"
   }

@@ -135,6 +135,10 @@ const problems: Record<ProblemKind, { severity: Severity; message: string }> = {
     severity: 'warning',
     message: 'Missing from the notation',
   },
+  notInDiagram: {
+    severity: 'error',
+    message: 'Add this element in the diagram',
+  },
 };
 
 /** Everything an Edge definition has but its id, name, grammar, parser and operators. */
@@ -147,7 +151,6 @@ export const edgeFamily = {
   declaration,
   indent: '  ',
   problems,
-  notInDiagram: 'Add this element in the diagram',
   languages: { assertion: assertionLanguage },
 } as const;
 

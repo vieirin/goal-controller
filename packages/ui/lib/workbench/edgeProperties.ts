@@ -1,19 +1,19 @@
 /**
  * How the Edge engines read each custom property, for the Inspector: the specs their
  * definitions give (@goal-controller/definitions), with each named check bound to the
- * engine's own check function (@goal-controller/lib's edgeCheckRegistry).
+ * engine's own check function (ENGINE_CHECKS).
  */
 import {
   specsFromDefinition,
   type ElementKind,
   type PropertySpec as DefinitionSpec,
 } from '@goal-controller/definitions';
+import { firstResourceIssue, type Check } from '@goal-controller/lib';
 import {
-  edgeCheckRegistry,
-  firstResourceIssue,
-  type Check,
-} from '@goal-controller/lib';
-import { ENGINE_DEFINITIONS, type DefinedEngine } from './definitions';
+  ENGINE_CHECKS,
+  ENGINE_DEFINITIONS,
+  type DefinedEngine,
+} from './definitions';
 
 export { firstResourceIssue };
 export {
@@ -30,7 +30,7 @@ export type NodeKindKey = ElementKind;
 type Specs = Record<NodeKindKey, readonly PropertySpec[]>;
 
 const specsOf = (engine: DefinedEngine): Specs =>
-  specsFromDefinition<Check>(ENGINE_DEFINITIONS[engine], edgeCheckRegistry);
+  specsFromDefinition(ENGINE_DEFINITIONS[engine], ENGINE_CHECKS[engine]);
 
 export const PROPERTY_SPECS: Record<DefinedEngine, Specs> = {
   edge: specsOf('edge'),

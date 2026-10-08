@@ -31,14 +31,12 @@ import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
 import OutputPane from './OutputPane';
-import SourceView from './SourceView';
+import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { readFile, useOpenFile } from './TopBar';
-import ModelDiagram from './engines/ModelDiagram';
 import {
   WorkbenchProvider,
   useSelection,
   useWorkbench,
-  type ModelTab,
 } from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs, cx } from './ui';
@@ -410,10 +408,7 @@ function ModelColumn() {
   const showInspector = wb.mode !== 'pistar';
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'diagram', label: 'Goal Model' },
-    { id: 'source', label: 'Source' },
-  ];
+  const tabs = modelTabsFor(wb.engine);
 
   return (
     <section
@@ -481,7 +476,7 @@ function ModelColumn() {
           defaultSize={modelFullscreen ? undefined : '58%'}
           minSize='25%'
         >
-          {wb.modelTab === 'diagram' ? <ModelDiagram /> : <SourceView />}
+          <ModelTabView />
         </Panel>
         {showInspector && inspectorOpen && (
           <>

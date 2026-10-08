@@ -160,7 +160,9 @@ export type LanguageDefinition = {
 export type ProblemKind =
   | 'notAChild'
   | 'missingFromNotation'
-  | 'relationMismatch';
+  | 'relationMismatch'
+  /** a line naming an element the model does not have */
+  | 'notInDiagram';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -188,8 +190,6 @@ export type EngineDefinition = {
   problems: Readonly<
     Record<ProblemKind, { severity: Severity; message: string }>
   >;
-  /** a line naming an element the model does not have */
-  notInDiagram: string;
   languages: Readonly<Record<string, LanguageDefinition>>;
 };
 
