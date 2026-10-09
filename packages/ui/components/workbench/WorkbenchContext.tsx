@@ -1018,184 +1018,6 @@ function WorkbenchState({
     !isPrismEngine(engine) ||
     (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
 
-  // ---- variables -------------------------------------------------------------
-  const variables = useMemo(
-    () => (isPrismEngine(engine) ? (analysis?.variables ?? []) : []),
-    [analysis, engine],
-  );
-  const [storedValues, setStoredValues] = useState<VariableValues>(
-    initial.current?.variables ?? {},
-  );
-  const values = useMemo(() => {
-    const result: VariableValues = {};
-    for (const variable of variables) {
-      const stored = storedValues[variable.name];
-      result[variable.name] =
-        typeof stored === (variable.kind === 'context' ? 'boolean' : 'number')
-          ? (stored as boolean | number)
-          : defaultValue(variable);
-    }
-    return result;
-  }, [variables, storedValues]);
-  const setValue = useCallback(
-    (name: string, value: boolean | number) =>
-      setStoredValues((prev) => ({ ...prev, [name]: value })),
-    [],
-  );
-  const setValues = useCallback(
-    (next: VariableValues) => setStoredValues((prev) => ({ ...prev, ...next })),
-    [],
-  );
-  const resetValues = useCallback(() => {
-    setStoredValues((prev) => {
-      const next = { ...prev };
-      variables.forEach((variable) => {
-        next[variable.name] = defaultValue(variable);
-      });
-      return next;
-    });
-  }, [variables]);
-
-  // ---- generation --------------------------------------------------------------
-  const inputsSignature = useMemo(() => {
-    const content = modelSignature(model.text);
-    return content === null
-      ? null
-      : JSON.stringify([
-          content,
-          engine,
-          optionsFor(engine, options),
-          isPrismEngine(engine) ? values : null,
-        ]);
-  }, [model.text, engine, options, values]);
-
-  const [generating, setGenerating] = useState(false);
-  const runId = useRef(0);
-  const latest = useRef({
-    text: model.text,
-    fileName: model.fileName,
-    engine,
-    options,
-    values,
-    inputsSignature,
-    variablesReady,
-    runs,
-  });
-  latest.current = {
-    text: model.text,
-    fileName: model.fileName,
-    engine,
-    options,
-    values,
-    inputsSignature,
-    variablesReady,
-    runs,
-  };
-  // a generation asked for before the variables were known runs once they are
-  const [pendingGenerate, setPendingGenerate] = useState(false);
-
-  const generate = useCallback(() => {
-    const {
-      text,
-      fileName,
-      engine: runEngine,
-      options: runOptions,
-      values: runValues,
-      inputsSignature: signature,
-      runs: priorRuns,
-    } = latest.current;
-    if (!text.trim() || signature === null) return;
-    if (!latest.current.variablesReady) {
-      setPendingGenerate(true);
-      return;
-    }
-    setPendingGenerate(false);
-    const started = performance.now();
-    setGenerating(true);
-    const previousOutput = runOptions.clean
-      ? undefined
-      : (priorRuns.find(
-          (run) => run.engine === runEngine && run.output !== null,
-        )?.output ?? undefined);
-    let run: Run;
-    try {
-      const result = transform({
-        modelJson: text,
-        engine: runEngine,
-        fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
-        previousOutput,
-        ...optionsFor(runEngine, runOptions),
-        ...(isPrismEngine(runEngine) &&
-          Object.keys(runValues).length > 0 && { variables: runValues }),
-      });
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        output: result.output,
-        report: result.report,
-        error: null,
-      };
-    } catch (error) {
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        output: null,
-        report: null,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-    setRuns((prev) => [run, ...prev].slice(0, 20));
-    setGenerating(false);
-  }, []);
-
-  useEffect(() => {
-    if (pendingGenerate && variablesReady) generate();
-  }, [pendingGenerate, variablesReady, generate]);
-
-  const current = runs[0] ?? null;
-  const stale = !!current && current.signature !== inputsSignature;
-
-  // live: regenerate when what generation depends on changes
-  const debouncedSignature = useDebounced(inputsSignature, 700);
-  useEffect(() => {
-    // a newly opened model waits for its settings
-    if (
-      !live ||
-      pistar ||
-      settingsDialog === 'setup' ||
-      !variablesReady ||
-      debouncedSignature === null ||
-      !model.text.trim()
-    )
-      return;
-    if (current?.signature === debouncedSignature) return;
-    generate();
-    // current is read for comparison only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    live,
-    pistar,
-    settingsDialog,
-    variablesReady,
-    debouncedSignature,
-    generate,
-  ]);
-
-  // last successful output (a failed run keeps showing the previous output)
-  const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
-  const trace = useMemo(
-    () => (lastOutput ? buildTraceIndex(lastOutput, nodeIds) : null),
-    [lastOutput, nodeIds],
-  );
-
   // ---- the project's resources (goal-controller#25) ------------------------------
   // the slots the engine's definition declares, in the open project
   const resourceSlotsNow = useMemo<ResourceSlot[]>(
@@ -1372,6 +1194,209 @@ function WorkbenchState({
       aside: undefined,
     }));
   }, [currentProject, leaving, toWritable]);
+
+  // ---- variables -------------------------------------------------------------
+  const variables = useMemo(
+    () => (isPrismEngine(engine) ? (analysis?.variables ?? []) : []),
+    [analysis, engine],
+  );
+  const [storedValues, setStoredValues] = useState<VariableValues>(
+    initial.current?.variables ?? {},
+  );
+  // the Edge engines' variables.json, when the project has it: its values are the
+  // model's (over the panel's), and the panel's edits are written to it
+  const variablesFile = isPrismEngine(engine)
+    ? resourceSlotsNow.find(
+        (slot) => slot.kind === 'variables' && !slot.missing,
+      )?.paths[0]
+    : undefined;
+  const fileValues = variablesFile
+    ? (parsedResources.variables?.data as VariableValues | undefined)
+    : undefined;
+  const fileValuesRef = useRef(fileValues);
+  fileValuesRef.current = fileValues;
+  const values = useMemo(() => {
+    const result: VariableValues = {};
+    for (const variable of variables) {
+      const stored = fileValues?.[variable.name] ?? storedValues[variable.name];
+      result[variable.name] =
+        typeof stored === (variable.kind === 'context' ? 'boolean' : 'number')
+          ? (stored as boolean | number)
+          : defaultValue(variable);
+    }
+    return result;
+  }, [variables, storedValues, fileValues]);
+  /** write values: into variables.json when the project has it, else the workbench's */
+  const writeValues = useCallback(
+    (next: VariableValues) => {
+      if (variablesFile && fileValuesRef.current) {
+        setResourceText(
+          variablesFile,
+          `${JSON.stringify({ ...fileValuesRef.current, ...next }, null, 2)}\n`,
+        );
+        return;
+      }
+      setStoredValues((prev) => ({ ...prev, ...next }));
+    },
+    [variablesFile, setResourceText],
+  );
+  const setValue = useCallback(
+    (name: string, value: boolean | number) => writeValues({ [name]: value }),
+    [writeValues],
+  );
+  const setValues = useCallback(
+    (next: VariableValues) => writeValues(next),
+    [writeValues],
+  );
+  const resetValues = useCallback(
+    () =>
+      writeValues(
+        Object.fromEntries(
+          variables.map((variable) => [variable.name, defaultValue(variable)]),
+        ),
+      ),
+    [variables, writeValues],
+  );
+
+  // ---- generation --------------------------------------------------------------
+  const inputsSignature = useMemo(() => {
+    const content = modelSignature(model.text);
+    return content === null
+      ? null
+      : JSON.stringify([
+          content,
+          engine,
+          optionsFor(engine, options),
+          isPrismEngine(engine) ? values : null,
+        ]);
+  }, [model.text, engine, options, values]);
+
+  const [generating, setGenerating] = useState(false);
+  const runId = useRef(0);
+  const latest = useRef({
+    text: model.text,
+    fileName: model.fileName,
+    engine,
+    options,
+    values,
+    inputsSignature,
+    variablesReady,
+    runs,
+  });
+  latest.current = {
+    text: model.text,
+    fileName: model.fileName,
+    engine,
+    options,
+    values,
+    inputsSignature,
+    variablesReady,
+    runs,
+  };
+  // a generation asked for before the variables were known runs once they are
+  const [pendingGenerate, setPendingGenerate] = useState(false);
+
+  const generate = useCallback(() => {
+    const {
+      text,
+      fileName,
+      engine: runEngine,
+      options: runOptions,
+      values: runValues,
+      inputsSignature: signature,
+      runs: priorRuns,
+    } = latest.current;
+    if (!text.trim() || signature === null) return;
+    if (!latest.current.variablesReady) {
+      setPendingGenerate(true);
+      return;
+    }
+    setPendingGenerate(false);
+    const started = performance.now();
+    setGenerating(true);
+    const previousOutput = runOptions.clean
+      ? undefined
+      : (priorRuns.find(
+          (run) => run.engine === runEngine && run.output !== null,
+        )?.output ?? undefined);
+    let run: Run;
+    try {
+      const result = transform({
+        modelJson: text,
+        engine: runEngine,
+        fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
+        previousOutput,
+        ...optionsFor(runEngine, runOptions),
+        ...(isPrismEngine(runEngine) &&
+          Object.keys(runValues).length > 0 && { variables: runValues }),
+      });
+      runId.current += 1;
+      run = {
+        id: runId.current,
+        at: Date.now(),
+        engine: runEngine,
+        durationMs: performance.now() - started,
+        signature,
+        output: result.output,
+        report: result.report,
+        error: null,
+      };
+    } catch (error) {
+      runId.current += 1;
+      run = {
+        id: runId.current,
+        at: Date.now(),
+        engine: runEngine,
+        durationMs: performance.now() - started,
+        signature,
+        output: null,
+        report: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+    setRuns((prev) => [run, ...prev].slice(0, 20));
+    setGenerating(false);
+  }, []);
+
+  useEffect(() => {
+    if (pendingGenerate && variablesReady) generate();
+  }, [pendingGenerate, variablesReady, generate]);
+
+  const current = runs[0] ?? null;
+  const stale = !!current && current.signature !== inputsSignature;
+
+  // live: regenerate when what generation depends on changes
+  const debouncedSignature = useDebounced(inputsSignature, 700);
+  useEffect(() => {
+    // a newly opened model waits for its settings
+    if (
+      !live ||
+      pistar ||
+      settingsDialog === 'setup' ||
+      !variablesReady ||
+      debouncedSignature === null ||
+      !model.text.trim()
+    )
+      return;
+    if (current?.signature === debouncedSignature) return;
+    generate();
+    // current is read for comparison only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    live,
+    pistar,
+    settingsDialog,
+    variablesReady,
+    debouncedSignature,
+    generate,
+  ]);
+
+  // last successful output (a failed run keeps showing the previous output)
+  const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
+  const trace = useMemo(
+    () => (lastOutput ? buildTraceIndex(lastOutput, nodeIds) : null),
+    [lastOutput, nodeIds],
+  );
 
   // ---- problems ----------------------------------------------------------------
   // what the language services say of the open documents (editors, fields)
