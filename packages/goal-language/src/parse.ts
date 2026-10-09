@@ -17,6 +17,7 @@ import type {
   EnumValue,
   IntValue,
   NumberValue,
+  OclValue,
   PairListValue,
   PlainDocument,
   RefListValue,
@@ -37,6 +38,8 @@ export type RtTree =
   | { kind: 'standalone'; symbol: string }
   | { kind: 'group'; open: string; expr: RtTree | null }
   | { kind: 'prefix'; operator: string; expr: RtTree | null }
+  /** `FALLBACK(G1,G2)`: a construct written as a call */
+  | { kind: 'call'; name: string; args: (RtTree | null)[] }
   | {
       kind: 'postfix';
       operator: string;
@@ -168,6 +171,13 @@ export const toRtTree = (expr: RtExpr | undefined): RtTree | null => {
         argument: expr.argument ?? '',
         expr: toRtTree(expr.expr),
       };
+    case 'RtCall':
+      return {
+        kind: 'call',
+        name: expr.function,
+        args: expr.args.map(toRtTree),
+      };
+    case 'RtComma':
     case 'RtBinary':
       return {
         kind: 'binary',
@@ -199,6 +209,8 @@ export const rtText = (tree: RtTree | null): string => {
       return `${rtText(tree.expr)}${tree.operator}${tree.argument}`;
     case 'binary':
       return `${rtText(tree.left)}${tree.operator}${rtText(tree.right)}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(rtText).join(',')})`;
     default:
       return '';
   }
@@ -342,6 +354,8 @@ export type ValueData = {
   refList: string[];
   pairList: { name: string; value: string }[];
   annotatedName: ElementLineData | null;
+  /** its tokens, as written */
+  ocl: string[];
 };
 
 const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
@@ -355,6 +369,7 @@ const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
   pairList: (root: PairListValue) =>
     root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
   annotatedName: (root: AnnotatedName) => (root ? toElementLine(root) : null),
+  ocl: (root: OclValue) => [...root.parts],
 };
 
 /** One value of a predefined type on its own (an inspector field). Empty is valid. */

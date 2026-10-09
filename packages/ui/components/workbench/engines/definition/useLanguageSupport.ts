@@ -26,7 +26,7 @@ export const LanguageSupportContext = createContext<
 
 // one local support per engine, shared by the Notation view and the inspector
 const local = new Map<DialectEngine, LanguageSupport>();
-const localFor = (engine: DialectEngine): LanguageSupport => {
+const localFor = <E extends DialectEngine>(engine: E): LanguageSupport => {
   let support = local.get(engine);
   if (!support) {
     support = localLanguageSupport(

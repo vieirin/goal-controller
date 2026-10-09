@@ -28,7 +28,7 @@ Three things you write, one you get. **You do not write a parser:** goal texts (
 | **The definition** | `packages/lib/src/engines/<id>/definition.ts` (written with `@goal-controller/dialect`) | Data: which properties exist, their value types, when they apply, which of the goal language's operators it enables and what each means. It describes no syntax: the language is fixed (`packages/goal-language/docs/goal-language.md`; its [reference](../../goal-language/docs/reference.md), [API](../../goal-language/docs/api.md), [diagnostics](../../goal-language/docs/diagnostics.md) and [examples](../../goal-language/docs/examples.md)). **The editor is generated from this.** |
 | **The mapper**     | `packages/lib/src/engines/<id>/mapper.ts`                                               | Code: turns raw strings into typed engine properties, validates them, resolves references.                                                                                                                                                                                      |
 | **The template**   | `packages/lib/src/engines/<id>/template/`                                               | Code: queries the typed tree and emits your output format.                                                                                                                                                                                                                      |
-| You get            | `packages/ui`                                                                           | Inspector with typed fields, Notation tab, local lint and completion, palette, Problems panel, engine conformity and conversion, after ~15 small wiring edits.                                                                                                                  |
+| You get            | `packages/ui`                                                                           | Inspector with typed fields, Notation tab, local lint and completion, palette, Problems panel, engine conformity and conversion, after ~12 small wiring edits.                                                                                                                  |
 
 **Everything in a model file is a string.** iStar `customProperties` are `{ key: "value" }` strings. The definition says how to *edit and check* them; the mapper says how to *read* them. Keep both in sync (the definition's `propertyKeys()` is the source of the mapper's allowed keys, so they can't drift).
 
@@ -40,7 +40,7 @@ Three things you write, one you get. **You do not write a parser:** goal texts (
 | Properties **and** ordering/choice semantics among children (sequence, alternative, retries…) | **notation engine**        | edgeV2                                                                     | `[G1;G2]` in the goal's name | none: enable operators from the catalog |
 | New element kinds / symbols / stereotypes (an iStar dialect, no engine)                       | **dialect**                | piStar-ext (`packages/lib/src/dialects/pistarExt/istar4RationalAgents.ts`) | none                         | none                                    |
 
-Most new engines are the first row. If you are "reimplementing SLEEC", that's exactly it. Reimplementing EDGE is the second row. This guide does the first row fully and marks the extra steps for the second.
+If your engine reads something the goal language can't write (an id prefix, a construct, a value syntax), the language grows for every dialect: see `packages/goal-language/docs/extending-the-grammar.md`. Most new engines are the first row. If you are "reimplementing SLEEC", that's exactly it. Reimplementing EDGE is the second row. This guide does the first row fully and marks the extra steps for the second.
 
 Running example below: engine id `mission`, goals get `priority` (enum) and `deadline` (int seconds); tasks get `robot` (text) and `duration` (int); output is a YAML mission plan.
 
@@ -99,7 +99,7 @@ export const mission = defineDialect({
 
 The line's syntax is the goal language's (`<<s>> {tag = v} G1: Name [G2;G3] {int 0..9 = 3}`); a kind only says which parts it has:
 
-- `prefix: 'G' | 'T' | 'R'` → lines name their element (`G1: Deliver sample`); every kind then needs one. **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
+- `prefix: 'G' | 'T' | 'R' | 'AT'` → lines name their element (`G1: Deliver sample`); every kind then needs one. **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
 - `declares: true` → the line ends with a declaration setting `type`, `lowerBound`, `upperBound`, `initialValue` (Edge's resource `{int 0..100 = 80}`); the kind must have those properties.
 - `annotated: true` → the line starts with annotations setting `stereotype`, `tag`, `tagValue` (the piStar-ext mechanism, added by `withExtension`).
 - Names on lines with ids are letters, spaces, `-` and `'` (as RTRegex.g4 read them).
@@ -197,8 +197,9 @@ Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
 - `dialect` is required: the definition (or, for an engine without one, `{ name }`: ids and names are read, no notation).
-- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines.
-- Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right).
+- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines: the outermost construct and its operands. `text` is the goal's text as written; an engine that reads nested constructs or calls reads it with `parseElementLine` (MutRoSe does).
+- Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
+- A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -219,7 +220,7 @@ A check gets the element's properties and a context (the goal language's `CheckC
 - the other elements' kinds, `kindOf`;
 - the whole model, `elements`, when the caller has it: every element's kind, properties, children and `x`.
 
-The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both.
+The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both (MutRoSe's `scope.ts`: the variables a goal monitors must be declared by an earlier goal).
 Type the definition's properties with these names
 (`satisfies readonly PropertyDefinition<MissionCheckName>[]`, as
 `edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`
@@ -246,27 +247,24 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 - `packages/lib/src/engines/index.ts` and `packages/lib/src/index.ts`: re-export.
 - CLI (`packages/lib/src/cli.ts`): add the engine to the menu if you want `goal-controller-cli` to run it.
 
-## 4. Step 3: wire the UI (`packages/ui`), ~15 small edits
+## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 
-| #   | File                                                                    | Edit                                                                                                                                                                                                                       |
-| --- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `lib/types.ts`                                                          | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES`                                                                                                                                                               |
-| 2   | `lib/workbench/engineDialects.ts`                                       | `ENGINE_DIALECTS = { edge, edgev2: edgeV2, mission }` and `ENGINE_CHECKS.mission = missionCheckRegistry`, and its reader in `goalNamesOf` (all imported from `@goal-controller/lib`)                                       |
-| 3   | `lib/models/knownProperties.ts`                                         | `mission: definedKeys(ENGINE_DIALECTS.mission)`                                                                                                                                                                            |
-| 4   | `services/goalModel.ts`                                                 | `parseForMission(modelJson, {reduce})` = `GoalTree.fromModel(model, missionEngineMapper)` (copy `parseForSleec`)                                                                                                           |
-| 5   | `services/transform.ts`                                                 | `else if (engine === 'mission') output = missionTemplateEngine(tree, options)`                                                                                                                                             |
-| 6   | `components/workbench/engines/mission/MissionDiagram.tsx`               | `<WorkbenchCanvas extensions={[problemBadges, rtNumbering, missionPalette]} />`; palette = the kinds your definition lists (copy `edgeFamily/extensions.tsx`'s `edgePalette`)                                              |
-| 7   | `components/workbench/engines/mission/MissionInspector.tsx`             | `return <DefinitionInspector engine='mission' />` (that's the whole file)                                                                                                                                                  |
-| 8   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`                | add the `case 'mission'`                                                                                                                                                                                                   |
-| 9   | `components/workbench/engineConformity.tsx`                             | add `{ id: 'mission', label: 'Mission', output: 'YAML' }` so Open/Convert check conformity                                                                                                                                 |
-| 10  | `components/workbench/ModelSettingsModal.tsx`                           | add it to `ENGINES` (its card) and `TARGET_IDS` (its conformity); add engine-specific options here if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`) |
-| 11  | `services/analyze.ts`                                                   | parse with your mapper (`engine === 'mission' ? GoalModel.parseForMission(…)`): anything else falls back to Edge's parser                                                                                                  |
-| 12  | `components/workbench/TopBar.tsx`, `components/workbench/Workbench.tsx` | the engine's label in their `ENGINE_LABEL`                                                                                                                                                                                 |
-| 13  | `components/workbench/engines/shared/inspector.tsx`                     | its label in `ENGINE_LABEL`, and in `ENGINE_KEYS` where its keys are declared (the inspector's "add it to …" hint for unread properties)                                                                                   |
-| 14  | `components/workbench/engines/pistar/PistarDiagram.tsx`                 | `pistarPaletteFor`: its palette (or `null`) for piStar mode's palette toggle                                                                                                                                               |
-| 15  | `components/workbench/Explorer.tsx`                                     | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it                                                                                                                                               |
+| #   | File | Edit |
+| --- | --- | --- |
+| 1   | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
+| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is described: `ENGINE_DIALECTS.mission`, `ENGINE_CHECKS.mission` (typed by the definition's check names: a registry that lacks one doesn't compile), `ENGINE_MAPPERS.mission`, `ENGINE_LABEL.mission` (the definition's `name`), and its `ENGINES` entry (label, what it generates, the output file's extension, help, whether it takes options) |
+| 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
+| 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
+| 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `missionTemplateEngine(tree, options)` |
+| 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
+| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[problemBadges, rtNumbering, missionPalette]} rejectEdit={…} />`: the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
+| 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
+| 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
+| 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
+| 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
+| 12  | `components/workbench/Explorer.tsx` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it |
 
-Adding `'mission'` to `TransformEngine` makes the type-checker flag #3, #12, #13 and #14 (and #2 once the definition is listed); the others are not exhaustive and fall back silently (`services/transform.ts` to SLEEC, `services/analyze.ts` to Edge, `ModelDiagram`/`ModelInspector` to nothing), so do them from this list.
+Adding `'mission'` to `TransformEngine` makes the type-checker flag #2, #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
 
 The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
 
@@ -283,11 +281,11 @@ The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every 
 
 **Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names · `template/` (reads `executionDetail.ids`, `.modifiers`) · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
-**UI (wiring):** the 15 edits in §4 · palette extension · engine options in Model Settings if any.
+**UI (wiring):** the 12 edits in §4 · palette extension · engine options if any.
 
 **Evidence:** examples · expected outputs · mapper/template tests · round-trip/differential tests.
 
-## 7. The two reference reimplementations
+## 7. The reference implementations
 
 ### 7.1 Reimplementing SLEEC with a definition (what it would look like)
 
@@ -296,6 +294,10 @@ SLEEC today has a mapper and template but **no definition** (its inspector is th
 ### 7.2 Reimplementing EDGE (the full case)
 
 Already done on this branch; use it as the worked example. An engine author touches only the definition, the mapper, the types and the templates: `lib/src/engines/edgeFamily/{definition,properties,checks}.ts` (what edge and edgeV2 share: notation constructs, properties, the check registry), `lib/src/engines/edgeV2/{definition,mapper,types,template,validator}`, `ui/components/workbench/engines/edgeV2/` (two tiny files). The conformance harness in `experiments/edgev2-conformance/` shows how to prove a template against a reference.
+
+### 7.3 MutRoSe (a new engine, and what the framework needed)
+
+`lib/src/engines/mutrose/` and `ui/components/workbench/engines/mutrose/`: a notation engine with a call construct (`FALLBACK(a,b)`), task ids `AT1`, leaf goals, and checks across elements. [mutrose.md](mutrose.md) lists what fit, what the framework had to grow, and what is still open.
 
 ## 8. Options summary
 

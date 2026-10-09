@@ -11,7 +11,12 @@
  * written from this table (the tests check they agree).
  */
 
-export type OperatorForm = 'infix' | 'prefix' | 'postfix' | 'standalone';
+export type OperatorForm =
+  | 'infix'
+  | 'prefix'
+  | 'postfix'
+  | 'standalone'
+  | 'call';
 
 export type CatalogOperator = {
   symbol: string;
@@ -45,12 +50,25 @@ export const POSTFIX_SYMBOLS = ['@'] as const;
 /** `[+]`: the symbol is a whole operand on its own. */
 export const STANDALONE_SYMBOLS = ['+', '*', '?', '#'] as const;
 
+/**
+ * `FALLBACK(G1,G2)`: a construct written as a call, with the number of
+ * operands it takes (MutRoSe's runtime annotations). A call is an operand on
+ * its own, like a group: its commas separate operands, they are not `,`.
+ */
+export const CALLS = { FALLBACK: { arity: 2 } } as const;
+export const CALL_NAMES = Object.keys(CALLS) as (keyof typeof CALLS)[];
+
 export type InfixSymbol = (typeof INFIX_SYMBOLS)[number];
 export type PrefixSymbol = (typeof PREFIX_SYMBOLS)[number];
 export type PostfixSymbol = (typeof POSTFIX_SYMBOLS)[number];
 export type StandaloneSymbol = (typeof STANDALONE_SYMBOLS)[number];
+export type CallName = keyof typeof CALLS;
 /** A symbol a dialect may map to a construct (or, postfix, to a modifier). */
-export type OperatorSymbol = InfixSymbol | PrefixSymbol | PostfixSymbol;
+export type OperatorSymbol =
+  | InfixSymbol
+  | PrefixSymbol
+  | PostfixSymbol
+  | CallName;
 
 /** The whole catalog, tightest first (standalone symbols have no precedence: 0). */
 export const OPERATORS: readonly CatalogOperator[] = [
@@ -82,13 +100,20 @@ export const OPERATORS: readonly CatalogOperator[] = [
     assoc: 'none',
     example: symbol,
   })),
+  ...CALL_NAMES.map((symbol): CatalogOperator => ({
+    symbol,
+    form: 'call',
+    precedence: 0,
+    assoc: 'none',
+    example: `${symbol}(${Array.from({ length: CALLS[symbol].arity }, (_, i) => `G${i + 1}`).join(',')})`,
+  })),
 ];
 
 /** The keyword an operand may be instead of an element id. */
 export const SKIP = 'skip';
 
-/** The id prefixes element lines may use (`G1`, `T2.1`, `R3`). */
-export const ID_PREFIXES = ['G', 'T', 'R'] as const;
+/** The id prefixes element lines may use (`G1`, `T2.1`, `R3`, MutRoSe's `AT1`). */
+export const ID_PREFIXES = ['G', 'T', 'R', 'AT'] as const;
 export type IdPrefix = (typeof ID_PREFIXES)[number];
 
 /** The assertion language: `battery > 20 & !charging`. */
@@ -114,6 +139,8 @@ export const ASSERTION = {
  * - `pairList`: `name:value` pairs, comma-separated (`x:3, y:2`)
  * - `annotatedName`: `<<stereotype>> {tag = value} Name [RT]`, a line
  *   without an id
+ * - `ocl`: OCL as MutRoSe writes it (`world_db->select(r:Room | r.dirty)`),
+ *   read as its tokens
  */
 export const VALUE_TYPES = [
   'assertion',
@@ -125,5 +152,6 @@ export const VALUE_TYPES = [
   'refList',
   'pairList',
   'annotatedName',
+  'ocl',
 ] as const;
 export type ValueType = (typeof VALUE_TYPES)[number];

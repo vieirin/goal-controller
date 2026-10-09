@@ -2,15 +2,13 @@
 
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { firstResourceIssue } from '@/lib/workbench/edgeProperties';
-import { isActor } from '@istar-ts/core';
 import {
   elementIcon,
   type ElementComponentProps,
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import { ElementWithProblems } from '../shared/extensions';
-import type { RejectEdit } from '../shared/WorkbenchCanvas';
+import { ElementWithProblems, oneActorOnly } from '../shared/extensions';
 
 /**
  * What Edge and EdgeV2 share in the diagram: they read the same elements and keys (see
@@ -129,11 +127,6 @@ export const edgePalette: IstarExtension = {
 };
 
 /** The Edge engines build one goal tree from one actor: a second actor is taken back out. */
-export const oneActorOnly: RejectEdit = (event) =>
-  event.changes.some(
-    (change) =>
-      change.type === 'addElement' &&
-      isActor(event.model.elements.get(change.id)),
-  ) && [...event.model.elements.values()].filter(isActor).length > 1
-    ? 'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.'
-    : null;
+export const edgeOneActor = oneActorOnly(
+  'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
+);

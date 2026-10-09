@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import { outputExtensionOf } from '@/lib/workbench/engineDialects';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ExampleFile } from '@/lib/workbench/types';
 import { writeModelMode } from '@/lib/workbench/pistar';
@@ -31,6 +32,7 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   edge: 'edge',
   edgeV2: 'edgev2',
   sleec: 'sleec',
+  mutrose: 'mutrose',
   'pistar-ext': 'pistarext',
 };
 
@@ -178,7 +180,7 @@ export default function Explorer() {
             )}
             <Row
               icon={FileCode2}
-              label={`output.${isPrismEngine(wb.engine) ? 'prism' : 'sleec'}`}
+              label={`output.${outputExtensionOf(wb.engine)}`}
               detail={
                 !lastOutput ? (
                   '—'

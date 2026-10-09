@@ -1,7 +1,8 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import { GoalModel } from './goalModel';
 import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
-import type { TransformEngine } from '../lib/types';
+import { isPrismEngine, type TransformEngine } from '../lib/types';
+import { mutroseProblem, type MutroseGoalTree } from '@goal-controller/lib';
 import { nodeIdInMessage } from '../lib/workbench/localProblems';
 import type {
   AnalyzeResponse,
@@ -35,7 +36,9 @@ export const analyze = (
       ? GoalModel.parseForEdgeV2(modelJson)
       : engine === 'sleec'
         ? GoalModel.parseForSleec(modelJson)
-        : GoalModel.parseForEdge(modelJson);
+        : engine === 'mutrose'
+          ? GoalModel.parseForMutrose(modelJson)
+          : GoalModel.parseForEdge(modelJson);
 
   const response: AnalyzeResponse = {
     success: true,
@@ -60,7 +63,17 @@ export const analyze = (
     return response;
   }
 
-  if (engine !== 'sleec') {
+  if (engine === 'mutrose') {
+    // what the decomposer checks across goals (variables' scope, query types)
+    const problem = mutroseProblem(parsed.tree as MutroseGoalTree);
+    if (problem)
+      response.problems.push({
+        severity: 'error',
+        source: 'engine',
+        message: problem,
+        nodeId: nodeIdInMessage(problem),
+      });
+  } else if (isPrismEngine(engine)) {
     const tree = parsed.tree as Parameters<typeof GoalTree.contextVariables>[0];
     const nodes = [
       ...GoalTree.allByType(tree, 'goal'),

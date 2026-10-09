@@ -13,6 +13,7 @@ import {
 } from '@goal-controller/dialect';
 import type { IToken } from 'chevrotain';
 import type { GoalLexer, LexerStart } from '../lexer.js';
+import { CALL_NAMES, ID_PREFIXES } from '../catalog.js';
 import { goalServices } from '../parse.js';
 
 export type HighlightStyle =
@@ -56,8 +57,29 @@ const STYLE: Record<string, HighlightStyle> = {
   '<<': 'brace',
   '>>': 'brace',
   skip: 'keyword',
+  ...Object.fromEntries(CALL_NAMES.map((name) => [name, 'keyword' as const])),
   true: 'atom',
   false: 'atom',
+  // OCL's (an `ocl` value)
+  True: 'atom',
+  False: 'atom',
+  ...Object.fromEntries(
+    [
+      'select',
+      'forAll',
+      'exists',
+      'collect',
+      'reject',
+      'in',
+      'not',
+      'and',
+      'or',
+      'assertion',
+      'condition',
+      'trigger',
+    ].map((word) => [word, 'keyword' as const]),
+  ),
+  STRING: 'string',
   WORD: 'string',
   PLAIN_NAME: 'string',
   KEY: 'propertyName',
@@ -71,7 +93,7 @@ const STYLE: Record<string, HighlightStyle> = {
   VALUE: 'string',
 };
 
-const ID_PREFIX = new Set(['G', 'T', 'R']);
+const ID_PREFIX = new Set<string>(ID_PREFIXES);
 const ID_REST = new Set(['FLOAT', 'X', 'DIGIT_SUBID']);
 
 const tokensOf = (start: LexerStart, text: string): IToken[] => {
@@ -98,11 +120,11 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
       (ID_PREFIX.has(name) &&
         next &&
         ID_REST.has(next.tokenType.name) &&
-        next.startOffset === token.startOffset + 1) ||
+        next.startOffset === token.startOffset + token.image.length) ||
       (ID_REST.has(name) &&
         previous &&
         ID_PREFIX.has(previous.tokenType.name) &&
-        token.startOffset === previous.startOffset + 1);
+        token.startOffset === previous.startOffset + previous.image.length);
     if (name === '{') declaring = true;
     else if (name === '}') declaring = false;
     if (name === '<<') annotation = 'stereotype';
@@ -118,14 +140,23 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
       );
       return;
     }
+    // an OCL type: after `:` (`r:Room`), or what a collection holds (`Sequence(Room)`)
+    const isType =
+      name === 'IDENT' &&
+      (previous?.tokenType.name === ':' ||
+        // `(` is highlighted itself: the type is the one before it
+        (previous?.tokenType.name === '(' &&
+          highlights.at(-2)?.style === 'typeName'));
     const style: HighlightStyle | undefined = idPart
       ? 'labelName'
-      : declaring && name === 'IDENT' && previous?.tokenType.name === '{'
+      : isType
         ? 'typeName'
-        : declaring && name === 'IDENT'
-          ? 'atom'
-          : (STYLE[name] ??
-            (/^[^A-Za-z0-9]+$/.test(name) ? 'operator' : undefined));
+        : declaring && name === 'IDENT' && previous?.tokenType.name === '{'
+          ? 'typeName'
+          : declaring && name === 'IDENT'
+            ? 'atom'
+            : (STYLE[name] ??
+              (/^[^A-Za-z0-9]+$/.test(name) ? 'operator' : undefined));
     if (!style) return;
     const last = highlights.at(-1);
     // an id is one highlight (`G` and `1` are two tokens)
@@ -146,6 +177,7 @@ const START: Record<ValueConfig['type'], LexerStart> = {
   refList: 'refList',
   pairList: 'pairList',
   annotatedName: 'annotatedName',
+  ocl: 'ocl',
 };
 
 /** A value of a type on its own (an inspector field). */
@@ -153,7 +185,15 @@ export const highlightValue = (
   value: ValueConfig,
   text: string,
   offset = 0,
-): Highlight[] => styled(tokensOf(START[value.type], text), offset);
+): Highlight[] => {
+  const highlights = styled(tokensOf(START[value.type], text), offset);
+  // an enum's value is one of a fixed few: an atom, as true and false are
+  return value.type === 'enum'
+    ? highlights.map((h) =>
+        h.style === 'string' ? { ...h, style: 'atom' } : h,
+      )
+    : highlights;
+};
 
 /** The value config a property line's key has (the first listed kind declaring it). */
 const lineValue = (

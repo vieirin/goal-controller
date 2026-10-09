@@ -11,11 +11,12 @@ import {
 } from '@goal-controller/goal-language/worker';
 import { ENGINE_CHECKS, ENGINE_DIALECTS } from './engineDialects';
 
-const checks = Object.fromEntries(
+// by dialect id: the server reads each document's dialect at run time
+const checks: CheckRegistries = Object.fromEntries(
   (Object.keys(ENGINE_DIALECTS) as (keyof typeof ENGINE_DIALECTS)[]).map(
     (engine) => [ENGINE_DIALECTS[engine].id, ENGINE_CHECKS[engine]],
   ),
-) as CheckRegistries;
+);
 
 startGoalWorkerServer(self as unknown as DedicatedWorkerGlobalScope, {
   checks,

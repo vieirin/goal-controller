@@ -27,7 +27,11 @@ import {
   parseModel,
   recordedModeOf,
 } from '../../../ui/lib/workbench/dialects';
-import { jsonProblem } from '../../../ui/lib/workbench/localProblems';
+import {
+  jsonProblem,
+  nodeIdInMessage,
+  treeProblems,
+} from '../../../ui/lib/workbench/localProblems';
 import {
   planConversion,
   serializeModel,
@@ -463,5 +467,48 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
         stereotypes: [{ name: 'action', appliesTo: ['model.Mission'] }],
       }),
     ).to.throw(/action is already a stereotype/);
+  });
+});
+
+describe('ui MutRoSe', () => {
+  const MEDICINE = readFileSync(
+    join(__dirname, '../../../../examples/mutrose/MedicineDelivery.txt'),
+    'utf8',
+  );
+
+  it('reads its example without a problem: leaf Query goals, operands inside a call', () => {
+    const view = goalView(parsePistar(MEDICINE), ENGINE_DIALECTS.mutrose);
+    // G2, G4 have no children; G5 and AT3 are G3's FALLBACK operands
+    expect(treeProblems(view, 'mutrose')).to.deep.equal([]);
+    expect(view.nodes.get('G3')!.order).to.deep.equal(['G4', 'G5', 'AT3']);
+    // the Edge engines refine every goal
+    expect(
+      treeProblems(goalView(parsePistar(MEDICINE), edgeV2), 'edgev2').some(
+        (p) =>
+          p.message ===
+          'G2 has no children or tasks; every goal must be refined',
+      ),
+    ).to.equal(true);
+  });
+
+  it('converts a model to it: tasks named AT, what it does not read listed', () => {
+    const unnamed = MODEL.replace(
+      /"text": "T1: [^"]*"/,
+      '"text": "Book a room"',
+    );
+    const plan = planConversion(unnamed, 'mutrose');
+    expect(plan.changes).to.include('"Book a room" is named AT1: Book a room');
+    expect(plan.blockers.join('\n')).to.match(
+      /Resources?: MutRoSe does not read Resources/,
+    );
+  });
+
+  it('finds its task ids in the decomposer’s messages', () => {
+    expect(
+      nodeIdInMessage('Could not find value for parameter [x] for task [AT2]'),
+    ).to.equal('AT2');
+    expect(
+      nodeIdInMessage('Invalid declaration of robot number: 3 (node AT12)'),
+    ).to.equal('AT12');
   });
 });

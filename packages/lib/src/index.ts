@@ -102,6 +102,22 @@ export {
 // The engines' definitions (@goal-controller/dialect), and the dialects'
 export { edge } from './engines/edge';
 export { edgeV2 } from './engines/edgeV2';
+// MutRoSe: its definition, checks, mapper and runtime annotation
+export {
+  mutrose,
+  mutroseCheckRegistry,
+  mutroseEngineMapper,
+  mutroseProblem,
+  mutroseRuntimeAnnotation,
+  MUTROSE_GOAL_KEYS,
+  MUTROSE_TASK_KEYS,
+  type MutroseCheckName,
+  type MutroseGoalNode,
+  type MutroseGoalProps,
+  type MutroseGoalTree,
+  type MutroseTask,
+  type MutroseTaskProps,
+} from './engines/mutrose';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
 

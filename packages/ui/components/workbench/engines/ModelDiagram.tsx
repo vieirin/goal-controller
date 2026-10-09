@@ -3,6 +3,7 @@
 import { useWorkbench } from '../WorkbenchContext';
 import EdgeDiagram from './edge/EdgeDiagram';
 import EdgeV2Diagram from './edgeV2/EdgeV2Diagram';
+import MutroseDiagram from './mutrose/MutroseDiagram';
 import PistarDiagram from './pistar/PistarDiagram';
 import PistarExtDiagram from './pistarExt/PistarExtDiagram';
 import SleecDiagram from './sleec/SleecDiagram';
@@ -21,5 +22,7 @@ export default function ModelDiagram() {
       return <EdgeV2Diagram />;
     case 'sleec':
       return <SleecDiagram />;
+    case 'mutrose':
+      return <MutroseDiagram />;
   }
 }

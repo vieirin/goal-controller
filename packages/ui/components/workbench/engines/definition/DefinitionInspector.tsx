@@ -46,6 +46,7 @@ const LANGUAGE_VALUES = new Set<ValueType>([
   'assertion',
   'refList',
   'pairList',
+  'ocl',
 ]);
 
 const BUTTON =

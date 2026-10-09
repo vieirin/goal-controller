@@ -20,6 +20,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import {
+  ENGINE_LABEL,
+  hasOptions,
+  outputExtensionOf,
+} from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import type { GenerationOptions } from '@/lib/workbench/types';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
@@ -64,12 +69,6 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
 };
 
 export { readFile };
-
-const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: 'EdgeV2',
-  edge: 'Edge',
-  sleec: 'SLEEC',
-};
 
 const optionsSummary = (
   engine: TransformEngine,
@@ -170,7 +169,7 @@ export default function TopBar() {
   // what the model is for: the engine it records (also in the piStar view), else its mode
   const kind = wb.recordedEngine ?? wb.mode;
   const { open, input } = useOpenFile();
-  const outputExtension = isPrismEngine(wb.engine) ? 'prism' : 'sleec';
+  const outputExtension = outputExtensionOf(wb.engine);
   const lastOutput = wb.runs.find((run) => run.output !== null)?.output ?? null;
 
   const exportModel = () => {
@@ -317,7 +316,7 @@ export default function TopBar() {
             </Button>
           )}
           {/* piStar mode is the plain iStar editor: no engine to pick */}
-          {!shell.pistarMode && (
+          {!shell.pistarMode && hasOptions(wb.engine) && (
             <>
               <EngineOptions />
               <span className='h-5 w-px bg-line' aria-hidden />
@@ -419,6 +418,7 @@ export default function TopBar() {
 export function EngineOptions() {
   const wb = useWorkbench();
   const { engine, options, setOptions } = wb;
+  if (!hasOptions(engine)) return null;
   return (
     <Menu
       label={`${engine} options`}

@@ -15,7 +15,7 @@ import {
   type WithNotation,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { ASSERTION, SKIP } from '../catalog.js';
+import { ASSERTION, CALLS, SKIP } from '../catalog.js';
 import { lineId, readPropertyLine } from './lines.js';
 
 export type Completion = {
@@ -42,7 +42,9 @@ const operatorOptions = ({ notation }: WithNotation): Completion[] => {
     ...Object.entries(operators).map(([symbol, name]) => ({
       label: modifiers[name]
         ? `${symbol}${modifiers[name].argument.default}`
-        : symbol,
+        : symbol in CALLS
+          ? `${symbol}(`
+          : symbol,
       type: 'keyword' as const,
       detail: meaning(name),
     })),

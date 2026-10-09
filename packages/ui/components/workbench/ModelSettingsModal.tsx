@@ -2,34 +2,13 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import type { TransformEngine } from '@/lib/types';
 import { DIALECT_LABEL, type DialectMode } from '@/lib/workbench/dialects';
+import { ENGINES, hasOptions } from '@/lib/workbench/engineDialects';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
 import { ConformityStatus, useEngineConformity } from './engineConformity';
 import { useWorkbench, type ConversionTarget } from './WorkbenchContext';
 import { Button, IconButton, Switch, cx } from './ui';
-
-const ENGINES: Array<{
-  id: TransformEngine;
-  label: string;
-  output: string;
-  help: string;
-}> = [
-  {
-    id: 'edgev2',
-    label: 'EdgeV2',
-    output: 'PRISM',
-    help: 'EDGE reference encoding, with cost and utility rewards',
-  },
-  { id: 'edge', label: 'Edge', output: 'PRISM', help: 'Legacy Edge encoding' },
-  {
-    id: 'sleec',
-    label: 'SLEEC',
-    output: 'SLEEC',
-    help: 'SLEEC rules from the goal conditions',
-  },
-];
 
 const PISTAR = {
   label: 'piStar',
@@ -47,9 +26,7 @@ const DIALECTS: Array<{ id: DialectMode; output: string; help: string }> = [
 ];
 
 const TARGET_IDS: readonly ConversionTarget[] = [
-  'edgev2',
-  'edge',
-  'sleec',
+  ...ENGINES.map((e) => e.id),
   ...DIALECTS.map((d) => d.id),
 ];
 
@@ -305,37 +282,38 @@ export default function ModelSettingsModal() {
             )}
           </fieldset>
 
-          {!draft.pistar && (
-            <>
-              <fieldset>
-                <legend className='mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
-                  Options
-                </legend>
-                <EngineOptionFields
-                  engine={wb.engineLocked ? wb.engine : draft.engine}
-                  options={draft.options}
-                  onChange={(patch) =>
-                    setDraft((d) => ({
-                      ...d,
-                      options: { ...d.options, ...patch },
-                    }))
-                  }
-                />
-              </fieldset>
+          {!draft.pistar &&
+            hasOptions(wb.engineLocked ? wb.engine : draft.engine) && (
+              <>
+                <fieldset>
+                  <legend className='mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+                    Options
+                  </legend>
+                  <EngineOptionFields
+                    engine={wb.engineLocked ? wb.engine : draft.engine}
+                    options={draft.options}
+                    onChange={(patch) =>
+                      setDraft((d) => ({
+                        ...d,
+                        options: { ...d.options, ...patch },
+                      }))
+                    }
+                  />
+                </fieldset>
 
-              <div className='border-t border-line pt-4'>
-                <Switch
-                  checked={draft.live}
-                  onChange={(live) => setDraft((d) => ({ ...d, live }))}
-                  label='Live'
-                  description='Regenerate after each change'
-                />
-                <p className='mt-1 pl-9 text-2xs text-ink-muted'>
-                  Regenerate the output after each change to the model.
-                </p>
-              </div>
-            </>
-          )}
+                <div className='border-t border-line pt-4'>
+                  <Switch
+                    checked={draft.live}
+                    onChange={(live) => setDraft((d) => ({ ...d, live }))}
+                    label='Live'
+                    description='Regenerate after each change'
+                  />
+                  <p className='mt-1 pl-9 text-2xs text-ink-muted'>
+                    Regenerate the output after each change to the model.
+                  </p>
+                </div>
+              </>
+            )}
         </div>
 
         <footer className='flex items-center justify-end gap-2 border-t border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5'>

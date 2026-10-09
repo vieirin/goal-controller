@@ -27,6 +27,11 @@ import {
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 import {
+  ENGINE_DIALECTS,
+  ENGINE_LABEL,
+  isDialectEngine,
+} from './engineDialects';
+import {
   DIALECT_LABEL,
   DIALECTS,
   isDialectMode,
@@ -285,6 +290,7 @@ const MODES: readonly ModelMode[] = [
   'edgev2',
   'edge',
   'sleec',
+  'mutrose',
   'pistarext',
   'pistar',
 ];
@@ -346,12 +352,16 @@ const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
 };
 const FIRST: Record<string, number> = { G: 0, T: 1, R: 1 };
 
-/** Next free RT id ("G4", "T3", "R2") for an element kind, from the names in the model. */
+/**
+ * Next free RT id ("G4", "T3", "R2") for an element kind, from the names in
+ * the model: with the Edge engines' prefix for the kind, or the one given (an
+ * engine's definition's: MutRoSe's tasks are `AT3`).
+ */
 export const nextRtId = (
   model: IstarModel,
   kind: IstarElement['kind'],
+  prefix: string | undefined = PREFIX[kind],
 ): string | null => {
-  const prefix = PREFIX[kind];
   if (!prefix) return null;
   let max = (FIRST[prefix] ?? 1) - 1;
   for (const element of model.elements.values()) {
@@ -370,17 +380,42 @@ export type Conversion = {
   blockers: string[];
 };
 
-const EDGE_ELEMENTS = new Set([
-  'istar.Actor',
-  'istar.Goal',
-  'istar.Task',
-  'istar.Resource',
-]);
-const EDGE_LINKS = new Set([
-  'istar.AndRefinementLink',
-  'istar.OrRefinementLink',
-  'istar.NeededByLink',
-]);
+/** What an engine reads of an iStar model: the kinds a model converted to it may have. */
+type Reads = { elements: ReadonlySet<string>; links: ReadonlySet<string> };
+const EDGE_READS: Reads = {
+  elements: new Set([
+    'istar.Actor',
+    'istar.Goal',
+    'istar.Task',
+    'istar.Resource',
+  ]),
+  links: new Set([
+    'istar.AndRefinementLink',
+    'istar.OrRefinementLink',
+    'istar.NeededByLink',
+  ]),
+};
+const ENGINE_READS: Partial<Record<TransformEngine, Reads>> = {
+  edge: EDGE_READS,
+  edgev2: EDGE_READS,
+  // the decomposer reads one actor's goals and tasks, refined by AND/OR links
+  mutrose: {
+    elements: new Set(['istar.Actor', 'istar.Goal', 'istar.Task']),
+    links: new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink']),
+  },
+};
+
+/** The id prefix a target gives a kind: its definition's, else the Edge engines'. */
+const prefixIn = (
+  target: ModelMode,
+  kind: IstarElement['kind'],
+): string | undefined => {
+  if (!isEngineMode(target) || !isDialectEngine(target)) return PREFIX[kind];
+  const elements: Readonly<Record<string, { prefix?: string } | undefined>> =
+    ENGINE_DIALECTS[target].elements;
+  const key = kind.replace(/^istar\./, '').toLowerCase();
+  return key === 'quality' ? elements.goal?.prefix : elements[key]?.prefix;
+};
 const KIND_LABEL = (kind: string): string =>
   kind.replace(/^[^.]+\./, '').replace(/Link$/, ' link');
 const MODE_LABEL = (mode: ModelMode): string =>
@@ -388,9 +423,18 @@ const MODE_LABEL = (mode: ModelMode): string =>
     ? DIALECT_LABEL[mode]
     : mode === 'pistar'
       ? 'piStar'
-      : mode === 'sleec'
-        ? 'SLEEC'
-        : 'the Edge engines';
+      : mode === 'edge' || mode === 'edgev2'
+        ? 'the Edge engines'
+        : ENGINE_LABEL[mode];
+/** What a target engine reads, as its messages say it ("the Edge engines read …"). */
+const engineSays = (target: ModelMode) => {
+  const many = target === 'edge' || target === 'edgev2';
+  const name = MODE_LABEL(target);
+  return {
+    reads: `${name} ${many ? 'read' : 'reads'}`,
+    doesNotRead: `${name} ${many ? 'do' : 'does'} not read`,
+  };
+};
 const plural = (label: string): string =>
   label.endsWith('y') ? `${label.slice(0, -1)}ies` : `${label}s`;
 
@@ -417,7 +461,7 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
     for (const element of model.elements.values()) {
       if (!isNode(element) || element.isDependum || RT_ID.test(element.name))
         continue;
-      const id = nextRtId(model, element.kind);
+      const id = nextRtId(model, element.kind, prefixIn(target, element.kind));
       if (!id) continue;
       const name = `${id}: ${element.name.trim() || KIND_LABEL(element.kind)}`;
       model = updateElement(model, element.id, { name });
@@ -426,7 +470,8 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       );
     }
   }
-  if (target !== 'edge' && target !== 'edgev2') {
+  const reads = isEngineMode(target) ? ENGINE_READS[target] : undefined;
+  if (!reads) {
     // the kinds the target's metamodel doesn't have (a dialect's, in another mode)
     const known = metamodelOfMode(target, text);
     const counts = new Map<string, number>();
@@ -443,17 +488,18 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       );
     }
   }
-  if (target === 'edge' || target === 'edgev2') {
+  if (reads) {
     const counts = new Map<string, number>();
     for (const element of model.elements.values()) {
-      if (!EDGE_ELEMENTS.has(element.kind))
+      if (!reads.elements.has(element.kind))
         counts.set(element.kind, (counts.get(element.kind) ?? 0) + 1);
       if (isNode(element) && !element.isDependum && !element.parent) {
         blockers.push(
-          `${element.name} is outside any actor: the Edge engines read the elements inside the actor`,
+          `${element.name} is outside any actor: ${engineSays(target).reads} the elements inside the actor`,
         );
       }
       if (
+        reads === EDGE_READS &&
         element.kind === 'istar.Resource' &&
         !element.customProperties?.type
       ) {
@@ -470,18 +516,20 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       }
     }
     for (const link of model.links.values()) {
-      if (!EDGE_LINKS.has(link.kind))
+      if (!reads.links.has(link.kind))
         counts.set(link.kind, (counts.get(link.kind) ?? 0) + 1);
     }
     for (const [kind, count] of counts) {
       const label = KIND_LABEL(kind);
       blockers.push(
-        `${count} ${count > 1 ? plural(label) : label}: the Edge engines do not read ${plural(label)}`,
+        `${count} ${count > 1 ? plural(label) : label}: ${engineSays(target).doesNotRead} ${plural(label)}`,
       );
     }
     const actors = [...model.elements.values()].filter(isActor).length;
     if (actors > 1)
-      blockers.push(`${actors} actors: the Edge engines read a single actor`);
+      blockers.push(
+        `${actors} actors: ${engineSays(target).reads} a single actor`,
+      );
   }
   return {
     text: serializeModel(withMode(model, target), text),

@@ -33,7 +33,7 @@ export type ElementDefinition = {
    * without one, a definition's lines name no element (they are their
    * elements', in order)
    */
-  prefix?: 'G' | 'T' | 'R';
+  prefix?: 'G' | 'T' | 'R' | 'AT';
   /** whether its line carries annotations (`<<action>> {type = duty}`) before the id */
   annotated?: boolean;
   /** whether its line declares its DECLARATION_KEYS (`{int 0..100 = 80}`) after the name */
@@ -60,7 +60,9 @@ export type ValueConfig =
   | { type: 'refList'; kind: ElementKind }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
-  | { type: 'annotatedName' };
+  | { type: 'annotatedName' }
+  /** OCL as MutRoSe writes it: variables, `: Type`, `->select(...)`, `->forAll(...)` */
+  | { type: 'ocl' };
 
 export type ValueType = ValueConfig['type'];
 

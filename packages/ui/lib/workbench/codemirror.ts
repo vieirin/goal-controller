@@ -72,7 +72,8 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       if (KEYWORDS.has(text)) return 'keyword';
       if (TYPES.has(text)) return 'typeName';
       if (ATOMS.has(text)) return 'atom';
-      return 'variableName';
+      // a PRISM name stays in the text's colour (variables are a condition's)
+      return null;
     }
     if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/))
       return 'operator';
@@ -83,6 +84,25 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
 };
 
 export const prismLanguage = StreamLanguage.define(prismParser);
+
+// ---------------------------------------------------------------------------
+// MutRoSe's runtime annotation (`(G2;NC(G4;FALLBACK(AT1,AT2)))`)
+// ---------------------------------------------------------------------------
+
+const rannotParser: StreamParser<null> = {
+  name: 'rannot',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^(?:AT|G)\d+/)) return 'labelName';
+    if (stream.match(/^(?:FALLBACK|NC)\b/)) return 'keyword';
+    if (stream.match(/^[;#]/)) return 'operator';
+    if (stream.match(/^[(),]/)) return 'punctuation';
+    stream.next();
+    return null;
+  },
+};
+
+export const rannotLanguage = StreamLanguage.define(rannotParser);
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -123,7 +143,8 @@ const highlight = HighlightStyle.define([
   { tag: [t.number, t.atom, t.bool], color: '#B7791F' },
   { tag: t.string, color: '#1F7A74' },
   { tag: t.operator, color: '#6B7679' },
-  { tag: t.variableName, color: '#1E2527' },
+  // a condition's names: what it reads (Edge's resources, MutRoSe's variables)
+  { tag: t.variableName, color: '#1D4ED8' },
   { tag: t.propertyName, color: '#1F7A74' },
   { tag: t.punctuation, color: '#6B7679' },
 ]);
