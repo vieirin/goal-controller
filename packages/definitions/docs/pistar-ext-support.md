@@ -759,6 +759,104 @@ The workbench loads examples from GitHub at `main`
 About **1½–2½ weeks** remain for full parity. None of it is blocked on
 istar-ts: finding 5 has a workaround.
 
+### piStar-ext's panel, shapes, labels and "Add new" (current)
+
+| Commit    | What                                                          |
+| --------- | ------------------------------------------------------------- |
+| `cff4fd1` | The mode's inspector in piStar-ext's tabs; Planning's shape   |
+| `acaebc3` | Readable labels, fitted to their shapes                       |
+| `740f01a` | "Add new" constructs, and a model's own extension in its file |
+
+**The panel**, as piStar-ext's code has it (`tool/index.html` and
+`app/ui/ui.js` at `830a4e3`, matching Fig. 3):
+
+- **Blank canvas:** Properties | Stereotype | Tagged Value | Grouper. Each
+  category has a `Name | Constructs Applied | delete` table and an
+  "Add New …" form.
+- **Element or link:** Properties | Style. The stereotype and tagged-value
+  selects are in Properties, in an "Extension" table:
+  - Stereotype: Not Used, New Value, then the stereotypes declared for the
+    kind;
+  - TaggedValue: Not Used, New Value, Id, Reference to, Status, Logic, then
+    the declared tags.
+
+Our tabs come from the definition: `extensionCatalog` (stereotypes, tagged
+values, groupers), with no piStar-ext names in the base. "New Value" takes
+free text, because the dialect's enums are `open` (the open-enum gap, now
+closed). Every kind carries a stereotype.
+
+**Shapes.** piStar-ext's repository ships no Planning or Plan path data:
+constructs live in the browser's localStorage, and new nodes use the user's
+path data as is.
+
+- Planning: Fig. 4's dialog shows only the start of its path
+  (`M 9.1814481,1.0179789 H 65.503448 L 65.025854,14.532293 72.4491,14.819567 73.29006…`).
+  That start is kept verbatim and the rest follows the drawn outline: a
+  task-like pointed side, the body, and an arrow out of the right side, at
+  piStar-ext's 90×55. This is a reconstruction, not the original path.
+- Plan: its symbol appears nowhere, so it is the default dashed box.
+
+**Labels.**
+
+- Annotations are a small italic header stacked above the bold name, inside
+  the shape's text box. A dialect kind's `textBox` (presentation data, like
+  `shape`) places it; Planning's is its body, not its arrow.
+- The label fits by measuring: its font shrinks in steps to 70%, then each
+  line ends in an ellipsis with the full text on hover. A resized box refits.
+- One Annotations component draws them for elements and links.
+
+**"Add new"** (Fig. 4) is at the palette's end:
+
+- a dialog with name, shape (SVG path, live preview), node or link, and for a
+  link its source and target kinds and its kind of line;
+- the construct joins the palette at once.
+
+**Where constructs are kept** (this answers open question 1's sequel,
+per-model extension editing):
+
+- piStar-ext keeps constructs in localStorage. Here they are the model's, in
+  its file, under a top-level `modelExtension` key (piStar and istar-ts keep
+  unknown keys). They're saved as `istar.<Name>`, as piStar-ext saves them.
+- The definitions read the block generically (`ModelExtension`,
+  `withModelExtension`):
+  - kinds in the `model.` namespace, groupers, stereotypes, tagged values;
+  - each checked against the dialect, which rejects a name it already has
+    (a kind, a piStar type, a grouper, a stereotype, a tagged value) or a
+    kind nobody declares.
+- A model in the mode is read with iStar 2.0, the dialect and its own
+  extension (`modelDialect`). Its own kinds open there and nowhere else: the
+  Edge modes reject them, with the hint.
+- The category tabs add and delete the model's own entries; the dialect's
+  stay read-only.
+
+Tests:
+
+- `test/modelExtension.test.ts`: merging, istar-ts reading the model's kinds
+  and link rules, and every collision.
+- `test/uiLib.test.ts`: byte-for-byte write-back of a model with its own
+  construct, Edge rejection with the hint, the collision message, and the
+  catalog.
+
+Verified in Chrome on :3000:
+
+- the tabs, with the dialect's entries read-only;
+- the labels on stereotypes-and-tags.txt and iStar4RationalAgents;
+- creating a Mission (preview, then palette, then placed inside the agent);
+- adding the stereotype `urgent` for Mission and giving it to the element;
+- the Planning collision refused in the dialog.
+
+**istar-ts (proposed, not changed):** the label fitting is generic and
+belongs in `@istar-ts/react`:
+
+- `ElementKindConfig.textBox`;
+- `labelHeader(element)` and `LinkKindConfig.labelHeader(link)`;
+- `labelFit: { mode: 'shrink' | 'none', minScale, step }`, with growing the
+  height opt-in, never on load;
+- `useFitText`.
+
+Then goal-controller would keep only the dialect data and a two-line
+`labelHeader` extension.
+
 ## Pre-existing failure, unrelated
 
 goal-tree's suite fails to compile on this base, and on main:
