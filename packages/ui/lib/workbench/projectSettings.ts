@@ -9,6 +9,7 @@
 import {
   ManifestError,
   modelSettingsOf,
+  type ManifestSettings,
   withModelSettings,
   type EngineOptions,
 } from '../project';
@@ -80,7 +81,7 @@ export type ModelOptions = {
  * isn't JSON sets none (its JSON problem is reported elsewhere).
  */
 export const readModelOptions = (text: string): ModelOptions => {
-  let read: ReturnType<typeof modelSettingsOf>;
+  let read: ManifestSettings;
   try {
     read = modelSettingsOf(text);
   } catch (error) {
@@ -96,6 +97,14 @@ export const readModelOptions = (text: string): ModelOptions => {
       ],
     };
   }
+  return checkedOptions(read);
+};
+
+/**
+ * A manifest's options for a mode, checked: the keys the mode's engine
+ * reads, of their type; the others are reported and not used.
+ */
+export const checkedOptions = (read: ManifestSettings): ModelOptions => {
   const known = new Set<string>(optionKeysOf(read.mode));
   const options: Partial<GenerationOptions> = {};
   const problems: Problem[] = [];
@@ -120,6 +129,26 @@ export const readModelOptions = (text: string): ModelOptions => {
 };
 
 /**
+ * The options an engine reads that are worth keeping: those that differ
+ * from the defaults, and those that differ in `base` (what applies where
+ * the manifest says nothing).
+ */
+export const optionsToKeep = (
+  engine: TransformEngine,
+  options: GenerationOptions,
+  base: GenerationOptions = DEFAULT_OPTIONS,
+): EngineOptions => {
+  const kept: Record<string, string | number | boolean> = {};
+  for (const key of optionKeysOf(engine))
+    if (
+      options[key] !== DEFAULT_OPTIONS[key] ||
+      base[key] !== DEFAULT_OPTIONS[key]
+    )
+      kept[key] = options[key];
+  return kept;
+};
+
+/**
  * The model text with an engine's options in its manifest: those that differ
  * from the defaults, and those that differ in `base` (what applies when the
  * model says nothing), so the model says what it is generated with. A model
@@ -131,16 +160,8 @@ export const withEngineOptions = (
   engine: TransformEngine,
   options: GenerationOptions,
   base: GenerationOptions = DEFAULT_OPTIONS,
-): string => {
-  const kept: Record<string, string | number | boolean> = {};
-  for (const key of optionKeysOf(engine))
-    if (
-      options[key] !== DEFAULT_OPTIONS[key] ||
-      base[key] !== DEFAULT_OPTIONS[key]
-    )
-      kept[key] = options[key];
-  return withModelSettings(text, { options: kept as EngineOptions });
-};
+): string =>
+  withModelSettings(text, { options: optionsToKeep(engine, options, base) });
 
 /**
  * The settings a model opens with: the mode its file records; options from

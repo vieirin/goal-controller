@@ -43,12 +43,15 @@ export const useLanguageSupport = (engine: DialectEngine): LanguageSupport => {
     engine,
     definition as AnyDialect,
   );
-  const { tree, variables, text } = useWorkbench();
+  const { tree, variables, text, projectResources } = useWorkbench();
   useEffect(() => {
     if (!tree) return;
     support.setSaved(savedLines(definition, tree));
-    support.setContext(contextOf(definition, tree, variables));
-  }, [definition, support, tree, variables]);
+    // the project's resources, parsed, go with the model (goal/context)
+    support.setContext(
+      contextOf(definition, tree, variables, projectResources),
+    );
+  }, [definition, support, tree, variables, projectResources]);
   // a service that reads the model file itself (an engine's server)
   useEffect(() => support.setModelText?.(text), [support, text]);
   return support;

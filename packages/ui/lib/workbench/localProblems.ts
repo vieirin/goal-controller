@@ -187,10 +187,12 @@ export const modelLanguageProblems = (
   engine: DialectEngine,
   tree: GoalView,
   variables: Parameters<typeof contextOf>[2],
+  /** the project's resources, parsed: checks that read them (a MutRoSe world) run */
+  projectResources?: Parameters<typeof contextOf>[3],
 ): Problem[] => {
   const definition = ENGINE_DIALECTS[engine];
   const { text } = notationDocument(definition, tree);
-  const context = contextOf(definition, tree, variables);
+  const context = contextOf(definition, tree, variables, projectResources);
   return languageProblems(
     documentDiagnostics(definition, text, context, {
       runCheck: runCheckIn(ENGINE_CHECKS[engine], () => context),

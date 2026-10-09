@@ -8,6 +8,7 @@ import {
 import type { TransformEngine } from '../lib/types';
 import { isDialectMode, type DialectMode } from '../lib/workbench/dialects';
 import { writeModelMode } from '../lib/workbench/pistar';
+import { declarationsOf } from '../lib/workbench/projectResources';
 import type { ModelSettings } from '../lib/workbench/types';
 import examples from '../lib/examples-manifest.json';
 
@@ -53,6 +54,8 @@ export const openExample = async (
       form: entry.form,
       ...(fetch && { fetch }),
     }),
+    // its resources, as the dialect of its model declares them
+    { projectResources: declarationsOf },
   );
   const [model] = read.models;
   if (!model) throw new Error(`${entry.path}: no model`);

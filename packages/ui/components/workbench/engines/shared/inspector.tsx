@@ -6,7 +6,6 @@ import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { constructDefinition } from '@goal-controller/dialect';
 import {
   checkContextOf,
-  contextFromView,
   elementLine,
   isValidName,
 } from '@goal-controller/goal-language';
@@ -19,6 +18,7 @@ import {
   type PropertySpec,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
+import { contextOf } from '@/lib/workbench/notationDocument';
 import {
   ENGINE_LABEL,
   notationDefinitionOf,
@@ -867,11 +867,16 @@ export function PropertiesField({
     () =>
       checkContextOf(
         tree
-          ? contextFromView(notationDefinitionOf(engine), tree, [])
+          ? contextOf(
+              notationDefinitionOf(engine),
+              tree,
+              [],
+              wb.projectResources,
+            )
           : { elements: {}, variables: [] },
         node.id,
       ),
-    [engine, node.id, tree],
+    [engine, node.id, tree, wb.projectResources],
   );
   const suggestions = known.filter(
     (k) => k !== 'root' && !keys.includes(k) && applies(k),

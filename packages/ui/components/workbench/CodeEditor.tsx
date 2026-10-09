@@ -2,6 +2,7 @@
 
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { json } from '@codemirror/lang-json';
+import { xml } from '@codemirror/lang-xml';
 import {
   bracketMatching,
   foldGutter,
@@ -25,7 +26,9 @@ import {
 } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
 import {
+  hddlLanguage,
   lineMarksField,
+  pctlLanguage,
   prismLanguage,
   rangeMarksField,
   rannotLanguage,
@@ -33,7 +36,8 @@ import {
 } from '@/lib/workbench/codemirror';
 import { type OutputLanguage } from '@/lib/workbench/engineDialects';
 
-export type CodeLanguage = 'json' | OutputLanguage;
+/** a project resource's format is one too (xml, hddl, json, pctl, text) */
+export type CodeLanguage = 'json' | 'xml' | 'hddl' | 'pctl' | OutputLanguage;
 
 type CodeEditorProps = {
   value: string;
@@ -48,6 +52,9 @@ type CodeEditorProps = {
 
 const LANGUAGES: Record<CodeLanguage, () => Extension> = {
   json: () => json(),
+  xml: () => xml(),
+  hddl: () => hddlLanguage,
+  pctl: () => pctlLanguage,
   prism: () => prismLanguage,
   rannot: () => rannotLanguage,
   text: () => [],

@@ -105,6 +105,73 @@ const rannotParser: StreamParser<null> = {
 export const rannotLanguage = StreamLanguage.define(rannotParser);
 
 // ---------------------------------------------------------------------------
+// project resources' languages (goal-controller#25): HDDL and PCTL
+// ---------------------------------------------------------------------------
+
+/** HDDL (MutRoSe's domains): s-expressions, `:keywords`, `?variables`, `;` comments. */
+const hddlParser: StreamParser<null> = {
+  name: 'hddl',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^;.*/)) return 'comment';
+    if (stream.match(/^[()]/)) return 'bracket';
+    if (stream.match(/^:[\w-]+/)) return 'keyword';
+    if (stream.match(/^\?[\w-]+/)) return 'variableName';
+    if (stream.match(/^(?:define|domain|and|or|not|forall|exists|when)\b/i))
+      return 'keyword';
+    if (stream.match(/^-(?=\s)/)) return 'operator';
+    if (stream.match(/^\d+(\.\d+)?/)) return 'number';
+    if (stream.match(/^[^\s()]+/)) return 'typeName';
+    stream.next();
+    return null;
+  },
+  languageData: { commentTokens: { line: ';' } },
+};
+
+export const hddlLanguage = StreamLanguage.define(hddlParser);
+
+const PCTL_OPERATORS = new Set([
+  'P',
+  'R',
+  'S',
+  'E',
+  'A',
+  'F',
+  'G',
+  'U',
+  'X',
+  'W',
+  'C',
+  'I',
+]);
+const PCTL_KEYWORDS = new Set(['min', 'max', 'filter', 'true', 'false']);
+
+/** PCTL property suites (Edge): `"label": P=? [ F done ]`, `//` comments. */
+const pctlParser: StreamParser<null> = {
+  name: 'pctl',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^\/\/.*/)) return 'comment';
+    if (stream.match(/^"[^"]*"/)) return 'labelName';
+    if (stream.match(/^\d+(\.\d+)?/)) return 'number';
+    const word = stream.match(/^[A-Za-z_][A-Za-z0-9_]*/);
+    if (word) {
+      const text = (word as RegExpMatchArray)[0];
+      if (PCTL_OPERATORS.has(text)) return 'keyword';
+      if (PCTL_KEYWORDS.has(text)) return 'atom';
+      return 'variableName';
+    }
+    if (stream.match(/^[[\]{}()]/)) return 'bracket';
+    if (stream.match(/^(=\?|<=|>=|!=|=>|[=<>&|!+\-*/?:])/)) return 'operator';
+    stream.next();
+    return null;
+  },
+  languageData: { commentTokens: { line: '//' } },
+};
+
+export const pctlLanguage = StreamLanguage.define(pctlParser);
+
+// ---------------------------------------------------------------------------
 // Theme
 // ---------------------------------------------------------------------------
 

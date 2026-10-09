@@ -33,18 +33,58 @@ import {
   type ModelMode,
 } from '@/lib/workbench/pistar';
 import {
+  copyProject,
   fileStore,
+  freeName,
+  indexedDbHandles,
   openProject as readProject,
+  opfsProjects,
+  opfsStore,
+  PROJECT_FILE,
   recentId,
+  recordedMode,
+  rememberDirectory,
+  reopenDirectory,
+  resourceSlots,
+  saveProject,
+  setSettingsInManifest,
+  settingsInManifest,
+  sourceLabel,
+  withModelText,
+  withProjectResource,
+  type DirectoryHandleLike,
+  type HandleStorage,
+  type OpenProjectOptions,
   type Project,
   type ProjectSource,
+  type ProjectStore,
+  type ResourceSlot,
 } from '@/lib/project';
+import type { DefinitionContext } from '@goal-controller/dialect';
 import {
+  declarationsOf,
+  parseResources,
+  resourceProblems,
+  resourcesContext,
+  type ParsedResources,
+} from '@/lib/workbench/projectResources';
+import {
+  checkedOptions,
   openingSettings,
   optionsFor,
+  optionsToKeep,
   readModelOptions,
   withEngineOptions,
 } from '@/lib/workbench/projectSettings';
+
+/** What every project opens with: the resources its model's dialect reads. */
+const PROJECT_OPTIONS: OpenProjectOptions = {
+  projectResources: declarationsOf,
+};
+
+/** Where the folders a user opened are kept (IndexedDB), opened when first used. */
+let handleStorage: HandleStorage | null = null;
+const handles = (): HandleStorage => (handleStorage ??= indexedDbHandles());
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | DialectMode;
@@ -97,7 +137,12 @@ export type SelectOrigin =
   | 'variables';
 
 /** `notation`: the whole model as the engine's notation (engines with a definition) */
-export type ModelTab = 'diagram' | 'source' | 'notation';
+export type ModelTab =
+  | 'diagram'
+  | 'source'
+  | 'notation'
+  /** a project resource's file, in its own editor */
+  | `resource:${string}`;
 export type OutputTab = 'output' | 'diff' | 'report';
 export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 
@@ -172,6 +217,27 @@ export type Workbench = {
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
+
+  // the project (goal-controller#25)
+  project: Project | null;
+  /** a folder on disk, opened as a project (File System Access) */
+  openFolder: () => Promise<void>;
+  /** the resources the engine reads: where the project has each, or missing */
+  resourceSlots: ResourceSlot[];
+  resourceTexts: Readonly<Record<string, string>>;
+  parsedResources: ParsedResources;
+  /** what the language and checks get of them (none: the model alone) */
+  projectResources: DefinitionContext['projectResources'];
+  /** add a file to a resource kind (a read-only project becomes a browser copy) */
+  addResource: (
+    kind: string,
+    file: { name: string; text: string },
+  ) => Promise<void>;
+  setResourceText: (path: string, text: string) => void;
+  /** a read-only project copied to the browser, to edit it */
+  copyToBrowser: () => Promise<void>;
+  /** what just happened to the project (it became a browser copy) */
+  resourceNotice: string | null;
 
   // structure
   tree: GoalView | null;
@@ -374,6 +440,10 @@ function WorkbenchState({
     /** an edited copy moved aside in Recent (RecentEntry.aside) */
     aside: undefined as number | undefined,
   }));
+  // the open model's project (lib/project): its manifest, files and resources
+  const [project, setProject] = useState<Project | null>(null);
+  const projectRef = useRef(project);
+  projectRef.current = project;
 
   // ---- engine & options ----------------------------------------------------
   const [engineState, setEngineState] = useState<TransformEngine>(
@@ -394,10 +464,20 @@ function WorkbenchState({
   baseOptionsRef.current = baseOptions;
   // the options the model's manifest sets (read through lib/project), and what it
   // holds that is not used
-  const modelOptions = useMemo(
-    () => readModelOptions(model.text),
-    [model.text],
-  );
+  const modelOptions = useMemo(() => {
+    // a project with project.json keeps them there; a one-model project, in its model
+    if (project?.form === 'file') {
+      const read = settingsInManifest(
+        project.manifest,
+        project.models[0]?.path,
+      );
+      return checkedOptions({
+        ...read,
+        mode: read.mode ?? recordedMode(model.text),
+      });
+    }
+    return readModelOptions(model.text);
+  }, [model.text, project]);
   const options = useMemo<GenerationOptions>(
     () => ({ ...baseOptions, ...modelOptions.options }),
     [baseOptions, modelOptions],
@@ -476,6 +556,19 @@ function WorkbenchState({
       const { engine: current, pistar: viewOnly } = settingsRef.current;
       const target = lockedEngine ?? current;
       const text = textRef.current;
+      const open = projectRef.current;
+      if (open?.form === 'file' && !viewOnly) {
+        // project.json's: written there (saved when the project's store can be)
+        const manifest = setSettingsInManifest(
+          open.manifest,
+          open.models[0]?.path,
+          { options: optionsToKeep(target, next, baseOptionsRef.current) },
+        );
+        setProject({ ...open, manifest });
+        if (!open.store.readOnly)
+          void saveProject(open, {}, manifest).catch(() => {});
+        return;
+      }
       if (text.trim() && !viewOnly && readModelMode(text) === target) {
         try {
           const written = withEngineOptions(
@@ -707,30 +800,65 @@ function WorkbenchState({
         ...how,
         source: project.source,
       });
+      setProject(project);
     },
     [openModel],
   );
   const openFile = useCallback(
     async (fileName: string, text: string, how: ProjectOpenOptions = {}) =>
-      openProject(await readProject(fileStore(fileName, text)), how),
+      openProject(
+        await readProject(fileStore(fileName, text), PROJECT_OPTIONS),
+        how,
+      ),
     [openProject],
   );
   const openRecent = useCallback(
-    async (entry: RecentFile) =>
+    async (entry: RecentFile) => {
+      // a folder or a browser project is opened where it is (its resources with it),
+      // with the model as Recent kept it; anything else from Recent's text alone
+      const store =
+        (entry.source?.kind === 'directory'
+          ? await reopenDirectory(handles(), entry.source).catch(() => null)
+          : entry.source?.kind === 'opfs'
+            ? opfsStore(entry.source.name, undefined, entry.source.copyOf)
+            : null) ??
+        fileStore(entry.fileName, entry.text, {
+          ...(entry.source && { source: entry.source }),
+        });
+      let project = await readProject(store, PROJECT_OPTIONS).catch(() => null);
+      if (!project)
+        project = await readProject(
+          fileStore(entry.fileName, entry.text),
+          PROJECT_OPTIONS,
+        );
+      const model =
+        project.models.find(
+          (m) => (m.path.split('/').pop() ?? m.path) === entry.fileName,
+        ) ?? project.models[0];
       openProject(
-        await readProject(
-          fileStore(entry.fileName, entry.text, {
-            ...(entry.source && { source: entry.source }),
-          }),
-        ),
+        model ? withModelText(project, model.path, entry.text) : project,
         {
           savedText: entry.savedText,
           settings: entry.settings,
           ...(entry.aside && { aside: entry.aside }),
         },
-      ),
+      );
+    },
     [openProject],
   );
+  /** a folder on disk, as a project (File System Access: Chrome, Edge) */
+  const openFolder = useCallback(async () => {
+    const pick = (
+      window as unknown as {
+        showDirectoryPicker?: (options?: { mode?: string }) => Promise<unknown>;
+      }
+    ).showDirectoryPicker;
+    if (!pick)
+      throw new Error('this browser cannot open folders: try Chrome or Edge');
+    const handle = (await pick({ mode: 'readwrite' })) as DirectoryHandleLike;
+    const store = await rememberDirectory(handles(), handle);
+    openProject(await readProject(store, PROJECT_OPTIONS));
+  }, [openProject]);
 
   const closeModel = useCallback(() => {
     const left = leaving();
@@ -753,6 +881,7 @@ function WorkbenchState({
     setRuns([]);
     clearSelection();
     setConversion(null);
+    setProject(null);
     forceHistory((n) => n + 1);
   }, [leaving, adoptSettings, clearSelection]);
 
@@ -769,10 +898,15 @@ function WorkbenchState({
         }),
       ),
     );
+    // a model of a project kept somewhere (a folder, the browser) stays in it
+    const kept = projectRef.current && !projectRef.current.store.readOnly;
     setModel((prev) => ({
       ...prev,
       fileName,
-      projectSource: { kind: 'file', name: fileName },
+      projectSource:
+        kept && prev.projectSource
+          ? prev.projectSource
+          : { kind: 'file', name: fileName },
       aside: undefined,
     }));
   }, []);
@@ -1062,6 +1196,183 @@ function WorkbenchState({
     [lastOutput, nodeIds],
   );
 
+  // ---- the project's resources (goal-controller#25) ------------------------------
+  // the slots the engine's definition declares, in the open project
+  const resourceSlotsNow = useMemo<ResourceSlot[]>(
+    () =>
+      project && !pistar
+        ? resourceSlots(
+            project.manifest,
+            project.files,
+            declarationsOf(engine) ?? {},
+          )
+        : [],
+    [project, engine, pistar],
+  );
+  // their texts, by path: read from the project's store, then as edited
+  const [resourceTexts, setResourceTexts] = useState<Record<string, string>>(
+    {},
+  );
+  const resourceTextsRef = useRef(resourceTexts);
+  resourceTextsRef.current = resourceTexts;
+  // the store the texts were read from: another project starts with none of them
+  const textsOf = useRef<ProjectStore | null>(null);
+  useEffect(() => {
+    if (!project) {
+      textsOf.current = null;
+      setResourceTexts({});
+      return undefined;
+    }
+    const fresh = textsOf.current !== project.store;
+    textsOf.current = project.store;
+    const kept = fresh ? {} : resourceTextsRef.current;
+    const missing = resourceSlotsNow
+      .flatMap((slot) => slot.paths)
+      .filter((path) => !(path in kept));
+    if (fresh) setResourceTexts({});
+    if (!missing.length) return undefined;
+    let cancelled = false;
+    void Promise.all(
+      missing.map(
+        async (path) => [path, await project.store.read(path)] as const,
+      ),
+    )
+      .then((read) => {
+        if (!cancelled)
+          setResourceTexts((prev) => ({
+            ...prev,
+            ...Object.fromEntries(read),
+          }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [project, resourceSlotsNow]);
+  const parsedResources = useMemo(
+    () => parseResources(engine, resourceSlotsNow, resourceTexts),
+    [engine, resourceSlotsNow, resourceTexts],
+  );
+  // what the language and the checks get (none: the model alone, as before)
+  const projectResources = useMemo(() => {
+    const context = resourcesContext(parsedResources);
+    return Object.keys(context).length ? context : undefined;
+  }, [parsedResources]);
+  const resourceProblemsNow = useMemo(
+    () =>
+      resourceProblems(
+        parsedResources,
+        declarationsOf(engine) ?? {},
+        resourceTexts,
+      ),
+    [parsedResources, engine, resourceTexts],
+  );
+  const [resourceNotice, setResourceNotice] = useState<string | null>(null);
+
+  /** the open project, with the model as it is now (its edits) */
+  const currentProject = useCallback((): Project | null => {
+    const open = projectRef.current;
+    const [first] = open?.models ?? [];
+    return open && first
+      ? withModelText(open, first.path, textRef.current)
+      : open;
+  }, []);
+
+  /**
+   * Make the open project one that can be written: a copy in the browser
+   * (OPFS) of a file or an example, with these changes; it becomes the open
+   * project, labelled as a copy, and the original stays in Recent.
+   */
+  const toWritable = useCallback(
+    async (from: Project, changes: Record<string, string>, next: Project) => {
+      if (!from.store.readOnly) {
+        const saved = await saveProject(next, changes, next.manifest);
+        return saved;
+      }
+      const name = freeName(from.name, await opfsProjects().catch(() => []));
+      const copy = await copyProject(
+        next,
+        opfsStore(name, undefined, from.source),
+        changes,
+        PROJECT_OPTIONS,
+      );
+      setResourceNotice(
+        `Now ${sourceLabel(copy.source)}: the original is kept in Recent`,
+      );
+      return copy;
+    },
+    [],
+  );
+
+  const addResource = useCallback(
+    async (kind: string, file: { name: string; text: string }) => {
+      const open = currentProject();
+      if (!open) return;
+      const withDeclarations = {
+        ...open,
+        declarations: declarationsOf(settingsRef.current.engine) ?? {},
+      };
+      const { project: added, changes } = withProjectResource(
+        withDeclarations,
+        kind,
+        file,
+      );
+      const left = leaving();
+      const result = await toWritable(open, changes, added);
+      // the original as it was left (with its edits), kept in Recent
+      if (left) rememberRecent(left);
+      // the resource's text, known already (read again only if the store changed)
+      const resourcePath = Object.keys(changes).find(
+        (path) =>
+          path !== PROJECT_FILE && !result.models.some((m) => m.path === path),
+      );
+      textsOf.current = result.store;
+      setResourceTexts((prev) => ({
+        ...(result.store === open.store ? prev : {}),
+        ...(resourcePath && { [resourcePath]: file.text }),
+      }));
+      setProject(result);
+      setModel((prev) => ({
+        ...prev,
+        projectSource: result.source,
+        aside: undefined,
+      }));
+      // the model's own text, promoted (its options moved to project.json)
+      const [first] = result.models;
+      if (first && first.text !== textRef.current)
+        setText(first.text, 'settings');
+    },
+    [currentProject, leaving, toWritable, setText],
+  );
+
+  // a resource edited in its tab: kept, and saved where the project can be written
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setResourceText = useCallback((path: string, text: string) => {
+    setResourceTexts((prev) => ({ ...prev, [path]: text }));
+    const open = projectRef.current;
+    if (!open || open.store.readOnly) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void open.store.write(path, text).catch(() => {});
+    }, 500);
+  }, []);
+
+  /** a read-only project (a file, an example) copied to the browser, to edit its resources */
+  const copyToBrowser = useCallback(async () => {
+    const open = currentProject();
+    if (!open || !open.store.readOnly) return;
+    const left = leaving();
+    const copy = await toWritable(open, resourceTextsRef.current, open);
+    if (left) rememberRecent(left);
+    textsOf.current = copy.store;
+    setProject(copy);
+    setModel((prev) => ({
+      ...prev,
+      projectSource: copy.source,
+      aside: undefined,
+    }));
+  }, [currentProject, leaving, toWritable]);
+
   // ---- problems ----------------------------------------------------------------
   // what the language services say of the open documents (editors, fields)
   const serviceProblems = useServiceDiagnostics();
@@ -1070,13 +1381,17 @@ function WorkbenchState({
     if (parsed.error) list.push(parsed.error);
     // what the model's manifest holds that is not used (its options are the file's)
     else list.push(...modelOptions.problems);
+    // what is wrong in the project's resources (Model group, by the resource's label)
+    list.push(...resourceProblemsNow);
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     if (tree && !parsed.error) {
       list.push(...treeProblems(tree, engine));
       // the shared language on the model's own document, editors open or not
       if (isDialectEngine(engine))
-        list.push(...modelLanguageProblems(engine, tree, variables));
+        list.push(
+          ...modelLanguageProblems(engine, tree, variables, projectResources),
+        );
     }
     if (analysis && !parsed.error) list.push(...analysis.problems);
     if (current && !stale) {
@@ -1111,6 +1426,8 @@ function WorkbenchState({
   }, [
     parsed.error,
     modelOptions,
+    resourceProblemsNow,
+    projectResources,
     pistar,
     tree,
     engine,
@@ -1168,6 +1485,16 @@ function WorkbenchState({
     openProject,
     openFile,
     openRecent,
+    project,
+    openFolder,
+    resourceSlots: resourceSlotsNow,
+    resourceTexts,
+    parsedResources,
+    projectResources,
+    addResource,
+    setResourceText,
+    copyToBrowser,
+    resourceNotice,
     projectSource: model.projectSource,
     recentEntry: model.text.trim()
       ? recentId({
