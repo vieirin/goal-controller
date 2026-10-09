@@ -92,6 +92,12 @@ importers:
 
   packages/goal-tree:
     dependencies:
+      '@goal-controller/dialect':
+        specifier: workspace:*
+        version: link:../dialect
+      '@goal-controller/goal-language':
+        specifier: workspace:*
+        version: link:../goal-language
       '@istar-ts/core':
         specifier: ^0.11.0
         version: 0.11.0

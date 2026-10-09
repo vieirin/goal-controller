@@ -3,24 +3,19 @@
  * These represent the goal tree structure after conversion from iStar model
  */
 
-import type { Dictionary } from 'lodash';
+import type { ExecutionDetail } from '@goal-controller/goal-language';
 import type { id } from './istar';
 
 export type Relation = 'or' | 'and' | 'neededBy' | 'none';
 
 export type Type = 'goal' | 'task' | 'resource';
 
-export type GoalExecutionDetail = (
-  | { type: 'interleaved'; interleaved: string[] }
-  | { type: 'alternative'; alternative: string[] }
-  | { type: 'sequence'; sequence: string[] }
-  | { type: 'anyOrder'; anyOrder: string[] }
-  | { type: 'degradation'; degradationList: string[] }
-  | { type: 'decisionMaking'; dm: string[] }
-  | { type: 'choice'; choice?: string[] }
-) & {
-  retryMap?: Dictionary<number>;
-};
+/**
+ * What a goal's notation makes it do (the goal language's reading, in the
+ * engine's dialect): its construct, its operands' ids in the order written,
+ * and the arguments of the modifiers that apply (`{ retry: { G2: 3 } }`).
+ */
+export type GoalExecutionDetail = ExecutionDetail;
 
 export type BaseNode = {
   iStarId: id;

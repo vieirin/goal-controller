@@ -8,7 +8,7 @@
  * structure stays in the diagram). Text edits map back to element texts and
  * properties.
  */
-import type { GoalView, GoalViewNode } from '@goal-controller/goal-tree';
+import type { GoalView, GoalViewNode } from './goalView';
 import type { RtContextRecord } from './context';
 import {
   PROPERTY_MODES,

@@ -21,7 +21,7 @@ piStar JSON file                      ┌─────────────
    output text (PRISM, SLEEC, YAML, BT XML, …)        packages/lib
 ```
 
-Three things you write, one you get:
+Three things you write, one you get. **You do not write a parser:** goal texts (`G1: Name [G2;G3]`) are read in your definition's dialect by the reader the framework derives from it (`goalNameParserFor`, in `@goal-controller/goal-language`), and goal-tree hands your mapper the result.
 
 | You write          | Where                                                                                   | What it is                                                                                                                                                                                                                                                                      |
 | ------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -151,7 +151,7 @@ notation: {
 
 Any operator not listed is **disabled** for the dialect: the language parses it, the validator reports it (`` `?` is not an operator of Mission``), completion doesn't offer it. **Precedence and associativity are the language's**, not the definition's: `@` binds tightest, then `!`, then `^ | ? + & # ~ ; -> ,` (all left-associative). `relation` on a construct makes the editors flag a notation that contradicts the goal's AND/OR links.
 
-**Reading the notation in the engine:** there is no grammar to write. Parse with `@goal-controller/goal-language` (`parseElementLine`), and turn the tree into your engine's reading with the definition's operator table: `packages/lib/src/engines/edgeFamily/{goalDetail,parsers}.ts` do it for Edge (constructs, cascade, retries) and give goal-tree the reader (`GoalNameParser`) the mapper is created with.
+**Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
 
@@ -177,7 +177,7 @@ export const missionEngineMapper = createEngineMapper<
   MissionTaskProps,
   never
 >()({
-  grammar: missionGoalNames, // how goal texts are read: (goalText) => { id, goalName, executionDetail }
+  dialect: mission, // the definition: goal texts are read in it (no parser to write)
   allowedGoalKeys: MISSION_GOAL_KEYS,
   allowedTaskKeys: MISSION_TASK_KEYS,
   skipResource: true,            // or allowedResourceKeys + mapResourceProps
@@ -196,8 +196,8 @@ export const missionEngineMapper = createEngineMapper<
 Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
-- `grammar` is required: a `GoalNameParser` (goal-tree knows no notation). A properties-only engine can reuse Edge's (`edgeGoalNames`) for ids and names; a notation engine builds its own from the goal language and its definition (see 2.3).
-- `executionDetail` (the reading of the notation) arrives in `mapGoalProps` for notation engines.
+- `dialect` is required: the definition (or, for an engine without one, `{ name }`: ids and names are read, no notation).
+- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines.
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -223,7 +223,7 @@ export const missionTemplateEngine = (tree: GoalTreeType<MissionGoalProps, Missi
           'tasks:', ...tasks.map(t => `  - ${t.id}: {robot: ${t.properties.engine.robot}, duration: ${t.properties.engine.duration}}`)].join('\n');
 };
 ```
-Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children`, `node.relationToChildren`, `node.properties.engine.<typed>`; for notation engines `executionDetail.type` and the ordered children (edgeV2's `orderedChildren` in `template/modules/goalModule/template/children.ts` reads `construct.relation` from the definition).
+Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children`, `node.relationToChildren`, `node.properties.engine.<typed>`; for notation engines `executionDetail.type`, `.ids` (the children in the notation's order), `.modifiers`, and the ordered children (edgeV2's `orderedChildren` in `template/modules/goalModule/template/children.ts` reads `construct.relation` from the definition).
 
 **Options for the emitter:** plain string templates (SLEEC, Edge); or build an AST and pretty-print (recommended for structured targets like JANI/XML/YAML). Add a `validator/` if the output has structure worth checking (Edge validates its PRISM against expected elements).
 
@@ -267,7 +267,7 @@ The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every 
 
 **Definition (data):** elements (prefix, declares, annotated) · properties per kind with value types, conditions, help · `check` names · `propertyLineOrder` · `problems` · notation (enabled operators, modifiers, constructs, defaultConstruct) if semantics among children.
 
-**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and a `grammar` reader · `checks.ts` registry `satisfies Record<CheckNameOf<def>, Check>` · `template/` · exports · the notation's reading (from the goal language's tree) if semantics among children.
+**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts` registry `satisfies Record<CheckNameOf<def>, Check>` · `template/` (reads `executionDetail.ids`, `.modifiers`) · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
 **UI (wiring):** the 15 edits in §4 · palette extension · engine options in Model Settings if any.
 
@@ -281,7 +281,7 @@ SLEEC today has a mapper and template but **no definition** (its inspector is th
 
 ### 7.2 Reimplementing EDGE (the full case)
 
-Already done on this branch; use it as the worked example: `lib/src/engines/edgeFamily/{definition,properties,checks}.ts` (what edge and edgeV2 share: notation constructs, properties, the check registry), `lib/src/engines/edgeFamily/{goalDetail,assertionVariables,parsers}.ts` (how goal texts and assertions read through the goal language), `lib/src/engines/edgeV2/{definition,mapper,types,template,validator}`, `ui/components/workbench/engines/edgeV2/` (two tiny files). The conformance harness in `experiments/edgev2-conformance/` shows how to prove a template against a reference.
+Already done on this branch; use it as the worked example. An engine author touches only the definition, the mapper, the types and the templates: `lib/src/engines/edgeFamily/{definition,properties,checks}.ts` (what edge and edgeV2 share: notation constructs, properties, the check registry), `lib/src/engines/edgeV2/{definition,mapper,types,template,validator}`, `ui/components/workbench/engines/edgeV2/` (two tiny files). The conformance harness in `experiments/edgev2-conformance/` shows how to prove a template against a reference.
 
 ## 8. Options summary
 

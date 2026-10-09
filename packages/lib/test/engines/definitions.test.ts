@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import type { CheckNameOf, ConstructOf } from '@goal-controller/dialect';
-import type { GoalExecutionDetail } from '@goal-controller/goal-tree';
+import type { Construct } from '../../src/engines/edgeV2/template/modules/goalModule/template/children';
 import { edge } from '../../src/engines/edge/definition';
 import * as edgeMapper from '../../src/engines/edge/mapper';
 import { edgeV2 } from '../../src/engines/edgeV2/definition';
@@ -63,9 +63,10 @@ describe('engine definitions in lib', () => {
     }
   });
 
-  it('declares exactly goal-tree constructs', () => {
-    same<Same<ConstructOf<typeof edgeV2>, GoalExecutionDetail['type']>>();
-    same<Same<ConstructOf<typeof edge>, GoalExecutionDetail['type']>>();
+  it('declares exactly the constructs the templates generate', () => {
+    // goal-tree's execution detail names its construct as the dialect does
+    same<Same<ConstructOf<typeof edgeV2>, Construct | 'decisionMaking'>>();
+    same<Same<ConstructOf<typeof edge>, ConstructOf<typeof edgeV2>>>();
   });
 
   it('implements every check the definitions name', () => {

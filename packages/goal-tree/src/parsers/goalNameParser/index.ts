@@ -1,30 +1,26 @@
-import type { GoalExecutionDetail } from '../../types/';
+import {
+  goalNameParserFor,
+  type GoalReading,
+  type ReadingDialect,
+} from '@goal-controller/goal-language';
 
-export type GoalDetail = {
-  id: string;
-  goalName: string;
-  executionDetail: GoalExecutionDetail | null;
-};
+export type {
+  GoalNameParser,
+  GoalReading as GoalDetail,
+  ReadingDialect,
+} from '@goal-controller/goal-language';
 
 /**
- * How an engine reads a goal's text (`G1: Goal [G2;G3]`): its id, its name
- * and the construct its notation says. A syntax error goes to
- * `onSyntaxError` (by default, the console), and the text is read as far as
- * it goes. The engines' readers are built from their definitions (lib, with
- * the goal language): goal-tree knows no notation.
+ * A goal's text (`G1: Goal [G2;G3]`), read in the engine's dialect: goal-tree
+ * derives the reader from the dialect (the goal language's
+ * `goalNameParserFor`); engines write none.
  */
-export type GoalNameParser = (props: {
-  goalText: string;
-  onSyntaxError?: (message: string) => void;
-}) => GoalDetail;
-
-/** A goal's text, read by an engine's reader. */
 export const getGoalDetail = ({
   goalText,
-  grammar,
+  dialect,
   onSyntaxError,
 }: {
   goalText: string;
-  grammar: GoalNameParser;
+  dialect: ReadingDialect;
   onSyntaxError?: (message: string) => void;
-}): GoalDetail => grammar({ goalText, onSyntaxError });
+}): GoalReading => goalNameParserFor(dialect)({ goalText, onSyntaxError });

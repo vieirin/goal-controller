@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { parsePistar } from '../../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
-import { edgeV2GoalNames } from '../../../src/engines/edgeFamily/parsers';
+import { edgeV2 } from '../../../src/engines/edgeV2/definition';
 
 type El = { id: string; text: string; type: string };
 type Ln = { id: string; type: string; source: string; target: string };
@@ -58,7 +58,7 @@ const or = link('istar.OrRefinementLink');
 const neededBy = link('istar.NeededByLink');
 
 const view = (nodes: El[], links: Ln[]) => {
-  const v = goalView(model(nodes, links), edgeV2GoalNames);
+  const v = goalView(model(nodes, links), edgeV2);
   return { ...v, node: (id: string) => v.nodes.get(id) };
 };
 

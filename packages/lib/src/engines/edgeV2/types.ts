@@ -1,9 +1,8 @@
+import type { GoalExecutionDetail as TreeExecutionDetail } from '@goal-controller/goal-tree';
 /**
  * Edge Engine Types
  * Types for EDGE/PRISM template engine properties
  */
-
-import type { Dictionary } from 'lodash';
 
 export type ExecCondition = {
   maintain?: {
@@ -21,17 +20,8 @@ export type Decision = {
   hasDecision: boolean;
 };
 
-export type GoalExecutionDetail = (
-  | { type: 'interleaved'; interleaved: string[] }
-  | { type: 'alternative'; alternative: string[] }
-  | { type: 'sequence'; sequence: string[] }
-  | { type: 'anyOrder'; anyOrder: string[] }
-  | { type: 'degradation'; degradationList: string[] }
-  | { type: 'decisionMaking'; dm: string[] }
-  | { type: 'choice'; choice?: string[] }
-) & {
-  retryMap?: Dictionary<number>;
-};
+/** goal-tree's: `{ type, ids, modifiers }` (the construct, its operands, `modifiers.retry`) */
+export type GoalExecutionDetail = TreeExecutionDetail;
 
 export type EdgeTaskProps = {
   execCondition?: ExecCondition;

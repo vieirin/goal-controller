@@ -10,10 +10,11 @@ import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { join } from 'path';
 import {
-  edgeGoalNames,
-  edgeV2GoalNames,
-  getAssertionVariables,
-} from '../../../src/engines/edgeFamily/parsers';
+  assertionVariables,
+  goalNameParserFor,
+} from '@goal-controller/goal-language';
+import { edge } from '../../../src/engines/edge/definition';
+import { edgeV2 } from '../../../src/engines/edgeV2/definition';
 
 type Oracle = {
   goalTexts: Record<
@@ -46,6 +47,12 @@ export const DIVERGENT = {
     'G1: Args [G2,G3]',
   ],
   /**
+   * ANTLR's listener kept each construct's last exit and picked one by a
+   * cascade (degradation, sequence, ...): a group's sequence beat the
+   * interleaving around it. A notation's construct is its outermost operator.
+   */
+  outermost: ['G1: Group [[G2;G3]#G4]'],
+  /**
    * Texts both reject, read differently after the error: each parser
    * recovers its own way (what is read past an error is never used, the
    * workbench shows the error).
@@ -68,12 +75,31 @@ export const DIVERGENT = {
 
 const read = (grammar: 'edge' | 'edgeV2', goalText: string) => {
   const errors: string[] = [];
-  const detail = (grammar === 'edge' ? edgeGoalNames : edgeV2GoalNames)({
+  const detail = goalNameParserFor(grammar === 'edge' ? edge : edgeV2)({
     goalText,
     onSyntaxError: (message) => errors.push(message),
   });
   return { detail, rejected: errors.length > 0 };
 };
+
+type AntlrDetail = {
+  id: string;
+  goalName: string;
+  executionDetail: (Record<string, unknown> & { type: string }) | null;
+};
+
+/** ANTLR's reading in the goal language's shape: `{ type, ids, modifiers }`. */
+const normalised = ({ id, goalName, executionDetail: d }: AntlrDetail) => ({
+  id,
+  goalName,
+  executionDetail: d && {
+    type: d.type,
+    ids:
+      (d[d.type === 'degradation' ? 'degradationList' : d.type] as string[]) ??
+      [],
+    modifiers: d.retryMap ? { retry: d.retryMap } : {},
+  },
+});
 
 /** What an engine does not read that the other one does: Edge has no `?` and no binary `+`. */
 const usesEdgeV2Operators = (text: string) =>
@@ -85,7 +111,8 @@ describe('parity with the ANTLR readers', () => {
       const differ: string[] = [];
       let same = 0;
       for (const [text, antlr] of Object.entries(ORACLE.goalTexts[grammar])) {
-        if ((DIVERGENT.both as readonly string[]).includes(text)) continue;
+        if ([...DIVERGENT.both, ...DIVERGENT.outermost].includes(text as never))
+          continue;
         // a cross-engine text: ANTLR recovered from the unknown operator
         if (grammar === 'edge' && usesEdgeV2Operators(text)) continue;
         const ours = read(grammar, text);
@@ -95,7 +122,10 @@ describe('parity with the ANTLR readers', () => {
           continue;
         }
         try {
-          assert.deepStrictEqual(ours.detail, antlr.detail);
+          assert.deepStrictEqual(
+            ours.detail,
+            normalised(antlr.detail as AntlrDetail),
+          );
           assert.strictEqual(ours.rejected, antlr.rejected);
           same++;
         } catch {
@@ -125,17 +155,34 @@ describe('parity with the ANTLR readers', () => {
       for (const grammar of ['edge', 'edgeV2'] as const)
         assert.notDeepStrictEqual(
           read(grammar, text),
-          ORACLE.goalTexts[grammar][text],
+          {
+            detail: normalised(
+              ORACLE.goalTexts[grammar][text]!.detail as AntlrDetail,
+            ),
+            rejected: ORACLE.goalTexts[grammar][text]!.rejected,
+          },
           `${grammar} ${text}`,
         );
   });
 
+  it('reads a notation by its outermost operator, not the listener’s cascade', () => {
+    for (const text of DIVERGENT.outermost)
+      for (const grammar of ['edge', 'edgeV2'] as const) {
+        assert.deepStrictEqual(read(grammar, text).detail.executionDetail, {
+          type: 'interleaved',
+          ids: ['G4'],
+          modifiers: {},
+        });
+        assert.strictEqual(
+          (ORACLE.goalTexts[grammar][text]!.detail as AntlrDetail)
+            .executionDetail?.type,
+          'sequence',
+        );
+      }
+  });
+
   it('reads every recorded assertion as AssertionRegex.g4 did', () => {
     for (const [text, variables] of Object.entries(ORACLE.assertions))
-      assert.deepStrictEqual(
-        getAssertionVariables({ assertionSentence: text }),
-        variables,
-        text,
-      );
+      assert.deepStrictEqual(assertionVariables(text), variables, text);
   });
 });

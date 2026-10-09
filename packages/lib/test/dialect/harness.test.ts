@@ -32,7 +32,7 @@ import {
   notationEdits,
   operatorsFor,
 } from '@goal-controller/goal-language';
-import { edge, edgeGoalNames, edgeV2, edgeV2GoalNames } from '../../src';
+import { edge, edgeV2 } from '../../src';
 // the UI's own edit writer (React-free), as the Notation view applies edits
 import { applyNotationEdits } from '../../../ui/lib/workbench/notationDocument';
 import { RETRY } from '../../src/engines/edgeFamily';
@@ -43,6 +43,7 @@ import {
   inputOf as referenceInputOf,
 } from './reference/edgeProperties';
 import * as referenceNotation from './reference/notation';
+import type { GoalView as ReferenceView } from './reference/goalView';
 import * as referenceProperties from './reference/properties';
 import { ROOT, models } from './support/models';
 
@@ -67,6 +68,9 @@ const enabledOperators = ({ notation }: WithNotation) => [
 
 const text = (file: string) => readFileSync(file, 'utf8');
 
+/** A view as the reference types it (its construct names are the dialect's). */
+const ref = (tree: GoalView) => tree as unknown as ReferenceView;
+
 const EDGE_MODELS = [
   ...models('examples/edge'),
   ...models('dissertationExamples'),
@@ -77,10 +81,7 @@ const EDGE_V2_MODELS = [
 ];
 
 const view = (model: string, grammar: 'edge' | 'edgeV2'): GoalView =>
-  goalView(
-    parsePistar(model),
-    grammar === 'edge' ? edgeGoalNames : edgeV2GoalNames,
-  );
+  goalView(parsePistar(model), grammar === 'edge' ? edge : edgeV2);
 
 describe('harness: the reference files', () => {
   it('are what the sync script pins (no diff on re-running it)', () => {
@@ -419,7 +420,7 @@ describe('harness 5: the notation document', () => {
       const tree = view(model, 'edgeV2');
       for (const definition of EDGE_V2_FAMILY)
         expect(notationDocument(definition, tree), file).to.deep.equal(
-          referenceNotation.notationDocument(tree),
+          referenceNotation.notationDocument(ref(tree)),
         );
     }
   });
@@ -428,7 +429,7 @@ describe('harness 5: the notation document', () => {
     for (const { file, model } of EDGE_MODELS) {
       const tree = view(model, 'edge');
       expect(notationDocument(edge, tree), file).to.deep.equal(
-        referenceNotation.notationDocument(tree),
+        referenceNotation.notationDocument(ref(tree)),
       );
     }
   });
@@ -448,7 +449,7 @@ describe('harness 5: the notation document', () => {
         const modified = lines.join('\n');
         const ours = notationEdits(edgeV2, modified, tree);
         expect(ours, `${file}: ${name}`).to.deep.equal(
-          referenceNotation.notationEdits(modified, tree),
+          referenceNotation.notationEdits(modified, ref(tree)),
         );
         if (changes === false)
           expect(ours, `${file}: ${name} changes nothing`).to.deep.equal([]);
@@ -491,13 +492,13 @@ describe('harness 6: context', () => {
     for (const { file, model } of EDGE_V2_MODELS) {
       const tree = view(model, 'edgeV2');
       expect(contextFromView(edgeV2, tree, variables), file).to.deep.equal(
-        referenceNotation.notationContext(tree, variables),
+        referenceNotation.notationContext(ref(tree), variables),
       );
     }
     for (const { file, model } of EDGE_MODELS) {
       const tree = view(model, 'edge');
       expect(contextFromView(edge, tree, variables), file).to.deep.equal(
-        referenceNotation.notationContext(tree, variables),
+        referenceNotation.notationContext(ref(tree), variables),
       );
     }
   });

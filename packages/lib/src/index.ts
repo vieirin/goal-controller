@@ -103,21 +103,6 @@ export {
 export { edge } from './engines/edge';
 export { edgeV2 } from './engines/edgeV2';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
-// how the Edge engines read goal texts and assertions (the goal language)
-export {
-  edgeGoalNames,
-  edgeV2GoalNames,
-  getAssertionVariables,
-} from './engines/edgeFamily/parsers';
-export {
-  EDGE_CASCADE,
-  EDGE_V2_CASCADE,
-  edgeGoalDetail,
-} from './engines/edgeFamily/goalDetail';
-export {
-  assertionVariables,
-  type AssertionVariable,
-} from './engines/edgeFamily/assertionVariables';
 export { istar4RationalAgents } from './dialects/pistarExt';
 
 // Logger

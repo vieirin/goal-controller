@@ -1,7 +1,7 @@
 /**
  * The goal model as an editor shows it: parents and children through the links the
  * engines read (as `convertToTree` follows them, without rejecting anything), the
- * Qualities qualifying each element, and what each element's text says, read with the engine's own RT grammar (`getGoalDetail`):
+ * Qualities qualifying each element, and what each element's text says, read in the engine's dialect (`getGoalDetail`, the goal language):
  * its RT id, name, notation and the construct the notation expresses. Never throws: a text
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
@@ -11,7 +11,7 @@ import {
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
-import { getGoalDetail, type GoalNameParser } from './parsers/goalNameParser';
+import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
 
@@ -69,30 +69,13 @@ const KIND: Record<string, ViewKind> = {
   'istar.Quality': 'quality',
 };
 
-const listed = (detail: GoalExecutionDetail | null): string[] => {
-  if (!detail) return [];
-  switch (detail.type) {
-    case 'interleaved':
-      return detail.interleaved;
-    case 'alternative':
-      return detail.alternative;
-    case 'sequence':
-      return detail.sequence;
-    case 'anyOrder':
-      return detail.anyOrder;
-    case 'degradation':
-      return detail.degradationList;
-    case 'decisionMaking':
-      return detail.dm;
-    case 'choice':
-      return detail.choice ?? [];
-  }
-};
+const listed = (detail: GoalExecutionDetail | null): string[] =>
+  detail?.ids ?? [];
 
 /** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
 export function goalView(
   model: IstarModel<string, string>,
-  grammar: GoalNameParser,
+  dialect: ReadingDialect,
 ): GoalView {
   const byIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
@@ -110,7 +93,7 @@ export function goalView(
       try {
         detail = getGoalDetail({
           goalText: text,
-          grammar,
+          dialect,
           onSyntaxError: (m) => errors.push(m),
         });
       } catch (error) {

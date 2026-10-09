@@ -9,9 +9,10 @@ Every dialect is written in the same language: one Langium grammar,
 - which operators it enables, and which construct each one means;
 - which predefined value type each property has.
 
-The definition knows nothing about parsing. Parsing, its semantics and the
-check of a text against a dialect live in this package. Each engine maps a
-construct to what it generates.
+The definition knows nothing about parsing. Parsing, its semantics, the
+check of a text against a dialect and the goal-text reader of a dialect live
+in this package. An engine writes its definition, a mapper and a template:
+no parser.
 
 ```
 @goal-controller/dialect        what a dialect is (data): kinds, enabled operators,
@@ -19,9 +20,11 @@ construct to what it generates.
         │ types, helpers
 @goal-controller/goal-language  the grammar, its parser (plain data out), the
         ▲                       Notation view (read, write, edit), the validator,
-        │                       completion, highlighting
-@goal-controller/lib            engines: their definitions, and how they read a
-                                notation (goalDetail.ts: operator → construct)
+        │                       completion, highlighting, goalNameParserFor
+@goal-controller/goal-tree      the tree: reads goal texts with the reader derived
+        ▲                       from the engine's dialect (never imports lib)
+        │
+@goal-controller/lib            engines: definitions, mappers, templates
 ```
 
 ## Grammar overview
@@ -128,10 +131,36 @@ notation: {
   the standalone constructs written, each modifier's arguments by operand
   text, and the operators the dialect does not enable (`isEnabled`, the
   same rule the validator reports with).
-- An engine keeps only what is its own: `lib/src/engines/edgeFamily/goalDetail.ts`
-  picks the construct by Edge's cascade and writes goal-tree's
-  `GoalExecutionDetail` shape (`degradationList`, `retryMap`), both legacy
-  of RTRegex.g4's listeners.
+
+## The goal-text reader, derived from a dialect
+
+`goalNameParserFor(dialect)` is every engine's reader; goal-tree builds it
+from the definition given to `createEngineMapper({ dialect })` and
+`goalView(model, dialect)`. It:
+
+1. reads the element line (`G1: Name [notation]`);
+2. reports syntax errors, and each operator the dialect does not enable
+   (`` 1:21 `?` is not an operator of Edge``), to `onSyntaxError` or the
+   console;
+3. gives the id, the name and the **execution detail**:
+
+```ts
+type ExecutionDetail = {
+  type: string;          // the construct: a standalone one when written,
+                         // else the notation's outermost enabled operator's
+  ids: string[];         // that operator's operands, in the order written
+  modifiers: Record<string, Record<string, number>>;
+                         // the modifiers that apply to the construct, by the
+                         // modified operand's text: { retry: { G2: 3 } }
+};
+```
+
+A dialect without a notation (SLEEC's `{ name: 'SLEEC' }`) reads ids and
+names only. `assertionVariables(text)` reads the variables a condition
+names. Engines no longer keep a construct priority: the language is
+unambiguous, and on every recorded text ANTLR accepted the outermost
+operator is the construct its listener's cascade picked, but one (named
+below).
 
 ## Validation (dialect-aware)
 
@@ -164,7 +193,7 @@ Completion (`completionsAt`, `fieldCompletionsAt`) offers:
 
 The package is ESM: `tsc` builds `out/esm`, which the UI and the tests use.
 Langium is ESM-only, so `build.mjs` (esbuild) bundles Langium into
-`out/cjs/index.cjs` for the CommonJS packages (lib, its tests and the CLI).
+`out/cjs/index.cjs` for the CommonJS packages (goal-tree, lib, their tests and the CLI).
 That bundle is about 1 MB, and `@goal-controller/dialect` stays external.
 `@goal-controller/goal-language/light` (`out/cjs/light.cjs`, a few kB)
 holds the catalog and the writers, for code that only writes lines.
@@ -207,27 +236,20 @@ test fails if they are stale. The tests use mocha with tsx, and the root
    - edge's bare `G11: Choice Goal +`: the language needs `[+]`.
 2. **12 texts both parsers reject** but recover from differently (what is
    read past an error).
-3. **Edge reading edgeV2 texts with `?` or a binary `+`.** ANTLR rejected
+3. **A group under another operator** (`G1: Group [[G2;G3]#G4]`, not in any
+   model): ANTLR's listener kept each construct's last exit and picked one
+   by a cascade, so the group's sequence won; the goal language reads the
+   outermost operator, interleaved over `G4`.
+4. **Edge reading edgeV2 texts with `?` or a binary `+`.** ANTLR rejected
    them and recovered unpredictably. Now edge reports the operator and reads
    the rest. In PRISM, these are the 50 outputs (of 232) that differ from
    the ANTLR build: 40 were errors and 10 were garbled models; all 50
    generate now. Every engine on its own corpus, and edgeV2 on everything,
    is byte-identical.
-4. **`x > 0`.** AssertionRegex.g4's `INT` had no zero, so it couldn't parse
+5. **`x > 0`.** AssertionRegex.g4's `INT` had no zero, so it couldn't parse
    this. The language can.
 
 ## Not done yet
-
-- **A generic execution detail.** goal-tree's `GoalExecutionDetail` has a
-  field per construct (`sequence`, `alternative`, `interleaved`, `anyOrder`,
-  `choice`, `degradationList`) and `retryMap`. Normalising it to
-  `{ type, ids, modifiers }` would remove lib's adapter (`listOf`, the
-  `retryMap` shape); the readers of those fields to change are:
-  - goal-tree: `src/types/goalTree.ts`, `src/view.ts`;
-  - edge: `types.ts`, `validator/report.ts`,
-    `template/modules/goalModule/template/pursue/{index,orGoal}.ts`;
-  - edgeV2: `types.ts`, `validator/report.ts`,
-    `template/modules/goalModule/template/{children,pursue/index,pursue/orGoal}.ts`.
 
 - A language server. The validator and completion are its core, but there
   is no Langium LSP module, worker or `rt/context` wiring yet.

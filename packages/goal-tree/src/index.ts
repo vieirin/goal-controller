@@ -31,6 +31,7 @@
  *
  * // Define engine mapper with type inference
  * const myMapper = createEngineMapper({
+ *   dialect: myDefinition, // goal texts are read in it
  *   allowedGoalKeys: ['utility', 'cost'] as const,
  *   allowedTaskKeys: ['maxRetries'] as const,
  *   skipResource: true,
@@ -128,4 +129,5 @@ export {
   getGoalDetail,
   type GoalDetail,
   type GoalNameParser,
+  type ReadingDialect,
 } from './parsers/goalNameParser';

@@ -10,6 +10,7 @@ against) by:
 | --- | --- |
 | constructs.ts, properties.ts, context.ts, rt-notation.langium | packages/rt-language/src/ |
 | notation.ts, edgeProperties.ts | packages/ui/lib/workbench/ |
+| goalView.ts | written by the script: goal-tree's view with the reference's construct type |
 | pistar.ts | packages/ui/lib/workbench/pistar.ts (composeNodeText only) |
 | RTRegex.edge.g4, RTRegex.edgeV2.g4, AssertionRegex.g4 | packages/lib/grammar/ @ `44947643c925880d74deab1d39f2a08c9fd54a43` (the ANTLR grammars, removed) |
 

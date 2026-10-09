@@ -6,7 +6,7 @@ import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
 import { StringStream } from '../../../ui/node_modules/@codemirror/language';
 import { extensionCatalog, type AnyDialect } from '@goal-controller/dialect';
-import { edgeV2, edgeV2GoalNames } from '../../src';
+import { edgeV2 } from '../../src';
 import { documentParser } from '../../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
 import {
@@ -61,7 +61,7 @@ const styled = (read: [string, string | null][], style: string) =>
     .join('');
 
 describe('ui notationDocument', () => {
-  const tree = goalView(parsePistar(MODEL), edgeV2GoalNames);
+  const tree = goalView(parsePistar(MODEL), edgeV2);
 
   it('finds the element a line belongs to', () => {
     const lines = ['G1: A', '  maintain x', '  type maintain', '  T1: B'];

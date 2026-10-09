@@ -64,27 +64,13 @@ export const construct = (goal: EdgeGoalNode): Construct => {
     );
     return fallback;
   }
-  return type;
+  return type as Construct;
 };
 
+/** The children's order the notation writes, if it writes one. */
 const notationOrder = (goal: EdgeGoalNode): string[] | undefined => {
-  const detail = goal.properties.engine.executionDetail;
-  switch (detail?.type) {
-    case 'sequence':
-      return detail.sequence;
-    case 'anyOrder':
-      return detail.anyOrder;
-    case 'interleaved':
-      return detail.interleaved;
-    case 'alternative':
-      return detail.alternative;
-    case 'degradation':
-      return detail.degradationList;
-    case 'choice':
-      return detail.choice;
-    default:
-      return undefined;
-  }
+  const ids = goal.properties.engine.executionDetail?.ids;
+  return ids?.length ? ids : undefined;
 };
 
 /**
@@ -146,7 +132,7 @@ export const retriedChildren = (
   }
   const retryMap =
     goal.properties.engine.executionDetail?.type === 'degradation'
-      ? (goal.properties.engine.executionDetail.retryMap ?? {})
+      ? (goal.properties.engine.executionDetail.modifiers.retry ?? {})
       : {};
   return orderedChildren(goal)
     .map((child) => {

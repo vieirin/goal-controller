@@ -2,7 +2,7 @@
  * Engine Mapper types and factory function
  * Defines how raw iStar properties are mapped to engine-specific properties
  */
-import type { GoalNameParser } from '../parsers/goalNameParser';
+import type { ReadingDialect } from '../parsers/goalNameParser';
 import type { GoalExecutionDetail, TreeNode } from '../types/';
 
 /**
@@ -57,8 +57,11 @@ export type EngineMapper<
   TResourceKeys extends string = string,
   TQualityKeys extends string = never,
 > = {
-  /** how the engine reads goal texts (`G1: Goal [G2;G3]`) */
-  grammar: GoalNameParser;
+  /**
+   * the engine's dialect (its definition): goal texts (`G1: Goal [G2;G3]`) are
+   * read with the reader goal-tree derives from it
+   */
+  dialect: ReadingDialect;
 
   /**
    * Allowed keys for goal custom properties
@@ -134,7 +137,7 @@ export function createEngineMapper<
     TQualityKeys extends string = never,
   >(
     config: {
-      grammar: GoalNameParser;
+      dialect: ReadingDialect;
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
       allowedQualityKeys?: readonly TQualityKeys[];
@@ -193,7 +196,7 @@ export function createEngineMapper<
         TResourceKeys,
         TQualityKeys
       > = {
-        grammar: config.grammar,
+        dialect: config.dialect,
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
         allowedQualityKeys: config.allowedQualityKeys,
@@ -224,7 +227,7 @@ export function createEngineMapper<
       TResourceKeys,
       TQualityKeys
     > = {
-      grammar: config.grammar,
+      dialect: config.dialect,
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,
       allowedQualityKeys: config.allowedQualityKeys,

@@ -1,7 +1,10 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-// EdgeV2's reader: the goal language and EdgeV2's definition (these tests read RTRegex.g4's before)
-import { edgeV2GoalNames as getGoalDetail } from '../../../src/engines/edgeFamily/parsers';
+// edgeV2's goal texts: the reader goal-tree derives from its definition (these tests read RTRegex.g4's before)
+import { goalNameParserFor } from '@goal-controller/goal-language';
+import { edgeV2 } from '../../../src/engines/edgeV2/definition';
+
+const getGoalDetail = goalNameParserFor(edgeV2);
 
 describe('GoalNameParser (edgeV2 grammar)', () => {
   describe('getGoalDetail', () => {
@@ -14,7 +17,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Deliver Sample to Lab',
         executionDetail: {
           type: 'sequence',
-          sequence: ['G10', 'G11', 'G12'],
+          ids: ['G10', 'G11', 'G12'],
+          modifiers: {},
         },
       });
     });
@@ -39,7 +43,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Alternative Goal',
         executionDetail: {
           type: 'alternative',
-          alternative: ['G3', 'G4'],
+          ids: ['G3', 'G4'],
+          modifiers: {},
         },
       });
     });
@@ -53,7 +58,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Interleaved Goal',
         executionDetail: {
           type: 'interleaved',
-          interleaved: ['G6', 'G7'],
+          ids: ['G6', 'G7'],
+          modifiers: {},
         },
       });
     });
@@ -67,7 +73,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Any Order Goal',
         executionDetail: {
           type: 'anyOrder',
-          anyOrder: ['G1', 'G2'],
+          ids: ['G1', 'G2'],
+          modifiers: {},
         },
       });
     });
@@ -81,7 +88,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Unordered Tasks',
         executionDetail: {
           type: 'anyOrder',
-          anyOrder: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -95,7 +103,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Degradation Goal',
         executionDetail: {
           type: 'degradation',
-          degradationList: ['G9', 'G10'],
+          ids: ['G9', 'G10'],
+          modifiers: {},
         },
       });
     });
@@ -109,7 +118,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Choice Goal',
         executionDetail: {
           type: 'choice',
-          choice: ['G12', 'G13'],
+          ids: ['G12', 'G13'],
+          modifiers: {},
         },
       });
     });
@@ -123,7 +133,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Multiple Choices',
         executionDetail: {
           type: 'choice',
-          choice: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -137,8 +148,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Support in emergency',
         executionDetail: {
           type: 'degradation',
-          degradationList: ['G3', 'G4'],
-          retryMap: { G4: 3 },
+          ids: ['G3', 'G4'],
+          modifiers: { retry: { G4: 3 } },
         },
       });
     });
@@ -152,7 +163,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Complex Process',
         executionDetail: {
           type: 'sequence',
-          sequence: ['G2', 'G3', 'G4', 'G5', 'G6'],
+          ids: ['G2', 'G3', 'G4', 'G5', 'G6'],
+          modifiers: {},
         },
       });
     });
@@ -166,7 +178,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Multiple Options',
         executionDetail: {
           type: 'alternative',
-          alternative: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -180,7 +193,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Parallel Tasks',
         executionDetail: {
           type: 'interleaved',
-          interleaved: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -194,7 +208,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Multi-level Degradation',
         executionDetail: {
           type: 'degradation',
-          degradationList: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -208,7 +223,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Process with Retries',
         executionDetail: {
           type: 'sequence',
-          sequence: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -222,7 +238,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Options with Retries',
         executionDetail: {
           type: 'alternative',
-          alternative: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -236,7 +253,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Parallel with Retries',
         executionDetail: {
           type: 'interleaved',
-          interleaved: ['G2', 'G3', 'G4', 'G5'],
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: {},
         },
       });
     });
@@ -250,8 +268,8 @@ describe('GoalNameParser (edgeV2 grammar)', () => {
         goalName: 'Complex Degradation',
         executionDetail: {
           type: 'degradation',
-          degradationList: ['G2', 'G3', 'G4', 'G5'],
-          retryMap: { G3: 2, G5: 1 },
+          ids: ['G2', 'G3', 'G4', 'G5'],
+          modifiers: { retry: { G3: 2, G5: 1 } },
         },
       });
     });

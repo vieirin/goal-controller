@@ -29,9 +29,30 @@ show packages/rt-language/src/rt-notation.langium > "$OUT/rt-notation.langium"
 {
   header packages/ui/lib/workbench/notation.ts
   show packages/ui/lib/workbench/notation.ts | sed \
+    -e "s#from '@goal-controller/goal-tree'#from './goalView'#" \
     -e "s#from '@goal-controller/rt-language/context'#from './context'#" \
     -e "s#from '@goal-controller/rt-language/properties'#from './properties'#"
 } > "$OUT/notation.ts"
+
+# notation.ts reads goal-tree's view, whose construct was the RT constructs'
+# union then (now the dialect's construct name, a string): its own view type
+cat > "$OUT/goalView.ts" <<'TS'
+// goal-tree's view as the reference reads it: its construct is an RtConstruct
+// (scripts/sync-reference.sh; do not edit)
+import type {
+  GoalView as TreeView,
+  GoalViewNode as TreeNode,
+} from '@goal-controller/goal-tree';
+import type { RtConstruct } from './constructs';
+
+export type GoalViewNode = Omit<TreeNode, 'construct'> & {
+  construct: RtConstruct | null;
+};
+export type GoalView = Omit<TreeView, 'nodes' | 'byIStarId'> & {
+  nodes: Map<string, GoalViewNode>;
+  byIStarId: Map<string, GoalViewNode>;
+};
+TS
 
 # notation.ts reads composeNodeText from the UI's pistar.ts: only that function
 {
@@ -73,6 +94,7 @@ against) by:
 | --- | --- |
 | constructs.ts, properties.ts, context.ts, rt-notation.langium | packages/rt-language/src/ |
 | notation.ts, edgeProperties.ts | packages/ui/lib/workbench/ |
+| goalView.ts | written by the script: goal-tree's view with the reference's construct type |
 | pistar.ts | packages/ui/lib/workbench/pistar.ts (composeNodeText only) |
 | RTRegex.edge.g4, RTRegex.edgeV2.g4, AssertionRegex.g4 | packages/lib/grammar/ @ \`$ANTLR_COMMIT\` (the ANTLR grammars, removed) |
 
