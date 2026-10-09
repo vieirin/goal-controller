@@ -4,6 +4,7 @@ import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setRangeMarks } from '@/lib/workbench/codemirror';
+import { sourcePosition } from '@/lib/workbench/localProblems';
 import { nodeRanges } from '@/lib/workbench/pistar';
 import CodeEditor from './CodeEditor';
 import { useSelection, useWorkbench } from './WorkbenchContext';
@@ -81,16 +82,10 @@ export default function SourceView() {
     const doc = view.state.doc;
     const diagnostics: Diagnostic[] = [];
     for (const problem of problems) {
-      if (
-        problem.source === 'json' &&
-        problem.line &&
-        problem.line <= doc.lines
-      ) {
-        const line = doc.line(problem.line);
-        const from = Math.min(
-          line.from + Math.max(0, (problem.column ?? 1) - 1),
-          line.to,
-        );
+      const at = sourcePosition(problem);
+      if (at && at.line <= doc.lines) {
+        const line = doc.line(at.line);
+        const from = Math.min(line.from + Math.max(0, at.column - 1), line.to);
         diagnostics.push({
           from,
           to: Math.max(from, line.to),

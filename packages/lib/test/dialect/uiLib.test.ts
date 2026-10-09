@@ -1,5 +1,6 @@
 /** The UI's React-free workbench modules built on the definitions (packages/ui/lib/workbench). */
 import { expect } from 'chai';
+import { SOURCE } from '../../../ui/lib/workbench/types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
@@ -37,6 +38,7 @@ import {
   jsonProblem,
   modelLanguageProblems,
   nodeIdInMessage,
+  sourcePosition,
   treeProblems,
 } from '../../../ui/lib/workbench/localProblems';
 import {
@@ -146,6 +148,23 @@ describe('ui dialects', () => {
       expect(serializeModel(parseModel(model), model), file).to.equal(
         serializeModel(parsePistar(model), model),
       );
+  });
+
+  it("underlines a model's JSON problem in the Source tab, at its line", () => {
+    const text = '{\n  "actors": []\n  "links": []\n}';
+    let error: Error | null = null;
+    try {
+      parseModel(text);
+    } catch (e) {
+      error = e as Error;
+    }
+    const problem = jsonProblem(text, error!);
+    expect(problem.source).to.equal(SOURCE.file);
+    expect(sourcePosition(problem)).to.deep.equal({ line: 3, column: 3 });
+    // another producer's problem with a line isn't the file's text
+    expect(sourcePosition({ ...problem, source: SOURCE.workbench })).to.equal(
+      null,
+    );
   });
 
   it("loads a dialect's kinds only for a model recorded for it", () => {
