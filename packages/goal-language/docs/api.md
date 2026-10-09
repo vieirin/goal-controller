@@ -110,11 +110,13 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf`, and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `(properties, CheckContext) => string \| null` |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
 | `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
-| `fieldCompletionsAt` | `(D, config, text, pos, context) => CompletionResult \| null` | ids (`refList`) and names (`assertion`) |
+| `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names (`assertion`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
 | `constructHint` | `(D, construct) => string \| null` | `Sequence — does every child, one after another` |
 
 A `Diagnostic` is `{ from, to, severity, message }`, with offsets into the
-text. `runCheck(check, properties, self)` runs an engine's named checks.
+text. A completion is `{ label, type, detail?, snippet? }`: `snippet` is
+what to insert instead of the label, in LSP snippet syntax (the server sends
+it as a snippet; CodeMirror's `snippetCompletion` reads it as it is). `runCheck(check, properties, self)` runs an engine's named checks.
 
 ## Highlighting
 

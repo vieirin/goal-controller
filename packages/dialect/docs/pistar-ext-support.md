@@ -289,7 +289,7 @@ From `~/vieirin/istar-ts` @ `cb0ab99`. Nothing there was changed.
 
 - **Node labels with `<<X>>` and `{k = v}`.** An `IstarExtension` element
   `component` (`react/src/registry.ts:108`) draws them from the properties.
-  It could reuse `writeAnnotations` from the definition, like `problemBadges`
+  It could reuse `writeAnnotations` from the definition, like the canvas badges did
   wraps `DefaultElementComponent` today. Inline label editing would still
   edit the raw name.
 - **Stereotype and tag fields** through `properties` (`defineProperties`) or a

@@ -62,7 +62,15 @@ export type ValueConfig =
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
   | { type: 'annotatedName' }
   /** OCL as MutRoSe writes it: variables, `: Type`, `->select(...)`, `->forAll(...)` */
-  | { type: 'ocl' };
+  | {
+      type: 'ocl';
+      /**
+       * The properties whose values declare the names in scope (`name : Type`,
+       * or names, comma-separated), on this element and its ancestors:
+       * completion offers them.
+       */
+      declaredBy?: readonly string[];
+    };
 
 export type ValueType = ValueConfig['type'];
 
@@ -138,6 +146,14 @@ export type PropertyDefinition<C extends string = string> = {
   check?: C;
   /** offered as an inspector field (default: true) */
   inspector?: boolean;
+  /**
+   * `'engine'`: an engine-owned language server serves this property's value
+   * (its sub-language): the shared goal-language server and the local
+   * support stay silent on the value (no value diagnostics, named check,
+   * completion or hover); the property line is still read. See
+   * goal-controller#24 and `packages/goal-language/docs/lsp.md`.
+   */
+  servedBy?: 'engine';
 };
 
 /** The mismatches between a notation and the structure the views report. */

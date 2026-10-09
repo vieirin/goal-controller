@@ -5,7 +5,9 @@ import {
   completionsAt,
   documentDiagnostics,
   fieldCompletionsAt,
+  fieldCompletions,
   fieldDiagnostics,
+  hoverAt,
   notationRefs,
   parseElementLine,
   readNotation,
@@ -135,7 +137,15 @@ describe('fieldDiagnostics', () => {
           : null,
     );
     expect(d).to.deep.equal([
-      { from: 0, to: 2, severity: 'error', message: 'nope' },
+      {
+        from: 0,
+        to: 2,
+        severity: 'error',
+        message: 'nope',
+        elementId: 'R1',
+        key: 'lowerBound',
+        check: 'toy.resource.bounds',
+      },
     ]);
   });
 
@@ -148,16 +158,62 @@ describe('fieldDiagnostics', () => {
         to: 28,
         severity: 'info',
         message: 'nowhere is not a resource of this model or a known variable',
+        elementId: 'T1',
+        key: 'guard',
       },
       {
         from: 0,
         to: 28,
         severity: 'info',
         message: 'G2 is not a resource of this model or a known variable',
+        elementId: 'T1',
+        key: 'guard',
       },
     ]);
     // a condition that doesn't parse says only that
     expect(field('R1 >').map((d) => d.severity)).to.deep.equal(['error']);
+  });
+});
+
+describe('a property an engine-owned server serves', () => {
+  // toy's tasks' guard, served by an engine's own server
+  const served = {
+    ...toy,
+    properties: {
+      ...toy.properties,
+      task: toy.properties.task.map((p) =>
+        p.key === 'guard' ? { ...p, servedBy: 'engine' as const } : p,
+      ),
+    },
+  } as typeof toy;
+
+  it('gets no value diagnostics, completion or hover from the shared path', () => {
+    // the value doesn't parse as an assertion, and names an unknown variable
+    expect(
+      fieldDiagnostics(served, context, 'T1', 'guard', 'R1 >', undefined),
+    ).to.deep.equal([]);
+    expect(
+      fieldDiagnostics(toy, context, 'T1', 'guard', 'R1 >', undefined),
+    ).to.have.length(1);
+    expect(fieldCompletions(served, context, 'T1', 'guard', 'R', 1)).to.equal(
+      null,
+    );
+    expect(fieldCompletions(toy, context, 'T1', 'guard', 'R', 1)).to.not.equal(
+      null,
+    );
+    const doc = 'G1: Go [G2;T1]\nT1: B\n  guard ctx';
+    expect(hoverAt(served, doc, doc.length - 1, context)).to.equal(null);
+    expect(hoverAt(toy, doc, doc.length - 1, context)).to.not.equal(null);
+  });
+
+  it('is still read as a property line of its element', () => {
+    expect(
+      documentDiagnostics(
+        served,
+        'G1: Go [G2;T1]\nT1: B\n  guard ctx',
+        context,
+      ),
+    ).to.deep.equal([]);
   });
 });
 
@@ -308,7 +364,14 @@ describe('what the dialect allows', () => {
     expect(
       fieldDiagnostics(toy, context, 'R1', 'lowerBound', 'x', () => null),
     ).to.deep.equal([
-      { from: 0, to: 1, severity: 'error', message: 'Not an integer: x' },
+      {
+        from: 0,
+        to: 1,
+        severity: 'error',
+        message: 'Not an integer: x',
+        elementId: 'R1',
+        key: 'lowerBound',
+      },
     ]);
   });
 

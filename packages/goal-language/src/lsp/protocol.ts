@@ -26,6 +26,19 @@ export type GoalContextParams = {
   saved?: Readonly<Record<string, { line: string; error: string | null }>>;
 };
 
+/**
+ * What the server puts in a diagnostic's `data` (goal-controller#24,
+ * decision D): the element it is about, the property, and the named check
+ * that said it. Every diagnostic on a line of an element of the model has
+ * it; a client reads the element from here, not from the range.
+ */
+export type GoalDiagnosticData = {
+  elementId: string;
+  key?: string;
+  /** the engine's named check, when one said it */
+  check?: string;
+};
+
 /** An inspector field's document: one element's property value. */
 export const fieldUri = (id: string, key: string): string =>
   `file:///fields/${encodeURIComponent(id)}/${encodeURIComponent(key)}.goal`;

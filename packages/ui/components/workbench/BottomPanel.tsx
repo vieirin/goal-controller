@@ -19,7 +19,8 @@ import { baseName, downloadText } from '@/lib/workbench/download';
 import { constructDefinition } from '@goal-controller/dialect';
 import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
 import { nodeTone } from '@/lib/workbench/pistar';
-import type { Problem } from '@/lib/workbench/types';
+import { problemGroups } from '@/lib/workbench/diagnostics';
+import { SOURCE, type Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
 import { readFile } from './TopBar';
 import { useWorkbench, type BottomTab } from './WorkbenchContext';
@@ -87,23 +88,18 @@ const ICON = {
   error: AlertCircle,
   warning: AlertTriangle,
   info: Info,
+  hint: Info,
 } as const;
 const TONE = {
   error: 'text-danger',
   warning: 'text-caution',
   info: 'text-ink-muted',
+  hint: 'text-ink-muted',
 } as const;
-const SOURCE = {
-  json: 'JSON',
-  model: 'model',
-  engine: 'engine',
-  generation: 'generation',
-} as const;
-
 export function ProblemsView() {
   const wb = useWorkbench();
   const [showInfo, setShowInfo] = useState(false);
-  const [copied, setCopied] = useState<number | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   useEffect(() => {
     if (copied === null) return undefined;
     const timer = setTimeout(() => setCopied(null), 1200);
@@ -111,15 +107,17 @@ export function ProblemsView() {
   }, [copied]);
   if (!wb.hasModel)
     return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
-  const shown = wb.problems.filter((p) => showInfo || p.severity !== 'info');
+  // information and hints are shown on request
+  const quiet = (p: Problem) => p.severity === 'info' || p.severity === 'hint';
+  const shown = wb.problems.filter((p) => showInfo || !quiet(p));
   const hiddenInfo = wb.problems.length - shown.length;
   const canGo = (problem: Problem) =>
-    (problem.source === 'json' && !!problem.line) ||
-    (!!problem.nodeId && !!wb.tree?.nodes.has(problem.nodeId));
+    (problem.source === SOURCE.file && !!problem.line) ||
+    (!!problem.elementId && !!wb.tree?.nodes.has(problem.elementId));
   const go = (problem: Problem) => {
-    if (problem.source === 'json' && problem.line)
+    if (problem.source === SOURCE.file && problem.line)
       wb.revealSourceLine(problem.line);
-    else if (problem.nodeId) wb.select(problem.nodeId, 'problems');
+    else if (problem.elementId) wb.select(problem.elementId, 'problems');
   };
   return (
     <div className='h-full overflow-auto'>
@@ -128,73 +126,106 @@ export function ProblemsView() {
           No problems{wb.analyzing ? ' so far — checking…' : '.'}
         </p>
       )}
-      <ul>
-        {shown.map((problem, index) => {
-          const Icon = ICON[problem.severity];
-          const node = problem.nodeId
-            ? wb.tree?.nodes.get(problem.nodeId)
-            : undefined;
-          return (
-            <li
-              key={`${problem.message}-${index}`}
-              className='group flex items-start gap-1 border-b border-line/60 pr-2 text-[13px] hover:bg-panel'
-            >
-              {/* clicking goes to the problem: the node in the model (selected and highlighted) or the line in the source */}
-              <button
-                type='button'
-                onClick={() => go(problem)}
-                disabled={!canGo(problem)}
-                title={
-                  canGo(problem)
-                    ? problem.source === 'json'
-                      ? 'Go to this line in the source'
-                      : 'Go to this node in the model'
-                    : undefined
-                }
-                className='flex min-w-0 flex-1 items-start gap-2 px-3 py-1.5 text-left disabled:cursor-default'
-              >
-                <Icon
-                  className={cx(
-                    'mt-0.5 h-4 w-4 shrink-0',
-                    TONE[problem.severity],
-                  )}
-                  aria-label={problem.severity}
-                />
-                <span className='min-w-0 flex-1 text-ink'>
-                  {problem.message}
-                </span>
-                {problem.line && (
-                  <span className='font-mono text-2xs text-ink-muted'>
-                    line {problem.line}
-                  </span>
-                )}
-                {node && node.id !== node.iStarId && (
+      {/* by element (the model's own first), then by who said it */}
+      {problemGroups(shown).map(({ elementId, sources }) => {
+        const node = elementId ? wb.tree?.nodes.get(elementId) : undefined;
+        return (
+          <section key={elementId ?? ''} className='border-b border-line/60'>
+            <h3 className='flex items-center gap-2 px-3 pt-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+              {node && node.id !== node.iStarId ? (
+                <>
                   <NodeChip id={node.id} tone={nodeTone(node)} />
-                )}
-                <span className='rounded bg-panel px-1 text-2xs text-ink-muted'>
-                  {SOURCE[problem.source]}
+                  <span className='truncate normal-case tracking-normal'>
+                    {node.name}
+                  </span>
+                </>
+              ) : elementId ? (
+                elementId
+              ) : (
+                'Model'
+              )}
+            </h3>
+            {sources.map(({ source, problems }) => (
+              <div key={source}>
+                <span className='ml-3 rounded bg-panel px-1 text-2xs text-ink-muted'>
+                  {source}
                 </span>
-              </button>
-              <button
-                type='button'
-                aria-label={copied === index ? 'Copied' : 'Copy this problem'}
-                title={copied === index ? 'Copied' : 'Copy this problem'}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(problem.message);
-                  setCopied(index);
-                }}
-                className='mt-1 shrink-0 rounded p-1 text-ink-faint hover:bg-white hover:text-ink'
-              >
-                {copied === index ? (
-                  <Check className='h-3.5 w-3.5 text-and' aria-hidden />
-                ) : (
-                  <Copy className='h-3.5 w-3.5' aria-hidden />
-                )}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                <ul>
+                  {problems.map((problem, index) => {
+                    const Icon = ICON[problem.severity];
+                    const id = `${elementId ?? ''}/${source}/${index}`;
+                    return (
+                      <li
+                        key={id}
+                        className='group flex items-start gap-1 pr-2 text-[13px] hover:bg-panel'
+                      >
+                        {/* clicking goes to the problem: the element in the model (selected and highlighted) or the line in the source */}
+                        <button
+                          type='button'
+                          onClick={() => go(problem)}
+                          disabled={!canGo(problem)}
+                          title={
+                            canGo(problem)
+                              ? problem.source === SOURCE.file
+                                ? 'Go to this line in the source'
+                                : 'Go to this element in the model'
+                              : undefined
+                          }
+                          className='flex min-w-0 flex-1 items-start gap-2 px-3 py-1 text-left disabled:cursor-default'
+                        >
+                          <Icon
+                            className={cx(
+                              'mt-0.5 h-4 w-4 shrink-0',
+                              TONE[problem.severity],
+                            )}
+                            aria-label={problem.severity}
+                          />
+                          <span className='min-w-0 flex-1 text-ink'>
+                            {problem.message}
+                          </span>
+                          {problem.key && (
+                            <span className='font-mono text-2xs text-ink-muted'>
+                              {problem.key}
+                            </span>
+                          )}
+                          {problem.line && (
+                            <span className='font-mono text-2xs text-ink-muted'>
+                              line {problem.line}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          type='button'
+                          aria-label={
+                            copied === id ? 'Copied' : 'Copy this problem'
+                          }
+                          title={copied === id ? 'Copied' : 'Copy this problem'}
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(
+                              problem.message,
+                            );
+                            setCopied(id);
+                          }}
+                          className='mt-1 shrink-0 rounded p-1 text-ink-faint hover:bg-white hover:text-ink'
+                        >
+                          {copied === id ? (
+                            <Check
+                              className='h-3.5 w-3.5 text-and'
+                              aria-hidden
+                            />
+                          ) : (
+                            <Copy className='h-3.5 w-3.5' aria-hidden />
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </section>
+        );
+      })}
       {hiddenInfo > 0 && (
         <button
           type='button'

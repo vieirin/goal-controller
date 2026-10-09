@@ -1,7 +1,6 @@
 'use client';
 
 import { serializeModel } from '@/lib/workbench/pistar';
-import type { Severity } from '@/lib/workbench/types';
 import { emptyModel, parseModel } from '@/lib/workbench/dialects';
 import type { IstarModel, ModelChangeEvent } from '@istar-ts/core';
 import {
@@ -23,7 +22,6 @@ import {
 } from 'react';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
-import { SeverityContext } from './extensions';
 
 /**
  * The goal model as an editable iStar diagram (@istar-ts/react), kept in sync
@@ -261,16 +259,19 @@ export default function WorkbenchCanvas({
     [store],
   );
 
-  const severities = useMemo(() => {
-    const map = new Map<string, Severity>();
-    for (const problem of wb.problems) {
-      if (!problem.nodeId || problem.severity === 'info') continue;
-      const iStarId = wb.tree?.nodes.get(problem.nodeId)?.iStarId;
-      if (iStarId && map.get(iStarId) !== 'error')
-        map.set(iStarId, problem.severity);
-    }
-    return map;
-  }, [wb.problems, wb.tree]);
+  // what the canvas badges: the elements' errors and warnings, by the diagram's ids
+  const diagnostics = useMemo(
+    () =>
+      wb.problems.flatMap((problem) => {
+        if (problem.severity !== 'error' && problem.severity !== 'warning')
+          return [];
+        const iStarId = problem.elementId
+          ? wb.tree?.nodes.get(problem.elementId)?.iStarId
+          : undefined;
+        return iStarId ? [{ ...problem, elementId: iStarId }] : [];
+      }),
+    [wb.problems, wb.tree],
+  );
 
   // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
   const onKeyDownCapture = (event: KeyboardEvent) => {
@@ -298,54 +299,53 @@ export default function WorkbenchCanvas({
       className='relative h-full'
       onKeyDownCapture={onKeyDownCapture}
     >
-      <SeverityContext.Provider value={severities}>
-        <IstarProvider
-          store={store}
-          extensions={extensions}
-          readOnly={!parsed || modelReadOnly}
-        >
-          <SelectionSync canvas={canvas} />
-          <NotifyBridge notify={notify} />
-          {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
-          {paletteEnd &&
-          !modelReadOnly &&
-          parsed &&
-          (paletteOnTop || modelFullscreen) ? (
-            // istar-ts's own bar, placed here with the controls after it
-            <div className='flex h-full flex-col'>
-              <div className='flex items-stretch'>
-                <IstarPalette
-                  orientation='horizontal'
-                  flyout='below'
-                  className='min-w-0 flex-1'
-                />
-                {paletteEnd}
-              </div>
-              <IstarCanvas
-                ref={canvas}
-                fitView
-                aside={aside}
-                palette={false}
-                className='min-h-0 flex-1'
+      <IstarProvider
+        store={store}
+        diagnostics={diagnostics}
+        extensions={extensions}
+        readOnly={!parsed || modelReadOnly}
+      >
+        <SelectionSync canvas={canvas} />
+        <NotifyBridge notify={notify} />
+        {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
+        {paletteEnd &&
+        !modelReadOnly &&
+        parsed &&
+        (paletteOnTop || modelFullscreen) ? (
+          // istar-ts's own bar, placed here with the controls after it
+          <div className='flex h-full flex-col'>
+            <div className='flex items-stretch'>
+              <IstarPalette
+                orientation='horizontal'
+                flyout='below'
+                className='min-w-0 flex-1'
               />
+              {paletteEnd}
             </div>
-          ) : (
             <IstarCanvas
               ref={canvas}
               fitView
               aside={aside}
-              palette={
-                modelReadOnly
-                  ? false
-                  : paletteOnTop || modelFullscreen
-                    ? 'top'
-                    : 'left'
-              }
-              className='h-full'
+              palette={false}
+              className='min-h-0 flex-1'
             />
-          )}
-        </IstarProvider>
-      </SeverityContext.Provider>
+          </div>
+        ) : (
+          <IstarCanvas
+            ref={canvas}
+            fitView
+            aside={aside}
+            palette={
+              modelReadOnly
+                ? false
+                : paletteOnTop || modelFullscreen
+                  ? 'top'
+                  : 'left'
+            }
+            className='h-full'
+          />
+        )}
+      </IstarProvider>
       {!parsed && (
         <div className='pointer-events-none absolute inset-x-3 top-3 rounded-md bg-caution-soft px-3 py-1.5 text-2xs text-caution'>
           The model text doesn’t parse — showing the last valid diagram,

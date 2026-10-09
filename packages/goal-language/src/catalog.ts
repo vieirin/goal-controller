@@ -128,6 +128,39 @@ export const ASSERTION = {
 } as const;
 
 /**
+ * OCL's collection operations, as an `ocl` value writes them after `->`
+ * (`rooms->select(r:Room | r.is_dirty)`): what each does, and the template
+ * completion inserts (LSP snippet syntax, which CodeMirror reads too).
+ */
+export const OCL_OPERATIONS = [
+  {
+    name: 'select',
+    snippet: 'select(${1:v}:${2:Type} | ${3:condition})',
+    help: 'the items for which the condition holds',
+  },
+  {
+    name: 'forAll',
+    snippet: 'forAll(${1:x} | ${2:condition})',
+    help: 'whether the condition holds for every item',
+  },
+  {
+    name: 'exists',
+    snippet: 'exists(${1:x} | ${2:condition})',
+    help: 'whether the condition holds for some item',
+  },
+  {
+    name: 'collect',
+    snippet: 'collect(${1:x} | ${2:expression})',
+    help: 'the expression of every item',
+  },
+  {
+    name: 'reject',
+    snippet: 'reject(${1:x} | ${2:condition})',
+    help: 'the items for which the condition does not hold',
+  },
+] as const;
+
+/**
  * The value types a property may have; each is a rule of the grammar that
  * reads one value on its own (an inspector field).
  *

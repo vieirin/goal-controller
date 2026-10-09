@@ -3,7 +3,6 @@
 import { contextFromView } from '@goal-controller/goal-language';
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import { dialectTree, parseModel } from '@/lib/workbench/dialects';
-import { localLanguageSupport } from '@/lib/workbench/languageSupport';
 import { useWorkbench } from '../../WorkbenchContext';
 import NotationEditor from '../definition/NotationEditor';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
@@ -29,14 +28,9 @@ export default function PistarExtNotationView() {
     }
     return last.current;
   }, [text]);
-  // no engine: no checks; the text is checked against the model's elements,
-  // by the language server when it runs, else locally
-  const provided = useContext(LanguageSupportContext)(definition);
-  const local = useMemo(
-    () => localLanguageSupport(definition, {}),
-    [definition],
-  );
-  const support = provided ?? local;
+  // no engine: no checks; the text is checked against the model's elements
+  // by piStar-ext's language services (the shared one)
+  const support = useContext(LanguageSupportContext)('pistarext', definition);
   useEffect(() => {
     if (tree) support.setContext(contextFromView(definition, tree, []));
   }, [tree, support, definition]);

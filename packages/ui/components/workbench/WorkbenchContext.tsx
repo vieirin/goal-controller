@@ -1,5 +1,7 @@
 'use client';
 
+import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import { ENGINE_LABEL, isDialectEngine } from '@/lib/workbench/engineDialects';
 import type { LoggerReport } from '@goal-controller/lib';
 import {
   createContext,
@@ -15,6 +17,7 @@ import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import {
   generationProblems,
   jsonProblem,
+  modelLanguageProblems,
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
@@ -42,9 +45,11 @@ import {
   forgetRecent as forgetRecentFile,
   type RecentFile,
 } from '@/lib/workbench/storage';
+import { mergeProblems } from '@/lib/workbench/diagnostics';
 import { buildTraceIndex, type TraceIndex } from '@/lib/workbench/trace';
 import {
   DEFAULT_OPTIONS,
+  SOURCE,
   type AnalyzeResponse,
   type GenerationOptions,
   type ModelSettings,
@@ -694,9 +699,11 @@ function WorkbenchState({
   );
   const [analyzing, setAnalyzing] = useState(false);
   useEffect(() => {
-    // piStar mode has no engine to analyse for
+    // piStar mode has no engine to analyse for; a model just opened waits for
+    // its text, not the last one's read with its engine
     if (
       pistar ||
+      debouncedText !== model.text ||
       !debouncedText.trim() ||
       modelSignature(debouncedText) === null
     )
@@ -721,7 +728,7 @@ function WorkbenchState({
           problems: [
             {
               severity: 'error',
-              source: 'engine',
+              source: ENGINE_LABEL[engine],
               message: error instanceof Error ? error.message : String(error),
             },
           ],
@@ -730,7 +737,7 @@ function WorkbenchState({
     } finally {
       setAnalyzing(false);
     }
-  }, [debouncedText, engine, pistar, setAnalysis]);
+  }, [debouncedText, model.text, engine, pistar, setAnalysis]);
   useEffect(() => {
     if (!model.text.trim() || pistar) setAnalysis(null);
   }, [model.text, pistar, setAnalysis]);
@@ -919,47 +926,61 @@ function WorkbenchState({
   );
 
   // ---- problems ----------------------------------------------------------------
+  // what the language services say of the open documents (editors, fields)
+  const serviceProblems = useServiceDiagnostics();
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (parsed.error) list.push(parsed.error);
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
-    if (tree && !parsed.error) list.push(...treeProblems(tree, engine));
+    if (tree && !parsed.error) {
+      list.push(...treeProblems(tree, engine));
+      // the shared language on the model's own document, editors open or not
+      if (isDialectEngine(engine))
+        list.push(...modelLanguageProblems(engine, tree, variables));
+    }
     if (analysis && !parsed.error) list.push(...analysis.problems);
     if (current && !stale) {
       const checked = new Set(
         list
-          .filter((p) => p.source === 'model' && p.nodeId)
-          .map((p) => p.nodeId),
+          .filter(
+            (p) =>
+              (p.source === SOURCE.workbench || p.source === SOURCE.language) &&
+              p.elementId,
+          )
+          .map((p) => p.elementId),
       );
       list.push(
         ...generationProblems(
           current.error,
           current.report?.log ?? null,
           nodeIds,
+          ENGINE_LABEL[engine],
         ).filter(
           // the engine repeats notation problems the model check already reports
           (p) =>
             !(
               p.severity === 'warning' &&
-              p.nodeId &&
-              checked.has(p.nodeId) &&
+              p.elementId &&
+              checked.has(p.elementId) &&
               /notation/i.test(p.message)
             ),
         ),
       );
     }
-    const seen = new Set<string>();
-    const order = { error: 0, warning: 1, info: 2 };
-    return list
-      .filter((problem) => {
-        const key = `${problem.severity}:${problem.message}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => order[a.severity] - order[b.severity]);
-  }, [parsed.error, pistar, tree, engine, analysis, current, stale, nodeIds]);
+    return mergeProblems(list, serviceProblems);
+  }, [
+    parsed.error,
+    pistar,
+    tree,
+    engine,
+    variables,
+    analysis,
+    current,
+    stale,
+    nodeIds,
+    serviceProblems,
+  ]);
 
   // ---- persistence ----------------------------------------------------------------
   // the open model is kept in Recent (with its unsaved edits) instead of being reopened

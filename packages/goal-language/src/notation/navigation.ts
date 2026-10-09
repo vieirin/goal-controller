@@ -158,6 +158,8 @@ export const hoverAt = (
       return property
         ? shift(read.keySpan, `**${read.key}**: ${property.help}`)
         : null;
+    // an engine-owned server explains the value
+    if (property && property.servedBy === 'engine') return null;
     // a name in the value: an element (a resource an assertion compares), a variable
     const word = wordAt(line.text, at);
     if (!word) return null;

@@ -480,6 +480,51 @@ a ? b
 r.clean$
 ```
 
+Completion, in a property line's value or an inspector field: after `->`,
+the collection operations, each inserting its template
+(`select(v:Type | condition)`, `forAll(x | condition)`, `exists`,
+`collect`, `reject`) where no arguments follow; after `.` or on a name, the names in scope. Those are
+the names the text binds before the cursor (`r` in `select(r:Room |`), the
+names declared by the properties the value type lists in `declaredBy`
+(`{ type: 'ocl', declaredBy: ['Controls', 'Monitors'] }`: `name : Type` or
+names, comma-separated) on the element and its ancestors, and the model's
+variables. MutRoSe's world (its classes and their attributes) isn't known
+yet, so after `r.` the names in scope are offered, not `r`'s attributes.
+
+```goal-complete mutrose
+G1: Serve every request [G2]
+  GoalType Achieve
+  Controls requests : Sequence(Request)
+  AchieveCondition requests->‸
+G2: Fetch
+%% offers select, forAll, exists, collect, reject
+%% inserts select ⇒ select(${1:v}:${2:Type} | ${3:condition})
+%% inserts forAll ⇒ forAll(${1:x} | ${2:condition})
+```
+
+When the operation's arguments are written already, it inserts the name
+only, in place of the whole name:
+
+```goal-complete mutrose
+G1: Serve every request [G2]
+  GoalType Achieve
+  Controls requests : Sequence(Request)
+  AchieveCondition requests->ex‸ists(r | r.served)
+G2: Fetch
+%% offers select, forAll, exists, collect, reject
+%% inserts forAll ⇒ forAll
+```
+
+```goal-complete mutrose
+G1: Serve every request [G2]
+  Controls requests : Sequence(Request)
+G2: Fetch the dirty ones
+  GoalType Query
+  Monitors requests
+  QueriedProperty requests->select(r:Request | r.‸
+%% offers r, requests
+```
+
 ### `annotatedName`
 
 A modelling dialect's line: annotations, an optional id and `:`, a name, and

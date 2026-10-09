@@ -7,12 +7,13 @@
  */
 import {
   autocompletion,
+  snippetCompletion,
   type CompletionContext,
   type CompletionResult,
 } from '@codemirror/autocomplete';
-import { forceLinting, linter, type Diagnostic } from '@codemirror/lint';
+import { forceLinting, linter } from '@codemirror/lint';
 import type { Extension } from '@codemirror/state';
-import type { EditorView } from '@codemirror/view';
+import { ViewPlugin, type EditorView } from '@codemirror/view';
 import {
   propertyOf,
   valueOf,
@@ -24,13 +25,18 @@ import {
   checkContextOf,
   completionsAt,
   documentDiagnostics,
-  fieldCompletionsAt,
+  fieldCompletions,
   fieldDiagnostics,
   type CompletionResult as DefinitionCompletions,
+  type Diagnostic as LanguageDiagnostic,
   type RunCheck,
 } from '@goal-controller/goal-language';
+import { fieldUri } from '@goal-controller/goal-language/light';
 import type { Check } from '@goal-controller/lib';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
+import { languageProblems } from './diagnostics';
+import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
+import { SOURCE } from './types';
 
 export type { DefinitionContext };
 
@@ -43,6 +49,8 @@ export type LanguageSupport = {
   setContext(context: DefinitionContext): void;
   /** the engine's grammar errors on the saved lines (sent with the context) */
   setSaved(saved: SavedLines): void;
+  /** the model file's text, for a service that reads it (`pistar-json`) */
+  setModelText?(text: string): void;
 };
 
 /** What the engine's grammar said of each saved element line, by id. */
@@ -57,29 +65,42 @@ const toCodeMirror = (
 ): CompletionResult | null =>
   result && {
     from: result.from,
-    options: result.options.map(({ label, type, detail }) => ({
-      label,
-      type,
-      detail,
-    })),
+    ...(result.to !== undefined && { to: result.to }),
+    options: result.options.map(({ label, type, detail, snippet }) =>
+      snippet
+        ? snippetCompletion(snippet, { label, type, detail })
+        : { label, type, detail },
+    ),
     validFor: /^[A-Za-z0-9_.]*$/,
   };
 
 /**
+ * An engine's named checks, run on a model: each is given its element and
+ * the model (`checkContextOf`). The local support's, and the workbench's run
+ * of the language on the model.
+ */
+export const runCheckIn =
+  (
+    // a property names its check: one of the definition's, so one of these
+    checks: Readonly<Record<string, Check | undefined>>,
+    model: () => DefinitionContext,
+  ): RunCheck =>
+  (name, properties, self) =>
+    checks[name]?.(properties, checkContextOf(model(), self)) ?? null;
+
+/**
  * The language support an engine's definition gives without a server: its document
- * language, lint (the problems and named checks it declares) and completion.
+ * language, lint (the problems and named checks it declares) and completion. What it
+ * finds is published as the `service`'s diagnostics of each document.
  */
 export const localLanguageSupport = <D extends AnyDialect>(
   definition: D,
   checks: Readonly<Record<CheckNameOf<D>, Check>>,
+  service: string = SOURCE.language,
 ): LanguageSupport => {
-  // a property names its check: one of the definition's, so one of these
-  const byName: Readonly<Record<string, Check | undefined>> = checks;
   let context = EMPTY;
   let saved: SavedLines = {};
-  // a check is given the element, and the model it is in
-  const runCheck: RunCheck = (name, properties, self) =>
-    byName[name]?.(properties, checkContextOf(context, self)) ?? null;
+  const runCheck = runCheckIn(checks, () => context);
   // the views linted against the context, relinted when it changes (a view
   // registers on its first lint, and is dropped once it left the page)
   const views = new Set<EditorView>();
@@ -87,19 +108,31 @@ export const localLanguageSupport = <D extends AnyDialect>(
     views.forEach((view) =>
       view.dom.isConnected ? forceLinting(view) : views.delete(view),
     );
-  const lintWith = (diagnose: (view: EditorView) => Diagnostic[]): Extension =>
+  // what a document's lint finds is published for it, and forgotten when its editor closes
+  const lintWith = (
+    document: string,
+    diagnose: (view: EditorView) => LanguageDiagnostic[],
+  ): Extension => [
     linter(
       (view) => {
         views.add(view);
-        return diagnose(view);
+        const found = diagnose(view);
+        publishDiagnostics(
+          service,
+          document,
+          languageProblems(found, definition.name),
+        );
+        return found;
       },
       { delay: 250 },
-    );
+    ),
+    ViewPlugin.define(() => ({ destroy: () => forgetDocument(document) })),
+  ];
 
   return {
-    documentExtension: () => [
+    documentExtension: (uri) => [
       documentLanguage(definition),
-      lintWith((view) =>
+      lintWith(uri, (view) =>
         documentDiagnostics(definition, view.state.doc.toString(), context, {
           runCheck,
           saved,
@@ -131,7 +164,7 @@ export const localLanguageSupport = <D extends AnyDialect>(
       const initial = value();
       return [
         initial ? valueLanguage(initial) : [],
-        lintWith((view) =>
+        lintWith(fieldUri(elementId, key), (view) =>
           fieldDiagnostics(
             definition,
             context,
@@ -143,20 +176,17 @@ export const localLanguageSupport = <D extends AnyDialect>(
         ),
         autocompletion({
           override: [
-            (completion: CompletionContext) => {
-              const config = value();
-              return config
-                ? toCodeMirror(
-                    fieldCompletionsAt(
-                      definition,
-                      config,
-                      completion.state.doc.toString(),
-                      completion.pos,
-                      context,
-                    ),
-                  )
-                : null;
-            },
+            (completion: CompletionContext) =>
+              toCodeMirror(
+                fieldCompletions(
+                  definition,
+                  context,
+                  elementId,
+                  key,
+                  completion.state.doc.toString(),
+                  completion.pos,
+                ),
+              ),
           ],
         }),
       ];

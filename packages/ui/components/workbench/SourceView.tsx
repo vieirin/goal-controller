@@ -22,7 +22,10 @@ export default function SourceView() {
   latest.current = wb;
 
   const ranges = useMemo(
-    () => (tree ? nodeRanges(text, [...tree.byIStarId.keys()]) : new Map<string, [number, number]>()),
+    () =>
+      tree
+        ? nodeRanges(text, [...tree.byIStarId.keys()])
+        : new Map<string, [number, number]>(),
     [text, tree],
   );
   const rangesRef = useRef(ranges);
@@ -32,14 +35,22 @@ export default function SourceView() {
   const extensions = useMemo(
     () =>
       EditorView.updateListener.of((update) => {
-        if (!update.selectionSet || !update.transactions.some((tr) => tr.isUserEvent('select'))) return;
+        if (
+          !update.selectionSet ||
+          !update.transactions.some((tr) => tr.isUserEvent('select'))
+        )
+          return;
         const at = update.state.selection.main.head;
         let best: { iStarId: string; size: number } | null = null;
         for (const [iStarId, [from, to]] of rangesRef.current) {
-          if (at >= from && at <= to && (!best || to - from < best.size)) best = { iStarId, size: to - from };
+          if (at >= from && at <= to && (!best || to - from < best.size))
+            best = { iStarId, size: to - from };
         }
-        const node = best ? latest.current.tree?.byIStarId.get(best.iStarId) : undefined;
-        if (node && node.id !== latestSelected.current) latest.current.select(node.id, 'source');
+        const node = best
+          ? latest.current.tree?.byIStarId.get(best.iStarId)
+          : undefined;
+        if (node && node.id !== latestSelected.current)
+          latest.current.select(node.id, 'source');
       }),
     [],
   );
@@ -51,8 +62,14 @@ export default function SourceView() {
     const range = node ? ranges.get(node.iStarId) : undefined;
     view.dispatch({
       effects: [
-        setRangeMarks.of(range ? [{ from: range[0], to: range[1], className: 'cm-node-range' }] : []),
-        ...(range && selectOrigin !== 'source' ? [EditorView.scrollIntoView(range[0], { y: 'start', yMargin: 40 })] : []),
+        setRangeMarks.of(
+          range
+            ? [{ from: range[0], to: range[1], className: 'cm-node-range' }]
+            : [],
+        ),
+        ...(range && selectOrigin !== 'source'
+          ? [EditorView.scrollIntoView(range[0], { y: 'start', yMargin: 40 })]
+          : []),
       ],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,13 +81,27 @@ export default function SourceView() {
     const doc = view.state.doc;
     const diagnostics: Diagnostic[] = [];
     for (const problem of problems) {
-      if (problem.source === 'json' && problem.line && problem.line <= doc.lines) {
+      if (
+        problem.source === 'json' &&
+        problem.line &&
+        problem.line <= doc.lines
+      ) {
         const line = doc.line(problem.line);
-        const from = Math.min(line.from + Math.max(0, (problem.column ?? 1) - 1), line.to);
-        diagnostics.push({ from, to: Math.max(from, line.to), severity: 'error', message: problem.message });
+        const from = Math.min(
+          line.from + Math.max(0, (problem.column ?? 1) - 1),
+          line.to,
+        );
+        diagnostics.push({
+          from,
+          to: Math.max(from, line.to),
+          severity: 'error',
+          message: problem.message,
+        });
         continue;
       }
-      const node = problem.nodeId ? tree?.nodes.get(problem.nodeId) : undefined;
+      const node = problem.elementId
+        ? tree?.nodes.get(problem.elementId)
+        : undefined;
       const range = node ? ranges.get(node.iStarId) : undefined;
       if (range && range[1] <= doc.length) {
         const textAt = doc.sliceString(range[0], range[1]).indexOf('"text"');
@@ -78,7 +109,12 @@ export default function SourceView() {
         diagnostics.push({
           from,
           to: Math.min(doc.lineAt(from).to, range[1]),
-          severity: problem.severity === 'error' ? 'error' : problem.severity === 'warning' ? 'warning' : 'info',
+          severity:
+            problem.severity === 'error'
+              ? 'error'
+              : problem.severity === 'warning'
+                ? 'warning'
+                : 'info',
           message: problem.message,
         });
       }
@@ -91,7 +127,10 @@ export default function SourceView() {
     if (!view || !sourceLine) return;
     const doc = view.state.doc;
     const line = doc.line(Math.min(Math.max(1, sourceLine.line), doc.lines));
-    view.dispatch({ selection: { anchor: line.from }, effects: EditorView.scrollIntoView(line.from, { y: 'center' }) });
+    view.dispatch({
+      selection: { anchor: line.from },
+      effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+    });
     view.focus();
   }, [view, sourceLine]);
 

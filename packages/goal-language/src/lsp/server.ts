@@ -36,6 +36,7 @@ import {
 import {
   CompletionItemKind,
   DiagnosticSeverity,
+  InsertTextFormat,
   LocationLink,
   type CancellationToken,
   type CompletionList,
@@ -63,7 +64,7 @@ import { GoalCoreModule, parseWith } from '../module.js';
 import { syntaxErrorsOf } from '../parse.js';
 import {
   completionsAt,
-  fieldCompletionsAt,
+  fieldCompletions,
   type Completion,
   type CompletionResult,
 } from '../notation/completion.js';
@@ -78,6 +79,7 @@ import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
   type GoalContextParams,
+  type GoalDiagnosticData,
 } from './protocol.js';
 import { checkContextOf, type NamedCheck } from '../notation/checks.js';
 
@@ -127,6 +129,7 @@ const KIND = {
   variable: CompletionItemKind.Reference,
   keyword: CompletionItemKind.Keyword,
   property: CompletionItemKind.Property,
+  function: CompletionItemKind.Function,
 } as const satisfies Record<Completion['type'], CompletionItemKind>;
 
 export type GoalLspServices = LangiumServices;
@@ -190,15 +193,25 @@ export const createGoalLspServices = (
     document: LangiumDocument,
     diagnostics: Diagnostic[],
   ): LspDiagnostic[] =>
-    diagnostics.map(({ from, to, severity, message }) => ({
-      range: {
-        start: document.textDocument.positionAt(from),
-        end: document.textDocument.positionAt(to),
-      },
-      severity: SEVERITY[severity],
-      message,
-      source: 'goal',
-    }));
+    diagnostics.map(
+      ({ from, to, severity, message, elementId, key, check }) => ({
+        range: {
+          start: document.textDocument.positionAt(from),
+          end: document.textDocument.positionAt(to),
+        },
+        severity: SEVERITY[severity],
+        message,
+        source: 'goal',
+        // the anchoring contract: the element (and property) it is about
+        ...(elementId !== undefined && {
+          data: {
+            elementId,
+            ...(key !== undefined && { key }),
+            ...(check !== undefined && { check }),
+          } satisfies GoalDiagnosticData,
+        }),
+      }),
+    );
 
   /** The diagnostics of a document: the dialect's, or syntax errors without one. */
   const diagnose = (document: LangiumDocument): LspDiagnostic[] => {
@@ -240,6 +253,7 @@ export const createGoalLspServices = (
         '=',
         ',',
         '(',
+        '.',
       ],
     };
 
@@ -254,24 +268,16 @@ export const createGoalLspServices = (
       const offset = document.textDocument.offsetAt(params.position);
       const field = readFieldUri(document.uri.toString());
       let result: CompletionResult | null;
-      if (field) {
-        const element = model.elements[field.id];
-        const property =
-          element && propertyOf(dialect, element.kind, field.key);
-        result = property
-          ? fieldCompletionsAt(
-              dialect,
-              valueOf(property, element.properties),
-              text,
-              offset,
-              model,
-            )
-          : null;
-      } else result = completionsAt(dialect, text, offset, model);
+      result = field
+        ? fieldCompletions(dialect, model, field.id, field.key, text, offset)
+        : completionsAt(dialect, text, offset, model);
       if (!result) return undefined;
       const range = {
         start: document.textDocument.positionAt(result.from),
-        end: params.position,
+        end:
+          result.to === undefined
+            ? params.position
+            : document.textDocument.positionAt(result.to),
       };
       return {
         isIncomplete: false,
@@ -280,7 +286,8 @@ export const createGoalLspServices = (
           kind: KIND[option.type],
           detail: option.detail,
           sortText: String(i).padStart(4, '0'),
-          textEdit: { range, newText: option.label },
+          ...(option.snippet && { insertTextFormat: InsertTextFormat.Snippet }),
+          textEdit: { range, newText: option.snippet ?? option.label },
         })),
       };
     }
@@ -429,12 +436,55 @@ export const serverDiagnostics = async (
       : s === DiagnosticSeverity.Information
         ? 'info'
         : 'error';
-  const diagnostics = (document.diagnostics ?? []).map((d) => ({
-    from: document.textDocument.offsetAt(d.range.start),
-    to: document.textDocument.offsetAt(d.range.end),
-    severity: severity(d.severity),
-    message: typeof d.message === 'string' ? d.message : d.message.value,
-  })) satisfies Diagnostic[];
+  const diagnostics = (document.diagnostics ?? []).map((d) => {
+    const data = d.data as GoalDiagnosticData | undefined;
+    return {
+      from: document.textDocument.offsetAt(d.range.start),
+      to: document.textDocument.offsetAt(d.range.end),
+      severity: severity(d.severity),
+      message: typeof d.message === 'string' ? d.message : d.message.value,
+      ...(data && { elementId: data.elementId }),
+      ...(data?.key !== undefined && { key: data.key }),
+      ...(data?.check !== undefined && { check: data.check }),
+    };
+  }) satisfies Diagnostic[];
   LangiumDocuments.deleteDocument(parsed);
   return diagnostics;
+};
+
+/**
+ * The completions the server gives for a text at a URI and offset: each
+ * item's label and what it inserts (no connection needed, as
+ * `serverDiagnostics`).
+ */
+export const serverCompletions = async (
+  shared: LangiumSharedServices,
+  uri: string,
+  text: string,
+  offset: number,
+): Promise<{ label: string; insert: string; snippet: boolean }[]> => {
+  const { LangiumDocumentFactory, LangiumDocuments, DocumentBuilder } =
+    shared.workspace;
+  const parsed = URI.parse(uri);
+  if (LangiumDocuments.hasDocument(parsed))
+    LangiumDocuments.deleteDocument(parsed);
+  const document = LangiumDocumentFactory.fromString(text, parsed);
+  LangiumDocuments.addDocument(document);
+  await DocumentBuilder.build([document]);
+  const provider = (
+    shared.ServiceRegistry.getServices(parsed) as LangiumServices
+  ).lsp.CompletionProvider;
+  const list = await provider?.getCompletion(document, {
+    textDocument: { uri },
+    position: document.textDocument.positionAt(offset),
+  });
+  LangiumDocuments.deleteDocument(parsed);
+  return (list?.items ?? []).map((item) => ({
+    label: item.label,
+    insert:
+      item.textEdit && 'newText' in item.textEdit
+        ? item.textEdit.newText
+        : item.label,
+    snippet: item.insertTextFormat === InsertTextFormat.Snippet,
+  }));
 };

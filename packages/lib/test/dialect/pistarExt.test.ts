@@ -341,6 +341,7 @@ describe('piStar-ext annotations', () => {
         to: 22,
         severity: 'error',
         message: 'An element has one stereotype: this one is not read',
+        elementId: 'G1',
       });
     });
 
@@ -357,6 +358,7 @@ describe('piStar-ext annotations', () => {
           to: at + 2,
           severity: 'error',
           message: 'Not a child of this goal',
+          elementId: 'G1',
         },
       ]);
     });
@@ -380,7 +382,15 @@ describe('piStar-ext annotations', () => {
         { runCheck: (_, p) => (p.tagValue === 'bad' ? 'Bad value' : null) },
       );
       expect(found).to.deep.equal([
-        { from: 0, to: 10, severity: 'error', message: 'Bad value' },
+        {
+          from: 0,
+          to: 10,
+          severity: 'error',
+          message: 'Bad value',
+          elementId: 'T1',
+          key: 'tagValue',
+          check: 'tag.value',
+        },
       ]);
       // a stereotype none declares is still read (written as typed)
       expect(lineId(withCheck, `<<x>> ${doc}`)).to.equal('T1');

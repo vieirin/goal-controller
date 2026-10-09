@@ -4,7 +4,7 @@ import {
   type IToken,
 } from 'chevrotain';
 import { DefaultLexer, type LexerResult } from 'langium';
-import { CALL_NAMES, ID_PREFIXES } from './catalog.js';
+import { CALL_NAMES, ID_PREFIXES, OCL_OPERATIONS } from './catalog.js';
 
 /** An id prefix, longest first (`AT` before `T`). */
 const PREFIX = [...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|');
@@ -114,7 +114,7 @@ const VALUES = {
   ocl: rules([
     ...literal('->', '<>', '<=', '>=', '&&', '||'),
     ...literal('.', ',', ':', '|', '(', ')', '[', ']', '=', '<', '>', '!'),
-    ...literal('select', 'forAll', 'exists', 'collect', 'reject'),
+    ...literal(...OCL_OPERATIONS.map((operation) => operation.name)),
     ...literal('in', 'not', 'and', 'or', 'assertion', 'condition', 'trigger'),
     ...literal('true', 'false', 'True', 'False'),
     ['STRING', /"[^"\r\n]*"/],
