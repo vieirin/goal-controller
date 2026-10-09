@@ -444,6 +444,11 @@ export type ExtensionElementDefinition = {
   size?: { width: number; height: number };
   /** SVG path data it is drawn with (presentation only; default: a dashed box with its «label») */
   shape?: string;
+  /**
+   * where its label goes, as fractions of its box cut from each side
+   * (presentation only; e.g. a shape's arrow tip is no place for text)
+   */
+  textBox?: { top: number; right: number; bottom: number; left: number };
 };
 
 /** Which kinds a new link may join: kind names, or the categories `node`, `actor`, `*`. */
