@@ -110,7 +110,11 @@ let services: GoalCoreServices | undefined;
 export const goalServices = (): GoalCoreServices =>
   (services ??= createGoalCoreServices().Goal);
 
-export const syntaxErrorsOf = (result: ParseResult): GoalSyntaxError[] => [
+/** Langium's errors; one at the end of the input (no token) is at `end`. */
+export const syntaxErrorsOf = (
+  result: ParseResult,
+  end = 0,
+): GoalSyntaxError[] => [
   ...result.lexerErrors.map((e) => ({
     line: e.line ?? 1,
     column: (e.column ?? 1) - 1,
@@ -120,11 +124,12 @@ export const syntaxErrorsOf = (result: ParseResult): GoalSyntaxError[] => [
   })),
   ...result.parserErrors.map((e) => {
     const { token } = e;
-    const known = !Number.isNaN(token.startOffset);
+    // the end of the input has no token (Langium's EOF is at -1)
+    const known = Number.isFinite(token.startOffset) && token.startOffset >= 0;
     return {
       line: known ? (token.startLine ?? 1) : 1,
       column: known ? (token.startColumn ?? 1) - 1 : 0,
-      offset: known ? token.startOffset : 0,
+      offset: known ? token.startOffset : end,
       length: known ? token.image.length : 0,
       message: e.message,
     };
@@ -133,7 +138,10 @@ export const syntaxErrorsOf = (result: ParseResult): GoalSyntaxError[] => [
 
 const parse = <T>(start: LexerStart, text: string) => {
   const result = parseWith(goalServices(), start, text);
-  return { root: result.value as T, errors: syntaxErrorsOf(result) };
+  return {
+    root: result.value as T,
+    errors: syntaxErrorsOf(result, text.length),
+  };
 };
 
 // after a syntax error Langium leaves the nodes it could not finish partial

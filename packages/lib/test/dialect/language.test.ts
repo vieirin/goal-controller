@@ -6,7 +6,7 @@ import {
   fieldDiagnostics,
 } from '@goal-controller/goal-language';
 import type { DefinitionContext } from '@goal-controller/dialect';
-import { edgeV2 } from '../../src';
+import { edge, edgeV2 } from '../../src';
 
 const context: DefinitionContext = {
   elements: {
@@ -131,7 +131,7 @@ describe('fieldDiagnostics', () => {
 });
 
 describe('completions', () => {
-  it('offers children inside a notation', () => {
+  it('offers children and the operators each engine enables inside a notation', () => {
     const doc = 'G1: Go [G2;';
     const result = completionsAt(edgeV2, doc, doc.length, context)!;
     expect(result.from).to.equal(doc.length);
@@ -139,6 +139,27 @@ describe('completions', () => {
       'G2',
       'T1',
       'skip',
+      '@3',
+      '|',
+      '?',
+      '+',
+      '#',
+      ';',
+      '->',
+    ]);
+    // Edge: no `?`, no binary `+`; a choice is a standalone `+`
+    expect(
+      completionsAt(edge, doc, doc.length, context)!
+        .options.filter((o) => o.type === 'keyword')
+        .map((o) => [o.label, o.detail]),
+    ).to.deep.equal([
+      ['skip', undefined],
+      ['@3', 'Retry'],
+      ['|', 'Alternative'],
+      ['#', 'Interleaved'],
+      [';', 'Sequence'],
+      ['->', 'Degradation'],
+      ['+', 'Choice (standalone)'],
     ]);
     expect(completionsAt(edgeV2, 'G1: Go', 3, context)).to.equal(null);
   });
@@ -175,6 +196,33 @@ describe('completions', () => {
       'ctx',
       'true',
       'false',
+    ]);
+  });
+});
+
+describe('what each engine allows', () => {
+  it('flags the operators an engine does not read', () => {
+    const doc = 'G1: Go [G2?T1]';
+    expect(documentDiagnostics(edgeV2, doc, context)).to.deep.equal([]);
+    expect(
+      documentDiagnostics(edge, doc, context).map((d) => [
+        doc.slice(d.from, d.to),
+        d.message,
+      ]),
+    ).to.deep.equal([['?', '`?` is not an operator of Edge']]);
+    expect(
+      documentDiagnostics(edgeV2, 'G1: Go [+]', context).map((d) => d.message),
+    ).to.include('A standalone `+` is not a construct of EdgeV2');
+  });
+
+  it('flags values not of their type: dependsOn ids, variables pairs', () => {
+    const messages = (doc: string) =>
+      documentDiagnostics(edgeV2, doc, context).map((d) => d.message);
+    expect(messages('G1: Go [G2;T1]\n  dependsOn G9')).to.deep.equal([
+      'G9 is not an element of this model',
+    ]);
+    expect(messages('G1: Go [G2;T1]\n  variables t:x')).to.deep.equal([
+      't: Not an integer: x',
     ]);
   });
 });

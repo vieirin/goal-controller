@@ -1,7 +1,7 @@
 /**
  * What may be typed at a position, from the definition and the model's
- * context: inside a notation, the element's children and the operand
- * keywords; on a line under an element, the keys its kind reads (not yet
+ * context: inside a notation, the element's children, `skip` and the
+ * operators the dialect enables; on a line under an element, the keys its kind reads (not yet
  * set); in a field, the ids or names its value config refers to.
  */
 import {
@@ -28,6 +28,27 @@ type Definition = Pick<
 >;
 
 const WORD = /[A-Za-z0-9_.]*$/;
+
+/** The operators a dialect enables, with the construct (or modifier) each one is. */
+const operatorOptions = ({ notation }: WithNotation): Completion[] => {
+  const { operators, standalone = {}, constructs, modifiers = {} } = notation;
+  const meaning = (name: string) =>
+    constructs[name]?.label ?? modifiers[name]?.label ?? name;
+  return [
+    ...Object.entries(operators).map(([symbol, name]) => ({
+      label: modifiers[name]
+        ? `${symbol}${modifiers[name].argument.default}`
+        : symbol,
+      type: 'keyword' as const,
+      detail: meaning(name),
+    })),
+    ...Object.entries(standalone).map(([symbol, name]) => ({
+      label: symbol,
+      type: 'keyword' as const,
+      detail: `${meaning(name)} (standalone)`,
+    })),
+  ];
+};
 
 /** Completions in a Notation view document at `pos`, if any apply there. */
 export const completionsAt = (
@@ -64,6 +85,10 @@ export const completionsAt = (
         ...(definition.notation.operand.skip
           ? [{ label: SKIP, type: 'keyword' as const }]
           : []),
+        // between operands: the operators this dialect enables, and only those
+        ...(word
+          ? []
+          : operatorOptions(definition as Definition & WithNotation)),
       ],
     };
   }

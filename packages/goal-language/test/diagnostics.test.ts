@@ -146,7 +146,19 @@ describe('completions', () => {
       'G2',
       'T1',
       'skip',
+      // the operators Toy enables, and only those
+      '@2',
+      ';',
+      '|',
+      '*',
     ]);
+    // a partial id: no operators
+    const typing = 'G1: Go [G';
+    expect(
+      completionsAt(toy, typing, typing.length, context)!.options.map(
+        (o) => o.label,
+      ),
+    ).to.deep.equal(['G2', 'T1', 'skip']);
     expect(completionsAt(toy, 'G1: Go', 3, context)).to.equal(null);
   });
 
@@ -182,6 +194,81 @@ describe('completions', () => {
       'ctx',
       'true',
       'false',
+    ]);
+  });
+});
+
+describe('what the dialect allows', () => {
+  it('flags operators and standalone symbols the dialect does not enable', () => {
+    expect(messages('G1: Go [G2+T1]')).to.deep.equal([
+      ['+', 'error', '`+` is not an operator of Toy'],
+    ]);
+    expect(messages('G1: Go [G2;T1]\nG2: A [+]')).to.deep.equal([
+      ['+', 'error', 'A standalone `+` is not a construct of Toy'],
+    ]);
+    // enabled: ; | @ and a standalone *
+    expect(messages('G1: Go [G2@2|T1]')).to.deep.equal([]);
+  });
+
+  it('flags skip where the dialect has no skip', () => {
+    const strict = {
+      ...toy,
+      notation: { ...toy.notation, operand: { kinds: ['goal', 'task'] } },
+    } as typeof toy;
+    expect(
+      documentDiagnostics(strict, 'G1: Go [G2;T1;skip]', context).map(
+        (d) => d.message,
+      ),
+    ).to.deep.equal(['`skip` is not an operand of Toy']);
+  });
+
+  it('flags values not of their property’s type, options or bounds', () => {
+    expect(
+      messages(
+        'G1: Go [G2;T1]\n  priority urgent\nT1: B\n  after G9, T1\n  guard x >\nR1: R {int 0..9 = yes}',
+      ),
+    ).to.deep.equal([
+      ['priority urgent', 'error', 'One of high, not urgent'],
+      ['after G9, T1', 'error', 'G9 is not an element of this model'],
+      [
+        'guard x >',
+        'error',
+        'Not a condition: Expecting end of file but found `>`.',
+      ],
+      ['{int 0..9 = yes}', 'error', 'Not an integer: yes'],
+    ]);
+    expect(messages('G1: Go [G2;T1]\nT1: B\n  after T1')).to.deep.equal([
+      ['after T1', 'error', 'T1 is a task, not a goal'],
+    ]);
+    expect(
+      messages('G1: Go [G2;T1]\n  priority high\n  deadline 0'),
+    ).to.deep.equal([['deadline 0', 'error', 'At least 1']]);
+  });
+
+  it('checks a field’s value with its type when the engine says nothing', () => {
+    expect(
+      fieldDiagnostics(toy, context, 'R1', 'lowerBound', 'x', () => null),
+    ).to.deep.equal([
+      { from: 0, to: 1, severity: 'error', message: 'Not an integer: x' },
+    ]);
+  });
+
+  it('flags annotations and declarations on kinds that carry none', () => {
+    expect(messages('<<urgent>> G1: Go [G2;T1]\nT1: B {int}')).to.deep.equal([
+      ['<<urgent>>', 'error', 'A goal carries no annotations in Toy'],
+      ['{int}', 'error', 'A task declares nothing on its line in Toy'],
+    ]);
+  });
+
+  it('flags what a line cannot read, once, where it starts', () => {
+    expect(messages('G1: Go [G2;;T1]')).to.deep.equal([
+      [';', 'error', 'Unexpected ;'],
+    ]);
+    expect(messages('G1: Go [G2;T1$]')).to.deep.equal([
+      ['$', 'error', "Not part of the goal language: '$'"],
+    ]);
+    expect(messages('G1: Go [G2;T1')).to.deep.equal([
+      ['1', 'error', 'The line ends before it is complete'],
     ]);
   });
 });

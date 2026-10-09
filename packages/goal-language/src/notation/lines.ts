@@ -53,6 +53,8 @@ export type ElementReading = {
     span: Span;
     tree: RtTree | null;
     refs: { id: string; span: Span }[];
+    /** where `skip` is written */
+    skips: Span[];
     operators: WrittenOperator[];
   } | null;
   declaration: { properties: DeclaredProperties; span: Span } | null;
@@ -90,8 +92,21 @@ const operatorOf = (expr: RtExpr): WrittenOperator | null => {
   const at = (property: string) => propertySpan(expr, property);
   switch (expr.$type) {
     case 'RtBinary': {
-      const span = at('operator');
-      return span && { symbol: expr.operator, form: 'infix', span };
+      // an infix rule's operator is a keyword between its operands
+      const node = expr.$cstNode;
+      if (!node) return null;
+      const after = (expr.left?.$cstNode?.end ?? node.offset) - node.offset;
+      const index = node.text.indexOf(expr.operator, after);
+      return index < 0
+        ? null
+        : {
+            symbol: expr.operator,
+            form: 'infix',
+            span: {
+              from: node.offset + index,
+              to: node.offset + index + expr.operator.length,
+            },
+          };
     }
     case 'RtNot': {
       const span = at('operator');
@@ -199,6 +214,11 @@ const readElement = (
                 ? [{ id: expr.ref.$refText, span }]
                 : [];
             }),
+            skips: exprs.flatMap((node) => {
+              const span =
+                (node as RtExpr).$type === 'RtSkip' && spanOf(node.$cstNode);
+              return span ? [span] : [];
+            }),
             operators: exprs.flatMap((expr) => {
               const op = operatorOf(expr as RtExpr);
               return op ? [op] : [];
@@ -242,7 +262,7 @@ export const readLine = (
     ids ? 'document' : 'plainDocument',
     text,
   );
-  const errors = syntaxErrorsOf(result);
+  const errors = syntaxErrorsOf(result, text.length);
   const root = result.value as Document | PlainDocument;
   const [line] = root.lines;
   if (!line) return { kind: 'blank', errors };

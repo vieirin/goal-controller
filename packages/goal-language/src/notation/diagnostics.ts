@@ -12,6 +12,7 @@ import {
   hasIds,
   propertyOf,
   relationMismatch,
+  valueOf,
   type AnyDialect,
   type DefinitionContext,
   type DefinitionContextElement,
@@ -19,6 +20,7 @@ import {
   type WithNotation,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
+import { valueProblem } from './values.js';
 
 /**
  * Where an element line cannot be read, in its parts: an annotation (before
@@ -28,10 +30,13 @@ const unreadableParts = (
   read: ElementReading,
   written: string,
   declares: boolean,
+  /** whether to report what the element's text cannot read (not while the engine's error shows) */
+  text: boolean,
 ): Diagnostic[] => {
   const found = new Map<string, Diagnostic>();
   const brace = written.indexOf('{', read.textSpan.from);
-  for (const { offset } of read.errors) {
+  for (const error of read.errors) {
+    const { offset } = error;
     if (offset < read.textSpan.from) {
       // the annotation group around it: `<<...>>` or `{...}`
       const from = Math.max(
@@ -59,9 +64,54 @@ const unreadableParts = (
         severity: 'error',
         message: 'This declaration cannot be read',
       });
+    } else if (text && !found.has('text')) {
+      // the first thing the line cannot read (what follows depends on it)
+      const at = Math.min(offset, Math.max(read.textSpan.to - 1, 0));
+      const image = written.slice(offset, offset + error.length).trim();
+      found.set('text', {
+        from: at,
+        to: Math.max(at + 1, Math.min(offset + error.length, written.length)),
+        severity: 'error',
+        message: error.message.startsWith('token recognition error')
+          ? `Not part of the goal language: ${error.message.slice(error.message.indexOf("'"))}`
+          : image
+            ? `Unexpected ${image}`
+            : 'The line ends before it is complete',
+      });
     }
   }
   return [...found.values()];
+};
+
+/** What a notation writes that its dialect does not enable: operators, `skip`. */
+const disabled = (
+  definition: Pick<AnyDialect, 'name'> & WithNotation,
+  notation: NonNullable<ElementReading['notation']>,
+): Diagnostic[] => {
+  const { operators, standalone = {}, operand } = definition.notation;
+  return [
+    ...notation.operators.flatMap(({ symbol, form, span }) =>
+      (form === 'standalone' ? symbol in standalone : symbol in operators)
+        ? []
+        : [
+            {
+              ...span,
+              severity: 'error' as const,
+              message:
+                form === 'standalone'
+                  ? `A standalone \`${symbol}\` is not a construct of ${definition.name}`
+                  : `\`${symbol}\` is not an operator of ${definition.name}`,
+            },
+          ],
+    ),
+    ...(operand.skip
+      ? []
+      : notation.skips.map((span) => ({
+          ...span,
+          severity: 'error' as const,
+          message: `\`skip\` is not an operand of ${definition.name}`,
+        }))),
+  ];
 };
 
 export type Diagnostic = {
@@ -80,7 +130,12 @@ export type RunCheck = (
 
 type Definition = Pick<
   AnyDialect,
-  'elements' | 'notation' | 'properties' | 'propertyLineOrder' | 'problems'
+  | 'name'
+  | 'elements'
+  | 'notation'
+  | 'properties'
+  | 'propertyLineOrder'
+  | 'problems'
 >;
 
 const problem = (
@@ -97,8 +152,9 @@ const problem = (
 });
 
 /**
- * What the engine says of an element's properties, at a position: properties
- * that do not apply (set anyway), and the named checks' messages.
+ * What is wrong with an element's properties, at a position: properties that
+ * do not apply (set anyway), the named engine checks' messages, and values
+ * not of their property's type (or options, bounds, kind of element).
  */
 const propertyDiagnostics = (
   definition: Definition,
@@ -108,6 +164,7 @@ const propertyDiagnostics = (
   keys: Iterable<string>,
   at: (key: string) => { from: number; to: number },
   runCheck: RunCheck | undefined,
+  context: DefinitionContext | undefined,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
   for (const key of keys) {
@@ -125,8 +182,10 @@ const propertyDiagnostics = (
       });
       continue;
     }
+    // the engine's own message first: it says more than the type does
     const message =
-      property.check && runCheck?.(property.check, properties, self);
+      (property.check && runCheck?.(property.check, properties, self)) ||
+      valueProblem(valueOf(property, properties), properties[key]!, context);
     if (message) diagnostics.push({ from, to, severity: 'error', message });
   }
   return diagnostics;
@@ -203,6 +262,7 @@ export const documentDiagnostics = (
         lines.keys(),
         (key) => lines.get(key)!,
         runCheck,
+        context,
       ),
     );
     block = null;
@@ -246,8 +306,28 @@ export const documentDiagnostics = (
         continue;
       }
       const owned = definition.elements[element.kind];
-      for (const d of unreadableParts(read, written, !!owned?.declares))
+      const was = saved[id];
+      const savedError = !!was?.error && was.line === read.text;
+      for (const d of unreadableParts(
+        read,
+        written,
+        !!owned?.declares,
+        !savedError,
+      ))
         diagnostics.push({ ...d, ...at(d) });
+      if (owned && !owned.annotated)
+        for (const { span } of read.annotations)
+          diagnostics.push({
+            ...at(span),
+            severity: 'error',
+            message: `A ${element.kind} carries no annotations in ${definition.name}`,
+          });
+      if (owned && !owned.declares && read.declaration)
+        diagnostics.push({
+          ...at(read.declaration.span),
+          severity: 'error',
+          message: `A ${element.kind} declares nothing on its line in ${definition.name}`,
+        });
       if (owned?.annotated) {
         const spans = new Map<string, { from: number; to: number }>();
         const kinds = new Set<string>();
@@ -276,6 +356,7 @@ export const documentDiagnostics = (
             spans.keys(),
             (key) => spans.get(key)!,
             runCheck,
+            context,
           ),
         );
       }
@@ -291,6 +372,7 @@ export const documentDiagnostics = (
               Object.keys(read.declaration.properties),
               () => span,
               runCheck,
+              context,
             ),
           );
         }
@@ -298,8 +380,7 @@ export const documentDiagnostics = (
       }
       if (!owned) continue;
       block = { id, element, lines: new Map(), values: new Map() };
-      const was = saved[id];
-      if (was?.error && was.line === read.text) {
+      if (savedError) {
         diagnostics.push({
           ...at(read.textSpan),
           severity: 'error',
@@ -310,6 +391,9 @@ export const documentDiagnostics = (
       if (!definition.notation || !read.notation) continue;
       const notated = definition as Definition & WithNotation;
       const notationSpan = at(read.notation.span);
+      diagnostics.push(
+        ...disabled(notated, read.notation).map((d) => ({ ...d, ...at(d) })),
+      );
       const listed: string[] = [];
       for (const ref of read.notation.refs) {
         listed.push(ref.id);
@@ -406,5 +490,6 @@ export const fieldDiagnostics = (
     [key],
     () => ({ from: 0, to: value.length }),
     runCheck,
+    context,
   );
 };
