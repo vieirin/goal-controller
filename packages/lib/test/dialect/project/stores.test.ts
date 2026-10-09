@@ -20,6 +20,7 @@ import {
   promote,
   RECENT_KEY,
   ReadOnlyStoreError,
+  recentId,
   rememberRecent,
   saveProject,
   serializeManifest,
@@ -385,9 +386,141 @@ describe('project Recent', () => {
       name: 'b.txt',
     });
     expect(hasUnsavedEdits(entries[0]!)).to.equal(true);
-    expect(forgetRecent(storage, 'a.txt').map((e) => e.fileName)).to.deep.equal(
-      ['b.txt'],
+    expect(
+      forgetRecent(storage, 'file:a.txt').map((e) => e.fileName),
+    ).to.deep.equal(['b.txt']);
+  });
+
+  it('keeps an edited local file when the example of the same name is opened', () => {
+    const storage = fakeStorage();
+    const example = {
+      kind: 'github',
+      repo: 'vieirin/goal-controller',
+      ref: 'main',
+      path: 'examples/edgeV2',
+    } as const;
+    // a local copy with edits not exported yet (an entry from before projects: no source)
+    rememberRecent(
+      storage,
+      { fileName: 'goalModel_TAS_3_.txt', text: 'EDITED', savedText: 'TAS' },
+      1,
     );
+    rememberRecent(
+      storage,
+      { fileName: 'goalModel_TAS_3_.txt', text: 'TAS', source: example },
+      2,
+    );
+    const entries = loadRecent(storage);
+    expect(
+      entries.map((e) => [e.text, e.source?.kind ?? 'legacy']),
+    ).to.deep.equal([
+      ['TAS', 'github'],
+      ['EDITED', 'legacy'],
+    ]);
+    expect(hasUnsavedEdits(entries[1]!)).to.equal(true);
+    // the same example again, or the local file again, replaces only its own entry
+    rememberRecent(
+      storage,
+      { fileName: 'goalModel_TAS_3_.txt', text: 'TAS2', source: example },
+      3,
+    );
+    rememberRecent(
+      storage,
+      {
+        fileName: 'goalModel_TAS_3_.txt',
+        text: 'EDITED2',
+        savedText: 'TAS',
+        source: { kind: 'file', name: 'goalModel_TAS_3_.txt' },
+      },
+      4,
+    );
+    expect(loadRecent(storage).map((e) => e.text)).to.deep.equal([
+      'EDITED2',
+      'TAS2',
+    ]);
+    expect(loadRecent(storage).map(recentId)).to.deep.equal([
+      'file:goalModel_TAS_3_.txt',
+      'github:vieirin/goal-controller/examples/edgeV2:goalModel_TAS_3_.txt',
+    ]);
+  });
+
+  it('moves an edited entry aside when a clean file with the same identity and other text comes in', () => {
+    const storage = fakeStorage();
+    const name = 'lab.txt';
+    const local = { kind: 'file', name } as const;
+    // an entry from before projects (no source), with edits not exported
+    rememberRecent(
+      storage,
+      { fileName: name, text: 'EDITED', savedText: 'V1' },
+      1,
+    );
+    // a fresh copy of the file opened again: clean, other text
+    rememberRecent(
+      storage,
+      { fileName: name, text: 'V1', savedText: 'V1', source: local },
+      2,
+    );
+    expect(loadRecent(storage).map((e) => [recentId(e), e.text])).to.deep.equal(
+      [
+        ['file:lab.txt', 'V1'],
+        ['file:lab.txt~1', 'EDITED'],
+      ],
+    );
+    // edits going on replace their own entry: the copy aside stays
+    rememberRecent(
+      storage,
+      { fileName: name, text: 'V1+', savedText: 'V1', source: local },
+      3,
+    );
+    // a second fresh copy over new edits: a second copy aside
+    rememberRecent(
+      storage,
+      { fileName: name, text: 'V2', savedText: 'V2', source: local },
+      4,
+    );
+    expect(loadRecent(storage).map((e) => [recentId(e), e.text])).to.deep.equal(
+      [
+        ['file:lab.txt', 'V2'],
+        ['file:lab.txt~2', 'V1+'],
+        ['file:lab.txt~1', 'EDITED'],
+      ],
+    );
+    // the copy aside reopened and edited stays itself
+    rememberRecent(
+      storage,
+      {
+        fileName: name,
+        text: 'EDITED!',
+        savedText: 'V1',
+        source: local,
+        aside: 1,
+      },
+      5,
+    );
+    expect(loadRecent(storage).map((e) => recentId(e))).to.deep.equal([
+      'file:lab.txt~1',
+      'file:lab.txt',
+      'file:lab.txt~2',
+    ]);
+  });
+
+  it('replaces an edited entry on an export or a reopen with its text', () => {
+    const storage = fakeStorage();
+    rememberRecent(
+      storage,
+      { fileName: 'a.txt', text: 'EDITED', savedText: 'V1' },
+      1,
+    );
+    // exported: clean, the same text
+    rememberRecent(
+      storage,
+      { fileName: 'a.txt', text: 'EDITED', savedText: 'EDITED' },
+      2,
+    );
+    expect(loadRecent(storage).map((e) => e.text)).to.deep.equal(['EDITED']);
+    // a clean entry is replaced by any clean file
+    rememberRecent(storage, { fileName: 'a.txt', text: 'OTHER' }, 3);
+    expect(loadRecent(storage).map((e) => e.text)).to.deep.equal(['OTHER']);
   });
 
   it('survives storage that is broken or full', () => {

@@ -9,7 +9,6 @@ import {
   isActor,
   isNode,
   toPistar,
-  updateDiagram,
   updateElement,
   withFileMetamodel,
   type IstarElement,
@@ -27,6 +26,13 @@ import {
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 import {
+  modelSettingsOf,
+  recordedMode,
+  withModelSettings,
+  type EngineOptions,
+} from '../project';
+import { optionKeysOf } from './projectSettings';
+import {
   ENGINE_DIALECTS,
   ENGINE_LABEL,
   isDialectEngine,
@@ -36,7 +42,6 @@ import {
   DIALECTS,
   isDialectMode,
   metamodelOfMode,
-  MODE_PROPERTY,
   parseModel,
   type DialectMode,
 } from './dialects';
@@ -299,48 +304,30 @@ const MODES: readonly ModelMode[] = [
 export const isEngineMode = (mode: ModelMode): mode is TransformEngine =>
   mode !== 'pistar' && !isDialectMode(mode);
 
-/**
- * The mode is kept in the diagram's custom properties (MODE_PROPERTY): piStar keeps them
- * when it opens and saves a file (and shows them as ordinary properties), so the file
- * stays a plain piStar model. A model without it is a piStar model: piStar mode is never
- * written.
- */
-export { MODE_PROPERTY };
-
 const isMode = (value: unknown): value is ModelMode =>
   MODES.includes(value as ModelMode);
 
-/** The engine recorded in the model; null when there is none (a piStar model, or an older file). */
-export const modelMode = (model: IstarModel): ModelMode | null => {
-  const value = model.diagram?.customProperties?.[MODE_PROPERTY];
-  return isMode(value) ? value : null;
-};
-
+/**
+ * The mode recorded in the model (lib/project reads the record: a one-model
+ * project's dialect); null when there is none (a piStar model, an older file)
+ * or the model does not parse.
+ */
 export const readModelMode = (text: string): ModelMode | null => {
   try {
-    return modelMode(parseModel(text));
+    parseModel(text);
   } catch {
     return null;
   }
+  const mode = recordedMode(text);
+  return isMode(mode) ? mode : null;
 };
 
-const withMode = (model: IstarModel, mode: ModelMode): IstarModel => {
-  const { [MODE_PROPERTY]: _previous, ...rest } =
-    model.diagram?.customProperties ?? {};
-  // piStar mode is the absence of an engine
-  return updateDiagram(model, {
-    customProperties:
-      mode === 'pistar' ? rest : { ...rest, [MODE_PROPERTY]: mode },
-  });
-};
-
-/** Record the mode in the model text (formatting kept). */
+/**
+ * Record the mode in the model text; piStar mode is the absence of a record.
+ * The rest of the file stays as it was.
+ */
 export const writeModelMode = (text: string, mode: ModelMode): string =>
-  rewrite(
-    text,
-    (model) => withMode(model, mode),
-    isDialectMode(mode) ? mode : undefined,
-  );
+  withModelSettings(text, { mode: mode === 'pistar' ? null : mode });
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
@@ -531,8 +518,31 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
         `${actors} actors: ${engineSays(target).reads} a single actor`,
       );
   }
+  // the model's options: the ones the target reads stay, the others go (and are listed)
+  let options: EngineOptions | undefined;
+  try {
+    const kept = modelSettingsOf(text).options;
+    const known = new Set<string>(
+      optionKeysOf(isEngineMode(target) ? target : null),
+    );
+    const dropped = Object.keys(kept).filter((key) => !known.has(key));
+    if (dropped.length > 0) {
+      options = Object.fromEntries(
+        Object.entries(kept).filter(([key]) => known.has(key)),
+      );
+      const names = dropped.map((key) => `"${key}"`).join(', ');
+      changes.push(
+        `the model settings lose ${names}: ${engineSays(target).doesNotRead} ${dropped.length > 1 ? 'them' : 'it'}`,
+      );
+    }
+  } catch {
+    // settings that can't be read stay as they are (Problems says why)
+  }
   return {
-    text: serializeModel(withMode(model, target), text),
+    text: withModelSettings(serializeModel(model, text), {
+      mode: target === 'pistar' ? null : target,
+      ...(options && { options }),
+    }),
     changes,
     blockers,
   };

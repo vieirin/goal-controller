@@ -7,7 +7,7 @@ import {
   openProject,
   type ProjectIndexEntry,
 } from '../../../../ui/lib/project';
-import { recordedModeOf } from '../../../../ui/lib/workbench/dialects';
+import { legacyRecordedMode as recordedModeOf } from '../support/models';
 import INDEX from '../../../../ui/lib/examples-manifest.json';
 
 const EXAMPLES = join(__dirname, '../../../../../examples');

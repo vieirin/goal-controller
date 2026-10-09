@@ -25,3 +25,17 @@ export const models = (
       return [];
     }
   });
+
+/**
+ * The mode a model records, read as the workbench read it before projects
+ * (lib/workbench/dialects.ts's recordedModeOf): what the project module's
+ * reading is checked against.
+ */
+export const legacyRecordedMode = (text: string): string | null => {
+  try {
+    const value = JSON.parse(text)?.diagram?.customProperties?.engine;
+    return typeof value === 'string' ? value : null;
+  } catch {
+    return null;
+  }
+};

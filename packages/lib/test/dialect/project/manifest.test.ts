@@ -18,8 +18,10 @@ import {
   withModelSettings,
   type Manifest,
 } from '../../../../ui/lib/project';
-import { recordedModeOf } from '../../../../ui/lib/workbench/dialects';
-import { models } from '../support/models';
+import {
+  legacyRecordedMode as recordedModeOf,
+  models,
+} from '../support/models';
 
 const isModel = (text: string) => {
   if (!Array.isArray(JSON.parse(text).actors)) throw new Error('not a model');

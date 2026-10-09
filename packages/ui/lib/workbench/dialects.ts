@@ -33,6 +33,8 @@ import {
   type ModelExtension,
 } from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
+// the mode a model records: read by the project module, the one place that knows where
+import { recordedMode } from '../project';
 
 /** The dialects, by the mode a model records for them. */
 export const DIALECTS = {
@@ -106,22 +108,6 @@ export const DIALECT_DEFINITIONS = {
 } satisfies Record<DialectMode, unknown>;
 
 /**
- * The model's mode is kept in the diagram's custom properties (piStar keeps
- * them, so the file stays a plain piStar model).
- */
-export const MODE_PROPERTY = 'engine';
-
-/** The mode a model text records, read without parsing it (its kinds depend on it). */
-export const recordedModeOf = (text: string): string | null => {
-  try {
-    const value = JSON.parse(text)?.diagram?.customProperties?.[MODE_PROPERTY];
-    return typeof value === 'string' ? value : null;
-  } catch {
-    return null;
-  }
-};
-
-/**
  * The metamodel a mode reads a model with: its dialect's with what the model
  * adds, or iStar 2.0. Throws as istar-ts does when the model's kinds collide
  * with the dialect's.
@@ -155,7 +141,7 @@ export const metamodelOfMode = (
  */
 export const parseModel = (
   text: string,
-  mode: string | null = recordedModeOf(text),
+  mode: string | null = recordedMode(text),
 ): IstarModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, { metamodel: ISTAR_2_0 }) as unknown as IstarModel;

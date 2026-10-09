@@ -25,7 +25,6 @@ import {
   modelDialect,
   modelExtensionOf,
   parseModel,
-  recordedModeOf,
 } from '../../../ui/lib/workbench/dialects';
 import {
   mergeProblems,
@@ -45,7 +44,7 @@ import {
   writeModelExtension,
   writeModelMode,
 } from '../../../ui/lib/workbench/pistar';
-import { models } from './support/models';
+import { legacyRecordedMode as recordedModeOf, models } from './support/models';
 
 const MODEL = readFileSync(
   join(__dirname, '../../../../examples/edgeV2/goalModel_TAS_3_.txt'),
