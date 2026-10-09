@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useRef } from 'react';
+import { MODEL_NAMESPACE } from '@goal-controller/dialect';
 import {
   modelDialect,
   modelExtensionOf,
@@ -17,15 +18,15 @@ import { useWorkbench } from '../../WorkbenchContext';
 export const usePistarExt = (): ModelDialect => {
   const { text } = useWorkbench();
   const additions = JSON.stringify(modelExtensionOf(text));
-  const last = useRef<ModelDialect>(modelDialect('pistarext', ''));
+  const last = useRef<ModelDialect>(
+    modelDialect('pistarext', { name: MODEL_NAMESPACE }),
+  );
   return useMemo(() => {
     try {
-      last.current = modelDialect('pistarext', text);
+      last.current = modelDialect('pistarext', JSON.parse(additions));
     } catch {
       // kept
     }
     return last.current;
-    // the additions are what matters of the text
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [additions]);
 };

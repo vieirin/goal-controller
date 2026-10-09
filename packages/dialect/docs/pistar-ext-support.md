@@ -821,7 +821,7 @@ path data as is.
 - the construct joins the palette at once.
 
 **Where constructs are kept** (this answers open question 1's sequel,
-per-model extension editing):
+per-model extension editing; superseded by istar-ts 0.11.0, below):
 
 - piStar-ext keeps constructs in localStorage. Here they are the model's, in
   its file, under a top-level `modelExtension` key (piStar and istar-ts keep
@@ -874,6 +874,60 @@ wide for its box is ellipsized at full size instead of shrinking first.
 - Seen in Chrome: Robot's `<<goal-b…`, Nurse's `<<utility-…`, Sample kit's
   `{Reference to …` and Planning's `{Status = …`. The client fitting showed
   these whole at a smaller size.
+
+### A model's own constructs in istar-ts's block (istar-ts 0.11.0, current)
+
+istar-ts 0.11.0 reads a file's own `"metamodel"` block: its kinds extend the
+host metamodel (here iStar 2.0 + iStar4RationalAgents) before parsing, with
+collisions checked, and `toPistar` writes the block back as read, keys it
+doesn't know included. So a model's own constructs now live there:
+
+```json
+"metamodel": {
+  "name": "model",
+  "elements": [
+    { "kind": "model.Mission", "label": "Mission", "pistarType": "istar.Mission",
+      "category": "node", "shape": { "path": "M 0 0 L 80 0 L 100 20 L 80 40 L 0 40 Z" } }
+  ],
+  "links": [
+    { "kind": "model.Assigns", "label": "Assigns", "pistarType": "istar.Assigns",
+      "rules": { "sources": ["model.Mission"], "targets": ["istar.Goal"] },
+      "line": { "dash": "1,3" } }
+  ],
+  "groupers": { "missions": ["model.Mission", "istar.Task"] },
+  "stereotypes": [{ "name": "urgent", "appliesTo": ["missions"] }],
+  "taggedValues": [{ "name": "deadline", "appliesTo": ["model.Mission"] }]
+}
+```
+
+- `name`, `elements` and `links` are istar-ts's (`FileMetamodel`): it reads,
+  checks (a kind or piStar type taken, an unknown kind) and draws them
+  (`registryForMetamodel` takes `shape`, `textBox` and `line` from them).
+- `groupers`, `stereotypes` and `taggedValues` are ours, extra keys istar-ts
+  keeps. `withModelEntries` (`@goal-controller/dialect`) merges them, and
+  the kinds, with the dialect for the profiles, the catalog and the Notation
+  lines, and rejects a name the dialect already has.
+- A piStar-ext model is read with `parsePistar(text, { metamodel: host,
+  fileMetamodel: true })`; "Add new" and the category tabs write with
+  `withFileMetamodel` (`writeModelExtension` in the UI's `pistar.ts`). An
+  emptied block is removed, and a kind still used can't be dropped.
+- The Edge modes don't apply the block: a model using its kinds is rejected
+  there, with the hint.
+
+**Migration.** The top-level `modelExtension` key is gone; its content moves
+into `metamodel` unchanged but for two fields: a kind's `shape` is
+`{ "path": "<d>" }` instead of the path string, and a link's `line.dash` is
+an SVG dash array (`"10,5"`, `"1,3"`) instead of `"dashed"`/`"dotted"`. The
+examples had no such block, so none was rewritten. Deleted: the
+`modelExtension` key and its reader/writer, `withModelExtension` (now
+`withModelEntries`, without the kind and piStar-type collision checks,
+which istar-ts makes), `newNodeKind`/`newLinkKind`, `modelExtensionKinds`,
+and `modelDialect`'s cache of metamodels by block.
+
+Verified in Chrome on :3000: a new piStar-ext model, "Add new" Mission with
+a shape (palette, then placed in an actor, drawn with its shape), the source
+showing the block, reopened from Recent and drawn again; a stereotype added
+for Mission written into the same block; "Planning" refused in the dialog.
 
 ## Pre-existing failure, unrelated
 

@@ -4,61 +4,58 @@ import {
   extensionCatalog,
   isEmptyModelExtension,
   metamodelExtensionOf,
-  modelExtensionKinds,
-  newLinkKind,
-  newNodeKind,
   profileOf,
   takenName,
-  withModelExtension,
+  withModelEntries,
   type ExtensionDefinition,
+  type ModelExtension,
 } from '../src';
 import { toyDialect } from './support/toy';
 
 const dialect = toyDialect as ExtensionDefinition;
 
 describe('model extensions', () => {
-  const mission = newNodeKind('Mission', 'M 0 0 L 10 0 L 10 10 Z');
-  const assigns = newLinkKind(
-    'Assigns',
-    { sources: ['model.Mission'], targets: ['istar.Goal'] },
-    { dash: 'dotted' },
-  );
-
-  it("makes kinds as piStar-ext's Add new does", () => {
-    expect(mission).to.deep.equal({
-      kind: 'model.Mission',
-      label: 'Mission',
-      category: 'node',
-      pistarType: 'istar.Mission',
-      size: { width: 90, height: 55 },
-      shape: 'M 0 0 L 10 0 L 10 10 Z',
-    });
-    expect(assigns).to.include({
-      kind: 'model.Assigns',
-      pistarType: 'istar.Assigns',
-    });
-    expect(newNodeKind('Plain', undefined)).to.not.have.property('shape');
-  });
+  // as a file's "metamodel" block has them: istar-ts's kinds, our entries beside them
+  const model: ModelExtension = {
+    name: 'model',
+    elements: [
+      {
+        kind: 'model.Mission',
+        label: 'Mission',
+        category: 'node',
+        pistarType: 'istar.Mission',
+        shape: { path: 'M 0 0 L 10 0 L 10 10 Z' },
+      },
+    ],
+    links: [
+      {
+        kind: 'model.Assigns',
+        label: 'Assigns',
+        pistarType: 'istar.Assigns',
+        rules: { sources: ['model.Mission'], targets: ['istar.Goal'] },
+        line: { dash: '1,3' },
+      },
+    ],
+    groupers: { missions: ['model.Mission', 'istar.Task'] },
+    stereotypes: [{ name: 'late', appliesTo: ['missions'] }],
+    taggedValues: [{ name: 'deadline', appliesTo: ['model.Mission'] }],
+  };
 
   it('is read with its dialect: kinds, links, groupers, stereotypes and tags', () => {
-    const model = {
-      elements: [mission],
-      links: [assigns],
-      groupers: { missions: ['model.Mission', 'istar.Task'] },
-      stereotypes: [{ name: 'late', appliesTo: ['missions'] }],
-      taggedValues: [{ name: 'deadline', appliesTo: ['model.Mission'] }],
-    };
     expect(isEmptyModelExtension(model)).to.equal(false);
-    expect([...modelExtensionKinds(model)]).to.deep.equal([
-      'model.Mission',
-      'model.Assigns',
-    ]);
-    const read = withModelExtension(dialect, model);
+    const read = withModelEntries(dialect, model);
     expect(read.elements.map((e) => e.kind)).to.deep.equal([
       'toyish.Plan',
       'toyish.Box',
       'model.Mission',
     ]);
+    // istar-ts draws the model's kinds: their drawing is not the dialect's
+    expect(read.elements[2]).to.deep.equal({
+      kind: 'model.Mission',
+      label: 'Mission',
+      category: 'node',
+      pistarType: 'istar.Mission',
+    });
     expect(profileOf(read, 'model.Mission').stereotypes).to.deep.equal([
       'late',
     ]);
@@ -68,10 +65,7 @@ describe('model extensions', () => {
     ]);
     expect(
       extensionCatalog(read).find((c) => c.id === 'groupers')?.entries,
-    ).to.deep.include({
-      name: 'missions',
-      appliesTo: ['Mission', 'Task'],
-    });
+    ).to.deep.include({ name: 'missions', appliesTo: ['Mission', 'Task'] });
     expect(metamodelExtensionOf(read).links.map((l) => l.kind)).to.deep.equal([
       'toyish.Feeds',
       'model.Assigns',
@@ -79,21 +73,15 @@ describe('model extensions', () => {
   });
 
   it('adds nothing when it is empty', () => {
-    expect(isEmptyModelExtension({})).to.equal(true);
-    expect(withModelExtension(dialect, {})).to.equal(dialect);
+    expect(isEmptyModelExtension({ name: 'model' })).to.equal(true);
+    expect(withModelEntries(dialect, { name: 'model' })).to.equal(dialect);
   });
 
-  it('rejects names the dialect or iStar already has', () => {
-    const bad = (model: Parameters<typeof withModelExtension>[1]) => () =>
-      withModelExtension(dialect, model);
-    expect(bad({ elements: [newNodeKind('Box', undefined)] })).to.throw(
-      /the model's extension: Box is already a kind/,
-    );
-    expect(bad({ elements: [newNodeKind('task', undefined)] })).to.throw(
-      /task is already a kind/,
-    );
+  it('rejects groupers, stereotypes and tagged values the dialect already has', () => {
+    const bad = (entries: Omit<ModelExtension, 'name'>) => () =>
+      withModelEntries(dialect, { name: 'model', ...entries });
     expect(bad({ groupers: { agents: ['istar.Task'] } })).to.throw(
-      /agents is already a grouper/,
+      /the model's extension: agents is already a grouper/,
     );
     expect(
       bad({ stereotypes: [{ name: 'Smart', appliesTo: ['istar.Goal'] }] }),
@@ -101,18 +89,11 @@ describe('model extensions', () => {
     expect(
       bad({ taggedValues: [{ name: 'note', appliesTo: ['istar.Goal'] }] }),
     ).to.throw(/note is already a tagged value/);
-    expect(
-      bad({
-        elements: [
-          { ...newNodeKind('Mission', undefined), pistarType: 'istar.Plan' },
-        ],
-      }),
-    ).to.throw(/istar.Plan is already a Toyish kind/);
   });
 
   it('rejects kinds outside its namespace, and names nobody declares', () => {
-    const bad = (model: Parameters<typeof withModelExtension>[1]) => () =>
-      withModelExtension(dialect, model);
+    const bad = (entries: Omit<ModelExtension, 'name'>) => () =>
+      withModelEntries(dialect, { name: 'model', ...entries });
     expect(
       bad({ elements: [{ kind: 'other.Mission', category: 'node' }] }),
     ).to.throw(/not in the model namespace/);

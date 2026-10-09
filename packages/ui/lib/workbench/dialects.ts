@@ -10,18 +10,22 @@ import {
   createEmptyModel,
   defineMetamodelExtension,
   extendMetamodel,
+  fileMetamodelExtension,
+  fileMetamodelOf,
+  FILE_METAMODEL_KEY,
   isActorIn,
   ISTAR_2_0,
   metamodelOf,
   parsePistar,
+  validateFileMetamodel,
   type AnyMetamodel,
   type IstarModel,
 } from '@istar-ts/core';
 import {
   dialectDefinition,
-  isEmptyModelExtension,
   metamodelExtensionOf,
-  withModelExtension,
+  MODEL_NAMESPACE,
+  withModelEntries,
   type AnyDialect,
   type DocumentNode,
   type DocumentTree,
@@ -44,33 +48,32 @@ export const DIALECT_LABEL: Record<DialectMode, string> = {
 export const isDialectMode = (mode: unknown): mode is DialectMode =>
   typeof mode === 'string' && mode in DIALECTS;
 
-/**
- * What a model adds to its dialect (its own kinds, links, groupers,
- * stereotypes and tagged values) is kept in the file, under this key: piStar
- * keeps unknown keys, and so does @istar-ts/core.
- */
-export const MODEL_EXTENSION_KEY = 'modelExtension';
+/** The metamodel a dialect's models are read with: iStar 2.0 with its kinds and links. */
+const HOSTS = Object.fromEntries(
+  Object.entries(DIALECTS).map(([mode, dialect]) => [
+    mode,
+    extendMetamodel(
+      ISTAR_2_0,
+      defineMetamodelExtension(metamodelExtensionOf(dialect)),
+    ),
+  ]),
+) as Record<DialectMode, AnyMetamodel>;
 
-/** What a model text adds to its dialect, read without parsing it (none: `{}`). */
+/**
+ * What a model adds to its dialect is kept in its file, in istar-ts's
+ * `"metamodel"` block (FILE_METAMODEL_KEY): its own kinds and links, which
+ * istar-ts reads, checks, draws and writes, and beside them its own
+ * groupers, stereotypes and tagged values (ours; istar-ts keeps them).
+ * This is the block a model text has, read without parsing it (none: an empty one).
+ */
 export const modelExtensionOf = (text: string): ModelExtension => {
   try {
-    const value = JSON.parse(text)?.[MODEL_EXTENSION_KEY];
-    return value && typeof value === 'object' ? value : {};
+    const value = JSON.parse(text)?.[FILE_METAMODEL_KEY];
+    if (value && typeof value === 'object') return value;
   } catch {
-    return {};
+    // none
   }
-};
-
-/** A model text with what it adds to its dialect (none: the key goes), its formatting kept. */
-export const writeModelExtension = (
-  text: string,
-  model: ModelExtension,
-): string => {
-  const json = JSON.parse(text);
-  if (isEmptyModelExtension(model)) delete json[MODEL_EXTENSION_KEY];
-  else json[MODEL_EXTENSION_KEY] = model;
-  const indent = /\n([ \t]+)"/.exec(text)?.[1] ?? '  ';
-  return JSON.stringify(json, null, indent) + (text.endsWith('\n') ? '\n' : '');
+  return { name: MODEL_NAMESPACE };
 };
 
 /** A dialect as one model has it: with what the model adds. */
@@ -82,40 +85,24 @@ export type ModelDialect = {
   extension: ExtensionDefinition;
   /** its definition: lines, stereotypes and tagged values */
   definition: AnyDialect;
-  /** iStar 2.0 with its kinds and links */
-  metamodel: AnyMetamodel;
 };
 
-const dialects = new Map<string, ModelDialect>();
-
 /**
- * A dialect with what a model text adds; throws why the text's additions
- * cannot be read with it (a name the dialect has, an unknown kind). Kept by
- * dialect and additions, so a model's edits reuse it.
+ * A dialect with what a model adds; throws why the model's groupers,
+ * stereotypes or tagged values cannot be read with it (its kinds are
+ * istar-ts's to check, when the model is read).
  */
-export const modelDialect = (mode: DialectMode, text: string): ModelDialect => {
-  const model = modelExtensionOf(text);
-  const key = `${mode}|${JSON.stringify(model)}`;
-  const known = dialects.get(key);
-  if (known) return known;
-  const extension = withModelExtension(DIALECTS[mode], model);
-  const read: ModelDialect = {
-    mode,
-    model,
-    extension,
-    definition: dialectDefinition(extension),
-    metamodel: extendMetamodel(
-      ISTAR_2_0,
-      defineMetamodelExtension(metamodelExtensionOf(extension)),
-    ),
-  };
-  dialects.set(key, read);
-  return read;
+export const modelDialect = (
+  mode: DialectMode,
+  model: ModelExtension,
+): ModelDialect => {
+  const extension = withModelEntries(DIALECTS[mode], model);
+  return { mode, model, extension, definition: dialectDefinition(extension) };
 };
 
 /** Each dialect's own definition, without a model's additions. */
 export const DIALECT_DEFINITIONS = {
-  pistarext: modelDialect('pistarext', '').definition,
+  pistarext: modelDialect('pistarext', { name: MODEL_NAMESPACE }).definition,
 } satisfies Record<DialectMode, unknown>;
 
 /**
@@ -136,13 +123,22 @@ export const recordedModeOf = (text: string): string | null => {
 
 /**
  * The metamodel a mode reads a model with: its dialect's with what the model
- * adds, or iStar 2.0.
+ * adds, or iStar 2.0. Throws as istar-ts does when the model's kinds collide
+ * with the dialect's.
  */
 export const metamodelOfMode = (
   mode: string | null,
   text = '',
-): AnyMetamodel =>
-  isDialectMode(mode) ? modelDialect(mode, text).metamodel : ISTAR_2_0;
+): AnyMetamodel => {
+  if (!isDialectMode(mode)) return ISTAR_2_0;
+  const block = JSON.parse(text || '{}')?.[FILE_METAMODEL_KEY];
+  return block
+    ? extendMetamodel(
+        HOSTS[mode],
+        fileMetamodelExtension(validateFileMetamodel(block)),
+      )
+    : HOSTS[mode];
+};
 
 /*
  * A model read with a dialect is typed as an iStar 2.0 one: the workbench's
@@ -153,20 +149,29 @@ export const metamodelOfMode = (
 
 /**
  * Parses a piStar file with the metamodel of `mode` (by default, of the mode
- * the file records); throws as `parsePistar` does.
+ * the file records): a dialect's with the file's own block applied (istar-ts
+ * remembers it, and writes it back); throws as `parsePistar` does, or why the
+ * block's groupers, stereotypes or tagged values cannot be read.
  */
 export const parseModel = (
   text: string,
   mode: string | null = recordedModeOf(text),
-): IstarModel =>
-  parsePistar(text, {
-    metamodel: metamodelOfMode(mode, text),
-  }) as unknown as IstarModel;
+): IstarModel => {
+  if (!isDialectMode(mode))
+    return parsePistar(text, { metamodel: ISTAR_2_0 }) as unknown as IstarModel;
+  const model = parsePistar(text, {
+    metamodel: HOSTS[mode],
+    fileMetamodel: true,
+  });
+  const block = fileMetamodelOf(model);
+  if (block) withModelEntries(DIALECTS[mode], block as ModelExtension);
+  return model as unknown as IstarModel;
+};
 
 /** An empty model for a mode (a dialect's may use its kinds). */
 export const emptyModel = (mode: string | null = null): IstarModel =>
   createEmptyModel(undefined, {
-    metamodel: metamodelOfMode(mode),
+    metamodel: isDialectMode(mode) ? HOSTS[mode] : ISTAR_2_0,
   }) as unknown as IstarModel;
 
 /** The dialect that reads a model its recorded mode cannot (its kinds are the dialect's), if any. */

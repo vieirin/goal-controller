@@ -5,11 +5,7 @@ import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
 import { StringStream } from '../../../ui/node_modules/@codemirror/language';
-import {
-  extensionCatalog,
-  newNodeKind,
-  type AnyDialect,
-} from '@goal-controller/dialect';
+import { extensionCatalog, type AnyDialect } from '@goal-controller/dialect';
 import { edgeV2 } from '../../src';
 import { documentParser } from '../../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
@@ -30,12 +26,12 @@ import {
   modelExtensionOf,
   parseModel,
   recordedModeOf,
-  writeModelExtension,
 } from '../../../ui/lib/workbench/dialects';
 import { jsonProblem } from '../../../ui/lib/workbench/localProblems';
 import {
   planConversion,
   serializeModel,
+  writeModelExtension,
   writeModelMode,
 } from '../../../ui/lib/workbench/pistar';
 import { models } from './support/models';
@@ -298,14 +294,20 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
     join(__dirname, '../../../../examples/pistar-ext/minimal.txt'),
     'utf8',
   );
+  const MISSION = {
+    kind: 'model.Mission',
+    label: 'Mission',
+    pistarType: 'istar.Mission',
+    category: 'node',
+    shape: { path: 'M 0 0 L 60 0 L 80 20 L 60 40 L 0 40 Z' },
+  } as const;
   // as the workbench writes it: recorded for piStar-ext, a Mission construct
   // added with "Add new", then a Mission element in the agent
   const withMission = (() => {
     const recorded = writeModelMode(MINIMAL, 'pistarext');
-    const extended = writeModelExtension(recorded, {
-      elements: [
-        newNodeKind('Mission', 'M 0 0 L 60 0 L 80 20 L 60 40 L 0 40 Z'),
-      ],
+    const extended = writeModelExtension(recorded, 'pistarext', {
+      name: 'model',
+      elements: [MISSION],
     });
     const json = JSON.parse(extended);
     json.actors[0].nodes.push({
@@ -319,7 +321,11 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
     return JSON.stringify(json, null, 2) + '\n';
   })();
 
-  it('keeps the construct in the file, saved as piStar-ext saves it', () => {
+  it("keeps the construct in istar-ts's block, saved as piStar-ext saves it", () => {
+    expect(JSON.parse(withMission).metamodel).to.deep.equal({
+      name: 'model',
+      elements: [MISSION],
+    });
     expect(modelExtensionOf(withMission).elements?.[0]).to.include({
       kind: 'model.Mission',
       pistarType: 'istar.Mission',
@@ -337,8 +343,26 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
     );
     // and its extension, written again unchanged, too
     expect(
-      writeModelExtension(withMission, modelExtensionOf(withMission)),
+      writeModelExtension(
+        withMission,
+        'pistarext',
+        modelExtensionOf(withMission),
+      ),
     ).to.equal(withMission);
+  });
+
+  it('keeps the kinds its elements use, and drops the block when empty', () => {
+    expect(() =>
+      writeModelExtension(withMission, 'pistarext', { name: 'model' }),
+    ).to.throw(/model.Mission/);
+    const recorded = writeModelMode(MINIMAL, 'pistarext');
+    const extended = writeModelExtension(recorded, 'pistarext', {
+      name: 'model',
+      elements: [MISSION],
+    });
+    expect(
+      writeModelExtension(extended, 'pistarext', { name: 'model' }),
+    ).to.equal(recorded);
   });
 
   it('is rejected by the Edge modes, with the hint', () => {
@@ -358,29 +382,44 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
   });
 
   it('rejects a construct the dialect already has', () => {
-    const clash = writeModelExtension(withMission, {
-      elements: [newNodeKind('Planning', undefined)],
+    const json = JSON.parse(withMission);
+    json.metamodel.elements.push({
+      kind: 'model.Planning',
+      label: 'Planning',
+      category: 'node',
+      pistarType: 'istar.Planning',
     });
+    const clash = JSON.stringify(json, null, 2) + '\n';
     let error: Error | null = null;
     try {
       parseModel(clash);
     } catch (e) {
       error = e as Error;
     }
-    expect(error?.message).to.match(/Planning is already a kind/);
+    expect(error?.name).to.equal('MetamodelError');
     expect(jsonProblem(clash, error!).message).to.equal(
-      "This model's own extension can't be read: Planning is already a kind",
+      'This model\'s own extension can\'t be read: pistarType "istar.Planning" of kind "model.Planning" is already used by another kind',
     );
+    // and "Add new" says so, writing nothing
+    expect(() =>
+      writeModelExtension(withMission, 'pistarext', {
+        name: 'model',
+        elements: [MISSION, json.metamodel.elements[1]],
+      }),
+    ).to.throw(/istar.Planning/);
   });
 
   it("lists the model's own entries with the dialect's", () => {
-    const read = modelDialect(
-      'pistarext',
-      writeModelExtension(withMission, {
-        elements: modelExtensionOf(withMission).elements,
-        stereotypes: [{ name: 'urgent', appliesTo: ['model.Mission'] }],
-      }),
-    );
+    const text = writeModelExtension(withMission, 'pistarext', {
+      ...modelExtensionOf(withMission),
+      stereotypes: [{ name: 'urgent', appliesTo: ['model.Mission'] }],
+    });
+    // beside istar-ts's kinds, in the same block
+    expect(JSON.parse(text).metamodel.stereotypes).to.deep.equal([
+      { name: 'urgent', appliesTo: ['model.Mission'] },
+    ]);
+    expect(serializeModel(parseModel(text), text)).to.equal(text);
+    const read = modelDialect('pistarext', modelExtensionOf(text));
     expect(read.model.stereotypes).to.deep.equal([
       { name: 'urgent', appliesTo: ['model.Mission'] },
     ]);
@@ -388,5 +427,12 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       extensionCatalog(read.extension)[0]!.entries.map((e) => e.name),
     ).to.include('urgent');
     expect(Object.keys(read.definition.elements)).to.include('model.Mission');
+    // one the dialect has: the dialect says so, the text is not written
+    expect(() =>
+      writeModelExtension(withMission, 'pistarext', {
+        ...modelExtensionOf(withMission),
+        stereotypes: [{ name: 'action', appliesTo: ['model.Mission'] }],
+      }),
+    ).to.throw(/action is already a stereotype/);
   });
 });

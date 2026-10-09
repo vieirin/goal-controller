@@ -3,16 +3,14 @@
 import {
   ISTAR_NODE_KINDS,
   kindLabel,
-  newLinkKind,
-  newNodeKind,
+  MODEL_NAMESPACE,
   takenName,
-  withModelExtension,
-  type ExtensionLinkDefinition,
+  type ModelExtension,
 } from '@goal-controller/dialect';
-import { shapeViewBox } from '@istar-ts/react';
+import { LINE_DASHES, shapeViewBox } from '@istar-ts/react';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
-import { DIALECTS, writeModelExtension } from '@/lib/workbench/dialects';
+import { writeModelExtension } from '@/lib/workbench/pistar';
 import { useWorkbench } from '../../WorkbenchContext';
 import { Button, IconButton, cx } from '../../ui';
 import { inputClass } from '../shared/inspector';
@@ -22,8 +20,9 @@ import { usePistarExt } from './usePistarExt';
  * piStar-ext's "Add new" (its paper's Fig. 4): a new construct for this model,
  * a node drawn with SVG path data, or a link between kinds, with a line and a
  * marker. It joins the palette at once. piStar-ext keeps constructs in the
- * browser; here they are the model's, kept in its file (saved as
- * `istar.<Name>`, piStar-ext's type for them).
+ * browser; here they are the model's, in its file's `"metamodel"` block, which
+ * istar-ts reads, checks and draws (saved as `istar.<Name>`, piStar-ext's
+ * type for them).
  */
 export default function AddConstruct() {
   const [open, setOpen] = useState(false);
@@ -86,26 +85,44 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (problem) return setError(problem);
-    const next =
+    const path = shape.trim();
+    // a node goes inside actors, at a node's size (istar-ts's default)
+    const kind = {
+      kind: `${MODEL_NAMESPACE}.${named}`,
+      label: named,
+      pistarType: `istar.${named}`,
+    };
+    const dash = LINE_DASHES[line];
+    const next: ModelExtension =
       type === 'node'
         ? {
             ...model,
-            elements: [...(model.elements ?? []), newNodeKind(named, shape)],
+            elements: [
+              ...(model.elements ?? []),
+              {
+                ...kind,
+                category: 'node',
+                ...(path ? { shape: { path } } : {}),
+              },
+            ],
           }
         : {
             ...model,
             links: [
               ...(model.links ?? []),
-              newLinkKind(named, { sources, targets }, {
-                dash: line,
-                ...(shape.trim() ? { marker: shape.trim() } : {}),
-              } satisfies NonNullable<ExtensionLinkDefinition['line']>),
+              {
+                ...kind,
+                rules: { sources, targets },
+                line: {
+                  ...(dash ? { dash } : {}),
+                  ...(path ? { marker: path } : {}),
+                },
+              },
             ],
           };
     try {
-      // the dialect must take it (it says why not)
-      withModelExtension(DIALECTS.pistarext, next);
-      wb.setText(writeModelExtension(wb.text, next), 'inspector');
+      // istar-ts and the dialect must take it (they say why not)
+      wb.setText(writeModelExtension(wb.text, 'pistarext', next), 'inspector');
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

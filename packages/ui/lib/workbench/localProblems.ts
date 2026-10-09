@@ -6,7 +6,11 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { notationDefinitionOf } from './engineDialects';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
-import { isValidName, relationMismatch } from '@goal-controller/dialect';
+import {
+  isValidName,
+  MODEL_NAMESPACE,
+  relationMismatch,
+} from '@goal-controller/dialect';
 import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 
@@ -24,12 +28,15 @@ export const nodeIdInMessage = (message: string): string | undefined => {
 };
 
 export const jsonProblem = (text: string, error: Error): Problem => {
-  // what the model adds to its dialect, which the dialect can't take
-  if (error.message.startsWith("the model's extension"))
+  // what the model adds to its dialect, which the dialect (or istar-ts) can't take
+  if (
+    error.message.startsWith("the model's extension") ||
+    error.message.startsWith(`extension "${MODEL_NAMESPACE}"`)
+  )
     return {
       severity: 'error',
       source: 'json',
-      message: `This model's own extension can't be read: ${error.message.replace("the model's extension: ", '')}`,
+      message: `This model's own extension can't be read: ${error.message.replace(/^(the model's extension|extension "[^"]*"): /, '')}`,
     };
   // valid JSON with kinds its mode doesn't have: a dialect's, when one reads it
   const dialect = dialectThatReads(text);

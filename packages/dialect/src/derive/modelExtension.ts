@@ -1,9 +1,11 @@
 /**
- * What one model adds to its dialect, kept in the model file: its own kinds
- * and links (with how they are drawn), groupers, stereotypes and tagged
- * values. Read with the dialect, it is one ExtensionDefinition; what the model
- * adds is told apart (its entries are the model's to edit, the dialect's are
- * not). Nothing here knows a dialect.
+ * What one model adds to its dialect, kept in the model file: istar-ts's
+ * `"metamodel"` block (the model's own kinds and links, with how they are
+ * drawn; istar-ts reads, checks and writes them), and beside them, in the same
+ * block, the model's own groupers, stereotypes and tagged values (ours).
+ * Read with the dialect, it is one ExtensionDefinition; what the model adds is
+ * told apart (its entries are the model's to edit, the dialect's are not).
+ * Nothing here knows a dialect.
  */
 import {
   ISTAR_ACTOR_KINDS,
@@ -11,26 +13,54 @@ import {
   ISTAR_NODE_KINDS,
   defineExtension,
   type ExtensionDefinition,
-  type ExtensionElementDefinition,
-  type ExtensionLinkDefinition,
   type LinkRulesDefinition,
   type StereotypeDefinition,
   type TaggedValueDefinition,
 } from '../schema';
-import { kindLabel } from './extensions';
+import { defined, kindLabel } from './extensions';
 
-/** The namespace of a model's own kinds (`model.Mission`). */
+/** The namespace of a model's own kinds (`model.Mission`), and its block's name. */
 export const MODEL_NAMESPACE = 'model';
 
+/** A node or actor kind the model declares (istar-ts's `FileElementKind`, as far as it is read here). */
+export type ModelElementKind = {
+  kind: string;
+  label?: string;
+  category?: 'node' | 'actor';
+  behavesLike?: string;
+  pistarType?: string;
+  size?: { width: number; height: number };
+  /** drawn by istar-ts */
+  shape?: { path: string; viewBox?: string };
+  textBox?: { top: number; right: number; bottom: number; left: number };
+};
+
+/** A link kind the model declares (istar-ts's `FileLinkKind`, as far as it is read here). */
+export type ModelLinkKind = {
+  kind: string;
+  label?: string;
+  behavesLike?: string;
+  rules?: LinkRulesDefinition;
+  pistarType?: string;
+  /** drawn by istar-ts: an SVG dash array, a marker path */
+  line?: { dash?: string; marker?: string | false; markerFilled?: boolean };
+};
+
+/**
+ * The file's `"metamodel"` block: istar-ts's (`name`, `elements`, `links`),
+ * and the model's groupers, stereotypes and tagged values as extra keys (which
+ * istar-ts keeps and writes back).
+ */
 export type ModelExtension = {
-  elements?: readonly ExtensionElementDefinition[];
-  links?: readonly ExtensionLinkDefinition[];
+  name: string;
+  elements?: readonly ModelElementKind[];
+  links?: readonly ModelLinkKind[];
   groupers?: Readonly<Record<string, readonly string[]>>;
   stereotypes?: readonly StereotypeDefinition[];
   taggedValues?: readonly TaggedValueDefinition[];
 };
 
-/** Whether a model's extension adds nothing. */
+/** Whether a model's extension adds nothing (then its file has no block). */
 export const isEmptyModelExtension = (model: ModelExtension): boolean =>
   !model.elements?.length &&
   !model.links?.length &&
@@ -38,7 +68,11 @@ export const isEmptyModelExtension = (model: ModelExtension): boolean =>
   !model.stereotypes?.length &&
   !model.taggedValues?.length;
 
-/** Why a name a model would add is taken (by the dialect, iStar or the model), or null. */
+/**
+ * Why a name a model would add is taken (by the dialect, iStar or the model),
+ * or null. A kind's is its label: istar-ts rejects a kind or piStar type
+ * already taken, not a second kind shown with the same name.
+ */
 export const takenName = (
   extension: ExtensionDefinition,
   category: 'kind' | 'grouper' | 'stereotype' | 'taggedValue',
@@ -67,12 +101,13 @@ export const takenName = (
 };
 
 /**
- * A dialect with what a model adds. Throws why the model's part cannot be read
- * with it: a kind outside the model's namespace, a name the dialect already has
- * (a kind, its piStar type, a grouper, a stereotype or tagged value), or a
- * kind, grouper or link end neither declares.
+ * A dialect with what a model adds: its kinds (as the dialect's are, their
+ * drawing left to istar-ts), groupers, stereotypes and tagged values. Throws
+ * why the model's groupers, stereotypes or tagged values cannot be read with
+ * it: a name the dialect already has, or a kind or grouper nobody declares.
+ * Its kinds are istar-ts's to check (a kind or piStar type taken).
  */
-export const withModelExtension = (
+export const withModelEntries = (
   dialect: ExtensionDefinition,
   model: ModelExtension,
 ): ExtensionDefinition => {
@@ -80,34 +115,36 @@ export const withModelExtension = (
   const fail = (why: string) => {
     throw new Error(`the model's extension: ${why}`);
   };
-  const pistarTypes = new Set(
-    [...dialect.elements, ...dialect.links].map((k) => k.pistarType ?? k.kind),
+  const names = [
+    ...Object.keys(model.groupers ?? {}).map(
+      (name) => ['grouper', name] as const,
+    ),
+    ...(model.stereotypes ?? []).map(
+      ({ name }) => ['stereotype', name] as const,
+    ),
+    ...(model.taggedValues ?? []).map(
+      ({ name }) => ['taggedValue', name] as const,
+    ),
+  ];
+  for (const [category, name] of names) {
+    const taken = takenName(dialect, category, name);
+    if (taken) fail(taken);
+  }
+  const elements = (model.elements ?? []).map(
+    ({ kind, label, category, behavesLike, pistarType, size }) =>
+      defined({ kind, label, category, behavesLike, pistarType, size }),
   );
-  for (const kind of [...(model.elements ?? []), ...(model.links ?? [])]) {
-    const taken = takenName(dialect, 'kind', kindLabel(kind.kind));
-    if (taken) fail(taken);
-    if (kind.pistarType && pistarTypes.has(kind.pistarType))
-      fail(`${kind.pistarType} is already a ${dialect.label} kind`);
-  }
-  for (const grouper of Object.keys(model.groupers ?? {})) {
-    const taken = takenName(dialect, 'grouper', grouper);
-    if (taken) fail(taken);
-  }
-  for (const { name } of model.stereotypes ?? []) {
-    const taken = takenName(dialect, 'stereotype', name);
-    if (taken) fail(taken);
-  }
-  for (const { name } of model.taggedValues ?? []) {
-    const taken = takenName(dialect, 'taggedValue', name);
-    if (taken) fail(taken);
-  }
-  // its namespace, and every name it uses: the dialect's or its own
+  const links = (model.links ?? []).map(
+    ({ kind, label, behavesLike, rules, pistarType }) =>
+      defined({ kind, label, behavesLike, rules, pistarType }),
+  );
+  // every name its entries use: the dialect's or its own
   defineExtension(
     {
       ...dialect,
       name: MODEL_NAMESPACE,
-      elements: model.elements ?? [],
-      links: model.links ?? [],
+      elements,
+      links,
       groupers: model.groupers ?? {},
       stereotypes: model.stereotypes ?? [],
       taggedValues: model.taggedValues ?? [],
@@ -116,47 +153,10 @@ export const withModelExtension = (
   );
   return {
     ...dialect,
-    elements: [...dialect.elements, ...(model.elements ?? [])],
-    links: [...dialect.links, ...(model.links ?? [])],
+    elements: [...dialect.elements, ...elements],
+    links: [...dialect.links, ...links],
     groupers: { ...dialect.groupers, ...model.groupers },
     stereotypes: [...dialect.stereotypes, ...(model.stereotypes ?? [])],
     taggedValues: [...dialect.taggedValues, ...(model.taggedValues ?? [])],
   };
 };
-
-/** The part of a dialect-with-model a model added (to read the dialect's apart). */
-export const modelExtensionKinds = (model: ModelExtension): Set<string> =>
-  new Set([
-    ...(model.elements ?? []).map((e) => e.kind),
-    ...(model.links ?? []).map((l) => l.kind),
-  ]);
-
-/**
- * A new node kind, as a modeller adds one: named, drawn with SVG path data,
- * saved in piStar files as `istar.<Name>`, a node that goes inside actors, at
- * a node's size.
- */
-export const newNodeKind = (
-  name: string,
-  shape: string | undefined,
-): ExtensionElementDefinition => ({
-  kind: `${MODEL_NAMESPACE}.${name}`,
-  label: name,
-  category: 'node',
-  pistarType: `istar.${name}`,
-  size: { width: 90, height: 55 },
-  ...(shape?.trim() ? { shape: shape.trim() } : {}),
-});
-
-/** A new link kind, as a modeller adds one: its ends, line and marker. */
-export const newLinkKind = (
-  name: string,
-  rules: Pick<LinkRulesDefinition, 'sources' | 'targets'>,
-  line: NonNullable<ExtensionLinkDefinition['line']>,
-): ExtensionLinkDefinition => ({
-  kind: `${MODEL_NAMESPACE}.${name}`,
-  label: name,
-  pistarType: `istar.${name}`,
-  rules,
-  line,
-});

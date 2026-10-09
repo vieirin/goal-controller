@@ -12,7 +12,6 @@ import {
   profileProperties,
   specsFromDefinition,
   takenName,
-  withModelExtension,
   type CatalogCategory,
   type ExtensionDefinition,
   type ModelExtension,
@@ -21,11 +20,8 @@ import {
 import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { useIstarEditor, useSelectedTarget } from '@istar-ts/react';
 import { useMemo, useState } from 'react';
-import {
-  DIALECTS,
-  writeModelExtension,
-  type ModelDialect,
-} from '@/lib/workbench/dialects';
+import { DIALECTS, type ModelDialect } from '@/lib/workbench/dialects';
+import { writeModelExtension } from '@/lib/workbench/pistar';
 import { useWorkbench } from '../../WorkbenchContext';
 import { cx } from '../../ui';
 import { ColorField, inputClass, useDraft } from '../shared/inspector';
@@ -205,8 +201,7 @@ function CategoryPanel({
       : [...Object.keys(read.extension.groupers), ...kinds];
   const save = (model: ModelExtension) => {
     try {
-      withModelExtension(dialect, model);
-      wb.setText(writeModelExtension(wb.text, model), 'inspector');
+      wb.setText(writeModelExtension(wb.text, 'pistarext', model), 'inspector');
       setError(null);
       return true;
     } catch (e) {

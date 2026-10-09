@@ -42,7 +42,7 @@ export type MetamodelExtensionData = {
 };
 
 /** The fields that are set, without the others (a metamodel extension has no undefined ones). */
-const defined = <T extends object>(value: T): T =>
+export const defined = <T extends object>(value: T): T =>
   Object.fromEntries(
     Object.entries(value).filter(([, v]) => v !== undefined),
   ) as T;

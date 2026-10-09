@@ -53,8 +53,8 @@ importers:
   packages/goal-tree:
     dependencies:
       '@istar-ts/core':
-        specifier: ^0.10.1
-        version: 0.10.1
+        specifier: ^0.11.0
+        version: 0.11.0
       antlr4:
         specifier: ^4.13.0
         version: 4.13.2
@@ -223,11 +223,11 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.10.1
-        version: 0.10.1
+        specifier: ^0.11.0
+        version: 0.11.0
       '@istar-ts/react':
-        specifier: ^0.10.1
-        version: 0.10.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.11.0
+        version: 0.11.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -1319,17 +1319,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.10.1:
-    resolution: {integrity: sha512-JRPb4RmSWkB8KODEPobtUBJ/nZ5pJMUAFAgYS/EN+XTEYy19qE8ZvJ84JYP8+kjRbb8/I+mmLYtYOygYnQIicw==}
+  /@istar-ts/core@0.11.0:
+    resolution: {integrity: sha512-rOD/06t5X7JY/70oAwZYQ+d0u5/A2M+AHhnzH6DYZFNvfwp1qGbX54GqsEs0R3YFLH172km5pqOHhq9gc5mWzw==}
     dev: false
 
-  /@istar-ts/react@0.10.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-WFq7VgBdeVEu5ioaeGAtjrefWXt/AIy7iIW/mPS5Sh8OkxDydSsEsudUHNlVmnmkqDw95wVM6o6dRE+F+P4PBA==}
+  /@istar-ts/react@0.11.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-7iTi52nqUVppSNiv7K4j8H6JhsZRCWeqyiDtF2U25RukwP0rNA6hNXZkZcZtsiPEDzbChBlehs6h1a3IiGro1A==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.10.1
+      '@istar-ts/core': 0.11.0
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

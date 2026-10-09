@@ -11,6 +11,7 @@ import {
   toPistar,
   updateDiagram,
   updateElement,
+  withFileMetamodel,
   type IstarElement,
   type IstarLink,
   type IstarModel,
@@ -19,9 +20,15 @@ import {
 } from '@istar-ts/core';
 // types only: the view is computed in services/tree.ts
 import type { GoalViewNode } from '@goal-controller/goal-tree';
+import {
+  isEmptyModelExtension,
+  withModelEntries,
+  type ModelExtension,
+} from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 import {
   DIALECT_LABEL,
+  DIALECTS,
   isDialectMode,
   metamodelOfMode,
   MODE_PROPERTY,
@@ -95,6 +102,29 @@ const rewrite = (
   edit: (model: IstarModel) => IstarModel,
   mode?: ModelMode,
 ): string => serializeModel(edit(parseModel(text, mode)), text);
+
+/**
+ * A dialect's model text with what the model adds (none: no block), written
+ * through istar-ts (its kinds checked against the dialect's, the elements
+ * using them kept) and the dialect (its groupers, stereotypes and tagged
+ * values). Throws why it cannot be.
+ */
+export const writeModelExtension = (
+  text: string,
+  mode: DialectMode,
+  model: ModelExtension,
+): string =>
+  rewrite(
+    text,
+    (read) => {
+      withModelEntries(DIALECTS[mode], model);
+      return withFileMetamodel(
+        read,
+        isEmptyModelExtension(model) ? null : model,
+      ) as unknown as IstarModel;
+    },
+    mode,
+  );
 
 /** The element an edit is for (any kind: a dialect's, an actor). */
 const findNode = (model: IstarModel, iStarId: string): IstarElement => {
