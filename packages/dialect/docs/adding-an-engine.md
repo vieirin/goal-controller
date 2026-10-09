@@ -202,16 +202,22 @@ Rules of thumb (from Edge's mapper):
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
 import type { Check } from '../checks';   // (raw, { self, kindOf }) => string | null
-import type { CheckNameOf } from '@goal-controller/dialect';
-import { mission } from './definition';
 
 const deadline: Check = (raw) =>
   raw.priority === 'high' && !raw.deadline?.trim() ? 'High-priority goals need a deadline' : null;
 
-export const missionCheckRegistry = { 'mission.goal.deadline': deadline }
-  satisfies Record<CheckNameOf<typeof mission>, Check>;   // compile error if a name is missing
+// the one place the names are written
+export const missionCheckRegistry: Record<'mission.goal.deadline', Check> = {
+  'mission.goal.deadline': deadline,
+};
+export type MissionCheckName = keyof typeof missionCheckRegistry;
 ```
-`satisfies Record<CheckNameOf<…>>` is the type-level guarantee that every `check:` in the definition has an implementation.
+Type the definition's properties with these names
+(`satisfies readonly PropertyDefinition<MissionCheckName>[]`, as
+`edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`
+then doesn't compile where it is written. `specsFromDefinition(definition,
+registry)` needs a check for every name the definition gives, so a missing
+one doesn't compile either.
 
 ### 3.4 `template/`: query the tree, emit the output
 ```ts
@@ -267,7 +273,7 @@ The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every 
 
 **Definition (data):** elements (prefix, declares, annotated) · properties per kind with value types, conditions, help · `check` names · `propertyLineOrder` · `problems` · notation (enabled operators, modifiers, constructs, defaultConstruct) if semantics among children.
 
-**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts` registry `satisfies Record<CheckNameOf<def>, Check>` · `template/` (reads `executionDetail.ids`, `.modifiers`) · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
+**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names · `template/` (reads `executionDetail.ids`, `.modifiers`) · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
 **UI (wiring):** the 15 edits in §4 · palette extension · engine options in Model Settings if any.
 
@@ -297,7 +303,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 ## 9. Pitfalls seen so far
 - `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`.
-- A check name in the definition without an implementation is a compile error only if you write the `satisfies Record<CheckNameOf<…>>` line. Write it.
+- Type the properties with the registry's names (`PropertyDefinition<keyof typeof registry>`); without it, a misspelt `check:` is caught only where `specsFromDefinition` is called.
 - Mapper keys typed by hand drift from the definition; derive them with `propertyKeys()`.
 - Names on lines with ids can't have digits (`G1: Step 2` is an error), as with the ANTLR grammars.
 - A notation needs its brackets: `G1: Name [+]`, not `G1: Name +`.

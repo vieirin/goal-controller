@@ -115,7 +115,12 @@ export type ConditionalValue = {
   otherwise: ValueConfig;
 };
 
-export type PropertyDefinition = {
+/**
+ * A property, as an engine reads it. `C` is the names its `check` may take:
+ * an engine's definition passes its registry's (`PropertyDefinition<keyof
+ * typeof registry>`), so a misspelt check doesn't compile where it is written.
+ */
+export type PropertyDefinition<C extends string = string> = {
   key: string;
   value: ValueConfig | ConditionalValue;
   /** presentation only */
@@ -128,7 +133,7 @@ export type PropertyDefinition = {
   notApplying?: string;
   help: string;
   /** the engine check that rejects a bad value (by name, in the engine's registry) */
-  check?: string;
+  check?: C;
   /** offered as an inspector field (default: true) */
   inspector?: boolean;
 };

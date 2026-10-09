@@ -15,14 +15,15 @@ export const ENGINE_DIALECTS = { edge, edgev2: edgeV2 } as const;
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
 
-/** The engine library's checks each definition names, by name. */
-export const ENGINE_CHECKS: Record<
-  DialectEngine,
-  Readonly<Record<string, Check>>
-> = {
+/**
+ * The engine library's checks each definition names, by name: typed as the
+ * registries are, so `specsFromDefinition` sees that each covers its
+ * definition's checks.
+ */
+export const ENGINE_CHECKS = {
   edge: edgeCheckRegistry,
   edgev2: edgeCheckRegistry,
-};
+} as const satisfies Record<DialectEngine, Readonly<Record<string, Check>>>;
 
 export const isDialectEngine = (
   engine: TransformEngine,

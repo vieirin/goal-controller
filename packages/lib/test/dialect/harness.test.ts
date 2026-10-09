@@ -14,7 +14,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView, type GoalView } from '@goal-controller/goal-tree';
-import { edgeCheckRegistry, type Check } from '../../src';
+import { edgeCheckRegistry } from '../../src';
 import {
   DECLARATION_KEYS,
   inputOf,
@@ -251,7 +251,7 @@ describe('harness 3: property config', () => {
 });
 
 describe('harness 4: inspector specs', () => {
-  const checks = edgeCheckRegistry as Record<string, Check>;
+  const checks = edgeCheckRegistry;
   const engines = [
     { key: 'edge', definition: edge, models: EDGE_MODELS, grammar: 'edge' },
     {

@@ -4,6 +4,10 @@
  * the inspector's order. Checks are named; lib's check registry implements them.
  */
 import type { PropertyDefinition } from '@goal-controller/dialect';
+import type { EdgeCheckName } from './checks';
+
+/** A property whose `check` is one of the Edge checks (a misspelt one doesn't compile). */
+type EdgeProperty = PropertyDefinition<EdgeCheckName>;
 
 const isMaintain = { when: { key: 'type', equals: 'maintain' } } as const;
 const isInt = { when: { key: 'type', equals: 'int' } } as const;
@@ -30,7 +34,7 @@ const CONDITION = {
 const REWARDS = [
   { key: 'utility', value: { type: 'number' }, help: HELP.utility },
   { key: 'cost', value: { type: 'number' }, help: HELP.cost },
-] as const satisfies readonly PropertyDefinition[];
+] as const satisfies readonly EdgeProperty[];
 
 const BOUNDS_NOT_APPLYING =
   'Not used while type is {type} (bounds are for int resources)';
@@ -154,7 +158,7 @@ export const edgeProperties = {
     },
   ],
   quality: [],
-} as const satisfies Record<string, readonly PropertyDefinition[]>;
+} as const satisfies Record<string, readonly EdgeProperty[]>;
 
 /** The order property lines are written in (goals and tasks alike). */
 export const edgePropertyLineOrder = [

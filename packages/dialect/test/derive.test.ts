@@ -10,6 +10,8 @@ import {
   propertyKeys,
   relationMismatch,
   specsFromDefinition,
+  type AnyDialect,
+  type CheckNameOf,
 } from '../src';
 import { toy } from './support/toy';
 
@@ -58,11 +60,17 @@ describe('properties', () => {
   it('builds specs, binding checks by name', () => {
     const calls: string[] = [];
     type Check = (properties: object, context: object) => string | null;
-    const registry: Record<string, Check> = {
+    const registry: Record<CheckNameOf<typeof toy>, Check> = {
       'toy.goal.deadline': () => (calls.push('deadline'), null),
       'toy.resource.bounds': () => (calls.push('bounds'), 'out of bounds'),
     };
     const specs = specsFromDefinition(toy, registry);
+    // a registry missing a check the definition names doesn't compile
+    // @ts-expect-error 'toy.resource.bounds' is missing
+    void (() =>
+      specsFromDefinition(toy, {
+        'toy.goal.deadline': registry['toy.goal.deadline'],
+      }));
     expect(specs.goal.map((s) => s.key)).to.deep.equal([
       'priority',
       'deadline',
@@ -80,6 +88,9 @@ describe('properties', () => {
       'out of bounds',
     );
     expect(calls).to.deep.equal(['bounds']);
-    expect(() => specsFromDefinition(toy, {})).to.throw(/no check named/);
+    // an untyped definition can still miss one: then it throws
+    expect(() => specsFromDefinition(toy as AnyDialect, {})).to.throw(
+      /no check named/,
+    );
   });
 });

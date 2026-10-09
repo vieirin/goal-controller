@@ -11,6 +11,7 @@ import {
   specsFromDefinition,
   inputOf,
   type DocumentNode,
+  type CheckNameOf,
   type DialectDefinition,
 } from '@goal-controller/dialect';
 import {
@@ -238,7 +239,7 @@ describe('properties', () => {
       {
         get: (_, name: string) => () => (calls.push(name), null),
       },
-    ) as Record<string, (...args: unknown[]) => null>;
+    ) as Record<CheckNameOf<typeof edgeV2>, (...args: unknown[]) => null>;
     const specs = specsFromDefinition(edgeV2, registry);
     expect(specs.goal.map((s) => s.key)).to.not.include('root');
     const initial = specs.resource.find((s) => s.key === 'initialValue')!;
@@ -252,7 +253,12 @@ describe('properties', () => {
     );
     lower.validate!({}, { self: 'R1', kindOf: () => undefined });
     expect(calls).to.deep.equal(['edge.resource.lowerBound']);
-    expect(() => specsFromDefinition(edgeV2, {})).to.throw(/no check named/);
+    // edgeV2's checks are required by its type; untyped, a missing one throws
+    // @ts-expect-error no check for any of edgeV2's names
+    void (() => specsFromDefinition(edgeV2, {}));
+    expect(() => specsFromDefinition(edgeV2 as DialectDefinition, {})).to.throw(
+      /no check named/,
+    );
   });
 });
 

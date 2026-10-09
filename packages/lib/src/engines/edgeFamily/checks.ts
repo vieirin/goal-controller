@@ -3,10 +3,14 @@
  * of each other): a shared module, since the checks are identical today. Split it if the
  * two engines' rules ever diverge.
  */
-import type { CheckNameOf } from '@goal-controller/dialect';
-import { edge } from '../edge/definition';
+import type { DECLARATION_KEYS } from '@goal-controller/dialect';
 import type { Check } from '../checks';
-import type { EdgeGoalKey, EdgeResourceKey, EdgeTaskKey } from '../edge/mapper';
+
+/** Checks by name: each a `Check`, the names kept (a misspelt one doesn't compile where it is used). */
+const checks = <K extends string>(byName: Record<K, Check>) => byName;
+
+/** A key a resource's declaration sets (`{int 0..100 = 80}`). */
+type DeclaredKey = (typeof DECLARATION_KEYS)[number];
 
 type Issue = { key: string; message: string };
 
@@ -105,7 +109,7 @@ const resourceIssues = (raw: Partial<Record<string, string>>): Issue[] => {
       return [];
     }
     case 'int': {
-      const missingKeys: EdgeResourceKey[] = [];
+      const missingKeys: DeclaredKey[] = [];
       if (initialValue == null || initialValue === '')
         missingKeys.push('initialValue');
       if (lowerBound == null || lowerBound === '')
@@ -120,7 +124,7 @@ const resourceIssues = (raw: Partial<Record<string, string>>): Issue[] => {
 
       const lowerBoundInt = parseInt(lowerBound as string, 10);
       const upperBoundInt = parseInt(upperBound as string, 10);
-      const badBoundKeys: EdgeResourceKey[] = [];
+      const badBoundKeys: DeclaredKey[] = [];
       if (isNaN(lowerBoundInt)) badBoundKeys.push('lowerBound');
       if (isNaN(upperBoundInt)) badBoundKeys.push('upperBound');
       if (badBoundKeys.length > 0) {
@@ -177,7 +181,7 @@ export const firstResourceIssue = (
   raw: Partial<Record<string, string>>,
 ): string | null => resourceIssues(raw)[0]?.message ?? null;
 
-export const edgeGoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
+export const edgeGoalChecks = checks({
   variables: (raw) =>
     goalOrTaskIssues('goal', raw).find((i) => i.key === 'variables')?.message ??
     null,
@@ -191,18 +195,18 @@ export const edgeGoalChecks: Partial<Record<EdgeGoalKey, Check>> = {
     goalOrTaskIssues('goal', raw).find((i) => i.key === 'maxRetries')
       ?.message ?? null,
   dependsOn: dependsOnCheck,
-};
+});
 
 // 'maintain' isn't an allowed task key (EDGE_TASK_KEYS), so a task can never satisfy
 // getMaintainCondition's 'maintain' in raw check once type is 'maintain': mapTaskProps
 // always throws it, through firstGoalOrTaskIssue, with no key to attach it to in the UI.
-export const edgeTaskChecks: Partial<Record<EdgeTaskKey, Check>> = {
+export const edgeTaskChecks = checks({
   maxRetries: (raw) =>
     goalOrTaskIssues('task', raw).find((i) => i.key === 'maxRetries')
       ?.message ?? null,
-};
+});
 
-export const edgeResourceChecks: Partial<Record<EdgeResourceKey, Check>> = {
+export const edgeResourceChecks = checks({
   type: (raw) =>
     resourceIssues(raw).find((i) => i.key === 'type')?.message ?? null,
   initialValue: (raw) =>
@@ -211,23 +215,25 @@ export const edgeResourceChecks: Partial<Record<EdgeResourceKey, Check>> = {
     resourceIssues(raw).find((i) => i.key === 'lowerBound')?.message ?? null,
   upperBound: (raw) =>
     resourceIssues(raw).find((i) => i.key === 'upperBound')?.message ?? null,
-};
+});
 
 /**
- * The checks the Edge definitions name (`check: 'edge.goal.dependsOn'`), by
- * name: where an editor binds a definition's properties to these functions.
+ * The checks the Edge definitions name, by name: the one place the names are
+ * written. A property's `check` is typed with them (`EdgeCheckName`), and
+ * `specsFromDefinition` needs one for every name a definition gives.
  */
-export const edgeCheckRegistry = {
-  'edge.goal.variables': edgeGoalChecks.variables!,
-  'edge.goal.maintain': edgeGoalChecks.maintain!,
-  'edge.goal.assertion': edgeGoalChecks.assertion!,
-  'edge.goal.maxRetries': edgeGoalChecks.maxRetries!,
-  'edge.goal.dependsOn': edgeGoalChecks.dependsOn!,
-  'edge.task.maxRetries': edgeTaskChecks.maxRetries!,
-  'edge.resource.type': edgeResourceChecks.type!,
-  'edge.resource.initialValue': edgeResourceChecks.initialValue!,
-  'edge.resource.lowerBound': edgeResourceChecks.lowerBound!,
-  'edge.resource.upperBound': edgeResourceChecks.upperBound!,
-} satisfies Record<EdgeCheckName, Check>;
+export const edgeCheckRegistry = checks({
+  'edge.goal.variables': edgeGoalChecks.variables,
+  'edge.goal.maintain': edgeGoalChecks.maintain,
+  'edge.goal.assertion': edgeGoalChecks.assertion,
+  'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
+  'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
+  'edge.task.maxRetries': edgeTaskChecks.maxRetries,
+  'edge.resource.type': edgeResourceChecks.type,
+  'edge.resource.initialValue': edgeResourceChecks.initialValue,
+  'edge.resource.lowerBound': edgeResourceChecks.lowerBound,
+  'edge.resource.upperBound': edgeResourceChecks.upperBound,
+});
 
-export type EdgeCheckName = CheckNameOf<typeof edge>;
+/** The names of the Edge engines' checks: what a property's `check` may be. */
+export type EdgeCheckName = keyof typeof edgeCheckRegistry;

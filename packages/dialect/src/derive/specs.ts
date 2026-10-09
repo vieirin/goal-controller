@@ -4,7 +4,12 @@
  * whether it is needed, and the engine check rejecting a bad value (bound by
  * name from the engine library's check registry, whatever its check type).
  */
-import type { AnyDialect, PropertyDefinition, ValueConfig } from '../schema';
+import type {
+  AnyDialect,
+  CheckNameOf,
+  PropertyDefinition,
+  ValueConfig,
+} from '../schema';
 import {
   evaluateCondition,
   fillTemplate,
@@ -78,39 +83,51 @@ export const inputOf = (
   typeof spec.input === 'function' ? spec.input(properties) : spec.input;
 
 /** The inspector specs per kind; throws if a check is not in the registry. */
-export const specsFromDefinition = <K extends string, C>(
-  definition: Pick<AnyDialect, 'id'> & {
-    properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
+export const specsFromDefinition = <
+  D extends Pick<AnyDialect, 'id'> & {
+    properties: Readonly<Record<string, readonly PropertyDefinition[]>>;
   },
-  registry: Readonly<Record<string, C>>,
-): Record<K, PropertySpec<string, C>[]> => {
+  R extends Readonly<Record<CheckNameOf<D>, unknown>>,
+>(
+  definition: D,
+  /** a check for every name the definition's properties give (a missing one doesn't compile) */
+  registry: R,
+): Record<
+  keyof D['properties'] & string,
+  PropertySpec<string, R[keyof R]>[]
+> => {
+  type K = keyof D['properties'] & string;
+  type C = R[keyof R];
   const specs = (kind: K): PropertySpec<string, C>[] =>
-    definition.properties[kind]
-      .filter((property) => property.inspector !== false)
-      .map((property) => {
-        const placeholder = property.input?.placeholder;
-        const spec: PropertySpec<string, C> = {
-          key: property.key,
-          input:
-            'when' in property.value
-              ? (p) => inputFor(valueOf(property, p), placeholder)
-              : inputFor(property.value, placeholder),
-        };
-        const { applies, required, notApplying, check } = property;
-        if (applies !== undefined)
-          spec.applies = (p) => evaluateCondition(applies, p, true);
-        if (required !== undefined)
-          spec.required = (p) => evaluateCondition(required, p, false);
-        if (notApplying !== undefined)
-          spec.notApplying = (p) => fillTemplate(notApplying, p);
-        if (check !== undefined) {
-          const validate = registry[check];
-          if (!validate)
-            throw new Error(`${definition.id}: no check named ${check}`);
-          spec.validate = validate;
-        }
-        return spec;
-      });
+    definition.properties[kind]!.filter(
+      (property) => property.inspector !== false,
+    ).map((property) => {
+      const placeholder = property.input?.placeholder;
+      const spec: PropertySpec<string, C> = {
+        key: property.key,
+        input:
+          'when' in property.value
+            ? (p) => inputFor(valueOf(property, p), placeholder)
+            : inputFor(property.value, placeholder),
+      };
+      const { applies, required, notApplying, check } = property;
+      if (applies !== undefined)
+        spec.applies = (p) => evaluateCondition(applies, p, true);
+      if (required !== undefined)
+        spec.required = (p) => evaluateCondition(required, p, false);
+      if (notApplying !== undefined)
+        spec.notApplying = (p) => fillTemplate(notApplying, p);
+      if (check !== undefined) {
+        // the type requires it: an untyped definition (AnyDialect) may still miss it
+        const validate = (registry as Readonly<Record<string, C | undefined>>)[
+          check
+        ];
+        if (!validate)
+          throw new Error(`${definition.id}: no check named ${check}`);
+        spec.validate = validate;
+      }
+      return spec;
+    });
   return Object.fromEntries(
     (Object.keys(definition.properties) as K[]).map((kind) => [
       kind,
