@@ -9,7 +9,8 @@ export type ProjectSource =
   | { kind: 'file'; name: string }
   /** a folder opened with the File System Access API; its handle is kept by `key` */
   | { kind: 'directory'; key: string; name: string }
-  | { kind: 'opfs'; name: string }
+  /** in the browser's private file system; `copyOf`: the project it is a copy of */
+  | { kind: 'opfs'; name: string; copyOf?: ProjectSource }
   | { kind: 'github'; repo: string; ref: string; path: string };
 
 /** How the project keeps its manifest: in its one model, or in project.json. */
@@ -61,8 +62,11 @@ export const sourceLabel = (source: ProjectSource): string => {
   switch (source.kind) {
     case 'file':
     case 'directory':
-    case 'opfs':
       return source.name;
+    case 'opfs':
+      return source.copyOf
+        ? `${source.name} (browser copy of ${sourceLabel(source.copyOf)})`
+        : `${source.name} (in this browser)`;
     case 'github':
       return `${source.repo}/${source.path}@${source.ref}`;
   }

@@ -23,6 +23,11 @@ import {
   type ProjectSource,
   type ProjectStore,
 } from './store';
+import {
+  resourceSlots,
+  type ProjectResourceDeclarations,
+  type ResourceSlot,
+} from './slots';
 
 export type ProjectModel = {
   path: string;
@@ -40,10 +45,23 @@ export type Project = {
   form: ManifestForm;
   manifest: Manifest;
   models: ProjectModel[];
-  /** as the manifest lists them (stage 2 opens them) */
+  /** as the manifest lists them */
   projectResources: Manifest['projectResources'];
   /** what the engines last produced; a missing file means "not generated yet" */
   outputs: OutputEntry[];
+  /** every file of the project, from its root */
+  files: string[];
+  /** the project resources its dialect reads, as data (none: it reads none, or isn't known) */
+  declarations: ProjectResourceDeclarations;
+  /** each declared kind: where the project has it, or missing */
+  resources: ResourceSlot[];
+};
+
+/** What openProject asks the workbench: the project resources a dialect reads. */
+export type OpenProjectOptions = {
+  projectResources?: (
+    dialect: string | null,
+  ) => ProjectResourceDeclarations | undefined;
 };
 
 const MODEL_FILE = /\.(txt|json)$/i;
@@ -71,13 +89,25 @@ const settingsOf = (
     : { ...settings, mode: recordedMode(text) };
 };
 
-const project = (
-  store: ProjectStore,
-  form: ManifestForm,
-  manifest: Manifest,
-  models: ProjectModel[],
-  name: string,
-): Project => ({
+type Shape = {
+  store: ProjectStore;
+  form: ManifestForm;
+  manifest: Manifest;
+  models: ProjectModel[];
+  name: string;
+  files: readonly string[];
+  declarations: ProjectResourceDeclarations;
+};
+
+const project = ({
+  store,
+  form,
+  manifest,
+  models,
+  name,
+  files,
+  declarations,
+}: Shape): Project => ({
   name,
   source: store.source,
   store,
@@ -86,25 +116,49 @@ const project = (
   models,
   projectResources: manifest.projectResources,
   outputs: manifest.outputs,
+  files: [...files].sort(),
+  declarations,
+  resources: resourceSlots(manifest, files, declarations),
 });
 
-const embedded = (store: ProjectStore, path: string, text: string): Project => {
+/** the project's resources the dialect of its (first) model reads */
+const declarationsFor = (
+  models: readonly ProjectModel[],
+  options: OpenProjectOptions,
+): ProjectResourceDeclarations =>
+  options.projectResources?.(models[0]?.settings.mode ?? null) ?? {};
+
+const embedded = (
+  store: ProjectStore,
+  path: string,
+  text: string,
+  files: readonly string[],
+  options: OpenProjectOptions,
+): Project => {
   const { manifest, unreadable } = readEmbeddedManifest(text, path);
-  return project(
+  const models = [
+    {
+      path,
+      text,
+      settings: settingsOf(manifest, path, text),
+      ...(unreadable && { unreadable: true as const }),
+    },
+  ];
+  return project({
     store,
-    'embedded',
+    form: 'embedded',
     manifest,
-    [
-      {
-        path,
-        text,
-        settings: settingsOf(manifest, path, text),
-        ...(unreadable && { unreadable: true as const }),
-      },
-    ],
-    baseName(path),
-  );
+    models,
+    name: baseName(path),
+    files,
+    declarations: declarationsFor(models, options),
+  });
 };
+
+/** the options a project was opened with, again (its declarations, by its own dialect) */
+const sameOptions = (from: Project): OpenProjectOptions => ({
+  projectResources: () => from.declarations,
+});
 
 /**
  * The project with a model's text replaced (not written): its settings read
@@ -117,7 +171,8 @@ export const withModelText = (
 ): Project => {
   if (!from.models.some((model) => model.path === path))
     throw new ManifestError('models', `no model ${path}`);
-  if (from.form === 'embedded') return embedded(from.store, path, text);
+  if (from.form === 'embedded')
+    return embedded(from.store, path, text, from.files, sameOptions(from));
   return {
     ...from,
     models: from.models.map((model) =>
@@ -129,7 +184,7 @@ export const withModelText = (
 };
 
 const folderName = (source: ProjectSource): string =>
-  baseName(sourceLabel(source).replace(/@[^@]*$/, '')) || 'project';
+  (source.kind === 'github' ? baseName(source.path) : source.name) || 'project';
 
 /**
  * A project from its store: a project.json's, or a single model's embedded
@@ -137,7 +192,10 @@ const folderName = (source: ProjectSource): string =>
  * no project.json is read as a project of those models, its project.json
  * written on the next save. Throws when there is no model.
  */
-export const openProject = async (store: ProjectStore): Promise<Project> => {
+export const openProject = async (
+  store: ProjectStore,
+  options: OpenProjectOptions = {},
+): Promise<Project> => {
   const files = await store.list();
   if (store.form === 'embedded') {
     const [path] = files;
@@ -146,7 +204,7 @@ export const openProject = async (store: ProjectStore): Promise<Project> => {
         '',
         `a one-model project has one file, not ${files.length}`,
       );
-    return embedded(store, path, await store.read(path));
+    return embedded(store, path, await store.read(path), files, options);
   }
   if (files.includes(PROJECT_FILE)) {
     const text = await store.read(PROJECT_FILE);
@@ -172,7 +230,15 @@ export const openProject = async (store: ProjectStore): Promise<Project> => {
         return { path, text, settings: settingsOf(manifest, path, text) };
       }),
     );
-    return project(store, 'file', manifest, models, folderName(store.source));
+    return project({
+      store,
+      form: 'file',
+      manifest,
+      models,
+      name: folderName(store.source),
+      files,
+      declarations: declarationsFor(models, options),
+    });
   }
   const candidates = await Promise.all(
     files
@@ -186,24 +252,28 @@ export const openProject = async (store: ProjectStore): Promise<Project> => {
       '',
       `no goal model in ${sourceLabel(store.source)}`,
     );
-  if (found.length === 1) return embedded(store, only.path, only.text);
+  if (found.length === 1)
+    return embedded(store, only.path, only.text, files, options);
   const manifest: Manifest = {
     version: MANIFEST_VERSION,
     models: found.map(({ path }) => ({ path })),
     projectResources: {},
     outputs: [],
   };
-  return project(
+  const models = found.map(({ path, text }) => ({
+    path,
+    text,
+    settings: settingsOf(manifest, path, text),
+  }));
+  return project({
     store,
-    'file',
+    form: 'file',
     manifest,
-    found.map(({ path, text }) => ({
-      path,
-      text,
-      settings: settingsOf(manifest, path, text),
-    })),
-    folderName(store.source),
-  );
+    models,
+    name: folderName(store.source),
+    files,
+    declarations: declarationsFor(models, options),
+  });
 };
 
 /**
@@ -255,11 +325,18 @@ export const saveProject = async (
       : { ...changes };
   for (const [path, text] of Object.entries(writes))
     await from.store.write(path, text);
+  const files = [...new Set([...from.files, ...Object.keys(writes)])];
   if (from.form === 'embedded') {
     // the manifest is what the model now says
     const [model] = from.models;
     if (!model) throw new ManifestError('models', 'a project has a model');
-    return embedded(from.store, model.path, changes[model.path] ?? model.text);
+    return embedded(
+      from.store,
+      model.path,
+      changes[model.path] ?? model.text,
+      files,
+      sameOptions(from),
+    );
   }
   // the models the manifest now lists (one added with this save is in changes)
   const models = await Promise.all(
@@ -271,5 +348,13 @@ export const saveProject = async (
       return { path, text, settings: settingsOf(manifest, path, text) };
     }),
   );
-  return project(from.store, 'file', manifest, models, from.name);
+  return project({
+    store: from.store,
+    form: 'file',
+    manifest,
+    models,
+    name: from.name,
+    files,
+    declarations: from.declarations,
+  });
 };

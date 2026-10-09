@@ -1,4 +1,4 @@
-import type { ProjectStore } from '../store';
+import type { ProjectSource, ProjectStore } from '../store';
 import { handleStore, type DirectoryHandleLike } from './directory';
 
 /** The folder of the browser's private file system that holds the projects. */
@@ -26,11 +26,15 @@ const projectsDir = async (
 export const opfsStore = (
   name: string,
   root?: DirectoryHandleLike,
+  /** the project it is a copy of (an example, a file): shown with it */
+  copyOf?: ProjectSource,
 ): ProjectStore => {
   if (!name || name.includes('/') || name.startsWith('.'))
     throw new Error(`${name}: not a project name`);
-  return handleStore({ kind: 'opfs', name }, async () =>
-    (await projectsDir(root)).getDirectoryHandle(name, { create: true }),
+  return handleStore(
+    { kind: 'opfs', name, ...(copyOf && { copyOf }) },
+    async () =>
+      (await projectsDir(root)).getDirectoryHandle(name, { create: true }),
   );
 };
 
