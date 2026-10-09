@@ -23,3 +23,10 @@ await build({
   outfile: 'out/cjs/light.cjs',
   external: ['@goal-controller/dialect'],
 });
+// the language server's services, for CommonJS tests (the worker is ESM, for browsers)
+await build({
+  ...common,
+  entryPoints: ['src/lsp/server.ts'],
+  outfile: 'out/cjs/lsp.cjs',
+  external: ['@goal-controller/dialect'],
+});

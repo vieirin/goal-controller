@@ -2,3 +2,4 @@
 // and the writers.
 export * from './catalog.js';
 export * from './print.js';
+export * from './lsp/protocol.js';

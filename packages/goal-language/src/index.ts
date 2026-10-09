@@ -15,3 +15,4 @@ export * from './notation/reading.js';
 export * from './notation/goalNames.js';
 export * from './notation/values.js';
 export * from './notation/navigation.js';
+export * from './lsp/protocol.js';
