@@ -699,9 +699,11 @@ function WorkbenchState({
   );
   const [analyzing, setAnalyzing] = useState(false);
   useEffect(() => {
-    // piStar mode has no engine to analyse for
+    // piStar mode has no engine to analyse for; a model just opened waits for
+    // its text, not the last one's read with its engine
     if (
       pistar ||
+      debouncedText !== model.text ||
       !debouncedText.trim() ||
       modelSignature(debouncedText) === null
     )
@@ -735,7 +737,7 @@ function WorkbenchState({
     } finally {
       setAnalyzing(false);
     }
-  }, [debouncedText, engine, pistar, setAnalysis]);
+  }, [debouncedText, model.text, engine, pistar, setAnalysis]);
   useEffect(() => {
     if (!model.text.trim() || pistar) setAnalysis(null);
   }, [model.text, pistar, setAnalysis]);
