@@ -79,6 +79,17 @@ export const jsonProblem = (text: string, error: Error): Problem => {
   };
 };
 
+/**
+ * Where the Source tab underlines a problem of the file's own text (its JSON
+ * at a line), or null: 1-based line and column.
+ */
+export const sourcePosition = (
+  problem: Problem,
+): { line: number; column: number } | null =>
+  problem.source === SOURCE.file && problem.line
+    ? { line: problem.line, column: problem.column ?? 1 }
+    : null;
+
 export const treeProblems = (
   tree: GoalView,
   engine: TransformEngine,
