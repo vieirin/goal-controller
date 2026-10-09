@@ -6,6 +6,7 @@ import {
   documentDiagnostics,
   fieldCompletionsAt,
   fieldDiagnostics,
+  notationRefs,
   parseElementLine,
   readNotation,
 } from '../src/index.js';
@@ -259,9 +260,10 @@ describe('what the dialect allows', () => {
     expect(found('G1: Go [FALLBACK(G2;T1)]')).to.deep.equal([
       ['FALLBACK', '`FALLBACK` takes 2 operands, not 1'],
     ]);
-    // a call is an operand of its own, as a group is
+    // a call is an operand of its own, as a group is; every id it names is named
     const tree = parseElementLine('G1: Go [T1;FALLBACK(G2,T1)]').value!
       .notation;
+    expect(notationRefs(tree)).to.deep.equal(['T1', 'G2', 'T1']);
     const read = readNotation(calling, tree);
     expect(read.constructs.get('fallback')).to.deep.equal(['G2', 'T1']);
     expect(read.constructs.get('sequence')).to.deep.equal(['T1']);

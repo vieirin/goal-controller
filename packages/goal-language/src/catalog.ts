@@ -139,6 +139,8 @@ export const ASSERTION = {
  * - `pairList`: `name:value` pairs, comma-separated (`x:3, y:2`)
  * - `annotatedName`: `<<stereotype>> {tag = value} Name [RT]`, a line
  *   without an id
+ * - `ocl`: OCL as MutRoSe writes it (`world_db->select(r:Room | r.dirty)`),
+ *   read as its tokens
  */
 export const VALUE_TYPES = [
   'assertion',
@@ -150,5 +152,6 @@ export const VALUE_TYPES = [
   'refList',
   'pairList',
   'annotatedName',
+  'ocl',
 ] as const;
 export type ValueType = (typeof VALUE_TYPES)[number];

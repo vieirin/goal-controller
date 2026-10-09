@@ -50,6 +50,27 @@ export const operandIds = (tree: RtTree | null): string[] => {
   }
 };
 
+/**
+ * Every element id a notation names, in the order written: through operators,
+ * groups and calls alike (`[G2;FALLBACK(G3,[G4#AT1])]`: G2, G3, G4, AT1).
+ */
+export const notationRefs = (tree: RtTree | null): string[] => {
+  switch (tree?.kind) {
+    case 'ref':
+      return [tree.id];
+    case 'group':
+    case 'prefix':
+    case 'postfix':
+      return notationRefs(tree.expr);
+    case 'binary':
+      return [...notationRefs(tree.left), ...notationRefs(tree.right)];
+    case 'call':
+      return tree.args.flatMap(notationRefs);
+    default:
+      return [];
+  }
+};
+
 /** A call's operands' ids, its arguments in order (`FALLBACK(G2,G3)`: G2, G3). */
 export const callOperands = (
   tree: Extract<RtTree, { kind: 'call' }>,

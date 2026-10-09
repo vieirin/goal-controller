@@ -133,6 +133,22 @@ RefListValue:
 PairListValue:
     {infer PairListValue} (pairs+=Pair (',' pairs+=Pair)*)?;
 
+// OCL as MutRoSe's goal models write it (`world_db->select(r:Room | r.dirty)`,
+// `rooms->forAll(r | r.clean)`, `current : Room, rooms : Sequence(Room)`): read
+// as its tokens, leniently; an engine's checks read its structure
+OclValue:
+    {infer OclValue} parts+=OclPart*;
+
+OclPart returns string:
+    IDENT | STRING | INTEGER | NUMBER | OclKeyword
+    | '->' | '.' | ',' | ':' | '|' | '(' | ')' | '[' | ']'
+    | '=' | '<>' | '<' | '<=' | '>' | '>=' | '&&' | '||' | '!';
+
+OclKeyword returns string:
+    'select' | 'forAll' | 'exists' | 'collect' | 'reject' | 'in' | 'not'
+    | 'and' | 'or' | 'assertion' | 'condition' | 'trigger'
+    | 'true' | 'false' | 'True' | 'False';
+
 Pair:
     name=IDENT ':' value=PAIR_VALUE;
 
@@ -142,7 +158,8 @@ Pair:
 Reach:
     REACH plain=PlainDocument REACH assertion=AssertionValue REACH int=IntValue
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
-    REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue;
+    REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
+    REACH ocl=OclValue;
 
 // ---------------------------------------------------------------------------
 // The vocabulary (GoalLexer makes the tokens)
@@ -167,6 +184,8 @@ terminal A_INT: /[0-9]+/;
 terminal INTEGER: /-?[0-9]+/;
 terminal NUMBER: /-?[0-9]+\.[0-9]+/;
 terminal PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/;
+// an OCL string literal
+terminal STRING: /"[^"\r\n]*"/;
 terminal REACH: /\u0000reach\u0000/;
 // a line break, in a document
 terminal NL: /[\r\n]+/;

@@ -10,6 +10,40 @@ const parts = (text: string) =>
   ]);
 
 describe('highlightValue', () => {
+  it('colours OCL by its tokens: variables, types, keywords, operators, literals', () => {
+    const text =
+      'world_db->select(r:Room | r.name in current.rooms and r.dirty = True), rooms : Sequence(Room), "Ev"';
+    const styled = highlightValue({ type: 'ocl' }, text).map((h) => [
+      text.slice(h.from, h.to),
+      h.style,
+    ]);
+    for (const part of [
+      ['world_db', 'variableName'],
+      ['->', 'operator'],
+      ['select', 'keyword'],
+      ['Room', 'typeName'],
+      ['in', 'keyword'],
+      ['and', 'keyword'],
+      ['True', 'atom'],
+      ['Sequence', 'typeName'],
+      ['"Ev"', 'string'],
+    ])
+      expect(styled).to.deep.include(part);
+    // what a collection holds is a type too
+    expect(styled.filter(([t]) => t === 'Room')).to.deep.equal([
+      ['Room', 'typeName'],
+      ['Room', 'typeName'],
+    ]);
+  });
+
+  it('colours an enum’s value as an atom', () => {
+    expect(
+      highlightValue({ type: 'enum', options: [] }, 'Query').map(
+        (h) => h.style,
+      ),
+    ).to.deep.equal(['atom']);
+  });
+
   it('reads a call’s name as a keyword, MutRoSe’s task ids as ids', () => {
     const text = 'G1: Go [FALLBACK(AT1,G2)]';
     const styles = highlightValue({ type: 'annotatedName' }, text).map((h) => [

@@ -17,6 +17,7 @@ import type {
   EnumValue,
   IntValue,
   NumberValue,
+  OclValue,
   PairListValue,
   PlainDocument,
   RefListValue,
@@ -353,6 +354,8 @@ export type ValueData = {
   refList: string[];
   pairList: { name: string; value: string }[];
   annotatedName: ElementLineData | null;
+  /** its tokens, as written */
+  ocl: string[];
 };
 
 const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
@@ -366,6 +369,7 @@ const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
   pairList: (root: PairListValue) =>
     root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
   annotatedName: (root: AnnotatedName) => (root ? toElementLine(root) : null),
+  ocl: (root: OclValue) => [...root.parts],
 };
 
 /** One value of a predefined type on its own (an inspector field). Empty is valid. */

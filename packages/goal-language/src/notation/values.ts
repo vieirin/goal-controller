@@ -87,6 +87,11 @@ export const valueProblem = (
     }
     case 'text':
       return null;
+    case 'ocl': {
+      // read leniently: only a character no OCL token matches is wrong
+      const [error] = parseValue('ocl', text).errors;
+      return error ? error.message : null;
+    }
   }
 };
 

@@ -20,6 +20,7 @@ export const GoalTerminals = {
     INTEGER: /-?[0-9]+/,
     NUMBER: /-?[0-9]+\.[0-9]+/,
     PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/,
+    STRING: /"[^"\r\n]*"/,
     REACH: /\u0000reach\u0000/,
     NL: /[\r\n]+/,
     WS: /[ \t]+/,
@@ -32,18 +33,21 @@ export type GoalKeywordNames =
     | "!="
     | "#"
     | "&"
+    | "&&"
     | "("
     | ")"
     | "*"
     | "+"
     | ","
     | "->"
+    | "."
     | ".."
     | ":"
     | ";"
     | "<"
     | "<<"
     | "<="
+    | "<>"
     | "="
     | ">"
     | ">="
@@ -52,18 +56,33 @@ export type GoalKeywordNames =
     | "@"
     | "AT"
     | "FALLBACK"
+    | "False"
     | "G"
     | "R"
     | "T"
+    | "True"
     | "X"
     | "["
     | "]"
     | "^"
+    | "and"
+    | "assertion"
+    | "collect"
+    | "condition"
+    | "exists"
     | "false"
+    | "forAll"
+    | "in"
+    | "not"
+    | "or"
+    | "reject"
+    | "select"
     | "skip"
+    | "trigger"
     | "true"
     | "{"
     | "|"
+    | "||"
     | "}"
     | "~";
 
@@ -390,6 +409,33 @@ export function isNumberValue(item: unknown): item is NumberValue {
     return reflection.isInstance(item, NumberValue.$type);
 }
 
+export type OclKeyword = 'False' | 'True' | 'and' | 'assertion' | 'collect' | 'condition' | 'exists' | 'false' | 'forAll' | 'in' | 'not' | 'or' | 'reject' | 'select' | 'trigger' | 'true';
+
+export function isOclKeyword(item: unknown): item is OclKeyword {
+    return item === 'select' || item === 'forAll' || item === 'exists' || item === 'collect' || item === 'reject' || item === 'in' || item === 'not' || item === 'and' || item === 'or' || item === 'assertion' || item === 'condition' || item === 'trigger' || item === 'true' || item === 'false' || item === 'True' || item === 'False';
+}
+
+export type OclPart = '!' | '&&' | '(' | ')' | ',' | '->' | '.' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '[' | ']' | '|' | '||' | OclKeyword | string;
+
+export function isOclPart(item: unknown): item is OclPart {
+    return isOclKeyword(item) || item === '->' || item === '.' || item === ',' || item === ':' || item === '|' || item === '(' || item === ')' || item === '[' || item === ']' || item === '=' || item === '<>' || item === '<' || item === '<=' || item === '>' || item === '>=' || item === '&&' || item === '||' || item === '!' || (typeof item === 'string' && (/[A-Za-z_][A-Za-z0-9_]*/.test(item) || /"[^"\r\n]*"/.test(item) || /-?[0-9]+/.test(item) || /-?[0-9]+\.[0-9]+/.test(item)));
+}
+
+export interface OclValue extends langium.AstNode {
+    readonly $container: Reach;
+    readonly $type: 'OclValue';
+    parts: Array<OclPart>;
+}
+
+export const OclValue = {
+    $type: 'OclValue',
+    parts: 'parts'
+} as const;
+
+export function isOclValue(item: unknown): item is OclValue {
+    return reflection.isInstance(item, OclValue.$type);
+}
+
 export interface Pair extends langium.AstNode {
     readonly $container: PairListValue;
     readonly $type: 'Pair';
@@ -462,6 +508,7 @@ export interface Reach extends langium.AstNode {
     enum: EnumValue;
     int: IntValue;
     number: NumberValue;
+    ocl: OclValue;
     pairList: PairListValue;
     plain: PlainDocument;
     refList: RefListValue;
@@ -475,6 +522,7 @@ export const Reach = {
     enum: 'enum',
     int: 'int',
     number: 'number',
+    ocl: 'ocl',
     pairList: 'pairList',
     plain: 'plain',
     refList: 'refList',
@@ -730,6 +778,7 @@ export type GoalAstType = {
     IntValue: IntValue
     Line: Line
     NumberValue: NumberValue
+    OclValue: OclValue
     Pair: Pair
     PairListValue: PairListValue
     PlainDocument: PlainDocument
@@ -987,6 +1036,17 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        OclValue: {
+            name: OclValue.$type,
+            properties: {
+                parts: {
+                    name: OclValue.parts,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         Pair: {
             name: Pair.$type,
             properties: {
@@ -1051,6 +1111,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 number: {
                     name: Reach.number
+                },
+                ocl: {
+                    name: Reach.ocl
                 },
                 pairList: {
                     name: Reach.pairList

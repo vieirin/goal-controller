@@ -445,6 +445,41 @@ x
 2x:1
 ```
 
+### `ocl`
+
+OCL as MutRoSe's goal models write it: declarations (`current : Room,
+rooms : Sequence(Room)`), queries (`world_db->select(r:Room | r.dirty)`),
+iterations (`rooms->forAll(r | r.clean)`) and conditions (`r.name in
+current.rooms and not r.locked`, `assertion trigger "DoorOpened"`).
+
+It is read as its tokens, leniently, since MutRoSe's own conditions are
+(`forAll(x |)`, with an empty condition, is in its examples). The tokens
+are:
+
+- names: identifiers, as `pairList`'s;
+- strings `"…"`, integers and decimals;
+- the keywords `select forAll exists collect reject in not and or
+  assertion condition trigger`, and `true false True False`;
+- `-> . , : | ( ) [ ] = <> < <= > >= && || !`.
+
+Only a character no token matches is an error. An engine's checks read
+the structure (MutRoSe's: `Invalid select statement … in GM.`). The
+highlighter colours the tokens: a name after `:`, or inside the
+parentheses after a type, is a type.
+
+```goal-value ocl accept
+world_db->select(r:Room | r.dirty = True)
+rooms->forAll(r | r.clean)
+current_room : Room, rooms : Sequence(Room)
+assertion condition "r.is_dirty"
+deliveries_requested->forAll(current_delivery |)
+```
+
+```goal-value ocl reject
+a ? b
+r.clean$
+```
+
 ### `annotatedName`
 
 A modelling dialect's line: annotations, an optional id and `:`, a name, and

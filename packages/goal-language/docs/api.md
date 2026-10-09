@@ -56,7 +56,8 @@ G1: Deliver sample [G2;G3@2]
 | `goalNameParserFor` | `(dialect: ReadingDialect) => GoalNameParser` | every engine's goal-text reader: `({ goalText, onSyntaxError? }) => { id, goalName, executionDetail }`; reports syntax errors and disabled operators |
 | `executionOf` | `(dialect, tree) => ExecutionDetail \| null` | `{ type, ids, modifiers }`: a standalone construct, or the outermost enabled operator's construct with its operands and the modifiers that apply |
 | `readNotation` | `(dialect, tree) => NotationReading` | `{ constructs, standalone, modifiers, disabled }`: each construct's outermost operands, standalone constructs, modifier arguments by operand text, disabled operators |
-| `operandIds` | `(tree) => string[]` | an operand's ids through operators (a group's own aren't its parent's) |
+| `operandIds` | `(tree) => string[]` | an operand's ids through operators (a group's and a call's own aren't its parent's) |
+| `notationRefs` | `(tree) => string[]` | every element id a notation names, in the order written, through groups and calls |
 | `isEnabled` | `(dialect, symbol, form) => boolean` | the one rule for whether a dialect enables an operator |
 | `assertionVariables` | `(text) => { name, value }[]` | the variables a condition names, in order (`x = true` gives a value) |
 

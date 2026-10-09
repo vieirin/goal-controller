@@ -76,6 +76,7 @@ value alone (`parseValue(type, text)`).
 | `refList`       | `RefListValue`   | `G2, G5`                           | `kind`: of the elements it refers to                      |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
+| `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
 
 The **assertion language** works as follows:
 

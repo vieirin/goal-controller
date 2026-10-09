@@ -354,6 +354,26 @@ describe('values', () => {
       'model-based reflex',
     );
     assert.deepEqual(parseValue('refList', 'G2, G5').value, ['G2', 'G5']);
+    assert.deepEqual(
+      parseValue('ocl', 'rooms->forAll(r | r.clean <> False)').value,
+      [
+        'rooms',
+        '->',
+        'forAll',
+        '(',
+        'r',
+        '|',
+        'r',
+        '.',
+        'clean',
+        '<>',
+        'False',
+        ')',
+      ],
+    );
+    // `index` is a name, not `in` and `dex`; `?` is no OCL token
+    assert.deepEqual(parseValue('ocl', 'index').value, ['index']);
+    assert.equal(parseValue('ocl', 'a ? b').errors.length, 1);
     assert.deepEqual(parseValue('pairList', 't:9, loc:3').value, [
       { name: 't', value: '9' },
       { name: 'loc', value: '3' },

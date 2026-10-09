@@ -22,7 +22,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@44"
+              "$ref": "#/rules@48"
             },
             "arguments": []
           },
@@ -45,7 +45,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@29"
+                "$ref": "#/rules@32"
               },
               "arguments": []
             }
@@ -91,7 +91,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@44"
+              "$ref": "#/rules@48"
             },
             "arguments": []
           },
@@ -156,7 +156,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@32"
+                "$ref": "#/rules@35"
               },
               "arguments": []
             }
@@ -254,7 +254,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@36"
               },
               "arguments": []
             }
@@ -341,7 +341,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                   {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@31"
+                      "$ref": "#/rules@34"
                     },
                     "arguments": []
                   },
@@ -359,7 +359,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
               {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@30"
+                  "$ref": "#/rules@33"
                 },
                 "arguments": []
               }
@@ -398,7 +398,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@34"
+                    "$ref": "#/rules@37"
                   },
                   "arguments": []
                 }
@@ -430,7 +430,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@34"
+                    "$ref": "#/rules@37"
                   },
                   "arguments": []
                 }
@@ -449,7 +449,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@34"
+                        "$ref": "#/rules@37"
                       },
                       "arguments": []
                     }
@@ -486,7 +486,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@35"
+                "$ref": "#/rules@38"
               },
               "arguments": []
             }
@@ -501,7 +501,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@40"
+                    "$ref": "#/rules@43"
                   },
                   "arguments": []
                 }
@@ -517,7 +517,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@40"
+                    "$ref": "#/rules@43"
                   },
                   "arguments": []
                 }
@@ -542,14 +542,14 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                     {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@40"
+                        "$ref": "#/rules@43"
                       },
                       "arguments": []
                     },
                     {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@35"
+                        "$ref": "#/rules@38"
                       },
                       "arguments": []
                     }
@@ -582,7 +582,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@36"
+                "$ref": "#/rules@39"
               },
               "arguments": []
             }
@@ -594,7 +594,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@40"
               },
               "arguments": []
             },
@@ -860,7 +860,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@31"
+                    "$ref": "#/rules@34"
                   },
                   "arguments": []
                 }
@@ -1309,7 +1309,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@38"
+                    "$ref": "#/rules@41"
                   },
                   "arguments": []
                 }
@@ -1349,7 +1349,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@38"
+                    "$ref": "#/rules@41"
                   },
                   "arguments": []
                 }
@@ -1373,7 +1373,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@39"
+                    "$ref": "#/rules@42"
                   },
                   "arguments": []
                 }
@@ -1397,7 +1397,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@38"
+                    "$ref": "#/rules@41"
                   },
                   "arguments": []
                 }
@@ -1512,7 +1512,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@43"
               },
               "arguments": []
             },
@@ -1547,14 +1547,14 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@40"
+                    "$ref": "#/rules@43"
                   },
                   "arguments": []
                 },
                 {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@41"
+                    "$ref": "#/rules@44"
                   },
                   "arguments": []
                 }
@@ -1620,7 +1620,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@40"
               },
               "arguments": []
             },
@@ -1652,7 +1652,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@40"
               },
               "arguments": []
             },
@@ -1746,7 +1746,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@28"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -1765,7 +1765,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@28"
+                        "$ref": "#/rules@31"
                       },
                       "arguments": []
                     }
@@ -1775,6 +1775,235 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
               }
             ],
             "cardinality": "?"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OclValue",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Action",
+            "inferredType": {
+              "$type": "InferredType",
+              "name": "OclValue"
+            }
+          },
+          {
+            "$type": "Assignment",
+            "feature": "parts",
+            "operator": "+=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@29"
+              },
+              "arguments": []
+            },
+            "cardinality": "*"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OclPart",
+      "dataType": "string",
+      "definition": {
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@38"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@46"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@43"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@44"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@30"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "Keyword",
+            "value": "->"
+          },
+          {
+            "$type": "Keyword",
+            "value": "."
+          },
+          {
+            "$type": "Keyword",
+            "value": ","
+          },
+          {
+            "$type": "Keyword",
+            "value": ":"
+          },
+          {
+            "$type": "Keyword",
+            "value": "|"
+          },
+          {
+            "$type": "Keyword",
+            "value": "("
+          },
+          {
+            "$type": "Keyword",
+            "value": ")"
+          },
+          {
+            "$type": "Keyword",
+            "value": "["
+          },
+          {
+            "$type": "Keyword",
+            "value": "]"
+          },
+          {
+            "$type": "Keyword",
+            "value": "="
+          },
+          {
+            "$type": "Keyword",
+            "value": "<>"
+          },
+          {
+            "$type": "Keyword",
+            "value": "<"
+          },
+          {
+            "$type": "Keyword",
+            "value": "<="
+          },
+          {
+            "$type": "Keyword",
+            "value": ">"
+          },
+          {
+            "$type": "Keyword",
+            "value": ">="
+          },
+          {
+            "$type": "Keyword",
+            "value": "&&"
+          },
+          {
+            "$type": "Keyword",
+            "value": "||"
+          },
+          {
+            "$type": "Keyword",
+            "value": "!"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OclKeyword",
+      "dataType": "string",
+      "definition": {
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "select"
+          },
+          {
+            "$type": "Keyword",
+            "value": "forAll"
+          },
+          {
+            "$type": "Keyword",
+            "value": "exists"
+          },
+          {
+            "$type": "Keyword",
+            "value": "collect"
+          },
+          {
+            "$type": "Keyword",
+            "value": "reject"
+          },
+          {
+            "$type": "Keyword",
+            "value": "in"
+          },
+          {
+            "$type": "Keyword",
+            "value": "not"
+          },
+          {
+            "$type": "Keyword",
+            "value": "and"
+          },
+          {
+            "$type": "Keyword",
+            "value": "or"
+          },
+          {
+            "$type": "Keyword",
+            "value": "assertion"
+          },
+          {
+            "$type": "Keyword",
+            "value": "condition"
+          },
+          {
+            "$type": "Keyword",
+            "value": "trigger"
+          },
+          {
+            "$type": "Keyword",
+            "value": "true"
+          },
+          {
+            "$type": "Keyword",
+            "value": "false"
+          },
+          {
+            "$type": "Keyword",
+            "value": "True"
+          },
+          {
+            "$type": "Keyword",
+            "value": "False"
           }
         ]
       },
@@ -1795,7 +2024,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@35"
+                "$ref": "#/rules@38"
               },
               "arguments": []
             }
@@ -1811,7 +2040,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@42"
+                "$ref": "#/rules@45"
               },
               "arguments": []
             }
@@ -1831,7 +2060,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1850,7 +2079,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1869,7 +2098,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1888,7 +2117,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1907,7 +2136,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1926,7 +2155,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1945,7 +2174,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1964,7 +2193,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1983,7 +2212,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@43"
+              "$ref": "#/rules@47"
             },
             "arguments": []
           },
@@ -1995,6 +2224,25 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
               "$type": "RuleCall",
               "rule": {
                 "$ref": "#/rules@27"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@47"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "Assignment",
+            "feature": "ocl",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@28"
               },
               "arguments": []
             }
@@ -2143,6 +2391,17 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
       "definition": {
         "$type": "RegexToken",
         "regex": "/[^\\\\s,:](?:[^\\\\r\\\\n,:]*[^\\\\s,:])?/",
+        "parenthesized": false
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "STRING",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "/\\"[^\\"\\\\r\\\\n]*\\"/",
         "parenthesized": false
       },
       "fragment": false,

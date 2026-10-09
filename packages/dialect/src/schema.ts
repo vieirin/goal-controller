@@ -60,7 +60,9 @@ export type ValueConfig =
   | { type: 'refList'; kind: ElementKind }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
-  | { type: 'annotatedName' };
+  | { type: 'annotatedName' }
+  /** OCL as MutRoSe writes it: variables, `: Type`, `->select(...)`, `->forAll(...)` */
+  | { type: 'ocl' };
 
 export type ValueType = ValueConfig['type'];
 
