@@ -38,14 +38,19 @@ const SPECS = {
  */
 export default function PistarExtInspector() {
   const target = useSelectedTarget();
-  if (!target)
-    return (
-      <p className='p-4 text-[13px] text-ink-muted'>
-        Select an element or a link to edit its name, stereotype and tagged
-        value.
-      </p>
-    );
-  return <TargetEditor key={target.id} target={target} />;
+  // istar-ts's inspector panel: its width, scrolling and border beside the canvas
+  return (
+    <aside className='istar-inspector' aria-label='Inspector'>
+      {target ? (
+        <TargetEditor key={target.id} target={target} />
+      ) : (
+        <p className='text-[13px] text-ink-muted'>
+          Select an element or a link to edit its name, stereotype and tagged
+          value.
+        </p>
+      )}
+    </aside>
+  );
 }
 
 function TargetEditor({ target }: { target: IstarElement | IstarLink }) {
@@ -69,7 +74,7 @@ function TargetEditor({ target }: { target: IstarElement | IstarLink }) {
   const properties = target.customProperties ?? {};
   const annotations = labelAnnotations(target);
   return (
-    <div className='space-y-4 p-4'>
+    <div className='space-y-4'>
       <div className='space-y-0.5'>
         <p className='text-[13px] font-semibold text-ink'>{label}</p>
         {groupers.length > 0 && (

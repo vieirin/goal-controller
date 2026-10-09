@@ -1,5 +1,6 @@
 'use client';
 
+import { isEngineMode } from '@/lib/workbench/pistar';
 import {
   AlertTriangle,
   Download,
@@ -205,7 +206,7 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
       )}
 
       {/* piStar mode: the editor's own inspector is beside the diagram */}
-      {wb.mode !== 'pistar' && <SheetOnSelect onSelect={onSelect} />}
+      {isEngineMode(wb.mode) && <SheetOnSelect onSelect={onSelect} />}
       {/* Inspector sheet */}
       {sheetOpen && (
         <div

@@ -16,7 +16,7 @@ const EXTENSIONS: readonly IstarExtension[] = [
 export default function PistarExtDiagram() {
   return (
     // pistar-ext-canvas: its link labels above the actors (app/globals.css)
-    <div className='pistar-ext-canvas h-full'>
+    <div className='pistar-ext-canvas h-full w-full min-w-0'>
       <WorkbenchCanvas
         extensions={EXTENSIONS}
         aside={<PistarExtInspector />}

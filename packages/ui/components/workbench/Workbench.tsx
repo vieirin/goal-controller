@@ -22,7 +22,7 @@ import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode, type TransformEngine } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
+import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ModelSettings } from '@/lib/workbench/types';
 import BottomPanel from './BottomPanel';
@@ -406,7 +406,8 @@ function ModelColumn() {
     toggleModelReadOnly,
   } = useShell();
   // piStar mode shows the editor's own inspector beside the diagram instead
-  const showInspector = wb.mode !== 'pistar';
+  // piStar mode and the dialects carry their inspector in the diagram
+  const showInspector = isEngineMode(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs = modelTabsFor(wb.mode, wb.engine);
