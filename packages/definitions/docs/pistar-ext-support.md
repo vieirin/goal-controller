@@ -16,6 +16,11 @@ definition?
 
 **Branch** `vn/definitions-pistar-ext-annotations`, from `vn/engine-definitions` @ `5873719`.
 
+> The sections up to "Open questions" are the first pass, on istar-ts 0.7.0.
+> Where they differ from today, **"Re-evaluation with istar-ts 0.8.0"** at the
+> end is current. In particular, the iStar4RationalAgents dialect moved from
+> `test/fixtures/` to `src/extensions/`, and the workbench now reads it.
+
 ## Summary
 
 | piStar-ext mechanism                                    | Expressed?                      | How                                                                                                                                                                              |
@@ -359,7 +364,8 @@ TaggedValue : '{' TAG ('=' TAG_VALUE)? '}' ;       // literal ' = ' → '=' with
 
 ## Open questions
 
-1. **How does a workbench model pick a profile?**
+1. **How does a workbench model pick a profile?** _Answered in the
+   re-evaluation: the workbench always reads the known dialects._
    - Options: a model-level setting saved in the file (piStar-ext saves its
      lists in the model), a workbench toggle, or an engine variant.
    - This decides whether the fixture moves to `src/` and how
@@ -395,6 +401,151 @@ Rough engineer-days, assuming the current code owners.
 Supporting stereotypes and tagged values on nodes in the workbench is about
 **a week** on top of this branch. Full piStar-ext (actors, links, new
 constructs with symbols) is **4–6 weeks**, most of it in istar-ts.
+
+## Re-evaluation with istar-ts 0.8.0
+
+istar-ts 0.8.0 (`@istar-ts/core` and `@istar-ts/react`) can extend the
+metamodel:
+
+- `extendMetamodel` adds namespaced element and link kinds (`behavesLike`,
+  `pistarType`, declarative link rules);
+- the react registry draws them (`shape`, `line`).
+
+That removes the blockers the first pass found in istar-ts. This round:
+
+| Commit    | What                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `f07444d` | istar-ts `^0.8.0` in goal-tree and ui; five `.filter(isActor)` call sites wrapped (see findings)                                       |
+| `d24df06` | `ExtensionDefinition`: dialects as data, iStar4RationalAgents in `src/extensions/`, goal-tree's `goalView` takes any dialect's model   |
+| `6ec0f0d` | The workbench reads the known dialects: parsing, canvas, labels, piStar mode's inspector, and the editors through `EDITOR_DEFINITIONS` |
+
+Your decision: **the workbench always reads the known dialects.** A model
+without their kinds reads and writes byte for byte as before; this is tested
+on every example under `examples/` and `dissertationExamples/`.
+
+### What moved from "doesn't fit" to "fits"
+
+| Mechanism                                   | First pass     | Now                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **New node constructs** (Planning, Plan)    | No             | **Fits.** `ExtensionDefinition.elements` (category, `behavesLike`, `pistarType`, size, `shape`) → `metamodelExtensionOf` → istar-ts. Planning behaves like a Task and is saved as piStar-ext's `istar.Planning`. Plan is a plain node.                                                                                                                                    |
+| **New link constructs**                     | No             | **Fits** (schema and istar-ts). `links` with `behavesLike` or `rules` (sources/targets, `sameActor`, `allowDependum`, `allowSelf`, `unique`) and a `line` (dash, marker). The paper's example has no link, so iStar4RationalAgents declares none. The tests use a test-only Generates (own rules) and Alternative (behaves like OR-refinement) with istar-ts's `canLink`. |
+| **Groupers**                                | Authoring only | **Data.** `groupers: { rational: ['istar.Actor', 'istar.Agent', 'istar.Role'] }`. Stereotypes and tagged values name kinds or groupers, and `profileOf` resolves them. The paper's Actor + Role grouper can now be written (Agent added because Figs. 3-D and 4 apply goal-based to one).                                                                                 |
+| **Stereotypes on actors and roles**         | No             | **Partly.** Declared through the rational grouper, drawn above the actor in every mode, and editable in piStar mode's inspector. Not in the engine modes' inspector or Notation view: see below.                                                                                                                                                                          |
+| **Diagram labels** `<<…>> {k = v}`          | Not wired      | **Fits.** One `AnnotatedNode` / `AnnotatedActor` draws the annotations above the element, from its properties, through the same `writeAnnotations` the Notation view uses. The problem badges and Edge resources draw through it, so nothing is lost.                                                                                                                     |
+| **Engine-mode inspector and Notation view** | Not wired      | **Fits for goals, tasks and resources.** `EDITOR_DEFINITIONS` = the engine's definition with the dialect's annotations (`withExtension`). `KNOWN_PROPERTIES` stays the engine's own, so a stereotype row says "iStar4RationalAgents: shown before the element…; Edge doesn't read it" instead of "add it to the mapper".                                                  |
+
+Tests:
+
+- `test/extensions.test.ts` reads a piStar-ext-style file (`test/fixtures/rationalAgents.txt`) through istar-ts: parse, rules, validate, write back with `istar.Planning`.
+- The same file goes through goal-tree's view, which keeps G1 and T1 and leaves Planning and Plan out.
+- `test/uiLib.test.ts` covers the workbench's `parseModel`:
+  - byte-identical write-back of every example;
+  - unchanged editor documents for every Edge/EdgeV2 example;
+  - the dialect model's Notation document;
+  - the label annotations.
+
+**Not verified visually.** The Chrome extension was disconnected. Your
+:3000 dev server compiles the page (HTTP 200, no build error), but the
+canvas, labels and inspectors are only covered by the tests above. Opening
+`packages/definitions/test/fixtures/rationalAgents.txt` in piStar mode is
+the check to do by hand.
+
+### Schema changes in this round
+
+- **`ExtensionDefinition`**:
+  - `name` (the namespace) and `label`;
+  - `elements` and `links` (above);
+  - `groupers`;
+  - `stereotypes` and `taggedValues`, each with `appliesTo` (kinds or groupers) and, for tagged values, optional listed `values`;
+  - `defaultTags`;
+  - `annotations` (the stereotype and tagged-value syntax).
+
+  It is engine-agnostic. `defineExtension` checks the namespace and every
+  kind, grouper and link end it names.
+
+- **`ISTAR_ACTOR_KINDS` / `ISTAR_NODE_KINDS` / `ISTAR_LINK_KINDS`.** The
+  definitions package has no dependencies, so these repeat istar-ts's
+  constants; a test pins them to istar-ts. `ISTAR_KIND_OF` maps engine kinds
+  to iStar kinds.
+- **derive**:
+  - `metamodelExtensionOf` (istar-ts's `MetamodelExtension` as plain data);
+  - `profileOf`, `profileProperties`, `annotationKeys`;
+  - `withExtension`: the first pass's `withProfile`, moved from the fixture and generalised.
+- **Deliberately not done: opening `ElementKind`.** An engine definition
+  keeps the kinds an engine reads; a dialect's kinds live in the dialect.
+  Opening `ElementKind` would have rippled through lib's mappers and key types
+  for kinds no engine reads. Nothing needed it, because goal-tree's view
+  leaves unknown kinds out.
+
+### Findings in istar-ts 0.8.0 (reported, not changed)
+
+1. **`isActor(element, metamodel?)` and `isNode` broke point-free use.**
+   `.filter(isActor)` now passes the array index as the metamodel: a type
+   error in goal-controller, and wrong at run time for untyped callers.
+   Worth a changelog note, or a separate `isActorIn(metamodel)`.
+2. **Unknown keys on an actor are written after `nodes`.** For example,
+   piStar-ext's per-cell `extension` block. The content round-trips, the key
+   order doesn't, so a file isn't byte-identical after a save.
+3. **The kind-level `stereotype` is static.** piStar-ext's stereotypes are
+   per element, so the workbench wraps `DefaultElementComponent` /
+   `DefaultActorComponent`.
+4. **Links still have no label component, and `link.name` is never drawn.**
+   Stereotypes and tags on links can't be shown.
+
+### What still doesn't fit, and why
+
+- **Engine semantics for a dialect's kinds.** goal-tree's view leaves
+  Planning and Plan out, and the Edge palettes hide them. Generating from a
+  model that uses them fails at whichever engine check comes first; it was
+  run on the fixture with EdgeV2's conversion:
+  - an unlinked Plan is a second root candidate ("Invalid number of roots,
+    one allowed");
+  - without it, the Planning's name has no RT id ("Plan delivery" has no id).
+
+  Whether an engine should read a Planning as a task is a semantic decision,
+  not a schema one.
+
+- **Actors in the engine modes' inspector and Notation view.** goal-tree's
+  view has no actors. `SelectedNode` only inspects goals, tasks and
+  resources, and the document has no actor lines. In those modes an actor's
+  stereotype is shown on the canvas but edited only in piStar mode.
+- **Annotations on links.** The schema allows `appliesTo` with link kinds, but
+  istar-ts can't draw them (finding 4), and no link inspector schema is built.
+- **piStar-ext's storage.** Stereotypes and tags are read from
+  `customProperties`. piStar-ext's `extension` block (per cell and model-level
+  lists) round-trips but isn't read. Its construct definitions live in the
+  browser's localStorage; an importer from an export of them into an
+  `ExtensionDefinition` is still missing.
+- **Profiles by name only.** A Planning behaves like a Task but doesn't get
+  Task's `action` / `type`. That is a choice, and `behavesLike` could feed
+  `profileOf`.
+- **Value configs, unchanged.**
+  - `ConditionalValue` has one condition, so one listed tag per kind.
+  - No open enum ("New Value") and no "is set" condition.
+  - piStar mode's inspector edits a tag's value as free text, because
+    istar-ts's `PropertySchema` has no fields that depend on another.
+- **Stacking dialects** that share annotation keys (`stereotype`, `tag`,
+  `tagValue`) would repeat property keys (`defineEngine` throws). There is one
+  known dialect today. Two would need namespaced keys or one merged profile.
+- **OCL.** Unchanged. istar-ts's link `check` predicate is a function, so a
+  definition would name it (a check registry, as for properties).
+
+### Revised effort estimate
+
+| Work                                                                                                                                  | First pass            | Now                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------- |
+| Stereotypes and tags on nodes in the workbench                                                                                        | ≈ 1 week              | done; a manual check in the browser, ½ d                                    |
+| New node kinds with shapes (definitions + istar-ts)                                                                                   | 4–6 d + 5–8 d         | done                                                                        |
+| New link kinds and rules                                                                                                              | 4–6 d (istar-ts)      | done at schema and istar-ts level; ½ d to declare and draw one in a dialect |
+| piStar-ext adapter: `extension` block ↔ properties, model-level lists ↔ dialect, construct definitions export → `ExtensionDefinition` | 1–2 d                 | 2–3 d (now incl. constructs)                                                |
+| Actors in the engine modes' inspector and Notation view                                                                               | n/a                   | 2–3 d (goal-tree view + actor lines)                                        |
+| Link stereotypes shown                                                                                                                | in istar-ts link work | 2–3 d in istar-ts (link label component) + ½ d here                         |
+| Open enum, multi-case conditional value, "is set" condition                                                                           | 2–3 d                 | 2–3 d                                                                       |
+| Engine semantics for dialect kinds                                                                                                    | n/a                   | 2–4 d, once decided                                                         |
+| Grammar/LSP generation for annotations                                                                                                | 2–3 d                 | 2–3 d                                                                       |
+
+Full piStar-ext support goes from **4–6 weeks to about 2–3 weeks**. None of
+it is blocked on istar-ts core except link labels.
 
 ## Pre-existing failure, unrelated
 
