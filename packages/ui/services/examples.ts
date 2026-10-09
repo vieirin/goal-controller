@@ -5,7 +5,7 @@ import {
   type Project,
   type ProjectIndexEntry,
 } from '../lib/project';
-import type { TransformEngine } from '../lib/types';
+import { isTransformEngine, type TransformEngine } from '../lib/types';
 import { isDialectMode, type DialectMode } from '../lib/workbench/dialects';
 import { writeModelMode } from '../lib/workbench/pistar';
 import { declarationsOf } from '../lib/workbench/projectResources';
@@ -60,10 +60,12 @@ export const openExample = async (
   const [model] = read.models;
   if (!model) throw new Error(`${entry.path}: no model`);
   // a project says its dialect; a loose model is its folder's
-  const engine = (entry.dialect ?? EXAMPLE_ENGINES[entry.group]) as
-    | TransformEngine
-    | DialectMode
-    | undefined;
+  // (a dialect the workbench has no engine for yet, a seed's: piStar mode, nothing recorded)
+  const named = entry.dialect ?? EXAMPLE_ENGINES[entry.group];
+  const engine =
+    named && (isTransformEngine(named) || isDialectMode(named))
+      ? named
+      : undefined;
   const text = engine ? writeModelMode(model.text, engine) : model.text;
   return {
     project: withModelText(read, model.path, text),
