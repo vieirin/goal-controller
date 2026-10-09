@@ -8,26 +8,21 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { TransformEngine } from '@/lib/types';
-import { treeProblems } from '@/lib/workbench/localProblems';
+import {
+  modelLanguageProblems,
+  treeProblems,
+} from '@/lib/workbench/localProblems';
 import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
 import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import {
+  ENGINE_LABEL,
+  ENGINES,
+  isDialectEngine,
+} from '@/lib/workbench/engineDialects';
 import type { ConversionTarget } from './WorkbenchContext';
 import { cx } from './ui';
-
-export const ENGINES: Array<{
-  id: TransformEngine;
-  label: string;
-  output: string;
-}> = [
-  { id: 'edgev2', label: 'EdgeV2', output: 'PRISM' },
-  { id: 'edge', label: 'Edge', output: 'PRISM' },
-  { id: 'sleec', label: 'SLEEC', output: 'SLEEC' },
-];
-export const ENGINE_LABEL = Object.fromEntries(
-  ENGINES.map((e) => [e.id, e.label]),
-) as Record<TransformEngine, string>;
 
 /** What a model converts to: the engines, then the modelling dialects (no output). */
 export const TARGETS: Array<{
@@ -35,7 +30,7 @@ export const TARGETS: Array<{
   label: string;
   output: string | null;
 }> = [
-  ...ENGINES,
+  ...ENGINES.map(({ id, label, output }) => ({ id, label, output })),
   ...Object.entries(DIALECT_LABEL).map(([id, label]) => ({
     id: id as ConversionTarget,
     label,
@@ -52,10 +47,19 @@ export type Check =
   | { state: 'done'; errors: Problem[]; warnings: Problem[] };
 export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 
-/** The workbench's own model checks, on the view read with the engine's grammar. */
+/**
+ * The workbench's own model checks, and a dialect engine's language on the
+ * model's document, on the view read with the engine's grammar.
+ */
 const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
-    return treeProblems(treeView(text, engine), engine);
+    const tree = treeView(text, engine);
+    return [
+      ...treeProblems(tree, engine),
+      ...(isDialectEngine(engine)
+        ? modelLanguageProblems(engine, tree, [])
+        : []),
+    ];
   } catch {
     return [];
   }
@@ -120,7 +124,8 @@ export function useEngineConformity(
             errors: [
               {
                 severity: 'error',
-                source: 'engine',
+                // a dialect returned above: the target is an engine
+                source: ENGINE_LABEL[id as TransformEngine],
                 message: `Could not check the model: ${error instanceof Error ? error.message : String(error)}`,
               },
             ],

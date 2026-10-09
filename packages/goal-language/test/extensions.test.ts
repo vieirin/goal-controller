@@ -147,6 +147,8 @@ describe('a dialect of its own (no engine)', () => {
         to: 12,
         severity: 'error',
         message: 'This annotation cannot be read',
+        // on the line of the element at its position
+        elementId: 'a1',
       },
     ]);
     // in a stereotype: the dialect's stereotypes; elsewhere on a name: nothing

@@ -12,19 +12,29 @@ import {
   valueOf,
   type DefinitionContext,
   type AnyDialect,
+  type ResourceCandidates,
+  type ResourceSymbol,
   type WithNotation,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { ASSERTION, SKIP } from '../catalog.js';
+import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readPropertyLine } from './lines.js';
 
 export type Completion = {
   label: string;
-  type: 'variable' | 'keyword' | 'property';
+  /** `class`: a type a project resource defines (a world class) */
+  type: 'variable' | 'keyword' | 'property' | 'function' | 'class';
   detail?: string;
+  /** what to insert instead of the label, in LSP snippet syntax (`select(${1:v} | ${2:condition})`) */
+  snippet?: string;
 };
 
-export type CompletionResult = { from: number; options: Completion[] };
+export type CompletionResult = {
+  from: number;
+  /** where what is replaced ends, when past the position (the rest of a word) */
+  to?: number;
+  options: Completion[];
+};
 
 type Definition = Pick<
   AnyDialect,
@@ -42,7 +52,9 @@ const operatorOptions = ({ notation }: WithNotation): Completion[] => {
     ...Object.entries(operators).map(([symbol, name]) => ({
       label: modifiers[name]
         ? `${symbol}${modifiers[name].argument.default}`
-        : symbol,
+        : symbol in CALLS
+          ? `${symbol}(`
+          : symbol,
       type: 'keyword' as const,
       detail: meaning(name),
     })),
@@ -200,7 +212,8 @@ export const completionsAt = (
   if (!element || !owned || owned.declares) return null;
   if (!onKey && valued) {
     const property = propertyOf(definition, element.kind, valued[2]!);
-    if (!property) return null;
+    // an engine-owned server completes the value
+    if (!property || property.servedBy === 'engine') return null;
     const valueFrom = valued[0].length;
     const found = fieldCompletionsAt(
       definition,
@@ -208,8 +221,15 @@ export const completionsAt = (
       text.slice(valueFrom),
       before.length - valueFrom,
       context,
+      owner ?? undefined,
     );
-    return found && { ...found, from: start + valueFrom + found.from };
+    return (
+      found && {
+        ...found,
+        from: start + valueFrom + found.from,
+        ...(found.to !== undefined && { to: start + valueFrom + found.to }),
+      }
+    );
   }
   return {
     from,
@@ -230,6 +250,8 @@ export const fieldCompletionsAt = (
   text: string,
   pos: number,
   context: DefinitionContext,
+  /** the element whose value it is (an `ocl` value's scope) */
+  elementId?: string,
 ): CompletionResult | null => {
   const word = WORD.exec(text.slice(0, pos))?.[0] ?? '';
   const from = pos - word.length;
@@ -276,7 +298,188 @@ export const fieldCompletionsAt = (
       ],
     };
   }
+  if (value.type === 'ocl')
+    return oclCompletions(value, text, pos, context, elementId);
   return null;
+};
+
+const NAME = /[A-Za-z_][A-Za-z0-9_]*/;
+
+/**
+ * The names an `ocl` value may use at a position: those its text binds
+ * around it (`r` in `select(r:Room | `, while that parenthesis is open), those its `declaredBy` properties
+ * declare on the element and its ancestors, and the model's variables; with
+ * the type each is declared with, when it says.
+ */
+const oclScope = (
+  value: Extract<ValueConfig, { type: 'ocl' }>,
+  before: string,
+  context: DefinitionContext,
+  self: string | undefined,
+): { options: Completion[]; types: Map<string, string> } => {
+  const found = new Map<string, Completion>();
+  const types = new Map<string, string>();
+  const iterated: [string, string][] = [];
+  const add = (label: string, detail: string, type?: string) => {
+    // the first to name it is shown; the first to type it, its type
+    if (type && !types.has(label)) types.set(label, type);
+    if (!found.has(label))
+      found.set(label, { label, type: 'variable', detail });
+  };
+  // a binding is in scope while its parenthesis is open: `r` in
+  // `exists(r | r.ok) and x->select(q | ‸`, `q` only
+  const open: number[] = [];
+  for (const [at, char] of [...before].entries())
+    if (char === '(') open.push(at);
+    else if (char === ')') open.pop();
+  for (const binding of before.matchAll(
+    new RegExp(
+      `\\(\\s*(${NAME.source})\\s*(?::\\s*(${NAME.source}))?\\s*\\|`,
+      'g',
+    ),
+  ))
+    if (open.includes(binding.index)) {
+      add(binding[1]!, binding[2] ?? 'bound here', binding[2]);
+      // `rooms->forAll(r | `: r is of the collection's element type, once it is known
+      const collection = new RegExp(`(${NAME.source})\\s*->\\s*\\w+\\s*$`).exec(
+        before.slice(0, binding.index),
+      )?.[1];
+      if (!binding[2] && collection) iterated.push([binding[1]!, collection]);
+    }
+  const parents = new Map<string, string>();
+  for (const [id, element] of Object.entries(context.elements))
+    for (const child of element.children ?? []) parents.set(child, id);
+  for (let id = self, seen = 0; id && seen < 1000; id = parents.get(id), seen++)
+    for (const key of value.declaredBy ?? [])
+      for (const declared of (
+        context.elements[id]?.properties[key] ?? ''
+      ).split(',')) {
+        const [name, type] = declared.split(':').map((part) => part.trim());
+        if (name && new RegExp(`^${NAME.source}$`).test(name))
+          add(
+            name,
+            type ? `${type} (${key} of ${id})` : `${key} of ${id}`,
+            type,
+          );
+      }
+  for (const [name, collection] of iterated) {
+    const type = types.get(collection);
+    if (type && !types.has(name)) types.set(name, elementType(type));
+  }
+  for (const name of context.variables) add(name, 'variable');
+  return { options: [...found.values()], types };
+};
+
+/** A project resource's symbols of one category, as the definition context carries them. */
+const symbolsOf = (
+  context: DefinitionContext,
+  candidates: ResourceCandidates | undefined,
+): readonly ResourceSymbol[] =>
+  candidates
+    ? (context.projectResources?.[candidates.resource]?.symbols[
+        candidates.category
+      ] ?? [])
+    : [];
+
+/** `Sequence(Room)` holds Rooms: the type a name's members are looked up in */
+const elementType = (type: string): string =>
+  /^Sequence\(\s*(\w+)\s*\)$/.exec(type)?.[1] ?? type;
+
+/**
+ * Completions in an `ocl` value: after `->`, the collection operations
+ * (with their templates, unless their arguments follow already); elsewhere (after `.`, on a name), the names in
+ * scope.
+ */
+const oclCompletions = (
+  value: Extract<ValueConfig, { type: 'ocl' }>,
+  text: string,
+  pos: number,
+  context: DefinitionContext,
+  self?: string,
+): CompletionResult | null => {
+  const before = text.slice(0, pos);
+  // a name: after `r.`, what follows the dot
+  const word = /[A-Za-z0-9_]*$/.exec(before)?.[0] ?? '';
+  const from = pos - word.length;
+  const ahead = before.slice(0, from).trimEnd();
+  // inside a string (`assertion condition "…"`): nothing
+  if ((before.match(/"/g)?.length ?? 0) % 2 === 1) return null;
+  if (ahead.endsWith('->')) {
+    // its arguments already written (`->sel‸(r | …)`): the name only
+    const after = text.slice(pos);
+    const rest = /^[A-Za-z0-9_]*/.exec(after)![0];
+    const called = /^\s*\(/.test(after.slice(rest.length));
+    return {
+      from,
+      // the whole name: `->sel‸ect(` becomes `->forAll(`, not `->forAllect(`
+      ...(rest && { to: pos + rest.length }),
+      options: OCL_OPERATIONS.map(({ name, snippet, help }) => ({
+        label: name,
+        type: 'function' as const,
+        detail: help,
+        ...(!called && { snippet }),
+      })),
+    };
+  }
+  // a type (`r : ‸`, `select(r:‸`, `Sequence(‸`): the candidates the definition names
+  if (/(?::|Sequence\()\s*$/.test(ahead)) {
+    const types = symbolsOf(context, value.candidates);
+    return types.length
+      ? {
+          from,
+          options: types.map((symbol) => ({
+            label: symbol.name,
+            type: 'class' as const,
+            ...(symbol.detail && { detail: symbol.detail }),
+          })),
+        }
+      : null;
+  }
+  const scope = oclScope(value, before, context, self);
+  // `r.‸`: the members of r's type, when the definition says where they are
+  const owner = new RegExp(`(${NAME.source})\\.\\s*$`).exec(ahead)?.[1];
+  const ownerType = owner && scope.types.get(owner);
+  if (ownerType) {
+    const symbol = symbolsOf(context, value.memberCandidates).find(
+      (candidate) => candidate.name === elementType(ownerType),
+    );
+    if (symbol?.members?.length)
+      return {
+        from,
+        options: symbol.members.map((member) => ({
+          label: member.name,
+          type: 'property' as const,
+          detail: member.detail ?? symbol.name,
+        })),
+      };
+  }
+  return scope.options.length ? { from, options: scope.options } : null;
+};
+
+/**
+ * An inspector field's completions: its element's property, read with its
+ * value type. None when an engine-owned server serves the value
+ * (`servedBy: 'engine'`).
+ */
+export const fieldCompletions = (
+  definition: Definition,
+  context: DefinitionContext,
+  elementId: string,
+  key: string,
+  text: string,
+  pos: number,
+): CompletionResult | null => {
+  const element = context.elements[elementId];
+  const property = element && propertyOf(definition, element.kind, key);
+  if (!property || property.servedBy === 'engine') return null;
+  return fieldCompletionsAt(
+    definition,
+    valueOf(property, element.properties),
+    text,
+    pos,
+    context,
+    elementId,
+  );
 };
 
 /** A construct's hover text: `Sequence — does every child, one after another`. */

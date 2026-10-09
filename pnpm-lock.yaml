@@ -102,8 +102,8 @@ importers:
         specifier: workspace:*
         version: link:../goal-language
       '@istar-ts/core':
-        specifier: ^0.11.0
-        version: 0.11.0
+        specifier: ^0.12.0
+        version: 0.12.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -241,6 +241,9 @@ importers:
       '@codemirror/lang-json':
         specifier: ^6.0.2
         version: 6.0.2
+      '@codemirror/lang-xml':
+        specifier: ^6.1.0
+        version: 6.1.0
       '@codemirror/language':
         specifier: ^6.12.4
         version: 6.12.4
@@ -275,17 +278,20 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.11.0
-        version: 0.11.0
+        specifier: ^0.12.0
+        version: 0.12.0
       '@istar-ts/react':
-        specifier: ^0.11.0
-        version: 0.11.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.12.0
+        version: 0.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.90.20(react@19.2.3)
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       lucide-react:
         specifier: ^0.300.0
         version: 0.300.0(react@19.2.3)
@@ -460,6 +466,17 @@ packages:
     dependencies:
       '@codemirror/language': 6.12.4
       '@lezer/json': 1.0.3
+    dev: false
+
+  /@codemirror/lang-xml@6.1.0:
+    resolution: {integrity: sha512-3z0blhicHLfwi2UgkZYRPioSgVTo9PV5GP5ducFH6FaHy0IAJRg+ixj5gTR1gnT/glAIC8xv4w2VL1LoZfs+Jg==}
+    dependencies:
+      '@codemirror/autocomplete': 6.20.3
+      '@codemirror/language': 6.12.4
+      '@codemirror/state': 6.7.6
+      '@codemirror/view': 6.43.13
+      '@lezer/common': 1.5.3
+      '@lezer/xml': 1.0.6
     dev: false
 
   /@codemirror/language@6.12.4:
@@ -1612,17 +1629,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.11.0:
-    resolution: {integrity: sha512-rOD/06t5X7JY/70oAwZYQ+d0u5/A2M+AHhnzH6DYZFNvfwp1qGbX54GqsEs0R3YFLH172km5pqOHhq9gc5mWzw==}
+  /@istar-ts/core@0.12.0:
+    resolution: {integrity: sha512-BMmwRmEKz7XheiKP++fsw0nWP+CPGVWkYdRsATgs7wewLO2SbS5JodEg85NSStMKt0HEQaybbvLuxKYVmr/jpw==}
     dev: false
 
-  /@istar-ts/react@0.11.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-7iTi52nqUVppSNiv7K4j8H6JhsZRCWeqyiDtF2U25RukwP0rNA6hNXZkZcZtsiPEDzbChBlehs6h1a3IiGro1A==}
+  /@istar-ts/react@0.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-uchunEYDmUwS6e69M/0ReI7UvBU2xbaLQW0gIF2Duf88IzAZHInb1G46zsvtbaoMUiw9vIpIgonNupGBV1agPA==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.11.0
+      '@istar-ts/core': 0.12.0
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -1684,6 +1701,14 @@ packages:
     resolution: {integrity: sha512-rnCpTIBafOx4mRp43xOxDJbFipJm/c0cia/V5TiGlhmMa+wsSdoGmUN3w5Bqrks/09Q/D4tNAmWaT8p6NRi77A==}
     dependencies:
       '@lezer/common': 1.5.3
+    dev: false
+
+  /@lezer/xml@1.0.6:
+    resolution: {integrity: sha512-CdDwirL0OEaStFue/66ZmFSeppuL6Dwjlk8qk153mSQwiSH/Dlri4GNymrNWnUmPl2Um7QfV1FO9KFUyX3Twww==}
+    dependencies:
+      '@lezer/common': 1.5.3
+      '@lezer/highlight': 1.2.4
+      '@lezer/lr': 1.4.10
     dev: false
 
   /@mapbox/node-pre-gyp@2.0.3:
@@ -5048,6 +5073,10 @@ packages:
     dependencies:
       picomatch: 4.0.3
     dev: true
+
+  /fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
+    dev: false
 
   /file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}

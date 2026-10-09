@@ -10,6 +10,7 @@ import * as edgeMapper from '../../src/engines/edge/mapper';
 import { edgeV2 } from '../../src/engines/edgeV2/definition';
 import * as edgeV2Mapper from '../../src/engines/edgeV2/mapper';
 import { edgeCheckRegistry } from '../../src/engines/edgeFamily/checks';
+import { mutrose, mutroseCheckRegistry } from '../../src/engines/mutrose';
 
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const same = <T extends true>(): T => true as T;
@@ -88,14 +89,20 @@ describe('engine definitions in lib', () => {
 
   it('implements every check the definitions name', () => {
     same<Same<keyof typeof edgeCheckRegistry, CheckNameOf<typeof edgeV2>>>();
-    for (const definition of [edge, edgeV2]) {
+    same<
+      Same<keyof typeof mutroseCheckRegistry, CheckNameOf<typeof mutrose>>
+    >();
+    const registries = [
+      [edge, edgeCheckRegistry],
+      [edgeV2, edgeCheckRegistry],
+      [mutrose, mutroseCheckRegistry],
+    ] as const;
+    for (const [definition, registry] of registries) {
       for (const list of Object.values(definition.properties)) {
         for (const property of list as readonly { check?: string }[]) {
           if (property.check)
             assert.strictEqual(
-              typeof (edgeCheckRegistry as Record<string, unknown>)[
-                property.check
-              ],
+              typeof (registry as Record<string, unknown>)[property.check],
               'function',
               property.check,
             );

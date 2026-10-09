@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "edgev2",
+  "models": [
+    {
+      "path": "goalModel_TAS_3_.txt"
+    }
+  ],
+  "projectResources": {
+    "variables": "variables.json",
+    "properties": ["props/goalModel_TAS_3.props"]
+  },
+  "outputs": []
+}

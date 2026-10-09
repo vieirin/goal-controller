@@ -4,7 +4,10 @@
  * element a line belongs to, and the context the text is checked against.
  */
 import type { GoalView } from '@goal-controller/goal-tree';
-import type { DialectDefinition } from '@goal-controller/dialect';
+import type {
+  DefinitionContext,
+  DialectDefinition,
+} from '@goal-controller/dialect';
 import {
   contextFromView,
   lineId,
@@ -47,17 +50,25 @@ export const elementOfLine = (
   return null;
 };
 
-/** The workbench's context variables' names (what an assertion may read besides resources). */
+/**
+ * What the language checks a model against: its elements, the workbench's
+ * context variables' names (what an assertion may read besides resources),
+ * and the project's resources, parsed (a MutRoSe world), when it has them.
+ */
 export const contextOf = (
   definition: DialectDefinition,
   tree: GoalView,
   variables: ReadonlyArray<{ kind: string; name: string }>,
-) =>
-  contextFromView(
+  projectResources?: DefinitionContext['projectResources'],
+): DefinitionContext => ({
+  ...contextFromView(
     definition,
     tree,
     variables.filter((v) => v.kind === 'context').map((v) => v.name),
-  );
+  ),
+  ...(projectResources &&
+    Object.keys(projectResources).length > 0 && { projectResources }),
+});
 
 /** What the engine's grammar said of each saved element line. */
 export const savedLines = (

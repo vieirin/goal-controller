@@ -72,7 +72,8 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       if (KEYWORDS.has(text)) return 'keyword';
       if (TYPES.has(text)) return 'typeName';
       if (ATOMS.has(text)) return 'atom';
-      return 'variableName';
+      // a PRISM name stays in the text's colour (variables are a condition's)
+      return null;
     }
     if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/))
       return 'operator';
@@ -83,6 +84,92 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
 };
 
 export const prismLanguage = StreamLanguage.define(prismParser);
+
+// ---------------------------------------------------------------------------
+// MutRoSe's runtime annotation (`(G2;NC(G4;FALLBACK(AT1,AT2)))`)
+// ---------------------------------------------------------------------------
+
+const rannotParser: StreamParser<null> = {
+  name: 'rannot',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^(?:AT|G)\d+/)) return 'labelName';
+    if (stream.match(/^(?:FALLBACK|NC)\b/)) return 'keyword';
+    if (stream.match(/^[;#]/)) return 'operator';
+    if (stream.match(/^[(),]/)) return 'punctuation';
+    stream.next();
+    return null;
+  },
+};
+
+export const rannotLanguage = StreamLanguage.define(rannotParser);
+
+// ---------------------------------------------------------------------------
+// project resources' languages (goal-controller#25): HDDL and PCTL
+// ---------------------------------------------------------------------------
+
+/** HDDL (MutRoSe's domains): s-expressions, `:keywords`, `?variables`, `;` comments. */
+const hddlParser: StreamParser<null> = {
+  name: 'hddl',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^;.*/)) return 'comment';
+    if (stream.match(/^[()]/)) return 'bracket';
+    if (stream.match(/^:[\w-]+/)) return 'keyword';
+    if (stream.match(/^\?[\w-]+/)) return 'variableName';
+    if (stream.match(/^(?:define|domain|and|or|not|forall|exists|when)\b/i))
+      return 'keyword';
+    if (stream.match(/^-(?=\s)/)) return 'operator';
+    if (stream.match(/^\d+(\.\d+)?/)) return 'number';
+    if (stream.match(/^[^\s()]+/)) return 'typeName';
+    stream.next();
+    return null;
+  },
+  languageData: { commentTokens: { line: ';' } },
+};
+
+export const hddlLanguage = StreamLanguage.define(hddlParser);
+
+const PCTL_OPERATORS = new Set([
+  'P',
+  'R',
+  'S',
+  'E',
+  'A',
+  'F',
+  'G',
+  'U',
+  'X',
+  'W',
+  'C',
+  'I',
+]);
+const PCTL_KEYWORDS = new Set(['min', 'max', 'filter', 'true', 'false']);
+
+/** PCTL property suites (Edge): `"label": P=? [ F done ]`, `//` comments. */
+const pctlParser: StreamParser<null> = {
+  name: 'pctl',
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^\/\/.*/)) return 'comment';
+    if (stream.match(/^"[^"]*"/)) return 'labelName';
+    if (stream.match(/^\d+(\.\d+)?/)) return 'number';
+    const word = stream.match(/^[A-Za-z_][A-Za-z0-9_]*/);
+    if (word) {
+      const text = (word as RegExpMatchArray)[0];
+      if (PCTL_OPERATORS.has(text)) return 'keyword';
+      if (PCTL_KEYWORDS.has(text)) return 'atom';
+      return 'variableName';
+    }
+    if (stream.match(/^[[\]{}()]/)) return 'bracket';
+    if (stream.match(/^(=\?|<=|>=|!=|=>|[=<>&|!+\-*/?:])/)) return 'operator';
+    stream.next();
+    return null;
+  },
+  languageData: { commentTokens: { line: '//' } },
+};
+
+export const pctlLanguage = StreamLanguage.define(pctlParser);
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -123,7 +210,8 @@ const highlight = HighlightStyle.define([
   { tag: [t.number, t.atom, t.bool], color: '#B7791F' },
   { tag: t.string, color: '#1F7A74' },
   { tag: t.operator, color: '#6B7679' },
-  { tag: t.variableName, color: '#1E2527' },
+  // a condition's names: what it reads (Edge's resources, MutRoSe's variables)
+  { tag: t.variableName, color: '#1D4ED8' },
   { tag: t.propertyName, color: '#1F7A74' },
   { tag: t.punctuation, color: '#6B7679' },
 ]);

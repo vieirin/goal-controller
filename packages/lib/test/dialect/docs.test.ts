@@ -8,6 +8,10 @@
  * - `goal-value <type> accept|reject`: each line is one value of the type
  * - `goal-rt`: each line is `notation ⇒ grouping` (the tree, operators parenthesised)
  * - `goal-reads <dialect>`: each line is `goal text ⇒ type(ids) modifier{operand:n}` or `⇒ none`
+ * - `goal-complete <dialect>`: the block is a document with a cursor `‸`;
+ *   `%% offers <labels>` (all of them, in order), `%% inserts <label> ⇒ <text>`,
+ *   and `goal-check`'s model directives; the model's properties are the
+ *   document's property lines
  * - `goal-check <dialect>`: the block is a document, validated; `%%` lines are
  *   directives: `%% <severity> [<span>] <message>` (the expected diagnostics,
  *   all of them), `%% only <ids>` (the diagram's elements),
@@ -16,7 +20,7 @@
  *   a dialect without ids (`rationalAgents`)
  *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
- * Dialects: edge, edgeV2, and edgeV2 / edge with iStar4RationalAgents'
+ * Dialects: edge, edgeV2, mutrose, and edgeV2 / edge with iStar4RationalAgents'
  * annotations (`edgeV2+rationalAgents`, `edge+rationalAgents`).
  */
 import { expect } from 'chai';
@@ -31,6 +35,7 @@ import {
   type Relation,
 } from '@goal-controller/dialect';
 import {
+  completionsAt,
   documentDiagnostics,
   goalNameParserFor,
   parseDocument,
@@ -41,9 +46,10 @@ import {
 } from '@goal-controller/goal-language';
 import {
   createGoalLspServices,
+  serverCompletions,
   serverDiagnostics,
 } from '@goal-controller/goal-language/lsp';
-import { edge, edgeV2, istar4RationalAgents } from '../../src';
+import { edge, edgeV2, istar4RationalAgents, mutrose } from '../../src';
 
 const DOCS = join(__dirname, '../../../goal-language/docs');
 const FILES = ['reference.md', 'api.md', 'diagnostics.md', 'examples.md'];
@@ -51,6 +57,7 @@ const FILES = ['reference.md', 'api.md', 'diagnostics.md', 'examples.md'];
 const DIALECTS: Record<string, AnyDialect> = {
   edge: edge as AnyDialect,
   edgeV2: edgeV2 as AnyDialect,
+  mutrose: mutrose as AnyDialect,
   'edge+rationalAgents': withExtension(
     edge as AnyDialect,
     istar4RationalAgents,
@@ -93,6 +100,8 @@ const grouped = (tree: RtTree | null): string => {
       return `${tree.operator}${grouped(tree.expr)}`;
     case 'group':
       return `${tree.open}${grouped(tree.expr)}${tree.open === '[' ? ']' : ')'}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(grouped).join(',')})`;
     case 'ref':
       return tree.id;
     case 'skip':
@@ -104,7 +113,15 @@ const grouped = (tree: RtTree | null): string => {
   }
 };
 
-const KIND: Record<string, string> = { G: 'goal', T: 'task', R: 'resource' };
+/** An element's kind, by its id's prefix (the longest that matches: `AT1` is a task). */
+const KIND: Record<string, string> = {
+  AT: 'task',
+  G: 'goal',
+  T: 'task',
+  R: 'resource',
+};
+const kindOf = (id: string) =>
+  KIND[Object.keys(KIND).find((prefix) => id.startsWith(prefix)) ?? ''];
 
 /** A model of named elements, in order, for a dialect without ids (`%% model`). */
 const plainContext = (directive: string): DefinitionContext => {
@@ -132,18 +149,29 @@ const plainContext = (directive: string): DefinitionContext => {
 };
 
 /** The model a checked document stands for: its lines' elements, as directed. */
-const contextOf = (doc: string, directives: string[]): DefinitionContext => {
+const contextOf = (
+  doc: string,
+  directives: string[],
+  { properties = false } = {},
+): DefinitionContext => {
   const model = directives.find((d) => d.startsWith('model '));
   if (model) return plainContext(model);
   const elements: Record<string, DefinitionContextElement> = {};
+  let owner: string | undefined;
   for (const written of doc.split('\n')) {
     const read = readLine(
       { elements: { goal: { prefix: 'G', fill: '' } } },
       written,
     );
+    if (properties && read.kind === 'property' && owner)
+      elements[owner] = {
+        ...elements[owner]!,
+        properties: { ...elements[owner]!.properties, [read.key]: read.value },
+      };
     if (read.kind !== 'element' || !read.id) continue;
+    owner = read.id;
     elements[read.id] = {
-      kind: KIND[read.id[0]!] ?? 'goal',
+      kind: kindOf(read.id) ?? 'goal',
       children: (read.notation?.refs ?? []).map((ref) => ref.id),
       properties: {},
     };
@@ -219,6 +247,27 @@ const expectedOf = (directives: string[]) =>
     .map((m) => `${m[1]} [${m[2]}] ${m[3]}`)
     .sort();
 
+/** A `goal-complete` block: a `goal-check` block, and where its cursor `‸` is. */
+const completing = (args: string[], body: string) => {
+  const { dialect, doc, directives } = checked(args, body);
+  const pos = doc.indexOf('‸');
+  if (pos < 0) throw new Error(`no cursor ‸ in ${doc}`);
+  return { dialect, doc: doc.replace('‸', ''), directives, pos };
+};
+
+/** What a `goal-complete` block expects offered, and inserted. */
+const offered = (directives: string[]) => ({
+  offers: (directives.find((d) => d.startsWith('offers ')) ?? 'offers')
+    .slice(6)
+    .split(',')
+    .map((label) => label.trim())
+    .filter(Boolean),
+  inserts: directives
+    .map((d) => /^inserts (\S+) ⇒ (.*)$/.exec(d))
+    .filter((m): m is RegExpExecArray => m !== null)
+    .map((m) => [m[1]!, m[2]!.trim()] as const),
+});
+
 const run = ({ info, body }: Block) => {
   const [kind, ...args] = info;
   const verdict = args.at(-1);
@@ -275,6 +324,23 @@ const run = ({ info, body }: Block) => {
       expect([...got].sort(), doc).to.deep.equal(expected);
       return 1;
     }
+    case 'goal-complete': {
+      const { dialect, doc, directives, pos } = completing(args, body);
+      const { offers, inserts } = offered(directives);
+      const got = completionsAt(
+        dialect,
+        doc,
+        pos,
+        contextOf(doc, directives, { properties: true }),
+      );
+      expect(got?.options.map((o) => o.label) ?? [], doc).to.deep.equal(offers);
+      for (const [label, text] of inserts)
+        expect(
+          got?.options.find((o) => o.label === label)?.snippet ?? label,
+          label,
+        ).to.equal(text);
+      return 1;
+    }
     default:
       throw new Error(`unknown example kind ${kind}`);
   }
@@ -319,6 +385,34 @@ describe('the goal language docs: every checked example through the language ser
         (d) => `${d.severity} [${doc.slice(d.from, d.to)}] ${d.message}`,
       );
       expect(got.sort(), doc).to.deep.equal(expectedOf(directives));
+    });
+});
+
+describe('the goal language docs: every completion example through the language server', () => {
+  const { shared, store } = createGoalLspServices();
+  for (const block of blocks().filter((b) => b.info[0] === 'goal-complete'))
+    it(`${block.file}:${block.line} ${block.info.join(' ')}`, async () => {
+      const { dialect, doc, directives, pos } = completing(
+        block.info.slice(1),
+        block.body,
+      );
+      const uri = `file:///docs/${block.file}/${block.line}.goal`;
+      store.set({
+        uri,
+        dialect,
+        context: contextOf(doc, directives, { properties: true }),
+      });
+      const got = await serverCompletions(shared, uri, doc, pos);
+      const { offers, inserts } = offered(directives);
+      expect(
+        got.map((item) => item.label),
+        doc,
+      ).to.deep.equal(offers);
+      for (const [label, text] of inserts)
+        expect(
+          got.find((item) => item.label === label)?.insert,
+          label,
+        ).to.equal(text);
     });
 });
 

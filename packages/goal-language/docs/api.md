@@ -56,7 +56,8 @@ G1: Deliver sample [G2;G3@2]
 | `goalNameParserFor` | `(dialect: ReadingDialect) => GoalNameParser` | every engine's goal-text reader: `({ goalText, onSyntaxError? }) => { id, goalName, executionDetail }`; reports syntax errors and disabled operators |
 | `executionOf` | `(dialect, tree) => ExecutionDetail \| null` | `{ type, ids, modifiers }`: a standalone construct, or the outermost enabled operator's construct with its operands and the modifiers that apply |
 | `readNotation` | `(dialect, tree) => NotationReading` | `{ constructs, standalone, modifiers, disabled }`: each construct's outermost operands, standalone constructs, modifier arguments by operand text, disabled operators |
-| `operandIds` | `(tree) => string[]` | an operand's ids through operators (a group's own aren't its parent's) |
+| `operandIds` | `(tree) => string[]` | an operand's ids through operators (a group's and a call's own aren't its parent's) |
+| `notationRefs` | `(tree) => string[]` | every element id a notation names, in the order written, through groups and calls |
 | `isEnabled` | `(dialect, symbol, form) => boolean` | the one rule for whether a dialect enables an operator |
 | `assertionVariables` | `(text) => { name, value }[]` | the variables a condition names, in order (`x = true` gives a value) |
 
@@ -109,11 +110,13 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf`, and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `(properties, CheckContext) => string \| null` |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
 | `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
-| `fieldCompletionsAt` | `(D, config, text, pos, context) => CompletionResult \| null` | ids (`refList`) and names (`assertion`) |
+| `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names (`assertion`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
 | `constructHint` | `(D, construct) => string \| null` | `Sequence — does every child, one after another` |
 
 A `Diagnostic` is `{ from, to, severity, message }`, with offsets into the
-text. `runCheck(check, properties, self)` runs an engine's named checks.
+text. A completion is `{ label, type, detail?, snippet? }`: `snippet` is
+what to insert instead of the label, in LSP snippet syntax (the server sends
+it as a snippet; CodeMirror's `snippetCompletion` reads it as it is). `runCheck(check, properties, self)` runs an engine's named checks.
 
 ## Highlighting
 
@@ -147,7 +150,8 @@ These are also in `/light`.
 | `OPERATORS` | every operator: `{ symbol, form, precedence, assoc, example }` |
 | `INFIX_SYMBOLS` | binary symbols, tightest first |
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
+| `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2) |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |
-| `ID_PREFIXES` | `G`, `T`, `R` |
+| `ID_PREFIXES` | `G`, `T`, `R`, `AT` |
 | `SKIP` | `skip` |

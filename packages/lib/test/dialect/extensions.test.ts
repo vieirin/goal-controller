@@ -384,6 +384,7 @@ describe('a dialect of its own (no engine)', () => {
         to: 17,
         severity: 'error',
         message: 'This annotation cannot be read',
+        elementId: 'a1',
       },
     ]);
     // in a stereotype: iStar4RationalAgents' stereotypes; on a name: nothing

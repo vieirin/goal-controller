@@ -1,0 +1,169 @@
+# MutRoSe: a stress test of the engine framework
+
+MutRoSe is a mission decomposer for robot teams
+([MutRoSe-Mission-Decomposer](https://github.com/ericbg27/MutRoSe-Mission-Decomposer)).
+Its goal models are piStar files, the same as ours, edited in VS Code by
+[mutrose-vscode](https://github.com/CPeluti/mutrose-vscode) with an istar-ts
+editor. It was added to the workbench as a fourth engine, following
+[adding-an-engine.md](adding-an-engine.md). This page records:
+
+- what MutRoSe requires of a goal model, taken from the decomposer's source;
+- where the framework already fit;
+- where it had to grow;
+- what is still open.
+
+## What MutRoSe reads
+
+The decomposer's sources are the reference: `gm/gm.cpp`,
+`utils/gm_utils.{hpp,cpp}`, `rannot/` and `annotmanager/`.
+
+- **Elements**
+  - Goals `G1` and abstract tasks `AT1`, in one actor (the mission, `M1`).
+    With several actors, only the last one's nodes are read.
+  - A task's first word after the colon is the HDDL task it stands for.
+  - Every link is a refinement. An OR link makes the goal OR-decomposed.
+- **Runtime annotations** in a goal's name:
+  - `;` is sequential and `#` is parallel; `#` binds tighter.
+  - `FALLBACK(a,b)` takes exactly two operands. Parentheses group.
+  - With no annotation, a goal with several children runs them in
+    parallel, and a goal with one child is a means-end.
+  - `;` and `FALLBACK` are errors on an OR-decomposed goal.
+- **Properties.** A closed list; any other key is an error.
+  - `GoalType` is Perform (the default), Achieve or Query.
+  - `Controls` and `Monitors` hold `name : Type` lists.
+  - `AchieveCondition` (Achieve only) is `coll->forAll(it | cond)` or a
+    condition.
+  - `QueriedProperty` (Query only) is `src->select(v:Type | cond)`.
+  - `CreationCondition`, `Group`, `Divisible`, `RobotNumber` (`N` or
+    `[lo,hi]`), `Location`, `Params`, `Description`.
+- **Validity** (`check_gm_validity`), depth-first over the goals:
+  - a Monitors variable must have been declared by an earlier goal's
+    Controls, and a declared variable can't be declared again;
+  - a forAll's variables must be in the goal's lists;
+  - a Query's variable type must match its first controlled variable.
+
+  Each task's Params must also be bound (`at_manager.cpp`).
+- **Output.** The decomposition needs an HDDL domain, a configuration and a
+  world database, and runs as a native binary. A browser can produce the
+  runtime annotation the decomposer prints with `-v`, after the same
+  checks. That is the template's output (`output.rannot`, highlighted:
+  ids, `;`/`#`, `FALLBACK`/`NC`), for example:
+
+  ```
+  (G2;NC(G4;NC(FALLBACK(NC(AT1;AT2),AT3))))
+  ```
+
+All 17 goal models of MutRoSe-Docs pass the checks and print. Their
+nesting, `FALLBACK` and non-cooperative (`NC`) parts are as the decomposer's
+rules give them.
+
+## What fit as it was
+
+- **The definition.**
+  - Kinds with id prefixes; the operators `;` and `#` from the catalog, with
+    MutRoSe's own precedence already the language's.
+  - Properties with value types; `applies`/`required` for
+    AchieveCondition and QueriedProperty by `GoalType`.
+  - `relation: 'and'` on sequential and fallback, which turns MutRoSe's "no
+    `;` on an OR goal" into the editors' relation mismatch.
+- **Named checks** for what a value type can't say: the decomposer's own
+  parsers were ported with their messages (`Invalid select statement … in
+  GM.`).
+- **Everything the UI derives from a definition.** It worked unchanged:
+  - the Notation view, inspector fields, lint, completion and hover;
+  - the language server.
+
+## Where the framework had to grow
+
+| What MutRoSe needed | What changed |
+| --- | --- |
+| Task ids `AT1` | The language's `ID_PREFIXES` gained `AT`. The lexer, grammar and highlighter build their id rules from the catalog, longest prefix first. The highlighter joined an id's prefix and number only for one-letter prefixes. |
+| `FALLBACK(a,b)` | A new form in the catalog: **calls**, each with its number of operands. `,` moved out of the infix rule so a call's commas aren't the operator. See [extending-the-grammar.md](../../goal-language/docs/extending-the-grammar.md). |
+| Nested annotations (`[G4;FALLBACK(G5,AT3)]`) | An engine was handed only the outermost construct and its operands (`executionDetail`). `mapGoalProps` now also gets the goal's text, read with `parseElementLine`. The language has `notationRefs` (every id a notation names, through groups and calls). |
+| Query goals with no children | goal-tree rejected any leaf goal (an Edge rule). It is now the mapper's `allowLeafGoals`. The UI's own copy of the rule asks the engine's mapper. |
+| Check names kept per engine | Registries were typed `Record<string, Check>` in the UI, which loses their names. `ENGINE_CHECKS` is a mapped type over the engines, keyed by each definition's `CheckNameOf`: a registry missing a check doesn't compile, and `ENGINE_CHECKS[engine]` goes with `ENGINE_DIALECTS[engine]` in generic code. |
+| A view's children order through calls | The workbench's "missing from the notation" check read the outermost operands, so `G5`, `AT3` inside `FALLBACK` were reported missing. The view's `order` now lists every id the notation names, in the order written. |
+| OCL values (`world_db->select(r:Room \| r.dirty)`) | A new value type, `ocl`, in the goal language: OCL's tokens, read leniently (MutRoSe's own conditions are: `forAll(x \|)`). The editors colour variables, types (after `:`, in `Sequence(…)`), keywords, operators and literals. The decomposer's structure is still its named checks'. |
+| Rules across elements in the editors | A check had the element's properties and `kindOf` only. Its context now carries the whole model when the caller has it (`elements`: kind, properties, children, `x`), built once by the goal language's `checkContextOf` for the editors, the inspector and the language server. MutRoSe's scoping (`scope.ts`, written once) runs in its Monitors, Controls and Params checks, so the editors mark the field; the template runs the same rules over the typed tree. |
+| The decomposer's order of children | goal-tree's nodes and view carry each element's diagram `x`. MutRoSe walks and prints a goal's children left to right, as the decomposer does; a tree without positions keeps the annotation's order. |
+| A goal type to pick when adding a goal | Palette entries that preset properties (Edge's Boolean and Integer resources): Goal offers Perform, Achieve and Query, each in its fill. |
+| A fourth engine in the UI | The engine's label, output label and extension, and its options, were written out in four to six places each. They are now one `ENGINES` list in `engineDialects.ts`. Model conversion takes what an engine reads from a table (`ENGINE_READS`), and new elements get the target definition's id prefixes. |
+
+Every change kept the Edge engines byte for byte: the Notation documents
+and PRISM of every example are the same (`pnpm snapshot:language`).
+
+## Project resources (goal-controller#25)
+
+MutRoSe's definition declares what the decomposer reads beside the model:
+the world knowledge (`knowledge/world_db.xml`), the HDDL domain
+(`hddl/domain.hddl`) and the configuration
+(`configuration/configuration.json`), as MutRoSe-Docs lays them out. Its
+library parses them (`engines/mutrose/projectResources/`):
+
+- **the world**, with a small XML reader of our own: under its root, one
+  element per entity, its tag the entity's class, its children the
+  attributes. Its symbols are the `classes` (with their attributes as
+  members) and the `instances`;
+- **the HDDL domain**, with an s-expression reader: its types, predicates,
+  tasks and actions with their parameters;
+- **the configuration**: the world's file and root, its `location_types`,
+  and the type and variable mappings onto the domain.
+
+With them, the editors mark what the decomposer would find against them:
+
+- a type in Controls, Monitors or a query that the world has no class for
+  (a collection's class; OCL's Integer, Real, Boolean and String are no
+  class);
+- a task's Location whose variable is not of one of the configuration's
+  location types.
+
+They also complete a type with the world's classes (after `:`, in
+`select(v:`, in `Sequence(`), and `name.` with the attributes of name's
+class, a forAll's variable being of its collection's class.
+
+`examples/projects/medicine-delivery/` is MedicineDelivery as a project,
+with a small world, domain and configuration written for it.
+
+## Still open
+
+- **OCL has tokens, not a grammar.** The `ocl` type colours a value, but
+  its structure is read by MutRoSe's checks, with their messages on the
+  whole field. A grammar for it (paths `a.b`, `->select`, `->forAll`,
+  `&&`/`||`) would point at the part that's wrong and complete the
+  variables in scope; Edge's `assertion` could be a subset of it.
+- **The fill follows a property.** A definition gives one fill per kind.
+  mutrose-vscode colours goals by `GoalType`, which the MutRoSe diagram's
+  goal component does itself. The inspector's Color row doesn't know: it
+  shows the kind's default.
+- **The mapper doesn't have the model.** Its checks run without
+  `elements`, so a rule across elements first stops generation in the
+  template, while the editors mark it as soon as it's written.
+- **forAll goals aren't expanded.** The browser has the world database now
+  (a project resource), but the template doesn't expand a goal per entity
+  yet; it binds types only.
+- **The HDDL domain is read, not checked against.** A task's first word as
+  one of the domain's tasks, and its Params against the task's parameters
+  (through the configuration's var_mapping), need the task's name in a
+  check's context, which only has its properties.
+- **Empty properties print.** piStar gives every element `Description: ""`,
+  and the Notation view writes a defined property with an empty value as a
+  bare key, so every MutRoSe line has a `Description` under it. Skipping
+  empty values would change the view's round trip for every engine.
+- **The decomposer's own quirks**, ported as they are:
+  - the forAll messages name the lists the other way round;
+  - `-v` prints `NC(a;b))`, one parenthesis too many (ours is balanced);
+  - an unknown `GoalType` reads as Perform (ours is an error, as an enum).
+
+## Examples
+
+- `examples/mutrose/MedicineDelivery.txt` (written for the workbench)
+  exercises:
+  - a Query leaf and an Achieve forAll;
+  - `FALLBACK`, `NC` from `Group`/`Divisible`;
+  - `Params`, `Location` and `RobotNumber`.
+- `examples/mutrose/LabSampleLogistics.txt` is mutrose-vscode's test model,
+  as its istar-ts editor saved it. Compared with MutRoSe-Docs' original, its
+  `G2` (the Query that declares `deliveries_requested`) is gone, and `G3`'s
+  AchieveCondition and Group changed. The decomposer would reject it as the
+  workbench does: `Undeclared variable [deliveries_requested] of type [] in
+  goal G3`.

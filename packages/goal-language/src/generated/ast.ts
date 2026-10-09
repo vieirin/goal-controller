@@ -20,6 +20,7 @@ export const GoalTerminals = {
     INTEGER: /-?[0-9]+/,
     NUMBER: /-?[0-9]+\.[0-9]+/,
     PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/,
+    STRING: /"[^"\r\n]*"/,
     REACH: /\u0000reach\u0000/,
     NL: /[\r\n]+/,
     WS: /[ \t]+/,
@@ -32,36 +33,56 @@ export type GoalKeywordNames =
     | "!="
     | "#"
     | "&"
+    | "&&"
     | "("
     | ")"
     | "*"
     | "+"
     | ","
     | "->"
+    | "."
     | ".."
     | ":"
     | ";"
     | "<"
     | "<<"
     | "<="
+    | "<>"
     | "="
     | ">"
     | ">="
     | ">>"
     | "?"
     | "@"
+    | "AT"
+    | "FALLBACK"
+    | "False"
     | "G"
     | "R"
     | "T"
+    | "True"
     | "X"
     | "["
     | "]"
     | "^"
+    | "and"
+    | "assertion"
+    | "collect"
+    | "condition"
+    | "exists"
     | "false"
+    | "forAll"
+    | "in"
+    | "not"
+    | "or"
+    | "reject"
+    | "select"
     | "skip"
+    | "trigger"
     | "true"
     | "{"
     | "|"
+    | "||"
     | "}"
     | "~";
 
@@ -388,6 +409,33 @@ export function isNumberValue(item: unknown): item is NumberValue {
     return reflection.isInstance(item, NumberValue.$type);
 }
 
+export type OclKeyword = 'False' | 'True' | 'and' | 'assertion' | 'collect' | 'condition' | 'exists' | 'false' | 'forAll' | 'in' | 'not' | 'or' | 'reject' | 'select' | 'trigger' | 'true';
+
+export function isOclKeyword(item: unknown): item is OclKeyword {
+    return item === 'select' || item === 'forAll' || item === 'exists' || item === 'collect' || item === 'reject' || item === 'in' || item === 'not' || item === 'and' || item === 'or' || item === 'assertion' || item === 'condition' || item === 'trigger' || item === 'true' || item === 'false' || item === 'True' || item === 'False';
+}
+
+export type OclPart = '!' | '&&' | '(' | ')' | ',' | '->' | '.' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '[' | ']' | '|' | '||' | OclKeyword | string;
+
+export function isOclPart(item: unknown): item is OclPart {
+    return isOclKeyword(item) || item === '->' || item === '.' || item === ',' || item === ':' || item === '|' || item === '(' || item === ')' || item === '[' || item === ']' || item === '=' || item === '<>' || item === '<' || item === '<=' || item === '>' || item === '>=' || item === '&&' || item === '||' || item === '!' || (typeof item === 'string' && (/[A-Za-z_][A-Za-z0-9_]*/.test(item) || /"[^"\r\n]*"/.test(item) || /-?[0-9]+/.test(item) || /-?[0-9]+\.[0-9]+/.test(item)));
+}
+
+export interface OclValue extends langium.AstNode {
+    readonly $container: Reach;
+    readonly $type: 'OclValue';
+    parts: Array<OclPart>;
+}
+
+export const OclValue = {
+    $type: 'OclValue',
+    parts: 'parts'
+} as const;
+
+export function isOclValue(item: unknown): item is OclValue {
+    return reflection.isInstance(item, OclValue.$type);
+}
+
 export interface Pair extends langium.AstNode {
     readonly $container: PairListValue;
     readonly $type: 'Pair';
@@ -460,6 +508,7 @@ export interface Reach extends langium.AstNode {
     enum: EnumValue;
     int: IntValue;
     number: NumberValue;
+    ocl: OclValue;
     pairList: PairListValue;
     plain: PlainDocument;
     refList: RefListValue;
@@ -473,6 +522,7 @@ export const Reach = {
     enum: 'enum',
     int: 'int',
     number: 'number',
+    ocl: 'ocl',
     pairList: 'pairList',
     plain: 'plain',
     refList: 'refList',
@@ -518,10 +568,10 @@ export function isRtArgument(item: unknown): item is RtArgument {
 }
 
 export interface RtBinary extends langium.AstNode {
-    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtCall | RtComma | RtGroup | RtNot;
     readonly $type: 'RtBinary';
     left: RtExpr;
-    operator: '#' | '&' | '+' | ',' | '->' | ';' | '?' | '^' | '|' | '~';
+    operator: '#' | '&' | '+' | '->' | ';' | '?' | '^' | '|' | '~';
     right: RtExpr;
 }
 
@@ -536,7 +586,43 @@ export function isRtBinary(item: unknown): item is RtBinary {
     return reflection.isInstance(item, RtBinary.$type);
 }
 
-export type RtExpr = RtArgument | RtBinary | RtGroup | RtNot | RtRef | RtSkip | RtStandalone;
+export interface RtCall extends langium.AstNode {
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $type: 'RtCall';
+    args: Array<RtBinary>;
+    function: 'FALLBACK';
+}
+
+export const RtCall = {
+    $type: 'RtCall',
+    args: 'args',
+    function: 'function'
+} as const;
+
+export function isRtCall(item: unknown): item is RtCall {
+    return reflection.isInstance(item, RtCall.$type);
+}
+
+export interface RtComma extends langium.AstNode {
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $type: 'RtComma';
+    left: RtBinary;
+    operator: ',';
+    right: RtBinary;
+}
+
+export const RtComma = {
+    $type: 'RtComma',
+    left: 'left',
+    operator: 'operator',
+    right: 'right'
+} as const;
+
+export function isRtComma(item: unknown): item is RtComma {
+    return reflection.isInstance(item, RtComma.$type);
+}
+
+export type RtExpr = RtArgument | RtBinary | RtCall | RtComma | RtGroup | RtNot | RtRef | RtSkip | RtStandalone;
 
 export const RtExpr = {
     $type: 'RtExpr'
@@ -692,6 +778,7 @@ export type GoalAstType = {
     IntValue: IntValue
     Line: Line
     NumberValue: NumberValue
+    OclValue: OclValue
     Pair: Pair
     PairListValue: PairListValue
     PlainDocument: PlainDocument
@@ -700,6 +787,8 @@ export type GoalAstType = {
     RefListValue: RefListValue
     RtArgument: RtArgument
     RtBinary: RtBinary
+    RtCall: RtCall
+    RtComma: RtComma
     RtExpr: RtExpr
     RtGroup: RtGroup
     RtNot: RtNot
@@ -947,6 +1036,17 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        OclValue: {
+            name: OclValue.$type,
+            properties: {
+                parts: {
+                    name: OclValue.parts,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         Pair: {
             name: Pair.$type,
             properties: {
@@ -1012,6 +1112,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 number: {
                     name: Reach.number
                 },
+                ocl: {
+                    name: Reach.ocl
+                },
                 pairList: {
                     name: Reach.pairList
                 },
@@ -1064,6 +1167,34 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 right: {
                     name: RtBinary.right
+                }
+            },
+            superTypes: [RtExpr.$type]
+        },
+        RtCall: {
+            name: RtCall.$type,
+            properties: {
+                args: {
+                    name: RtCall.args,
+                    defaultValue: []
+                },
+                function: {
+                    name: RtCall.function
+                }
+            },
+            superTypes: [RtExpr.$type]
+        },
+        RtComma: {
+            name: RtComma.$type,
+            properties: {
+                left: {
+                    name: RtComma.left
+                },
+                operator: {
+                    name: RtComma.operator
+                },
+                right: {
+                    name: RtComma.right
                 }
             },
             superTypes: [RtExpr.$type]

@@ -3,7 +3,8 @@
 > Reference: [reference.md](reference.md) (the grammar rule by rule) ·
 > [api.md](api.md) · [diagnostics.md](diagnostics.md) ·
 > [examples.md](examples.md) · [operators.md](operators.md) ·
-> [lsp.md](lsp.md) (the language server). Their examples run in
+> [lsp.md](lsp.md) (the language server) ·
+> [extending-the-grammar.md](extending-the-grammar.md). Their examples run in
 > `packages/lib/test/dialect/docs.test.ts`.
 
 Every dialect is written in the same language: one Langium grammar,
@@ -45,7 +46,7 @@ A **document** is lines (`Document`). There are two kinds of line:
   └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
   ```
 
-  The id is `G`, `T` or `R` followed by `1`, `1.2`, `1X` or `1a` (`GX`
+  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X` or `1a` (`GX`
   reads as a name: see the [reference](reference.md#ids)). A
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
@@ -75,6 +76,7 @@ value alone (`parseValue(type, text)`).
 | `refList`       | `RefListValue`   | `G2, G5`                           | `kind`: of the elements it refers to                      |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
+| `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
 
 The **assertion language** works as follows:
 
@@ -260,9 +262,5 @@ test fails if they are stale. The tests use mocha with tsx, and the root
 
 ## Not done yet
 
-- A language server. The validator and completion are its core, but there
-  is no Langium LSP module, worker or `rt/context` wiring yet.
-- Completion of stereotype names, tag names and listed tag values.
-- Id prefixes beyond `G`, `T`, `R`.
 - Spaces inside a notation are an error (`[G2; G3]`), as in RTRegex.g4.
   Relaxing this is a language decision.

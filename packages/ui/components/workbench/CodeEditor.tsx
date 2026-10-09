@@ -2,9 +2,19 @@
 
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { json } from '@codemirror/lang-json';
-import { bracketMatching, foldGutter, foldKeymap, indentOnInput } from '@codemirror/language';
+import { xml } from '@codemirror/lang-xml';
+import {
+  bracketMatching,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+} from '@codemirror/language';
 import { lintGutter } from '@codemirror/lint';
-import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
+import {
+  highlightSelectionMatches,
+  search,
+  searchKeymap,
+} from '@codemirror/search';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import {
   EditorView,
@@ -16,13 +26,18 @@ import {
 } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
 import {
+  hddlLanguage,
   lineMarksField,
+  pctlLanguage,
   prismLanguage,
   rangeMarksField,
+  rannotLanguage,
   workbenchTheme,
 } from '@/lib/workbench/codemirror';
+import { type OutputLanguage } from '@/lib/workbench/engineDialects';
 
-export type CodeLanguage = 'json' | 'prism' | 'text';
+/** a project resource's format is one too (xml, hddl, json, pctl, text) */
+export type CodeLanguage = 'json' | 'xml' | 'hddl' | 'pctl' | OutputLanguage;
 
 type CodeEditorProps = {
   value: string;
@@ -35,8 +50,17 @@ type CodeEditorProps = {
   ariaLabel: string;
 };
 
+const LANGUAGES: Record<CodeLanguage, () => Extension> = {
+  json: () => json(),
+  xml: () => xml(),
+  hddl: () => hddlLanguage,
+  pctl: () => pctlLanguage,
+  prism: () => prismLanguage,
+  rannot: () => rannotLanguage,
+  text: () => [],
+};
 const languageExtension = (language: CodeLanguage): Extension =>
-  language === 'json' ? json() : language === 'prism' ? prismLanguage : [];
+  LANGUAGES[language]();
 
 export default function CodeEditor({
   value,
@@ -71,16 +95,34 @@ export default function CodeEditor({
         search({ top: true }),
         highlightSelectionMatches(),
         lintGutter(),
-        keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap]),
+        keymap.of([
+          ...defaultKeymap,
+          ...historyKeymap,
+          ...searchKeymap,
+          ...foldKeymap,
+        ]),
         languageExtension(language),
         workbenchTheme,
         lineMarksField,
         rangeMarksField,
         EditorView.contentAttributes.of({ 'aria-label': ariaLabel }),
-        editable.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
+        editable.current.of([
+          EditorState.readOnly.of(readOnly),
+          EditorView.editable.of(!readOnly),
+        ]),
         extra.current.of(extensions ?? []),
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && update.transactions.some((tr) => tr.isUserEvent('input') || tr.isUserEvent('delete') || tr.isUserEvent('undo') || tr.isUserEvent('redo') || tr.isUserEvent('move'))) {
+          if (
+            update.docChanged &&
+            update.transactions.some(
+              (tr) =>
+                tr.isUserEvent('input') ||
+                tr.isUserEvent('delete') ||
+                tr.isUserEvent('undo') ||
+                tr.isUserEvent('redo') ||
+                tr.isUserEvent('move'),
+            )
+          ) {
             onChangeRef.current?.(update.state.doc.toString());
           }
         }),
@@ -104,12 +146,17 @@ export default function CodeEditor({
     const doc = current.state.doc.toString();
     if (doc !== value) {
       const head = Math.min(current.state.selection.main.head, value.length);
-      current.dispatch({ changes: { from: 0, to: doc.length, insert: value }, selection: { anchor: head } });
+      current.dispatch({
+        changes: { from: 0, to: doc.length, insert: value },
+        selection: { anchor: head },
+      });
     }
   }, [value]);
 
   useEffect(() => {
-    view.current?.dispatch({ effects: extra.current.reconfigure(extensions ?? []) });
+    view.current?.dispatch({
+      effects: extra.current.reconfigure(extensions ?? []),
+    });
   }, [extensions]);
 
   useEffect(() => {

@@ -12,3 +12,4 @@ export {
   edgeNotation,
 } from './definition';
 export { edgeProperties, edgePropertyLineOrder } from './properties';
+export * from './projectResources';

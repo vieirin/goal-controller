@@ -58,6 +58,7 @@ export const START_RULE: Record<LexerStart, string> = {
   bool: 'BoolValue',
   text: 'TextValue',
   enum: 'EnumValue',
+  ocl: 'OclValue',
   refList: 'RefListValue',
   pairList: 'PairListValue',
 };

@@ -11,6 +11,7 @@ import {
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
+import { notationRefs, parseElementLine } from '@goal-controller/goal-language';
 import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
@@ -71,8 +72,10 @@ const KIND: Record<string, ViewKind> = {
   'istar.Quality': 'quality',
 };
 
-const listed = (detail: GoalExecutionDetail | null): string[] =>
-  detail?.ids ?? [];
+/** Every id a goal text's notation names, once each, in the order written. */
+const listed = (text: string): string[] => [
+  ...new Set(notationRefs(parseElementLine(text).value?.notation ?? null)),
+];
 
 /** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
 export function goalView(
@@ -117,7 +120,7 @@ export function goalView(
       text,
       notation,
       construct: executionDetail?.type ?? null,
-      order: listed(executionDetail),
+      order: errors.length === 0 ? listed(text) : [],
       notationError:
         notation !== null && errors.length > 0 ? errors.join('; ') : null,
       relation: null,

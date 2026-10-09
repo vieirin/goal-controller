@@ -17,3 +17,6 @@ export type Check = (
   raw: Partial<Record<string, string>>,
   context: CheckContext,
 ) => string | null;
+
+/** Checks by name: each a `Check`, the names kept (a misspelt one doesn't compile where it is used). */
+export const checks = <K extends string>(byName: Record<K, Check>) => byName;

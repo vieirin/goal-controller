@@ -8,6 +8,7 @@ import { AstUtils, GrammarAST } from 'langium';
 import { GoalGrammar } from '../src/generated/grammar.js';
 import {
   ASSERTION,
+  CALL_NAMES,
   INFIX_SYMBOLS,
   POSTFIX_SYMBOLS,
   PREFIX_SYMBOLS,
@@ -57,6 +58,8 @@ const grouped = (tree: RtTree | null): string => {
       return `${tree.operator}${grouped(tree.expr)}`;
     case 'group':
       return `${tree.open}${grouped(tree.expr)}${tree.open === '[' ? ']' : ')'}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(grouped).join(',')})`;
     default:
       return rtText(tree);
   }
@@ -64,8 +67,9 @@ const grouped = (tree: RtTree | null): string => {
 
 describe('the grammar and the catalog', () => {
   it('binds the binary operators as the catalog lists them, tightest first', () => {
+    // `,`, the loosest, is read by RtExpr itself (a call's commas are not it)
     assert.deepEqual(
-      infix('RtBinary'),
+      [...infix('RtBinary'), keywords('RtExpr')],
       INFIX_SYMBOLS.map((s) => [s]),
     );
     assert.deepEqual(
@@ -80,6 +84,7 @@ describe('the grammar and the catalog', () => {
     const primary = keywords('RtPrimary');
     for (const symbol of STANDALONE_SYMBOLS)
       assert.ok(primary.includes(symbol));
+    for (const name of CALL_NAMES) assert.ok(primary.includes(name));
   });
 
   it('reads every value type with a rule of its own', () => {
@@ -150,6 +155,27 @@ describe('the RT notation', () => {
     assert.equal(grouped(notation('[G2;G3]@2->G4')), '([(G2;G3)]@2->G4)');
   });
 
+  it('reads a call’s operands between its commas, which are not `,`', () => {
+    assert.equal(
+      grouped(notation('G1;FALLBACK(G2#G3,AT1;G4)')),
+      '(G1;FALLBACK((G2#G3),(AT1;G4)))',
+    );
+    assert.deepEqual(notation('FALLBACK(G2,G3)'), {
+      kind: 'call',
+      name: 'FALLBACK',
+      args: [
+        { kind: 'ref', id: 'G2' },
+        { kind: 'ref', id: 'G3' },
+      ],
+    });
+    // a comma outside a call is still the operator, loosest of all
+    assert.equal(grouped(notation('G1;G2,G3')), '((G1;G2),G3)');
+    assert.equal(
+      rtText(notation('FALLBACK(G2,[G3,G4])')),
+      'FALLBACK(G2,[G3,G4])',
+    );
+  });
+
   it('reads groups, skip, standalone symbols and every id form', () => {
     assert.equal(
       grouped(notation('(G2|G3)#[G4;skip]')),
@@ -158,8 +184,8 @@ describe('the RT notation', () => {
     for (const symbol of STANDALONE_SYMBOLS)
       assert.deepEqual(notation(symbol), { kind: 'standalone', symbol });
     assert.equal(
-      rtText(notation('G1a;T1.2;T1.3X;G2X;R4')),
-      'G1a;T1.2;T1.3X;G2X;R4',
+      rtText(notation('G1a;T1.2;T1.3X;G2X;R4;AT3')),
+      'G1a;T1.2;T1.3X;G2X;R4;AT3',
     );
   });
 });
@@ -246,6 +272,28 @@ describe('documents', () => {
     );
   });
 
+  it('reads MutRoSe’s task ids (`AT1`) as ids, a line starting with one as an element', () => {
+    const read = parseDocument(
+      'G1: Deliver [AT1;G2]\n  AT1: ApproachNurse\n  Params current_nurse\n',
+    );
+    assert.deepEqual(read.errors, []);
+    assert.deepEqual(
+      read.value.map((line) =>
+        line.kind === 'element'
+          ? [line.id, rtText(line.notation)]
+          : [line.key, line.value],
+      ),
+      [
+        ['G1', 'AT1;G2'],
+        ['AT1', ''],
+        ['Params', 'current_nurse'],
+      ],
+    );
+    assert.deepEqual(parseValue('refList', 'AT1, G2').value, ['AT1', 'G2']);
+    // a word that starts with the letters is still a name
+    assert.equal(parseElementLine('G1: ATtend it').value?.name, ' ATtend it');
+  });
+
   it('reads a key alone as a property without a value', () => {
     assert.deepEqual(parseDocument('G1: Root\n  root\n').value.at(-1), {
       kind: 'property',
@@ -306,6 +354,26 @@ describe('values', () => {
       'model-based reflex',
     );
     assert.deepEqual(parseValue('refList', 'G2, G5').value, ['G2', 'G5']);
+    assert.deepEqual(
+      parseValue('ocl', 'rooms->forAll(r | r.clean <> False)').value,
+      [
+        'rooms',
+        '->',
+        'forAll',
+        '(',
+        'r',
+        '|',
+        'r',
+        '.',
+        'clean',
+        '<>',
+        'False',
+        ')',
+      ],
+    );
+    // `index` is a name, not `in` and `dex`; `?` is no OCL token
+    assert.deepEqual(parseValue('ocl', 'index').value, ['index']);
+    assert.equal(parseValue('ocl', 'a ? b').errors.length, 1);
     assert.deepEqual(parseValue('pairList', 't:9, loc:3').value, [
       { name: 't', value: '9' },
       { name: 'loc', value: '3' },

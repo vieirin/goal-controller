@@ -29,10 +29,11 @@ export type NodeKindKey = ElementKind;
 
 type Specs = Record<NodeKindKey, readonly PropertySpec[]>;
 
-const specsOf = (engine: DialectEngine): Specs =>
+const specsOf = <E extends DialectEngine>(engine: E): Specs =>
   specsFromDefinition(ENGINE_DIALECTS[engine], ENGINE_CHECKS[engine]);
 
 export const PROPERTY_SPECS: Record<DialectEngine, Specs> = {
   edge: specsOf('edge'),
   edgev2: specsOf('edgev2'),
+  mutrose: specsOf('mutrose'),
 };

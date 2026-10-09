@@ -1,5 +1,6 @@
 /** The UI's React-free workbench modules built on the definitions (packages/ui/lib/workbench). */
 import { expect } from 'chai';
+import { SOURCE } from '../../../ui/lib/workbench/types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
@@ -25,16 +26,27 @@ import {
   modelDialect,
   modelExtensionOf,
   parseModel,
-  recordedModeOf,
 } from '../../../ui/lib/workbench/dialects';
-import { jsonProblem } from '../../../ui/lib/workbench/localProblems';
+import {
+  mergeProblems,
+  problemGroups,
+  serverProblems,
+} from '../../../ui/lib/workbench/diagnostics';
+import type { Problem } from '../../../ui/lib/workbench/types';
+import {
+  jsonProblem,
+  modelLanguageProblems,
+  nodeIdInMessage,
+  sourcePosition,
+  treeProblems,
+} from '../../../ui/lib/workbench/localProblems';
 import {
   planConversion,
   serializeModel,
   writeModelExtension,
   writeModelMode,
 } from '../../../ui/lib/workbench/pistar';
-import { models } from './support/models';
+import { legacyRecordedMode as recordedModeOf, models } from './support/models';
 
 const MODEL = readFileSync(
   join(__dirname, '../../../../examples/edgeV2/goalModel_TAS_3_.txt'),
@@ -135,6 +147,23 @@ describe('ui dialects', () => {
       expect(serializeModel(parseModel(model), model), file).to.equal(
         serializeModel(parsePistar(model), model),
       );
+  });
+
+  it("underlines a model's JSON problem in the Source tab, at its line", () => {
+    const text = '{\n  "actors": []\n  "links": []\n}';
+    let error: Error | null = null;
+    try {
+      parseModel(text);
+    } catch (e) {
+      error = e as Error;
+    }
+    const problem = jsonProblem(text, error!);
+    expect(problem.source).to.equal(SOURCE.file);
+    expect(sourcePosition(problem)).to.deep.equal({ line: 3, column: 3 });
+    // another producer's problem with a line isn't the file's text
+    expect(sourcePosition({ ...problem, source: SOURCE.workbench })).to.equal(
+      null,
+    );
   });
 
   it("loads a dialect's kinds only for a model recorded for it", () => {
@@ -463,5 +492,189 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
         stereotypes: [{ name: 'action', appliesTo: ['model.Mission'] }],
       }),
     ).to.throw(/action is already a stereotype/);
+  });
+});
+
+describe('ui MutRoSe', () => {
+  const MEDICINE = readFileSync(
+    join(__dirname, '../../../../examples/mutrose/MedicineDelivery.txt'),
+    'utf8',
+  );
+
+  it('reads its example without a problem: leaf Query goals, operands inside a call', () => {
+    const view = goalView(parsePistar(MEDICINE), ENGINE_DIALECTS.mutrose);
+    // G2, G4 have no children; G5 and AT3 are G3's FALLBACK operands
+    expect(treeProblems(view, 'mutrose')).to.deep.equal([]);
+    expect(view.nodes.get('G3')!.order).to.deep.equal(['G4', 'G5', 'AT3']);
+    // the Edge engines refine every goal
+    expect(
+      treeProblems(goalView(parsePistar(MEDICINE), edgeV2), 'edgev2').some(
+        (p) =>
+          p.message ===
+          'G2 has no children or tasks; every goal must be refined',
+      ),
+    ).to.equal(true);
+  });
+
+  it('converts a model to it: tasks named AT, what it does not read listed', () => {
+    const unnamed = MODEL.replace(
+      /"text": "T1: [^"]*"/,
+      '"text": "Book a room"',
+    );
+    const plan = planConversion(unnamed, 'mutrose');
+    expect(plan.changes).to.include('"Book a room" is named AT1: Book a room');
+    expect(plan.blockers.join('\n')).to.match(
+      /Resources?: MutRoSe does not read Resources/,
+    );
+  });
+
+  it('finds its task ids in the decomposer’s messages', () => {
+    expect(
+      nodeIdInMessage('Could not find value for parameter [x] for task [AT2]'),
+    ).to.equal('AT2');
+    expect(
+      nodeIdInMessage('Invalid declaration of robot number: 3 (node AT12)'),
+    ).to.equal('AT12');
+  });
+});
+
+describe('ui problems', () => {
+  const problem = (
+    p: Partial<Problem> & Pick<Problem, 'message'>,
+  ): Problem => ({ severity: 'error', source: 'goal language', ...p });
+
+  it('merges the producers: one per element, property and message (istar-ts’s rule)', () => {
+    const merged = mergeProblems(
+      [
+        problem({ elementId: 'G1', key: 'maxRetries', message: 'At least 0' }),
+        problem({ elementId: 'G1', key: 'cost', message: 'At least 0' }),
+      ],
+      [
+        problem({
+          elementId: 'G2',
+          message: 'Not a child',
+          severity: 'warning',
+        }),
+        problem({ elementId: 'G2', message: 'Not a child' }),
+        problem({
+          message: 'The model is not valid JSON',
+          source: 'piStar file',
+        }),
+      ],
+    );
+    expect(
+      merged.map((p) => [p.elementId, p.key, p.message, p.severity]),
+    ).to.deep.equal([
+      // the file's first, then the elements', the most severe kept
+      [undefined, undefined, 'The model is not valid JSON', 'error'],
+      ['G1', 'maxRetries', 'At least 0', 'error'],
+      ['G1', 'cost', 'At least 0', 'error'],
+      ['G2', undefined, 'Not a child', 'error'],
+    ]);
+  });
+
+  it('groups them by element (the model’s own first), then by source', () => {
+    const groups = problemGroups([
+      problem({ elementId: 'G1', message: 'a', source: 'EdgeV2' }),
+      problem({ message: 'b', source: 'piStar file' }),
+      problem({ elementId: 'G1', message: 'c' }),
+      problem({ elementId: 'G1', message: 'd', source: 'EdgeV2' }),
+    ]);
+    expect(
+      groups.map(({ elementId, sources }) => [
+        elementId,
+        sources.map(({ source, problems }) => [
+          source,
+          problems.map((p) => p.message),
+        ]),
+      ]),
+    ).to.deep.equal([
+      [undefined, [['piStar file', ['b']]]],
+      [
+        'G1',
+        [
+          ['EdgeV2', ['a', 'd']],
+          ['goal language', ['c']],
+        ],
+      ],
+    ]);
+  });
+});
+
+describe('ui language services', () => {
+  it('runs the shared language on the model: a notation problem, once, on its element', () => {
+    const text = MODEL.replace(
+      'G4: Automated life support service [G8;G9]',
+      'G4: Automated life support service [G8;G9;G5]',
+    );
+    expect(text).to.not.equal(MODEL);
+    const tree = goalView(parsePistar(text), edgeV2);
+    expect(
+      modelLanguageProblems('edgev2', tree, [])
+        .filter((p) => p.elementId === 'G4')
+        .map((p) => [p.source, p.message]),
+    ).to.deep.include(['goal language', 'Not a child of this goal']);
+    // the workbench's own checks leave notations to the language
+    expect(
+      treeProblems(tree, 'edgev2').filter((p) => /notation/.test(p.message)),
+    ).to.deep.equal([]);
+  });
+
+  it('reads what a server publishes: by data, by nodeId, else by the document', () => {
+    const at = (line: number) => ({
+      start: { line, character: 0 },
+      end: { line, character: 2 },
+    });
+    const service = { id: 'goal language', anchoring: 'data' as const };
+    const doc = 'G1: Go [G2;G3]\n  maxRetries x\nG2: A\nG3: B';
+    const found = serverProblems(
+      {
+        uri: 'file:///notation.goal',
+        diagnostics: [
+          {
+            range: at(1),
+            severity: 1,
+            message: 'At least 0',
+            data: {
+              elementId: 'G1',
+              key: 'maxRetries',
+              check: 'edge.goal.maxRetries',
+            },
+          },
+          {
+            range: at(2),
+            severity: 2,
+            message: 'by node',
+            data: { nodeId: 'G2' },
+          },
+          // no data: the line it is on
+          { range: at(3), severity: 3, message: 'by range' },
+        ],
+      },
+      service,
+      edgeV2,
+      doc,
+    );
+    expect(
+      found.map((p) => [p.elementId, p.key, p.severity, p.source, p.message]),
+    ).to.deep.equal([
+      ['G1', 'maxRetries', 'error', 'EdgeV2', 'At least 0'],
+      ['G2', undefined, 'warning', 'goal language', 'by node'],
+      ['G3', undefined, 'info', 'goal language', 'by range'],
+    ]);
+    // a field's document names its element and property
+    expect(
+      serverProblems(
+        {
+          uri: 'file:///fields/G1/maxRetries.goal',
+          diagnostics: [
+            { range: at(0), severity: 1, message: 'Not an integer: x' },
+          ],
+        },
+        service,
+        edgeV2,
+        'x',
+      ).map((p) => [p.elementId, p.key]),
+    ).to.deep.equal([['G1', 'maxRetries']]);
   });
 });

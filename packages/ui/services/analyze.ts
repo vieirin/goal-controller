@@ -1,13 +1,16 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import { GoalModel } from './goalModel';
 import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
-import type { TransformEngine } from '../lib/types';
+import { isPrismEngine, type TransformEngine } from '../lib/types';
+import { mutroseProblem, type MutroseGoalTree } from '@goal-controller/lib';
 import { nodeIdInMessage } from '../lib/workbench/localProblems';
-import type {
-  AnalyzeResponse,
-  Problem,
-  VariableInfo,
+import {
+  SOURCE,
+  type AnalyzeResponse,
+  type Problem,
+  type VariableInfo,
 } from '../lib/workbench/types';
+import { ENGINE_LABEL } from '../lib/workbench/engineDialects';
 
 type WithCondition = {
   id: string;
@@ -35,7 +38,9 @@ export const analyze = (
       ? GoalModel.parseForEdgeV2(modelJson)
       : engine === 'sleec'
         ? GoalModel.parseForSleec(modelJson)
-        : GoalModel.parseForEdge(modelJson);
+        : engine === 'mutrose'
+          ? GoalModel.parseForMutrose(modelJson)
+          : GoalModel.parseForEdge(modelJson);
 
   const response: AnalyzeResponse = {
     success: true,
@@ -47,20 +52,31 @@ export const analyze = (
   if (!parsed.success) {
     const problem: Problem = {
       severity: 'error',
+      // the file, the model's structure, or the engine's reading of it
       source:
         parsed.stage === 'parse'
-          ? 'json'
+          ? SOURCE.file
           : parsed.stage === 'validate'
-            ? 'model'
-            : 'engine',
+            ? SOURCE.workbench
+            : ENGINE_LABEL[engine],
       message: parsed.error,
-      nodeId: nodeIdInMessage(parsed.error),
+      elementId: nodeIdInMessage(parsed.error),
     };
     response.problems.push(problem);
     return response;
   }
 
-  if (engine !== 'sleec') {
+  if (engine === 'mutrose') {
+    // what the decomposer checks across goals (variables' scope, query types)
+    const problem = mutroseProblem(parsed.tree as MutroseGoalTree);
+    if (problem)
+      response.problems.push({
+        severity: 'error',
+        source: ENGINE_LABEL[engine],
+        message: problem,
+        elementId: nodeIdInMessage(problem),
+      });
+  } else if (isPrismEngine(engine)) {
     const tree = parsed.tree as Parameters<typeof GoalTree.contextVariables>[0];
     const nodes = [
       ...GoalTree.allByType(tree, 'goal'),

@@ -4,6 +4,10 @@ import {
   type IToken,
 } from 'chevrotain';
 import { DefaultLexer, type LexerResult } from 'langium';
+import { CALL_NAMES, ID_PREFIXES, OCL_OPERATIONS } from './catalog.js';
+
+/** An id prefix, longest first (`AT` before `T`). */
+const PREFIX = [...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|');
 
 type Rules = ReadonlyArray<readonly [name: string, pattern: RegExp]>;
 
@@ -26,8 +30,8 @@ const literal = (...keywords: string[]): Array<[string, RegExp]> =>
  * The catalog's other symbols come after them. `{` opens the declaration.
  */
 const RT = rules([
-  ...literal('G', 'T', 'R', '[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
-  ...literal(',', '^', '&', '~', '!', '(', ')', '*'),
+  ...literal(...ID_PREFIXES, '[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
+  ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
   ['DIGIT_SUBID', /[0-9][a-z]/],
   ['FLOAT', /[0-9]+\.?[0-9]*/],
   ['skip', /skip/],
@@ -38,7 +42,10 @@ const RT = rules([
 ]);
 
 /** An optional id before a plain line's name, with its colon: `G1:`, `T1.2X :`. */
-const PLAIN_ID = /[GTR](?:[0-9]+\.?[0-9]*X?|[0-9][a-z])[ \t]*:/y;
+const PLAIN_ID = new RegExp(
+  `(?:${PREFIX})(?:[0-9]+\\.?[0-9]*X?|[0-9][a-z])[ \\t]*:`,
+  'y',
+);
 
 /** A line without an id: its name, then (spaces aside) the RT tokens. */
 const PLAIN_NAME = /[^\s[\]{}<](?:[^\r\n[\]{}]*[^\s[\]{}])?/y;
@@ -91,7 +98,7 @@ const VALUES = {
   text: rules([['VALUE', VALUE], SPACE]),
   enum: rules([['VALUE', VALUE], SPACE]),
   refList: rules([
-    ...literal('G', 'T', 'R', ','),
+    ...literal(...ID_PREFIXES, ','),
     ['DIGIT_SUBID', /[0-9][a-z]/],
     ['FLOAT', /[0-9]+\.?[0-9]*/],
     ['X', /X/],
@@ -99,6 +106,20 @@ const VALUES = {
   ]),
   pairList: rules([
     ...literal(':', ','),
+    ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
+    SPACE,
+  ]),
+  // longest match: `->` before `-`, `<>` and `<=` before `<`; a keyword ties
+  // with an IDENT of its length and wins, a longer word (`index`) is an IDENT
+  ocl: rules([
+    ...literal('->', '<>', '<=', '>=', '&&', '||'),
+    ...literal('.', ',', ':', '|', '(', ')', '[', ']', '=', '<', '>', '!'),
+    ...literal(...OCL_OPERATIONS.map((operation) => operation.name)),
+    ...literal('in', 'not', 'and', 'or', 'assertion', 'condition', 'trigger'),
+    ...literal('true', 'false', 'True', 'False'),
+    ['STRING', /"[^"\r\n]*"/],
+    ['NUMBER', /-?[0-9]+\.[0-9]+/],
+    ['INTEGER', /-?[0-9]+/],
     ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
     SPACE,
   ]),
@@ -135,7 +156,7 @@ const LINE_BREAK = /[\r\n]+/y;
 const INDENT = /[ \t]+/y;
 const ANNOTATION = /<<|\{/y;
 /** a line that starts like an element line with an id (`G1`, `TX`) */
-const ELEMENT_START = /[GTR](?:[0-9]|X)/y;
+const ELEMENT_START = new RegExp(`(?:${PREFIX})(?:[0-9]|X)`, 'y');
 const KEY = /[A-Za-z][A-Za-z0-9_]*/y;
 const AFTER_KEY = /[ \t]+/y;
 const PROPERTY_VALUE = /[^\s](?:[^\r\n]*[^\s])?/y;
@@ -293,7 +314,9 @@ export class GoalLexer extends DefaultLexer {
         // an optional id first (`G1: Name`): its tokens as an element line's
         const id = at(PLAIN_ID, text, offset);
         if (id) {
-          const [, prefix, rest] = /^([GTR])(\S+?)\s*:$/.exec(id)!;
+          const [, prefix, rest] = new RegExp(`^(${PREFIX})(\\S+?)\\s*:$`).exec(
+            id,
+          )!;
           push(prefix!, prefix!);
           if (/^[0-9][a-z]$/.test(rest!)) push('DIGIT_SUBID', rest!);
           else {

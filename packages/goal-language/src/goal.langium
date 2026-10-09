@@ -37,7 +37,7 @@ AnnotatedName:
     ('[' notation=RtExpr ']')? declaration=Declaration?;
 
 ElementId returns string:
-    ('G' | 'T' | 'R') (FLOAT 'X'? | 'X' | DIGIT_SUBID);
+    ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID);
 
 Annotation:
     {infer Stereotype} '<<' stereotype=TEXT '>>'
@@ -57,11 +57,14 @@ PropertyLine:
 // alternatives were.
 // ---------------------------------------------------------------------------
 
+// `,` binds loosest of all; it is written apart from the other binary
+// operators so that a call's arguments, read just below it, are separated by
+// commas that are not it (left-associative, as an infix rule would be)
 RtExpr:
-    RtBinary;
+    RtBinary ({infer RtComma.left=current} operator=',' right=RtBinary)*;
 
 infix RtBinary on RtPrefix:
-    '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->' > ',';
+    '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->';
 
 RtPrefix infers RtExpr:
     {infer RtNot} operator='!' expr=RtPrefix
@@ -73,6 +76,7 @@ RtPostfix infers RtExpr:
 RtPrimary infers RtExpr:
     {infer RtGroup} open='[' expr=RtExpr ']'
     | {infer RtGroup} open='(' expr=RtExpr ')'
+    | {infer RtCall} function='FALLBACK' '(' args+=RtBinary (',' args+=RtBinary)* ')'
     | {infer RtSkip} keyword='skip'
     | {infer RtStandalone} symbol=('+' | '*' | '?' | '#')
     | {infer RtRef} ref=[ElementLine:ElementId];
@@ -129,6 +133,22 @@ RefListValue:
 PairListValue:
     {infer PairListValue} (pairs+=Pair (',' pairs+=Pair)*)?;
 
+// OCL as MutRoSe's goal models write it (`world_db->select(r:Room | r.dirty)`,
+// `rooms->forAll(r | r.clean)`, `current : Room, rooms : Sequence(Room)`): read
+// as its tokens, leniently; an engine's checks read its structure
+OclValue:
+    {infer OclValue} parts+=OclPart*;
+
+OclPart returns string:
+    IDENT | STRING | INTEGER | NUMBER | OclKeyword
+    | '->' | '.' | ',' | ':' | '|' | '(' | ')' | '[' | ']'
+    | '=' | '<>' | '<' | '<=' | '>' | '>=' | '&&' | '||' | '!';
+
+OclKeyword returns string:
+    'select' | 'forAll' | 'exists' | 'collect' | 'reject' | 'in' | 'not'
+    | 'and' | 'or' | 'assertion' | 'condition' | 'trigger'
+    | 'true' | 'false' | 'True' | 'False';
+
 Pair:
     name=IDENT ':' value=PAIR_VALUE;
 
@@ -138,7 +158,8 @@ Pair:
 Reach:
     REACH plain=PlainDocument REACH assertion=AssertionValue REACH int=IntValue
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
-    REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue;
+    REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
+    REACH ocl=OclValue;
 
 // ---------------------------------------------------------------------------
 // The vocabulary (GoalLexer makes the tokens)
@@ -163,6 +184,8 @@ terminal A_INT: /[0-9]+/;
 terminal INTEGER: /-?[0-9]+/;
 terminal NUMBER: /-?[0-9]+\.[0-9]+/;
 terminal PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/;
+// an OCL string literal
+terminal STRING: /"[^"\r\n]*"/;
 terminal REACH: /\u0000reach\u0000/;
 // a line break, in a document
 terminal NL: /[\r\n]+/;

@@ -110,6 +110,7 @@ R1: Battery {int 0..}
 | `A goal carries no annotations in EdgeV2` | error | an annotation on a kind that isn't `annotated` |
 | `A task declares nothing on its line in EdgeV2` | error | a declaration on a kind that doesn't `declare` |
 | `An element has one stereotype: this one is not read` | error | a second stereotype (likewise `…one tagged value…`) |
+| ``\`FALLBACK\` takes 2 operands, not 1`` | error | a call with another number of operands than the catalog gives it |
 
 ```goal-check edge
 G1: Deliver [G2?G3]
@@ -133,6 +134,19 @@ T1: Pick {int}
 %% error [<<other>>] An element has one stereotype: this one is not read
 ```
 
+A call is an operator like any other: off until a dialect enables it
+(MutRoSe does), and then read with its number of operands:
+
+```goal-check edgeV2
+G1: Deliver [FALLBACK(G2,G3)]
+%% error [FALLBACK] `FALLBACK` is not an operator of EdgeV2
+```
+
+```goal-check mutrose
+G1: Deliver [AT1;FALLBACK(G2)]
+%% error [FALLBACK] `FALLBACK` takes 2 operands, not 1
+```
+
 ## The notation against the model
 
 | Message | Severity | Trigger |
@@ -153,6 +167,15 @@ G1: Deliver [G2;G3]
 %% relation G1: or
 %% construct G1: sequence
 %% error [G2;G3] Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)
+```
+
+MutRoSe rejects a sequential or fallback annotation on an OR-refined goal:
+
+```goal-check mutrose
+G1: Deliver [G2;AT1]
+%% relation G1: or
+%% construct G1: sequential
+%% error [G2;AT1] Sequential needs AND refinement links, but this goal is refined with OR links (MutRoSe rejects it)
 ```
 
 ## Properties

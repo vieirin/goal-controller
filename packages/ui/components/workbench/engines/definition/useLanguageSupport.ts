@@ -3,51 +3,56 @@
 import type { AnyDialect } from '@goal-controller/dialect';
 import { createContext, useContext, useEffect } from 'react';
 import {
-  ENGINE_CHECKS,
   ENGINE_DIALECTS,
   type DialectEngine,
 } from '@/lib/workbench/engineDialects';
+import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import {
-  localLanguageSupport,
-  type LanguageSupport,
-} from '@/lib/workbench/languageSupport';
+  languageServicesFor,
+  multiplexSupport,
+  type ServiceMode,
+} from '@/lib/workbench/languageServices';
 import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
 import { useWorkbench } from '../../WorkbenchContext';
 
+// one support per mode and definition when no provider is there (tests, other hosts)
+const fallback = new Map<ServiceMode, WeakMap<AnyDialect, LanguageSupport>>();
+
 /**
- * A language support for a dialect's definition: the goal language server's
- * client, provided at the workbench's root (GoalLanguageServer). Without one
- * (the worker hasn't started, or failed), the views use the local support
- * their definition gives.
+ * The language support a view of a mode gets: its language services,
+ * multiplexed (lib/workbench/languageServices.ts), provided at the
+ * workbench's root (LanguageServices).
  */
 export const LanguageSupportContext = createContext<
-  (definition: AnyDialect) => LanguageSupport | null
->(() => null);
-
-// one local support per engine, shared by the Notation view and the inspector
-const local = new Map<DialectEngine, LanguageSupport>();
-const localFor = (engine: DialectEngine): LanguageSupport => {
-  let support = local.get(engine);
+  (mode: ServiceMode, definition: AnyDialect) => LanguageSupport
+>((mode, definition) => {
+  const byDefinition = fallback.get(mode) ?? new WeakMap();
+  fallback.set(mode, byDefinition);
+  let support = byDefinition.get(definition);
   if (!support) {
-    support = localLanguageSupport(
-      ENGINE_DIALECTS[engine],
-      ENGINE_CHECKS[engine],
-    );
-    local.set(engine, support);
+    support = multiplexSupport(definition, languageServicesFor(mode));
+    byDefinition.set(definition, support);
   }
   return support;
-};
+});
 
 /** The engine's language support, told about the model as it changes. */
 export const useLanguageSupport = (engine: DialectEngine): LanguageSupport => {
   const definition = ENGINE_DIALECTS[engine];
-  const provided = useContext(LanguageSupportContext)(definition as AnyDialect);
-  const support = provided ?? localFor(engine);
-  const { tree, variables } = useWorkbench();
+  const support = useContext(LanguageSupportContext)(
+    engine,
+    definition as AnyDialect,
+  );
+  const { tree, variables, text, projectResources } = useWorkbench();
   useEffect(() => {
     if (!tree) return;
     support.setSaved(savedLines(definition, tree));
-    support.setContext(contextOf(definition, tree, variables));
-  }, [definition, support, tree, variables]);
+    // the project's resources, parsed, go with the model (goal/context)
+    support.setContext(
+      contextOf(definition, tree, variables, projectResources),
+    );
+  }, [definition, support, tree, variables, projectResources]);
+  // a service that reads the model file itself (an engine's server)
+  useEffect(() => support.setModelText?.(text), [support, text]);
   return support;
 };

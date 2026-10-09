@@ -8,6 +8,7 @@ import {
   type CheckNameOf,
   type ConstructOf,
   type ExtensionDefinition,
+  type ProjectResourceKindOf,
   type PropertyKeyOf,
 } from '../src';
 import { toy, toyDialect } from './support/toy';
@@ -127,6 +128,86 @@ describe('defineDialect', () => {
         propertyLineOrder: [...d.propertyLineOrder, 'robot'],
       })),
     ).to.throw(/propertyLineOrder/);
+  });
+
+  it('declares the project resources it reads, and checks where they are kept', () => {
+    const world = {
+      label: 'World knowledge',
+      format: 'xml',
+      role: 'knowledge',
+      path: 'knowledge/world_db.xml',
+      accept: ['.xml'],
+    } as const;
+    const withResources = (resources: Record<string, unknown>) =>
+      bad((d) => ({ ...d, projectResources: resources }) as AnyDialect);
+    expect(
+      withResources({
+        world,
+        properties: {
+          label: 'Properties',
+          format: 'pctl',
+          many: true,
+          path: 'props/',
+        },
+      }),
+    ).not.to.throw();
+    expect(withResources({ world: { ...world, format: 'yaml' } })).to.throw(
+      /project resource world: unknown format yaml/,
+    );
+    expect(
+      withResources({ world: { ...world, path: '../world.xml' } }),
+    ).to.throw(
+      /project resource world: its path is relative to the project, inside it/,
+    );
+    expect(withResources({ world: { ...world, path: '/world.xml' } })).to.throw(
+      /inside it/,
+    );
+    expect(withResources({ world: { ...world, many: true } })).to.throw(
+      /a list of files is kept in a folder/,
+    );
+    expect(withResources({ world: { ...world, path: 'knowledge/' } })).to.throw(
+      /one file is kept at a file path/,
+    );
+    expect(withResources({ world: { ...world, accept: ['xml'] } })).to.throw(
+      /xml is not an extension/,
+    );
+    const resources = defineDialect({
+      ...(structuredClone(toy) as AnyDialect),
+      projectResources: { world },
+    } as const);
+    same<Same<ProjectResourceKindOf<typeof resources>, 'world'>>();
+    same<Same<ProjectResourceKindOf<typeof toy>, never>>();
+  });
+
+  it('completes from the project resources it declares only', () => {
+    const ocl = (candidates: { resource: string; category: string }) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            projectResources: {
+              world: { label: 'World', format: 'xml', path: 'world.xml' },
+            },
+            properties: {
+              ...d.properties,
+              quality: [
+                {
+                  key: 'Controls',
+                  value: {
+                    type: 'ocl',
+                    candidates,
+                    memberCandidates: candidates,
+                  },
+                  help: '',
+                },
+              ],
+            },
+          }) as AnyDialect,
+      );
+    expect(ocl({ resource: 'world', category: 'classes' })).not.to.throw();
+    expect(ocl({ resource: 'hddl', category: 'tasks' })).to.throw(
+      /quality.Controls completes from unknown project resource hddl/,
+    );
   });
 
   it('has ids on every line or on none', () => {
