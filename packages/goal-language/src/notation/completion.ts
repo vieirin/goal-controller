@@ -319,10 +319,12 @@ const oclScope = (
 ): { options: Completion[]; types: Map<string, string> } => {
   const found = new Map<string, Completion>();
   const types = new Map<string, string>();
+  const iterated: [string, string][] = [];
   const add = (label: string, detail: string, type?: string) => {
-    if (found.has(label)) return;
-    found.set(label, { label, type: 'variable', detail });
-    if (type) types.set(label, type);
+    // the first to name it is shown; the first to type it, its type
+    if (type && !types.has(label)) types.set(label, type);
+    if (!found.has(label))
+      found.set(label, { label, type: 'variable', detail });
   };
   // a binding is in scope while its parenthesis is open: `r` in
   // `exists(r | r.ok) and x->select(q | ‸`, `q` only
@@ -336,8 +338,14 @@ const oclScope = (
       'g',
     ),
   ))
-    if (open.includes(binding.index))
+    if (open.includes(binding.index)) {
       add(binding[1]!, binding[2] ?? 'bound here', binding[2]);
+      // `rooms->forAll(r | `: r is of the collection's element type, once it is known
+      const collection = new RegExp(`(${NAME.source})\\s*->\\s*\\w+\\s*$`).exec(
+        before.slice(0, binding.index),
+      )?.[1];
+      if (!binding[2] && collection) iterated.push([binding[1]!, collection]);
+    }
   const parents = new Map<string, string>();
   for (const [id, element] of Object.entries(context.elements))
     for (const child of element.children ?? []) parents.set(child, id);
@@ -354,6 +362,10 @@ const oclScope = (
             type,
           );
       }
+  for (const [name, collection] of iterated) {
+    const type = types.get(collection);
+    if (type && !types.has(name)) types.set(name, elementType(type));
+  }
   for (const name of context.variables) add(name, 'variable');
   return { options: [...found.values()], types };
 };

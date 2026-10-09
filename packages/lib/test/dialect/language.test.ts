@@ -368,6 +368,12 @@ describe('completion from the project resources', () => {
     expect(
       at('G2', 'QueriedProperty', 'rooms.')!.options.map((o) => o.label),
     ).to.deep.equal(['name', 'is_clean']);
+    // a forAll's variable: the class of the collection it iterates
+    expect(
+      at('G2', 'QueriedProperty', 'rooms->forAll(r | r.')!.options.map(
+        (o) => o.label,
+      ),
+    ).to.deep.equal(['name', 'is_clean']);
     // a name without a type: the names in scope, as before
     expect(
       at('G2', 'QueriedProperty', 'world_db->select(r | r.')!.options[0]!.label,
