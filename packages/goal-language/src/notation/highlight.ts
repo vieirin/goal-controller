@@ -2,6 +2,8 @@
  * What each part of a text is, for an editor's highlighting: the goal
  * language's tokens (GoalLexer's, no parse), named after the highlight tags
  * editors use (`labelName` an element id, `propertyName` a property key, ...).
+ * An annotation's stereotype and tag values carry their text, so an editor can
+ * give the same text the same colour.
  */
 import {
   hasIds,
@@ -26,10 +28,21 @@ export type HighlightStyle =
   | 'number'
   | 'typeName'
   | 'atom'
-  | 'meta'
-  | 'variableName';
+  | 'variableName'
+  /** a stereotype's name: `goal-based` in `<<goal-based>>` */
+  | 'stereotype'
+  /** a tag's name: `type` in `{type = duty}` */
+  | 'tagName'
+  /** a tag's value: `duty` in `{type = duty}` */
+  | 'tagValue';
 
-export type Highlight = { from: number; to: number; style: HighlightStyle };
+export type Highlight = {
+  from: number;
+  to: number;
+  style: HighlightStyle;
+  /** a stereotype's or a tag value's text */
+  text?: string;
+};
 
 const STYLE: Record<string, HighlightStyle> = {
   ':': 'punctuation',
@@ -47,7 +60,6 @@ const STYLE: Record<string, HighlightStyle> = {
   false: 'atom',
   WORD: 'string',
   PLAIN_NAME: 'string',
-  TEXT: 'meta',
   KEY: 'propertyName',
   INTEGER: 'number',
   NUMBER: 'number',
@@ -71,6 +83,8 @@ const tokensOf = (start: LexerStart, text: string): IToken[] => {
 const styled = (tokens: IToken[], offset = 0): Highlight[] => {
   const highlights: Highlight[] = [];
   let declaring = false;
+  // in an annotation: a stereotype, a tag's name, or (after `=`) its value
+  let annotation: 'stereotype' | 'tagName' | 'tagValue' | null = null;
   tokens.forEach((token, i) => {
     const name = token.tokenType.name;
     const span = {
@@ -91,6 +105,19 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
         token.startOffset === previous.startOffset + 1);
     if (name === '{') declaring = true;
     else if (name === '}') declaring = false;
+    if (name === '<<') annotation = 'stereotype';
+    else if (name === '{') annotation = 'tagName';
+    else if (name === '=' && annotation === 'tagName') annotation = 'tagValue';
+    else if (name === '>>' || name === '}') annotation = null;
+    if (name === 'TEXT' && annotation) {
+      const style = annotation;
+      highlights.push(
+        style === 'tagName'
+          ? { ...span, style }
+          : { ...span, style, text: token.image },
+      );
+      return;
+    }
     const style: HighlightStyle | undefined = idPart
       ? 'labelName'
       : declaring && name === 'IDENT' && previous?.tokenType.name === '{'
