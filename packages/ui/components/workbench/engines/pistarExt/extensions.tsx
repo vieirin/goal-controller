@@ -62,17 +62,8 @@ function Annotations({
   ) : null;
 }
 
-/** Above an element. */
-function LabelAnnotations({
-  element,
-}: Pick<ElementComponentProps, 'element'>): ReactElement | null {
-  return (
-    <Annotations
-      target={element}
-      className='pointer-events-none absolute -top-4 left-1/2 -translate-x-1/2'
-    />
-  );
-}
+const { stereotype: STEREOTYPE, taggedValue: TAGGED_VALUE } =
+  dialect.annotations;
 
 /**
  * A link's label: its annotations, then what the kind's default label draws (is-a,
@@ -94,23 +85,35 @@ function AnnotatedLinkLabel({
   );
 }
 
-function AnnotatedNode(props: ElementComponentProps): ReactElement {
-  return (
-    <div className='relative h-full w-full'>
-      <DefaultElementComponent {...props} />
-      <LabelAnnotations element={props.element} />
-    </div>
-  );
-}
+/**
+ * An element drawn as piStar-ext draws it: its stereotype on a line above its
+ * name, and its tagged value before its name (`<<action>>` / `{type=Duty} Task`),
+ * in its label. While the name is edited it is the name alone.
+ */
+const annotated = (
+  Base: (props: ElementComponentProps) => ReactElement,
+): ((props: ElementComponentProps) => ReactElement) =>
+  function Annotated(props) {
+    const properties = props.element.customProperties ?? {};
+    const stereotype = writeAnnotations([STEREOTYPE], properties);
+    const tag = writeAnnotations([TAGGED_VALUE], properties);
+    const name = [tag, props.element.name].filter(Boolean).join(' ');
+    // the label keeps line breaks (istar-ts's `pre-wrap`)
+    const shown = stereotype ? `${stereotype}\n${name}` : name;
+    return (
+      <Base
+        {...props}
+        element={
+          props.editing || shown === props.element.name
+            ? props.element
+            : { ...props.element, name: shown }
+        }
+      />
+    );
+  };
 
-function AnnotatedActor(props: ElementComponentProps): ReactElement {
-  return (
-    <div className='relative h-full w-full'>
-      <DefaultActorComponent {...props} />
-      <LabelAnnotations element={props.element} />
-    </div>
-  );
-}
+const AnnotatedNode = annotated(DefaultElementComponent);
+const AnnotatedActor = annotated(DefaultActorComponent);
 
 /** Whether a kind of the dialect's definition is an actor (iStar's, or one behaving like one). */
 const isActorKind = (kind: string): boolean => {

@@ -110,9 +110,7 @@ describe('piStar-ext annotations', () => {
   describe('the definition', () => {
     it('declares the profile on top of EdgeV2', () => {
       expect(ra.elements.task?.annotations).to.deep.equal(annotations);
-      expect(ra.elements.goal?.annotations).to.deep.equal([
-        taggedValueAnnotation,
-      ]);
+      expect(ra.elements.goal?.annotations).to.deep.equal(annotations);
       expect(ra.notation).to.equal(edgeV2.notation);
       // what annotations write is not a property line
       expect(ra.propertyLineOrder).to.equal(edgeV2.propertyLineOrder);
@@ -282,7 +280,12 @@ describe('piStar-ext annotations', () => {
     it('offers the stereotypes and tags the kind declares', () => {
       const task = specs.task!.map((s) => s.key);
       expect(task.slice(-3)).to.deep.equal(['stereotype', 'tag', 'tagValue']);
-      expect(specs.goal!.map((s) => s.key)).not.to.include('stereotype');
+      // a goal has none declared, but may carry one: the select has only "none"
+      const goalStereotype = specs.goal!.find((s) => s.key === 'stereotype')!;
+      expect(inputOf(goalStereotype, {})).to.deep.equal({
+        kind: 'select',
+        options: [{ value: '', label: 'none' }],
+      });
       const stereotype = specs.task!.find((s) => s.key === 'stereotype')!;
       expect(inputOf(stereotype, {})).to.deep.equal({
         kind: 'select',
@@ -328,11 +331,15 @@ describe('piStar-ext annotations', () => {
     });
 
     it('flags an annotation the kind cannot read', () => {
-      const doc = expected.replace('{Id = G1}', '<<Business>> {Id = G1}');
+      // each annotation once: a second stereotype is not read
+      const doc = expected.replace(
+        '{Id = G1}',
+        '<<Business>> <<Other>> {Id = G1}',
+      );
       const [diagnostic] = documentDiagnostics(ra, doc, context);
       expect(diagnostic).to.deep.equal({
-        from: 0,
-        to: 12,
+        from: 13,
+        to: 22,
         severity: 'error',
         message: 'This annotation cannot be read',
       });
@@ -376,8 +383,8 @@ describe('piStar-ext annotations', () => {
       expect(found).to.deep.equal([
         { from: 0, to: 10, severity: 'error', message: 'Bad value' },
       ]);
-      // without stereotypes, `<<…>>` is no annotation: the line is not an element's
-      expect(lineId(withCheck, `<<x>> ${doc}`)).to.equal(null);
+      // a stereotype none declares is still read (written as typed)
+      expect(lineId(withCheck, `<<x>> ${doc}`)).to.equal('T1');
     });
 
     it('completes children inside an annotated notation', () => {

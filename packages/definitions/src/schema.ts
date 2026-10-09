@@ -44,7 +44,8 @@ export type ElementDefinition = {
 /** A property's argument, or an operator's: how its text is read. */
 export type ValueConfig =
   /** `''` stands for "not set" (the property is removed) */
-  | { type: 'enum'; options: readonly EnumOption[] }
+  /** `open`: values besides the options may be written (free text) */
+  | { type: 'enum'; options: readonly EnumOption[]; open?: boolean }
   | { type: 'int'; min?: number; max?: number }
   | { type: 'number' }
   | { type: 'text' }

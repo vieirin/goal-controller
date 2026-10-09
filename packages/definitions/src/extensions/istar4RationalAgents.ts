@@ -24,10 +24,17 @@ export const istar4RationalAgents = defineExtension({
       kind: 'rationalAgents.Planning',
       behavesLike: 'istar.Task',
       pistarType: 'istar.Planning',
-      size: { width: 100, height: 40 },
-      // an arrow, notched at the back, like Fig. 4's (whose path data is cut off)
-      shape: 'M 0 0 L 80 0 L 100 20 L 80 40 L 0 40 L 14 20 Z',
+      // piStar-ext's size for a new node
+      size: { width: 90, height: 55 },
+      // Fig. 4's: a task's pointed left side, and an arrow out of its right
+      // side. The repository ships no construct (they live in the browser's
+      // localStorage) and the figure's dialog cuts the path data off: its
+      // visible start is kept as written, the rest follows the drawn outline.
+      shape:
+        'M 9.1814481,1.0179789 H 65.503448 L 65.025854,14.532293 72.4491,14.819567 73.29006,4.9 85.2,19.8 73.29006,30.6 72.4491,22.6 65.025854,22.6 65.503448,38.6 H 9.1814481 L 1,19.8 Z',
     },
+    // its symbol isn't shown in the paper: piStar-ext's default for a new node
+    // without one (a dashed box), as istar-ts draws it
     { kind: 'rationalAgents.Plan', category: 'node' },
   ],
   links: [],

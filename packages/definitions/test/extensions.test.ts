@@ -33,6 +33,7 @@ import {
   defineExtension,
   dialectDefinition,
   documentDiagnostics,
+  extensionCatalog,
   hasIds,
   istar4RationalAgents,
   lineId,
@@ -127,7 +128,7 @@ describe('extensions', () => {
             kind: 'rationalAgents.Planning',
             behavesLike: 'istar.Task',
             pistarType: 'istar.Planning',
-            size: { width: 100, height: 40 },
+            size: { width: 90, height: 55 },
           },
           { kind: 'rationalAgents.Plan', category: 'node' },
         ],
@@ -307,7 +308,9 @@ describe('a dialect of its own (no engine)', () => {
       stereotype,
       taggedValue,
     ]);
+    // a goal has no declared stereotype, but may carry one (written as typed)
     expect(definition.elements['istar.Goal']?.annotations).to.deep.equal([
+      stereotype,
       taggedValue,
     ]);
     expect(definition.propertyLineOrder).to.deep.equal([]);
@@ -396,20 +399,56 @@ describe('a dialect of its own (no engine)', () => {
 });
 
 describe('annotationsFor', () => {
-  it('gives a kind its stereotype when it may have one, then its tagged value', () => {
+  it('gives every kind its stereotype, then its tagged value', () => {
     const { stereotype, taggedValue } = istar4RationalAgents.annotations;
     expect(annotationsFor(istar4RationalAgents, 'istar.Role')).to.deep.equal([
       stereotype,
       taggedValue,
     ]);
-    // links carry the default tagged values
+    // links too: none declared, the default tagged values, both open
     expect(
       annotationsFor(istar4RationalAgents, 'istar.AndRefinementLink'),
-    ).to.deep.equal([taggedValue]);
-    expect(
-      profileProperties(istar4RationalAgents, 'istar.AndRefinementLink').map(
-        (p) => p.key,
-      ),
-    ).to.deep.equal(['tag', 'tagValue']);
+    ).to.deep.equal([stereotype, taggedValue]);
+    const [linkStereotype, linkTag] = profileProperties(
+      istar4RationalAgents,
+      'istar.AndRefinementLink',
+    );
+    expect(linkStereotype).to.deep.include({
+      key: 'stereotype',
+      value: {
+        type: 'enum',
+        options: [{ value: '', label: 'none' }],
+        open: true,
+      },
+    });
+    expect(linkTag?.value).to.include({ type: 'enum', open: true });
+  });
+});
+
+describe('extensionCatalog', () => {
+  it("lists a dialect's stereotypes, tagged values and groupers, with what they apply to", () => {
+    expect(extensionCatalog(istar4RationalAgents)).to.deep.equal([
+      {
+        id: 'stereotypes',
+        label: 'Stereotype',
+        entries: [
+          { name: 'simple-reflex', appliesTo: ['rational'] },
+          { name: 'model-based reflex', appliesTo: ['rational'] },
+          { name: 'goal-based', appliesTo: ['rational'] },
+          { name: 'utility-based', appliesTo: ['rational'] },
+          { name: 'action', appliesTo: ['Task'] },
+        ],
+      },
+      {
+        id: 'taggedValues',
+        label: 'Tagged Value',
+        entries: [{ name: 'type', appliesTo: ['Task'] }],
+      },
+      {
+        id: 'groupers',
+        label: 'Grouper',
+        entries: [{ name: 'rational', appliesTo: ['Actor', 'Agent', 'Role'] }],
+      },
+    ]);
   });
 });
