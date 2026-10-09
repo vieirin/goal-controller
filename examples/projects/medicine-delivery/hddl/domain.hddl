@@ -1,0 +1,36 @@
+; The medicine-delivery domain: a robot goes to a patient's room and hands the
+; medicine over, or asks a nurse to.
+(define (domain medicine-delivery)
+  (:requirements :typing :hierarchy)
+  (:types location request robot - object)
+  (:predicates
+    (at ?b - robot ?l - location)
+    (served ?r - request))
+
+  (:task navigateto :parameters (?l - location))
+  (:task handover :parameters (?r - request))
+  (:task notifynurse :parameters (?r - request))
+
+  (:method m-navigateto
+    :parameters (?b - robot ?l - location)
+    :task (navigateto ?l)
+    :ordered-subtasks (move ?b ?l))
+  (:method m-handover
+    :parameters (?b - robot ?r - request)
+    :task (handover ?r)
+    :ordered-subtasks (give ?b ?r))
+  (:method m-notifynurse
+    :parameters (?b - robot ?r - request)
+    :task (notifynurse ?r)
+    :ordered-subtasks (call-nurse ?b ?r))
+
+  (:action move
+    :parameters (?b - robot ?l - location)
+    :effect (at ?b ?l))
+  (:action give
+    :parameters (?b - robot ?r - request)
+    :effect (served ?r))
+  (:action call-nurse
+    :parameters (?b - robot ?r - request)
+    :effect (served ?r))
+)

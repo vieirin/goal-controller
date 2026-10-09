@@ -106,6 +106,52 @@ describe('ui project resources', () => {
     expect(problem).not.to.have.property('elementId');
   });
 
+  it('reads the example projects’ resources without a problem, and their models check clean against them', () => {
+    const root = join(__dirname, '../../../../../examples/projects');
+    for (const [folder, engine] of [
+      ['medicine-delivery', 'mutrose'],
+      ['tas3-edgev2', 'edgev2'],
+    ] as const) {
+      const manifest = JSON.parse(
+        readFileSync(join(root, folder, 'project.json'), 'utf8'),
+      );
+      const paths = Object.values(
+        manifest.projectResources as Record<string, string | string[]>,
+      ).flat();
+      const texts = Object.fromEntries(
+        paths.map((path) => [
+          path,
+          readFileSync(join(root, folder, path), 'utf8'),
+        ]),
+      );
+      const declarations = declarationsOf(engine)!;
+      const slots = resourceSlots(manifest, paths, declarations);
+      expect(
+        slots.every((slot) => !slot.missing),
+        folder,
+      ).to.equal(true);
+      const parsed = parseResources(engine, slots, texts);
+      expect(Object.keys(parsed).sort(), folder).to.deep.equal(
+        Object.keys(declarations).sort(),
+      );
+      expect(
+        resourceProblems(parsed, declarations, texts),
+        folder,
+      ).to.deep.equal([]);
+      if (engine === 'mutrose') {
+        const model = readFileSync(
+          join(root, folder, manifest.models[0].path),
+          'utf8',
+        );
+        const tree = goalView(parsePistar(model), ENGINE_DIALECTS.mutrose);
+        expect(
+          modelLanguageProblems('mutrose', tree, [], resourcesContext(parsed)),
+          folder,
+        ).to.deep.equal(modelLanguageProblems('mutrose', tree, []));
+      }
+    }
+  });
+
   it("runs the engine's checks with the world: a type it has no class for is the check's problem, on its element", () => {
     const tree = goalView(parsePistar(MODEL), ENGINE_DIALECTS.mutrose);
     const parsed = parseResources(

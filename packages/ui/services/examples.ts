@@ -17,7 +17,7 @@ const REF = process.env.NEXT_PUBLIC_EXAMPLES_REF || 'main';
 
 /** The example projects, indexed at build time (scripts/examples-manifest.mjs). */
 export const listExamples = async (): Promise<ProjectIndexEntry[]> =>
-  examples as ProjectIndexEntry[];
+  examples as unknown as ProjectIndexEntry[];
 
 /** examples/<group>/: the engine, or the dialect, its models are for */
 const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
@@ -59,7 +59,11 @@ export const openExample = async (
   );
   const [model] = read.models;
   if (!model) throw new Error(`${entry.path}: no model`);
-  const engine = EXAMPLE_ENGINES[entry.group];
+  // a project says its dialect; a loose model is its folder's
+  const engine = (entry.dialect ?? EXAMPLE_ENGINES[entry.group]) as
+    | TransformEngine
+    | DialectMode
+    | undefined;
   const text = engine ? writeModelMode(model.text, engine) : model.text;
   return {
     project: withModelText(read, model.path, text),

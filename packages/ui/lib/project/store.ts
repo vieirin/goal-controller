@@ -42,6 +42,8 @@ export type ProjectIndexEntry = {
   group: string;
   name: string;
   form: ManifestForm;
+  /** a project.json's dialect (an implicit project's is its folder's: the workbench knows) */
+  dialect?: string;
   /** the project's folder, from the indexed root */
   root: string;
   /** every file of the project, from its folder */

@@ -129,12 +129,42 @@ example and a local file of the same name are two entries, and an entry with
 unsaved edits is never replaced by a clean file of the same identity with
 other text: it is moved aside (`aside`) and listed as an edited copy.
 
+## Project resources
+
+`openProject(store, { projectResources })` takes the declarations of a
+model's dialect (the workbench passes its engines' definitions'), and lists
+each kind in `project.resources` (`slots.ts`):
+
+- where the manifest's `projectResources` says (a folder entry, `props/`,
+  stands for the files in it that the kind accepts);
+- else at the declaration's default path (`knowledge/world_db.xml`; for a
+  `many` kind, its folder's files);
+- else **missing**, which is never an error: a project without its world is
+  a model alone, as before. Files the manifest lists that aren't there are
+  the slot's `absent`.
+
+`withProjectResource(project, kind, file)` adds a file where the
+declaration keeps it and lists it in the manifest (a one-model project is
+promoted). Write the changes with `saveProject` where the store can be
+written. Otherwise use `copyProject` to an `opfsStore(name, root, copyOf)`:
+a copy in the browser whose source says what it copies
+(`ward (browser copy of ward.txt)`), so Recent keeps the original apart.
+`readProjectResources` reads the slots' texts; what they mean is the
+engine's library's to parse.
+
+The folders a user opens are kept between visits behind a `HandleStorage`
+port (`handles.ts`): `indexedDbHandles()` in the browser, opened when first
+used; `memoryHandles()` in tests. `rememberDirectory` keeps one;
+`reopenDirectory` gives a Recent entry's folder back (null when the browser
+forgot it).
+
 ## Stages (issue #25)
 
 1. Project over a single file (this module, the workbench reading its model
    settings from the manifest, the examples index): done.
-2. Project resources: the dialect's `projectResources` declaration, opened as
-   CodeMirror tabs, handed to checks and completion.
+2. Project resources: the dialect's `projectResources` declaration, parsed
+   by the engine's library, opened as CodeMirror tabs, handed to checks and
+   completion: done.
 3. Multi-model projects, side-by-side outputs; the workbench opens folders.
 4. Workspace-level language services.
 5. Experiments as projects.

@@ -284,15 +284,22 @@ describe('ui Explorer: examples opened as projects', () => {
         ),
       ),
   });
-  it('opens every example with the mode of its folder and the default options', async () => {
-    const entries = INDEX as ProjectIndexEntry[];
+  it('opens every example with the mode of its folder (a project: its dialect) and the default options', async () => {
+    const entries = INDEX as unknown as ProjectIndexEntry[];
     expect(entries.length).to.be.greaterThan(20);
+    expect(
+      entries.filter((entry) => entry.form === 'file').length,
+    ).to.be.greaterThan(1);
     for (const entry of entries) {
       const opened = await openExample(entry, fetchLocal);
-      const original = read(entry.path);
+      const modelPath = `${entry.root}/${entry.models[0]}`;
+      const original = read(modelPath);
       const mode =
-        GROUP_MODE[entry.group] ?? legacyRecordedMode(original) ?? 'pistar';
-      expect(opened.fileName, entry.path).to.equal(entry.path.split('/').pop());
+        entry.dialect ??
+        GROUP_MODE[entry.group] ??
+        legacyRecordedMode(original) ??
+        'pistar';
+      expect(opened.fileName, entry.path).to.equal(modelPath.split('/').pop());
       expect(opened.project.models[0]!.text, entry.path).to.equal(opened.text);
       expect(opened.project.source, entry.path).to.deep.equal({
         kind: 'github',

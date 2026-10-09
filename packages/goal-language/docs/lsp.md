@@ -22,7 +22,7 @@ LSP, plus one notification from the client:
 type GoalContextParams = {
   uri?: string; // the document it is for; without one, every document without its own
   dialect: AnyDialect; // the dialect's definition, as data
-  context: DefinitionContext; // the model's elements and the workbench's variables
+  context: DefinitionContext; // the model's elements, the workbench's variables, the project's resources
   saved?: Record<string, { line: string; error: string | null }>; // the engine's error on each saved line, by id
 };
 ```
@@ -30,6 +30,13 @@ type GoalContextParams = {
 On each notification the server re-reads and re-validates its open
 documents. A context changes how an inspector field is read, as well as
 what is valid in it.
+
+A context may carry the project's resources, parsed by the engine's
+library (goal-controller#25): `projectResources`, by kind, each with its
+`symbols` (generic, by category: a world's `classes` with their attributes
+as members) and the engine's own `data`. The server reads the symbols for
+completion and hands both to the named checks; it never reads the data
+itself.
 
 Without a context, a document is read as a Notation view document and only
 its syntax errors are reported.
@@ -73,7 +80,7 @@ engine's own server speaks it (see "Several services" below).
 | Feature                | What it gives                                                                                                                                                                                                                                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Diagnostics            | everything in [diagnostics.md](diagnostics.md): syntax, what the dialect allows, the notation against the model, properties and values, the engine's named checks, the saved lines' errors                                                                                                                              |
-| Completion             | inside a notation: the goal's children, `skip` and the enabled operators; on a property line: the keys the kind reads, then a value's options (enums, ids of the kind a `refList` names, resources and variables in an assertion); `<<` stereotypes, `{` tags and `{tag =` values. Triggers: `[ ; \| ? + # > < { = , ( .` |
+| Completion             | inside a notation: the goal's children, `skip` and the enabled operators; on a property line: the keys the kind reads, then a value's options (enums, ids of the kind a `refList` names, resources and variables in an assertion; in an `ocl` value, the types and members its definition's `candidates`/`memberCandidates` take from a project resource's symbols); `<<` stereotypes, `{` tags and `{tag =` values. Triggers: `[ ; \| ? + # > < { = , ( .` |
 | Hover                  | an operator's construct or modifier (or that it isn't enabled), an element id with its name and construct, a property key's help, a name in a value (an element's line, a variable)                                                                                                                                     |
 | Go to definition (F12) | from an id in a notation or a list, or a name in a value, to its element's line                                                                                                                                                                                                                                         |
 
@@ -98,7 +105,10 @@ A dialect without checks, or a host that passes none, gets everything else.
 A check is given the element's properties and its context
 (`checkContextOf`): the element's id, the other elements' kinds, and the
 whole model the client sent, so a rule may read other elements (their
-properties, children and diagram `x`).
+properties, children and diagram `x`). It also gets the project's
+resources the client sent (`projectResources`), so MutRoSe's checks mark a
+type the world knowledge has no class for. Without them a check says
+nothing about what they would tell.
 
 ## Embedding the worker
 

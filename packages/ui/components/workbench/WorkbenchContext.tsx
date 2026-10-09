@@ -179,6 +179,8 @@ export type OpenOptions = {
   source?: ProjectSource;
   /** a Recent entry moved aside (RecentEntry.aside) */
   aside?: number;
+  /** what the model is for, when its project's manifest says (a project.json's dialect) */
+  mode?: string | null;
 };
 /** How a project opens; where it came from is its own. */
 export type ProjectOpenOptions = Omit<OpenOptions, 'source'>;
@@ -748,6 +750,7 @@ function WorkbenchState({
         setup = false,
         source = { kind: 'file', name: fileName },
         aside,
+        mode,
       }: OpenOptions = {},
     ) => {
       const left = leaving();
@@ -756,7 +759,7 @@ function WorkbenchState({
       // live, and the options its manifest doesn't set, come from the settings kept
       // with it in Recent
       const next = openingSettings(
-        readModelMode(text),
+        readModelMode(text) ?? ((mode ?? null) as ModelMode | null),
         stored,
         settingsRef.current,
       );
@@ -799,6 +802,7 @@ function WorkbenchState({
       openModel(first.path.split('/').pop() ?? first.path, first.text, {
         ...how,
         source: project.source,
+        mode: first.settings.mode,
       });
       setProject(project);
     },
