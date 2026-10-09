@@ -11,11 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ANTLR4
-RUN curl -L -o /usr/local/lib/antlr-4.13.0-complete.jar https://www.antlr.org/download/antlr-4.13.0-complete.jar && \
-    echo '#!/bin/bash\njava -jar /usr/local/lib/antlr-4.13.0-complete.jar "$@"' > /usr/local/bin/antlr && \
-    chmod +x /usr/local/bin/antlr
-
 # Create directory structure and download/extract PRISM ARM
 RUN mkdir -p /home/ubuntu/prism-4.9-src && \
     curl -L -o /tmp/prism.tar.gz https://www.prismmodelchecker.org/dl/prism-4.9-linux64-arm.tar.gz && \

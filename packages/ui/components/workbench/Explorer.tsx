@@ -1,5 +1,6 @@
 'use client';
 
+import { isDialectMode, type DialectMode } from '@/lib/workbench/dialects';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronRight,
@@ -25,10 +26,12 @@ export const useExamples = () =>
     staleTime: Infinity,
   });
 
-const EXAMPLE_ENGINES: Record<string, TransformEngine> = {
+/** examples/<group>/: the engine, or the dialect, its models are for */
+const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   edge: 'edge',
   edgeV2: 'edgev2',
   sleec: 'sleec',
+  'pistar-ext': 'pistarext',
 };
 
 export const useOpenExample = () => {
@@ -39,11 +42,12 @@ export const useOpenExample = () => {
       const { fileName, content } = await loadExample(example.path);
       // examples are grouped by the engine they target
       const engine = EXAMPLE_ENGINES[example.group];
-      // the example's engine is recorded in it, so it opens (and reopens from Recent) for that engine
+      // the example's engine (or dialect) is recorded in it, so it opens (and reopens
+      // from Recent) for it
       openModel(
         fileName,
         engine ? writeModelMode(content, engine) : content,
-        engine ? { settings: { engine } } : undefined,
+        engine && !isDialectMode(engine) ? { settings: { engine } } : undefined,
       );
       setError(null);
     } catch (err) {

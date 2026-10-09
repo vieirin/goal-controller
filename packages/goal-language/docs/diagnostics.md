@@ -1,0 +1,234 @@
+# The goal language: diagnostics
+
+This page catalogues every message `documentDiagnostics` and
+`fieldDiagnostics` report. A notation's problems (`notAChild`,
+`missingFromNotation`, `relationMismatch`, `notInDiagram`) take their text
+and severity from the dialect's `problems`. Edge's and edgeV2's are shown
+here.
+
+Each example is a `goal-check <dialect>` block, and
+`packages/lib/test/dialect/docs.test.ts` validates it. Its model is its
+lines' elements:
+
+- each element's kind comes from its id's prefix;
+- an element's children are the ids its notation names;
+- `%% only`, `%% children`, `%% relation` and `%% construct` lines change
+  that.
+
+`%% severity [span] message` lines list **every** diagnostic the block must
+give, where `span` is the text the diagnostic covers.
+
+## Lines
+
+| Message | Severity | Trigger |
+| --- | --- | --- |
+| `A property belongs under an element line` | error | a property line before any element line |
+| `Not a property line` | error | a line under an element that is neither an element line nor a property line |
+| `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition) |
+| `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model (without ids: no element's name starts with it) |
+| `N lines for M elements: each line is an element's, in order (add or remove elements in the diagram)` | error | a plain document whose line count isn't its element count |
+
+```goal-check edgeV2
+  maintain x
+G1: Deliver [G2]
+  [G2]
+G2: Reach lab
+G2: Reach it
+G7: New one
+%% only G1 G2
+%% error [maintain x] A property belongs under an element line
+%% error [[G2]] Not a property line
+%% error [G2] Duplicate id G2
+%% error [G7] Add this element in the diagram
+```
+
+In a dialect without ids, a line's optional id names the element whose name
+starts with it, and a line without one is the element at its position
+(`%% model` lists the elements, in order):
+
+```goal-check rationalAgents
+<<goal-based>> Robot
+  G1: Deliver sample
+  G1: Deliver it again
+  G7: Unknown
+%% model <<goal-based>> Robot | G1: Deliver sample | Plan it | Other
+%% error [G1] Duplicate id G1
+%% error [G7] Add this element in the diagram
+```
+
+```goal-check rationalAgents
+Robot
+  T1: Plan it
+  G1: Deliver sample
+Other
+%% model Robot | G1: Deliver sample | T1: Plan it | Other
+```
+
+## What a line can't read
+
+| Message | Severity | Trigger |
+| --- | --- | --- |
+| `Unexpected X` | error | the first token the line can't read (one per line) |
+| `Not part of the goal language: 'c'` | error | a character no token matches |
+| `The line ends before it is complete` | error | a line that stops early (an unclosed `[`) |
+| `This annotation cannot be read` | error | an error inside an annotation |
+| `This declaration cannot be read` | error | an error inside a declaration |
+| `Not valid for this engine: …` | error | the engine's saved error, while the line is as saved (`saved`) |
+
+```goal-check edgeV2
+G1: Deliver [G2;;G3]
+%% error [;] Unexpected ;
+```
+
+```goal-check edgeV2
+G1: Deliver [G2;G3$]
+%% error [$] Not part of the goal language: '$'
+```
+
+```goal-check edgeV2
+G1: Deliver [G2;G3
+%% error [3] The line ends before it is complete
+```
+
+```goal-check edgeV2+rationalAgents
+{} G1: Deliver
+%% error [{}] This annotation cannot be read
+```
+
+```goal-check edgeV2
+R1: Battery {int 0..}
+%% error [{int 0..}] This declaration cannot be read
+```
+
+## What the dialect allows
+
+| Message | Severity | Trigger |
+| --- | --- | --- |
+| ``\`?\` is not an operator of Edge`` | error | a binary, prefix or postfix operator the dialect doesn't enable |
+| ``A standalone \`+\` is not a construct of EdgeV2`` | error | a standalone symbol the dialect doesn't enable |
+| ``\`skip\` is not an operand of …`` | error | `skip` in a dialect without it (`operand.skip`) |
+| `A goal carries no annotations in EdgeV2` | error | an annotation on a kind that isn't `annotated` |
+| `A task declares nothing on its line in EdgeV2` | error | a declaration on a kind that doesn't `declare` |
+| `An element has one stereotype: this one is not read` | error | a second stereotype (likewise `…one tagged value…`) |
+
+```goal-check edge
+G1: Deliver [G2?G3]
+%% error [?] `?` is not an operator of Edge
+```
+
+```goal-check edgeV2
+G1: Deliver [+]
+%% error [+] A standalone `+` is not a construct of EdgeV2
+```
+
+```goal-check edgeV2
+<<action>> G1: Deliver
+T1: Pick {int}
+%% error [<<action>>] A goal carries no annotations in EdgeV2
+%% error [{int}] A task declares nothing on its line in EdgeV2
+```
+
+```goal-check edgeV2+rationalAgents
+<<action>> <<other>> T1: Pick
+%% error [<<other>>] An element has one stereotype: this one is not read
+```
+
+## The notation against the model
+
+| Message | Severity | Trigger |
+| --- | --- | --- |
+| `Not a child of this goal` (`notAChild`) | error | a notation naming an element that isn't the goal's child |
+| `Missing from the notation: G3` (`missingFromNotation`) | warning | a child the notation doesn't name |
+| `Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)` (`relationMismatch`) | error | a construct whose `relation` contradicts the goal's links |
+
+```goal-check edgeV2
+G1: Deliver [G2;T9]
+%% children G1: G2 G3
+%% error [T9] Not a child of this goal
+%% warning [G2;T9] Missing from the notation: G3
+```
+
+```goal-check edgeV2
+G1: Deliver [G2;G3]
+%% relation G1: or
+%% construct G1: sequence
+%% error [G2;G3] Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)
+```
+
+## Properties
+
+| Message | Severity | Trigger |
+| --- | --- | --- |
+| `Not read for a goal` | warning | a key the kind doesn't read |
+| the property's `notApplying` (`Only read when type is maintain`), else `Not read with these properties` | warning | a property set where it doesn't apply (`applies`) |
+| the engine check's message | error | the named `check` rejects the value (`runCheck`) |
+
+```goal-check edgeV2
+G1: Deliver
+  maintain battery > 20
+  colour red
+%% warning [colour] Not read for a goal
+%% warning [maintain battery > 20] Only read when type is maintain
+```
+
+## Values
+
+These are reported where the property is written: a property line, a
+declaration or an annotation, or a whole inspector field. When the engine
+has a check for the property and it rejects the value, its message comes
+first.
+
+| Message | Severity | Type, trigger |
+| --- | --- | --- |
+| `Not an integer: x` | error | `int` |
+| `At least 0`, `At most 9` | error | `int` with `min`/`max` |
+| `Not a number: x` | error | `number` |
+| `true or false, not 1` | error | `bool` |
+| `One of maintain, not achieve` | error | `enum` that isn't `open` |
+| `Not a condition: …` | error | `assertion` that doesn't parse |
+| `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
+| `G9 is not an element of this model` | error | `refList` naming a missing element |
+| `T1 is a task, not a goal` | error | `refList` naming another kind |
+| `name:value pairs, comma-separated (x:3, y:2)` | error | `pairList` that doesn't parse |
+| `t: Not an integer: x` | error | `pairList` value not of its type |
+
+```goal-check edgeV2
+G1: Deliver
+  type achieve
+  maxRetries -1
+  utility lots
+  assertion battery >
+  dependsOn G9, T1
+  variables t:x
+T1: Pick
+%% error [type achieve] One of maintain, not achieve
+%% error [maxRetries -1] At least 0
+%% error [utility lots] Not a number: lots
+%% error [assertion battery >] Not a condition: Expecting end of file but found `>`.
+%% error [dependsOn G9, T1] G9 is not an element of this model
+%% error [variables t:x] t: Not an integer: x
+```
+
+```goal-check edgeV2
+G1: Deliver
+  dependsOn T1
+  variables t
+T1: Pick
+%% error [dependsOn T1] T1 is a task, not a goal
+%% error [variables t] name:value pairs, comma-separated (x:3, y:2)
+```
+
+```goal-check edgeV2
+R1: Alarm {bool = 1}
+%% error [{bool = 1}] true or false, not 1
+```
+
+## The engine's reader
+
+`goalNameParserFor(dialect)` reports a goal text's problems to
+`onSyntaxError`, or to the console as `line …`, in ANTLR's format: the
+1-based line and 0-based column, then the message.
+
+- Syntax errors are reported with the parser's message.
+- A disabled operator is reported as ``1:21 `?` is not an operator of
+  Edge``, and the rest of the text is still read.

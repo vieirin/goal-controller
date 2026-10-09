@@ -16,7 +16,7 @@ import {
  * Qualification link is not one: it attaches a Quality to what it qualifies.
  */
 export function linkRelation(
-  link: IstarLink,
+  link: IstarLink<string>,
 ): 'and' | 'or' | 'neededBy' | null {
   switch (link.kind) {
     case 'istar.AndRefinementLink':
@@ -31,7 +31,9 @@ export function linkRelation(
 }
 
 /** [parent, child] of a refinement link: it points from the child to the parent. */
-export function linkEnds(link: IstarLink): [parent: string, child: string] {
+export function linkEnds(
+  link: IstarLink<string>,
+): [parent: string, child: string] {
   return [link.target, link.source];
 }
 
@@ -56,10 +58,10 @@ export function findActorRoot(
  * The elements that could be the actor's root (see `findActorRoot`), without deciding:
  * the engines need exactly one, editors show what there is.
  */
-export function actorRootCandidates(
-  model: IstarModel,
+export function actorRootCandidates<EK extends string, LK extends string>(
+  model: IstarModel<EK, LK>,
   actorId: string,
-): IstarElement[] {
+): IstarElement<EK>[] {
   const nodes = childrenOf(model, actorId);
   const byId = new Map(nodes.map((node) => [node.id, node]));
 

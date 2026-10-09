@@ -112,6 +112,8 @@ export const sleecEngineMapper = createEngineMapper<
   SleecTaskProps,
   never
 >()({
+  // no definition, no notation: goal texts give their ids and names only
+  dialect: { name: 'SLEEC' },
   allowedGoalKeys: SLEEC_GOAL_KEYS,
   allowedTaskKeys: SLEEC_TASK_KEYS,
   allowedQualityKeys: SLEEC_QUALITY_KEYS,

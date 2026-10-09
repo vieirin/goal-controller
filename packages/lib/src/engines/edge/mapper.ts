@@ -4,18 +4,20 @@
  */
 import {
   createEngineMapper,
-  getAssertionVariables,
   type GoalNode,
   type GoalTreeType,
   type RawProps,
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
+import { propertyKeys } from '@goal-controller/dialect';
+import { edge } from './definition';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
   firstResourceIssue,
-} from '../edgeChecks';
+} from '../edgeFamily/checks';
+import { assertionVariables as variablesIn } from '@goal-controller/goal-language';
 import type {
   Decision,
   EdgeResourceProps,
@@ -24,41 +26,10 @@ import type {
   GoalExecutionDetail,
 } from './types';
 
-/**
- * Allowed keys for Edge goal custom properties
- */
-export const EDGE_GOAL_KEYS = [
-  'root',
-  'maxRetries',
-  'utility',
-  'cost',
-  'dependsOn',
-  'variables',
-  'type',
-  'maintain',
-  'assertion',
-] as const;
-
-/**
- * Allowed keys for Edge task custom properties
- */
-export const EDGE_TASK_KEYS = [
-  'maxRetries',
-  'type',
-  'assertion',
-  'utility',
-  'cost',
-] as const;
-
-/**
- * Allowed keys for Edge resource custom properties
- */
-export const EDGE_RESOURCE_KEYS = [
-  'type',
-  'initialValue',
-  'lowerBound',
-  'upperBound',
-] as const;
+// the custom properties it reads, per kind: from the engine's definition
+export const EDGE_GOAL_KEYS = propertyKeys(edge, 'goal');
+export const EDGE_TASK_KEYS = propertyKeys(edge, 'task');
+export const EDGE_RESOURCE_KEYS = propertyKeys(edge, 'resource');
 
 // Type aliases for the allowed keys
 export type EdgeGoalKey = (typeof EDGE_GOAL_KEYS)[number];
@@ -132,23 +103,17 @@ const getMaintainCondition = (
     return {
       maintain: {
         sentence: customProperties.maintain ?? '',
-        variables: getAssertionVariables({
-          assertionSentence: customProperties.maintain ?? '',
-        }),
+        variables: variablesIn(customProperties.maintain ?? ''),
       },
       assertion: {
         sentence: customProperties.assertion ?? '',
-        variables: getAssertionVariables({
-          assertionSentence: customProperties.assertion ?? '',
-        }),
+        variables: variablesIn(customProperties.assertion ?? ''),
       },
     };
   }
 
   if (customProperties.assertion) {
-    const assertionVariables = getAssertionVariables({
-      assertionSentence: customProperties.assertion,
-    });
+    const assertionVariables = variablesIn(customProperties.assertion);
 
     return {
       assertion: {
@@ -196,6 +161,8 @@ export const edgeEngineMapper = createEngineMapper<
   EdgeTaskProps,
   EdgeResourceProps
 >()({
+  // goal texts are read in the definition's dialect (goal-tree derives the reader)
+  dialect: edge,
   allowedGoalKeys: EDGE_GOAL_KEYS,
   allowedTaskKeys: EDGE_TASK_KEYS,
   allowedResourceKeys: EDGE_RESOURCE_KEYS,

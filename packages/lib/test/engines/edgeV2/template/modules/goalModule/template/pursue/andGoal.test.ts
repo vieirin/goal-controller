@@ -78,7 +78,7 @@ describe('edgeV2 AND anyOrder', () => {
   describe('pursueAndAnyOrderGoal', () => {
     it('matches the reference flexible pursue guards (N=2)', () => {
       const goal = andParent(
-        { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
+        { type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
 
@@ -94,7 +94,10 @@ describe('edgeV2 AND anyOrder', () => {
 
     it('rejects OR parents', () => {
       const goal = {
-        ...andParent({ type: 'anyOrder', anyOrder: ['G1', 'G2'] }, ['G1', 'G2']),
+        ...andParent({ type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} }, [
+          'G1',
+          'G2',
+        ]),
         relationToChildren: 'or' as const,
       };
       assert.throws(
@@ -105,7 +108,7 @@ describe('edgeV2 AND anyOrder', () => {
 
     it('rejects unknown child ids', () => {
       const goal = andParent(
-        { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
+        { type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.throws(
@@ -118,7 +121,7 @@ describe('edgeV2 AND anyOrder', () => {
   describe('decisionVariableNamesForGoal', () => {
     it('emits _decision for AND anyOrder parents', () => {
       const goal = andParent(
-        { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
+        { type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.deepStrictEqual(decisionVariableNamesForGoal(goal), [
@@ -129,7 +132,7 @@ describe('edgeV2 AND anyOrder', () => {
 
     it('does not emit _decision for AND sequence parents', () => {
       const goal = andParent(
-        { type: 'sequence', sequence: ['G1', 'G2'] },
+        { type: 'sequence', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.deepStrictEqual(decisionVariableNamesForGoal(goal), [
@@ -141,23 +144,23 @@ describe('edgeV2 AND anyOrder', () => {
   describe('skipStatement', () => {
     it('includes parent skip threshold for anyOrder', () => {
       const goal = andParent(
-        { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
+        { type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.strictEqual(
         skipStatement(goal),
-        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state\'=0);',
+        "[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state'=0);",
       );
     });
 
     it('includes parent skip threshold for sequence', () => {
       const goal = andParent(
-        { type: 'sequence', sequence: ['G1', 'G2'] },
+        { type: 'sequence', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.strictEqual(
         skipStatement(goal),
-        '[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state\'=0);',
+        "[skip_G0] !g0_achieved & g0_state=1 & g1_state=0 & g2_state=0 & G0_achievable*N <= decision_G0 -> (g0_state'=0);",
       );
     });
   });
@@ -165,7 +168,7 @@ describe('edgeV2 AND anyOrder', () => {
   describe('achievableGoalFormula', () => {
     it('emits the remaining-achievability product for anyOrder parents', () => {
       const goal = andParent(
-        { type: 'anyOrder', anyOrder: ['G1', 'G2'] },
+        { type: 'anyOrder', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.strictEqual(
@@ -185,7 +188,7 @@ describe('edgeV2 AND anyOrder', () => {
 
     it('still builds sequence pursue guards', () => {
       const goal = andParent(
-        { type: 'sequence', sequence: ['G1', 'G2'] },
+        { type: 'sequence', ids: ['G1', 'G2'], modifiers: {} },
         ['G1', 'G2'],
       );
       assert.strictEqual(

@@ -2,14 +2,11 @@
 
 import { serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
-import {
-  createEmptyModel,
-  parsePistar,
-  type IstarModel,
-  type ModelChangeEvent,
-} from '@istar-ts/core';
+import { emptyModel, parseModel } from '@/lib/workbench/dialects';
+import type { IstarModel, ModelChangeEvent } from '@istar-ts/core';
 import {
   IstarCanvas,
+  IstarPalette,
   IstarProvider,
   useIstarEditor,
   useIstarStore,
@@ -38,10 +35,11 @@ import { SeverityContext } from './extensions';
 /** Why an edit is taken back out (shown as an error notice), or null to keep it. */
 export type RejectEdit = (event: ModelChangeEvent) => string | null;
 
+/** The model, read with the dialect it records (if any). */
 const tryParse = (text: string): IstarModel | null => {
-  if (!text.trim()) return createEmptyModel();
+  if (!text.trim()) return emptyModel();
   try {
-    return parsePistar(text);
+    return parseModel(text);
   } catch {
     return null;
   }
@@ -196,6 +194,7 @@ export default function WorkbenchCanvas({
   aside,
   rejectEdit,
   paletteOnTop = false,
+  paletteEnd,
   fitKey = '',
 }: {
   /** a module-level constant: the provider rebuilds its registry when it changes */
@@ -208,6 +207,8 @@ export default function WorkbenchCanvas({
   paletteOnTop?: boolean;
   /** fits the diagram again when it changes (a different palette) */
   fitKey?: string;
+  /** controls at the end of the palette bar, when it is on top (a dialect's "Add new") */
+  paletteEnd?: ReactNode;
 }) {
   const wb = useWorkbench();
   const { modelFullscreen, modelReadOnly } = useShell();
@@ -225,7 +226,7 @@ export default function WorkbenchCanvas({
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
   );
-  const { store } = useIstarStore(() => parsed ?? createEmptyModel());
+  const { store } = useIstarStore(() => parsed ?? emptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
   const written = useRef<string | null>(null);
   const latest = useRef(wb);
@@ -306,19 +307,43 @@ export default function WorkbenchCanvas({
           <SelectionSync canvas={canvas} />
           <NotifyBridge notify={notify} />
           {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
-          <IstarCanvas
-            ref={canvas}
-            fitView
-            aside={aside}
-            palette={
-              modelReadOnly
-                ? false
-                : paletteOnTop || modelFullscreen
-                  ? 'top'
-                  : 'left'
-            }
-            className='h-full'
-          />
+          {paletteEnd &&
+          !modelReadOnly &&
+          parsed &&
+          (paletteOnTop || modelFullscreen) ? (
+            // istar-ts's own bar, placed here with the controls after it
+            <div className='flex h-full flex-col'>
+              <div className='flex items-stretch'>
+                <IstarPalette
+                  orientation='horizontal'
+                  flyout='below'
+                  className='min-w-0 flex-1'
+                />
+                {paletteEnd}
+              </div>
+              <IstarCanvas
+                ref={canvas}
+                fitView
+                aside={aside}
+                palette={false}
+                className='min-h-0 flex-1'
+              />
+            </div>
+          ) : (
+            <IstarCanvas
+              ref={canvas}
+              fitView
+              aside={aside}
+              palette={
+                modelReadOnly
+                  ? false
+                  : paletteOnTop || modelFullscreen
+                    ? 'top'
+                    : 'left'
+              }
+              className='h-full'
+            />
+          )}
         </IstarProvider>
       </SeverityContext.Provider>
       {!parsed && (

@@ -1,5 +1,6 @@
 'use client';
 
+import { DIALECT_LABEL } from '@/lib/workbench/dialects';
 import {
   FilePlus2,
   FolderOpen,
@@ -21,7 +22,7 @@ import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode, type TransformEngine } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
+import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
 import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
 import type { ModelSettings } from '@/lib/workbench/types';
 import BottomPanel from './BottomPanel';
@@ -31,14 +32,12 @@ import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
 import OutputPane from './OutputPane';
-import SourceView from './SourceView';
+import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { readFile, useOpenFile } from './TopBar';
-import ModelDiagram from './engines/ModelDiagram';
 import {
   WorkbenchProvider,
   useSelection,
   useWorkbench,
-  type ModelTab,
 } from './WorkbenchContext';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs, cx } from './ui';
@@ -407,13 +406,11 @@ function ModelColumn() {
     toggleModelReadOnly,
   } = useShell();
   // piStar mode shows the editor's own inspector beside the diagram instead
-  const showInspector = wb.mode !== 'pistar';
+  // piStar mode and the dialects carry their inspector in the diagram
+  const showInspector = isEngineMode(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const tabs: Array<{ id: ModelTab; label: string }> = [
-    { id: 'diagram', label: 'Goal Model' },
-    { id: 'source', label: 'Source' },
-  ];
+  const tabs = modelTabsFor(wb.mode, wb.engine);
 
   return (
     <section
@@ -481,7 +478,7 @@ function ModelColumn() {
           defaultSize={modelFullscreen ? undefined : '58%'}
           minSize='25%'
         >
-          {wb.modelTab === 'diagram' ? <ModelDiagram /> : <SourceView />}
+          <ModelTabView />
         </Panel>
         {showInspector && inspectorOpen && (
           <>
@@ -525,9 +522,13 @@ const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
 };
 
-/** What a model is for: its engine, or piStar for free modelling. */
+/** What a model is for: its engine, a modelling dialect, or piStar for free modelling. */
 const modelKindLabel = (settings: ModelSettings): string =>
-  settings.pistar ? 'piStar' : ENGINE_LABEL[settings.engine];
+  settings.pistar
+    ? settings.dialect
+      ? DIALECT_LABEL[settings.dialect]
+      : 'piStar'
+    : ENGINE_LABEL[settings.engine];
 
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
   const wb = useWorkbench();
@@ -677,8 +678,8 @@ function StatusBar() {
   const warnings = wb.problems.filter((p) => p.severity === 'warning').length;
   const { selected: selectedId } = useSelection();
   const selected = selectedId ? wb.tree?.nodes.get(selectedId) : undefined;
-  const engineLabel =
-    wb.engine === 'edgev2' ? 'EdgeV2' : wb.engine === 'edge' ? 'Edge' : 'SLEEC';
+  // what the model is for: its engine, a dialect, or piStar
+  const engineLabel = modelKindLabel(wb.settings);
   return (
     <footer className='flex h-6 shrink-0 items-center gap-4 border-t border-line bg-white px-3 text-2xs text-ink-muted'>
       <span>{engineLabel}</span>

@@ -2,7 +2,8 @@
  * Engine Mapper types and factory function
  * Defines how raw iStar properties are mapped to engine-specific properties
  */
-import type { RTGrammar } from '../parsers/goalNameParser';
+import type { ExecutionDetailOf } from '@goal-controller/goal-language';
+import type { ReadingDialect } from '../parsers/goalNameParser';
 import type { GoalExecutionDetail, TreeNode } from '../types/';
 
 /**
@@ -58,9 +59,10 @@ export type EngineMapper<
   TQualityKeys extends string = never,
 > = {
   /**
-   * RT notation grammar used to parse goal names (defaults to 'edge')
+   * the engine's dialect (its definition): goal texts (`G1: Goal [G2;G3]`) are
+   * read with the reader goal-tree derives from it
    */
-  grammar?: RTGrammar;
+  dialect: ReadingDialect;
 
   /**
    * Allowed keys for goal custom properties
@@ -134,15 +136,17 @@ export function createEngineMapper<
     TTaskKeys extends string,
     TResourceKeys extends string = never,
     TQualityKeys extends string = never,
+    TDialect extends ReadingDialect = ReadingDialect,
   >(
     config: {
-      grammar?: RTGrammar;
+      /** the engine's definition: `executionDetail` names its constructs and modifiers */
+      dialect: TDialect;
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
       allowedQualityKeys?: readonly TQualityKeys[];
       mapGoalProps: (props: {
         raw: RawProps<TGoalKeys | TQualityKeys>;
-        executionDetail: GoalExecutionDetail | null;
+        executionDetail: ExecutionDetailOf<TDialect> | null;
         id: string;
       }) => TGoalEngine;
       mapTaskProps: (props: {
@@ -183,6 +187,13 @@ export function createEngineMapper<
     TQualityKeys
   > => {
     const skipResource = config.allowedResourceKeys === undefined;
+    // goal-tree reads goal texts with the reader derived from `config.dialect`,
+    // whose details name that dialect's constructs: what mapGoalProps is typed with
+    const mapGoalProps = config.mapGoalProps as (props: {
+      raw: RawProps<TGoalKeys | TQualityKeys>;
+      executionDetail: GoalExecutionDetail | null;
+      id: string;
+    }) => TGoalEngine;
 
     // If skipResource is explicitly set (no allowedResourceKeys), skip resource mapping
     if (skipResource) {
@@ -195,11 +206,11 @@ export function createEngineMapper<
         TResourceKeys,
         TQualityKeys
       > = {
-        grammar: config.grammar,
+        dialect: config.dialect,
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
         allowedQualityKeys: config.allowedQualityKeys,
-        mapGoalProps: config.mapGoalProps,
+        mapGoalProps,
         mapTaskProps: config.mapTaskProps,
         afterCreationMapper: config.afterCreationMapper,
         skipResource: true,
@@ -226,12 +237,12 @@ export function createEngineMapper<
       TResourceKeys,
       TQualityKeys
     > = {
-      grammar: config.grammar,
+      dialect: config.dialect,
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,
       allowedQualityKeys: config.allowedQualityKeys,
       allowedResourceKeys: config.allowedResourceKeys,
-      mapGoalProps: config.mapGoalProps,
+      mapGoalProps,
       mapTaskProps: config.mapTaskProps,
       mapResourceProps: config.mapResourceProps,
       afterCreationMapper: config.afterCreationMapper,

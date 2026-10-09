@@ -34,6 +34,11 @@ export interface ParseError {
   stage: 'parse' | 'validate' | 'tree';
 }
 
+export interface ParseOptions {
+  /** remove the single-child goals before validating (see goal-tree's `Model.reduce`) */
+  reduce?: boolean;
+}
+
 export type EdgeParseModelResult = EdgeParseResult | ParseError;
 export type SleecParseModelResult = SleecParseResult | ParseError;
 export type EdgeV2ParseModelResult = EdgeV2ParseResult | ParseError;
@@ -47,6 +52,7 @@ export const GoalModel = {
    */
   parseModel(
     modelJson: string,
+    options: ParseOptions = {},
   ): { success: true; model: IStarModel } | ParseError {
     // Parse the piStar file
     let model: IStarModel;
@@ -59,6 +65,8 @@ export const GoalModel = {
         stage: 'parse',
       };
     }
+
+    if (options.reduce) model = Model.reduce(model).model;
 
     // Validate model (marks the root of each actor)
     try {
@@ -77,8 +85,11 @@ export const GoalModel = {
   /**
    * Parse model JSON, validate it, and convert to Edge tree
    */
-  parseForEdge(modelJson: string): EdgeParseModelResult {
-    const parseResult = this.parseModel(modelJson);
+  parseForEdge(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): EdgeParseModelResult {
+    const parseResult = this.parseModel(modelJson, options);
     if (!parseResult.success) {
       return parseResult;
     }
@@ -105,8 +116,11 @@ export const GoalModel = {
   /**
    * Parse model JSON, validate it, and convert to SLEEC tree
    */
-  parseForSleec(modelJson: string): SleecParseModelResult {
-    const parseResult = this.parseModel(modelJson);
+  parseForSleec(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): SleecParseModelResult {
+    const parseResult = this.parseModel(modelJson, options);
     if (!parseResult.success) {
       return parseResult;
     }
@@ -133,8 +147,11 @@ export const GoalModel = {
   /**
    * Parse model JSON, validate it, and convert to Edge V2 tree
    */
-  parseForEdgeV2(modelJson: string): EdgeV2ParseModelResult {
-    const parseResult = this.parseModel(modelJson);
+  parseForEdgeV2(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): EdgeV2ParseModelResult {
+    const parseResult = this.parseModel(modelJson, options);
     if (!parseResult.success) {
       return parseResult;
     }

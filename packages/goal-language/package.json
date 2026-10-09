@@ -1,0 +1,51 @@
+{
+  "name": "@goal-controller/goal-language",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The goal language: one Langium grammar every dialect is written in (element lines, the RT notation's operator catalog, predefined value types), its parser and its dialect-aware validator",
+  "type": "module",
+  "main": "out/cjs/index.cjs",
+  "types": "out/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/esm/index.d.ts",
+      "import": "./out/esm/index.js",
+      "require": "./out/cjs/index.cjs"
+    },
+    "./light": {
+      "types": "./out/esm/light.d.ts",
+      "import": "./out/esm/light.js",
+      "require": "./out/cjs/light.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "light": [
+        "out/esm/light.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "generate": "langium generate",
+    "build": "rm -rf out && tsc && node build.mjs",
+    "watch": "tsc --watch",
+    "test": "mocha",
+    "clean": "rm -rf out"
+  },
+  "dependencies": {
+    "@goal-controller/dialect": "workspace:*",
+    "chevrotain": "~13.2.0",
+    "langium": "4.4.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^22.6.0",
+    "chai": "^4.3.10",
+    "esbuild": "^0.28.2",
+    "langium-cli": "4.4.0",
+    "mocha": "^10.2.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.3"
+  }
+}

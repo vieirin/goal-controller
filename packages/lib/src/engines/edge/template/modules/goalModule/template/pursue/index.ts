@@ -135,9 +135,9 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
         // or goal:
         //   - alternatives: pursueAlternativeGoal(goal, child.id)
         //   - choice: pursueChoiceGoal(goal, children, child.id)
-        //   - degradation: pursueDegradationGoal(goal, goal.executionDetail.degradationList, child.id)
+        //   - degradation: pursueDegradationGoal(goal, goal.executionDetail.ids, child.id)
         // and goal:
-        //   - sequence: pursueAndSequentialGoal(goal, goal.executionDetail.sequence, child.id, [...(goal.children ?? []), ...(goal.tasks ?? [])])
+        //   - sequence: pursueAndSequentialGoal(goal, goal.executionDetail.ids, child.id, [...(goal.children ?? []), ...(goal.tasks ?? [])])
         //    - interleaved: return [child, { left, right }]
         const calcExecutionDetail = (): [
           PursueableNode,
@@ -209,7 +209,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
                 const pursueCondition = pursueDegradationGoal(
                   goal,
-                  goal.properties.engine.executionDetail.degradationList,
+                  goal.properties.engine.executionDetail.ids,
                   child.id,
                 );
                 const updatedLeft = pursueCondition
@@ -243,7 +243,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 logger.trace(child.id, 'sequence execution detail detected', 2);
                 const pursueCondition = pursueAndSequentialGoal(
                   goal,
-                  goal.properties.engine.executionDetail.sequence,
+                  goal.properties.engine.executionDetail.ids,
                   child.id,
                   Node.children(goal),
                 );

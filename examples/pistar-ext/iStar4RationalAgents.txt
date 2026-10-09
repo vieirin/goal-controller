@@ -1,0 +1,115 @@
+{
+  "actors": [
+    {
+      "id": "a1",
+      "text": "Robot",
+      "type": "istar.Agent",
+      "x": 100,
+      "y": 60,
+      "customProperties": {
+        "Description": "",
+        "stereotype": "goal-based"
+      },
+      "nodes": [
+        {
+          "id": "g1",
+          "text": "Deliver sample",
+          "type": "istar.Goal",
+          "x": 260,
+          "y": 90,
+          "customProperties": {
+            "Description": "",
+            "tag": "Id",
+            "tagValue": "G1"
+          }
+        },
+        {
+          "id": "p1",
+          "text": "Plan delivery",
+          "type": "istar.Planning",
+          "x": 160,
+          "y": 200,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "x1",
+          "text": "Delivery plan",
+          "type": "rationalAgents.Plan",
+          "x": 160,
+          "y": 300,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "t1",
+          "text": "Drive to lab",
+          "type": "istar.Task",
+          "x": 360,
+          "y": 200,
+          "customProperties": {
+            "Description": "",
+            "stereotype": "action",
+            "tag": "type",
+            "tagValue": "duty"
+          }
+        }
+      ],
+      "extension": {
+        "stereotype": "goal-based",
+        "selectedStereotype": "goal-based",
+        "taggedValue": "",
+        "selectedTaggedValue": ""
+      }
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "l1",
+      "type": "istar.AndRefinementLink",
+      "source": "t1",
+      "target": "g1",
+      "customProperties": {
+        "tag": "Logic",
+        "tagValue": "AND"
+      }
+    },
+    {
+      "id": "l2",
+      "type": "istar.AndRefinementLink",
+      "source": "p1",
+      "target": "g1"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 08 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 900,
+    "height": 500,
+    "name": "iStar4RationalAgents (piStar-ext, Fig. 4)",
+    "customProperties": {
+      "Description": ""
+    }
+  },
+  "extension": {
+    "stereotype_list": [
+      {
+        "name": "goal-based",
+        "constructsApplie": [
+          "Actor",
+          "Agent",
+          "Role"
+        ],
+        "groupName": "rational"
+      }
+    ],
+    "taggedvalue_list": [],
+    "group_list": []
+  }
+}

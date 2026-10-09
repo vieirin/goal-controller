@@ -4,10 +4,12 @@
  */
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { isValidName, jsonErrorPosition } from './pistar';
+import { notationDefinitionOf } from './engineDialects';
+import { DIALECT_LABEL, dialectThatReads } from './dialects';
+import { MODEL_NAMESPACE, relationMismatch } from '@goal-controller/dialect';
+import { isValidName } from '@goal-controller/goal-language';
+import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
-
-const AND_CONSTRUCTS = new Set(['sequence', 'anyOrder', 'interleaved']);
 
 /**
  * RT id mentioned in an engine/generation message, if any.
@@ -23,6 +25,24 @@ export const nodeIdInMessage = (message: string): string | undefined => {
 };
 
 export const jsonProblem = (text: string, error: Error): Problem => {
+  // what the model adds to its dialect, which the dialect (or istar-ts) can't take
+  if (
+    error.message.startsWith("the model's extension") ||
+    error.message.startsWith(`extension "${MODEL_NAMESPACE}"`)
+  )
+    return {
+      severity: 'error',
+      source: 'json',
+      message: `This model's own extension can't be read: ${error.message.replace(/^(the model's extension|extension "[^"]*"): /, '')}`,
+    };
+  // valid JSON with kinds its mode doesn't have: a dialect's, when one reads it
+  const dialect = dialectThatReads(text);
+  if (dialect)
+    return {
+      severity: 'error',
+      source: 'json',
+      message: `${error.message}: this is a ${DIALECT_LABEL[dialect]} model. Open it as ${DIALECT_LABEL[dialect]} (model settings) to read its kinds.`,
+    };
   const position = jsonErrorPosition(text, error.message);
   return {
     severity: 'error',
@@ -54,7 +74,7 @@ export const treeProblems = (
     }
     if (node.kind === 'resource') continue;
 
-    if (!isValidName(node.name)) {
+    if (!isValidName(notationDefinitionOf(engine), node.kind, node.name)) {
       problems.push({
         severity: 'warning',
         source: 'model',
@@ -97,9 +117,11 @@ export const treeProblems = (
             );
           })
         : [];
+    // each mismatch at the severity the engine's definition gives it
+    const definition = notationDefinitionOf(engine);
     if (notChildren.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: definition.problems.notAChild.severity,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: the notation [${node.notation}] lists ${notChildren.join(', ')}, which ${notChildren.length > 1 ? 'are not children' : 'is not a child'} of ${node.id}`,
@@ -107,22 +129,24 @@ export const treeProblems = (
     }
     if (unlisted.length > 0) {
       problems.push({
-        severity: 'warning',
+        severity: definition.problems.missingFromNotation.severity,
         source: 'model',
         nodeId: node.id,
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
       });
     }
-    if (node.construct && node.relation) {
-      const needs = AND_CONSTRUCTS.has(node.construct) ? 'and' : 'or';
-      if (needs !== node.relation) {
-        problems.push({
-          severity: 'warning',
-          source: 'model',
-          nodeId: node.id,
-          message: `${node.id}: [${node.notation}] needs ${needs.toUpperCase()} refinement links but ${node.id} uses ${node.relation.toUpperCase()}; the engine will ignore the notation`,
-        });
-      }
+    const mismatch = relationMismatch(
+      definition,
+      node.construct,
+      node.relation,
+    );
+    if (mismatch) {
+      problems.push({
+        severity: definition.problems.relationMismatch.severity,
+        source: 'model',
+        nodeId: node.id,
+        message: `${node.id}: [${node.notation}] ${mismatch}`,
+      });
     }
   }
   return problems;

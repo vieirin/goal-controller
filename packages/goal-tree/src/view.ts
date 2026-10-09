@@ -1,12 +1,17 @@
 /**
  * The goal model as an editor shows it: parents and children through the links the
  * engines read (as `convertToTree` follows them, without rejecting anything), the
- * Qualities qualifying each element, and what each element's text says, read with the engine's own RT grammar (`getGoalDetail`):
+ * Qualities qualifying each element, and what each element's text says, read in the engine's dialect (`getGoalDetail`, the goal language):
  * its RT id, name, notation and the construct the notation expresses. Never throws: a text
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
-import { isActor, isNode, type IstarModel } from '@istar-ts/core';
-import { getGoalDetail, type RTGrammar } from './parsers/goalNameParser';
+import {
+  isActorIn,
+  isNode,
+  metamodelOf,
+  type IstarModel,
+} from '@istar-ts/core';
+import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
 
@@ -64,27 +69,14 @@ const KIND: Record<string, ViewKind> = {
   'istar.Quality': 'quality',
 };
 
-const listed = (detail: GoalExecutionDetail | null): string[] => {
-  if (!detail) return [];
-  switch (detail.type) {
-    case 'interleaved':
-      return detail.interleaved;
-    case 'alternative':
-      return detail.alternative;
-    case 'sequence':
-      return detail.sequence;
-    case 'anyOrder':
-      return detail.anyOrder;
-    case 'degradation':
-      return detail.degradationList;
-    case 'decisionMaking':
-      return detail.dm;
-    case 'choice':
-      return detail.choice ?? [];
-  }
-};
+const listed = (detail: GoalExecutionDetail | null): string[] =>
+  detail?.ids ?? [];
 
-export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
+/** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
+export function goalView(
+  model: IstarModel<string, string>,
+  dialect: ReadingDialect,
+): GoalView {
   const byIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
   const parents = new Map<string, string>();
@@ -101,7 +93,7 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
       try {
         detail = getGoalDetail({
           goalText: text,
-          grammar,
+          dialect,
           onSyntaxError: (m) => errors.push(m),
         });
       } catch (error) {
@@ -183,7 +175,7 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
   for (const node of byIStarId.values())
     if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
-    .filter(isActor)
+    .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id))
     .map((element) => byIStarId.get(element.id)?.id)
     .filter((id): id is string => !!id);

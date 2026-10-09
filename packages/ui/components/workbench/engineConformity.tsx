@@ -12,6 +12,8 @@ import { treeProblems } from '@/lib/workbench/localProblems';
 import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
+import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import type { ConversionTarget } from './WorkbenchContext';
 import { cx } from './ui';
 
 export const ENGINES: Array<{
@@ -26,6 +28,23 @@ export const ENGINES: Array<{
 export const ENGINE_LABEL = Object.fromEntries(
   ENGINES.map((e) => [e.id, e.label]),
 ) as Record<TransformEngine, string>;
+
+/** What a model converts to: the engines, then the modelling dialects (no output). */
+export const TARGETS: Array<{
+  id: ConversionTarget;
+  label: string;
+  output: string | null;
+}> = [
+  ...ENGINES,
+  ...Object.entries(DIALECT_LABEL).map(([id, label]) => ({
+    id: id as ConversionTarget,
+    label,
+    output: null,
+  })),
+];
+export const TARGET_LABEL = Object.fromEntries(
+  TARGETS.map((t) => [t.id, t.label]),
+) as Record<ConversionTarget, string>;
 
 export type Plan = Conversion | { error: string };
 export type Check =
@@ -49,11 +68,11 @@ const localProblems = (text: string, engine: TransformEngine): Problem[] => {
  */
 export function useEngineConformity(
   text: string,
-  engines: readonly TransformEngine[],
+  engines: readonly ConversionTarget[],
   skip = false,
 ) {
   const plans = useMemo(() => {
-    const result = {} as Record<TransformEngine, Plan>;
+    const result = {} as Record<ConversionTarget, Plan>;
     for (const id of engines) {
       try {
         result[id] = planConversion(text, id);
@@ -67,15 +86,17 @@ export function useEngineConformity(
     // the plans are for the model as it was when the dialog opened
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engines.join()]);
-  const [checks, setChecks] = useState<Partial<Record<TransformEngine, Check>>>(
-    {},
-  );
+  const [checks, setChecks] = useState<
+    Partial<Record<ConversionTarget, Check>>
+  >({});
 
   useEffect(() => {
     if (skip) return;
     for (const id of engines) {
       const plan = plans[id];
       if (!plan || 'error' in plan || plan.blockers.length > 0) continue;
+      // a dialect has no engine to check the model with: its conversion says it all
+      if (isDialectMode(id)) continue;
       setChecks((prev) => ({ ...prev, [id]: { state: 'checking' } }));
       try {
         const data: AnalyzeResponse = analyze(plan.text, id);
@@ -111,15 +132,16 @@ export function useEngineConformity(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plans, skip]);
 
-  const statusOf = (id: TransformEngine): Status => {
+  const statusOf = (id: ConversionTarget): Status => {
     const plan = plans[id];
     if (!plan || 'error' in plan || plan.blockers.length > 0) return 'blocked';
+    if (isDialectMode(id)) return 'ready';
     const check = checks[id];
     if (!check || check.state === 'checking') return 'checking';
     if (check.errors.length > 0) return 'blocked';
     return check.warnings.length > 0 ? 'warnings' : 'ready';
   };
-  const warningsOf = (id: TransformEngine): number => {
+  const warningsOf = (id: ConversionTarget): number => {
     const check = checks[id];
     return check?.state === 'done' ? check.warnings.length : 0;
   };

@@ -18,12 +18,20 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import { parsePistar } from '@istar-ts/core';
 import {
+  isDialectMode,
+  parseModel,
+  type DialectMode,
+} from '@/lib/workbench/dialects';
+import {
+  isEngineMode,
   readModelMode,
   writeModelMode,
   type ModelMode,
 } from '@/lib/workbench/pistar';
+
+/** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
+export type ConversionTarget = TransformEngine | DialectMode;
 import { modelSignature } from '@/lib/workbench/signature';
 import { analyze, transform, treeView } from '@/services';
 import {
@@ -53,6 +61,7 @@ export type ChangeSource =
   | 'open'
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'inspector'
   | 'undo'
   | 'restore'
@@ -61,12 +70,14 @@ export type ChangeSource =
 export type SelectOrigin =
   | 'canvas'
   | 'source'
+  | 'notation'
   | 'output'
   | 'inspector'
   | 'problems'
   | 'variables';
 
-export type ModelTab = 'diagram' | 'source';
+/** `notation`: the whole model as the engine's notation (engines with a definition) */
+export type ModelTab = 'diagram' | 'source' | 'notation';
 export type OutputTab = 'output' | 'diff' | 'report';
 export type BottomTab = 'problems' | 'variables' | 'model' | 'log';
 
@@ -130,7 +141,7 @@ export type Workbench = {
   engine: TransformEngine;
   engineLocked: boolean;
   setEngine: (engine: TransformEngine) => void;
-  /** what the model is for: its engine, or 'pistar' for free modelling */
+  /** what the model is for: its engine, a dialect, or 'pistar' for free modelling */
   mode: ModelMode;
   /**
    * Switch the model to a mode. piStar mode is always possible; an engine goes through a
@@ -140,11 +151,11 @@ export type Workbench = {
   /** the engine recorded in the model file, if any (a piStar view of it can go straight back) */
   recordedEngine: TransformEngine | null;
   /** a conversion waiting for confirmation (ConvertDialog) */
-  conversion: { target: TransformEngine } | null;
+  conversion: { target: ConversionTarget } | null;
   /** open the conversion dialog (every engine checked), `target` selected first */
-  openConversion: (target: TransformEngine) => void;
+  openConversion: (target: ConversionTarget) => void;
   /** apply a checked conversion: the converted model text, now for `target` */
-  applyConversion: (target: TransformEngine, text: string) => void;
+  applyConversion: (target: ConversionTarget, text: string) => void;
   cancelConversion: () => void;
   options: GenerationOptions;
   setOptions: (patch: Partial<GenerationOptions>) => void;
@@ -288,14 +299,16 @@ const optionsFor = (
         generateDecisionVars: options.generateDecisionVars,
         discretisation: options.discretisation,
         taskLayout: options.taskLayout,
+        reduce: options.reduce,
       }
     : engine === 'edge'
       ? {
           clean: options.clean,
           generateDecisionVars: options.generateDecisionVars,
           achievabilitySpace: options.achievabilitySpace,
+          reduce: options.reduce,
         }
-      : { generateFluents: options.generateFluents };
+      : { generateFluents: options.generateFluents, reduce: options.reduce };
 
 const UNDO_LIMIT = 100;
 const COALESCE_MS = 600;
@@ -350,9 +363,11 @@ function WorkbenchState({
   );
   const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
   const [pistar, setPistar] = useState(false);
+  // with pistar: the dialect the model is for (no engine either)
+  const [dialect, setDialect] = useState<DialectMode | undefined>();
   const settings = useMemo<ModelSettings>(
-    () => ({ engine, options, live, pistar }),
-    [engine, options, live, pistar],
+    () => ({ engine, options, live, pistar, dialect }),
+    [engine, options, live, pistar, dialect],
   );
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -361,6 +376,7 @@ function WorkbenchState({
     setOptionsState({ ...DEFAULT_OPTIONS, ...next.options });
     setLive(next.live);
     setPistar(next.pistar ?? false);
+    setDialect(next.pistar ? next.dialect : undefined);
   }, []);
   const [settingsDialog, setSettingsDialog] = useState<'setup' | 'edit' | null>(
     null,
@@ -420,19 +436,30 @@ function WorkbenchState({
   // ---- mode: engines and piStar, and conversion between them ---------------
   const recordedEngine = useMemo<TransformEngine | null>(() => {
     const recorded = readModelMode(model.text);
-    return recorded && recorded !== 'pistar' ? recorded : null;
+    return recorded && isEngineMode(recorded) ? recorded : null;
   }, [model.text]);
   const [conversion, setConversion] = useState<{
-    target: TransformEngine;
+    target: ConversionTarget;
   } | null>(null);
+  // a mode without an engine: piStar's, or a dialect's (with pistar set)
+  const enterMode = useCallback((target: ConversionTarget | 'pistar') => {
+    if (isEngineMode(target)) {
+      setEngineState(target);
+      setPistar(false);
+      setDialect(undefined);
+    } else {
+      setPistar(true);
+      setDialect(isDialectMode(target) ? target : undefined);
+    }
+  }, []);
   const requestMode = useCallback(
     (target: ModelMode) => {
       const current = settingsRef.current;
       const currentMode: ModelMode = current.pistar
-        ? 'pistar'
+        ? (current.dialect ?? 'pistar')
         : (lockedEngine ?? current.engine);
       const text = textRef.current;
-      if (lockedEngine && target !== 'pistar' && target !== lockedEngine)
+      if (lockedEngine && isEngineMode(target) && target !== lockedEngine)
         return;
       const recorded = (() => {
         try {
@@ -453,33 +480,31 @@ function WorkbenchState({
         return;
       }
       if (target === 'pistar') {
-        // the piStar view of any model; the engine recorded in the file stays
+        // the piStar view of any model; the mode recorded in the file stays
         // (only the mode: options applied just before, by the settings dialog, stay)
-        setPistar(true);
+        enterMode('pistar');
         return;
       }
       if (recorded === target) {
-        // back to the engine the file is for: nothing to convert
-        setEngineState(target);
-        setPistar(false);
+        // back to the engine or dialect the file is for: nothing to convert
+        enterMode(target);
         return;
       }
       setConversion({ target });
     },
-    [lockedEngine, setText],
+    [lockedEngine, setText, enterMode],
   );
   const applyConversion = useCallback(
-    (target: TransformEngine, text: string) => {
+    (target: ConversionTarget, text: string) => {
       setText(text, 'convert');
-      setEngineState(target);
-      setPistar(false);
+      enterMode(target);
       setConversion(null);
     },
-    [setText],
+    [setText, enterMode],
   );
   const cancelConversion = useCallback(() => setConversion(null), []);
   const openConversion = useCallback(
-    (target: TransformEngine) => setConversion({ target }),
+    (target: ConversionTarget) => setConversion({ target }),
     [],
   );
 
@@ -546,10 +571,13 @@ function WorkbenchState({
       const base = stored
         ? { ...settingsRef.current, ...stored }
         : settingsRef.current;
-      const next =
-        recorded === 'pistar'
-          ? { ...base, pistar: true }
-          : { ...base, pistar: false, engine: recorded };
+      const next: ModelSettings = isEngineMode(recorded)
+        ? { ...base, pistar: false, dialect: undefined, engine: recorded }
+        : {
+            ...base,
+            pistar: true,
+            dialect: isDialectMode(recorded) ? recorded : undefined,
+          };
       applySettings(next);
       setSettingsDialog(setup ? 'setup' : null);
       setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
@@ -622,7 +650,7 @@ function WorkbenchState({
   const parsed = useMemo(() => {
     if (!model.text.trim()) return { error: null };
     try {
-      parsePistar(model.text);
+      parseModel(model.text);
       return { error: null };
     } catch (error) {
       return { error: jsonProblem(model.text, error as Error) };
@@ -988,7 +1016,7 @@ function WorkbenchState({
     jsonError: parsed.error,
     engine,
     engineLocked: lockedEngine !== null,
-    mode: pistar ? 'pistar' : engine,
+    mode: pistar ? (dialect ?? 'pistar') : engine,
     recordedEngine,
     requestMode,
     conversion,

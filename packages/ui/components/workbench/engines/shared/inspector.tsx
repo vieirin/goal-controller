@@ -3,6 +3,8 @@
 import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
+import { constructDefinition } from '@goal-controller/dialect';
+import { elementLine, isValidName } from '@goal-controller/goal-language';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -13,10 +15,10 @@ import {
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
-  CONSTRUCT_HELP,
-  CONSTRUCT_LABEL,
-  composeNodeText,
-  isValidName,
+  ENGINE_DIALECTS,
+  notationDefinitionOf,
+} from '@/lib/workbench/engineDialects';
+import {
   nodeTone,
   setNodeColor,
   setNodeProperty,
@@ -89,8 +91,8 @@ export const useDraft = (
 };
 
 export const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: 'EdgeV2',
-  edge: 'Edge',
+  edgev2: ENGINE_DIALECTS.edgev2.name,
+  edge: ENGINE_DIALECTS.edge.name,
   sleec: 'SLEEC',
 };
 
@@ -103,45 +105,38 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
 
-/** Where each engine declares the properties it reads, per element kind (packages/lib). */
-const ENGINE_KEYS: Record<
-  TransformEngine,
-  {
-    file: string;
-    lists: Partial<Record<NodeKindKey, string>>;
-    map: Record<NodeKindKey, string>;
-  }
-> = {
-  edgev2: {
-    file: 'packages/lib/src/engines/edgeV2/mapper.ts',
-    lists: {
-      goal: 'EDGE_GOAL_KEYS',
-      task: 'EDGE_TASK_KEYS',
-      resource: 'EDGE_RESOURCE_KEYS',
-      quality: 'allowedQualityKeys',
-    },
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
-  },
-  edge: {
-    file: 'packages/lib/src/engines/edge/mapper.ts',
-    lists: {
-      goal: 'EDGE_GOAL_KEYS',
-      task: 'EDGE_TASK_KEYS',
-      resource: 'EDGE_RESOURCE_KEYS',
-      quality: 'allowedQualityKeys',
-    },
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
-  },
+/** Where each engine declares the properties it reads, per element kind, and maps them. */
+type EngineKeys = {
+  /** where the keys are declared */
+  file: string;
+  lists: Partial<Record<NodeKindKey, string>>;
+  /** where they are read */
+  mapper: string;
+  map: Record<NodeKindKey, string>;
+};
+
+const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
+  ...(Object.fromEntries(
+    (['edge', 'edgev2'] as const).map((engine) => [
+      engine,
+      {
+        file: 'packages/lib/src/engines/edgeFamily/properties.ts',
+        lists: {
+          goal: 'edgeProperties.goal',
+          task: 'edgeProperties.task',
+          resource: 'edgeProperties.resource',
+          quality: 'edgeProperties.quality',
+        },
+        mapper: `packages/lib/src/engines/${engine === 'edge' ? 'edge' : 'edgeV2'}/mapper.ts`,
+        map: {
+          goal: 'mapGoalProps',
+          task: 'mapTaskProps',
+          resource: 'mapResourceProps',
+          quality: 'mapGoalProps',
+        },
+      },
+    ]),
+  ) as Record<'edge' | 'edgev2', EngineKeys>),
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
     lists: {
@@ -149,6 +144,7 @@ const ENGINE_KEYS: Record<
       task: 'SLEEC_TASK_KEYS',
       quality: 'SLEEC_QUALITY_KEYS',
     },
+    mapper: 'packages/lib/src/engines/sleec/mapper.ts',
     map: {
       goal: 'mapGoalProps',
       task: 'mapTaskProps',
@@ -164,10 +160,11 @@ const howToAccept = (
   kind: NodeKindKey,
   engine: TransformEngine,
 ): string => {
-  const { file, lists, map } = ENGINE_KEYS[engine];
+  const { file, lists, mapper, map } = ENGINE_KEYS[engine];
   const list = lists[kind];
+  const where = mapper === file ? '' : ` in ${mapper}`;
   return list
-    ? `To make ${ENGINE_LABEL[engine]} read it here, add '${key}' to ${list} in ${file} and use it in ${map[kind]}.`
+    ? `To make ${ENGINE_LABEL[engine]} read it here, add '${key}' to ${list} in ${file} and use it in ${map[kind]}${where}.`
     : `${ENGINE_LABEL[engine]} skips ${KIND_PLURAL[kind]} (skipResource in ${file}).`;
 };
 
@@ -212,10 +209,13 @@ const NUMERIC_KEYS: Record<string, 'number' | 'integer'> = {
 export function Field({
   label,
   hint,
+  hintTone = 'muted',
   children,
 }: {
   label: string;
   hint?: ReactNode;
+  /** `error`: the hint says what is wrong with the value */
+  hintTone?: 'muted' | 'error';
   children: ReactNode;
 }) {
   return (
@@ -224,7 +224,17 @@ export function Field({
         {label}
       </span>
       {children}
-      {hint && <span className='block text-2xs text-ink-muted'>{hint}</span>}
+      {hint && (
+        <span
+          role={hintTone === 'error' ? 'alert' : undefined}
+          className={cx(
+            'block whitespace-pre-line text-2xs',
+            hintTone === 'error' ? 'text-danger' : 'text-ink-muted',
+          )}
+        >
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
@@ -245,6 +255,9 @@ const kindLabelOf = (node: GoalViewNode): string =>
 export function NodeHeader({ node }: { node: GoalViewNode }) {
   const wb = useWorkbench();
   const tone = nodeTone(node);
+  const construct = node.construct
+    ? constructDefinition(notationDefinitionOf(wb.engine), node.construct)
+    : undefined;
   const traceLines =
     wb.trace?.lines.filter((line) => line.primary.includes(node.id)).length ??
     0;
@@ -260,12 +273,12 @@ export function NodeHeader({ node }: { node: GoalViewNode }) {
               ` · ${node.relation.toUpperCase()}`}
           </span>
         </div>
-        {node.construct && (
+        {construct && (
           <p className='mt-1 text-[13px] text-ink-soft'>
             <b className={tone === 'or' ? 'text-or' : 'text-and'}>
-              {CONSTRUCT_LABEL[node.construct]}
+              {construct.label}
             </b>{' '}
-            — {CONSTRUCT_HELP[node.construct]}
+            — {construct.help}
           </p>
         )}
       </div>
@@ -395,6 +408,15 @@ export function NodeSummary({ node }: { node: GoalViewNode }) {
   );
 }
 
+/** A property value's editor, in place of the row's default input. */
+export type PropertyEditor = (props: {
+  value: string;
+  placeholder: string;
+  invalid: boolean;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+}) => ReactNode;
+
 export function PropertyRow({
   name,
   value,
@@ -403,11 +425,14 @@ export function PropertyRow({
   validate,
   notApplying,
   notReadBy,
+  editor,
   onChange,
 }: {
   name: string;
   value: string | undefined;
   engineKnows: boolean;
+  /** edits the value instead of the default input (e.g. an engine's value language) */
+  editor?: PropertyEditor;
   /** how to edit it (Edge engines); default: by name (numbers, long text) */
   input?: PropertyInput;
   /** set, but not read with the element's other properties (bounds on a bool resource) */
@@ -498,6 +523,19 @@ export function PropertyRow({
             </option>
           ))}
         </select>
+      ) : editor ? (
+        editor({
+          value: draft.draft,
+          placeholder:
+            value === undefined
+              ? input && 'placeholder' in input && input.placeholder
+                ? input.placeholder
+                : 'not set'
+              : '',
+          invalid: !!error,
+          onChange: draft.change,
+          onBlur: draft.flush,
+        })
       ) : long ? (
         <textarea
           rows={name === 'Description' ? 2 : 1}
@@ -674,27 +712,33 @@ export const useEditModel = () => {
 };
 
 export function NameField({ node }: { node: GoalViewNode }) {
+  const definition = notationDefinitionOf(useWorkbench().engine);
   const edit = useEditModel();
   const name = useDraft(node.name, (next) =>
     edit((text) =>
       setNodeText(
         text,
         node.iStarId,
-        composeNodeText(node.id, next, node.notation),
+        elementLine(definition, {
+          id: node.id,
+          name: next,
+          notation: node.notation,
+        }),
       ),
     ),
   );
+  const valid = isValidName(definition, node.kind, name.draft);
   return (
     <Field
       label='Name'
       hint={
-        !isValidName(name.draft)
+        !valid
           ? 'Only letters, spaces, hyphens and apostrophes are allowed in names.'
           : undefined
       }
     >
       <input
-        className={cx(inputClass, !isValidName(name.draft) && 'border-caution')}
+        className={cx(inputClass, !valid && 'border-caution')}
         value={name.draft}
         onChange={(e) => name.change(e.target.value)}
         onBlur={name.flush}
@@ -770,10 +814,13 @@ export function PropertiesField({
   node,
   engine,
   specs = [],
+  editorFor,
 }: {
   node: GoalViewNode;
   engine: TransformEngine;
   specs?: readonly PropertySpec[];
+  /** a key's editor, when the engine has one for it */
+  editorFor?: (key: string) => PropertyEditor | undefined;
 }) {
   const wb = useWorkbench();
   const { tree } = wb;
@@ -864,6 +911,7 @@ export function PropertiesField({
                   )
                 : null
             }
+            editor={editorFor?.(key)}
             onChange={(value) =>
               edit((text) => setNodeProperty(text, node.iStarId, key, value))
             }

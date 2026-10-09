@@ -28,7 +28,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 
   git diff --name-only "$range" | while IFS= read -r file; do
     case "$file" in
-      *node_modules*|*antlr*) continue ;;
+      *node_modules*) continue ;;
     esac
     case "$file" in
       *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css)
@@ -64,7 +64,7 @@ else
   else
     echo "🔍 Running oxlint on $(printf '%s\n' "$LINT" | wc -l | tr -d ' ') file(s)..."
     # shellcheck disable=SC2086
-    if ! pnpm exec oxlint --ignore-pattern '**/antlr/**' --ignore-pattern '**/node_modules/**' $LINT; then
+    if ! pnpm exec oxlint --ignore-pattern '**/node_modules/**' $LINT; then
       echo ""
       echo "❌ Oxlint errors found. Push aborted."
       echo "Run: pnpm lint:fix"

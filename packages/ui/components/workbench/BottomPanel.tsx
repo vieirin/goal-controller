@@ -16,11 +16,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import {
-  CONSTRUCT_HELP,
-  CONSTRUCT_LABEL,
-  nodeTone,
-} from '@/lib/workbench/pistar';
+import { constructDefinition } from '@goal-controller/dialect';
+import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
+import { nodeTone } from '@/lib/workbench/pistar';
 import type { Problem } from '@/lib/workbench/types';
 import CodeEditor from './CodeEditor';
 import { readFile } from './TopBar';
@@ -212,15 +210,6 @@ export function ProblemsView() {
 
 // ---------------------------------------------------------------------------
 
-const CONSTRUCT_ORDER = [
-  'sequence',
-  'anyOrder',
-  'interleaved',
-  'alternative',
-  'choice',
-  'degradation',
-] as const;
-
 /** Goal, task and resource counts, plus how often each execution construct appears. */
 export function ModelDataView() {
   const { tree, engine, hasModel } = useWorkbench();
@@ -234,8 +223,10 @@ export function ModelDataView() {
     if (n.construct)
       constructs.set(n.construct, (constructs.get(n.construct) ?? 0) + 1);
   });
-  const listed = CONSTRUCT_ORDER.filter((construct) =>
-    constructs.has(construct),
+  // in the definition's order
+  const definition = notationDefinitionOf(engine);
+  const listed = Object.keys(definition.notation.constructs).filter(
+    (construct) => constructs.has(construct),
   );
   return (
     <div className='h-full overflow-auto p-3 text-[13px]'>
@@ -254,9 +245,10 @@ export function ModelDataView() {
         <ul className='mt-3 space-y-0.5 text-ink-soft'>
           {listed.map((construct) => (
             <li key={construct}>
-              {constructs.get(construct)} × {CONSTRUCT_LABEL[construct]}{' '}
+              {constructs.get(construct)} ×{' '}
+              {constructDefinition(definition, construct)?.label}{' '}
               <span className='text-ink-muted'>
-                — {CONSTRUCT_HELP[construct]}
+                — {constructDefinition(definition, construct)?.help}
               </span>
             </li>
           ))}

@@ -1,43 +1,26 @@
-import type { GoalExecutionDetail } from '../../types/';
-import { getGoalDetail as getEdgeGoalDetail } from './edge';
-import { getGoalDetail as getEdgeV2GoalDetail } from './edgeV2';
+import {
+  goalNameParserFor,
+  type GoalReading,
+  type ReadingDialect,
+} from '@goal-controller/goal-language';
 
-export type GoalDetail = {
-  id: string;
-  goalName: string;
-  executionDetail: GoalExecutionDetail | null;
-};
+export type {
+  GoalNameParser,
+  GoalReading as GoalDetail,
+  ReadingDialect,
+} from '@goal-controller/goal-language';
 
 /**
- * RT notation grammar used to parse goal names (e.g. `G1: Goal [G2;G3]`).
- * Each grammar is generated from packages/lib/grammar/<grammar>/RTRegex.g4
- * into src/antlr/<grammar>/.
- *
- * - `edge`: original notation, choice is a standalone `+`
- * - `edgeV2`: choice is `G1?G2`, `+` is the any-order operator `G1+G2`
+ * A goal's text (`G1: Goal [G2;G3]`), read in the engine's dialect: goal-tree
+ * derives the reader from the dialect (the goal language's
+ * `goalNameParserFor`); engines write none.
  */
-export type RTGrammar = 'edge' | 'edgeV2';
-
-export const DEFAULT_RT_GRAMMAR: RTGrammar = 'edge';
-
-const goalDetailParsers: Record<
-  RTGrammar,
-  (props: {
-    goalText: string;
-    onSyntaxError?: (message: string) => void;
-  }) => GoalDetail
-> = {
-  edge: getEdgeGoalDetail,
-  edgeV2: getEdgeV2GoalDetail,
-};
-
 export const getGoalDetail = ({
   goalText,
-  grammar = DEFAULT_RT_GRAMMAR,
+  dialect,
   onSyntaxError,
 }: {
   goalText: string;
-  grammar?: RTGrammar;
-  /** receives syntax errors instead of the console */
+  dialect: ReadingDialect;
   onSyntaxError?: (message: string) => void;
-}): GoalDetail => goalDetailParsers[grammar]({ goalText, onSyntaxError });
+}): GoalReading => goalNameParserFor(dialect)({ goalText, onSyntaxError });

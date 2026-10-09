@@ -20,6 +20,8 @@ export type TransformOptions = {
   variables?: Record<string, boolean | number>;
   taskLayout?: EdgeV2TaskLayout;
   discretisation?: number;
+  /** generate from the model without its single-child goals (see goal-tree's `Model.reduce`) */
+  reduce?: boolean;
   /** the output of the latest successful run for the same file and engine, for `clean: false` */
   previousOutput?: string;
 };
@@ -39,6 +41,7 @@ export const transform = (
     variables,
     taskLayout = 'taskModules',
     discretisation = 10,
+    reduce = false,
     previousOutput,
   } = options;
 
@@ -50,7 +53,7 @@ export const transform = (
   try {
     let output: string;
     if (engine === 'edge') {
-      const parseResult = GoalModel.parseForEdge(modelJson);
+      const parseResult = GoalModel.parseForEdge(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
       output = generateValidatedPrismModel({
         gm: parseResult.tree,
@@ -63,7 +66,7 @@ export const transform = (
         writeReport: false,
       });
     } else if (engine === 'edgev2') {
-      const parseResult = GoalModel.parseForEdgeV2(modelJson);
+      const parseResult = GoalModel.parseForEdgeV2(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
       output = generateEdgeV2PrismModel({
         gm: parseResult.tree,
@@ -78,7 +81,7 @@ export const transform = (
         writeReport: false,
       });
     } else {
-      const parseResult = GoalModel.parseForSleec(modelJson);
+      const parseResult = GoalModel.parseForSleec(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
       output = sleecTemplateEngine(parseResult.tree, { generateFluents });
     }

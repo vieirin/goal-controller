@@ -1,9 +1,9 @@
+import type { ExecutionDetailOf } from '@goal-controller/goal-language';
+import type { edge } from './definition';
 /**
  * Edge Engine Types
  * Types for EDGE/PRISM template engine properties
  */
-
-import type { Dictionary } from 'lodash';
 
 export type ExecCondition = {
   maintain?: {
@@ -21,17 +21,12 @@ export type Decision = {
   hasDecision: boolean;
 };
 
-export type GoalExecutionDetail = (
-  | { type: 'interleaved'; interleaved: string[] }
-  | { type: 'alternative'; alternative: string[] }
-  | { type: 'sequence'; sequence: string[] }
-  | { type: 'anyOrder'; anyOrder: string[] }
-  | { type: 'degradation'; degradationList: string[] }
-  | { type: 'decisionMaking'; dm: string[] }
-  | { type: 'choice' }
-) & {
-  retryMap?: Dictionary<number>;
-};
+/**
+ * What a goal's notation makes it do, as edge's definition names it: `type` is
+ * one of its constructs, `modifiers` has its modifiers (`retry`), so a
+ * misspelt name doesn't compile.
+ */
+export type GoalExecutionDetail = ExecutionDetailOf<typeof edge>;
 
 export type EdgeTaskProps = {
   execCondition?: ExecCondition;

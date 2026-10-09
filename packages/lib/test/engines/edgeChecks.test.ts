@@ -4,7 +4,7 @@ import {
   edgeGoalChecks,
   edgeTaskChecks,
   edgeResourceChecks,
-} from '../../src/engines/edgeChecks';
+} from '../../src/engines/edgeFamily/checks';
 
 const noDeps = { self: '', kindOf: () => undefined };
 

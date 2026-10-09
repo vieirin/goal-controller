@@ -1,15 +1,12 @@
 PATH  := /usr/local/bin/:node_modules/.bin/:/bin:/opt/homebrew/bin/:$(PATH)
 SHELL := /bin/bash
 
-.PHONY: all install grammar dev build test clean storm experiment run-experiment
+.PHONY: all install dev build test clean storm experiment run-experiment
 
-all: install grammar build
+all: install build
 
 install:
 	pnpm install
-
-grammar:
-	cd packages/lib && make grammar
 
 dev:
 	pnpm run dev
@@ -31,10 +28,10 @@ clean:
 
 # CLI commands (for backwards compatibility)
 # ACHIEVABILITY_SPACE: number of achievability discretization levels (default: 4)
-cli: grammar build-lib
+cli: build-lib
 	ACHIEVABILITY_SPACE=$(or $(ACHIEVABILITY_SPACE),4) node packages/lib/out/cli.js
 
-run: grammar build-lib
+run: build-lib
 	@if [ -z "$(FILE)" ]; then \
 		echo "Error: FILE variable is required. Usage: make run FILE=examples/edge/model.txt"; \
 		exit 1; \
@@ -42,7 +39,7 @@ run: grammar build-lib
 	@echo "Processing $(FILE)..."
 	node packages/lib/out/index.js "$(FILE)"
 
-generate: grammar build-lib
+generate: build-lib
 	@if [ -z "$(FILE)" ]; then \
 		echo "Error: FILE variable is required. Usage: make generate FILE=examples/edge/model.txt"; \
 		exit 1; \

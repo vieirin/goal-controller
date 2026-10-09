@@ -42,3 +42,6 @@ export { getLogger, initLogger, type LoggerReport } from './logger/logger';
 
 // Validator
 export { formatValidationReport, validate } from './validator';
+
+// Its definition: the elements, notation and properties its editors and checks read
+export { edge } from './definition';

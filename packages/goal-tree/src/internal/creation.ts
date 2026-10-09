@@ -161,7 +161,7 @@ function createNode<
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const { id, goalName, executionDetail } = getGoalDetail({
     goalText: node.name,
-    grammar: mapper.grammar,
+    dialect: mapper.dialect,
   });
   // every element the engines read is named after its RT id ("G4: …")
   if (!id) {

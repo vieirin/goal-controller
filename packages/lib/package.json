@@ -11,18 +11,19 @@
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha",
-    "grammar": "make grammar",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
+    "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts"
   },
   "dependencies": {
+    "@goal-controller/dialect": "workspace:*",
+    "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
-    "antlr4": "^4.13.0",
+    "inquirer": "^12.5.2",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",
     "lodash.mergewith": "^4.6.2",
-    "inquirer": "^12.5.2",
     "minimatch": "^9.0.3"
   },
   "devDependencies": {

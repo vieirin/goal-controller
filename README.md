@@ -27,7 +27,10 @@ goal-controller/
 │   │   │           ├── types.ts       # SLEEC-specific types
 │   │   │           └── template/      # SLEEC specification templates
 │   │   └── out/      # Compiled JavaScript
-│   ├── goal-tree/    # Goal model data structures
+│   ├── dialect/      # What a dialect is, as data (definitions' schema)
+│   ├── goal-language/ # The one grammar every dialect is written in: parser,
+│   │                  # validator, and the goal-text reader derived from a dialect
+│   ├── goal-tree/    # Goal model data structures (reads goal texts in the engine's dialect)
 │   └── ui/           # Next.js web application for transformations
 ├── examples/         # Example goal models, grouped per engine
 │   ├── edge/         # Edge engine notation (choice: `[+]`), incl. experiments/
@@ -36,6 +39,10 @@ goal-controller/
 ├── experiments/      # Experiment infrastructure (Docker, scripts, metrics)
 └── output/          # Generated PRISM/SLEEC models
 ```
+
+Dependencies go one way: `dialect ← goal-language ← goal-tree ← lib ← ui`.
+goal-tree reads goal texts with the reader goal-language derives from the
+engine's dialect, and never imports lib.
 
 ### Transformation Engines
 
@@ -54,6 +61,8 @@ This repository includes two transformation engines for converting goal models:
 ## Engine Development Tutorial
 
 This tutorial explains how to create new transformation engines for converting goal models to different target formats.
+
+> For the step-by-step guide on this branch (definition, mapper, template and workbench wiring), see [packages/dialect/docs/adding-an-engine.md](packages/dialect/docs/adding-an-engine.md).
 
 ### Architecture Overview
 
@@ -200,6 +209,7 @@ export const myEngineMapper = createEngineMapper<
   MyEngineTaskProps,
   never  // No resources
 >()({
+  dialect: myEngine,  // its definition: goal texts are read in it (you write no parser)
   allowedGoalKeys: MY_ENGINE_GOAL_KEYS,
   allowedTaskKeys: MY_ENGINE_TASK_KEYS,
   skipResource: true,
@@ -495,22 +505,17 @@ purpose_end
    pnpm install
    ```
 
-2. **Generate ANTLR parsers:**
-   ```bash
-   make grammar
-   ```
-
-3. **Build the library:**
+2. **Build the library** (the dialect definitions, the goal language, goal-tree and lib):
    ```bash
    pnpm run build:lib
    ```
 
-4. **Run transformations:**
+3. **Run transformations:**
    ```bash
    make run FILE=examples/edge/simpleChoice.txt
    ```
 
-5. **Launch the web UI:**
+4. **Launch the web UI:**
    ```bash
    pnpm run dev:ui
    # Open http://localhost:3000
@@ -538,11 +543,7 @@ purpose_end
    npm install -g pnpm
    ```
 
-2. **Install antlr4:**
-   - `pip install antlr4-tools`
-   - `brew install antlr` (MacOS, check how to install for your distribution)
-
-3. **Install Node.js 22.6.0:**
+2. **Install Node.js 22.6.0:**
    ```bash
    # Using nvm
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -550,7 +551,7 @@ purpose_end
    nvm use 22.6.0
    ```
 
-4. **Install dependencies:**
+3. **Install dependencies:**
    ```bash
    pnpm install
    ```
@@ -568,8 +569,7 @@ You can use the interactive CLI to select and run models:
 
 1. Build the library package first:
    ```bash
-   make grammar  # Generate ANTLR parsers (one RT grammar per engine: packages/lib/grammar/<engine>/)
-   pnpm run build:lib  # Build the library
+   pnpm run build:lib  # Build the library (goal texts are read with packages/goal-language)
    ```
 
 2. Generate the model using one of these methods:

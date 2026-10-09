@@ -1,0 +1,43 @@
+{
+  "actors": [
+    {
+      "id": "a1",
+      "text": "Agent",
+      "type": "istar.Agent",
+      "x": 80,
+      "y": 40,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "g1",
+          "text": "Goal",
+          "type": "istar.Goal",
+          "x": 200,
+          "y": 120,
+          "customProperties": {
+            "Description": "",
+            "tag": "Id",
+            "tagValue": "G1"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 08 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 900,
+    "height": 520,
+    "name": "Minimal piStar-ext model",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

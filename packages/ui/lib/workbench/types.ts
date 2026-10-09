@@ -1,3 +1,4 @@
+import type { DialectMode } from './dialects';
 import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -46,6 +47,8 @@ export type GenerationOptions = {
   taskLayout: EdgeV2TaskLayout;
   /** SLEEC only */
   generateFluents: boolean;
+  /** generate from the model without its single-child goals (the model itself is kept) */
+  reduce: boolean;
 };
 
 export const DEFAULT_OPTIONS: GenerationOptions = {
@@ -55,6 +58,7 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   discretisation: 10,
   taskLayout: 'taskModules',
   generateFluents: false,
+  reduce: false,
 };
 
 /** Per-model generation settings, chosen when a model is first opened. */
@@ -68,6 +72,8 @@ export type ModelSettings = {
    * generation or engine problems). Missing in settings saved before it existed.
    */
   pistar?: boolean;
+  /** with `pistar`: the modelling dialect the model is for (lib/workbench/dialects.ts) */
+  dialect?: DialectMode;
 };
 
 export type ExampleFile = { path: string; group: string; name: string };

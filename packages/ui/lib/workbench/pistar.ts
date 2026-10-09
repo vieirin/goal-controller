@@ -8,10 +8,10 @@ import {
   inheritSourceLayout,
   isActor,
   isNode,
-  parsePistar,
   toPistar,
   updateDiagram,
   updateElement,
+  withFileMetamodel,
   type IstarElement,
   type IstarLink,
   type IstarModel,
@@ -19,51 +19,28 @@ import {
   type ToPistarOptions,
 } from '@istar-ts/core';
 // types only: the view is computed in services/tree.ts
-import type { GoalViewNode, ViewConstruct } from '@goal-controller/goal-tree';
+import type { GoalViewNode } from '@goal-controller/goal-tree';
+import {
+  isEmptyModelExtension,
+  withModelEntries,
+  type ModelExtension,
+} from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
+import {
+  DIALECT_LABEL,
+  DIALECTS,
+  isDialectMode,
+  metamodelOfMode,
+  MODE_PROPERTY,
+  parseModel,
+  type DialectMode,
+} from './dialects';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
 
 /** A new, empty piStar model. */
 export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: '' })}\n`;
-
-// ---------------------------------------------------------------------------
-// Node text:  "G3: Prepare sample [T4@3->T5]"
-// ---------------------------------------------------------------------------
-
-export const composeNodeText = (
-  id: string,
-  name: string,
-  notation: string | null,
-): string => {
-  const base = `${id}: ${name.trim()}`;
-  return notation && notation.trim() ? `${base} [${notation.trim()}]` : base;
-};
-
-/** Names may only use letters, spaces, hyphens and apostrophes (RT grammar). */
-export const isValidName = (name: string): boolean =>
-  /^[A-Za-z\- ']*$/.test(name);
-
-export const CONSTRUCT_LABEL: Record<ViewConstruct, string> = {
-  sequence: 'Sequence',
-  anyOrder: 'Any order',
-  interleaved: 'Interleaved',
-  alternative: 'Alternative',
-  choice: 'Choice',
-  degradation: 'Degradation',
-  decisionMaking: 'Decision making',
-};
-
-export const CONSTRUCT_HELP: Record<ViewConstruct, string> = {
-  sequence: 'does every child, one after another',
-  anyOrder: 'does every child, one at a time, in any order',
-  interleaved: 'does every child, possibly at the same time',
-  alternative: 'needs one child; picks again after each failed attempt',
-  choice: 'needs one child; picks once and keeps it',
-  degradation: 'retries the first child, then falls back to any child',
-  decisionMaking: 'the controller decides which children to pursue',
-};
 
 // ---------------------------------------------------------------------------
 // View tree
@@ -119,15 +96,41 @@ export const serializeModel = (
   return json + (like.endsWith('\n') ? '\n' : '');
 };
 
+/** `mode`: read for it (a dialect a file does not record yet); default, what the file records. */
 const rewrite = (
   text: string,
   edit: (model: IstarModel) => IstarModel,
-): string => serializeModel(edit(parsePistar(text)), text);
+  mode?: ModelMode,
+): string => serializeModel(edit(parseModel(text, mode)), text);
 
+/**
+ * A dialect's model text with what the model adds (none: no block), written
+ * through istar-ts (its kinds checked against the dialect's, the elements
+ * using them kept) and the dialect (its groupers, stereotypes and tagged
+ * values). Throws why it cannot be.
+ */
+export const writeModelExtension = (
+  text: string,
+  mode: DialectMode,
+  model: ModelExtension,
+): string =>
+  rewrite(
+    text,
+    (read) => {
+      withModelEntries(DIALECTS[mode], model);
+      return withFileMetamodel(
+        read,
+        isEmptyModelExtension(model) ? null : model,
+      ) as unknown as IstarModel;
+    },
+    mode,
+  );
+
+/** The element an edit is for (any kind: a dialect's, an actor). */
 const findNode = (model: IstarModel, iStarId: string): IstarElement => {
   const node = model.elements.get(iStarId);
-  if (!node || !isNode(node)) {
-    throw new Error(`node ${iStarId} not found`);
+  if (!node) {
+    throw new Error(`element ${iStarId} not found`);
   }
   return node;
 };
@@ -272,17 +275,31 @@ export const jsonErrorPosition = (
 // Model mode (which engine the model is for) and conversion between modes
 // ---------------------------------------------------------------------------
 
-/** What a model is for: one of the engines, or free iStar modelling in piStar mode. */
-export type ModelMode = TransformEngine | 'pistar';
+/**
+ * What a model is for: one of the engines, a modelling dialect (no engine), or free
+ * iStar modelling in piStar mode.
+ */
+export type ModelMode = TransformEngine | DialectMode | 'pistar';
 
-const MODES: readonly ModelMode[] = ['edgev2', 'edge', 'sleec', 'pistar'];
+const MODES: readonly ModelMode[] = [
+  'edgev2',
+  'edge',
+  'sleec',
+  'pistarext',
+  'pistar',
+];
+
+/** Whether a mode is an engine's (it generates): not piStar's nor a dialect's. */
+export const isEngineMode = (mode: ModelMode): mode is TransformEngine =>
+  mode !== 'pistar' && !isDialectMode(mode);
 
 /**
- * The engine is kept in the diagram's custom properties: piStar keeps them when it opens
- * and saves a file (and shows them as ordinary properties), so the file stays a plain
- * piStar model. A model without it is a piStar model: piStar mode is never written.
+ * The mode is kept in the diagram's custom properties (MODE_PROPERTY): piStar keeps them
+ * when it opens and saves a file (and shows them as ordinary properties), so the file
+ * stays a plain piStar model. A model without it is a piStar model: piStar mode is never
+ * written.
  */
-export const MODE_PROPERTY = 'engine';
+export { MODE_PROPERTY };
 
 const isMode = (value: unknown): value is ModelMode =>
   MODES.includes(value as ModelMode);
@@ -295,7 +312,7 @@ export const modelMode = (model: IstarModel): ModelMode | null => {
 
 export const readModelMode = (text: string): ModelMode | null => {
   try {
-    return modelMode(parsePistar(text));
+    return modelMode(parseModel(text));
   } catch {
     return null;
   }
@@ -313,7 +330,11 @@ const withMode = (model: IstarModel, mode: ModelMode): IstarModel => {
 
 /** Record the mode in the model text (formatting kept). */
 export const writeModelMode = (text: string, mode: ModelMode): string =>
-  rewrite(text, (model) => withMode(model, mode));
+  rewrite(
+    text,
+    (model) => withMode(model, mode),
+    isDialectMode(mode) ? mode : undefined,
+  );
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
@@ -361,7 +382,15 @@ const EDGE_LINKS = new Set([
   'istar.NeededByLink',
 ]);
 const KIND_LABEL = (kind: string): string =>
-  kind.replace(/^istar\./, '').replace(/Link$/, ' link');
+  kind.replace(/^[^.]+\./, '').replace(/Link$/, ' link');
+const MODE_LABEL = (mode: ModelMode): string =>
+  isDialectMode(mode)
+    ? DIALECT_LABEL[mode]
+    : mode === 'pistar'
+      ? 'piStar'
+      : mode === 'sleec'
+        ? 'SLEEC'
+        : 'the Edge engines';
 const plural = (label: string): string =>
   label.endsWith('y') ? `${label.slice(0, -1)}ies` : `${label}s`;
 
@@ -372,10 +401,18 @@ const plural = (label: string): string =>
  * is for the engine to say.
  */
 export const planConversion = (text: string, target: ModelMode): Conversion => {
-  let model = parsePistar(text);
+  let model = (() => {
+    try {
+      return parseModel(text);
+    } catch (error) {
+      // a model with a dialect's kinds not recorded yet: read for that dialect
+      if (isDialectMode(target)) return parseModel(text, target);
+      throw error;
+    }
+  })();
   const changes: string[] = [];
   const blockers: string[] = [];
-  if (target !== 'pistar') {
+  if (isEngineMode(target)) {
     // RT ids: every goal, task and resource name starts with one
     for (const element of model.elements.values()) {
       if (!isNode(element) || element.isDependum || RT_ID.test(element.name))
@@ -386,6 +423,23 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       model = updateElement(model, element.id, { name });
       changes.push(
         `"${element.name.trim() || KIND_LABEL(element.kind)}" is named ${name}`,
+      );
+    }
+  }
+  if (target !== 'edge' && target !== 'edgev2') {
+    // the kinds the target's metamodel doesn't have (a dialect's, in another mode)
+    const known = metamodelOfMode(target, text);
+    const counts = new Map<string, number>();
+    for (const element of model.elements.values())
+      if (!known.elements.has(element.kind))
+        counts.set(element.kind, (counts.get(element.kind) ?? 0) + 1);
+    for (const link of model.links.values())
+      if (!known.links.has(link.kind))
+        counts.set(link.kind, (counts.get(link.kind) ?? 0) + 1);
+    for (const [kind, count] of counts) {
+      const label = KIND_LABEL(kind);
+      blockers.push(
+        `${count} ${count > 1 ? plural(label) : label}: ${MODE_LABEL(target)} has no ${plural(label)}`,
       );
     }
   }
