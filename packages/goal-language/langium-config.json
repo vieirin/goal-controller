@@ -1,0 +1,12 @@
+{
+  "projectName": "Goal",
+  "languages": [
+    {
+      "id": "goal",
+      "grammar": "src/goal.langium",
+      "fileExtensions": [".goal"]
+    }
+  ],
+  "out": "src/generated",
+  "importExtension": ".js"
+}

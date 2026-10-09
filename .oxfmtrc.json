@@ -18,6 +18,8 @@
     "reference/**",
     "result_plots/**",
     "**/antlr/**",
-    "packages/lib/test/dialect/reference/**"
+    "packages/lib/test/dialect/reference/**",
+    "packages/goal-language/src/generated/**",
+    "packages/goal-language/test/antlr-oracle.json"
   ]
 }
