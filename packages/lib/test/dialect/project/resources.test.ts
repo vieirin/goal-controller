@@ -6,11 +6,13 @@ import {
   directoryStore,
   EMBEDDED_KEY,
   fileStore,
+  formatOf,
   freeName,
   loadRecent,
   memoryHandles,
   openProject,
   opfsStore,
+  projectListing,
   readProjectResources,
   recentId,
   rememberDirectory,
@@ -213,6 +215,60 @@ describe('project resources', () => {
     ]);
     expect(freeName('ward.txt', ['ward', 'ward-2'])).to.equal('ward-3');
     expect(freeName('My lab/model.txt', [])).to.equal('My-lab-model');
+  });
+
+  it("lists an open project's own files only: its models, resources, outputs and the rest", async () => {
+    const tree: Tree = {
+      'project.json': JSON.stringify({
+        version: 1,
+        dialect: 'goda',
+        models: [{ path: 'models/BSN.txt' }],
+        projectResources: { environment: 'configurationEnvGODA.json' },
+        outputs: [{ model: 'models/BSN.txt', path: 'out/Actor.nm' }],
+      }),
+      models: { 'BSN.txt': MODEL },
+      'configurationEnvGODA.json': '{}',
+      out: { 'Actor.nm': 'dtmc', 'cost.out': '1.0' },
+      'README.md': '# seed',
+    };
+    const project = await openProject(
+      directoryStore(fakeDirectory('goda-bsn', tree)),
+      options,
+    );
+    // a kind no dialect declares (no engine reads goda yet): shown as it is
+    expect(project.resources).to.deep.equal([
+      {
+        kind: 'environment',
+        definition: {
+          label: 'environment',
+          format: 'json',
+          path: 'configurationEnvGODA.json',
+        },
+        paths: ['configurationEnvGODA.json'],
+        from: 'manifest',
+        absent: [],
+        missing: false,
+        declared: false,
+      },
+    ]);
+    expect(
+      projectListing(project.manifest, project.files, project.resources, [
+        'models/BSN.txt',
+      ]),
+    ).to.deep.equal([
+      { path: 'models/BSN.txt', role: 'model' },
+      {
+        path: 'configurationEnvGODA.json',
+        role: 'projectResource',
+        kind: 'environment',
+      },
+      { path: 'README.md', role: 'other' },
+      { path: 'out/Actor.nm', role: 'output' },
+      { path: 'out/cost.out', role: 'output' },
+    ]);
+    expect(formatOf('a.jucm')).to.equal('xml');
+    expect(formatOf('props/a.pctl')).to.equal('pctl');
+    expect(formatOf('eval_formula.sh')).to.equal('text');
   });
 
   it('keeps the folders a user opened, to reopen them from Recent', async () => {

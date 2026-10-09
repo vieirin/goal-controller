@@ -152,6 +152,17 @@ a copy in the browser whose source says what it copies
 `readProjectResources` reads the slots' texts; what they mean is the
 engine's library's to parse.
 
+A kind the manifest lists that no definition declares (the seeds' files, for
+a dialect with no engine yet) is a slot too, `declared: false`: shown as it
+is, in the format of its extension (`formatOf`), and read by nobody.
+
+**An open project is its own tree.** `projectListing` gives what the
+Explorer lists once a project is open: that project's files only, by role
+(its models, its project resources by slot, its outputs under `out/` or in
+the manifest's `outputs`, the rest). Other projects, the examples among
+them, are never listed beside it. They are opened from the start screen,
+which also holds Recent, and opening one closes the current project.
+
 The folders a user opens are kept between visits behind a `HandleStorage`
 port (`handles.ts`): `indexedDbHandles()` in the browser, opened when first
 used; `memoryHandles()` in tests. `rememberDirectory` keeps one;

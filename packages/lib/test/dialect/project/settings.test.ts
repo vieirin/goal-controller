@@ -12,9 +12,12 @@ import {
   fileStore,
   modelSettingsOf,
   openProject,
+  projectListing,
+  resourceSlots,
   withModelSettings,
   type ProjectIndexEntry,
 } from '../../../../ui/lib/project';
+import { declarationsOf } from '../../../../ui/lib/workbench/projectResources';
 import {
   openingSettings,
   readModelOptions,
@@ -284,6 +287,37 @@ describe('ui Explorer: examples opened as projects', () => {
         ),
       ),
   });
+  it("lists an open example project's own files, never another example's", async () => {
+    const entries = INDEX as unknown as ProjectIndexEntry[];
+    const everyFile = (entry: ProjectIndexEntry) =>
+      entry.files.map((file) => `${entry.root}/${file}`);
+    for (const entry of entries) {
+      const { project } = await openExample(entry, fetchLocal);
+      const listed = projectListing(
+        project.manifest,
+        project.files,
+        resourceSlots(
+          project.manifest,
+          project.files,
+          declarationsOf(entry.dialect ?? null) ?? {},
+        ),
+        project.models.map((model) => model.path),
+      ).map((file) => `${entry.root}/${file.path}`);
+      const own = new Set(everyFile(entry));
+      expect(
+        listed.every((path) => own.has(path)),
+        entry.path,
+      ).to.equal(true);
+      const others = new Set(
+        entries.filter((other) => other !== entry).flatMap(everyFile),
+      );
+      expect(
+        listed.filter((path) => others.has(path)),
+        entry.path,
+      ).to.deep.equal([]);
+    }
+  });
+
   it('opens every example with the mode of its folder (a project: its dialect) and the default options', async () => {
     const entries = INDEX as unknown as ProjectIndexEntry[];
     expect(entries.length).to.be.greaterThan(20);

@@ -131,8 +131,6 @@ export default function Explorer() {
   const wb = useWorkbench();
   const examples = useExamples();
   const { open: openExample, error: openExampleError } = useOpenExample();
-  // the open model is already listed above
-  const others = wb.recent.filter((file) => recentId(file) !== wb.recentEntry);
   // engine folder → subfolder ('' for files at the top) → files
   const groups = new Map<string, Map<string, ProjectIndexEntry[]>>();
   (examples.data ?? []).forEach((example) => {
@@ -155,46 +153,21 @@ export default function Explorer() {
       />
     );
   };
-  const lastOutput = wb.runs.find((run) => run.output !== null);
+  // an open project is its own tree: its files only (examples and Recent are the
+  // start screen's, where another project is opened)
+  if (wb.hasModel)
+    return (
+      <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
+        <ProjectSection />
+      </nav>
+    );
 
   return (
     <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
       <Section title='Workspace'>
-        {wb.hasModel ? (
-          <>
-            <Row
-              icon={FileJson}
-              label={wb.fileName || 'untitled.txt'}
-              detail={wb.dirty ? <span className='text-trace'>●</span> : null}
-              onClick={() => wb.setModelTab('source')}
-            />
-            {isPrismEngine(wb.engine) && (
-              <Row
-                icon={SlidersHorizontal}
-                label='variables'
-                detail={wb.variables.length}
-                onClick={() => wb.setBottomTab('variables')}
-              />
-            )}
-            <Row
-              icon={FileCode2}
-              label={`output.${outputExtensionOf(wb.engine)}`}
-              detail={
-                !lastOutput ? (
-                  '—'
-                ) : wb.stale ? (
-                  <span className='text-caution'>stale</span>
-                ) : null
-              }
-              onClick={() => wb.setOutputTab('output')}
-            />
-          </>
-        ) : (
-          <p className='px-6 text-2xs text-ink-muted'>No model open.</p>
-        )}
+        <p className='px-6 text-2xs text-ink-muted'>No model open.</p>
+        <OpenFolderRow />
       </Section>
-
-      {wb.hasModel && <ProjectSection />}
 
       {groups.size > 0 && (
         <Section title='Examples'>
@@ -220,15 +193,9 @@ export default function Explorer() {
         </Section>
       )}
 
-      {openExampleError && (
-        <p className='px-3 py-2 text-2xs text-rose-700' role='alert'>
-          {openExampleError}
-        </p>
-      )}
-
-      {others.length > 0 && (
+      {wb.recent.length > 0 && (
         <Section title='Recent'>
-          {others.map((file) => (
+          {wb.recent.map((file) => (
             <Row
               key={recentId(file)}
               icon={History}
@@ -286,9 +253,20 @@ function ProjectSection() {
       (err: unknown) =>
         setError(err instanceof Error ? err.message : String(err)),
     );
-  if (!wb.resourceSlots.length && !canOpenFolders()) return null;
+  const lastOutput = wb.runs.find((run) => run.output !== null);
+  const outputs = wb.listing.filter((file) => file.role === 'output');
+  const others = wb.listing.filter((file) => file.role === 'other');
+  const fileRow = (path: string) => (
+    <Row
+      key={path}
+      icon={FileCode2}
+      label={path}
+      onClick={() => wb.openProjectFile(path)}
+      active={wb.modelTab === resourceTabId(path)}
+    />
+  );
   return (
-    <Section title='Project'>
+    <Section title={wb.project?.name ?? 'Project'}>
       {wb.project && (
         <p
           className='truncate px-6 text-2xs text-ink-muted'
@@ -302,6 +280,34 @@ function ProjectSection() {
           {wb.resourceNotice}
         </p>
       )}
+      <Row
+        icon={FileJson}
+        label={wb.fileName || 'untitled.txt'}
+        detail={wb.dirty ? <span className='text-trace'>●</span> : null}
+        onClick={() => wb.setModelTab('source')}
+      />
+      {isPrismEngine(wb.engine) && (
+        <Row
+          icon={SlidersHorizontal}
+          label='variables'
+          detail={wb.variables.length}
+          onClick={() => wb.setBottomTab('variables')}
+        />
+      )}
+      {!wb.settings.pistar && (
+        <Row
+          icon={FileCode2}
+          label={`output.${outputExtensionOf(wb.engine)}`}
+          detail={
+            !lastOutput ? (
+              '—'
+            ) : wb.stale ? (
+              <span className='text-caution'>stale</span>
+            ) : null
+          }
+          onClick={() => wb.setOutputTab('output')}
+        />
+      )}
       {wb.resourceSlots.map((slot) => (
         <ResourceSlotRows
           key={slot.kind}
@@ -309,19 +315,58 @@ function ProjectSection() {
           onAdd={(file) => run(() => wb.addResource(slot.kind, file))}
         />
       ))}
-      {canOpenFolders() && (
-        <Row
-          icon={FolderOpen}
-          label='Open folder…'
-          onClick={() => run(wb.openFolder)}
-        />
+      {outputs.length > 0 && (
+        <div className='pl-3'>
+          <Section title='Reference outputs' defaultOpen={false}>
+            {outputs.map(({ path }) => fileRow(path))}
+          </Section>
+        </div>
       )}
+      {others.length > 0 && (
+        <div className='pl-3'>
+          <Section title='Other files' defaultOpen={false}>
+            {others.map(({ path }) => fileRow(path))}
+          </Section>
+        </div>
+      )}
+      <Row
+        icon={History}
+        label='Open another project…'
+        onClick={() => wb.closeModel()}
+      />
       {error && (
         <p role='alert' className='px-6 py-1 text-2xs text-danger'>
           {error}
         </p>
       )}
     </Section>
+  );
+}
+
+/** Open folder…: a folder on disk as a project, from the start (Chrome, Edge). */
+function OpenFolderRow() {
+  const wb = useWorkbench();
+  const [error, setError] = useState<string | null>(null);
+  if (!canOpenFolders()) return null;
+  return (
+    <>
+      <Row
+        icon={FolderOpen}
+        label='Open folder…'
+        onClick={() =>
+          void wb.openFolder().then(
+            () => setError(null),
+            (err: unknown) =>
+              setError(err instanceof Error ? err.message : String(err)),
+          )
+        }
+      />
+      {error && (
+        <p role='alert' className='px-6 py-1 text-2xs text-danger'>
+          {error}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -350,12 +395,13 @@ function ResourceSlotRows({
           )
         }
         onClick={() =>
-          slot.missing || slot.definition.many
+          // a kind no dialect declares (a seed's files) is shown, not added to
+          slot.declared && (slot.missing || slot.definition.many)
             ? input.current?.click()
-            : wb.setModelTab(resourceTabId(slot.paths[0]!))
+            : slot.paths[0] && wb.setModelTab(resourceTabId(slot.paths[0]))
         }
         trailing={
-          slot.missing ? null : (
+          slot.missing || !slot.declared ? null : (
             <button
               type='button'
               aria-label={`Add a file to ${slot.definition.label}`}

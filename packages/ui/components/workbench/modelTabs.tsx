@@ -22,26 +22,31 @@ export const modelTabsFor = (
   mode: ModelMode,
   engine: TransformEngine,
   resources: readonly ResourceSlot[] = [],
+  /** the project's other files opened in a tab (outputs, notes) */
+  opened: readonly string[] = [],
 ): Array<{ id: ModelTab; label: string }> => [
   { id: 'diagram', label: 'Goal Model' },
   ...(isDialectMode(mode) || isDialectEngine(engine)
     ? [{ id: 'notation' as const, label: 'Notation' }]
     : []),
   { id: 'source', label: 'Source' },
-  ...resources.flatMap((slot) =>
-    slot.paths.map((path) => ({
+  ...[...new Set([...resources.flatMap((slot) => slot.paths), ...opened])].map(
+    (path) => ({
       id: resourceTabId(path),
       label: path.split('/').pop() ?? path,
-    })),
+    }),
   ),
 ];
 
 /** The open model tab's view (the diagram when the tab is not offered for this engine). */
 export function ModelTabView() {
   const wb = useWorkbench();
-  const tab = modelTabsFor(wb.mode, wb.engine, wb.resourceSlots).some(
-    ({ id }) => id === wb.modelTab,
-  )
+  const tab = modelTabsFor(
+    wb.mode,
+    wb.engine,
+    wb.resourceSlots,
+    wb.openedFiles,
+  ).some(({ id }) => id === wb.modelTab)
     ? wb.modelTab
     : 'diagram';
   if (tab.startsWith('resource:'))

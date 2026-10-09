@@ -419,7 +419,12 @@ function ModelColumn() {
   const showInspector = isEngineMode(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const tabs = modelTabsFor(wb.mode, wb.engine, wb.resourceSlots);
+  const tabs = modelTabsFor(
+    wb.mode,
+    wb.engine,
+    wb.resourceSlots,
+    wb.openedFiles,
+  );
 
   return (
     <section

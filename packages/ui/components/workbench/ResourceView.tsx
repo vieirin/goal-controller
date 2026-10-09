@@ -3,7 +3,7 @@
 import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import type { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useState } from 'react';
-import { sourceLabel } from '@/lib/project';
+import { formatOf, sourceLabel } from '@/lib/project';
 import CodeEditor, { type CodeLanguage } from './CodeEditor';
 import { useWorkbench } from './WorkbenchContext';
 import { Button } from './ui';
@@ -17,9 +17,16 @@ export default function ResourceView({ path }: { path: string }) {
   const wb = useWorkbench();
   const [view, setView] = useState<EditorView | null>(null);
   const slot = wb.resourceSlots.find((s) => s.paths.includes(path));
+  const listed = wb.listing.find((file) => file.path === path);
   const text = wb.resourceTexts[path];
-  const readOnly = wb.project?.store.readOnly ?? true;
-  const language: CodeLanguage = slot?.definition.format ?? 'text';
+  // a resource is edited; the project's other files (its outputs, notes) are shown
+  const readOnly = !slot || (wb.project?.store.readOnly ?? true);
+  const language: CodeLanguage = slot?.definition.format ?? formatOf(path);
+  const label = slot
+    ? slot.definition.label
+    : listed?.role === 'output'
+      ? 'Output'
+      : 'File';
   const diagnostics = useMemo(
     () =>
       (slot ? (wb.parsedResources[slot.kind]?.diagnostics ?? []) : []).filter(
@@ -44,16 +51,16 @@ export default function ResourceView({ path }: { path: string }) {
     view.dispatch(setDiagnostics(view.state, marks));
   }, [view, diagnostics, text]);
 
-  if (!slot || text === undefined)
+  if (text === undefined)
     return <p className='p-4 text-[13px] text-ink-muted'>Reading {path}…</p>;
   return (
     <div className='flex h-full min-h-0 flex-col'>
       <div className='flex items-center gap-2 border-b border-line px-3 py-1.5 text-2xs text-ink-muted'>
-        <span className='font-semibold uppercase tracking-wider'>
-          {slot.definition.label}
-        </span>
+        <span className='font-semibold uppercase tracking-wider'>{label}</span>
         <span className='truncate font-mono'>{path}</span>
-        {readOnly ? (
+        {!slot ? (
+          <span className='ml-auto truncate'>read only</span>
+        ) : readOnly ? (
           <Button className='ml-auto' onClick={() => void wb.copyToBrowser()}>
             Make a browser copy to edit
           </Button>
@@ -68,7 +75,7 @@ export default function ResourceView({ path }: { path: string }) {
         <CodeEditor
           value={text}
           language={language}
-          ariaLabel={`${slot.definition.label}: ${path}`}
+          ariaLabel={`${label}: ${path}`}
           readOnly={readOnly}
           onChange={(value) => wb.setResourceText(path, value)}
           onReady={setView}

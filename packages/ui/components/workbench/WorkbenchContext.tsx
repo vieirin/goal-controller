@@ -41,6 +41,7 @@ import {
   opfsProjects,
   opfsStore,
   PROJECT_FILE,
+  projectListing,
   recentId,
   recordedMode,
   rememberDirectory,
@@ -54,6 +55,7 @@ import {
   withProjectResource,
   type DirectoryHandleLike,
   type HandleStorage,
+  type ListedFile,
   type OpenProjectOptions,
   type Project,
   type ProjectSource,
@@ -205,8 +207,6 @@ export type Workbench = {
   openRecent: (entry: RecentFile) => Promise<void>;
   /** where the open model's project came from (a single file: an implicit project) */
   projectSource: ProjectSource | null;
-  /** the open model's Recent entry (recentId), none without a model */
-  recentEntry: string | null;
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
   setText: (text: string, source: ChangeSource) => void;
@@ -226,6 +226,11 @@ export type Workbench = {
   openFolder: () => Promise<void>;
   /** the resources the engine reads: where the project has each, or missing */
   resourceSlots: ResourceSlot[];
+  /** the open project's own files, by role (never another project's) */
+  listing: ListedFile[];
+  /** the project's other files open in a tab (outputs, notes) */
+  openedFiles: string[];
+  openProjectFile: (path: string) => void;
   resourceTexts: Readonly<Record<string, string>>;
   parsedResources: ParsedResources;
   /** what the language and checks get of them (none: the model alone) */
@@ -1024,17 +1029,33 @@ function WorkbenchState({
 
   // ---- the project's resources (goal-controller#25) ------------------------------
   // the slots the engine's definition declares, in the open project
+  // (in piStar mode no engine reads any: the files its manifest lists are still shown)
   const resourceSlotsNow = useMemo<ResourceSlot[]>(
     () =>
-      project && !pistar
+      project
         ? resourceSlots(
             project.manifest,
             project.files,
-            declarationsOf(engine) ?? {},
+            (!pistar && declarationsOf(engine)) || {},
           )
         : [],
     [project, engine, pistar],
   );
+  // the open project's own files, by role: what the Explorer lists (never the examples)
+  const listing = useMemo<ListedFile[]>(
+    () =>
+      project
+        ? projectListing(
+            project.manifest,
+            project.files,
+            resourceSlotsNow,
+            project.models.map((m) => m.path),
+          )
+        : [],
+    [project, resourceSlotsNow],
+  );
+  // the project's other files opened in a tab (outputs, notes), besides its resources'
+  const [openedFiles, setOpenedFiles] = useState<string[]>([]);
   // their texts, by path: read from the project's store, then as edited
   const [resourceTexts, setResourceTexts] = useState<Record<string, string>>(
     {},
@@ -1052,10 +1073,14 @@ function WorkbenchState({
     const fresh = textsOf.current !== project.store;
     textsOf.current = project.store;
     const kept = fresh ? {} : resourceTextsRef.current;
-    const missing = resourceSlotsNow
-      .flatMap((slot) => slot.paths)
-      .filter((path) => !(path in kept));
-    if (fresh) setResourceTexts({});
+    const missing = [
+      ...resourceSlotsNow.flatMap((slot) => slot.paths),
+      ...(fresh ? [] : openedFiles),
+    ].filter((path) => !(path in kept));
+    if (fresh) {
+      setResourceTexts({});
+      setOpenedFiles([]);
+    }
     if (!missing.length) return undefined;
     let cancelled = false;
     void Promise.all(
@@ -1074,10 +1099,22 @@ function WorkbenchState({
     return () => {
       cancelled = true;
     };
-  }, [project, resourceSlotsNow]);
+  }, [project, resourceSlotsNow, openedFiles]);
+  /** one of the project's files in its tab (read when first opened) */
+  const openProjectFile = useCallback(
+    (path: string) => {
+      if (!resourceSlotsNow.some((slot) => slot.paths.includes(path)))
+        setOpenedFiles((prev) =>
+          prev.includes(path) ? prev : [...prev, path],
+        );
+      setModelTab(`resource:${path}`);
+    },
+    [resourceSlotsNow],
+  );
   const parsedResources = useMemo(
-    () => parseResources(engine, resourceSlotsNow, resourceTexts),
-    [engine, resourceSlotsNow, resourceTexts],
+    () =>
+      pistar ? {} : parseResources(engine, resourceSlotsNow, resourceTexts),
+    [engine, pistar, resourceSlotsNow, resourceTexts],
   );
   // what the language and the checks get (none: the model alone, as before)
   const projectResources = useMemo(() => {
@@ -1517,6 +1554,9 @@ function WorkbenchState({
     project,
     openFolder,
     resourceSlots: resourceSlotsNow,
+    listing,
+    openedFiles,
+    openProjectFile,
     resourceTexts,
     parsedResources,
     projectResources,
@@ -1525,13 +1565,6 @@ function WorkbenchState({
     copyToBrowser,
     resourceNotice,
     projectSource: model.projectSource,
-    recentEntry: model.text.trim()
-      ? recentId({
-          fileName: model.fileName || 'untitled.txt',
-          source: model.projectSource ?? undefined,
-          aside: model.aside,
-        })
-      : null,
     closeModel,
     setText,
     renameFile,
