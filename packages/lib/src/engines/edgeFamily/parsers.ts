@@ -9,6 +9,7 @@ import {
   errorText,
   parseElementLine,
   parseValue,
+  readNotation,
 } from '@goal-controller/goal-language';
 import { edge } from '../edge/definition';
 import { edgeV2 } from '../edgeV2/definition';
@@ -16,12 +17,7 @@ import {
   assertionVariables,
   type AssertionVariable,
 } from './assertionVariables';
-import {
-  EDGE_CASCADE,
-  EDGE_V2_CASCADE,
-  edgeGoalDetail,
-  readConstructs,
-} from './goalDetail';
+import { EDGE_CASCADE, EDGE_V2_CASCADE, edgeGoalDetail } from './goalDetail';
 
 /** As ANTLR's default listener did: reported, and the text read as far as it goes. */
 const report = (
@@ -40,7 +36,7 @@ const goalNames =
     for (const error of read.errors) report(errorText(error), onSyntaxError);
     const notation = read.value?.notation ?? null;
     // what the language reads but this engine does not
-    for (const symbol of readConstructs(definition, notation).disabled)
+    for (const symbol of readNotation(definition, notation).disabled)
       report(
         `1:${Math.max(goalText.indexOf(symbol), 0)} \`${symbol}\` is not an operator of ${definition.name}`,
         onSyntaxError,

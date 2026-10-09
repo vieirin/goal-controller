@@ -123,10 +123,15 @@ notation: {
 - Anything not listed is **disabled** for that dialect. The parser still
   reads it, the validator reports it (`` `?` is not an operator of Edge``),
   completion doesn't offer it, and the engine reports it as a syntax error.
-- An engine reads the parse tree (`RtTree`) with this table.
-  `lib/src/engines/edgeFamily/goalDetail.ts` is Edge's reading: the last
-  operator node of each construct, groups opaque, the engine's cascade, and
-  `retryMap` for constructs a modifier applies to.
+- `readNotation(dialect, tree)` reads a notation's tree with this table:
+  each construct's last (outermost) operands (`operandIds`, groups opaque),
+  the standalone constructs written, each modifier's arguments by operand
+  text, and the operators the dialect does not enable (`isEnabled`, the
+  same rule the validator reports with).
+- An engine keeps only what is its own: `lib/src/engines/edgeFamily/goalDetail.ts`
+  picks the construct by Edge's cascade and writes goal-tree's
+  `GoalExecutionDetail` shape (`degradationList`, `retryMap`), both legacy
+  of RTRegex.g4's listeners.
 
 ## Validation (dialect-aware)
 
@@ -212,6 +217,17 @@ test fails if they are stale. The tests use mocha with tsx, and the root
    this. The language can.
 
 ## Not done yet
+
+- **A generic execution detail.** goal-tree's `GoalExecutionDetail` has a
+  field per construct (`sequence`, `alternative`, `interleaved`, `anyOrder`,
+  `choice`, `degradationList`) and `retryMap`. Normalising it to
+  `{ type, ids, modifiers }` would remove lib's adapter (`listOf`, the
+  `retryMap` shape); the readers of those fields to change are:
+  - goal-tree: `src/types/goalTree.ts`, `src/view.ts`;
+  - edge: `types.ts`, `validator/report.ts`,
+    `template/modules/goalModule/template/pursue/{index,orGoal}.ts`;
+  - edgeV2: `types.ts`, `validator/report.ts`,
+    `template/modules/goalModule/template/{children,pursue/index,pursue/orGoal}.ts`.
 
 - A language server. The validator and completion are its core, but there
   is no Langium LSP module, worker or `rt/context` wiring yet.

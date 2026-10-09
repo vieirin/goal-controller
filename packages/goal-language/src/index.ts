@@ -11,3 +11,4 @@ export * from './notation/diagnostics.js';
 export * from './notation/completion.js';
 export * from './notation/operators.js';
 export * from './notation/highlight.js';
+export * from './notation/reading.js';

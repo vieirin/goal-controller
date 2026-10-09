@@ -20,6 +20,7 @@ import {
   type WithNotation,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
+import { isEnabled } from './reading.js';
 import { valueProblem } from './values.js';
 
 /**
@@ -88,10 +89,11 @@ const disabled = (
   definition: Pick<AnyDialect, 'name'> & WithNotation,
   notation: NonNullable<ElementReading['notation']>,
 ): Diagnostic[] => {
-  const { operators, standalone = {}, operand } = definition.notation;
+  const { operand } = definition.notation;
   return [
+    // the same rule readNotation reads a notation's constructs with
     ...notation.operators.flatMap(({ symbol, form, span }) =>
-      (form === 'standalone' ? symbol in standalone : symbol in operators)
+      isEnabled(definition, symbol, form)
         ? []
         : [
             {
