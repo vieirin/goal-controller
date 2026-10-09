@@ -88,11 +88,13 @@ const ICON = {
   error: AlertCircle,
   warning: AlertTriangle,
   info: Info,
+  hint: Info,
 } as const;
 const TONE = {
   error: 'text-danger',
   warning: 'text-caution',
   info: 'text-ink-muted',
+  hint: 'text-ink-muted',
 } as const;
 export function ProblemsView() {
   const wb = useWorkbench();
@@ -105,7 +107,9 @@ export function ProblemsView() {
   }, [copied]);
   if (!wb.hasModel)
     return <p className='p-3 text-[13px] text-ink-muted'>No model open.</p>;
-  const shown = wb.problems.filter((p) => showInfo || p.severity !== 'info');
+  // information and hints are shown on request
+  const quiet = (p: Problem) => p.severity === 'info' || p.severity === 'hint';
+  const shown = wb.problems.filter((p) => showInfo || !quiet(p));
   const hiddenInfo = wb.problems.length - shown.length;
   const canGo = (problem: Problem) =>
     (problem.source === SOURCE.file && !!problem.line) ||

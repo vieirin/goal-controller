@@ -29,6 +29,53 @@ const workerTransport = (worker: Worker): Transport => {
   };
 };
 
+/** What a server publishes for a document (LSP's `publishDiagnostics`). */
+export type PublishedDiagnostics = {
+  uri: string;
+  diagnostics: readonly {
+    range: {
+      start: { line: number; character: number };
+      end: { line: number; character: number };
+    };
+    severity?: number;
+    message: string;
+    data?: unknown;
+  }[];
+};
+
+type DiagnosticsListener = (params: PublishedDiagnostics) => void;
+const listeners = new WeakMap<LSPClient, Set<DiagnosticsListener>>();
+
+/**
+ * A client of a language server the workbench runs (the shared goal-language
+ * worker, an engine's own server): lsp-client's features, and the diagnostics
+ * it publishes handed to `onClientDiagnostics` too (the editor still shows
+ * them: lsp-client's own handler runs after).
+ */
+export const serviceClient = (transport: Transport): LSPClient =>
+  new LSPClient({
+    rootUri: 'file:///',
+    extensions: languageServerExtensions(),
+    notificationHandlers: {
+      'textDocument/publishDiagnostics': (client, params) => {
+        listeners.get(client)?.forEach((listener) => listener(params));
+        // not handled: lsp-client shows them in the editor too
+        return false;
+      },
+    },
+  }).connect(transport);
+
+/** Listens to what a service's server publishes. */
+export const onClientDiagnostics = (
+  client: LSPClient,
+  listener: DiagnosticsListener,
+): (() => void) => {
+  const known = listeners.get(client) ?? new Set<DiagnosticsListener>();
+  listeners.set(client, known);
+  known.add(listener);
+  return () => known.delete(listener);
+};
+
 let shared: LSPClient | null | undefined;
 const failures = new Set<() => void>();
 
@@ -49,10 +96,7 @@ export const goalClient = (): LSPClient | null => {
       type: 'module',
     });
     worker.onerror = (event) => fail(event.message || event);
-    shared = new LSPClient({
-      rootUri: 'file:///',
-      extensions: languageServerExtensions(),
-    }).connect(workerTransport(worker));
+    shared = serviceClient(workerTransport(worker));
   } catch (error) {
     fail(error);
   }

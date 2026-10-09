@@ -523,12 +523,10 @@ describe('ui problems', () => {
     p: Partial<Problem> & Pick<Problem, 'message'>,
   ): Problem => ({ severity: 'error', source: 'goal language', ...p });
 
-  it('merges the producers: one per element, property and message', () => {
+  it('merges the producers: one per element, property and message (istar-ts’s rule)', () => {
     const merged = mergeProblems(
       [
         problem({ elementId: 'G1', key: 'maxRetries', message: 'At least 0' }),
-        // the engine said it without the property: the same problem
-        problem({ elementId: 'G1', message: 'At least 0', source: 'EdgeV2' }),
         problem({ elementId: 'G1', key: 'cost', message: 'At least 0' }),
       ],
       [
@@ -547,10 +545,11 @@ describe('ui problems', () => {
     expect(
       merged.map((p) => [p.elementId, p.key, p.message, p.severity]),
     ).to.deep.equal([
+      // the file's first, then the elements', the most severe kept
+      [undefined, undefined, 'The model is not valid JSON', 'error'],
       ['G1', 'maxRetries', 'At least 0', 'error'],
       ['G1', 'cost', 'At least 0', 'error'],
       ['G2', undefined, 'Not a child', 'error'],
-      [undefined, undefined, 'The model is not valid JSON', 'error'],
     ]);
   });
 

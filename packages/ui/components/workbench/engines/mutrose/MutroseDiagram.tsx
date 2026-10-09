@@ -2,13 +2,13 @@
 
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { nextRtId } from '@/lib/workbench/pistar';
-import type { ElementComponentProps, IstarExtension } from '@istar-ts/react';
-import type { ReactElement } from 'react';
 import {
-  ElementWithProblems,
-  oneActorOnly,
-  problemBadges,
-} from '../shared/extensions';
+  DefaultElementComponent,
+  type ElementComponentProps,
+  type IstarExtension,
+} from '@istar-ts/react';
+import type { ReactElement } from 'react';
+import { oneActorOnly } from '../shared/extensions';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { mutrose } = ENGINE_DIALECTS;
@@ -61,7 +61,7 @@ function MutroseGoal(props: ElementComponentProps): ReactElement {
           display: { ...props.element.display, backgroundColor: fill },
         }
       : props.element;
-  return <ElementWithProblems {...props} element={element} />;
+  return <DefaultElementComponent {...props} element={element} />;
 }
 
 /**
@@ -99,10 +99,7 @@ const mutrosePalette: IstarExtension = {
   },
 };
 
-const MUTROSE_EXTENSIONS: readonly IstarExtension[] = [
-  problemBadges,
-  mutrosePalette,
-];
+const MUTROSE_EXTENSIONS: readonly IstarExtension[] = [mutrosePalette];
 
 /** What piStar mode's palette toggle adds for a file recorded for MutRoSe. */
 export const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];

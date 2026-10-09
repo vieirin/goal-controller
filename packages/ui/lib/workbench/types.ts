@@ -1,4 +1,4 @@
-import type { GoalDiagnostic } from '@goal-controller/dialect';
+import type { GoalDiagnostic } from '@istar-ts/core';
 import type { DialectMode } from './dialects';
 import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 
@@ -6,11 +6,12 @@ export type Severity = 'error' | 'warning' | 'info';
 
 /**
  * A problem of the open model, as every producer reports it and every view
- * (Problems, canvas badges, inspector rows) consumes it: the hosts' contract,
- * `GoalDiagnostic` (goal-controller#24, decision D). One about an element
- * carries its id (and the property's key); only one about the file or the
- * run as a whole (the JSON doesn't parse, an engine failed without naming an
- * element) carries none.
+ * (Problems, canvas badges, inspector) consumes it: the hosts' contract,
+ * istar-ts's `GoalDiagnostic` (goal-controller#24, decision D), its element
+ * named by its RT id inside the workbench (the canvas maps it to the
+ * diagram's). One about an element carries its id (and the property's key);
+ * only one about the file or the run as a whole (the JSON doesn't parse, an
+ * engine failed without naming an element) carries none.
  */
 export type Problem = Omit<GoalDiagnostic, 'elementId'> & {
   elementId?: string;

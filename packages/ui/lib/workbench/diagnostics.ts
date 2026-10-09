@@ -1,50 +1,49 @@
 /**
- * How the workbench merges what its producers say of the model (the file,
- * its own checks, the engine, the language services): the composition rule
- * of goal-controller#24. A union, one problem per element, property and
- * message (one said without a property is the same as one said with it,
- * when the element and the message are), the most severe first.
+ * The workbench's side of the diagnostics protocol (istar-ts's
+ * `GoalDiagnostic`, goal-controller#24): how its producers' problems are
+ * merged and grouped, and how a language's or a server's diagnostics become
+ * problems. The rule is istar-ts's: a union, one per element, property and
+ * message, the most severe kept.
  */
-import type { Problem } from './types';
+import type { AnyDialect } from '@goal-controller/dialect';
+import type { Diagnostic } from '@goal-controller/goal-language';
+import { readFieldUri } from '@goal-controller/goal-language/light';
+import {
+  compareSeverity,
+  fromLspDiagnostics,
+  groupDiagnostics,
+  mergeDiagnostics,
+  type DiagnosticRange,
+  type GoalDiagnostic,
+} from '@istar-ts/core';
+import type { PublishedDiagnostics } from './goalLsp';
+import { elementOfLine } from './notationDocument';
+import { SOURCE, type Problem } from './types';
 
-const ORDER = { error: 0, warning: 1, info: 2 } as const;
+const anchored = (problem: Problem): problem is GoalDiagnostic =>
+  problem.elementId !== undefined;
 
+/**
+ * Several producers' problems as one list: the anchored ones merged by
+ * istar-ts's rule, those of the file or the run kept once per message; the
+ * most severe first.
+ */
 export const mergeProblems = (
   ...lists: readonly (readonly Problem[])[]
 ): Problem[] => {
-  const all = lists.flat();
-  const about = (problem: Problem) =>
-    `${problem.elementId ?? ''}\u0000${problem.message}`;
-  // what is said of an element's property too
-  const withKey = new Set(
-    all.filter((problem) => problem.key !== undefined).map(about),
-  );
-  const merged = new Map<string, Problem>();
-  for (const problem of all) {
-    if (
-      problem.key === undefined &&
-      problem.elementId !== undefined &&
-      withKey.has(about(problem))
-    )
-      continue;
-    const id = `${about(problem)}\u0000${problem.key ?? ''}`;
-    const known = merged.get(id);
-    merged.set(
-      id,
-      known ? { ...known, severity: worst(known, problem) } : problem,
-    );
-  }
-  return [...merged.values()].sort(
-    (a, b) => ORDER[a.severity] - ORDER[b.severity],
-  );
+  const model = new Map<string, Problem>();
+  for (const problem of lists.flat())
+    if (!anchored(problem) && !model.has(problem.message))
+      model.set(problem.message, problem);
+  return [
+    ...model.values(),
+    ...mergeDiagnostics(lists.map((list) => list.filter(anchored))),
+  ].sort((a, b) => compareSeverity(a.severity, b.severity));
 };
 
-const worst = (a: Problem, b: Problem) =>
-  ORDER[a.severity] <= ORDER[b.severity] ? a.severity : b.severity;
-
 /**
- * Problems grouped as the Problems panel shows them: by element (the model's
- * own first), then by who said it, in the order they come.
+ * Problems as the Problems panel shows them: by element (the model's own
+ * first), then by who said it, in the order they come.
  */
 export const problemGroups = (
   problems: readonly Problem[],
@@ -52,31 +51,98 @@ export const problemGroups = (
   elementId: string | undefined;
   sources: { source: string; problems: Problem[] }[];
 }[] => {
-  const groups = new Map<
-    string,
-    {
-      elementId: string | undefined;
-      sources: Map<string, Problem[]>;
+  const bySource = (list: readonly Problem[]) => {
+    const sources = new Map<string, Problem[]>();
+    for (const problem of list) {
+      const source = problem.source ?? SOURCE.workbench;
+      sources.set(source, [...(sources.get(source) ?? []), problem]);
     }
-  >();
-  const model = problems.filter((p) => p.elementId === undefined);
-  for (const problem of [
-    ...model,
-    ...problems.filter((p) => p.elementId !== undefined),
-  ]) {
-    const id = problem.elementId ?? '';
-    const group = groups.get(id) ?? {
-      elementId: problem.elementId,
-      sources: new Map<string, Problem[]>(),
-    };
-    groups.set(id, group);
-    group.sources.set(problem.source, [
-      ...(group.sources.get(problem.source) ?? []),
-      problem,
-    ]);
+    return [...sources].map(([source, problems]) => ({ source, problems }));
+  };
+  const model = problems.filter((problem) => !anchored(problem));
+  return [
+    ...(model.length
+      ? [{ elementId: undefined, sources: bySource(model) }]
+      : []),
+    ...[...groupDiagnostics(problems.filter(anchored))].map(
+      ([elementId, list]) => ({ elementId, sources: bySource(list) }),
+    ),
+  ];
+};
+
+/** An offset in a text as a zero-based line and character (LSP's). */
+const positionIn = (lines: readonly string[], offset: number) => {
+  let line = 0;
+  let at = offset;
+  while (line < lines.length - 1 && at > (lines[line]?.length ?? 0)) {
+    at -= (lines[line]?.length ?? 0) + 1;
+    line++;
   }
-  return [...groups.values()].map(({ elementId, sources }) => ({
-    elementId,
-    sources: [...sources].map(([source, list]) => ({ source, problems: list })),
-  }));
+  return { line, character: at };
+};
+
+/**
+ * The goal language's diagnostics of a text as problems: anchored as the
+ * language anchored them, said by the goal language, or by the engine (its
+ * name) when one of its named checks did.
+ */
+export const languageProblems = (
+  diagnostics: readonly Diagnostic[],
+  engine: string,
+  text?: string,
+): Problem[] => {
+  const lines = text?.split('\n');
+  return diagnostics.map(
+    ({ from, to, severity, message, elementId, key, check }) => ({
+      severity,
+      message,
+      source: check ? engine : SOURCE.language,
+      ...(lines && {
+        range: {
+          start: positionIn(lines, from),
+          end: positionIn(lines, to),
+        } satisfies DiagnosticRange,
+      }),
+      ...(elementId !== undefined && { elementId }),
+      ...(key !== undefined && { key }),
+    }),
+  );
+};
+
+/**
+ * What a language server published for a document, as problems
+ * (istar-ts's `fromLspDiagnostics`): anchored by the diagnostic's `data`
+ * (`{ elementId, key?, check? }`, or an engine server's `nodeId`). A server
+ * anchoring by `range`, or a diagnostic without data, falls back to the
+ * document: a field's URI names its element and property, a Notation
+ * document's line its element. Said by the service, or by the engine when
+ * one of its named checks did.
+ */
+export const serverProblems = (
+  { uri, diagnostics }: PublishedDiagnostics,
+  service: { id: string; anchoring: 'data' | 'range' },
+  definition: AnyDialect,
+  text: string | undefined,
+): Problem[] => {
+  const field = readFieldUri(uri);
+  const lines = text?.split('\n');
+  const byRange = (diagnostic: (typeof diagnostics)[number]) =>
+    field?.id ??
+    (lines
+      ? (elementOfLine(definition, lines, diagnostic.range.start.line) ??
+        undefined)
+      : undefined);
+  return fromLspDiagnostics(
+    service.anchoring === 'data'
+      ? diagnostics
+      : diagnostics.map(({ data: _data, ...rest }) => rest),
+    { elementIdFor: byRange },
+  ).map((diagnostic) => {
+    const check = (diagnostic.data as { check?: unknown } | undefined)?.check;
+    return {
+      ...diagnostic,
+      ...(diagnostic.key === undefined && field && { key: field.key }),
+      source: typeof check === 'string' ? definition.name : service.id,
+    };
+  });
 };

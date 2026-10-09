@@ -159,29 +159,6 @@ export type ProblemKind =
 export type Severity = 'error' | 'warning' | 'info';
 
 /**
- * A diagnostic as every host consumes it, whoever produced it (the shared
- * goal-language server, an engine's named checks, an engine-owned language
- * server, the workbench): anchored on an element, and on one of its
- * properties when it is about one (goal-controller#24, decision D).
- *
- * istar-ts adds the same type (`GoalDiagnostic`) with a diagnostics store in
- * 0.12.0; until it is published this is the definition, with the identical
- * shape, so switching is a version bump.
- */
-export type GoalDiagnostic = {
-  /** the element's RT id (`G3`, `AT1`) */
-  elementId: string;
-  /** the property it is about, if any */
-  key?: string;
-  severity: Severity;
-  message: string;
-  /** who said it: `goal language`, an engine's name, an engine server's id */
-  source: string;
-  /** where, in the document its producer read (offsets), if it read one */
-  range?: { from: number; to: number };
-};
-
-/**
  * A notation engine's dialect, or a modelling dialect's (no engine reads it):
  * `K` are the element kinds it has (an engine's: iStar's intentional elements).
  */
