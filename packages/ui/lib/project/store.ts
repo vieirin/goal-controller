@@ -30,6 +30,26 @@ export interface ProjectStore {
   write(path: string, text: string): Promise<void>;
 }
 
+/**
+ * A project in the deploy-time index of a GitHub folder (examples/), built by
+ * scripts/examples-manifest.mjs: enough to open it with githubStore without
+ * listing anything over the network.
+ */
+export type ProjectIndexEntry = {
+  /** the entry's id: a loose model's path, or a project folder's, from the indexed root */
+  path: string;
+  group: string;
+  name: string;
+  form: ManifestForm;
+  /** the project's folder, from the indexed root */
+  root: string;
+  /** every file of the project, from its folder */
+  files: string[];
+  models: string[];
+  projectResources: Record<string, string | string[]>;
+  outputs: string[];
+};
+
 export class ReadOnlyStoreError extends Error {
   constructor(source: ProjectSource) {
     super(`${sourceLabel(source)} is read-only`);
