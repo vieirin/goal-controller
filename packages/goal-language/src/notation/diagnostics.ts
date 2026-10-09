@@ -21,7 +21,7 @@ import {
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { isEnabled } from './reading.js';
-import { valueProblem } from './values.js';
+import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 
 /**
  * Where an element line cannot be read, in its parts: an annotation (before
@@ -155,8 +155,9 @@ const problem = (
 
 /**
  * What is wrong with an element's properties, at a position: properties that
- * do not apply (set anyway), the named engine checks' messages, and values
- * not of their property's type (or options, bounds, kind of element).
+ * do not apply (set anyway), the named engine checks' messages, values
+ * not of their property's type (or options, bounds, kind of element), and
+ * the names a condition compares that the model does not know.
  */
 const propertyDiagnostics = (
   definition: Definition,
@@ -185,10 +186,19 @@ const propertyDiagnostics = (
       continue;
     }
     // the engine's own message first: it says more than the type does
+    const value = valueOf(property, properties);
     const message =
       (property.check && runCheck?.(property.check, properties, self)) ||
-      valueProblem(valueOf(property, properties), properties[key]!, context);
+      valueProblem(value, properties[key]!, context);
     if (message) diagnostics.push({ from, to, severity: 'error', message });
+    else if (context && value.type === 'assertion')
+      for (const name of unknownNames(value, properties[key]!, context))
+        diagnostics.push({
+          from,
+          to,
+          severity: 'info',
+          message: unknownNameMessage(value, name),
+        });
   }
   return diagnostics;
 };

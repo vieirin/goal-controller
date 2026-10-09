@@ -12,8 +12,8 @@ lines' elements:
 
 - each element's kind comes from its id's prefix;
 - an element's children are the ids its notation names;
-- `%% only`, `%% children`, `%% relation` and `%% construct` lines change
-  that.
+- `%% only`, `%% children`, `%% relation`, `%% construct` and `%% variables`
+  lines change that.
 
 `%% severity [span] message` lines list **every** diagnostic the block must
 give, where `span` is the text the diagnostic covers.
@@ -186,6 +186,7 @@ first.
 | `true or false, not 1` | error | `bool` |
 | `One of maintain, not achieve` | error | `enum` that isn't `open` |
 | `Not a condition: …` | error | `assertion` that doesn't parse |
+| `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
 | `T1 is a task, not a goal` | error | `refList` naming another kind |
@@ -221,6 +222,17 @@ T1: Pick
 ```goal-check edgeV2
 R1: Alarm {bool = 1}
 %% error [{bool = 1}] true or false, not 1
+```
+
+The workbench's variables are those the model's conditions name, so a name
+is reported until the model is analysed with it (`%% variables` lists them):
+
+```goal-check edgeV2
+T1: Pick
+  assertion R1=true & charged & chargd
+R1: Battery {bool = true}
+%% variables charged
+%% info [assertion R1=true & charged & chargd] chargd is not a resource of this model or a known variable
 ```
 
 ## The engine's reader

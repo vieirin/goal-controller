@@ -12,7 +12,8 @@
  *   directives: `%% <severity> [<span>] <message>` (the expected diagnostics,
  *   all of them), `%% only <ids>` (the diagram's elements),
  *   `%% children <id>: <ids>`, `%% relation <id>: and|or`,
- *   `%% construct <id>: <name>`; a dialect without ids (`rationalAgents`)
+ *   `%% construct <id>: <name>`, `%% variables <names>` (the workbench's);
+ *   a dialect without ids (`rationalAgents`)
  *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
  * Dialects: edge, edgeV2, and edgeV2 / edge with iStar4RationalAgents'
@@ -169,7 +170,16 @@ const contextOf = (doc: string, directives: string[]): DefinitionContext => {
           ? { ...element, relation: value as Relation }
           : { ...element, construct: value };
   }
-  return { elements, variables: [] };
+  const variables = directives.find((d) => d.startsWith('variables '));
+  return {
+    elements,
+    variables: variables
+      ? variables
+          .slice(10)
+          .trim()
+          .split(/[\s,]+/)
+      : [],
+  };
 };
 
 const readsAs = (dialect: AnyDialect, text: string): string => {

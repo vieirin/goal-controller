@@ -135,6 +135,27 @@ describe('fieldDiagnostics', () => {
       { from: 0, to: 2, severity: 'error', message: 'nope' },
     ]);
   });
+
+  it('names what a condition compares that the model does not know', () => {
+    const field = (value: string) =>
+      fieldDiagnostics(toy, context, 'T1', 'guard', value, undefined);
+    expect(field('R1 > 2 & ctx & !nowhere & G2')).to.deep.equal([
+      {
+        from: 0,
+        to: 28,
+        severity: 'info',
+        message: 'nowhere is not a resource of this model or a known variable',
+      },
+      {
+        from: 0,
+        to: 28,
+        severity: 'info',
+        message: 'G2 is not a resource of this model or a known variable',
+      },
+    ]);
+    // a condition that doesn't parse says only that
+    expect(field('R1 >').map((d) => d.severity)).to.deep.equal(['error']);
+  });
 });
 
 describe('completions', () => {
