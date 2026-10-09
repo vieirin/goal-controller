@@ -18,6 +18,7 @@ import {
   valueOf,
   type DefinitionContext,
   type AnyDialect,
+  type CheckNameOf,
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
@@ -68,15 +69,17 @@ const toCodeMirror = (
  * The language support an engine's definition gives without a server: its document
  * language, lint (the problems and named checks it declares) and completion.
  */
-export const localLanguageSupport = (
-  definition: AnyDialect,
-  checks: Readonly<Record<string, Check>>,
+export const localLanguageSupport = <D extends AnyDialect>(
+  definition: D,
+  checks: Readonly<Record<CheckNameOf<D>, Check>>,
 ): LanguageSupport => {
+  // a property names its check: one of the definition's, so one of these
+  const byName: Readonly<Record<string, Check | undefined>> = checks;
   let context = EMPTY;
   let saved: SavedLines = {};
   // a check is given the element, and the model it is in
   const runCheck: RunCheck = (name, properties, self) =>
-    checks[name]?.(properties, checkContextOf(context, self)) ?? null;
+    byName[name]?.(properties, checkContextOf(context, self)) ?? null;
   // the views linted against the context, relinted when it changes (a view
   // registers on its first lint, and is dropped once it left the page)
   const views = new Set<EditorView>();

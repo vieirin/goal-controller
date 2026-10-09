@@ -107,6 +107,7 @@ export {
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
+  mutroseProblem,
   mutroseRuntimeAnnotation,
   MUTROSE_GOAL_KEYS,
   MUTROSE_TASK_KEYS,

@@ -19,7 +19,8 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
-import { normalizeEngineMode, type TransformEngine } from '@/lib/types';
+import { normalizeEngineMode } from '@/lib/types';
+import { ENGINE_LABEL } from '@/lib/workbench/engineDialects';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
@@ -518,12 +519,6 @@ function OpenInspectorOnSelect({ open }: { open: () => void }) {
   }, [selectSeq, selected]);
   return null;
 }
-
-const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: 'EdgeV2',
-  edge: 'Edge',
-  sleec: 'SLEEC',
-};
 
 /** What a model is for: its engine, a modelling dialect, or piStar for free modelling. */
 const modelKindLabel = (settings: ModelSettings): string =>

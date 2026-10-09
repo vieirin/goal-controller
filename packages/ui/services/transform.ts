@@ -3,6 +3,7 @@ import {
   generateEdgeV2PrismModel,
   initLogger,
   initEdgeV2Logger,
+  mutroseRuntimeAnnotation,
   sleecTemplateEngine,
   type LoggerReport,
 } from '@goal-controller/lib';
@@ -80,10 +81,15 @@ export const transform = (
         previousOutput,
         writeReport: false,
       });
-    } else {
+    } else if (engine === 'sleec') {
       const parseResult = GoalModel.parseForSleec(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
       output = sleecTemplateEngine(parseResult.tree, { generateFluents });
+    } else {
+      // MutRoSe reads the model as written: no single-child goals removed
+      const parseResult = GoalModel.parseForMutrose(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      output = mutroseRuntimeAnnotation(parseResult.tree);
     }
 
     const report = logger.getReport();

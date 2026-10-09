@@ -170,6 +170,16 @@
     "name": "simpleChoiceRewards.txt"
   },
   {
+    "path": "mutrose/LabSampleLogistics.txt",
+    "group": "mutrose",
+    "name": "LabSampleLogistics.txt"
+  },
+  {
+    "path": "mutrose/MedicineDelivery.txt",
+    "group": "mutrose",
+    "name": "MedicineDelivery.txt"
+  },
+  {
     "path": "pistar-ext/iStar4RationalAgents.txt",
     "group": "pistar-ext",
     "name": "iStar4RationalAgents.txt"

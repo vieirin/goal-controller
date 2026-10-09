@@ -13,7 +13,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalView, ViewKind } from '@goal-controller/goal-tree';
-import { isPrismEngine } from '@/lib/types';
+import {
+  outputExtensionOf,
+  outputLabelOf,
+  outputLanguageOf,
+} from '@/lib/workbench/engineDialects';
 import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { lineOwner, type OutlineEntry } from '@/lib/workbench/trace';
@@ -37,7 +41,7 @@ export default function OutputPane() {
   const wb = useWorkbench();
   const lastGood = wb.runs.find((run) => run.output !== null) ?? null;
   const tabs: Array<{ id: OutputTab; label: string }> = [
-    { id: 'output', label: isPrismEngine(wb.engine) ? 'PRISM' : 'SLEEC' },
+    { id: 'output', label: outputLabelOf(wb.engine) },
     { id: 'diff', label: 'Diff' },
     { id: 'report', label: 'Report' },
   ];
@@ -340,7 +344,7 @@ function OutputActions({ run }: { run: Run | null }) {
         label='Download output'
         onClick={() =>
           downloadText(
-            `${baseName(wb.fileName)}.${isPrismEngine(run.engine) ? 'prism' : 'sleec'}`,
+            `${baseName(wb.fileName)}.${outputExtensionOf(run.engine)}`,
             output,
           )
         }
@@ -439,7 +443,7 @@ function TracedOutput({ output }: { output: string }) {
   return (
     <CodeEditor
       value={output}
-      language={isPrismEngine(wb.engine) ? 'prism' : 'text'}
+      language={outputLanguageOf(wb.engine)}
       readOnly
       ariaLabel='Generated output'
       extensions={extensions}

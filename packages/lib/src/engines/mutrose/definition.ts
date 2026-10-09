@@ -32,6 +32,9 @@ const FLAG = {
   open: true,
 } as const;
 
+/** variables, conditions and queries: OCL, as the decomposer reads them */
+const OCL = { type: 'ocl' } as const;
+
 const DESCRIPTION = {
   key: 'Description',
   value: { type: 'text' },
@@ -56,21 +59,21 @@ const goalProperties = [
   DESCRIPTION,
   {
     key: 'Controls',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'current_room : Room, rooms : Sequence(Room)' },
     help: 'the variables it declares, `name : Type` comma-separated (`Sequence(T)` for a collection)',
     check: 'mutrose.goal.controls',
   },
   {
     key: 'Monitors',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'current_room, rooms' },
     help: 'the variables it reads, declared by an earlier goal’s Controls',
     check: 'mutrose.goal.monitors',
   },
   {
     key: 'AchieveCondition',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'rooms->forAll(r | r.is_clean)' },
     applies: isAchieve,
     required: isAchieve,
@@ -80,7 +83,7 @@ const goalProperties = [
   },
   {
     key: 'QueriedProperty',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'world_db->select(r:Room | r.is_dirty)' },
     applies: isQuery,
     required: isQuery,
@@ -90,7 +93,7 @@ const goalProperties = [
   },
   {
     key: 'CreationCondition',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'assertion condition "r.is_dirty"' },
     help: 'when it is created: `assertion condition "expr"` or `assertion trigger "Event"`',
     check: 'mutrose.goal.creationCondition',
@@ -111,14 +114,14 @@ const taskProperties = [
   DESCRIPTION,
   {
     key: 'Location',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'current_room' },
     help: 'the variable naming where it is done',
     check: 'mutrose.task.location',
   },
   {
     key: 'Params',
-    value: { type: 'text' },
+    value: OCL,
     input: { placeholder: 'current_room, current_nurse' },
     help: 'the variables passed to its HDDL task, comma-separated',
     check: 'mutrose.task.params',
@@ -163,7 +166,13 @@ export const mutrose = defineDialect({
     // without an annotation, a goal's children run in parallel
     defaultConstruct: { and: 'parallel', or: 'parallel' },
   },
-  properties: { goal: goalProperties, task: taskProperties },
+  // it reads no resources and no qualities
+  properties: {
+    goal: goalProperties,
+    task: taskProperties,
+    resource: [],
+    quality: [],
+  },
   propertyLineOrder: [
     'GoalType',
     'Description',

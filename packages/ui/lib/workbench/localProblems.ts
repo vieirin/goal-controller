@@ -4,24 +4,37 @@
  */
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { notationDefinitionOf } from './engineDialects';
+import { ENGINE_MAPPERS, notationDefinitionOf } from './engineDialects';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
 import { MODEL_NAMESPACE, relationMismatch } from '@goal-controller/dialect';
-import { isValidName } from '@goal-controller/goal-language';
+import { ID_PREFIXES, isValidName } from '@goal-controller/goal-language';
 import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 
+/** An RT id of any prefix the language reads (`G4`, `AT2`), longest prefix first. */
+const RT_ID = `(?:${[...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|')})\\d+[A-Za-z0-9]*`;
+
 /**
  * RT id mentioned in an engine/generation message, if any.
- * Prefers explicit "for node X" / "(node X)" over the first G/T/R id (dependsOn
+ * Prefers explicit "for node X" / "(node X)" over the first id (dependsOn
  * messages name the dependency first).
  */
 export const nodeIdInMessage = (message: string): string | undefined => {
   const marked =
-    /\(node ([GTR]\d+[A-Za-z0-9]*)\)/.exec(message)?.[1] ??
-    /\bfor node ([GTR]\d+[A-Za-z0-9]*)\b/.exec(message)?.[1];
+    new RegExp(`\\(node (${RT_ID})\\)`).exec(message)?.[1] ??
+    new RegExp(`\\bfor node (${RT_ID})\\b`).exec(message)?.[1];
   if (marked) return marked;
-  return /\b([GTR]\d+[A-Za-z0-9]*)\b/.exec(message)?.[1];
+  return new RegExp(`\\b(${RT_ID})\\b`).exec(message)?.[1];
+};
+
+/** The id prefixes an engine's elements start with, as a hint: "G…, T… or R…". */
+const idPrefixes = (engine: TransformEngine): string => {
+  const prefixes = Object.values(notationDefinitionOf(engine).elements).flatMap(
+    (element) => (element?.prefix ? [`${element.prefix}…`] : []),
+  );
+  return prefixes.length > 1
+    ? `${prefixes.slice(0, -1).join(', ')} or ${prefixes.at(-1)}`
+    : (prefixes[0] ?? 'an id');
 };
 
 export const jsonProblem = (text: string, error: Error): Problem => {
@@ -68,7 +81,7 @@ export const treeProblems = (
         source: 'model',
         // the view keys an element without an RT id by its piStar id: selectable all the same
         nodeId: node.id,
-        message: `"${node.text.trim()}" has no id: start its name with one (G…, T… or R…), e.g. "G4: ${node.name || 'name'}"`,
+        message: `"${node.text.trim()}" has no id: start its name with one (${idPrefixes(engine)}), e.g. "G4: ${node.name || 'name'}"`,
       });
       continue;
     }
@@ -83,7 +96,12 @@ export const treeProblems = (
       });
     }
 
-    if (node.kind === 'goal' && node.children.length === 0) {
+    // a goal the engine reads as a leaf (MutRoSe's Query goals) needs no children
+    if (
+      node.kind === 'goal' &&
+      node.children.length === 0 &&
+      !ENGINE_MAPPERS[engine].allowLeafGoals
+    ) {
       problems.push({
         severity: 'error',
         source: 'model',

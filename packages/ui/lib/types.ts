@@ -1,18 +1,29 @@
 /**
  * The one spelling of engine names used across the UI and its API:
- * 'edge' (legacy Edge), 'edgev2' (EdgeV2) and 'sleec'.
+ * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec' and 'mutrose'.
  */
-export type TransformEngine = 'edge' | 'edgev2' | 'sleec';
+export type TransformEngine = 'edge' | 'edgev2' | 'sleec' | 'mutrose';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
-export const EDGE_V2_TASK_LAYOUTS: EdgeV2TaskLayout[] = ['taskModules', 'changeManager'];
+export const EDGE_V2_TASK_LAYOUTS: EdgeV2TaskLayout[] = [
+  'taskModules',
+  'changeManager',
+];
 export const isEdgeV2TaskLayout = (value: unknown): value is EdgeV2TaskLayout =>
-  typeof value === 'string' && (EDGE_V2_TASK_LAYOUTS as string[]).includes(value);
+  typeof value === 'string' &&
+  (EDGE_V2_TASK_LAYOUTS as string[]).includes(value);
 
-const TRANSFORM_ENGINES: TransformEngine[] = ['edge', 'edgev2', 'sleec'];
+const TRANSFORM_ENGINES: TransformEngine[] = [
+  'edge',
+  'edgev2',
+  'sleec',
+  'mutrose',
+];
 
-export const isTransformEngine = (value: string | null): value is TransformEngine =>
+export const isTransformEngine = (
+  value: string | null,
+): value is TransformEngine =>
   value !== null && TRANSFORM_ENGINES.includes(value as TransformEngine);
 
 /**

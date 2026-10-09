@@ -10,7 +10,7 @@
  * and children are visited in the runtime annotation's order, then the
  * model's (the decomposer sorts a goal's children by their x coordinate).
  */
-import type { RtTree } from '@goal-controller/goal-language';
+import { notationRefs, type RtTree } from '@goal-controller/goal-language';
 import type { MutroseGoalNode, MutroseGoalTree, MutroseTask } from '../mapper';
 
 type Child = MutroseGoalNode | MutroseTask;
@@ -20,31 +20,15 @@ const childrenOf = (goal: MutroseGoalNode): Child[] => [
   ...(goal.tasks ?? []),
 ];
 
-/** The ids a runtime annotation names, in the order written. */
-const refsOf = (tree: RtTree | null): string[] => {
-  switch (tree?.kind) {
-    case 'ref':
-      return [tree.id];
-    case 'group':
-    case 'prefix':
-    case 'postfix':
-      return refsOf(tree.expr);
-    case 'binary':
-      return [...refsOf(tree.left), ...refsOf(tree.right)];
-    case 'call':
-      return tree.args.flatMap(refsOf);
-    default:
-      return [];
-  }
-};
-
 /** A goal's children in the annotation's order, then those it doesn't name. */
 const visitOrder = (goal: MutroseGoalNode): Child[] => {
   const children = childrenOf(goal);
-  const named = refsOf(goal.properties.engine.annotation).flatMap((id) => {
-    const child = children.find((c) => c.id === id);
-    return child ? [child] : [];
-  });
+  const named = notationRefs(goal.properties.engine.annotation).flatMap(
+    (id) => {
+      const child = children.find((c) => c.id === id);
+      return child ? [child] : [];
+    },
+  );
   return [...named, ...children.filter((c) => !named.includes(c))];
 };
 
@@ -63,13 +47,20 @@ const depthFirst = (roots: MutroseGoalNode[]): Child[] => {
 const baseType = (type: string) =>
   /^Sequence\((.*)\)$/i.exec(type)?.[1] ?? type;
 
+/** A tree's root goals (one per actor). */
+const rootsOf = (tree: MutroseGoalTree): MutroseGoalNode[] =>
+  tree.filter(
+    (node): node is MutroseGoalNode =>
+      node.type === 'goal' && !node.properties.isQuality,
+  );
+
 /**
  * check_gm_validity, and each task's Params bound: the first problem, with
  * the decomposer's message, as it would stop at it.
  */
-export const mutroseProblem = (roots: MutroseGoalNode[]): string | null => {
+export const mutroseProblem = (tree: MutroseGoalTree): string | null => {
   const declared = new Map<string, string>();
-  for (const node of depthFirst(roots)) {
+  for (const node of depthFirst(rootsOf(tree))) {
     if (node.type === 'task') {
       const missing = node.properties.engine.params.find(
         (param) => !declared.has(param),
@@ -168,11 +159,9 @@ const annotationOf = (goal: MutroseGoalNode): string => {
  * A problem throws, with the decomposer's message.
  */
 export const mutroseRuntimeAnnotation = (tree: MutroseGoalTree): string => {
-  const roots = tree.filter(
-    (node): node is MutroseGoalNode =>
-      node.type === 'goal' && !node.properties.isQuality,
-  );
-  const problem = mutroseProblem(roots);
+  const problem = mutroseProblem(tree);
   if (problem) throw new Error(problem);
-  return roots.map((root) => `${annotationOf(root)}\n`).join('');
+  return rootsOf(tree)
+    .map((root) => `${annotationOf(root)}\n`)
+    .join('');
 };

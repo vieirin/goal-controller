@@ -20,7 +20,7 @@ import {
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
-  ENGINE_DIALECTS,
+  ENGINE_LABEL,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
 import {
@@ -95,12 +95,6 @@ export const useDraft = (
   return { draft, change, flush };
 };
 
-export const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: ENGINE_DIALECTS.edgev2.name,
-  edge: ENGINE_DIALECTS.edge.name,
-  sleec: 'SLEEC',
-};
-
 const KIND_PLURAL: Record<NodeKindKey, string> = {
   goal: 'goals',
   task: 'tasks',
@@ -142,6 +136,17 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       },
     ]),
   ) as Record<'edge' | 'edgev2', EngineKeys>),
+  mutrose: {
+    file: 'packages/lib/src/engines/mutrose/definition.ts',
+    lists: { goal: 'goalProperties', task: 'taskProperties' },
+    mapper: 'packages/lib/src/engines/mutrose/mapper.ts',
+    map: {
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
+      resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
+    },
+  },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
     lists: {

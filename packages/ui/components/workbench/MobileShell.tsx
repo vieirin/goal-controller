@@ -23,7 +23,10 @@ import {
   ArrowRightLeft,
 } from 'lucide-react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import {
+  outputExtensionOf,
+  outputLabelOf,
+} from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import {
   LogView,
@@ -144,7 +147,7 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
         >
           <NavButton
             icon={FileCode2}
-            label={isPrismEngine(wb.engine) ? 'PRISM' : 'SLEEC'}
+            label={outputLabelOf(wb.engine)}
             active={view === 'output'}
             onClick={() => setView('output')}
             badge={wb.stale ? '•' : undefined}
@@ -329,7 +332,7 @@ function MobileTopBar() {
   const shell = useShell();
   const { open, input } = useOpenFile();
   const lastOutput = wb.runs.find((run) => run.output !== null)?.output ?? null;
-  const outputExtension = isPrismEngine(wb.engine) ? 'prism' : 'sleec';
+  const outputExtension = outputExtensionOf(wb.engine);
   return (
     <header className='flex h-12 shrink-0 items-center gap-1 border-b border-line bg-white px-2'>
       {input}

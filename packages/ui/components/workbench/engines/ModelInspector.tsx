@@ -3,6 +3,7 @@
 import { useWorkbench } from '../WorkbenchContext';
 import EdgeInspector from './edge/EdgeInspector';
 import EdgeV2Inspector from './edgeV2/EdgeV2Inspector';
+import MutroseInspector from './mutrose/MutroseInspector';
 import SleecInspector from './sleec/SleecInspector';
 
 /**
@@ -21,5 +22,7 @@ export default function ModelInspector() {
       return <EdgeV2Inspector />;
     case 'sleec':
       return <SleecInspector />;
+    case 'mutrose':
+      return <MutroseInspector />;
   }
 }

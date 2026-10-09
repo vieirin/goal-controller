@@ -13,21 +13,9 @@ import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
 import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import { ENGINES } from '@/lib/workbench/engineDialects';
 import type { ConversionTarget } from './WorkbenchContext';
 import { cx } from './ui';
-
-export const ENGINES: Array<{
-  id: TransformEngine;
-  label: string;
-  output: string;
-}> = [
-  { id: 'edgev2', label: 'EdgeV2', output: 'PRISM' },
-  { id: 'edge', label: 'Edge', output: 'PRISM' },
-  { id: 'sleec', label: 'SLEEC', output: 'SLEEC' },
-];
-export const ENGINE_LABEL = Object.fromEntries(
-  ENGINES.map((e) => [e.id, e.label]),
-) as Record<TransformEngine, string>;
 
 /** What a model converts to: the engines, then the modelling dialects (no output). */
 export const TARGETS: Array<{
@@ -35,7 +23,7 @@ export const TARGETS: Array<{
   label: string;
   output: string | null;
 }> = [
-  ...ENGINES,
+  ...ENGINES.map(({ id, label, output }) => ({ id, label, output })),
   ...Object.entries(DIALECT_LABEL).map(([id, label]) => ({
     id: id as ConversionTarget,
     label,

@@ -1,6 +1,7 @@
 'use client';
 
 import { nextRtId } from '@/lib/workbench/pistar';
+import { isActor } from '@istar-ts/core';
 import type { Severity } from '@/lib/workbench/types';
 import {
   DefaultElementComponent,
@@ -8,6 +9,19 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import { createContext, useContext, type ReactElement } from 'react';
+import type { RejectEdit } from './WorkbenchCanvas';
+
+/** An engine that reads one actor: a second one is taken back out, saying so. */
+export const oneActorOnly =
+  (message: string): RejectEdit =>
+  (event) =>
+    event.changes.some(
+      (change) =>
+        change.type === 'addElement' &&
+        isActor(event.model.elements.get(change.id)),
+    ) && [...event.model.elements.values()].filter(isActor).length > 1
+      ? message
+      : null;
 
 /** Worst problem severity per piStar id, for the badges on elements. */
 export const SeverityContext = createContext<ReadonlyMap<string, Severity>>(

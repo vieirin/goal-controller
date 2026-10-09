@@ -39,4 +39,5 @@ export const KNOWN_PROPERTIES: Record<
   edge: definedKeys(ENGINE_DIALECTS.edge),
   edgev2: definedKeys(ENGINE_DIALECTS.edgev2),
   sleec: keysOf(sleecEngineMapper),
+  mutrose: definedKeys(ENGINE_DIALECTS.mutrose),
 };
