@@ -2,6 +2,8 @@
  * Edge Engine Mapper
  * Maps raw iStar model properties to Edge/PRISM engine-specific properties
  */
+import { propertyKeys } from '@goal-controller/dialect';
+import { assertionVariables as variablesIn } from '@goal-controller/goal-language';
 import {
   createEngineMapper,
   type GoalNode,
@@ -10,14 +12,12 @@ import {
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
-import { propertyKeys } from '@goal-controller/dialect';
-import { edgeV2 } from './definition';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
   firstResourceIssue,
 } from '../edgeFamily/checks';
-import { assertionVariables as variablesIn } from '@goal-controller/goal-language';
+import { edgeV2 } from './definition';
 import type {
   Decision,
   EdgeResourceProps,
