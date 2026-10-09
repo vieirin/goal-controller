@@ -47,6 +47,9 @@ const labelHeader = (
 
 type TextBox = (typeof TEXT_BOXES)[keyof typeof TEXT_BOXES];
 
+const ACTORS: readonly string[] = ISTAR_ACTOR_KINDS;
+const ACTOR_FIT = { minScale: 0.55 } as const;
+
 /** Where an iStar kind's label goes so a header fits its shape (istar-ts's presets). */
 const ISTAR_TEXT_BOX: Record<string, TextBox> = {
   'istar.Goal': TEXT_BOXES.goal,
@@ -80,6 +83,8 @@ export const pistarExtExtension = (
         kind,
         {
           labelHeader,
+          // an actor's circle is narrow for a stereotype line: let it shrink further
+          ...(ACTORS.includes(kind) ? { labelFit: ACTOR_FIT } : {}),
           ...(textBox ? { textBox } : {}),
           ...(own?.shape ? { shape: { path: own.shape } } : {}),
         },
