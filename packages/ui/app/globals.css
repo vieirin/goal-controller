@@ -99,12 +99,3 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-/*
- * piStar-ext's link labels (engines/pistarExt): @istar-ts/react 0.9.0 renders a link
- * kind's labelComponent beneath the nodes, so a link inside an actor has its label
- * hidden by the actor's boundary. Lifted above them until istar-ts does it.
- */
-.pistar-ext-canvas .react-flow__edgelabel-renderer {
-  z-index: 1;
-}

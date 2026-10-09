@@ -21,15 +21,12 @@ export default function PistarExtDiagram() {
     [extension],
   );
   return (
-    // pistar-ext-canvas: its link labels above the actors (app/globals.css)
-    <div className='pistar-ext-canvas h-full w-full min-w-0'>
-      <WorkbenchCanvas
-        extensions={extensions}
-        aside={<PistarExtInspector />}
-        paletteOnTop
-        paletteEnd={<AddConstruct />}
-        fitKey='pistar-ext'
-      />
-    </div>
+    <WorkbenchCanvas
+      extensions={extensions}
+      aside={<PistarExtInspector />}
+      paletteOnTop
+      paletteEnd={<AddConstruct />}
+      fitKey='pistar-ext'
+    />
   );
 }
