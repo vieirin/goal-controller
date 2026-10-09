@@ -1,6 +1,6 @@
 'use client';
 
-import type { DialectDefinition } from '@goal-controller/dialect';
+import type { AnyDialect } from '@goal-controller/dialect';
 import { createContext, useContext, useEffect } from 'react';
 import {
   ENGINE_CHECKS,
@@ -10,23 +10,23 @@ import {
 import {
   localLanguageSupport,
   type LanguageSupport,
-  type LocalLanguageSupport,
 } from '@/lib/workbench/languageSupport';
 import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
 import { useWorkbench } from '../../WorkbenchContext';
 
 /**
- * A language support for an engine's definition (e.g. a language server's client),
- * provided by whoever starts one. None is provided in this phase: the views use the
- * local support their definition gives.
+ * A language support for a dialect's definition: the goal language server's
+ * client, provided at the workbench's root (GoalLanguageServer). Without one
+ * (the worker hasn't started, or failed), the views use the local support
+ * their definition gives.
  */
 export const LanguageSupportContext = createContext<
-  (definition: DialectDefinition) => LanguageSupport | null
+  (definition: AnyDialect) => LanguageSupport | null
 >(() => null);
 
 // one local support per engine, shared by the Notation view and the inspector
-const local = new Map<DialectEngine, LocalLanguageSupport>();
-const localFor = (engine: DialectEngine): LocalLanguageSupport => {
+const local = new Map<DialectEngine, LanguageSupport>();
+const localFor = (engine: DialectEngine): LanguageSupport => {
   let support = local.get(engine);
   if (!support) {
     support = localLanguageSupport(
@@ -41,14 +41,13 @@ const localFor = (engine: DialectEngine): LocalLanguageSupport => {
 /** The engine's language support, told about the model as it changes. */
 export const useLanguageSupport = (engine: DialectEngine): LanguageSupport => {
   const definition = ENGINE_DIALECTS[engine];
-  const provided = useContext(LanguageSupportContext)(definition);
+  const provided = useContext(LanguageSupportContext)(definition as AnyDialect);
   const support = provided ?? localFor(engine);
   const { tree, variables } = useWorkbench();
   useEffect(() => {
     if (!tree) return;
+    support.setSaved(savedLines(definition, tree));
     support.setContext(contextOf(definition, tree, variables));
-    if (!provided)
-      (support as LocalLanguageSupport).setSaved(savedLines(definition, tree));
-  }, [definition, support, provided, tree, variables]);
+  }, [definition, support, tree, variables]);
   return support;
 };
