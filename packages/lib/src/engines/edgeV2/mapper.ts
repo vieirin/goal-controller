@@ -11,12 +11,13 @@ import {
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
-import { edgeV2, propertyKeys } from '@goal-controller/definitions';
+import { propertyKeys } from '@goal-controller/dialect';
+import { edgeV2 } from './definition';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
   firstResourceIssue,
-} from '../edgeChecks';
+} from '../edgeFamily/checks';
 import type {
   Decision,
   EdgeResourceProps,

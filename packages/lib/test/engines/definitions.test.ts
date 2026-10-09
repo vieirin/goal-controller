@@ -1,15 +1,12 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import {
-  edge,
-  edgeV2,
-  type CheckNameOf,
-  type ConstructOf,
-} from '@goal-controller/definitions';
+import type { CheckNameOf, ConstructOf } from '@goal-controller/dialect';
 import type { GoalExecutionDetail } from '@goal-controller/goal-tree';
+import { edge } from '../../src/engines/edge/definition';
 import * as edgeMapper from '../../src/engines/edge/mapper';
+import { edgeV2 } from '../../src/engines/edgeV2/definition';
 import * as edgeV2Mapper from '../../src/engines/edgeV2/mapper';
-import { edgeCheckRegistry } from '../../src/engines/edgeChecks';
+import { edgeCheckRegistry } from '../../src/engines/edgeFamily/checks';
 
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const same = <T extends true>(): T => true as T;

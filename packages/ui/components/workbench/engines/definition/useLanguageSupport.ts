@@ -1,11 +1,11 @@
 'use client';
 
-import type { EngineDefinition } from '@goal-controller/definitions';
+import type { DialectDefinition } from '@goal-controller/dialect';
 import { createContext, useContext, useEffect } from 'react';
 import {
   ENGINE_CHECKS,
-  ENGINE_DEFINITIONS,
-  type DefinedEngine,
+  ENGINE_DIALECTS,
+  type DialectEngine,
 } from '@/lib/workbench/definitions';
 import {
   localLanguageSupport,
@@ -21,16 +21,16 @@ import { useWorkbench } from '../../WorkbenchContext';
  * local support their definition gives.
  */
 export const LanguageSupportContext = createContext<
-  (definition: EngineDefinition) => LanguageSupport | null
+  (definition: DialectDefinition) => LanguageSupport | null
 >(() => null);
 
 // one local support per engine, shared by the Notation view and the inspector
-const local = new Map<DefinedEngine, LocalLanguageSupport>();
-const localFor = (engine: DefinedEngine): LocalLanguageSupport => {
+const local = new Map<DialectEngine, LocalLanguageSupport>();
+const localFor = (engine: DialectEngine): LocalLanguageSupport => {
   let support = local.get(engine);
   if (!support) {
     support = localLanguageSupport(
-      ENGINE_DEFINITIONS[engine],
+      ENGINE_DIALECTS[engine],
       ENGINE_CHECKS[engine],
     );
     local.set(engine, support);
@@ -39,8 +39,8 @@ const localFor = (engine: DefinedEngine): LocalLanguageSupport => {
 };
 
 /** The engine's language support, told about the model as it changes. */
-export const useLanguageSupport = (engine: DefinedEngine): LanguageSupport => {
-  const definition = ENGINE_DEFINITIONS[engine];
+export const useLanguageSupport = (engine: DialectEngine): LanguageSupport => {
+  const definition = ENGINE_DIALECTS[engine];
   const provided = useContext(LanguageSupportContext)(definition);
   const support = provided ?? localFor(engine);
   const { tree, variables } = useWorkbench();

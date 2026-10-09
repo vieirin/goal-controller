@@ -4,12 +4,12 @@
 # read with `git show` only (the branch is never checked out or changed).
 # Imports are rewritten to the local copies (or the built workspace packages).
 #
-#   scripts/sync-reference.sh [out-dir]   (default: packages/definitions/test/reference)
+#   scripts/sync-reference.sh [out-dir]   (default: packages/dialect/test/reference)
 set -euo pipefail
 
 COMMIT=b61def8ba1db68fc42910a20a3b51373add88f01
 REPO=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
-OUT=${1:-$REPO/packages/definitions/test/reference}
+OUT=${1:-$REPO/packages/dialect/test/reference}
 mkdir -p "$OUT"
 
 show() { git -C "$REPO" show "$COMMIT:$1"; }

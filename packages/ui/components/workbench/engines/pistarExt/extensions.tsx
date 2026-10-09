@@ -8,7 +8,7 @@ import {
   metamodelExtensionOf,
   writeAnnotations,
   type ExtensionDefinition,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { LINE_DASHES, TEXT_BOXES, type IstarExtension } from '@istar-ts/react';
 import { DIALECTS } from '@/lib/workbench/dialects';

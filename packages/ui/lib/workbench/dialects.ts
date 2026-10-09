@@ -1,5 +1,5 @@
 /**
- * The modelling dialects a model may be for (@goal-controller/definitions'
+ * The modelling dialects a model may be for (@goal-controller/dialect'
  * extensions), like an engine: chosen explicitly and recorded in the file.
  * Only a model recorded for a dialect is read with its kinds; any other is
  * plain iStar 2.0, so a dialect's kinds fail to load in the engines' modes.
@@ -20,15 +20,15 @@ import {
 import {
   dialectDefinition,
   isEmptyModelExtension,
-  istar4RationalAgents,
   metamodelExtensionOf,
   withModelExtension,
-  type AnyDefinition,
+  type AnyDialect,
   type DocumentNode,
   type DocumentTree,
   type ExtensionDefinition,
   type ModelExtension,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
+import { istar4RationalAgents } from '@goal-controller/lib';
 
 /** The dialects, by the mode a model records for them. */
 export const DIALECTS = {
@@ -81,7 +81,7 @@ export type ModelDialect = {
   /** the dialect with it */
   extension: ExtensionDefinition;
   /** its definition: lines, stereotypes and tagged values */
-  definition: AnyDefinition;
+  definition: AnyDialect;
   /** iStar 2.0 with its kinds and links */
   metamodel: AnyMetamodel;
 };

@@ -16,7 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { isPrismEngine } from '@/lib/types';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { constructDefinition } from '@goal-controller/definitions';
+import { constructDefinition } from '@goal-controller/dialect';
 import { notationDefinitionOf } from '@/lib/workbench/definitions';
 import { nodeTone } from '@/lib/workbench/pistar';
 import type { Problem } from '@/lib/workbench/types';

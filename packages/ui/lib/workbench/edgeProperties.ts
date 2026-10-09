@@ -1,18 +1,18 @@
 /**
  * How the Edge engines read each custom property, for the Inspector: the specs their
- * definitions give (@goal-controller/definitions), with each named check bound to the
+ * definitions give (@goal-controller/dialect), with each named check bound to the
  * engine's own check function (ENGINE_CHECKS).
  */
 import {
   specsFromDefinition,
   type ElementKind,
   type PropertySpec as DefinitionSpec,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import { firstResourceIssue, type Check } from '@goal-controller/lib';
 import {
   ENGINE_CHECKS,
-  ENGINE_DEFINITIONS,
-  type DefinedEngine,
+  ENGINE_DIALECTS,
+  type DialectEngine,
 } from './definitions';
 
 export { firstResourceIssue };
@@ -20,7 +20,7 @@ export {
   inputOf,
   type Properties,
   type PropertyInput,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 
 export type PropertySpec<K extends string = string> = DefinitionSpec<K, Check>;
 
@@ -29,10 +29,10 @@ export type NodeKindKey = ElementKind;
 
 type Specs = Record<NodeKindKey, readonly PropertySpec[]>;
 
-const specsOf = (engine: DefinedEngine): Specs =>
-  specsFromDefinition(ENGINE_DEFINITIONS[engine], ENGINE_CHECKS[engine]);
+const specsOf = (engine: DialectEngine): Specs =>
+  specsFromDefinition(ENGINE_DIALECTS[engine], ENGINE_CHECKS[engine]);
 
-export const PROPERTY_SPECS: Record<DefinedEngine, Specs> = {
+export const PROPERTY_SPECS: Record<DialectEngine, Specs> = {
   edge: specsOf('edge'),
   edgev2: specsOf('edgev2'),
 };

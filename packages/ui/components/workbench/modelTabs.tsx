@@ -1,7 +1,7 @@
 'use client';
 
 import type { TransformEngine } from '@/lib/types';
-import { isDefinedEngine } from '@/lib/workbench/definitions';
+import { isDialectEngine } from '@/lib/workbench/definitions';
 import { isDialectMode } from '@/lib/workbench/dialects';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import PistarExtNotationView from './engines/pistarExt/PistarExtNotationView';
@@ -19,7 +19,7 @@ export const modelTabsFor = (
   engine: TransformEngine,
 ): Array<{ id: ModelTab; label: string }> => [
   { id: 'diagram', label: 'Goal Model' },
-  ...(isDialectMode(mode) || isDefinedEngine(engine)
+  ...(isDialectMode(mode) || isDialectEngine(engine)
     ? [{ id: 'notation' as const, label: 'Notation' }]
     : []),
   { id: 'source', label: 'Source' },
@@ -36,7 +36,7 @@ export function ModelTabView() {
   if (tab === 'source') return <SourceView />;
   if (tab === 'notation' && isDialectMode(wb.mode))
     return <PistarExtNotationView />;
-  if (tab === 'notation' && isDefinedEngine(wb.engine))
+  if (tab === 'notation' && isDialectEngine(wb.engine))
     return <NotationView key={wb.engine} engine={wb.engine} />;
   return <ModelDiagram />;
 }

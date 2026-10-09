@@ -12,9 +12,9 @@ import {
 } from '@/lib/workbench/notationDocument';
 import {
   lineId,
-  type AnyDefinition,
+  type AnyDialect,
   type DocumentTree,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
@@ -36,7 +36,7 @@ export default function NotationEditor({
   support,
   selectable,
 }: {
-  definition: AnyDefinition;
+  definition: AnyDialect;
   tree: DocumentTree | null;
   support: LanguageSupport;
   selectable: boolean;

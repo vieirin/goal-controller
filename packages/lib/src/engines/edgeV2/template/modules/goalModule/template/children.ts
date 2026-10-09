@@ -1,4 +1,5 @@
-import { constructsWith, edgeV2 } from '@goal-controller/definitions';
+import { constructsWith } from '@goal-controller/dialect';
+import { edgeV2 } from '../../../../definition';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';

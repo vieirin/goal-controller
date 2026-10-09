@@ -55,7 +55,7 @@ This repository includes two transformation engines for converting goal models:
 
 This tutorial explains how to create new transformation engines for converting goal models to different target formats.
 
-> For the step-by-step guide on this branch (definition, mapper, template and workbench wiring), see [packages/definitions/docs/adding-an-engine.md](packages/definitions/docs/adding-an-engine.md).
+> For the step-by-step guide on this branch (definition, mapper, template and workbench wiring), see [packages/dialect/docs/adding-an-engine.md](packages/dialect/docs/adding-an-engine.md).
 
 ### Architecture Overview
 

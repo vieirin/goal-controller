@@ -22,9 +22,9 @@ import {
   valueOf,
   type CompletionResult as DefinitionCompletions,
   type DefinitionContext,
-  type AnyDefinition,
+  type AnyDialect,
   type RunCheck,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import type { Check } from '@goal-controller/lib';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
 
@@ -69,7 +69,7 @@ const toCodeMirror = (
  * language, lint (the problems and named checks it declares) and completion.
  */
 export const localLanguageSupport = (
-  definition: AnyDefinition,
+  definition: AnyDialect,
   checks: Readonly<Record<string, Check>>,
 ): LocalLanguageSupport => {
   let context = EMPTY;

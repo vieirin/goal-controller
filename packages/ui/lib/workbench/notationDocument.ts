@@ -1,6 +1,6 @@
 /**
  * The Notation view's document for a model: the definition-driven document
- * (@goal-controller/definitions), its edits applied to the piStar text, the
+ * (@goal-controller/dialect), its edits applied to the piStar text, the
  * element a line belongs to, and the context the text is checked against.
  */
 import type { GoalView } from '@goal-controller/goal-tree';
@@ -8,9 +8,9 @@ import {
   contextFromView,
   lineId,
   nodeLine,
-  type EngineDefinition,
+  type DialectDefinition,
   type NotationEdit,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import type { SavedLines } from './languageSupport';
 import { setNodeProperty, setNodeText } from './pistar';
 
@@ -19,7 +19,7 @@ export {
   notationDocument,
   notationEdits,
   type NotationEdit,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 
 /** The model text with a document's edits made (texts, then properties, in order). */
 export const applyNotationEdits = (
@@ -36,7 +36,7 @@ export const applyNotationEdits = (
 
 /** The id of the element a line belongs to: its own, or the element line above it. */
 export const elementOfLine = (
-  definition: EngineDefinition,
+  definition: DialectDefinition,
   lines: readonly string[],
   index: number,
 ): string | null => {
@@ -49,7 +49,7 @@ export const elementOfLine = (
 
 /** The workbench's context variables' names (what an assertion may read besides resources). */
 export const contextOf = (
-  definition: EngineDefinition,
+  definition: DialectDefinition,
   tree: GoalView,
   variables: ReadonlyArray<{ kind: string; name: string }>,
 ) =>
@@ -61,7 +61,7 @@ export const contextOf = (
 
 /** What the engine's grammar said of each saved element line. */
 export const savedLines = (
-  definition: EngineDefinition,
+  definition: DialectDefinition,
   tree: GoalView,
 ): SavedLines =>
   Object.fromEntries(

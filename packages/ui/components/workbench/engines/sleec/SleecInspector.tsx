@@ -1,7 +1,7 @@
 'use client';
 
 import type { GoalViewNode } from '@goal-controller/goal-tree';
-import { DEFAULT_ELEMENT_FILL } from '@goal-controller/definitions';
+import { DEFAULT_ELEMENT_FILL } from '@goal-controller/lib';
 import {
   NameField,
   NodeColorField,

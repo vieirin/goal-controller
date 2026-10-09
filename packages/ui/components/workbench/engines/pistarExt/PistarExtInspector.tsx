@@ -17,7 +17,7 @@ import {
   type ExtensionDefinition,
   type ModelExtension,
   type PropertySpec,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { useIstarEditor, useSelectedTarget } from '@istar-ts/react';
 import { useMemo, useState } from 'react';

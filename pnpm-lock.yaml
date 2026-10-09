@@ -26,7 +26,7 @@ importers:
         specifier: ^50.4.11
         version: 50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
 
-  packages/definitions:
+  packages/dialect:
     devDependencies:
       '@types/chai':
         specifier: ^4.3.11
@@ -89,9 +89,9 @@ importers:
 
   packages/lib:
     dependencies:
-      '@goal-controller/definitions':
+      '@goal-controller/dialect':
         specifier: workspace:*
-        version: link:../definitions
+        version: link:../dialect
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree
@@ -213,9 +213,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.43.13
         version: 6.43.13
-      '@goal-controller/definitions':
+      '@goal-controller/dialect':
         specifier: workspace:*
-        version: link:../definitions
+        version: link:../dialect
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree

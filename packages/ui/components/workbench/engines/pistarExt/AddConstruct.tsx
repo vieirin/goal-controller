@@ -8,7 +8,7 @@ import {
   takenName,
   withModelExtension,
   type ExtensionLinkDefinition,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import { shapeViewBox } from '@istar-ts/react';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';

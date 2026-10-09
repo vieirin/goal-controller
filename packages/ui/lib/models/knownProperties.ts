@@ -1,8 +1,8 @@
-import { propertyKeys } from '@goal-controller/definitions';
+import { propertyKeys } from '@goal-controller/dialect';
 import { sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
-import { ENGINE_DEFINITIONS } from '../workbench/definitions';
+import { ENGINE_DIALECTS } from '../workbench/definitions';
 
 type Mapper = {
   allowedGoalKeys: readonly string[];
@@ -20,7 +20,7 @@ const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
 });
 
 const definedKeys = (
-  definition: (typeof ENGINE_DEFINITIONS)[keyof typeof ENGINE_DEFINITIONS],
+  definition: (typeof ENGINE_DIALECTS)[keyof typeof ENGINE_DIALECTS],
 ): AnalyzeResponse['knownProperties'] => ({
   goal: [...propertyKeys(definition, 'goal')],
   task: [...propertyKeys(definition, 'task')],
@@ -36,7 +36,7 @@ export const KNOWN_PROPERTIES: Record<
   TransformEngine,
   AnalyzeResponse['knownProperties']
 > = {
-  edge: definedKeys(ENGINE_DEFINITIONS.edge),
-  edgev2: definedKeys(ENGINE_DEFINITIONS.edgev2),
+  edge: definedKeys(ENGINE_DIALECTS.edge),
+  edgev2: definedKeys(ENGINE_DIALECTS.edgev2),
   sleec: keysOf(sleecEngineMapper),
 };

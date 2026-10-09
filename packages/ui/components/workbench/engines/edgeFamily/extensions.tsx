@@ -1,6 +1,6 @@
 'use client';
 
-import { ENGINE_DEFINITIONS } from '@/lib/workbench/definitions';
+import { ENGINE_DIALECTS } from '@/lib/workbench/definitions';
 import { firstResourceIssue } from '@/lib/workbench/edgeProperties';
 import { isActor } from '@istar-ts/core';
 import {
@@ -14,7 +14,7 @@ import type { RejectEdit } from '../shared/WorkbenchCanvas';
 
 /**
  * What Edge and EdgeV2 share in the diagram: they read the same elements and keys (see
- * packages/lib/src/engines/edgeChecks.ts), so each declares its extensions from these.
+ * packages/lib/src/engines/edgeFamily/checks.ts), so each declares its extensions from these.
  */
 
 /** What an Edge resource variable is, for its badge: "bool = true", "int 0..5 = 5"; issue from the shared engine check. */
@@ -45,7 +45,7 @@ function EdgeResource(props: ElementComponentProps): ReactElement {
         display: {
           ...props.element.display,
           // the Edge definitions share their resource fill
-          backgroundColor: ENGINE_DEFINITIONS.edge.elements.resource.fill,
+          backgroundColor: ENGINE_DIALECTS.edge.elements.resource.fill,
         },
       };
   const { label, issue } = resourceVariable(props.element.customProperties);

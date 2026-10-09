@@ -10,11 +10,11 @@ import {
   relationMismatch,
   valueOf,
   type Severity,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import { useMemo } from 'react';
 import {
-  ENGINE_DEFINITIONS,
-  type DefinedEngine,
+  ENGINE_DIALECTS,
+  type DialectEngine,
 } from '@/lib/workbench/definitions';
 import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
 import { nodeTone, setNodeText } from '@/lib/workbench/pistar';
@@ -50,9 +50,9 @@ function NotationField({
   engine,
 }: {
   node: GoalViewNode;
-  engine: DefinedEngine;
+  engine: DialectEngine;
 }) {
-  const definition = ENGINE_DEFINITIONS[engine];
+  const definition = ENGINE_DIALECTS[engine];
   const { problems, notation: notationDefinition } = definition;
   const operators = useMemo(() => operatorsFor(definition), [definition]);
   const wb = useWorkbench();
@@ -231,9 +231,9 @@ function DefinitionNode({
   engine,
 }: {
   node: GoalViewNode;
-  engine: DefinedEngine;
+  engine: DialectEngine;
 }) {
-  const definition = ENGINE_DEFINITIONS[engine];
+  const definition = ENGINE_DIALECTS[engine];
   const support = useLanguageSupport(engine);
   // the keys whose values are written in the engine's value languages
   const editorFor = (key: string): PropertyEditor | undefined => {
@@ -277,7 +277,7 @@ function DefinitionNode({
 export default function DefinitionInspector({
   engine,
 }: {
-  engine: DefinedEngine;
+  engine: DialectEngine;
 }) {
   return (
     <SelectedNode>

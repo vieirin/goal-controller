@@ -52,7 +52,7 @@ packages/ui/.next/
 packages/lib/out/
 packages/lib/tsconfig.tsbuildinfo
 packages/goal-tree/tsconfig.tsbuildinfo
-packages/definitions/tsconfig.tsbuildinfo
+packages/dialect/tsconfig.tsbuildinfo
 packages/ui/tsconfig.tsbuildinfo
 
 .plan/

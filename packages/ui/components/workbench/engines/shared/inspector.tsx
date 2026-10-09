@@ -7,7 +7,7 @@ import {
   constructDefinition,
   elementLine,
   isValidName,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -18,7 +18,7 @@ import {
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
-  ENGINE_DEFINITIONS,
+  ENGINE_DIALECTS,
   notationDefinitionOf,
 } from '@/lib/workbench/definitions';
 import {
@@ -94,8 +94,8 @@ export const useDraft = (
 };
 
 export const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edgev2: ENGINE_DEFINITIONS.edgev2.name,
-  edge: ENGINE_DEFINITIONS.edge.name,
+  edgev2: ENGINE_DIALECTS.edgev2.name,
+  edge: ENGINE_DIALECTS.edge.name,
   sleec: 'SLEEC',
 };
 
@@ -123,7 +123,7 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     (['edge', 'edgev2'] as const).map((engine) => [
       engine,
       {
-        file: 'packages/definitions/src/engines/edgeProperties.ts',
+        file: 'packages/lib/src/engines/edgeFamily/properties.ts',
         lists: {
           goal: 'edgeProperties.goal',
           task: 'edgeProperties.task',

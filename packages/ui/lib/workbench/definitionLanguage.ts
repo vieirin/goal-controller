@@ -10,11 +10,11 @@ import {
   elementIdPattern,
   operandPattern,
   type DeclarationDefinition,
-  type AnyDefinition,
+  type AnyDialect,
   type WithNotation,
   type LanguageDefinition,
   type ValueConfig,
-} from '@goal-controller/definitions';
+} from '@goal-controller/dialect';
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -56,7 +56,7 @@ const languageToken = (language: LanguageDefinition) => {
 
 /** Tokens of any value config (a field, or a property line's value). */
 const valueToken = (
-  definition: Pick<AnyDefinition, 'languages' | 'elements'>,
+  definition: Pick<AnyDialect, 'languages' | 'elements'>,
   value: ValueConfig | undefined,
 ) => {
   if (value?.type === 'expression') {
@@ -82,7 +82,7 @@ const valueToken = (
 
 /** The value config a property line's key has (the first listed kind declaring it). */
 const lineValue = (
-  definition: Pick<AnyDefinition, 'properties' | 'elements'>,
+  definition: Pick<AnyDialect, 'properties' | 'elements'>,
   key: string,
 ): ValueConfig | undefined => {
   for (const [kind, element] of Object.entries(definition.elements)) {
@@ -131,7 +131,7 @@ const declarationTokens = (
 
 /** The Notation view's document tokens, line by line. */
 export const documentParser = (
-  definition: AnyDefinition,
+  definition: AnyDialect,
 ): StreamParser<DocumentState> => {
   // a definition whose lines name no element: each line starts with its name
   const idPattern = elementIdPattern(definition);
@@ -139,7 +139,7 @@ export const documentParser = (
   const { notation } = definition;
   const operand = notation
     ? new RegExp(
-        `^(?:${operandPattern({ ...definition, notation } as AnyDefinition & WithNotation)})`,
+        `^(?:${operandPattern({ ...definition, notation } as AnyDialect & WithNotation)})`,
       )
     : null;
   const line = Object.values(definition.elements)[0]?.line ?? '';
@@ -300,12 +300,12 @@ export const documentParser = (
 };
 
 /** The Notation view's document language. */
-export const documentLanguage = (definition: AnyDefinition) =>
+export const documentLanguage = (definition: AnyDialect) =>
   StreamLanguage.define(documentParser(definition));
 
 /** A property field's language, when its value config has one. */
 export const valueLanguage = (
-  definition: Pick<AnyDefinition, 'languages' | 'elements'>,
+  definition: Pick<AnyDialect, 'languages' | 'elements'>,
   value: ValueConfig,
 ) => {
   const token = valueToken(definition, value);
