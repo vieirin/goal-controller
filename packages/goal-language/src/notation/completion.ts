@@ -202,7 +202,8 @@ export const completionsAt = (
   if (!element || !owned || owned.declares) return null;
   if (!onKey && valued) {
     const property = propertyOf(definition, element.kind, valued[2]!);
-    if (!property) return null;
+    // an engine-owned server completes the value
+    if (!property || property.servedBy === 'engine') return null;
     const valueFrom = valued[0].length;
     const found = fieldCompletionsAt(
       definition,
@@ -279,6 +280,31 @@ export const fieldCompletionsAt = (
     };
   }
   return null;
+};
+
+/**
+ * An inspector field's completions: its element's property, read with its
+ * value type. None when an engine-owned server serves the value
+ * (`servedBy: 'engine'`).
+ */
+export const fieldCompletions = (
+  definition: Definition,
+  context: DefinitionContext,
+  elementId: string,
+  key: string,
+  text: string,
+  pos: number,
+): CompletionResult | null => {
+  const element = context.elements[elementId];
+  const property = element && propertyOf(definition, element.kind, key);
+  if (!property || property.servedBy === 'engine') return null;
+  return fieldCompletionsAt(
+    definition,
+    valueOf(property, element.properties),
+    text,
+    pos,
+    context,
+  );
 };
 
 /** A construct's hover text: `Sequence — does every child, one after another`. */

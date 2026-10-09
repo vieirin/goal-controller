@@ -138,6 +138,12 @@ export type Diagnostic = {
   to: number;
   severity: Severity;
   message: string;
+  /** the element whose line it is on (the model's), if any */
+  elementId?: string;
+  /** the property it is about, if any */
+  key?: string;
+  /** the named check that said it (an engine's), if one did */
+  check?: string;
 };
 
 /** Runs the engine check a definition names on an element's properties. */
@@ -190,11 +196,11 @@ const propertyDiagnostics = (
   for (const key of keys) {
     const property = propertyOf(definition, kind, key);
     if (!property || properties[key] === undefined) continue;
-    const { from, to } = at(key);
+    // anchored on the element and the property
+    const where = { ...at(key), elementId: self, key };
     if (!evaluateCondition(property.applies, properties, true)) {
       diagnostics.push({
-        from,
-        to,
+        ...where,
         severity: 'warning',
         message: property.notApplying
           ? fillTemplate(property.notApplying, properties)
@@ -202,17 +208,27 @@ const propertyDiagnostics = (
       });
       continue;
     }
+    // an engine-owned server serves the value: nothing said of it here
+    if (property.servedBy === 'engine') continue;
     // the engine's own message first: it says more than the type does
     const value = valueOf(property, properties);
-    const message =
-      (property.check && runCheck?.(property.check, properties, self)) ||
-      valueProblem(value, properties[key]!, context);
-    if (message) diagnostics.push({ from, to, severity: 'error', message });
+    const checked =
+      property.check && runCheck?.(property.check, properties, self);
+    if (checked) {
+      diagnostics.push({
+        ...where,
+        severity: 'error',
+        message: checked,
+        check: property.check,
+      });
+      continue;
+    }
+    const message = valueProblem(value, properties[key]!, context);
+    if (message) diagnostics.push({ ...where, severity: 'error', message });
     else if (context && value.type === 'assertion')
       for (const name of unknownNames(value, properties[key]!, context))
         diagnostics.push({
-          from,
-          to,
+          ...where,
           severity: 'info',
           message: unknownNameMessage(value, name),
         });
@@ -297,6 +313,14 @@ export const documentDiagnostics = (
     block = null;
   };
 
+  // each line's diagnostics anchored on the element the line is (or is under)
+  let owner: string | undefined;
+  const push = (...found: Diagnostic[]) =>
+    diagnostics.push(
+      ...found.map((d) =>
+        owner && d.elementId === undefined ? { ...d, elementId: owner } : d,
+      ),
+    );
   let offset = 0;
   for (const written of lines) {
     const lineFrom = offset;
@@ -316,12 +340,15 @@ export const documentDiagnostics = (
         ? (context.named?.[written_id] ?? `unknown ${written_id}`)
         : position
       : written_id;
+    const current = (block as Block | null)?.id;
+    const ownerId = read.kind === 'element' && id ? id : current;
+    owner = ownerId && context.elements[ownerId] ? ownerId : undefined;
     if (id && read.kind === 'element') {
       closeBlock();
       started = true;
       const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
       if (seen.has(id)) {
-        diagnostics.push({
+        push({
           ...idSpan,
           severity: 'error',
           message: `Duplicate id ${written_id ?? id}`,
@@ -331,9 +358,7 @@ export const documentDiagnostics = (
       seen.add(id);
       const element = context.elements[id];
       if (!element) {
-        diagnostics.push(
-          problem(definition, 'notInDiagram', idSpan.from, idSpan.to),
-        );
+        push(problem(definition, 'notInDiagram', idSpan.from, idSpan.to));
         continue;
       }
       const owned = definition.elements[element.kind];
@@ -345,16 +370,16 @@ export const documentDiagnostics = (
         !!owned?.declares,
         !savedError,
       ))
-        diagnostics.push({ ...d, ...at(d) });
+        push({ ...d, ...at(d) });
       if (owned && !owned.annotated)
         for (const { span } of read.annotations)
-          diagnostics.push({
+          push({
             ...at(span),
             severity: 'error',
             message: `A ${element.kind} carries no annotations in ${definition.name}`,
           });
       if (owned && !owned.declares && read.declaration)
-        diagnostics.push({
+        push({
           ...at(read.declaration.span),
           severity: 'error',
           message: `A ${element.kind} declares nothing on its line in ${definition.name}`,
@@ -365,7 +390,7 @@ export const documentDiagnostics = (
         for (const { properties, span } of read.annotations) {
           const kind = 'stereotype' in properties ? 'stereotype' : 'tag';
           if (kinds.has(kind)) {
-            diagnostics.push({
+            push({
               ...at(span),
               severity: 'error',
               message:
@@ -378,7 +403,7 @@ export const documentDiagnostics = (
           kinds.add(kind);
           for (const key of Object.keys(properties)) spans.set(key, at(span));
         }
-        diagnostics.push(
+        push(
           ...propertyDiagnostics(
             definition,
             element.kind,
@@ -394,7 +419,7 @@ export const documentDiagnostics = (
       if (owned?.declares) {
         if (read.declaration) {
           const span = at(read.declaration.span);
-          diagnostics.push(
+          push(
             ...propertyDiagnostics(
               definition,
               element.kind,
@@ -412,7 +437,7 @@ export const documentDiagnostics = (
       if (!owned) continue;
       block = { id, element, lines: new Map(), values: new Map() };
       if (savedError) {
-        diagnostics.push({
+        push({
           ...at(read.textSpan),
           severity: 'error',
           message: `Not valid for this engine: ${was.error}`,
@@ -422,7 +447,7 @@ export const documentDiagnostics = (
       if (!definition.notation || !read.notation) continue;
       const notated = definition as Definition & WithNotation;
       const notationSpan = at(read.notation.span);
-      diagnostics.push(
+      push(
         ...disabled(notated, read.notation).map((d) => ({ ...d, ...at(d) })),
       );
       const listed: string[] = [];
@@ -430,9 +455,7 @@ export const documentDiagnostics = (
         listed.push(ref.id);
         if (!element.children.includes(ref.id)) {
           const span = at(ref.span);
-          diagnostics.push(
-            problem(definition, 'notAChild', span.from, span.to),
-          );
+          push(problem(definition, 'notAChild', span.from, span.to));
         }
       }
       const mismatch = relationMismatch(
@@ -441,7 +464,7 @@ export const documentDiagnostics = (
         element.relation,
       );
       if (mismatch)
-        diagnostics.push(
+        push(
           problem(
             definition,
             'relationMismatch',
@@ -453,7 +476,7 @@ export const documentDiagnostics = (
       if (listed.length > 0)
         for (const child of element.children)
           if (!listed.includes(child))
-            diagnostics.push(
+            push(
               problem(
                 definition,
                 'missingFromNotation',
@@ -470,7 +493,7 @@ export const documentDiagnostics = (
       to: lineFrom + written.trimEnd().length,
     };
     if (!started) {
-      diagnostics.push({
+      push({
         ...span,
         severity: 'error',
         message: 'A property belongs under an element line',
@@ -479,7 +502,7 @@ export const documentDiagnostics = (
     }
     if (!block) continue;
     if (read.kind !== 'property' || read.errors.length) {
-      diagnostics.push({
+      push({
         ...span,
         severity: 'error',
         message: 'Not a property line',
@@ -488,7 +511,7 @@ export const documentDiagnostics = (
     }
     const keySpan = at(read.keySpan);
     if (!propertyOf(definition, block.element.kind, read.key)) {
-      diagnostics.push({
+      push({
         ...keySpan,
         severity: 'warning',
         message: `Not read for a ${block.element.kind}`,

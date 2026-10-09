@@ -138,6 +138,14 @@ export type PropertyDefinition<C extends string = string> = {
   check?: C;
   /** offered as an inspector field (default: true) */
   inspector?: boolean;
+  /**
+   * `'engine'`: an engine-owned language server serves this property's value
+   * (its sub-language): the shared goal-language server and the local
+   * support stay silent on the value (no value diagnostics, named check,
+   * completion or hover); the property line is still read. See
+   * goal-controller#24 and `packages/goal-language/docs/lsp.md`.
+   */
+  servedBy?: 'engine';
 };
 
 /** The mismatches between a notation and the structure the views report. */
@@ -149,6 +157,29 @@ export type ProblemKind =
   | 'notInDiagram';
 
 export type Severity = 'error' | 'warning' | 'info';
+
+/**
+ * A diagnostic as every host consumes it, whoever produced it (the shared
+ * goal-language server, an engine's named checks, an engine-owned language
+ * server, the workbench): anchored on an element, and on one of its
+ * properties when it is about one (goal-controller#24, decision D).
+ *
+ * istar-ts adds the same type (`GoalDiagnostic`) with a diagnostics store in
+ * 0.12.0; until it is published this is the definition, with the identical
+ * shape, so switching is a version bump.
+ */
+export type GoalDiagnostic = {
+  /** the element's RT id (`G3`, `AT1`) */
+  elementId: string;
+  /** the property it is about, if any */
+  key?: string;
+  severity: Severity;
+  message: string;
+  /** who said it: `goal language`, an engine's name, an engine server's id */
+  source: string;
+  /** where, in the document its producer read (offsets), if it read one */
+  range?: { from: number; to: number };
+};
 
 /**
  * A notation engine's dialect, or a modelling dialect's (no engine reads it):

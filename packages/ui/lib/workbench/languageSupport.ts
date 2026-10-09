@@ -24,7 +24,7 @@ import {
   checkContextOf,
   completionsAt,
   documentDiagnostics,
-  fieldCompletionsAt,
+  fieldCompletions,
   fieldDiagnostics,
   type CompletionResult as DefinitionCompletions,
   type RunCheck,
@@ -143,20 +143,17 @@ export const localLanguageSupport = <D extends AnyDialect>(
         ),
         autocompletion({
           override: [
-            (completion: CompletionContext) => {
-              const config = value();
-              return config
-                ? toCodeMirror(
-                    fieldCompletionsAt(
-                      definition,
-                      config,
-                      completion.state.doc.toString(),
-                      completion.pos,
-                      context,
-                    ),
-                  )
-                : null;
-            },
+            (completion: CompletionContext) =>
+              toCodeMirror(
+                fieldCompletions(
+                  definition,
+                  context,
+                  elementId,
+                  key,
+                  completion.state.doc.toString(),
+                  completion.pos,
+                ),
+              ),
           ],
         }),
       ];

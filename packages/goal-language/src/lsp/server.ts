@@ -63,7 +63,7 @@ import { GoalCoreModule, parseWith } from '../module.js';
 import { syntaxErrorsOf } from '../parse.js';
 import {
   completionsAt,
-  fieldCompletionsAt,
+  fieldCompletions,
   type Completion,
   type CompletionResult,
 } from '../notation/completion.js';
@@ -78,6 +78,7 @@ import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
   type GoalContextParams,
+  type GoalDiagnosticData,
 } from './protocol.js';
 import { checkContextOf, type NamedCheck } from '../notation/checks.js';
 
@@ -190,15 +191,25 @@ export const createGoalLspServices = (
     document: LangiumDocument,
     diagnostics: Diagnostic[],
   ): LspDiagnostic[] =>
-    diagnostics.map(({ from, to, severity, message }) => ({
-      range: {
-        start: document.textDocument.positionAt(from),
-        end: document.textDocument.positionAt(to),
-      },
-      severity: SEVERITY[severity],
-      message,
-      source: 'goal',
-    }));
+    diagnostics.map(
+      ({ from, to, severity, message, elementId, key, check }) => ({
+        range: {
+          start: document.textDocument.positionAt(from),
+          end: document.textDocument.positionAt(to),
+        },
+        severity: SEVERITY[severity],
+        message,
+        source: 'goal',
+        // the anchoring contract: the element (and property) it is about
+        ...(elementId !== undefined && {
+          data: {
+            elementId,
+            ...(key !== undefined && { key }),
+            ...(check !== undefined && { check }),
+          } satisfies GoalDiagnosticData,
+        }),
+      }),
+    );
 
   /** The diagnostics of a document: the dialect's, or syntax errors without one. */
   const diagnose = (document: LangiumDocument): LspDiagnostic[] => {
@@ -254,20 +265,9 @@ export const createGoalLspServices = (
       const offset = document.textDocument.offsetAt(params.position);
       const field = readFieldUri(document.uri.toString());
       let result: CompletionResult | null;
-      if (field) {
-        const element = model.elements[field.id];
-        const property =
-          element && propertyOf(dialect, element.kind, field.key);
-        result = property
-          ? fieldCompletionsAt(
-              dialect,
-              valueOf(property, element.properties),
-              text,
-              offset,
-              model,
-            )
-          : null;
-      } else result = completionsAt(dialect, text, offset, model);
+      result = field
+        ? fieldCompletions(dialect, model, field.id, field.key, text, offset)
+        : completionsAt(dialect, text, offset, model);
       if (!result) return undefined;
       const range = {
         start: document.textDocument.positionAt(result.from),
@@ -429,12 +429,18 @@ export const serverDiagnostics = async (
       : s === DiagnosticSeverity.Information
         ? 'info'
         : 'error';
-  const diagnostics = (document.diagnostics ?? []).map((d) => ({
-    from: document.textDocument.offsetAt(d.range.start),
-    to: document.textDocument.offsetAt(d.range.end),
-    severity: severity(d.severity),
-    message: typeof d.message === 'string' ? d.message : d.message.value,
-  })) satisfies Diagnostic[];
+  const diagnostics = (document.diagnostics ?? []).map((d) => {
+    const data = d.data as GoalDiagnosticData | undefined;
+    return {
+      from: document.textDocument.offsetAt(d.range.start),
+      to: document.textDocument.offsetAt(d.range.end),
+      severity: severity(d.severity),
+      message: typeof d.message === 'string' ? d.message : d.message.value,
+      ...(data && { elementId: data.elementId }),
+      ...(data?.key !== undefined && { key: data.key }),
+      ...(data?.check !== undefined && { check: data.check }),
+    };
+  }) satisfies Diagnostic[];
   LangiumDocuments.deleteDocument(parsed);
   return diagnostics;
 };

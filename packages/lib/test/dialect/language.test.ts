@@ -125,7 +125,15 @@ describe('fieldDiagnostics', () => {
           : null,
     );
     expect(d).to.deep.equal([
-      { from: 0, to: 2, severity: 'error', message: 'nope' },
+      {
+        from: 0,
+        to: 2,
+        severity: 'error',
+        message: 'nope',
+        elementId: 'R1',
+        key: 'initialValue',
+        check: 'edge.resource.initialValue',
+      },
     ]);
   });
 });
