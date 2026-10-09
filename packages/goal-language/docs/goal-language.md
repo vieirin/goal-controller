@@ -53,8 +53,9 @@ A **document** is lines (`Document`). There are two kinds of line:
   reads it with its property's value type.
 
 A dialect without ids (piStar-ext's own definition) writes a `PlainDocument`
-of `AnnotatedName` lines. Each line is an element, in order. A name there is
-any text on one line except brackets and braces.
+of `AnnotatedName` lines. A name there is any text on one line except
+brackets and braces. A line may start with an id (`G1: Deliver`), which
+names its element; a line without one is the element at its position.
 
 ### Predefined value types
 

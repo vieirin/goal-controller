@@ -158,8 +158,7 @@ const readElement = (
         }
       : null;
   const annotated = annotations.at(-1)?.span.to ?? 0;
-  const idSpan =
-    line.$type === 'ElementLine' ? propertySpan(line, 'name') : null;
+  const idSpan = line.name ? propertySpan(line, 'name') : null;
   // an id the parser recovered from further in (`[G2]`) is not the line's
   const ownId = idSpan !== null && !text.slice(annotated, idSpan.from).trim();
   const nameSpan = propertySpan(line, 'label');
@@ -168,6 +167,7 @@ const readElement = (
     (ownId ? idSpan?.from : undefined) ??
     (line.$type === 'AnnotatedName' ? nameSpan?.from : undefined) ??
     annotated;
+  // (a line without an id may have one: an annotated name's is optional)
   // a declaration being typed (`{int 0..`) is not the element's text either
   const brace = text.indexOf('{', textFrom);
   const textTo = declarationSpan?.from ?? (brace >= 0 ? brace : text.length);
@@ -191,7 +191,7 @@ const readElement = (
   const exprs = line.notation
     ? [line.notation, ...AstUtils.streamAllContents(line.notation)]
     : [];
-  const id = line.$type === 'ElementLine' && ownId ? (line.name ?? null) : null;
+  const id = ownId ? (line.name ?? null) : null;
   return {
     kind: 'element',
     id,
@@ -325,10 +325,13 @@ export const isValidName = (
     const read = parseElementLine(`${element.prefix}1:${name}`);
     return !read.errors.length && read.value?.name === name;
   }
+  // a name may start with an id (`G1: Deliver`), the element's own
   const read = parseValue('annotatedName', name);
   return (
     !read.errors.length &&
-    read.value?.name === name &&
-    !read.value.annotations.length
+    !!read.value &&
+    !read.value.annotations.length &&
+    !read.value.notation &&
+    !read.value.declaration
   );
 };

@@ -37,6 +37,9 @@ const RT = rules([
   ['{', /\{/],
 ]);
 
+/** An optional id before a plain line's name, with its colon: `G1:`, `T1.2X :`. */
+const PLAIN_ID = /[GTR](?:[0-9]+\.?[0-9]*X?|[0-9][a-z])[ \t]*:/y;
+
 /** A line without an id: its name, then (spaces aside) the RT tokens. */
 const PLAIN_NAME = /[^\s[\]{}<](?:[^\r\n[\]{}]*[^\s[\]{}])?/y;
 
@@ -287,6 +290,24 @@ export class GoalLexer extends DefaultLexer {
         continue;
       }
       if (state === 'name') {
+        // an optional id first (`G1: Name`): its tokens as an element line's
+        const id = at(PLAIN_ID, text, offset);
+        if (id) {
+          const [, prefix, rest] = /^([GTR])(\S+?)\s*:$/.exec(id)!;
+          push(prefix!, prefix!);
+          if (/^[0-9][a-z]$/.test(rest!)) push('DIGIT_SUBID', rest!);
+          else {
+            const float = /^[0-9]+\.?[0-9]*/.exec(rest!)![0];
+            push('FLOAT', float);
+            if (rest!.length > float.length) push('X', 'X');
+          }
+          const space = at(INDENT, text, offset);
+          if (space) push('WS', space);
+          push(':', ':');
+          const after = at(INDENT, text, offset);
+          if (after) push('WS', after);
+          continue;
+        }
         const name = at(PLAIN_NAME, text, offset);
         if (name) push('PLAIN_NAME', name);
         state = 'rt';

@@ -198,6 +198,11 @@ export type DefinitionContext = {
   variables: readonly string[];
   /** a definition whose lines name no element: the elements its lines are, in order */
   order?: readonly string[];
+  /**
+   * and the elements whose names start with an id (`G1: Deliver`), by that
+   * id: a line written with one is that element's, wherever it is
+   */
+  named?: Readonly<Record<string, string>>;
 };
 
 /** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */

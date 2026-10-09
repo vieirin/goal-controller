@@ -12,7 +12,8 @@
  *   directives: `%% <severity> [<span>] <message>` (the expected diagnostics,
  *   all of them), `%% only <ids>` (the diagram's elements),
  *   `%% children <id>: <ids>`, `%% relation <id>: and|or`,
- *   `%% construct <id>: <name>`
+ *   `%% construct <id>: <name>`; a dialect without ids (`rationalAgents`)
+ *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
  * Dialects: edge, edgeV2, and edgeV2 / edge with iStar4RationalAgents'
  * annotations (`edgeV2+rationalAgents`, `edge+rationalAgents`).
@@ -21,6 +22,7 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
+  dialectDefinition,
   withExtension,
   type AnyDialect,
   type DefinitionContext,
@@ -48,6 +50,7 @@ const DIALECTS: Record<string, AnyDialect> = {
     edge as AnyDialect,
     istar4RationalAgents,
   ),
+  rationalAgents: dialectDefinition(istar4RationalAgents) as AnyDialect,
   'edgeV2+rationalAgents': withExtension(
     edgeV2 as AnyDialect,
     istar4RationalAgents,
@@ -98,8 +101,35 @@ const grouped = (tree: RtTree | null): string => {
 
 const KIND: Record<string, string> = { G: 'goal', T: 'task', R: 'resource' };
 
+/** A model of named elements, in order, for a dialect without ids (`%% model`). */
+const plainContext = (directive: string): DefinitionContext => {
+  const names = directive
+    .slice('model '.length)
+    .split('|')
+    .map((name) => name.trim());
+  const keys = names.map((_, i) => `e${i + 1}`);
+  const named: Record<string, string> = {};
+  names.forEach((name, i) => {
+    const id = parseValue('annotatedName', name).value?.id;
+    if (id) named[id] = keys[i]!;
+  });
+  return {
+    elements: Object.fromEntries(
+      keys.map((key) => [
+        key,
+        { kind: 'istar.Goal', children: [], properties: {} },
+      ]),
+    ),
+    variables: [],
+    order: keys,
+    named,
+  };
+};
+
 /** The model a checked document stands for: its lines' elements, as directed. */
 const contextOf = (doc: string, directives: string[]): DefinitionContext => {
+  const model = directives.find((d) => d.startsWith('model '));
+  if (model) return plainContext(model);
   const elements: Record<string, DefinitionContextElement> = {};
   for (const written of doc.split('\n')) {
     const read = readLine(

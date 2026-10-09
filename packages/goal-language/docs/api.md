@@ -38,9 +38,15 @@ functions return plain data, with no Langium types:
 - `AssertionTree` is one of `and`, `or`, `not`, `paren`, `assign`,
   `compare`, `var` or `bool`;
 - `ElementLineData` is `{ id, name, annotations, notation, declaration }`.
+  For an annotated name (`parseValue('annotatedName', …)`, a plain
+  document's lines), `id` is the optional id it starts with, or `''`.
 
 ```goal accept
 G1: Deliver sample [G2;G3@2]
+```
+
+```goal-value annotatedName accept
+<<goal-based>> G1: Deliver sample
 ```
 
 ## Reading a notation in a dialect
@@ -79,7 +85,8 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | --- | --- | --- |
 | `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document, one id per line |
 | `notationEdits` | `(D, text, tree) => NotationEdit[]` | what a document changes: element texts, and properties set or removed |
-| `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against |
+| `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against; for a definition without ids, `order` (the elements by position) and `named` (the elements whose names start with an id, by that id) |
+| `writtenIds` | `(tree) => Record<id, key>` | the elements whose names start with an id (`G1: Deliver`), by that id |
 | `readLine` | `(D, line) => LineReading` | one line: an element (with spans for the id, annotations, notation refs and operators, declaration) or a property |
 | `lineId`, `readPropertyLine` | `(D, line) => …` | a line's id; a property line's key and value |
 | `annotatedProperties` | `(reading) => DeclaredProperties` | what a line's annotations set (the first of each kind) |

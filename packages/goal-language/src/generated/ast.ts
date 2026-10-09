@@ -73,6 +73,7 @@ export interface AnnotatedName extends langium.AstNode {
     annotations: Array<Annotation>;
     declaration?: Declaration;
     label: string;
+    name?: ElementId;
     notation?: RtExpr;
 }
 
@@ -81,6 +82,7 @@ export const AnnotatedName = {
     annotations: 'annotations',
     declaration: 'declaration',
     label: 'label',
+    name: 'name',
     notation: 'notation'
 } as const;
 
@@ -725,6 +727,10 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 label: {
                     name: AnnotatedName.label
+                },
+                name: {
+                    name: AnnotatedName.name,
+                    optional: true
                 },
                 notation: {
                     name: AnnotatedName.notation,

@@ -24,8 +24,8 @@ give, where `span` is the text the diagnostic covers.
 | --- | --- | --- |
 | `A property belongs under an element line` | error | a property line before any element line |
 | `Not a property line` | error | a line under an element that is neither an element line nor a property line |
-| `Duplicate id G1` | error | a second line with the same id |
-| `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model |
+| `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition) |
+| `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model (without ids: no element's name starts with it) |
 | `N lines for M elements: each line is an element's, in order (add or remove elements in the diagram)` | error | a plain document whose line count isn't its element count |
 
 ```goal-check edgeV2
@@ -40,6 +40,28 @@ G7: New one
 %% error [[G2]] Not a property line
 %% error [G2] Duplicate id G2
 %% error [G7] Add this element in the diagram
+```
+
+In a dialect without ids, a line's optional id names the element whose name
+starts with it, and a line without one is the element at its position
+(`%% model` lists the elements, in order):
+
+```goal-check rationalAgents
+<<goal-based>> Robot
+  G1: Deliver sample
+  G1: Deliver it again
+  G7: Unknown
+%% model <<goal-based>> Robot | G1: Deliver sample | Plan it | Other
+%% error [G1] Duplicate id G1
+%% error [G7] Add this element in the diagram
+```
+
+```goal-check rationalAgents
+Robot
+  T1: Plan it
+  G1: Deliver sample
+Other
+%% model Robot | G1: Deliver sample | T1: Plan it | Other
 ```
 
 ## What a line can't read

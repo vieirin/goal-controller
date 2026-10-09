@@ -280,13 +280,15 @@ export const documentDiagnostics = (
       from: lineFrom + span.from,
       to: lineFrom + span.to,
     });
+    // a line without ids' definition: an id written names its element, else
+    // the line is its element's by position (every line counts)
+    const written_id = read.kind === 'element' ? read.id : null;
+    const position = order && written.trim() ? order[index++]! : null;
     const id = order
-      ? written.trim()
-        ? order[index++]!
-        : null
-      : read.kind === 'element'
-        ? read.id
-        : null;
+      ? written_id
+        ? (context.named?.[written_id] ?? `unknown ${written_id}`)
+        : position
+      : written_id;
     if (id && read.kind === 'element') {
       closeBlock();
       started = true;
@@ -295,7 +297,7 @@ export const documentDiagnostics = (
         diagnostics.push({
           ...idSpan,
           severity: 'error',
-          message: `Duplicate id ${id}`,
+          message: `Duplicate id ${written_id ?? id}`,
         });
         continue;
       }

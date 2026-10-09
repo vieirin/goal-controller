@@ -80,6 +80,21 @@ G3: Bring to lab [T3@2->T4]
 R1: Battery {int 0..100 = 80}
 ```
 
+## piStar-ext's own definition
+
+`dialectDefinition(istar4RationalAgents)` is piStar-ext with no engine:
+every iStar kind and the dialect's own, no notation, no property lines. Its
+lines are annotated names. A line is the element at its position, or the
+element its id names when it starts with one (as `G1:` and `T1:` do here).
+
+```goal-check rationalAgents
+<<goal-based>> Drone
+  {Id = G1} G1: Deliver sample
+  <<action>> {type = duty} T1: Use arm
+  Bring to lab
+%% model <<goal-based>> Drone | {Id = G1} G1: Deliver sample | <<action>> {type = duty} T1: Use arm | Bring to lab
+```
+
 ## What each dialect reports in the others' text
 
 Edge reads edgeV2's choice as an operator it doesn't have:

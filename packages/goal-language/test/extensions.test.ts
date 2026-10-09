@@ -151,4 +151,58 @@ describe('a dialect of its own (no engine)', () => {
     ]);
     expect(completionsAt(definition, doc, 3, context)).to.equal(null);
   });
+
+  describe('lines with ids', () => {
+    // the same model, its goal and plan named with ids
+    const withIds: DocumentTree = {
+      roots: tree.roots,
+      nodes: new Map(
+        [...tree.nodes].map(([key, n]) => [
+          key,
+          key === 'g1'
+            ? { ...n, name: 'G1: Deliver' }
+            : key === 'p1'
+              ? { ...n, name: 'T1: Plan it' }
+              : n,
+        ]),
+      ),
+    };
+    const doc = '<<smart>> Robot\n  {Id = G1} G1: Deliver\n  T1: Plan it';
+
+    it('writes the id an element’s name starts with, and reads it back', () => {
+      expect(notationDocument(definition, withIds).text).to.equal(doc);
+      expect(lineId(definition, '  {Id = G1} G1: Deliver')).to.equal('G1');
+      expect(notationEdits(definition, doc, withIds)).to.deep.equal([]);
+    });
+
+    it('maps a line with an id by its id, the others by position', () => {
+      // the two id lines swapped: each still edits its own element
+      const swapped = '<<smart>> Robot\n  T1: Plan it now\n  G1: Deliver';
+      expect(notationEdits(definition, swapped, withIds)).to.deep.equal([
+        { iStarId: 'p1', text: 'T1: Plan it now' },
+        { iStarId: 'g1', key: 'tag', value: null },
+        { iStarId: 'g1', key: 'tagValue', value: null },
+      ]);
+    });
+
+    it('reports a duplicate id and an id that names no element', () => {
+      const context = contextFromView(definition, withIds, []);
+      expect(context.named).to.deep.equal({ G1: 'g1', T1: 'p1' });
+      expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
+      const bad = '<<smart>> Robot\n  G1: Deliver\n  G1: Again';
+      expect(
+        documentDiagnostics(definition, bad, context).map((d) => [
+          bad.slice(d.from, d.to),
+          d.message,
+        ]),
+      ).to.deep.equal([['G1', 'Duplicate id G1']]);
+      const unknown = '<<smart>> Robot\n  G7: Deliver\n  T1: Plan it';
+      expect(
+        documentDiagnostics(definition, unknown, context).map((d) => [
+          unknown.slice(d.from, d.to),
+          d.message,
+        ]),
+      ).to.deep.equal([['G7', 'Add this element in the diagram']]);
+    });
+  });
 });

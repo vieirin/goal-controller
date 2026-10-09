@@ -77,7 +77,7 @@ export type DeclarationData = {
 };
 
 export type ElementLineData = {
-  /** `G1`, `T2.1`, ...; empty on a line without an id */
+  /** `G1`, `T2.1`, ...; empty on a line without an id (an annotated name may have one) */
   id: string;
   /** the name as written, untrimmed (`' Name '` in `G1: Name [G2]`) */
   name: string;
@@ -236,7 +236,7 @@ const toDeclaration = (
 export const toElementLine = (
   line: ElementLine | AnnotatedName,
 ): ElementLineData => ({
-  id: line.$type === 'ElementLine' ? (line.name ?? '') : '',
+  id: line.name ?? '',
   name: line.label ?? '',
   annotations: line.annotations.map(toAnnotation),
   notation: toRtTree(line.notation),

@@ -59,20 +59,30 @@ A **plain document** (`PlainDocument`) is for a dialect whose kinds have no
 id prefix, such as piStar-ext's own definition:
 
 - every non-blank line is an `AnnotatedName`;
-- the n-th line is the n-th element of the model, in the order the Notation
-  view writes them;
+- a line may start with an id (`G1: Deliver`). That id names the element
+  whose name starts with the same id, wherever the line is;
+- a line without an id is the element at its position: the n-th non-blank
+  line is the n-th element of the model, in the order the Notation view
+  writes them. Every line counts in the positions, with or without an id;
+- lines with and without ids may be mixed;
 - there are no property lines.
+
+A line's id that names no element is reported, and so is an id written
+twice ([diagnostics.md](diagnostics.md#lines)). The Notation view writes an
+element's id when its name starts with one: it writes the name as it is.
 
 ```goal-document-plain accept
 <<goal-based>> {Id = A1} Robot: arm (1)
   Deliver sample
+  G1: Deliver sample
+  <<action>> {type = duty} T1.2: Book a room
 ```
 
 ## Element lines
 
 ```
 ElementLine   : Annotation* ElementId ':' WORD ('[' RtExpr ']')? Declaration? ;
-AnnotatedName : Annotation* PLAIN_NAME  ('[' RtExpr ']')? Declaration? ;
+AnnotatedName : Annotation* (ElementId ':')? PLAIN_NAME ('[' RtExpr ']')? Declaration? ;
 ElementId     : ('G' | 'T' | 'R') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
 ```
 
@@ -112,9 +122,11 @@ G12a: Deliver sample
 - **On a line with an id** a name is WORD: letters, spaces, `-` and `'`.
   It may follow the `:` with or without spaces, and it is trimmed. Digits
   aren't allowed.
-- **On a line without an id** (PLAIN_NAME), a name is anything on one line
+- **On an annotated name** (PLAIN_NAME), a name is anything on one line
   except brackets and braces. It can't start with `<` or whitespace, and
-  its trailing spaces aren't part of it.
+  its trailing spaces aren't part of it. If it starts with an id and a `:`
+  (`G1: Deliver`, `T1.2X :Pick`), that is the line's id, and the name is
+  what follows. `G12a: Robot` has no id form, so it is all name.
 
 ```goal accept
 G1:Deliver
@@ -421,12 +433,21 @@ x
 
 ### `annotatedName`
 
-A line without an id: annotations, a name, and optionally a notation and a
-declaration (see [AnnotatedName](#element-lines)).
+A modelling dialect's line: annotations, an optional id and `:`, a name, and
+optionally a notation and a declaration (see [AnnotatedName](#element-lines)).
+`parseValue('annotatedName', …)` returns the id (`''` without one).
 
 ```goal-value annotatedName accept
 <<goal-based>> {Id = A1} Robot: arm (1)
 <<s>> Deliver [G2]
+G1: Deliver sample
+<<action>> T1.2X :Book a room
+G12a: Robot
+```
+
+```goal-value annotatedName reject
+<<s>>
+G1:
 ```
 
 ### `assertion`
@@ -495,7 +516,7 @@ two things this needs:
   | `<<…>>` | TEXT, `>>` |
   | `{…}` before the id | TEXT, `=`, `}` |
   | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->`, then `, ^ & ~ ! ( ) *`, DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped) |
-  | the name, without ids | PLAIN_NAME, then the RT set with spaces skipped |
+  | an annotated name | an optional id and `:` (`G1:` as an element line's tokens), then PLAIN_NAME, then the RT set with spaces skipped |
   | `{…}` after the name | `}`, `..`, `=`, INTEGER, IDENT, spaces (skipped) |
   | a property value | VALUE (the rest of the line) |
   | a value on its own | the type's set (an assertion: `& \| ! ( ) = != < <= > >=`, `true`, `false`, A_ID, A_INT) |

@@ -21,6 +21,7 @@ import {
   writeAnnotations,
   writeDeclaration,
 } from '../print.js';
+import { parseValue } from '../parse.js';
 import { annotatedProperties, readLine } from './lines.js';
 
 type Document = Pick<
@@ -144,16 +145,18 @@ export const notationEdits = (
   const lines = doc.split('\n');
   if (order && lines.filter((line) => line.trim()).length !== order.length)
     return [];
+  // a line with an id names its element (the id its name starts with)
+  const named = order ? writtenIds(tree) : {};
   let index = 0;
   for (const written of lines) {
     const read = readLine(definition, written);
+    const writtenId = read.kind === 'element' ? read.id : null;
+    const position = order && written.trim() ? order[index++]! : null;
     const id = order
-      ? written.trim()
-        ? order[index++]!
-        : null
-      : read.kind === 'element'
-        ? read.id
-        : null;
+      ? writtenId
+        ? (named[writtenId] ?? null)
+        : position
+      : writtenId;
     if (id && read.kind === 'element') {
       const node = tree.nodes.get(id);
       current = null;
@@ -213,6 +216,19 @@ export const notationEdits = (
  * operand children, links, construct, custom properties) and the workbench's
  * variables. The shape a language server's context notification takes.
  */
+/**
+ * The elements of a tree whose names start with an id (`G1: Deliver`), by
+ * that id: what a line without ids' definition names with one.
+ */
+export const writtenIds = (tree: DocumentTree): Record<string, string> => {
+  const named: Record<string, string> = {};
+  for (const [key, node] of tree.nodes) {
+    const id = parseValue('annotatedName', node.name).value?.id;
+    if (id && !(id in named)) named[id] = key;
+  }
+  return named;
+};
+
 export const contextFromView = (
   definition: Document,
   tree: DocumentTree,
@@ -244,5 +260,8 @@ export const contextFromView = (
   variables: [...variables],
   ...(hasIds(definition)
     ? {}
-    : { order: notationDocument(definition, tree).ids }),
+    : {
+        order: notationDocument(definition, tree).ids,
+        named: writtenIds(tree),
+      }),
 });

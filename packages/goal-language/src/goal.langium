@@ -28,9 +28,12 @@ ElementLine:
     annotations+=Annotation* name=ElementId ':' label=WORD
     ('[' notation=RtExpr ']')? declaration=Declaration?;
 
-// a line without an id (a modelling dialect's): `<<goal-based>> {Id = A1} Name`
+// a modelling dialect's line: `<<goal-based>> {Id = A1} Name`, or with an id,
+// `<<goal-based>> G1: Name` (an id names its element; without one, a line is
+// its element's by position). ElementLine stays its own rule: there the id is
+// required, and the name is RTRegex.g4's WORD.
 AnnotatedName:
-    annotations+=Annotation* label=PLAIN_NAME
+    annotations+=Annotation* (name=ElementId ':')? label=PLAIN_NAME
     ('[' notation=RtExpr ']')? declaration=Declaration?;
 
 ElementId returns string:
