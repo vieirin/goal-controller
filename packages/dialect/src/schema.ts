@@ -1,11 +1,10 @@
 /**
- * What an engine's dialect is, as data: the elements it reads and their line
- * syntax, the notation inside its delimiters, its sub-languages and every
- * property's argument config. Nothing here knows any engine: constructs,
- * operators, languages and declarations are whatever a definition declares.
- * A future generator reads the same structure the inspector and the Notation
- * view are built from, so everything is data except checks, which are named
- * (the engine's library implements them).
+ * What a dialect is, as data: the elements it reads, which of the goal
+ * language's operators it enables and the construct each one means, and the
+ * value type of every property. It describes no syntax: the goal language
+ * (`@goal-controller/goal-language`) is one fixed grammar, and a definition
+ * only picks from what it offers. Nothing here knows any engine; checks are
+ * named (the engine's library implements them).
  */
 
 /** The iStar element kinds a model has (what an engine may read). */
@@ -14,34 +13,39 @@ export type ElementKind = 'goal' | 'task' | 'resource' | 'quality';
 /** iStar refinement links: AND or OR. */
 export type Relation = 'and' | 'or';
 
+/**
+ * The properties a line's declaration sets (`{int 0..100 = 80}`: its type,
+ * bounds and initial value), in the goal language's order.
+ */
+export const DECLARATION_KEYS = [
+  'type',
+  'lowerBound',
+  'upperBound',
+  'initialValue',
+] as const;
+
+/** The properties a line's annotations set (`<<stereotype>> {tag = tagValue}`). */
+export const ANNOTATION_KEYS = ['stereotype', 'tag', 'tagValue'] as const;
+
 export type ElementDefinition = {
-  /** the id's prefix (a line with `{id}`) */
-  prefix?: string;
-  /** what follows the prefix, as a regex source (a line with `{id}`) */
-  idPattern?: string;
   /**
-   * the element's line, with `{name}` and, for a definition whose lines name
-   * their element, `{id}` (without it, lines are their elements' in order)
+   * the goal language's id prefix its lines start with (`G`: `G1: Name`);
+   * without one, a definition's lines name no element (they are their
+   * elements', in order)
    */
-  line: string;
-  /**
-   * what this kind annotates its line with, before the id
-   * (`<<action>> {type = duty}`): properties in their delimiters, read and
-   * written like the declaration, each written only when its first property is set
-   */
-  annotations?: readonly DeclarationDefinition[];
-  /**
-   * the syntax of what this kind declares on its line, after the name (a
-   * resource's `{int 0..100 = 80}`): the properties it sets, in its delimiters
-   */
-  declaration?: DeclarationDefinition;
-  /** a regex character class source: the characters a name may use */
-  nameCharset: string;
+  prefix?: 'G' | 'T' | 'R';
+  /** whether its line carries annotations (`<<action>> {type = duty}`) before the id */
+  annotated?: boolean;
+  /** whether its line declares its DECLARATION_KEYS (`{int 0..100 = 80}`) after the name */
+  declares?: boolean;
   /** the fill the diagram draws it with when no colour is saved */
   fill: string;
 };
 
-/** A property's argument, or an operator's: how its text is read. */
+/**
+ * A property's value, or an operator's argument: one of the goal language's
+ * predefined value types, with what this property allows of it.
+ */
 export type ValueConfig =
   /** `''` stands for "not set" (the property is removed) */
   /** `open`: values besides the options may be written (free text) */
@@ -50,46 +54,28 @@ export type ValueConfig =
   | { type: 'number' }
   | { type: 'text' }
   | { type: 'bool' }
-  /** written in one of the definition's `languages` */
-  | { type: 'expression'; language: string }
-  | { type: 'refList'; kind: ElementKind; separator: string }
-  | {
-      type: 'pairList';
-      separator: string;
-      pair: string;
-      value: 'int' | 'number' | 'text';
-    };
+  /** a condition; its identifiers name elements of these kinds, or variables */
+  | { type: 'assertion'; resolves: readonly (ElementKind | 'variable')[] }
+  /** ids of elements of a kind, comma-separated */
+  | { type: 'refList'; kind: ElementKind }
+  /** `name:value` pairs, comma-separated */
+  | { type: 'pairList'; value: 'int' | 'number' | 'text' }
+  | { type: 'annotatedName' };
+
+export type ValueType = ValueConfig['type'];
 
 export type EnumOption = { value: string; label: string };
 
-export type Operator =
-  | {
-      /** `a <symbol> b`, writing a construct */
-      symbol: string;
-      form: 'infix';
-      construct: string;
-      assoc: 'left' | 'right';
-    }
-  | {
-      /** `a <symbol><argument>`: modifies its operand, no construct of its own */
-      symbol: string;
-      form: 'postfix';
-      assoc: 'left';
-      argument: { name: string; value: ValueConfig; default: string };
-      label: string;
-      help: string;
-      /** the constructs it changes anything in (the inspector offers it there) */
-      appliesTo: readonly string[];
-      /** the inspector button's title; `{<argument name>}` is its default */
-      action: string;
-    }
-  | {
-      /** the symbol on its own is the whole notation */
-      symbol: string;
-      form: 'standalone';
-      construct: string;
-      assoc: 'none';
-    };
+/** What a postfix operator means: it modifies its operand, with an argument. */
+export type ModifierDefinition = {
+  argument: { name: string; value: ValueConfig; default: string };
+  label: string;
+  help: string;
+  /** the constructs it changes anything in (the inspector offers it there) */
+  appliesTo: readonly string[];
+  /** the inspector button's title; `{<argument name>}` is its default */
+  action: string;
+};
 
 export type ConstructDefinition = {
   label: string;
@@ -99,11 +85,18 @@ export type ConstructDefinition = {
 };
 
 export type NotationDefinition = {
-  delimiters: readonly [string, string];
-  /** what an operand is: an element id of these kinds, or a keyword */
-  operand: { kinds: readonly ElementKind[]; keywords: readonly string[] };
-  /** tightest → loosest */
-  operators: readonly Operator[];
+  /** what an operand is: an element of these kinds (by id), or `skip` if allowed */
+  operand: { kinds: readonly ElementKind[]; skip?: boolean };
+  /**
+   * The goal language's operators this dialect enables, by symbol: binary and
+   * prefix ones name a construct, postfix ones a modifier. Any other is an
+   * error in this dialect. How tightly each binds is the language's.
+   */
+  operators: Readonly<Record<string, string>>;
+  /** standalone symbols it enables (`[+]`), by symbol: the construct each one is */
+  standalone?: Readonly<Record<string, string>>;
+  /** what its postfix operators mean, by name */
+  modifiers?: Readonly<Record<string, ModifierDefinition>>;
   /** by name, in the order editors list them */
   constructs: Readonly<Record<string, ConstructDefinition>>;
   /** what a goal without a notation does, by its links */
@@ -140,35 +133,6 @@ export type PropertyDefinition = {
   inspector?: boolean;
 };
 
-/**
- * A declaration's syntax, as a sequence: a property's value, a literal, or an
- * optional group (written only when all its properties are set). A literal is
- * written as is; read with any whitespace around it (a blank literal: some).
- */
-export type DeclarationPart =
-  | { key: string; pattern: string }
-  | { literal: string }
-  | { optional: readonly DeclarationPart[] };
-
-export type DeclarationDefinition = {
-  delimiters: readonly [string, string];
-  parts: readonly DeclarationPart[];
-};
-
-/** A sub-language property values are written in. */
-export type LanguageDefinition = {
-  /** tightest → loosest */
-  operators: readonly { symbol: string; form: 'infix' | 'prefix' }[];
-  parens: readonly [string, string];
-  comparators: readonly string[];
-  /** literal kinds, as regex sources */
-  literals: Readonly<Record<string, string>>;
-  keywords: readonly string[];
-  identifier: string;
-  /** what an identifier may name: elements of these kinds, or variables */
-  resolves: readonly (ElementKind | 'variable')[];
-};
-
 /** The mismatches between a notation and the structure the views report. */
 export type ProblemKind =
   | 'notAChild'
@@ -187,18 +151,12 @@ export type DialectDefinition<K extends string = ElementKind> = {
   id: string;
   /** shown to people */
   name: string;
-  /** the grammar the engine's library reads texts with (none without an engine) */
-  grammar?: string;
-  /** the parser that reads it */
-  parser?: string;
   elements: Readonly<Partial<Record<K, ElementDefinition>>>;
   /** the fill of a kind without its own */
   defaultFill: string;
   /** what its delimiters hold on an element's line (a dialect may have none) */
   notation?: NotationDefinition;
   properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
-  /** a property's line under its element: key, separator, value */
-  propertyLine: { separator: string; keyPattern: string };
   /** the order property lines are written in, for every listed kind alike */
   propertyLineOrder: readonly string[];
   /** how far each depth is indented in the Notation view (presentation only) */
@@ -207,7 +165,6 @@ export type DialectDefinition<K extends string = ElementKind> = {
   problems: Readonly<
     Record<ProblemKind, { severity: Severity; message: string }>
   >;
-  languages: Readonly<Record<string, LanguageDefinition>>;
 };
 
 /** A definition of any kinds: what the derived helpers read. */
@@ -216,10 +173,10 @@ export type AnyDialect = DialectDefinition<string>;
 /** A definition with a notation (an engine's). */
 export type WithNotation = { notation: NotationDefinition };
 
-/** Whether a definition's lines name their elements (`{id}`), or are theirs in order. */
+/** Whether a definition's lines name their elements (by id), or are theirs in order. */
 export const hasIds = (definition: Pick<AnyDialect, 'elements'>): boolean =>
-  Object.values(definition.elements).some((element) =>
-    element?.line.includes('{id}'),
+  Object.values(definition.elements).some(
+    (element) => element?.prefix !== undefined,
   );
 
 /**
@@ -241,6 +198,25 @@ export type DefinitionContext = {
   variables: readonly string[];
   /** a definition whose lines name no element: the elements its lines are, in order */
   order?: readonly string[];
+};
+
+/** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */
+export type DocumentNode = {
+  iStarId: string;
+  id: string;
+  kind: string;
+  name: string;
+  notation: string | null;
+  properties: Readonly<Record<string, string>>;
+  children: readonly string[];
+  relation?: Relation | null;
+  construct?: string | null;
+};
+
+/** What the document reads of a view (goal-tree's `GoalView` is one). */
+export type DocumentTree = {
+  nodes: ReadonlyMap<string, DocumentNode>;
+  roots: readonly string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -291,30 +267,15 @@ const conditionKey = (c: unknown): string | null =>
         : null
     : null;
 
-/** The properties a declaration's parts set, in order. */
-export const declarationKeys = (
-  declaration: DeclarationDefinition,
-): string[] => {
-  const keys = (parts: readonly DeclarationPart[]): string[] =>
-    parts.flatMap((part) =>
-      'key' in part
-        ? [part.key]
-        : 'optional' in part
-          ? keys(part.optional)
-          : [],
-    );
-  return keys(declaration.parts);
-};
-
 /** The keys a kind writes on its element line (annotations and declaration), not on property lines. */
 export const elementLineKeys = (
   element: ElementDefinition | undefined,
 ): string[] =>
   element
     ? [
-        ...(element.annotations ?? []),
-        ...(element.declaration ? [element.declaration] : []),
-      ].flatMap(declarationKeys)
+        ...(element.annotated ? ANNOTATION_KEYS : []),
+        ...(element.declares ? DECLARATION_KEYS : []),
+      ]
     : [];
 
 /**
@@ -332,33 +293,33 @@ export const defineDialect = <const D extends AnyDialect>(
   const { notation } = definition;
   if (notation) {
     const constructs = Object.keys(notation.constructs);
-    for (const op of notation.operators) {
-      const named = op.form === 'postfix' ? op.appliesTo : [op.construct];
-      for (const c of named)
+    const modifiers = notation.modifiers ?? {};
+    for (const [symbol, meaning] of Object.entries(notation.operators))
+      if (!constructs.includes(meaning) && !(meaning in modifiers))
+        fail(`operator ${symbol}: unknown construct ${meaning}`);
+    for (const [symbol, construct] of Object.entries(notation.standalone ?? {}))
+      if (!constructs.includes(construct))
+        fail(`standalone ${symbol}: unknown construct ${construct}`);
+    for (const [name, modifier] of Object.entries(modifiers)) {
+      if (!Object.values(notation.operators).includes(name))
+        fail(`modifier ${name}: no operator means it`);
+      for (const c of modifier.appliesTo)
         if (!constructs.includes(c))
-          fail(`operator ${op.symbol}: unknown construct ${c}`);
+          fail(`modifier ${name}: unknown construct ${c}`);
     }
     for (const c of Object.values(notation.defaultConstruct))
       if (!constructs.includes(c)) fail(`unknown default construct ${c}`);
   }
   const elements = definition.elements as AnyDialect['elements'];
-  const named = Object.values(elements).filter((e) => e?.line.includes('{id}'));
+  const named = Object.values(elements).filter((e) => e?.prefix !== undefined);
   if (named.length && named.length !== Object.keys(elements).length)
-    fail('either every element line has an {id}, or none has');
-  for (const element of named)
-    if (element?.prefix === undefined || element.idPattern === undefined)
-      fail('an element line with an {id} needs its prefix and idPattern');
+    fail('either every element has an id prefix, or none has');
   for (const [kind, list] of Object.entries(definition.properties)) {
     const keys = list.map((p) => p.key);
     if (new Set(keys).size !== keys.length)
       fail(`repeated ${kind} property key`);
     for (const property of list) {
       const value = property.value;
-      const values =
-        'when' in value ? [value.matching, value.otherwise] : [value];
-      for (const v of values)
-        if (v.type === 'expression' && !(v.language in definition.languages))
-          fail(`${kind}.${property.key}: unknown language ${v.language}`);
       for (const key of [property.applies, property.required, value].map(
         conditionKey,
       ))
@@ -375,7 +336,7 @@ export const defineDialect = <const D extends AnyDialect>(
   // property lines: under the listed kinds that declare nothing on their line
   const lineKeys = new Set(
     Object.entries(elements).flatMap(([kind, element]) => {
-      if (!element || element.declaration) return [];
+      if (!element || element.declares) return [];
       const onElementLine = elementLineKeys(element);
       return (properties[kind] ?? [])
         .map((p) => p.key)
@@ -493,8 +454,9 @@ export type TaggedValueDefinition = {
 /**
  * A dialect of iStar, for any engine: the kinds and links it adds (a metamodel
  * extension, with how they are drawn), named sets of kinds (groupers), and the
- * stereotypes and tagged values elements may carry, written as annotations on
- * the lines of the kinds an engine reads.
+ * stereotypes and tagged values elements may carry, written as the goal
+ * language's annotations (`<<stereotype>> {tag = value}`) on the lines of the
+ * kinds an engine reads.
  */
 export type ExtensionDefinition = {
   /** the namespace of its kinds */
@@ -508,14 +470,6 @@ export type ExtensionDefinition = {
   taggedValues: readonly TaggedValueDefinition[];
   /** tagged values every element may carry (free text) */
   defaultTags: readonly string[];
-  /**
-   * how an element line writes them: the stereotype's annotation sets one
-   * property, the tagged value's its name and value
-   */
-  annotations: {
-    stereotype: DeclarationDefinition;
-    taggedValue: DeclarationDefinition;
-  };
 };
 
 const CATEGORIES = ['node', 'actor', '*'];
@@ -581,10 +535,5 @@ export const defineExtension = <const E extends ExtensionDefinition>(
         !linkKinds.includes(target)
       )
         fail(`${name} applies to unknown ${target}`);
-  const { stereotype, taggedValue } = extension.annotations;
-  if (declarationKeys(stereotype).length !== 1)
-    fail('a stereotype annotation sets one property');
-  if (![1, 2].includes(declarationKeys(taggedValue).length))
-    fail('a tagged value annotation sets its name, and its value');
   return deepFreeze(extension) as DeepReadonly<E>;
 };

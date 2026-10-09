@@ -45,12 +45,25 @@ describe('defineDialect', () => {
         ...d,
         notation: {
           ...d.notation!,
-          operators: [
-            { symbol: '%', form: 'infix', construct: 'nope', assoc: 'left' },
-          ],
+          operators: { ...d.notation!.operators, '^': 'nope' },
         },
       })),
-    ).to.throw(/toy: operator %: unknown construct nope/);
+    ).to.throw(/toy: operator \^: unknown construct nope/);
+    expect(
+      bad((d) => ({
+        ...d,
+        notation: { ...d.notation!, standalone: { '#': 'nope' } },
+      })),
+    ).to.throw(/toy: standalone #: unknown construct nope/);
+    expect(
+      bad((d) => ({
+        ...d,
+        notation: {
+          ...d.notation!,
+          operators: { ';': 'sequence', '|': 'fallback' },
+        },
+      })),
+    ).to.throw(/toy: modifier retry: no operator means it/);
     expect(
       bad((d) => ({
         ...d,
@@ -62,23 +75,7 @@ describe('defineDialect', () => {
     ).to.throw(/unknown default construct nope/);
   });
 
-  it('rejects languages, keys and conditions it does not declare', () => {
-    expect(
-      bad((d) => ({
-        ...d,
-        properties: {
-          ...d.properties,
-          task: [
-            {
-              key: 'x',
-              value: { type: 'expression', language: 'nope' },
-              help: '',
-            },
-          ],
-        },
-        propertyLineOrder: ['priority', 'deadline', 'hidden', 'x'],
-      })),
-    ).to.throw(/task.x: unknown language nope/);
+  it('rejects keys and conditions it does not declare', () => {
     expect(
       bad((d) => ({
         ...d,
@@ -112,10 +109,12 @@ describe('defineDialect', () => {
         ...d,
         properties: {
           ...d.properties,
-          resource: d.properties.resource!.filter((p) => p.key !== 'initial'),
+          resource: d.properties.resource!.filter(
+            (p) => p.key !== 'initialValue',
+          ),
         },
       })),
-    ).to.throw(/resource line declares unknown initial/);
+    ).to.throw(/resource line declares unknown initialValue/);
   });
 
   it('needs the property-line order to list each line key once', () => {
@@ -135,28 +134,16 @@ describe('defineDialect', () => {
     expect(
       bad((d) => ({
         ...d,
-        elements: {
-          ...d.elements,
-          quality: { ...d.elements.quality!, line: '{name}' },
-        },
+        elements: { ...d.elements, quality: { fill: '#000' } },
       })),
-    ).to.throw(/either every element line has an \{id\}, or none has/);
-    expect(
-      bad((d) => ({
-        ...d,
-        elements: {
-          ...d.elements,
-          quality: { line: '{id}: {name}', nameCharset: '.', fill: '#000' },
-        },
-      })),
-    ).to.throw(/needs its prefix and idPattern/);
+    ).to.throw(/either every element has an id prefix, or none has/);
     const noIds = (d: AnyDialect): AnyDialect => ({
       ...d,
       notation: undefined,
       elements: Object.fromEntries(
         Object.entries(d.elements).map(([kind, e]) => [
           kind,
-          { line: '{name}', nameCharset: '.', fill: e!.fill },
+          { fill: e!.fill },
         ]),
       ),
     });
@@ -239,19 +226,5 @@ describe('defineExtension', () => {
         toyDialect as ExtensionDefinition,
       ),
     ).to.not.throw();
-  });
-
-  it('needs annotations that set a stereotype, and a tag and its value', () => {
-    const { stereotype, taggedValue } = toyDialect.annotations;
-    expect(
-      bad({
-        annotations: { stereotype: { ...stereotype, parts: [] }, taggedValue },
-      }),
-    ).to.throw(/a stereotype annotation sets one property/);
-    expect(
-      bad({
-        annotations: { stereotype, taggedValue: { ...taggedValue, parts: [] } },
-      }),
-    ).to.throw(/a tagged value annotation sets its name, and its value/);
   });
 });

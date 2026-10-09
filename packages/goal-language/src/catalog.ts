@@ -2,8 +2,9 @@
  * What the goal language offers every dialect, as data (no parser here, so the
  * dialect package and the browser read it without loading Langium): the RT
  * notation's operator catalog with its fixed precedence, the assertion
- * language's operators, the predefined value types, and the slots of the
- * predefined element-line parts (annotations, declaration).
+ * language's operators and the predefined value types. (The properties an
+ * element line's annotations and declaration set are the dialect package's
+ * DECLARATION_KEYS and ANNOTATION_KEYS.)
  *
  * A dialect enables operators and names the construct each one means; it
  * cannot add an operator or change how tightly one binds. goal.langium is
@@ -126,17 +127,3 @@ export const VALUE_TYPES = [
   'annotatedName',
 ] as const;
 export type ValueType = (typeof VALUE_TYPES)[number];
-
-/** The properties an element line's declaration (`{int 0..100 = 80}`) sets. */
-export const DECLARATION_KEYS = [
-  'type',
-  'lowerBound',
-  'upperBound',
-  'initialValue',
-] as const;
-
-/** The properties an element line's annotations (`<<s>> {tag = value}`) set. */
-export const ANNOTATION_KEYS = ['stereotype', 'tag', 'tagValue'] as const;
-
-/** A property line's key: `maintain battery > 20`. */
-export const PROPERTY_KEY = /^[A-Za-z][A-Za-z0-9_]*$/;

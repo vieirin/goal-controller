@@ -61,11 +61,12 @@ export const inputFor = (
         : { kind: 'integer', min: value.min };
     case 'number':
       return { kind: 'number' };
-    case 'expression':
+    case 'assertion':
       return withPlaceholder({ kind: 'long' as const });
     case 'text':
     case 'refList':
     case 'pairList':
+    case 'annotatedName':
       return withPlaceholder({ kind: 'text' as const });
   }
 };

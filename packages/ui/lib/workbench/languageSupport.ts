@@ -14,17 +14,19 @@ import { forceLinting, linter, type Diagnostic } from '@codemirror/lint';
 import type { Extension } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import {
+  propertyOf,
+  valueOf,
+  type DefinitionContext,
+  type AnyDialect,
+} from '@goal-controller/dialect';
+import {
   completionsAt,
   documentDiagnostics,
   fieldCompletionsAt,
   fieldDiagnostics,
-  propertyOf,
-  valueOf,
   type CompletionResult as DefinitionCompletions,
-  type DefinitionContext,
-  type AnyDialect,
   type RunCheck,
-} from '@goal-controller/dialect';
+} from '@goal-controller/goal-language';
 import type { Check } from '@goal-controller/lib';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
 
@@ -133,7 +135,7 @@ export const localLanguageSupport = (
       };
       const initial = value();
       return [
-        initial ? valueLanguage(definition, initial) : [],
+        initial ? valueLanguage(initial) : [],
         lintWith((view) =>
           fieldDiagnostics(
             definition,

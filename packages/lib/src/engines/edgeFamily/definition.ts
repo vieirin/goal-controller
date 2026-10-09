@@ -3,11 +3,10 @@
  * line syntax, the constructs, the resource declaration, the editors' problems.
  * Each engine's own file adds its operators.
  */
-import { assertionLanguage } from './assertion';
 import type {
   ConstructDefinition,
-  DeclarationDefinition,
   ElementDefinition,
+  ModifierDefinition,
   ProblemKind,
   Severity,
 } from '@goal-controller/dialect';
@@ -16,40 +15,8 @@ import { edgeProperties, edgePropertyLineOrder } from './properties';
 /** The default fill of an intentional element (the istar-ts canvas, as piStar). */
 export const DEFAULT_ELEMENT_FILL = '#CDFECD';
 
-// `1`, `1.2`, `1X`, `X`, `1a` (RTRegex.g4's id)
-const ID = '(?:[0-9]+\\.?[0-9]*X?|X|[0-9][a-z])';
-const NAME = "[A-Za-z\\- ']";
-
-const NUMBER = '-?\\d+';
-const WORD = '[A-Za-z_]\\w*';
-
-/** A resource's declaration: `{int 0..100 = 80}`, `{bool = false}`. */
-const resourceDeclaration: DeclarationDefinition = {
-  delimiters: ['{', '}'],
-  parts: [
-    { key: 'type', pattern: WORD },
-    {
-      optional: [
-        { literal: ' ' },
-        { key: 'lowerBound', pattern: NUMBER },
-        { literal: '..' },
-        { key: 'upperBound', pattern: NUMBER },
-      ],
-    },
-    {
-      optional: [
-        { literal: ' = ' },
-        { key: 'initialValue', pattern: `${NUMBER}|${WORD}` },
-      ],
-    },
-  ],
-};
-
-const element = (prefix: string, fill: string): ElementDefinition => ({
+const element = (prefix: 'G' | 'T' | 'R', fill: string): ElementDefinition => ({
   prefix,
-  idPattern: ID,
-  line: '{id}: {name}',
-  nameCharset: NAME,
   fill,
 });
 
@@ -57,10 +24,8 @@ export const edgeElements = {
   goal: element('G', DEFAULT_ELEMENT_FILL),
   task: element('T', DEFAULT_ELEMENT_FILL),
   // piStar's resource yellow: Edge resources are drawn with it unless they have a colour
-  resource: {
-    ...element('R', '#FAF383'),
-    declaration: resourceDeclaration,
-  },
+  // `R1: Battery {int 0..100 = 80}`: its type, bounds and initial value
+  resource: { ...element('R', '#FAF383'), declares: true },
 };
 
 /**
@@ -104,17 +69,14 @@ export const CONSTRUCTS = {
   },
 } as const satisfies Record<string, ConstructDefinition>;
 
-/** `G1@3`: retries the goal on its left (tightest of all operators). */
+/** `G1@3`: retries the goal on its left (`@`, the tightest of all operators). */
 export const RETRY = {
-  symbol: '@',
-  form: 'postfix',
-  assoc: 'left',
   argument: { name: 'retries', value: { type: 'int', min: 1 }, default: '3' },
   label: 'Retry',
   help: 'retries the goal on its left up to N times (G1@3)',
   appliesTo: ['degradation'],
   action: 'Retry the first child up to {retries} times before falling back',
-} as const;
+} as const satisfies ModifierDefinition;
 
 /**
  * How serious each notation/structure mismatch is, for every editor (Notation
@@ -139,21 +101,19 @@ const problems: Record<ProblemKind, { severity: Severity; message: string }> = {
   },
 };
 
-/** Everything an Edge definition has but its id, name, grammar, parser and operators. */
+/** Everything an Edge definition has but its id, name and operators. */
 export const edgeFamily = {
   elements: edgeElements,
   defaultFill: DEFAULT_ELEMENT_FILL,
   properties: edgeProperties,
-  propertyLine: { separator: ' ', keyPattern: '[A-Za-z]+' },
   propertyLineOrder: edgePropertyLineOrder,
   indent: '  ',
   problems,
-  languages: { assertion: assertionLanguage },
 } as const;
 
 export const edgeNotation = {
-  delimiters: ['[', ']'],
-  operand: { kinds: ['goal', 'task'], keywords: ['skip'] },
+  operand: { kinds: ['goal', 'task'], skip: true },
+  modifiers: { retry: RETRY },
   constructs: CONSTRUCTS,
   defaultConstruct: { and: 'interleaved', or: 'alternative' },
 } as const;

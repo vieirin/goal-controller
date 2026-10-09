@@ -1,6 +1,6 @@
 'use client';
 
-import { contextFromView } from '@goal-controller/dialect';
+import { contextFromView } from '@goal-controller/goal-language';
 import { useEffect, useMemo, useRef } from 'react';
 import { dialectTree, parseModel } from '@/lib/workbench/dialects';
 import { localLanguageSupport } from '@/lib/workbench/languageSupport';

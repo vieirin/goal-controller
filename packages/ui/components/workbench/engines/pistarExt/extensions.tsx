@@ -4,14 +4,12 @@ import {
   ISTAR_ACTOR_KINDS,
   ISTAR_LINK_KINDS,
   ISTAR_NODE_KINDS,
-  annotationsFor,
   metamodelExtensionOf,
-  writeAnnotations,
   type ExtensionDefinition,
 } from '@goal-controller/dialect';
+import { writeAnnotations } from '@goal-controller/goal-language/light';
 import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { LINE_DASHES, TEXT_BOXES, type IstarExtension } from '@istar-ts/react';
-import { DIALECTS } from '@/lib/workbench/dialects';
 
 /**
  * piStar-ext in the diagram: iStar4RationalAgents' kinds and the model's own,
@@ -21,27 +19,19 @@ import { DIALECTS } from '@/lib/workbench/dialects';
  * out in the kind's text box and fits it (labelHeader, textBox, labelFit).
  */
 
-const dialect: ExtensionDefinition = DIALECTS.pistarext;
-const { stereotype: STEREOTYPE, taggedValue: TAGGED_VALUE } =
-  dialect.annotations;
-
-/** What an element or link carries, by its kind's annotations: `<<goal-based>> {Id = G1}`. */
+/** What an element or link carries, as the goal language's annotations: `<<goal-based>> {Id = G1}`. */
 export const labelAnnotations = (
   target: IstarElement<string> | IstarLink<string>,
-): string | null =>
-  writeAnnotations(
-    annotationsFor(dialect, target.kind),
-    target.customProperties ?? {},
-  );
+): string | null => writeAnnotations(target.customProperties ?? {});
 
 /** Its stereotype line, then its tagged value line (none: no header). */
 const labelHeader = (
   target: IstarElement<string> | IstarLink<string>,
 ): string[] => {
-  const properties = target.customProperties ?? {};
+  const { stereotype, tag, tagValue } = target.customProperties ?? {};
   return [
-    writeAnnotations([STEREOTYPE], properties),
-    writeAnnotations([TAGGED_VALUE], properties),
+    writeAnnotations({ stereotype }),
+    writeAnnotations({ tag, tagValue }),
   ].filter((line): line is string => line !== null);
 };
 

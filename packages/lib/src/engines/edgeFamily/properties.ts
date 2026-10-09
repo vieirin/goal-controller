@@ -1,6 +1,6 @@
 /**
- * The custom properties the Edge engines read (edge, edgeV2 and edgeLangium
- * read the same keys and check them the same way today): one list per kind, in
+ * The custom properties the Edge engines read (edge and edgeV2 read the
+ * same keys and check them the same way today): one list per kind, in
  * the inspector's order. Checks are named; lib's check registry implements them.
  */
 import type { PropertyDefinition } from '@goal-controller/dialect';
@@ -20,7 +20,11 @@ const HELP = {
   root: 'marks the root goal',
 } as const;
 
-const CONDITION = { type: 'expression', language: 'assertion' } as const;
+/** a condition over resources and the workbench's variables (`battery > 20 & !charging`) */
+const CONDITION = {
+  type: 'assertion',
+  resolves: ['resource', 'variable'],
+} as const;
 
 /** utility, cost: the same on goals and tasks, no engine check */
 const REWARDS = [
@@ -73,14 +77,14 @@ export const edgeProperties = {
     ...REWARDS,
     {
       key: 'dependsOn',
-      value: { type: 'refList', kind: 'goal', separator: ',' },
+      value: { type: 'refList', kind: 'goal' },
       input: { placeholder: 'goal ids, comma-separated: G2, G5' },
       help: HELP.dependsOn,
       check: 'edge.goal.dependsOn',
     },
     {
       key: 'variables',
-      value: { type: 'pairList', separator: ',', pair: ':', value: 'int' },
+      value: { type: 'pairList', value: 'int' },
       input: { placeholder: 'decision variables, name:space, …' },
       help: HELP.variables,
       check: 'edge.goal.variables',

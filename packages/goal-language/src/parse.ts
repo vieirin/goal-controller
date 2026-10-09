@@ -110,7 +110,7 @@ let services: GoalCoreServices | undefined;
 export const goalServices = (): GoalCoreServices =>
   (services ??= createGoalCoreServices().Goal);
 
-const syntaxErrors = (result: ParseResult): GoalSyntaxError[] => [
+export const syntaxErrorsOf = (result: ParseResult): GoalSyntaxError[] => [
   ...result.lexerErrors.map((e) => ({
     line: e.line ?? 1,
     column: (e.column ?? 1) - 1,
@@ -133,7 +133,7 @@ const syntaxErrors = (result: ParseResult): GoalSyntaxError[] => [
 
 const parse = <T>(start: LexerStart, text: string) => {
   const result = parseWith(goalServices(), start, text);
-  return { root: result.value as T, errors: syntaxErrors(result) };
+  return { root: result.value as T, errors: syntaxErrorsOf(result) };
 };
 
 // after a syntax error Langium leaves the nodes it could not finish partial

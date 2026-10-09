@@ -20,6 +20,7 @@
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.13",
     "@goal-controller/dialect": "workspace:*",
+    "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
     "@goal-controller/lib": "workspace:*",
     "@istar-ts/core": "^0.11.0",

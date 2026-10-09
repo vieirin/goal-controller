@@ -1,7 +1,6 @@
 /**
- * What the Edge engines (edge, edgeV2, edgeLangium) share: their definitions'
- * common pieces, their properties, the assertion language their conditions are
- * written in, and the checks those properties name.
+ * What the Edge engines (edge, edgeV2) share: their definitions'
+ * common pieces, their properties, and the checks those properties name.
  */
 export {
   CONSTRUCTS,
@@ -12,5 +11,4 @@ export {
   edgeNotation,
 } from './definition';
 export { edgeProperties, edgePropertyLineOrder } from './properties';
-export { assertionLanguage } from './assertion';
 export * from './checks';

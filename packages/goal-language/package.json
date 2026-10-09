@@ -12,33 +12,38 @@
       "import": "./out/esm/index.js",
       "require": "./out/cjs/index.cjs"
     },
-    "./catalog": {
-      "types": "./out/esm/catalog.d.ts",
-      "import": "./out/esm/catalog.js",
-      "require": "./out/cjs/catalog.cjs"
+    "./light": {
+      "types": "./out/esm/light.d.ts",
+      "import": "./out/esm/light.js",
+      "require": "./out/cjs/light.cjs"
     }
   },
   "typesVersions": {
     "*": {
-      "catalog": [
-        "out/esm/catalog.d.ts"
+      "light": [
+        "out/esm/light.d.ts"
       ]
     }
   },
   "scripts": {
     "generate": "langium generate",
     "build": "rm -rf out && tsc && node build.mjs",
-    "test": "node --import tsx --test test/*.test.ts",
+    "test": "mocha",
     "clean": "rm -rf out"
   },
   "dependencies": {
+    "@goal-controller/dialect": "workspace:*",
     "chevrotain": "~13.2.0",
     "langium": "4.4.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^22.6.0",
+    "chai": "^4.3.10",
     "esbuild": "^0.28.2",
     "langium-cli": "4.4.0",
+    "mocha": "^10.2.0",
     "tsx": "^4.23.15",
     "typescript": "^5.8.3"
   }

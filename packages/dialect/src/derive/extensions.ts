@@ -9,11 +9,10 @@ import {
   ISTAR_ACTOR_KINDS,
   ISTAR_KIND_OF,
   ISTAR_NODE_KINDS,
-  declarationKeys,
+  ANNOTATION_KEYS,
   defineDialect,
   type AnyDialect,
   type ConditionalValue,
-  type DeclarationDefinition,
   type ElementDefinition,
   type ExtensionDefinition,
   type LinkRulesDefinition,
@@ -98,10 +97,9 @@ const options = (values: readonly string[]) => [
 ];
 
 /** The property keys a dialect's annotations set: the stereotype, a tag's name and value. */
-export const annotationKeys = (extension: ExtensionDefinition) => {
-  const [stereotype] = declarationKeys(extension.annotations.stereotype);
-  const [tag, tagValue] = declarationKeys(extension.annotations.taggedValue);
-  return { stereotype: stereotype!, tag: tag!, tagValue };
+export const annotationKeys = (_extension?: ExtensionDefinition) => {
+  const [stereotype, tag, tagValue] = ANNOTATION_KEYS;
+  return { stereotype, tag, tagValue };
 };
 
 /**
@@ -156,19 +154,6 @@ export const profileProperties = (
         ]
       : []),
   ];
-};
-
-/**
- * The annotations any element (or link) carries, in line order: its stereotype,
- * then its tagged value. Every kind may carry both (a stereotype or tag its
- * profile does not list is written as typed); the profile lists the known ones.
- */
-export const annotationsFor = (
-  extension: ExtensionDefinition,
-  _kind: string,
-): DeclarationDefinition[] => {
-  const { stereotype, taggedValue } = extension.annotations;
-  return [stereotype, taggedValue];
 };
 
 /** One of a dialect's declared sets, as its editors list them. */
@@ -240,7 +225,7 @@ export const withExtension = (
     const added = profileProperties(extension, istarKindOf(kind));
     elements[kind] = {
       ...element,
-      annotations: annotationsFor(extension, istarKindOf(kind)),
+      annotated: true,
     };
     properties[kind] = [...(base.properties[kind] ?? []), ...added];
   }
@@ -268,9 +253,6 @@ export const dialectDefinition = (extension: ExtensionDefinition) => {
     ...extension.elements.map((element) => element.kind),
   ];
   const element: ElementDefinition = {
-    line: '{name}',
-    // anything but a line break: a name is the label as piStar shows it
-    nameCharset: '.',
     fill: NODE_FILL,
   };
   const plain = {
@@ -279,7 +261,6 @@ export const dialectDefinition = (extension: ExtensionDefinition) => {
     elements: Object.fromEntries(kinds.map((kind) => [kind, element])),
     defaultFill: NODE_FILL,
     properties: Object.fromEntries(kinds.map((kind) => [kind, []])),
-    propertyLine: { separator: ' ', keyPattern: '[A-Za-z]+' },
     propertyLineOrder: [],
     indent: '  ',
     // the notation's problems are never reported: it has no notation
@@ -292,7 +273,6 @@ export const dialectDefinition = (extension: ExtensionDefinition) => {
         message: 'Add this element in the diagram',
       },
     },
-    languages: {},
   } satisfies AnyDialect;
   return withExtension(plain, extension, {
     id: extension.name,

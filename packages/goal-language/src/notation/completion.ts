@@ -4,14 +4,15 @@
  * keywords; on a line under an element, the keys its kind reads (not yet
  * set); in a field, the ids or names its value config refers to.
  */
-import type {
-  DefinitionContext,
-  AnyDialect,
-  WithNotation,
-  ValueConfig,
-} from '../schema';
-import { lineId, readPropertyLine } from './lines';
-import { constructDefinition } from './operators';
+import {
+  constructDefinition,
+  type DefinitionContext,
+  type AnyDialect,
+  type WithNotation,
+  type ValueConfig,
+} from '@goal-controller/dialect';
+import { ASSERTION, SKIP } from '../catalog.js';
+import { lineId, readPropertyLine } from './lines.js';
 
 export type Completion = {
   label: string;
@@ -23,12 +24,7 @@ export type CompletionResult = { from: number; options: Completion[] };
 
 type Definition = Pick<
   AnyDialect,
-  | 'elements'
-  | 'notation'
-  | 'properties'
-  | 'propertyLine'
-  | 'propertyLineOrder'
-  | 'languages'
+  'elements' | 'notation' | 'properties' | 'propertyLineOrder'
 >;
 
 const WORD = /[A-Za-z0-9_.]*$/;
@@ -54,9 +50,8 @@ export const completionsAt = (
   const id = lineId(definition, text);
   if (id) {
     if (!definition.notation) return null;
-    const [open, close] = definition.notation.delimiters;
-    const opened = before.lastIndexOf(open);
-    if (opened < 0 || before.lastIndexOf(close) > opened) return null;
+    const opened = before.lastIndexOf('[');
+    if (opened < 0 || before.lastIndexOf(']') > opened) return null;
     const element = context.elements[id];
     return {
       from,
@@ -66,10 +61,9 @@ export const completionsAt = (
           type: 'variable' as const,
           detail: context.elements[child]?.kind,
         })),
-        ...definition.notation.operand.keywords.map((keyword) => ({
-          label: keyword,
-          type: 'keyword' as const,
-        })),
+        ...(definition.notation.operand.skip
+          ? [{ label: SKIP, type: 'keyword' as const }]
+          : []),
       ],
     };
   }
@@ -91,7 +85,7 @@ export const completionsAt = (
   }
   const element = owner ? context.elements[owner] : undefined;
   const owned = element && definition.elements[element.kind];
-  if (!element || !owned || owned.declaration) return null;
+  if (!element || !owned || owned.declares) return null;
   return {
     from,
     options: (definition.properties[element.kind] ?? [])
@@ -123,18 +117,14 @@ export const fieldCompletionsAt = (
         detail: element.kind,
       }));
   if (value.type === 'refList') return { from, options: ids([value.kind]) };
-  if (value.type === 'expression') {
-    const language = definition.languages[value.language];
-    if (!language) return null;
-    const elements = ids(
-      language.resolves.filter((kind) => kind !== 'variable'),
-    );
+  if (value.type === 'assertion') {
+    const elements = ids(value.resolves.filter((kind) => kind !== 'variable'));
     const named = new Set(elements.map((option) => option.label));
     return {
       from,
       options: [
         ...elements,
-        ...(language.resolves.includes('variable')
+        ...(value.resolves.includes('variable')
           ? context.variables
               .filter((name) => !named.has(name))
               .map((name) => ({
@@ -143,7 +133,7 @@ export const fieldCompletionsAt = (
                 detail: 'variable',
               }))
           : []),
-        ...language.keywords.map((keyword) => ({
+        ...ASSERTION.bool.map((keyword) => ({
           label: keyword,
           type: 'keyword' as const,
         })),

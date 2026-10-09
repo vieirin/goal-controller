@@ -3,51 +3,29 @@
  * operand kind element with its properties on the lines under it, and one per
  * declared element with its declaration, indented by depth (presentation
  * only: structure stays in the diagram). Text edits map back to element texts
- * and properties. Every syntax decision comes from the definition.
+ * and properties. The syntax is the goal language's; what a line has (an id,
+ * annotations, a declaration) is the definition's.
  */
 import {
-  declarationKeys,
+  ANNOTATION_KEYS,
+  DECLARATION_KEYS,
   hasIds,
   type AnyDialect,
   type DefinitionContext,
-  type Relation,
-} from '../schema';
+  type DocumentNode,
+  type DocumentTree,
+} from '@goal-controller/dialect';
 import {
-  annotationsOf,
-  declarationOf,
   elementLine,
-  lineId,
   propertyLine,
-  readAnnotations,
-  readPropertyLine,
-  readDeclaration,
-  splitAnnotations,
   writeAnnotations,
   writeDeclaration,
-} from './lines';
-
-/** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */
-export type DocumentNode = {
-  iStarId: string;
-  id: string;
-  kind: string;
-  name: string;
-  notation: string | null;
-  properties: Readonly<Record<string, string>>;
-  children: readonly string[];
-  relation?: Relation | null;
-  construct?: string | null;
-};
-
-/** What the document reads of a view (goal-tree's `GoalView` is one). */
-export type DocumentTree = {
-  nodes: ReadonlyMap<string, DocumentNode>;
-  roots: readonly string[];
-};
+} from '../print.js';
+import { annotatedProperties, readLine } from './lines.js';
 
 type Document = Pick<
   AnyDialect,
-  'elements' | 'notation' | 'propertyLine' | 'propertyLineOrder' | 'indent'
+  'elements' | 'notation' | 'propertyLineOrder' | 'indent'
 >;
 
 /**
@@ -60,12 +38,12 @@ const isListed = (
   node: DocumentNode | undefined,
 ): node is DocumentNode => {
   const element = node && definition.elements[node.kind];
-  return !!element && !element.declaration;
+  return !!element && !element.declares;
 };
 
 /** An element's line without its declaration. */
 export const nodeLine = (
-  definition: Pick<AnyDialect, 'elements' | 'notation'>,
+  definition: Pick<AnyDialect, 'elements'>,
   node: Pick<DocumentNode, 'id' | 'name' | 'notation'>,
 ): string => elementLine(definition, node);
 
@@ -80,19 +58,18 @@ export const notationDocument = (
   const visit = (id: string, depth: number) => {
     const node = tree.nodes.get(id);
     if (!node || seen.has(id)) return;
-    const annotations = writeAnnotations(
-      annotationsOf(definition, node.kind),
-      node.properties,
-    );
-    const declaration = declarationOf(definition, node.kind);
-    if (declaration) {
+    const element = definition.elements[node.kind];
+    const annotations = element?.annotated
+      ? writeAnnotations(node.properties)
+      : null;
+    if (element?.declares) {
       seen.add(id);
       lines.push(
         definition.indent.repeat(depth) +
           elementLine(
             definition,
             node,
-            writeDeclaration(declaration, node.properties),
+            writeDeclaration(node.properties),
             annotations,
           ),
       );
@@ -110,8 +87,7 @@ export const notationDocument = (
       const value = node.properties[key];
       if (value !== undefined) {
         lines.push(
-          definition.indent.repeat(depth + 1) +
-            propertyLine(definition, key, value),
+          definition.indent.repeat(depth + 1) + propertyLine(key, value),
         );
         ids.push(id);
       }
@@ -170,52 +146,52 @@ export const notationEdits = (
     return [];
   let index = 0;
   for (const written of lines) {
+    const read = readLine(definition, written);
     const id = order
       ? written.trim()
         ? order[index++]!
         : null
-      : lineId(definition, written);
-    if (id) {
+      : read.kind === 'element'
+        ? read.id
+        : null;
+    if (id && read.kind === 'element') {
       const node = tree.nodes.get(id);
       current = null;
       if (!node) continue;
-      const { groups, rest: line } = splitAnnotations(definition, written);
-      const annotations = annotationsOf(definition, node.kind);
-      const annotated = readAnnotations(
-        annotations,
-        groups.map((group) => group.text),
-      );
+      const element = definition.elements[node.kind];
+      const errorBefore = (to: number) =>
+        read.errors.some((error) => error.offset < to);
       // an unreadable annotation (being typed) changes none of them yet
-      if (!annotated.read.includes(null))
-        setKeys(
-          node,
-          annotations.flatMap(declarationKeys),
-          annotated.properties,
-        );
-      const declaration = declarationOf(definition, node.kind);
-      if (declaration) {
-        const { text, properties, declared } = readDeclaration(
-          declaration,
-          line,
-        );
-        if (text !== nodeLine(definition, node))
-          edits.push({ iStarId: node.iStarId, text });
+      if (element?.annotated && !errorBefore(read.textSpan.from))
+        setKeys(node, ANNOTATION_KEYS, annotatedProperties(read));
+      if (element?.declares) {
+        if (read.text !== nodeLine(definition, node))
+          edits.push({ iStarId: node.iStarId, text: read.text });
         // an unreadable declaration (being typed) changes nothing yet
-        if (properties || !declared)
-          setKeys(node, declarationKeys(declaration), properties ?? {});
+        const declaration = read.declaration;
+        if (
+          declaration
+            ? !read.errors.some((e) => e.offset >= declaration.span.from)
+            : !written.slice(read.textSpan.from).includes('{')
+        )
+          setKeys(node, DECLARATION_KEYS, declaration?.properties ?? {});
         continue;
       }
       if (!isListed(definition, node)) continue;
-      if (line.trim() !== nodeLine(definition, node)) {
-        edits.push({ iStarId: node.iStarId, text: line.trim() });
+      if (read.text !== nodeLine(definition, node)) {
+        edits.push({ iStarId: node.iStarId, text: read.text });
       }
       current = { node, properties: new Map(), unreadable: false };
       blocks.push(current);
       continue;
     }
     if (!current || !written.trim()) continue;
-    const property = readPropertyLine(definition, written);
-    if (property) current.properties.set(property.key, property.value);
+    if (
+      read.kind === 'property' &&
+      !read.errors.length &&
+      definition.propertyLineOrder.includes(read.key)
+    )
+      current.properties.set(read.key, read.value);
     else current.unreadable = true;
   }
   for (const { node, properties, unreadable } of blocks) {

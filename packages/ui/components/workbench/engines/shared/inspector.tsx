@@ -3,11 +3,8 @@
 import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
-import {
-  constructDefinition,
-  elementLine,
-  isValidName,
-} from '@goal-controller/dialect';
+import { constructDefinition } from '@goal-controller/dialect';
+import { elementLine, isValidName } from '@goal-controller/goal-language';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {

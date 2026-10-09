@@ -102,9 +102,10 @@ describe('ui definitionLanguage', () => {
     ]);
   });
 
-  it('reads a line without annotations as before', () => {
+  it('reads annotations in every dialect, and the line after them as before', () => {
     const line = '{Id = G1} G1: A [T1;T2]';
-    expect(styled(tokens(edgeV2, line), 'meta')).to.equal('');
+    // the goal language has annotations; edgeV2's validator reports them
+    expect(styled(tokens(edgeV2, line), 'meta')).to.equal('IdG1');
     expect(styled(tokens(ra, line.slice(10)), 'labelName')).to.equal(
       styled(tokens(edgeV2, line.slice(10)), 'labelName'),
     );

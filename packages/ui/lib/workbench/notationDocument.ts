@@ -1,16 +1,16 @@
 /**
  * The Notation view's document for a model: the definition-driven document
- * (@goal-controller/dialect), its edits applied to the piStar text, the
+ * (@goal-controller/goal-language), its edits applied to the piStar text, the
  * element a line belongs to, and the context the text is checked against.
  */
 import type { GoalView } from '@goal-controller/goal-tree';
+import type { DialectDefinition } from '@goal-controller/dialect';
 import {
   contextFromView,
   lineId,
   nodeLine,
-  type DialectDefinition,
   type NotationEdit,
-} from '@goal-controller/dialect';
+} from '@goal-controller/goal-language';
 import type { SavedLines } from './languageSupport';
 import { setNodeProperty, setNodeText } from './pistar';
 
@@ -19,7 +19,7 @@ export {
   notationDocument,
   notationEdits,
   type NotationEdit,
-} from '@goal-controller/dialect';
+} from '@goal-controller/goal-language';
 
 /** The model text with a document's edits made (texts, then properties, in order). */
 export const applyNotationEdits = (

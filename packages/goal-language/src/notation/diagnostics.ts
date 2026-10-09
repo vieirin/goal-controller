@@ -7,25 +7,62 @@
  * kind does not read or that do not apply. Nothing here knows an engine.
  */
 import {
+  evaluateCondition,
+  fillTemplate,
   hasIds,
+  propertyOf,
+  relationMismatch,
   type AnyDialect,
   type DefinitionContext,
   type DefinitionContextElement,
   type Severity,
   type WithNotation,
-} from '../schema';
-import {
-  annotationsOf,
-  lineId,
-  declarationOf,
-  readDeclaration,
-  readElementLine,
-  readAnnotations,
-  readPropertyLine,
-  splitAnnotations,
-} from './lines';
-import { relationMismatch, operandPattern } from './operators';
-import { evaluateCondition, fillTemplate, propertyOf } from './properties';
+} from '@goal-controller/dialect';
+import { annotatedProperties, readLine, type ElementReading } from './lines.js';
+
+/**
+ * Where an element line cannot be read, in its parts: an annotation (before
+ * the id), its declaration (from its `{`). Spans are in the line.
+ */
+const unreadableParts = (
+  read: ElementReading,
+  written: string,
+  declares: boolean,
+): Diagnostic[] => {
+  const found = new Map<string, Diagnostic>();
+  const brace = written.indexOf('{', read.textSpan.from);
+  for (const { offset } of read.errors) {
+    if (offset < read.textSpan.from) {
+      // the annotation group around it: `<<...>>` or `{...}`
+      const from = Math.max(
+        written.lastIndexOf('{', offset),
+        written.lastIndexOf('<<', offset),
+        0,
+      );
+      const closes = [
+        written.indexOf('}', offset),
+        written.indexOf('>>', offset),
+      ]
+        .filter((at) => at >= 0)
+        .map((at) => at + (written[at] === '}' ? 1 : 2));
+      const to = Math.min(...closes, read.textSpan.from);
+      found.set(`${from}`, {
+        from,
+        to,
+        severity: 'error',
+        message: 'This annotation cannot be read',
+      });
+    } else if (declares && brace >= 0 && offset >= brace) {
+      found.set('declaration', {
+        from: brace,
+        to: written.trimEnd().length,
+        severity: 'error',
+        message: 'This declaration cannot be read',
+      });
+    }
+  }
+  return [...found.values()];
+};
 
 export type Diagnostic = {
   from: number;
@@ -43,12 +80,7 @@ export type RunCheck = (
 
 type Definition = Pick<
   AnyDialect,
-  | 'elements'
-  | 'notation'
-  | 'properties'
-  | 'propertyLine'
-  | 'propertyLineOrder'
-  | 'problems'
+  'elements' | 'notation' | 'properties' | 'propertyLineOrder' | 'problems'
 >;
 
 const problem = (
@@ -181,27 +213,25 @@ export const documentDiagnostics = (
     const lineFrom = offset;
     offset += written.length + 1;
     const indent = written.length - written.trimStart().length;
+    const read = readLine(definition, written);
+    const at = (span: { from: number; to: number }) => ({
+      from: lineFrom + span.from,
+      to: lineFrom + span.to,
+    });
     const id = order
       ? written.trim()
         ? order[index++]!
         : null
-      : lineId(definition, written);
-    if (id) {
+      : read.kind === 'element'
+        ? read.id
+        : null;
+    if (id && read.kind === 'element') {
       closeBlock();
       started = true;
-      // the line after its annotations, from restFrom on in the document
-      const {
-        groups,
-        rest: text,
-        offset: restOffset,
-      } = splitAnnotations(definition, written);
-      const restFrom = lineFrom + restOffset;
-      const idFrom = restFrom + text.indexOf(id);
-      const idTo = idFrom + id.length;
+      const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
       if (seen.has(id)) {
         diagnostics.push({
-          from: idFrom,
-          to: idTo,
+          ...idSpan,
           severity: 'error',
           message: `Duplicate id ${id}`,
         });
@@ -210,61 +240,55 @@ export const documentDiagnostics = (
       seen.add(id);
       const element = context.elements[id];
       if (!element) {
-        diagnostics.push(problem(definition, 'notInDiagram', idFrom, idTo));
+        diagnostics.push(
+          problem(definition, 'notInDiagram', idSpan.from, idSpan.to),
+        );
         continue;
       }
-      const annotated = readAnnotations(
-        annotationsOf(definition, element.kind),
-        groups.map((group) => group.text),
-      );
-      const spans = new Map<string, { from: number; to: number }>();
-      annotated.read.forEach((read, index) => {
-        const { text: group, from } = groups[index]!;
-        const span = {
-          from: lineFrom + from,
-          to: lineFrom + from + group.length,
-        };
-        if (!read)
-          diagnostics.push({
-            ...span,
-            severity: 'error',
-            message: 'This annotation cannot be read',
-          });
-        else for (const key of Object.keys(read)) spans.set(key, span);
-      });
-      diagnostics.push(
-        ...propertyDiagnostics(
-          definition,
-          element.kind,
-          id,
-          withDeclared(element.properties, annotated.properties),
-          [...spans.keys()].filter(
-            (key) => annotated.properties[key] !== undefined,
+      const owned = definition.elements[element.kind];
+      for (const d of unreadableParts(read, written, !!owned?.declares))
+        diagnostics.push({ ...d, ...at(d) });
+      if (owned?.annotated) {
+        const spans = new Map<string, { from: number; to: number }>();
+        const kinds = new Set<string>();
+        for (const { properties, span } of read.annotations) {
+          const kind = 'stereotype' in properties ? 'stereotype' : 'tag';
+          if (kinds.has(kind)) {
+            diagnostics.push({
+              ...at(span),
+              severity: 'error',
+              message:
+                kind === 'stereotype'
+                  ? 'An element has one stereotype: this one is not read'
+                  : 'An element has one tagged value: this one is not read',
+            });
+            continue;
+          }
+          kinds.add(kind);
+          for (const key of Object.keys(properties)) spans.set(key, at(span));
+        }
+        diagnostics.push(
+          ...propertyDiagnostics(
+            definition,
+            element.kind,
+            id,
+            withDeclared(element.properties, annotatedProperties(read)),
+            spans.keys(),
+            (key) => spans.get(key)!,
+            runCheck,
           ),
-          (key) => spans.get(key)!,
-          runCheck,
-        ),
-      );
-      const declaration = declarationOf(definition, element.kind);
-      if (declaration) {
-        const { declared, properties } = readDeclaration(declaration, text);
-        const [declOpen] = declaration.delimiters;
-        const from = restFrom + text.lastIndexOf(declOpen);
-        const span = { from, to: restFrom + text.trimEnd().length };
-        if (declared && !properties) {
-          diagnostics.push({
-            ...span,
-            severity: 'error',
-            message: 'This declaration cannot be read',
-          });
-        } else if (properties) {
+        );
+      }
+      if (owned?.declares) {
+        if (read.declaration) {
+          const span = at(read.declaration.span);
           diagnostics.push(
             ...propertyDiagnostics(
               definition,
               element.kind,
               id,
-              withDeclared(element.properties, properties),
-              Object.keys(properties),
+              withDeclared(element.properties, read.declaration.properties),
+              Object.keys(read.declaration.properties),
               () => span,
               runCheck,
             ),
@@ -272,34 +296,27 @@ export const documentDiagnostics = (
         }
         continue;
       }
-      if (!definition.elements[element.kind]) continue;
+      if (!owned) continue;
       block = { id, element, lines: new Map(), values: new Map() };
       const was = saved[id];
-      if (was?.error && was.line === text.trim()) {
+      if (was?.error && was.line === read.text) {
         diagnostics.push({
-          from: restFrom + text.length - text.trimStart().length,
-          to: restFrom + text.trimEnd().length,
+          ...at(read.textSpan),
           severity: 'error',
           message: `Not valid for this engine: ${was.error}`,
         });
         continue;
       }
-      if (!definition.notation || !readElementLine(definition, text)?.notation)
-        continue;
+      if (!definition.notation || !read.notation) continue;
       const notated = definition as Definition & WithNotation;
-      const operand = new RegExp(operandPattern(notated), 'g');
-      const [open, close] = notated.notation.delimiters;
-      const openAt = text.indexOf(open);
-      const notationFrom = restFrom + openAt + open.length;
-      const notationTo = restFrom + text.lastIndexOf(close);
+      const notationSpan = at(read.notation.span);
       const listed: string[] = [];
-      const inner = text.slice(openAt + open.length, notationTo - restFrom);
-      for (const match of inner.matchAll(operand)) {
-        listed.push(match[0]);
-        if (!element.children.includes(match[0])) {
-          const from = notationFrom + match.index!;
+      for (const ref of read.notation.refs) {
+        listed.push(ref.id);
+        if (!element.children.includes(ref.id)) {
+          const span = at(ref.span);
           diagnostics.push(
-            problem(definition, 'notAChild', from, from + match[0].length),
+            problem(definition, 'notAChild', span.from, span.to),
           );
         }
       }
@@ -313,8 +330,8 @@ export const documentDiagnostics = (
           problem(
             definition,
             'relationMismatch',
-            notationFrom,
-            notationTo,
+            notationSpan.from,
+            notationSpan.to,
             mismatch,
           ),
         );
@@ -325,8 +342,8 @@ export const documentDiagnostics = (
               problem(
                 definition,
                 'missingFromNotation',
-                notationFrom,
-                notationTo,
+                notationSpan.from,
+                notationSpan.to,
                 `${definition.problems.missingFromNotation.message}: ${child}`,
               ),
             );
@@ -337,7 +354,6 @@ export const documentDiagnostics = (
       from: lineFrom + indent,
       to: lineFrom + written.trimEnd().length,
     };
-    const property = readPropertyLine(definition, written);
     if (!started) {
       diagnostics.push({
         ...span,
@@ -347,7 +363,7 @@ export const documentDiagnostics = (
       continue;
     }
     if (!block) continue;
-    if (!property) {
+    if (read.kind !== 'property' || read.errors.length) {
       diagnostics.push({
         ...span,
         severity: 'error',
@@ -355,18 +371,17 @@ export const documentDiagnostics = (
       });
       continue;
     }
-    const keyTo = span.from + property.key.length;
-    if (!propertyOf(definition, block.element.kind, property.key)) {
+    const keySpan = at(read.keySpan);
+    if (!propertyOf(definition, block.element.kind, read.key)) {
       diagnostics.push({
-        from: span.from,
-        to: keyTo,
+        ...keySpan,
         severity: 'warning',
         message: `Not read for a ${block.element.kind}`,
       });
       continue;
     }
-    block.lines.set(property.key, span);
-    block.values.set(property.key, property.value);
+    block.lines.set(read.key, span);
+    block.values.set(read.key, read.value);
   }
   closeBlock();
   return diagnostics;

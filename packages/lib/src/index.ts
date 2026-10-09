@@ -102,7 +102,6 @@ export {
 // The engines' definitions (@goal-controller/dialect), and the dialects'
 export { edge } from './engines/edge';
 export { edgeV2 } from './engines/edgeV2';
-export { edgeLangium } from './engines/edgeLangium';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
 

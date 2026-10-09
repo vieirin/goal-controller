@@ -13,18 +13,23 @@ import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView, type GoalView } from '@goal-controller/goal-tree';
 import { edgeCheckRegistry, type Check } from '../../src';
 import {
-  contextFromView,
-  declarationKeys,
+  DECLARATION_KEYS,
   inputOf,
-  notationDocument,
-  notationEdits,
-  operatorsFor,
   propertyKeys,
   relationMismatch,
   specsFromDefinition,
   type ElementKind,
+  type WithNotation,
 } from '@goal-controller/dialect';
-import { edge, edgeLangium, edgeV2 } from '../../src';
+import {
+  INFIX_SYMBOLS,
+  POSTFIX_SYMBOLS,
+  contextFromView,
+  notationDocument,
+  notationEdits,
+  operatorsFor,
+} from '@goal-controller/goal-language';
+import { edge, edgeV2 } from '../../src';
 // the UI's own edit writer (React-free), as the Notation view applies edits
 import { applyNotationEdits } from '../../../ui/lib/workbench/notationDocument';
 import { RETRY } from '../../src/engines/edgeFamily';
@@ -39,8 +44,23 @@ import * as referenceProperties from './reference/properties';
 import { ROOT, models } from './support/models';
 
 const REFERENCE = join(__dirname, 'reference');
-const EDGE_V2_FAMILY = [edgeV2, edgeLangium] as const;
-const DEFINITIONS = [edge, edgeV2, edgeLangium] as const;
+// edgeLangium was edgeV2's definition read by another parser: folded into edgeV2
+const EDGE_V2_FAMILY = [edgeV2] as const;
+const DEFINITIONS = [edge, edgeV2] as const;
+
+/** The operators a definition enables, in the goal language's precedence order (standalone last). */
+const enabledOperators = ({ notation }: WithNotation) => [
+  ...POSTFIX_SYMBOLS.filter((symbol) => symbol in notation.operators).map(
+    (symbol) => ({ symbol, form: 'postfix' }),
+  ),
+  ...INFIX_SYMBOLS.filter((symbol) => symbol in notation.operators).map(
+    (symbol) => ({ symbol, form: 'infix' }),
+  ),
+  ...Object.keys(notation.standalone ?? {}).map((symbol) => ({
+    symbol,
+    form: 'standalone',
+  })),
+];
 
 const text = (file: string) => readFileSync(file, 'utf8');
 
@@ -131,12 +151,11 @@ describe('harness 2: precedence', () => {
       /RetryExpr infers Expr:\s*Primary \(\{[^}]+\} '@' times=FLOAT\)\*/,
     );
     for (const definition of EDGE_V2_FAMILY) {
-      const [first, ...rest] = definition.notation.operators;
-      expect(first).to.include({ symbol: '@', form: 'postfix' });
+      const [first, ...rest] = enabledOperators(definition);
+      expect(first).to.deep.equal({ symbol: '@', form: 'postfix' });
       expect(rest.map((o) => o.symbol)).to.deep.equal(symbols);
-      expect(
-        rest.every((o) => o.form === 'infix' && o.assoc === 'left'),
-      ).to.equal(true);
+      // the goal language's binary operators are all left-associative
+      expect(rest.every((o) => o.form === 'infix')).to.equal(true);
     }
   });
 
@@ -152,23 +171,16 @@ describe('harness 2: precedence', () => {
     }));
 
   it('edge: the operators match edge/RTRegex.g4 (incl. the standalone +)', () => {
-    expect(
-      edge.notation.operators.map((o) => ({ symbol: o.symbol, form: o.form })),
-    ).to.deep.equal(g4Operators('edge'));
+    expect(enabledOperators(edge)).to.deep.equal(g4Operators('edge'));
   });
 
   it('edgeV2: the operators match edgeV2/RTRegex.g4 too', () => {
-    expect(
-      edgeV2.notation.operators.map((o) => ({
-        symbol: o.symbol,
-        form: o.form,
-      })),
-    ).to.deep.equal(g4Operators('edgeV2'));
+    expect(enabledOperators(edgeV2)).to.deep.equal(g4Operators('edgeV2'));
   });
 });
 
 const MODE_OF_VALUE: Record<string, string> = {
-  expression: 'assertion',
+  assertion: 'assertion',
   refList: 'dependsOn',
 };
 
@@ -197,9 +209,8 @@ describe('harness 3: property config', () => {
     });
 
     it(`${definition.id}: resource keys equal RESOURCE_KEYS`, () => {
-      expect(
-        declarationKeys(definition.elements.resource.declaration),
-      ).to.deep.equal([...RESOURCE_KEYS]);
+      expect(definition.elements.resource.declares).to.equal(true);
+      expect([...DECLARATION_KEYS]).to.deep.equal([...RESOURCE_KEYS]);
       expect([...propertyKeys(definition, 'resource')].sort()).to.deep.equal(
         [...RESOURCE_KEYS].sort(),
       );

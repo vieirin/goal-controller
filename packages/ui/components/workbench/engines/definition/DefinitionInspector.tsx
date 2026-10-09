@@ -2,15 +2,17 @@
 
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import {
-  constructHint,
-  elementLine,
   fillOf,
-  operatorsFor,
   propertyOf,
   relationMismatch,
   valueOf,
   type Severity,
 } from '@goal-controller/dialect';
+import {
+  constructHint,
+  elementLine,
+  operatorsFor,
+} from '@goal-controller/goal-language';
 import { useMemo } from 'react';
 import {
   ENGINE_DIALECTS,

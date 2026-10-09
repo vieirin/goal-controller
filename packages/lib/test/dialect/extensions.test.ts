@@ -26,19 +26,12 @@ import {
   ISTAR_KIND_OF,
   ISTAR_LINK_KINDS,
   ISTAR_NODE_KINDS,
-  annotationsFor,
-  completionsAt,
-  contextFromView,
   defineDialect,
   defineExtension,
   dialectDefinition,
-  documentDiagnostics,
   extensionCatalog,
   hasIds,
-  lineId,
   metamodelExtensionOf,
-  notationDocument,
-  notationEdits,
   profileOf,
   profileProperties,
   specsFromDefinition,
@@ -47,6 +40,14 @@ import {
   type DocumentTree,
   type ExtensionDefinition,
 } from '@goal-controller/dialect';
+import {
+  completionsAt,
+  contextFromView,
+  documentDiagnostics,
+  lineId,
+  notationDocument,
+  notationEdits,
+} from '@goal-controller/goal-language';
 import { istar4RationalAgents } from '../../src';
 
 const MODEL = readFileSync(
@@ -303,16 +304,9 @@ describe('a dialect of its own (no engine)', () => {
       'rationalAgents.Planning',
       'rationalAgents.Plan',
     ]);
-    const { stereotype, taggedValue } = istar4RationalAgents.annotations;
-    expect(definition.elements['istar.Agent']?.annotations).to.deep.equal([
-      stereotype,
-      taggedValue,
-    ]);
+    expect(definition.elements['istar.Agent']?.annotated).to.equal(true);
     // a goal has no declared stereotype, but may carry one (written as typed)
-    expect(definition.elements['istar.Goal']?.annotations).to.deep.equal([
-      stereotype,
-      taggedValue,
-    ]);
+    expect(definition.elements['istar.Goal']?.annotated).to.equal(true);
     expect(definition.propertyLineOrder).to.deep.equal([]);
     expect(
       specsFromDefinition(definition, {})['istar.Role']!.map((s) => s.key),
@@ -328,13 +322,11 @@ describe('a dialect of its own (no engine)', () => {
           ...base.elements,
           'istar.Goal': {
             ...base.elements['istar.Goal']!,
-            line: '{id}: {name}',
             prefix: 'G',
-            idPattern: '\\d+',
           },
         },
       }),
-    ).to.throw(/either every element line has an \{id\}/);
+    ).to.throw(/either every element has an id prefix/);
     expect(() =>
       defineDialect({
         ...base,
@@ -398,17 +390,9 @@ describe('a dialect of its own (no engine)', () => {
   });
 });
 
-describe('annotationsFor', () => {
-  it('gives every kind its stereotype, then its tagged value', () => {
-    const { stereotype, taggedValue } = istar4RationalAgents.annotations;
-    expect(annotationsFor(istar4RationalAgents, 'istar.Role')).to.deep.equal([
-      stereotype,
-      taggedValue,
-    ]);
-    // links too: none declared, the default tagged values, both open
-    expect(
-      annotationsFor(istar4RationalAgents, 'istar.AndRefinementLink'),
-    ).to.deep.equal([stereotype, taggedValue]);
+describe('profileProperties', () => {
+  it('gives links a stereotype and a tagged value too', () => {
+    // links: none declared, the default tagged values, both open
     const [linkStereotype, linkTag] = profileProperties(
       istar4RationalAgents,
       'istar.AndRefinementLink',

@@ -15,6 +15,9 @@ import { defineExtension } from '@goal-controller/dialect';
  *   Agent too) carries the agent-kind stereotypes. Tasks carry the stereotype
  *   `action` and the tagged value `type`, which is either duty (a mandatory
  *   task) or right (an optional one).
+ *
+ * Elements carry them as the goal language's annotations: `<<goal-based>>`,
+ * `{type = duty}` (and piStar-ext's own `{Id=G1}`).
  */
 export const istar4RationalAgents = defineExtension({
   name: 'rationalAgents',
@@ -54,24 +57,4 @@ export const istar4RationalAgents = defineExtension({
   ],
   // the paper's defaults (its [4]): node identifier, reference, status, logic
   defaultTags: ['Id', 'Reference to', 'Status', 'Logic'],
-  annotations: {
-    // `<<goal-based>>`
-    stereotype: {
-      delimiters: ['<<', '>>'],
-      parts: [{ key: 'stereotype', pattern: '[^<>]*[^<>\\s]' }],
-    },
-    // `{Id = G1}`, and piStar-ext's own `{Id=G1}`
-    taggedValue: {
-      delimiters: ['{', '}'],
-      parts: [
-        { key: 'tag', pattern: '[^{}=]*[^{}=\\s]' },
-        {
-          optional: [
-            { literal: ' = ' },
-            { key: 'tagValue', pattern: '[^{}]*[^{}\\s]' },
-          ],
-        },
-      ],
-    },
-  },
 });

@@ -1,7 +1,7 @@
-// CommonJS bundles for CommonJS consumers (lib, the dialect package): Langium
-// is ESM-only, so it goes in the parser's bundle. The catalog is Langium-free
-// and bundled on its own, so the dialect package (and the browser) can read it
-// without loading the parser.
+// CommonJS bundles for CommonJS consumers (lib): Langium
+// is ESM-only, so it goes in the parser's bundle. The catalog and the
+// writers are Langium-free and bundled on their own (`./light`), so the
+// browser can use them without loading the parser.
 import { build } from 'esbuild';
 
 const common = {
@@ -15,9 +15,11 @@ await build({
   ...common,
   entryPoints: ['src/index.ts'],
   outfile: 'out/cjs/index.cjs',
+  external: ['@goal-controller/dialect'],
 });
 await build({
   ...common,
-  entryPoints: ['src/catalog.ts'],
-  outfile: 'out/cjs/catalog.cjs',
+  entryPoints: ['src/light.ts'],
+  outfile: 'out/cjs/light.cjs',
+  external: ['@goal-controller/dialect'],
 });

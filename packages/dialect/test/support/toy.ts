@@ -1,76 +1,26 @@
 /**
  * Small definitions the framework's tests are written against: no engine's,
  * just enough of each feature (a notation with every operator form, a
- * declaration, conditions, a check, a language; a dialect with groupers,
+ * declaration, conditions, a check, an assertion; a dialect with groupers,
  * stereotypes and tagged values).
  */
 import { defineDialect, defineExtension, type DocumentNode } from '../../src';
-
-const ID = '[0-9]+';
-const NAMES = "[A-Za-z' ]";
 
 export const toy = defineDialect({
   id: 'toy',
   name: 'Toy',
   elements: {
-    goal: {
-      prefix: 'G',
-      idPattern: ID,
-      line: '{id}: {name}',
-      nameCharset: NAMES,
-      fill: '#00FF00',
-    },
-    task: {
-      prefix: 'T',
-      idPattern: ID,
-      line: '{id}: {name}',
-      nameCharset: NAMES,
-      fill: '#00FF00',
-    },
-    resource: {
-      prefix: 'R',
-      idPattern: ID,
-      line: '{id}: {name}',
-      nameCharset: NAMES,
-      fill: '#FFFF00',
-      declaration: {
-        delimiters: ['{', '}'],
-        parts: [
-          { key: 'type', pattern: 'int|bool' },
-          {
-            optional: [
-              { literal: ' ' },
-              { key: 'low', pattern: '[0-9]+' },
-              { literal: '..' },
-              { key: 'high', pattern: '[0-9]+' },
-            ],
-          },
-          {
-            optional: [
-              { literal: ' = ' },
-              { key: 'initial', pattern: '[a-z0-9]+' },
-            ],
-          },
-        ],
-      },
-    },
-    quality: {
-      prefix: 'Q',
-      idPattern: ID,
-      line: '{id}: {name}',
-      nameCharset: '.',
-      fill: '#00FF00',
-    },
+    goal: { prefix: 'G', fill: '#00FF00' },
+    task: { prefix: 'T', fill: '#00FF00' },
+    resource: { prefix: 'R', declares: true, fill: '#FFFF00' },
   },
   defaultFill: '#FFFFFF',
   notation: {
-    delimiters: ['[', ']'],
-    operand: { kinds: ['goal', 'task'], keywords: ['nothing'] },
-    operators: [
-      {
-        symbol: '@',
-        form: 'postfix',
-        assoc: 'left',
+    operand: { kinds: ['goal', 'task'], skip: true },
+    operators: { '@': 'retry', ';': 'sequence', '|': 'fallback' },
+    standalone: { '*': 'any' },
+    modifiers: {
+      retry: {
         argument: {
           name: 'tries',
           value: { type: 'int', min: 1 },
@@ -81,10 +31,7 @@ export const toy = defineDialect({
         appliesTo: ['fallback'],
         action: 'Try the first child {tries} times',
       },
-      { symbol: ';', form: 'infix', construct: 'sequence', assoc: 'left' },
-      { symbol: '|', form: 'infix', construct: 'fallback', assoc: 'left' },
-      { symbol: '*', form: 'standalone', construct: 'any', assoc: 'none' },
-    ],
+    },
     constructs: {
       sequence: {
         label: 'Sequence',
@@ -137,12 +84,12 @@ export const toy = defineDialect({
       },
       {
         key: 'after',
-        value: { type: 'refList', kind: 'goal', separator: ',' },
+        value: { type: 'refList', kind: 'goal' },
         help: 'goals first',
       },
       {
         key: 'guard',
-        value: { type: 'expression', language: 'cond' },
+        value: { type: 'assertion', resolves: ['resource', 'variable'] },
         help: 'when',
       },
     ],
@@ -159,7 +106,7 @@ export const toy = defineDialect({
         help: 'its type',
       },
       {
-        key: 'low',
+        key: 'lowerBound',
         value: { type: 'int' },
         applies: { when: { key: 'type', equals: 'int' } },
         notApplying: 'Bounds are for int resources (type is {type})',
@@ -167,13 +114,13 @@ export const toy = defineDialect({
         check: 'toy.resource.bounds',
       },
       {
-        key: 'high',
+        key: 'upperBound',
         value: { type: 'int' },
         applies: { when: { key: 'type', equals: 'int' } },
         help: 'upper bound',
       },
       {
-        key: 'initial',
+        key: 'initialValue',
         value: {
           when: { key: 'type', equals: 'bool' },
           matching: { type: 'bool' },
@@ -184,7 +131,6 @@ export const toy = defineDialect({
     ],
     quality: [],
   },
-  propertyLine: { separator: ' ', keyPattern: '[a-z]+' },
   propertyLineOrder: [
     'priority',
     'deadline',
@@ -202,20 +148,6 @@ export const toy = defineDialect({
       message: '{construct} needs {needs}, has {relation}',
     },
     notInDiagram: { severity: 'error', message: 'Not in the diagram' },
-  },
-  languages: {
-    cond: {
-      operators: [
-        { symbol: '!', form: 'prefix' },
-        { symbol: '&', form: 'infix' },
-      ],
-      parens: ['(', ')'],
-      comparators: ['<', '>'],
-      literals: { int: '[0-9]+' },
-      keywords: ['yes', 'no'],
-      identifier: '[A-Za-z][A-Za-z0-9]*',
-      resolves: ['resource', 'variable'],
-    },
   },
 });
 
@@ -246,24 +178,6 @@ export const toyDialect = defineExtension({
     { name: 'kind', appliesTo: ['istar.Task'], values: ['must', 'may'] },
   ],
   defaultTags: ['Id', 'Note'],
-  annotations: {
-    stereotype: {
-      delimiters: ['<<', '>>'],
-      parts: [{ key: 'stereotype', pattern: '[^<>]*[^<>\\s]' }],
-    },
-    taggedValue: {
-      delimiters: ['{', '}'],
-      parts: [
-        { key: 'tag', pattern: '[^{}=]*[^{}=\\s]' },
-        {
-          optional: [
-            { literal: ' = ' },
-            { key: 'tagValue', pattern: '[^{}]*[^{}\\s]' },
-          ],
-        },
-      ],
-    },
-  },
 });
 
 /** A document node: piStar id `i-<id>`, named after its id, unless given. */

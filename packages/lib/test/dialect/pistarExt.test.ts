@@ -6,31 +6,34 @@
  */
 import { expect } from 'chai';
 import {
-  completionsAt,
-  contextFromView,
   defineDialect,
-  documentDiagnostics,
   inputOf,
-  lineId,
-  notationDocument,
-  notationEdits,
-  readAnnotations,
-  readElementLine,
   specsFromDefinition,
-  splitAnnotations,
-  writeAnnotations,
   type DocumentNode,
   type DocumentTree,
   type AnyDialect,
   type DialectDefinition,
 } from '@goal-controller/dialect';
-import { edgeV2, istar4RationalAgents } from '../../src';
+import {
+  annotatedProperties,
+  completionsAt,
+  contextFromView,
+  documentDiagnostics,
+  lineId,
+  notationDocument,
+  notationEdits,
+  readLine,
+  writeAnnotations,
+} from '@goal-controller/goal-language';
+import { edgeV2 } from '../../src';
 import { node } from './support/document';
 import { ra, withStereotypes } from './support/extensions';
 
-const { stereotype: stereotypeAnnotation, taggedValue: taggedValueAnnotation } =
-  istar4RationalAgents.annotations;
-const annotations = [stereotypeAnnotation, taggedValueAnnotation];
+/** What a line's annotations set (the first of each kind). */
+const annotationsOf = (line: string) => {
+  const read = readLine(ra, line);
+  return read.kind === 'element' ? annotatedProperties(read) : null;
+};
 
 /** The document nodes' properties after a document's edits. */
 const applied = (tree: DocumentTree, doc: string): DocumentTree => {
@@ -108,12 +111,12 @@ describe('piStar-ext annotations', () => {
 
   describe('the definition', () => {
     it('declares the profile on top of EdgeV2', () => {
-      expect(ra.elements.task?.annotations).to.deep.equal(annotations);
-      expect(ra.elements.goal?.annotations).to.deep.equal(annotations);
+      expect(ra.elements.task?.annotated).to.equal(true);
+      expect(ra.elements.goal?.annotated).to.equal(true);
       expect(ra.notation).to.equal(edgeV2.notation);
       // what annotations write is not a property line
       expect(ra.propertyLineOrder).to.equal(edgeV2.propertyLineOrder);
-      expect(edgeV2.elements.task).not.to.have.property('annotations');
+      expect(edgeV2.elements.task).not.to.have.property('annotated');
     });
 
     it('rejects an annotation writing a property the kind does not have', () => {
@@ -123,7 +126,7 @@ describe('piStar-ext annotations', () => {
           ...base,
           elements: {
             ...base.elements,
-            goal: { ...base.elements.goal!, annotations },
+            goal: { ...base.elements.goal!, annotated: true },
           },
         }),
       ).to.throw(/goal line declares unknown stereotype/);
@@ -146,39 +149,37 @@ describe('piStar-ext annotations', () => {
     it('reads the id and name after the annotations', () => {
       const line = '  <<action>> {type = duty} T1: Book a room';
       expect(lineId(ra, line)).to.equal('T1');
-      expect(readElementLine(ra, line)).to.deep.equal({
-        id: 'T1',
-        name: 'Book a room',
-        notation: null,
-      });
-      expect(splitAnnotations(ra, line)).to.deep.equal({
-        groups: [
-          { text: '<<action>>', from: 2 },
-          { text: '{type = duty}', from: 13 },
+      const read = readLine(ra, line);
+      expect(
+        read.kind === 'element' && [
+          read.id,
+          read.name,
+          read.notation,
+          read.annotations.map((a) => line.slice(a.span.from, a.span.to)),
+          read.textSpan.from,
         ],
-        rest: ' T1: Book a room',
-        offset: 26,
-      });
-      // a definition without annotations reads the whole line
-      expect(splitAnnotations(edgeV2, line).rest).to.equal(line);
+      ).to.deep.equal([
+        'T1',
+        'Book a room',
+        null,
+        ['<<action>>', '{type = duty}'],
+        27,
+      ]);
+      // a definition without annotations reads them all the same: the language has them
+      expect(lineId(edgeV2, line)).to.equal('T1');
     });
 
     it("reads piStar-ext's own spacing, and writes the paper's", () => {
-      const read = readAnnotations(annotations, ['<<goal-based>>', '{Id=G1}']);
-      expect(read.properties).to.deep.equal({
+      const read = annotationsOf('<<goal-based>> {Id=G1} G1: Deliver');
+      expect(read).to.deep.equal({
         stereotype: 'goal-based',
         tag: 'Id',
         tagValue: 'G1',
       });
-      expect(writeAnnotations(annotations, read.properties)).to.equal(
-        '<<goal-based>> {Id = G1}',
-      );
+      expect(writeAnnotations(read!)).to.equal('<<goal-based>> {Id = G1}');
       // multi-word stereotypes and tag names (Reference to)
       expect(
-        readAnnotations(annotations, [
-          '<<model-based reflex>>',
-          '{Reference to = R2}',
-        ]).properties,
+        annotationsOf('<<model-based reflex>> {Reference to = R2} G1: Deliver'),
       ).to.deep.equal({
         stereotype: 'model-based reflex',
         tag: 'Reference to',
@@ -187,21 +188,20 @@ describe('piStar-ext annotations', () => {
     });
 
     it('reads each annotation once, in any order', () => {
-      expect(
-        readAnnotations(annotations, ['{Id}', '<<action>>']),
-      ).to.deep.equal({
-        properties: { tag: 'Id', tagValue: undefined, stereotype: 'action' },
-        read: [{ tag: 'Id', tagValue: undefined }, { stereotype: 'action' }],
+      expect(annotationsOf('{Id} <<action>> T1: Do')).to.deep.equal({
+        tag: 'Id',
+        stereotype: 'action',
       });
-      expect(
-        readAnnotations(annotations, ['<<a>>', '<<b>>']).read,
-      ).to.deep.equal([{ stereotype: 'a' }, null]);
-      expect(readAnnotations(annotations, ['{}']).read).to.deep.equal([null]);
+      // the first of each kind is read
+      expect(annotationsOf('<<a>> <<b>> T1: Do')).to.deep.equal({
+        stereotype: 'a',
+      });
+      expect(readLine(ra, '{} T1: Do').errors).to.not.deep.equal([]);
     });
 
     it('writes nothing when the first property is unset', () => {
-      expect(writeAnnotations(annotations, { tagValue: 'x' })).to.equal(null);
-      expect(writeAnnotations(annotations, {})).to.equal(null);
+      expect(writeAnnotations({ tagValue: 'x' })).to.equal(null);
+      expect(writeAnnotations({})).to.equal(null);
     });
   });
 
@@ -340,7 +340,7 @@ describe('piStar-ext annotations', () => {
         from: 13,
         to: 22,
         severity: 'error',
-        message: 'This annotation cannot be read',
+        message: 'An element has one stereotype: this one is not read',
       });
     });
 

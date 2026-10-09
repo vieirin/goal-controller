@@ -9,7 +9,7 @@ import { parseModel } from '@/lib/workbench/dialects';
 
 /** The RT grammar each engine reads goal texts with: its definition's (SLEEC: Edge's). */
 const grammarOf = (engine: TransformEngine): RTGrammar =>
-  notationDefinitionOf(engine).grammar;
+  notationDefinitionOf(engine).id as RTGrammar;
 
 /**
  * The goal model as the workbench shows it (goal-tree's `goalView`): structure, RT ids,

@@ -10,11 +10,8 @@ import {
   notationDocument,
   notationEdits,
 } from '@/lib/workbench/notationDocument';
-import {
-  lineId,
-  type AnyDialect,
-  type DocumentTree,
-} from '@goal-controller/dialect';
+import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
+import { lineId } from '@goal-controller/goal-language';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';

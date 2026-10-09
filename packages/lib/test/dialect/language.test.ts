@@ -4,8 +4,8 @@ import {
   documentDiagnostics,
   fieldCompletionsAt,
   fieldDiagnostics,
-  type DefinitionContext,
-} from '@goal-controller/dialect';
+} from '@goal-controller/goal-language';
+import type { DefinitionContext } from '@goal-controller/dialect';
 import { edgeV2 } from '../../src';
 
 const context: DefinitionContext = {
@@ -91,11 +91,12 @@ describe('documentDiagnostics', () => {
 
   it('flags lines it cannot read', () => {
     expect(
-      messages('  maxRetries 2\nT1: B\n  maintain x\n  nonsense here'),
+      messages('  maxRetries 2\nT1: B\n  maintain x\n  nonsense here\n  [T2]'),
     ).to.deep.equal([
       ['maxRetries 2', 'error', 'A property belongs under an element line'],
       ['maintain', 'warning', 'Not read for a task'],
-      ['nonsense here', 'error', 'Not a property line'],
+      ['nonsense', 'warning', 'Not read for a task'],
+      ['[T2]', 'error', 'Not a property line'],
     ]);
   });
 
@@ -155,7 +156,7 @@ describe('completions', () => {
   it('offers ids and names in fields', () => {
     const refs = fieldCompletionsAt(
       edgeV2,
-      { type: 'refList', kind: 'goal', separator: ',' },
+      { type: 'refList', kind: 'goal' },
       'G1, ',
       4,
       context,
@@ -163,7 +164,7 @@ describe('completions', () => {
     expect(refs.options.map((o) => o.label)).to.deep.equal(['G1', 'G2']);
     const expr = fieldCompletionsAt(
       edgeV2,
-      { type: 'expression', language: 'assertion' },
+      { type: 'assertion', resolves: ['resource', 'variable'] },
       'R',
       1,
       context,

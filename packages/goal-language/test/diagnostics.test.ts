@@ -1,13 +1,13 @@
-/** Checking and completing a document and a field (src/derive/{diagnostics,completion}.ts). */
+/** Checking and completing a document and a field (src/notation/{diagnostics,completion}.ts). */
+import type { DefinitionContext } from '@goal-controller/dialect';
 import { expect } from 'chai';
 import {
   completionsAt,
   documentDiagnostics,
   fieldCompletionsAt,
   fieldDiagnostics,
-  type DefinitionContext,
-} from '../src';
-import { toy } from './support/toy';
+} from '../src/index.js';
+import { toy } from '../../dialect/test/support/toy.js';
 
 const context: DefinitionContext = {
   elements: {
@@ -23,7 +23,12 @@ const context: DefinitionContext = {
     R1: {
       kind: 'resource',
       children: [],
-      properties: { type: 'int', low: '0', high: '9', initial: '5' },
+      properties: {
+        type: 'int',
+        lowerBound: '0',
+        upperBound: '9',
+        initialValue: '5',
+      },
     },
   },
   variables: ['ctx'],
@@ -71,7 +76,7 @@ describe('documentDiagnostics', () => {
       properties: Readonly<Record<string, string>>,
     ) => {
       calls.push(check);
-      return check === 'toy.resource.bounds' && properties.low === '7'
+      return check === 'toy.resource.bounds' && properties.lowerBound === '7'
         ? 'out of bounds'
         : null;
     };
@@ -86,12 +91,13 @@ describe('documentDiagnostics', () => {
   it('flags properties that do not apply, and lines it cannot read', () => {
     expect(
       messages(
-        '  robot r2\nG1: Go [G2;T1]\n  deadline 3\n  robot r2\n  nonsense here',
+        '  robot r2\nG1: Go [G2;T1]\n  deadline 3\n  robot r2\n  nonsense here\n  [G2]',
       ),
     ).to.deep.equal([
       ['robot r2', 'error', 'A property belongs under an element line'],
       ['robot', 'warning', 'Not read for a goal'],
-      ['nonsense here', 'error', 'Not a property line'],
+      ['nonsense', 'warning', 'Not read for a goal'],
+      ['[G2]', 'error', 'Not a property line'],
       // what does not apply is checked once the element's lines are read
       [
         'deadline 3',
@@ -114,8 +120,16 @@ describe('documentDiagnostics', () => {
 
 describe('fieldDiagnostics', () => {
   it('checks the value with the element properties', () => {
-    const d = fieldDiagnostics(toy, context, 'R1', 'low', '42', (check, p) =>
-      check === 'toy.resource.bounds' && p.low === '42' ? 'nope' : null,
+    const d = fieldDiagnostics(
+      toy,
+      context,
+      'R1',
+      'lowerBound',
+      '42',
+      (check, p) =>
+        check === 'toy.resource.bounds' && p.lowerBound === '42'
+          ? 'nope'
+          : null,
     );
     expect(d).to.deep.equal([
       { from: 0, to: 2, severity: 'error', message: 'nope' },
@@ -131,7 +145,7 @@ describe('completions', () => {
     expect(result.options.map((o) => o.label)).to.deep.equal([
       'G2',
       'T1',
-      'nothing',
+      'skip',
     ]);
     expect(completionsAt(toy, 'G1: Go', 3, context)).to.equal(null);
   });
@@ -149,7 +163,7 @@ describe('completions', () => {
   it('offers ids in reference lists, and names in expressions', () => {
     const refs = fieldCompletionsAt(
       toy,
-      { type: 'refList', kind: 'goal', separator: ',' },
+      { type: 'refList', kind: 'goal' },
       'G1, ',
       4,
       context,
@@ -157,7 +171,7 @@ describe('completions', () => {
     expect(refs.options.map((o) => o.label)).to.deep.equal(['G1', 'G2']);
     const expr = fieldCompletionsAt(
       toy,
-      { type: 'expression', language: 'cond' },
+      { type: 'assertion', resolves: ['resource', 'variable'] },
       'R',
       1,
       context,
@@ -166,8 +180,8 @@ describe('completions', () => {
     expect(expr.options.map((o) => o.label)).to.deep.equal([
       'R1',
       'ctx',
-      'yes',
-      'no',
+      'true',
+      'false',
     ]);
   });
 });

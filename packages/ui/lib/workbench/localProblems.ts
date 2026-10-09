@@ -6,11 +6,8 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { notationDefinitionOf } from './engineDialects';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
-import {
-  isValidName,
-  MODEL_NAMESPACE,
-  relationMismatch,
-} from '@goal-controller/dialect';
+import { MODEL_NAMESPACE, relationMismatch } from '@goal-controller/dialect';
+import { isValidName } from '@goal-controller/goal-language';
 import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
 
