@@ -32,6 +32,7 @@ goal-controller/
 │   │                  # validator, and the goal-text reader derived from a dialect
 │   ├── goal-tree/    # Goal model data structures (reads goal texts in the engine's dialect)
 │   └── ui/           # Next.js web application for transformations
+│       └── lib/project/ # Projects: the manifest, where projects are kept, Recent
 ├── examples/         # Example goal models, grouped per engine
 │   ├── edge/         # Edge engine notation (choice: `[+]`), incl. experiments/
 │   ├── edgeV2/       # EdgeV2 notation (choice: `[G1?G2]`, any order: `[G1+G2]`)
@@ -43,6 +44,11 @@ goal-controller/
 Dependencies go one way: `dialect ← goal-language ← goal-tree ← lib ← ui`.
 goal-tree reads goal texts with the reader goal-language derives from the
 engine's dialect, and never imports lib.
+
+The workbench's unit of work is a **project**: one or more models with their
+project resources and outputs, described by a manifest. A single model file is
+an implicit one-model project whose manifest lives in the file itself. See
+[packages/ui/lib/project/README.md](packages/ui/lib/project/README.md).
 
 ### Transformation Engines
 

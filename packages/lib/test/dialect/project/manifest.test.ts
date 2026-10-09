@@ -245,7 +245,11 @@ describe('project module boundary', () => {
   const files = (dir: string): string[] =>
     readdirSync(dir).flatMap((name) => {
       const file = join(dir, name);
-      return statSync(file).isDirectory() ? files(file) : [file];
+      return statSync(file).isDirectory()
+        ? files(file)
+        : file.endsWith('.ts')
+          ? [file]
+          : [];
     });
   // data and storage only: no React, Next, workbench, model library or engines
   const ALLOWED = [/^\.\.?\//, /^@goal-controller\/dialect$/, /^fflate$/];
