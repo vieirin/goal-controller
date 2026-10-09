@@ -10,3 +10,5 @@ export { edge } from './engines/edge';
 export { edgeV2 } from './engines/edgeV2';
 export { edgeLangium } from './engines/edgeLangium';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeShared';
+export * from './derive/extensions';
+export { istar4RationalAgents } from './extensions/istar4RationalAgents';

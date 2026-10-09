@@ -1,8 +1,8 @@
 /**
  * piStar-ext's stereotypes and tagged values as element-line annotations
- * (test/fixtures/istar4RationalAgents.ts): written from properties, read back
- * as property edits, checked, offered in the inspector. The engines without
- * annotations read as before (the harness).
+ * (iStar4RationalAgents' over EdgeV2, src/extensions): written from
+ * properties, read back as property edits, checked, offered in the inspector.
+ * The engines without annotations read as before (the harness).
  */
 import { expect } from 'chai';
 import {
@@ -12,6 +12,7 @@ import {
   documentDiagnostics,
   edgeV2,
   inputOf,
+  istar4RationalAgents,
   lineId,
   notationDocument,
   notationEdits,
@@ -24,14 +25,11 @@ import {
   type DocumentTree,
   type EngineDefinition,
 } from '../src';
-import {
-  istar4RationalAgents as ra,
-  stereotypeAnnotation,
-  taggedValueAnnotation,
-  withProfile,
-} from './fixtures/istar4RationalAgents';
 import { node } from './support/document';
+import { ra, withStereotypes } from './support/extensions';
 
+const { stereotype: stereotypeAnnotation, taggedValue: taggedValueAnnotation } =
+  istar4RationalAgents.annotations;
 const annotations = [stereotypeAnnotation, taggedValueAnnotation];
 
 /** The document nodes' properties after a document's edits. */
@@ -134,10 +132,10 @@ describe('piStar-ext annotations', () => {
     });
 
     it('expresses a grouper as one profile on several kinds', () => {
-      const grouped = withProfile(edgeV2, 'g', 'G', {
-        goal: { stereotypes: ['Business'] },
-        task: { stereotypes: ['Business'] },
-      });
+      const grouped = withStereotypes(
+        { intentional: ['istar.Goal', 'istar.Task'] },
+        [{ name: 'Business', appliesTo: ['intentional'] }],
+      );
       expect(
         grouped.properties.goal.find((p) => p.key === 'stereotype'),
       ).to.deep.equal(
@@ -357,7 +355,7 @@ describe('piStar-ext annotations', () => {
     });
 
     it('runs the checks an annotated property names', () => {
-      const checked = withProfile(edgeV2, 'c', 'C', { task: {} });
+      const checked = withStereotypes({}, []);
       const withCheck = defineEngine({
         ...checked,
         properties: {

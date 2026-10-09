@@ -7,7 +7,7 @@ import { goalView } from '../../goal-tree/out';
 import { StringStream } from '../../ui/node_modules/@codemirror/language';
 import { edgeV2, type EngineDefinition } from '../src';
 import { documentParser } from '../../ui/lib/workbench/definitionLanguage';
-import { istar4RationalAgents as ra } from './fixtures/istar4RationalAgents';
+import { ra } from './support/extensions';
 import {
   contextOf,
   elementOfLine,

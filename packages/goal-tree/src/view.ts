@@ -5,7 +5,7 @@
  * its RT id, name, notation and the construct the notation expresses. Never throws: a text
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
-import { isActor, isNode, type IstarModel } from '@istar-ts/core';
+import { isActor, isNode, metamodelOf, type IstarModel } from '@istar-ts/core';
 import { getGoalDetail, type RTGrammar } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
@@ -84,7 +84,11 @@ const listed = (detail: GoalExecutionDetail | null): string[] => {
   }
 };
 
-export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
+/** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
+export function goalView(
+  model: IstarModel<string, string>,
+  grammar: RTGrammar,
+): GoalView {
   const byIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
   const parents = new Map<string, string>();
@@ -183,7 +187,7 @@ export function goalView(model: IstarModel, grammar: RTGrammar): GoalView {
   for (const node of byIStarId.values())
     if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
-    .filter((element) => isActor(element))
+    .filter((element) => isActor(element, metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id))
     .map((element) => byIStarId.get(element.id)?.id)
     .filter((id): id is string => !!id);

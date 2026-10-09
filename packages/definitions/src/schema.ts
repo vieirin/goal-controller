@@ -357,3 +357,188 @@ export const defineEngine = <const D extends EngineDefinition>(
     fail('propertyLineOrder must list each operand kind key once');
   return deepFreeze(definition) as DeepReadonly<D>;
 };
+
+// ---------------------------------------------------------------------------
+// extensions: what a dialect adds to iStar 2.0, for any engine
+// ---------------------------------------------------------------------------
+
+/** iStar 2.0's kinds, as models write them (`@istar-ts/core`'s; the tests pin them). */
+export const ISTAR_ACTOR_KINDS = [
+  'istar.Actor',
+  'istar.Agent',
+  'istar.Role',
+] as const;
+export const ISTAR_NODE_KINDS = [
+  'istar.Goal',
+  'istar.Quality',
+  'istar.Resource',
+  'istar.Task',
+] as const;
+export const ISTAR_LINK_KINDS = [
+  'istar.IsALink',
+  'istar.ParticipatesInLink',
+  'istar.DependencyLink',
+  'istar.AndRefinementLink',
+  'istar.OrRefinementLink',
+  'istar.NeededByLink',
+  'istar.QualificationLink',
+  'istar.ContributionLink',
+] as const;
+
+/** The iStar kind each element kind an engine reads is drawn as. */
+export const ISTAR_KIND_OF = {
+  goal: 'istar.Goal',
+  task: 'istar.Task',
+  resource: 'istar.Resource',
+  quality: 'istar.Quality',
+} as const satisfies Record<ElementKind, string>;
+
+/** A kind a dialect adds: a node or an actor, namespaced (`rationalAgents.Planning`). */
+export type ExtensionElementDefinition = {
+  kind: string;
+  /** default: the part after the namespace */
+  label?: string;
+  /** required unless it behaves like a kind (then it is that kind's) */
+  category?: 'node' | 'actor';
+  /** the kind whose link rules it follows (`istar.Task`) */
+  behavesLike?: string;
+  /** the `type` it is saved with, when not its name (piStar-ext saves `istar.<Name>`) */
+  pistarType?: string;
+  size?: { width: number; height: number };
+  /** SVG path data it is drawn with (presentation only; default: a dashed box with its «label») */
+  shape?: string;
+};
+
+/** Which kinds a new link may join: kind names, or the categories `node`, `actor`, `*`. */
+export type LinkRulesDefinition = {
+  sources: readonly string[];
+  targets: readonly string[];
+  /** default: true (the iStar 2.0 Guide's node links) */
+  sameActor?: boolean;
+  allowDependum?: boolean;
+  allowSelf?: boolean;
+  /** at most one link of this kind (`kind`, the default) or of any kind between two elements */
+  unique?: 'kind' | 'any' | false;
+};
+
+/** A link kind a dialect adds: it behaves like an iStar link, or has rules of its own. */
+export type ExtensionLinkDefinition = {
+  kind: string;
+  label?: string;
+  behavesLike?: string;
+  rules?: LinkRulesDefinition;
+  pistarType?: string;
+  /** how it is drawn (presentation only): its dash and target marker (SVG path data) */
+  line?: {
+    dash: 'continuous' | 'dashed' | 'dotted';
+    marker?: string;
+    markerFilled?: boolean;
+  };
+};
+
+/** A stereotype or tagged value, on kinds or groupers (by name). */
+export type StereotypeDefinition = {
+  name: string;
+  appliesTo: readonly string[];
+};
+export type TaggedValueDefinition = {
+  name: string;
+  appliesTo: readonly string[];
+  /** its values, when they are listed (others are free text) */
+  values?: readonly string[];
+};
+
+/**
+ * A dialect of iStar, for any engine: the kinds and links it adds (a metamodel
+ * extension, with how they are drawn), named sets of kinds (groupers), and the
+ * stereotypes and tagged values elements may carry, written as annotations on
+ * the lines of the kinds an engine reads.
+ */
+export type ExtensionDefinition = {
+  /** the namespace of its kinds */
+  name: string;
+  label: string;
+  elements: readonly ExtensionElementDefinition[];
+  links: readonly ExtensionLinkDefinition[];
+  /** a grouper: a name for a set of kinds (iStar's or the dialect's) */
+  groupers: Readonly<Record<string, readonly string[]>>;
+  stereotypes: readonly StereotypeDefinition[];
+  taggedValues: readonly TaggedValueDefinition[];
+  /** tagged values every element may carry (free text) */
+  defaultTags: readonly string[];
+  /**
+   * how an element line writes them: the stereotype's annotation sets one
+   * property, the tagged value's its name and value
+   */
+  annotations: {
+    stereotype: DeclarationDefinition;
+    taggedValue: DeclarationDefinition;
+  };
+};
+
+const CATEGORIES = ['node', 'actor', '*'];
+
+/**
+ * Type-checks and freezes a dialect, and checks what the types cannot: its
+ * kinds are in its namespace, and every kind, grouper and link end it names is
+ * one iStar 2.0 or the dialect declares.
+ */
+export const defineExtension = <const E extends ExtensionDefinition>(
+  extension: E,
+): DeepReadonly<E> => {
+  const fail = (why: string) => {
+    throw new Error(`${extension.name}: ${why}`);
+  };
+  const own = [...extension.elements, ...extension.links].map((k) => k.kind);
+  for (const kind of own)
+    if (!kind.startsWith(`${extension.name}.`))
+      fail(`${kind} is not in the ${extension.name} namespace`);
+  const elementKinds = [
+    ...ISTAR_ACTOR_KINDS,
+    ...ISTAR_NODE_KINDS,
+    ...extension.elements.map((e) => e.kind),
+  ] as string[];
+  const linkKinds = [
+    ...ISTAR_LINK_KINDS,
+    ...extension.links.map((l) => l.kind),
+  ] as string[];
+  for (const element of extension.elements) {
+    if (element.behavesLike && !elementKinds.includes(element.behavesLike))
+      fail(`${element.kind} behaves like unknown ${element.behavesLike}`);
+    if (!element.behavesLike && !element.category)
+      fail(`${element.kind} needs a category or a kind it behaves like`);
+  }
+  for (const link of extension.links) {
+    if (!link.behavesLike === !link.rules)
+      fail(`${link.kind} needs rules or a kind it behaves like, not both`);
+    if (link.behavesLike && !linkKinds.includes(link.behavesLike))
+      fail(`${link.kind} behaves like unknown ${link.behavesLike}`);
+    for (const end of [
+      ...(link.rules?.sources ?? []),
+      ...(link.rules?.targets ?? []),
+    ])
+      if (!elementKinds.includes(end) && !CATEGORIES.includes(end))
+        fail(`${link.kind} joins unknown ${end}`);
+  }
+  for (const [grouper, kinds] of Object.entries(extension.groupers))
+    for (const kind of kinds)
+      if (!elementKinds.includes(kind) && !linkKinds.includes(kind))
+        fail(`grouper ${grouper} names unknown ${kind}`);
+  for (const { name, appliesTo } of [
+    ...extension.stereotypes,
+    ...extension.taggedValues,
+  ])
+    for (const target of appliesTo)
+      if (
+        !(target in extension.groupers) &&
+        !elementKinds.includes(target) &&
+        !linkKinds.includes(target)
+      )
+        fail(`${name} applies to unknown ${target}`);
+  const { stereotype, taggedValue } = extension.annotations;
+  if (declarationKeys(stereotype).length !== 1)
+    fail('a stereotype annotation sets one property');
+  if (![1, 2].includes(declarationKeys(taggedValue).length))
+    fail('a tagged value annotation sets its name, and its value');
+  return deepFreeze(extension) as DeepReadonly<E>;
+};

@@ -1,0 +1,198 @@
+/**
+ * What a dialect (an ExtensionDefinition) gives each consumer: the metamodel
+ * extension a model is read with (`@istar-ts/core`'s `MetamodelExtension`, as
+ * plain data), the stereotypes and tagged values each kind may carry, and an
+ * engine definition whose element lines carry them as annotations. Nothing
+ * here knows a dialect.
+ */
+import {
+  ISTAR_KIND_OF,
+  declarationKeys,
+  defineEngine,
+  type ConditionalValue,
+  type ElementKind,
+  type EngineDefinition,
+  type ExtensionDefinition,
+  type LinkRulesDefinition,
+  type PropertyDefinition,
+  type ValueConfig,
+} from '../schema';
+
+/** `@istar-ts/core`'s `MetamodelExtension`, structurally (this package has no dependencies). */
+export type MetamodelExtensionData = {
+  name: string;
+  elements: {
+    kind: string;
+    label?: string;
+    category?: 'node' | 'actor';
+    behavesLike?: string;
+    pistarType?: string;
+    size?: { width: number; height: number };
+  }[];
+  links: {
+    kind: string;
+    label?: string;
+    behavesLike?: string;
+    rules?: LinkRulesDefinition;
+    pistarType?: string;
+  }[];
+};
+
+/** The fields that are set, without the others (a metamodel extension has no undefined ones). */
+const defined = <T extends object>(value: T): T =>
+  Object.fromEntries(
+    Object.entries(value).filter(([, v]) => v !== undefined),
+  ) as T;
+
+/** The metamodel extension a dialect's models are read with (presentation left out). */
+export const metamodelExtensionOf = (
+  extension: ExtensionDefinition,
+): MetamodelExtensionData => ({
+  name: extension.name,
+  elements: extension.elements.map(
+    ({ kind, label, category, behavesLike, pistarType, size }) =>
+      defined({ kind, label, category, behavesLike, pistarType, size }),
+  ),
+  links: extension.links.map(
+    ({ kind, label, behavesLike, rules, pistarType }) =>
+      defined({ kind, label, behavesLike, rules, pistarType }),
+  ),
+});
+
+/** Whether a stereotype or tagged value applies to a kind (named, or in a named grouper). */
+const appliesTo = (
+  extension: ExtensionDefinition,
+  targets: readonly string[],
+  kind: string,
+): boolean =>
+  targets.some(
+    (target) =>
+      target === kind || (extension.groupers[target] ?? []).includes(kind),
+  );
+
+/** A tagged value whose values are listed: the others are free text. */
+export type ListedTag = { name: string; values: readonly string[] };
+
+/** The stereotypes and tagged values an element of a kind may carry (the default tags first). */
+export const profileOf = (
+  extension: ExtensionDefinition,
+  kind: string,
+): { stereotypes: string[]; tags: (string | ListedTag)[] } => ({
+  stereotypes: extension.stereotypes
+    .filter((s) => appliesTo(extension, s.appliesTo, kind))
+    .map((s) => s.name),
+  tags: [
+    ...extension.defaultTags,
+    ...extension.taggedValues
+      .filter((t) => appliesTo(extension, t.appliesTo, kind))
+      .map((t) => (t.values ? { name: t.name, values: t.values } : t.name)),
+  ],
+});
+
+const options = (values: readonly string[]) => [
+  { value: '', label: 'none' },
+  ...values.map((value) => ({ value, label: value })),
+];
+
+/** The property keys a dialect's annotations set: the stereotype, a tag's name and value. */
+export const annotationKeys = (extension: ExtensionDefinition) => {
+  const [stereotype] = declarationKeys(extension.annotations.stereotype);
+  const [tag, tagValue] = declarationKeys(extension.annotations.taggedValue);
+  return { stereotype: stereotype!, tag: tag!, tagValue };
+};
+
+/**
+ * The properties a kind's profile adds: its stereotype (when it has any), and
+ * its tagged value's name and value, whose config is listed for a listed tag.
+ */
+export const profileProperties = (
+  extension: ExtensionDefinition,
+  kind: string,
+): PropertyDefinition[] => {
+  const { stereotypes, tags } = profileOf(extension, kind);
+  const keys = annotationKeys(extension);
+  const listed = tags.filter(
+    (tag): tag is ListedTag => typeof tag !== 'string',
+  );
+  // a conditional value has one condition: one listed tag per kind
+  if (listed.length > 1)
+    throw new Error(
+      `${extension.name}: one listed tagged value per kind (${kind})`,
+    );
+  const text: ValueConfig = { type: 'text' };
+  const [tag] = listed;
+  return [
+    ...(stereotypes.length
+      ? [
+          {
+            key: keys.stereotype,
+            value: { type: 'enum', options: options(stereotypes) },
+            help: 'its stereotype, written <<stereotype>> before it',
+          } as const,
+        ]
+      : []),
+    {
+      key: keys.tag,
+      value: {
+        type: 'enum',
+        options: options(tags.map((t) => (typeof t === 'string' ? t : t.name))),
+      },
+      help: 'its tagged value, written {tag = value} before it',
+    },
+    ...(keys.tagValue
+      ? [
+          {
+            key: keys.tagValue,
+            value: tag
+              ? ({
+                  when: { key: keys.tag, equals: tag.name },
+                  matching: { type: 'enum', options: options(tag.values) },
+                  otherwise: text,
+                } satisfies ConditionalValue)
+              : text,
+            help: 'the tagged value’s value',
+          },
+        ]
+      : []),
+  ];
+};
+
+/**
+ * An engine definition with a dialect's stereotypes and tagged values: each
+ * kind the engine reads gets its profile's properties, and annotations writing
+ * them on its line (what the engine reads is unchanged).
+ */
+export const withExtension = (
+  engine: EngineDefinition,
+  extension: ExtensionDefinition,
+) => {
+  const elements: Record<string, unknown> = { ...engine.elements };
+  const properties: Record<string, readonly PropertyDefinition[]> = {
+    ...engine.properties,
+  };
+  for (const [kind, element] of Object.entries(engine.elements)) {
+    if (!element) continue;
+    const added = profileProperties(
+      extension,
+      ISTAR_KIND_OF[kind as ElementKind],
+    );
+    const { stereotype, taggedValue } = extension.annotations;
+    elements[kind] = {
+      ...element,
+      annotations: [
+        ...(added.some((p) => p.key === annotationKeys(extension).stereotype)
+          ? [stereotype]
+          : []),
+        taggedValue,
+      ],
+    };
+    properties[kind] = [...engine.properties[kind as ElementKind], ...added];
+  }
+  return defineEngine({
+    ...engine,
+    id: `${engine.id}+${extension.name}`,
+    name: `${engine.name} + ${extension.label}`,
+    elements,
+    properties,
+  } as EngineDefinition);
+};
