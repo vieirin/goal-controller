@@ -32,7 +32,13 @@ import {
   writeModelMode,
   type ModelMode,
 } from '@/lib/workbench/pistar';
-import { recentId, type ProjectSource } from '@/lib/project';
+import {
+  fileStore,
+  openProject as readProject,
+  recentId,
+  type Project,
+  type ProjectSource,
+} from '@/lib/project';
 import {
   openingSettings,
   optionsFor,
@@ -129,6 +135,8 @@ export type OpenOptions = {
   /** a Recent entry moved aside (RecentEntry.aside) */
   aside?: number;
 };
+/** How a project opens; where it came from is its own. */
+export type ProjectOpenOptions = Omit<OpenOptions, 'source'>;
 
 export type Workbench = {
   // model
@@ -138,7 +146,16 @@ export type Workbench = {
   dirty: boolean;
   changeSource: ChangeSource;
   revision: number;
-  openModel: (fileName: string, text: string, how?: OpenOptions) => void;
+  /** open a project (lib/project): its model, with where it came from */
+  openProject: (project: Project, how?: ProjectOpenOptions) => void;
+  /** a local file (uploaded or new) as an implicit one-model project */
+  openFile: (
+    fileName: string,
+    text: string,
+    how?: ProjectOpenOptions,
+  ) => Promise<void>;
+  /** a Recent entry, with its edits and the settings kept with it */
+  openRecent: (entry: RecentFile) => Promise<void>;
   /** where the open model's project came from (a single file: an implicit project) */
   projectSource: ProjectSource | null;
   /** the open model's Recent entry (recentId), none without a model */
@@ -612,6 +629,7 @@ function WorkbenchState({
   const modelRef = useRef(model);
   modelRef.current = model;
 
+  // ---- opening: every model opens as a project (a single file: an implicit one) ----
   /** Recent's entry for the model being left, with its latest edits (none: no model) */
   const leaving = useCallback((): Omit<RecentFile, 'at'> | null => {
     const previous = modelRef.current;
@@ -679,6 +697,39 @@ function WorkbenchState({
       forceHistory((n) => n + 1);
     },
     [leaving, adoptSettings, clearSelection],
+  );
+
+  const openProject = useCallback(
+    (project: Project, how: ProjectOpenOptions = {}) => {
+      const [first] = project.models;
+      if (!first) return;
+      openModel(first.path.split('/').pop() ?? first.path, first.text, {
+        ...how,
+        source: project.source,
+      });
+    },
+    [openModel],
+  );
+  const openFile = useCallback(
+    async (fileName: string, text: string, how: ProjectOpenOptions = {}) =>
+      openProject(await readProject(fileStore(fileName, text)), how),
+    [openProject],
+  );
+  const openRecent = useCallback(
+    async (entry: RecentFile) =>
+      openProject(
+        await readProject(
+          fileStore(entry.fileName, entry.text, {
+            ...(entry.source && { source: entry.source }),
+          }),
+        ),
+        {
+          savedText: entry.savedText,
+          settings: entry.settings,
+          ...(entry.aside && { aside: entry.aside }),
+        },
+      ),
+    [openProject],
   );
 
   const closeModel = useCallback(() => {
@@ -1114,7 +1165,9 @@ function WorkbenchState({
     dirty: model.text !== model.savedText,
     changeSource: model.source,
     revision: model.revision,
-    openModel,
+    openProject,
+    openFile,
+    openRecent,
     projectSource: model.projectSource,
     recentEntry: model.text.trim()
       ? recentId({

@@ -26,6 +26,7 @@ import {
   serializeManifest,
   unzipProject,
   withModelSettings,
+  withModelText,
   type DirectoryHandleLike,
   type FileHandleLike,
   type RecentStorage,
@@ -112,11 +113,9 @@ describe('project stores', () => {
 
   it('saves a single file through its owner, and reads its new settings back', async () => {
     const written: string[] = [];
-    const store = fileStore(
-      'm.txt',
-      EDGE,
-      (_name, text) => void written.push(text),
-    );
+    const store = fileStore('m.txt', EDGE, {
+      onWrite: (_name, text) => void written.push(text),
+    });
     const project = await openProject(store);
     const text = withModelSettings(EDGE, { options: { discretisation: 4 } });
     const saved = await saveProject(project, { 'm.txt': text });
@@ -129,6 +128,52 @@ describe('project stores', () => {
     await saveProject(saved, { 'm.txt': EDGE });
     expect(written[1]).to.equal(EDGE);
     expect(JSON.parse(written[1]!)).not.to.have.property(EMBEDDED_KEY);
+  });
+
+  it('opens a model whose JSON does not parse, as an unreadable one-model project', async () => {
+    const broken = '{ "actors": [ ';
+    const project = await openProject(fileStore('broken.txt', broken));
+    expect(project.form).to.equal('embedded');
+    expect(project.models).to.deep.equal([
+      {
+        path: 'broken.txt',
+        text: broken,
+        settings: { mode: null, options: {} },
+        unreadable: true,
+      },
+    ]);
+    // a `project` key that isn't a manifest: the mode record still counts
+    const badKey = JSON.stringify({
+      ...JSON.parse(withModelSettings(EDGE, { mode: 'edgev2' })),
+      [EMBEDDED_KEY]: 'x',
+    });
+    const read = await openProject(fileStore('m.txt', badKey));
+    expect(read.models[0]!.settings).to.deep.equal({
+      mode: 'edgev2',
+      options: {},
+    });
+    expect(read.models[0]!.unreadable).to.equal(undefined);
+  });
+
+  it('keeps where a file came from, and reads a model text replaced', async () => {
+    const source = {
+      kind: 'github',
+      repo: 'vieirin/goal-controller',
+      ref: 'main',
+      path: 'examples/edgeV2',
+    } as const;
+    const project = await openProject(fileStore('m.txt', EDGE, { source }));
+    expect(project.source).to.deep.equal(source);
+    const recorded = withModelText(
+      project,
+      'm.txt',
+      withModelSettings(EDGE, { mode: 'edgev2' }),
+    );
+    expect(recorded.models[0]!.settings.mode).to.equal('edgev2');
+    expect(recorded.manifest.dialect).to.equal('edgev2');
+    expect(() => withModelText(project, 'other.txt', EDGE)).to.throw(
+      /no model other\.txt/,
+    );
   });
 
   it('refuses to write a read-only file', async () => {

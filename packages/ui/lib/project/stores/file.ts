@@ -1,18 +1,25 @@
-import type { ProjectStore } from '../store';
+import type { ProjectSource, ProjectStore } from '../store';
 
 /**
  * A single file, in memory: the implicit one-model project. Writes go back to
  * the caller (the workbench downloads them, as it always did); without
- * `onWrite` the store is read-only.
+ * `onWrite` the store is read-only. `source` says where the file came from
+ * when it isn't a local file of that name (a Recent entry of an example).
  */
 export const fileStore = (
   name: string,
   text: string,
-  onWrite?: (name: string, text: string) => void | Promise<void>,
+  {
+    onWrite,
+    source = { kind: 'file', name },
+  }: {
+    onWrite?: (name: string, text: string) => void | Promise<void>;
+    source?: ProjectSource;
+  } = {},
 ): ProjectStore => {
   let current = text;
   return {
-    source: { kind: 'file', name },
+    source,
     readOnly: !onWrite,
     form: 'embedded',
     list: async () => [name],

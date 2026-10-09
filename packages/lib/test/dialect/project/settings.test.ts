@@ -9,7 +9,9 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
   EMBEDDED_KEY,
+  fileStore,
   modelSettingsOf,
+  openProject,
   withModelSettings,
   type ProjectIndexEntry,
 } from '../../../../ui/lib/project';
@@ -25,9 +27,14 @@ import {
   writeModelMode,
   type ModelMode,
 } from '../../../../ui/lib/workbench/pistar';
-import { isDialectMode } from '../../../../ui/lib/workbench/dialects';
+import {
+  isDialectMode,
+  parseModel,
+} from '../../../../ui/lib/workbench/dialects';
+import { jsonProblem } from '../../../../ui/lib/workbench/localProblems';
 import {
   DEFAULT_OPTIONS,
+  SOURCE,
   type ModelSettings,
 } from '../../../../ui/lib/workbench/types';
 import { openExample } from '../../../../ui/services/examples';
@@ -219,6 +226,48 @@ describe('ui model settings over the project manifest', () => {
   });
 });
 
+describe('ui: a local file opened as a project', () => {
+  it('opens an upload whose JSON does not parse, with the JSON problem as before', async () => {
+    const broken = '{\n  "actors": [\n';
+    const project = await openProject(fileStore('broken.txt', broken));
+    const [model] = project.models;
+    expect(model!.text).to.equal(broken);
+    expect(model!.unreadable).to.equal(true);
+    // what the workbench makes of it: a piStar model with the JSON problem, no settings problem
+    expect(opening(model!.text, undefined)).to.deep.equal(
+      legacyOpening(broken, undefined, SESSION),
+    );
+    expect(opening(model!.text, undefined).pistar).to.equal(true);
+    expect(readModelOptions(model!.text).problems).to.deep.equal([]);
+    let error: Error | null = null;
+    try {
+      parseModel(model!.text);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error).not.to.equal(null);
+    const problem = jsonProblem(model!.text, error!);
+    expect(problem.severity).to.equal('error');
+    expect(problem.source).to.equal(SOURCE.file);
+  });
+
+  it('opens a new model and an upload as a local file, a Recent entry where it came from', async () => {
+    const upload = await openProject(fileStore('lab.txt', edgeModel));
+    expect(upload.source).to.deep.equal({ kind: 'file', name: 'lab.txt' });
+    expect(upload.models[0]!.settings.mode).to.equal('edge');
+    const source = {
+      kind: 'github',
+      repo: 'vieirin/goal-controller',
+      ref: 'main',
+      path: 'examples/edge',
+    } as const;
+    const recent = await openProject(
+      fileStore('lab.txt', edgeModel, { source }),
+    );
+    expect(recent.source).to.deep.equal(source);
+  });
+});
+
 describe('ui Explorer: examples opened as projects', () => {
   const read = (path: string) => readFileSync(join(EXAMPLES_DIR, path), 'utf8');
   const fetchLocal = async (url: string) => ({
@@ -244,6 +293,7 @@ describe('ui Explorer: examples opened as projects', () => {
       const mode =
         GROUP_MODE[entry.group] ?? legacyRecordedMode(original) ?? 'pistar';
       expect(opened.fileName, entry.path).to.equal(entry.path.split('/').pop());
+      expect(opened.project.models[0]!.text, entry.path).to.equal(opened.text);
       expect(opened.project.source, entry.path).to.deep.equal({
         kind: 'github',
         repo: 'vieirin/goal-controller',

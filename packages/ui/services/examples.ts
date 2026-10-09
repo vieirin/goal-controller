@@ -1,6 +1,7 @@
 import {
   githubStore,
   openProject,
+  withModelText,
   type Project,
   type ProjectIndexEntry,
 } from '../lib/project';
@@ -27,9 +28,9 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
 };
 
 export type OpenedExample = {
+  /** its model with the engine (or dialect) of its folder recorded */
   project: Project;
   fileName: string;
-  /** its model, with the engine (or dialect) of its folder recorded */
   text: string;
   settings?: Partial<ModelSettings>;
 };
@@ -44,7 +45,7 @@ export const openExample = async (
   entry: ProjectIndexEntry,
   fetch?: Parameters<typeof githubStore>[0]['fetch'],
 ): Promise<OpenedExample> => {
-  const project = await openProject(
+  const read = await openProject(
     githubStore({
       ref: REF,
       path: `examples/${entry.root}`,
@@ -53,13 +54,14 @@ export const openExample = async (
       ...(fetch && { fetch }),
     }),
   );
-  const [model] = project.models;
+  const [model] = read.models;
   if (!model) throw new Error(`${entry.path}: no model`);
   const engine = EXAMPLE_ENGINES[entry.group];
+  const text = engine ? writeModelMode(model.text, engine) : model.text;
   return {
-    project,
+    project: withModelText(read, model.path, text),
     fileName: model.path.split('/').pop() ?? model.path,
-    text: engine ? writeModelMode(model.text, engine) : model.text,
+    text,
     ...(engine && !isDialectMode(engine) && { settings: { engine } }),
   };
 };

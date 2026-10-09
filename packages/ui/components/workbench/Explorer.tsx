@@ -40,15 +40,12 @@ export const recentOrigin = (file: RecentFile): string | null =>
     .join(', ') || null;
 
 export const useOpenExample = () => {
-  const { openModel } = useWorkbench();
+  const { openProject } = useWorkbench();
   const [error, setError] = useState<string | null>(null);
   const open = async (example: ProjectIndexEntry) => {
     try {
-      const { project, fileName, text, settings } = await readExample(example);
-      openModel(fileName, text, {
-        ...(settings && { settings }),
-        source: project.source,
-      });
+      const { project, settings } = await readExample(example);
+      openProject(project, settings && { settings });
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -245,14 +242,7 @@ export default function Explorer() {
                   recentAge(file.at)
                 )
               }
-              onClick={() =>
-                wb.openModel(file.fileName, file.text, {
-                  savedText: file.savedText,
-                  settings: file.settings,
-                  ...(file.source && { source: file.source }),
-                  ...(file.aside && { aside: file.aside }),
-                })
-              }
+              onClick={() => void wb.openRecent(file)}
               trailing={
                 <button
                   type='button'

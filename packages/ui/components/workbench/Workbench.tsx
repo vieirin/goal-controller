@@ -203,8 +203,9 @@ function ShellLayout() {
   // a new model is set up first, then drawn in the diagram, full screen
   const [diagramAfterSetup, setDiagramAfterSetup] = useState(false);
   const newModel = useCallback(() => {
-    wb.openModel('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true });
-    setDiagramAfterSetup(true);
+    void wb
+      .openFile('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true })
+      .then(() => setDiagramAfterSetup(true));
   }, [wb]);
   useEffect(() => {
     if (!diagramAfterSetup || wb.settingsDialog) return undefined;
@@ -313,7 +314,7 @@ function ShellLayout() {
           hideDropTarget();
           const file = event.dataTransfer.files[0];
           if (file)
-            wb.openModel(file.name, await readFile(file), { setup: true });
+            await wb.openFile(file.name, await readFile(file), { setup: true });
         }}
       >
         <TopBar />
@@ -576,14 +577,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                 >
                   <button
                     type='button'
-                    onClick={() =>
-                      wb.openModel(file.fileName, file.text, {
-                        savedText: file.savedText,
-                        settings: file.settings,
-                        ...(file.source && { source: file.source }),
-                        ...(file.aside && { aside: file.aside }),
-                      })
-                    }
+                    onClick={() => void wb.openRecent(file)}
                     className='flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-[13px]'
                   >
                     <History

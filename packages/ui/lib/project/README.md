@@ -96,7 +96,7 @@ interface ProjectStore {
 
 | Store | Where | Notes |
 |---|---|---|
-| `fileStore(name, text, onWrite?)` | one file in memory | the implicit one-model project; writes go back to the caller (the workbench downloads them) |
+| `fileStore(name, text, { onWrite?, source? })` | one file in memory | the implicit one-model project (an upload, a new model, a Recent entry with the source it came from); writes go back to the caller (the workbench downloads them) |
 | `directoryStore(handle)` | a folder on disk (File System Access API, Chrome/Edge) | any handle with `DirectoryHandleLike`'s methods; tests use fakes |
 | `opfsStore(name)` | the browser's private file system (OPFS) | the fallback where folders can't be opened (Safari, Firefox) and for scratch projects; in and out as a zip (`importZip`, `exportZip`) |
 | `githubStore({ ref, path, files, form })` | a folder of the public repository, read-only | the examples. `files` and `form` come from the deploy-time index, so opening fetches only the files read, one request each |
@@ -104,7 +104,11 @@ interface ProjectStore {
 `openProject(store)` returns one `Project` shape whatever the store:
 `{ name, source, store, form, manifest, models: [{ path, text, settings }],
 projectResources, outputs }`. `saveProject(project, changes, manifest?)`
-writes the changed files and, for a `project.json` project, the manifest.
+writes the changed files and, for a `project.json` project, the manifest. A
+model that isn't JSON still opens (`unreadable`, no settings): the module
+reads the manifest, not the model, and the workbench reports the JSON
+problem. Every model the workbench opens goes through `openProject`: an
+example, an upload, a new model and a Recent entry.
 
 ### The examples index
 

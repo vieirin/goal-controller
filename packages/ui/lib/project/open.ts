@@ -12,7 +12,7 @@ import {
   type OutputEntry,
 } from './manifest';
 import {
-  manifestOfModel,
+  readEmbeddedManifest,
   recordedMode,
   withEmbeddedManifest,
 } from './embedded';
@@ -29,6 +29,8 @@ export type ProjectModel = {
   text: string;
   /** what it is read with: its manifest entry over the project's defaults */
   settings: ManifestSettings;
+  /** its text isn't JSON (yet): it opens with no settings, the workbench says why */
+  unreadable?: true;
 };
 
 export type Project = {
@@ -87,14 +89,43 @@ const project = (
 });
 
 const embedded = (store: ProjectStore, path: string, text: string): Project => {
-  const manifest = manifestOfModel(text, path);
+  const { manifest, unreadable } = readEmbeddedManifest(text, path);
   return project(
     store,
     'embedded',
     manifest,
-    [{ path, text, settings: settingsOf(manifest, path, text) }],
+    [
+      {
+        path,
+        text,
+        settings: settingsOf(manifest, path, text),
+        ...(unreadable && { unreadable: true as const }),
+      },
+    ],
     baseName(path),
   );
+};
+
+/**
+ * The project with a model's text replaced (not written): its settings read
+ * again, and a one-model project's manifest with them.
+ */
+export const withModelText = (
+  from: Project,
+  path: string,
+  text: string,
+): Project => {
+  if (!from.models.some((model) => model.path === path))
+    throw new ManifestError('models', `no model ${path}`);
+  if (from.form === 'embedded') return embedded(from.store, path, text);
+  return {
+    ...from,
+    models: from.models.map((model) =>
+      model.path === path
+        ? { ...model, text, settings: settingsOf(from.manifest, path, text) }
+        : model,
+    ),
+  };
 };
 
 const folderName = (source: ProjectSource): string =>

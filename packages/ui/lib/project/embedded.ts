@@ -111,6 +111,36 @@ export const manifestOfModel = (
   });
 };
 
+/**
+ * The manifest a model carries, for opening it: never throws. A model that
+ * isn't JSON (being written, or broken) is `unreadable`, a one-model project
+ * with no settings; one whose `project` key isn't a manifest keeps its mode
+ * record only. Why is the workbench's to say (it reads the model).
+ */
+export const readEmbeddedManifest = (
+  text: string,
+  path: string = DEFAULT_MODEL_PATH,
+): { manifest: Manifest; unreadable: boolean } => {
+  let model: Json;
+  try {
+    model = parseObject(text);
+  } catch {
+    return { manifest: singleModelManifest(path), unreadable: true };
+  }
+  try {
+    return { manifest: manifestOfModel(text, path), unreadable: false };
+  } catch {
+    const mode = modeRecord.read(model);
+    return {
+      manifest: singleModelManifest(
+        path,
+        mode === null ? {} : { dialect: mode },
+      ),
+      unreadable: false,
+    };
+  }
+};
+
 const detectIndent = (text: string): number | string => {
   const match = /\n([ \t]+)"/.exec(text);
   if (!match || !match[1]) return 0;
