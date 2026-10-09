@@ -24,6 +24,13 @@ export const nodeIdInMessage = (message: string): string | undefined => {
 };
 
 export const jsonProblem = (text: string, error: Error): Problem => {
+  // what the model adds to its dialect, which the dialect can't take
+  if (error.message.startsWith("the model's extension"))
+    return {
+      severity: 'error',
+      source: 'json',
+      message: `This model's own extension can't be read: ${error.message.replace("the model's extension: ", '')}`,
+    };
   // valid JSON with kinds its mode doesn't have: a dialect's, when one reads it
   const dialect = dialectThatReads(text);
   if (dialect)

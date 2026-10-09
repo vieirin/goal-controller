@@ -523,10 +523,11 @@ const CATEGORIES = ['node', 'actor', '*'];
 /**
  * Type-checks and freezes a dialect, and checks what the types cannot: its
  * kinds are in its namespace, and every kind, grouper and link end it names is
- * one iStar 2.0 or the dialect declares.
+ * one iStar 2.0, `base` (the dialect it extends, if any) or it declares.
  */
 export const defineExtension = <const E extends ExtensionDefinition>(
   extension: E,
+  base?: ExtensionDefinition,
 ): DeepReadonly<E> => {
   const fail = (why: string) => {
     throw new Error(`${extension.name}: ${why}`);
@@ -538,12 +539,15 @@ export const defineExtension = <const E extends ExtensionDefinition>(
   const elementKinds = [
     ...ISTAR_ACTOR_KINDS,
     ...ISTAR_NODE_KINDS,
+    ...(base?.elements ?? []).map((e) => e.kind),
     ...extension.elements.map((e) => e.kind),
   ] as string[];
   const linkKinds = [
     ...ISTAR_LINK_KINDS,
+    ...(base?.links ?? []).map((l) => l.kind),
     ...extension.links.map((l) => l.kind),
   ] as string[];
+  const groupers = { ...base?.groupers, ...extension.groupers };
   for (const element of extension.elements) {
     if (element.behavesLike && !elementKinds.includes(element.behavesLike))
       fail(`${element.kind} behaves like unknown ${element.behavesLike}`);
@@ -572,7 +576,7 @@ export const defineExtension = <const E extends ExtensionDefinition>(
   ])
     for (const target of appliesTo)
       if (
-        !(target in extension.groupers) &&
+        !(target in groupers) &&
         !elementKinds.includes(target) &&
         !linkKinds.includes(target)
       )

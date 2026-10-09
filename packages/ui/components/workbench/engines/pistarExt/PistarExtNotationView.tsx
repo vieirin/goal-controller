@@ -2,16 +2,11 @@
 
 import { contextFromView } from '@goal-controller/definitions';
 import { useEffect, useMemo, useRef } from 'react';
-import {
-  DIALECT_DEFINITIONS,
-  dialectTree,
-  parseModel,
-} from '@/lib/workbench/dialects';
+import { dialectTree, parseModel } from '@/lib/workbench/dialects';
 import { localLanguageSupport } from '@/lib/workbench/languageSupport';
 import { useWorkbench } from '../../WorkbenchContext';
 import NotationEditor from '../definition/NotationEditor';
-
-const definition = DIALECT_DEFINITIONS.pistarext;
+import { usePistarExt } from './usePistarExt';
 
 /**
  * The model as piStar-ext's lines: each element's stereotype and tagged value before its
@@ -20,6 +15,8 @@ const definition = DIALECT_DEFINITIONS.pistarext;
  */
 export default function PistarExtNotationView() {
   const { text } = useWorkbench();
+  // the dialect with what the model adds
+  const { definition } = usePistarExt();
   // the last tree read stays while the model is being fixed
   const last = useRef<ReturnType<typeof dialectTree> | null>(null);
   const tree = useMemo(() => {
@@ -31,10 +28,13 @@ export default function PistarExtNotationView() {
     return last.current;
   }, [text]);
   // no engine: no checks; the text is checked against the model's elements
-  const support = useMemo(() => localLanguageSupport(definition, {}), []);
+  const support = useMemo(
+    () => localLanguageSupport(definition, {}),
+    [definition],
+  );
   useEffect(() => {
     if (tree) support.setContext(contextFromView(definition, tree, []));
-  }, [tree, support]);
+  }, [tree, support, definition]);
   return (
     <NotationEditor
       definition={definition}

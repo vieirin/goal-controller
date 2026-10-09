@@ -1,24 +1,36 @@
 'use client';
 
 import {
+  ISTAR_ACTOR_KINDS,
   ISTAR_LINK_KINDS,
+  ISTAR_NODE_KINDS,
   annotationKeys,
   extensionCatalog,
   fillOf,
   inputOf,
+  kindLabel,
   profileProperties,
   specsFromDefinition,
+  takenName,
+  withModelExtension,
   type CatalogCategory,
   type ExtensionDefinition,
+  type ModelExtension,
   type PropertySpec,
 } from '@goal-controller/definitions';
 import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { useIstarEditor, useSelectedTarget } from '@istar-ts/react';
-import { useState } from 'react';
-import { DIALECTS, DIALECT_DEFINITIONS } from '@/lib/workbench/dialects';
+import { useMemo, useState } from 'react';
+import {
+  DIALECTS,
+  writeModelExtension,
+  type ModelDialect,
+} from '@/lib/workbench/dialects';
+import { useWorkbench } from '../../WorkbenchContext';
 import { cx } from '../../ui';
 import { ColorField, inputClass, useDraft } from '../shared/inspector';
 import { labelAnnotations } from './extensions';
+import { usePistarExt } from './usePistarExt';
 
 /**
  * piStar-ext's properties panel, beside the diagram, in tabs as piStar-ext has
@@ -30,26 +42,28 @@ import { labelAnnotations } from './extensions';
  */
 
 const dialect: ExtensionDefinition = DIALECTS.pistarext;
-const definition = DIALECT_DEFINITIONS.pistarext;
 const KEYS = annotationKeys(dialect);
-const CATALOG = extensionCatalog(dialect);
-// what each kind may carry; a dialect has no engine, so no checks to bind
-const SPECS: Record<string, PropertySpec<string, unknown>[]> = {
+const READ_ONLY = `Declared by the ${dialect.label} dialect (its definition), so read-only here`;
+
+/** What each kind may carry, in the model's dialect; a dialect has no engine: no checks. */
+const specsOf = ({
+  extension,
+  definition,
+}: ModelDialect): Record<string, PropertySpec<string, unknown>[]> => ({
   ...specsFromDefinition(definition, {}),
   // links have no lines of their own: their profile, as for an element's kind
   ...specsFromDefinition(
     {
-      id: dialect.name,
+      id: extension.name,
       properties: Object.fromEntries(
-        [...ISTAR_LINK_KINDS, ...dialect.links.map((l) => l.kind)].map(
-          (kind) => [kind, profileProperties(dialect, kind)],
+        [...ISTAR_LINK_KINDS, ...extension.links.map((l) => l.kind)].map(
+          (kind) => [kind, profileProperties(extension, kind)],
         ),
       ),
     },
     {},
   ),
-};
-const READ_ONLY = `Declared by the ${dialect.label} dialect (its definition), so read-only here`;
+});
 const NEW_VALUE = '\u0000new';
 
 function Tabs<T extends string>({
@@ -107,19 +121,21 @@ type ModelTab = 'properties' | CatalogCategory['id'];
 function ModelPanel() {
   const [tab, setTab] = useState<ModelTab>('properties');
   const { model } = useIstarEditor();
-  const category = CATALOG.find((c) => c.id === tab);
+  const read = usePistarExt();
+  const catalog = useMemo(() => extensionCatalog(read.extension), [read]);
+  const category = catalog.find((c) => c.id === tab);
   return (
     <>
       <Tabs
         tabs={[
           { id: 'properties' as ModelTab, label: 'Properties' },
-          ...CATALOG.map((c) => ({ id: c.id as ModelTab, label: c.label })),
+          ...catalog.map((c) => ({ id: c.id as ModelTab, label: c.label })),
         ]}
         active={tab}
         onChange={setTab}
       />
       {category ? (
-        <CategoryPanel category={category} />
+        <CategoryPanel category={category} read={read} />
       ) : (
         <dl className='space-y-2 text-[13px]'>
           <Row label='Name' value={model.diagram?.name} />
@@ -143,10 +159,100 @@ function Row({ label, value }: { label: string; value: string | undefined }) {
   );
 }
 
-/** A declared set: its entries, and (disabled) the form adding one. */
-function CategoryPanel({ category }: { category: CatalogCategory }) {
+/** A model's own entries in a category, by name (the dialect's are read-only). */
+const ownNames = (
+  model: ModelExtension,
+  id: CatalogCategory['id'],
+): string[] =>
+  id === 'groupers'
+    ? Object.keys(model.groupers ?? {})
+    : (model[id] ?? []).map((entry) => entry.name);
+
+const TAKEN_AS = {
+  stereotypes: 'stereotype',
+  taggedValues: 'taggedValue',
+  groupers: 'grouper',
+} as const;
+
+/**
+ * A category's entries, and the form adding one. The dialect's entries are
+ * read-only (its definition declares them); the model's own, kept in its file
+ * as piStar-ext keeps its lists, can be added and deleted.
+ */
+function CategoryPanel({
+  category,
+  read,
+}: {
+  category: CatalogCategory;
+  read: ModelDialect;
+}) {
+  const wb = useWorkbench();
+  const own = ownNames(read.model, category.id);
+  const [name, setName] = useState('');
+  const [applied, setApplied] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  // what an entry may apply to: every kind (and, but for a grouper, a grouper)
+  const kinds = [
+    ...ISTAR_ACTOR_KINDS,
+    ...ISTAR_NODE_KINDS,
+    ...ISTAR_LINK_KINDS,
+    ...read.extension.elements.map((e) => e.kind),
+    ...read.extension.links.map((l) => l.kind),
+  ];
+  const targets =
+    category.id === 'groupers'
+      ? kinds
+      : [...Object.keys(read.extension.groupers), ...kinds];
+  const save = (model: ModelExtension) => {
+    try {
+      withModelExtension(dialect, model);
+      wb.setText(writeModelExtension(wb.text, model), 'inspector');
+      setError(null);
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      return false;
+    }
+  };
+  const add = () => {
+    const trimmed = name.trim();
+    const problem = !trimmed
+      ? 'Give it a name'
+      : !applied.length
+        ? 'Choose what it applies to'
+        : takenName(read.extension, TAKEN_AS[category.id], trimmed);
+    if (problem) return setError(problem);
+    const model = read.model;
+    const added =
+      category.id === 'groupers'
+        ? { ...model, groupers: { ...model.groupers, [trimmed]: applied } }
+        : {
+            ...model,
+            [category.id]: [
+              ...(model[category.id] ?? []),
+              { name: trimmed, appliesTo: applied },
+            ],
+          };
+    if (save(added)) {
+      setName('');
+      setApplied([]);
+    }
+  };
+  const remove = (entry: string) => {
+    const model = read.model;
+    if (category.id === 'groupers') {
+      const { [entry]: _gone, ...rest } = model.groupers ?? {};
+      save({ ...model, groupers: rest });
+    } else
+      save({
+        ...model,
+        [category.id]: (model[category.id] ?? []).filter(
+          (e) => e.name !== entry,
+        ),
+      });
+  };
   return (
-    <div className='space-y-3 text-[13px]' title={READ_ONLY}>
+    <div className='space-y-3 text-[13px]'>
       <table className='w-full text-left'>
         <thead>
           <tr className='text-2xs text-ink-muted'>
@@ -156,49 +262,93 @@ function CategoryPanel({ category }: { category: CatalogCategory }) {
           </tr>
         </thead>
         <tbody>
-          {category.entries.map((entry) => (
-            <tr key={entry.name} className='border-t border-line'>
-              <td className='py-1 pr-2'>{entry.name}</td>
-              <td className='py-1 pr-2 text-ink-soft'>
-                {entry.appliesTo.join(', ')}
-              </td>
-              <td className='py-1 text-right'>
-                <button
-                  type='button'
-                  disabled
-                  title={READ_ONLY}
-                  className='text-2xs text-ink-faint'
-                >
-                  ×
-                </button>
-              </td>
-            </tr>
-          ))}
+          {category.entries.map((entry) => {
+            const editable = own.includes(entry.name);
+            return (
+              <tr
+                key={entry.name}
+                className='border-t border-line'
+                title={editable ? "This model's own" : READ_ONLY}
+              >
+                <td className='py-1 pr-2'>{entry.name}</td>
+                <td className='py-1 pr-2 text-ink-soft'>
+                  {entry.appliesTo.join(', ')}
+                </td>
+                <td className='py-1 text-right'>
+                  <button
+                    type='button'
+                    disabled={!editable}
+                    title={editable ? `Delete ${entry.name}` : READ_ONLY}
+                    onClick={() => remove(entry.name)}
+                    className={cx(
+                      'text-2xs',
+                      editable ? 'text-danger' : 'text-ink-faint',
+                    )}
+                  >
+                    ×
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
-      <fieldset disabled title={READ_ONLY} className='space-y-1.5 opacity-60'>
+      <fieldset className='space-y-1.5'>
         <legend className='pb-1 font-semibold text-ink'>
           Add New {category.label}
         </legend>
         <label className='block space-y-0.5'>
           <span className='text-2xs text-ink-muted'>Name</span>
-          <input className={inputClass} />
+          <input
+            className={inputClass}
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setError(null);
+            }}
+          />
         </label>
         <label className='block space-y-0.5'>
           <span className='text-2xs text-ink-muted'>Constructs Applied</span>
           <select
-            className={inputClass}
+            className={cx(inputClass, category.id === 'groupers' && 'h-24')}
             multiple={category.id === 'groupers'}
-          />
+            value={category.id === 'groupers' ? applied : (applied[0] ?? '')}
+            onChange={(e) =>
+              setApplied(
+                [...e.target.selectedOptions]
+                  .map((o) => o.value)
+                  .filter(Boolean),
+              )
+            }
+          >
+            {category.id !== 'groupers' && <option value='' />}
+            {targets.map((target) => (
+              <option key={target} value={target}>
+                {target in read.extension.groupers
+                  ? `${target} (grouper)`
+                  : kindLabel(target)}
+              </option>
+            ))}
+          </select>
         </label>
         <button
           type='button'
-          className='rounded border border-line px-2 py-0.5 text-xs'
+          onClick={add}
+          className='rounded border border-line px-2 py-0.5 text-xs hover:bg-panel'
         >
           Add
         </button>
+        {error && (
+          <p role='alert' className='text-2xs text-danger'>
+            {error}
+          </p>
+        )}
       </fieldset>
-      <p className='text-2xs text-ink-muted'>{READ_ONLY}.</p>
+      <p className='text-2xs text-ink-muted'>
+        The {dialect.label} dialect&apos;s entries are its definition&apos;s
+        (read-only); what you add is this model&apos;s, kept in its file.
+      </p>
     </div>
   );
 }
@@ -209,6 +359,8 @@ type TargetTab = 'properties' | 'style';
 function TargetPanel({ target }: { target: IstarElement | IstarLink }) {
   const [tab, setTab] = useState<TargetTab>('properties');
   const editor = useIstarEditor();
+  const read = usePistarExt();
+  const specs = useMemo(() => specsOf(read), [read]);
   const isLink = 'source' in target;
   const elementActions = isLink ? null : editor.elementActions(target.id);
   const linkActions = isLink ? editor.linkActions(target.id) : null;
@@ -249,7 +401,7 @@ function TargetPanel({ target }: { target: IstarElement | IstarLink }) {
                 ? target.display.backgroundColor
                 : null
             }
-            fallback={fillOf(definition, target.kind)}
+            fallback={fillOf(read.definition, target.kind)}
             onChange={(color) =>
               elementActions.setDisplay({
                 backgroundColor: color ?? undefined,
@@ -301,7 +453,7 @@ function TargetPanel({ target }: { target: IstarElement | IstarLink }) {
             />
           </label>
           <ExtensionTable
-            specs={SPECS[target.kind] ?? []}
+            specs={specs[target.kind] ?? []}
             properties={properties}
             readOnly={editor.readOnly}
             onChange={setProperties}

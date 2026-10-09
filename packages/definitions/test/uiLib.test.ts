@@ -5,7 +5,12 @@ import { join } from 'path';
 import { parsePistar } from '../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '../../goal-tree/out';
 import { StringStream } from '../../ui/node_modules/@codemirror/language';
-import { edgeV2, type AnyDefinition } from '../src';
+import {
+  edgeV2,
+  extensionCatalog,
+  newNodeKind,
+  type AnyDefinition,
+} from '../src';
 import { documentParser } from '../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
 import {
@@ -21,8 +26,11 @@ import {
   DIALECT_DEFINITIONS,
   dialectThatReads,
   dialectTree,
+  modelDialect,
+  modelExtensionOf,
   parseModel,
   recordedModeOf,
+  writeModelExtension,
 } from '../../ui/lib/workbench/dialects';
 import { jsonProblem } from '../../ui/lib/workbench/localProblems';
 import {
@@ -282,5 +290,103 @@ describe('ui piStar-ext examples', () => {
         '  {Status = draft} Collected quickly',
       ].join('\n'),
     );
+  });
+});
+
+describe("ui: a model's own constructs (its extension, in its file)", () => {
+  const MINIMAL = readFileSync(
+    join(__dirname, '../../../examples/pistar-ext/minimal.txt'),
+    'utf8',
+  );
+  // as the workbench writes it: recorded for piStar-ext, a Mission construct
+  // added with "Add new", then a Mission element in the agent
+  const withMission = (() => {
+    const recorded = writeModelMode(MINIMAL, 'pistarext');
+    const extended = writeModelExtension(recorded, {
+      elements: [
+        newNodeKind('Mission', 'M 0 0 L 60 0 L 80 20 L 60 40 L 0 40 Z'),
+      ],
+    });
+    const json = JSON.parse(extended);
+    json.actors[0].nodes.push({
+      id: 'm1',
+      text: 'Deliver samples',
+      type: 'istar.Mission',
+      x: 300,
+      y: 120,
+      customProperties: { Description: '' },
+    });
+    return JSON.stringify(json, null, 2) + '\n';
+  })();
+
+  it('keeps the construct in the file, saved as piStar-ext saves it', () => {
+    expect(modelExtensionOf(withMission).elements?.[0]).to.include({
+      kind: 'model.Mission',
+      pistarType: 'istar.Mission',
+    });
+    const model = parseModel(withMission);
+    expect(model.elements.get('m1')?.kind).to.equal('model.Mission');
+    expect(JSON.parse(withMission).actors[0].nodes[1].type).to.equal(
+      'istar.Mission',
+    );
+  });
+
+  it('writes back byte for byte', () => {
+    expect(serializeModel(parseModel(withMission), withMission)).to.equal(
+      withMission,
+    );
+    // and its extension, written again unchanged, too
+    expect(
+      writeModelExtension(withMission, modelExtensionOf(withMission)),
+    ).to.equal(withMission);
+  });
+
+  it('is rejected by the Edge modes, with the hint', () => {
+    let error: Error | null = null;
+    try {
+      parseModel(withMission, 'edgev2');
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error).not.to.equal(null);
+    expect(jsonProblem(withMission, error!).message).to.match(
+      /Open it as piStar-ext/,
+    );
+    expect(planConversion(withMission, 'edgev2').blockers.join('\n')).to.match(
+      /1 Mission: the Edge engines do not read Missions/,
+    );
+  });
+
+  it('rejects a construct the dialect already has', () => {
+    const clash = writeModelExtension(withMission, {
+      elements: [newNodeKind('Planning', undefined)],
+    });
+    let error: Error | null = null;
+    try {
+      parseModel(clash);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).to.match(/Planning is already a kind/);
+    expect(jsonProblem(clash, error!).message).to.equal(
+      "This model's own extension can't be read: Planning is already a kind",
+    );
+  });
+
+  it("lists the model's own entries with the dialect's", () => {
+    const read = modelDialect(
+      'pistarext',
+      writeModelExtension(withMission, {
+        elements: modelExtensionOf(withMission).elements,
+        stereotypes: [{ name: 'urgent', appliesTo: ['model.Mission'] }],
+      }),
+    );
+    expect(read.model.stereotypes).to.deep.equal([
+      { name: 'urgent', appliesTo: ['model.Mission'] },
+    ]);
+    expect(
+      extensionCatalog(read.extension)[0]!.entries.map((e) => e.name),
+    ).to.include('urgent');
+    expect(Object.keys(read.definition.elements)).to.include('model.Mission');
   });
 });

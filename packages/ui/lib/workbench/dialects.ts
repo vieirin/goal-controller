@@ -19,11 +19,15 @@ import {
 } from '@istar-ts/core';
 import {
   dialectDefinition,
+  isEmptyModelExtension,
   istar4RationalAgents,
   metamodelExtensionOf,
+  withModelExtension,
+  type AnyDefinition,
   type DocumentNode,
   type DocumentTree,
   type ExtensionDefinition,
+  type ModelExtension,
 } from '@goal-controller/definitions';
 
 /** The dialects, by the mode a model records for them. */
@@ -40,18 +44,79 @@ export const DIALECT_LABEL: Record<DialectMode, string> = {
 export const isDialectMode = (mode: unknown): mode is DialectMode =>
   typeof mode === 'string' && mode in DIALECTS;
 
-/** Each dialect's own definition: its lines, stereotypes and tagged values (no notation). */
-export const DIALECT_DEFINITIONS = {
-  pistarext: dialectDefinition(istar4RationalAgents),
-} satisfies Record<DialectMode, unknown>;
+/**
+ * What a model adds to its dialect (its own kinds, links, groupers,
+ * stereotypes and tagged values) is kept in the file, under this key: piStar
+ * keeps unknown keys, and so does @istar-ts/core.
+ */
+export const MODEL_EXTENSION_KEY = 'modelExtension';
 
-/** iStar 2.0 with a dialect's kinds and links. */
-const DIALECT_METAMODELS: Record<DialectMode, AnyMetamodel> = {
-  pistarext: extendMetamodel(
-    ISTAR_2_0,
-    defineMetamodelExtension(metamodelExtensionOf(istar4RationalAgents)),
-  ),
+/** What a model text adds to its dialect, read without parsing it (none: `{}`). */
+export const modelExtensionOf = (text: string): ModelExtension => {
+  try {
+    const value = JSON.parse(text)?.[MODEL_EXTENSION_KEY];
+    return value && typeof value === 'object' ? value : {};
+  } catch {
+    return {};
+  }
 };
+
+/** A model text with what it adds to its dialect (none: the key goes), its formatting kept. */
+export const writeModelExtension = (
+  text: string,
+  model: ModelExtension,
+): string => {
+  const json = JSON.parse(text);
+  if (isEmptyModelExtension(model)) delete json[MODEL_EXTENSION_KEY];
+  else json[MODEL_EXTENSION_KEY] = model;
+  const indent = /\n([ \t]+)"/.exec(text)?.[1] ?? '  ';
+  return JSON.stringify(json, null, indent) + (text.endsWith('\n') ? '\n' : '');
+};
+
+/** A dialect as one model has it: with what the model adds. */
+export type ModelDialect = {
+  mode: DialectMode;
+  /** what the model adds (the model's to edit) */
+  model: ModelExtension;
+  /** the dialect with it */
+  extension: ExtensionDefinition;
+  /** its definition: lines, stereotypes and tagged values */
+  definition: AnyDefinition;
+  /** iStar 2.0 with its kinds and links */
+  metamodel: AnyMetamodel;
+};
+
+const dialects = new Map<string, ModelDialect>();
+
+/**
+ * A dialect with what a model text adds; throws why the text's additions
+ * cannot be read with it (a name the dialect has, an unknown kind). Kept by
+ * dialect and additions, so a model's edits reuse it.
+ */
+export const modelDialect = (mode: DialectMode, text: string): ModelDialect => {
+  const model = modelExtensionOf(text);
+  const key = `${mode}|${JSON.stringify(model)}`;
+  const known = dialects.get(key);
+  if (known) return known;
+  const extension = withModelExtension(DIALECTS[mode], model);
+  const read: ModelDialect = {
+    mode,
+    model,
+    extension,
+    definition: dialectDefinition(extension),
+    metamodel: extendMetamodel(
+      ISTAR_2_0,
+      defineMetamodelExtension(metamodelExtensionOf(extension)),
+    ),
+  };
+  dialects.set(key, read);
+  return read;
+};
+
+/** Each dialect's own definition, without a model's additions. */
+export const DIALECT_DEFINITIONS = {
+  pistarext: modelDialect('pistarext', '').definition,
+} satisfies Record<DialectMode, unknown>;
 
 /**
  * The model's mode is kept in the diagram's custom properties (piStar keeps
@@ -69,9 +134,15 @@ export const recordedModeOf = (text: string): string | null => {
   }
 };
 
-/** The metamodel a mode reads models with: its dialect's, or iStar 2.0. */
-export const metamodelOfMode = (mode: string | null): AnyMetamodel =>
-  isDialectMode(mode) ? DIALECT_METAMODELS[mode] : ISTAR_2_0;
+/**
+ * The metamodel a mode reads a model with: its dialect's with what the model
+ * adds, or iStar 2.0.
+ */
+export const metamodelOfMode = (
+  mode: string | null,
+  text = '',
+): AnyMetamodel =>
+  isDialectMode(mode) ? modelDialect(mode, text).metamodel : ISTAR_2_0;
 
 /*
  * A model read with a dialect is typed as an iStar 2.0 one: the workbench's
@@ -89,7 +160,7 @@ export const parseModel = (
   mode: string | null = recordedModeOf(text),
 ): IstarModel =>
   parsePistar(text, {
-    metamodel: metamodelOfMode(mode),
+    metamodel: metamodelOfMode(mode, text),
   }) as unknown as IstarModel;
 
 /** An empty model for a mode (a dialect's may use its kinds). */

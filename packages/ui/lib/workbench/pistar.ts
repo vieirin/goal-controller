@@ -398,7 +398,7 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
   }
   if (target !== 'edge' && target !== 'edgev2') {
     // the kinds the target's metamodel doesn't have (a dialect's, in another mode)
-    const known = metamodelOfMode(target);
+    const known = metamodelOfMode(target, text);
     const counts = new Map<string, number>();
     for (const element of model.elements.values())
       if (!known.elements.has(element.kind))

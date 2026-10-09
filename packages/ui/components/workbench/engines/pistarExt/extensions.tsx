@@ -3,6 +3,7 @@
 import {
   ISTAR_ACTOR_KINDS,
   ISTAR_LINK_KINDS,
+  ISTAR_NODE_KINDS,
   annotationsFor,
   metamodelExtensionOf,
   writeAnnotations,
@@ -24,7 +25,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
-import { DIALECTS, DIALECT_DEFINITIONS } from '@/lib/workbench/dialects';
+import { DIALECTS } from '@/lib/workbench/dialects';
 
 /**
  * piStar-ext in the diagram: iStar4RationalAgents' kinds with their shapes (the
@@ -34,7 +35,6 @@ import { DIALECTS, DIALECT_DEFINITIONS } from '@/lib/workbench/dialects';
  */
 
 const dialect: ExtensionDefinition = DIALECTS.pistarext;
-const definition = DIALECT_DEFINITIONS.pistarext;
 
 /** What an element or link carries, by its kind's annotations: `<<goal-based>> {Id = G1}`. */
 export const labelAnnotations = (
@@ -222,12 +222,23 @@ const isActorKind = (kind: string): boolean => {
   );
 };
 
-export const PISTAR_EXT_EXTENSION: IstarExtension<string, string> = {
+/**
+ * piStar-ext for the canvas, as a model has it (the dialect with the model's
+ * own constructs): its kinds, their shapes and lines, and every element's and
+ * link's annotations.
+ */
+export const pistarExtExtension = (
+  extension: ExtensionDefinition,
+): IstarExtension<string, string> => ({
   name: 'pistar-ext',
-  metamodel: metamodelExtensionOf(dialect),
+  metamodel: metamodelExtensionOf(extension),
   elements: Object.fromEntries(
-    Object.keys(definition.elements).map((kind) => {
-      const shape = dialect.elements.find((e) => e.kind === kind)?.shape;
+    [
+      ...ISTAR_ACTOR_KINDS,
+      ...ISTAR_NODE_KINDS,
+      ...extension.elements.map((e) => e.kind),
+    ].map((kind) => {
+      const shape = extension.elements.find((e) => e.kind === kind)?.shape;
       return [
         kind,
         {
@@ -242,7 +253,7 @@ export const PISTAR_EXT_EXTENSION: IstarExtension<string, string> = {
       kind,
       { labelComponent: AnnotatedLinkLabel },
     ]),
-    ...dialect.links.map(({ kind, line }) => [
+    ...extension.links.map(({ kind, line }) => [
       kind,
       {
         labelComponent: AnnotatedLinkLabel,
@@ -258,4 +269,4 @@ export const PISTAR_EXT_EXTENSION: IstarExtension<string, string> = {
       },
     ]),
   ]),
-};
+});
