@@ -677,8 +677,8 @@ function StatusBar() {
   const warnings = wb.problems.filter((p) => p.severity === 'warning').length;
   const { selected: selectedId } = useSelection();
   const selected = selectedId ? wb.tree?.nodes.get(selectedId) : undefined;
-  const engineLabel =
-    wb.engine === 'edgev2' ? 'EdgeV2' : wb.engine === 'edge' ? 'Edge' : 'SLEEC';
+  // what the model is for: its engine, a dialect, or piStar
+  const engineLabel = modelKindLabel(wb.settings);
   return (
     <footer className='flex h-6 shrink-0 items-center gap-4 border-t border-line bg-white px-3 text-2xs text-ink-muted'>
       <span>{engineLabel}</span>
