@@ -6,9 +6,9 @@
  */
 import { expect } from 'chai';
 import { execFileSync } from 'child_process';
-import { mkdtempSync, readFileSync, readdirSync, statSync } from 'fs';
+import { mkdtempSync, readFileSync, readdirSync } from 'fs';
 import { tmpdir } from 'os';
-import { join, relative } from 'path';
+import { join } from 'path';
 import { parsePistar } from '../../goal-tree/node_modules/@istar-ts/core';
 import { goalView, type GoalView } from '../../goal-tree/out';
 import { edgeCheckRegistry, type Check } from '../../lib/out';
@@ -38,28 +38,13 @@ import {
 } from './reference/edgeProperties';
 import * as referenceNotation from './reference/notation';
 import * as referenceProperties from './reference/properties';
+import { ROOT, models } from './support/models';
 
-const ROOT = join(__dirname, '..', '..', '..');
 const REFERENCE = join(__dirname, 'reference');
 const EDGE_V2_FAMILY = [edgeV2, edgeLangium] as const;
 const DEFINITIONS = [edge, edgeV2, edgeLangium] as const;
 
 const text = (file: string) => readFileSync(file, 'utf8');
-
-/** Every piStar model under a directory (some .txt files there are not models). */
-const models = (dir: string): Array<{ file: string; model: string }> =>
-  readdirSync(join(ROOT, dir)).flatMap((name) => {
-    const file = join(ROOT, dir, name);
-    if (statSync(file).isDirectory()) return models(relative(ROOT, file));
-    if (!name.endsWith('.txt')) return [];
-    const model = text(file);
-    try {
-      parsePistar(model);
-      return [{ file: relative(ROOT, file), model }];
-    } catch {
-      return [];
-    }
-  });
 
 const EDGE_MODELS = [
   ...models('examples/edge'),

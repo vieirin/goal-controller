@@ -1,5 +1,5 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { parsePistar } from '@istar-ts/core';
+import { parseModel } from '@/lib/workbench/dialects';
 import {
   edgeEngineMapper,
   edgeV2EngineMapper,
@@ -57,7 +57,7 @@ export const GoalModel = {
     // Parse the piStar file
     let model: IStarModel;
     try {
-      model = parsePistar(modelJson);
+      model = parseModel(modelJson);
     } catch (error) {
       return {
         success: false,

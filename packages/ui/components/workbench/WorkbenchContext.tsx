@@ -18,7 +18,7 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import { parsePistar } from '@istar-ts/core';
+import { parseModel } from '@/lib/workbench/dialects';
 import {
   readModelMode,
   writeModelMode,
@@ -627,7 +627,7 @@ function WorkbenchState({
   const parsed = useMemo(() => {
     if (!model.text.trim()) return { error: null };
     try {
-      parsePistar(model.text);
+      parseModel(model.text);
       return { error: null };
     } catch (error) {
       return { error: jsonProblem(model.text, error as Error) };

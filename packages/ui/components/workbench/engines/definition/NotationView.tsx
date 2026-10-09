@@ -4,7 +4,7 @@ import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
 import {
-  ENGINE_DEFINITIONS,
+  EDITOR_DEFINITIONS,
   type DefinedEngine,
 } from '@/lib/workbench/definitions';
 import {
@@ -30,7 +30,7 @@ const EDIT_DELAY_MS = 300;
  * against the diagram's structure.
  */
 export default function NotationView({ engine }: { engine: DefinedEngine }) {
-  const definition = ENGINE_DEFINITIONS[engine];
+  const definition = EDITOR_DEFINITIONS[engine];
   const wb = useWorkbench();
   const { modelReadOnly } = useShell();
   const { selected, selectOrigin, selectSeq } = useSelection();

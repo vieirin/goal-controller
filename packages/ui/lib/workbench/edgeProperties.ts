@@ -11,7 +11,7 @@ import {
 import { firstResourceIssue, type Check } from '@goal-controller/lib';
 import {
   ENGINE_CHECKS,
-  ENGINE_DEFINITIONS,
+  EDITOR_DEFINITIONS,
   type DefinedEngine,
 } from './definitions';
 
@@ -30,7 +30,7 @@ export type NodeKindKey = ElementKind;
 type Specs = Record<NodeKindKey, readonly PropertySpec[]>;
 
 const specsOf = (engine: DefinedEngine): Specs =>
-  specsFromDefinition(ENGINE_DEFINITIONS[engine], ENGINE_CHECKS[engine]);
+  specsFromDefinition(EDITOR_DEFINITIONS[engine], ENGINE_CHECKS[engine]);
 
 export const PROPERTY_SPECS: Record<DefinedEngine, Specs> = {
   edge: specsOf('edge'),

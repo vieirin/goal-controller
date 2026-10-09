@@ -8,7 +8,6 @@ import {
   inheritSourceLayout,
   isActor,
   isNode,
-  parsePistar,
   toPistar,
   updateDiagram,
   updateElement,
@@ -21,6 +20,7 @@ import {
 // types only: the view is computed in services/tree.ts
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
+import { parseModel } from './dialects';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
@@ -85,7 +85,7 @@ export const serializeModel = (
 const rewrite = (
   text: string,
   edit: (model: IstarModel) => IstarModel,
-): string => serializeModel(edit(parsePistar(text)), text);
+): string => serializeModel(edit(parseModel(text)), text);
 
 const findNode = (model: IstarModel, iStarId: string): IstarElement => {
   const node = model.elements.get(iStarId);
@@ -258,7 +258,7 @@ export const modelMode = (model: IstarModel): ModelMode | null => {
 
 export const readModelMode = (text: string): ModelMode | null => {
   try {
-    return modelMode(parsePistar(text));
+    return modelMode(parseModel(text));
   } catch {
     return null;
   }
@@ -335,7 +335,7 @@ const plural = (label: string): string =>
  * is for the engine to say.
  */
 export const planConversion = (text: string, target: ModelMode): Conversion => {
-  let model = parsePistar(text);
+  let model = parseModel(text);
   const changes: string[] = [];
   const blockers: string[] = [];
   if (target !== 'pistar') {

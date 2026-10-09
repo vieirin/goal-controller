@@ -1,6 +1,6 @@
 'use client';
 
-import { parsePistar } from '@istar-ts/core';
+import { parseModel } from '@/lib/workbench/dialects';
 import {
   AlertCircle,
   AlertTriangle,
@@ -50,7 +50,7 @@ export default function ConvertDialog({ target }: { target: TransformEngine }) {
     const plan = plans[selected];
     if (!plan || 'error' in plan) return false;
     try {
-      return parsePistar(plan.text).elements.size === 0;
+      return parseModel(plan.text).elements.size === 0;
     } catch {
       return false;
     }

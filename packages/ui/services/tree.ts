@@ -1,4 +1,3 @@
-import { parsePistar } from '@istar-ts/core';
 import {
   goalView,
   type GoalView,
@@ -6,6 +5,7 @@ import {
 } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { notationDefinitionOf } from '@/lib/workbench/definitions';
+import { parseModel } from '@/lib/workbench/dialects';
 
 /** The RT grammar each engine reads goal texts with: its definition's (SLEEC: Edge's). */
 const grammarOf = (engine: TransformEngine): RTGrammar =>
@@ -20,6 +20,6 @@ export const treeView = (
   modelJson: string,
   engine: TransformEngine,
 ): GoalView => {
-  const model = parsePistar(modelJson);
+  const model = parseModel(modelJson);
   return goalView(model, grammarOf(engine));
 };

@@ -97,7 +97,11 @@
     "stereotype_list": [
       {
         "name": "goal-based",
-        "constructsApplie": ["Actor", "Agent", "Role"],
+        "constructsApplie": [
+          "Actor",
+          "Agent",
+          "Role"
+        ],
         "groupName": "rational"
       }
     ],

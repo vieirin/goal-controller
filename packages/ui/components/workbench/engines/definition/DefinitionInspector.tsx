@@ -13,7 +13,7 @@ import {
 } from '@goal-controller/definitions';
 import { useMemo } from 'react';
 import {
-  ENGINE_DEFINITIONS,
+  EDITOR_DEFINITIONS,
   type DefinedEngine,
 } from '@/lib/workbench/definitions';
 import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
@@ -52,7 +52,7 @@ function NotationField({
   node: GoalViewNode;
   engine: DefinedEngine;
 }) {
-  const definition = ENGINE_DEFINITIONS[engine];
+  const definition = EDITOR_DEFINITIONS[engine];
   const { problems, notation: notationDefinition } = definition;
   const operators = useMemo(() => operatorsFor(definition), [definition]);
   const wb = useWorkbench();
@@ -233,7 +233,7 @@ function DefinitionNode({
   node: GoalViewNode;
   engine: DefinedEngine;
 }) {
-  const definition = ENGINE_DEFINITIONS[engine];
+  const definition = EDITOR_DEFINITIONS[engine];
   const support = useLanguageSupport(engine);
   // the keys whose values are written in the engine's value languages
   const editorFor = (key: string): PropertyEditor | undefined => {

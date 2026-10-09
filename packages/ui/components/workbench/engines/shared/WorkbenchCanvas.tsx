@@ -2,12 +2,8 @@
 
 import { serializeModel } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
-import {
-  createEmptyModel,
-  parsePistar,
-  type IstarModel,
-  type ModelChangeEvent,
-} from '@istar-ts/core';
+import { emptyModel, parseModel } from '@/lib/workbench/dialects';
+import type { IstarModel, ModelChangeEvent } from '@istar-ts/core';
 import {
   IstarCanvas,
   IstarProvider,
@@ -26,6 +22,7 @@ import {
 } from 'react';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
+import { DIALECT_EXTENSIONS } from './dialects';
 import { SeverityContext } from './extensions';
 
 /**
@@ -39,9 +36,9 @@ import { SeverityContext } from './extensions';
 export type RejectEdit = (event: ModelChangeEvent) => string | null;
 
 const tryParse = (text: string): IstarModel | null => {
-  if (!text.trim()) return createEmptyModel();
+  if (!text.trim()) return emptyModel();
   try {
-    return parsePistar(text);
+    return parseModel(text);
   } catch {
     return null;
   }
@@ -210,6 +207,11 @@ export default function WorkbenchCanvas({
   fitKey?: string;
 }) {
   const wb = useWorkbench();
+  // the dialects first: a mode's own extensions draw over them
+  const allExtensions = useMemo(
+    () => [...DIALECT_EXTENSIONS, ...extensions] as readonly IstarExtension[],
+    [extensions],
+  );
   const { modelFullscreen, modelReadOnly } = useShell();
   const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   const reject = useRef(rejectEdit);
@@ -225,7 +227,7 @@ export default function WorkbenchCanvas({
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
   );
-  const { store } = useIstarStore(() => parsed ?? createEmptyModel());
+  const { store } = useIstarStore(() => parsed ?? emptyModel());
   // the text this diagram last wrote, so its own edits are not loaded back
   const written = useRef<string | null>(null);
   const latest = useRef(wb);
@@ -300,7 +302,7 @@ export default function WorkbenchCanvas({
       <SeverityContext.Provider value={severities}>
         <IstarProvider
           store={store}
-          extensions={extensions}
+          extensions={allExtensions}
           readOnly={!parsed || modelReadOnly}
         >
           <SelectionSync canvas={canvas} />
