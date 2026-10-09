@@ -5,7 +5,12 @@
  * its RT id, name, notation and the construct the notation expresses. Never throws: a text
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
-import { isActor, isNode, metamodelOf, type IstarModel } from '@istar-ts/core';
+import {
+  isActorIn,
+  isNode,
+  metamodelOf,
+  type IstarModel,
+} from '@istar-ts/core';
 import { getGoalDetail, type RTGrammar } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
@@ -187,7 +192,7 @@ export function goalView(
   for (const node of byIStarId.values())
     if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
-    .filter((element) => isActor(element, metamodelOf(model)))
+    .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id))
     .map((element) => byIStarId.get(element.id)?.id)
     .filter((id): id is string => !!id);
