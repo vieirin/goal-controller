@@ -36,6 +36,7 @@ import {
 import {
   CompletionItemKind,
   DiagnosticSeverity,
+  InsertTextFormat,
   LocationLink,
   type CancellationToken,
   type CompletionList,
@@ -128,6 +129,7 @@ const KIND = {
   variable: CompletionItemKind.Reference,
   keyword: CompletionItemKind.Keyword,
   property: CompletionItemKind.Property,
+  function: CompletionItemKind.Function,
 } as const satisfies Record<Completion['type'], CompletionItemKind>;
 
 export type GoalLspServices = LangiumServices;
@@ -251,6 +253,7 @@ export const createGoalLspServices = (
         '=',
         ',',
         '(',
+        '.',
       ],
     };
 
@@ -271,7 +274,10 @@ export const createGoalLspServices = (
       if (!result) return undefined;
       const range = {
         start: document.textDocument.positionAt(result.from),
-        end: params.position,
+        end:
+          result.to === undefined
+            ? params.position
+            : document.textDocument.positionAt(result.to),
       };
       return {
         isIncomplete: false,
@@ -280,7 +286,8 @@ export const createGoalLspServices = (
           kind: KIND[option.type],
           detail: option.detail,
           sortText: String(i).padStart(4, '0'),
-          textEdit: { range, newText: option.label },
+          ...(option.snippet && { insertTextFormat: InsertTextFormat.Snippet }),
+          textEdit: { range, newText: option.snippet ?? option.label },
         })),
       };
     }
@@ -443,4 +450,41 @@ export const serverDiagnostics = async (
   }) satisfies Diagnostic[];
   LangiumDocuments.deleteDocument(parsed);
   return diagnostics;
+};
+
+/**
+ * The completions the server gives for a text at a URI and offset: each
+ * item's label and what it inserts (no connection needed, as
+ * `serverDiagnostics`).
+ */
+export const serverCompletions = async (
+  shared: LangiumSharedServices,
+  uri: string,
+  text: string,
+  offset: number,
+): Promise<{ label: string; insert: string; snippet: boolean }[]> => {
+  const { LangiumDocumentFactory, LangiumDocuments, DocumentBuilder } =
+    shared.workspace;
+  const parsed = URI.parse(uri);
+  if (LangiumDocuments.hasDocument(parsed))
+    LangiumDocuments.deleteDocument(parsed);
+  const document = LangiumDocumentFactory.fromString(text, parsed);
+  LangiumDocuments.addDocument(document);
+  await DocumentBuilder.build([document]);
+  const provider = (
+    shared.ServiceRegistry.getServices(parsed) as LangiumServices
+  ).lsp.CompletionProvider;
+  const list = await provider?.getCompletion(document, {
+    textDocument: { uri },
+    position: document.textDocument.positionAt(offset),
+  });
+  LangiumDocuments.deleteDocument(parsed);
+  return (list?.items ?? []).map((item) => ({
+    label: item.label,
+    insert:
+      item.textEdit && 'newText' in item.textEdit
+        ? item.textEdit.newText
+        : item.label,
+    snippet: item.insertTextFormat === InsertTextFormat.Snippet,
+  }));
 };

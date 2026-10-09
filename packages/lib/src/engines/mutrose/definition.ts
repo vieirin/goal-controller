@@ -34,6 +34,11 @@ const FLAG = {
 
 /** variables, conditions and queries: OCL, as the decomposer reads them */
 const OCL = { type: 'ocl' } as const;
+/** an OCL value that uses variables: those Controls and Monitors declare above it */
+const OCL_SCOPED = {
+  type: 'ocl',
+  declaredBy: ['Controls', 'Monitors'],
+} as const;
 
 const DESCRIPTION = {
   key: 'Description',
@@ -66,14 +71,14 @@ const goalProperties = [
   },
   {
     key: 'Monitors',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'current_room, rooms' },
     help: 'the variables it reads, declared by an earlier goal’s Controls',
     check: 'mutrose.goal.monitors',
   },
   {
     key: 'AchieveCondition',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'rooms->forAll(r | r.is_clean)' },
     applies: isAchieve,
     required: isAchieve,
@@ -83,7 +88,7 @@ const goalProperties = [
   },
   {
     key: 'QueriedProperty',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'world_db->select(r:Room | r.is_dirty)' },
     applies: isQuery,
     required: isQuery,
@@ -93,7 +98,7 @@ const goalProperties = [
   },
   {
     key: 'CreationCondition',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'assertion condition "r.is_dirty"' },
     help: 'when it is created: `assertion condition "expr"` or `assertion trigger "Event"`',
     check: 'mutrose.goal.creationCondition',
@@ -114,14 +119,14 @@ const taskProperties = [
   DESCRIPTION,
   {
     key: 'Location',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'current_room' },
     help: 'the variable naming where it is done',
     check: 'mutrose.task.location',
   },
   {
     key: 'Params',
-    value: OCL,
+    value: OCL_SCOPED,
     input: { placeholder: 'current_room, current_nurse' },
     help: 'the variables passed to its HDDL task, comma-separated',
     check: 'mutrose.task.params',

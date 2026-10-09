@@ -2,11 +2,12 @@ import { expect } from 'chai';
 import {
   completionsAt,
   documentDiagnostics,
+  fieldCompletions,
   fieldCompletionsAt,
   fieldDiagnostics,
 } from '@goal-controller/goal-language';
 import type { DefinitionContext } from '@goal-controller/dialect';
-import { edge, edgeV2 } from '../../src';
+import { edge, edgeV2, mutrose } from '../../src';
 
 const context: DefinitionContext = {
   elements: {
@@ -205,6 +206,88 @@ describe('completions', () => {
       'true',
       'false',
     ]);
+  });
+
+  it('completes an ocl field: the operations after ->, the names in scope after .', () => {
+    const model: DefinitionContext = {
+      elements: {
+        G1: {
+          kind: 'goal',
+          children: ['G2'],
+          properties: { Controls: 'rooms : Sequence(Room), robot : Robot' },
+        },
+        G2: {
+          kind: 'goal',
+          children: [],
+          properties: { GoalType: 'Achieve', Monitors: 'rooms' },
+        },
+      },
+      variables: ['battery'],
+    };
+    const field = (text: string) =>
+      fieldCompletions(
+        mutrose,
+        model,
+        'G2',
+        'AchieveCondition',
+        text,
+        text.length,
+      );
+    const operations = field('rooms->fo')!;
+    expect(operations.from).to.equal('rooms->'.length);
+    expect(operations.options.map((o) => o.label)).to.deep.equal([
+      'select',
+      'forAll',
+      'exists',
+      'collect',
+      'reject',
+    ]);
+    expect(operations.options[1]!.snippet).to.equal(
+      'forAll(${1:x} | ${2:condition})',
+    );
+    // its arguments written already: the name only, over the whole name
+    const written = 'rooms->sel(r:Room | r.dirty)';
+    const renamed = fieldCompletions(
+      mutrose,
+      model,
+      'G2',
+      'AchieveCondition',
+      written,
+      'rooms->se'.length,
+    )!;
+    expect([renamed.from, renamed.to]).to.deep.equal([
+      'rooms->'.length,
+      'rooms->sel'.length,
+    ]);
+    expect(renamed.options.some((o) => o.snippet)).to.equal(false);
+    const names = field('rooms->forAll(r | r.')!;
+    expect(names.from).to.equal('rooms->forAll(r | r.'.length);
+    expect(names.options.map((o) => [o.label, o.detail])).to.deep.equal([
+      ['r', 'bound here'],
+      ['rooms', 'Monitors of G2'],
+      ['robot', 'Robot (Controls of G1)'],
+      ['battery', 'variable'],
+    ]);
+    // a binding whose parenthesis closed is out of scope
+    const after = field('rooms->exists(x | x.a) and rooms->forAll(r | r.')!;
+    expect(after.options.map((o) => o.label)).to.deep.equal([
+      'r',
+      'rooms',
+      'robot',
+      'battery',
+    ]);
+    // in a string, nothing
+    const quoted = 'assertion condition "r.';
+    expect(
+      fieldCompletions(
+        mutrose,
+        model,
+        'G1',
+        'CreationCondition',
+        quoted,
+        quoted.length,
+      ),
+    ).to.equal(null);
   });
 });
 

@@ -62,7 +62,15 @@ export type ValueConfig =
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
   | { type: 'annotatedName' }
   /** OCL as MutRoSe writes it: variables, `: Type`, `->select(...)`, `->forAll(...)` */
-  | { type: 'ocl' };
+  | {
+      type: 'ocl';
+      /**
+       * The properties whose values declare the names in scope (`name : Type`,
+       * or names, comma-separated), on this element and its ancestors:
+       * completion offers them.
+       */
+      declaredBy?: readonly string[];
+    };
 
 export type ValueType = ValueConfig['type'];
 

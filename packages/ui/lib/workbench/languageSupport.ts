@@ -7,6 +7,7 @@
  */
 import {
   autocompletion,
+  snippetCompletion,
   type CompletionContext,
   type CompletionResult,
 } from '@codemirror/autocomplete';
@@ -64,11 +65,12 @@ const toCodeMirror = (
 ): CompletionResult | null =>
   result && {
     from: result.from,
-    options: result.options.map(({ label, type, detail }) => ({
-      label,
-      type,
-      detail,
-    })),
+    ...(result.to !== undefined && { to: result.to }),
+    options: result.options.map(({ label, type, detail, snippet }) =>
+      snippet
+        ? snippetCompletion(snippet, { label, type, detail })
+        : { label, type, detail },
+    ),
     validFor: /^[A-Za-z0-9_.]*$/,
   };
 

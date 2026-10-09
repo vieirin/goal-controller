@@ -15,16 +15,23 @@ import {
   type WithNotation,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { ASSERTION, CALLS, SKIP } from '../catalog.js';
+import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readPropertyLine } from './lines.js';
 
 export type Completion = {
   label: string;
-  type: 'variable' | 'keyword' | 'property';
+  type: 'variable' | 'keyword' | 'property' | 'function';
   detail?: string;
+  /** what to insert instead of the label, in LSP snippet syntax (`select(${1:v} | ${2:condition})`) */
+  snippet?: string;
 };
 
-export type CompletionResult = { from: number; options: Completion[] };
+export type CompletionResult = {
+  from: number;
+  /** where what is replaced ends, when past the position (the rest of a word) */
+  to?: number;
+  options: Completion[];
+};
 
 type Definition = Pick<
   AnyDialect,
@@ -211,8 +218,15 @@ export const completionsAt = (
       text.slice(valueFrom),
       before.length - valueFrom,
       context,
+      owner ?? undefined,
     );
-    return found && { ...found, from: start + valueFrom + found.from };
+    return (
+      found && {
+        ...found,
+        from: start + valueFrom + found.from,
+        ...(found.to !== undefined && { to: start + valueFrom + found.to }),
+      }
+    );
   }
   return {
     from,
@@ -233,6 +247,8 @@ export const fieldCompletionsAt = (
   text: string,
   pos: number,
   context: DefinitionContext,
+  /** the element whose value it is (an `ocl` value's scope) */
+  elementId?: string,
 ): CompletionResult | null => {
   const word = WORD.exec(text.slice(0, pos))?.[0] ?? '';
   const from = pos - word.length;
@@ -279,7 +295,97 @@ export const fieldCompletionsAt = (
       ],
     };
   }
+  if (value.type === 'ocl')
+    return oclCompletions(value, text, pos, context, elementId);
   return null;
+};
+
+const NAME = /[A-Za-z_][A-Za-z0-9_]*/;
+
+/**
+ * The names an `ocl` value may use at a position: those its text binds
+ * around it (`r` in `select(r:Room | `, while that parenthesis is open), those its `declaredBy` properties
+ * declare on the element and its ancestors, and the model's variables.
+ */
+const oclScope = (
+  value: Extract<ValueConfig, { type: 'ocl' }>,
+  before: string,
+  context: DefinitionContext,
+  self: string | undefined,
+): Completion[] => {
+  const found = new Map<string, Completion>();
+  const add = (label: string, detail: string) => {
+    if (!found.has(label))
+      found.set(label, { label, type: 'variable', detail });
+  };
+  // a binding is in scope while its parenthesis is open: `r` in
+  // `exists(r | r.ok) and x->select(q | ‸`, `q` only
+  const open: number[] = [];
+  for (const [at, char] of [...before].entries())
+    if (char === '(') open.push(at);
+    else if (char === ')') open.pop();
+  for (const binding of before.matchAll(
+    new RegExp(
+      `\\(\\s*(${NAME.source})\\s*(?::\\s*(${NAME.source}))?\\s*\\|`,
+      'g',
+    ),
+  ))
+    if (open.includes(binding.index))
+      add(binding[1]!, binding[2] ?? 'bound here');
+  const parents = new Map<string, string>();
+  for (const [id, element] of Object.entries(context.elements))
+    for (const child of element.children ?? []) parents.set(child, id);
+  for (let id = self, seen = 0; id && seen < 1000; id = parents.get(id), seen++)
+    for (const key of value.declaredBy ?? [])
+      for (const declared of (
+        context.elements[id]?.properties[key] ?? ''
+      ).split(',')) {
+        const [name, type] = declared.split(':').map((part) => part.trim());
+        if (name && new RegExp(`^${NAME.source}$`).test(name))
+          add(name, type ? `${type} (${key} of ${id})` : `${key} of ${id}`);
+      }
+  for (const name of context.variables) add(name, 'variable');
+  return [...found.values()];
+};
+
+/**
+ * Completions in an `ocl` value: after `->`, the collection operations
+ * (with their templates, unless their arguments follow already); elsewhere (after `.`, on a name), the names in
+ * scope.
+ */
+const oclCompletions = (
+  value: Extract<ValueConfig, { type: 'ocl' }>,
+  text: string,
+  pos: number,
+  context: DefinitionContext,
+  self?: string,
+): CompletionResult | null => {
+  const before = text.slice(0, pos);
+  // a name: after `r.`, what follows the dot
+  const word = /[A-Za-z0-9_]*$/.exec(before)?.[0] ?? '';
+  const from = pos - word.length;
+  const ahead = before.slice(0, from).trimEnd();
+  // inside a string (`assertion condition "…"`): nothing
+  if ((before.match(/"/g)?.length ?? 0) % 2 === 1) return null;
+  if (ahead.endsWith('->')) {
+    // its arguments already written (`->sel‸(r | …)`): the name only
+    const after = text.slice(pos);
+    const rest = /^[A-Za-z0-9_]*/.exec(after)![0];
+    const called = /^\s*\(/.test(after.slice(rest.length));
+    return {
+      from,
+      // the whole name: `->sel‸ect(` becomes `->forAll(`, not `->forAllect(`
+      ...(rest && { to: pos + rest.length }),
+      options: OCL_OPERATIONS.map(({ name, snippet, help }) => ({
+        label: name,
+        type: 'function' as const,
+        detail: help,
+        ...(!called && { snippet }),
+      })),
+    };
+  }
+  const options = oclScope(value, before, context, self);
+  return options.length ? { from, options } : null;
 };
 
 /**
@@ -304,6 +410,7 @@ export const fieldCompletions = (
     text,
     pos,
     context,
+    elementId,
   );
 };
 
