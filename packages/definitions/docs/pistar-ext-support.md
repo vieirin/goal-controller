@@ -441,7 +441,7 @@ on every example under `examples/` and `dissertationExamples/`.
 
 Tests:
 
-- `test/extensions.test.ts` reads a piStar-ext-style file (`test/fixtures/rationalAgents.txt`) through istar-ts: parse, rules, validate, write back with `istar.Planning`.
+- `test/extensions.test.ts` reads a piStar-ext-style file (now `examples/pistar-ext/iStar4RationalAgents.txt`) through istar-ts: parse, rules, validate, write back with `istar.Planning`.
 - The same file goes through goal-tree's view, which keeps G1 and T1 and leaves Planning and Plan out.
 - `test/uiLib.test.ts` covers the workbench's `parseModel`:
   - byte-identical write-back of every example;
@@ -452,7 +452,7 @@ Tests:
 **Not verified visually.** The Chrome extension was disconnected. Your
 :3000 dev server compiles the page (HTTP 200, no build error), but the
 canvas, labels and inspectors are only covered by the tests above. Opening
-`packages/definitions/test/fixtures/rationalAgents.txt` in piStar mode is
+`examples/pistar-ext/iStar4RationalAgents.txt` in piStar mode is
 the check to do by hand.
 
 ### Schema changes in this round
@@ -564,6 +564,7 @@ This was relayed by the coordinating session and confirmed in this one.
 | `15e79da` | The status bar names the mode (it showed the engine underneath piStar mode and piStar-ext)                                        |
 | `8fa33fa` | istar-ts `^0.9.0`                                                                                                                 |
 | `5a47fe0` | Link stereotypes and tagged values: a label component on every link kind, edited in the mode's inspector                          |
+| `97e557b` | `examples/pistar-ext/`: three example models, opened in the mode from the Explorer; they replace the test fixture                 |
 
 ### How it works
 
@@ -609,6 +610,36 @@ This was relayed by the coordinating session and confirmed in this one.
   and value. A listed tag (`type`) switches the value to a duty/right select.
 - **Notation view:** the dialect's lines, an actor's elements under it,
   highlighted. Editing a stereotype, tag or name there updates the diagram.
+
+### Examples
+
+`examples/pistar-ext/` holds three models, as piStar-ext saves them
+(`istar.Planning` on disk, no mode recorded). The Explorer lists them as
+`pistar-ext` and opens them in piStar-ext mode, recording it.
+
+- `iStar4RationalAgents.txt`: Fig. 4 as far as the paper shows it (a
+  goal-based agent, Planning and Plan, an `<<action>>` task `{type = duty}`),
+  with a tagged link. The tests read it; it replaces the test fixture.
+- `stereotypes-and-tags.txt`: every mechanism once.
+  - The rational grouper's stereotypes on a role and an agent.
+  - `<<action>>` on a task.
+  - The four default tagged values and the listed `type`.
+  - A tagged link.
+
+  iStar4RationalAgents declares no stereotypes for goals or links (the paper
+  gives none), so those carry tagged values instead.
+
+- `minimal.txt`: one agent, one goal, one tag.
+
+Tests cover all three:
+
+- each writes back byte for byte, recorded or not;
+- each opens in the mode;
+- those using the dialect's kinds are rejected by the Edge modes, with the
+  hint.
+
+The workbench loads examples from GitHub at `main`
+(`services/examples.ts`), so these open there once they're pushed.
 
 ### What fits now
 
@@ -688,7 +719,7 @@ This was relayed by the coordinating session and confirmed in this one.
 - **piStar-ext's own storage.**
   - Stereotypes and tags are read from `customProperties`. piStar-ext's
     per-cell `extension` block and model-level lists round-trip but aren't
-    read: the fixture's Robot carries both forms.
+    read: the iStar4RationalAgents example's Robot carries both forms.
   - Its construct definitions live in the browser's localStorage. An importer
     for an export of them into an `ExtensionDefinition` is still missing.
 - **Lines by position.**
