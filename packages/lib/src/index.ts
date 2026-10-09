@@ -119,6 +119,34 @@ export {
   type MutroseTaskProps,
 } from './engines/mutrose';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
+// Project resources (goal-controller#25): each engine's parsers, data in, data out
+export {
+  projectResourceParsers,
+  readJson,
+  type ParsedResource,
+  type ProjectResourceParser,
+  type ProjectResourceParsers,
+  type ResourceDiagnostic,
+  type ResourceFile,
+} from './engines/projectResources';
+export {
+  mutroseProjectResources,
+  parseConfiguration,
+  parseHddl,
+  parseWorld,
+  type HddlDomain,
+  type MutroseConfiguration,
+  type MutroseResourceData,
+  type WorldKnowledge,
+} from './engines/mutrose';
+export {
+  edgeProjectResources,
+  parseProperties,
+  parseVariables,
+  type EdgePropertySuites,
+  type EdgeResourceData,
+  type EdgeVariables,
+} from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
 
 // Logger

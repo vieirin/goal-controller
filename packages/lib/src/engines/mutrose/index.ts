@@ -7,3 +7,4 @@ export * from './definition';
 export * from './mapper';
 export * from './template';
 export * from './types';
+export * from './projectResources';

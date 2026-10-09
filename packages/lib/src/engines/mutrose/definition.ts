@@ -32,11 +32,17 @@ const FLAG = {
   open: true,
 } as const;
 
+/** an OCL type is a world class; after `name.`, its attributes */
+const WORLD_CLASSES = { resource: 'world', category: 'classes' } as const;
 /** variables, conditions and queries: OCL, as the decomposer reads them */
-const OCL = { type: 'ocl' } as const;
+const OCL = {
+  type: 'ocl',
+  candidates: WORLD_CLASSES,
+  memberCandidates: WORLD_CLASSES,
+} as const;
 /** an OCL value that uses variables: those Controls and Monitors declare above it */
 const OCL_SCOPED = {
-  type: 'ocl',
+  ...OCL,
   declaredBy: ['Controls', 'Monitors'],
 } as const;
 
@@ -193,6 +199,33 @@ export const mutrose = defineDialect({
     'RobotNumber',
   ],
   indent: '  ',
+  // what the decomposer reads beside the model (MutRoSe-Docs' layout)
+  projectResources: {
+    world: {
+      label: 'World knowledge',
+      format: 'xml',
+      role: 'knowledge',
+      path: 'knowledge/world_db.xml',
+      accept: ['.xml'],
+      help: 'the entities the mission is about, one element per entity under the root; its tag is the class',
+    },
+    hddl: {
+      label: 'HDDL domain',
+      format: 'hddl',
+      role: 'domain',
+      path: 'hddl/domain.hddl',
+      accept: ['.hddl'],
+      help: 'the domain the abstract tasks are decomposed in: its types, tasks, methods and actions',
+    },
+    configuration: {
+      label: 'Configuration',
+      format: 'json',
+      role: 'configuration',
+      path: 'configuration/configuration.json',
+      accept: ['.json'],
+      help: 'where the world is, its location types, and how the model maps onto the domain',
+    },
+  },
   problems: {
     notAChild: { severity: 'error', message: 'Not a child of this goal' },
     missingFromNotation: {
