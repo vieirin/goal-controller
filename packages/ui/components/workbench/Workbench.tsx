@@ -1,6 +1,6 @@
 'use client';
 
-import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import { DIALECT_LABEL } from '@/lib/workbench/dialects';
 import {
   FilePlus2,
   FolderOpen,
