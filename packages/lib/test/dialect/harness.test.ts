@@ -83,8 +83,32 @@ const EDGE_V2_MODELS = [
 const view = (model: string, grammar: 'edge' | 'edgeV2'): GoalView =>
   goalView(parsePistar(model), grammar === 'edge' ? edge : edgeV2);
 
+/** The commits sync-reference.sh pins (its `COMMIT=`, `ANTLR_COMMIT=` lines). */
+const pinnedCommits = (): string[] =>
+  [
+    ...text(join(ROOT, 'scripts', 'sync-reference.sh')).matchAll(
+      /^\w*COMMIT=([0-9a-f]{40})$/gm,
+    ),
+  ].map((m) => m[1]!);
+
+/** Whether this clone has a commit (a shallow CI checkout has only its tip). */
+const hasCommit = (commit: string): boolean => {
+  try {
+    execFileSync('git', ['-C', ROOT, 'cat-file', '-e', `${commit}^{commit}`], {
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 describe('harness: the reference files', () => {
-  it('are what the sync script pins (no diff on re-running it)', () => {
+  it('are what the sync script pins (no diff on re-running it)', function () {
+    // the pinned commits are other branches' history: a clone without them
+    // (CI's shallow checkout) checks the committed copies only
+    const missing = pinnedCommits().filter((commit) => !hasCommit(commit));
+    if (missing.length) this.skip();
     const out = mkdtempSync(join(tmpdir(), 'reference-'));
     execFileSync(join(ROOT, 'scripts', 'sync-reference.sh'), [out]);
     for (const name of readdirSync(REFERENCE))
