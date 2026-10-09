@@ -83,12 +83,12 @@ element's id when its name starts with one: it writes the name as it is.
 ```
 ElementLine   : Annotation* ElementId ':' WORD ('[' RtExpr ']')? Declaration? ;
 AnnotatedName : Annotation* (ElementId ':')? PLAIN_NAME ('[' RtExpr ']')? Declaration? ;
-ElementId     : ('G' | 'T' | 'R') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
+ElementId     : ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
 ```
 
 ### Ids
 
-An id is a prefix `G`, `T` or `R` followed by one of:
+An id is a prefix `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by one of:
 
 - `1` (FLOAT): digits;
 - `1.2` (FLOAT): digits, a dot, and optionally more digits;
@@ -103,6 +103,7 @@ G1X: Deliver sample
 G1a: Deliver sample
 T3: Pick sample
 R4: Battery
+AT1: ApproachNurse
 ```
 
 The grammar also has a bare `X` alternative (`GX`), but the lexer never

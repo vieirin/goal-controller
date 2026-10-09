@@ -45,7 +45,7 @@ A **document** is lines (`Document`). There are two kinds of line:
   └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
   ```
 
-  The id is `G`, `T` or `R` followed by `1`, `1.2`, `1X` or `1a` (`GX`
+  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X` or `1a` (`GX`
   reads as a name: see the [reference](reference.md#ids)). A
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
@@ -260,9 +260,5 @@ test fails if they are stale. The tests use mocha with tsx, and the root
 
 ## Not done yet
 
-- A language server. The validator and completion are its core, but there
-  is no Langium LSP module, worker or `rt/context` wiring yet.
-- Completion of stereotype names, tag names and listed tag values.
-- Id prefixes beyond `G`, `T`, `R`.
 - Spaces inside a notation are an error (`[G2; G3]`), as in RTRegex.g4.
   Relaxing this is a language decision.

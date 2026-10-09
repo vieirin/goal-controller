@@ -87,8 +87,8 @@ export const OPERATORS: readonly CatalogOperator[] = [
 /** The keyword an operand may be instead of an element id. */
 export const SKIP = 'skip';
 
-/** The id prefixes element lines may use (`G1`, `T2.1`, `R3`). */
-export const ID_PREFIXES = ['G', 'T', 'R'] as const;
+/** The id prefixes element lines may use (`G1`, `T2.1`, `R3`, MutRoSe's `AT1`). */
+export const ID_PREFIXES = ['G', 'T', 'R', 'AT'] as const;
 export type IdPrefix = (typeof ID_PREFIXES)[number];
 
 /** The assertion language: `battery > 20 & !charging`. */

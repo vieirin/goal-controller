@@ -37,7 +37,7 @@ AnnotatedName:
     ('[' notation=RtExpr ']')? declaration=Declaration?;
 
 ElementId returns string:
-    ('G' | 'T' | 'R') (FLOAT 'X'? | 'X' | DIGIT_SUBID);
+    ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID);
 
 Annotation:
     {infer Stereotype} '<<' stereotype=TEXT '>>'

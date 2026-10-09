@@ -325,6 +325,10 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
               {
                 "$type": "Keyword",
                 "value": "R"
+              },
+              {
+                "$type": "Keyword",
+                "value": "AT"
               }
             ]
           },

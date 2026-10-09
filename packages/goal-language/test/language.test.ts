@@ -158,8 +158,8 @@ describe('the RT notation', () => {
     for (const symbol of STANDALONE_SYMBOLS)
       assert.deepEqual(notation(symbol), { kind: 'standalone', symbol });
     assert.equal(
-      rtText(notation('G1a;T1.2;T1.3X;G2X;R4')),
-      'G1a;T1.2;T1.3X;G2X;R4',
+      rtText(notation('G1a;T1.2;T1.3X;G2X;R4;AT3')),
+      'G1a;T1.2;T1.3X;G2X;R4;AT3',
     );
   });
 });
@@ -244,6 +244,28 @@ describe('documents', () => {
         [6, 'R1', ''],
       ],
     );
+  });
+
+  it('reads MutRoSe’s task ids (`AT1`) as ids, a line starting with one as an element', () => {
+    const read = parseDocument(
+      'G1: Deliver [AT1;G2]\n  AT1: ApproachNurse\n  Params current_nurse\n',
+    );
+    assert.deepEqual(read.errors, []);
+    assert.deepEqual(
+      read.value.map((line) =>
+        line.kind === 'element'
+          ? [line.id, rtText(line.notation)]
+          : [line.key, line.value],
+      ),
+      [
+        ['G1', 'AT1;G2'],
+        ['AT1', ''],
+        ['Params', 'current_nurse'],
+      ],
+    );
+    assert.deepEqual(parseValue('refList', 'AT1, G2').value, ['AT1', 'G2']);
+    // a word that starts with the letters is still a name
+    assert.equal(parseElementLine('G1: ATtend it').value?.name, ' ATtend it');
   });
 
   it('reads a key alone as a property without a value', () => {

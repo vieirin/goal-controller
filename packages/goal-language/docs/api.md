@@ -149,5 +149,5 @@ These are also in `/light`.
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |
-| `ID_PREFIXES` | `G`, `T`, `R` |
+| `ID_PREFIXES` | `G`, `T`, `R`, `AT` |
 | `SKIP` | `skip` |

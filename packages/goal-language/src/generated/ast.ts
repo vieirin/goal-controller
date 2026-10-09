@@ -50,6 +50,7 @@ export type GoalKeywordNames =
     | ">>"
     | "?"
     | "@"
+    | "AT"
     | "G"
     | "R"
     | "T"

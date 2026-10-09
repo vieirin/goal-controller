@@ -13,6 +13,7 @@ import {
 } from '@goal-controller/dialect';
 import type { IToken } from 'chevrotain';
 import type { GoalLexer, LexerStart } from '../lexer.js';
+import { ID_PREFIXES } from '../catalog.js';
 import { goalServices } from '../parse.js';
 
 export type HighlightStyle =
@@ -71,7 +72,7 @@ const STYLE: Record<string, HighlightStyle> = {
   VALUE: 'string',
 };
 
-const ID_PREFIX = new Set(['G', 'T', 'R']);
+const ID_PREFIX = new Set<string>(ID_PREFIXES);
 const ID_REST = new Set(['FLOAT', 'X', 'DIGIT_SUBID']);
 
 const tokensOf = (start: LexerStart, text: string): IToken[] => {

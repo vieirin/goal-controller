@@ -33,7 +33,7 @@ export type ElementDefinition = {
    * without one, a definition's lines name no element (they are their
    * elements', in order)
    */
-  prefix?: 'G' | 'T' | 'R';
+  prefix?: 'G' | 'T' | 'R' | 'AT';
   /** whether its line carries annotations (`<<action>> {type = duty}`) before the id */
   annotated?: boolean;
   /** whether its line declares its DECLARATION_KEYS (`{int 0..100 = 80}`) after the name */
