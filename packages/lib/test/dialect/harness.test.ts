@@ -1,8 +1,11 @@
 /**
  * The engine definitions against the reference result: the hand-written Langium
- * notation (vn/rt-langium-notation, pinned in test/reference by
- * scripts/sync-reference.sh). The definitions and what the views build from them
- * must equal what the reference declares and computes, on every example model.
+ * notation (vn/rt-langium-notation) and the ANTLR grammars the engines read
+ * with before the goal language (RTRegex.{edge,edgeV2}.g4), pinned in
+ * test/reference by scripts/sync-reference.sh. The definitions and what the
+ * views build from them must equal what the reference declares and computes,
+ * on every example model; the operators they enable, in the goal language's
+ * precedence, must be the grammars' (harness 2).
  */
 import { expect } from 'chai';
 import { execFileSync } from 'child_process';

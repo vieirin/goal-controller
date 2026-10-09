@@ -80,29 +80,20 @@ This is what the definition has to map onto, read from `830a4e3`.
 
 ### Stereotypes: with a change (done)
 
-An element kind can now declare `annotations`: declarations written **before
-the id** on its line. They are read and written like a resource's
-`{int 0..100 = 80}`, which goes after the name:
+> **Syntax moved to the goal language** (`packages/goal-language`, see
+> `packages/goal-language/docs/goal-language.md`). Annotations are part of
+> the one grammar every dialect is written in; a kind only says it carries
+> them (`annotated: true`, which `withExtension` sets), and they set the
+> fixed keys `stereotype`, `tag` and `tagValue` (the dialect package's
+> `ANNOTATION_KEYS`). The definition-level `delimiters`/`parts` described
+> below in earlier rounds no longer exist.
 
-```ts
-annotations: [
-  {
-    delimiters: ['<<', '>>'],
-    parts: [{ key: 'stereotype', pattern: '[^<>]*[^<>\\s]' }],
-  },
-  {
-    delimiters: ['{', '}'],
-    parts: [
-      { key: 'tag', pattern: '[^{}=]*[^{}=\\s]' },
-      {
-        optional: [
-          { literal: ' = ' },
-          { key: 'tagValue', pattern: '[^{}]*[^{}\\s]' },
-        ],
-      },
-    ],
-  },
-];
+An element kind's line may carry annotations **before the id**, as a
+resource's declaration (`{int 0..100 = 80}`) goes after the name:
+
+```
+ElementLine : Annotation* ElementId ':' Name ('[' RtExpr ']')? Declaration? ;
+Annotation  : '<<' stereotype=TEXT '>>' | '{' tag=TEXT ('=' tagValue=TEXT)? '}' ;
 ```
 
 The Notation view writes `<<action>> {type = duty} T1: Book a room`.
@@ -200,18 +191,20 @@ generator would need an OCL evaluator, which nobody has.
 
 ### Made on this branch
 
-- **`ElementDefinition.annotations?: readonly DeclarationDefinition[]`.**
-  Declarations before the id, each written only when its first property is set.
-- **`declarationKeys` moved from `derive/lines.ts` to `schema.ts`.** It is
-  re-exported as before. A new `elementLineKeys(element)` reads the keys an
-  element line writes.
+- **`ElementDefinition.annotated?: boolean`** (was `annotations`, a list of
+  declarations): the line carries the goal language's annotations, each
+  written only when its first property is set.
+- **`elementLineKeys(element)`** reads the keys an element line writes
+  (`ANNOTATION_KEYS`, `DECLARATION_KEYS`).
 - **`defineDialect`** now:
   - rejects an annotation or a declaration naming a property its kind doesn't have;
   - leaves the keys an element line writes out of `propertyLineOrder`'s
     "each operand kind key once" rule.
-- **derive**:
-  - `splitAnnotations`, `readAnnotations`, `writeAnnotations` and `annotationsOf`;
-  - `lineId` and `readElementLine` skip leading annotations;
+- **goal-language** (moved from the dialect package's `derive`):
+  - `readLine` reads a line's annotations with their spans, and
+    `annotatedProperties` what they set (the first of each kind);
+  - `writeAnnotations(properties)`;
+  - `lineId` skips leading annotations;
   - `elementLine` takes the annotations as an optional fourth argument;
   - `readDeclarationBody` is now shared by declarations and annotations;
   - `notationDocument` writes annotations;
@@ -331,45 +324,30 @@ From `~/vieirin/istar-ts` @ `cb0ab99`. Nothing there was changed.
   (`METAMODEL_VERSION` is a constant). Loading piStar-ext's lists needs the
   registrable metamodel first.
 
-## What a future LSP / grammar generator would need
+## In the goal language (done)
 
-The element line grows a prefix:
+What an LSP or a grammar generator would have needed is now
+`packages/goal-language/src/goal.langium` and its validator:
 
-```
-ElementLine : Annotation* Id ':' Name ('[' Notation ']')? Declaration? ;
-Annotation  : Stereotype | TaggedValue ;          // one rule per DeclarationDefinition
-Stereotype  : '<<' STEREOTYPE '>>' ;               // from parts[0].pattern
-TaggedValue : '{' TAG ('=' TAG_VALUE)? '}' ;       // literal ' = ' → '=' with any whitespace
-```
-
-- **One rule per `DeclarationDefinition`.** Generate a parser rule from each
-  annotation's parts: `key` → a terminal from `pattern`, `literal` → a keyword
-  with whitespace around it, `optional` → `?`. The declaration after the name
-  is the same generator, at the end of the line.
-- **Lexing conflicts the generator must solve.**
-  - `{` opens both the tagged value (before the id) and a resource
-    declaration (after the name). Only position tells them apart, so it needs
-    lexer modes, or one token with the split done in the parser.
-  - Tag names and stereotypes contain spaces and `-` ("Reference to",
-    "model-based reflex"). That collides with `Name` and `Id` terminals
-    outside the delimiters, so these terminals are only valid inside them
-    (modes again, or a hand-written token builder in Langium).
-  - The annotations' kind isn't known until the id, so the grammar accepts
-    every kind's annotations and validation rejects the wrong ones. That's
-    what `readAnnotations` and the "cannot be read" diagnostic do now.
-- **Validation.**
-  - Each annotation at most once.
-  - Enum values from `properties` (the local support doesn't check enum
-    values yet, for property lines either).
-  - `ConditionalValue`'s value per tag.
-  - The named checks.
-- **Completion.** Stereotype names after `<<`, tag names after `{`, and a
-  tag's listed values after `=`, all from the enum options. The local support
-  doesn't offer these yet.
-- **Semantic tokens.** Annotation delimiters, names and values, as the local
-  highlighter now emits (`brace`, `meta`, `operator`).
-- **Context.** `contextFromView` already carries every custom property, so a
-  server gets `stereotype`, `tag` and `tagValue` without a change.
+- **One grammar.** `ElementLine` and `AnnotatedName` (lines without ids)
+  start with `Annotation*`. No generator: the grammar is fixed, and a
+  dialect only says which kinds carry annotations.
+- **Lexing.** GoalLexer switches token sets by position: `{` before the id
+  opens a tagged value, after the name a declaration; tag names and
+  stereotypes (with spaces and `-`) are TEXT tokens only inside their
+  delimiters.
+- **Validation** (`documentDiagnostics`):
+  - a second stereotype or tagged value is reported as not read;
+  - annotations on a kind that carries none are reported;
+  - enum values are checked against their options unless the enum is open
+    (stereotypes and tags are open);
+  - `ConditionalValue`'s value per tag, and the named checks.
+- **Completion.** Stereotype names, tag names and listed tag values are not
+  offered yet.
+- **Semantic tokens.** `highlightLine` emits `brace`, `meta` and `operator`
+  for annotations, from the lexer's tokens.
+- **Context.** `contextFromView` carries every custom property, so a server
+  gets `stereotype`, `tag` and `tagValue` without a change.
 
 ## Open questions
 
@@ -405,7 +383,7 @@ Rough engineer-days, assuming the current code owners.
 | Open element kinds in definitions, goal-tree, lib (ignore unknown kinds) and UI                                                                               | 4–6 d                   |
 | istar-ts: registrable node kinds, shapes, palette, serialization                                                                                              | 5–8 d                   |
 | istar-ts: registrable link kinds, rules as kind sets, link rendering and labels                                                                               | 4–6 d                   |
-| Grammar/LSP generation for annotations, once a generator exists                                                                                               | 2–3 d                   |
+| Grammar/LSP for annotations (done: the goal language)                                                                                                         | 2–3 d                   |
 
 Supporting stereotypes and tagged values on nodes in the workbench is about
 **a week** on top of this branch. Full piStar-ext (actors, links, new
@@ -550,7 +528,7 @@ the check to do by hand.
 | Link stereotypes shown                                                                                                                | in istar-ts link work | 2–3 d in istar-ts (link label component) + ½ d here                         |
 | Open enum, multi-case conditional value, "is set" condition                                                                           | 2–3 d                 | 2–3 d                                                                       |
 | Engine semantics for dialect kinds                                                                                                    | n/a                   | 2–4 d, once decided                                                         |
-| Grammar/LSP generation for annotations                                                                                                | 2–3 d                 | 2–3 d                                                                       |
+| Grammar/LSP for annotations (done: goal-lang)                                                                                         | 2–3 d                 | 2–3 d                                                                       |
 
 Full piStar-ext support goes from **4–6 weeks to about 2–3 weeks**. None of
 it is blocked on istar-ts core except link labels.
@@ -689,13 +667,14 @@ The workbench loads examples from GitHub at `main`
   `DialectDefinition<string>`. `ElementKind` (an engine's four kinds) stays the
   default, so Edge's types are unchanged.
 - **Optional fields:**
-  - `notation`, `grammar` and `parser`, for a dialect without an engine;
-  - an element's `prefix` and `idPattern`, for lines without `{id}`.
+  - `notation`, for a dialect without an engine (`grammar` and `parser`
+    were removed with ANTLR);
+  - an element's `prefix`, for lines without ids (`idPattern` and the
+    line templates were removed: the goal language fixes the syntax).
   - `hasIds(definition)` tells which kind of lines a definition has, and
     `WithNotation` types what needs a notation.
 - **`defineDialect`:**
-  - either every element line has an `{id}`, or none has;
-  - a line with an `{id}` needs its prefix and pattern;
+  - either every element has an id prefix, or none has;
   - lines without ids can't have property lines.
 - **A kind is listed in the document if the definition has it.** One that
   declares something on its line has no property lines or children. For
@@ -762,7 +741,7 @@ The workbench loads examples from GitHub at `main`
 | Profiles through `behavesLike` (if wanted)                                                           | ½ d      |
 | Several dialects (namespaced annotation keys)                                                        | 1–2 d    |
 | Link lines in a dialect's Notation view (if wanted)                                                  | 2–3 d    |
-| Grammar/LSP generation for the dialect's lines                                                       | 2–3 d    |
+| Grammar/LSP for the dialect's lines (done: goal-lang)                                                | 2–3 d    |
 | Engine semantics for dialect kinds                                                                   | non-goal |
 
 About **1½–2½ weeks** remain for full parity. None of it is blocked on

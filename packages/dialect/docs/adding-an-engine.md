@@ -7,10 +7,11 @@
 ```
 piStar JSON file                      ┌──────────────────────────┐
 (elements, links,                     │  ENGINE DEFINITION (data) │  packages/lib/src/engines/<id>/definition.ts
- customProperties as strings)         │  elements · notation ·    │  (written with packages/dialect)
-        │                             │  properties · languages   │
+ customProperties as strings)         │  elements · operators ·   │  (written with packages/dialect)
+        │                             │  properties (value types) │
         │ parse (goal-tree)           └────────────┬─────────────┘
-        ▼                                          │ drives
+        │ texts read with the goal language        │ drives, through packages/goal-language
+        ▼                                          │ (one grammar: parser, validator)
 ┌───────────────────┐  engine mapper  ┌────────────┴─────────────┐
 │ GoalTree IR       │◄────────────────│ UI: inspector, Notation  │  packages/ui
 │ typed engine props│                 │ view, lint, completion,  │
@@ -22,22 +23,22 @@ piStar JSON file                      ┌─────────────
 
 Three things you write, one you get:
 
-| You write | Where | What it is |
-|---|---|---|
-| **The definition** | `packages/lib/src/engines/<id>/definition.ts` (written with `@goal-controller/dialect`) | Data: which properties exist, their types, when they apply, which notation operators exist. **The editor is generated from this.** |
-| **The mapper** | `packages/lib/src/engines/<id>/mapper.ts` | Code: turns raw strings into typed engine properties, validates them, resolves references. |
-| **The template** | `packages/lib/src/engines/<id>/template/` | Code: queries the typed tree and emits your output format. |
-| You get | `packages/ui` | Inspector with typed fields, Notation tab, local lint and completion, palette, Problems panel, engine conformity and conversion, after ~15 small wiring edits. |
+| You write          | Where                                                                                   | What it is                                                                                                                                                                                                                                                                      |
+| ------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The definition** | `packages/lib/src/engines/<id>/definition.ts` (written with `@goal-controller/dialect`) | Data: which properties exist, their value types, when they apply, which of the goal language's operators it enables and what each means. It describes no syntax: the language is fixed (`packages/goal-language/docs/goal-language.md`). **The editor is generated from this.** |
+| **The mapper**     | `packages/lib/src/engines/<id>/mapper.ts`                                               | Code: turns raw strings into typed engine properties, validates them, resolves references.                                                                                                                                                                                      |
+| **The template**   | `packages/lib/src/engines/<id>/template/`                                               | Code: queries the typed tree and emits your output format.                                                                                                                                                                                                                      |
+| You get            | `packages/ui`                                                                           | Inspector with typed fields, Notation tab, local lint and completion, palette, Problems panel, engine conformity and conversion, after ~15 small wiring edits.                                                                                                                  |
 
 **Everything in a model file is a string.** iStar `customProperties` are `{ key: "value" }` strings. The definition says how to *edit and check* them; the mapper says how to *read* them. Keep both in sync (the definition's `propertyKeys()` is the source of the mapper's allowed keys, so they can't drift).
 
 ## 1. Decide what kind of engine you have
 
-| Your situation | Pattern | Template to copy | Notation? | Grammar work? |
-|---|---|---|---|---|
-| Properties on goals/tasks, output is text | **properties-only engine** | SLEEC | none | none |
-| Properties **and** ordering/choice semantics among children (sequence, alternative, retries…) | **notation engine** | edgeV2 | `[G1;G2]` in the goal's name | reuse edgeV2's grammar, or write one |
-| New element kinds / symbols / stereotypes (an iStar dialect, no engine) | **dialect** | piStar-ext (`packages/lib/src/dialects/pistarExt/istar4RationalAgents.ts`) | none | none |
+| Your situation                                                                                | Pattern                    | Template to copy                                                           | Notation?                    | Grammar work?                           |
+| --------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------- | ---------------------------- | --------------------------------------- |
+| Properties on goals/tasks, output is text                                                     | **properties-only engine** | SLEEC                                                                      | none                         | none                                    |
+| Properties **and** ordering/choice semantics among children (sequence, alternative, retries…) | **notation engine**        | edgeV2                                                                     | `[G1;G2]` in the goal's name | none: enable operators from the catalog |
+| New element kinds / symbols / stereotypes (an iStar dialect, no engine)                       | **dialect**                | piStar-ext (`packages/lib/src/dialects/pistarExt/istar4RationalAgents.ts`) | none                         | none                                    |
 
 Most new engines are the first row. If you are "reimplementing SLEEC", that's exactly it. Reimplementing EDGE is the second row. This guide does the first row fully and marks the extra steps for the second.
 
@@ -48,18 +49,16 @@ Running example below: engine id `mission`, goals get `priority` (enum) and `dea
 File: `packages/lib/src/engines/mission/definition.ts`, next to the engine that reads it. `packages/dialect` is only the framework (the schema and what is derived from a definition); it names no engine. Export the definition from `engines/mission/index.ts` and from `packages/lib/src/index.ts`, where the UI imports it.
 
 ```ts
-import { defineDialect, type PropertyDefinition } from '@goal-controller/dialect';
+import { defineDialect } from '@goal-controller/dialect';
 
-const DEFAULT_FILL = '#CDFECD';           // istar-ts default green
-const ID = '(?:[0-9]+\\.?[0-9]*X?|X|[0-9][a-z])'; // Edge's id pattern; pick your own
+const DEFAULT_FILL = '#CDFECD'; // istar-ts default green
 
 export const mission = defineDialect({
   id: 'mission',
-  name: 'Mission',                        // shown in the UI
-  // grammar/parser: only for notation engines (see 2.3)
+  name: 'Mission', // shown in the UI
   elements: {
-    goal: { prefix: 'G', idPattern: ID, line: '{id}: {name}', nameCharset: "[A-Za-z\\- ']", fill: DEFAULT_FILL },
-    task: { prefix: 'T', idPattern: ID, line: '{id}: {name}', nameCharset: "[A-Za-z\\- ']", fill: DEFAULT_FILL },
+    goal: { prefix: 'G', fill: DEFAULT_FILL }, // lines `G1: Name`
+    task: { prefix: 'T', fill: DEFAULT_FILL },
   },
   defaultFill: DEFAULT_FILL,
   properties: {
@@ -83,7 +82,6 @@ export const mission = defineDialect({
     resource: [],
     quality: [],
   },
-  propertyLine: { separator: ' ', keyPattern: '[A-Za-z]+' },
   propertyLineOrder: ['priority', 'deadline', 'robot', 'duration'],
   indent: '  ',
   problems: {
@@ -92,69 +90,68 @@ export const mission = defineDialect({
     relationMismatch:   { severity: 'error',   message: '{construct} needs {needs} links, but this goal has {relation} links' },
     notInDiagram:       { severity: 'error',   message: 'Add this element in the diagram' },
   },
-  languages: {},
 });
 ```
 
-`defineDialect` type-checks it, **freezes it**, and rejects: operators naming unknown constructs, element lines with `{id}` but no `prefix`/`idPattern`, repeated keys, conditions on unknown keys, expression values in unknown languages, and a `propertyLineOrder` that doesn't list each property-line key exactly once.
+`defineDialect` type-checks it, **freezes it**, and rejects: operators, standalone symbols or modifiers naming unknown constructs, a modifier no operator means, an id prefix on some kinds only, repeated keys, conditions on unknown keys, and a `propertyLineOrder` that doesn't list each property-line key exactly once.
 
-### 2.1 Elements: what the Notation tab's lines look like
-- `line: '{id}: {name}'` → lines name their element (`G1: Deliver sample`). All kinds must then have `prefix` + `idPattern`. **Option:** omit `{id}` on every kind → lines are matched *by position* (used by dialects without ids); then no property lines are allowed (everything goes on the element line).
-- `declaration` → a bracketed tail on the line that sets several properties at once, e.g. Edge's resource `{int 0..100 = 80}`. Declared as a `parts` sequence of `{key, pattern}`, `{literal}`, `{optional: [...]}`. Use it when a kind's properties read better as one declaration than as lines.
-- `annotations` → bracketed heads *before* the id (`<<action>> {type = duty} T1: …`), the piStar-ext mechanism. Rare for engines.
-- `nameCharset` must match what your grammar accepts if you have one.
+### 2.1 Elements: what a kind's line has
 
-### 2.2 Properties: the `ValueConfig` options
+The line's syntax is the goal language's (`<<s>> {tag = v} G1: Name [G2;G3] {int 0..9 = 3}`); a kind only says which parts it has:
 
-| `value.type` | Inspector input | Notes |
-|---|---|---|
-| `enum` `{options, open?}` | select | `''` option = "unset". `open: true` allows free text besides the options. |
-| `int` `{min?, max?}` | integer field | |
-| `number` | number field | |
-| `text` | text field | |
-| `bool` | true/false select | |
-| `expression` `{language}` | one-line editor with lint/completion | language must exist in `languages` (see 2.4) |
-| `refList` `{kind, separator}` | editor with id completion | e.g. Edge's `dependsOn: G2, G5` |
-| `pairList` `{separator, pair, value}` | editor | e.g. Edge's `variables: speed:3, mode:2` |
-| `ConditionalValue` `{when, matching, otherwise}` | depends on another property | e.g. a resource's `initialValue` is an int or a bool depending on `type` |
+- `prefix: 'G' | 'T' | 'R'` → lines name their element (`G1: Deliver sample`); every kind then needs one. **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
+- `declares: true` → the line ends with a declaration setting `type`, `lowerBound`, `upperBound`, `initialValue` (Edge's resource `{int 0..100 = 80}`); the kind must have those properties.
+- `annotated: true` → the line starts with annotations setting `stereotype`, `tag`, `tagValue` (the piStar-ext mechanism, added by `withExtension`).
+- Names on lines with ids are letters, spaces, `-` and `'` (as RTRegex.g4 read them).
+
+### 2.2 Properties: the predefined value types
+
+Each value type is a rule of the goal language that reads a value on its own; the validator checks every value against its config.
+
+| `value.type`                                     | Inspector input                 | Checked                                                                                                                       |
+| ------------------------------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `enum` `{options, open?}`                        | select                          | one of the options (`''` = unset), unless `open`                                                                              |
+| `int` `{min?, max?}`                             | integer field                   | an integer within the bounds                                                                                                  |
+| `number`                                         | number field                    | a number                                                                                                                      |
+| `text`                                           | text field                      | nothing                                                                                                                       |
+| `bool`                                           | true/false select               | `true` or `false`                                                                                                             |
+| `assertion` `{resolves}`                         | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds and the variables |
+| `refList` `{kind}`                               | editor with id completion       | ids, comma-separated, of elements of that kind (Edge's `dependsOn: G2, G5`)                                                   |
+| `pairList` `{value}`                             | editor                          | `name:value` pairs, comma-separated, values of that type (Edge's `variables: speed:3, mode:2`)                                |
+| `annotatedName`                                  | editor                          | a line without an id                                                                                                          |
+| `ConditionalValue` `{when, matching, otherwise}` | depends on another property     | e.g. a resource's `initialValue` is an int or a bool depending on `type`                                                      |
 
 Per property:
 - `applies` / `required`: `'always'`, `{ when: {key, equals} }`, or `{ not: {...} }`. `applies=false` greys the row and shows `notApplying` (with `{key}` placeholders). `required` shows the row even when unset.
-- `check`: a **name** (`'mission.goal.deadline'`). The library implements it (step 3.3). Use it for anything the declarative config can't express (cross-property rules, cross-element rules). Everything declarative (type, min, options, applies) is checked for free.
+- `check`: a **name** (`'mission.goal.deadline'`). The library implements it (step 3.3). Use it for anything the value type can't express (cross-property rules, cross-element rules); its message is shown before the type's.
 - `inspector: false`: read by the engine but not offered as a field (Edge's `root`).
 - `help`: shown as the field hint and used for hover text.
 
 ### 2.3 Notation (only for engines with execution semantics among children)
-Add `grammar`, `parser` and a `notation` block. Copy `packages/lib/src/engines/edgeFamily/definition.ts`'s `edgeNotation` and `CONSTRUCTS` as a starting point:
+
+Add a `notation` block: enable operators from the goal language's catalog (`packages/goal-language/docs/operators.md`) and say what each one is. Copy `packages/lib/src/engines/edgeFamily/definition.ts`'s `edgeNotation` and `CONSTRUCTS` as a starting point:
 
 ```ts
 notation: {
-  delimiters: ['[', ']'],
-  operand: { kinds: ['goal', 'task'], keywords: ['skip'] },
-  operators: [        // tightest → loosest
-    { symbol: '@', form: 'postfix', assoc: 'left', argument: { name: 'retries', value: { type: 'int', min: 1 }, default: '3' },
-      label: 'Retry', help: '…', appliesTo: ['fallback'], action: 'Retry the first child up to {retries} times' },
-    { symbol: ';', form: 'infix', construct: 'sequence', assoc: 'left' },
-    { symbol: '|', form: 'infix', construct: 'fallback', assoc: 'left' },
-  ],
+  operand: { kinds: ['goal', 'task'], skip: true },
+  operators: { '@': 'retry', ';': 'sequence', '|': 'fallback' },  // symbol → construct (or modifier)
+  standalone: { '*': 'any' },                                     // optional: `[*]`
+  modifiers: {
+    retry: { argument: { name: 'retries', value: { type: 'int', min: 1 }, default: '3' },
+             label: 'Retry', help: '…', appliesTo: ['fallback'], action: 'Retry the first child up to {retries} times' },
+  },
   constructs: {
     sequence: { label: 'Sequence', help: 'children in order', relation: 'and' },
     fallback: { label: 'Fallback', help: 'first child that succeeds', relation: 'or' },
+    any:      { label: 'Any', help: 'whichever' },
   },
   defaultConstruct: { and: 'sequence', or: 'fallback' },
 }
 ```
-Operator **forms**: `infix` (`a ; b`), `postfix` with an argument (`G1@3`), `standalone` (edge v1's lone `+`). `relation` on a construct makes the editors flag a notation that contradicts the goal's AND/OR links.
 
-**Grammar options for reading the notation in the engine:**
-1. **Reuse edgeV2's grammar** (`grammar: 'edgeV2', parser: 'antlr'`): your operators must be a subset of `; + # | ? -> @`. Zero grammar work; the mapper receives `executionDetail` from goal-tree.
-2. **Write an ANTLR grammar**: `packages/lib/grammar/<id>/RTRegex.g4`, add `<id>` to `RT_ENGINES` in `packages/lib/Makefile`, then `pnpm grammar` (root) generates into `packages/goal-tree/src/antlr/<id>/` → add a `goalNameParser/<id>.ts` that walks the parse tree into `GoalExecutionDetail`, and register it in `packages/goal-tree/src/parsers/goalNameParser/index.ts` (`RTGrammar` union + `goalDetailParsers`). This is what edge and edgeV2 do.
-3. **Langium** (branch `vn/rt-langium-notation`): one grammar serves the engine *and* a language server in a Web Worker (real LSP: diagnostics, completion, hover, go-to-definition). Not on this branch yet; the `LanguageSupport` slot in the UI is where it plugs in.
+Any operator not listed is **disabled** for the dialect: the language parses it, the validator reports it (`` `?` is not an operator of Mission``), completion doesn't offer it. **Precedence and associativity are the language's**, not the definition's: `@` binds tightest, then `!`, then `^ | ? + & # ~ ; -> ,` (all left-associative). `relation` on a construct makes the editors flag a notation that contradicts the goal's AND/OR links.
 
-Whichever you choose, add a **differential test**: the definition's operator table must equal what the grammar accepts (the harness in `packages/lib/test/dialect/harness.test.ts` does this for edge/edgeV2 against both `.g4` files and the Langium grammar; copy its pattern).
-
-### 2.4 Sub-languages (`languages`)
-If a property is an `expression`, declare its language once: operators (infix/prefix, tightest first), parens, comparators, literal regexes, keywords, identifier regex, and what identifiers `resolve` to (`'resource'`, `'variable'`, other kinds). Edge's `assertion` language is in `packages/lib/src/engines/edgeFamily/assertion.ts`. The editors derive highlighting, completion of resolvable names and basic lint from it; the engine still needs its own parser if it interprets the expression (Edge uses `AssertionRegex.g4`).
+**Reading the notation in the engine:** there is no grammar to write. Parse with `@goal-controller/goal-language` (`parseElementLine`), and turn the tree into your engine's reading with the definition's operator table: `packages/lib/src/engines/edgeFamily/{goalDetail,parsers}.ts` do it for Edge (constructs, cascade, retries) and give goal-tree the reader (`GoalNameParser`) the mapper is created with.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
 
@@ -175,8 +172,12 @@ import { mission } from './definition';
 export const MISSION_GOAL_KEYS = propertyKeys(mission, 'goal');  // ['priority','deadline'], typed
 export const MISSION_TASK_KEYS = propertyKeys(mission, 'task');
 
-export const missionEngineMapper = createEngineMapper<MissionGoalProps, MissionTaskProps, never>()({
-  // grammar: 'edgeV2',          // notation engines only
+export const missionEngineMapper = createEngineMapper<
+  MissionGoalProps,
+  MissionTaskProps,
+  never
+>()({
+  grammar: missionGoalNames, // how goal texts are read: (goalText) => { id, goalName, executionDetail }
   allowedGoalKeys: MISSION_GOAL_KEYS,
   allowedTaskKeys: MISSION_TASK_KEYS,
   skipResource: true,            // or allowedResourceKeys + mapResourceProps
@@ -195,7 +196,8 @@ export const missionEngineMapper = createEngineMapper<MissionGoalProps, MissionT
 Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
-- `executionDetail` (parsed notation) arrives in `mapGoalProps` for notation engines.
+- `grammar` is required: a `GoalNameParser` (goal-tree knows no notation). A properties-only engine can reuse Edge's (`edgeGoalNames`) for ids and names; a notation engine builds its own from the goal language and its definition (see 2.3).
+- `executionDetail` (the reading of the notation) arrives in `mapGoalProps` for notation engines.
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -232,40 +234,40 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 
 ## 4. Step 3: wire the UI (`packages/ui`), ~15 small edits
 
-| # | File | Edit |
-|---|---|---|
-| 1 | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2 | `lib/workbench/engineDialects.ts` | `ENGINE_DIALECTS = { edge, edgev2: edgeV2, mission }` and `ENGINE_CHECKS.mission = missionCheckRegistry` (both imported from `@goal-controller/lib`) |
-| 3 | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
-| 4 | `services/goalModel.ts` | `parseForMission(modelJson, {reduce})` = `GoalTree.fromModel(model, missionEngineMapper)` (copy `parseForSleec`) |
-| 5 | `services/transform.ts` | `else if (engine === 'mission') output = missionTemplateEngine(tree, options)` |
-| 6 | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[problemBadges, rtNumbering, missionPalette]} />`; palette = the kinds your definition lists (copy `edgeFamily/extensions.tsx`'s `edgePalette`) |
-| 7 | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
-| 8 | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx` | add the `case 'mission'` |
-| 9 | `components/workbench/engineConformity.tsx` | add `{ id: 'mission', label: 'Mission', output: 'YAML' }` so Open/Convert check conformity |
-| 10 | `components/workbench/ModelSettingsModal.tsx` | add it to `ENGINES` (its card) and `TARGET_IDS` (its conformity); add engine-specific options here if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`) |
-| 11 | `services/analyze.ts` | parse with your mapper (`engine === 'mission' ? GoalModel.parseForMission(…)`): anything else falls back to Edge's parser |
-| 12 | `components/workbench/TopBar.tsx`, `components/workbench/Workbench.tsx` | the engine's label in their `ENGINE_LABEL` |
-| 13 | `components/workbench/engines/shared/inspector.tsx` | its label in `ENGINE_LABEL`, and in `ENGINE_KEYS` where its keys are declared (the inspector's "add it to …" hint for unread properties) |
-| 14 | `components/workbench/engines/pistar/PistarDiagram.tsx` | `pistarPaletteFor`: its palette (or `null`) for piStar mode's palette toggle |
-| 15 | `components/workbench/Explorer.tsx` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it |
+| #   | File                                                                    | Edit                                                                                                                                                                                                                       |
+| --- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `lib/types.ts`                                                          | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES`                                                                                                                                                               |
+| 2   | `lib/workbench/engineDialects.ts`                                       | `ENGINE_DIALECTS = { edge, edgev2: edgeV2, mission }` and `ENGINE_CHECKS.mission = missionCheckRegistry`, and its reader in `goalNamesOf` (all imported from `@goal-controller/lib`)                                       |
+| 3   | `lib/models/knownProperties.ts`                                         | `mission: definedKeys(ENGINE_DIALECTS.mission)`                                                                                                                                                                            |
+| 4   | `services/goalModel.ts`                                                 | `parseForMission(modelJson, {reduce})` = `GoalTree.fromModel(model, missionEngineMapper)` (copy `parseForSleec`)                                                                                                           |
+| 5   | `services/transform.ts`                                                 | `else if (engine === 'mission') output = missionTemplateEngine(tree, options)`                                                                                                                                             |
+| 6   | `components/workbench/engines/mission/MissionDiagram.tsx`               | `<WorkbenchCanvas extensions={[problemBadges, rtNumbering, missionPalette]} />`; palette = the kinds your definition lists (copy `edgeFamily/extensions.tsx`'s `edgePalette`)                                              |
+| 7   | `components/workbench/engines/mission/MissionInspector.tsx`             | `return <DefinitionInspector engine='mission' />` (that's the whole file)                                                                                                                                                  |
+| 8   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`                | add the `case 'mission'`                                                                                                                                                                                                   |
+| 9   | `components/workbench/engineConformity.tsx`                             | add `{ id: 'mission', label: 'Mission', output: 'YAML' }` so Open/Convert check conformity                                                                                                                                 |
+| 10  | `components/workbench/ModelSettingsModal.tsx`                           | add it to `ENGINES` (its card) and `TARGET_IDS` (its conformity); add engine-specific options here if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`) |
+| 11  | `services/analyze.ts`                                                   | parse with your mapper (`engine === 'mission' ? GoalModel.parseForMission(…)`): anything else falls back to Edge's parser                                                                                                  |
+| 12  | `components/workbench/TopBar.tsx`, `components/workbench/Workbench.tsx` | the engine's label in their `ENGINE_LABEL`                                                                                                                                                                                 |
+| 13  | `components/workbench/engines/shared/inspector.tsx`                     | its label in `ENGINE_LABEL`, and in `ENGINE_KEYS` where its keys are declared (the inspector's "add it to …" hint for unread properties)                                                                                   |
+| 14  | `components/workbench/engines/pistar/PistarDiagram.tsx`                 | `pistarPaletteFor`: its palette (or `null`) for piStar mode's palette toggle                                                                                                                                               |
+| 15  | `components/workbench/Explorer.tsx`                                     | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it                                                                                                                                               |
 
 Adding `'mission'` to `TransformEngine` makes the type-checker flag #3, #12, #13 and #14 (and #2 once the definition is listed); the others are not exhaustive and fall back silently (`services/transform.ts` to SLEEC, `services/analyze.ts` to Edge, `ModelDiagram`/`ModelInspector` to nothing), so do them from this list.
 
-The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync derived from the definition. The `LanguageSupport` slot (`engines/definition/useLanguageSupport.ts`) is where a real language server would be provided; without one, the local support is used.
+The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). The `LanguageSupport` slot (`engines/definition/useLanguageSupport.ts`) is where a real language server would be provided; without one, the local support is used.
 
 ## 5. Step 4: examples and tests
 
 - **Examples:** `examples/mission/*.txt` (piStar JSON). The Explorer groups by folder; `scripts/examples-manifest.mjs` regenerates the list at build time. Files load from GitHub at `main`, so they appear in the hosted workbench once merged.
 - **lib tests** (`packages/lib/test/engines/mission/`): mapper (good and bad properties, error messages), template snapshot per example (byte-for-byte expected output committed next to the example, as `examples/edgeV2/*.expected.txt` does), checks.
-- **definition tests** (`packages/lib/test/dialect/`, with the engines' other definition tests; `packages/dialect/test` only tests the framework, on small inline definitions): a round-trip test that `notationDocument(view)` → `notationEdits` → model is stable for your examples; and if you have a grammar, the differential operator/precedence test (copy from `harness.test.ts`).
-- `pnpm test` at the root runs the dialect framework's tests, then lib's (its own and `test:dialect`, the definitions' tests); `pnpm build` builds all packages (dialect → goal-tree → lib → ui). Its last step is `next build` into `packages/ui/.next`: don't run it while a `next dev` serves from that folder (type-check the UI with `npx tsc --noEmit -p packages/ui/tsconfig.json`, or build a copy).
+- **definition tests** (`packages/lib/test/dialect/`, with the engines' other definition tests; `packages/dialect/test` and `packages/goal-language/test` only test the framework, on small inline definitions): a round-trip test that `notationDocument(view)` → `notationEdits` → model is stable for your examples, and the operators your engine reads (copy from `harness.test.ts` and `language.test.ts`).
+- `pnpm test` at the root runs the dialect's, the goal language's and lib's tests (its own and `test:dialect`, the definitions' tests); `pnpm build` builds all packages (dialect → goal-language → goal-tree → lib → ui). Its last step is `next build` into `packages/ui/.next`: don't run it while a `next dev` serves from that folder (type-check the UI with `npx tsc --noEmit -p packages/ui/tsconfig.json`, or build a copy).
 
 ## 6. Checklists
 
-**Definition (data):** elements + lines · properties per kind with types, conditions, help · `check` names · `propertyLineOrder` · `problems` · `languages` if expressions · notation (operators, constructs, defaultConstruct, grammar/parser) if semantics among children.
+**Definition (data):** elements (prefix, declares, annotated) · properties per kind with value types, conditions, help · `check` names · `propertyLineOrder` · `problems` · notation (enabled operators, modifiers, constructs, defaultConstruct) if semantics among children.
 
-**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` · `checks.ts` registry `satisfies Record<CheckNameOf<def>, Check>` · `template/` · exports · grammar + goal-tree parser if a new notation.
+**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and a `grammar` reader · `checks.ts` registry `satisfies Record<CheckNameOf<def>, Check>` · `template/` · exports · the notation's reading (from the goal language's tree) if semantics among children.
 
 **UI (wiring):** the 15 edits in §4 · palette extension · engine options in Model Settings if any.
 
@@ -274,27 +276,30 @@ The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every 
 ## 7. The two reference reimplementations
 
 ### 7.1 Reimplementing SLEEC with a definition (what it would look like)
-SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper). A definition would be: no `notation`, no `grammar`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then replace `SleecInspector` with `<DefinitionInspector engine='sleec' />` and write it in `packages/lib/src/engines/sleec/definition.ts` and add it to `ENGINE_DIALECTS`. Everything else (mapper, template) stays. Effort: a day.
+
+SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper; it reads goal texts with Edge's reader). A definition would be: no `notation`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then replace `SleecInspector` with `<DefinitionInspector engine='sleec' />` and write it in `packages/lib/src/engines/sleec/definition.ts` and add it to `ENGINE_DIALECTS`. Everything else (mapper, template) stays. Effort: a day.
 
 ### 7.2 Reimplementing EDGE (the full case)
-Already done on this branch; use it as the worked example: `lib/src/engines/edgeFamily/{definition,properties,assertion,checks}.ts` (what edge and edgeV2 share: notation constructs, properties, resource declaration, the assertion language, the check registry), `lib/src/engines/edgeV2/{definition,mapper,types,template,validator}`, `lib/grammar/edgeV2/RTRegex.g4` + `goal-tree/src/parsers/goalNameParser/edgeV2.ts` (grammar), `ui/components/workbench/engines/edgeV2/` (two tiny files). The conformance harness in `experiments/edgev2-conformance/` shows how to prove a template against a reference.
+
+Already done on this branch; use it as the worked example: `lib/src/engines/edgeFamily/{definition,properties,checks}.ts` (what edge and edgeV2 share: notation constructs, properties, the check registry), `lib/src/engines/edgeFamily/{goalDetail,assertionVariables,parsers}.ts` (how goal texts and assertions read through the goal language), `lib/src/engines/edgeV2/{definition,mapper,types,template,validator}`, `ui/components/workbench/engines/edgeV2/` (two tiny files). The conformance harness in `experiments/edgev2-conformance/` shows how to prove a template against a reference.
 
 ## 8. Options summary
 
-| Decision | Options | Pick when |
-|---|---|---|
-| Notation | none · reuse edgeV2 grammar · own ANTLR grammar · Langium (other branch) | none unless children have execution semantics; reuse if a subset of edgeV2's operators; Langium if you want a real LSP |
-| Value checks | declarative (`type`, `min`, `options`, `applies`) · named `check` | declarative first; named for cross-property/cross-element rules |
-| Where a property is written | property line · declaration on the element line · annotation before the id | lines by default; declaration for a compact "type + bounds + initial"; annotations for stereotype-like tags |
-| Output emitter | string templates · AST + printer | strings for flat text; AST for structured targets or when you'll emit two formats |
-| Resources | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps` | skip unless the output models state/variables |
-| Engine options | none · `TransformOptions` + Model Settings card | only if the template has knobs |
-| Validation of the output | none · `validator/` | when the output has structure the generator can get wrong |
+| Decision                    | Options                                                                      | Pick when                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Notation                    | none · enable operators from the catalog                                     | none unless children have execution semantics; the catalog has spares (`^ & ~ , !`, standalone `* ? #`) beyond Edge's |
+| Value checks                | the value type (`type`, `min`, `options`, `kind`, `applies`) · named `check` | the type first; named for cross-property/cross-element rules                                                          |
+| Where a property is written | property line · declaration on the element line · annotation before the id   | lines by default; declaration for a compact "type + bounds + initial"; annotations for stereotype-like tags           |
+| Output emitter              | string templates · AST + printer                                             | strings for flat text; AST for structured targets or when you'll emit two formats                                     |
+| Resources                   | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps`            | skip unless the output models state/variables                                                                         |
+| Engine options              | none · `TransformOptions` + Model Settings card                              | only if the template has knobs                                                                                        |
+| Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 
 ## 9. Pitfalls seen so far
 - `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`.
 - A check name in the definition without an implementation is a compile error only if you write the `satisfies Record<CheckNameOf<…>>` line. Write it.
 - Mapper keys typed by hand drift from the definition; derive them with `propertyKeys()`.
-- `nameCharset` and the grammar's name token must agree, or the Notation tab and the engine disagree on valid names.
+- Names on lines with ids can't have digits (`G1: Step 2` is an error), as with the ANTLR grammars.
+- A notation needs its brackets: `G1: Name [+]`, not `G1: Name +`.
 - Examples load from GitHub `main`; an unpushed example 404s in the workbench.
-- Don't bump istar-ts or regenerate ANTLR output unless you mean to; both are committed artefacts.
+- Don't bump istar-ts or change `goal.langium` unless you mean to; run `pnpm --filter @goal-controller/goal-language generate` after a grammar change (a test checks the generated files are fresh).
