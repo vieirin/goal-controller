@@ -1,7 +1,7 @@
 'use client';
 
 import type { TransformEngine } from '@/lib/types';
-import { isDialectEngine } from '@/lib/workbench/definitions';
+import { isDialectEngine } from '@/lib/workbench/engineDialects';
 import { isDialectMode } from '@/lib/workbench/dialects';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import PistarExtNotationView from './engines/pistarExt/PistarExtNotationView';

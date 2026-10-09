@@ -1,9 +1,9 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative } from 'path';
-import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
+import { parsePistar } from '../../../../goal-tree/node_modules/@istar-ts/core';
 
 /** The repository's root. */
-export const ROOT = join(__dirname, '..', '..', '..', '..');
+export const ROOT = join(__dirname, '..', '..', '..', '..', '..');
 
 /**
  * Every piStar model under a directory (some .txt files there are not models),

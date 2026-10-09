@@ -2,12 +2,16 @@
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { parsePistar } from '../../goal-tree/node_modules/@istar-ts/core';
-import { goalView } from '../../goal-tree/out';
-import { StringStream } from '../../ui/node_modules/@codemirror/language';
-import { extensionCatalog, newNodeKind, type AnyDialect } from '../src';
-import { edgeV2 } from '../../lib/out';
-import { documentParser } from '../../ui/lib/workbench/definitionLanguage';
+import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
+import { goalView } from '@goal-controller/goal-tree';
+import { StringStream } from '../../../ui/node_modules/@codemirror/language';
+import {
+  extensionCatalog,
+  newNodeKind,
+  type AnyDialect,
+} from '@goal-controller/dialect';
+import { edgeV2 } from '../../src';
+import { documentParser } from '../../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
 import {
   applyNotationEdits,
@@ -16,8 +20,8 @@ import {
   notationDocument,
   notationEdits,
   savedLines,
-} from '../../ui/lib/workbench/notationDocument';
-import { ENGINE_DIALECTS } from '../../ui/lib/workbench/definitions';
+} from '../../../ui/lib/workbench/notationDocument';
+import { ENGINE_DIALECTS } from '../../../ui/lib/workbench/engineDialects';
 import {
   DIALECT_DEFINITIONS,
   dialectThatReads,
@@ -27,17 +31,17 @@ import {
   parseModel,
   recordedModeOf,
   writeModelExtension,
-} from '../../ui/lib/workbench/dialects';
-import { jsonProblem } from '../../ui/lib/workbench/localProblems';
+} from '../../../ui/lib/workbench/dialects';
+import { jsonProblem } from '../../../ui/lib/workbench/localProblems';
 import {
   planConversion,
   serializeModel,
   writeModelMode,
-} from '../../ui/lib/workbench/pistar';
+} from '../../../ui/lib/workbench/pistar';
 import { models } from './support/models';
 
 const MODEL = readFileSync(
-  join(__dirname, '../../../examples/edgeV2/goalModel_TAS_3_.txt'),
+  join(__dirname, '../../../../examples/edgeV2/goalModel_TAS_3_.txt'),
   'utf8',
 );
 
@@ -114,7 +118,7 @@ describe('ui definitionLanguage', () => {
 describe('ui dialects', () => {
   // a piStar-ext model, as piStar-ext saves it: no mode recorded
   const RA = readFileSync(
-    join(__dirname, '../../../examples/pistar-ext/iStar4RationalAgents.txt'),
+    join(__dirname, '../../../../examples/pistar-ext/iStar4RationalAgents.txt'),
     'utf8',
   );
   const EXAMPLES = [
@@ -291,7 +295,7 @@ describe('ui piStar-ext examples', () => {
 
 describe("ui: a model's own constructs (its extension, in its file)", () => {
   const MINIMAL = readFileSync(
-    join(__dirname, '../../../examples/pistar-ext/minimal.txt'),
+    join(__dirname, '../../../../examples/pistar-ext/minimal.txt'),
     'utf8',
   );
   // as the workbench writes it: recorded for piStar-ext, a Mission construct

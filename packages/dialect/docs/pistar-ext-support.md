@@ -273,7 +273,7 @@ line: 'continuous' | 'dashed' | 'dotted'; marker?; annotations? }>`. The
 
 **Not wired.** No workbench engine uses an annotated definition:
 
-- `ENGINE_DIALECTS` (`packages/ui/lib/workbench/definitions.ts`) is keyed
+- `ENGINE_DIALECTS` (`packages/ui/lib/workbench/engineDialects.ts`) is keyed
   by workbench engine (`edge`, `edgev2`);
 - the fixture lives in `test/fixtures/`, not in `src/`.
 

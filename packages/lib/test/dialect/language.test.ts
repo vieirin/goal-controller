@@ -1,4 +1,3 @@
-/** Checking and completing a document and a field (src/derive/{diagnostics,completion}.ts). */
 import { expect } from 'chai';
 import {
   completionsAt,
@@ -6,8 +5,8 @@ import {
   fieldCompletionsAt,
   fieldDiagnostics,
   type DefinitionContext,
-} from '../src';
-import { toy } from './support/toy';
+} from '@goal-controller/dialect';
+import { edgeV2 } from '../../src';
 
 const context: DefinitionContext = {
   elements: {
@@ -23,14 +22,19 @@ const context: DefinitionContext = {
     R1: {
       kind: 'resource',
       children: [],
-      properties: { type: 'int', low: '0', high: '9', initial: '5' },
+      properties: {
+        type: 'int',
+        lowerBound: '0',
+        upperBound: '10',
+        initialValue: '5',
+      },
     },
   },
   variables: ['ctx'],
 };
 
 const messages = (doc: string, options = {}) =>
-  documentDiagnostics(toy, doc, context, options).map((d) => [
+  documentDiagnostics(edgeV2, doc, context, options).map((d) => [
     doc.slice(d.from, d.to),
     d.severity,
     d.message,
@@ -39,15 +43,15 @@ const messages = (doc: string, options = {}) =>
 describe('documentDiagnostics', () => {
   it('is quiet on a matching document', () => {
     expect(
-      messages('G1: Go [G2;T1]\n  G2: A\n  T1: B\n  R1: R {int 0..9 = 5}'),
+      messages('G1: Go [G2;T1]\n  G2: A\n  T1: B\n  R1: R {int 0..10 = 5}'),
     ).to.deep.equal([]);
   });
 
-  it('flags non-children, missing children and unknown elements', () => {
+  it('flags non-children, missing children and unknown lines', () => {
     expect(messages('G1: Go [G2;T9]\nG7: New')).to.deep.equal([
-      ['T9', 'error', 'Not a child'],
-      ['G2;T9', 'warning', 'Missing: T1'],
-      ['G7', 'error', 'Not in the diagram'],
+      ['T9', 'error', 'Not a child of this goal'],
+      ['G2;T9', 'warning', 'Missing from the notation: T1'],
+      ['G7', 'error', 'Add this element in the diagram'],
     ]);
   });
 
@@ -59,9 +63,9 @@ describe('documentDiagnostics', () => {
         G1: { ...context.elements.G1!, relation: 'or' as const },
       },
     };
-    const [d] = documentDiagnostics(toy, 'G1: Go [G2;T1]', ctx);
+    const [d] = documentDiagnostics(edgeV2, 'G1: Go [G2;T1]', ctx);
     expect(d!.severity).to.equal('error');
-    expect(d!.message).to.equal('Sequence needs AND, has OR');
+    expect(d!.message).to.match(/^Sequence needs AND refinement links/);
   });
 
   it('runs the named checks on property lines and declarations', () => {
@@ -71,33 +75,27 @@ describe('documentDiagnostics', () => {
       properties: Readonly<Record<string, string>>,
     ) => {
       calls.push(check);
-      return check === 'toy.resource.bounds' && properties.low === '7'
+      return check === 'edge.resource.initialValue' &&
+        properties.initialValue === '99'
         ? 'out of bounds'
         : null;
     };
     const doc =
-      'G1: Go [G2;T1]\n  priority high\n  deadline 3\nR1: R {int 7..9 = 8}';
+      'G1: Go [G2;T1]\n  maxRetries 2\n  maintain x\nR1: R {int 0..10 = 99}';
     expect(messages(doc, { runCheck })).to.deep.equal([
-      ['{int 7..9 = 8}', 'error', 'out of bounds'],
+      ['maintain x', 'warning', 'Only read when type is maintain'],
+      ['{int 0..10 = 99}', 'error', 'out of bounds'],
     ]);
-    expect(calls).to.include('toy.goal.deadline');
+    expect(calls).to.include('edge.goal.maxRetries');
   });
 
-  it('flags properties that do not apply, and lines it cannot read', () => {
+  it('flags lines it cannot read', () => {
     expect(
-      messages(
-        '  robot r2\nG1: Go [G2;T1]\n  deadline 3\n  robot r2\n  nonsense here',
-      ),
+      messages('  maxRetries 2\nT1: B\n  maintain x\n  nonsense here'),
     ).to.deep.equal([
-      ['robot r2', 'error', 'A property belongs under an element line'],
-      ['robot', 'warning', 'Not read for a goal'],
+      ['maxRetries 2', 'error', 'A property belongs under an element line'],
+      ['maintain', 'warning', 'Not read for a task'],
       ['nonsense here', 'error', 'Not a property line'],
-      // what does not apply is checked once the element's lines are read
-      [
-        'deadline 3',
-        'warning',
-        'Only read when priority is high (it is unset)',
-      ],
     ]);
   });
 
@@ -114,8 +112,16 @@ describe('documentDiagnostics', () => {
 
 describe('fieldDiagnostics', () => {
   it('checks the value with the element properties', () => {
-    const d = fieldDiagnostics(toy, context, 'R1', 'low', '42', (check, p) =>
-      check === 'toy.resource.bounds' && p.low === '42' ? 'nope' : null,
+    const d = fieldDiagnostics(
+      edgeV2,
+      context,
+      'R1',
+      'initialValue',
+      '42',
+      (check, p) =>
+        check === 'edge.resource.initialValue' && p.initialValue === '42'
+          ? 'nope'
+          : null,
     );
     expect(d).to.deep.equal([
       { from: 0, to: 2, severity: 'error', message: 'nope' },
@@ -124,31 +130,31 @@ describe('fieldDiagnostics', () => {
 });
 
 describe('completions', () => {
-  it('offers children and keywords inside a notation', () => {
+  it('offers children inside a notation', () => {
     const doc = 'G1: Go [G2;';
-    const result = completionsAt(toy, doc, doc.length, context)!;
+    const result = completionsAt(edgeV2, doc, doc.length, context)!;
     expect(result.from).to.equal(doc.length);
     expect(result.options.map((o) => o.label)).to.deep.equal([
       'G2',
       'T1',
-      'nothing',
+      'skip',
     ]);
-    expect(completionsAt(toy, 'G1: Go', 3, context)).to.equal(null);
+    expect(completionsAt(edgeV2, 'G1: Go', 3, context)).to.equal(null);
   });
 
   it('offers the keys a kind reads, not yet set', () => {
-    const doc = 'G1: Go\n  priority high\n  ';
-    const labels = completionsAt(toy, doc, doc.length, context)!.options.map(
-      (o) => o.label,
-    );
-    expect(labels).to.include('deadline');
-    expect(labels).to.not.include('priority');
-    expect(labels).to.not.include('robot');
+    const doc = 'G1: Go\n  maxRetries 1\n  ma';
+    const result = completionsAt(edgeV2, doc, doc.length, context)!;
+    expect(result.from).to.equal(doc.length - 2);
+    const labels = result.options.map((o) => o.label);
+    expect(labels).to.include('maintain');
+    expect(labels).to.not.include('maxRetries');
+    expect(labels).to.not.include('root');
   });
 
-  it('offers ids in reference lists, and names in expressions', () => {
+  it('offers ids and names in fields', () => {
     const refs = fieldCompletionsAt(
-      toy,
+      edgeV2,
       { type: 'refList', kind: 'goal', separator: ',' },
       'G1, ',
       4,
@@ -156,8 +162,8 @@ describe('completions', () => {
     )!;
     expect(refs.options.map((o) => o.label)).to.deep.equal(['G1', 'G2']);
     const expr = fieldCompletionsAt(
-      toy,
-      { type: 'expression', language: 'cond' },
+      edgeV2,
+      { type: 'expression', language: 'assertion' },
       'R',
       1,
       context,
@@ -166,8 +172,8 @@ describe('completions', () => {
     expect(expr.options.map((o) => o.label)).to.deep.equal([
       'R1',
       'ctx',
-      'yes',
-      'no',
+      'true',
+      'false',
     ]);
   });
 });

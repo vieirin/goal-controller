@@ -3,7 +3,7 @@
 import {
   ENGINE_DIALECTS,
   type DialectEngine,
-} from '@/lib/workbench/definitions';
+} from '@/lib/workbench/engineDialects';
 import { useWorkbench } from '../../WorkbenchContext';
 import NotationEditor from './NotationEditor';
 import { useLanguageSupport } from './useLanguageSupport';

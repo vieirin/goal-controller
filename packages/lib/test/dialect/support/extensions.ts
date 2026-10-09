@@ -2,8 +2,8 @@ import {
   defineExtension,
   withExtension,
   type ExtensionDefinition,
-} from '../../src';
-import { edgeV2, istar4RationalAgents } from '../../../lib/out';
+} from '@goal-controller/dialect';
+import { edgeV2, istar4RationalAgents } from '../../../src';
 
 /** iStar4RationalAgents' stereotypes and tagged values over EdgeV2. */
 export const ra = withExtension(edgeV2, istar4RationalAgents);

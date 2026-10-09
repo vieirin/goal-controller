@@ -1,6 +1,6 @@
 'use client';
 
-import { ENGINE_DIALECTS } from '@/lib/workbench/definitions';
+import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { firstResourceIssue } from '@/lib/workbench/edgeProperties';
 import { isActor } from '@istar-ts/core';
 import {

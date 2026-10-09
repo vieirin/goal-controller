@@ -151,7 +151,7 @@ Operator **forms**: `infix` (`a ; b`), `postfix` with an argument (`G1@3`), `sta
 2. **Write an ANTLR grammar**: `packages/lib/grammar/<id>/RTRegex.g4`, add `<id>` to `RT_ENGINES` in `packages/lib/Makefile`, then `pnpm grammar` (root) generates into `packages/goal-tree/src/antlr/<id>/` → add a `goalNameParser/<id>.ts` that walks the parse tree into `GoalExecutionDetail`, and register it in `packages/goal-tree/src/parsers/goalNameParser/index.ts` (`RTGrammar` union + `goalDetailParsers`). This is what edge and edgeV2 do.
 3. **Langium** (branch `vn/rt-langium-notation`): one grammar serves the engine *and* a language server in a Web Worker (real LSP: diagnostics, completion, hover, go-to-definition). Not on this branch yet; the `LanguageSupport` slot in the UI is where it plugs in.
 
-Whichever you choose, add a **differential test**: the definition's operator table must equal what the grammar accepts (the harness in `packages/dialect/test/harness.test.ts` does this for edge/edgeV2 against both `.g4` files and the Langium grammar; copy its pattern).
+Whichever you choose, add a **differential test**: the definition's operator table must equal what the grammar accepts (the harness in `packages/lib/test/dialect/harness.test.ts` does this for edge/edgeV2 against both `.g4` files and the Langium grammar; copy its pattern).
 
 ### 2.4 Sub-languages (`languages`)
 If a property is an `expression`, declare its language once: operators (infix/prefix, tightest first), parens, comparators, literal regexes, keywords, identifier regex, and what identifiers `resolve` to (`'resource'`, `'variable'`, other kinds). Edge's `assertion` language is in `packages/lib/src/engines/edgeFamily/assertion.ts`. The editors derive highlighting, completion of resolvable names and basic lint from it; the engine still needs its own parser if it interprets the expression (Edge uses `AssertionRegex.g4`).
@@ -235,7 +235,7 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 | # | File | Edit |
 |---|---|---|
 | 1 | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2 | `lib/workbench/definitions.ts` | `ENGINE_DIALECTS = { edge, edgev2: edgeV2, mission }` and `ENGINE_CHECKS.mission = missionCheckRegistry` (both imported from `@goal-controller/lib`) |
+| 2 | `lib/workbench/engineDialects.ts` | `ENGINE_DIALECTS = { edge, edgev2: edgeV2, mission }` and `ENGINE_CHECKS.mission = missionCheckRegistry` (both imported from `@goal-controller/lib`) |
 | 3 | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
 | 4 | `services/goalModel.ts` | `parseForMission(modelJson, {reduce})` = `GoalTree.fromModel(model, missionEngineMapper)` (copy `parseForSleec`) |
 | 5 | `services/transform.ts` | `else if (engine === 'mission') output = missionTemplateEngine(tree, options)` |
@@ -258,8 +258,8 @@ The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every 
 
 - **Examples:** `examples/mission/*.txt` (piStar JSON). The Explorer groups by folder; `scripts/examples-manifest.mjs` regenerates the list at build time. Files load from GitHub at `main`, so they appear in the hosted workbench once merged.
 - **lib tests** (`packages/lib/test/engines/mission/`): mapper (good and bad properties, error messages), template snapshot per example (byte-for-byte expected output committed next to the example, as `examples/edgeV2/*.expected.txt` does), checks.
-- **dialect tests:** a round-trip test that `notationDocument(view)` → `notationEdits` → model is stable for your examples; and if you have a grammar, the differential operator/precedence test (copy from `harness.test.ts`).
-- `pnpm test` at the root runs dialect and lib tests; `pnpm build` builds all packages (dialect → goal-tree → lib → ui). Its last step is `next build` into `packages/ui/.next`: don't run it while a `next dev` serves from that folder (type-check the UI with `npx tsc --noEmit -p packages/ui/tsconfig.json`, or build a copy).
+- **definition tests** (`packages/lib/test/dialect/`, with the engines' other definition tests; `packages/dialect/test` only tests the framework, on small inline definitions): a round-trip test that `notationDocument(view)` → `notationEdits` → model is stable for your examples; and if you have a grammar, the differential operator/precedence test (copy from `harness.test.ts`).
+- `pnpm test` at the root runs the dialect framework's tests, then lib's (its own and `test:dialect`, the definitions' tests); `pnpm build` builds all packages (dialect → goal-tree → lib → ui). Its last step is `next build` into `packages/ui/.next`: don't run it while a `next dev` serves from that folder (type-check the UI with `npx tsc --noEmit -p packages/ui/tsconfig.json`, or build a copy).
 
 ## 6. Checklists
 

@@ -1,13 +1,15 @@
+/** What is derived from a definition: operators, lines, properties, specs, documents. */
 import { expect } from 'chai';
 import {
   constructDefinition,
   constructOf,
-  declarationOf,
   constructsWith,
-  defineDialect,
+  declarationOf,
   elementLine,
   evaluateCondition,
   fillOf,
+  inputOf,
+  isValidName,
   lineId,
   notationDocument,
   notationEdits,
@@ -19,239 +21,129 @@ import {
   readPropertyLine,
   relationMismatch,
   specsFromDefinition,
-  inputOf,
-  isValidName,
   writeDeclaration,
   type DocumentNode,
-  type DialectDefinition,
 } from '../src';
-import { edge, edgeLangium, edgeV2 } from '../../lib/out';
-import { node } from './support/document';
-
-describe('defineDialect', () => {
-  it('freezes the definition', () => {
-    expect(Object.isFrozen(edgeV2.notation.operators)).to.equal(true);
-    expect(() => {
-      (edgeV2.notation.operators as unknown as unknown[]).push(1);
-    }).to.throw();
-  });
-
-  it('rejects names it does not declare', () => {
-    const bad = (change: (d: DialectDefinition) => DialectDefinition) => () =>
-      defineDialect(change(structuredClone(edgeV2) as DialectDefinition));
-    expect(
-      bad((d) => ({
-        ...d,
-        notation: {
-          ...d.notation!,
-          operators: [
-            { symbol: '%', form: 'infix', construct: 'nope', assoc: 'left' },
-          ],
-        },
-      })),
-    ).to.throw(/unknown construct nope/);
-    expect(
-      bad((d) => ({ ...d, propertyLineOrder: d.propertyLineOrder.slice(1) })),
-    ).to.throw(/propertyLineOrder/);
-    expect(
-      bad((d) => ({
-        ...d,
-        properties: {
-          ...d.properties,
-          task: [
-            {
-              key: 'x',
-              value: { type: 'expression', language: 'nope' },
-              help: '',
-            },
-          ],
-        },
-        propertyLineOrder: [...d.properties.goal.map((p) => p.key), 'x'],
-      })),
-    ).to.throw(/unknown language nope/);
-  });
-
-  it('derives edgeLangium from edgeV2', () => {
-    expect(edgeLangium.parser).to.equal('langium');
-    expect(edgeLangium.notation).to.equal(edgeV2.notation);
-    expect(edgeLangium.properties).to.equal(edgeV2.properties);
-  });
-
-  it('shares one property list across the Edge engines', () => {
-    expect(edge.properties).to.equal(edgeV2.properties);
-  });
-});
+import { node, toy } from './support/toy';
 
 describe('operatorsFor', () => {
-  // the inspector's hand-written operator arrays (main @ 34ba682)
-  it('gives EdgeV2 its buttons in the inspector order', () => {
-    const { constructs } = operatorsFor(edgeV2);
+  it('gives the constructs in operator order, the standalone last', () => {
+    const { constructs } = operatorsFor(toy);
     expect(constructs.map((b) => [b.symbol, b.construct])).to.deep.equal([
       [';', 'sequence'],
-      ['+', 'anyOrder'],
-      ['#', 'interleaved'],
-      ['|', 'alternative'],
-      ['?', 'choice'],
-      ['->', 'degradation'],
+      ['|', 'fallback'],
+      ['*', 'any'],
     ]);
-    expect(constructs[0]!.title).to.equal(
-      'Sequence: does every child, one after another',
-    );
-    expect(constructs[0]!.write(['G2', 'G3'])).to.equal('G2;G3');
+    expect(constructs[0]!.title).to.equal('Sequence: one after another');
+    expect(constructs[0]!.write(['G2', 'T3'])).to.equal('G2;T3');
+    expect(constructs[2]!.write(['G2', 'T3'])).to.equal('*');
   });
 
-  it('gives Edge its operators with the standalone choice last', () => {
-    const { constructs } = operatorsFor(edge);
-    expect(constructs.map((b) => [b.symbol, b.construct])).to.deep.equal([
-      [';', 'sequence'],
-      ['#', 'interleaved'],
-      ['|', 'alternative'],
-      ['->', 'degradation'],
-      ['+', 'choice'],
-    ]);
-    const choice = constructs[4]!;
-    expect(choice.title).to.equal('Choice (Edge notation: a standalone +)');
-    expect(choice.write(['G2', 'G3'])).to.equal('+');
-  });
-
-  it('offers the retry argument in degradations', () => {
-    const [retry] = operatorsFor(edgeV2).arguments;
-    expect(retry!.text).to.equal('@3');
-    expect(retry!.label).to.equal('retries');
-    expect(retry!.appliesTo).to.deep.equal(['degradation']);
-    expect(retry!.title).to.equal(
-      'Retry the first child up to 3 times before falling back',
-    );
-    expect(retry!.write('G2->G3')).to.equal('G2@3->G3');
-    expect(retry!.write('T1.2->G3')).to.equal('T1.2@3->G3');
-    expect(retry!.present('G2@3->G3')).to.equal(true);
-    expect(retry!.present('G2->G3')).to.equal(false);
+  it('offers a postfix argument where it applies', () => {
+    const [retry] = operatorsFor(toy).arguments;
+    expect(retry!.text).to.equal('@2');
+    expect(retry!.label).to.equal('tries');
+    expect(retry!.appliesTo).to.deep.equal(['fallback']);
+    expect(retry!.title).to.equal('Try the first child 2 times');
+    expect(retry!.write('G2|G3')).to.equal('G2@2|G3');
+    expect(retry!.present('G2@2|G3')).to.equal(true);
+    expect(retry!.present('G2|G3')).to.equal(false);
   });
 
   it('reads constructs and relations', () => {
-    expect(constructOf(edgeV2, '?')).to.equal('choice');
-    expect(constructOf(edge, '+')).to.equal('choice');
-    expect(constructOf(edgeV2, '@')).to.equal(null);
-    expect(constructsWith(edgeV2, 'and')).to.deep.equal([
-      'sequence',
-      'anyOrder',
-      'interleaved',
-    ]);
-    expect(constructsWith(edgeV2, 'or')).to.deep.equal([
-      'alternative',
-      'choice',
-      'degradation',
-    ]);
-    expect(relationMismatch(edgeV2, 'sequence', 'and')).to.equal(null);
-    expect(relationMismatch(edgeV2, 'decisionMaking', 'or')).to.equal(null);
-    expect(relationMismatch(edgeV2, 'sequence', 'or')).to.equal(
-      'Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)',
+    expect(constructOf(toy, '|')).to.equal('fallback');
+    expect(constructOf(toy, '*')).to.equal('any');
+    expect(constructOf(toy, '@')).to.equal(null);
+    expect(constructsWith(toy, 'and')).to.deep.equal(['sequence']);
+    expect(constructsWith(toy, 'or')).to.deep.equal(['fallback']);
+    expect(relationMismatch(toy, 'sequence', 'and')).to.equal(null);
+    expect(relationMismatch(toy, 'any', 'or')).to.equal(null);
+    expect(relationMismatch(toy, 'sequence', 'or')).to.equal(
+      'Sequence needs AND, has OR',
     );
+    expect(constructDefinition(toy, 'fallback')?.relation).to.equal('or');
+    expect(constructDefinition(toy, 'nope')).to.equal(undefined);
   });
 });
 
-const RESOURCE = edgeV2.elements.resource.declaration;
+const DECLARATION = toy.elements.resource.declaration;
 
 describe('lines', () => {
   it('writes and reads element lines', () => {
-    const line = elementLine(edgeV2, {
-      id: 'G1',
-      name: ' Go ',
-      notation: ' G2;G3 ',
-    });
-    expect(line).to.equal('G1: Go [G2;G3]');
     expect(
-      elementLine(edgeV2, { id: 'G1', name: 'Go', notation: '  ' }),
-    ).to.equal('G1: Go');
-    expect(readElementLine(edgeV2, '  G1: Go [G2;G3]')).to.deep.equal({
+      elementLine(toy, { id: 'G1', name: ' Go ', notation: ' G2;T3 ' }),
+    ).to.equal('G1: Go [G2;T3]');
+    expect(elementLine(toy, { id: 'G1', name: 'Go', notation: '  ' })).to.equal(
+      'G1: Go',
+    );
+    expect(readElementLine(toy, '  G1: Go [G2;T3]')).to.deep.equal({
       id: 'G1',
       name: 'Go',
-      notation: 'G2;G3',
+      notation: 'G2;T3',
     });
-    expect(lineId(edgeV2, '    T1.2: Do it')).to.equal('T1.2');
-    expect(lineId(edgeV2, 'maintain x > 2')).to.equal(null);
+    expect(lineId(toy, '    T12: Do it')).to.equal('T12');
+    expect(lineId(toy, 'robot r2')).to.equal(null);
   });
 
   it('writes and reads property lines', () => {
-    expect(propertyLine(edgeV2, 'maintain', ' battery > 20 ')).to.equal(
-      'maintain battery > 20',
-    );
-    expect(propertyLine(edgeV2, 'root', '')).to.equal('root');
-    expect(readPropertyLine(edgeV2, '   maintain battery > 20 ')).to.deep.equal(
-      {
-        key: 'maintain',
-        value: 'battery > 20',
-      },
-    );
-    expect(readPropertyLine(edgeV2, '  root')).to.deep.equal({
-      key: 'root',
+    expect(propertyLine(toy, 'robot', ' r2 ')).to.equal('robot r2');
+    expect(propertyLine(toy, 'hidden', '')).to.equal('hidden');
+    expect(readPropertyLine(toy, '   robot r2 ')).to.deep.equal({
+      key: 'robot',
+      value: 'r2',
+    });
+    expect(readPropertyLine(toy, '  hidden')).to.deep.equal({
+      key: 'hidden',
       value: '',
     });
-    expect(readPropertyLine(edgeV2, 'unknown 3')).to.equal(null);
+    expect(readPropertyLine(toy, 'unknown 3')).to.equal(null);
   });
 
   it('finds the declaration on the element that has one', () => {
-    expect(declarationOf(edgeV2, 'resource')).to.equal(RESOURCE);
-    expect(declarationOf(edgeV2, 'goal')).to.equal(undefined);
-    expect(declarationOf(edgeV2, 'quality')).to.equal(undefined);
+    expect(declarationOf(toy, 'resource')).to.equal(DECLARATION);
+    expect(declarationOf(toy, 'goal')).to.equal(undefined);
   });
 
-  it('writes and reads declarations', () => {
-    const int = {
-      type: 'int',
-      lowerBound: '0',
-      upperBound: '100',
-      initialValue: '80',
-    };
-    expect(writeDeclaration(RESOURCE, int)).to.equal('{int 0..100 = 80}');
+  it('writes and reads declarations, optional groups only when complete', () => {
+    const int = { type: 'int', low: '0', high: '9', initial: '5' };
+    expect(writeDeclaration(DECLARATION, int)).to.equal('{int 0..9 = 5}');
     expect(
-      writeDeclaration(RESOURCE, { type: 'bool', initialValue: 'false' }),
-    ).to.equal('{bool = false}');
+      writeDeclaration(DECLARATION, { type: 'bool', initial: 'yes' }),
+    ).to.equal('{bool = yes}');
+    expect(writeDeclaration(DECLARATION, { type: 'int', low: '0' })).to.equal(
+      '{int}',
+    );
+    expect(writeDeclaration(DECLARATION, { initial: '3' })).to.equal(null);
     expect(
-      writeDeclaration(RESOURCE, { type: 'int', lowerBound: '0' }),
-    ).to.equal('{int}');
-    expect(writeDeclaration(RESOURCE, { initialValue: '3' })).to.equal(null);
-    expect(
-      readDeclaration(RESOURCE, 'R1: Battery {int 0 .. 100=80}'),
+      readDeclaration(DECLARATION, 'R1: Fuel {int 0 .. 9=5}'),
     ).to.deep.equal({
-      text: 'R1: Battery',
+      text: 'R1: Fuel',
       declared: true,
       properties: int,
     });
-    expect(readDeclaration(RESOURCE, 'R1: Battery {int 0..}')).to.deep.equal({
-      text: 'R1: Battery',
+    expect(readDeclaration(DECLARATION, 'R1: Fuel {int 0..}')).to.deep.equal({
+      text: 'R1: Fuel',
       declared: true,
       properties: null,
     });
-    expect(readDeclaration(RESOURCE, 'R1: Battery').declared).to.equal(false);
+    expect(readDeclaration(DECLARATION, 'R1: Fuel').declared).to.equal(false);
+  });
+
+  it('checks names with the kind charset', () => {
+    expect(isValidName(toy, 'goal', "Don't stop")).to.equal(true);
+    expect(isValidName(toy, 'goal', 'G2 [x]')).to.equal(false);
+    expect(isValidName(toy, 'quality', 'any: thing')).to.equal(true);
   });
 });
 
 describe('properties', () => {
   it('lists the keys per kind', () => {
-    const goal: readonly (
-      | 'root'
-      | 'type'
-      | 'maintain'
-      | 'assertion'
-      | 'maxRetries'
-      | 'utility'
-      | 'cost'
-      | 'dependsOn'
-      | 'variables'
-    )[] = propertyKeys(edgeV2, 'goal');
-    expect([...goal].sort()).to.deep.equal([
-      'assertion',
-      'cost',
-      'dependsOn',
-      'maintain',
-      'maxRetries',
-      'root',
-      'type',
-      'utility',
-      'variables',
-    ]);
-    expect(propertyKeys(edge, 'quality')).to.deep.equal([]);
+    const goal: readonly ('priority' | 'deadline' | 'hidden')[] = propertyKeys(
+      toy,
+      'goal',
+    );
+    expect(goal).to.deep.equal(['priority', 'deadline', 'hidden']);
+    expect(propertyKeys(toy, 'quality')).to.deep.equal([]);
   });
 
   it('evaluates conditions', () => {
@@ -263,28 +155,38 @@ describe('properties', () => {
     expect(evaluateCondition(undefined, {}, true)).to.equal(true);
   });
 
+  it('falls back to the default fill', () => {
+    expect(fillOf(toy, 'resource')).to.equal('#FFFF00');
+    expect(fillOf(toy, 'goal')).to.equal('#00FF00');
+    expect(fillOf(toy, 'nope')).to.equal('#FFFFFF');
+  });
+
   it('builds specs, binding checks by name', () => {
     const calls: string[] = [];
-    const registry = new Proxy(
-      {},
-      {
-        get: (_, name: string) => () => (calls.push(name), null),
-      },
-    ) as Record<string, (...args: unknown[]) => null>;
-    const specs = specsFromDefinition(edgeV2, registry);
-    expect(specs.goal.map((s) => s.key)).to.not.include('root');
-    const initial = specs.resource.find((s) => s.key === 'initialValue')!;
+    type Check = (properties: object, context: object) => string | null;
+    const registry: Record<string, Check> = {
+      'toy.goal.deadline': () => (calls.push('deadline'), null),
+      'toy.resource.bounds': () => (calls.push('bounds'), 'out of bounds'),
+    };
+    const specs = specsFromDefinition(toy, registry);
+    expect(specs.goal.map((s) => s.key)).to.deep.equal([
+      'priority',
+      'deadline',
+    ]);
+    const initial = specs.resource.find((s) => s.key === 'initial')!;
     expect(inputOf(initial, { type: 'int' })).to.deep.equal({
       kind: 'integer',
     });
     expect(inputOf(initial, { type: 'bool' }).kind).to.equal('select');
-    const lower = specs.resource.find((s) => s.key === 'lowerBound')!;
-    expect(lower.notApplying!({})).to.equal(
-      'Not used while type is unset (bounds are for int resources)',
+    const low = specs.resource.find((s) => s.key === 'low')!;
+    expect(low.notApplying!({})).to.equal(
+      'Bounds are for int resources (type is unset)',
     );
-    lower.validate!({}, { self: 'R1', kindOf: () => undefined });
-    expect(calls).to.deep.equal(['edge.resource.lowerBound']);
-    expect(() => specsFromDefinition(edgeV2, {})).to.throw(/no check named/);
+    expect(low.validate!({}, { self: 'R1', kindOf: () => undefined })).to.equal(
+      'out of bounds',
+    );
+    expect(calls).to.deep.equal(['bounds']);
+    expect(() => specsFromDefinition(toy, {})).to.throw(/no check named/);
   });
 });
 
@@ -297,70 +199,49 @@ describe('document', () => {
         node({
           id: 'G1',
           kind: 'goal',
-          notation: 'T1;R1',
-          children: ['T1', 'R1'],
-          properties: { type: 'maintain', maintain: 'x' },
+          notation: 'T1;G2',
+          children: ['T1', 'G2', 'R1'],
+          properties: { deadline: '9', priority: 'high' },
         }),
       ],
-      ['T1', node({ id: 'T1', kind: 'task' })],
+      ['T1', node({ id: 'T1', kind: 'task', properties: { robot: 'r2' } })],
+      ['G2', node({ id: 'G2', kind: 'goal' })],
       [
         'R1',
         node({
           id: 'R1',
           kind: 'resource',
-          properties: { type: 'bool', initialValue: 'true' },
+          properties: { type: 'bool', initial: 'yes' },
         }),
       ],
-      ['Q1', node({ id: 'Q1', kind: 'quality' })],
     ]),
   };
 
-  it('writes the model, indented by depth', () => {
-    expect(notationDocument(edgeV2, tree)).to.deep.equal({
-      text: 'G1: G1 [T1;R1]\n  maintain x\n  type maintain\n  T1: T1\n  R1: R1 {bool = true}',
-      ids: ['G1', 'G1', 'G1', 'T1', 'R1'],
+  it('writes the model in property-line order, indented by depth', () => {
+    expect(notationDocument(toy, tree)).to.deep.equal({
+      text: 'G1: G1 [T1;G2]\n  priority high\n  deadline 9\n  T1: T1\n    robot r2\n  G2: G2\n  R1: R1 {bool = yes}',
+      ids: ['G1', 'G1', 'G1', 'T1', 'T1', 'G2', 'R1'],
     });
   });
 
-  it('maps text edits back', () => {
-    const { text } = notationDocument(edgeV2, tree);
-    expect(notationEdits(edgeV2, text, tree)).to.deep.equal([]);
+  it('maps text edits back to properties and texts', () => {
+    const { text } = notationDocument(toy, tree);
+    expect(notationEdits(toy, text, tree)).to.deep.equal([]);
     const edited = text
-      .replace('maintain x', 'maintain y')
-      .replace('  type maintain\n', '')
-      .replace('{bool = true}', '{bool = false}');
-    expect(notationEdits(edgeV2, edited, tree)).to.deep.equal([
-      { iStarId: 'i-R1', key: 'initialValue', value: 'false' },
-      { iStarId: 'i-G1', key: 'maintain', value: 'y' },
-      { iStarId: 'i-G1', key: 'type', value: null },
+      .replace('robot r2', 'robot r3')
+      .replace('  deadline 9\n', '')
+      .replace('{bool = yes}', '{bool = no}')
+      .replace('G2: G2', 'G2: Later');
+    expect(notationEdits(toy, edited, tree)).to.deep.equal([
+      // an element's text is its line (id and notation included), without its declaration
+      { iStarId: 'i-G2', text: 'G2: Later' },
+      { iStarId: 'i-R1', key: 'initial', value: 'no' },
+      { iStarId: 'i-G1', key: 'deadline', value: null },
+      { iStarId: 'i-T1', key: 'robot', value: 'r3' },
     ]);
     // an unreadable line keeps the element's properties
     expect(
-      notationEdits(edgeV2, text.replace('  type maintain', '  typ'), tree),
+      notationEdits(toy, text.replace('  deadline 9', '  dead'), tree),
     ).to.deep.equal([]);
-  });
-});
-
-describe('fillOf', () => {
-  it('falls back to the default fill', () => {
-    expect(fillOf(edgeV2, 'resource')).to.equal('#FAF383');
-    expect(fillOf(edgeV2, 'goal')).to.equal('#CDFECD');
-    expect(fillOf(edgeV2, 'quality')).to.equal('#CDFECD');
-  });
-});
-
-describe('names and constructs', () => {
-  it('checks names with the kind charset', () => {
-    expect(isValidName(edgeV2, 'goal', "Don't stop - go")).to.equal(true);
-    expect(isValidName(edgeV2, 'goal', 'G2 [x]')).to.equal(false);
-    expect(isValidName(edgeV2, 'quality', 'any: thing')).to.equal(true);
-  });
-
-  it('looks constructs up by name', () => {
-    expect(constructDefinition(edgeV2, 'choice')?.relation).to.equal('or');
-    expect(constructDefinition(edgeV2, 'decisionMaking')?.relation).to.equal(
-      undefined,
-    );
-    expect(constructDefinition(edgeV2, 'nope')).to.equal(undefined);
   });
 });

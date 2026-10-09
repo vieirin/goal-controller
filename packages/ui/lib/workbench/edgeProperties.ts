@@ -13,7 +13,7 @@ import {
   ENGINE_CHECKS,
   ENGINE_DIALECTS,
   type DialectEngine,
-} from './definitions';
+} from './engineDialects';
 
 export { firstResourceIssue };
 export {

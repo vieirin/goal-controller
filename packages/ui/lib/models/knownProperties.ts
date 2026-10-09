@@ -2,7 +2,7 @@ import { propertyKeys } from '@goal-controller/dialect';
 import { sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
-import { ENGINE_DIALECTS } from '../workbench/definitions';
+import { ENGINE_DIALECTS } from '../workbench/engineDialects';
 
 type Mapper = {
   allowedGoalKeys: readonly string[];

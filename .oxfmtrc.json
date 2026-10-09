@@ -18,6 +18,6 @@
     "reference/**",
     "result_plots/**",
     "**/antlr/**",
-    "packages/dialect/test/reference/**"
+    "packages/lib/test/dialect/reference/**"
   ]
 }

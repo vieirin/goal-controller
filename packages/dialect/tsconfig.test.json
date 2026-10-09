@@ -1,14 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "..",
+    "rootDir": ".",
     "composite": false,
     "declaration": false,
-    "declarationMap": false,
-    "lib": ["es2022", "dom"],
-    // the harness runs the UI's React-free workbench modules (lib/workbench)
-    "baseUrl": ".",
-    "paths": { "@/*": ["../ui/*"] }
+    "declarationMap": false
   },
   "include": ["src/**/*", "test/**/*"]
 }

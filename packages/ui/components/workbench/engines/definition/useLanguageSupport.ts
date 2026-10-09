@@ -6,7 +6,7 @@ import {
   ENGINE_CHECKS,
   ENGINE_DIALECTS,
   type DialectEngine,
-} from '@/lib/workbench/definitions';
+} from '@/lib/workbench/engineDialects';
 import {
   localLanguageSupport,
   type LanguageSupport,

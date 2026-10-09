@@ -9,9 +9,9 @@ import { execFileSync } from 'child_process';
 import { mkdtempSync, readFileSync, readdirSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { parsePistar } from '../../goal-tree/node_modules/@istar-ts/core';
-import { goalView, type GoalView } from '../../goal-tree/out';
-import { edgeCheckRegistry, type Check } from '../../lib/out';
+import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
+import { goalView, type GoalView } from '@goal-controller/goal-tree';
+import { edgeCheckRegistry, type Check } from '../../src';
 import {
   contextFromView,
   declarationKeys,
@@ -23,11 +23,11 @@ import {
   relationMismatch,
   specsFromDefinition,
   type ElementKind,
-} from '../src';
-import { edge, edgeLangium, edgeV2 } from '../../lib/out';
+} from '@goal-controller/dialect';
+import { edge, edgeLangium, edgeV2 } from '../../src';
 // the UI's own edit writer (React-free), as the Notation view applies edits
-import { applyNotationEdits } from '../../ui/lib/workbench/notationDocument';
-import { RETRY } from '../../lib/out/engines/edgeFamily';
+import { applyNotationEdits } from '../../../ui/lib/workbench/notationDocument';
+import { RETRY } from '../../src/engines/edgeFamily';
 import * as reference from './reference/constructs';
 import * as referenceContext from './reference/context';
 import {

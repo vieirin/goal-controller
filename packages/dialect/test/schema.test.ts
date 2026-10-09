@@ -1,0 +1,257 @@
+/** What defineDialect and defineExtension check, and that they freeze (src/schema.ts). */
+import { expect } from 'chai';
+import {
+  defineDialect,
+  defineExtension,
+  hasIds,
+  type AnyDialect,
+  type CheckNameOf,
+  type ConstructOf,
+  type ExtensionDefinition,
+  type PropertyKeyOf,
+} from '../src';
+import { toy, toyDialect } from './support/toy';
+
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+const same = <T extends true>(): T => true as T;
+
+describe('defineDialect', () => {
+  const bad = (change: (d: AnyDialect) => AnyDialect) => () =>
+    defineDialect(change(structuredClone(toy) as AnyDialect));
+
+  it('freezes the definition', () => {
+    expect(Object.isFrozen(toy.notation.operators)).to.equal(true);
+    expect(() => {
+      (toy.notation.operators as unknown as unknown[]).push(1);
+    }).to.throw();
+  });
+
+  it('reads its names at the type level', () => {
+    same<Same<ConstructOf<typeof toy>, 'sequence' | 'fallback' | 'any'>>();
+    same<
+      Same<CheckNameOf<typeof toy>, 'toy.goal.deadline' | 'toy.resource.bounds'>
+    >();
+    same<
+      Same<
+        PropertyKeyOf<typeof toy, 'goal'>,
+        'priority' | 'deadline' | 'hidden'
+      >
+    >();
+  });
+
+  it('rejects constructs it does not declare', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        notation: {
+          ...d.notation!,
+          operators: [
+            { symbol: '%', form: 'infix', construct: 'nope', assoc: 'left' },
+          ],
+        },
+      })),
+    ).to.throw(/toy: operator %: unknown construct nope/);
+    expect(
+      bad((d) => ({
+        ...d,
+        notation: {
+          ...d.notation!,
+          defaultConstruct: { and: 'sequence', or: 'nope' },
+        },
+      })),
+    ).to.throw(/unknown default construct nope/);
+  });
+
+  it('rejects languages, keys and conditions it does not declare', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: {
+          ...d.properties,
+          task: [
+            {
+              key: 'x',
+              value: { type: 'expression', language: 'nope' },
+              help: '',
+            },
+          ],
+        },
+        propertyLineOrder: ['priority', 'deadline', 'hidden', 'x'],
+      })),
+    ).to.throw(/task.x: unknown language nope/);
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: {
+          ...d.properties,
+          quality: [
+            {
+              key: 'x',
+              value: { type: 'int' },
+              applies: { when: { key: 'y', equals: '1' } },
+              help: '',
+            },
+          ],
+        },
+      })),
+    ).to.throw(/quality.x depends on unknown y/);
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: {
+          ...d.properties,
+          quality: [
+            { key: 'x', value: { type: 'int' }, help: '' },
+            { key: 'x', value: { type: 'int' }, help: '' },
+          ],
+        },
+      })),
+    ).to.throw(/repeated quality property key/);
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: {
+          ...d.properties,
+          resource: d.properties.resource!.filter((p) => p.key !== 'initial'),
+        },
+      })),
+    ).to.throw(/resource line declares unknown initial/);
+  });
+
+  it('needs the property-line order to list each line key once', () => {
+    expect(
+      bad((d) => ({ ...d, propertyLineOrder: d.propertyLineOrder.slice(1) })),
+    ).to.throw(/propertyLineOrder/);
+    expect(
+      bad((d) => ({
+        ...d,
+        propertyLineOrder: [...d.propertyLineOrder, 'robot'],
+      })),
+    ).to.throw(/propertyLineOrder/);
+  });
+
+  it('has ids on every line or on none', () => {
+    expect(hasIds(toy)).to.equal(true);
+    expect(
+      bad((d) => ({
+        ...d,
+        elements: {
+          ...d.elements,
+          quality: { ...d.elements.quality!, line: '{name}' },
+        },
+      })),
+    ).to.throw(/either every element line has an \{id\}, or none has/);
+    expect(
+      bad((d) => ({
+        ...d,
+        elements: {
+          ...d.elements,
+          quality: { line: '{id}: {name}', nameCharset: '.', fill: '#000' },
+        },
+      })),
+    ).to.throw(/needs its prefix and idPattern/);
+    const noIds = (d: AnyDialect): AnyDialect => ({
+      ...d,
+      notation: undefined,
+      elements: Object.fromEntries(
+        Object.entries(d.elements).map(([kind, e]) => [
+          kind,
+          { line: '{name}', nameCharset: '.', fill: e!.fill },
+        ]),
+      ),
+    });
+    // without ids, every property is on the element line: there are no property lines
+    expect(bad(noIds)).to.throw(
+      /lines without ids write every property on the element line/,
+    );
+    expect(
+      hasIds(
+        defineDialect({
+          ...noIds(structuredClone(toy) as AnyDialect),
+          properties: { goal: [], task: [], resource: [], quality: [] },
+          propertyLineOrder: [],
+        }),
+      ),
+    ).to.equal(false);
+  });
+});
+
+describe('defineExtension', () => {
+  const bad = (change: Partial<ExtensionDefinition>) => () =>
+    defineExtension({
+      ...(structuredClone(toyDialect) as ExtensionDefinition),
+      ...change,
+    });
+
+  it('freezes the dialect', () => {
+    expect(Object.isFrozen(toyDialect.elements[0])).to.equal(true);
+  });
+
+  it('rejects kinds outside its namespace', () => {
+    expect(
+      bad({ elements: [{ kind: 'other.Plan', category: 'node' }] }),
+    ).to.throw(/toyish: other.Plan is not in the toyish namespace/);
+  });
+
+  it('rejects names it does not declare', () => {
+    expect(
+      bad({ elements: [{ kind: 'toyish.Plan', behavesLike: 'istar.Nope' }] }),
+    ).to.throw(/behaves like unknown istar.Nope/);
+    expect(bad({ elements: [{ kind: 'toyish.Plan' }] })).to.throw(
+      /needs a category/,
+    );
+    expect(
+      bad({
+        links: [
+          {
+            kind: 'toyish.L',
+            rules: { sources: ['toyish.Nope'], targets: ['*'] },
+          },
+        ],
+      }),
+    ).to.throw(/joins unknown toyish.Nope/);
+    expect(bad({ links: [{ kind: 'toyish.L' }] })).to.throw(
+      /needs rules or a kind it behaves like/,
+    );
+    expect(
+      bad({ links: [{ kind: 'toyish.L', behavesLike: 'istar.Nope' }] }),
+    ).to.throw(/behaves like unknown istar.Nope/);
+    expect(bad({ groupers: { g: ['istar.Nope'] } })).to.throw(
+      /grouper g names unknown istar.Nope/,
+    );
+    expect(bad({ stereotypes: [{ name: 's', appliesTo: ['nope'] }] })).to.throw(
+      /s applies to unknown nope/,
+    );
+  });
+
+  it('knows the kinds of the dialect it extends', () => {
+    expect(() =>
+      defineExtension(
+        {
+          ...(structuredClone(toyDialect) as ExtensionDefinition),
+          name: 'more',
+          elements: [],
+          links: [],
+          groupers: {},
+          stereotypes: [{ name: 'boxy', appliesTo: ['toyish.Box', 'agents'] }],
+          taggedValues: [],
+        },
+        toyDialect as ExtensionDefinition,
+      ),
+    ).to.not.throw();
+  });
+
+  it('needs annotations that set a stereotype, and a tag and its value', () => {
+    const { stereotype, taggedValue } = toyDialect.annotations;
+    expect(
+      bad({
+        annotations: { stereotype: { ...stereotype, parts: [] }, taggedValue },
+      }),
+    ).to.throw(/a stereotype annotation sets one property/);
+    expect(
+      bad({
+        annotations: { stereotype, taggedValue: { ...taggedValue, parts: [] } },
+      }),
+    ).to.throw(/a tagged value annotation sets its name, and its value/);
+  });
+});

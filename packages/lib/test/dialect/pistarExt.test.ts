@@ -23,8 +23,8 @@ import {
   type DocumentTree,
   type AnyDialect,
   type DialectDefinition,
-} from '../src';
-import { edgeV2, istar4RationalAgents } from '../../lib/out';
+} from '@goal-controller/dialect';
+import { edgeV2, istar4RationalAgents } from '../../src';
 import { node } from './support/document';
 import { ra, withStereotypes } from './support/extensions';
 

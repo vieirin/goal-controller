@@ -4,7 +4,7 @@
  */
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { notationDefinitionOf } from './definitions';
+import { notationDefinitionOf } from './engineDialects';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
 import { isValidName, relationMismatch } from '@goal-controller/dialect';
 import { jsonErrorPosition } from './pistar';

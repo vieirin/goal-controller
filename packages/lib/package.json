@@ -11,7 +11,8 @@
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "watch": "tsc --watch",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
+    "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "grammar": "make grammar",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts"

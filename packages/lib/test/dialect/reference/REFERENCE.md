@@ -12,7 +12,8 @@ against) by:
 | notation.ts, edgeProperties.ts | packages/ui/lib/workbench/ |
 | pistar.ts | packages/ui/lib/workbench/pistar.ts (composeNodeText only) |
 
-Imports are rewritten to these copies, or to the built workspace packages
-(`packages/goal-tree/out`, `packages/lib/out`). Do not edit them: a mismatch
-is fixed in the definition, not here. `test/harness.test.ts` checks that
-re-running the script gives these files unchanged.
+Imports are rewritten to these copies, or to lib's own source
+(`packages/lib/src`); `@goal-controller/goal-tree` resolves from lib. Do not
+edit them: a mismatch is fixed in the definition, not here.
+`test/dialect/harness.test.ts` checks that re-running the script gives these
+files unchanged.

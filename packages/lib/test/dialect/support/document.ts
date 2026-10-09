@@ -1,4 +1,4 @@
-import type { DocumentNode } from '../../src';
+import type { DocumentNode } from '@goal-controller/dialect';
 
 /** A document node: piStar id `i-<id>`, named after its id, unless given. */
 export const node = (

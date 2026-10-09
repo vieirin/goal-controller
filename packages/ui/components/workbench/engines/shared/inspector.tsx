@@ -20,7 +20,7 @@ import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
   ENGINE_DIALECTS,
   notationDefinitionOf,
-} from '@/lib/workbench/definitions';
+} from '@/lib/workbench/engineDialects';
 import {
   nodeTone,
   setNodeColor,

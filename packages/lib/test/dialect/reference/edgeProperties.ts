@@ -16,7 +16,7 @@ import {
   edgeResourceChecks,
   firstResourceIssue,
   type Check,
-} from '../../../lib/out';
+} from '../../../src';
 
 export { firstResourceIssue };
 

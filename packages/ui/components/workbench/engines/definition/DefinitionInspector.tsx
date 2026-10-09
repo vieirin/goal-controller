@@ -15,7 +15,7 @@ import { useMemo } from 'react';
 import {
   ENGINE_DIALECTS,
   type DialectEngine,
-} from '@/lib/workbench/definitions';
+} from '@/lib/workbench/engineDialects';
 import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
 import { nodeTone, setNodeText } from '@/lib/workbench/pistar';
 import { useWorkbench } from '../../WorkbenchContext';

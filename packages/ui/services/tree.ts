@@ -4,7 +4,7 @@ import {
   type RTGrammar,
 } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { notationDefinitionOf } from '@/lib/workbench/definitions';
+import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
 import { parseModel } from '@/lib/workbench/dialects';
 
 /** The RT grammar each engine reads goal texts with: its definition's (SLEEC: Edge's). */

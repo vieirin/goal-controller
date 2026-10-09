@@ -4,12 +4,12 @@
 # read with `git show` only (the branch is never checked out or changed).
 # Imports are rewritten to the local copies (or the built workspace packages).
 #
-#   scripts/sync-reference.sh [out-dir]   (default: packages/dialect/test/reference)
+#   scripts/sync-reference.sh [out-dir]   (default: packages/lib/test/dialect/reference)
 set -euo pipefail
 
 COMMIT=b61def8ba1db68fc42910a20a3b51373add88f01
 REPO=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
-OUT=${1:-$REPO/packages/dialect/test/reference}
+OUT=${1:-$REPO/packages/lib/test/dialect/reference}
 mkdir -p "$OUT"
 
 show() { git -C "$REPO" show "$COMMIT:$1"; }
@@ -26,7 +26,6 @@ show packages/rt-language/src/rt-notation.langium > "$OUT/rt-notation.langium"
 {
   header packages/ui/lib/workbench/notation.ts
   show packages/ui/lib/workbench/notation.ts | sed \
-    -e "s#from '@goal-controller/goal-tree'#from '../../../goal-tree/out'#" \
     -e "s#from '@goal-controller/rt-language/context'#from './context'#" \
     -e "s#from '@goal-controller/rt-language/properties'#from './properties'#"
 } > "$OUT/notation.ts"
@@ -43,7 +42,7 @@ show packages/rt-language/src/rt-notation.langium > "$OUT/rt-notation.langium"
 {
   header packages/ui/lib/workbench/edgeProperties.ts
   show packages/ui/lib/workbench/edgeProperties.ts | sed \
-    -e "s#from '@goal-controller/lib'#from '../../../lib/out'#"
+    -e "s#from '@goal-controller/lib'#from '../../../src'#"
 } > "$OUT/edgeProperties.ts"
 
 cat > "$OUT/REFERENCE.md" <<MD
@@ -61,8 +60,9 @@ against) by:
 | notation.ts, edgeProperties.ts | packages/ui/lib/workbench/ |
 | pistar.ts | packages/ui/lib/workbench/pistar.ts (composeNodeText only) |
 
-Imports are rewritten to these copies, or to the built workspace packages
-(\`packages/goal-tree/out\`, \`packages/lib/out\`). Do not edit them: a mismatch
-is fixed in the definition, not here. \`test/harness.test.ts\` checks that
-re-running the script gives these files unchanged.
+Imports are rewritten to these copies, or to lib's own source
+(\`packages/lib/src\`); \`@goal-controller/goal-tree\` resolves from lib. Do not
+edit them: a mismatch is fixed in the definition, not here.
+\`test/dialect/harness.test.ts\` checks that re-running the script gives these
+files unchanged.
 MD

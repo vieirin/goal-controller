@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmitOnError": false,
+    "lib": ["es2022", "dom"],
+    // the dialect tests run the UI's React-free workbench modules (lib/workbench)
+    "baseUrl": ".",
+    "paths": { "@/*": ["../ui/*"] }
+  },
+  "include": ["src/**/*", "test/dialect/**/*"]
+}
