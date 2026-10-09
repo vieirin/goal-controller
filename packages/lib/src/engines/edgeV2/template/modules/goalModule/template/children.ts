@@ -1,4 +1,4 @@
-import { constructsWith } from '@goal-controller/dialect';
+import { constructsWith, type ConstructOf } from '@goal-controller/dialect';
 import { edgeV2 } from '../../../../definition';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
@@ -15,13 +15,7 @@ export type PursueableNode = EdgeGoalNode | EdgeTask;
  *   choice      → committed       [G1?G2]
  *   degradation → preferred       [G1@3->G2]
  */
-export type Construct =
-  | 'sequence'
-  | 'anyOrder'
-  | 'interleaved'
-  | 'alternative'
-  | 'choice'
-  | 'degradation';
+export type Construct = Exclude<ConstructOf<typeof edgeV2>, 'decisionMaking'>;
 
 // which links each construct needs, and the default for each: the definition's
 const CONSTRUCTS_WITH = {
@@ -64,7 +58,7 @@ export const construct = (goal: EdgeGoalNode): Construct => {
     );
     return fallback;
   }
-  return type as Construct;
+  return type;
 };
 
 /** The children's order the notation writes, if it writes one. */

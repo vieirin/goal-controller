@@ -1,4 +1,5 @@
-import type { GoalExecutionDetail as TreeExecutionDetail } from '@goal-controller/goal-tree';
+import type { ExecutionDetailOf } from '@goal-controller/goal-language';
+import type { edge } from './definition';
 /**
  * Edge Engine Types
  * Types for EDGE/PRISM template engine properties
@@ -20,8 +21,12 @@ export type Decision = {
   hasDecision: boolean;
 };
 
-/** goal-tree's: `{ type, ids, modifiers }` (the construct, its operands, `modifiers.retry`) */
-export type GoalExecutionDetail = TreeExecutionDetail;
+/**
+ * What a goal's notation makes it do, as edge's definition names it: `type` is
+ * one of its constructs, `modifiers` has its modifiers (`retry`), so a
+ * misspelt name doesn't compile.
+ */
+export type GoalExecutionDetail = ExecutionDetailOf<typeof edge>;
 
 export type EdgeTaskProps = {
   execCondition?: ExecCondition;

@@ -24,23 +24,39 @@ import { isEnabled, operandIds, readNotation } from './reading.js';
  * in the order written, and the arguments of the modifiers that apply to the
  * construct (`{ retry: { G2: 3 } }`, by the modified operand's text).
  */
-export type ExecutionDetail = {
-  type: string;
+export type ExecutionDetail<
+  C extends string = string,
+  M extends string = string,
+> = {
+  type: C;
   ids: string[];
-  modifiers: Record<string, Record<string, number>>;
+  modifiers: Partial<Record<M, Record<string, number>>>;
 };
 
-export type GoalReading = {
+/**
+ * The execution detail a dialect's reader gives, typed by the dialect: its
+ * constructs' names and its modifiers'. A dialect with no notation gives none
+ * (`never`); a dialect type whose notation is optional (`AnyDialect`), any.
+ */
+export type ExecutionDetailOf<D> = D extends {
+  notation: { constructs: infer C; modifiers?: infer M };
+}
+  ? ExecutionDetail<keyof C & string, keyof NonNullable<M> & string>
+  : 'notation' extends keyof D
+    ? ExecutionDetail
+    : never;
+
+export type GoalReading<E = ExecutionDetail> = {
   id: string;
   goalName: string;
-  executionDetail: ExecutionDetail | null;
+  executionDetail: E | null;
 };
 
 /** A goal text's reader; a syntax error goes to `onSyntaxError` (by default, the console). */
-export type GoalNameParser = (props: {
+export type GoalNameParser<E = ExecutionDetail> = (props: {
   goalText: string;
   onSyntaxError?: (message: string) => void;
-}) => GoalReading;
+}) => GoalReading<E>;
 
 /** What a reader needs of a dialect: its name, and its notation if it has one. */
 export type ReadingDialect = Pick<AnyDialect, 'name'> & {
@@ -79,10 +95,10 @@ const outermost = (
  * one is written, else the outermost enabled operator's construct with its
  * operands (none: no detail).
  */
-export const executionOf = (
-  dialect: WithNotation,
+export const executionOf = <D extends WithNotation>(
+  dialect: D,
   tree: RtTree | null,
-): ExecutionDetail | null => {
+): ExecutionDetailOf<D> | null => {
   const said = readNotation(dialect, tree);
   const [standalone] = said.standalone;
   const outer = standalone
@@ -98,7 +114,12 @@ export const executionOf = (
       )
       .map(([name]) => [name, said.modifiers.get(name)!]),
   );
-  return { type: outer.construct, ids: outer.ids, modifiers };
+  // the names are the dialect's: its type says which (ExecutionDetailOf)
+  return {
+    type: outer.construct,
+    ids: outer.ids,
+    modifiers,
+  } as ExecutionDetailOf<D>;
 };
 
 /** A syntax error, as ANTLR's default listener reported it. */
@@ -115,7 +136,9 @@ const report = (
  * ids and names only.
  */
 export const goalNameParserFor =
-  (dialect: ReadingDialect): GoalNameParser =>
+  <D extends ReadingDialect>(
+    dialect: D,
+  ): GoalNameParser<ExecutionDetailOf<D>> =>
   ({ goalText, onSyntaxError }) => {
     const read = parseElementLine(goalText);
     for (const error of read.errors) report(errorText(error), onSyntaxError);
@@ -132,7 +155,9 @@ export const goalNameParserFor =
     return {
       id: read.value?.id ?? '',
       goalName: (read.value?.name ?? '').trim(),
-      executionDetail: notated ? executionOf(notated, notation) : null,
+      executionDetail: notated
+        ? (executionOf(notated, notation) as ExecutionDetailOf<D>)
+        : null,
     };
   };
 

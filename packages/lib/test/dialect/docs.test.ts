@@ -177,7 +177,7 @@ const readsAs = (dialect: AnyDialect, text: string): string => {
   const modifiers = Object.entries(d.modifiers)
     .map(
       ([name, args]) =>
-        ` ${name}{${Object.entries(args)
+        ` ${name}{${Object.entries(args ?? {})
           .map(([operand, n]) => `${operand}:${n}`)
           .join(',')}}`,
     )

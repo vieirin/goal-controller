@@ -1,6 +1,9 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import type { CheckNameOf, ConstructOf } from '@goal-controller/dialect';
+import { goalNameParserFor } from '@goal-controller/goal-language';
+import type { GoalExecutionDetail as EdgeDetail } from '../../src/engines/edge/types';
+import type { GoalExecutionDetail as EdgeV2Detail } from '../../src/engines/edgeV2/types';
 import type { Construct } from '../../src/engines/edgeV2/template/modules/goalModule/template/children';
 import { edge } from '../../src/engines/edge/definition';
 import * as edgeMapper from '../../src/engines/edge/mapper';
@@ -63,10 +66,24 @@ describe('engine definitions in lib', () => {
     }
   });
 
-  it('declares exactly the constructs the templates generate', () => {
-    // goal-tree's execution detail names its construct as the dialect does
-    same<Same<ConstructOf<typeof edgeV2>, Construct | 'decisionMaking'>>();
-    same<Same<ConstructOf<typeof edge>, ConstructOf<typeof edgeV2>>>();
+  it('types the execution detail with the definition’s names', () => {
+    // a goal's construct is one of its definition's, its modifiers too
+    same<Same<EdgeV2Detail['type'], ConstructOf<typeof edgeV2>>>();
+    same<Same<EdgeDetail['type'], ConstructOf<typeof edge>>>();
+    same<Same<keyof EdgeV2Detail['modifiers'], 'retry'>>();
+    same<Same<Construct | 'decisionMaking', ConstructOf<typeof edgeV2>>>();
+    // a misspelt construct or modifier does not compile
+    const check = (detail: EdgeV2Detail) => [
+      // @ts-expect-error not a construct of edgeV2
+      detail.type === 'sequense',
+      // @ts-expect-error not a modifier of edgeV2
+      detail.modifiers.retires,
+    ];
+    void check;
+    // the reader derived from a definition gives its typed detail
+    const read = goalNameParserFor(edgeV2)({ goalText: 'G1: A [G2;G3]' });
+    same<Same<NonNullable<typeof read.executionDetail>, EdgeV2Detail>>();
+    assert.strictEqual(read.executionDetail?.type, 'sequence');
   });
 
   it('implements every check the definitions name', () => {

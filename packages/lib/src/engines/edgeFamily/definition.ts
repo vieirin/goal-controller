@@ -29,8 +29,9 @@ export const edgeElements = {
 };
 
 /**
- * How a goal refines its children, in the inspector's order. The names are
- * goal-tree's `GoalExecutionDetail['type']` (lib's tests assert they match).
+ * How a goal refines its children, in the inspector's order. Their names are
+ * what a goal's execution detail can say (`ExecutionDetailOf<typeof edgeV2>`'s
+ * `type`): a misspelt one doesn't compile.
  */
 export const RT_CONSTRUCTS = {
   sequence: {
