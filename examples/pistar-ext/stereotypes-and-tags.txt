@@ -1,0 +1,118 @@
+{
+  "actors": [
+    {
+      "id": "a1",
+      "text": "Nurse",
+      "type": "istar.Role",
+      "x": 80,
+      "y": 40,
+      "customProperties": {
+        "Description": "",
+        "stereotype": "utility-based"
+      },
+      "nodes": []
+    },
+    {
+      "id": "a2",
+      "text": "Robot",
+      "type": "istar.Agent",
+      "x": 360,
+      "y": 40,
+      "customProperties": {
+        "Description": "",
+        "stereotype": "goal-based",
+        "tag": "Id",
+        "tagValue": "A1"
+      },
+      "nodes": [
+        {
+          "id": "g1",
+          "text": "Sample collected",
+          "type": "istar.Goal",
+          "x": 520,
+          "y": 80,
+          "customProperties": {
+            "Description": "",
+            "tag": "Id",
+            "tagValue": "G1"
+          }
+        },
+        {
+          "id": "t1",
+          "text": "Collect sample",
+          "type": "istar.Task",
+          "x": 440,
+          "y": 200,
+          "customProperties": {
+            "Description": "",
+            "stereotype": "action",
+            "tag": "type",
+            "tagValue": "right"
+          }
+        },
+        {
+          "id": "r1",
+          "text": "Sample kit",
+          "type": "istar.Resource",
+          "x": 440,
+          "y": 320,
+          "customProperties": {
+            "Description": "",
+            "tag": "Reference to",
+            "tagValue": "KIT-12"
+          }
+        },
+        {
+          "id": "q1",
+          "text": "Collected quickly",
+          "type": "istar.Quality",
+          "x": 660,
+          "y": 200,
+          "customProperties": {
+            "Description": "",
+            "tag": "Status",
+            "tagValue": "draft"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "l1",
+      "type": "istar.AndRefinementLink",
+      "source": "t1",
+      "target": "g1",
+      "customProperties": {
+        "tag": "Logic",
+        "tagValue": "AND"
+      }
+    },
+    {
+      "id": "l2",
+      "type": "istar.NeededByLink",
+      "source": "r1",
+      "target": "t1"
+    },
+    {
+      "id": "l3",
+      "type": "istar.QualificationLink",
+      "source": "q1",
+      "target": "g1"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 08 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 900,
+    "height": 520,
+    "name": "Stereotypes and tagged values",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

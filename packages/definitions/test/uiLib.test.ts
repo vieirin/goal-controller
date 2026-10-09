@@ -25,7 +25,11 @@ import {
   recordedModeOf,
 } from '../../ui/lib/workbench/dialects';
 import { jsonProblem } from '../../ui/lib/workbench/localProblems';
-import { planConversion, serializeModel } from '../../ui/lib/workbench/pistar';
+import {
+  planConversion,
+  serializeModel,
+  writeModelMode,
+} from '../../ui/lib/workbench/pistar';
 import { models } from './support/models';
 
 const MODEL = readFileSync(
@@ -106,7 +110,7 @@ describe('ui definitionLanguage', () => {
 describe('ui dialects', () => {
   // a piStar-ext model, as piStar-ext saves it: no mode recorded
   const RA = readFileSync(
-    join(__dirname, 'fixtures/rationalAgents.txt'),
+    join(__dirname, '../../../examples/pistar-ext/iStar4RationalAgents.txt'),
     'utf8',
   );
   const EXAMPLES = [
@@ -203,5 +207,80 @@ describe('ui dialects', () => {
     for (const definition of Object.values(ENGINE_DEFINITIONS))
       for (const element of Object.values(definition.elements))
         expect(element).not.to.have.property('annotations');
+  });
+});
+
+describe('ui piStar-ext examples', () => {
+  const EXAMPLES = models('examples/pistar-ext', (text) =>
+    parseModel(text, 'pistarext'),
+  );
+
+  it('are the three models of examples/pistar-ext', () => {
+    expect(EXAMPLES.map(({ file }) => file).sort()).to.deep.equal([
+      'examples/pistar-ext/iStar4RationalAgents.txt',
+      'examples/pistar-ext/minimal.txt',
+      'examples/pistar-ext/stereotypes-and-tags.txt',
+    ]);
+  });
+
+  it('open in piStar-ext mode, and write back byte for byte', () => {
+    for (const { file, model } of EXAMPLES) {
+      // as the Explorer opens them: the mode recorded first
+      const opened = writeModelMode(model, 'pistarext');
+      expect(recordedModeOf(opened), file).to.equal('pistarext');
+      expect(serializeModel(parseModel(opened), opened), file).to.equal(opened);
+      // as saved by piStar-ext (no mode recorded)
+      expect(
+        serializeModel(parseModel(model, 'pistarext'), model),
+        file,
+      ).to.equal(model);
+    }
+  });
+
+  it("are rejected by the Edge modes when they use the dialect's kinds, with the hint", () => {
+    for (const { file, model } of EXAMPLES) {
+      const kinds = [...parseModel(model, 'pistarext').elements.values()].map(
+        (e) => e.kind,
+      );
+      if (!kinds.some((kind) => kind.startsWith('rationalAgents.'))) continue;
+      let error: Error | null = null;
+      try {
+        parseModel(model, 'edgev2');
+      } catch (e) {
+        error = e as Error;
+      }
+      expect(error, file).not.to.equal(null);
+      expect(jsonProblem(model, error!).message, file).to.match(
+        /Open it as piStar-ext/,
+      );
+      expect(
+        planConversion(
+          writeModelMode(model, 'pistarext'),
+          'edgev2',
+        ).blockers.join('\n'),
+        file,
+      ).to.match(/the Edge engines do not read Plannings/);
+    }
+  });
+
+  it("show every mechanism's annotations in the dialect's lines", () => {
+    const { model } = EXAMPLES.find(({ file }) =>
+      file.endsWith('stereotypes-and-tags.txt'),
+    )!;
+    expect(
+      notationDocument(
+        DIALECT_DEFINITIONS.pistarext,
+        dialectTree(parseModel(model, 'pistarext')),
+      ).text,
+    ).to.equal(
+      [
+        '<<utility-based>> Nurse',
+        '<<goal-based>> {Id = A1} Robot',
+        '  {Id = G1} Sample collected',
+        '  <<action>> {type = right} Collect sample',
+        '  {Reference to = KIT-12} Sample kit',
+        '  {Status = draft} Collected quickly',
+      ].join('\n'),
+    );
   });
 });

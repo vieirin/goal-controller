@@ -170,6 +170,21 @@
     "name": "simpleChoiceRewards.txt"
   },
   {
+    "path": "pistar-ext/iStar4RationalAgents.txt",
+    "group": "pistar-ext",
+    "name": "iStar4RationalAgents.txt"
+  },
+  {
+    "path": "pistar-ext/minimal.txt",
+    "group": "pistar-ext",
+    "name": "minimal.txt"
+  },
+  {
+    "path": "pistar-ext/stereotypes-and-tags.txt",
+    "group": "pistar-ext",
+    "name": "stereotypes-and-tags.txt"
+  },
+  {
     "path": "sleec/goalModel - 2026-01-23T112755.270.txt",
     "group": "sleec",
     "name": "goalModel - 2026-01-23T112755.270.txt"

@@ -89,10 +89,12 @@ export const serializeModel = (
   return json + (like.endsWith('\n') ? '\n' : '');
 };
 
+/** `mode`: read for it (a dialect a file does not record yet); default, what the file records. */
 const rewrite = (
   text: string,
   edit: (model: IstarModel) => IstarModel,
-): string => serializeModel(edit(parseModel(text)), text);
+  mode?: ModelMode,
+): string => serializeModel(edit(parseModel(text, mode)), text);
 
 /** The element an edit is for (any kind: a dialect's, an actor). */
 const findNode = (model: IstarModel, iStarId: string): IstarElement => {
@@ -298,7 +300,11 @@ const withMode = (model: IstarModel, mode: ModelMode): IstarModel => {
 
 /** Record the mode in the model text (formatting kept). */
 export const writeModelMode = (text: string, mode: ModelMode): string =>
-  rewrite(text, (model) => withMode(model, mode));
+  rewrite(
+    text,
+    (model) => withMode(model, mode),
+    isDialectMode(mode) ? mode : undefined,
+  );
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {

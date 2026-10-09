@@ -10,12 +10,6 @@
         "Description": "",
         "stereotype": "goal-based"
       },
-      "extension": {
-        "stereotype": "goal-based",
-        "selectedStereotype": "goal-based",
-        "taggedValue": "",
-        "selectedTaggedValue": ""
-      },
       "nodes": [
         {
           "id": "g1",
@@ -62,7 +56,13 @@
             "tagValue": "duty"
           }
         }
-      ]
+      ],
+      "extension": {
+        "stereotype": "goal-based",
+        "selectedStereotype": "goal-based",
+        "taggedValue": "",
+        "selectedTaggedValue": ""
+      }
     }
   ],
   "orphans": [],
@@ -72,7 +72,11 @@
       "id": "l1",
       "type": "istar.AndRefinementLink",
       "source": "t1",
-      "target": "g1"
+      "target": "g1",
+      "customProperties": {
+        "tag": "Logic",
+        "tagValue": "AND"
+      }
     },
     {
       "id": "l2",
@@ -88,7 +92,7 @@
   "diagram": {
     "width": 900,
     "height": 500,
-    "name": "iStar4RationalAgents",
+    "name": "iStar4RationalAgents (piStar-ext, Fig. 4)",
     "customProperties": {
       "Description": ""
     }

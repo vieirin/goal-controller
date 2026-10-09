@@ -49,7 +49,7 @@ import {
 } from '../src';
 
 const MODEL = readFileSync(
-  join(__dirname, 'fixtures/rationalAgents.txt'),
+  join(__dirname, '../../../examples/pistar-ext/iStar4RationalAgents.txt'),
   'utf8',
 );
 
