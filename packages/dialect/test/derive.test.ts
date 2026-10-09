@@ -66,11 +66,14 @@ describe('properties', () => {
     };
     const specs = specsFromDefinition(toy, registry);
     // a registry missing a check the definition names doesn't compile
-    // @ts-expect-error 'toy.resource.bounds' is missing
     void (() =>
-      specsFromDefinition(toy, {
-        'toy.goal.deadline': registry['toy.goal.deadline'],
-      }));
+      specsFromDefinition(
+        toy,
+        // @ts-expect-error 'toy.resource.bounds' is missing
+        {
+          'toy.goal.deadline': registry['toy.goal.deadline'],
+        },
+      ));
     expect(specs.goal.map((s) => s.key)).to.deep.equal([
       'priority',
       'deadline',
