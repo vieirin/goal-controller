@@ -70,7 +70,22 @@ export type ValueConfig =
        * completion offers them.
        */
       declaredBy?: readonly string[];
+      /** what completes a type (after `:`, in `Sequence(`): a project resource's symbols */
+      candidates?: ResourceCandidates;
+      /**
+       * what completes after `name.`: the members of the symbol (in these
+       * candidates) named by `name`'s type
+       */
+      memberCandidates?: ResourceCandidates;
     };
+
+/**
+ * Where completion takes names from: a project resource's symbols of one
+ * category (`{ resource: 'world', category: 'classes' }`), as its parser
+ * lists them. Data only: the goal language reads the symbols, not the
+ * resource.
+ */
+export type ResourceCandidates = { resource: string; category: string };
 
 export type ValueType = ValueConfig['type'];
 
@@ -188,7 +203,79 @@ export type DialectDefinition<K extends string = ElementKind> = {
   problems: Readonly<
     Record<ProblemKind, { severity: Severity; message: string }>
   >;
+  /** the files beside a model it reads, by kind (goal-controller#25) */
+  projectResources?: Readonly<Record<string, ProjectResourceDefinition>>;
 };
+
+// ---------------------------------------------------------------------------
+// project resources: the files beside a model an engine reads (goal-controller#25)
+// ---------------------------------------------------------------------------
+
+/** What a project resource is written in: its editor's language and its parser's input. */
+export type ProjectResourceFormat = 'xml' | 'hddl' | 'json' | 'pctl' | 'text';
+
+export const PROJECT_RESOURCE_FORMATS: readonly ProjectResourceFormat[] = [
+  'xml',
+  'hddl',
+  'json',
+  'pctl',
+  'text',
+];
+
+/**
+ * A kind of project resource a dialect reads beside its models (MutRoSe's
+ * world knowledge, Edge's property suites). The engine's library parses it;
+ * the definition says only what it is and where a project keeps it.
+ */
+export type ProjectResourceDefinition = {
+  /** shown to people: `World knowledge` */
+  label: string;
+  format: ProjectResourceFormat;
+  /** a list of files (a folder of them), not one */
+  many?: boolean;
+  /** what it is to the engine, shown with it: `knowledge`, `domain` */
+  role?: string;
+  /**
+   * where a new project keeps it, from the project's root: a file
+   * (`knowledge/world_db.xml`), or a folder for a `many` kind (`props/`)
+   */
+  path: string;
+  /** the file extensions it takes (`.xml`); default: any */
+  accept?: readonly string[];
+  help?: string;
+};
+
+/**
+ * A name a project resource defines, as its parser lists it (a world class
+ * with its attributes as members, an HDDL task with its parameters).
+ */
+export type ResourceSymbol = {
+  name: string;
+  detail?: string;
+  members?: readonly { name: string; detail?: string }[];
+};
+
+/** A project resource's symbols, by category (`classes`, `locations`, `tasks`). */
+export type ResourceSymbols = Readonly<
+  Record<string, readonly ResourceSymbol[]>
+>;
+
+/**
+ * A parsed project resource, as the views and the language servers get it:
+ * its symbols (what completion and hover read) and the engine's own data
+ * (what its checks and templates read; opaque to everyone else).
+ */
+export type ProjectResourceContext = {
+  symbols: ResourceSymbols;
+  data?: unknown;
+};
+
+/** The project-resource kinds a definition declares. */
+export type ProjectResourceKindOf<D> = D extends {
+  projectResources: infer R;
+}
+  ? keyof R & string
+  : never;
 
 /** A definition of any kinds: what the derived helpers read. */
 export type AnyDialect = DialectDefinition<string>;
@@ -228,6 +315,8 @@ export type DefinitionContext = {
    * id: a line written with one is that element's, wherever it is
    */
   named?: Readonly<Record<string, string>>;
+  /** the project's resources, parsed, by kind (none: the model alone) */
+  projectResources?: Readonly<Record<string, ProjectResourceContext>>;
 };
 
 /** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */
@@ -377,6 +466,40 @@ export const defineDialect = <const D extends AnyDialect>(
   // without ids, a line is its element's by position: there are no property lines
   if (!named.length && lineKeys.size)
     fail('lines without ids write every property on the element line');
+  const resources = definition.projectResources ?? {};
+  for (const [kind, resource] of Object.entries(resources)) {
+    if (!PROJECT_RESOURCE_FORMATS.includes(resource.format))
+      fail(`project resource ${kind}: unknown format ${resource.format}`);
+    if (
+      !resource.path ||
+      resource.path.startsWith('/') ||
+      resource.path.split('/').includes('..')
+    )
+      fail(
+        `project resource ${kind}: its path is relative to the project, inside it`,
+      );
+    if (Boolean(resource.many) !== resource.path.endsWith('/'))
+      fail(
+        `project resource ${kind}: ${resource.many ? 'a list of files is kept in a folder (its path ends with /)' : 'one file is kept at a file path'}`,
+      );
+    for (const extension of resource.accept ?? [])
+      if (!extension.startsWith('.'))
+        fail(`project resource ${kind}: ${extension} is not an extension`);
+  }
+  for (const [kind, list] of Object.entries(definition.properties))
+    for (const property of list) {
+      const values =
+        'when' in property.value
+          ? [property.value.matching, property.value.otherwise]
+          : [property.value];
+      for (const value of values)
+        if (value.type === 'ocl')
+          for (const candidates of [value.candidates, value.memberCandidates])
+            if (candidates && !(candidates.resource in resources))
+              fail(
+                `${kind}.${property.key} completes from unknown project resource ${candidates.resource}`,
+              );
+    }
   const order = new Set(definition.propertyLineOrder);
   if (
     order.size !== definition.propertyLineOrder.length ||
