@@ -257,7 +257,7 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `missionTemplateEngine(tree, options)` |
 | 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
-| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[problemBadges, rtNumbering, missionPalette]} rejectEdit={…} />`: the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
+| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} rejectEdit={…} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
 | 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
 | 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
@@ -267,6 +267,44 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 Adding `'mission'` to `TransformEngine` makes the type-checker flag #2, #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
 
 The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
+
+### Bringing your own language server
+
+The shared server covers what a definition can say. If your engine has a
+server of its own (MutRoSe's `lsp-mutrose` reads the whole model and
+checks its OCL), register it next to the shared one
+(goal-controller#24); nothing else changes:
+
+1. **Mark what it serves.** `servedBy: 'engine'` on a property: the goal
+   language still reads the key and where it applies, but leaves its value
+   to your server (no value diagnostics, completion or hover).
+2. **Register it** in `ENGINE_SERVICES` (`packages/ui/lib/workbench/languageServices.ts`):
+
+   ```ts
+   mission: [
+     {
+       id: 'mission', // its diagnostics' source in Problems
+       documents: ['pistar-json'], // and/or 'goal-notation', 'field'
+       anchoring: 'data',
+       transport: () => serviceClient(missionTransport()),
+     },
+   ],
+   ```
+
+   Build the client with `serviceClient` (`goalLsp.ts`), so what it publishes
+   reaches the store. Return null while it can't be reached.
+
+3. **Anchor its diagnostics.** Put `{ elementId, key? }` (or `{ nodeId }`)
+   in each diagnostic's `data`, as the goal language does
+   ([lsp.md](../../goal-language/docs/lsp.md#anchoring)). With `anchoring:
+'range'`, the workbench places them by the document: a field's URI, a
+   Notation line's id; a `pistar-json` diagnostic without data has no
+   element and is dropped from the store.
+
+The shared service stays first: an editor's completion and hover come from
+the first service that speaks its document, and the others are kept in sync
+with it. Every service's diagnostics are merged, one group per source under
+each element in Problems, and drawn as the canvas's badges.
 
 ## 5. Step 4: examples and tests
 
