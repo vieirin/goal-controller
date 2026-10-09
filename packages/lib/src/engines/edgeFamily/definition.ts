@@ -32,7 +32,7 @@ export const edgeElements = {
  * How a goal refines its children, in the inspector's order. The names are
  * goal-tree's `GoalExecutionDetail['type']` (lib's tests assert they match).
  */
-export const CONSTRUCTS = {
+export const RT_CONSTRUCTS = {
   sequence: {
     label: 'Sequence',
     help: 'does every child, one after another',
@@ -114,6 +114,6 @@ export const edgeFamily = {
 export const edgeNotation = {
   operand: { kinds: ['goal', 'task'], skip: true },
   modifiers: { retry: RETRY },
-  constructs: CONSTRUCTS,
+  constructs: RT_CONSTRUCTS,
   defaultConstruct: { and: 'interleaved', or: 'alternative' },
 } as const;
