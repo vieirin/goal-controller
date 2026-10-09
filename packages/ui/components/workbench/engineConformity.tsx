@@ -13,7 +13,7 @@ import { planConversion, type Conversion } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
 import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
-import { ENGINES } from '@/lib/workbench/engineDialects';
+import { ENGINE_LABEL, ENGINES } from '@/lib/workbench/engineDialects';
 import type { ConversionTarget } from './WorkbenchContext';
 import { cx } from './ui';
 
@@ -108,7 +108,8 @@ export function useEngineConformity(
             errors: [
               {
                 severity: 'error',
-                source: 'engine',
+                // a dialect returned above: the target is an engine
+                source: ENGINE_LABEL[id as TransformEngine],
                 message: `Could not check the model: ${error instanceof Error ? error.message : String(error)}`,
               },
             ],

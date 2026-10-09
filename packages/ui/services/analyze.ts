@@ -4,11 +4,13 @@ import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
 import { isPrismEngine, type TransformEngine } from '../lib/types';
 import { mutroseProblem, type MutroseGoalTree } from '@goal-controller/lib';
 import { nodeIdInMessage } from '../lib/workbench/localProblems';
-import type {
-  AnalyzeResponse,
-  Problem,
-  VariableInfo,
+import {
+  SOURCE,
+  type AnalyzeResponse,
+  type Problem,
+  type VariableInfo,
 } from '../lib/workbench/types';
+import { ENGINE_LABEL } from '../lib/workbench/engineDialects';
 
 type WithCondition = {
   id: string;
@@ -50,14 +52,15 @@ export const analyze = (
   if (!parsed.success) {
     const problem: Problem = {
       severity: 'error',
+      // the file, the model's structure, or the engine's reading of it
       source:
         parsed.stage === 'parse'
-          ? 'json'
+          ? SOURCE.file
           : parsed.stage === 'validate'
-            ? 'model'
-            : 'engine',
+            ? SOURCE.workbench
+            : ENGINE_LABEL[engine],
       message: parsed.error,
-      nodeId: nodeIdInMessage(parsed.error),
+      elementId: nodeIdInMessage(parsed.error),
     };
     response.problems.push(problem);
     return response;
@@ -69,9 +72,9 @@ export const analyze = (
     if (problem)
       response.problems.push({
         severity: 'error',
-        source: 'engine',
+        source: ENGINE_LABEL[engine],
         message: problem,
-        nodeId: nodeIdInMessage(problem),
+        elementId: nodeIdInMessage(problem),
       });
   } else if (isPrismEngine(engine)) {
     const tree = parsed.tree as Parameters<typeof GoalTree.contextVariables>[0];

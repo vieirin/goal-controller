@@ -1,5 +1,6 @@
 'use client';
 
+import { ENGINE_LABEL } from '@/lib/workbench/engineDialects';
 import type { LoggerReport } from '@goal-controller/lib';
 import {
   createContext,
@@ -42,9 +43,11 @@ import {
   forgetRecent as forgetRecentFile,
   type RecentFile,
 } from '@/lib/workbench/storage';
+import { mergeProblems } from '@/lib/workbench/diagnostics';
 import { buildTraceIndex, type TraceIndex } from '@/lib/workbench/trace';
 import {
   DEFAULT_OPTIONS,
+  SOURCE,
   type AnalyzeResponse,
   type GenerationOptions,
   type ModelSettings,
@@ -721,7 +724,7 @@ function WorkbenchState({
           problems: [
             {
               severity: 'error',
-              source: 'engine',
+              source: ENGINE_LABEL[engine],
               message: error instanceof Error ? error.message : String(error),
             },
           ],
@@ -929,36 +932,28 @@ function WorkbenchState({
     if (current && !stale) {
       const checked = new Set(
         list
-          .filter((p) => p.source === 'model' && p.nodeId)
-          .map((p) => p.nodeId),
+          .filter((p) => p.source === SOURCE.workbench && p.elementId)
+          .map((p) => p.elementId),
       );
       list.push(
         ...generationProblems(
           current.error,
           current.report?.log ?? null,
           nodeIds,
+          ENGINE_LABEL[engine],
         ).filter(
           // the engine repeats notation problems the model check already reports
           (p) =>
             !(
               p.severity === 'warning' &&
-              p.nodeId &&
-              checked.has(p.nodeId) &&
+              p.elementId &&
+              checked.has(p.elementId) &&
               /notation/i.test(p.message)
             ),
         ),
       );
     }
-    const seen = new Set<string>();
-    const order = { error: 0, warning: 1, info: 2 };
-    return list
-      .filter((problem) => {
-        const key = `${problem.severity}:${problem.message}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => order[a.severity] - order[b.severity]);
+    return mergeProblems(list);
   }, [parsed.error, pistar, tree, engine, analysis, current, stale, nodeIds]);
 
   // ---- persistence ----------------------------------------------------------------

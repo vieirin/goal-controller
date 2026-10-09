@@ -1,19 +1,36 @@
+import type { GoalDiagnostic } from '@goal-controller/dialect';
 import type { DialectMode } from './dialects';
 import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 
 export type Severity = 'error' | 'warning' | 'info';
 
-/** Something the modeller should look at, with the node it concerns if known. */
-export type Problem = {
-  severity: Severity;
-  message: string;
-  /** where it was found */
-  source: 'json' | 'model' | 'engine' | 'generation';
-  nodeId?: string;
-  /** 1-based, for JSON problems */
+/**
+ * A problem of the open model, as every producer reports it and every view
+ * (Problems, canvas badges, inspector rows) consumes it: the hosts' contract,
+ * `GoalDiagnostic` (goal-controller#24, decision D). One about an element
+ * carries its id (and the property's key); only one about the file or the
+ * run as a whole (the JSON doesn't parse, an engine failed without naming an
+ * element) carries none.
+ */
+export type Problem = Omit<GoalDiagnostic, 'elementId'> & {
+  elementId?: string;
+  /** 1-based, for the file's JSON problems */
   line?: number;
   column?: number;
 };
+
+/**
+ * Who reports a problem, besides an engine (its name) and an engine-owned
+ * language server (its id): the Problems panel groups by it.
+ */
+export const SOURCE = {
+  /** the model file itself (its JSON) */
+  file: 'piStar file',
+  /** the workbench's own checks of the model */
+  workbench: 'workbench',
+  /** the shared goal-language service */
+  language: 'goal language',
+} as const;
 
 export type VariableInfo = {
   name: string;

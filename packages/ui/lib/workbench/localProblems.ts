@@ -9,7 +9,7 @@ import { DIALECT_LABEL, dialectThatReads } from './dialects';
 import { MODEL_NAMESPACE, relationMismatch } from '@goal-controller/dialect';
 import { ID_PREFIXES, isValidName } from '@goal-controller/goal-language';
 import { jsonErrorPosition } from './pistar';
-import type { Problem } from './types';
+import { SOURCE, type Problem } from './types';
 
 /** An RT id of any prefix the language reads (`G4`, `AT2`), longest prefix first. */
 const RT_ID = `(?:${[...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|')})\\d+[A-Za-z0-9]*`;
@@ -45,7 +45,7 @@ export const jsonProblem = (text: string, error: Error): Problem => {
   )
     return {
       severity: 'error',
-      source: 'json',
+      source: SOURCE.file,
       message: `This model's own extension can't be read: ${error.message.replace(/^(the model's extension|extension "[^"]*"): /, '')}`,
     };
   // valid JSON with kinds its mode doesn't have: a dialect's, when one reads it
@@ -53,13 +53,13 @@ export const jsonProblem = (text: string, error: Error): Problem => {
   if (dialect)
     return {
       severity: 'error',
-      source: 'json',
+      source: SOURCE.file,
       message: `${error.message}: this is a ${DIALECT_LABEL[dialect]} model. Open it as ${DIALECT_LABEL[dialect]} (model settings) to read its kinds.`,
     };
   const position = jsonErrorPosition(text, error.message);
   return {
     severity: 'error',
-    source: 'json',
+    source: SOURCE.file,
     message: `The model is not valid JSON: ${error.message.replace(/\s*\(line \d+ column \d+\)/, '')}`,
     ...(position && { line: position.line, column: position.column }),
   };
@@ -78,9 +78,9 @@ export const treeProblems = (
     if (node.id === node.iStarId) {
       problems.push({
         severity: 'error',
-        source: 'model',
+        source: SOURCE.workbench,
         // the view keys an element without an RT id by its piStar id: selectable all the same
-        nodeId: node.id,
+        elementId: node.id,
         message: `"${node.text.trim()}" has no id: start its name with one (${idPrefixes(engine)}), e.g. "G4: ${node.name || 'name'}"`,
       });
       continue;
@@ -90,8 +90,8 @@ export const treeProblems = (
     if (!isValidName(notationDefinitionOf(engine), node.kind, node.name)) {
       problems.push({
         severity: 'warning',
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id}: the name "${node.name}" has characters the goal notation does not allow (use letters, spaces, hyphens and apostrophes)`,
       });
     }
@@ -104,8 +104,8 @@ export const treeProblems = (
     ) {
       problems.push({
         severity: 'error',
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id} has no children or tasks; every goal must be refined`,
       });
     }
@@ -115,8 +115,8 @@ export const treeProblems = (
     if (node.notationError) {
       problems.push({
         severity: 'warning',
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id}: the notation [${node.notation}] is not valid for this engine (${node.notationError})`,
       });
       continue;
@@ -140,16 +140,16 @@ export const treeProblems = (
     if (notChildren.length > 0) {
       problems.push({
         severity: definition.problems.notAChild.severity,
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id}: the notation [${node.notation}] lists ${notChildren.join(', ')}, which ${notChildren.length > 1 ? 'are not children' : 'is not a child'} of ${node.id}`,
       });
     }
     if (unlisted.length > 0) {
       problems.push({
         severity: definition.problems.missingFromNotation.severity,
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
       });
     }
@@ -161,8 +161,8 @@ export const treeProblems = (
     if (mismatch) {
       problems.push({
         severity: definition.problems.relationMismatch.severity,
-        source: 'model',
-        nodeId: node.id,
+        source: SOURCE.workbench,
+        elementId: node.id,
         message: `${node.id}: [${node.notation}] ${mismatch}`,
       });
     }
@@ -175,6 +175,8 @@ export const generationProblems = (
   error: string | null,
   log: string | null,
   nodeIds: Set<string>,
+  /** the engine that generated (its name, the problems' source) */
+  engine: string,
 ): Problem[] => {
   const nodeOf = (message: string): string | undefined => {
     const marked = nodeIdInMessage(message);
@@ -190,9 +192,9 @@ export const generationProblems = (
         ?.trim() || error;
     problems.push({
       severity: 'error',
-      source: 'generation',
+      source: engine,
       message,
-      nodeId: nodeOf(message),
+      elementId: nodeOf(message),
     });
   }
   for (const line of (log ?? '').split('\n')) {
@@ -205,9 +207,9 @@ export const generationProblems = (
       : 'warning';
     problems.push({
       severity,
-      source: 'generation',
+      source: engine,
       message,
-      nodeId: nodeOf(message),
+      elementId: nodeOf(message),
     });
   }
   return problems;

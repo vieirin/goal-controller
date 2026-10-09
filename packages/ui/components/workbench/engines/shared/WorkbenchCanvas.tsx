@@ -264,8 +264,8 @@ export default function WorkbenchCanvas({
   const severities = useMemo(() => {
     const map = new Map<string, Severity>();
     for (const problem of wb.problems) {
-      if (!problem.nodeId || problem.severity === 'info') continue;
-      const iStarId = wb.tree?.nodes.get(problem.nodeId)?.iStarId;
+      if (!problem.elementId || problem.severity === 'info') continue;
+      const iStarId = wb.tree?.nodes.get(problem.elementId)?.iStarId;
       if (iStarId && map.get(iStarId) !== 'error')
         map.set(iStarId, problem.severity);
     }

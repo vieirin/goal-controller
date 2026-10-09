@@ -28,6 +28,11 @@ import {
   recordedModeOf,
 } from '../../../ui/lib/workbench/dialects';
 import {
+  mergeProblems,
+  problemGroups,
+} from '../../../ui/lib/workbench/diagnostics';
+import type { Problem } from '../../../ui/lib/workbench/types';
+import {
   jsonProblem,
   nodeIdInMessage,
   treeProblems,
@@ -510,5 +515,69 @@ describe('ui MutRoSe', () => {
     expect(
       nodeIdInMessage('Invalid declaration of robot number: 3 (node AT12)'),
     ).to.equal('AT12');
+  });
+});
+
+describe('ui problems', () => {
+  const problem = (
+    p: Partial<Problem> & Pick<Problem, 'message'>,
+  ): Problem => ({ severity: 'error', source: 'goal language', ...p });
+
+  it('merges the producers: one per element, property and message', () => {
+    const merged = mergeProblems(
+      [
+        problem({ elementId: 'G1', key: 'maxRetries', message: 'At least 0' }),
+        // the engine said it without the property: the same problem
+        problem({ elementId: 'G1', message: 'At least 0', source: 'EdgeV2' }),
+        problem({ elementId: 'G1', key: 'cost', message: 'At least 0' }),
+      ],
+      [
+        problem({
+          elementId: 'G2',
+          message: 'Not a child',
+          severity: 'warning',
+        }),
+        problem({ elementId: 'G2', message: 'Not a child' }),
+        problem({
+          message: 'The model is not valid JSON',
+          source: 'piStar file',
+        }),
+      ],
+    );
+    expect(
+      merged.map((p) => [p.elementId, p.key, p.message, p.severity]),
+    ).to.deep.equal([
+      ['G1', 'maxRetries', 'At least 0', 'error'],
+      ['G1', 'cost', 'At least 0', 'error'],
+      ['G2', undefined, 'Not a child', 'error'],
+      [undefined, undefined, 'The model is not valid JSON', 'error'],
+    ]);
+  });
+
+  it('groups them by element (the model’s own first), then by source', () => {
+    const groups = problemGroups([
+      problem({ elementId: 'G1', message: 'a', source: 'EdgeV2' }),
+      problem({ message: 'b', source: 'piStar file' }),
+      problem({ elementId: 'G1', message: 'c' }),
+      problem({ elementId: 'G1', message: 'd', source: 'EdgeV2' }),
+    ]);
+    expect(
+      groups.map(({ elementId, sources }) => [
+        elementId,
+        sources.map(({ source, problems }) => [
+          source,
+          problems.map((p) => p.message),
+        ]),
+      ]),
+    ).to.deep.equal([
+      [undefined, [['piStar file', ['b']]]],
+      [
+        'G1',
+        [
+          ['EdgeV2', ['a', 'd']],
+          ['goal language', ['c']],
+        ],
+      ],
+    ]);
   });
 });
