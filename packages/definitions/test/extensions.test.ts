@@ -26,6 +26,7 @@ import {
   ISTAR_KIND_OF,
   ISTAR_LINK_KINDS,
   ISTAR_NODE_KINDS,
+  annotationsFor,
   completionsAt,
   contextFromView,
   defineEngine,
@@ -39,6 +40,7 @@ import {
   notationDocument,
   notationEdits,
   profileOf,
+  profileProperties,
   specsFromDefinition,
   type AnyDefinition,
   type DocumentNode,
@@ -390,5 +392,24 @@ describe('a dialect of its own (no engine)', () => {
       },
     ]);
     expect(completionsAt(definition, doc, 3, context)).to.equal(null);
+  });
+});
+
+describe('annotationsFor', () => {
+  it('gives a kind its stereotype when it may have one, then its tagged value', () => {
+    const { stereotype, taggedValue } = istar4RationalAgents.annotations;
+    expect(annotationsFor(istar4RationalAgents, 'istar.Role')).to.deep.equal([
+      stereotype,
+      taggedValue,
+    ]);
+    // links carry the default tagged values
+    expect(
+      annotationsFor(istar4RationalAgents, 'istar.AndRefinementLink'),
+    ).to.deep.equal([taggedValue]);
+    expect(
+      profileProperties(istar4RationalAgents, 'istar.AndRefinementLink').map(
+        (p) => p.key,
+      ),
+    ).to.deep.equal(['tag', 'tagValue']);
   });
 });

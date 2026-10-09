@@ -13,6 +13,7 @@ import {
   defineEngine,
   type AnyDefinition,
   type ConditionalValue,
+  type DeclarationDefinition,
   type ElementDefinition,
   type ExtensionDefinition,
   type LinkRulesDefinition,
@@ -159,6 +160,21 @@ export const profileProperties = (
   ];
 };
 
+/**
+ * The annotations a kind's elements (or links) carry, in line order: its
+ * stereotype when it may have one, then its tagged value.
+ */
+export const annotationsFor = (
+  extension: ExtensionDefinition,
+  kind: string,
+): DeclarationDefinition[] => {
+  const { stereotype, taggedValue } = extension.annotations;
+  return [
+    ...(profileOf(extension, kind).stereotypes.length ? [stereotype] : []),
+    taggedValue,
+  ];
+};
+
 /** The iStar kind a definition's kind is (an engine's `task` is `istar.Task`). */
 const istarKindOf = (kind: string): string =>
   (ISTAR_KIND_OF as Record<string, string>)[kind] ?? kind;
@@ -182,15 +198,9 @@ export const withExtension = (
   for (const [kind, element] of Object.entries(base.elements)) {
     if (!element) continue;
     const added = profileProperties(extension, istarKindOf(kind));
-    const { stereotype, taggedValue } = extension.annotations;
     elements[kind] = {
       ...element,
-      annotations: [
-        ...(added.some((p) => p.key === annotationKeys(extension).stereotype)
-          ? [stereotype]
-          : []),
-        taggedValue,
-      ],
+      annotations: annotationsFor(extension, istarKindOf(kind)),
     };
     properties[kind] = [...(base.properties[kind] ?? []), ...added];
   }

@@ -1,54 +1,73 @@
 'use client';
 
 import {
+  ISTAR_LINK_KINDS,
   inputOf,
+  profileProperties,
   specsFromDefinition,
   type ExtensionDefinition,
 } from '@goal-controller/definitions';
-import type { IstarElement } from '@istar-ts/core';
+import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { useIstarEditor, useSelectedTarget } from '@istar-ts/react';
 import { DIALECTS, DIALECT_DEFINITIONS } from '@/lib/workbench/dialects';
 import { Field, PropertyRow, inputClass, useDraft } from '../shared/inspector';
 import { labelAnnotations } from './extensions';
 
 const dialect: ExtensionDefinition = DIALECTS.pistarext;
-const definition = DIALECT_DEFINITIONS.pistarext;
 // what each kind may carry; a dialect has no engine, so no checks to bind
-const SPECS = specsFromDefinition(definition, {});
+const SPECS = {
+  ...specsFromDefinition(DIALECT_DEFINITIONS.pistarext, {}),
+  // links have no lines of their own: their profile, as for an element's kind
+  ...specsFromDefinition(
+    {
+      id: dialect.name,
+      properties: Object.fromEntries(
+        [...ISTAR_LINK_KINDS, ...dialect.links.map((l) => l.kind)].map(
+          (kind) => [kind, profileProperties(dialect, kind)],
+        ),
+      ),
+    },
+    {},
+  ),
+};
 
 /**
- * piStar-ext's inspector, beside the diagram: the selected element's name, and the
- * stereotype and tagged value its kind may carry (directly or through a grouper),
- * from the dialect's definition.
+ * piStar-ext's inspector, beside the diagram: the selected element's or link's name,
+ * and the stereotype and tagged value its kind may carry (directly or through a
+ * grouper), from the dialect's definition.
  */
 export default function PistarExtInspector() {
   const target = useSelectedTarget();
   if (!target)
     return (
       <p className='p-4 text-[13px] text-ink-muted'>
-        Select an element to edit its name, stereotype and tagged value.
+        Select an element or a link to edit its name, stereotype and tagged
+        value.
       </p>
     );
-  if ('source' in target)
-    return (
-      <p className='p-4 text-[13px] text-ink-muted'>
-        Links carry no stereotypes or tagged values in this dialect.
-      </p>
-    );
-  return <ElementEditor key={target.id} element={target} />;
+  return <TargetEditor key={target.id} target={target} />;
 }
 
-function ElementEditor({ element }: { element: IstarElement }) {
+function TargetEditor({ target }: { target: IstarElement | IstarLink }) {
   const editor = useIstarEditor();
-  const actions = editor.elementActions(element.id);
+  const isLink = 'source' in target;
+  const actions = isLink
+    ? editor.linkActions(target.id)
+    : editor.elementActions(target.id);
   const label =
-    editor.metamodel.elements.get(element.kind)?.label ?? element.kind;
+    (isLink
+      ? editor.metamodel.links.get(target.kind)?.label
+      : editor.metamodel.elements.get(target.kind)?.label) ?? target.kind;
   const groupers = Object.entries(dialect.groupers)
-    .filter(([, kinds]) => (kinds as readonly string[]).includes(element.kind))
+    .filter(([, kinds]) => (kinds as readonly string[]).includes(target.kind))
     .map(([name]) => name);
-  const name = useDraft(element.name, (next) => actions.rename(next));
-  const properties = element.customProperties ?? {};
-  const annotations = labelAnnotations(element);
+  const name = useDraft(target.name ?? '', (next) =>
+    'rename' in actions
+      ? actions.rename(next)
+      : actions.setName(next || undefined),
+  );
+  const properties = target.customProperties ?? {};
+  const annotations = labelAnnotations(target);
   return (
     <div className='space-y-4 p-4'>
       <div className='space-y-0.5'>
@@ -78,7 +97,7 @@ function ElementEditor({ element }: { element: IstarElement }) {
           {dialect.label}
         </span>
         <div className='grid grid-cols-[minmax(0,max-content)_minmax(8rem,1fr)_auto] gap-1.5'>
-          {(SPECS[element.kind] ?? []).map((spec) => (
+          {(SPECS[target.kind] ?? []).map((spec) => (
             <PropertyRow
               key={spec.key}
               name={spec.key}

@@ -15,11 +15,14 @@ const EXTENSIONS: readonly IstarExtension[] = [
  */
 export default function PistarExtDiagram() {
   return (
-    <WorkbenchCanvas
-      extensions={EXTENSIONS}
-      aside={<PistarExtInspector />}
-      paletteOnTop
-      fitKey='pistar-ext'
-    />
+    // pistar-ext-canvas: its link labels above the actors (app/globals.css)
+    <div className='pistar-ext-canvas h-full'>
+      <WorkbenchCanvas
+        extensions={EXTENSIONS}
+        aside={<PistarExtInspector />}
+        paletteOnTop
+        fitKey='pistar-ext'
+      />
+    </div>
   );
 }
