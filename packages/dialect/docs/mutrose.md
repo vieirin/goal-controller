@@ -84,6 +84,8 @@ rules give them.
 | Check names kept per engine | Registries were typed `Record<string, Check>` in the UI, which loses their names. `ENGINE_CHECKS` is a mapped type over the engines, keyed by each definition's `CheckNameOf`: a registry missing a check doesn't compile, and `ENGINE_CHECKS[engine]` goes with `ENGINE_DIALECTS[engine]` in generic code. |
 | A view's children order through calls | The workbench's "missing from the notation" check read the outermost operands, so `G5`, `AT3` inside `FALLBACK` were reported missing. The view's `order` now lists every id the notation names, in the order written. |
 | OCL values (`world_db->select(r:Room \| r.dirty)`) | A new value type, `ocl`, in the goal language: OCL's tokens, read leniently (MutRoSe's own conditions are: `forAll(x \|)`). The editors colour variables, types (after `:`, in `Sequence(…)`), keywords, operators and literals. The decomposer's structure is still its named checks'. |
+| Rules across elements in the editors | A check had the element's properties and `kindOf` only. Its context now carries the whole model when the caller has it (`elements`: kind, properties, children, `x`), built once by the goal language's `checkContextOf` for the editors, the inspector and the language server. MutRoSe's scoping (`scope.ts`, written once) runs in its Monitors, Controls and Params checks, so the editors mark the field; the template runs the same rules over the typed tree. |
+| The decomposer's order of children | goal-tree's nodes and view carry each element's diagram `x`. MutRoSe walks and prints a goal's children left to right, as the decomposer does; a tree without positions keeps the annotation's order. |
 | A goal type to pick when adding a goal | Palette entries that preset properties (Edge's Boolean and Integer resources): Goal offers Perform, Achieve and Query, each in its fill. |
 | A fourth engine in the UI | The engine's label, output label and extension, and its options, were written out in four to six places each. They are now one `ENGINES` list in `engineDialects.ts`. Model conversion takes what an engine reads from a table (`ENGINE_READS`), and new elements get the target definition's id prefixes. |
 
@@ -97,20 +99,13 @@ and PRISM of every example are the same (`pnpm snapshot:language`).
   whole field. A grammar for it (paths `a.b`, `->select`, `->forAll`,
   `&&`/`||`) would point at the part that's wrong and complete the
   variables in scope; Edge's `assertion` could be a subset of it.
-- **Checks see one element.** A check gets the element's properties and
-  `kindOf`. MutRoSe's scoping needs the walk over the tree: Monitors
-  declared by an earlier goal's Controls. So it runs in the template, and
-  the analysis shows its first problem. The editors can't mark the field.
 - **The fill follows a property.** A definition gives one fill per kind.
   mutrose-vscode colours goals by `GoalType`, which the MutRoSe diagram's
   goal component does itself. The inspector's Color row doesn't know: it
   shows the kind's default.
-- **Children order.**
-  - goal-tree keeps a goal's goal children and task children apart, and in
-    link order.
-  - The decomposer visits all of them by their x coordinate. With an
-    annotation the order is the annotation's in both; without one, the
-    runtime annotation's parallel operands can come out in another order.
+- **The mapper doesn't have the model.** Its checks run without
+  `elements`, so a rule across elements first stops generation in the
+  template, while the editors mark it as soon as it's written.
 - **forAll goals aren't expanded.** That needs the world database, which the
   browser doesn't have.
 - **Empty properties print.** piStar gives every element `Description: ""`,

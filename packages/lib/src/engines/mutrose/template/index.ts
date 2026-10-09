@@ -5,12 +5,19 @@
  * annotation over the abstract tasks, printed as the decomposer's `-v` does
  * (`utils/annotmanagerutils.cpp` recursive_rt_annot_build).
  *
- * Two differences, both because a browser has no world knowledge: forAll
- * goals are not expanded into one instance per item (each is printed once),
- * and children are visited in the runtime annotation's order, then the
- * model's (the decomposer sorts a goal's children by their x coordinate).
+ * Children are visited as the decomposer visits them, by their diagram x.
+ * One difference, because a browser has no world knowledge: forAll goals are
+ * not expanded into one instance per item (each is printed once). The
+ * scoping rules are `../scope.ts`'s, which the editors' checks run too.
  */
 import { notationRefs, type RtTree } from '@goal-controller/goal-language';
+import {
+  depthFirst,
+  forAllProblem,
+  inDiagramOrder,
+  queryProblem,
+  scopeIssues,
+} from '../scope';
 import type { MutroseGoalNode, MutroseGoalTree, MutroseTask } from '../mapper';
 
 type Child = MutroseGoalNode | MutroseTask;
@@ -20,8 +27,11 @@ const childrenOf = (goal: MutroseGoalNode): Child[] => [
   ...(goal.tasks ?? []),
 ];
 
-/** A goal's children in the annotation's order, then those it doesn't name. */
-const visitOrder = (goal: MutroseGoalNode): Child[] => {
+/**
+ * A goal's children as the decomposer orders them: by diagram x; in a tree
+ * without positions, the annotation's order, then those it doesn't name.
+ */
+const ordered = (goal: MutroseGoalNode): readonly Child[] => {
   const children = childrenOf(goal);
   const named = notationRefs(goal.properties.engine.annotation).flatMap(
     (id) => {
@@ -29,23 +39,11 @@ const visitOrder = (goal: MutroseGoalNode): Child[] => {
       return child ? [child] : [];
     },
   );
-  return [...named, ...children.filter((c) => !named.includes(c))];
+  return inDiagramOrder(
+    [...named, ...children.filter((c) => !named.includes(c))],
+    (child) => child.x,
+  );
 };
-
-/** Every node, depth first from the roots (the decomposer's `get_dfs_gm_nodes`). */
-const depthFirst = (roots: MutroseGoalNode[]): Child[] => {
-  const nodes: Child[] = [];
-  const visit = (node: Child) => {
-    nodes.push(node);
-    if (node.type === 'goal') visitOrder(node).forEach(visit);
-  };
-  roots.forEach(visit);
-  return nodes;
-};
-
-/** `Sequence(Room)` is a collection of `Room`s: the base type a query compares. */
-const baseType = (type: string) =>
-  /^Sequence\((.*)\)$/i.exec(type)?.[1] ?? type;
 
 /** A tree's root goals (one per actor). */
 const rootsOf = (tree: MutroseGoalTree): MutroseGoalNode[] =>
@@ -59,44 +57,44 @@ const rootsOf = (tree: MutroseGoalTree): MutroseGoalNode[] =>
  * the decomposer's message, as it would stop at it.
  */
 export const mutroseProblem = (tree: MutroseGoalTree): string | null => {
-  const declared = new Map<string, string>();
-  for (const node of depthFirst(rootsOf(tree))) {
-    if (node.type === 'task') {
-      const missing = node.properties.engine.params.find(
-        (param) => !declared.has(param),
-      );
-      if (missing)
-        return `Could not find value for parameter [${missing}] for task [${node.id}]`;
-      continue;
-    }
+  const order = depthFirst<Child>(
+    rootsOf(tree),
+    (node) => (node.type === 'goal' ? ordered(node) : []),
+    (node) => node.x,
+  );
+  const issues = scopeIssues(
+    order.map((node) =>
+      node.type === 'task'
+        ? {
+            id: node.id,
+            kind: 'task',
+            controls: [],
+            monitors: [],
+            params: node.properties.engine.params,
+          }
+        : {
+            id: node.id,
+            kind: 'goal',
+            controls: node.properties.engine.controls,
+            monitors: node.properties.engine.monitors,
+            params: [],
+          },
+    ),
+  );
+  for (const node of order) {
+    // its Params, or its Monitors then its Controls, as the decomposer reads them
+    const scope = issues.find((issue) => issue.id === node.id);
+    if (scope) return scope.message;
+    if (node.type === 'task') continue;
     const goal = node.properties.engine;
-    // the decomposer reports the last undeclared one it meets
-    const undeclared = [...goal.monitors]
-      .reverse()
-      .find((v) => !declared.has(v.name));
-    if (undeclared)
-      return `Undeclared variable [${undeclared.name}] of type [${undeclared.type}] in goal ${node.id}`;
-    for (const v of goal.controls) {
-      if (declared.has(v.name))
-        return `Redeclaration of variable [${v.name}] in goal ${node.id}`;
-      declared.set(v.name, v.type);
-    }
     const forAll = goal.achieveCondition?.forAll;
-    if (goal.goalType === 'Achieve' && forAll) {
-      // the decomposer's messages name the lists the other way round
-      if (!goal.monitors.some((v) => v.name === forAll.iterated))
-        return `Did not find iterated variable ${forAll.iterated} in ${node.id}'s controlled variables list`;
-      if (!goal.controls.some((v) => v.name === forAll.iteration))
-        return `Did not find iteration variable ${forAll.iteration} in ${node.id}'s monitored variables list`;
-    }
-    const query = goal.queriedProperty;
-    if (goal.goalType === 'Query' && query) {
-      const [first] = goal.controls;
-      if (!first)
-        return `No controlled variable was declared for Query goal [${node.id}]`;
-      if (query.type !== baseType(first.type))
-        return `Query variable [${query.variable}] type + [${query.type}] is different than the base type of the first controlled variable [${first.name}] ([${baseType(first.type)}])`;
-    }
+    const problem =
+      goal.goalType === 'Achieve' && forAll
+        ? forAllProblem(node.id, forAll, goal.monitors, goal.controls)
+        : goal.goalType === 'Query' && goal.queriedProperty
+          ? queryProblem(node.id, goal.queriedProperty, goal.controls)
+          : null;
+    if (problem) return problem;
   }
   return null;
 };
@@ -147,7 +145,9 @@ const annotationOf = (goal: MutroseGoalNode): string => {
   if (children.length > 1)
     return operator(
       '#',
-      children.map((child) => operand(child.id)),
+      inDiagramOrder(children, (child) => child.x).map((child) =>
+        operand(child.id),
+      ),
     );
   // one child: a means-end; none: the goal itself
   return children.length === 1 ? operand(children[0]!.id) : goal.id;

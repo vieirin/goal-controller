@@ -197,8 +197,9 @@ Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
 - `dialect` is required: the definition (or, for an engine without one, `{ name }`: ids and names are read, no notation).
-- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines.
-- Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right).
+- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines: the outermost construct and its operands. `text` is the goal's text as written; an engine that reads nested constructs or calls reads it with `parseElementLine` (MutRoSe does).
+- Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
+- A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -219,7 +220,7 @@ A check gets the element's properties and a context (the goal language's `CheckC
 - the other elements' kinds, `kindOf`;
 - the whole model, `elements`, when the caller has it: every element's kind, properties, children and `x`.
 
-The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both.
+The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both (MutRoSe's `scope.ts`: the variables a goal monitors must be declared by an earlier goal).
 Type the definition's properties with these names
 (`satisfies readonly PropertyDefinition<MissionCheckName>[]`, as
 `edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`

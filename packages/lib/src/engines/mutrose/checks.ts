@@ -3,7 +3,14 @@
  * (`utils/gm_utils.cpp`), with their messages. They also parse: the mapper
  * reads the values with the same functions.
  */
-import { checks, type Check } from '../checks';
+import { checks, type Check, type CheckContext } from '../checks';
+import {
+  depthFirst,
+  forAllProblem,
+  queryProblem,
+  scopeIssues,
+  type ScopeIssue,
+} from './scope';
 
 /** A variable, `name : Type`; Monitors usually omit the type. */
 export type MutroseVar = { name: string; type: string };
@@ -18,16 +25,71 @@ export const parseVars = (text: string): MutroseVar[] =>
     };
   });
 
-/** A variable list's check: each item names a variable. */
+type Elements = NonNullable<CheckContext['elements']>;
+
+/**
+ * The model's scoping problems (`./scope`), walked from what an editor has:
+ * every element's raw properties, children and diagram x. Once per model.
+ */
+const scopeOfModel = new WeakMap<Elements, ScopeIssue[]>();
+const scopeOf = (elements: Elements): ScopeIssue[] => {
+  const known = scopeOfModel.get(elements);
+  if (known) return known;
+  const ids = Object.keys(elements);
+  const children = new Set(ids.flatMap((id) => elements[id]!.children));
+  const issues = scopeIssues(
+    depthFirst(
+      ids.filter((id) => !children.has(id) && elements[id]!.kind === 'goal'),
+      (id) => elements[id]?.children ?? [],
+      (id) => elements[id]?.x,
+    ).flatMap((id) => {
+      const element = elements[id];
+      if (element?.kind !== 'goal' && element?.kind !== 'task') return [];
+      const { properties } = element;
+      return [
+        {
+          id,
+          kind: element.kind,
+          controls: vars(properties.Controls),
+          monitors: vars(properties.Monitors),
+          params: names(properties.Params),
+        },
+      ];
+    }),
+  );
+  scopeOfModel.set(elements, issues);
+  return issues;
+};
+
+/** The element's problem of a key in the model's scoping, when the caller has the model. */
+const scopeProblem = (
+  context: CheckContext,
+  key: ScopeIssue['key'],
+): string | null =>
+  context.elements
+    ? (scopeOf(context.elements).find(
+        (issue) => issue.id === context.self && issue.key === key,
+      )?.message ?? null)
+    : null;
+
+const vars = (text: string | undefined): MutroseVar[] =>
+  text?.trim() ? parseVars(text) : [];
+const names = (text: string | undefined): string[] =>
+  text?.trim() ? text.split(',').map((name) => name.trim()) : [];
+
+/**
+ * A variable list's check: each item names a variable; then, in a model, a
+ * Monitors variable an earlier goal declared, a Controls one declared once.
+ */
 const varsCheck =
   (key: 'Controls' | 'Monitors'): Check =>
-  (raw) => {
+  (raw, context) => {
     const text = raw[key] ?? '';
     if (!text.trim()) return null;
     const bad = text.split(',').find((item) => !parseVars(item)[0]!.name);
     return bad !== undefined
       ? `Invalid variable declaration ${bad} in GM.`
-      : null;
+      : scopeProblem(context, key);
   };
 
 export type ForAll = { iterated: string; iteration: string; condition: string };
@@ -103,17 +165,23 @@ const IDENTIFIER = /^\s*[A-Za-z][A-Za-z0-9_]*\s*$/;
 export const mutroseCheckRegistry = checks({
   'mutrose.goal.controls': varsCheck('Controls'),
   'mutrose.goal.monitors': varsCheck('Monitors'),
-  'mutrose.goal.achieveCondition': (raw) => {
+  'mutrose.goal.achieveCondition': (raw, { self }) => {
     const text = raw.AchieveCondition ?? '';
     // the decomposer reads a forAll by the word, then requires its shape
-    return text.includes('forAll') && !parseForAll(text)
-      ? `Invalid forAll statement ${text} in GM.`
+    if (!text.includes('forAll')) return null;
+    const forAll = parseForAll(text);
+    if (!forAll) return `Invalid forAll statement ${text} in GM.`;
+    return raw.GoalType?.trim() === 'Achieve'
+      ? forAllProblem(self, forAll, vars(raw.Monitors), vars(raw.Controls))
       : null;
   },
-  'mutrose.goal.queriedProperty': (raw) => {
+  'mutrose.goal.queriedProperty': (raw, { self }) => {
     const text = raw.QueriedProperty ?? '';
-    return text && !parseSelect(text)
-      ? `Invalid select statement ${text} in GM.`
+    if (!text) return null;
+    const query = parseSelect(text);
+    if (!query) return `Invalid select statement ${text} in GM.`;
+    return raw.GoalType?.trim() === 'Query'
+      ? queryProblem(self, query, vars(raw.Controls))
       : null;
   },
   // the decomposer ignores any other text; the editors say what it reads
@@ -129,13 +197,13 @@ export const mutroseCheckRegistry = checks({
       ? `A Location is one variable name, not ${text.trim()}`
       : null;
   },
-  'mutrose.task.params': (raw) => {
+  'mutrose.task.params': (raw, context) => {
     const text = raw.Params ?? '';
     if (!text.trim()) return null;
     const bad = text.split(',').find((item) => !IDENTIFIER.test(item));
     return bad !== undefined
       ? `Params are variable names, comma-separated: not ${bad.trim() || 'an empty name'}`
-      : null;
+      : scopeProblem(context, 'Params');
   },
   'mutrose.task.robotNumber': (raw) => {
     const text = raw.RobotNumber ?? '';

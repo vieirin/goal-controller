@@ -2,6 +2,12 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { GoalTree, Model, type IStarModel } from '@goal-controller/goal-tree';
 import {
+  checkContextOf,
+  contextFromView,
+} from '@goal-controller/goal-language';
+import { goalView } from '@goal-controller/goal-tree';
+import {
+  mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
   mutroseRuntimeAnnotation,
@@ -27,6 +33,18 @@ const edited = (
       if (value === undefined) delete properties[key];
       else properties[key] = value;
     elements.set(element.id, { ...element, customProperties: properties });
+  }
+  return { ...model, elements };
+};
+
+/** The example, with some elements moved along x (by id). */
+const moved = (xs: Record<string, number>): IStarModel => {
+  const model = Model.load(EXAMPLE);
+  const elements = new Map(model.elements);
+  for (const [key, element] of elements) {
+    const id = /^(\w+):/.exec(element.name)?.[1];
+    if (id && xs[id] !== undefined)
+      elements.set(key, { ...element, x: xs[id]! });
   }
   return { ...model, elements };
 };
@@ -119,9 +137,10 @@ describe('mutroseRuntimeAnnotation', () => {
 
   it('reports what check_gm_validity reports, as it stops at the first', () => {
     assert.strictEqual(problem(edited()), null);
+    // a goal's own rules: its mapper stops at them, naming it
     assert.strictEqual(
       problem(edited({ G2: { Controls: undefined } })),
-      'No controlled variable was declared for Query goal [G2]',
+      'No controlled variable was declared for Query goal [G2] (node G2)',
     );
     assert.strictEqual(
       problem(
@@ -141,11 +160,11 @@ describe('mutroseRuntimeAnnotation', () => {
     );
     assert.strictEqual(
       problem(edited({ G3: { Monitors: undefined } })),
-      "Did not find iterated variable requests in G3's controlled variables list",
+      "Did not find iterated variable requests in G3's controlled variables list (node G3)",
     );
     assert.strictEqual(
       problem(edited({ G4: { Controls: 'room : Room' } })),
-      'Query variable [l] type + [Location] is different than the base type of the first controlled variable [room] ([Room])',
+      'Query variable [l] type + [Location] is different than the base type of the first controlled variable [room] ([Room]) (node G4)',
     );
     assert.strictEqual(
       problem(edited({ AT2: { Params: 'patient' } })),
@@ -153,10 +172,76 @@ describe('mutroseRuntimeAnnotation', () => {
     );
   });
 
+  it('visits children by their diagram x, as the decomposer does', () => {
+    // G3 drawn left of G2: it monitors requests before G2 declares them
+    assert.strictEqual(
+      problem(moved({ G3: 100 })),
+      'Undeclared variable [requests] of type [] in goal G3',
+    );
+    // without an annotation, parallel children print left to right
+    const model = moved({ AT1: 900 });
+    const elements = new Map(model.elements);
+    for (const [key, element] of elements)
+      if (element.name.startsWith('G5:'))
+        elements.set(key, { ...element, name: 'G5: Hand Over in Person' });
+    assert.strictEqual(
+      annotation({ ...model, elements }),
+      '(G2;NC(G4;NC(FALLBACK(NC(AT2#AT1),AT3))))\n',
+    );
+  });
+
   it('reads the istar-ts editor’s LabSampleLogistics as the decomposer would: G2 is missing', () => {
     assert.strictEqual(
       problem(Model.load('../../examples/mutrose/LabSampleLogistics.txt')),
       'Undeclared variable [deliveries_requested] of type [] in goal G3',
+    );
+  });
+});
+
+describe('mutroseCheckRegistry in a model', () => {
+  // what an editor has: the model as the view reads it
+  const contextOf = (model: IStarModel) =>
+    contextFromView(mutrose, goalView(model, mutrose), []);
+  const run = (
+    model: IStarModel,
+    name: keyof typeof mutroseCheckRegistry,
+    id: string,
+  ) => {
+    const context = contextOf(model);
+    return mutroseCheckRegistry[name](
+      context.elements[id]!.properties,
+      checkContextOf(context, id),
+    );
+  };
+
+  it('marks the field the decomposer’s walk would stop at', () => {
+    const model = edited({ G3: { Monitors: 'requests, nobody' } });
+    assert.strictEqual(
+      run(model, 'mutrose.goal.monitors', 'G3'),
+      'Undeclared variable [nobody] of type [] in goal G3',
+    );
+    assert.strictEqual(run(model, 'mutrose.goal.monitors', 'G5'), null);
+    assert.strictEqual(
+      run(
+        edited({ G4: { Controls: 'requests : Location' } }),
+        'mutrose.goal.controls',
+        'G4',
+      ),
+      'Redeclaration of variable [requests] in goal G4',
+    );
+    assert.strictEqual(
+      run(edited({ AT2: { Params: 'patient' } }), 'mutrose.task.params', 'AT2'),
+      'Could not find value for parameter [patient] for task [AT2]',
+    );
+  });
+
+  it('says nothing of the model without it (the mapper’s run)', () => {
+    assert.strictEqual(
+      mutroseCheckRegistry['mutrose.goal.monitors'](
+        { Monitors: 'nobody' },
+        { self: 'G3', kindOf: () => undefined },
+      ),
+      null,
     );
   });
 });
