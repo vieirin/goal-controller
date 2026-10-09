@@ -149,7 +149,11 @@ describe('a dialect of its own (no engine)', () => {
         message: 'This annotation cannot be read',
       },
     ]);
-    expect(completionsAt(definition, doc, 3, context)).to.equal(null);
+    // in a stereotype: the dialect's stereotypes; elsewhere on a name: nothing
+    expect(
+      completionsAt(definition, doc, 3, context)!.options.map((o) => o.label),
+    ).to.deep.equal(['smart', 'urgent']);
+    expect(completionsAt(definition, doc, 12, context)).to.equal(null);
   });
 
   describe('lines with ids', () => {

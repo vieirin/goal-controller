@@ -386,7 +386,17 @@ describe('a dialect of its own (no engine)', () => {
         message: 'This annotation cannot be read',
       },
     ]);
-    expect(completionsAt(definition, doc, 3, context)).to.equal(null);
+    // in a stereotype: iStar4RationalAgents' stereotypes; on a name: nothing
+    expect(
+      completionsAt(definition, doc, 3, context)!.options.map((o) => o.label),
+    ).to.deep.equal([
+      'simple-reflex',
+      'model-based reflex',
+      'goal-based',
+      'utility-based',
+      'action',
+    ]);
+    expect(completionsAt(definition, doc, 18, context)).to.equal(null);
   });
 });
 
