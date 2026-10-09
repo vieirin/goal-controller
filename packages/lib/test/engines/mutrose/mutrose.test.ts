@@ -11,6 +11,8 @@ import {
   mutroseCheckRegistry,
   mutroseEngineMapper,
   mutroseRuntimeAnnotation,
+  parseConfiguration,
+  parseWorld,
   type MutroseGoalNode,
 } from '../../../src/engines/mutrose';
 
@@ -233,6 +235,76 @@ describe('mutroseCheckRegistry in a model', () => {
       run(edited({ AT2: { Params: 'patient' } }), 'mutrose.task.params', 'AT2'),
       'Could not find value for parameter [patient] for task [AT2]',
     );
+  });
+
+  describe('with the project’s world and configuration', () => {
+    const WORLD = `<world_db>
+  <Request><name>r1</name><room>Ward1</room><pending>True</pending></Request>
+  <Location><name>Ward1</name></Location>
+</world_db>`;
+    const CONFIGURATION = '{ "location_types": ["Location"] }';
+    /** every problem the checks find in the model, by element and check */
+    const problems = (world: string, configuration = CONFIGURATION) => {
+      const model = contextOf(edited());
+      const context = {
+        ...model,
+        projectResources: {
+          world: parseWorld([{ path: 'w.xml', text: world }]),
+          configuration: parseConfiguration([
+            { path: 'c.json', text: configuration },
+          ]),
+        },
+      };
+      const found: string[] = [];
+      for (const [id, element] of Object.entries(context.elements))
+        for (const [name, check] of Object.entries(mutroseCheckRegistry)) {
+          const problem = check(
+            element.properties,
+            checkContextOf(context, id),
+          );
+          if (problem) found.push(`${id} ${name}: ${problem}`);
+        }
+      return found;
+    };
+
+    it('finds nothing in the example with the world it is about', () => {
+      assert.deepStrictEqual(problems(WORLD), []);
+    });
+
+    it('marks a type the world has no class for, in Controls and in a query', () => {
+      const found = problems(WORLD.replace(/<Location>.*<\/Location>/, ''));
+      assert.ok(found.length >= 2, found.join('\n'));
+      assert.ok(
+        found.some((p) =>
+          p.endsWith(
+            'mutrose.goal.controls: Location is not a class of the world knowledge (it has Request)',
+          ),
+        ),
+        found.join('\n'),
+      );
+      assert.ok(
+        found.some((p) =>
+          /mutrose\.goal\.queriedProperty: Location is not a class of the world knowledge/.test(
+            p,
+          ),
+        ),
+        found.join('\n'),
+      );
+      // a collection's class is the one checked, and OCL's own types are no class
+      assert.ok(!found.some((p) => /Sequence|Request is not/.test(p)));
+    });
+
+    it('marks a Location whose variable is not of a location type', () => {
+      const found = problems(WORLD, '{ "location_types": ["Request"] }');
+      assert.deepStrictEqual(
+        found
+          .filter((p) => p.includes('mutrose.task.location'))
+          .map((p) => p.replace(/^\S+ /, '')),
+        [
+          "mutrose.task.location: room is a Location: a Location is one of the configuration's location types (Request)",
+        ],
+      );
+    });
   });
 
   it('says nothing of the model without it (the mapper’s run)', () => {
