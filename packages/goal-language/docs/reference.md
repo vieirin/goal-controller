@@ -251,11 +251,12 @@ G1: Deliver sample
 ## The RT notation
 
 ```
-RtExpr     : RtBinary ;
-infix RtBinary on RtPrefix : '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->' > ',' ;
+RtExpr     : RtBinary (',' RtBinary)* ;
+infix RtBinary on RtPrefix : '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->' ;
 RtPrefix   : '!' RtPrefix | RtPostfix ;
 RtPostfix  : RtPrimary ('@' FLOAT)* ;
-RtPrimary  : '[' RtExpr ']' | '(' RtExpr ')' | 'skip' | ('+' | '*' | '?' | '#') | ElementId ;
+RtPrimary  : '[' RtExpr ']' | '(' RtExpr ')' | 'FALLBACK' '(' RtBinary (',' RtBinary)* ')'
+           | 'skip' | ('+' | '*' | '?' | '#') | ElementId ;
 ```
 
 ### Operands
@@ -264,17 +265,27 @@ RtPrimary  : '[' RtExpr ']' | '(' RtExpr ')' | 'skip' | ('+' | '*' | '?' | '#') 
 - `skip`.
 - A group, `[...]` or `(...)`. Groups can't be empty.
 - A standalone symbol, `+ * ? #`, which is a whole operand on its own.
+- A call, `FALLBACK(G2,G3)` (MutRoSe's runtime annotations). Its commas
+  separate its operands; they are not the `,` operator, which is why `,` is
+  read apart from the other binary operators. The catalog gives each call
+  its number of operands (`FALLBACK`: 2), and the validator reports another
+  number. Like a group, a call is an operand of its own: `G1;FALLBACK(G2,G3)`
+  is a sequence of `G1` and the fallback.
 
 ```goal accept
 G1: A [G2;skip]
 G1: A [[G2;G3]#(G4|G5)]
 G1: A [+]
 G1: A [*]
+G1: A [FALLBACK(G2,G3)]
+G1: A [G2;FALLBACK(G3#G4,AT1)]
 ```
 
 ```goal reject
 G1: A [[]]
 G1: A [G2G3]
+G1: A [FALLBACK()]
+G1: A [FALLBACK G2]
 ```
 
 ### Operators, tightest first
@@ -309,6 +320,8 @@ G2@2@3 ⇒ G2@2@3
 [G2;G3]@2->G4 ⇒ ([(G2;G3)]@2->G4)
 (G2|G3)#G4 ⇒ (((G2|G3))#G4)
 G2^G3~G4,G5&G6 ⇒ (((G2^G3)~G4),(G5&G6))
+G2;FALLBACK(G3#G4,AT1;G5) ⇒ (G2;FALLBACK((G3#G4),(AT1;G5)))
+FALLBACK(G2,G3),G4 ⇒ (FALLBACK(G2,G3),G4)
 ```
 
 `@`'s argument is a number written without a sign (`1.5` is read; engines
@@ -321,8 +334,8 @@ G1: A [G2@-1]
 
 A dialect gives each symbol its meaning. A binary or prefix symbol is a
 construct, a postfix symbol is a **modifier** (its argument applies to the
-operand: `retry`, `{ G2: 3 }` by operand text), and a standalone symbol is
-a construct. Any other symbol is disabled for that dialect. See
+operand: `retry`, `{ G2: 3 }` by operand text), and a standalone symbol and
+a call are constructs. Any other symbol is disabled for that dialect. See
 [goal-language.md](goal-language.md#how-a-dialect-enables-operators) and
 [operators.md](operators.md).
 
@@ -513,10 +526,10 @@ two things this needs:
 
   | Where | Tokens |
   | --- | --- |
-  | line start (a document) | indentation (skipped); then `<<` / `{` (annotations), an id start (`G`/`T`/`R` + digit or `X`), or a KEY (a property line) |
+  | line start (a document) | indentation (skipped); then `<<` / `{` (annotations), an id start (`G`/`T`/`R`/`AT` + digit or `X`), or a KEY (a property line) |
   | `<<…>>` | TEXT, `>>` |
   | `{…}` before the id | TEXT, `=`, `}` |
-  | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->`, then `, ^ & ~ ! ( ) *`, DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped) |
+  | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->` (with `AT`), then `, ^ & ~ ! ( ) *` and the calls (`FALLBACK`), DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped) |
   | an annotated name | an optional id and `:` (`G1:` as an element line's tokens), then PLAIN_NAME, then the RT set with spaces skipped |
   | `{…}` after the name | `}`, `..`, `=`, INTEGER, IDENT, spaces (skipped) |
   | a property value | VALUE (the rest of the line) |

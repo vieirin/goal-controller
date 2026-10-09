@@ -30,6 +30,7 @@ reads as `(G2;G3);G4`, as ANTLR's left-recursive alternatives did.
 |     — |  `*`   | standalone             | —              | `[*]`    |            | —                      | —                      |
 |     — |  `?`   | standalone             | —              | `[?]`    |            | —                      | —                      |
 |     — |  `#`   | standalone             | —              | `[#]`    |            | —                      | —                      |
+|     — | `FALLBACK` | call, 2 operands  | —              | `FALLBACK(G2,G3)` |   | —                      | —                      |
 
 A dash in an engine's column means the engine leaves that operator disabled,
 so the validator reports it there (for example "`?` is not an operator of
@@ -48,6 +49,8 @@ differently.
 - `skip`.
 - A group: `[...]` or `(...)`.
 - A standalone symbol.
+- A call: `FALLBACK(G2,G3)`. Its commas separate operands; they are not
+  the `,` operator.
 
 A space inside a notation is an error (`[G2; G3]`). RTRegex.g4 read a space
 as part of a name, and the language keeps that behaviour so engines read

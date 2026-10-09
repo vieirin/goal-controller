@@ -13,7 +13,7 @@ import {
 } from '@goal-controller/dialect';
 import type { IToken } from 'chevrotain';
 import type { GoalLexer, LexerStart } from '../lexer.js';
-import { ID_PREFIXES } from '../catalog.js';
+import { CALL_NAMES, ID_PREFIXES } from '../catalog.js';
 import { goalServices } from '../parse.js';
 
 export type HighlightStyle =
@@ -57,6 +57,7 @@ const STYLE: Record<string, HighlightStyle> = {
   '<<': 'brace',
   '>>': 'brace',
   skip: 'keyword',
+  ...Object.fromEntries(CALL_NAMES.map((name) => [name, 'keyword' as const])),
   true: 'atom',
   false: 'atom',
   WORD: 'string',
@@ -99,11 +100,11 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
       (ID_PREFIX.has(name) &&
         next &&
         ID_REST.has(next.tokenType.name) &&
-        next.startOffset === token.startOffset + 1) ||
+        next.startOffset === token.startOffset + token.image.length) ||
       (ID_REST.has(name) &&
         previous &&
         ID_PREFIX.has(previous.tokenType.name) &&
-        token.startOffset === previous.startOffset + 1);
+        token.startOffset === previous.startOffset + previous.image.length);
     if (name === '{') declaring = true;
     else if (name === '}') declaring = false;
     if (name === '<<') annotation = 'stereotype';

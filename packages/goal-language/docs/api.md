@@ -147,6 +147,7 @@ These are also in `/light`.
 | `OPERATORS` | every operator: `{ symbol, form, precedence, assoc, example }` |
 | `INFIX_SYMBOLS` | binary symbols, tightest first |
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
+| `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2) |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |
 | `ID_PREFIXES` | `G`, `T`, `R`, `AT` |

@@ -4,7 +4,7 @@ import {
   type IToken,
 } from 'chevrotain';
 import { DefaultLexer, type LexerResult } from 'langium';
-import { ID_PREFIXES } from './catalog.js';
+import { CALL_NAMES, ID_PREFIXES } from './catalog.js';
 
 /** An id prefix, longest first (`AT` before `T`). */
 const PREFIX = [...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|');
@@ -31,7 +31,7 @@ const literal = (...keywords: string[]): Array<[string, RegExp]> =>
  */
 const RT = rules([
   ...literal(...ID_PREFIXES, '[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
-  ...literal(',', '^', '&', '~', '!', '(', ')', '*'),
+  ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
   ['DIGIT_SUBID', /[0-9][a-z]/],
   ['FLOAT', /[0-9]+\.?[0-9]*/],
   ['skip', /skip/],

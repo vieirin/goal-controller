@@ -93,6 +93,8 @@ const grouped = (tree: RtTree | null): string => {
       return `${tree.operator}${grouped(tree.expr)}`;
     case 'group':
       return `${tree.open}${grouped(tree.expr)}${tree.open === '[' ? ']' : ')'}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(grouped).join(',')})`;
     case 'ref':
       return tree.id;
     case 'skip':

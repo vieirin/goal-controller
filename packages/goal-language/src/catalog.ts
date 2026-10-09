@@ -11,7 +11,12 @@
  * written from this table (the tests check they agree).
  */
 
-export type OperatorForm = 'infix' | 'prefix' | 'postfix' | 'standalone';
+export type OperatorForm =
+  | 'infix'
+  | 'prefix'
+  | 'postfix'
+  | 'standalone'
+  | 'call';
 
 export type CatalogOperator = {
   symbol: string;
@@ -45,12 +50,25 @@ export const POSTFIX_SYMBOLS = ['@'] as const;
 /** `[+]`: the symbol is a whole operand on its own. */
 export const STANDALONE_SYMBOLS = ['+', '*', '?', '#'] as const;
 
+/**
+ * `FALLBACK(G1,G2)`: a construct written as a call, with the number of
+ * operands it takes (MutRoSe's runtime annotations). A call is an operand on
+ * its own, like a group: its commas separate operands, they are not `,`.
+ */
+export const CALLS = { FALLBACK: { arity: 2 } } as const;
+export const CALL_NAMES = Object.keys(CALLS) as (keyof typeof CALLS)[];
+
 export type InfixSymbol = (typeof INFIX_SYMBOLS)[number];
 export type PrefixSymbol = (typeof PREFIX_SYMBOLS)[number];
 export type PostfixSymbol = (typeof POSTFIX_SYMBOLS)[number];
 export type StandaloneSymbol = (typeof STANDALONE_SYMBOLS)[number];
+export type CallName = keyof typeof CALLS;
 /** A symbol a dialect may map to a construct (or, postfix, to a modifier). */
-export type OperatorSymbol = InfixSymbol | PrefixSymbol | PostfixSymbol;
+export type OperatorSymbol =
+  | InfixSymbol
+  | PrefixSymbol
+  | PostfixSymbol
+  | CallName;
 
 /** The whole catalog, tightest first (standalone symbols have no precedence: 0). */
 export const OPERATORS: readonly CatalogOperator[] = [
@@ -81,6 +99,13 @@ export const OPERATORS: readonly CatalogOperator[] = [
     precedence: 0,
     assoc: 'none',
     example: symbol,
+  })),
+  ...CALL_NAMES.map((symbol): CatalogOperator => ({
+    symbol,
+    form: 'call',
+    precedence: 0,
+    assoc: 'none',
+    example: `${symbol}(${Array.from({ length: CALLS[symbol].arity }, (_, i) => `G${i + 1}`).join(',')})`,
   })),
 ];
 

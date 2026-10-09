@@ -76,7 +76,7 @@ const ownerAbove = (definition: Definition, lines: Line[], line: Line) => {
 const operatorHover = (
   definition: Definition,
   symbol: string,
-  form: 'infix' | 'prefix' | 'postfix' | 'standalone',
+  form: 'infix' | 'prefix' | 'postfix' | 'standalone' | 'call',
 ): string => {
   const notation = definition.notation;
   if (!notation || !isEnabled({ notation }, symbol, form))

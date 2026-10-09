@@ -31,8 +31,10 @@ export type Span = { from: number; to: number };
 /** An operator as written in a notation. */
 export type WrittenOperator = {
   symbol: string;
-  form: 'infix' | 'prefix' | 'postfix' | 'standalone';
+  form: 'infix' | 'prefix' | 'postfix' | 'standalone' | 'call';
   span: Span;
+  /** a call's operands, as written */
+  operands?: number;
 };
 
 export type ElementReading = {
@@ -91,6 +93,7 @@ const keywordSpan = (node: AstNode, keyword: string): Span | null =>
 const operatorOf = (expr: RtExpr): WrittenOperator | null => {
   const at = (property: string) => propertySpan(expr, property);
   switch (expr.$type) {
+    case 'RtComma':
     case 'RtBinary': {
       // an infix rule's operator is a keyword between its operands
       const node = expr.$cstNode;
@@ -119,6 +122,17 @@ const operatorOf = (expr: RtExpr): WrittenOperator | null => {
     case 'RtStandalone': {
       const span = at('symbol');
       return span && { symbol: expr.symbol, form: 'standalone', span };
+    }
+    case 'RtCall': {
+      const span = at('function');
+      return (
+        span && {
+          symbol: expr.function,
+          form: 'call',
+          span,
+          operands: expr.args.length,
+        }
+      );
     }
     default:
       return null;

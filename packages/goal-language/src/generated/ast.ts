@@ -51,6 +51,7 @@ export type GoalKeywordNames =
     | "?"
     | "@"
     | "AT"
+    | "FALLBACK"
     | "G"
     | "R"
     | "T"
@@ -519,10 +520,10 @@ export function isRtArgument(item: unknown): item is RtArgument {
 }
 
 export interface RtBinary extends langium.AstNode {
-    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtCall | RtComma | RtGroup | RtNot;
     readonly $type: 'RtBinary';
     left: RtExpr;
-    operator: '#' | '&' | '+' | ',' | '->' | ';' | '?' | '^' | '|' | '~';
+    operator: '#' | '&' | '+' | '->' | ';' | '?' | '^' | '|' | '~';
     right: RtExpr;
 }
 
@@ -537,7 +538,43 @@ export function isRtBinary(item: unknown): item is RtBinary {
     return reflection.isInstance(item, RtBinary.$type);
 }
 
-export type RtExpr = RtArgument | RtBinary | RtGroup | RtNot | RtRef | RtSkip | RtStandalone;
+export interface RtCall extends langium.AstNode {
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $type: 'RtCall';
+    args: Array<RtBinary>;
+    function: 'FALLBACK';
+}
+
+export const RtCall = {
+    $type: 'RtCall',
+    args: 'args',
+    function: 'function'
+} as const;
+
+export function isRtCall(item: unknown): item is RtCall {
+    return reflection.isInstance(item, RtCall.$type);
+}
+
+export interface RtComma extends langium.AstNode {
+    readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
+    readonly $type: 'RtComma';
+    left: RtBinary;
+    operator: ',';
+    right: RtBinary;
+}
+
+export const RtComma = {
+    $type: 'RtComma',
+    left: 'left',
+    operator: 'operator',
+    right: 'right'
+} as const;
+
+export function isRtComma(item: unknown): item is RtComma {
+    return reflection.isInstance(item, RtComma.$type);
+}
+
+export type RtExpr = RtArgument | RtBinary | RtCall | RtComma | RtGroup | RtNot | RtRef | RtSkip | RtStandalone;
 
 export const RtExpr = {
     $type: 'RtExpr'
@@ -701,6 +738,8 @@ export type GoalAstType = {
     RefListValue: RefListValue
     RtArgument: RtArgument
     RtBinary: RtBinary
+    RtCall: RtCall
+    RtComma: RtComma
     RtExpr: RtExpr
     RtGroup: RtGroup
     RtNot: RtNot
@@ -1065,6 +1104,34 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 right: {
                     name: RtBinary.right
+                }
+            },
+            superTypes: [RtExpr.$type]
+        },
+        RtCall: {
+            name: RtCall.$type,
+            properties: {
+                args: {
+                    name: RtCall.args,
+                    defaultValue: []
+                },
+                function: {
+                    name: RtCall.function
+                }
+            },
+            superTypes: [RtExpr.$type]
+        },
+        RtComma: {
+            name: RtComma.$type,
+            properties: {
+                left: {
+                    name: RtComma.left
+                },
+                operator: {
+                    name: RtComma.operator
+                },
+                right: {
+                    name: RtComma.right
                 }
             },
             superTypes: [RtExpr.$type]

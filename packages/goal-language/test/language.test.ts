@@ -8,6 +8,7 @@ import { AstUtils, GrammarAST } from 'langium';
 import { GoalGrammar } from '../src/generated/grammar.js';
 import {
   ASSERTION,
+  CALL_NAMES,
   INFIX_SYMBOLS,
   POSTFIX_SYMBOLS,
   PREFIX_SYMBOLS,
@@ -57,6 +58,8 @@ const grouped = (tree: RtTree | null): string => {
       return `${tree.operator}${grouped(tree.expr)}`;
     case 'group':
       return `${tree.open}${grouped(tree.expr)}${tree.open === '[' ? ']' : ')'}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(grouped).join(',')})`;
     default:
       return rtText(tree);
   }
@@ -64,8 +67,9 @@ const grouped = (tree: RtTree | null): string => {
 
 describe('the grammar and the catalog', () => {
   it('binds the binary operators as the catalog lists them, tightest first', () => {
+    // `,`, the loosest, is read by RtExpr itself (a call's commas are not it)
     assert.deepEqual(
-      infix('RtBinary'),
+      [...infix('RtBinary'), keywords('RtExpr')],
       INFIX_SYMBOLS.map((s) => [s]),
     );
     assert.deepEqual(
@@ -80,6 +84,7 @@ describe('the grammar and the catalog', () => {
     const primary = keywords('RtPrimary');
     for (const symbol of STANDALONE_SYMBOLS)
       assert.ok(primary.includes(symbol));
+    for (const name of CALL_NAMES) assert.ok(primary.includes(name));
   });
 
   it('reads every value type with a rule of its own', () => {
@@ -148,6 +153,27 @@ describe('the RT notation', () => {
       },
     });
     assert.equal(grouped(notation('[G2;G3]@2->G4')), '([(G2;G3)]@2->G4)');
+  });
+
+  it('reads a call’s operands between its commas, which are not `,`', () => {
+    assert.equal(
+      grouped(notation('G1;FALLBACK(G2#G3,AT1;G4)')),
+      '(G1;FALLBACK((G2#G3),(AT1;G4)))',
+    );
+    assert.deepEqual(notation('FALLBACK(G2,G3)'), {
+      kind: 'call',
+      name: 'FALLBACK',
+      args: [
+        { kind: 'ref', id: 'G2' },
+        { kind: 'ref', id: 'G3' },
+      ],
+    });
+    // a comma outside a call is still the operator, loosest of all
+    assert.equal(grouped(notation('G1;G2,G3')), '((G1;G2),G3)');
+    assert.equal(
+      rtText(notation('FALLBACK(G2,[G3,G4])')),
+      'FALLBACK(G2,[G3,G4])',
+    );
   });
 
   it('reads groups, skip, standalone symbols and every id form', () => {

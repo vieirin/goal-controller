@@ -17,7 +17,12 @@ import {
   type AssertionTree,
   type RtTree,
 } from '../parse.js';
-import { isEnabled, operandIds, readNotation } from './reading.js';
+import {
+  callOperands,
+  isEnabled,
+  operandIds,
+  readNotation,
+} from './reading.js';
 
 /**
  * What a notation makes a goal do: its construct, the ids of its operands
@@ -72,6 +77,13 @@ const outermost = (
     case 'group':
     case 'postfix':
       return outermost(dialect, tree.expr);
+    case 'call':
+      return isEnabled(dialect, tree.name, 'call')
+        ? {
+            construct: dialect.notation.operators[tree.name]!,
+            ids: callOperands(tree).filter(Boolean),
+          }
+        : null;
     case 'prefix':
     case 'binary': {
       const form = tree.kind === 'binary' ? 'infix' : 'prefix';

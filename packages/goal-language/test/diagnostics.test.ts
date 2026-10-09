@@ -6,6 +6,8 @@ import {
   documentDiagnostics,
   fieldCompletionsAt,
   fieldDiagnostics,
+  parseElementLine,
+  readNotation,
 } from '../src/index.js';
 import { toy } from '../../dialect/test/support/toy.js';
 
@@ -229,6 +231,40 @@ describe('what the dialect allows', () => {
     ]);
     // enabled: ; | @ and a standalone *
     expect(messages('G1: Go [G2@2|T1]')).to.deep.equal([]);
+  });
+
+  it('flags a call the dialect does not enable, and one with another number of operands', () => {
+    expect(messages('G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([
+      ['FALLBACK', 'error', '`FALLBACK` is not an operator of Toy'],
+    ]);
+    const calling = {
+      ...toy,
+      notation: {
+        ...toy.notation,
+        operators: { ...toy.notation.operators, FALLBACK: 'fallback' },
+      },
+    } as typeof toy;
+    const found = (doc: string) =>
+      documentDiagnostics(calling, doc, context).map((d) => [
+        doc.slice(d.from, d.to),
+        d.message,
+      ]);
+    expect(found('G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([]);
+    const typing = 'G1: Go [G2;';
+    expect(
+      completionsAt(calling, typing, typing.length, context)!.options.map(
+        (o) => o.label,
+      ),
+    ).to.include('FALLBACK(');
+    expect(found('G1: Go [FALLBACK(G2;T1)]')).to.deep.equal([
+      ['FALLBACK', '`FALLBACK` takes 2 operands, not 1'],
+    ]);
+    // a call is an operand of its own, as a group is
+    const tree = parseElementLine('G1: Go [T1;FALLBACK(G2,T1)]').value!
+      .notation;
+    const read = readNotation(calling, tree);
+    expect(read.constructs.get('fallback')).to.deep.equal(['G2', 'T1']);
+    expect(read.constructs.get('sequence')).to.deep.equal(['T1']);
   });
 
   it('flags skip where the dialect has no skip', () => {

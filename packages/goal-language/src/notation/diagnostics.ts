@@ -20,6 +20,7 @@ import {
   type WithNotation,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
+import { CALLS, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 
@@ -84,7 +85,10 @@ const unreadableParts = (
   return [...found.values()];
 };
 
-/** What a notation writes that its dialect does not enable: operators, `skip`. */
+/**
+ * What a notation writes that its dialect does not enable (operators, `skip`),
+ * and calls with another number of operands than they take.
+ */
 const disabled = (
   definition: Pick<AnyDialect, 'name'> & WithNotation,
   notation: NonNullable<ElementReading['notation']>,
@@ -113,6 +117,19 @@ const disabled = (
           severity: 'error' as const,
           message: `\`skip\` is not an operand of ${definition.name}`,
         }))),
+    // a call with as many operands as the language's catalog gives it
+    ...notation.operators.flatMap(({ symbol, form, span, operands }) => {
+      const arity = form === 'call' && CALLS[symbol as CallName]?.arity;
+      return arity && operands !== arity
+        ? [
+            {
+              ...span,
+              severity: 'error' as const,
+              message: `\`${symbol}\` takes ${arity} operands, not ${operands}`,
+            },
+          ]
+        : [];
+    }),
   ];
 };
 

@@ -7,7 +7,7 @@
 import type { WithNotation } from '@goal-controller/dialect';
 import { rtText, type RtTree } from '../parse.js';
 
-type Form = 'infix' | 'prefix' | 'postfix' | 'standalone';
+type Form = 'infix' | 'prefix' | 'postfix' | 'standalone' | 'call';
 
 /**
  * Whether a dialect enables an operator: a standalone symbol as standalone,
@@ -29,7 +29,8 @@ export const isEnabled = (
 
 /**
  * An operand's element ids (and `skip`, and standalone symbols): through
- * operators and modifiers; a group's (`[...]`) are its own, not its parent's.
+ * operators and modifiers; a group's (`[...]`) and a call's
+ * (`FALLBACK(...)`) are their own, not their parent's.
  */
 export const operandIds = (tree: RtTree | null): string[] => {
   switch (tree?.kind) {
@@ -48,6 +49,11 @@ export const operandIds = (tree: RtTree | null): string[] => {
       return [];
   }
 };
+
+/** A call's operands' ids, its arguments in order (`FALLBACK(G2,G3)`: G2, G3). */
+export const callOperands = (
+  tree: Extract<RtTree, { kind: 'call' }>,
+): string[] => tree.args.flatMap(operandIds);
 
 export type NotationReading = {
   /** each construct's ids, from its last (outermost) operator, empty or not */
@@ -91,6 +97,14 @@ export const readNotation = (
           reading.constructs.set(
             operators[node.operator]!,
             operandIds(node).filter(Boolean),
+          );
+        return;
+      case 'call':
+        for (const arg of node.args) visit(arg);
+        if (enabled(node.name, 'call'))
+          reading.constructs.set(
+            operators[node.name]!,
+            callOperands(node).filter(Boolean),
           );
         return;
       case 'postfix': {

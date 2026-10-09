@@ -57,11 +57,14 @@ PropertyLine:
 // alternatives were.
 // ---------------------------------------------------------------------------
 
+// `,` binds loosest of all; it is written apart from the other binary
+// operators so that a call's arguments, read just below it, are separated by
+// commas that are not it (left-associative, as an infix rule would be)
 RtExpr:
-    RtBinary;
+    RtBinary ({infer RtComma.left=current} operator=',' right=RtBinary)*;
 
 infix RtBinary on RtPrefix:
-    '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->' > ',';
+    '^' > '|' > '?' > '+' > '&' > '#' > '~' > ';' > '->';
 
 RtPrefix infers RtExpr:
     {infer RtNot} operator='!' expr=RtPrefix
@@ -73,6 +76,7 @@ RtPostfix infers RtExpr:
 RtPrimary infers RtExpr:
     {infer RtGroup} open='[' expr=RtExpr ']'
     | {infer RtGroup} open='(' expr=RtExpr ')'
+    | {infer RtCall} function='FALLBACK' '(' args+=RtBinary (',' args+=RtBinary)* ')'
     | {infer RtSkip} keyword='skip'
     | {infer RtStandalone} symbol=('+' | '*' | '?' | '#')
     | {infer RtRef} ref=[ElementLine:ElementId];

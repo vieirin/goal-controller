@@ -10,6 +10,16 @@ const parts = (text: string) =>
   ]);
 
 describe('highlightValue', () => {
+  it('reads a call’s name as a keyword, MutRoSe’s task ids as ids', () => {
+    const text = 'G1: Go [FALLBACK(AT1,G2)]';
+    const styles = highlightValue({ type: 'annotatedName' }, text).map((h) => [
+      text.slice(h.from, h.to),
+      h.style,
+    ]);
+    expect(styles).to.deep.include(['FALLBACK', 'keyword']);
+    expect(styles).to.deep.include(['AT1', 'labelName']);
+  });
+
   it('tells an annotation’s stereotype, tag name and tag value apart, with their text', () => {
     expect(parts('<<goal-based>> {Reference to = KIT-12} Robot')).to.deep.equal(
       [
