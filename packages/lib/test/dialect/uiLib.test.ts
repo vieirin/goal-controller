@@ -41,16 +41,18 @@ const MODEL = readFileSync(
   'utf8',
 );
 
-/** A line's tokens and styles, as the Notation view's highlighter reads them. */
-const tokens = (definition: AnyDialect, line: string) => {
+/** Lines' tokens and styles, as the Notation view's highlighter reads them (one state). */
+const tokens = (definition: AnyDialect, ...lines: string[]) => {
   const parser = documentParser(definition);
   const state = parser.startState!(2);
-  const stream = new StringStream(line, 2, 2);
   const read: [string, string | null][] = [];
-  while (!stream.eol()) {
-    stream.start = stream.pos;
-    const style = parser.token(stream, state);
-    if (stream.current().trim()) read.push([stream.current(), style]);
+  for (const line of lines) {
+    const stream = new StringStream(line, 2, 2);
+    while (!stream.eol()) {
+      stream.start = stream.pos;
+      const style = parser.token(stream, state);
+      if (stream.current().trim()) read.push([stream.current(), style]);
+    }
   }
   return read;
 };
@@ -94,7 +96,9 @@ describe('ui definitionLanguage', () => {
   it('reads annotations before the id', () => {
     const read = tokens(ra, '<<action>> {type = duty} T1: Book a room');
     expect(read.slice(0, 1)).to.deep.equal([['<<', 'brace']]);
-    expect(styled(read, 'meta')).to.equal('actiontypeduty');
+    expect(styled(read, 'hue0')).to.equal('action');
+    expect(styled(read, 'propertyName')).to.equal('type');
+    expect(styled(read, 'hue1')).to.equal('duty');
     expect(styled(read, 'operator')).to.equal('=');
     expect(read.find(([, s]) => s === 'labelName')).to.deep.equal([
       'T1',
@@ -105,7 +109,8 @@ describe('ui definitionLanguage', () => {
   it('reads annotations in every dialect, and the line after them as before', () => {
     const line = '{Id = G1} G1: A [T1;T2]';
     // the goal language has annotations; edgeV2's validator reports them
-    expect(styled(tokens(edgeV2, line), 'meta')).to.equal('IdG1');
+    expect(styled(tokens(edgeV2, line), 'propertyName')).to.equal('Id');
+    expect(styled(tokens(edgeV2, line), 'hue0')).to.equal('G1');
     expect(styled(tokens(ra, line.slice(10)), 'labelName')).to.equal(
       styled(tokens(edgeV2, line.slice(10)), 'labelName'),
     );
@@ -204,8 +209,31 @@ describe('ui dialects', () => {
       DIALECT_DEFINITIONS.pistarext,
       '<<goal-based>> {Id = A1} Robot',
     );
-    expect(styled(read, 'meta')).to.equal('goal-basedIdA1');
+    expect(styled(read, 'hue0')).to.equal('goal-based');
+    expect(styled(read, 'propertyName')).to.equal('Id');
+    expect(styled(read, 'hue1')).to.equal('A1');
     expect(styled(read, 'string')).to.equal('Robot');
+  });
+
+  it('colours a stereotype or tag value by its text: the same text, the same colour', () => {
+    const read = tokens(
+      DIALECT_DEFINITIONS.pistarext,
+      '<<goal-based>> Robot',
+      '  <<action>> {type = duty} Collect sample',
+      '<<goal-based>> Drone',
+      '  <<action>> {type = right} Fly',
+      '  {type = duty} Plan',
+    );
+    const hues = read.filter(([, style]) => style?.startsWith('hue'));
+    expect(hues).to.deep.equal([
+      ['goal-based', 'hue0'],
+      ['action', 'hue1'],
+      ['duty', 'hue2'],
+      ['goal-based', 'hue0'],
+      ['action', 'hue1'],
+      ['right', 'hue3'],
+      ['duty', 'hue2'],
+    ]);
   });
 
   it("leaves the engines' definitions without the dialect", () => {

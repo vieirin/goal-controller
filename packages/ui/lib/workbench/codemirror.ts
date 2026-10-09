@@ -8,17 +8,35 @@ import {
   syntaxHighlighting,
   type StreamParser,
 } from '@codemirror/language';
-import { RangeSetBuilder, StateEffect, StateField, type Extension } from '@codemirror/state';
+import {
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  type Extension,
+} from '@codemirror/state';
 import { Decoration, EditorView, type DecorationSet } from '@codemirror/view';
-import { tags as t } from '@lezer/highlight';
+import { Tag, tags as t } from '@lezer/highlight';
 
 // ---------------------------------------------------------------------------
 // PRISM language (enough for highlighting generated models)
 // ---------------------------------------------------------------------------
 
 const KEYWORDS = new Set([
-  'dtmc', 'mdp', 'ctmc', 'module', 'endmodule', 'formula', 'const', 'label',
-  'rewards', 'endrewards', 'init', 'endinit', 'global', 'system', 'endsystem',
+  'dtmc',
+  'mdp',
+  'ctmc',
+  'module',
+  'endmodule',
+  'formula',
+  'const',
+  'label',
+  'rewards',
+  'endrewards',
+  'init',
+  'endinit',
+  'global',
+  'system',
+  'endsystem',
 ]);
 const TYPES = new Set(['int', 'double', 'bool']);
 const ATOMS = new Set(['true', 'false']);
@@ -32,7 +50,7 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       stream.skipToEnd();
       return 'comment';
     }
-    if (stream.peek() === '[' ) {
+    if (stream.peek() === '[') {
       stream.next();
       state.inLabel = true;
       return 'bracket';
@@ -56,7 +74,8 @@ const prismParser: StreamParser<{ inLabel: boolean }> = {
       if (ATOMS.has(text)) return 'atom';
       return 'variableName';
     }
-    if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/)) return 'operator';
+    if (stream.match(/^(->|<=|>=|!=|=>|<=>|[=<>&|!+\-*/?:;.])/))
+      return 'operator';
     stream.next();
     return null;
   },
@@ -69,7 +88,34 @@ export const prismLanguage = StreamLanguage.define(prismParser);
 // Theme
 // ---------------------------------------------------------------------------
 
+/**
+ * The colours an annotation's stereotypes and tag values take: one per text,
+ * in the order they first appear (the same text, the same colour). Apart from
+ * the ids' violet, the names' teal and the numbers' amber; past ten texts
+ * they repeat.
+ */
+const ANNOTATION_COLOURS = [
+  '#C2410C',
+  '#2563EB',
+  '#BE185D',
+  '#15803D',
+  '#0E7490',
+  '#92400E',
+  '#B91C1C',
+  '#4D7C0F',
+  '#A21CAF',
+  '#475569',
+];
+export const annotationHues: readonly Tag[] = ANNOTATION_COLOURS.map(() =>
+  Tag.define(),
+);
+
 const highlight = HighlightStyle.define([
+  ...annotationHues.map((tag, i) => ({
+    tag,
+    color: ANNOTATION_COLOURS[i],
+    fontWeight: '500',
+  })),
   { tag: t.keyword, color: '#1E2527', fontWeight: '600' },
   { tag: t.typeName, color: '#1F7A74' },
   { tag: t.labelName, color: '#6D4AFF' },
@@ -97,10 +143,18 @@ export const workbenchTheme: Extension = [
     },
     '.cm-cursor': { borderLeftColor: '#6D4AFF' },
     '.cm-tooltip': { border: '1px solid #DDE3E1', borderRadius: '6px' },
-    '.cm-changedLine': { backgroundColor: 'rgba(31, 122, 116, 0.07) !important' },
-    '.cm-deletedChunk': { backgroundColor: 'rgba(194, 65, 45, 0.07) !important' },
-    '.cm-insertedLine, .cm-changedText': { backgroundColor: 'rgba(31, 122, 116, 0.12) !important' },
-    '.cm-deletedLine, .cm-deletedText': { backgroundColor: 'rgba(194, 65, 45, 0.12) !important' },
+    '.cm-changedLine': {
+      backgroundColor: 'rgba(31, 122, 116, 0.07) !important',
+    },
+    '.cm-deletedChunk': {
+      backgroundColor: 'rgba(194, 65, 45, 0.07) !important',
+    },
+    '.cm-insertedLine, .cm-changedText': {
+      backgroundColor: 'rgba(31, 122, 116, 0.12) !important',
+    },
+    '.cm-deletedLine, .cm-deletedText': {
+      backgroundColor: 'rgba(194, 65, 45, 0.12) !important',
+    },
     '.cm-collapsedLines': {
       backgroundColor: '#F3F5F4',
       color: '#6B7679',
@@ -154,7 +208,12 @@ export const rangeMarksField = StateField.define<DecorationSet>({
           effect.value
             .filter((mark) => mark.from < mark.to && mark.to <= length)
             .sort((a, b) => a.from - b.from)
-            .map((mark) => Decoration.mark({ class: mark.className }).range(mark.from, mark.to)),
+            .map((mark) =>
+              Decoration.mark({ class: mark.className }).range(
+                mark.from,
+                mark.to,
+              ),
+            ),
         );
       }
     }
