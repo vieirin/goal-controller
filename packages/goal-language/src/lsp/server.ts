@@ -255,6 +255,8 @@ export const createGoalLspServices = (
         ',',
         '(',
         '.',
+        // a type, after `name :` (an ocl value's candidates)
+        ':',
       ],
     };
 
