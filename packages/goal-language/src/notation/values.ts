@@ -5,6 +5,7 @@
  */
 import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
 import { parseValue } from '../parse.js';
+import { assertionVariables } from './goalNames.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
@@ -87,4 +88,41 @@ export const valueProblem = (
     case 'text':
       return null;
   }
+};
+
+/**
+ * The names a condition compares that the model doesn't know: neither an
+ * element of a kind it resolves nor, when it resolves variables, one of the
+ * workbench's (a typo, or a variable the model doesn't use yet).
+ */
+export const unknownNames = (
+  value: ValueConfig,
+  text: string,
+  context: DefinitionContext,
+): string[] => {
+  if (value.type !== 'assertion' || parseValue('assertion', text).errors.length)
+    return [];
+  const resolves: readonly string[] = value.resolves;
+  const known = (name: string) => {
+    const kind = kindOf(context, name);
+    return kind
+      ? resolves.includes(kind)
+      : resolves.includes('variable') && context.variables.includes(name);
+  };
+  return assertionVariables(text)
+    .map((variable) => variable.name)
+    .filter((name) => !known(name));
+};
+
+/** What an unknown name is not: `a resource of this model or a known variable`. */
+export const unknownNameMessage = (
+  value: Extract<ValueConfig, { type: 'assertion' }>,
+  name: string,
+): string => {
+  const kinds = value.resolves.filter((kind) => kind !== 'variable');
+  const element = kinds.length ? `a ${kinds.join(' or ')} of this model` : '';
+  const variable = value.resolves.includes('variable')
+    ? 'a known variable'
+    : '';
+  return `${name} is not ${[element, variable].filter(Boolean).join(' or ')}`;
 };

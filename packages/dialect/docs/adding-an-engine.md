@@ -260,7 +260,7 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 
 Adding `'mission'` to `TransformEngine` makes the type-checker flag #3, #12, #13 and #14 (and #2 once the definition is listed); the others are not exhaustive and fall back silently (`services/transform.ts` to SLEEC, `services/analyze.ts` to Edge, `ModelDiagram`/`ModelInspector` to nothing), so do them from this list.
 
-The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). The `LanguageSupport` slot (`engines/definition/useLanguageSupport.ts`) is where a real language server would be provided; without one, the local support is used.
+The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
 
 ## 5. Step 4: examples and tests
 

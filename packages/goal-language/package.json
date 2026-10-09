@@ -16,12 +16,24 @@
       "types": "./out/esm/light.d.ts",
       "import": "./out/esm/light.js",
       "require": "./out/cjs/light.cjs"
+    },
+    "./lsp": {
+      "types": "./out/esm/lsp/server.d.ts",
+      "import": "./out/esm/lsp/server.js",
+      "require": "./out/cjs/lsp.cjs"
+    },
+    "./worker": {
+      "types": "./out/esm/lsp/worker.d.ts",
+      "import": "./out/esm/lsp/worker.js"
     }
   },
   "typesVersions": {
     "*": {
       "light": [
         "out/esm/light.d.ts"
+      ],
+      "lsp": [
+        "out/esm/lsp/server.d.ts"
       ]
     }
   },
@@ -35,7 +47,8 @@
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",
     "chevrotain": "~13.2.0",
-    "langium": "4.4.0"
+    "langium": "4.4.0",
+    "vscode-languageserver": "~10.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",

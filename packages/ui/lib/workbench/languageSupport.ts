@@ -39,17 +39,14 @@ export type LanguageSupport = {
   fieldExtension(elementId: string, key: string): Extension;
   /** what the text is checked against (the context notification) */
   setContext(context: DefinitionContext): void;
+  /** the engine's grammar errors on the saved lines (sent with the context) */
+  setSaved(saved: SavedLines): void;
 };
 
 /** What the engine's grammar said of each saved element line, by id. */
 export type SavedLines = Readonly<
   Record<string, { line: string; error: string | null }>
 >;
-
-export type LocalLanguageSupport = LanguageSupport & {
-  /** the view's grammar errors (a language server reads them itself) */
-  setSaved(saved: SavedLines): void;
-};
 
 const EMPTY: DefinitionContext = { elements: {}, variables: [] };
 
@@ -73,7 +70,7 @@ const toCodeMirror = (
 export const localLanguageSupport = (
   definition: AnyDialect,
   checks: Readonly<Record<string, Check>>,
-): LocalLanguageSupport => {
+): LanguageSupport => {
   let context = EMPTY;
   let saved: SavedLines = {};
   // what an engine check may ask of another element (a quality is a goal to no check)

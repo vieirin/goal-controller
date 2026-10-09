@@ -1,11 +1,15 @@
 /**
  * What may be typed at a position, from the definition and the model's
  * context: inside a notation, the element's children, `skip` and the
- * operators the dialect enables; on a line under an element, the keys its kind reads (not yet
- * set); in a field, the ids or names its value config refers to.
+ * operators the dialect enables; on a line under an element, the keys its kind
+ * reads (not yet set), then what the key's value type refers to; in an
+ * annotation, the dialect's stereotypes, tags and a listed tag's values; in a
+ * field, its enum's options, or the ids or names its value refers to.
  */
 import {
   constructDefinition,
+  propertyOf,
+  valueOf,
   type DefinitionContext,
   type AnyDialect,
   type WithNotation,
@@ -50,6 +54,85 @@ const operatorOptions = ({ notation }: WithNotation): Completion[] => {
   ];
 };
 
+/** What a dialect's properties list for a key, on any kind (an enum's options). */
+const optionsOf = (
+  definition: Definition,
+  key: string,
+  when?: { key: string; equals: string },
+): string[] => {
+  const found = new Set<string>();
+  for (const list of Object.values(definition.properties))
+    for (const property of list ?? []) {
+      if (property.key !== key) continue;
+      const value =
+        'when' in property.value
+          ? when &&
+            property.value.when.key === when.key &&
+            property.value.when.equals === when.equals
+            ? property.value.matching
+            : property.value.otherwise
+          : property.value;
+      if (value.type === 'enum')
+        for (const option of value.options)
+          if (option.value) found.add(option.value);
+    }
+  return [...found];
+};
+
+/**
+ * Inside an annotation before the id: a stereotype (`<<…`), a tag (`{…`) or a
+ * listed tag's value (`{type = …`), from the dialect's options.
+ */
+const annotationCompletions = (
+  definition: Definition,
+  before: string,
+  lineStart: number,
+): CompletionResult | null => {
+  const atStart = (open: number) =>
+    /^\s*(?:(?:<<[^<>]*>>|\{[^{}]*\})\s*)*$/.test(before.slice(0, open));
+  const options = (labels: string[], detail: string): Completion[] =>
+    labels.map((label) => ({ label, type: 'keyword' as const, detail }));
+  const stereotype = before.lastIndexOf('<<');
+  if (stereotype > before.lastIndexOf('>>') && atStart(stereotype)) {
+    const written = before.slice(stereotype + 2);
+    return {
+      from:
+        lineStart +
+        stereotype +
+        2 +
+        (written.length - written.trimStart().length),
+      options: options(optionsOf(definition, 'stereotype'), 'stereotype'),
+    };
+  }
+  const tag = before.lastIndexOf('{');
+  if (tag > before.lastIndexOf('}') && atStart(tag)) {
+    const written = before.slice(tag + 1);
+    const equals = written.indexOf('=');
+    if (equals < 0)
+      return {
+        from:
+          lineStart + tag + 1 + (written.length - written.trimStart().length),
+        options: options(optionsOf(definition, 'tag'), 'tagged value'),
+      };
+    const name = written.slice(0, equals).trim();
+    const value = written.slice(equals + 1);
+    return {
+      from:
+        lineStart +
+        tag +
+        1 +
+        equals +
+        1 +
+        (value.length - value.trimStart().length),
+      options: options(
+        optionsOf(definition, 'tagValue', { key: 'tag', equals: name }),
+        name,
+      ),
+    };
+  }
+  return null;
+};
+
 /** Completions in a Notation view document at `pos`, if any apply there. */
 export const completionsAt = (
   definition: Definition,
@@ -68,6 +151,8 @@ export const completionsAt = (
   const before = text.slice(0, pos - start);
   const word = WORD.exec(before)?.[0] ?? '';
   const from = pos - word.length;
+  const annotated = annotationCompletions(definition, before, start);
+  if (annotated) return annotated;
   const id = lineId(definition, text);
   if (id) {
     if (!definition.notation) return null;
@@ -92,8 +177,10 @@ export const completionsAt = (
       ],
     };
   }
-  // a key: only the first word of a line under an element
-  if (before.trim() !== word) return null;
+  // a property line's value: what its property's type refers to
+  const valued = /^(\s*)([A-Za-z][A-Za-z0-9_]*)[ \t]+/.exec(before);
+  const onKey = before.trim() === word;
+  if (!onKey && !valued) return null;
   let above = index - 1;
   let owner: string | null = null;
   const set = new Set<string>();
@@ -111,6 +198,19 @@ export const completionsAt = (
   const element = owner ? context.elements[owner] : undefined;
   const owned = element && definition.elements[element.kind];
   if (!element || !owned || owned.declares) return null;
+  if (!onKey && valued) {
+    const property = propertyOf(definition, element.kind, valued[2]!);
+    if (!property) return null;
+    const valueFrom = valued[0].length;
+    const found = fieldCompletionsAt(
+      definition,
+      valueOf(property, element.properties),
+      text.slice(valueFrom),
+      before.length - valueFrom,
+      context,
+    );
+    return found && { ...found, from: start + valueFrom + found.from };
+  }
   return {
     from,
     options: (definition.properties[element.kind] ?? [])
@@ -142,6 +242,17 @@ export const fieldCompletionsAt = (
         detail: element.kind,
       }));
   if (value.type === 'refList') return { from, options: ids([value.kind]) };
+  if (value.type === 'enum')
+    return {
+      from: text.length - text.trimStart().length,
+      options: value.options
+        .filter((option) => option.value)
+        .map((option) => ({
+          label: option.value,
+          type: 'keyword' as const,
+          detail: option.label,
+        })),
+    };
   if (value.type === 'assertion') {
     const elements = ids(value.resolves.filter((kind) => kind !== 'variable'));
     const named = new Set(elements.map((option) => option.label));

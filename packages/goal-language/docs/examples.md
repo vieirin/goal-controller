@@ -3,7 +3,8 @@
 A drone delivers a sample. This page writes it in edgeV2, in Edge, and in
 edgeV2 with piStar-ext's annotations (iStar4RationalAgents). Each block is
 validated in its dialect by `packages/lib/test/dialect/docs.test.ts`. A
-block with no `%%` lines gives no diagnostics at all.
+block with no diagnostic lines (`%% error …`) gives no diagnostics at all;
+`%% variables` names the workbench's variables (`battery`).
 
 ## EdgeV2
 
@@ -25,6 +26,7 @@ G3: Bring to lab [T3@2->T4]
   T3: Fly direct
   T4: Drive around
 R1: Battery {int 0..100 = 80}
+%% variables battery
 ```
 
 What the engine reads of each goal:
@@ -52,6 +54,7 @@ G3: Bring to lab [T3@2->T4]
   T3: Fly direct
   T4: Drive around
 R1: Battery {int 0..100 = 80}
+%% variables battery
 ```
 
 ```goal-reads edge
@@ -78,6 +81,7 @@ G3: Bring to lab [T3@2->T4]
   T3: Fly direct
   T4: Drive around
 R1: Battery {int 0..100 = 80}
+%% variables battery
 ```
 
 ## piStar-ext's own definition

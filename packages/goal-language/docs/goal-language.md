@@ -2,8 +2,9 @@
 
 > Reference: [reference.md](reference.md) (the grammar rule by rule) ·
 > [api.md](api.md) · [diagnostics.md](diagnostics.md) ·
-> [examples.md](examples.md) · [operators.md](operators.md). Their
-> examples run in `packages/lib/test/dialect/docs.test.ts`.
+> [examples.md](examples.md) · [operators.md](operators.md) ·
+> [lsp.md](lsp.md) (the language server). Their examples run in
+> `packages/lib/test/dialect/docs.test.ts`.
 
 Every dialect is written in the same language: one Langium grammar,
 `src/goal.langium`. A dialect doesn't change that grammar. Its definition
@@ -25,7 +26,8 @@ no parser.
         │ types, helpers
 @goal-controller/goal-language  the grammar, its parser (plain data out), the
         ▲                       Notation view (read, write, edit), the validator,
-        │                       completion, highlighting, goalNameParserFor
+        │                       completion, highlighting, goalNameParserFor,
+        │                       the language server (/lsp, /worker)
 @goal-controller/goal-tree      the tree: reads goal texts with the reader derived
         ▲                       from the engine's dialect (never imports lib)
         │

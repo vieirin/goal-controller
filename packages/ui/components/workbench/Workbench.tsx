@@ -39,6 +39,7 @@ import {
   useSelection,
   useWorkbench,
 } from './WorkbenchContext';
+import { GoalLanguageServer } from './engines/definition/GoalLanguageServer';
 import { ShellContext, useShell } from './shell';
 import { Button, IconButton, Kbd, Tabs, cx } from './ui';
 
@@ -49,7 +50,9 @@ export default function Workbench() {
   const mode = normalizeEngineMode(useSearchParams().get('mode'));
   return (
     <WorkbenchProvider lockedEngine={mode}>
-      <ShellLayout />
+      <GoalLanguageServer>
+        <ShellLayout />
+      </GoalLanguageServer>
     </WorkbenchProvider>
   );
 }

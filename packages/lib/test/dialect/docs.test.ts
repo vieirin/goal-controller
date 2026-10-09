@@ -12,7 +12,8 @@
  *   directives: `%% <severity> [<span>] <message>` (the expected diagnostics,
  *   all of them), `%% only <ids>` (the diagram's elements),
  *   `%% children <id>: <ids>`, `%% relation <id>: and|or`,
- *   `%% construct <id>: <name>`; a dialect without ids (`rationalAgents`)
+ *   `%% construct <id>: <name>`, `%% variables <names>` (the workbench's);
+ *   a dialect without ids (`rationalAgents`)
  *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
  * Dialects: edge, edgeV2, and edgeV2 / edge with iStar4RationalAgents'
@@ -38,6 +39,10 @@ import {
   readLine,
   type RtTree,
 } from '@goal-controller/goal-language';
+import {
+  createGoalLspServices,
+  serverDiagnostics,
+} from '@goal-controller/goal-language/lsp';
 import { edge, edgeV2, istar4RationalAgents } from '../../src';
 
 const DOCS = join(__dirname, '../../../goal-language/docs');
@@ -165,7 +170,16 @@ const contextOf = (doc: string, directives: string[]): DefinitionContext => {
           ? { ...element, relation: value as Relation }
           : { ...element, construct: value };
   }
-  return { elements, variables: [] };
+  const variables = directives.find((d) => d.startsWith('variables '));
+  return {
+    elements,
+    variables: variables
+      ? variables
+          .slice(10)
+          .trim()
+          .split(/[\s,]+/)
+      : [],
+  };
 };
 
 const readsAs = (dialect: AnyDialect, text: string): string => {
@@ -184,6 +198,26 @@ const readsAs = (dialect: AnyDialect, text: string): string => {
     .join('');
   return `${d.type}(${d.ids.join(', ')})${modifiers}`;
 };
+
+/** A `goal-check` block: its dialect, its document and its directives. */
+const checked = (args: string[], body: string) => {
+  const dialect = DIALECTS[args[0]!];
+  if (!dialect) throw new Error(`unknown dialect ${args[0]}`);
+  const all = body.split('\n');
+  const directives = all
+    .filter((line) => line.startsWith('%%'))
+    .map((line) => line.slice(2).trim());
+  const doc = all.filter((line) => !line.startsWith('%%')).join('\n');
+  return { dialect, doc, directives };
+};
+
+/** The diagnostics a block expects, as `severity [span] message`. */
+const expectedOf = (directives: string[]) =>
+  directives
+    .map((d) => /^(error|warning|info) \[(.*?)\] (.*)$/.exec(d))
+    .filter((m): m is RegExpExecArray => m !== null)
+    .map((m) => `${m[1]} [${m[2]}] ${m[3]}`)
+    .sort();
 
 const run = ({ info, body }: Block) => {
   const [kind, ...args] = info;
@@ -231,23 +265,14 @@ const run = ({ info, body }: Block) => {
       return 1;
     }
     case 'goal-check': {
-      const dialect = DIALECTS[args[0]!];
-      if (!dialect) throw new Error(`unknown dialect ${args[0]}`);
-      const all = body.split('\n');
-      const directives = all
-        .filter((line) => line.startsWith('%%'))
-        .map((line) => line.slice(2).trim());
-      const doc = all.filter((line) => !line.startsWith('%%')).join('\n');
-      const expected = directives
-        .map((d) => /^(error|warning|info) \[(.*?)\] (.*)$/.exec(d))
-        .filter((m): m is RegExpExecArray => m !== null)
-        .map((m) => `${m[1]} [${m[2]}] ${m[3]}`);
+      const { dialect, doc, directives } = checked(args, body);
+      const expected = expectedOf(directives);
       const got = documentDiagnostics(
         dialect,
         doc,
         contextOf(doc, directives),
       ).map((d) => `${d.severity} [${doc.slice(d.from, d.to)}] ${d.message}`);
-      expect([...got].sort(), doc).to.deep.equal([...expected].sort());
+      expect([...got].sort(), doc).to.deep.equal(expected);
       return 1;
     }
     default:
@@ -269,5 +294,46 @@ describe('the goal language docs: every example as stated', () => {
   for (const block of found)
     it(`${block.file}:${block.line} ${block.info.join(' ')}`, () => {
       run(block);
+    });
+});
+
+describe('the goal language docs: every checked example through the language server', () => {
+  // one server for every example, as a client's: each example a document,
+  // its dialect and model sent as the `goal/context` of that document
+  const { shared, store } = createGoalLspServices();
+  const checks = blocks().filter((block) => block.info[0] === 'goal-check');
+
+  it('has checked examples', () => {
+    expect(checks.length).to.be.greaterThan(20);
+  });
+
+  for (const block of checks)
+    it(`${block.file}:${block.line} ${block.info.join(' ')}`, async () => {
+      const { dialect, doc, directives } = checked(
+        block.info.slice(1),
+        block.body,
+      );
+      const uri = `file:///docs/${block.file}/${block.line}.goal`;
+      store.set({ uri, dialect, context: contextOf(doc, directives) });
+      const got = (await serverDiagnostics(shared, uri, doc)).map(
+        (d) => `${d.severity} [${doc.slice(d.from, d.to)}] ${d.message}`,
+      );
+      expect(got.sort(), doc).to.deep.equal(expectedOf(directives));
+    });
+});
+
+describe('the goal language docs: every document example through the language server, without a dialect', () => {
+  // syntax only: a document the server has no context for
+  const { shared } = createGoalLspServices();
+  for (const block of blocks().filter((b) => b.info[0] === 'goal-document'))
+    it(`${block.file}:${block.line} ${block.info.join(' ')}`, async () => {
+      const found = await serverDiagnostics(
+        shared,
+        `file:///docs/${block.file}/${block.line}.goal`,
+        block.body,
+      );
+      expect(found.length === 0, block.body).to.equal(
+        block.info.at(-1) === 'accept',
+      );
     });
 });
