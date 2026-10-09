@@ -7,7 +7,7 @@ import {
   fieldDiagnostics,
 } from '@goal-controller/goal-language';
 import type { DefinitionContext } from '@goal-controller/dialect';
-import { edge, edgeV2, mutrose } from '../../src';
+import { edge, edgeV2, mutrose, parseWorld } from '../../src';
 
 const context: DefinitionContext = {
   elements: {
@@ -276,6 +276,10 @@ describe('completions', () => {
       'robot',
       'battery',
     ]);
+    // without the project's world, a type completes with nothing
+    expect(
+      fieldCompletions(mutrose, model, 'G1', 'Controls', 'r : ', 4),
+    ).to.equal(null);
     // in a string, nothing
     const quoted = 'assertion condition "r.';
     expect(
@@ -288,6 +292,86 @@ describe('completions', () => {
         quoted.length,
       ),
     ).to.equal(null);
+  });
+});
+
+describe('completion from the project resources', () => {
+  // what the workbench sends: the world's symbols, as its parser lists them
+  const world = parseWorld([
+    {
+      path: 'knowledge/world_db.xml',
+      text: `<world_db>
+  <Room><name>Ward1</name><is_clean>False</is_clean></Room>
+  <Robot><name>R2</name><battery>80</battery></Robot>
+</world_db>`,
+    },
+  ]);
+  const model: DefinitionContext = {
+    elements: {
+      G1: {
+        kind: 'goal',
+        children: ['G2'],
+        properties: { Controls: 'rooms : Sequence(Room), robot : Robot' },
+      },
+      G2: {
+        kind: 'goal',
+        children: [],
+        properties: { GoalType: 'Query' },
+      },
+    },
+    variables: [],
+    projectResources: {
+      world: { symbols: world.symbols, data: world.data },
+    },
+  };
+  const at = (id: string, key: string, text: string) =>
+    fieldCompletions(mutrose, model, id, key, text, text.length);
+
+  it("completes a type with the world's classes", () => {
+    for (const [key, text] of [
+      ['Controls', 'room : '],
+      ['Controls', 'rooms : Sequence('],
+      ['QueriedProperty', 'world_db->select(r:'],
+      ['QueriedProperty', 'world_db->select(r : Ro'],
+    ] as const) {
+      const found = at('G2', key, text)!;
+      expect(found, text).to.not.equal(null);
+      expect(found.from, text).to.equal(
+        text.length - /\w*$/.exec(text)![0].length,
+      );
+      expect(
+        found.options.map((o) => [o.label, o.type]),
+        text,
+      ).to.deep.equal([
+        ['Room', 'class'],
+        ['Robot', 'class'],
+      ]);
+    }
+  });
+
+  it("completes after `name.` with the attributes of its type's class", () => {
+    const members = at(
+      'G2',
+      'QueriedProperty',
+      'world_db->select(r:Room | r.',
+    )!;
+    expect(
+      members.options.map((o) => [o.label, o.type, o.detail]),
+    ).to.deep.equal([
+      ['name', 'property', 'Room attribute'],
+      ['is_clean', 'property', 'Room attribute'],
+    ]);
+    // a declared variable, and a collection's element type
+    expect(
+      at('G2', 'QueriedProperty', 'robot.')!.options.map((o) => o.label),
+    ).to.deep.equal(['name', 'battery']);
+    expect(
+      at('G2', 'QueriedProperty', 'rooms.')!.options.map((o) => o.label),
+    ).to.deep.equal(['name', 'is_clean']);
+    // a name without a type: the names in scope, as before
+    expect(
+      at('G2', 'QueriedProperty', 'world_db->select(r | r.')!.options[0]!.label,
+    ).to.equal('r');
   });
 });
 

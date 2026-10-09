@@ -12,6 +12,8 @@ import {
   valueOf,
   type DefinitionContext,
   type AnyDialect,
+  type ResourceCandidates,
+  type ResourceSymbol,
   type WithNotation,
   type ValueConfig,
 } from '@goal-controller/dialect';
@@ -20,7 +22,8 @@ import { lineId, readPropertyLine } from './lines.js';
 
 export type Completion = {
   label: string;
-  type: 'variable' | 'keyword' | 'property' | 'function';
+  /** `class`: a type a project resource defines (a world class) */
+  type: 'variable' | 'keyword' | 'property' | 'function' | 'class';
   detail?: string;
   /** what to insert instead of the label, in LSP snippet syntax (`select(${1:v} | ${2:condition})`) */
   snippet?: string;
@@ -305,18 +308,21 @@ const NAME = /[A-Za-z_][A-Za-z0-9_]*/;
 /**
  * The names an `ocl` value may use at a position: those its text binds
  * around it (`r` in `select(r:Room | `, while that parenthesis is open), those its `declaredBy` properties
- * declare on the element and its ancestors, and the model's variables.
+ * declare on the element and its ancestors, and the model's variables; with
+ * the type each is declared with, when it says.
  */
 const oclScope = (
   value: Extract<ValueConfig, { type: 'ocl' }>,
   before: string,
   context: DefinitionContext,
   self: string | undefined,
-): Completion[] => {
+): { options: Completion[]; types: Map<string, string> } => {
   const found = new Map<string, Completion>();
-  const add = (label: string, detail: string) => {
-    if (!found.has(label))
-      found.set(label, { label, type: 'variable', detail });
+  const types = new Map<string, string>();
+  const add = (label: string, detail: string, type?: string) => {
+    if (found.has(label)) return;
+    found.set(label, { label, type: 'variable', detail });
+    if (type) types.set(label, type);
   };
   // a binding is in scope while its parenthesis is open: `r` in
   // `exists(r | r.ok) and x->select(q | ‸`, `q` only
@@ -331,7 +337,7 @@ const oclScope = (
     ),
   ))
     if (open.includes(binding.index))
-      add(binding[1]!, binding[2] ?? 'bound here');
+      add(binding[1]!, binding[2] ?? 'bound here', binding[2]);
   const parents = new Map<string, string>();
   for (const [id, element] of Object.entries(context.elements))
     for (const child of element.children ?? []) parents.set(child, id);
@@ -342,11 +348,30 @@ const oclScope = (
       ).split(',')) {
         const [name, type] = declared.split(':').map((part) => part.trim());
         if (name && new RegExp(`^${NAME.source}$`).test(name))
-          add(name, type ? `${type} (${key} of ${id})` : `${key} of ${id}`);
+          add(
+            name,
+            type ? `${type} (${key} of ${id})` : `${key} of ${id}`,
+            type,
+          );
       }
   for (const name of context.variables) add(name, 'variable');
-  return [...found.values()];
+  return { options: [...found.values()], types };
 };
+
+/** A project resource's symbols of one category, as the definition context carries them. */
+const symbolsOf = (
+  context: DefinitionContext,
+  candidates: ResourceCandidates | undefined,
+): readonly ResourceSymbol[] =>
+  candidates
+    ? (context.projectResources?.[candidates.resource]?.symbols[
+        candidates.category
+      ] ?? [])
+    : [];
+
+/** `Sequence(Room)` holds Rooms: the type a name's members are looked up in */
+const elementType = (type: string): string =>
+  /^Sequence\(\s*(\w+)\s*\)$/.exec(type)?.[1] ?? type;
 
 /**
  * Completions in an `ocl` value: after `->`, the collection operations
@@ -384,8 +409,39 @@ const oclCompletions = (
       })),
     };
   }
-  const options = oclScope(value, before, context, self);
-  return options.length ? { from, options } : null;
+  // a type (`r : ‸`, `select(r:‸`, `Sequence(‸`): the candidates the definition names
+  if (/(?::|Sequence\()\s*$/.test(ahead)) {
+    const types = symbolsOf(context, value.candidates);
+    return types.length
+      ? {
+          from,
+          options: types.map((symbol) => ({
+            label: symbol.name,
+            type: 'class' as const,
+            ...(symbol.detail && { detail: symbol.detail }),
+          })),
+        }
+      : null;
+  }
+  const scope = oclScope(value, before, context, self);
+  // `r.‸`: the members of r's type, when the definition says where they are
+  const owner = new RegExp(`(${NAME.source})\\.\\s*$`).exec(ahead)?.[1];
+  const ownerType = owner && scope.types.get(owner);
+  if (ownerType) {
+    const symbol = symbolsOf(context, value.memberCandidates).find(
+      (candidate) => candidate.name === elementType(ownerType),
+    );
+    if (symbol?.members?.length)
+      return {
+        from,
+        options: symbol.members.map((member) => ({
+          label: member.name,
+          type: 'property' as const,
+          detail: member.detail ?? symbol.name,
+        })),
+      };
+  }
+  return scope.options.length ? { from, options: scope.options } : null;
 };
 
 /**
