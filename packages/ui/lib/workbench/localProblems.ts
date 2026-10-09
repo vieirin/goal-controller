@@ -4,10 +4,24 @@
  */
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { ENGINE_MAPPERS, notationDefinitionOf } from './engineDialects';
+import {
+  ENGINE_CHECKS,
+  ENGINE_DIALECTS,
+  ENGINE_MAPPERS,
+  isDialectEngine,
+  notationDefinitionOf,
+  type DialectEngine,
+} from './engineDialects';
+import { languageProblems } from './diagnostics';
+import { runCheckIn } from './languageSupport';
+import { contextOf, notationDocument, savedLines } from './notationDocument';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
-import { MODEL_NAMESPACE, relationMismatch } from '@goal-controller/dialect';
-import { ID_PREFIXES, isValidName } from '@goal-controller/goal-language';
+import { MODEL_NAMESPACE } from '@goal-controller/dialect';
+import {
+  documentDiagnostics,
+  ID_PREFIXES,
+  isValidName,
+} from '@goal-controller/goal-language';
 import { jsonErrorPosition } from './pistar';
 import { SOURCE, type Problem } from './types';
 
@@ -87,7 +101,12 @@ export const treeProblems = (
     }
     if (node.kind === 'resource') continue;
 
-    if (!isValidName(notationDefinitionOf(engine), node.kind, node.name)) {
+    // a dialect engine's names, notations and properties are the shared
+    // language's to check (modelLanguageProblems); SLEEC has no language service
+    if (
+      !isDialectEngine(engine) &&
+      !isValidName(notationDefinitionOf(engine), node.kind, node.name)
+    ) {
       problems.push({
         severity: 'warning',
         source: SOURCE.workbench,
@@ -107,63 +126,6 @@ export const treeProblems = (
         source: SOURCE.workbench,
         elementId: node.id,
         message: `${node.id} has no children or tasks; every goal must be refined`,
-      });
-    }
-
-    if (!node.notation || engine === 'sleec') continue;
-    // read by the engine's RT grammar when building the view tree
-    if (node.notationError) {
-      problems.push({
-        severity: 'warning',
-        source: SOURCE.workbench,
-        elementId: node.id,
-        message: `${node.id}: the notation [${node.notation}] is not valid for this engine (${node.notationError})`,
-      });
-      continue;
-    }
-    const listed = node.order;
-    const notChildren = listed.filter((id) => !node.children.includes(id));
-    const unlisted =
-      listed.length > 0
-        ? node.children.filter((id) => {
-            const child = tree.nodes.get(id);
-            // an element without an RT id has its own "has no id" problem
-            return (
-              child?.kind !== 'resource' &&
-              child?.id !== child?.iStarId &&
-              !listed.includes(id)
-            );
-          })
-        : [];
-    // each mismatch at the severity the engine's definition gives it
-    const definition = notationDefinitionOf(engine);
-    if (notChildren.length > 0) {
-      problems.push({
-        severity: definition.problems.notAChild.severity,
-        source: SOURCE.workbench,
-        elementId: node.id,
-        message: `${node.id}: the notation [${node.notation}] lists ${notChildren.join(', ')}, which ${notChildren.length > 1 ? 'are not children' : 'is not a child'} of ${node.id}`,
-      });
-    }
-    if (unlisted.length > 0) {
-      problems.push({
-        severity: definition.problems.missingFromNotation.severity,
-        source: SOURCE.workbench,
-        elementId: node.id,
-        message: `${node.id}: ${unlisted.join(', ')} ${unlisted.length > 1 ? 'are children' : 'is a child'} of ${node.id} but missing from its notation [${node.notation}]`,
-      });
-    }
-    const mismatch = relationMismatch(
-      definition,
-      node.construct,
-      node.relation,
-    );
-    if (mismatch) {
-      problems.push({
-        severity: definition.problems.relationMismatch.severity,
-        source: SOURCE.workbench,
-        elementId: node.id,
-        message: `${node.id}: [${node.notation}] ${mismatch}`,
       });
     }
   }
@@ -213,4 +175,28 @@ export const generationProblems = (
     });
   }
   return problems;
+};
+
+/**
+ * The shared language on the model's own Notation document, in the page:
+ * what Problems shows whether an editor is open or not (an open one's
+ * diagnostics are the same, and merge with these). The engine's named
+ * checks run with the model in scope.
+ */
+export const modelLanguageProblems = (
+  engine: DialectEngine,
+  tree: GoalView,
+  variables: Parameters<typeof contextOf>[2],
+): Problem[] => {
+  const definition = ENGINE_DIALECTS[engine];
+  const { text } = notationDocument(definition, tree);
+  const context = contextOf(definition, tree, variables);
+  return languageProblems(
+    documentDiagnostics(definition, text, context, {
+      runCheck: runCheckIn(ENGINE_CHECKS[engine], () => context),
+      saved: savedLines(definition, tree),
+    }),
+    definition.name,
+    text,
+  );
 };

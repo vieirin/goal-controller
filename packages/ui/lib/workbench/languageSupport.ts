@@ -48,6 +48,8 @@ export type LanguageSupport = {
   setContext(context: DefinitionContext): void;
   /** the engine's grammar errors on the saved lines (sent with the context) */
   setSaved(saved: SavedLines): void;
+  /** the model file's text, for a service that reads it (`pistar-json`) */
+  setModelText?(text: string): void;
 };
 
 /** What the engine's grammar said of each saved element line, by id. */

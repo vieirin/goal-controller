@@ -1,6 +1,7 @@
 'use client';
 
-import { ENGINE_LABEL } from '@/lib/workbench/engineDialects';
+import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import { ENGINE_LABEL, isDialectEngine } from '@/lib/workbench/engineDialects';
 import type { LoggerReport } from '@goal-controller/lib';
 import {
   createContext,
@@ -16,6 +17,7 @@ import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import {
   generationProblems,
   jsonProblem,
+  modelLanguageProblems,
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
@@ -922,17 +924,28 @@ function WorkbenchState({
   );
 
   // ---- problems ----------------------------------------------------------------
+  // what the language services say of the open documents (editors, fields)
+  const serviceProblems = useServiceDiagnostics();
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (parsed.error) list.push(parsed.error);
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
-    if (tree && !parsed.error) list.push(...treeProblems(tree, engine));
+    if (tree && !parsed.error) {
+      list.push(...treeProblems(tree, engine));
+      // the shared language on the model's own document, editors open or not
+      if (isDialectEngine(engine))
+        list.push(...modelLanguageProblems(engine, tree, variables));
+    }
     if (analysis && !parsed.error) list.push(...analysis.problems);
     if (current && !stale) {
       const checked = new Set(
         list
-          .filter((p) => p.source === SOURCE.workbench && p.elementId)
+          .filter(
+            (p) =>
+              (p.source === SOURCE.workbench || p.source === SOURCE.language) &&
+              p.elementId,
+          )
           .map((p) => p.elementId),
       );
       list.push(
@@ -953,8 +966,19 @@ function WorkbenchState({
         ),
       );
     }
-    return mergeProblems(list);
-  }, [parsed.error, pistar, tree, engine, analysis, current, stale, nodeIds]);
+    return mergeProblems(list, serviceProblems);
+  }, [
+    parsed.error,
+    pistar,
+    tree,
+    engine,
+    variables,
+    analysis,
+    current,
+    stale,
+    nodeIds,
+    serviceProblems,
+  ]);
 
   // ---- persistence ----------------------------------------------------------------
   // the open model is kept in Recent (with its unsaved edits) instead of being reopened

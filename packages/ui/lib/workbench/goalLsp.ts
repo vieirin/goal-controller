@@ -90,6 +90,8 @@ const fail = (why: unknown) => {
  * use the local support; the page doesn't break).
  */
 export const goalClient = (): LSPClient | null => {
+  // no worker where the page is prerendered: nothing failed, nothing to run
+  if (typeof Worker === 'undefined') return null;
   if (shared !== undefined) return shared;
   try {
     const worker = new Worker(new URL('./goalWorker.ts', import.meta.url), {

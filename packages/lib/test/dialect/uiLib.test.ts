@@ -30,10 +30,12 @@ import {
 import {
   mergeProblems,
   problemGroups,
+  serverProblems,
 } from '../../../ui/lib/workbench/diagnostics';
 import type { Problem } from '../../../ui/lib/workbench/types';
 import {
   jsonProblem,
+  modelLanguageProblems,
   nodeIdInMessage,
   treeProblems,
 } from '../../../ui/lib/workbench/localProblems';
@@ -578,5 +580,83 @@ describe('ui problems', () => {
         ],
       ],
     ]);
+  });
+});
+
+describe('ui language services', () => {
+  it('runs the shared language on the model: a notation problem, once, on its element', () => {
+    const text = MODEL.replace(
+      'G4: Automated life support service [G8;G9]',
+      'G4: Automated life support service [G8;G9;G5]',
+    );
+    expect(text).to.not.equal(MODEL);
+    const tree = goalView(parsePistar(text), edgeV2);
+    expect(
+      modelLanguageProblems('edgev2', tree, [])
+        .filter((p) => p.elementId === 'G4')
+        .map((p) => [p.source, p.message]),
+    ).to.deep.include(['goal language', 'Not a child of this goal']);
+    // the workbench's own checks leave notations to the language
+    expect(
+      treeProblems(tree, 'edgev2').filter((p) => /notation/.test(p.message)),
+    ).to.deep.equal([]);
+  });
+
+  it('reads what a server publishes: by data, by nodeId, else by the document', () => {
+    const at = (line: number) => ({
+      start: { line, character: 0 },
+      end: { line, character: 2 },
+    });
+    const service = { id: 'goal language', anchoring: 'data' as const };
+    const doc = 'G1: Go [G2;G3]\n  maxRetries x\nG2: A\nG3: B';
+    const found = serverProblems(
+      {
+        uri: 'file:///notation.goal',
+        diagnostics: [
+          {
+            range: at(1),
+            severity: 1,
+            message: 'At least 0',
+            data: {
+              elementId: 'G1',
+              key: 'maxRetries',
+              check: 'edge.goal.maxRetries',
+            },
+          },
+          {
+            range: at(2),
+            severity: 2,
+            message: 'by node',
+            data: { nodeId: 'G2' },
+          },
+          // no data: the line it is on
+          { range: at(3), severity: 3, message: 'by range' },
+        ],
+      },
+      service,
+      edgeV2,
+      doc,
+    );
+    expect(
+      found.map((p) => [p.elementId, p.key, p.severity, p.source, p.message]),
+    ).to.deep.equal([
+      ['G1', 'maxRetries', 'error', 'EdgeV2', 'At least 0'],
+      ['G2', undefined, 'warning', 'goal language', 'by node'],
+      ['G3', undefined, 'info', 'goal language', 'by range'],
+    ]);
+    // a field's document names its element and property
+    expect(
+      serverProblems(
+        {
+          uri: 'file:///fields/G1/maxRetries.goal',
+          diagnostics: [
+            { range: at(0), severity: 1, message: 'Not an integer: x' },
+          ],
+        },
+        service,
+        edgeV2,
+        'x',
+      ).map((p) => [p.elementId, p.key]),
+    ).to.deep.equal([['G1', 'maxRetries']]);
   });
 });
