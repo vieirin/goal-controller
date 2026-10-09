@@ -71,6 +71,11 @@ startGoalWorkerServer(self, {
 
 A dialect without checks, or a host that passes none, gets everything else.
 
+A check is given the element's properties and its context
+(`checkContextOf`): the element's id, the other elements' kinds, and the
+whole model the client sent, so a rule may read other elements (their
+properties, children and diagram `x`).
+
 ## Embedding the worker
 
 The UI does this in three files (`packages/ui/lib/workbench`):

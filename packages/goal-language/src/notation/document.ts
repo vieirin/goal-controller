@@ -248,6 +248,7 @@ export const contextFromView = (
           ),
           relation: node.relation,
           construct: node.construct,
+          ...(node.x !== undefined && { x: node.x }),
           properties: Object.fromEntries(
             Object.entries(node.properties).filter(
               (entry): entry is [string, string] =>

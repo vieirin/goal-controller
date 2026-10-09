@@ -17,7 +17,8 @@ import {
   type CheckRegistries,
 } from './server.js';
 
-export type { CheckRegistries, NamedCheck } from './server.js';
+export type { CheckRegistries } from './server.js';
+export type { CheckContext, NamedCheck } from '../notation/checks.js';
 
 export const startGoalWorkerServer = (
   scope: DedicatedWorkerGlobalScope,

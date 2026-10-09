@@ -79,15 +79,9 @@ import {
   GOAL_CONTEXT_NOTIFICATION,
   type GoalContextParams,
 } from './protocol.js';
+import { checkContextOf, type NamedCheck } from '../notation/checks.js';
 
-/** An engine's named check, as lib implements it. */
-export type NamedCheck = (
-  properties: Readonly<Record<string, string>>,
-  context: {
-    self: string;
-    kindOf: (id: string) => 'goal' | 'task' | 'resource' | undefined;
-  },
-) => string | null;
+export type { NamedCheck };
 
 /** The named checks a host has, by dialect id, then by check name. */
 export type CheckRegistries = Readonly<
@@ -157,14 +151,8 @@ export const createGoalLspServices = (
     model: DefinitionContext,
   ): RunCheck => {
     const registry = checks[dialect.id] ?? {};
-    const kindOf = (id: string) => {
-      const kind = model.elements[id]?.kind;
-      return kind === 'goal' || kind === 'task' || kind === 'resource'
-        ? kind
-        : undefined;
-    };
     return (name, properties, self) =>
-      registry[name]?.(properties, { self, kindOf }) ?? null;
+      registry[name]?.(properties, checkContextOf(model, self)) ?? null;
   };
 
   class GoalDocumentFactory extends DefaultLangiumDocumentFactory {

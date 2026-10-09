@@ -198,10 +198,11 @@ Rules of thumb (from Edge's mapper):
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
 - `dialect` is required: the definition (or, for an engine without one, `{ name }`: ids and names are read, no notation).
 - `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines.
+- Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
-import type { Check } from '../checks';   // (raw, { self, kindOf }) => string | null
+import type { Check } from '../checks';   // (raw, { self, kindOf, elements? }) => string | null
 
 const deadline: Check = (raw) =>
   raw.priority === 'high' && !raw.deadline?.trim() ? 'High-priority goals need a deadline' : null;
@@ -212,6 +213,13 @@ export const missionCheckRegistry: Record<'mission.goal.deadline', Check> = {
 };
 export type MissionCheckName = keyof typeof missionCheckRegistry;
 ```
+A check gets the element's properties and a context (the goal language's `CheckContext`):
+
+- its id, `self`;
+- the other elements' kinds, `kindOf`;
+- the whole model, `elements`, when the caller has it: every element's kind, properties, children and `x`.
+
+The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both.
 Type the definition's properties with these names
 (`satisfies readonly PropertyDefinition<MissionCheckName>[]`, as
 `edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`

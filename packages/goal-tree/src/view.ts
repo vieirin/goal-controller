@@ -23,6 +23,8 @@ export type ViewKind = 'goal' | 'task' | 'resource' | 'quality';
 export type GoalViewNode = {
   /** piStar element id */
   iStarId: string;
+  /** its horizontal position in the diagram (piStar's absolute x) */
+  x?: number;
   /** RT id ("G3"); the piStar id when the text has none */
   id: string;
   kind: ViewKind;
@@ -104,6 +106,7 @@ export function goalView(
       errors.length === 0 ? (detail?.executionDetail ?? null) : null;
     byIStarId.set(element.id, {
       iStarId: element.id,
+      x: element.x,
       id: (errors.length === 0 && detail?.id) || written?.[1] || element.id,
       kind,
       name: (

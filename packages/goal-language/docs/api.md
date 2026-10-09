@@ -106,6 +106,7 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | --- | --- | --- |
 | `documentDiagnostics` | `(D, text, context, { runCheck?, saved? }) => Diagnostic[]` | checks a whole document; see [diagnostics.md](diagnostics.md) |
 | `fieldDiagnostics` | `(D, context, id, key, value, runCheck) => Diagnostic[]` | checks one inspector field |
+| `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf`, and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `(properties, CheckContext) => string \| null` |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
 | `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
 | `fieldCompletionsAt` | `(D, config, text, pos, context) => CompletionResult \| null` | ids (`refList`) and names (`assertion`) |
