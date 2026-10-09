@@ -35,6 +35,17 @@ describe('the language server', () => {
     expect(found.map((d) => d.message)).to.include('Not a child');
   });
 
+  it('shows the engine’s error on a line while it reads as saved', async () => {
+    const { shared, store } = createGoalLspServices();
+    const saved = { G2: { line: 'G2: Wait', error: 'no such goal' } };
+    store.set({ dialect: toy, context, saved });
+    const found = await serverDiagnostics(shared, 'file:///notation.goal', doc);
+    expect(found).to.deep.equal(
+      documentDiagnostics(toy, doc, context, { saved }),
+    );
+    expect(found.map((d) => d.message).join('\n')).to.include('no such goal');
+  });
+
   it('runs the named checks the host gives it, by dialect id', async () => {
     const { shared, store } = createGoalLspServices(undefined, {
       checks: {

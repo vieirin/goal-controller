@@ -226,14 +226,14 @@ export const createGoalLspServices = (
           message: error.message,
         })),
       );
-    const { dialect, context: model } = params;
+    const { dialect, context: model, saved } = params;
     const runCheck = runCheckFor(dialect, model);
     const field = readFieldUri(document.uri.toString());
     return toLsp(
       document,
       field
         ? fieldDiagnostics(dialect, model, field.id, field.key, text, runCheck)
-        : documentDiagnostics(dialect, text, model, { runCheck }),
+        : documentDiagnostics(dialect, text, model, { runCheck, saved }),
     );
   };
 

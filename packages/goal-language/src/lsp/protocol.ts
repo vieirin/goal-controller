@@ -4,7 +4,7 @@
  *
  * - `goal/context` tells the server which dialect a document is written in
  *   and what model it is checked against. Without one, the server reports
- *   syntax errors only.
+ *   syntax errors only. It may carry the engine's errors on the saved lines.
  * - An inspector field is a document of its own: `file:///fields/<id>/<key>.goal`,
  *   read with the property's value type.
  */
@@ -19,6 +19,11 @@ export type GoalContextParams = {
   dialect: AnyDialect;
   /** the model's elements and the workbench's variables */
   context: DefinitionContext;
+  /**
+   * What the engine's grammar said of each saved element line, by id: its
+   * error is shown while the line still reads as saved
+   */
+  saved?: Readonly<Record<string, { line: string; error: string | null }>>;
 };
 
 /** An inspector field's document: one element's property value. */
