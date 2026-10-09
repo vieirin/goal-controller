@@ -845,17 +845,26 @@ Verified in Chrome on :3000:
 - adding the stereotype `urgent` for Mission and giving it to the element;
 - the Planning collision refused in the dialog.
 
-**istar-ts (proposed, not changed):** the label fitting is generic and
-belongs in `@istar-ts/react`:
+**istar-ts 0.10.0** ships the label API that was proposed: `textBox`,
+`labelHeader` for elements and links, `labelFit`, `useFitText`, and link
+labels drawn above the nodes. The mode now keeps only:
 
-- `ElementKindConfig.textBox`;
-- `labelHeader(element)` and `LinkKindConfig.labelHeader(link)`;
-- `labelFit: { mode: 'shrink' | 'none', minScale, step }`, with growing the
-  height opt-in, never on load;
-- `useFitText`.
+- the dialect's `shape` and `textBox` data;
+- one extension supplying `labelHeader`, with istar-ts's `TEXT_BOXES`
+  presets for iStar's kinds (0.10.0's default box is the whole element).
 
-Then goal-controller would keep only the dialect data and a two-line
-`labelHeader` extension.
+The client copies are deleted (`5b115a8`).
+
+**Finding 6 (istar-ts 0.10.0, reported, not changed):** a header line too
+wide for its box is ellipsized at full size instead of shrinking first.
+
+- Cause: `overflows()` compares the label block's `scrollWidth` with its box,
+  but each `.istar-label-header-line` clips itself (`overflow: hidden`), so
+  the block never overflows in width.
+- Fix: also test each header line's `scrollWidth > clientWidth`.
+- Seen in Chrome: Robot's `<<goal-b…`, Nurse's `<<utility-…`, Sample kit's
+  `{Reference to …` and Planning's `{Status = …`. The client fitting showed
+  these whole at a smaller size.
 
 ## Pre-existing failure, unrelated
 
