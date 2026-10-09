@@ -110,6 +110,24 @@ export const edgeFamily = {
   propertyLineOrder: edgePropertyLineOrder,
   indent: '  ',
   problems,
+  // what a generation and its model checking read beside the model
+  projectResources: {
+    variables: {
+      label: 'Variables',
+      format: 'json',
+      path: 'variables.json',
+      accept: ['.json'],
+      help: 'a value for each context variable (true/false) and achievability variable (a probability)',
+    },
+    properties: {
+      label: 'Properties',
+      format: 'pctl',
+      many: true,
+      path: 'props/',
+      accept: ['.pctl', '.props'],
+      help: 'the PCTL property suites the generated model is checked against',
+    },
+  },
 } as const;
 
 export const edgeNotation = {

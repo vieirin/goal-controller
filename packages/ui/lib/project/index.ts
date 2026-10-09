@@ -10,6 +10,9 @@ export * from './store';
 export * from './open';
 export * from './recent';
 export * from './zip';
+export * from './slots';
+export * from './resources';
+export * from './handles';
 export { fileStore } from './stores/file';
 export {
   directoryStore,

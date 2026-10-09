@@ -247,12 +247,46 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 - `packages/lib/src/engines/index.ts` and `packages/lib/src/index.ts`: re-export.
 - CLI (`packages/lib/src/cli.ts`): add the engine to the menu if you want `goal-controller-cli` to run it.
 
+### 3.6 Project resources (optional): what the engine reads beside the model
+
+If the engine reads files beside the model (MutRoSe's world knowledge, HDDL
+domain and configuration; Edge's variables and property suites), its
+definition declares them and its library parses them (goal-controller#25):
+
+```ts
+// the definition: data
+projectResources: {
+  world: { label: 'World knowledge', format: 'xml', role: 'knowledge', path: 'knowledge/world_db.xml', accept: ['.xml'] },
+  properties: { label: 'Properties', format: 'pctl', many: true, path: 'props/' },
+},
+```
+
+- `format` (`xml`, `hddl`, `json`, `pctl`, `text`) is the editor's language
+  and the parser's input. `many` is a list of files, kept in a folder. `path`
+  is where a new project keeps it.
+- Write one parser per kind, `(files) => { symbols, data, diagnostics }`, and
+  register them with `projectResourceParsers(definition)({ … })` (MutRoSe's
+  `engines/mutrose/projectResources/`, the Edge engines'
+  `engines/edgeFamily/projectResources/`). A kind without a parser doesn't
+  compile.
+  - `symbols` are generic, by category (`classes` with their attributes as
+    members, `tasks` with their parameters): what completion reads.
+  - `data` is the engine's own JSON, for its checks and template.
+  - `diagnostics` are offsets in the file: the resource's tab underlines them,
+    and Problems lists them under the resource's label.
+- A check reads `context.projectResources?.<kind>?.data` and says nothing
+  without it. A finding about an element (a type the world has no class
+  for) is the check's diagnostic, not the parser's.
+- An `ocl` value completes from a resource's symbols when the definition
+  says where: `candidates: { resource: 'world', category: 'classes' }` (types),
+  `memberCandidates` (after `name.`).
+
 ## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 
 | #   | File | Edit |
 | --- | --- | --- |
 | 1   | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is described: `ENGINE_DIALECTS.mission`, `ENGINE_CHECKS.mission` (typed by the definition's check names: a registry that lacks one doesn't compile), `ENGINE_MAPPERS.mission`, `ENGINE_LABEL.mission` (the definition's `name`), and its `ENGINES` entry (label, what it generates, the output file's extension, help, whether it takes options) |
+| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is described: `ENGINE_DIALECTS.mission`, `ENGINE_CHECKS.mission` (typed by the definition's check names: a registry that lacks one doesn't compile), `ENGINE_MAPPERS.mission`, `ENGINE_PROJECT_RESOURCES.mission` (its parsers, if it declares project resources), `ENGINE_LABEL.mission` (the definition's `name`), and its `ENGINES` entry (label, what it generates, the output file's extension, help, whether it takes options) |
 | 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `missionTemplateEngine(tree, options)` |
@@ -262,7 +296,7 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 | 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
-| 12  | `components/workbench/Explorer.tsx` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it |
+| 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
 
 Adding `'mission'` to `TransformEngine` makes the type-checker flag #2, #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
 

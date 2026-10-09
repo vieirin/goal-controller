@@ -12,9 +12,12 @@ import {
   fileStore,
   modelSettingsOf,
   openProject,
+  projectListing,
+  resourceSlots,
   withModelSettings,
   type ProjectIndexEntry,
 } from '../../../../ui/lib/project';
+import { declarationsOf } from '../../../../ui/lib/workbench/projectResources';
 import {
   openingSettings,
   readModelOptions,
@@ -284,15 +287,53 @@ describe('ui Explorer: examples opened as projects', () => {
         ),
       ),
   });
-  it('opens every example with the mode of its folder and the default options', async () => {
-    const entries = INDEX as ProjectIndexEntry[];
+  it("lists an open example project's own files, never another example's", async () => {
+    const entries = INDEX as unknown as ProjectIndexEntry[];
+    const everyFile = (entry: ProjectIndexEntry) =>
+      entry.files.map((file) => `${entry.root}/${file}`);
+    for (const entry of entries) {
+      const { project } = await openExample(entry, fetchLocal);
+      const listed = projectListing(
+        project.manifest,
+        project.files,
+        resourceSlots(
+          project.manifest,
+          project.files,
+          declarationsOf(entry.dialect ?? null) ?? {},
+        ),
+        project.models.map((model) => model.path),
+      ).map((file) => `${entry.root}/${file.path}`);
+      const own = new Set(everyFile(entry));
+      expect(
+        listed.every((path) => own.has(path)),
+        entry.path,
+      ).to.equal(true);
+      const others = new Set(
+        entries.filter((other) => other !== entry).flatMap(everyFile),
+      );
+      expect(
+        listed.filter((path) => others.has(path)),
+        entry.path,
+      ).to.deep.equal([]);
+    }
+  });
+
+  it('opens every example with the mode of its folder (a project: its dialect) and the default options', async () => {
+    const entries = INDEX as unknown as ProjectIndexEntry[];
     expect(entries.length).to.be.greaterThan(20);
+    expect(
+      entries.filter((entry) => entry.form === 'file').length,
+    ).to.be.greaterThan(1);
     for (const entry of entries) {
       const opened = await openExample(entry, fetchLocal);
-      const original = read(entry.path);
+      const modelPath = `${entry.root}/${entry.models[0]}`;
+      const original = read(modelPath);
       const mode =
-        GROUP_MODE[entry.group] ?? legacyRecordedMode(original) ?? 'pistar';
-      expect(opened.fileName, entry.path).to.equal(entry.path.split('/').pop());
+        entry.dialect ??
+        GROUP_MODE[entry.group] ??
+        legacyRecordedMode(original) ??
+        'pistar';
+      expect(opened.fileName, entry.path).to.equal(modelPath.split('/').pop());
       expect(opened.project.models[0]!.text, entry.path).to.equal(opened.text);
       expect(opened.project.source, entry.path).to.deep.equal({
         kind: 'github',

@@ -23,6 +23,13 @@ export type CheckContext = {
    * model as a whole.
    */
   elements?: DefinitionContext['elements'];
+  /**
+   * The project's resources, parsed, by kind, when the model has them (a
+   * MutRoSe world): each with its symbols and the engine's own data, which
+   * only the engine's checks read. Without them a check says nothing about
+   * what they would tell.
+   */
+  projectResources?: DefinitionContext['projectResources'];
 };
 
 /** An engine's named check: what is wrong with the element's value, or null. */
@@ -44,4 +51,5 @@ export const checkContextOf = (
       : undefined;
   },
   elements: model.elements,
+  ...(model.projectResources && { projectResources: model.projectResources }),
 });

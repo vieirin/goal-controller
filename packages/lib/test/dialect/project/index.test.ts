@@ -37,7 +37,7 @@ const localStore = (entry: ProjectIndexEntry, requested: string[]) =>
   });
 
 describe('project examples index', () => {
-  const entries = INDEX as ProjectIndexEntry[];
+  const entries = INDEX as unknown as ProjectIndexEntry[];
 
   it('lists every example as a project', () => {
     expect(entries.length).to.be.greaterThan(20);

@@ -297,7 +297,12 @@ function NavButton({
 function MobileModel() {
   const wb = useWorkbench();
   const { modelReadOnly, toggleModelReadOnly } = useShell();
-  const tabs = modelTabsFor(wb.mode, wb.engine);
+  const tabs = modelTabsFor(
+    wb.mode,
+    wb.engine,
+    wb.resourceSlots,
+    wb.openedFiles,
+  );
   return (
     <section className='flex h-full flex-col' aria-label='Goal model'>
       <Tabs

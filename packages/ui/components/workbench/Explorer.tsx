@@ -5,18 +5,23 @@ import {
   ChevronRight,
   FileCode2,
   FileJson,
+  FolderOpen,
   History,
+  Plus,
   SlidersHorizontal,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { isPrismEngine } from '@/lib/types';
 import {
   hasUnsavedEdits,
   recentAge,
   recentId,
+  sourceLabel,
   type ProjectIndexEntry,
+  type ResourceSlot,
 } from '@/lib/project';
+import { resourceTabId } from '@/lib/workbench/projectResources';
 import { outputExtensionOf } from '@/lib/workbench/engineDialects';
 import type { RecentFile } from '@/lib/workbench/storage';
 import { listExamples, openExample as readExample } from '@/services/examples';
@@ -126,8 +131,6 @@ export default function Explorer() {
   const wb = useWorkbench();
   const examples = useExamples();
   const { open: openExample, error: openExampleError } = useOpenExample();
-  // the open model is already listed above
-  const others = wb.recent.filter((file) => recentId(file) !== wb.recentEntry);
   // engine folder → subfolder ('' for files at the top) → files
   const groups = new Map<string, Map<string, ProjectIndexEntry[]>>();
   (examples.data ?? []).forEach((example) => {
@@ -150,43 +153,20 @@ export default function Explorer() {
       />
     );
   };
-  const lastOutput = wb.runs.find((run) => run.output !== null);
+  // an open project is its own tree: its files only (examples and Recent are the
+  // start screen's, where another project is opened)
+  if (wb.hasModel)
+    return (
+      <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
+        <ProjectSection />
+      </nav>
+    );
 
   return (
     <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
       <Section title='Workspace'>
-        {wb.hasModel ? (
-          <>
-            <Row
-              icon={FileJson}
-              label={wb.fileName || 'untitled.txt'}
-              detail={wb.dirty ? <span className='text-trace'>●</span> : null}
-              onClick={() => wb.setModelTab('source')}
-            />
-            {isPrismEngine(wb.engine) && (
-              <Row
-                icon={SlidersHorizontal}
-                label='variables'
-                detail={wb.variables.length}
-                onClick={() => wb.setBottomTab('variables')}
-              />
-            )}
-            <Row
-              icon={FileCode2}
-              label={`output.${outputExtensionOf(wb.engine)}`}
-              detail={
-                !lastOutput ? (
-                  '—'
-                ) : wb.stale ? (
-                  <span className='text-caution'>stale</span>
-                ) : null
-              }
-              onClick={() => wb.setOutputTab('output')}
-            />
-          </>
-        ) : (
-          <p className='px-6 text-2xs text-ink-muted'>No model open.</p>
-        )}
+        <p className='px-6 text-2xs text-ink-muted'>No model open.</p>
+        <OpenFolderRow />
       </Section>
 
       {groups.size > 0 && (
@@ -213,15 +193,9 @@ export default function Explorer() {
         </Section>
       )}
 
-      {openExampleError && (
-        <p className='px-3 py-2 text-2xs text-rose-700' role='alert'>
-          {openExampleError}
-        </p>
-      )}
-
-      {others.length > 0 && (
+      {wb.recent.length > 0 && (
         <Section title='Recent'>
-          {others.map((file) => (
+          {wb.recent.map((file) => (
             <Row
               key={recentId(file)}
               icon={History}
@@ -258,5 +232,210 @@ export default function Explorer() {
         </Section>
       )}
     </nav>
+  );
+}
+
+/** Whether this browser can open a folder as a project (File System Access). */
+const canOpenFolders = (): boolean =>
+  typeof window !== 'undefined' && 'showDirectoryPicker' in window;
+
+/**
+ * The open project (goal-controller#25): where it is, and each project
+ * resource its engine reads, with its files (each opens in its tab) or
+ * "missing", and a way to add one.
+ */
+function ProjectSection() {
+  const wb = useWorkbench();
+  const [error, setError] = useState<string | null>(null);
+  const run = (action: () => Promise<void>) =>
+    void action().then(
+      () => setError(null),
+      (err: unknown) =>
+        setError(err instanceof Error ? err.message : String(err)),
+    );
+  const lastOutput = wb.runs.find((run) => run.output !== null);
+  const outputs = wb.listing.filter((file) => file.role === 'output');
+  const others = wb.listing.filter((file) => file.role === 'other');
+  const fileRow = (path: string) => (
+    <Row
+      key={path}
+      icon={FileCode2}
+      label={path}
+      onClick={() => wb.openProjectFile(path)}
+      active={wb.modelTab === resourceTabId(path)}
+    />
+  );
+  return (
+    <Section title={wb.project?.name ?? 'Project'}>
+      {wb.project && (
+        <p
+          className='truncate px-6 text-2xs text-ink-muted'
+          title={sourceLabel(wb.project.source)}
+        >
+          {sourceLabel(wb.project.source)}
+        </p>
+      )}
+      {wb.resourceNotice && (
+        <p className='px-6 py-1 text-2xs text-trace' role='status'>
+          {wb.resourceNotice}
+        </p>
+      )}
+      <Row
+        icon={FileJson}
+        label={wb.fileName || 'untitled.txt'}
+        detail={wb.dirty ? <span className='text-trace'>●</span> : null}
+        onClick={() => wb.setModelTab('source')}
+      />
+      {isPrismEngine(wb.engine) && (
+        <Row
+          icon={SlidersHorizontal}
+          label='variables'
+          detail={wb.variables.length}
+          onClick={() => wb.setBottomTab('variables')}
+        />
+      )}
+      {!wb.settings.pistar && (
+        <Row
+          icon={FileCode2}
+          label={`output.${outputExtensionOf(wb.engine)}`}
+          detail={
+            !lastOutput ? (
+              '—'
+            ) : wb.stale ? (
+              <span className='text-caution'>stale</span>
+            ) : null
+          }
+          onClick={() => wb.setOutputTab('output')}
+        />
+      )}
+      {wb.resourceSlots.map((slot) => (
+        <ResourceSlotRows
+          key={slot.kind}
+          slot={slot}
+          onAdd={(file) => run(() => wb.addResource(slot.kind, file))}
+        />
+      ))}
+      {outputs.length > 0 && (
+        <div className='pl-3'>
+          <Section title='Reference outputs' defaultOpen={false}>
+            {outputs.map(({ path }) => fileRow(path))}
+          </Section>
+        </div>
+      )}
+      {others.length > 0 && (
+        <div className='pl-3'>
+          <Section title='Other files' defaultOpen={false}>
+            {others.map(({ path }) => fileRow(path))}
+          </Section>
+        </div>
+      )}
+      <Row
+        icon={History}
+        label='Open another project…'
+        onClick={() => wb.closeModel()}
+      />
+      {error && (
+        <p role='alert' className='px-6 py-1 text-2xs text-danger'>
+          {error}
+        </p>
+      )}
+    </Section>
+  );
+}
+
+/** Open folder…: a folder on disk as a project, from the start (Chrome, Edge). */
+function OpenFolderRow() {
+  const wb = useWorkbench();
+  const [error, setError] = useState<string | null>(null);
+  if (!canOpenFolders()) return null;
+  return (
+    <>
+      <Row
+        icon={FolderOpen}
+        label='Open folder…'
+        onClick={() =>
+          void wb.openFolder().then(
+            () => setError(null),
+            (err: unknown) =>
+              setError(err instanceof Error ? err.message : String(err)),
+          )
+        }
+      />
+      {error && (
+        <p role='alert' className='px-6 py-1 text-2xs text-danger'>
+          {error}
+        </p>
+      )}
+    </>
+  );
+}
+
+function ResourceSlotRows({
+  slot,
+  onAdd,
+}: {
+  slot: ResourceSlot;
+  onAdd: (file: { name: string; text: string }) => void;
+}) {
+  const wb = useWorkbench();
+  const input = useRef<HTMLInputElement>(null);
+  const problems = wb.parsedResources[slot.kind]?.diagnostics.length ?? 0;
+  return (
+    <div>
+      <Row
+        icon={slot.missing ? Plus : FileCode2}
+        label={slot.definition.label}
+        detail={
+          slot.missing ? (
+            <span title={slot.definition.help}>missing</span>
+          ) : problems ? (
+            <span className='text-caution'>{problems} problems</span>
+          ) : (
+            slot.paths.length
+          )
+        }
+        onClick={() =>
+          // a kind no dialect declares (a seed's files) is shown, not added to
+          slot.declared && (slot.missing || slot.definition.many)
+            ? input.current?.click()
+            : slot.paths[0] && wb.setModelTab(resourceTabId(slot.paths[0]))
+        }
+        trailing={
+          slot.missing || !slot.declared ? null : (
+            <button
+              type='button'
+              aria-label={`Add a file to ${slot.definition.label}`}
+              className='rounded p-0.5 text-ink-faint opacity-0 hover:text-ink group-hover:opacity-100'
+              onClick={() => input.current?.click()}
+            >
+              <Plus className='h-3 w-3' aria-hidden />
+            </button>
+          )
+        }
+      />
+      {slot.definition.many &&
+        slot.paths.map((path) => (
+          <div key={path} className='pl-3'>
+            <Row
+              icon={FileCode2}
+              label={path.split('/').pop() ?? path}
+              onClick={() => wb.setModelTab(resourceTabId(path))}
+              active={wb.modelTab === resourceTabId(path)}
+            />
+          </div>
+        ))}
+      <input
+        ref={input}
+        type='file'
+        className='hidden'
+        aria-label={`${slot.definition.label} file`}
+        accept={slot.definition.accept?.join(',')}
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) onAdd({ name: file.name, text: await file.text() });
+        }}
+      />
+    </div>
   );
 }

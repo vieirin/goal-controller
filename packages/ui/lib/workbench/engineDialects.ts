@@ -7,13 +7,16 @@ import {
   edge,
   edgeCheckRegistry,
   edgeEngineMapper,
+  edgeProjectResources,
   edgeV2,
   edgeV2EngineMapper,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
+  mutroseProjectResources,
   sleecEngineMapper,
   type Check,
+  type ProjectResourceParsers,
 } from '@goal-controller/lib';
 import type { CheckNameOf } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
@@ -36,6 +39,20 @@ export const ENGINE_CHECKS: { readonly [E in DialectEngine]: ChecksOf<E> } = {
   edge: edgeCheckRegistry,
   edgev2: edgeCheckRegistry,
   mutrose: mutroseCheckRegistry,
+};
+
+/**
+ * The engine library's parsers for the project resources each definition
+ * declares (goal-controller#25), typed like ENGINE_CHECKS: none missing.
+ */
+export const ENGINE_PROJECT_RESOURCES: {
+  readonly [E in DialectEngine]: ProjectResourceParsers<
+    (typeof ENGINE_DIALECTS)[E]
+  >;
+} = {
+  edge: edgeProjectResources,
+  edgev2: edgeProjectResources,
+  mutrose: mutroseProjectResources,
 };
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */

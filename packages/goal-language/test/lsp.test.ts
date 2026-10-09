@@ -101,6 +101,38 @@ describe('the language server', () => {
       'T1',
       'R1',
     ]);
+    expect(check!.projectResources).to.equal(undefined);
+  });
+
+  it('gives a check the project resources the client sends, as they are', async () => {
+    const seen: CheckContext[] = [];
+    const { shared, store } = createGoalLspServices(undefined, {
+      checks: {
+        toy: {
+          'toy.resource.bounds': (_properties, context) => {
+            seen.push(context);
+            return null;
+          },
+        },
+      },
+    });
+    const projectResources = {
+      world: {
+        symbols: {
+          classes: [{ name: 'Room', members: [{ name: 'is_clean' }] }],
+        },
+        data: {
+          classes: { Room: { attributes: ['is_clean'], instances: [] } },
+        },
+      },
+    };
+    store.set({ dialect: toy, context: { ...context, projectResources } });
+    await serverDiagnostics(
+      shared,
+      'file:///notation.goal',
+      'R1: Fuel {int 0..9 = 5}',
+    );
+    expect(seen[0]!.projectResources).to.deep.equal(projectResources);
   });
 
   it('reads an inspector field with its property’s value type', async () => {

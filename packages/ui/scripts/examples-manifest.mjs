@@ -57,6 +57,7 @@ const projectFolder = async (dir, group) => {
     group: group || 'examples',
     name: posix(path.relative(path.join(EXAMPLES_ROOT, group), dir)),
     form: 'file',
+    ...(manifest.dialect && { dialect: manifest.dialect }),
     root,
     files: await filesUnder(dir),
     models: (manifest.models ?? []).map((model) => model.path),

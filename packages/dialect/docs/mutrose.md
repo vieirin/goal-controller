@@ -92,6 +92,38 @@ rules give them.
 Every change kept the Edge engines byte for byte: the Notation documents
 and PRISM of every example are the same (`pnpm snapshot:language`).
 
+## Project resources (goal-controller#25)
+
+MutRoSe's definition declares what the decomposer reads beside the model:
+the world knowledge (`knowledge/world_db.xml`), the HDDL domain
+(`hddl/domain.hddl`) and the configuration
+(`configuration/configuration.json`), as MutRoSe-Docs lays them out. Its
+library parses them (`engines/mutrose/projectResources/`):
+
+- **the world**, with a small XML reader of our own: under its root, one
+  element per entity, its tag the entity's class, its children the
+  attributes. Its symbols are the `classes` (with their attributes as
+  members) and the `instances`;
+- **the HDDL domain**, with an s-expression reader: its types, predicates,
+  tasks and actions with their parameters;
+- **the configuration**: the world's file and root, its `location_types`,
+  and the type and variable mappings onto the domain.
+
+With them, the editors mark what the decomposer would find against them:
+
+- a type in Controls, Monitors or a query that the world has no class for
+  (a collection's class; OCL's Integer, Real, Boolean and String are no
+  class);
+- a task's Location whose variable is not of one of the configuration's
+  location types.
+
+They also complete a type with the world's classes (after `:`, in
+`select(v:`, in `Sequence(`), and `name.` with the attributes of name's
+class, a forAll's variable being of its collection's class.
+
+`examples/projects/medicine-delivery/` is MedicineDelivery as a project,
+with a small world, domain and configuration written for it.
+
 ## Still open
 
 - **OCL has tokens, not a grammar.** The `ocl` type colours a value, but
@@ -106,8 +138,13 @@ and PRISM of every example are the same (`pnpm snapshot:language`).
 - **The mapper doesn't have the model.** Its checks run without
   `elements`, so a rule across elements first stops generation in the
   template, while the editors mark it as soon as it's written.
-- **forAll goals aren't expanded.** That needs the world database, which the
-  browser doesn't have.
+- **forAll goals aren't expanded.** The browser has the world database now
+  (a project resource), but the template doesn't expand a goal per entity
+  yet; it binds types only.
+- **The HDDL domain is read, not checked against.** A task's first word as
+  one of the domain's tasks, and its Params against the task's parameters
+  (through the configuration's var_mapping), need the task's name in a
+  check's context, which only has its properties.
 - **Empty properties print.** piStar gives every element `Description: ""`,
   and the Notation view writes a defined property with an empty value as a
   bare key, so every MutRoSe line has a `Description` under it. Skipping

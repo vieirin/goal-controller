@@ -130,6 +130,7 @@ const KIND = {
   keyword: CompletionItemKind.Keyword,
   property: CompletionItemKind.Property,
   function: CompletionItemKind.Function,
+  class: CompletionItemKind.Class,
 } as const satisfies Record<Completion['type'], CompletionItemKind>;
 
 export type GoalLspServices = LangiumServices;
@@ -254,6 +255,8 @@ export const createGoalLspServices = (
         ',',
         '(',
         '.',
+        // a type, after `name :` (an ocl value's candidates)
+        ':',
       ],
     };
 

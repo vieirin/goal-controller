@@ -429,6 +429,48 @@
     "outputs": []
   },
   {
+    "path": "projects/medicine-delivery",
+    "group": "projects",
+    "name": "medicine-delivery",
+    "form": "file",
+    "dialect": "mutrose",
+    "root": "projects/medicine-delivery",
+    "files": [
+      "configuration/configuration.json",
+      "gm/MedicineDelivery.txt",
+      "hddl/domain.hddl",
+      "knowledge/world_db.xml",
+      "project.json"
+    ],
+    "models": ["gm/MedicineDelivery.txt"],
+    "projectResources": {
+      "world": "knowledge/world_db.xml",
+      "hddl": "hddl/domain.hddl",
+      "configuration": "configuration/configuration.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "projects/tas3-edgev2",
+    "group": "projects",
+    "name": "tas3-edgev2",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "projects/tas3-edgev2",
+    "files": [
+      "goalModel_TAS_3_.txt",
+      "project.json",
+      "props/goalModel_TAS_3.props",
+      "variables.json"
+    ],
+    "models": ["goalModel_TAS_3_.txt"],
+    "projectResources": {
+      "variables": "variables.json",
+      "properties": ["props/goalModel_TAS_3.props"]
+    },
+    "outputs": []
+  },
+  {
     "path": "sleec/goalModel - 2026-01-23T112755.270.txt",
     "group": "sleec",
     "name": "goalModel - 2026-01-23T112755.270.txt",

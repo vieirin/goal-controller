@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { strToU8, zipSync } from '../../../../ui/node_modules/fflate';
+import { fakeDirectory, fakeStorage, type Tree } from './support';
 import {
   directoryStore,
   EMBEDDED_KEY,
@@ -27,8 +28,6 @@ import {
   unzipProject,
   withModelSettings,
   withModelText,
-  type DirectoryHandleLike,
-  type FileHandleLike,
   type RecentStorage,
 } from '../../../../ui/lib/project';
 
@@ -37,60 +36,6 @@ const example = (path: string) =>
   readFileSync(join(ROOT, 'examples', path), 'utf8');
 const EDGE = example('edgeV2/simpleChoice.txt');
 const SLEEC = example('sleec/goalModel-sleec.txt');
-
-/** An in-memory folder with the handles' methods a store uses. */
-type Tree = { [name: string]: string | Tree };
-const fakeDirectory = (name: string, tree: Tree): DirectoryHandleLike => ({
-  kind: 'directory',
-  name,
-  async *values() {
-    for (const [child, value] of Object.entries(tree))
-      yield typeof value === 'string'
-        ? fakeFile(tree, child)
-        : fakeDirectory(child, value);
-  },
-  async getDirectoryHandle(child, options) {
-    if (typeof tree[child] !== 'object') {
-      if (!options?.create || child in tree)
-        throw new Error(`NotFoundError: ${child}`);
-      tree[child] = {};
-    }
-    return fakeDirectory(child, tree[child] as Tree);
-  },
-  async getFileHandle(child, options) {
-    if (typeof tree[child] !== 'string') {
-      if (!options?.create || child in tree)
-        throw new Error(`NotFoundError: ${child}`);
-      tree[child] = '';
-    }
-    return fakeFile(tree, child);
-  },
-});
-const fakeFile = (tree: Tree, name: string): FileHandleLike => ({
-  kind: 'file',
-  name,
-  getFile: async () => ({ text: async () => tree[name] as string }),
-  createWritable: async () => {
-    let data = '';
-    return {
-      write: async (chunk: string) => {
-        data += chunk;
-      },
-      close: async () => {
-        tree[name] = data;
-      },
-    };
-  },
-});
-
-const fakeStorage = (): RecentStorage & { data: Map<string, string> } => {
-  const data = new Map<string, string>();
-  return {
-    data,
-    getItem: (key) => data.get(key) ?? null,
-    setItem: (key, value) => void data.set(key, value),
-  };
-};
 
 describe('project stores', () => {
   it('opens a single file as an implicit one-model project', async () => {
