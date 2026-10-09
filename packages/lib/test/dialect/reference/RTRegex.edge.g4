@@ -1,3 +1,5 @@
+// Pinned from 4494764: packages/lib/grammar/edge/RTRegex.g4
+// (scripts/sync-reference.sh; do not edit)
 grammar RTRegex;
 
 @rulecatch {
@@ -17,11 +19,10 @@ expr:
 	| ':' word EOF								# nameOnly
 	| expr op = '@' FLOAT						# gRetry
 	| expr op = '|' expr						# gAlternative
-	| expr op = '?' expr						# gChoice
-	| expr op = '+' expr						# gAnyOrder
 	| expr op = '#' expr						# gInterleaved
 	| expr op = ';' expr						# gSequence
 	| expr op = '->' expr						# gDegradation
+	| op = '+'									# gChoice
 	| SKIPP										# gSkip;
 
 id: FLOAT | FLOAT X | X | DIGIT_SUBID;

@@ -497,22 +497,17 @@ purpose_end
    pnpm install
    ```
 
-2. **Generate ANTLR parsers:**
-   ```bash
-   make grammar
-   ```
-
-3. **Build the library:**
+2. **Build the library** (the dialect definitions, the goal language, goal-tree and lib):
    ```bash
    pnpm run build:lib
    ```
 
-4. **Run transformations:**
+3. **Run transformations:**
    ```bash
    make run FILE=examples/edge/simpleChoice.txt
    ```
 
-5. **Launch the web UI:**
+4. **Launch the web UI:**
    ```bash
    pnpm run dev:ui
    # Open http://localhost:3000
@@ -540,11 +535,7 @@ purpose_end
    npm install -g pnpm
    ```
 
-2. **Install antlr4:**
-   - `pip install antlr4-tools`
-   - `brew install antlr` (MacOS, check how to install for your distribution)
-
-3. **Install Node.js 22.6.0:**
+2. **Install Node.js 22.6.0:**
    ```bash
    # Using nvm
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -552,7 +543,7 @@ purpose_end
    nvm use 22.6.0
    ```
 
-4. **Install dependencies:**
+3. **Install dependencies:**
    ```bash
    pnpm install
    ```
@@ -570,8 +561,7 @@ You can use the interactive CLI to select and run models:
 
 1. Build the library package first:
    ```bash
-   make grammar  # Generate ANTLR parsers (one RT grammar per engine: packages/lib/grammar/<engine>/)
-   pnpm run build:lib  # Build the library
+   pnpm run build:lib  # Build the library (goal texts are read with packages/goal-language)
    ```
 
 2. Generate the model using one of these methods:

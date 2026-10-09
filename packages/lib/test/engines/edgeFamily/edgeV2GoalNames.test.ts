@@ -1,8 +1,9 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { getGoalDetail } from '../../../src/parsers/goalNameParser/edge';
+// EdgeV2's reader: the goal language and EdgeV2's definition (these tests read RTRegex.g4's before)
+import { edgeV2GoalNames as getGoalDetail } from '../../../src/engines/edgeFamily/parsers';
 
-describe('GoalNameParser (edge grammar)', () => {
+describe('GoalNameParser (edgeV2 grammar)', () => {
   describe('getGoalDetail', () => {
     it('should parse G6: Deliver Sample to Lab [G10;G11;G12] correctly', () => {
       const goalText = 'G6: Deliver Sample to Lab [G10;G11;G12]';
@@ -57,6 +58,34 @@ describe('GoalNameParser (edge grammar)', () => {
       });
     });
 
+    it('should handle any-order (unordered AND) goals', () => {
+      const goalText = 'G0: Any Order Goal [G1+G2]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G0',
+        goalName: 'Any Order Goal',
+        executionDetail: {
+          type: 'anyOrder',
+          anyOrder: ['G1', 'G2'],
+        },
+      });
+    });
+
+    it('should handle any-order with multiple children', () => {
+      const goalText = 'G1: Unordered Tasks [G2+G3+G4+G5]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G1',
+        goalName: 'Unordered Tasks',
+        executionDetail: {
+          type: 'anyOrder',
+          anyOrder: ['G2', 'G3', 'G4', 'G5'],
+        },
+      });
+    });
+
     it('should handle degradation goals', () => {
       const goalText = 'G8: Degradation Goal [G9->G10]';
       const result = getGoalDetail({ goalText });
@@ -72,7 +101,7 @@ describe('GoalNameParser (edge grammar)', () => {
     });
 
     it('should handle choice goals', () => {
-      const goalText = 'G11: Choice Goal +';
+      const goalText = 'G11: Choice Goal [G12?G13]';
       const result = getGoalDetail({ goalText });
 
       assert.deepStrictEqual(result, {
@@ -80,6 +109,21 @@ describe('GoalNameParser (edge grammar)', () => {
         goalName: 'Choice Goal',
         executionDetail: {
           type: 'choice',
+          choice: ['G12', 'G13'],
+        },
+      });
+    });
+
+    it('should handle choice with multiple children', () => {
+      const goalText = 'G1: Multiple Choices [G2?G3?G4?G5]';
+      const result = getGoalDetail({ goalText });
+
+      assert.deepStrictEqual(result, {
+        id: 'G1',
+        goalName: 'Multiple Choices',
+        executionDetail: {
+          type: 'choice',
+          choice: ['G2', 'G3', 'G4', 'G5'],
         },
       });
     });

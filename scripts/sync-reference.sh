@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Pins the reference files the engine definitions are checked against: the
 # hand-written Langium notation branch (vn/rt-langium-notation) at one commit,
-# read with `git show` only (the branch is never checked out or changed).
+# and the ANTLR grammars the engines read with before the goal language
+# (packages/lib/grammar, removed), read with `git show` only (no branch is
+# checked out or changed).
 # Imports are rewritten to the local copies (or the built workspace packages).
 #
 #   scripts/sync-reference.sh [out-dir]   (default: packages/lib/test/dialect/reference)
 set -euo pipefail
 
 COMMIT=b61def8ba1db68fc42910a20a3b51373add88f01
+ANTLR_COMMIT=44947643c925880d74deab1d39f2a08c9fd54a43
 REPO=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
 OUT=${1:-$REPO/packages/lib/test/dialect/reference}
 mkdir -p "$OUT"
@@ -45,6 +48,18 @@ show packages/rt-language/src/rt-notation.langium > "$OUT/rt-notation.langium"
     -e "s#from '@goal-controller/lib'#from '../../../src'#"
 } > "$OUT/edgeProperties.ts"
 
+# the ANTLR grammars: the operators' order and forms the definitions keep
+for grammar in edge edgeV2; do
+  {
+    printf '// Pinned from %s: packages/lib/grammar/%s/RTRegex.g4\n// (scripts/sync-reference.sh; do not edit)\n' "${ANTLR_COMMIT:0:7}" "$grammar"
+    git -C "$REPO" show "$ANTLR_COMMIT:packages/lib/grammar/$grammar/RTRegex.g4"
+  } > "$OUT/RTRegex.$grammar.g4"
+done
+{
+  printf '// Pinned from %s: packages/lib/grammar/AssertionRegex.g4\n// (scripts/sync-reference.sh; do not edit)\n' "${ANTLR_COMMIT:0:7}"
+  git -C "$REPO" show "$ANTLR_COMMIT:packages/lib/grammar/AssertionRegex.g4"
+} > "$OUT/AssertionRegex.g4"
+
 cat > "$OUT/REFERENCE.md" <<MD
 # Reference files
 
@@ -59,6 +74,7 @@ against) by:
 | constructs.ts, properties.ts, context.ts, rt-notation.langium | packages/rt-language/src/ |
 | notation.ts, edgeProperties.ts | packages/ui/lib/workbench/ |
 | pistar.ts | packages/ui/lib/workbench/pistar.ts (composeNodeText only) |
+| RTRegex.edge.g4, RTRegex.edgeV2.g4, AssertionRegex.g4 | packages/lib/grammar/ @ \`$ANTLR_COMMIT\` (the ANTLR grammars, removed) |
 
 Imports are rewritten to these copies, or to lib's own source
 (\`packages/lib/src\`); \`@goal-controller/goal-tree\` resolves from lib. Do not

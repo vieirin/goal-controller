@@ -28,6 +28,7 @@
   "scripts": {
     "generate": "langium generate",
     "build": "rm -rf out && tsc && node build.mjs",
+    "watch": "tsc --watch",
     "test": "mocha",
     "clean": "rm -rf out"
   },

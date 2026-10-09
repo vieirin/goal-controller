@@ -11,7 +11,7 @@ import {
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
-import { getGoalDetail, type RTGrammar } from './parsers/goalNameParser';
+import { getGoalDetail, type GoalNameParser } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
 
@@ -92,7 +92,7 @@ const listed = (detail: GoalExecutionDetail | null): string[] => {
 /** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
 export function goalView(
   model: IstarModel<string, string>,
-  grammar: RTGrammar,
+  grammar: GoalNameParser,
 ): GoalView {
   const byIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();

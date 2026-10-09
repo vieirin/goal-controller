@@ -29,7 +29,7 @@ import {
   notationEdits,
   operatorsFor,
 } from '@goal-controller/goal-language';
-import { edge, edgeV2 } from '../../src';
+import { edge, edgeGoalNames, edgeV2, edgeV2GoalNames } from '../../src';
 // the UI's own edit writer (React-free), as the Notation view applies edits
 import { applyNotationEdits } from '../../../ui/lib/workbench/notationDocument';
 import { RETRY } from '../../src/engines/edgeFamily';
@@ -74,7 +74,10 @@ const EDGE_V2_MODELS = [
 ];
 
 const view = (model: string, grammar: 'edge' | 'edgeV2'): GoalView =>
-  goalView(parsePistar(model), grammar);
+  goalView(
+    parsePistar(model),
+    grammar === 'edge' ? edgeGoalNames : edgeV2GoalNames,
+  );
 
 describe('harness: the reference files', () => {
   it('are what the sync script pins (no diff on re-running it)', () => {
@@ -162,9 +165,9 @@ describe('harness 2: precedence', () => {
   /** An RTRegex.g4's operator alternatives, in order: `expr op = 'x' expr` or a lone `op = 'x'`. */
   const g4Operators = (grammar: string) =>
     [
-      ...text(
-        join(ROOT, 'packages/lib/grammar', grammar, 'RTRegex.g4'),
-      ).matchAll(/\|\s*(expr\s+)?op = '([^']+)'\s*(expr|FLOAT)?/g),
+      ...text(join(REFERENCE, `RTRegex.${grammar}.g4`)).matchAll(
+        /\|\s*(expr\s+)?op = '([^']+)'\s*(expr|FLOAT)?/g,
+      ),
     ].map(([, left, symbol, right]) => ({
       symbol,
       form: !left ? 'standalone' : right === 'FLOAT' ? 'postfix' : 'infix',

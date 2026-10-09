@@ -10,6 +10,7 @@ import {
   type Task,
 } from '@goal-controller/goal-tree';
 import type { SleecGoalProps, SleecTaskProps } from './types';
+import { edgeGoalNames } from '../edgeFamily/parsers';
 
 /**
  * Allowed keys for SLEEC goal custom properties
@@ -112,6 +113,8 @@ export const sleecEngineMapper = createEngineMapper<
   SleecTaskProps,
   never
 >()({
+  // SLEEC reads goal texts as Edge does (goal-tree's default, before readers were injected)
+  grammar: edgeGoalNames,
   allowedGoalKeys: SLEEC_GOAL_KEYS,
   allowedTaskKeys: SLEEC_TASK_KEYS,
   allowedQualityKeys: SLEEC_QUALITY_KEYS,

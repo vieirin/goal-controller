@@ -2,7 +2,7 @@
  * Engine Mapper types and factory function
  * Defines how raw iStar properties are mapped to engine-specific properties
  */
-import type { RTGrammar } from '../parsers/goalNameParser';
+import type { GoalNameParser } from '../parsers/goalNameParser';
 import type { GoalExecutionDetail, TreeNode } from '../types/';
 
 /**
@@ -57,10 +57,8 @@ export type EngineMapper<
   TResourceKeys extends string = string,
   TQualityKeys extends string = never,
 > = {
-  /**
-   * RT notation grammar used to parse goal names (defaults to 'edge')
-   */
-  grammar?: RTGrammar;
+  /** how the engine reads goal texts (`G1: Goal [G2;G3]`) */
+  grammar: GoalNameParser;
 
   /**
    * Allowed keys for goal custom properties
@@ -136,7 +134,7 @@ export function createEngineMapper<
     TQualityKeys extends string = never,
   >(
     config: {
-      grammar?: RTGrammar;
+      grammar: GoalNameParser;
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
       allowedQualityKeys?: readonly TQualityKeys[];

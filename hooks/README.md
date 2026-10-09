@@ -19,7 +19,7 @@ Runs `oxfmt` and `oxlint --fix` on files in the new commit. If anything changes,
 Blocks the push unless, for source files in the commits being pushed:
 
 1. `oxfmt --check` passes
-2. `oxlint` passes (generated `antlr` trees ignored)
+2. `oxlint` passes
 3. `pnpm test` passes
 
 Bypass (not recommended):

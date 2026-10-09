@@ -8,11 +8,6 @@ packages/lib/out/
 packages/ui/.next/
 packages/ui/out/
 
-# Generated files
-*.interp
-*.tokens
-grammar/.antlr
-
 # Output directory
 output/
 

@@ -124,9 +124,8 @@ export { cartesianProduct } from './internal/utils';
 // Parsers (for engine mappers)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { getAssertionVariables } from './parsers/getAssertionVariables';
 export {
-  DEFAULT_RT_GRAMMAR,
   getGoalDetail,
-  type RTGrammar,
+  type GoalDetail,
+  type GoalNameParser,
 } from './parsers/goalNameParser';

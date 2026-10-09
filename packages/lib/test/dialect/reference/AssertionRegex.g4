@@ -1,3 +1,5 @@
+// Pinned from 4494764: packages/lib/grammar/AssertionRegex.g4
+// (scripts/sync-reference.sh; do not edit)
 grammar AssertionRegex;
 
 @rulecatch {

@@ -13,7 +13,6 @@
     "watch": "tsc --watch",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
-    "grammar": "make grammar",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts"
   },
@@ -21,7 +20,6 @@
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
-    "antlr4": "^4.13.0",
     "inquirer": "^12.5.2",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",

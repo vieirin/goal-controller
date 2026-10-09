@@ -1,15 +1,7 @@
-import {
-  goalView,
-  type GoalView,
-  type RTGrammar,
-} from '@goal-controller/goal-tree';
+import { goalView, type GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
+import { goalNamesOf } from '@/lib/workbench/engineDialects';
 import { parseModel } from '@/lib/workbench/dialects';
-
-/** The RT grammar each engine reads goal texts with: its definition's (SLEEC: Edge's). */
-const grammarOf = (engine: TransformEngine): RTGrammar =>
-  notationDefinitionOf(engine).id as RTGrammar;
 
 /**
  * The goal model as the workbench shows it (goal-tree's `goalView`): structure, RT ids,
@@ -22,5 +14,5 @@ export const treeView = (
 ): GoalView => {
   // read with the dialect it records, if any (the view leaves its kinds out)
   const model = parseModel(modelJson);
-  return goalView(model, grammarOf(engine));
+  return goalView(model, goalNamesOf(engine));
 };

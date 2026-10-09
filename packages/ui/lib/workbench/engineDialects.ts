@@ -6,9 +6,12 @@
 import {
   edge,
   edgeCheckRegistry,
+  edgeGoalNames,
   edgeV2,
+  edgeV2GoalNames,
   type Check,
 } from '@goal-controller/lib';
+import type { GoalNameParser } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_DIALECTS = { edge, edgev2: edgeV2 } as const;
@@ -34,3 +37,7 @@ export const isDialectEngine = (
  */
 export const notationDefinitionOf = (engine: TransformEngine) =>
   ENGINE_DIALECTS[isDialectEngine(engine) ? engine : 'edge'];
+
+/** How an engine reads goal texts (the goal language, its definition's operators). */
+export const goalNamesOf = (engine: TransformEngine): GoalNameParser =>
+  engine === 'edgev2' ? edgeV2GoalNames : edgeGoalNames;

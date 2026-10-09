@@ -48,7 +48,7 @@ import {
   notationDocument,
   notationEdits,
 } from '@goal-controller/goal-language';
-import { istar4RationalAgents } from '../../src';
+import { edgeV2GoalNames, istar4RationalAgents } from '../../src';
 
 const MODEL = readFileSync(
   join(__dirname, '../../../../examples/pistar-ext/iStar4RationalAgents.txt'),
@@ -240,7 +240,7 @@ describe('extensions', () => {
     it("reads the elements it knows, and leaves the dialect's", () => {
       const tree = goalView(
         parsePistar(MODEL, { metamodel: RATIONAL_AGENTS }),
-        'edgeV2',
+        edgeV2GoalNames,
       );
       // the dialect's names carry no RT ids: the view keys them by piStar id
       expect([...tree.nodes.keys()]).to.deep.equal(['g1', 't1']);

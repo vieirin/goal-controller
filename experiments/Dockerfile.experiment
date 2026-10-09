@@ -3,8 +3,7 @@
 FROM movesrwth/storm:stable
 
 RUN apt-get update
-RUN apt-get install -y python3 python3-pip curl build-essential antlr4
-RUN ln -sf /usr/local/bin/antlr4 /usr/local/bin/antlr
+RUN apt-get install -y python3 python3-pip curl build-essential
 
 # Set working directory
 WORKDIR /workspace
@@ -27,6 +26,9 @@ RUN npm install -g pnpm
 
 # Copy workspace files
 COPY package.json pnpm-workspace.yaml ./
+COPY packages/dialect ./packages/dialect
+COPY packages/goal-language ./packages/goal-language
+COPY packages/goal-tree ./packages/goal-tree
 COPY packages/lib ./packages/lib
 COPY examples ./examples
 COPY experiments ./experiments
@@ -36,8 +38,8 @@ RUN rm -rf node_modules packages/*/node_modules
 
 # Install dependencies and build
 RUN pnpm install
-RUN cd packages/lib && make grammar
-RUN pnpm run build:lib
+# goal texts are read with the goal language (no generated parsers)
+RUN pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:lib
 
 # Setup Python environment
 RUN . venv/bin/activate 2>/dev/null || true

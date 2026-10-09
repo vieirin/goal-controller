@@ -23,7 +23,7 @@ COMMITTED_FILES="$(git diff-tree --no-commit-id --name-only -r HEAD)"
 FILES=()
 while IFS= read -r file; do
   case "$file" in
-    *node_modules*|*antlr*) continue ;;
+    *node_modules*) continue ;;
   esac
   case "$file" in
     *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css)
@@ -45,7 +45,7 @@ for file in "${FILES[@]}"; do
 done
 
 pnpm exec oxfmt "${FILES[@]}"
-pnpm exec oxlint --fix --ignore-pattern '**/antlr/**' "${FILES[@]}" || true
+pnpm exec oxlint --fix "${FILES[@]}" || true
 
 HAS_CHANGES=false
 for file in "${FILES[@]}"; do
