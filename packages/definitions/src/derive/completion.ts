@@ -6,7 +6,8 @@
  */
 import type {
   DefinitionContext,
-  EngineDefinition,
+  AnyDefinition,
+  WithNotation,
   ValueConfig,
 } from '../schema';
 import { lineId, readPropertyLine } from './lines';
@@ -21,7 +22,7 @@ export type Completion = {
 export type CompletionResult = { from: number; options: Completion[] };
 
 type Definition = Pick<
-  EngineDefinition,
+  AnyDefinition,
   | 'elements'
   | 'notation'
   | 'properties'
@@ -50,10 +51,10 @@ export const completionsAt = (
   const before = text.slice(0, pos - start);
   const word = WORD.exec(before)?.[0] ?? '';
   const from = pos - word.length;
-  const [open, close] = definition.notation.delimiters;
-
   const id = lineId(definition, text);
   if (id) {
+    if (!definition.notation) return null;
+    const [open, close] = definition.notation.delimiters;
     const opened = before.lastIndexOf(open);
     if (opened < 0 || before.lastIndexOf(close) > opened) return null;
     const element = context.elements[id];
@@ -89,11 +90,11 @@ export const completionsAt = (
     if (property) set.add(property.key);
   }
   const element = owner ? context.elements[owner] : undefined;
-  if (!element || !definition.notation.operand.kinds.includes(element.kind))
-    return null;
+  const owned = element && definition.elements[element.kind];
+  if (!element || !owned || owned.declaration) return null;
   return {
     from,
-    options: definition.properties[element.kind]
+    options: (definition.properties[element.kind] ?? [])
       .filter((p) => p.inspector !== false && !set.has(p.key))
       .map((p) => ({
         label: p.key,
@@ -154,7 +155,7 @@ export const fieldCompletionsAt = (
 
 /** A construct's hover text: `Sequence — does every child, one after another`. */
 export const constructHint = (
-  definition: Pick<EngineDefinition, 'notation'>,
+  definition: WithNotation,
   construct: string,
 ): string | null => {
   const found = constructDefinition(definition, construct);

@@ -15,11 +15,14 @@ export type ElementKind = 'goal' | 'task' | 'resource' | 'quality';
 export type Relation = 'and' | 'or';
 
 export type ElementDefinition = {
-  /** the id's prefix */
-  prefix: string;
-  /** what follows the prefix, as a regex source */
-  idPattern: string;
-  /** the element's line, with `{id}` and `{name}` */
+  /** the id's prefix (a line with `{id}`) */
+  prefix?: string;
+  /** what follows the prefix, as a regex source (a line with `{id}`) */
+  idPattern?: string;
+  /**
+   * the element's line, with `{name}` and, for a definition whose lines name
+   * their element, `{id}` (without it, lines are their elements' in order)
+   */
   line: string;
   /**
    * what this kind annotates its line with, before the id
@@ -175,22 +178,27 @@ export type ProblemKind =
 
 export type Severity = 'error' | 'warning' | 'info';
 
-export type EngineDefinition = {
+/**
+ * A notation engine's dialect, or a modelling dialect's (no engine reads it):
+ * `K` are the element kinds it has (an engine's: iStar's intentional elements).
+ */
+export type EngineDefinition<K extends string = ElementKind> = {
   id: string;
   /** shown to people */
   name: string;
-  /** the grammar the engine's library reads texts with */
-  grammar: string;
+  /** the grammar the engine's library reads texts with (none without an engine) */
+  grammar?: string;
   /** the parser that reads it */
-  parser: string;
-  elements: Readonly<Partial<Record<ElementKind, ElementDefinition>>>;
+  parser?: string;
+  elements: Readonly<Partial<Record<K, ElementDefinition>>>;
   /** the fill of a kind without its own */
   defaultFill: string;
-  notation: NotationDefinition;
-  properties: Readonly<Record<ElementKind, readonly PropertyDefinition[]>>;
+  /** what its delimiters hold on an element's line (a dialect may have none) */
+  notation?: NotationDefinition;
+  properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
   /** a property's line under its element: key, separator, value */
   propertyLine: { separator: string; keyPattern: string };
-  /** the order property lines are written in, for every operand kind alike */
+  /** the order property lines are written in, for every listed kind alike */
   propertyLineOrder: readonly string[];
   /** how far each depth is indented in the Notation view (presentation only) */
   indent: string;
@@ -201,12 +209,24 @@ export type EngineDefinition = {
   languages: Readonly<Record<string, LanguageDefinition>>;
 };
 
+/** A definition of any kinds: what the derived helpers read. */
+export type AnyDefinition = EngineDefinition<string>;
+
+/** A definition with a notation (an engine's). */
+export type WithNotation = { notation: NotationDefinition };
+
+/** Whether a definition's lines name their elements (`{id}`), or are theirs in order. */
+export const hasIds = (definition: Pick<AnyDefinition, 'elements'>): boolean =>
+  Object.values(definition.elements).some((element) =>
+    element?.line.includes('{id}'),
+  );
+
 /**
  * What the views check the text against: the elements and the workbench's
  * variables. A language server takes it as is.
  */
 export type DefinitionContextElement = {
-  kind: ElementKind;
+  kind: string;
   /** ids of its operand children, in the notation's order */
   children: readonly string[];
   /** its custom properties, as stored */
@@ -218,6 +238,8 @@ export type DefinitionContextElement = {
 export type DefinitionContext = {
   elements: Readonly<Record<string, DefinitionContextElement>>;
   variables: readonly string[];
+  /** a definition whose lines name no element: the elements its lines are, in order */
+  order?: readonly string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -300,22 +322,31 @@ export const elementLineKeys = (
  * element line declares) is one it declares, and the property-line order lists
  * each operand kind's key once (but those its element line writes).
  */
-export const defineEngine = <const D extends EngineDefinition>(
+export const defineEngine = <const D extends AnyDefinition>(
   definition: D,
 ): DeepReadonly<D> => {
   const fail = (why: string) => {
     throw new Error(`${definition.id}: ${why}`);
   };
   const { notation } = definition;
-  const constructs = Object.keys(notation.constructs);
-  for (const op of notation.operators) {
-    const named = op.form === 'postfix' ? op.appliesTo : [op.construct];
-    for (const c of named)
-      if (!constructs.includes(c))
-        fail(`operator ${op.symbol}: unknown construct ${c}`);
+  if (notation) {
+    const constructs = Object.keys(notation.constructs);
+    for (const op of notation.operators) {
+      const named = op.form === 'postfix' ? op.appliesTo : [op.construct];
+      for (const c of named)
+        if (!constructs.includes(c))
+          fail(`operator ${op.symbol}: unknown construct ${c}`);
+    }
+    for (const c of Object.values(notation.defaultConstruct))
+      if (!constructs.includes(c)) fail(`unknown default construct ${c}`);
   }
-  for (const c of Object.values(notation.defaultConstruct))
-    if (!constructs.includes(c)) fail(`unknown default construct ${c}`);
+  const elements = definition.elements as AnyDefinition['elements'];
+  const named = Object.values(elements).filter((e) => e?.line.includes('{id}'));
+  if (named.length && named.length !== Object.keys(elements).length)
+    fail('either every element line has an {id}, or none has');
+  for (const element of named)
+    if (element?.prefix === undefined || element.idPattern === undefined)
+      fail('an element line with an {id} needs its prefix and idPattern');
   for (const [kind, list] of Object.entries(definition.properties)) {
     const keys = list.map((p) => p.key);
     if (new Set(keys).size !== keys.length)
@@ -334,27 +365,32 @@ export const defineEngine = <const D extends EngineDefinition>(
           fail(`${kind}.${property.key} depends on unknown ${key}`);
     }
   }
-  const elements = definition.elements as EngineDefinition['elements'];
+  const properties = definition.properties as AnyDefinition['properties'];
   for (const [kind, element] of Object.entries(elements)) {
-    const keys = definition.properties[kind as ElementKind].map((p) => p.key);
+    const keys = (properties[kind] ?? []).map((p) => p.key);
     for (const key of elementLineKeys(element))
       if (!keys.includes(key)) fail(`${kind} line declares unknown ${key}`);
   }
+  // property lines: under the listed kinds that declare nothing on their line
   const lineKeys = new Set(
-    notation.operand.kinds.flatMap((kind) => {
-      const onElementLine = elementLineKeys(elements[kind]);
-      return definition.properties[kind]
+    Object.entries(elements).flatMap(([kind, element]) => {
+      if (!element || element.declaration) return [];
+      const onElementLine = elementLineKeys(element);
+      return (properties[kind] ?? [])
         .map((p) => p.key)
         .filter((key) => !onElementLine.includes(key));
     }),
   );
+  // without ids, a line is its element's by position: there are no property lines
+  if (!named.length && lineKeys.size)
+    fail('lines without ids write every property on the element line');
   const order = new Set(definition.propertyLineOrder);
   if (
     order.size !== definition.propertyLineOrder.length ||
     order.size !== lineKeys.size ||
     [...lineKeys].some((key) => !order.has(key))
   )
-    fail('propertyLineOrder must list each operand kind key once');
+    fail('propertyLineOrder must list each listed kind key once');
   return deepFreeze(definition) as DeepReadonly<D>;
 };
 

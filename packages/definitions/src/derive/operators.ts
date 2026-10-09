@@ -1,14 +1,15 @@
 import type {
+  AnyDefinition,
   ConstructDefinition,
   ConstructOf,
-  EngineDefinition,
   Operator,
   Relation,
+  WithNotation,
 } from '../schema';
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-type Notation = Pick<EngineDefinition, 'name' | 'notation' | 'elements'>;
+type Notation = Pick<AnyDefinition, 'name' | 'elements'> & WithNotation;
 
 /** A button writing a construct's notation over the goal's children. */
 export type ConstructButton = {
@@ -100,14 +101,14 @@ export const operandPattern = (
   definition: Pick<Notation, 'notation' | 'elements'>,
 ) =>
   definition.notation.operand.kinds
-    .map((kind) => definition.elements[kind])
+    .map((kind) => (definition.elements as AnyDefinition['elements'])[kind])
     .filter((element) => element !== undefined)
-    .map((element) => `${escape(element.prefix)}${element.idPattern}`)
+    .map((element) => `${escape(element.prefix ?? '')}${element.idPattern}`)
     .join('|');
 
 /** The construct an operator symbol writes, if it writes one. */
 export const constructOf = (
-  definition: Pick<EngineDefinition, 'notation'>,
+  definition: WithNotation,
   symbol: string,
 ): string | null => {
   const op = definition.notation.operators.find((o) => o.symbol === symbol);
@@ -116,7 +117,7 @@ export const constructOf = (
 
 /** Why a goal's notation contradicts its refinement links, if it does. */
 export const relationMismatch = (
-  definition: Pick<EngineDefinition, 'notation' | 'problems'>,
+  definition: WithNotation & Pick<AnyDefinition, 'problems'>,
   construct: string | null | undefined,
   relation: Relation | null | undefined,
 ): string | null => {
@@ -132,7 +133,7 @@ export const relationMismatch = (
 };
 
 /** The constructs needing a relation's links. */
-export const constructsWith = <D extends Pick<EngineDefinition, 'notation'>>(
+export const constructsWith = <D extends WithNotation>(
   definition: D,
   relation: Relation,
 ): ConstructOf<D>[] =>
@@ -142,9 +143,9 @@ export const constructsWith = <D extends Pick<EngineDefinition, 'notation'>>(
 
 /** A construct's label, help and relation, by name (undefined if not declared). */
 export const constructDefinition = (
-  definition: Pick<EngineDefinition, 'notation'>,
+  definition: WithNotation,
   construct: string,
 ): ConstructDefinition | undefined =>
-  (
-    definition.notation.constructs as EngineDefinition['notation']['constructs']
-  )[construct];
+  (definition.notation.constructs as WithNotation['notation']['constructs'])[
+    construct
+  ];

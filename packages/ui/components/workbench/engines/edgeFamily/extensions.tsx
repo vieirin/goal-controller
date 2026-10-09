@@ -9,7 +9,6 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import { DIALECT_KINDS_HIDDEN } from '../shared/dialects';
 import { ElementWithProblems } from '../shared/extensions';
 import type { RejectEdit } from '../shared/WorkbenchCanvas';
 
@@ -87,8 +86,6 @@ export const edgePalette: IstarExtension = {
     'istar.Agent': { palette: false },
     'istar.Role': { palette: false },
     'istar.Quality': { palette: false },
-    // the engines don't read the dialects' kinds
-    ...DIALECT_KINDS_HIDDEN,
     // resources are the engine's variables: one tool per type, with valid properties preset
     // after Task (default order 36): Goal, Task, then Resource
     'istar.Resource': {
@@ -137,8 +134,6 @@ export const oneActorOnly: RejectEdit = (event) =>
     (change) =>
       change.type === 'addElement' &&
       isActor(event.model.elements.get(change.id)),
-  ) &&
-  [...event.model.elements.values()].filter((element) => isActor(element))
-    .length > 1
+  ) && [...event.model.elements.values()].filter(isActor).length > 1
     ? 'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.'
     : null;

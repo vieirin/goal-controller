@@ -1,25 +1,28 @@
 import type {
+  AnyDefinition,
   Condition,
   ConditionalValue,
-  ElementKind,
-  EngineDefinition,
   PropertyDefinition,
-  PropertyKeyOf,
   ValueConfig,
 } from '../schema';
 
 export type Properties = Readonly<Record<string, string | undefined>>;
 
 type WithProperties = {
-  properties: Readonly<Record<ElementKind, readonly { key: string }[]>>;
+  properties: Readonly<Record<string, readonly { key: string }[]>>;
 };
 
 /** The keys a definition reads for a kind, in its order (literal types kept). */
-export const propertyKeys = <D extends WithProperties, K extends ElementKind>(
+export const propertyKeys = <
+  D extends WithProperties,
+  K extends keyof D['properties'] & string,
+>(
   definition: D,
   kind: K,
-): readonly PropertyKeyOf<D, K>[] =>
-  definition.properties[kind].map((p) => p.key) as PropertyKeyOf<D, K>[];
+): readonly D['properties'][K][number]['key'][] =>
+  definition.properties[kind]!.map(
+    (p) => p.key,
+  ) as D['properties'][K][number]['key'][];
 
 export const evaluateCondition = (
   condition: Condition | undefined,
@@ -59,16 +62,16 @@ export const fillTemplate = (
   );
 
 export const propertyOf = (
-  definition: Pick<EngineDefinition, 'properties'>,
-  kind: ElementKind,
+  definition: Pick<AnyDefinition, 'properties'>,
+  kind: string,
   key: string,
 ): PropertyDefinition | undefined =>
-  definition.properties[kind].find((p) => p.key === key);
+  definition.properties[kind]?.find((p) => p.key === key);
 
 /** The fill a kind is drawn with when no colour is saved. */
 export const fillOf = (
-  definition: Pick<EngineDefinition, 'elements' | 'defaultFill'>,
-  kind: ElementKind,
+  definition: Pick<AnyDefinition, 'elements' | 'defaultFill'>,
+  kind: string,
 ): string =>
-  (definition.elements as EngineDefinition['elements'])[kind]?.fill ??
+  (definition.elements as AnyDefinition['elements'])[kind]?.fill ??
   definition.defaultFill;

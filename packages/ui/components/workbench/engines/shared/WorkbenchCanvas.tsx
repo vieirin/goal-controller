@@ -22,7 +22,6 @@ import {
 } from 'react';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
-import { DIALECT_EXTENSIONS } from './dialects';
 import { SeverityContext } from './extensions';
 
 /**
@@ -35,6 +34,7 @@ import { SeverityContext } from './extensions';
 /** Why an edit is taken back out (shown as an error notice), or null to keep it. */
 export type RejectEdit = (event: ModelChangeEvent) => string | null;
 
+/** The model, read with the dialect it records (if any). */
 const tryParse = (text: string): IstarModel | null => {
   if (!text.trim()) return emptyModel();
   try {
@@ -207,11 +207,6 @@ export default function WorkbenchCanvas({
   fitKey?: string;
 }) {
   const wb = useWorkbench();
-  // the dialects first: a mode's own extensions draw over them
-  const allExtensions = useMemo(
-    () => [...DIALECT_EXTENSIONS, ...extensions] as readonly IstarExtension[],
-    [extensions],
-  );
   const { modelFullscreen, modelReadOnly } = useShell();
   const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
   const reject = useRef(rejectEdit);
@@ -302,7 +297,7 @@ export default function WorkbenchCanvas({
       <SeverityContext.Provider value={severities}>
         <IstarProvider
           store={store}
-          extensions={allExtensions}
+          extensions={extensions}
           readOnly={!parsed || modelReadOnly}
         >
           <SelectionSync canvas={canvas} />

@@ -9,7 +9,6 @@ import {
   isValidName,
 } from '@goal-controller/definitions';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
-import { dialectOfKey } from '@/lib/workbench/dialects';
 import type { TransformEngine } from '@/lib/types';
 import {
   inputOf,
@@ -108,14 +107,6 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
 };
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
-
-/** Why a dialect's annotation (a stereotype, a tagged value) is set, though the engine doesn't read it. */
-const dialectNote = (key: string, engine: TransformEngine): string | null => {
-  const dialect = dialectOfKey(key);
-  return dialect
-    ? `${dialect.label}: shown before the element in the diagram and the Notation view. ${ENGINE_LABEL[engine]} doesn't read it.`
-    : null;
-};
 
 /** Where each engine declares the properties it reads, per element kind, and maps them. */
 type EngineKeys = {
@@ -914,14 +905,13 @@ export function PropertiesField({
             }
             notReadBy={
               knownProperties && !known.includes(key) && key !== 'Description'
-                ? (dialectNote(key, engine) ??
-                  whereAccepted(
+                ? whereAccepted(
                     key,
                     node.kind,
                     engine,
                     knownProperties,
                     allKnown,
-                  ))
+                  )
                 : null
             }
             editor={editorFor?.(key)}

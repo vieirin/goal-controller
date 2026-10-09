@@ -19,7 +19,7 @@
       "nodes": [
         {
           "id": "g1",
-          "text": "G1: Deliver sample [T1]",
+          "text": "Deliver sample",
           "type": "istar.Goal",
           "x": 260,
           "y": 90,
@@ -51,7 +51,7 @@
         },
         {
           "id": "t1",
-          "text": "T1: Drive to lab",
+          "text": "Drive to lab",
           "type": "istar.Task",
           "x": 360,
           "y": 200,

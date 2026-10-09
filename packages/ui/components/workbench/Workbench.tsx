@@ -1,5 +1,6 @@
 'use client';
 
+import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
 import {
   FilePlus2,
   FolderOpen,
@@ -408,7 +409,7 @@ function ModelColumn() {
   const showInspector = wb.mode !== 'pistar';
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const tabs = modelTabsFor(wb.engine);
+  const tabs = modelTabsFor(wb.mode, wb.engine);
 
   return (
     <section
@@ -520,9 +521,13 @@ const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
 };
 
-/** What a model is for: its engine, or piStar for free modelling. */
+/** What a model is for: its engine, a modelling dialect, or piStar for free modelling. */
 const modelKindLabel = (settings: ModelSettings): string =>
-  settings.pistar ? 'piStar' : ENGINE_LABEL[settings.engine];
+  settings.pistar
+    ? settings.dialect
+      ? DIALECT_LABEL[settings.dialect]
+      : 'piStar'
+    : ENGINE_LABEL[settings.engine];
 
 function EmptyState({ onNewModel }: { onNewModel: () => void }) {
   const wb = useWorkbench();

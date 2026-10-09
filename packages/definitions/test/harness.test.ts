@@ -409,6 +409,15 @@ describe('harness 5: the notation document', () => {
     }
   });
 
+  it('equals the reference document on every edge example (the same lines)', () => {
+    for (const { file, model } of EDGE_MODELS) {
+      const tree = view(model, 'edge');
+      expect(notationDocument(edge, tree), file).to.deep.equal(
+        referenceNotation.notationDocument(tree),
+      );
+    }
+  });
+
   it('gives the reference edits for scripted modifications', () => {
     const exercised = new Set<string>();
     for (const { file, model } of EDGE_V2_MODELS) {

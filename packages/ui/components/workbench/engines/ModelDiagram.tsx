@@ -4,6 +4,7 @@ import { useWorkbench } from '../WorkbenchContext';
 import EdgeDiagram from './edge/EdgeDiagram';
 import EdgeV2Diagram from './edgeV2/EdgeV2Diagram';
 import PistarDiagram from './pistar/PistarDiagram';
+import PistarExtDiagram from './pistarExt/PistarExtDiagram';
 import SleecDiagram from './sleec/SleecDiagram';
 
 /** The goal model's diagram for the mode the model is in. */
@@ -12,6 +13,8 @@ export default function ModelDiagram() {
   switch (wb.mode) {
     case 'pistar':
       return <PistarDiagram />;
+    case 'pistarext':
+      return <PistarExtDiagram />;
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':

@@ -4,32 +4,28 @@
  */
 import {
   declarationKeys,
+  hasIds,
+  type AnyDefinition,
   type DeclarationDefinition,
   type DeclarationPart,
-  type ElementKind,
-  type EngineDefinition,
 } from '../schema';
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 type Lines = Pick<
-  EngineDefinition,
+  AnyDefinition,
   'elements' | 'notation' | 'propertyLine' | 'propertyLineOrder'
 >;
 
 // every kind of a definition shares one element line
-const lineTemplate = (
-  definition: Pick<EngineDefinition, 'elements'>,
-): string => {
+const lineTemplate = (definition: Pick<AnyDefinition, 'elements'>): string => {
   const line = Object.values(definition.elements)[0]?.line;
   if (!line) throw new Error('a definition needs an element');
   return line;
 };
 
 /** The text between `{id}` and `{name}` in the element line. */
-const idSeparator = (
-  definition: Pick<EngineDefinition, 'elements'>,
-): string => {
+const idSeparator = (definition: Pick<AnyDefinition, 'elements'>): string => {
   const line = lineTemplate(definition);
   return line.slice(line.indexOf('{id}') + 4, line.indexOf('{name}'));
 };
@@ -39,7 +35,7 @@ const idSeparator = (
  * any, after its annotations if any.
  */
 export const elementLine = (
-  definition: Pick<EngineDefinition, 'elements' | 'notation'>,
+  definition: Pick<AnyDefinition, 'elements' | 'notation'>,
   parts: { id: string; name: string; notation: string | null },
   declaration?: string | null,
   annotations?: string | null,
@@ -47,10 +43,10 @@ export const elementLine = (
   const base = lineTemplate(definition)
     .replace('{id}', parts.id)
     .replace('{name}', parts.name.trim());
-  const [open, close] = definition.notation.delimiters;
+  const delimiters = definition.notation?.delimiters;
   const line =
-    parts.notation && parts.notation.trim()
-      ? `${base} ${open}${parts.notation.trim()}${close}`
+    delimiters && parts.notation && parts.notation.trim()
+      ? `${base} ${delimiters[0]}${parts.notation.trim()}${delimiters[1]}`
       : base;
   const declared = declaration ? `${line} ${declaration}` : line;
   return annotations ? `${annotations} ${declared}` : declared;
@@ -58,21 +54,20 @@ export const elementLine = (
 
 /** The annotations a kind's line starts with (none if it declares none). */
 export const annotationsOf = (
-  definition: Pick<EngineDefinition, 'elements'>,
-  kind: ElementKind,
+  definition: Pick<AnyDefinition, 'elements'>,
+  kind: string,
 ): readonly DeclarationDefinition[] =>
-  (definition.elements as EngineDefinition['elements'])[kind]?.annotations ??
-  [];
+  (definition.elements as AnyDefinition['elements'])[kind]?.annotations ?? [];
 
 /**
  * One annotation group of any kind's, at the start of a text: the line's
  * kind is not known before its id, so every kind's delimiters are tried.
  */
 const annotationGroup = (
-  definition: Pick<EngineDefinition, 'elements'>,
+  definition: Pick<AnyDefinition, 'elements'>,
 ): RegExp | null => {
   const groups = new Set(
-    Object.values(definition.elements as EngineDefinition['elements']).flatMap(
+    Object.values(definition.elements as AnyDefinition['elements']).flatMap(
       (element) =>
         (element?.annotations ?? []).map(({ delimiters: [open, close] }) => {
           const [o, c] = [escape(open), escape(close)];
@@ -88,7 +83,7 @@ const annotationGroup = (
  * rest of the line, from `offset` on (the whole line when it has none).
  */
 export const splitAnnotations = (
-  definition: Pick<EngineDefinition, 'elements'>,
+  definition: Pick<AnyDefinition, 'elements'>,
   line: string,
 ): {
   groups: { text: string; from: number }[];
@@ -148,14 +143,18 @@ export const readAnnotations = (
   return { properties: Object.assign({}, ...read), read };
 };
 
-/** The id a line starts with (indentation and annotations ignored), if any. */
+/**
+ * The id a line starts with (indentation and annotations ignored), if any;
+ * none in a definition whose lines name no element.
+ */
 export const lineId = (
-  definition: Pick<EngineDefinition, 'elements' | 'notation'>,
+  definition: Pick<AnyDefinition, 'elements' | 'notation'>,
   written: string,
 ): string | null => {
+  if (!hasIds(definition)) return null;
   const line = splitAnnotations(definition, written).rest;
   const separator = idSeparator(definition).trim();
-  const [open, close] = definition.notation.delimiters;
+  const [open, close] = definition.notation?.delimiters ?? ['', ''];
   const stop = escape(`${separator}${open}${close}`);
   return (
     new RegExp(`^\\s*([^\\s${stop}]+)\\s*${escape(separator)}`).exec(
@@ -164,24 +163,31 @@ export const lineId = (
   );
 };
 
-/** Any element's id, as a regex source. */
+/** Any element's id, as a regex source (null when lines name no element). */
 export const elementIdPattern = (
-  definition: Pick<EngineDefinition, 'elements'>,
-): string =>
-  Object.values(definition.elements)
-    .map((element) => `${escape(element.prefix)}${element.idPattern}`)
-    .join('|');
+  definition: Pick<AnyDefinition, 'elements'>,
+): string | null =>
+  hasIds(definition)
+    ? Object.values(definition.elements)
+        .map((element) => `${escape(element!.prefix!)}${element!.idPattern}`)
+        .join('|')
+    : null;
 
-/** An element line's id, name and notation, as the view reads them (annotations ignored). */
+/**
+ * An element line's id, name and notation, as the view reads them (annotations
+ * ignored); null in a definition whose lines name no element.
+ */
 export const readElementLine = (
-  definition: Pick<EngineDefinition, 'elements' | 'notation'>,
+  definition: Pick<AnyDefinition, 'elements' | 'notation'>,
   written: string,
 ): { id: string; name: string; notation: string | null } | null => {
+  const ids = elementIdPattern(definition);
+  if (ids === null) return null;
   const line = splitAnnotations(definition, written).rest;
   const separator = escape(idSeparator(definition).trim());
-  const [open, close] = definition.notation.delimiters.map(escape);
+  const notation = definition.notation?.delimiters.map(escape);
   const match = new RegExp(
-    `^\\s*(${elementIdPattern(definition)})\\s*${separator}\\s*(.*?)\\s*(?:${open}(.*)${close})?\\s*$`,
+    `^\\s*(${ids})\\s*${separator}\\s*(.*?)\\s*${notation ? `(?:${notation[0]}(.*)${notation[1]})?` : ''}\\s*$`,
     's',
   ).exec(line);
   return match
@@ -222,10 +228,10 @@ export const readPropertyLine = (
 
 /** The declaration a kind's line carries, if its element declares one. */
 export const declarationOf = (
-  definition: Pick<EngineDefinition, 'elements'>,
-  kind: ElementKind,
+  definition: Pick<AnyDefinition, 'elements'>,
+  kind: string,
 ): DeclarationDefinition | undefined =>
-  (definition.elements as EngineDefinition['elements'])[kind]?.declaration;
+  (definition.elements as AnyDefinition['elements'])[kind]?.declaration;
 
 export type DeclaredProperties = Partial<Record<string, string>>;
 
@@ -313,10 +319,10 @@ export const readDeclaration = (
 
 /** Whether a name only uses the characters the kind's names may (an unknown kind: any). */
 export const isValidName = (
-  definition: Pick<EngineDefinition, 'elements'>,
-  kind: ElementKind,
+  definition: Pick<AnyDefinition, 'elements'>,
+  kind: string,
   name: string,
 ): boolean => {
-  const element = (definition.elements as EngineDefinition['elements'])[kind];
+  const element = (definition.elements as AnyDefinition['elements'])[kind];
   return !element || new RegExp(`^${element.nameCharset}*$`).test(name);
 };

@@ -3,11 +3,11 @@
 import { nextRtId } from '@/lib/workbench/pistar';
 import type { Severity } from '@/lib/workbench/types';
 import {
+  DefaultElementComponent,
   type ElementComponentProps,
   type IstarExtension,
 } from '@istar-ts/react';
 import { createContext, useContext, type ReactElement } from 'react';
-import { AnnotatedNode } from './dialects';
 
 /** Worst problem severity per piStar id, for the badges on elements. */
 export const SeverityContext = createContext<ReadonlyMap<string, Severity>>(
@@ -20,7 +20,7 @@ export function ElementWithProblems(
   const severity = useContext(SeverityContext).get(props.element.id);
   return (
     <div className='relative h-full w-full'>
-      <AnnotatedNode {...props} />
+      <DefaultElementComponent {...props} />
       {severity && (
         <span
           className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-[1.5px] border-white ${severity === 'error' ? 'bg-danger' : 'bg-caution'}`}

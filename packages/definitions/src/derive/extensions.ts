@@ -6,12 +6,14 @@
  * here knows a dialect.
  */
 import {
+  ISTAR_ACTOR_KINDS,
   ISTAR_KIND_OF,
+  ISTAR_NODE_KINDS,
   declarationKeys,
   defineEngine,
+  type AnyDefinition,
   type ConditionalValue,
-  type ElementKind,
-  type EngineDefinition,
+  type ElementDefinition,
   type ExtensionDefinition,
   type LinkRulesDefinition,
   type PropertyDefinition,
@@ -157,25 +159,29 @@ export const profileProperties = (
   ];
 };
 
+/** The iStar kind a definition's kind is (an engine's `task` is `istar.Task`). */
+const istarKindOf = (kind: string): string =>
+  (ISTAR_KIND_OF as Record<string, string>)[kind] ?? kind;
+
 /**
- * An engine definition with a dialect's stereotypes and tagged values: each
- * kind the engine reads gets its profile's properties, and annotations writing
- * them on its line (what the engine reads is unchanged).
+ * A definition with a dialect's stereotypes and tagged values: each kind it
+ * has gets its profile's properties, and annotations writing them on its line.
  */
 export const withExtension = (
-  engine: EngineDefinition,
+  base: AnyDefinition,
   extension: ExtensionDefinition,
+  named: Pick<AnyDefinition, 'id' | 'name'> = {
+    id: `${base.id}+${extension.name}`,
+    name: `${base.name} + ${extension.label}`,
+  },
 ) => {
-  const elements: Record<string, unknown> = { ...engine.elements };
+  const elements: Record<string, unknown> = { ...base.elements };
   const properties: Record<string, readonly PropertyDefinition[]> = {
-    ...engine.properties,
+    ...base.properties,
   };
-  for (const [kind, element] of Object.entries(engine.elements)) {
+  for (const [kind, element] of Object.entries(base.elements)) {
     if (!element) continue;
-    const added = profileProperties(
-      extension,
-      ISTAR_KIND_OF[kind as ElementKind],
-    );
+    const added = profileProperties(extension, istarKindOf(kind));
     const { stereotype, taggedValue } = extension.annotations;
     elements[kind] = {
       ...element,
@@ -186,13 +192,60 @@ export const withExtension = (
         taggedValue,
       ],
     };
-    properties[kind] = [...engine.properties[kind as ElementKind], ...added];
+    properties[kind] = [...(base.properties[kind] ?? []), ...added];
   }
   return defineEngine({
-    ...engine,
-    id: `${engine.id}+${extension.name}`,
-    name: `${engine.name} + ${extension.label}`,
+    ...base,
+    ...named,
     elements,
     properties,
-  } as EngineDefinition);
+  } as AnyDefinition);
+};
+
+/** The fill of a piStar node without its own colour (an actor's boundary has none). */
+const NODE_FILL = '#CDFECD';
+
+/**
+ * A dialect's own definition, for no engine: every iStar kind and the
+ * dialect's, each a line `{name}` with its stereotype and tagged value before
+ * it (lines are their elements' in order; no notation, no ids, no property
+ * lines). The dialect's `name` is its id.
+ */
+export const dialectDefinition = (extension: ExtensionDefinition) => {
+  const kinds = [
+    ...ISTAR_ACTOR_KINDS,
+    ...ISTAR_NODE_KINDS,
+    ...extension.elements.map((element) => element.kind),
+  ];
+  const element: ElementDefinition = {
+    line: '{name}',
+    // anything but a line break: a name is the label as piStar shows it
+    nameCharset: '.',
+    fill: NODE_FILL,
+  };
+  const plain = {
+    id: extension.name,
+    name: extension.label,
+    elements: Object.fromEntries(kinds.map((kind) => [kind, element])),
+    defaultFill: NODE_FILL,
+    properties: Object.fromEntries(kinds.map((kind) => [kind, []])),
+    propertyLine: { separator: ' ', keyPattern: '[A-Za-z]+' },
+    propertyLineOrder: [],
+    indent: '  ',
+    // the notation's problems are never reported: it has no notation
+    problems: {
+      notAChild: { severity: 'error', message: 'Not a child' },
+      missingFromNotation: { severity: 'warning', message: 'Missing' },
+      relationMismatch: { severity: 'error', message: 'Relation mismatch' },
+      notInDiagram: {
+        severity: 'error',
+        message: 'Add this element in the diagram',
+      },
+    },
+    languages: {},
+  } satisfies AnyDefinition;
+  return withExtension(plain, extension, {
+    id: extension.name,
+    name: extension.label,
+  });
 };

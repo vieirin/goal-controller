@@ -4,7 +4,7 @@ import type { EngineDefinition } from '@goal-controller/definitions';
 import { createContext, useContext, useEffect } from 'react';
 import {
   ENGINE_CHECKS,
-  EDITOR_DEFINITIONS,
+  ENGINE_DEFINITIONS,
   type DefinedEngine,
 } from '@/lib/workbench/definitions';
 import {
@@ -30,7 +30,7 @@ const localFor = (engine: DefinedEngine): LocalLanguageSupport => {
   let support = local.get(engine);
   if (!support) {
     support = localLanguageSupport(
-      EDITOR_DEFINITIONS[engine],
+      ENGINE_DEFINITIONS[engine],
       ENGINE_CHECKS[engine],
     );
     local.set(engine, support);
@@ -40,7 +40,7 @@ const localFor = (engine: DefinedEngine): LocalLanguageSupport => {
 
 /** The engine's language support, told about the model as it changes. */
 export const useLanguageSupport = (engine: DefinedEngine): LanguageSupport => {
-  const definition = EDITOR_DEFINITIONS[engine];
+  const definition = ENGINE_DEFINITIONS[engine];
   const provided = useContext(LanguageSupportContext)(definition);
   const support = provided ?? localFor(engine);
   const { tree, variables } = useWorkbench();

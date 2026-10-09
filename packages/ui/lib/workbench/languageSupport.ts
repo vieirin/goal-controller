@@ -22,7 +22,7 @@ import {
   valueOf,
   type CompletionResult as DefinitionCompletions,
   type DefinitionContext,
-  type EngineDefinition,
+  type AnyDefinition,
   type RunCheck,
 } from '@goal-controller/definitions';
 import type { Check } from '@goal-controller/lib';
@@ -69,14 +69,17 @@ const toCodeMirror = (
  * language, lint (the problems and named checks it declares) and completion.
  */
 export const localLanguageSupport = (
-  definition: EngineDefinition,
+  definition: AnyDefinition,
   checks: Readonly<Record<string, Check>>,
 ): LocalLanguageSupport => {
   let context = EMPTY;
   let saved: SavedLines = {};
+  // what an engine check may ask of another element (a quality is a goal to no check)
   const kindOf = (id: string) => {
     const kind = context.elements[id]?.kind;
-    return kind === 'quality' ? undefined : kind;
+    return kind === 'goal' || kind === 'task' || kind === 'resource'
+      ? kind
+      : undefined;
   };
   const runCheck: RunCheck = (name, properties, self) =>
     checks[name]?.(properties, { self, kindOf }) ?? null;

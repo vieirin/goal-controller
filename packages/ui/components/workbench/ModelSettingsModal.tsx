@@ -3,10 +3,11 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { TransformEngine } from '@/lib/types';
+import { DIALECT_LABEL, type DialectMode } from '@/lib/workbench/dialects';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
 import { ConformityStatus, useEngineConformity } from './engineConformity';
-import { useWorkbench } from './WorkbenchContext';
+import { useWorkbench, type ConversionTarget } from './WorkbenchContext';
 import { Button, IconButton, Switch, cx } from './ui';
 
 const ENGINES: Array<{
@@ -36,7 +37,21 @@ const PISTAR = {
   help: 'Model freely with every iStar element; nothing is generated',
 };
 
-const ENGINE_IDS: readonly TransformEngine[] = ['edgev2', 'edge', 'sleec'];
+/** The modelling dialects: chosen like an engine, nothing generated. */
+const DIALECTS: Array<{ id: DialectMode; output: string; help: string }> = [
+  {
+    id: 'pistarext',
+    output: 'iStar4RationalAgents',
+    help: "piStar-ext's dialect: Planning and Plan, stereotypes and tagged values; nothing is generated",
+  },
+];
+
+const TARGET_IDS: readonly ConversionTarget[] = [
+  'edgev2',
+  'edge',
+  'sleec',
+  ...DIALECTS.map((d) => d.id),
+];
 
 /**
  * Engine, options and file name of the open model. Shown when a model is
@@ -46,7 +61,7 @@ export default function ModelSettingsModal() {
   const wb = useWorkbench();
   const setup = wb.settingsDialog === 'setup';
   // how well the model suits each engine (as in the Convert dialog)
-  const conformity = useEngineConformity(wb.text, ENGINE_IDS, !wb.text.trim());
+  const conformity = useEngineConformity(wb.text, TARGET_IDS, !wb.text.trim());
   const [draft, setDraft] = useState<ModelSettings>(wb.settings);
   const [fileName, setFileName] = useState(wb.fileName || 'untitled.txt');
   const nameInput = useRef<HTMLInputElement>(null);
@@ -75,14 +90,15 @@ export default function ModelSettingsModal() {
       ...draft,
       engine: wb.settings.engine,
       pistar: wb.settings.pistar,
+      dialect: wb.settings.dialect,
     });
     wb.closeSettings();
-    const target = draft.pistar ? 'pistar' : draft.engine;
+    const target = draft.pistar ? (draft.dialect ?? 'pistar') : draft.engine;
     const plan = target === 'pistar' ? null : conformity.plans[target];
-    if (setup && plan && !('error' in plan)) {
+    if (setup && target !== 'pistar' && plan && !('error' in plan)) {
       // opening a model: its engine is chosen here, with the conformity shown on the cards,
       // so the conversion applies directly (no Convert dialog in the load flow)
-      wb.applyConversion(target as TransformEngine, plan.text);
+      wb.applyConversion(target, plan.text);
       return;
     }
     wb.requestMode(target);
@@ -205,10 +221,56 @@ export default function ModelSettingsModal() {
                     </label>
                   );
                 })}
+                {DIALECTS.map((dialect) => {
+                  const active = !!draft.pistar && draft.dialect === dialect.id;
+                  return (
+                    <label
+                      key={dialect.id}
+                      className={cx(
+                        'flex cursor-pointer flex-col rounded-lg border px-3 py-2 text-left transition-colors',
+                        active
+                          ? 'border-ink bg-panel ring-1 ring-ink'
+                          : 'border-line hover:border-line-strong',
+                      )}
+                    >
+                      <input
+                        type='radio'
+                        name='engine'
+                        value={dialect.id}
+                        checked={active}
+                        onChange={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            pistar: true,
+                            dialect: dialect.id,
+                          }))
+                        }
+                        className='sr-only'
+                      />
+                      <span className='flex items-baseline justify-between gap-2'>
+                        <span className='text-[13px] font-semibold text-ink'>
+                          {DIALECT_LABEL[dialect.id]}
+                        </span>
+                        <span className='font-mono text-2xs text-ink-muted'>
+                          {dialect.output}
+                        </span>
+                      </span>
+                      <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>
+                        {dialect.help}
+                      </span>
+                      {wb.text.trim() && (
+                        <ConformityStatus
+                          status={conformity.statusOf(dialect.id)}
+                          warnings={conformity.warningsOf(dialect.id)}
+                        />
+                      )}
+                    </label>
+                  );
+                })}
                 <label
                   className={cx(
                     'flex cursor-pointer flex-col rounded-lg border px-3 py-2 text-left transition-colors',
-                    draft.pistar
+                    draft.pistar && !draft.dialect
                       ? 'border-ink bg-panel ring-1 ring-ink'
                       : 'border-line hover:border-line-strong',
                   )}
@@ -217,8 +279,14 @@ export default function ModelSettingsModal() {
                     type='radio'
                     name='engine'
                     value='pistar'
-                    checked={!!draft.pistar}
-                    onChange={() => setDraft((d) => ({ ...d, pistar: true }))}
+                    checked={!!draft.pistar && !draft.dialect}
+                    onChange={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        pistar: true,
+                        dialect: undefined,
+                      }))
+                    }
                     className='sr-only'
                   />
                   <span className='flex items-baseline justify-between gap-2'>

@@ -4,7 +4,7 @@
  * whether it is needed, and the engine check rejecting a bad value (bound by
  * name from the engine library's check registry, whatever its check type).
  */
-import type { ElementKind, EngineDefinition, ValueConfig } from '../schema';
+import type { AnyDefinition, PropertyDefinition, ValueConfig } from '../schema';
 import {
   evaluateCondition,
   fillTemplate,
@@ -77,11 +77,13 @@ export const inputOf = (
   typeof spec.input === 'function' ? spec.input(properties) : spec.input;
 
 /** The inspector specs per kind; throws if a check is not in the registry. */
-export const specsFromDefinition = <C>(
-  definition: Pick<EngineDefinition, 'id' | 'properties'>,
+export const specsFromDefinition = <K extends string, C>(
+  definition: Pick<AnyDefinition, 'id'> & {
+    properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
+  },
   registry: Readonly<Record<string, C>>,
-): Record<ElementKind, PropertySpec<string, C>[]> => {
-  const specs = (kind: ElementKind): PropertySpec<string, C>[] =>
+): Record<K, PropertySpec<string, C>[]> => {
+  const specs = (kind: K): PropertySpec<string, C>[] =>
     definition.properties[kind]
       .filter((property) => property.inspector !== false)
       .map((property) => {
@@ -108,10 +110,10 @@ export const specsFromDefinition = <C>(
         }
         return spec;
       });
-  return {
-    goal: specs('goal'),
-    task: specs('task'),
-    resource: specs('resource'),
-    quality: specs('quality'),
-  };
+  return Object.fromEntries(
+    (Object.keys(definition.properties) as K[]).map((kind) => [
+      kind,
+      specs(kind),
+    ]),
+  ) as Record<K, PropertySpec<string, C>[]>;
 };

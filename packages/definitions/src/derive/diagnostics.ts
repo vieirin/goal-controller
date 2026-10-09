@@ -6,12 +6,13 @@
  * the links, the engine's own property checks (run by name), properties the
  * kind does not read or that do not apply. Nothing here knows an engine.
  */
-import type {
-  DefinitionContext,
-  DefinitionContextElement,
-  ElementKind,
-  EngineDefinition,
-  Severity,
+import {
+  hasIds,
+  type AnyDefinition,
+  type DefinitionContext,
+  type DefinitionContextElement,
+  type Severity,
+  type WithNotation,
 } from '../schema';
 import {
   annotationsOf,
@@ -41,7 +42,7 @@ export type RunCheck = (
 ) => string | null;
 
 type Definition = Pick<
-  EngineDefinition,
+  AnyDefinition,
   | 'elements'
   | 'notation'
   | 'properties'
@@ -52,7 +53,7 @@ type Definition = Pick<
 
 const problem = (
   definition: Definition,
-  kind: keyof EngineDefinition['problems'],
+  kind: keyof AnyDefinition['problems'],
   from: number,
   to: number,
   message = definition.problems[kind].message,
@@ -69,7 +70,7 @@ const problem = (
  */
 const propertyDiagnostics = (
   definition: Definition,
-  kind: ElementKind,
+  kind: string,
   self: string,
   properties: Readonly<Record<string, string>>,
   keys: Iterable<string>,
@@ -129,8 +130,22 @@ export const documentDiagnostics = (
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
   const seen = new Set<string>();
-  const operand = new RegExp(operandPattern(definition), 'g');
-  const [open, close] = definition.notation.delimiters;
+  const lines = doc.split('\n');
+  // lines that name no element are their elements' in order
+  const order = hasIds(definition) ? null : (context.order ?? []);
+  if (order) {
+    const count = lines.filter((line) => line.trim()).length;
+    if (count !== order.length)
+      return [
+        {
+          from: 0,
+          to: doc.length,
+          severity: 'error',
+          message: `${count} lines for ${order.length} elements: each line is an element's, in order (add or remove elements in the diagram)`,
+        },
+      ];
+  }
+  let index = 0;
   type Block = {
     id: string;
     element: DefinitionContextElement;
@@ -162,11 +177,15 @@ export const documentDiagnostics = (
   };
 
   let offset = 0;
-  for (const written of doc.split('\n')) {
+  for (const written of lines) {
     const lineFrom = offset;
     offset += written.length + 1;
     const indent = written.length - written.trimStart().length;
-    const id = lineId(definition, written);
+    const id = order
+      ? written.trim()
+        ? order[index++]!
+        : null
+      : lineId(definition, written);
     if (id) {
       closeBlock();
       started = true;
@@ -253,7 +272,7 @@ export const documentDiagnostics = (
         }
         continue;
       }
-      if (!definition.notation.operand.kinds.includes(element.kind)) continue;
+      if (!definition.elements[element.kind]) continue;
       block = { id, element, lines: new Map(), values: new Map() };
       const was = saved[id];
       if (was?.error && was.line === text.trim()) {
@@ -265,7 +284,11 @@ export const documentDiagnostics = (
         });
         continue;
       }
-      if (!readElementLine(definition, text)?.notation) continue;
+      if (!definition.notation || !readElementLine(definition, text)?.notation)
+        continue;
+      const notated = definition as Definition & WithNotation;
+      const operand = new RegExp(operandPattern(notated), 'g');
+      const [open, close] = notated.notation.delimiters;
       const openAt = text.indexOf(open);
       const notationFrom = restFrom + openAt + open.length;
       const notationTo = restFrom + text.lastIndexOf(close);
@@ -281,7 +304,7 @@ export const documentDiagnostics = (
         }
       }
       const mismatch = relationMismatch(
-        definition,
+        notated,
         element.construct,
         element.relation,
       );

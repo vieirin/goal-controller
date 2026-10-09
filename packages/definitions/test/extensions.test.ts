@@ -26,10 +26,23 @@ import {
   ISTAR_KIND_OF,
   ISTAR_LINK_KINDS,
   ISTAR_NODE_KINDS,
+  completionsAt,
+  contextFromView,
+  defineEngine,
   defineExtension,
+  dialectDefinition,
+  documentDiagnostics,
+  hasIds,
   istar4RationalAgents,
+  lineId,
   metamodelExtensionOf,
+  notationDocument,
+  notationEdits,
   profileOf,
+  specsFromDefinition,
+  type AnyDefinition,
+  type DocumentNode,
+  type DocumentTree,
   type ExtensionDefinition,
 } from '../src';
 
@@ -225,13 +238,157 @@ describe('extensions', () => {
         parsePistar(MODEL, { metamodel: RATIONAL_AGENTS }),
         'edgeV2',
       );
-      expect([...tree.nodes.keys()]).to.deep.equal(['G1', 'T1']);
-      expect(tree.nodes.get('G1')?.children).to.deep.equal(['T1']);
-      expect(tree.nodes.get('T1')?.properties).to.include({
+      // the dialect's names carry no RT ids: the view keys them by piStar id
+      expect([...tree.nodes.keys()]).to.deep.equal(['g1', 't1']);
+      expect(tree.nodes.get('g1')?.children).to.deep.equal(['t1']);
+      expect(tree.nodes.get('t1')?.properties).to.include({
         stereotype: 'action',
         tag: 'type',
         tagValue: 'duty',
       });
     });
+  });
+});
+
+describe('a dialect of its own (no engine)', () => {
+  const definition = dialectDefinition(istar4RationalAgents);
+  const node = (
+    id: string,
+    kind: string,
+    name: string,
+    properties: Record<string, string> = {},
+    children: string[] = [],
+  ): DocumentNode => ({
+    iStarId: id,
+    id,
+    kind,
+    name,
+    notation: null,
+    properties,
+    children,
+  });
+  const tree: DocumentTree = {
+    roots: ['a1'],
+    nodes: new Map([
+      [
+        'a1',
+        node('a1', 'istar.Agent', 'Robot', { stereotype: 'goal-based' }, [
+          'g1',
+          'p1',
+        ]),
+      ],
+      [
+        'g1',
+        node('g1', 'istar.Goal', 'Deliver sample', {
+          tag: 'Id',
+          tagValue: 'G1',
+        }),
+      ],
+      ['p1', node('p1', 'rationalAgents.Planning', 'Plan delivery')],
+    ]),
+  };
+  const doc =
+    '<<goal-based>> Robot\n  {Id = G1} Deliver sample\n  Plan delivery';
+
+  it('has every iStar kind and its own, lines without ids, no notation', () => {
+    expect(definition.id).to.equal('rationalAgents');
+    expect(definition.notation).to.equal(undefined);
+    expect(hasIds(definition)).to.equal(false);
+    expect(Object.keys(definition.elements)).to.deep.equal([
+      ...ISTAR_ACTOR_KINDS,
+      ...ISTAR_NODE_KINDS,
+      'rationalAgents.Planning',
+      'rationalAgents.Plan',
+    ]);
+    const { stereotype, taggedValue } = istar4RationalAgents.annotations;
+    expect(definition.elements['istar.Agent']?.annotations).to.deep.equal([
+      stereotype,
+      taggedValue,
+    ]);
+    expect(definition.elements['istar.Goal']?.annotations).to.deep.equal([
+      taggedValue,
+    ]);
+    expect(definition.propertyLineOrder).to.deep.equal([]);
+    expect(
+      specsFromDefinition(definition, {})['istar.Role']!.map((s) => s.key),
+    ).to.deep.equal(['stereotype', 'tag', 'tagValue']);
+  });
+
+  it('rejects lines with ids for some kinds only, and property lines without ids', () => {
+    const base = structuredClone(definition) as AnyDefinition;
+    expect(() =>
+      defineEngine({
+        ...base,
+        elements: {
+          ...base.elements,
+          'istar.Goal': {
+            ...base.elements['istar.Goal']!,
+            line: '{id}: {name}',
+            prefix: 'G',
+            idPattern: '\\d+',
+          },
+        },
+      }),
+    ).to.throw(/either every element line has an \{id\}/);
+    expect(() =>
+      defineEngine({
+        ...base,
+        properties: {
+          ...base.properties,
+          'istar.Goal': [
+            ...base.properties['istar.Goal']!,
+            { key: 'note', value: { type: 'text' }, help: '' },
+          ],
+        },
+        propertyLineOrder: ['note'],
+      }),
+    ).to.throw(/lines without ids write every property on the element line/);
+  });
+
+  it('writes its lines, and reads them by position', () => {
+    expect(notationDocument(definition, tree).text).to.equal(doc);
+    expect(lineId(definition, 'Robot')).to.equal(null);
+    expect(
+      notationEdits(
+        definition,
+        doc.replace('{Id = G1} Deliver sample', '{Id = G2} Deliver samples'),
+        tree,
+      ),
+    ).to.deep.equal([
+      { iStarId: 'g1', key: 'tagValue', value: 'G2' },
+      { iStarId: 'g1', text: 'Deliver samples' },
+    ]);
+  });
+
+  it('checks its lines against the elements, in order', () => {
+    const context = contextFromView(definition, tree, []);
+    expect(context.order).to.deep.equal(['a1', 'g1', 'p1']);
+    expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
+    expect(
+      documentDiagnostics(definition, `${doc}\n  Extra`, context),
+    ).to.deep.equal([
+      {
+        from: 0,
+        to: doc.length + 8,
+        severity: 'error',
+        message:
+          "4 lines for 3 elements: each line is an element's, in order (add or remove elements in the diagram)",
+      },
+    ]);
+    // a group none of the kind's annotations reads
+    const unread = documentDiagnostics(
+      definition,
+      doc.replace('<<goal-based>> Robot', '<<goal-based>> {} Robot'),
+      context,
+    );
+    expect(unread).to.deep.equal([
+      {
+        from: 15,
+        to: 17,
+        severity: 'error',
+        message: 'This annotation cannot be read',
+      },
+    ]);
+    expect(completionsAt(definition, doc, 3, context)).to.equal(null);
   });
 });

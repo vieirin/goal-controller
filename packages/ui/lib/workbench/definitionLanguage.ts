@@ -10,7 +10,8 @@ import {
   elementIdPattern,
   operandPattern,
   type DeclarationDefinition,
-  type EngineDefinition,
+  type AnyDefinition,
+  type WithNotation,
   type LanguageDefinition,
   type ValueConfig,
 } from '@goal-controller/definitions';
@@ -55,16 +56,18 @@ const languageToken = (language: LanguageDefinition) => {
 
 /** Tokens of any value config (a field, or a property line's value). */
 const valueToken = (
-  definition: Pick<EngineDefinition, 'languages' | 'elements'>,
+  definition: Pick<AnyDefinition, 'languages' | 'elements'>,
   value: ValueConfig | undefined,
 ) => {
   if (value?.type === 'expression') {
     const language = definition.languages[value.language];
     if (language) return languageToken(language);
   }
-  const ids = new RegExp(`^(?:${elementIdPattern(definition)})`);
+  const idPattern = elementIdPattern(definition);
+  const ids = idPattern === null ? null : new RegExp(`^(?:${idPattern})`);
   return (stream: StringStream): string | null => {
-    if (value?.type === 'refList' && stream.match(ids)) return 'labelName';
+    if (value?.type === 'refList' && ids && stream.match(ids))
+      return 'labelName';
     if (value?.type === 'pairList' || value?.type === 'refList') {
       if (stream.match(/^[^\s,:]+/))
         return /^-?\d/.test(stream.current()) ? 'number' : 'variableName';
@@ -77,13 +80,16 @@ const valueToken = (
   };
 };
 
-/** The value config a property line's key has (the first operand kind declaring it). */
+/** The value config a property line's key has (the first listed kind declaring it). */
 const lineValue = (
-  definition: Pick<EngineDefinition, 'properties' | 'notation'>,
+  definition: Pick<AnyDefinition, 'properties' | 'elements'>,
   key: string,
 ): ValueConfig | undefined => {
-  for (const kind of definition.notation.operand.kinds) {
-    const value = definition.properties[kind].find((p) => p.key === key)?.value;
+  for (const [kind, element] of Object.entries(definition.elements)) {
+    if (!element || element.declaration) continue;
+    const value = definition.properties[kind]?.find(
+      (p) => p.key === key,
+    )?.value;
     if (value) return 'when' in value ? value.otherwise : value;
   }
   return undefined;
@@ -125,47 +131,58 @@ const declarationTokens = (
 
 /** The Notation view's document tokens, line by line. */
 export const documentParser = (
-  definition: EngineDefinition,
+  definition: AnyDefinition,
 ): StreamParser<DocumentState> => {
-  const id = new RegExp(`^(?:${elementIdPattern(definition)})`);
-  const operand = new RegExp(`^(?:${operandPattern(definition)})`);
+  // a definition whose lines name no element: each line starts with its name
+  const idPattern = elementIdPattern(definition);
+  const id = idPattern === null ? null : new RegExp(`^(?:${idPattern})`);
+  const { notation } = definition;
+  const operand = notation
+    ? new RegExp(
+        `^(?:${operandPattern({ ...definition, notation } as AnyDefinition & WithNotation)})`,
+      )
+    : null;
   const line = Object.values(definition.elements)[0]?.line ?? '';
-  const separator = line
-    .slice(line.indexOf('{id}') + 4, line.indexOf('{name}'))
-    .trim();
-  const [open, close] = definition.notation.delimiters;
+  const separator = id
+    ? line.slice(line.indexOf('{id}') + 4, line.indexOf('{name}')).trim()
+    : '';
+  const [open, close] = notation?.delimiters ?? [null, null];
   // each kind's id, with the declaration its line carries (if any)
   const kinds = Object.values(definition.elements).map((element) => ({
-    id: new RegExp(`^${escape(element.prefix)}${element.idPattern}$`),
-    declaration: element.declaration
-      ? declarationTokens(element.declaration)
+    id: id
+      ? new RegExp(`^${escape(element!.prefix!)}${element!.idPattern}$`)
+      : null,
+    declaration: element!.declaration
+      ? declarationTokens(element!.declaration)
       : null,
   }));
   // any kind's annotations: the line's kind is not known before its id
   const annotations = [
     ...new Map(
       Object.values(definition.elements)
-        .flatMap((element) => element.annotations ?? [])
+        .flatMap((element) => element?.annotations ?? [])
         .map((annotation) => [
           annotation.delimiters.join(' '),
           declarationTokens(annotation),
         ]),
     ).values(),
   ];
-  const keywords = anyOf(definition.notation.operand.keywords);
-  const operators = anyOf(definition.notation.operators.map((o) => o.symbol));
+  const keywords = anyOf(notation?.operand.keywords ?? []);
+  const operators = anyOf((notation?.operators ?? []).map((o) => o.symbol));
   const key = new RegExp(
     `^(?:${definition.propertyLineOrder.map(escape).join('|')})(?![\\w])`,
   );
   // a name runs up to the notation, or to its kind's declaration
-  const nameStop = new RegExp(`^[^${escape(open)}]+`);
+  const nameStop = open ? new RegExp(`^[^${escape(open)}]+`) : /^.+/;
   const nameStops = new Map(
     kinds.flatMap(({ declaration }) =>
       declaration
         ? [
             [
               declaration,
-              new RegExp(`^[^${escape(open)}${escape(declaration.open)}]+`),
+              new RegExp(
+                `^[^${open ? escape(open) : ''}${escape(declaration.open)}]+`,
+              ),
             ] as const,
           ]
         : [],
@@ -196,28 +213,33 @@ export const documentParser = (
             state.annotation = annotation;
             return 'brace';
           }
-          if (stream.match(id)) {
-            const written = stream.current();
-            state.part = 'name';
-            state.declaration =
-              kinds.find((kind) => kind.id.test(written))?.declaration ?? null;
-            return 'labelName';
+          if (id) {
+            if (stream.match(id)) {
+              const written = stream.current();
+              state.part = 'name';
+              state.declaration =
+                kinds.find((kind) => kind.id?.test(written))?.declaration ??
+                null;
+              return 'labelName';
+            }
+            const matched = stream.match(key);
+            if (matched) {
+              state.part = 'value';
+              state.value = valueToken(
+                definition,
+                lineValue(definition, stream.current()),
+              );
+              return 'propertyName';
+            }
+            stream.skipToEnd();
+            return null;
           }
-          const matched = stream.match(key);
-          if (matched) {
-            state.part = 'value';
-            state.value = valueToken(
-              definition,
-              lineValue(definition, stream.current()),
-            );
-            return 'propertyName';
-          }
-          stream.skipToEnd();
-          return null;
+          state.part = 'name';
         }
+        // falls through: a line that names no element starts with its name
         case 'name':
           if (separator && stream.match(separator)) return 'punctuation';
-          if (stream.match(open)) {
+          if (open && stream.match(open)) {
             state.part = 'notation';
             return 'bracket';
           }
@@ -234,11 +256,11 @@ export const documentParser = (
             stream.next();
           return 'string';
         case 'notation':
-          if (stream.match(close)) {
+          if (close && stream.match(close)) {
             state.part = 'name';
             return 'bracket';
           }
-          if (stream.match(operand)) return 'labelName';
+          if (operand && stream.match(operand)) return 'labelName';
           if (keywords && stream.match(keywords)) return 'keyword';
           if (operators && stream.match(operators)) return 'operator';
           if (stream.match(/^\d+/)) return 'number';
@@ -278,12 +300,12 @@ export const documentParser = (
 };
 
 /** The Notation view's document language. */
-export const documentLanguage = (definition: EngineDefinition) =>
+export const documentLanguage = (definition: AnyDefinition) =>
   StreamLanguage.define(documentParser(definition));
 
 /** A property field's language, when its value config has one. */
 export const valueLanguage = (
-  definition: Pick<EngineDefinition, 'languages' | 'elements'>,
+  definition: Pick<AnyDefinition, 'languages' | 'elements'>,
   value: ValueConfig,
 ) => {
   const token = valueToken(definition, value);

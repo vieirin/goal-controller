@@ -23,6 +23,7 @@ import {
   writeAnnotations,
   type DocumentNode,
   type DocumentTree,
+  type AnyDefinition,
   type EngineDefinition,
 } from '../src';
 import { node } from './support/document';
@@ -137,9 +138,9 @@ describe('piStar-ext annotations', () => {
         [{ name: 'Business', appliesTo: ['intentional'] }],
       );
       expect(
-        grouped.properties.goal.find((p) => p.key === 'stereotype'),
+        grouped.properties.goal!.find((p) => p.key === 'stereotype'),
       ).to.deep.equal(
-        grouped.properties.task.find((p) => p.key === 'stereotype'),
+        grouped.properties.task!.find((p) => p.key === 'stereotype'),
       );
     });
   });
@@ -279,10 +280,10 @@ describe('piStar-ext annotations', () => {
     );
 
     it('offers the stereotypes and tags the kind declares', () => {
-      const task = specs.task.map((s) => s.key);
+      const task = specs.task!.map((s) => s.key);
       expect(task.slice(-3)).to.deep.equal(['stereotype', 'tag', 'tagValue']);
-      expect(specs.goal.map((s) => s.key)).not.to.include('stereotype');
-      const stereotype = specs.task.find((s) => s.key === 'stereotype')!;
+      expect(specs.goal!.map((s) => s.key)).not.to.include('stereotype');
+      const stereotype = specs.task!.find((s) => s.key === 'stereotype')!;
       expect(inputOf(stereotype, {})).to.deep.equal({
         kind: 'select',
         options: [
@@ -290,7 +291,7 @@ describe('piStar-ext annotations', () => {
           { value: 'action', label: 'action' },
         ],
       });
-      const tag = specs.task.find((s) => s.key === 'tag')!;
+      const tag = specs.task!.find((s) => s.key === 'tag')!;
       expect(inputOf(tag, {})).to.have.nested.property(
         'options[5].value',
         'type',
@@ -298,7 +299,7 @@ describe('piStar-ext annotations', () => {
     });
 
     it("lists a tag's values when they are listed", () => {
-      const value = specs.task.find((s) => s.key === 'tagValue')!;
+      const value = specs.task!.find((s) => s.key === 'tagValue')!;
       expect(inputOf(value, { tag: 'type' })).to.deep.equal({
         kind: 'select',
         options: [
@@ -360,11 +361,11 @@ describe('piStar-ext annotations', () => {
         ...checked,
         properties: {
           ...checked.properties,
-          task: checked.properties.task.map((p) =>
+          task: checked.properties.task!.map((p) =>
             p.key === 'tagValue' ? { ...p, check: 'tag.value' } : p,
           ),
         },
-      } as EngineDefinition);
+      } as AnyDefinition);
       const doc = '{Id = bad} T1: Book a room';
       const found = documentDiagnostics(
         withCheck,

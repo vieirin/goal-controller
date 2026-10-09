@@ -7,9 +7,9 @@
  */
 import {
   declarationKeys,
+  hasIds,
+  type AnyDefinition,
   type DefinitionContext,
-  type ElementKind,
-  type EngineDefinition,
   type Relation,
 } from '../schema';
 import {
@@ -30,7 +30,7 @@ import {
 export type DocumentNode = {
   iStarId: string;
   id: string;
-  kind: ElementKind;
+  kind: string;
   name: string;
   notation: string | null;
   properties: Readonly<Record<string, string>>;
@@ -46,20 +46,26 @@ export type DocumentTree = {
 };
 
 type Document = Pick<
-  EngineDefinition,
+  AnyDefinition,
   'elements' | 'notation' | 'propertyLine' | 'propertyLineOrder' | 'indent'
 >;
 
-const isNotationNode = (
-  definition: Pick<EngineDefinition, 'notation'>,
+/**
+ * Whether a node has lines of its own, with property lines and its children
+ * under them: a kind the definition has, that declares nothing on its line
+ * (one that does writes its properties there, and has no children).
+ */
+const isListed = (
+  definition: Pick<AnyDefinition, 'elements'>,
   node: DocumentNode | undefined,
-): node is DocumentNode =>
-  node !== undefined &&
-  (definition.notation.operand.kinds as readonly string[]).includes(node.kind);
+): node is DocumentNode => {
+  const element = node && definition.elements[node.kind];
+  return !!element && !element.declaration;
+};
 
 /** An element's line without its declaration. */
 export const nodeLine = (
-  definition: Pick<EngineDefinition, 'elements' | 'notation'>,
+  definition: Pick<AnyDefinition, 'elements' | 'notation'>,
   node: Pick<DocumentNode, 'id' | 'name' | 'notation'>,
 ): string => elementLine(definition, node);
 
@@ -93,7 +99,7 @@ export const notationDocument = (
       ids.push(id);
       return;
     }
-    if (!isNotationNode(definition, node)) return;
+    if (!isListed(definition, node)) return;
     seen.add(id);
     lines.push(
       definition.indent.repeat(depth) +
@@ -154,8 +160,21 @@ export const notationEdits = (
   };
   const blocks: Block[] = [];
   let current: Block | null = null;
-  for (const written of doc.split('\n')) {
-    const id = lineId(definition, written);
+  // lines that name no element are their elements' in order: while lines are
+  // added or removed (elements are, in the diagram), nothing changes
+  const order = hasIds(definition)
+    ? null
+    : notationDocument(definition, tree).ids;
+  const lines = doc.split('\n');
+  if (order && lines.filter((line) => line.trim()).length !== order.length)
+    return [];
+  let index = 0;
+  for (const written of lines) {
+    const id = order
+      ? written.trim()
+        ? order[index++]!
+        : null
+      : lineId(definition, written);
     if (id) {
       const node = tree.nodes.get(id);
       current = null;
@@ -186,7 +205,7 @@ export const notationEdits = (
           setKeys(node, declarationKeys(declaration), properties ?? {});
         continue;
       }
-      if (!isNotationNode(definition, node)) continue;
+      if (!isListed(definition, node)) continue;
       if (line.trim() !== nodeLine(definition, node)) {
         edits.push({ iStarId: node.iStarId, text: line.trim() });
       }
@@ -219,7 +238,7 @@ export const notationEdits = (
  * variables. The shape a language server's context notification takes.
  */
 export const contextFromView = (
-  definition: Pick<EngineDefinition, 'notation' | 'elements'>,
+  definition: Document,
   tree: DocumentTree,
   variables: readonly string[],
 ): DefinitionContext => ({
@@ -231,7 +250,9 @@ export const contextFromView = (
         {
           kind: node.kind,
           children: node.children.filter((id) =>
-            isNotationNode(definition, tree.nodes.get(id)),
+            (
+              (definition.notation?.operand.kinds ?? []) as readonly string[]
+            ).includes(tree.nodes.get(id)?.kind ?? ''),
           ),
           relation: node.relation,
           construct: node.construct,
@@ -245,4 +266,7 @@ export const contextFromView = (
       ]),
   ),
   variables: [...variables],
+  ...(hasIds(definition)
+    ? {}
+    : { order: notationDocument(definition, tree).ids }),
 });

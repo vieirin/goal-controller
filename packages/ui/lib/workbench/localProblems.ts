@@ -5,6 +5,7 @@
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 import { notationDefinitionOf } from './definitions';
+import { DIALECT_LABEL, dialectThatReads } from './dialects';
 import { isValidName, relationMismatch } from '@goal-controller/definitions';
 import { jsonErrorPosition } from './pistar';
 import type { Problem } from './types';
@@ -23,6 +24,14 @@ export const nodeIdInMessage = (message: string): string | undefined => {
 };
 
 export const jsonProblem = (text: string, error: Error): Problem => {
+  // valid JSON with kinds its mode doesn't have: a dialect's, when one reads it
+  const dialect = dialectThatReads(text);
+  if (dialect)
+    return {
+      severity: 'error',
+      source: 'json',
+      message: `${error.message}: this is a ${DIALECT_LABEL[dialect]} model. Open it as ${DIALECT_LABEL[dialect]} (model settings) to read its kinds.`,
+    };
   const position = jsonErrorPosition(text, error.message);
   return {
     severity: 'error',

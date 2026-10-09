@@ -45,7 +45,7 @@ describe('defineEngine', () => {
       bad((d) => ({
         ...d,
         notation: {
-          ...d.notation,
+          ...d.notation!,
           operators: [
             { symbol: '%', form: 'infix', construct: 'nope', assoc: 'left' },
           ],

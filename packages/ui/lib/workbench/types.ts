@@ -1,3 +1,4 @@
+import type { DialectMode } from './dialects';
 import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -71,6 +72,8 @@ export type ModelSettings = {
    * generation or engine problems). Missing in settings saved before it existed.
    */
   pistar?: boolean;
+  /** with `pistar`: the modelling dialect the model is for (lib/workbench/dialects.ts) */
+  dialect?: DialectMode;
 };
 
 export type ExampleFile = { path: string; group: string; name: string };

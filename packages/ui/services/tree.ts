@@ -20,6 +20,7 @@ export const treeView = (
   modelJson: string,
   engine: TransformEngine,
 ): GoalView => {
+  // read with the dialect it records, if any (the view leaves its kinds out)
   const model = parseModel(modelJson);
   return goalView(model, grammarOf(engine));
 };

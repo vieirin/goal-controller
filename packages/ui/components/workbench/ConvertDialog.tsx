@@ -9,26 +9,30 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { TransformEngine } from '@/lib/types';
 import {
   ConformityStatus,
-  ENGINE_LABEL as LABEL,
-  ENGINES,
+  TARGET_LABEL as LABEL,
+  TARGETS,
   useEngineConformity,
 } from './engineConformity';
-import { useWorkbench } from './WorkbenchContext';
+import { useWorkbench, type ConversionTarget } from './WorkbenchContext';
 import { Button, IconButton, cx } from './ui';
 
 /**
- * Switching a model to an engine. Every engine the model could go to is checked: what
- * the conversion changes by itself, what has to be fixed by hand, and whether the engine
- * accepts the converted model. Any engine can be chosen; the check says which ones accept it.
+ * Switching a model to an engine, or to a modelling dialect. Every target the model could
+ * go to is checked: what the conversion changes by itself, what has to be fixed by hand,
+ * and whether the engine accepts the converted model (a dialect has no engine: what its
+ * kinds cannot hold blocks it). Any target can be chosen; the check says which accept it.
  */
-export default function ConvertDialog({ target }: { target: TransformEngine }) {
+export default function ConvertDialog({
+  target,
+}: {
+  target: ConversionTarget;
+}) {
   const wb = useWorkbench();
   const candidates = useMemo(
     () =>
-      ENGINES.filter((engine) => wb.mode === 'pistar' || engine.id !== wb.mode),
+      TARGETS.filter((engine) => wb.mode === 'pistar' || engine.id !== wb.mode),
     // the choices are for the model as it was when the dialog opened
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -40,7 +44,7 @@ export default function ConvertDialog({ target }: { target: TransformEngine }) {
     engineIds,
     skipChecks,
   );
-  const [selected, setSelected] = useState<TransformEngine>(
+  const [selected, setSelected] = useState<ConversionTarget>(
     candidates.some((c) => c.id === target)
       ? target
       : (candidates[0]?.id ?? target),
@@ -104,9 +108,10 @@ export default function ConvertDialog({ target }: { target: TransformEngine }) {
               Convert the model
             </h2>
             <p className='mt-0.5 text-[13px] text-ink-muted'>
-              From {from} to one of the engines; each is checked to show whether
-              it accepts the model. The engine is recorded in the model, so it
-              opens that way again (piStar keeps it as a diagram property).
+              From {from} to an engine or a modelling dialect; each is checked
+              to show whether it accepts the model. The choice is recorded in
+              the model, so it opens that way again (piStar keeps it as a
+              diagram property).
             </p>
           </div>
           <IconButton
@@ -148,7 +153,7 @@ export default function ConvertDialog({ target }: { target: TransformEngine }) {
                         {engine.label}
                       </span>
                       <span className='font-mono text-2xs text-ink-muted'>
-                        {engine.output}
+                        {engine.output ?? 'no output'}
                       </span>
                     </span>
                     <ConformityStatus
