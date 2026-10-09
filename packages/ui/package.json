@@ -28,6 +28,7 @@
     "@istar-ts/react": "^0.12.0",
     "@lezer/highlight": "^1.2.4",
     "@tanstack/react-query": "^5.62.0",
+    "fflate": "^0.8.3",
     "lucide-react": "^0.300.0",
     "next": "^15.1.6",
     "react": "^19.0.0",

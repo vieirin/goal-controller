@@ -44,7 +44,7 @@ export class ManifestError extends Error {
   constructor(
     /** where in the manifest: `models[1].path` */
     readonly at: string,
-    problem: string,
+    readonly problem: string,
   ) {
     super(at ? `${at}: ${problem}` : problem);
     this.name = 'ManifestError';
