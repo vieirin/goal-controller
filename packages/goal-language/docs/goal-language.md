@@ -1,5 +1,10 @@
 # The goal language
 
+> Reference: [reference.md](reference.md) (the grammar rule by rule) ·
+> [api.md](api.md) · [diagnostics.md](diagnostics.md) ·
+> [examples.md](examples.md) · [operators.md](operators.md). Their
+> examples run in `packages/lib/test/dialect/docs.test.ts`.
+
 Every dialect is written in the same language: one Langium grammar,
 `src/goal.langium`. A dialect doesn't change that grammar. Its definition
 (`@goal-controller/dialect`) is descriptive. It says:
@@ -38,7 +43,8 @@ A **document** is lines (`Document`). There are two kinds of line:
   └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
   ```
 
-  The id is `G`, `T` or `R` followed by `1`, `1.2`, `1X`, `X` or `1a`. A
+  The id is `G`, `T` or `R` followed by `1`, `1.2`, `1X` or `1a` (`GX`
+  reads as a name: see the [reference](reference.md#ids)). A
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
 

@@ -43,8 +43,8 @@ differently.
 
 ## Operands
 
-- An element id: a prefix `G`, `T` or `R`, followed by `1`, `1.2`, `1X`,
-  `X` or `1a`.
+- An element id: a prefix `G`, `T` or `R`, followed by `1`, `1.2`, `1X`
+  or `1a` (`GX` reads as a name: see [reference.md](reference.md#ids)).
 - `skip`.
 - A group: `[...]` or `(...)`.
 - A standalone symbol.
