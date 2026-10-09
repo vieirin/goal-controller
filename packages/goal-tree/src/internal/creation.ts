@@ -194,7 +194,8 @@ function createNode<
     !children.length &&
     !tasks.length &&
     nodeType === 'goal' &&
-    !isQualityNode
+    !isQualityNode &&
+    !mapper.allowLeafGoals
   ) {
     throw new Error(
       `[INVALID MODEL]: Leaf Goal ${id}:${goalName} has no children or tasks`,
@@ -304,6 +305,7 @@ function createNode<
           raw: rawGoalProps,
           executionDetail,
           id,
+          text: node.name,
         }),
       },
       ...(tasks.length > 0 && { tasks }),

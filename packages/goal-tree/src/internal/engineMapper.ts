@@ -13,6 +13,21 @@ import type { GoalExecutionDetail, TreeNode } from '../types/';
 export type RawProps<TKeys extends string> = Partial<Record<TKeys, string>>;
 
 /**
+ * What `mapGoalProps` is given for a goal: its raw properties, its execution
+ * detail in the engine's dialect, its RT id (G4, …, for error messages the
+ * Problems panel can navigate to) and its text as written (`G1: Name
+ * [G2;G3]`: an engine that reads more of the notation than its outermost
+ * construct, such as nested constructs or calls, reads it with the goal
+ * language's `parseElementLine`).
+ */
+export type GoalPropsInput<TKeys extends string, TExecution> = {
+  raw: RawProps<TKeys>;
+  executionDetail: TExecution | null;
+  id: string;
+  text: string;
+};
+
+/**
  * Discriminated union for raw properties in afterCreationMapper
  * Allows the hook to handle goals, tasks, and resources with type-safe access
  * Uses `nodeType` instead of `type` to avoid conflicts with user-defined `type` properties
@@ -75,6 +90,12 @@ export type EngineMapper<
   allowedTaskKeys: readonly TTaskKeys[];
 
   /**
+   * Whether a goal may have no children and no tasks (MutRoSe's Query goals).
+   * By default such a goal is a model error, as the Edge engines read it.
+   */
+  allowLeafGoals?: boolean;
+
+  /**
    * Allowed keys for Quality custom properties. When undeclared, Qualities accept none.
    * Qualities are still mapped as goal nodes (isQuality); only the raw keys differ.
    */
@@ -83,13 +104,10 @@ export type EngineMapper<
   /**
    * Map raw goal properties to engine-specific goal properties.
    * Raw may also hold Quality keys when the node is a Quality (same mapping path).
-   * `id` is the RT id (G4, …), for error messages the Problems panel can navigate to.
    */
-  mapGoalProps: (props: {
-    raw: RawProps<TGoalKeys | TQualityKeys>;
-    executionDetail: GoalExecutionDetail | null;
-    id: string;
-  }) => TGoalEngine;
+  mapGoalProps: (
+    props: GoalPropsInput<TGoalKeys | TQualityKeys, GoalExecutionDetail>,
+  ) => TGoalEngine;
 
   /**
    * Map raw task properties to engine-specific task properties
@@ -144,11 +162,13 @@ export function createEngineMapper<
       allowedGoalKeys: readonly TGoalKeys[];
       allowedTaskKeys: readonly TTaskKeys[];
       allowedQualityKeys?: readonly TQualityKeys[];
-      mapGoalProps: (props: {
-        raw: RawProps<TGoalKeys | TQualityKeys>;
-        executionDetail: ExecutionDetailOf<TDialect> | null;
-        id: string;
-      }) => TGoalEngine;
+      allowLeafGoals?: boolean;
+      mapGoalProps: (
+        props: GoalPropsInput<
+          TGoalKeys | TQualityKeys,
+          ExecutionDetailOf<TDialect>
+        >,
+      ) => TGoalEngine;
       mapTaskProps: (props: {
         raw: RawProps<TTaskKeys>;
         name: string;
@@ -189,11 +209,9 @@ export function createEngineMapper<
     const skipResource = config.allowedResourceKeys === undefined;
     // goal-tree reads goal texts with the reader derived from `config.dialect`,
     // whose details name that dialect's constructs: what mapGoalProps is typed with
-    const mapGoalProps = config.mapGoalProps as (props: {
-      raw: RawProps<TGoalKeys | TQualityKeys>;
-      executionDetail: GoalExecutionDetail | null;
-      id: string;
-    }) => TGoalEngine;
+    const mapGoalProps = config.mapGoalProps as (
+      props: GoalPropsInput<TGoalKeys | TQualityKeys, GoalExecutionDetail>,
+    ) => TGoalEngine;
 
     // If skipResource is explicitly set (no allowedResourceKeys), skip resource mapping
     if (skipResource) {
@@ -210,6 +228,7 @@ export function createEngineMapper<
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
         allowedQualityKeys: config.allowedQualityKeys,
+        allowLeafGoals: config.allowLeafGoals,
         mapGoalProps,
         mapTaskProps: config.mapTaskProps,
         afterCreationMapper: config.afterCreationMapper,
@@ -241,6 +260,7 @@ export function createEngineMapper<
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,
       allowedQualityKeys: config.allowedQualityKeys,
+      allowLeafGoals: config.allowLeafGoals,
       allowedResourceKeys: config.allowedResourceKeys,
       mapGoalProps,
       mapTaskProps: config.mapTaskProps,
