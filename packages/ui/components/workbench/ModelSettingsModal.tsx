@@ -104,8 +104,8 @@ export default function ModelSettingsModal() {
             </h2>
             <p className='mt-0.5 text-[13px] text-ink-muted'>
               {setup
-                ? 'Choose how it is generated. These settings are kept with the model in Recent.'
-                : 'Kept with the model in Recent.'}
+                ? 'Choose how it is generated. Its engine and options are kept in the model file.'
+                : 'The engine and options are kept in the model file.'}
               {nodes.length > 0 && (
                 <span className='block text-2xs'>
                   {goals} goals · {tasks} tasks

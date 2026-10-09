@@ -31,6 +31,8 @@ export const SOURCE = {
   workbench: 'workbench',
   /** the shared goal-language service */
   language: 'goal language',
+  /** the model's settings, as its project manifest holds them */
+  settings: 'model settings',
 } as const;
 
 export type VariableInfo = {
@@ -93,7 +95,5 @@ export type ModelSettings = {
   /** with `pistar`: the modelling dialect the model is for (lib/workbench/dialects.ts) */
   dialect?: DialectMode;
 };
-
-export type ExampleFile = { path: string; group: string; name: string };
 
 export type EngineName = TransformEngine;

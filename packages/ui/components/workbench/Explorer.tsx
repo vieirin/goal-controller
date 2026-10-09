@@ -1,6 +1,5 @@
 'use client';
 
-import { isDialectMode, type DialectMode } from '@/lib/workbench/dialects';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronRight,
@@ -11,12 +10,16 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import { isPrismEngine } from '@/lib/types';
+import {
+  hasUnsavedEdits,
+  recentAge,
+  recentId,
+  type ProjectIndexEntry,
+} from '@/lib/project';
 import { outputExtensionOf } from '@/lib/workbench/engineDialects';
-import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
-import type { ExampleFile } from '@/lib/workbench/types';
-import { writeModelMode } from '@/lib/workbench/pistar';
-import { listExamples, loadExample } from '@/services/examples';
+import type { RecentFile } from '@/lib/workbench/storage';
+import { listExamples, openExample as readExample } from '@/services/examples';
 import { useWorkbench } from './WorkbenchContext';
 import { cx } from './ui';
 
@@ -27,30 +30,22 @@ export const useExamples = () =>
     staleTime: Infinity,
   });
 
-/** examples/<group>/: the engine, or the dialect, its models are for */
-const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
-  edge: 'edge',
-  edgeV2: 'edgev2',
-  sleec: 'sleec',
-  mutrose: 'mutrose',
-  'pistar-ext': 'pistarext',
-};
+/**
+ * What tells a Recent entry from another of the same name: an example's, an
+ * edited copy moved aside. None for a local file.
+ */
+export const recentOrigin = (file: RecentFile): string | null =>
+  [file.source?.kind === 'github' && 'example', file.aside && 'edited copy']
+    .filter(Boolean)
+    .join(', ') || null;
 
 export const useOpenExample = () => {
-  const { openModel } = useWorkbench();
+  const { openProject } = useWorkbench();
   const [error, setError] = useState<string | null>(null);
-  const open = async (example: ExampleFile) => {
+  const open = async (example: ProjectIndexEntry) => {
     try {
-      const { fileName, content } = await loadExample(example.path);
-      // examples are grouped by the engine they target
-      const engine = EXAMPLE_ENGINES[example.group];
-      // the example's engine (or dialect) is recorded in it, so it opens (and reopens
-      // from Recent) for it
-      openModel(
-        fileName,
-        engine ? writeModelMode(content, engine) : content,
-        engine && !isDialectMode(engine) ? { settings: { engine } } : undefined,
-      );
+      const { project, settings } = await readExample(example);
+      openProject(project, settings && { settings });
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -132,20 +127,18 @@ export default function Explorer() {
   const examples = useExamples();
   const { open: openExample, error: openExampleError } = useOpenExample();
   // the open model is already listed above
-  const others = wb.recent.filter(
-    (file) => !(wb.hasModel && file.fileName === wb.fileName),
-  );
+  const others = wb.recent.filter((file) => recentId(file) !== wb.recentEntry);
   // engine folder → subfolder ('' for files at the top) → files
-  const groups = new Map<string, Map<string, ExampleFile[]>>();
+  const groups = new Map<string, Map<string, ProjectIndexEntry[]>>();
   (examples.data ?? []).forEach((example) => {
     const slash = example.name.lastIndexOf('/');
     const folder = slash >= 0 ? example.name.slice(0, slash) : '';
     const byFolder =
-      groups.get(example.group) ?? new Map<string, ExampleFile[]>();
+      groups.get(example.group) ?? new Map<string, ProjectIndexEntry[]>();
     byFolder.set(folder, [...(byFolder.get(folder) ?? []), example]);
     groups.set(example.group, byFolder);
   });
-  const fileRow = (example: ExampleFile) => {
+  const fileRow = (example: ProjectIndexEntry) => {
     const fileName = example.name.split('/').pop() ?? example.name;
     return (
       <Row
@@ -230,9 +223,13 @@ export default function Explorer() {
         <Section title='Recent'>
           {others.map((file) => (
             <Row
-              key={file.fileName}
+              key={recentId(file)}
               icon={History}
-              label={file.fileName}
+              label={
+                recentOrigin(file)
+                  ? `${file.fileName} (${recentOrigin(file)})`
+                  : file.fileName
+              }
               detail={
                 hasUnsavedEdits(file) ? (
                   <span
@@ -245,18 +242,13 @@ export default function Explorer() {
                   recentAge(file.at)
                 )
               }
-              onClick={() =>
-                wb.openModel(file.fileName, file.text, {
-                  savedText: file.savedText,
-                  settings: file.settings,
-                })
-              }
+              onClick={() => void wb.openRecent(file)}
               trailing={
                 <button
                   type='button'
                   aria-label={`Remove ${file.fileName} from recent`}
                   className='rounded p-0.5 text-ink-faint opacity-0 hover:text-ink group-hover:opacity-100'
-                  onClick={() => wb.forgetRecent(file.fileName)}
+                  onClick={() => wb.forgetRecent(recentId(file))}
                 >
                   <X className='h-3 w-3' aria-hidden />
                 </button>

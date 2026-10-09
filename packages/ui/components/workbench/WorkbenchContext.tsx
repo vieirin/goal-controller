@@ -32,6 +32,19 @@ import {
   writeModelMode,
   type ModelMode,
 } from '@/lib/workbench/pistar';
+import {
+  fileStore,
+  openProject as readProject,
+  recentId,
+  type Project,
+  type ProjectSource,
+} from '@/lib/project';
+import {
+  openingSettings,
+  optionsFor,
+  readModelOptions,
+  withEngineOptions,
+} from '@/lib/workbench/projectSettings';
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | DialectMode;
@@ -70,7 +83,9 @@ export type ChangeSource =
   | 'inspector'
   | 'undo'
   | 'restore'
-  | 'convert';
+  | 'convert'
+  /** the model's options, written to its manifest */
+  | 'settings';
 /** Which part of the workbench made the selection. */
 export type SelectOrigin =
   | 'canvas'
@@ -115,7 +130,13 @@ export type OpenOptions = {
   settings?: Partial<ModelSettings>;
   /** ask for the model settings first (uploaded models) */
   setup?: boolean;
+  /** where its project came from (default: a local file of that name) */
+  source?: ProjectSource;
+  /** a Recent entry moved aside (RecentEntry.aside) */
+  aside?: number;
 };
+/** How a project opens; where it came from is its own. */
+export type ProjectOpenOptions = Omit<OpenOptions, 'source'>;
 
 export type Workbench = {
   // model
@@ -125,7 +146,20 @@ export type Workbench = {
   dirty: boolean;
   changeSource: ChangeSource;
   revision: number;
-  openModel: (fileName: string, text: string, how?: OpenOptions) => void;
+  /** open a project (lib/project): its model, with where it came from */
+  openProject: (project: Project, how?: ProjectOpenOptions) => void;
+  /** a local file (uploaded or new) as an implicit one-model project */
+  openFile: (
+    fileName: string,
+    text: string,
+    how?: ProjectOpenOptions,
+  ) => Promise<void>;
+  /** a Recent entry, with its edits and the settings kept with it */
+  openRecent: (entry: RecentFile) => Promise<void>;
+  /** where the open model's project came from (a single file: an implicit project) */
+  projectSource: ProjectSource | null;
+  /** the open model's Recent entry (recentId), none without a model */
+  recentEntry: string | null;
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
   setText: (text: string, source: ChangeSource) => void;
@@ -136,7 +170,8 @@ export type Workbench = {
   canUndo: boolean;
   canRedo: boolean;
   recent: RecentFile[];
-  forgetRecent: (fileName: string) => void;
+  /** `id`: the entry's recentId */
+  forgetRecent: (id: string) => void;
 
   // structure
   tree: GoalView | null;
@@ -294,27 +329,6 @@ const useDebounced = <T,>(value: T, ms: number): T => {
   return debounced;
 };
 
-const optionsFor = (
-  engine: TransformEngine,
-  options: GenerationOptions,
-): Record<string, unknown> =>
-  engine === 'edgev2'
-    ? {
-        clean: options.clean,
-        generateDecisionVars: options.generateDecisionVars,
-        discretisation: options.discretisation,
-        taskLayout: options.taskLayout,
-        reduce: options.reduce,
-      }
-    : engine === 'edge'
-      ? {
-          clean: options.clean,
-          generateDecisionVars: options.generateDecisionVars,
-          achievabilitySpace: options.achievabilitySpace,
-          reduce: options.reduce,
-        }
-      : { generateFluents: options.generateFluents, reduce: options.reduce };
-
 const UNDO_LIMIT = 100;
 const COALESCE_MS = 600;
 
@@ -348,6 +362,19 @@ function WorkbenchState({
   const initial = useRef<Persisted | null>(null);
   initial.current ??= loadPreferences<Persisted>();
 
+  // ---- model (every load starts empty; earlier work is reopened from Recent) ----
+  const [model, setModel] = useState(() => ({
+    fileName: '',
+    text: '',
+    savedText: '',
+    source: 'restore' as ChangeSource,
+    revision: 0,
+    /** where the model's project came from (Recent keeps one entry per project) */
+    projectSource: null as ProjectSource | null,
+    /** an edited copy moved aside in Recent (RecentEntry.aside) */
+    aside: undefined as number | undefined,
+  }));
+
   // ---- engine & options ----------------------------------------------------
   const [engineState, setEngineState] = useState<TransformEngine>(
     lockedEngine ?? initial.current?.engine ?? 'edgev2',
@@ -357,14 +384,23 @@ function WorkbenchState({
     (next: TransformEngine) => setEngineState(next),
     [],
   );
-  const [options, setOptionsState] = useState<GenerationOptions>({
+  // the options that apply where the model's manifest says nothing: the ones in use
+  // when it was opened, or kept with it in Recent
+  const [baseOptions, setBaseOptions] = useState<GenerationOptions>({
     ...DEFAULT_OPTIONS,
     ...initial.current?.options,
   });
-  const setOptions = useCallback(
-    (patch: Partial<GenerationOptions>) =>
-      setOptionsState((prev) => ({ ...prev, ...patch })),
-    [],
+  const baseOptionsRef = useRef(baseOptions);
+  baseOptionsRef.current = baseOptions;
+  // the options the model's manifest sets (read through lib/project), and what it
+  // holds that is not used
+  const modelOptions = useMemo(
+    () => readModelOptions(model.text),
+    [model.text],
+  );
+  const options = useMemo<GenerationOptions>(
+    () => ({ ...baseOptions, ...modelOptions.options }),
+    [baseOptions, modelOptions],
   );
   const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
   const [pistar, setPistar] = useState(false);
@@ -376,9 +412,10 @@ function WorkbenchState({
   );
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const applySettings = useCallback((next: ModelSettings) => {
+  // the workbench's own state; the model's options are in its text (applySettings)
+  const adoptSettings = useCallback((next: ModelSettings) => {
     setEngineState(next.engine);
-    setOptionsState({ ...DEFAULT_OPTIONS, ...next.options });
+    setBaseOptions({ ...DEFAULT_OPTIONS, ...next.options });
     setLive(next.live);
     setPistar(next.pistar ?? false);
     setDialect(next.pistar ? next.dialect : undefined);
@@ -389,14 +426,6 @@ function WorkbenchState({
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
   const closeSettings = useCallback(() => setSettingsDialog(null), []);
 
-  // ---- model (every load starts empty; earlier work is reopened from Recent) ----
-  const [model, setModel] = useState(() => ({
-    fileName: '',
-    text: '',
-    savedText: '',
-    source: 'restore' as ChangeSource,
-    revision: 0,
-  }));
   const undoStack = useRef<string[]>([]);
   const redoStack = useRef<string[]>([]);
   const lastPush = useRef(0);
@@ -436,6 +465,53 @@ function WorkbenchState({
       commit(text, source);
     },
     [commit],
+  );
+
+  // ---- the model's options: written to its manifest (lib/project) ---------
+  // an engine model's options go into its text, as an edit (undo reverts them); with
+  // no model, or text that isn't JSON or isn't recorded for the engine, they stay in
+  // the workbench (and in Recent)
+  const writeOptions = useCallback(
+    (next: GenerationOptions, ownStep: boolean) => {
+      const { engine: current, pistar: viewOnly } = settingsRef.current;
+      const target = lockedEngine ?? current;
+      const text = textRef.current;
+      if (text.trim() && !viewOnly && readModelMode(text) === target) {
+        try {
+          const written = withEngineOptions(
+            text,
+            target,
+            next,
+            baseOptionsRef.current,
+          );
+          if (ownStep) lastPush.current = 0;
+          setText(written, 'settings');
+          return;
+        } catch {
+          // not JSON: kept in the workbench
+        }
+      }
+      setBaseOptions(next);
+    },
+    [lockedEngine, setText],
+  );
+  const setOptions = useCallback(
+    (patch: Partial<GenerationOptions>) =>
+      writeOptions({ ...settingsRef.current.options, ...patch }, false),
+    [writeOptions],
+  );
+  /** the settings dialog: live and the options (one undoable edit when they change) */
+  const applySettings = useCallback(
+    (next: ModelSettings) => {
+      const before = settingsRef.current.options;
+      const options = { ...DEFAULT_OPTIONS, ...next.options };
+      adoptSettings({ ...next, options: baseOptionsRef.current });
+      const changed = (
+        Object.keys(options) as (keyof GenerationOptions)[]
+      ).some((key) => options[key] !== before[key]);
+      if (changed) writeOptions(options, true);
+    },
+    [adoptSettings, writeOptions],
   );
 
   // ---- mode: engines and piStar, and conversion between them ---------------
@@ -553,39 +629,56 @@ function WorkbenchState({
   const modelRef = useRef(model);
   modelRef.current = model;
 
+  // ---- opening: every model opens as a project (a single file: an implicit one) ----
+  /** Recent's entry for the model being left, with its latest edits (none: no model) */
+  const leaving = useCallback((): Omit<RecentFile, 'at'> | null => {
+    const previous = modelRef.current;
+    if (!previous.text.trim()) return null;
+    const fileName = previous.fileName || 'untitled.txt';
+    return {
+      fileName,
+      text: previous.text,
+      savedText: previous.savedText,
+      settings: settingsRef.current,
+      source: previous.projectSource ?? { kind: 'file', name: fileName },
+      ...(previous.aside && { aside: previous.aside }),
+    };
+  }, []);
+
   const openModel = useCallback(
     (
       fileName: string,
       text: string,
-      { savedText = text, settings: stored, setup = false }: OpenOptions = {},
+      {
+        savedText = text,
+        settings: stored,
+        setup = false,
+        source = { kind: 'file', name: fileName },
+        aside,
+      }: OpenOptions = {},
     ) => {
-      const previous = modelRef.current;
-      if (previous.text.trim()) {
-        // keep the model being left (and its latest edits) in Recent
-        rememberRecent({
-          fileName: previous.fileName || 'untitled.txt',
-          text: previous.text,
-          savedText: previous.savedText,
-          settings: settingsRef.current,
-        });
-      }
-      // a model's own settings say whether it is a piStar model (older ones: no)
+      const left = leaving();
+      if (left) rememberRecent(left);
       // the file says what it is for: its recorded engine, or (none) a piStar model;
-      // options and live come from the settings kept with it
-      const recorded = readModelMode(text) ?? 'pistar';
-      const base = stored
-        ? { ...settingsRef.current, ...stored }
-        : settingsRef.current;
-      const next: ModelSettings = isEngineMode(recorded)
-        ? { ...base, pistar: false, dialect: undefined, engine: recorded }
-        : {
-            ...base,
-            pistar: true,
-            dialect: isDialectMode(recorded) ? recorded : undefined,
-          };
-      applySettings(next);
+      // live, and the options its manifest doesn't set, come from the settings kept
+      // with it in Recent
+      const next = openingSettings(
+        readModelMode(text),
+        stored,
+        settingsRef.current,
+      );
+      adoptSettings(next);
       setSettingsDialog(setup ? 'setup' : null);
-      setRecent(rememberRecent({ fileName, text, savedText, settings: next }));
+      setRecent(
+        rememberRecent({
+          fileName,
+          text,
+          savedText,
+          settings: next,
+          source,
+          ...(aside && { aside }),
+        }),
+      );
       textRef.current = text;
       setModel((prev) => ({
         fileName,
@@ -593,6 +686,8 @@ function WorkbenchState({
         savedText,
         source: 'open',
         revision: prev.revision + 1,
+        projectSource: source,
+        aside,
       }));
       undoStack.current = [];
       redoStack.current = [];
@@ -601,23 +696,47 @@ function WorkbenchState({
       setConversion(null);
       forceHistory((n) => n + 1);
     },
-    [applySettings, clearSelection],
+    [leaving, adoptSettings, clearSelection],
+  );
+
+  const openProject = useCallback(
+    (project: Project, how: ProjectOpenOptions = {}) => {
+      const [first] = project.models;
+      if (!first) return;
+      openModel(first.path.split('/').pop() ?? first.path, first.text, {
+        ...how,
+        source: project.source,
+      });
+    },
+    [openModel],
+  );
+  const openFile = useCallback(
+    async (fileName: string, text: string, how: ProjectOpenOptions = {}) =>
+      openProject(await readProject(fileStore(fileName, text)), how),
+    [openProject],
+  );
+  const openRecent = useCallback(
+    async (entry: RecentFile) =>
+      openProject(
+        await readProject(
+          fileStore(entry.fileName, entry.text, {
+            ...(entry.source && { source: entry.source }),
+          }),
+        ),
+        {
+          savedText: entry.savedText,
+          settings: entry.settings,
+          ...(entry.aside && { aside: entry.aside }),
+        },
+      ),
+    [openProject],
   );
 
   const closeModel = useCallback(() => {
-    const previous = modelRef.current;
-    if (previous.text.trim()) {
-      setRecent(
-        rememberRecent({
-          fileName: previous.fileName || 'untitled.txt',
-          text: previous.text,
-          savedText: previous.savedText,
-          settings: settingsRef.current,
-        }),
-      );
-    }
+    const left = leaving();
+    if (left) setRecent(rememberRecent(left));
     // the start screen is not a piStar model
-    applySettings({ ...settingsRef.current, pistar: false });
+    adoptSettings({ ...settingsRef.current, pistar: false });
     setSettingsDialog(null);
     textRef.current = '';
     setModel((prev) => ({
@@ -626,6 +745,8 @@ function WorkbenchState({
       savedText: '',
       source: 'open',
       revision: prev.revision + 1,
+      projectSource: null,
+      aside: undefined,
     }));
     undoStack.current = [];
     redoStack.current = [];
@@ -633,20 +754,36 @@ function WorkbenchState({
     clearSelection();
     setConversion(null);
     forceHistory((n) => n + 1);
-  }, [applySettings, clearSelection]);
+  }, [leaving, adoptSettings, clearSelection]);
 
   const renameFile = useCallback((fileName: string) => {
-    // the entry under the old name is replaced by the next Recent sync
-    setRecent(forgetRecentFile(modelRef.current.fileName));
-    setModel((prev) => ({ ...prev, fileName }));
+    // the entry under the old name is replaced by the next Recent sync; a renamed
+    // model (an example's too) is a local file from now on
+    const { fileName: old, projectSource } = modelRef.current;
+    setRecent(
+      forgetRecentFile(
+        recentId({
+          fileName: old,
+          source: projectSource ?? undefined,
+          aside: modelRef.current.aside,
+        }),
+      ),
+    );
+    setModel((prev) => ({
+      ...prev,
+      fileName,
+      projectSource: { kind: 'file', name: fileName },
+      aside: undefined,
+    }));
   }, []);
 
   const markSaved = useCallback(() => {
     setModel((prev) => ({ ...prev, savedText: prev.text }));
   }, []);
 
+  /** `id`: the entry's recentId */
   const forgetRecent = useCallback(
-    (fileName: string) => setRecent(forgetRecentFile(fileName)),
+    (id: string) => setRecent(forgetRecentFile(id)),
     [],
   );
 
@@ -931,6 +1068,8 @@ function WorkbenchState({
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (parsed.error) list.push(parsed.error);
+    // what the model's manifest holds that is not used (its options are the file's)
+    else list.push(...modelOptions.problems);
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     if (tree && !parsed.error) {
@@ -971,6 +1110,7 @@ function WorkbenchState({
     return mergeProblems(list, serviceProblems);
   }, [
     parsed.error,
+    modelOptions,
     pistar,
     tree,
     engine,
@@ -990,14 +1130,17 @@ function WorkbenchState({
     500,
   );
   useEffect(() => {
-    const { fileName, text, savedText } = snapshot.model;
+    const { fileName, text, savedText, projectSource, aside } = snapshot.model;
     if (!text.trim()) return;
+    const name = fileName || 'untitled.txt';
     setRecent(
       rememberRecent({
-        fileName: fileName || 'untitled.txt',
+        fileName: name,
         text,
         savedText,
         settings: snapshot.settings,
+        source: projectSource ?? { kind: 'file', name },
+        ...(aside && { aside }),
       }),
     );
   }, [snapshot]);
@@ -1022,7 +1165,17 @@ function WorkbenchState({
     dirty: model.text !== model.savedText,
     changeSource: model.source,
     revision: model.revision,
-    openModel,
+    openProject,
+    openFile,
+    openRecent,
+    projectSource: model.projectSource,
+    recentEntry: model.text.trim()
+      ? recentId({
+          fileName: model.fileName || 'untitled.txt',
+          source: model.projectSource ?? undefined,
+          aside: model.aside,
+        })
+      : null,
     closeModel,
     setText,
     renameFile,

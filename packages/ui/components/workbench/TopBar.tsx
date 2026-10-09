@@ -50,7 +50,7 @@ const readFile = (file: File): Promise<string> =>
   });
 
 export const useOpenFile = (): { open: () => void; input: ReactElement } => {
-  const { openModel } = useWorkbench();
+  const { openFile } = useWorkbench();
   const ref = useRef<HTMLInputElement>(null);
   const input = (
     <input
@@ -60,7 +60,8 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
-        if (file) openModel(file.name, await readFile(file), { setup: true });
+        if (file)
+          await openFile(file.name, await readFile(file), { setup: true });
         event.target.value = '';
       }}
     />

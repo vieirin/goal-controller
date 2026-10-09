@@ -24,10 +24,14 @@ import { ENGINE_LABEL } from '@/lib/workbench/engineDialects';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
-import { hasUnsavedEdits, recentAge } from '@/lib/workbench/storage';
+import { hasUnsavedEdits, recentAge, recentId } from '@/lib/project';
 import type { ModelSettings } from '@/lib/workbench/types';
 import BottomPanel from './BottomPanel';
-import Explorer, { useExamples, useOpenExample } from './Explorer';
+import Explorer, {
+  recentOrigin,
+  useExamples,
+  useOpenExample,
+} from './Explorer';
 import ModelInspector from './engines/ModelInspector';
 import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
@@ -199,8 +203,9 @@ function ShellLayout() {
   // a new model is set up first, then drawn in the diagram, full screen
   const [diagramAfterSetup, setDiagramAfterSetup] = useState(false);
   const newModel = useCallback(() => {
-    wb.openModel('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true });
-    setDiagramAfterSetup(true);
+    void wb
+      .openFile('untitled.txt', EMPTY_PISTAR_MODEL, { setup: true })
+      .then(() => setDiagramAfterSetup(true));
   }, [wb]);
   useEffect(() => {
     if (!diagramAfterSetup || wb.settingsDialog) return undefined;
@@ -309,7 +314,7 @@ function ShellLayout() {
           hideDropTarget();
           const file = event.dataTransfer.files[0];
           if (file)
-            wb.openModel(file.name, await readFile(file), { setup: true });
+            await wb.openFile(file.name, await readFile(file), { setup: true });
         }}
       >
         <TopBar />
@@ -567,17 +572,12 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
             <ul className='divide-y divide-line rounded-lg border border-line'>
               {wb.recent.map((file) => (
                 <li
-                  key={file.fileName}
+                  key={recentId(file)}
                   className='group flex items-center hover:bg-panel'
                 >
                   <button
                     type='button'
-                    onClick={() =>
-                      wb.openModel(file.fileName, file.text, {
-                        savedText: file.savedText,
-                        settings: file.settings,
-                      })
-                    }
+                    onClick={() => void wb.openRecent(file)}
                     className='flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-[13px]'
                   >
                     <History
@@ -587,6 +587,11 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                     <span className='truncate font-mono text-xs text-ink'>
                       {file.fileName}
                     </span>
+                    {recentOrigin(file) && (
+                      <span className='shrink-0 text-2xs text-ink-muted'>
+                        {recentOrigin(file)}
+                      </span>
+                    )}
                     {hasUnsavedEdits(file) && (
                       <span
                         className='shrink-0 rounded bg-trace/10 px-1 text-2xs text-trace'
@@ -619,7 +624,7 @@ function EmptyState({ onNewModel }: { onNewModel: () => void }) {
                   <button
                     type='button'
                     aria-label={`Remove ${file.fileName} from recent`}
-                    onClick={() => wb.forgetRecent(file.fileName)}
+                    onClick={() => wb.forgetRecent(recentId(file))}
                     className='mr-1.5 rounded p-1 text-ink-faint hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'
                   >
                     <X className='h-3.5 w-3.5' aria-hidden />
