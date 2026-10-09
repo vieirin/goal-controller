@@ -3,7 +3,8 @@
 > Reference: [reference.md](reference.md) (the grammar rule by rule) ·
 > [api.md](api.md) · [diagnostics.md](diagnostics.md) ·
 > [examples.md](examples.md) · [operators.md](operators.md) ·
-> [lsp.md](lsp.md) (the language server). Their examples run in
+> [lsp.md](lsp.md) (the language server) ·
+> [extending-the-grammar.md](extending-the-grammar.md). Their examples run in
 > `packages/lib/test/dialect/docs.test.ts`.
 
 Every dialect is written in the same language: one Langium grammar,
