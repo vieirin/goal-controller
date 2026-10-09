@@ -20,6 +20,7 @@ import {
   type AnyDialect,
 } from '@goal-controller/dialect';
 import {
+  checkContextOf,
   completionsAt,
   documentDiagnostics,
   fieldCompletionsAt,
@@ -73,15 +74,9 @@ export const localLanguageSupport = (
 ): LanguageSupport => {
   let context = EMPTY;
   let saved: SavedLines = {};
-  // what an engine check may ask of another element (a quality is a goal to no check)
-  const kindOf = (id: string) => {
-    const kind = context.elements[id]?.kind;
-    return kind === 'goal' || kind === 'task' || kind === 'resource'
-      ? kind
-      : undefined;
-  };
+  // a check is given the element, and the model it is in
   const runCheck: RunCheck = (name, properties, self) =>
-    checks[name]?.(properties, { self, kindOf }) ?? null;
+    checks[name]?.(properties, checkContextOf(context, self)) ?? null;
   // the views linted against the context, relinted when it changes (a view
   // registers on its first lint, and is dropped once it left the page)
   const views = new Set<EditorView>();

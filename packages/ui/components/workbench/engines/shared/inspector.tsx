@@ -4,7 +4,12 @@ import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { constructDefinition } from '@goal-controller/dialect';
-import { elementLine, isValidName } from '@goal-controller/goal-language';
+import {
+  checkContextOf,
+  contextFromView,
+  elementLine,
+  isValidName,
+} from '@goal-controller/goal-language';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -851,19 +856,17 @@ export function PropertiesField({
       .map((spec) => spec.key);
     return [...new Set([...fromSpec, ...set])];
   }, [specs, node.properties]);
-  // what a validate function may refer to: this node's id, and other RT ids' kinds
-  // (dependsOn). Qualities are not goals for engine checks.
+  // what a validate function is given: this node's id, and the model it is in
+  // (other elements' kinds for dependsOn, the whole tree for MutRoSe's scoping)
   const checkContext = useMemo(
-    () => ({
-      self: node.id,
-      kindOf: (id: string): 'goal' | 'task' | 'resource' | undefined => {
-        const kind = tree?.nodes.get(id)?.kind;
-        return kind === 'goal' || kind === 'task' || kind === 'resource'
-          ? kind
-          : undefined;
-      },
-    }),
-    [node.id, tree],
+    () =>
+      checkContextOf(
+        tree
+          ? contextFromView(notationDefinitionOf(engine), tree, [])
+          : { elements: {}, variables: [] },
+        node.id,
+      ),
+    [engine, node.id, tree],
   );
   const suggestions = known.filter(
     (k) => k !== 'root' && !keys.includes(k) && applies(k),

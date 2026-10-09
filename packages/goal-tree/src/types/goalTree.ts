@@ -19,6 +19,12 @@ export type GoalExecutionDetail = ExecutionDetail;
 
 export type BaseNode = {
   iStarId: id;
+  /**
+   * the element's horizontal position in the diagram (piStar's absolute x):
+   * an engine may order siblings by it (MutRoSe's decomposer does); absent
+   * in a tree built without a diagram
+   */
+  x?: number;
   id: string;
   type: Type;
   relationToChildren: Relation | null;

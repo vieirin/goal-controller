@@ -196,6 +196,8 @@ export type DefinitionContextElement = {
   properties: Readonly<Record<string, string>>;
   relation?: Relation | null;
   construct?: string | null;
+  /** its horizontal position in the diagram: an engine may order siblings by it */
+  x?: number;
 };
 
 export type DefinitionContext = {
@@ -213,6 +215,7 @@ export type DefinitionContext = {
 /** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */
 export type DocumentNode = {
   iStarId: string;
+  x?: number;
   id: string;
   kind: string;
   name: string;

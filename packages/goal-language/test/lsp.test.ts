@@ -1,7 +1,11 @@
 /** The language server's services (src/lsp/server.ts), without a connection. */
 import type { DefinitionContext } from '@goal-controller/dialect';
 import { expect } from 'chai';
-import { documentDiagnostics, fieldUri } from '../src/index.js';
+import {
+  documentDiagnostics,
+  fieldUri,
+  type CheckContext,
+} from '../src/index.js';
 import { createGoalLspServices, serverDiagnostics } from '../src/lsp/server.js';
 import { toy } from '../../dialect/test/support/toy.js';
 
@@ -59,6 +63,44 @@ describe('the language server', () => {
       'R1: Fuel {int 0..9 = 5}',
     );
     expect(found.map((d) => d.message)).to.deep.equal(['out of bounds']);
+  });
+
+  it('gives a check the whole model: elements, their kinds and positions', async () => {
+    const seen: CheckContext[] = [];
+    const { shared, store } = createGoalLspServices(undefined, {
+      checks: {
+        toy: {
+          'toy.resource.bounds': (_properties, context) => {
+            seen.push(context);
+            return null;
+          },
+        },
+      },
+    });
+    const model: DefinitionContext = {
+      ...context,
+      elements: {
+        ...context.elements,
+        R1: { ...context.elements.R1!, x: 120 },
+      },
+    };
+    store.set({ dialect: toy, context: model });
+    await serverDiagnostics(
+      shared,
+      'file:///notation.goal',
+      'R1: Fuel {int 0..9 = 5}',
+    );
+    expect(seen.length).to.be.greaterThan(0);
+    const [check] = seen;
+    expect(check!.self).to.equal('R1');
+    expect(check!.kindOf('G2')).to.equal('goal');
+    expect(check!.elements?.R1?.x).to.equal(120);
+    expect(Object.keys(check!.elements ?? {})).to.deep.equal([
+      'G1',
+      'G2',
+      'T1',
+      'R1',
+    ]);
   });
 
   it('reads an inspector field with its property’s value type', async () => {

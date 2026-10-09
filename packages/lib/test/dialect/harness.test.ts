@@ -511,19 +511,38 @@ describe('harness 5: the notation document', () => {
 });
 
 describe('harness 6: context', () => {
+  /**
+   * A context without the elements' diagram positions, which the pinned
+   * reference predates; they are the view's (checked on their own).
+   */
+  const withoutPositions = (
+    context: ReturnType<typeof contextFromView>,
+    tree: ReturnType<typeof view>,
+  ) => ({
+    ...context,
+    elements: Object.fromEntries(
+      Object.entries(context.elements).map(([id, { x, ...element }]) => {
+        expect(x, id).to.equal(tree.nodes.get(id)?.x);
+        return [id, element];
+      }),
+    ),
+  });
+
   it('contextFromView equals the reference notationContext on every example', () => {
     const variables = ['battery', 'ctx'];
     for (const { file, model } of EDGE_V2_MODELS) {
       const tree = view(model, 'edgeV2');
-      expect(contextFromView(edgeV2, tree, variables), file).to.deep.equal(
-        referenceNotation.notationContext(ref(tree), variables),
-      );
+      expect(
+        withoutPositions(contextFromView(edgeV2, tree, variables), tree),
+        file,
+      ).to.deep.equal(referenceNotation.notationContext(ref(tree), variables));
     }
     for (const { file, model } of EDGE_MODELS) {
       const tree = view(model, 'edge');
-      expect(contextFromView(edge, tree, variables), file).to.deep.equal(
-        referenceNotation.notationContext(ref(tree), variables),
-      );
+      expect(
+        withoutPositions(contextFromView(edge, tree, variables), tree),
+        file,
+      ).to.deep.equal(referenceNotation.notationContext(ref(tree), variables));
     }
   });
 });
