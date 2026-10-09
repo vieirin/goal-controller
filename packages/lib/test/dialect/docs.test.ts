@@ -16,7 +16,7 @@
  *   a dialect without ids (`rationalAgents`)
  *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
- * Dialects: edge, edgeV2, and edgeV2 / edge with iStar4RationalAgents'
+ * Dialects: edge, edgeV2, mutrose, and edgeV2 / edge with iStar4RationalAgents'
  * annotations (`edgeV2+rationalAgents`, `edge+rationalAgents`).
  */
 import { expect } from 'chai';
@@ -43,7 +43,7 @@ import {
   createGoalLspServices,
   serverDiagnostics,
 } from '@goal-controller/goal-language/lsp';
-import { edge, edgeV2, istar4RationalAgents } from '../../src';
+import { edge, edgeV2, istar4RationalAgents, mutrose } from '../../src';
 
 const DOCS = join(__dirname, '../../../goal-language/docs');
 const FILES = ['reference.md', 'api.md', 'diagnostics.md', 'examples.md'];
@@ -51,6 +51,7 @@ const FILES = ['reference.md', 'api.md', 'diagnostics.md', 'examples.md'];
 const DIALECTS: Record<string, AnyDialect> = {
   edge: edge as AnyDialect,
   edgeV2: edgeV2 as AnyDialect,
+  mutrose: mutrose as AnyDialect,
   'edge+rationalAgents': withExtension(
     edge as AnyDialect,
     istar4RationalAgents,
@@ -106,7 +107,15 @@ const grouped = (tree: RtTree | null): string => {
   }
 };
 
-const KIND: Record<string, string> = { G: 'goal', T: 'task', R: 'resource' };
+/** An element's kind, by its id's prefix (the longest that matches: `AT1` is a task). */
+const KIND: Record<string, string> = {
+  AT: 'task',
+  G: 'goal',
+  T: 'task',
+  R: 'resource',
+};
+const kindOf = (id: string) =>
+  KIND[Object.keys(KIND).find((prefix) => id.startsWith(prefix)) ?? ''];
 
 /** A model of named elements, in order, for a dialect without ids (`%% model`). */
 const plainContext = (directive: string): DefinitionContext => {
@@ -145,7 +154,7 @@ const contextOf = (doc: string, directives: string[]): DefinitionContext => {
     );
     if (read.kind !== 'element' || !read.id) continue;
     elements[read.id] = {
-      kind: KIND[read.id[0]!] ?? 'goal',
+      kind: kindOf(read.id) ?? 'goal',
       children: (read.notation?.refs ?? []).map((ref) => ref.id),
       properties: {},
     };

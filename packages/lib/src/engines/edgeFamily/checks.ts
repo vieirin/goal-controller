@@ -4,10 +4,7 @@
  * two engines' rules ever diverge.
  */
 import type { DECLARATION_KEYS } from '@goal-controller/dialect';
-import type { Check } from '../checks';
-
-/** Checks by name: each a `Check`, the names kept (a misspelt one doesn't compile where it is used). */
-const checks = <K extends string>(byName: Record<K, Check>) => byName;
+import { checks, type Check } from '../checks';
 
 /** A key a resource's declaration sets (`{int 0..100 = 80}`). */
 type DeclaredKey = (typeof DECLARATION_KEYS)[number];
