@@ -1479,8 +1479,15 @@ function WorkbenchState({
     ? activeFileOf(lastGood.files, outputFile)
     : undefined;
   const trace = useMemo(
-    () => (shownFile ? traceOfFile(shownFile, nodeIds) : null),
-    [shownFile, nodeIds],
+    () =>
+      shownFile
+        ? traceOfFile(
+            shownFile,
+            nodeIds,
+            (owner) => tree?.byIStarId.get(owner)?.key ?? owner,
+          )
+        : null,
+    [shownFile, nodeIds, tree],
   );
 
   // the latest output's files, kept in the project: out/, one manifest entry each

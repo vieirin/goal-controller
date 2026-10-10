@@ -15,6 +15,8 @@ export type Decomposition = 'AND' | 'OR' | 'ME' | 'NONE';
 
 export type Container = {
   kind: 'goal' | 'plan';
+  /** the element's piStar id: what its output lines belong to (`owners`) */
+  iStarId: string;
   /** the element's text with its whitespace made `_` (`NameUtility.adjustName`) */
   name: string;
   /** its RT id as written (`T1.1`); a plan's `getElId` is `<uid>_<elId>` */
@@ -277,6 +279,7 @@ export const buildContainers = (
     node: GodaGoalNode | GodaTask,
   ): Container => ({
     kind,
+    iStarId: node.iStarId,
     name: adjustName(node.properties.engine.text),
     elId: node.id,
     uid: node.id,

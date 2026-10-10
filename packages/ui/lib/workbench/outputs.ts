@@ -137,15 +137,20 @@ export const outputFileTabs = (
 /**
  * A file's trace to the model: the lines' owners its engine gives, else, for
  * the primary file, the node ids its identifiers embed (buildTraceIndex);
- * null for any other file (plain text).
+ * null for any other file (plain text). An owner may be an element's piStar
+ * id (an engine whose ids repeat, GODA's): `keyOf` gives the view's key.
  */
 export const traceOfFile = (
   file: OutputFile,
   nodeIds: Iterable<string>,
+  keyOf: (owner: string) => string = (owner) => owner,
 ): TraceIndex | null => {
   if (file.owners)
     return {
-      lines: file.owners.map((ids) => ({ primary: [...ids], mentions: [] })),
+      lines: file.owners.map((ids) => ({
+        primary: ids.map(keyOf),
+        mentions: [],
+      })),
       outline: [],
     };
   return file.primary ? buildTraceIndex(file.text, nodeIds) : null;

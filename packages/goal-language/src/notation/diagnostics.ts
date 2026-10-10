@@ -22,6 +22,7 @@ import {
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
+import { lineScope, scopedKey } from './scope.js';
 import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 
 /**
@@ -163,24 +164,6 @@ type Definition = Pick<
   | 'problems'
   | 'idScope'
 >;
-
-/**
- * The kind whose id prefix an id starts with: the longest that matches and
- * is followed by what an id's number starts with (a digit or `X`), so a
- * prefix another one starts with (`A`, `AT`) never takes the other's ids.
- */
-export const kindOfId = (
-  definition: Pick<AnyDialect, 'elements'>,
-  id: string,
-): string | undefined =>
-  Object.entries(definition.elements)
-    .filter(
-      ([, element]) =>
-        element?.prefix &&
-        id.startsWith(element.prefix) &&
-        /^[0-9X]/.test(id.slice(element.prefix.length)),
-    )
-    .sort(([, a], [, b]) => b!.prefix!.length - a!.prefix!.length)[0]?.[0];
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -374,8 +357,9 @@ export const documentDiagnostics = (
       ),
     );
   // the goal lines above, by indentation: an id scoped by its nearest goal
-  const goalsAbove: { indent: number; id: string }[] = [];
-  const scoped = definition.idScope === 'ancestorGoal';
+  const scope = lineScope(definition);
+  /** an element's id as written, by its key (a repeated scoped id's is `G3/T1.1`) */
+  const idOf = (key: string) => context.elements[key]?.id ?? key;
   let offset = 0;
   for (const written of lines) {
     const lineFrom = offset;
@@ -390,11 +374,18 @@ export const documentDiagnostics = (
     // the line is its element's by position (every line counts)
     const written_id = read.kind === 'element' ? read.id : null;
     const position = order && written.trim() ? order[index++]! : null;
-    const id = order
+    const named = order
       ? written_id
         ? (context.named?.[written_id] ?? `unknown ${written_id}`)
         : position
       : written_id;
+    // the goal an element line is under, and the key its id names there
+    const goal =
+      named && !order && read.kind === 'element'
+        ? scope.enter(indent, named)
+        : null;
+    const id =
+      named && scope.keyOf(goal, named, (key) => key in context.elements);
     const current = (block as Block | null)?.id;
     const ownerId = read.kind === 'element' && id ? id : current;
     owner = ownerId && context.elements[ownerId] ? ownerId : undefined;
@@ -402,23 +393,20 @@ export const documentDiagnostics = (
       closeBlock();
       started = true;
       const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
-      while (goalsAbove.length && goalsAbove.at(-1)!.indent >= indent)
-        goalsAbove.pop();
-      const isGoal = kindOfId(definition, id) === 'goal';
       // a goal is unique in the model; under `ancestorGoal`, another element under its goal
-      const scope = scoped && !isGoal ? `${goalsAbove.at(-1)?.id ?? ''}/` : '';
-      if (isGoal) goalsAbove.push({ indent, id });
-      if (seen.has(scope + id)) {
+      const unique = goal !== null ? scopedKey(goal, named!) : id;
+      if (seen.has(unique)) {
         push({
           ...idSpan,
           severity: 'error',
-          message: scope
-            ? `Duplicate id ${written_id ?? id} under ${goalsAbove.at(-1)?.id ?? 'no goal'}`
-            : `Duplicate id ${written_id ?? id}`,
+          message:
+            goal !== null
+              ? `Duplicate id ${written_id ?? named} under ${goal}`
+              : `Duplicate id ${written_id ?? id}`,
         });
         continue;
       }
-      seen.add(scope + id);
+      seen.add(unique);
       const element = context.elements[id];
       if (!element) {
         push(problem(definition, 'notInDiagram', idSpan.from, idSpan.to));
@@ -523,7 +511,7 @@ export const documentDiagnostics = (
       const listed: string[] = [];
       for (const ref of read.notation.refs) {
         listed.push(ref.id);
-        if (!element.children.includes(ref.id)) {
+        if (!element.children.some((child) => idOf(child) === ref.id)) {
           const span = at(ref.span);
           push(problem(definition, 'notAChild', span.from, span.to));
         }
@@ -545,14 +533,14 @@ export const documentDiagnostics = (
         );
       if (listed.length > 0)
         for (const child of element.children)
-          if (!listed.includes(child))
+          if (!listed.includes(idOf(child)))
             push(
               problem(
                 definition,
                 'missingFromNotation',
                 notationSpan.from,
                 notationSpan.to,
-                `${definition.problems.missingFromNotation.message}: ${child}`,
+                `${definition.problems.missingFromNotation.message}: ${idOf(child)}`,
               ),
             );
       continue;

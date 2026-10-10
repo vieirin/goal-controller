@@ -7,11 +7,11 @@ import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import {
   applyNotationEdits,
   elementOfLine,
+  lineKeys,
   notationDocument,
   notationEdits,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
-import { lineId } from '@goal-controller/goal-language';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
@@ -113,10 +113,12 @@ export default function NotationEditor({
           definition,
           doc.toString().split('\n'),
           line - 1,
+          (key) => !!latestTree.current?.nodes.has(key),
         );
         const node = id ? latestTree.current?.nodes.get(id) : undefined;
-        if (node && node.id !== latestSelected.current) {
-          latest.current.select(node.id, 'notation');
+        // the key the line names (a repeated scoped id's is its goal's)
+        if (node && id !== latestSelected.current) {
+          latest.current.select(id, 'notation');
         }
       }),
     ],
@@ -127,13 +129,15 @@ export default function NotationEditor({
   useEffect(() => {
     if (!view || !selectable) return;
     const document = view.state.doc;
-    let line = 0;
-    for (let n = 1; n <= document.lines && selected; n++) {
-      if (lineId(definition, document.line(n).text) === selected) {
-        line = n;
-        break;
-      }
-    }
+    const keys = selected
+      ? lineKeys(
+          definition,
+          document.toString().split('\n'),
+          (key) => !!latestTree.current?.nodes.has(key),
+        )
+      : [];
+    // 1-based; 0: the selected element has no line
+    const line = keys.indexOf(selected) + 1;
     view.dispatch({
       effects: [
         setLineMarks.of(line ? [{ line, className: 'cm-trace-primary' }] : []),

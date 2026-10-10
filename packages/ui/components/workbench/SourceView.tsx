@@ -50,8 +50,8 @@ export default function SourceView() {
         const node = best
           ? latest.current.tree?.byIStarId.get(best.iStarId)
           : undefined;
-        if (node && node.id !== latestSelected.current)
-          latest.current.select(node.id, 'source');
+        if (node && node.key !== latestSelected.current)
+          latest.current.select(node.key, 'source');
       }),
     [],
   );

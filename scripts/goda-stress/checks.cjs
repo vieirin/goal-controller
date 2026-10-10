@@ -109,13 +109,15 @@ const checkModel = (
       read.view,
     );
     const listed = new Set(read.doc.ids);
+    // the document's lines are the view's keys (a repeated scoped id's is its goal's)
     const notListed = [...read.view.nodes.values()]
       // the elements the document gives a line (not one without an id: TAS's Resources)
       .filter(
         (node) =>
-          language.isListed(engine.definition, node) && !listed.has(node.id),
+          language.isListed(engine.definition, node) &&
+          !listed.has(node.key ?? node.id),
       )
-      .map((node) => node.id);
+      .map((node) => node.key ?? node.id);
     checks.roundTrip = {
       status: status(edits.length === 0 && notListed.length === 0),
       edits,

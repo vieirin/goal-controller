@@ -178,7 +178,7 @@ function SelectionSync({
     previous.current = selection;
     if (selection?.type === 'link') return;
     const iStarId = selection?.type === 'element' ? selection.id : null;
-    const id = iStarId ? (tree?.byIStarId.get(iStarId)?.id ?? null) : null;
+    const id = iStarId ? (tree?.byIStarId.get(iStarId)?.key ?? null) : null;
     unresolved.current = iStarId && !id ? iStarId : null;
     if (!changed && !id) return;
     if (id !== latestSel.current.selected) latest.current.select(id, 'canvas');

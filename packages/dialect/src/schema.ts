@@ -358,6 +358,8 @@ export const hasIds = (definition: Pick<AnyDialect, 'elements'>): boolean =>
  */
 export type DefinitionContextElement = {
   kind: string;
+  /** its id as written, when its key isn't (a repeated scoped id: key `G3/T1.1`, id `T1.1`) */
+  id?: string;
   /** ids of its operand children, in the notation's order */
   children: readonly string[];
   /** its custom properties, as stored */
@@ -386,6 +388,7 @@ export type DefinitionContext = {
 export type DocumentNode = {
   iStarId: string;
   x?: number;
+  /** its id as written (`T1.1`); the tree keys it by its own key, which may be scoped (`G3/T1.1`) */
   id: string;
   kind: string;
   name: string;
