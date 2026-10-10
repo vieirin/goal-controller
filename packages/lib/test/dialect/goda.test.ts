@@ -212,13 +212,33 @@ describe('GODA: what the language reads for it', () => {
       diagram: { width: 800, height: 600 },
     });
     // the engines' one root: the goal (the Resource linked to nothing is none)
-    expect(() => Model.validate(parsePistar(model))).to.not.throw();
+    expect(() => Model.validate(parsePistar(model), goda)).to.not.throw();
     const view = goalView(parsePistar(model), goda);
     const { text } = notationDocument(goda, view);
     expect(text).to.equal('G1: Serve\n  selected true\n  T1: Pick');
     expect(
       documentDiagnostics(dialect, text, contextFromView(goda, view, [])),
     ).to.deep.equal([]);
+    // through the workbench's GODA run too
+    expect(
+      transform({ engine: 'goda', modelJson: model }).files,
+    ).to.have.length.above(0);
+
+    // Edge has neither: the Resource is a second root, and an element
+    // without an id is listed by its piStar id, to be given one
+    expect(() => Model.validate(parsePistar(model), edgeV2)).to.throw(
+      /Invalid number of roots/,
+    );
+    expect(() => Model.validate(parsePistar(model))).to.throw(
+      /Invalid number of roots/,
+    );
+    const unnamed = model.replace('T1: Pick', 'Pick');
+    expect(
+      notationDocument(edgeV2, goalView(parsePistar(unnamed), edgeV2)).text,
+    ).to.include('t1: Pick');
+    expect(
+      notationDocument(goda, goalView(parsePistar(unnamed), goda)).text,
+    ).to.not.include('Pick');
   });
 
   it('reads the same task id under two goals, and one twice under a goal as a duplicate', () => {

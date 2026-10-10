@@ -15,9 +15,13 @@ import {
   compileFormula,
   engineOutputProblems,
   evaluate,
+  goda,
   godaOutput,
   type EngineOutput,
 } from '../../../src';
+import type { Container } from '../../../src/engines/goda/template/containers';
+import { JULY_2019_PREV_FAILURE } from '../../../src/engines/goda/template/templates';
+import { GODA_GENERATORS } from '../../../src/engines/goda/template/variants';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
 const { EXAMPLES } = require('../../../../../scripts/goda-stress/fetch.cjs');
@@ -67,7 +71,10 @@ const model = (
   });
 
 const july = (text: string) =>
-  godaOutput(Model.parse(text), { modelName: 'robot.txt', variant: '5305bc1' });
+  godaOutput(Model.parse(text, goda), {
+    modelName: 'robot.txt',
+    variant: '5305bc1',
+  });
 
 /** G1 (selected, AND or OR) → G2 → T1, G3 → T2: two sibling goals in sequence. */
 const siblings = (kind: 'And' | 'Or') =>
@@ -98,7 +105,7 @@ describe('GODA 5305bc1: the TAS, Fragmented and BSN references (#38)', () => {
       // the upstream models are fetched, not committed (#34 D1)
       if (!existsSync(join(dir, file))) this.skip();
       const output = godaOutput(
-        Model.parse(readFileSync(join(dir, file), 'utf8')),
+        Model.parse(readFileSync(join(dir, file), 'utf8'), goda),
         { modelName: file, variant: '5305bc1' },
       );
       assert.deepStrictEqual(engineOutputProblems(output), []);
@@ -246,5 +253,58 @@ describe('GODA 5305bc1: what changed since cc808b6', () => {
         'const int CTX_G1_T1_1; //cold = true\n',
       ),
     );
+  });
+});
+
+describe('GODA 5305bc1: the guards before a leaf starts (9a993f8)', () => {
+  const { guards } = GODA_GENERATORS['5305bc1']!;
+  // what guards reads of a container: its kind, its parent, its decomposition
+  const container = (
+    kind: Container['kind'],
+    root: Container | null,
+    decomposition: Container['decomposition'] = 'AND',
+  ) => ({ kind, root, decomposition }) as Container;
+  const unguarded = {
+    $PREV_EFFECT$: JULY_2019_PREV_FAILURE,
+    $PREV_SUCCESS$: '',
+    $PREV_SUCCESS_EFFECT$: '',
+  };
+
+  it('guards a leaf after a sibling goal on that goal: its success under an AND, its failure under an OR', () => {
+    const and = container('goal', null);
+    const leaf = container('plan', container('goal', and));
+    assert.deepStrictEqual(guards(leaf, 'G2'), {
+      $PREV_EFFECT$: JULY_2019_PREV_FAILURE,
+      $PREV_SUCCESS$: '(G2) & ',
+      $PREV_SUCCESS_EFFECT$: '!(G2) & ',
+    });
+    const or = container('goal', null, 'OR');
+    assert.deepStrictEqual(
+      guards(container('plan', container('goal', or)), 'G2'),
+      {
+        $PREV_EFFECT$: JULY_2019_PREV_FAILURE,
+        $PREV_SUCCESS$: '!(G2) & ',
+        $PREV_SUCCESS_EFFECT$: '(G2) & ',
+      },
+    );
+  });
+
+  it('writes no guard for a leaf under the root goal, or under no goal (where upstream throws a NullPointerException)', () => {
+    // getParentGoal().getRoot() is null: the root goal's leaf
+    assert.deepStrictEqual(
+      guards(container('plan', container('goal', null)), 'G2'),
+      unguarded,
+    );
+    // getParentGoal() is null: plans all the way up
+    assert.deepStrictEqual(
+      guards(container('plan', container('plan', null)), 'G2'),
+      unguarded,
+    );
+    // the first leaf: no formula before it
+    assert.deepStrictEqual(guards(container('plan', null), null), {
+      $PREV_EFFECT$: '',
+      $PREV_SUCCESS$: '',
+      $PREV_SUCCESS_EFFECT$: '',
+    });
   });
 });

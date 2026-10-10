@@ -1,4 +1,4 @@
-import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { GoalTree, Model, type RootReading } from '@goal-controller/goal-tree';
 import { parsePistar } from '@istar-ts/core';
 import {
   edgeEngineMapper,
@@ -32,11 +32,13 @@ export type ParseModelResult<TTree> =
  */
 export const GoalModel = {
   /**
-   * Parse and validate model, returning the raw model (no tree)
+   * Parse and validate model, returning the raw model (no tree); its roots
+   * are read as `dialect` reads them (GODA leaves unlinked Resources out)
    */
   parseModel(
     modelJson: string,
     options: ParseOptions = {},
+    dialect?: RootReading,
   ): { success: true; model: IStarModel } | ParseError {
     // Parse the piStar file
     let model: IStarModel;
@@ -54,7 +56,7 @@ export const GoalModel = {
 
     // Validate model (marks the root of each actor)
     try {
-      model = Model.validate(model);
+      model = Model.validate(model, dialect);
     } catch (error) {
       return {
         success: false,
@@ -88,7 +90,7 @@ export const GoalModel = {
     >,
     options: ParseOptions = {},
   ): ParseModelResult<GoalTreeType<TGoal, TTask, TResource>> {
-    const parseResult = this.parseModel(modelJson, options);
+    const parseResult = this.parseModel(modelJson, options, mapper.dialect);
     if (!parseResult.success) return parseResult;
     try {
       const tree = GoalTree.fromModel(parseResult.model, mapper).nodes;

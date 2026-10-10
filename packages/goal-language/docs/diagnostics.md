@@ -24,6 +24,7 @@ give, where `span` is the text the diagnostic covers.
 | --- | --- | --- |
 | `A property belongs under an element line` | error | a property line before any element line |
 | `Not a property line` | error | a line under an element that is neither an element line nor a property line |
+| `Not an element line` | error | a line at or left of the open element's indentation, where an element line would be, that reads as none (an element's text without an id, as TAS's Resources write it); it is no element's |
 | `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition) |
 | `Duplicate id T1.1 under G4` | error | with `idScope: 'ancestorGoal'` (GODA): a second line with the same id under the same goal (the nearest goal line above, by indentation) |
 | `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model (without ids: no element's name starts with it) |
@@ -33,6 +34,7 @@ give, where `span` is the text the diagnostic covers.
   maintain x
 G1: Deliver [G2]
   [G2]
+9eba9454-0f53: battery msg
 G2: Reach lab
 G2: Reach it
 G7: New one
@@ -41,6 +43,7 @@ G7: New one
 %% error [[G2]] Not a property line
 %% error [G2] Duplicate id G2
 %% error [G7] Add this element in the diagram
+%% error [9eba9454-0f53: battery msg] Not an element line
 ```
 
 In a dialect without ids, a line's optional id names the element whose name

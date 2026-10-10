@@ -5,6 +5,7 @@ import type {
   GodaVariant,
   TransformEngine,
 } from '@/lib/types';
+import { GODA_DEFAULT_VARIANT } from '../types';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -84,7 +85,7 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   discretisation: 10,
   taskLayout: 'taskModules',
   generateFluents: false,
-  variant: '5305bc1',
+  variant: GODA_DEFAULT_VARIANT,
   reduce: false,
 };
 

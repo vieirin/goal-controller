@@ -592,7 +592,7 @@ export function convertToTree<
     .filter(isActor)
     .map((actor) => {
       const nodes = childrenOf(model, actor.id);
-      const rootNode = findActorRoot(model, actor.id);
+      const rootNode = findActorRoot(model, actor.id, mapper.dialect);
 
       return nodeToTree({
         nodes,

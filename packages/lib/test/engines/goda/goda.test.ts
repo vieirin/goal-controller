@@ -17,7 +17,9 @@ import {
   engineOutputProblems,
   evalFormulaValues,
   evaluate,
+  goda,
   godaCheckRegistry,
+  GODA_DEFAULT_VARIANT,
   godaOutput,
   GodaUnsupported,
   GODA_IMPLEMENTED_VARIANTS,
@@ -34,9 +36,9 @@ const { EXAMPLES } = require('../../../../../scripts/goda-stress/fetch.cjs');
 const ROOT = join(__dirname, '../../../../..');
 const LAB = join(ROOT, 'examples/goda/LabResults.txt');
 
-const modelOf = (text: string) => Model.parse(text);
+const modelOf = (text: string) => Model.parse(text, goda);
 const outputOf = (text: string, modelName = 'model.txt'): EngineOutput =>
-  godaOutput(modelOf(text), { modelName });
+  godaOutput(modelOf(text), { modelName, variant: 'cc808b6' });
 const fileOf = (output: EngineOutput, id: string) =>
   output.files.find((file) => file.id === id)!.text;
 
@@ -332,6 +334,13 @@ describe('GODA: models', () => {
         }),
       /no generator b0b0b0b/,
     );
+    // without one, the newest (the workbench's default too, #34 D24): no F_
+    assert.strictEqual(GODA_DEFAULT_VARIANT, '5305bc1');
+    const model = modelOf(twoTasks('And'));
+    const mdpOf = (variant?: 'cc808b6' | '5305bc1') =>
+      primaryFile(godaOutput(model, { modelName: 'model.txt', variant })).text;
+    assert.strictEqual(mdpOf(), mdpOf('5305bc1'));
+    assert.notStrictEqual(mdpOf(), mdpOf('cc808b6'));
   });
 
   it('checks that one goal is selected, across the model', () => {

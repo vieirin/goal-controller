@@ -254,6 +254,20 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * unique in the model).
    */
   idScope?: 'model' | 'ancestorGoal';
+  /**
+   * A Resource linked to nothing: `'ignore'` reads it and leaves it out, no
+   * actor's root (GODA's TAS draws Resources beside the goals). By default it
+   * is an element like any other, so its actor has two roots and the engines
+   * reject the model (`Invalid number of roots, one allowed`).
+   */
+  unlinkedResources?: 'ignore';
+  /**
+   * An element whose text writes no id, in a dialect with ids: `'unlisted'`
+   * gives it no Notation line, since it can't be named on one (TAS's
+   * Resources). By default it is listed by its piStar id (`<uuid>: name`),
+   * an unreadable line to give an id in place.
+   */
+  idlessElements?: 'unlisted';
 };
 
 // ---------------------------------------------------------------------------

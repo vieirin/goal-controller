@@ -96,8 +96,8 @@ neither version is the pinned commit (D10):
 - `BSN`, `TAS` and `Fragmented` were (re)generated in `5305bc1`
   (2019-07-10), without it, and with the guard conditions of `9a993f8`.
 
-So `godaOutput` takes a `variant`: `cc808b6` (the default) or `5305bc1`
-(#38). Both are implemented. A variant is a strategy object, `GodaGenerator`
+So `godaOutput` takes a `variant`: `cc808b6` or `5305bc1` (#38, the
+default: `GODA_DEFAULT_VARIANT`). Both are implemented. A variant is a strategy object, `GodaGenerator`
 (D14), in `template/variants.ts`:
 
 | Part | cc808b6 (2019-01) | 5305bc1 (2019-07) |
@@ -118,7 +118,10 @@ In the workbench the version is GODA's engine option `variant`, set in the
 options menu ("Generator version") or in a project's `options.variant`. It
 defaults to `5305bc1`, the newest generator the engine reproduces (#34 D24),
 and `cc808b6` stays selectable (AND, OR, DM and Incompleteness).
-`godaOutput` itself still defaults to `cc808b6` when called without one.
+`godaOutput` called without one, as a script or the CLI calls it, writes
+`5305bc1` too: the workbench and lib share `GODA_DEFAULT_VARIANT`. A model
+whose reference is `cc808b6`'s (the stress test's AND, OR, DM and
+Incompleteness) is generated with `variant: 'cc808b6'`.
 
 ## The formulas (D11)
 
@@ -219,7 +222,7 @@ The same test file checks the module on models of our own: three contexts, which
 | A task's bracket in its mapper | `mapTaskProps` gets the task's text, as `mapGoalProps` did. |
 | An engine named after the model's actor | `godaOutput` takes the validated model (D16). |
 | Names with digits (`medical service 1`, `Collect SaO2 data`) | `notation.names: 'text'` (#34 D17): a name on a line with an id may hold any character, as GODA's producer splits a line at its colon. The reader masks the name to a WORD of the same length, so every span stays, and gives the name as written. Edge keeps RTRegex.g4's WORD. |
-| Resources without ids (TAS) | A Resource linked to nothing is no root of the engines' tree (`actorRootCandidates`), so the model validates. An element whose text writes no id gets no Notation line in a dialect with ids (`isListed`): it can't be named. |
+| Resources without ids (TAS) | GODA's definition sets `unlinkedResources: 'ignore'`: a Resource linked to nothing is no root of the engines' tree (`actorRootCandidates`), so the model validates when it's read with GODA's dialect (`Model.validate(model, goda)`). It sets `idlessElements: 'unlisted'` too: an element whose text writes no id gets no Notation line (`isListed`), since it can't be named. Edge sets neither: a stray Resource is a second root, and an element without an id is listed by its piStar id. |
 | A line that reads as nothing, unindented | `Not an element line`, owned by no element; before, `Not a property line` on the element above (T6.3). |
 
 Every change kept the other engines byte for byte. `pnpm snapshot:language`

@@ -1,6 +1,7 @@
 import {
   edgeOutput,
   edgeV2Output,
+  GODA_DEFAULT_VARIANT,
   godaOutput,
   initLogger,
   initEdgeV2Logger,
@@ -27,7 +28,7 @@ export type TransformOptions = {
   variables?: Record<string, boolean | number>;
   taskLayout?: EdgeV2TaskLayout;
   discretisation?: number;
-  /** GODA: the generator version it writes as (default 5305bc1, #34 D24) */
+  /** GODA: the generator version it writes as (default GODA_DEFAULT_VARIANT, #34 D24) */
   variant?: GodaVariant;
   /** generate from the model without its single-child goals (see goal-tree's `Model.reduce`) */
   reduce?: boolean;
@@ -55,7 +56,7 @@ export const transform = (
     discretisation = 10,
     reduce = false,
     previousOutput,
-    variant = '5305bc1',
+    variant = GODA_DEFAULT_VARIANT,
   } = options;
 
   const logger =

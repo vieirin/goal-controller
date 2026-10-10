@@ -144,6 +144,7 @@ export {
   godaEngineMapper,
   godaOutput,
   GodaUnsupported,
+  GODA_DEFAULT_VARIANT,
   GODA_GOAL_KEYS,
   GODA_IMPLEMENTED_VARIANTS,
   GODA_TASK_KEYS,

@@ -1,4 +1,8 @@
-import { GODA_VARIANTS, type GodaVariant } from '@goal-controller/lib';
+import {
+  GODA_DEFAULT_VARIANT,
+  GODA_VARIANTS,
+  type GodaVariant,
+} from '@goal-controller/lib';
 
 /**
  * The one spelling of engine names used across the UI and its API:
@@ -17,7 +21,7 @@ export const isEdgeV2TaskLayout = (value: unknown): value is EdgeV2TaskLayout =>
   (EDGE_V2_TASK_LAYOUTS as string[]).includes(value);
 
 /** GODA: the generator version it writes as (lib's GODA_VARIANTS, goal-controller#34 D10). */
-export type { GodaVariant };
+export { GODA_DEFAULT_VARIANT, type GodaVariant };
 export const isGodaVariant = (value: unknown): value is GodaVariant =>
   typeof value === 'string' &&
   (GODA_VARIANTS as readonly string[]).includes(value);

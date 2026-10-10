@@ -37,18 +37,22 @@ export function linkEnds(
   return [link.target, link.source];
 }
 
+/** How a dialect reads its roots (a DialectDefinition's `unlinkedResources`). */
+export type RootReading = { name: string; unlinkedResources?: 'ignore' };
+
 /**
  * The unique non-Quality child of `actorId` with no outgoing links, excluding
- * nodes that exist only as targets of a Quality's QualificationLink and
- * Resources with no links at all.
+ * nodes that exist only as targets of a Quality's QualificationLink and, in
+ * a dialect with `unlinkedResources: 'ignore'`, Resources with no links at all.
  *
  * @throws Error if there is not exactly one such node
  */
 export function findActorRoot(
   model: IstarModel,
   actorId: string,
+  dialect?: RootReading,
 ): IstarElement {
-  const roots = actorRootCandidates(model, actorId);
+  const roots = actorRootCandidates(model, actorId, dialect);
   if (roots.length !== 1 || !roots[0]) {
     throw new Error('[INVALID_MODEL]: Invalid number of roots, one allowed');
   }
@@ -62,6 +66,7 @@ export function findActorRoot(
 export function actorRootCandidates<EK extends string, LK extends string>(
   model: IstarModel<EK, LK>,
   actorId: string,
+  dialect?: RootReading,
 ): IstarElement<EK>[] {
   const nodes = childrenOf(model, actorId);
   const byId = new Map(nodes.map((node) => [node.id, node]));
@@ -77,9 +82,14 @@ export function actorRootCandidates<EK extends string, LK extends string>(
         byId.get(link.source)?.kind === 'istar.Quality',
     );
     if (qualifiedByQuality) return false;
-    // a Resource linked to nothing is no tree's root: drawn beside the goals
-    // (GODA's TAS), it is read and left out
-    if (node.kind === 'istar.Resource' && links.length === 0) return false;
+    // a Resource linked to nothing is no tree's root where the dialect says
+    // so: drawn beside the goals (GODA's TAS), it is read and left out
+    if (
+      dialect?.unlinkedResources === 'ignore' &&
+      node.kind === 'istar.Resource' &&
+      links.length === 0
+    )
+      return false;
 
     return !links.some((link) => link.source === node.id);
   });

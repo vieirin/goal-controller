@@ -28,6 +28,9 @@ import {
 export const GODA_VARIANTS = ['cc808b6', '5305bc1'] as const;
 export type GodaVariant = (typeof GODA_VARIANTS)[number];
 
+/** The version written when none is asked for: the newest the engine reproduces (#34 D24). */
+export const GODA_DEFAULT_VARIANT: GodaVariant = '5305bc1';
+
 /** What the writer knows of the decision-making modules written so far. */
 export type DecisionMakingView = {
   /** each decision-making element's children, and their contexts */

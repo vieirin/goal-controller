@@ -14,10 +14,16 @@ import {
 import { godaEngineMapper, type GodaGoalNode } from '../mapper';
 import { adjustName } from './containers';
 import { sortRoots, writePrism } from './prism';
-import { GODA_GENERATORS, GODA_VARIANTS, type GodaVariant } from './variants';
+import {
+  GODA_DEFAULT_VARIANT,
+  GODA_GENERATORS,
+  GODA_VARIANTS,
+  type GodaVariant,
+} from './variants';
 
 export { GodaUnsupported } from './containers';
 export {
+  GODA_DEFAULT_VARIANT,
   GODA_GENERATORS,
   GODA_IMPLEMENTED_VARIANTS,
   GODA_VARIANTS,
@@ -50,7 +56,7 @@ const goalsOf = (goal: GodaGoalNode): GodaGoalNode[] => [
 export type GodaOutputOptions = {
   /** the model's file name (`and2.txt`) */
   modelName: string;
-  /** the generator version to write as (default: cc808b6) */
+  /** the generator version to write as (default: GODA_DEFAULT_VARIANT, 5305bc1) */
   variant?: GodaVariant;
 };
 
@@ -62,7 +68,7 @@ export type GodaOutputOptions = {
  */
 export const godaOutput = (
   model: IStarModel,
-  { modelName, variant = 'cc808b6' }: GodaOutputOptions,
+  { modelName, variant = GODA_DEFAULT_VARIANT }: GodaOutputOptions,
 ): EngineOutput => {
   const generator = GODA_GENERATORS[variant];
   if (!generator)

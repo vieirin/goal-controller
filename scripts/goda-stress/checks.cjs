@@ -150,6 +150,7 @@ const checkModel = (
     try {
       const model = goalTree.Model.validate(
         deps.core.parsePistar(reference.text),
+        engine.definition,
       );
       for (let i = 0; i < runs; i += 1) {
         const started = process.hrtime.bigint();

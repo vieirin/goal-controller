@@ -88,6 +88,9 @@ export const goda = defineDialect({
     names: 'text',
   },
   idScope: 'ancestorGoal',
+  // TAS draws its Resources beside the goals, linked to nothing and without ids
+  unlinkedResources: 'ignore',
+  idlessElements: 'unlisted',
   // it reads no resource or quality properties
   properties: {
     goal: goalProperties,
