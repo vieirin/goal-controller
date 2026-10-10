@@ -164,13 +164,22 @@ type Definition = Pick<
   | 'idScope'
 >;
 
-/** The kind whose id prefix an id starts with (the longest that matches). */
-const kindOfId = (
+/**
+ * The kind whose id prefix an id starts with: the longest that matches and
+ * is followed by what an id's number starts with (a digit or `X`), so a
+ * prefix another one starts with (`A`, `AT`) never takes the other's ids.
+ */
+export const kindOfId = (
   definition: Pick<AnyDialect, 'elements'>,
   id: string,
 ): string | undefined =>
   Object.entries(definition.elements)
-    .filter(([, element]) => element?.prefix && id.startsWith(element.prefix))
+    .filter(
+      ([, element]) =>
+        element?.prefix &&
+        id.startsWith(element.prefix) &&
+        /^[0-9X]/.test(id.slice(element.prefix.length)),
+    )
     .sort(([, a], [, b]) => b!.prefix!.length - a!.prefix!.length)[0]?.[0];
 
 /**

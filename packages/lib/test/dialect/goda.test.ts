@@ -12,6 +12,7 @@ import {
   contextFromView,
   documentDiagnostics,
   goalNameParserFor,
+  kindOfId,
   notationDocument,
   notationEdits,
   parseElementLine,
@@ -20,7 +21,14 @@ import {
 import { goalView } from '@goal-controller/goal-tree';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { transform } from '../../../ui/services/transform';
-import { goda, godaCheckRegistry, type GodaCheckName } from '../../src';
+import {
+  edge,
+  edgeV2,
+  goda,
+  godaCheckRegistry,
+  mutrose,
+  type GodaCheckName,
+} from '../../src';
 import { models, ROOT } from './support/models';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
@@ -176,5 +184,62 @@ describe('GODA in the workbench', () => {
     expect(
       files.filter((file) => file.primary).map((file) => file.id),
     ).to.deep.equal(['model']);
+  });
+});
+
+describe('What the language grew for GODA, in Edge', () => {
+  for (const definition of [edge, edgeV2])
+    it(`${definition.name}: reads TX as an id, and reports a cost bracket`, () => {
+      const read = goalNameParserFor(definition);
+      // RTRegex.g4 read `TX` as a name and rejected the line (goal-language.md, divergence 6)
+      const errors: string[] = [];
+      expect(
+        read({
+          goalText: 'G1: Pick [G2;TX]',
+          onSyntaxError: (message) => errors.push(message),
+        }).executionDetail?.ids,
+      ).to.deep.equal(['G2', 'TX']);
+      expect(errors).to.deep.equal([]);
+      const costs: string[] = [];
+      read({
+        goalText: 'T1: Pick [W = 1]',
+        onSyntaxError: (message) => costs.push(message),
+      });
+      expect(costs).to.deep.equal([
+        `1:9 A cost is not part of ${definition.name}`,
+      ]);
+      // and in its editors
+      const doc = 'T1: Pick [W = 1]';
+      expect(
+        documentDiagnostics(definition as AnyDialect, doc, {
+          elements: { T1: { kind: 'task', children: [], properties: {} } },
+          variables: [],
+        }).map((d) => [doc.slice(d.from, d.to), d.message]),
+      ).to.deep.equal([['W = 1', `A cost is not part of ${definition.name}`]]);
+    });
+
+  it("GODA's reader takes the cost bracket", () => {
+    const errors: string[] = [];
+    goalNameParserFor(goda)({
+      goalText: 'T1: Pick [W = 1]',
+      onSyntaxError: (message) => errors.push(message),
+    });
+    expect(errors).to.deep.equal([]);
+  });
+
+  it('names an id’s kind by its longest prefix that a number or X follows', () => {
+    expect(kindOfId(mutrose, 'AT1')).to.equal('task');
+    expect(kindOfId(mutrose, 'G2')).to.equal('goal');
+    expect(kindOfId(goda, 'T1.X')).to.equal('task');
+    expect(kindOfId(goda, 'TX')).to.equal('task');
+    expect(kindOfId(goda, 'Task')).to.equal(undefined);
+    // two prefixes one of which starts the other: each takes its own ids only
+    const overlapping = {
+      elements: { goal: { prefix: 'A' }, task: { prefix: 'AT' } },
+    } as never;
+    expect(kindOfId(overlapping, 'AT1')).to.equal('task');
+    expect(kindOfId(overlapping, 'ATX')).to.equal('task');
+    expect(kindOfId(overlapping, 'A1')).to.equal('goal');
+    expect(kindOfId(overlapping, 'AX')).to.equal('goal');
   });
 });

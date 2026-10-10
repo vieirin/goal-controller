@@ -158,6 +158,13 @@ export const goalNameParserFor =
     const notated = dialect.notation
       ? (dialect as ReadingDialect & WithNotation)
       : null;
+    // a cost bracket (`[W = 1]`) only where the dialect's leaves have costs
+    const cost = read.value?.cost ?? null;
+    if (cost && dialect.notation?.leafBracket !== 'cost')
+      report(
+        `1:${Math.max(goalText.indexOf('['), 0)} A cost is not part of ${dialect.name}`,
+        onSyntaxError,
+      );
     if (notated)
       for (const symbol of readNotation(notated, notation).disabled)
         report(

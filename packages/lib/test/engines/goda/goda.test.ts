@@ -217,6 +217,56 @@ describe('GODA: a model of our own (examples/goda/LabResults.txt)', () => {
   });
 });
 
+describe('GODA: several actors', () => {
+  // each actor has its root; the second holds the selected goal
+  const actor = (id: string, text: string, nodes: object[]) => ({
+    id,
+    text,
+    type: 'istar.Actor',
+    x: 0,
+    y: 0,
+    nodes,
+  });
+  const node = (id: string, kind: string, text: string, props?: object) => ({
+    id,
+    text,
+    type: `istar.${kind}`,
+    x: 0,
+    y: 0,
+    ...(props && { customProperties: props }),
+  });
+  const twoActors = JSON.stringify({
+    actors: [
+      actor('lab', 'Lab', [
+        node('g1', 'Goal', 'G1: Analyse'),
+        node('t1', 'Task', 'T1: Test sample'),
+      ]),
+      actor('robot', 'Delivery Robot', [
+        node('g2', 'Goal', 'G2: Deliver', { selected: 'true' }),
+        node('t2', 'Task', 'T2: Carry sample'),
+      ]),
+    ],
+    dependencies: [],
+    links: [
+      { id: 'l1', type: 'istar.AndRefinementLink', source: 't1', target: 'g1' },
+      { id: 'l2', type: 'istar.AndRefinementLink', source: 't2', target: 'g2' },
+    ],
+    tool: 'pistar.2.1.0',
+    istar: '2.0',
+    diagram: { width: 800, height: 600 },
+  });
+
+  it('names the MDP after the actor of the selected goal, and writes only its tree', () => {
+    const output = outputOf(twoActors, 'lab.txt');
+    // AgentDefinition: the actor's name, its whitespace made `_`
+    assert.strictEqual(primaryFile(output).fileName, 'Delivery_Robot.nm');
+    const nm = fileOf(output, 'model');
+    assert.ok(nm.includes('module G2_T2_CarrySample'));
+    assert.ok(!nm.includes('G1_T1'));
+    assert.ok(nm.includes('label "success" = G2;'));
+  });
+});
+
 describe('GODA: models', () => {
   it('AND and OR of two tasks: the goal formula joins them with & or |', () => {
     assert.ok(
