@@ -32,14 +32,21 @@ type Document = Pick<
 /**
  * Whether a node has lines of its own, with property lines and its children
  * under them: a kind the definition has, that declares nothing on its line
- * (one that does writes its properties there, and has no children).
+ * (one that does writes its properties there, and has no children). In a
+ * definition with ids, its text must write one: an element without (the
+ * view names it by its piStar id; GODA's TAS draws Resources so) can't be
+ * named on a line.
  */
-const isListed = (
+export const isListed = (
   definition: Pick<AnyDialect, 'elements'>,
   node: DocumentNode | undefined,
 ): node is DocumentNode => {
   const element = node && definition.elements[node.kind];
-  return !!element && !element.declares;
+  return (
+    !!element &&
+    !element.declares &&
+    (node.id !== node.iStarId || !hasIds(definition))
+  );
 };
 
 /** An element's line without its declaration. */

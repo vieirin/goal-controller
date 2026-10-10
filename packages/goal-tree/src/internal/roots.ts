@@ -39,7 +39,8 @@ export function linkEnds(
 
 /**
  * The unique non-Quality child of `actorId` with no outgoing links, excluding
- * nodes that exist only as targets of a Quality's QualificationLink.
+ * nodes that exist only as targets of a Quality's QualificationLink and
+ * Resources with no links at all.
  *
  * @throws Error if there is not exactly one such node
  */
@@ -76,6 +77,9 @@ export function actorRootCandidates<EK extends string, LK extends string>(
         byId.get(link.source)?.kind === 'istar.Quality',
     );
     if (qualifiedByQuality) return false;
+    // a Resource linked to nothing is no tree's root: drawn beside the goals
+    // (GODA's TAS), it is read and left out
+    if (node.kind === 'istar.Resource' && links.length === 0) return false;
 
     return !links.some((link) => link.source === node.id);
   });

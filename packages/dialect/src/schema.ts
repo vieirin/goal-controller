@@ -161,6 +161,13 @@ export type NotationDefinition = {
    * part of a name, as RTRegex.g4 read it (`[G2; G3]` is an error).
    */
   whitespace?: 'ignore';
+  /**
+   * `'text'`: a name on a line with an id may hold any character (digits:
+   * `T2.1: medical service 1`, `Collect SaO2 data`), as GODA's producer
+   * splits a line at its colon and parses only its bracket. Default: a name
+   * is RTRegex.g4's WORD (letters, spaces, `-`, `'`).
+   */
+  names?: 'text';
 };
 
 export type Condition =
