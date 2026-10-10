@@ -218,8 +218,6 @@ export const buildContainers = (
     if (dm) gc.decisionMaking = rtDMGoals;
     iterateGoals(gc, children, included);
     iterateMeansEnds(goal, gc, included);
-    if (gc.decisionMaking.length)
-      throw new GodaUnsupported('decision making (DM)', '#36');
     if (clearElId(gc).includes('X'))
       throw new GodaUnsupported('an incomplete goal (X)', '#37');
   };
@@ -274,8 +272,6 @@ export const buildContainers = (
     if (children.length) dm = storeRegexResults(pc);
     if (dm) pc.decisionMaking = rtDMGoals;
     iteratePlans(pc, children);
-    if (pc.decisionMaking.length)
-      throw new GodaUnsupported('decision making (DM)', '#36');
     if (clearElId(pc).includes('X'))
       throw new GodaUnsupported('an incomplete task (X)', '#37');
   };
