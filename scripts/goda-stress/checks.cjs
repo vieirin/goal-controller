@@ -60,7 +60,7 @@ const checkModel = (
   const { goalTree, language } = deps;
   const checks = {};
   if (!engine) {
-    const why = unavailable('the GODA engine is not in the built lib (#32)');
+    const why = unavailable('the GODA dialect is not in the built lib (#32)');
     for (const name of [
       'parses',
       'roundTrip',
@@ -127,27 +127,43 @@ const checkModel = (
     checks.dialectChecks = unavailable('the model did not read');
   }
 
-  // the engine: generated `runs` times, timed
+  // the engine: generated `runs` times, timed, with the reference's generator version
   let output = null;
   const times = [];
-  try {
-    const model = goalTree.Model.validate(
-      deps.core.parsePistar(reference.text),
-    );
-    const tree = goalTree.GoalTree.fromModel(model, engine.mapper).nodes;
-    for (let i = 0; i < runs; i += 1) {
-      const started = process.hrtime.bigint();
-      output = engine.output(tree, { modelName: reference.modelName });
-      times.push(Number(process.hrtime.bigint() - started) / 1e6);
-    }
+  if (!engine.output)
+    checks.generates = unavailable('godaOutput is not in the built lib (#32)');
+  else if (!engine.implements(reference.variant))
     checks.generates = {
-      status: 'pass',
-      files: output.files.map((file) => file.fileName),
+      status: 'fail',
+      error: `variant not implemented: the reference comes from upstream ${reference.variant} (#34 D10)`,
     };
-  } catch (error) {
-    checks.generates = { status: 'fail', error: errorText(error) };
-  }
+  else
+    try {
+      const model = goalTree.Model.validate(
+        deps.core.parsePistar(reference.text),
+      );
+      for (let i = 0; i < runs; i += 1) {
+        const started = process.hrtime.bigint();
+        output = engine.output(model, {
+          modelName: reference.modelName,
+          variant: reference.variant,
+        });
+        times.push(Number(process.hrtime.bigint() - started) / 1e6);
+      }
+      checks.generates = {
+        status: 'pass',
+        files: output.files.map((file) => file.fileName),
+      };
+    } catch (error) {
+      checks.generates = {
+        status: 'fail',
+        error: errorText(error),
+        // what the engine doesn't generate yet, by its own account (the issue that will)
+        ...(error?.name === 'GodaUnsupported' && { unsupported: true }),
+      };
+    }
   if (!output) {
+    // a failed check before: the ones that need the output can't run
     for (const name of [
       'mdp',
       'pctl',
@@ -156,7 +172,9 @@ const checkModel = (
       'performance',
       'build',
     ])
-      checks[name] = unavailable('generation failed');
+      checks[name] = unavailable(
+        `no output: ${checks.generates.error ?? checks.generates.reason}`,
+      );
     return checks;
   }
 

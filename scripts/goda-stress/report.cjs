@@ -76,11 +76,11 @@ const markdown = ({
   exitCode,
   generatedAt,
 }) => {
-  const header = `| Model | ${CHECKS.map(([, title]) => title).join(' | ')} |`;
+  const header = `| Model (issue, generator) | ${CHECKS.map(([, title]) => title).join(' | ')} |`;
   const rule = `|---|${CHECKS.map(() => '---').join('|')}|`;
   const rows = results.map(
     (result) =>
-      `| ${result.model} (${result.issue}) | ${CHECKS.map(([key]) => cell(result.checks[key])).join(' | ')} |`,
+      `| ${result.model} (${result.issue}, ${result.variant}) | ${CHECKS.map(([key]) => cell(result.checks[key])).join(' | ')} |`,
   );
   const failures = results.flatMap(divergences);
   const remarks = results.flatMap(notes);

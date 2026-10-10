@@ -147,6 +147,7 @@ describe('GODA stress test: checks on a model', () => {
   const reference = {
     name: 'AND',
     issue: '#32',
+    variant: 'cc808b6',
     modelName: 'simpleChoice.txt',
     text,
     reference: {
@@ -170,6 +171,7 @@ describe('GODA stress test: checks on a model', () => {
     definition: edgeV2,
     checks: {},
     mapper: edgeV2EngineMapper,
+    implements: (variant: string) => variant === 'cc808b6',
     output: () => ({
       files: [
         {
@@ -263,6 +265,53 @@ describe('GODA stress test: checks on a model', () => {
     });
     assert.match(summary, /\*\*AND\*\* · pctl: CostMin\.pctl/);
     assert.match(summary, /\*\*AND\*\* · cost: 101 of 101 points differ/);
+  });
+
+  it("doesn't run the engine on a generator version it doesn't implement", () => {
+    const checks = checkModel(
+      deps,
+      echo(),
+      { ...reference, variant: '5305bc1' },
+      { runs: 1, build: false },
+    );
+    assert.strictEqual(checks.parses.status, 'pass');
+    assert.strictEqual(checks.generates.status, 'fail');
+    assert.match(checks.generates.error, /variant not implemented.*5305bc1/);
+    assert.strictEqual(checks.mdp.status, 'unavailable');
+    // over lib: the January 2019 variant unless lib lists its own
+    const lib = { goda: {}, godaEngineMapper: {}, godaOutput: () => null };
+    assert.strictEqual(godaEngine(lib).implements('cc808b6'), true);
+    assert.strictEqual(godaEngine(lib).implements('5305bc1'), false);
+    assert.strictEqual(
+      godaEngine({
+        ...lib,
+        GODA_IMPLEMENTED_VARIANTS: ['cc808b6', '5305bc1'],
+      }).implements('5305bc1'),
+      true,
+    );
+  });
+
+  it("reports what the engine says it doesn't generate yet (GodaUnsupported)", () => {
+    const unsupported = Object.assign(new Error('DM is #36'), {
+      name: 'GodaUnsupported',
+    });
+    const checks = checkModel(
+      deps,
+      {
+        ...echo(),
+        output: () => {
+          throw unsupported;
+        },
+      },
+      reference,
+      { runs: 1, build: false },
+    );
+    assert.deepStrictEqual(checks.generates, {
+      status: 'fail',
+      error: 'DM is #36',
+      unsupported: true,
+    });
+    assert.strictEqual(checks.mdp.status, 'unavailable');
   });
 
   it('matches output files to the reference by name', () => {

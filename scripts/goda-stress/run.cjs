@@ -92,7 +92,12 @@ const main = async () => {
     } finally {
       loud();
     }
-    const result = { model: reference.name, issue: reference.issue, checks };
+    const result = {
+      model: reference.name,
+      issue: reference.issue,
+      variant: reference.variant,
+      checks,
+    };
     results.push(result);
     fs.writeFileSync(
       path.join(RESULTS, `${reference.name}.json`),
