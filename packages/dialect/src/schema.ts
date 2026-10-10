@@ -68,6 +68,13 @@ export type ValueConfig =
       decimals?: boolean;
       /** whether a boolean may be compared with `!=` (`x != false`, CtxRegex.g4), not `=` only */
       booleanInequality?: boolean;
+      /**
+       * whether its variables are declared by their use, not by the
+       * workbench (GODA: a condition's names are the context's
+       * meta-variables, each its own `CTX_` parameter); needs `variable` in
+       * `resolves`
+       */
+      declaresVariables?: boolean;
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: ElementKind }

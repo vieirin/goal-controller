@@ -173,6 +173,34 @@ describe('fieldDiagnostics', () => {
     // a condition that doesn't parse says only that
     expect(field('R1 >').map((d) => d.severity)).to.deep.equal(['error']);
   });
+
+  it('knows every variable a condition declares by its use (declaresVariables)', () => {
+    // GODA's context conditions: a name that isn't an element's is a variable
+    const declaring = {
+      ...toy,
+      properties: {
+        ...toy.properties,
+        task: toy.properties.task.map((p) =>
+          p.key === 'guard' && p.value.type === 'assertion'
+            ? { ...p, value: { ...p.value, declaresVariables: true } }
+            : p,
+        ),
+      },
+    } as typeof toy;
+    expect(
+      fieldDiagnostics(
+        declaring,
+        context,
+        'T1',
+        'guard',
+        'R1 > 2 & ctx & !nowhere & G2',
+        undefined,
+      ).map((d) => d.message),
+    ).to.deep.equal([
+      // an element of a kind it doesn't resolve is still not one
+      'G2 is not a resource of this model or a known variable',
+    ]);
+  });
 });
 
 describe('a property an engine-owned server serves', () => {

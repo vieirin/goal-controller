@@ -325,29 +325,8 @@ describe('GODA: models', () => {
         (error: Error) =>
           error instanceof GodaUnsupported && error.message.includes(issue),
       );
-    // decision making
-    unsupported(
-      twoTasks('And').replace('T1: Handle', 'T1: Handle [DM(T1.1,T1.2)]'),
-      '#36',
-    );
     // an unknown element
     unsupported(twoTasks('And', ['T1.X: Pick', 'T1.2: Place']), '#37');
-    // a context condition
-    unsupported(
-      model(
-        [
-          ['g1', 'Goal', 'G1: Move', { selected: 'true' }],
-          [
-            't1',
-            'Task',
-            'T1: Handle',
-            { creationProperty: 'assertion trigger ctx = 1' },
-          ],
-        ],
-        [['t1', 'g1']],
-      ),
-      '#38',
-    );
     assert.deepStrictEqual(GODA_VARIANTS, ['cc808b6', '5305bc1']);
     assert.deepStrictEqual(GODA_IMPLEMENTED_VARIANTS, ['cc808b6']);
     assert.throws(

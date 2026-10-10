@@ -3,7 +3,8 @@
  * PARAMProducer composes them at cc808b6 (`composeNodeForm`, `getNodeForm`,
  * `SymbolicParamAndGenerator`): by string substitution over the containers,
  * each node's formula written in its children's ids, then each id replaced
- * by its child's formula (goal-controller#34, D11).
+ * by its child's formula (goal-controller#34, D11). A leaf under a context is
+ * multiplied by its `CTX_` parameter (`insertCtxAnnotation`).
  *
  * Upstream asks the PARAM tool for a leaf's reliability. A leaf's model is
  * fixed (it runs with `F`, else it is skipped, and succeeds with `R`), so its
@@ -12,13 +13,9 @@
  * `cleanMultipleContexts`) are ported as they are, since they change what
  * the cost formula computes.
  */
-import {
-  clearElId,
-  clearUid,
-  GodaUnsupported,
-  nodeIdOf,
-  type Container,
-} from './containers';
+import { clearElId, clearUid, nodeIdOf, type Container } from './containers';
+import { clearCondition } from './contexts';
+import { javaHashMapOrder } from './javaHashMap';
 
 /** Java's `String.split(regex)`: trailing empty strings removed. */
 const javaSplit = (text: string, separator: RegExp): string[] => {
@@ -69,11 +66,20 @@ const orForm = (children: readonly string[], reliability: boolean): string => {
   return reliability ? formula : ` ( ${formula} * ( ${sumCost} ) ${remove} ) `;
 };
 
-/** `getNodeForm`: a node's formula in its children's ids (its own id when it has one child or none). */
+/**
+ * `getNodeForm`: a node's formula in its children's ids (its own id when it
+ * has one child or none). An element with an RT annotation (a DM) is read as
+ * an OR over its children, whatever the annotation says; its one child, as
+ * that child (in the cost, times its reliability).
+ */
 const nodeForm = (node: Container, reliability: boolean): string => {
   const children = childrenIds(node);
-  if (node.annotation)
-    throw new GodaUnsupported('an RT annotation in the formulas', '#36');
+  if (node.annotation) {
+    const [only] = children;
+    if (children.length === 1)
+      return reliability ? ` ( ${only} )` : ` ( R_${only} * ${only} )`;
+    return orForm(children, reliability);
+  }
   if (children.length <= 1) return nodeIdOf(node);
   if (node.decomposition === 'AND')
     return reliability
@@ -104,6 +110,22 @@ export const composeFormulas = (
   const reliabilityComments: string[] = [];
   const costComments: string[] = [];
   const reliabilityByNode = new Map<string, string>();
+  // ctxInformation: each context parameter and its conditions, as written
+  const ctxInformation = new Map<string, string>();
+
+  /**
+   * PARAMProducer's `getContextId`: the child of the nearest decision-making
+   * element on the way up (the one whose context its module sets), else the
+   * node itself.
+   */
+  const contextIdOf = (node: Container): string => {
+    let child = node;
+    for (let root = node.root; root; root = root.root) {
+      if (root.decisionMaking.length) return nodeIdOf(child);
+      child = root;
+    }
+    return nodeIdOf(node);
+  };
 
   const compose = (node: Container, reliability: boolean): string => {
     const id = nodeIdOf(node);
@@ -137,11 +159,17 @@ export const composeFormulas = (
           : `W_${id}`;
         costComments.push(`//${form} = cost of node ${id}\n`);
       }
-      if (node.fulfillmentConditions.length)
-        throw new GodaUnsupported(
-          'a context condition (creationProperty)',
-          '#36, #38',
+      // insertCtxAnnotation: times its context's parameter
+      if (node.fulfillmentConditions.length) {
+        const parameter = `CTX_${contextIdOf(node)}`;
+        form = `${parameter}*${form}`;
+        ctxInformation.set(
+          parameter,
+          node.fulfillmentConditions
+            .map((condition) => `(${clearCondition(condition)})`)
+            .join(' & '),
         );
+      }
     }
     if (reliability) reliabilityByNode.set(id, form);
     return form;
@@ -155,8 +183,12 @@ export const composeFormulas = (
       cost = replaceAll(cost, ` R_${id} `, ` ${form} `);
   cost = cleanMultipleContexts(cost).replace(/\s+/g, '');
 
+  // composeFormula: the contexts first, in their HashMap's order
+  const contexts = javaHashMapOrder([...ctxInformation.keys()])
+    .map((key) => `//${key} = ${ctxInformation.get(key)}\n`)
+    .join('');
   const write = (form: string, comments: readonly string[]) =>
-    `${form}\n\n${comments.join('')}\n`;
+    `${form}\n\n${contexts}${comments.join('')}\n`;
   return {
     reliability: write(reliability, reliabilityComments),
     cost: write(cost, [...reliabilityComments, ...costComments]),

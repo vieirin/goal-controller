@@ -9,6 +9,15 @@ export type GodaTemplates = {
   reward: string;
   leafGoal: string;
   and: string;
+  /** a leaf's start under a context: skipped when it doesn't hold (`$CTX_GID$`) */
+  ctxSkip: string;
+  /** a context's constant, for a leaf no decision-making module sets */
+  ctxHeader: string;
+  /** the decision-making module of an element with a DM annotation */
+  nondeterminism: string;
+  /** one combination of its contexts: its constant, and its choice in the module */
+  ndHeader: string;
+  ndBody: string;
   rewardEntry: string;
   evalFormula: string;
   /** whether a leaf has a frequency parameter `F_` (in its module and its formula) */
@@ -24,6 +33,14 @@ export const CC808B6_TEMPLATES: GodaTemplates = {
   leafGoal:
     "$DEC_HEADER$$CONST_PARAM$ double R_$GID$;\r\n$CONST_PARAM$ double F_$GID$;\r\n\r\nmodule $MODULE_NAME$\r\n\ts$GID$ :[0..4] init 0;\r\n\t\r\n\t$DEC_TYPE$\r\n\t[] s$GID$ =  1 -> R_$GID$ : (s$GID$'=2) + (1 - R_$GID$) : (s$GID$'=4);//running to final state\r\n\t[next$TIME_SLOT$] s$GID$ = 2 -> (s$GID$'=2);//final state success\r\n\t[next$TIME_SLOT$] s$GID$ = 3 -> (s$GID$'=3);//final state skipped\r\n\t[next$TIME_SLOT$] s$GID$ = 4 -> (s$GID$'=4);//final state failure\r\nendmodule\r\n",
   and: "[next$PREV_TIME_SLOT$] s$GID$ = 0 -> F_$GID$ : (s$GID$'=1) + (1 - F_$GID$) : (s$GID$'=3); //init to running or skip\n",
+  ctxSkip:
+    "[next$PREV_TIME_SLOT$] s$GID$ = 0 -> F_$GID$*$CTX_GID$ : (s$GID$'=1) + (1 - F_$GID$*$CTX_GID$) : (s$GID$'=3); //init to running or skip\r\n",
+  ctxHeader: 'const int CTX_$GID$;\r\n',
+  nondeterminism:
+    "$DEC_HEADER$\r\n\r\nmodule NonDeterminism_$GID$\r\n\ts$GID$ :[0..$MAX_ND$] init 0;\r\n\t\r\n\t[next$PREV_TIME_SLOT$] s$GID$ = 0 -> (s$GID$'= 1);\r\n\r\n\t$DEC_TYPE$\r\n\t[] s$GID$ = 1 -> (s$GID$'=$MAX_ND$); //no uncertainty holding\r\n\r\n$FINAL_TYPE$\r\n\t \r\n\t[next$TIME_SLOT$] s$GID$ = $MAX_ND$ -> (s$GID$'=$MAX_ND$);\r\nendmodule\r\n",
+  ndHeader: 'const int CTX_$N$;',
+  ndBody:
+    "[] s$GID$ = 1 -> CTX_$N$ : (s$GID$'= $NEXT_STATE$)  + (1 - CTX_$N$) : (s$GID$'=1);\n",
   rewardEntry: 's$GID$ = 1 : $COST$;\n\t',
   evalFormula:
     '#!/bin/bash\n$PARAMS_BASH$\n\nsed  $REPLACE_BASH$ $1 |  gawk \'{print "scale=20;"$0}\' | bc\nexit 0;\n',
