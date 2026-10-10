@@ -10,9 +10,13 @@
  *
  * For each example under examples/edge and examples/edgeV2, in both Edge
  * engines: its Notation view document (`notation/`) and its generated PRISM
- * (`prism/`); for examples/pistar-ext, its document in piStar-ext's dialect.
- * A model an engine rejects is written as `ERROR <message>`. It reads the
- * packages' built output (`out/`), so build them first.
+ * (`prism/`); SLEEC's output for examples/sleec (`sleec/`), MutRoSe's for
+ * examples/mutrose and the medicine-delivery project (`mutrose/`); for
+ * examples/pistar-ext, its document in piStar-ext's dialect.
+ * An engine's output of several files is written as one file each
+ * (`<name>__<file name>`). A model an engine rejects is written as
+ * `ERROR <message>`. It reads the packages' built output (`out/`), so build
+ * them first.
  */
 const fs = require('fs');
 const path = require('path');
@@ -58,6 +62,14 @@ const write = (dir, file, text) => {
   fs.mkdirSync(path.join(out, dir), { recursive: true });
   fs.writeFileSync(path.join(out, dir, file), text);
 };
+/** An engine's output: one file under the example's name, several as `<name>__<file name>`. */
+const writeOutput = (dir, base, make) => {
+  const output = attempt(make);
+  if (typeof output === 'string') return write(dir, base, output);
+  if (output.files.length === 1) return write(dir, base, output.files[0].text);
+  for (const file of output.files)
+    write(dir, `${base}__${file.fileName}`, file.text);
+};
 
 const edgeExamples = [
   ...examples(path.join(EXAMPLES, 'edge')),
@@ -69,7 +81,7 @@ const ENGINES = {
     mapper: lib.edgeEngineMapper,
     prism: (gm) => {
       lib.initLogger('m', false, true);
-      return lib.generateValidatedPrismModel({
+      return lib.edgeOutput({
         gm,
         fileName: 'm',
         clean: true,
@@ -82,7 +94,7 @@ const ENGINES = {
     mapper: lib.edgeV2EngineMapper,
     prism: (gm) => {
       lib.initEdgeV2Logger('m', false, true);
-      return lib.generateEdgeV2PrismModel({ gm, fileName: 'm', clean: true });
+      return lib.edgeV2Output({ gm, fileName: 'm', clean: true });
     },
   },
 };
@@ -101,14 +113,37 @@ for (const [engine, { definition, mapper, prism }] of Object.entries(ENGINES))
           ).text,
       ),
     );
-    write(
-      'prism',
-      name(engine, file),
-      attempt(() => {
-        const model = goalTree.Model.validate(core.parsePistar(text));
-        return prism(goalTree.GoalTree.fromModel(model, mapper).nodes);
-      }),
-    );
+    writeOutput('prism', name(engine, file), () => {
+      const model = goalTree.Model.validate(core.parsePistar(text));
+      return prism(goalTree.GoalTree.fromModel(model, mapper).nodes);
+    });
+  }
+
+// the engines without a notation document: their output only
+const OUTPUT_ENGINES = {
+  sleec: {
+    files: examples(path.join(EXAMPLES, 'sleec')),
+    mapper: lib.sleecEngineMapper,
+    generate: (gm) => lib.sleecOutput(gm, { modelName: 'm' }),
+  },
+  mutrose: {
+    files: [
+      ...examples(path.join(EXAMPLES, 'mutrose')),
+      ...examples(path.join(EXAMPLES, 'projects', 'medicine-delivery')),
+    ],
+    mapper: lib.mutroseEngineMapper,
+    generate: (gm) => lib.mutroseOutput(gm, { modelName: 'm' }),
+  },
+};
+for (const [engine, { files, mapper, generate }] of Object.entries(
+  OUTPUT_ENGINES,
+))
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    writeOutput(engine, name(engine, file), () => {
+      const model = goalTree.Model.validate(core.parsePistar(text));
+      return generate(goalTree.GoalTree.fromModel(model, mapper).nodes);
+    });
   }
 
 const rationalAgents = lib.istar4RationalAgents;

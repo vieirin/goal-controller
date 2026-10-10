@@ -26,6 +26,10 @@ import {
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import {
+  downloadOutput,
+  outputDownloadExtension,
+} from '@/lib/workbench/outputs';
 import type { GenerationOptions } from '@/lib/workbench/types';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
@@ -170,8 +174,11 @@ export default function TopBar() {
   // what the model is for: the engine it records (also in the piStar view), else its mode
   const kind = wb.recordedEngine ?? wb.mode;
   const { open, input } = useOpenFile();
-  const outputExtension = outputExtensionOf(wb.engine);
-  const lastOutput = wb.runs.find((run) => run.output !== null)?.output ?? null;
+  const lastOutput = wb.lastGood?.files ?? null;
+  // one file: its extension (the engine's); several: a zip
+  const outputExtension = lastOutput
+    ? outputDownloadExtension(lastOutput)
+    : outputExtensionOf(wb.engine);
 
   const exportModel = () => {
     const name = /\.(txt|json)$/i.test(wb.fileName)
@@ -397,11 +404,7 @@ export default function TopBar() {
                   icon={FileOutput}
                   disabled={!lastOutput}
                   onClick={() => {
-                    if (lastOutput)
-                      downloadText(
-                        `${baseName(wb.fileName)}.${outputExtension}`,
-                        lastOutput,
-                      );
+                    if (lastOutput) downloadOutput(lastOutput, wb.fileName);
                     close();
                   }}
                 >

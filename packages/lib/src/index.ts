@@ -2,18 +2,23 @@
 
 // Import for CLI usage and re-export
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { writeFile } from 'fs';
 import path from 'path';
+import { writeOutputFiles } from './cli/outputFiles';
 import { readPreviousOutput } from './cli/previousOutput';
-import { edgeEngineMapper, generateValidatedPrismModel } from './engines/edge';
+import {
+  edgeEngineMapper,
+  edgeOutput,
+  generateValidatedPrismModel,
+} from './engines/edge';
 import { initLogger } from './engines/edge/logger/logger';
 import { validate } from './engines/edge/validator';
 import {
   edgeEngineMapper as edgeV2EngineMapper,
+  edgeV2Output,
   generateValidatedPrismModel as generateEdgeV2PrismModel,
 } from './engines/edgeV2';
 import { initLogger as initEdgeV2Logger } from './engines/edgeV2/logger/logger';
-import { sleecTemplateEngine } from './engines/sleec';
+import { sleecOutput, sleecTemplateEngine } from './engines/sleec';
 
 export type {
   EngineMapper,
@@ -86,6 +91,18 @@ export type { SleecGoalProps, SleecTaskProps } from './engines/sleec';
 
 // Core transformation engines (remain in lib)
 export { generateValidatedPrismModel, sleecTemplateEngine };
+// The same engines' outputs as files (goal-controller#33): one primary file each
+export { edgeOutput, edgeV2Output, sleecOutput };
+export {
+  engineOutputProblems,
+  outputBaseName,
+  outputFileNameProblem,
+  outputPathProblems,
+  primaryFile,
+  singleFileOutput,
+  type EngineOutput,
+  type EngineOutputFile,
+} from './engines/output';
 
 // Validation
 export { validate };
@@ -107,6 +124,7 @@ export {
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
+  mutroseOutput,
   mutroseProblem,
   mutroseRuntimeAnnotation,
   MUTROSE_GOAL_KEYS,
@@ -175,20 +193,20 @@ if (require.main === module) {
   const logger = initLogger(inputFile);
   const fileName = path.basename(inputFile);
   const baseName = path.parse(inputFile).name;
-  const outputPath = `output/${baseName}.prism`;
   const previousOutput = readPreviousOutput(baseName);
 
-  writeFile(
-    outputPath,
-    generateValidatedPrismModel({ gm: tree.nodes, fileName, previousOutput }),
-    function (err: Error | null) {
-      if (err) {
-        console.log(err);
-        logger.close();
-        return;
-      }
-      console.log(`The file was saved to ${outputPath}!`);
-      logger.close();
-    },
-  );
+  try {
+    // every file the engine makes, into output/ (Edge's: <model>.prism)
+    const written = writeOutputFiles(
+      'output',
+      edgeOutput({ gm: tree.nodes, fileName, previousOutput }),
+    );
+    console.log(`The file was saved to ${written.join(', ')}!`);
+  } catch (err) {
+    console.error(err);
+    // a run whose files weren't written is a failed run
+    process.exitCode = 1;
+  } finally {
+    logger.close();
+  }
 }

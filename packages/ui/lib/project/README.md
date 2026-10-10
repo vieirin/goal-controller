@@ -40,7 +40,9 @@ in Problems.
     { "path": "models/lab-sleec.txt", "dialect": "sleec", "options": { "generateFluents": true } }
   ],
   "projectResources": { "properties": ["props/lab.pctl"] },
-  "outputs": [{ "model": "models/lab.txt", "path": "out/lab.prism", "engine": "edgev2" }]
+  "outputs": [
+    { "model": "models/lab.txt", "path": "out/lab.prism", "engine": "edgev2", "id": "model", "primary": true, "inputs": "1x9b2k7q" }
+  ]
 }
 ```
 
@@ -80,6 +82,40 @@ record stays in the model, which remains portable on its own. In a
 `project.json` project the manifest takes precedence: a model's entry, then
 the project's default, then (where the manifest says nothing) the model's own
 record.
+
+### Outputs: one entry per file an engine made
+
+An engine makes one or more files of a model (lib's `EngineOutput`,
+goal-controller#33): GODA-MDP a PRISM model, its PCTL properties and an
+evaluation script; Edge one `.prism`. `withOutputs(project, { model, engine,
+files, inputs })` keeps a run's files in the project: each file at
+`out/<its file name>`, with one `OutputEntry`:
+
+- `model`, `path`, `engine`, as before;
+- `id`: the engine's key for the file (`EngineOutputFile.id`). A later save
+  replaces the model's entries for that engine (and any entry at the same
+  path), so regenerating never piles up entries. A file an earlier run made
+  and this one doesn't is no longer listed but stays in the store;
+- `primary`: the file the workbench shows first, traces, compares with the
+  previous run and reads back as an Edge engine's `previousOutput`;
+- `inputs`: what the files were generated from, hashed (the workbench's
+  `inputsHash` of the model's content, its engine, options and variables).
+  When the project is opened again, outputs whose `inputs` differ from the
+  model as it is now are shown stale.
+
+All three are optional, so the manifest stays **version 1** and a manifest
+written before them reads as it is. `readOutputs(project, model, engine)`
+gives a model's outputs of one engine in the manifest's order (an entry
+without `primary`: the first is), or null when none of their files is
+there. Like the rest of the module it writes and reads text only: the
+module doesn't know what the files mean.
+
+In the workbench, "Save the output in the project" in the output pane
+writes the latest output's files (a read-only project, a file or an
+example, becomes a browser copy first, as when a resource is added). The
+output pane shows one tab per file; copy, download, the status line and the
+diff act on the shown file, and "Download all" gives every file in one zip
+(`fflate`, already the module's dependency, so no new one).
 
 ## Storage layers
 
@@ -176,6 +212,21 @@ forgot it).
 2. Project resources: the dialect's `projectResources` declaration, parsed
    by the engine's library, opened as CodeMirror tabs, handed to checks and
    completion: done.
-3. Multi-model projects, side-by-side outputs; the workbench opens folders.
+3. Multi-model projects; the workbench opens folders. Several outputs per
+   model and engine are done (goal-controller#33); several models' outputs
+   side by side are not.
 4. Workspace-level language services.
 5. Experiments as projects.
+
+## Still open
+
+- **Two models' outputs with the same file name replace each other.** An
+  output is kept at `out/<its file name>`, and `withOutputs` replaces any
+  entry at that path. One model per project can't meet this. With several
+  models of one engine (stage 3), it can: GODA names its four PCTL files the
+  same for every model, and two Edge models named alike would write the same
+  `.prism`. Stage 3 needs a folder per model (`out/<model>/…`) or names
+  that include the model.
+- An output's file name is the engine's, kept inside `out/`: `outputPath`
+  refuses one that would leave it (`../project.json`, `/x`), and lib's
+  `engineOutputProblems` reports it.

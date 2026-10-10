@@ -18,6 +18,7 @@ import {
   queryProblem,
   scopeIssues,
 } from '../scope';
+import { singleFileOutput, type EngineOutput } from '../../output';
 import type { MutroseGoalNode, MutroseGoalTree, MutroseTask } from '../mapper';
 
 type Child = MutroseGoalNode | MutroseTask;
@@ -165,3 +166,16 @@ export const mutroseRuntimeAnnotation = (tree: MutroseGoalTree): string => {
     .map((root) => `${annotationOf(root)}\n`)
     .join('');
 };
+
+/** The runtime annotation as an engine output: one primary file, `<model>.rannot`. */
+export const mutroseOutput = (
+  tree: MutroseGoalTree,
+  { modelName }: { modelName: string },
+): EngineOutput =>
+  singleFileOutput({
+    id: 'annotation',
+    modelName,
+    extension: 'rannot',
+    language: 'rannot',
+    text: mutroseRuntimeAnnotation(tree),
+  });

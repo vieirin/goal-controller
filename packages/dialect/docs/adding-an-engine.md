@@ -242,10 +242,33 @@ Useful queries: `GoalTree.allByType`, `leafGoals`, `allGoalsMap`, `Node.children
 
 **Options for the emitter:** plain string templates (SLEEC, Edge); or build an AST and pretty-print (recommended for structured targets like JANI/XML/YAML). Add a `validator/` if the output has structure worth checking (Edge validates its PRISM against expected elements).
 
+**What the workbench and the CLI run: an `EngineOutput`.** An engine makes one or more named text files of a model (`engines/output.ts`, goal-controller#33):
+
+```ts
+type EngineOutputFile = {
+  id: string;          // stable across runs: 'model', 'reachability-max'
+  fileName: string;    // relative to out/: 'BSN.nm', 'ReachabilityMax.pctl'
+  text: string;
+  language?: string;   // the editor's: 'prism', 'pctl', 'rannot' (others show as plain text)
+  primary?: boolean;   // exactly one: shown first, traced, diffed, read back as previousOutput
+  owners?: ReadonlyArray<readonly string[]>; // per line (0-based): the model elements it belongs to
+};
+type EngineOutput = { files: EngineOutputFile[] };
+```
+
+- **One file** (most engines): keep the string template and wrap it with `singleFileOutput`, as `edgeOutput`, `edgeV2Output`, `sleecOutput` and `mutroseOutput` do. The file is named after the model with the engine's extension, so downloads and the CLI's `output/` keep their names.
+  ```ts
+  export const missionOutput = (tree: MissionGoalTree, { modelName }: { modelName: string }): EngineOutput =>
+    singleFileOutput({ id: 'mission', modelName, extension: 'yaml', language: 'text', text: missionTemplateEngine(tree) });
+  ```
+- **Several files** (a PRISM model and its property files, a runtime artefact and a readable one): return them all, the primary one marked, in the order the workbench should show them. Their ids must stay the same from run to run: a project keeps one entry per id and a later run replaces it. `engineOutputProblems(output)` says what is wrong (not exactly one primary, an id or a file name used twice). Run it in your engine's tests, as `test/engines/output.test.ts` does for every engine. That file also has a fixture engine of three files (`test/support/threeFileEngine.ts`).
+- **Trace.** The primary file is traced to the model by the ids its identifiers embed (`g3_state`, `module G3`), as before. Any file can carry `owners` instead: for each line, the ids of the elements it belongs to. A file with neither is plain text.
+- Keep the string-returning function exported. The CLI and external callers may use it, and the output function is a wrapper around it.
+
 ### 3.5 Exports
 - `engines/mission/index.ts`: the definition, mapper, keys, types, template, check registry (the registry lives with the definition whose names it implements).
 - `packages/lib/src/engines/index.ts` and `packages/lib/src/index.ts`: re-export.
-- CLI (`packages/lib/src/cli.ts`): add the engine to the menu if you want `goal-controller-cli` to run it.
+- CLI (`packages/lib/src/cli.ts`): add the engine to the menu if you want `goal-controller-cli` to run it. Write its output with `writeOutputFiles('output', missionOutput(…))` (`cli/outputFiles.ts`): every file, by its name.
 
 ### 3.6 Project resources (optional): what the engine reads beside the model
 
@@ -289,7 +312,7 @@ projectResources: {
 | 2   | `lib/workbench/engineDialects.ts` | the one place an engine is described: `ENGINE_DIALECTS.mission`, `ENGINE_CHECKS.mission` (typed by the definition's check names: a registry that lacks one doesn't compile), `ENGINE_MAPPERS.mission`, `ENGINE_PROJECT_RESOURCES.mission` (its parsers, if it declares project resources), `ENGINE_LABEL.mission` (the definition's `name`), and its `ENGINES` entry (label, what it generates, the output file's extension, help, whether it takes options) |
 | 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
-| 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `missionTemplateEngine(tree, options)` |
+| 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
 | 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
 | 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} rejectEdit={…} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
 | 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
@@ -379,6 +402,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 | Value checks                | the value type (`type`, `min`, `options`, `kind`, `applies`) · named `check` | the type first; named for cross-property/cross-element rules                                                          |
 | Where a property is written | property line · declaration on the element line · annotation before the id   | lines by default; declaration for a compact "type + bounds + initial"; annotations for stereotype-like tags           |
 | Output emitter              | string templates · AST + printer                                             | strings for flat text; AST for structured targets or when you'll emit two formats                                     |
+| Output files                | one (`singleFileOutput`) · several, one primary (`EngineOutput`)             | one unless the target is a set of files (a model and its properties, a runtime artefact and a readable one)            |
 | Resources                   | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps`            | skip unless the output models state/variables                                                                         |
 | Engine options              | none · `TransformOptions` + Model Settings card                              | only if the template has knobs                                                                                        |
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |

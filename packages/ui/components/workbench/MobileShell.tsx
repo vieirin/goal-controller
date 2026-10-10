@@ -29,6 +29,10 @@ import {
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import {
+  downloadOutput,
+  outputDownloadExtension,
+} from '@/lib/workbench/outputs';
+import {
   LogView,
   ModelDataView,
   ProblemsView,
@@ -336,8 +340,11 @@ function MobileTopBar() {
   const wb = useWorkbench();
   const shell = useShell();
   const { open, input } = useOpenFile();
-  const lastOutput = wb.runs.find((run) => run.output !== null)?.output ?? null;
-  const outputExtension = outputExtensionOf(wb.engine);
+  const lastOutput = wb.lastGood?.files ?? null;
+  // one file: its extension (the engine's); several: a zip
+  const outputExtension = lastOutput
+    ? outputDownloadExtension(lastOutput)
+    : outputExtensionOf(wb.engine);
   return (
     <header className='flex h-12 shrink-0 items-center gap-1 border-b border-line bg-white px-2'>
       {input}
@@ -487,11 +494,7 @@ function MobileTopBar() {
                   icon={Download}
                   disabled={!lastOutput}
                   onClick={() => {
-                    if (lastOutput)
-                      downloadText(
-                        `${baseName(wb.fileName)}.${outputExtension}`,
-                        lastOutput,
-                      );
+                    if (lastOutput) downloadOutput(lastOutput, wb.fileName);
                     close();
                   }}
                 >

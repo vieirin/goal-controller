@@ -42,6 +42,7 @@ import {
   opfsStore,
   PROJECT_FILE,
   projectListing,
+  readOutputs,
   recentId,
   recordedMode,
   rememberDirectory,
@@ -52,6 +53,7 @@ import {
   settingsInManifest,
   sourceLabel,
   withModelText,
+  withOutputs,
   withProjectResource,
   type DirectoryHandleLike,
   type HandleStorage,
@@ -101,7 +103,18 @@ import {
   type RecentFile,
 } from '@/lib/workbench/storage';
 import { mergeProblems } from '@/lib/workbench/diagnostics';
-import { buildTraceIndex, type TraceIndex } from '@/lib/workbench/trace';
+import type { TraceIndex } from '@/lib/workbench/trace';
+import {
+  activeFileOf,
+  engineRuns,
+  generatedFrom,
+  outputsToSave,
+  previousOutputOf,
+  savedRun,
+  traceOfFile,
+  withSavedRun,
+  type OutputFile,
+} from '@/lib/workbench/outputs';
 import {
   DEFAULT_OPTIONS,
   SOURCE,
@@ -155,9 +168,15 @@ export type Run = {
   durationMs: number;
   /** what the run was generated from (see inputsSignature) */
   signature: string;
-  output: string | null;
+  /** what the engine made, in its order (one primary); null: it failed */
+  files: OutputFile[] | null;
   report: LoggerReport | null;
   error: string | null;
+  /**
+   * read from the project's outputs, not generated here: what they were
+   * generated from, hashed (inputsHash of a signature)
+   */
+  inputs?: string;
 };
 
 type VariableValues = Record<string, boolean | number>;
@@ -296,8 +315,19 @@ export type Workbench = {
   generating: boolean;
   runs: Run[];
   current: Run | null;
+  /** the latest run with files (a failed run keeps the previous output showing) */
+  lastGood: Run | null;
   stale: boolean;
+  /** the output file shown (its id; null: the primary) */
+  outputFile: string | null;
+  setOutputFile: (id: string | null) => void;
+  /** the shown output file's trace to the model (null: plain text) */
   trace: TraceIndex | null;
+  /**
+   * write the latest output's files into the project (out/, one manifest
+   * entry each); a read-only project becomes a browser copy first
+   */
+  saveOutputs: () => Promise<void>;
 
   // problems
   problems: Problem[];
@@ -708,6 +738,7 @@ function WorkbenchState({
   // ---- navigation (the selection itself is in SelectionProvider) ----------
   const [modelTab, setModelTab] = useState<ModelTab>('diagram');
   const [outputTab, setOutputTab] = useState<OutputTab>('output');
+  const [outputFile, setOutputFile] = useState<string | null>(null);
   const [bottomTab, setBottomTabState] = useState<BottomTab>('problems');
   const [bottomRevealSeq, setBottomRevealSeq] = useState(0);
   const setBottomTab = useCallback((tab: BottomTab) => {
@@ -1167,6 +1198,40 @@ function WorkbenchState({
     [],
   );
 
+  /**
+   * Write changes to the open project (a read-only one becomes a browser
+   * copy) and make the result the open project.
+   */
+  const writeProject = useCallback(
+    async (open: Project, changes: Record<string, string>, next: Project) => {
+      const left = leaving();
+      const result = await toWritable(open, changes, next);
+      // the original as it was left (with its edits), kept in Recent
+      if (left) rememberRecent(left);
+      // the files written, known already (the rest read again only if the store changed)
+      const written = Object.entries(changes).filter(
+        ([path]) =>
+          path !== PROJECT_FILE && !result.models.some((m) => m.path === path),
+      );
+      textsOf.current = result.store;
+      setResourceTexts((prev) => ({
+        ...(result.store === open.store ? prev : {}),
+        ...Object.fromEntries(written),
+      }));
+      setProject(result);
+      setModel((prev) => ({
+        ...prev,
+        projectSource: result.source,
+        aside: undefined,
+      }));
+      // the model's own text, promoted (its options moved to project.json)
+      const [first] = result.models;
+      if (first && first.text !== textRef.current)
+        setText(first.text, 'settings');
+    },
+    [leaving, toWritable, setText],
+  );
+
   const addResource = useCallback(
     async (kind: string, file: { name: string; text: string }) => {
       const open = currentProject();
@@ -1180,32 +1245,9 @@ function WorkbenchState({
         kind,
         file,
       );
-      const left = leaving();
-      const result = await toWritable(open, changes, added);
-      // the original as it was left (with its edits), kept in Recent
-      if (left) rememberRecent(left);
-      // the resource's text, known already (read again only if the store changed)
-      const resourcePath = Object.keys(changes).find(
-        (path) =>
-          path !== PROJECT_FILE && !result.models.some((m) => m.path === path),
-      );
-      textsOf.current = result.store;
-      setResourceTexts((prev) => ({
-        ...(result.store === open.store ? prev : {}),
-        ...(resourcePath && { [resourcePath]: file.text }),
-      }));
-      setProject(result);
-      setModel((prev) => ({
-        ...prev,
-        projectSource: result.source,
-        aside: undefined,
-      }));
-      // the model's own text, promoted (its options moved to project.json)
-      const [first] = result.models;
-      if (first && first.text !== textRef.current)
-        setText(first.text, 'settings');
+      await writeProject(open, changes, added);
     },
-    [currentProject, leaving, toWritable, setText],
+    [currentProject, writeProject],
   );
 
   // a resource edited in its tab: kept, and saved where the project can be written
@@ -1355,11 +1397,10 @@ function WorkbenchState({
     setPendingGenerate(false);
     const started = performance.now();
     setGenerating(true);
+    // an Edge engine reads the previous run's primary file
     const previousOutput = runOptions.clean
       ? undefined
-      : (priorRuns.find(
-          (run) => run.engine === runEngine && run.output !== null,
-        )?.output ?? undefined);
+      : previousOutputOf(priorRuns, runEngine);
     let run: Run;
     try {
       const result = transform({
@@ -1378,7 +1419,7 @@ function WorkbenchState({
         engine: runEngine,
         durationMs: performance.now() - started,
         signature,
-        output: result.output,
+        files: result.files,
         report: result.report,
         error: null,
       };
@@ -1390,7 +1431,7 @@ function WorkbenchState({
         engine: runEngine,
         durationMs: performance.now() - started,
         signature,
-        output: null,
+        files: null,
         report: null,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -1403,8 +1444,9 @@ function WorkbenchState({
     if (pendingGenerate && variablesReady) generate();
   }, [pendingGenerate, variablesReady, generate]);
 
-  const current = runs[0] ?? null;
-  const stale = !!current && current.signature !== inputsSignature;
+  // the chosen engine's runs: another engine's are kept, not shown
+  const { current, lastGood } = engineRuns(runs, engine);
+  const stale = !!current && !generatedFrom(current, inputsSignature);
 
   // live: regenerate when what generation depends on changes
   const debouncedSignature = useDebounced(inputsSignature, 700);
@@ -1419,7 +1461,7 @@ function WorkbenchState({
       !model.text.trim()
     )
       return;
-    if (current?.signature === debouncedSignature) return;
+    if (current && generatedFrom(current, debouncedSignature)) return;
     generate();
     // current is read for comparison only
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1432,12 +1474,57 @@ function WorkbenchState({
     generate,
   ]);
 
-  // last successful output (a failed run keeps showing the previous output)
-  const lastOutput = runs.find((run) => run.output !== null)?.output ?? null;
+  // lastGood: the last successful output (a failed run keeps showing the previous output)
+  const shownFile = lastGood?.files
+    ? activeFileOf(lastGood.files, outputFile)
+    : undefined;
   const trace = useMemo(
-    () => (lastOutput ? buildTraceIndex(lastOutput, nodeIds) : null),
-    [lastOutput, nodeIds],
+    () => (shownFile ? traceOfFile(shownFile, nodeIds) : null),
+    [shownFile, nodeIds],
   );
+
+  // the latest output's files, kept in the project: out/, one manifest entry each
+  const saveOutputs = useCallback(async () => {
+    const open = currentProject();
+    const { lastGood: run } = engineRuns(
+      latest.current.runs,
+      latest.current.engine,
+    );
+    const [model] = open?.models ?? [];
+    const outputs = run && model && outputsToSave(run, model.path);
+    if (!open || !outputs) return;
+    const { project: next, changes } = withOutputs(open, outputs);
+    await writeProject(open, changes, next);
+  }, [currentProject, writeProject]);
+
+  // a project's outputs, when it has some for the model and engine: shown
+  // until the first generation (stale if the model changed since)
+  const outputsOf = project ? `${project.models[0]?.path}\n${engine}` : null;
+  useEffect(() => {
+    const open = projectRef.current;
+    const [model] = open?.models ?? [];
+    const hasRun = () =>
+      engineRuns(latest.current.runs, engine).runs.length > 0;
+    if (!open || !model || pistar || hasRun()) return undefined;
+    let cancelled = false;
+    void readOutputs(open, model.path, engine)
+      .then((saved) => {
+        if (cancelled || !saved || hasRun()) return;
+        runId.current += 1;
+        const run: Run = savedRun(saved, {
+          id: runId.current,
+          engine,
+          at: Date.now(),
+        });
+        setRuns((prev) => [...withSavedRun(prev, run)]);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // a project's outputs are read once per project, model and engine
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outputsOf, project?.store, pistar]);
 
   // ---- problems ----------------------------------------------------------------
   // what the language services say of the open documents (editors, fields)
@@ -1607,8 +1694,12 @@ function WorkbenchState({
     generating: generating || pendingGenerate,
     runs,
     current,
+    lastGood,
     stale,
+    outputFile,
+    setOutputFile,
     trace,
+    saveOutputs,
     problems,
     select,
     modelTab,

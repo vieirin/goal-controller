@@ -253,7 +253,7 @@ function ProjectSection() {
       (err: unknown) =>
         setError(err instanceof Error ? err.message : String(err)),
     );
-  const lastOutput = wb.runs.find((run) => run.output !== null);
+  const lastOutput = wb.lastGood;
   const outputs = wb.listing.filter((file) => file.role === 'output');
   const others = wb.listing.filter((file) => file.role === 'other');
   const fileRow = (path: string) => (

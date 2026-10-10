@@ -1,12 +1,9 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import { writeFile } from 'fs/promises';
 import path from 'path';
-import {
-  edgeEngineMapper,
-  generateValidatedPrismModel,
-} from '../../engines/edge';
+import { edgeEngineMapper, edgeOutput } from '../../engines/edge';
 import { initLogger } from '../../engines/edge/logger/logger';
 import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
+import { writeOutputFiles } from '../outputFiles';
 import { readPreviousOutput } from '../previousOutput';
 
 export interface RunModelOptions {
@@ -39,7 +36,7 @@ export const runModel = async (
     const previousOutput = clean
       ? undefined
       : readPreviousOutput(path.parse(fileName).name);
-    const output = generateValidatedPrismModel({
+    const output = edgeOutput({
       gm: tree.nodes,
       fileName,
       previousOutput,
@@ -48,7 +45,8 @@ export const runModel = async (
       generateDecisionVars,
       achievabilitySpace,
     });
-    await writeFile(`output/${path.parse(fileName).name}.prism`, output);
+    // every file the engine makes (Edge's: output/<model>.prism)
+    writeOutputFiles('output', output);
     console.log('The file was saved successfully!');
   } catch (error) {
     logger.error('Error running model:', error);

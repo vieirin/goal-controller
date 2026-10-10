@@ -8,20 +8,28 @@ import {
   ChevronRight,
   Copy,
   Download,
+  FolderDown,
   ListTree,
   Loader2,
+  PackageOpen,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalView, ViewKind } from '@goal-controller/goal-tree';
 import {
-  outputExtensionOf,
   outputLabelOf,
   outputLanguageOf,
 } from '@/lib/workbench/engineDialects';
 import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
-import { baseName, downloadText } from '@/lib/workbench/download';
+import {
+  activeFileOf,
+  downloadFile,
+  downloadOutput,
+  outputFileTabs,
+  type OutputFile,
+} from '@/lib/workbench/outputs';
 import { lineOwner, type OutlineEntry } from '@/lib/workbench/trace';
-import CodeEditor from './CodeEditor';
+import type { TransformEngine } from '@/lib/types';
+import CodeEditor, { isCodeLanguage, type CodeLanguage } from './CodeEditor';
 import {
   useSelection,
   useWorkbench,
@@ -37,14 +45,43 @@ const time = (at: number): string =>
     second: '2-digit',
   });
 
+/** How a file is highlighted: its own language, else (the primary) the engine's, else plain. */
+const languageOf = (file: OutputFile, engine: TransformEngine): CodeLanguage =>
+  file.language && isCodeLanguage(file.language)
+    ? file.language
+    : file.primary
+      ? outputLanguageOf(engine)
+      : 'text';
+
+/** An output tab: one per file (`file:<id>`), then the diff and the report. */
+type PaneTab = `file:${string}` | Exclude<OutputTab, 'output'>;
+
 export default function OutputPane() {
   const wb = useWorkbench();
-  const lastGood = wb.runs.find((run) => run.output !== null) ?? null;
-  const tabs: Array<{ id: OutputTab; label: string }> = [
-    { id: 'output', label: outputLabelOf(wb.engine) },
+  const { lastGood } = wb;
+  const files = lastGood?.files ?? [];
+  const file = activeFileOf(files, wb.outputFile);
+  const label = outputLabelOf(wb.engine);
+  const tabs: Array<{ id: PaneTab; label: string }> = [
+    // one tab per file, in the engine's order (before any output: the engine's)
+    ...(files.length > 0
+      ? outputFileTabs(files, label)
+      : [{ id: '', label }]
+    ).map(({ id, label: name }) => ({
+      id: `file:${id}` as const,
+      label: name,
+    })),
     { id: 'diff', label: 'Diff' },
     { id: 'report', label: 'Report' },
   ];
+  const value: PaneTab =
+    wb.outputTab === 'output' ? `file:${file?.id ?? ''}` : wb.outputTab;
+  const choose = (tab: PaneTab) => {
+    if (tab.startsWith('file:')) {
+      wb.setOutputFile(tab.slice('file:'.length) || null);
+      wb.setOutputTab('output');
+    } else wb.setOutputTab(tab as OutputTab);
+  };
   return (
     <section
       className='flex h-full min-h-0 flex-col bg-white'
@@ -53,9 +90,9 @@ export default function OutputPane() {
       <Tabs
         label='Output views'
         tabs={tabs}
-        value={wb.outputTab}
-        onChange={wb.setOutputTab}
-        trailing={<OutputActions run={lastGood} />}
+        value={value}
+        onChange={choose}
+        trailing={<OutputActions files={files} file={file} />}
       />
       <Freshness />
       <div className='min-h-0 flex-1'>
@@ -76,8 +113,12 @@ export default function OutputPane() {
               .
             </Empty>
           )
-        ) : wb.outputTab === 'output' ? (
-          <TracedOutput output={lastGood.output ?? ''} />
+        ) : wb.outputTab === 'output' && file ? (
+          <TracedOutput
+            key={`${lastGood.engine}:${file.id}`}
+            file={file}
+            language={languageOf(file, lastGood.engine)}
+          />
         ) : wb.outputTab === 'diff' ? (
           <DiffView />
         ) : (
@@ -98,7 +139,10 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 /** One line saying whether the output matches the model. */
 function Freshness() {
-  const { current, stale, generating, live } = useWorkbench();
+  const { current, stale, generating, live, outputFile } = useWorkbench();
+  const shown = current?.files
+    ? activeFileOf(current.files, outputFile)
+    : undefined;
   if (!current && !generating) return null;
   let tone = 'text-ink-muted';
   let text: React.ReactNode;
@@ -122,8 +166,19 @@ function Freshness() {
       'Model changed — regenerating…'
     ) : (
       <>
-        Model changed since {time(current!.at)} — press <Kbd>⌘↵</Kbd> to
-        regenerate.
+        Model changed since{' '}
+        {current?.inputs !== undefined
+          ? 'this output was saved in the project'
+          : time(current!.at)}{' '}
+        — press <Kbd>⌘↵</Kbd> to regenerate.
+      </>
+    );
+  } else if (current?.inputs !== undefined) {
+    // read from the project, generated from the model as it is now
+    text = (
+      <>
+        <Check className='h-3 w-3 text-and' aria-hidden /> Up to date · saved in
+        the project · {(shown?.text ?? '').split('\n').length} lines
       </>
     );
   } else if (current) {
@@ -131,7 +186,7 @@ function Freshness() {
       <>
         <Check className='h-3 w-3 text-and' aria-hidden /> Up to date ·
         generated {time(current.at)} in {(current.durationMs / 1000).toFixed(2)}{' '}
-        s · {(current.output ?? '').split('\n').length} lines
+        s · {(shown?.text ?? '').split('\n').length} lines
       </>
     );
   }
@@ -305,12 +360,30 @@ function OutlineList({
   );
 }
 
-function OutputActions({ run }: { run: Run | null }) {
+/** Copy and download the shown file; download every file; keep them in the project. */
+function OutputActions({
+  files,
+  file,
+}: {
+  files: readonly OutputFile[];
+  file: OutputFile | undefined;
+}) {
   const wb = useWorkbench();
   const [copied, setCopied] = useState(false);
-  if (!run?.output) return null;
-  const output = run.output;
+  const [saved, setSaved] = useState<'saved' | { error: string } | null>(null);
+  if (!file) return null;
   const outline = wb.trace?.outline ?? [];
+  const save = () =>
+    void wb.saveOutputs().then(
+      () => {
+        setSaved('saved');
+        setTimeout(() => setSaved(null), 1500);
+      },
+      (error: unknown) =>
+        setSaved({
+          error: error instanceof Error ? error.message : String(error),
+        }),
+    );
   return (
     <>
       {wb.outputTab === 'output' && outline.length > 0 && (
@@ -332,40 +405,70 @@ function OutputActions({ run }: { run: Run | null }) {
       )}
       <IconButton
         icon={copied ? Check : Copy}
-        label='Copy output'
+        label={files.length > 1 ? `Copy ${file.fileName}` : 'Copy output'}
         onClick={async () => {
-          await navigator.clipboard.writeText(output);
+          await navigator.clipboard.writeText(file.text);
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         }}
       />
       <IconButton
         icon={Download}
-        label='Download output'
-        onClick={() =>
-          downloadText(
-            `${baseName(wb.fileName)}.${outputExtensionOf(run.engine)}`,
-            output,
-          )
+        label={
+          files.length > 1 ? `Download ${file.fileName}` : 'Download output'
         }
+        onClick={() => downloadFile(file)}
       />
+      {files.length > 1 && (
+        <IconButton
+          icon={PackageOpen}
+          label={`Download all ${files.length} files (.zip)`}
+          onClick={() => downloadOutput(files, wb.fileName)}
+        />
+      )}
+      {wb.project && (
+        <IconButton
+          icon={saved === 'saved' ? Check : FolderDown}
+          label={
+            saved && saved !== 'saved'
+              ? `Could not save the output: ${saved.error}`
+              : wb.project.store.readOnly
+                ? 'Save the output in a browser copy of the project (out/)'
+                : 'Save the output in the project (out/)'
+          }
+          onClick={save}
+        />
+      )}
     </>
   );
 }
 
-/** Generated output with trace: the selected node's lines are highlighted; clicking a line selects its node. */
-function TracedOutput({ output }: { output: string }) {
+/**
+ * An output file with trace: the selected node's lines are highlighted;
+ * clicking a line selects its node. A file without trace is plain text.
+ */
+function TracedOutput({
+  file,
+  language,
+}: {
+  file: OutputFile;
+  language: CodeLanguage;
+}) {
   const wb = useWorkbench();
   const sel = useSelection();
   const [view, setView] = useState<EditorView | null>(null);
   const latest = useRef(wb);
   latest.current = wb;
+  // whether the file is traced is fixed per file (one editor each)
+  const traced = useRef(wb.trace !== null).current;
 
   const extensions = useMemo(
     () => [
       // long guards wrap instead of scrolling sideways
       EditorView.lineWrapping,
-      EditorView.editorAttributes.of({ class: 'cm-clickable-line' }),
+      ...(traced
+        ? [EditorView.editorAttributes.of({ class: 'cm-clickable-line' })]
+        : []),
       EditorView.domEventHandlers({
         mousedown(event, editorView) {
           const pos = editorView.posAtCoords({
@@ -442,10 +545,10 @@ function TracedOutput({ output }: { output: string }) {
 
   return (
     <CodeEditor
-      value={output}
-      language={outputLanguageOf(wb.engine)}
+      value={file.text}
+      language={language}
       readOnly
-      ariaLabel='Generated output'
+      ariaLabel={`Generated output: ${file.fileName}`}
       extensions={extensions}
       onReady={setView}
     />
@@ -472,41 +575,49 @@ const changedInputs = (from: string, to: string): string => {
   }
 };
 
+/** The shown output file against the same file of an earlier run. */
 function DiffView() {
-  const { runs } = useWorkbench();
-  const good = runs.filter((run) => run.output !== null);
+  const { runs, outputFile } = useWorkbench();
+  const good = runs.filter((run) => run.files !== null);
   const [baseId, setBaseId] = useState<number | null>(null);
   const current = good[0];
+  const file = current?.files
+    ? activeFileOf(current.files, outputFile)
+    : undefined;
+  const textOf = (run: Run | undefined): string | null =>
+    run?.files?.find((f) => f.id === file?.id)?.text ?? null;
   // earlier outputs of the same engine that actually differ, newest of each first
-  const seen = new Set<string>(current?.output ? [current.output] : []);
+  const seen = new Set<string>(file ? [file.text] : []);
   const baselines = good.slice(1).filter((run) => {
+    const text = textOf(run);
     if (
       !current ||
       run.engine !== current.engine ||
-      run.output === null ||
-      seen.has(run.output)
+      text === null ||
+      seen.has(text)
     )
       return false;
-    seen.add(run.output);
+    seen.add(text);
     return true;
   });
   const base = baselines.find((run) => run.id === baseId) ?? baselines[0];
+  const original = textOf(base);
   const extensions = useMemo(
     () =>
-      base?.output !== undefined && base.output !== null
+      original !== null
         ? [
             EditorView.lineWrapping,
             unifiedMergeView({
-              original: base.output,
+              original,
               mergeControls: false,
               gutter: true,
               collapseUnchanged: { margin: 3, minSize: 8 },
             }),
           ]
         : [EditorView.lineWrapping],
-    [base],
+    [original],
   );
-  if (!current || !base) {
+  if (!current || !file || !base || original === null) {
     return (
       <Empty>
         {good.length > 1
@@ -516,8 +627,8 @@ function DiffView() {
     );
   }
   const count = (text: string) => new Set(text.split('\n'));
-  const before = count(base.output ?? '');
-  const after = count(current.output ?? '');
+  const before = count(original);
+  const after = count(file.text);
   const added = [...after].filter((l) => !before.has(l)).length;
   const removed = [...before].filter((l) => !after.has(l)).length;
   return (
@@ -545,8 +656,8 @@ function DiffView() {
       </div>
       <div className='min-h-0 flex-1' key={`${current.id}-${base.id}`}>
         <CodeEditor
-          value={current.output ?? ''}
-          language='prism'
+          value={file.text}
+          language={languageOf(file, current.engine)}
           readOnly
           ariaLabel='Output diff'
           extensions={extensions}
