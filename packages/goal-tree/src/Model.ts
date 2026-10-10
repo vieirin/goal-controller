@@ -4,22 +4,22 @@
 import { isActor, parsePistar, updateElement } from '@istar-ts/core';
 import { readFileSync } from 'fs';
 import { reduceModel, singleChildGoals } from './internal/reduce';
-import { findActorRoot } from './internal/roots';
+import { findActorRoot, type RootReading } from './internal/roots';
 import type { Model as IStarModel } from './types/';
 
 /**
  * Validate an iStar model: every actor must have exactly one root (resolved
- * from the link graph; see `findActorRoot`).
+ * from the link graph, as `dialect` reads it; see `findActorRoot`).
  *
  * @returns the model with each root marked by the `root: "true"` custom property
  * @throws Error if the model is invalid
  */
-function validateModel(model: IStarModel): IStarModel {
+function validateModel(model: IStarModel, dialect?: RootReading): IStarModel {
   const actors = [...model.elements.values()].filter(isActor);
 
   let validated = model;
   for (const actor of actors) {
-    const root = findActorRoot(model, actor.id);
+    const root = findActorRoot(model, actor.id, dialect);
     validated = updateElement(validated, root.id, {
       customProperties: { ...root.customProperties, root: 'true' },
     });
@@ -31,7 +31,7 @@ function validateModel(model: IStarModel): IStarModel {
 /**
  * Parse an iStar model from JSON string
  */
-function parseModel(json: string): IStarModel {
+function parseModel(json: string, dialect?: RootReading): IStarModel {
   let model: IStarModel;
   try {
     model = parsePistar(json);
@@ -41,14 +41,14 @@ function parseModel(json: string): IStarModel {
     );
   }
 
-  return validateModel(model);
+  return validateModel(model, dialect);
 }
 
 /**
  * Load an iStar model from a file
  */
-function loadModel(filename: string): IStarModel {
-  return parseModel(readFileSync(filename).toString());
+function loadModel(filename: string, dialect?: RootReading): IStarModel {
+  return parseModel(readFileSync(filename).toString(), dialect);
 }
 
 /**

@@ -112,6 +112,20 @@ describe('documentDiagnostics', () => {
     ]);
   });
 
+  it('owns a line that reads as nothing only when it is under the element line', () => {
+    // an element whose text writes no id, as a piStar id (TAS's Resources)
+    const doc = 'G1: Go [G2;T1]\n  [G2]\n9eba9454-0f53: battery msg';
+    const found = documentDiagnostics(toy, doc, context);
+    expect(
+      found.map((d) => [doc.slice(d.from, d.to), d.message, d.elementId]),
+    ).to.deep.equal([
+      // under G1: G1's
+      ['[G2]', 'Not a property line', 'G1'],
+      // where an element line would be: no element's
+      ['9eba9454-0f53: battery msg', 'Not an element line', undefined],
+    ]);
+  });
+
   it('shows the grammar error while the line is as saved', () => {
     const saved = { G1: { line: 'G1: Go [G2;;]', error: 'bad' } };
     expect(messages('G1: Go [G2;;]', { saved })[0]).to.deep.equal([

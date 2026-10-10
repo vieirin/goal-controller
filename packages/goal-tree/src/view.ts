@@ -188,7 +188,7 @@ export function goalView(
     if (!byId.has(node.id)) byId.set(node.id, node);
   const roots = [...model.elements.values()]
     .filter(isActorIn(metamodelOf(model)))
-    .flatMap((actor) => actorRootCandidates(model, actor.id))
+    .flatMap((actor) => actorRootCandidates(model, actor.id, dialect))
     .map((element) => byIStarId.get(element.id)?.id)
     .filter((id): id is string => !!id);
   const reachable = new Set<string>();

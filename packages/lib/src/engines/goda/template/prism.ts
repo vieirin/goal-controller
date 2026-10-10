@@ -50,7 +50,12 @@ const byCodeUnits = (a: string, b: string): number =>
 /** The model and its evaluation script (with the trailing newline Java's `println` adds), of sorted roots. */
 export const writePrism = (
   roots: readonly Container[],
-  { templates, guards }: Pick<GodaGenerator, 'templates' | 'guards'>,
+  {
+    templates,
+    guards,
+    slots,
+    leafContext,
+  }: Pick<GodaGenerator, 'templates' | 'guards' | 'slots' | 'leafContext'>,
 ): { model: string; evalScript: string } => {
   let planModules = '';
   let rewardModule = '';
@@ -141,6 +146,8 @@ export const writePrism = (
       header = `${header.slice(0, -1)}\n`;
       let body = replace(templates.ndBody, '$N$', String(nonDeterminismCtxId));
       body = replace(body, '$NEXT_STATE$', String(nextState + 1));
+      // 5305bc1's choice sets the globals itself (cc808b6's in $FINAL_TYPE$)
+      body = replace(body, '$CONTEXT_UPDATE$', contextUpdate);
       finalType += `\t[] s$GID$ = ${nextState + 1} -> (s$GID$'=$MAX_ND$)${contextUpdate};\n`;
       type += type ? `\t${body}` : body;
       nonDeterminismCtxId += 1;
@@ -157,13 +164,16 @@ export const writePrism = (
     module = replace(module, '$DEC_HEADER$', header);
     module = replace(module, '$DEC_TYPE$', type);
     module = replace(module, '$GID$', clearElId(root));
-    // a sequence of no cardinality: its own time slot, after the one before
-    module = replace(module, '$PREV_TIME_SLOT$', `_${root.timeSlot - 1}`);
-    module = replace(module, '$TIME_SLOT$', `_${root.timeSlot}`);
+    const { prev, time } = slots(root);
+    module = replace(module, '$PREV_TIME_SLOT$', `_${prev}`);
+    module = replace(module, '$TIME_SLOT$', `_${time}`);
     planModules += `${module}\n`;
   };
 
-  const writeModule = (plan: Container): [string, string] => {
+  const writeModule = (
+    plan: Container,
+    prevFormula: string | null,
+  ): [string, string] => {
     const id = clearElId(plan);
     const contextPresent = plan.fulfillmentConditions.length > 0;
     let header = '';
@@ -182,11 +192,12 @@ export const writePrism = (
     }
     if (contextPresent) {
       const ctx = contextsInfo(plan.fulfillmentConditions);
-      const node = ndChildWith(ctx);
-      // a context a decision-making module sets: its global, under the child's id
-      const nonDeterminismCtx =
-        !!node && (node === plan || equalsRoot(node, plan));
-      const ctxId = node && equalsRoot(node, plan) ? clearElId(node) : id;
+      // a context a decision-making module sets is its global, under that child's id
+      const { ctxId, nonDeterminismCtx } = leafContext(plan, ctx, {
+        list: nonDeterminismCtxList,
+        equalsRoot,
+        childWith: ndChildWith,
+      });
       if (!evalContexts.includes(`CTX_${ctxId}="1";\n`)) {
         evalContexts += `CTX_${ctxId}="1";\n`;
         param(`CTX_${ctxId}`, '1');
@@ -204,13 +215,14 @@ export const writePrism = (
     );
     module = replace(module, '$DEC_HEADER$', header);
     module = replace(module, '$DEC_TYPE$', type);
-    for (const [tag, guard] of Object.entries(guards(plan)))
+    for (const [tag, guard] of Object.entries(guards(plan, prevFormula)))
       module = replace(module, tag, guard);
     param(`W_${id}`, '1');
     param(`R_${id}`, '0.99');
     if (templates.frequency) param(`F_${id}`, '0.99');
-    module = replace(module, '$PREV_TIME_SLOT$', `_${plan.timeSlot - 1}`);
-    module = replace(module, '$TIME_SLOT$', `_${plan.timeSlot}`);
+    const { prev, time } = slots(plan);
+    module = replace(module, '$PREV_TIME_SLOT$', `_${prev}`);
+    module = replace(module, '$TIME_SLOT$', `_${time}`);
     module = replace(module, '$GID$', id);
     module = replace(module, '$CONST_PARAM$', 'const');
     planModules += `${module}\n`;
@@ -224,15 +236,28 @@ export const writePrism = (
     return at < 0 ? text : text.slice(0, at);
   };
 
-  const writeElement = (root: Container): [string, string] => {
+  /**
+   * `writeElement`: an element's modules, and its success formula. A goal's
+   * goals are written in order, each after the formula of the one before it
+   * when it starts in a later slot (`prevFormula`: the 2019-07 guards read
+   * it); a task's tasks after the formula its parent was given.
+   */
+  const writeElement = (
+    root: Container,
+    prevFormula: string | null,
+  ): [string, string] => {
     if (root.decisionMaking.length) writeNondeterministicModule(root);
     const id = clearElId(root);
     const operator = root.decomposition === 'AND' ? ' & ' : ' | ';
     if (root.goals.length) {
       let formula = '';
-      let previous: string | null = null;
+      let previous = prevFormula;
+      const firstSlot = root.goals[0]!.rootTimeSlot;
       for (const goal of root.goals) {
-        writeElement(goal);
+        writeElement(
+          goal,
+          firstSlot < goal.rootTimeSlot ? previous : prevFormula,
+        );
         if (goal.included) previous = clearElId(goal);
         if (previous !== null) formula += previous + operator;
       }
@@ -243,7 +268,7 @@ export const writePrism = (
     if (root.plans.length) {
       let formula = '';
       for (const plan of root.plans) {
-        const [, child] = writeElement(plan);
+        const [, child] = writeElement(plan, prevFormula);
         if (child) formula += `(${child})${operator}`;
       }
       if (formula) formula = dropLast(formula, operator);
@@ -253,13 +278,13 @@ export const writePrism = (
     }
     if (root.kind === 'plan') {
       writeReward(root);
-      return writeModule(root);
+      return writeModule(root, prevFormula);
     }
     return ['', ''];
   };
 
   for (const root of roots) {
-    writeElement(root);
+    writeElement(root, null);
     planModules += `label "success" = ${clearElId(root)};`;
   }
 

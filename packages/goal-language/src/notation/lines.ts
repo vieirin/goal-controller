@@ -21,6 +21,7 @@ import {
   syntaxErrorsOf,
   toRtTree,
   withoutBracketSpaces,
+  withWordName,
   type GoalSyntaxError,
   type RtTree,
 } from '../parse.js';
@@ -343,6 +344,21 @@ export const readLine = (
     Partial<Pick<AnyDialect, 'notation'>>,
   text: string,
 ): LineReading => {
+  if (definition.notation?.names === 'text') {
+    // a free-text name, read as a WORD of the same length: then its text as written
+    const named = withWordName(text);
+    if (named.name && named.text !== text) {
+      const { names: _names, ...notation } = definition.notation;
+      const read = readLine({ ...definition, notation }, named.text);
+      if (read.kind !== 'element')
+        return readLine({ ...definition, notation }, text);
+      return {
+        ...read,
+        name: text.slice(named.name.from, named.name.to).trim(),
+        text: text.slice(read.textSpan.from, read.textSpan.to),
+      };
+    }
+  }
   if (definition.notation?.whitespace === 'ignore') {
     const stripped = withoutBracketSpaces(text);
     if (stripped.text !== text) {

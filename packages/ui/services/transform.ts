@@ -1,6 +1,7 @@
 import {
   edgeOutput,
   edgeV2Output,
+  GODA_DEFAULT_VARIANT,
   godaOutput,
   initLogger,
   initEdgeV2Logger,
@@ -10,7 +11,11 @@ import {
   type LoggerReport,
 } from '@goal-controller/lib';
 import { GoalModel } from './goalModel';
-import type { EdgeV2TaskLayout, TransformEngine } from '../lib/types';
+import type {
+  EdgeV2TaskLayout,
+  GodaVariant,
+  TransformEngine,
+} from '../lib/types';
 
 export type TransformOptions = {
   modelJson: string;
@@ -23,6 +28,8 @@ export type TransformOptions = {
   variables?: Record<string, boolean | number>;
   taskLayout?: EdgeV2TaskLayout;
   discretisation?: number;
+  /** GODA: the generator version it writes as (default GODA_DEFAULT_VARIANT, #34 D24) */
+  variant?: GodaVariant;
   /** generate from the model without its single-child goals (see goal-tree's `Model.reduce`) */
   reduce?: boolean;
   /** the primary file of the latest successful run for the same file and engine, for `clean: false` */
@@ -49,6 +56,7 @@ export const transform = (
     discretisation = 10,
     reduce = false,
     previousOutput,
+    variant = GODA_DEFAULT_VARIANT,
   } = options;
 
   const logger =
@@ -98,7 +106,7 @@ export const transform = (
       // GODA reads the model as written, and names its MDP after the actor
       const parseResult = GoalModel.parseForGoda(modelJson);
       if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = godaOutput(parseResult.model, { modelName }));
+      ({ files } = godaOutput(parseResult.model, { modelName, variant }));
     } else {
       // MutRoSe reads the model as written: no single-child goals removed
       const parseResult = GoalModel.parseForMutrose(modelJson);

@@ -13,9 +13,9 @@
  * 4. writes a JSON result per model and SUMMARY.md to .cache/goda/results/.
  *
  * Exits non-zero only on a regression in the other engines. A failure on a
- * model whose issue (#36 to #40) hasn't landed is expected and reported as
- * such; one on AND or OR is reported as a failure, and fails the run with
- * `--strict`.
+ * model whose issue hasn't landed is expected and reported as such; one on
+ * a model whose issue has (SUPPORTED) is reported as a failure, and fails
+ * the run with `--strict`.
  */
 const fs = require('fs');
 const path = require('path');
@@ -30,8 +30,12 @@ const ROOT = path.join(__dirname, '..', '..');
 const CACHE = path.join(ROOT, '.cache', 'goda');
 const RESULTS = path.join(CACHE, 'results');
 const BASELINE = path.join(CACHE, 'snapshot-baseline');
-/** The models the engine base brings up (#32); the others have their own issue. */
-const SUPPORTED = new Set(['AND', 'OR']);
+/**
+ * The models whose issue has landed in the stack (#32 AND and OR, #36 DM,
+ * #37 Incompleteness, #38 TAS); the others' failures are expected until
+ * theirs does (#39, #40).
+ */
+const SUPPORTED = new Set(['AND', 'OR', 'DM', 'Incompleteness', 'TAS']);
 
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const load = () => ({

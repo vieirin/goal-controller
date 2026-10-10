@@ -110,8 +110,10 @@ const checkModel = (
     );
     const listed = new Set(read.doc.ids);
     const notListed = [...read.view.nodes.values()]
+      // the elements the document gives a line (not one without an id: TAS's Resources)
       .filter(
-        (node) => engine.definition.elements[node.kind] && !listed.has(node.id),
+        (node) =>
+          language.isListed(engine.definition, node) && !listed.has(node.id),
       )
       .map((node) => node.id);
     checks.roundTrip = {
@@ -148,6 +150,7 @@ const checkModel = (
     try {
       const model = goalTree.Model.validate(
         deps.core.parsePistar(reference.text),
+        engine.definition,
       );
       for (let i = 0; i < runs; i += 1) {
         const started = process.hrtime.bigint();

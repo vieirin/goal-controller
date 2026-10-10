@@ -72,6 +72,7 @@ export {
   type EngineMapper,
 } from './GoalTree';
 export { Model, type ModelNamespace } from './Model';
+export type { RootReading } from './internal/roots';
 export { Node, type NodeNamespace } from './Node';
 export {
   goalView,

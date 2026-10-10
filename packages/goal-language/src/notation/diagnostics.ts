@@ -339,6 +339,8 @@ export const documentDiagnostics = (
     values: Map<string, string>;
   };
   let block: Block | null = null;
+  // the indentation of the open block's element line
+  let blockIndent = -1;
   let started = false;
   const closeBlock = () => {
     if (!block) return;
@@ -497,6 +499,7 @@ export const documentDiagnostics = (
       }
       if (!owned) continue;
       block = { id, element, lines: new Map(), values: new Map() };
+      blockIndent = indent;
       if (savedError) {
         push({
           ...at(read.textSpan),
@@ -559,6 +562,18 @@ export const documentDiagnostics = (
       from: lineFrom + indent,
       to: lineFrom + written.trimEnd().length,
     };
+    // a line that reads as nothing, where an element line would be (not
+    // under the element above): no element's
+    if (
+      !order &&
+      block &&
+      indent <= blockIndent &&
+      (read.kind !== 'property' || read.errors.length)
+    ) {
+      owner = undefined;
+      push({ ...span, severity: 'error', message: 'Not an element line' });
+      continue;
+    }
     if (!started) {
       push({
         ...span,

@@ -1,6 +1,11 @@
 import type { GoalDiagnostic } from '@istar-ts/core';
 import type { DialectMode } from './dialects';
-import type { EdgeV2TaskLayout, TransformEngine } from '@/lib/types';
+import type {
+  EdgeV2TaskLayout,
+  GodaVariant,
+  TransformEngine,
+} from '@/lib/types';
+import { GODA_DEFAULT_VARIANT } from '../types';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -67,6 +72,8 @@ export type GenerationOptions = {
   taskLayout: EdgeV2TaskLayout;
   /** SLEEC only */
   generateFluents: boolean;
+  /** GODA only: the generator version it writes as (#34 D24: the July 2019 one) */
+  variant: GodaVariant;
   /** generate from the model without its single-child goals (the model itself is kept) */
   reduce: boolean;
 };
@@ -78,6 +85,7 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   discretisation: 10,
   taskLayout: 'taskModules',
   generateFluents: false,
+  variant: GODA_DEFAULT_VARIANT,
   reduce: false,
 };
 

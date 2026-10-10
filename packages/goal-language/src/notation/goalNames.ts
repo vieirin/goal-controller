@@ -64,7 +64,7 @@ export type GoalNameParser<E = ExecutionDetail> = (props: {
 }) => GoalReading<E>;
 
 /** What a reader needs of a dialect: its name, and its notation if it has one. */
-export type ReadingDialect = Pick<AnyDialect, 'name'> & {
+export type ReadingDialect = Pick<AnyDialect, 'name' | 'unlinkedResources'> & {
   notation?: NotationDefinition;
 };
 

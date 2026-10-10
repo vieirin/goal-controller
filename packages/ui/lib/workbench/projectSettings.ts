@@ -15,6 +15,7 @@ import {
 } from '../project';
 import {
   isEdgeV2TaskLayout,
+  isGodaVariant,
   isTransformEngine,
   type TransformEngine,
 } from '../types';
@@ -49,7 +50,10 @@ export const optionsFor = (
           achievabilitySpace: options.achievabilitySpace,
           reduce: options.reduce,
         }
-      : { generateFluents: options.generateFluents, reduce: options.reduce };
+      : engine === 'goda'
+        ? // GODA reads the model as written (no reduce): its generator version only
+          { variant: options.variant }
+        : { generateFluents: options.generateFluents, reduce: options.reduce };
 
 /** The options a mode reads: an engine's; none for piStar and the modelling dialects. */
 export const optionKeysOf = (
@@ -67,7 +71,9 @@ const modeLabel = (mode: string | null): string =>
 const validValue = (key: keyof GenerationOptions, value: unknown): boolean =>
   key === 'taskLayout'
     ? isEdgeV2TaskLayout(value)
-    : typeof value === typeof DEFAULT_OPTIONS[key];
+    : key === 'variant'
+      ? isGodaVariant(value)
+      : typeof value === typeof DEFAULT_OPTIONS[key];
 
 export type ModelOptions = {
   /** the options the model's manifest sets, among those its mode reads */

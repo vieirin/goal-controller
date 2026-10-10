@@ -18,9 +18,14 @@ import {
   parseElementLine,
   readLine,
 } from '@goal-controller/goal-language';
-import { goalView } from '@goal-controller/goal-tree';
+import { goalView, Model } from '@goal-controller/goal-tree';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { transform } from '../../../ui/services/transform';
+import {
+  checkedOptions,
+  optionsFor,
+} from '../../../ui/lib/workbench/projectSettings';
+import { DEFAULT_OPTIONS } from '../../../ui/lib/workbench/types';
 import {
   edge,
   edgeV2,
@@ -28,6 +33,7 @@ import {
   godaCheckRegistry,
   mutrose,
   type GodaCheckName,
+  type GodaVariant,
 } from '../../src';
 import { models, ROOT } from './support/models';
 
@@ -36,10 +42,18 @@ const { EXAMPLES } = require('../../../../scripts/goda-stress/fetch.cjs');
 
 const dialect = goda as AnyDialect;
 
-/** Our own models, and upstream's AND and OR when they are fetched (#34 D1). */
+/** Our own models, and upstream's seven when they are fetched (#34 D1). */
 const GODA_MODELS = [
   ...models('examples/goda'),
-  ...['AND/and2.txt', 'OR/or2.txt', 'Incompleteness/incompleteness.txt']
+  ...[
+    'AND/and2.txt',
+    'OR/or2.txt',
+    'DM/dm2.txt',
+    'Incompleteness/incompleteness.txt',
+    'TAS/TAS.txt',
+    'Alternative Modeling/Fragmented.txt',
+    'BSN/BSN.txt',
+  ]
     .map((file) => join(EXAMPLES, file))
     .filter(existsSync)
     .map((file) => ({ file, model: readFileSync(file, 'utf8') })),
@@ -129,6 +143,104 @@ describe('GODA: what the language reads for it', () => {
       expect(parseElementLine(`${id}: Pick`).value?.id, id).to.equal(id);
   });
 
+  it('reads a name with digits (TAS, BSN), which Edge keeps as an error', () => {
+    for (const text of [
+      'T2.1: medical service 1',
+      'T1.1: Collect SaO2 data',
+      'T5: send Alarm 2 [DM(T5.1,T5.2)]',
+    ]) {
+      const line = readLine(dialect, text);
+      expect(line.kind, text).to.equal('element');
+      expect(line.errors, text).to.deep.equal([]);
+      if (line.kind === 'element') {
+        expect(line.name).to.equal(
+          text.split(':')[1]!.replace(/\[.*$/, '').trim(),
+        );
+        expect(line.text).to.equal(text);
+      }
+    }
+    expect(
+      read({ goalText: 'T5: send Alarm 2 [DM(T5.1,T5.2)]' }).executionDetail
+        ?.ids,
+    ).to.deep.equal(['T5.1', 'T5.2']);
+    // Edge reads names as RTRegex.g4's WORD
+    expect(
+      readLine(edgeV2 as AnyDialect, 'T2.1: medical service 1').errors,
+    ).to.not.deep.equal([]);
+  });
+
+  it('leaves out a Resource without an id: no root, no line, no diagnostic (TAS)', () => {
+    const model = JSON.stringify({
+      actors: [
+        {
+          id: 'actor',
+          text: 'Robot',
+          type: 'istar.Actor',
+          x: 0,
+          y: 0,
+          nodes: [
+            {
+              id: 'g1',
+              text: 'G1: Serve',
+              type: 'istar.Goal',
+              x: 0,
+              y: 0,
+              customProperties: { selected: 'true' },
+            },
+            { id: 't1', text: 'T1: Pick', type: 'istar.Task', x: 0, y: 100 },
+            {
+              id: 'r1',
+              text: 'battery msg',
+              type: 'istar.Resource',
+              x: 100,
+              y: 100,
+            },
+          ],
+        },
+      ],
+      dependencies: [],
+      links: [
+        {
+          id: 'l1',
+          type: 'istar.AndRefinementLink',
+          source: 't1',
+          target: 'g1',
+        },
+      ],
+      tool: 'pistar.2.1.0',
+      istar: '2.0',
+      diagram: { width: 800, height: 600 },
+    });
+    // the engines' one root: the goal (the Resource linked to nothing is none)
+    expect(() => Model.validate(parsePistar(model), goda)).to.not.throw();
+    const view = goalView(parsePistar(model), goda);
+    const { text } = notationDocument(goda, view);
+    expect(text).to.equal('G1: Serve\n  selected true\n  T1: Pick');
+    expect(
+      documentDiagnostics(dialect, text, contextFromView(goda, view, [])),
+    ).to.deep.equal([]);
+    // through the workbench's GODA run too
+    expect(
+      transform({ engine: 'goda', modelJson: model }).files,
+    ).to.have.length.above(0);
+
+    // Edge has neither: the Resource is a second root, and an element
+    // without an id is listed by its piStar id, to be given one
+    expect(() => Model.validate(parsePistar(model), edgeV2)).to.throw(
+      /Invalid number of roots/,
+    );
+    expect(() => Model.validate(parsePistar(model))).to.throw(
+      /Invalid number of roots/,
+    );
+    const unnamed = model.replace('T1: Pick', 'Pick');
+    expect(
+      notationDocument(edgeV2, goalView(parsePistar(unnamed), edgeV2)).text,
+    ).to.include('t1: Pick');
+    expect(
+      notationDocument(goda, goalView(parsePistar(unnamed), goda)).text,
+    ).to.not.include('Pick');
+  });
+
   it('reads the same task id under two goals, and one twice under a goal as a duplicate', () => {
     const doc = [
       'G3: Collect',
@@ -184,6 +296,59 @@ describe('GODA in the workbench', () => {
     expect(
       files.filter((file) => file.primary).map((file) => file.id),
     ).to.deep.equal(['model']);
+  });
+
+  it('writes as the July 2019 generator by default, and as January 2019 when the variant says so (#34 D24)', function () {
+    const reference = (folder: string, file: string) =>
+      join(EXAMPLES, folder, file);
+    if (!existsSync(reference('TAS', 'TAS.txt'))) this.skip();
+    const generate = (folder: string, file: string, variant?: GodaVariant) =>
+      transform({
+        modelJson: readFileSync(reference(folder, file), 'utf8'),
+        engine: 'goda',
+        fileName: file.replace(/\.txt$/, ''),
+        // what the workbench passes: the engine's options (a project's options.variant)
+        ...optionsFor('goda', {
+          ...DEFAULT_OPTIONS,
+          ...(variant && { variant }),
+        }),
+      }).files;
+    const sameAsReference = (
+      folder: string,
+      files: ReturnType<typeof generate>,
+    ) => {
+      for (const { fileName, text } of files)
+        expect(text, `${folder}/${fileName}`).to.equal(
+          readFileSync(reference(folder, `output/${fileName}`), 'utf8'),
+        );
+    };
+    // TAS's reference: the default
+    sameAsReference('TAS', generate('TAS', 'TAS.txt'));
+    // AND's: January 2019, chosen
+    sameAsReference('AND', generate('AND', 'and2.txt', 'cc808b6'));
+    // and by default AND is written as July 2019 (no frequency parameter)
+    expect(
+      generate('AND', 'and2.txt').find((file) => file.id === 'model')!.text,
+    ).to.not.include('F_');
+  });
+
+  it("reads the variant from a project's options, and reports one it does not have", () => {
+    expect(optionsFor('goda', DEFAULT_OPTIONS)).to.deep.equal({
+      variant: '5305bc1',
+    });
+    expect(
+      checkedOptions({ mode: 'goda', options: { variant: 'cc808b6' } }),
+    ).to.deep.equal({ options: { variant: 'cc808b6' }, problems: [] });
+    const bad = checkedOptions({ mode: 'goda', options: { variant: '2020' } });
+    expect(bad.options).to.deep.equal({});
+    expect(bad.problems.map((p) => p.message)).to.deep.equal([
+      '"2020" is not a value of "variant"; it is not used',
+    ]);
+    // the other engines have no such option
+    expect(
+      checkedOptions({ mode: 'edgev2', options: { variant: 'cc808b6' } })
+        .problems,
+    ).to.have.length(1);
   });
 });
 

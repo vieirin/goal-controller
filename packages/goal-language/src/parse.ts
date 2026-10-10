@@ -8,7 +8,7 @@ import type {
   AssertionPrefix,
   NotationDefinition,
 } from '@goal-controller/dialect';
-import type { ValueType } from './catalog.js';
+import { ID_PREFIXES, type ValueType } from './catalog.js';
 import type {
   AnnotatedName,
   Annotation,
@@ -315,19 +315,66 @@ export const withoutBracketSpaces = (
   };
 };
 
+/** An element line's id and colon (annotations and indentation before them). */
+const ELEMENT_ID = new RegExp(
+  `^\\s*(?:(?:<<[^>]*>>|\\{[^}]*\\})\\s*)*(?:${[...ID_PREFIXES]
+    .sort((a, b) => b.length - a.length)
+    .join('|')})(?:[0-9][0-9.]*X?|X|[0-9][a-z])\\s*:`,
+);
+/** What RTRegex.g4's WORD reads in a name. */
+const WORD_CHARACTER = /[A-Za-z\- ']/;
+
 /**
- * One element line read in a dialect: as written, or without the spaces in
- * its bracket where the dialect ignores them (`notation.whitespace`).
+ * An element line whose name is free text (`notation.names: 'text'`),
+ * written so the grammar reads its name as a WORD: every other character of
+ * the name (up to its bracket or declaration) made a letter, so the line
+ * keeps its length and every span. `name` is the name as written.
+ */
+export const withWordName = (
+  text: string,
+): { text: string; name: { from: number; to: number } | null } => {
+  const id = ELEMENT_ID.exec(text);
+  if (!id) return { text, name: null };
+  const from = id[0].length;
+  const end = text.slice(from).search(/[[{]/);
+  const to = end < 0 ? text.length : from + end;
+  let masked = '';
+  for (const ch of text.slice(from, to))
+    masked += WORD_CHARACTER.test(ch) ? ch : 'x';
+  return {
+    text: text.slice(0, from) + masked + text.slice(to),
+    name: { from, to },
+  };
+};
+
+/**
+ * One element line read in a dialect: as written, without the spaces in its
+ * bracket where the dialect ignores them (`notation.whitespace`), its name
+ * read as free text where the dialect's names are (`notation.names`).
  */
 export const parseElementLineIn = (
-  dialect: { notation?: Pick<NotationDefinition, 'whitespace'> | undefined },
+  dialect: {
+    notation?: Pick<NotationDefinition, 'whitespace' | 'names'> | undefined;
+  },
   text: string,
-): Parsed<ElementLineData | null> =>
-  parseElementLine(
+): Parsed<ElementLineData | null> => {
+  const named =
+    dialect.notation?.names === 'text'
+      ? withWordName(text)
+      : { text, name: null };
+  const read = parseElementLine(
     dialect.notation?.whitespace === 'ignore'
-      ? withoutBracketSpaces(text).text
-      : text,
+      ? withoutBracketSpaces(named.text).text
+      : named.text,
   );
+  const { name } = named;
+  return name && read.value
+    ? {
+        ...read,
+        value: { ...read.value, name: text.slice(name.from, name.to) },
+      }
+    : read;
+};
 
 /** A document: element lines with ids and property lines, or (`ids: false`) lines without ids. */
 export const parseDocument = (

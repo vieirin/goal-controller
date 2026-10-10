@@ -14,6 +14,7 @@ import {
   compileFormula,
   engineOutputProblems,
   evaluate,
+  goda,
   godaOutput,
   type EngineOutput,
 } from '../../../src';
@@ -91,7 +92,10 @@ const decision = (
   });
 
 const generate = (text: string) =>
-  godaOutput(Model.parse(text), { modelName: 'robot.txt' });
+  godaOutput(Model.parse(text, goda), {
+    modelName: 'robot.txt',
+    variant: 'cc808b6',
+  });
 
 describe('GODA: the DM reference (#36)', () => {
   it('DM: every file byte for byte', function () {
@@ -99,8 +103,8 @@ describe('GODA: the DM reference (#36)', () => {
     // the upstream models are fetched, not committed (#34 D1)
     if (!existsSync(join(dir, 'dm2.txt'))) this.skip();
     const output = godaOutput(
-      Model.parse(readFileSync(join(dir, 'dm2.txt'), 'utf8')),
-      { modelName: 'dm2.txt' },
+      Model.parse(readFileSync(join(dir, 'dm2.txt'), 'utf8'), goda),
+      { modelName: 'dm2.txt', variant: 'cc808b6' },
     );
     assert.deepStrictEqual(engineOutputProblems(output), []);
     for (const { fileName, text } of output.files)

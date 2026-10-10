@@ -146,7 +146,7 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'nm',
     language: 'prism',
     help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
-    hasOptions: false,
+    hasOptions: true,
   },
 ];
 
