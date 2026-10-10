@@ -1,3 +1,4 @@
+import { singleFileOutput, type EngineOutput } from '../../output';
 import { validate, formatValidationReport } from '../validator';
 import { GoalTree, Node } from '@goal-controller/goal-tree';
 import {
@@ -155,6 +156,21 @@ export const generateValidatedPrismModel = ({
   }
   return prismModel;
 };
+
+/**
+ * The PRISM model as an engine output: one primary file, `<model>.prism`.
+ * `fileName` is the model's (its .txt or .json dropped).
+ */
+export const edgeV2Output = (
+  options: Parameters<typeof generateValidatedPrismModel>[0],
+): EngineOutput =>
+  singleFileOutput({
+    id: 'model',
+    modelName: options.fileName,
+    extension: 'prism',
+    language: 'prism',
+    text: generateValidatedPrismModel(options),
+  });
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const __test_only_exports__ = {

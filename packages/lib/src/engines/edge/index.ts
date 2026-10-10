@@ -35,7 +35,7 @@ export type {
 } from './types';
 
 // Transformation (template engine)
-export { generateValidatedPrismModel } from './template';
+export { generateValidatedPrismModel, edgeOutput } from './template';
 
 // Logger
 export { getLogger, initLogger, type LoggerReport } from './logger/logger';

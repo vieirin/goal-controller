@@ -25,6 +25,6 @@ export {
 export type { SleecGoalProps, SleecTaskProps } from './types';
 
 // Transformation (template engine)
-export { sleecTemplateEngine, extractMeasures } from './template';
+export { sleecTemplateEngine, sleecOutput, extractMeasures } from './template';
 export type { Measure, MeasureType } from './template/shared';
 export type { SleecTemplateOptions } from './template';
