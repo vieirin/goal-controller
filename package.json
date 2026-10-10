@@ -28,7 +28,7 @@
     "stress:goda": "pnpm run build:lib && node scripts/goda-stress/run.cjs",
     "build:lib": "pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
-    "test": "pnpm run build:lib && pnpm --filter @goal-controller/dialect run test && pnpm --filter @goal-controller/goal-language run test && pnpm --filter @goal-controller/lib run test",
+    "test": "pnpm run build:lib && pnpm --filter @goal-controller/dialect run test && pnpm --filter @goal-controller/goal-language run test && pnpm --filter @goal-controller/goal-tree run test && pnpm --filter @goal-controller/lib run test",
     "clean": "pnpm --recursive run clean && rm -rf node_modules packages/*/node_modules",
     "setup-hooks": "bash hooks/setup.sh",
     "lint": "oxlint . --ignore-pattern '**/node_modules/**'",
