@@ -136,6 +136,22 @@ skips when the cache is empty. The upstream repository has no licence, so
 its models are fetched, not committed (D1). The other five models are the
 stress test's (#35) and their issues' (#36 to #40).
 
+## Proof: Incompleteness (#37)
+
+Incompleteness's eight files are **byte for byte** the references
+(`goda.test.ts`). An incomplete task (`T1.X`) is optional, as cc808b6's
+`writePrismModule` and `composeNodeForm` write it:
+
+- its module starts with its optionality, `F_x*OPT_x`, or the task is
+  skipped (`pattern_opt.nm`, times `CTX_x` when it has a context), and
+  declares `const int OPT_x;` before its context's constant;
+- its goal's formula takes it skipped as done: `(sx=2 | sx=3)`;
+- its reliability is multiplied by `OPT_x` before any context factor, with
+  the comment `//OPT_x = optionality of node x`;
+- `eval_formula.sh` gives it `OPT_x="1"` before its other parameters, and
+  its substitution as upstream writes it, without the first `/`
+  (`-e "sOPT_x/$OPT_x/g"`, which `sed` rejects).
+
 ## Proof: DM (#36)
 
 DM's eight files are also **byte for byte** the references
@@ -201,10 +217,16 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
   module's name, but not a cost's. A leaf with a cost would be named
   `G1_T1_1_Task[W=0_1]`, which PRISM doesn't read. The engine strips it. No
   reference has a cost bracket.
-- **Unknown elements and the July 2019 generator.** Their PRISM patterns
-  (`pattern_opt_*`, the 5305bc1 templates) are each model's work. The
-  engine throws `GodaUnsupported` with the issue: `X` #37, the 5305bc1
-  generator #38 to #40. Decision making and contexts are ported (#36). RT
+- **The July 2019 generator.** Its templates and rules (5305bc1) are the
+  later models' work. The engine throws `GodaUnsupported` naming #38 to
+  #40.
+- **An incomplete goal (`G1.X`).** Upstream makes it optional with an
+  unknown plan built from the goal (`new PlanContainer((Plan) gc)`), a cast
+  that fails at run time, so no reference has one. The engine reports it as
+  an error rather than reproduce the crash.
+- **`eval_formula.sh`'s optionality.** Its substitution is written as
+  upstream writes it (`sOPT_x/…`), which `sed` rejects. It is kept for
+  parity; the tests evaluate the formulas in TypeScript. Decision making and contexts are ported (#36). RT
   operators other than `DM` are not enabled, and the editors report them.
   An element with any RT annotation gets the DM formula (an OR over its
   children), as upstream's `getNodeForm` does.

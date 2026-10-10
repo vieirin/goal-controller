@@ -39,7 +39,7 @@ const dialect = goda as AnyDialect;
 /** Our own models, and upstream's AND and OR when they are fetched (#34 D1). */
 const GODA_MODELS = [
   ...models('examples/goda'),
-  ...['AND/and2.txt', 'OR/or2.txt']
+  ...['AND/and2.txt', 'OR/or2.txt', 'Incompleteness/incompleteness.txt']
     .map((file) => join(EXAMPLES, file))
     .filter(existsSync)
     .map((file) => ({ file, model: readFileSync(file, 'utf8') })),
