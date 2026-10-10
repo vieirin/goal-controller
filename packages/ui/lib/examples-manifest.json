@@ -510,6 +510,84 @@
     "outputs": []
   },
   {
+    "path": "goda/and",
+    "group": "goda",
+    "name": "and",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/and",
+    "files": [
+      "README.md",
+      "and2.txt",
+      "project.json",
+      "reference/AND.nm",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "and2.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "goda/bsn",
+    "group": "goda",
+    "name": "bsn",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/bsn",
+    "files": [
+      "BSN.txt",
+      "README.md",
+      "project.json",
+      "reference/BSN.nm",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "BSN.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "goda/dm",
+    "group": "goda",
+    "name": "dm",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/dm",
+    "files": [
+      "README.md",
+      "dm2.txt",
+      "project.json",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/DM.nm",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "dm2.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "goda/DroneDelivery.txt",
     "group": "goda",
     "name": "DroneDelivery.txt",
@@ -525,6 +603,58 @@
     "outputs": []
   },
   {
+    "path": "goda/fragmented",
+    "group": "goda",
+    "name": "fragmented",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/fragmented",
+    "files": [
+      "Fragmented.txt",
+      "README.md",
+      "project.json",
+      "reference/Actor.nm",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "Fragmented.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "goda/incompleteness",
+    "group": "goda",
+    "name": "incompleteness",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/incompleteness",
+    "files": [
+      "README.md",
+      "incompleteness.txt",
+      "project.json",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/Incomplete.nm",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "incompleteness.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "goda/LabResults.txt",
     "group": "goda",
     "name": "LabResults.txt",
@@ -535,6 +665,58 @@
     ],
     "models": [
       "LabResults.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "goda/or",
+    "group": "goda",
+    "name": "or",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/or",
+    "files": [
+      "README.md",
+      "or2.txt",
+      "project.json",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/OR.nm",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "or2.txt"
+    ],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "goda/tas",
+    "group": "goda",
+    "name": "tas",
+    "form": "file",
+    "dialect": "goda",
+    "root": "goda/tas",
+    "files": [
+      "README.md",
+      "TAS.txt",
+      "project.json",
+      "reference/CostMax.pctl",
+      "reference/CostMin.pctl",
+      "reference/ReachabilityMax.pctl",
+      "reference/ReachabilityMin.pctl",
+      "reference/TAS.nm",
+      "reference/cost.out",
+      "reference/eval_formula.sh",
+      "reference/reliability.out"
+    ],
+    "models": [
+      "TAS.txt"
     ],
     "projectResources": {},
     "outputs": []
