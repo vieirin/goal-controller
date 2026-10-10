@@ -25,6 +25,7 @@
     "build:dialect": "pnpm --filter @goal-controller/dialect run build",
     "build:goal-tree": "pnpm --filter @goal-controller/goal-tree run build",
     "snapshot:language": "node scripts/language-snapshot.cjs",
+    "stress:goda": "pnpm run build:lib && node scripts/goda-stress/run.cjs",
     "build:lib": "pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
     "test": "pnpm run build:lib && pnpm --filter @goal-controller/dialect run test && pnpm --filter @goal-controller/goal-language run test && pnpm --filter @goal-controller/lib run test",
