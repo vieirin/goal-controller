@@ -123,13 +123,15 @@ export const serverProblems = (
   service: { id: string; anchoring: 'data' | 'range' },
   definition: AnyDialect,
   text: string | undefined,
+  /** whether the model has an element of this key (a repeated scoped id's is `G3/T1.1`) */
+  has?: (key: string) => boolean,
 ): Problem[] => {
   const field = readFieldUri(uri);
   const lines = text?.split('\n');
   const byRange = (diagnostic: (typeof diagnostics)[number]) =>
     field?.id ??
     (lines
-      ? (elementOfLine(definition, lines, diagnostic.range.start.line) ??
+      ? (elementOfLine(definition, lines, diagnostic.range.start.line, has) ??
         undefined)
       : undefined);
   return fromLspDiagnostics(

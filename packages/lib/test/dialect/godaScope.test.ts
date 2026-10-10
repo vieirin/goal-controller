@@ -6,7 +6,7 @@
  * engine's trace all tell the two apart. Edge's ids stay the model's.
  */
 import { expect } from 'chai';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import type { AnyDialect } from '@goal-controller/dialect';
 import {
@@ -23,7 +23,10 @@ import {
   lineKeys,
 } from '../../../ui/lib/workbench/notationDocument';
 import { traceOfFile } from '../../../ui/lib/workbench/outputs';
-import { edgeV2, goda, godaOutput } from '../../src';
+import { edgeV2, goda, godaOutput, mutrose } from '../../src';
+import { serverProblems } from '../../../ui/lib/workbench/diagnostics';
+
+const ROOT_DIR = join(__dirname, '../../../..');
 
 /** G1 → G3, G4; each goal → its own T1 → its own T1.1 (the texts differ, as BSN's). */
 const MODEL = JSON.stringify({
@@ -217,5 +220,135 @@ describe('GODA: BSN (fetched, #34 D1) in the editors', () => {
       contextFromView(goda, tree, []),
     ).filter((d) => !d.message.startsWith('Unexpected'));
     expect(found).to.deep.equal([]);
+  });
+});
+
+/** One actor's nodes and its AND links (child → parent), in GODA. */
+const tiny = (
+  nodes: Array<[id: string, kind: 'Goal' | 'Task', text: string]>,
+  links: Array<[child: string, parent: string]>,
+) =>
+  JSON.stringify({
+    actors: [
+      {
+        id: 'actor',
+        text: 'Robot',
+        type: 'istar.Actor',
+        x: 0,
+        y: 0,
+        nodes: nodes.map(([id, kind, text], i) => ({
+          id,
+          text,
+          type: `istar.${kind}`,
+          x: i * 100,
+          y: 100,
+        })),
+      },
+    ],
+    dependencies: [],
+    links: links.map(([source, target], i) => ({
+      id: `link${i}`,
+      type: 'istar.AndRefinementLink',
+      source,
+      target,
+    })),
+    tool: 'pistar.2.1.0',
+    istar: '2.0',
+    diagram: { width: 800, height: 600 },
+  });
+
+describe('ids scoped by their goal: what falls back to the id', () => {
+  it('keeps every element of the other engines keyed by its id (key === id)', () => {
+    const examples = (dir: string) =>
+      readdirSync(join(ROOT_DIR, dir))
+        .filter((f) => f.endsWith('.txt') && !f.endsWith('.expected.txt'))
+        .map((f) => readFileSync(join(ROOT_DIR, dir, f), 'utf8'))
+        // goal models only (some .txt are notes or snippets)
+        .filter((text) => text.trimStart().startsWith('{'));
+    let checked = 0;
+    for (const [definition, dir] of [
+      [edgeV2, 'examples/edgeV2'],
+      [mutrose, 'examples/mutrose'],
+    ] as const)
+      for (const text of examples(dir)) {
+        const tree = goalView(parsePistar(text), definition);
+        for (const [key, node] of tree.nodes) {
+          expect(node.key, node.id).to.equal(node.id);
+          expect(key).to.equal(node.id);
+          checked++;
+        }
+      }
+    expect(checked).to.be.greaterThan(20);
+  });
+
+  it('keys a repeated id with no goal above it by its id: the first wins', () => {
+    // two tasks T9 linked to nothing, beside G1 → T1
+    const tree = goalView(
+      parsePistar(
+        tiny(
+          [
+            ['g1', 'Goal', 'G1: Serve'],
+            ['t1', 'Task', 'T1: Pick'],
+            ['a', 'Task', 'T9: First'],
+            ['b', 'Task', 'T9: Second'],
+          ],
+          [['t1', 'g1']],
+        ),
+      ),
+      goda,
+    );
+    expect(tree.byIStarId.get('a')!.key).to.equal('T9');
+    expect(tree.byIStarId.get('b')!.key).to.equal('T9');
+    expect(tree.nodes.get('T9')!.iStarId).to.equal('a');
+  });
+
+  it('keys a repeated id under the same goal once, and reports the second line as a duplicate there', () => {
+    const tree = goalView(
+      parsePistar(
+        tiny(
+          [
+            ['g1', 'Goal', 'G1: Serve'],
+            ['a', 'Task', 'T1: First'],
+            ['b', 'Task', 'T1: Second'],
+          ],
+          [
+            ['a', 'g1'],
+            ['b', 'g1'],
+          ],
+        ),
+      ),
+      goda,
+    );
+    expect(tree.byIStarId.get('a')!.key).to.equal('G1/T1');
+    expect(tree.byIStarId.get('b')!.key).to.equal('G1/T1');
+    expect(tree.nodes.get('G1/T1')!.iStarId).to.equal('a');
+    const doc = 'G1: Serve\n  T1: First\n  T1: Second';
+    const found = documentDiagnostics(
+      dialect,
+      doc,
+      contextFromView(goda, tree, []),
+    ).map((d) => [doc.slice(d.from, d.to), d.message]);
+    expect(found).to.deep.include(['T1', 'Duplicate id T1 under G1']);
+  });
+
+  it("attributes a server's diagnostic by its line to the element under its goal (serverProblems)", () => {
+    const tree = view();
+    const doc = notationDocument(goda, tree).text;
+    const line = doc.split('\n').findIndex((l) => l.includes('Fuse data'));
+    const at = { start: { line, character: 0 }, end: { line, character: 2 } };
+    const found = (has?: (key: string) => boolean) =>
+      serverProblems(
+        {
+          uri: 'file:///notation.goal',
+          diagnostics: [{ range: at, severity: 2, message: 'by range' }],
+        },
+        { id: 'engine', anchoring: 'range' },
+        dialect,
+        doc,
+        has,
+      ).map((p) => p.elementId);
+    expect(found((key) => tree.nodes.has(key))).to.deep.equal(['G4/T1.1']);
+    // without the model's keys, its id as written (no element of the view)
+    expect(found()).to.deep.equal(['T1.1']);
   });
 });

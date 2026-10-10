@@ -10,7 +10,7 @@
 import type { Extension } from '@codemirror/state';
 import { ViewPlugin } from '@codemirror/view';
 import type { LSPClient } from '@codemirror/lsp-client';
-import type { AnyDialect } from '@goal-controller/dialect';
+import type { AnyDialect, DefinitionContext } from '@goal-controller/dialect';
 import { fieldUri } from '@goal-controller/goal-language/light';
 import { serverProblems } from './diagnostics';
 import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
@@ -145,6 +145,8 @@ const listen = (
   client: LSPClient,
   service: LanguageService,
   definition: AnyDialect,
+  // the elements the model has, by key: a Notation line's element under its goal
+  has: (key: string) => boolean,
 ) =>
   onClientDiagnostics(client, (params) =>
     publishDiagnostics(
@@ -155,6 +157,7 @@ const listen = (
         service,
         definition,
         client.workspace.getFile(params.uri)?.doc.toString(),
+        has,
       ),
     ),
   );
@@ -164,9 +167,10 @@ const supportOf = (
   service: LanguageService,
   definition: AnyDialect,
   transport: LSPClient | LanguageSupport,
+  has: (key: string) => boolean,
 ): LanguageSupport => {
   if (!isClient(transport)) return transport;
-  listen(transport, service, definition);
+  listen(transport, service, definition, has);
   return service === GOAL_LANGUAGE
     ? serverLanguageSupport(definition, transport)
     : engineServerSupport(transport, service.languageId ?? service.id);
@@ -216,6 +220,9 @@ export const multiplexSupport = (
   definition: AnyDialect,
   services: readonly LanguageService[],
 ): LanguageSupport => {
+  // the context last given: its elements are the model's, by key
+  let elements: DefinitionContext['elements'] = {};
+  const has = (key: string) => key in elements;
   const served = services.flatMap((service) => {
     const transport = service.transport(definition);
     return transport
@@ -223,7 +230,7 @@ export const multiplexSupport = (
           {
             service,
             transport,
-            support: supportOf(service, definition, transport),
+            support: supportOf(service, definition, transport, has),
           },
         ]
       : [];
@@ -254,8 +261,10 @@ export const multiplexSupport = (
       editor('field', fieldUri(elementId, key), (support) =>
         support.fieldExtension(elementId, key),
       ),
-    setContext: (context) =>
-      served.forEach(({ support }) => support.setContext(context)),
+    setContext: (context) => {
+      elements = context.elements;
+      served.forEach(({ support }) => support.setContext(context));
+    },
     setSaved: (saved) =>
       served.forEach(({ support }) => support.setSaved(saved)),
     setModelText: (text) =>
