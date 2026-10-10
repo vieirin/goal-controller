@@ -11,8 +11,9 @@
  * For each example under examples/edge and examples/edgeV2, in both Edge
  * engines: its Notation view document (`notation/`) and its generated PRISM
  * (`prism/`); SLEEC's output for examples/sleec (`sleec/`), MutRoSe's for
- * examples/mutrose and the medicine-delivery project (`mutrose/`); for
- * examples/pistar-ext, its document in piStar-ext's dialect.
+ * examples/mutrose and the medicine-delivery project (`mutrose/`); GODA's
+ * Notation view document and its files for examples/goda (`notation/`,
+ * `goda/`); for examples/pistar-ext, its document in piStar-ext's dialect.
  * An engine's output of several files is written as one file each
  * (`<name>__<file name>`). A model an engine rejects is written as
  * `ERROR <message>`. It reads the packages' built output (`out/`), so build
@@ -145,6 +146,28 @@ for (const [engine, { files, mapper, generate }] of Object.entries(
       return generate(goalTree.GoalTree.fromModel(model, mapper).nodes);
     });
   }
+
+// GODA: its Notation view document, and its files (it reads the model: it
+// names its MDP after the actor)
+for (const file of examples(path.join(EXAMPLES, 'goda'))) {
+  const text = fs.readFileSync(file, 'utf8');
+  write(
+    'notation',
+    name('goda', file),
+    attempt(
+      () =>
+        language.notationDocument(
+          lib.goda,
+          goalTree.goalView(core.parsePistar(text), lib.goda),
+        ).text,
+    ),
+  );
+  writeOutput('goda', name('goda', file), () =>
+    lib.godaOutput(goalTree.Model.validate(core.parsePistar(text)), {
+      modelName: path.basename(file),
+    }),
+  );
+}
 
 const rationalAgents = lib.istar4RationalAgents;
 const metamodel = core.extendMetamodel(

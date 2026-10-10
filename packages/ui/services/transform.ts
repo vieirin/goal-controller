@@ -1,6 +1,7 @@
 import {
   edgeOutput,
   edgeV2Output,
+  godaOutput,
   initLogger,
   initEdgeV2Logger,
   mutroseOutput,
@@ -93,6 +94,11 @@ export const transform = (
         modelName,
         generateFluents,
       }));
+    } else if (engine === 'goda') {
+      // GODA reads the model as written, and names its MDP after the actor
+      const parseResult = GoalModel.parseForGoda(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      ({ files } = godaOutput(parseResult.model, { modelName }));
     } else {
       // MutRoSe reads the model as written: no single-child goals removed
       const parseResult = GoalModel.parseForMutrose(modelJson);

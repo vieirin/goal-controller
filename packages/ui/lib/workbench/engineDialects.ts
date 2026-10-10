@@ -10,6 +10,9 @@ import {
   edgeProjectResources,
   edgeV2,
   edgeV2EngineMapper,
+  goda,
+  godaCheckRegistry,
+  godaEngineMapper,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
@@ -21,7 +24,12 @@ import {
 import type { CheckNameOf } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
-export const ENGINE_DIALECTS = { edge, edgev2: edgeV2, mutrose } as const;
+export const ENGINE_DIALECTS = {
+  edge,
+  edgev2: edgeV2,
+  mutrose,
+  goda,
+} as const;
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
 
@@ -39,6 +47,7 @@ export const ENGINE_CHECKS: { readonly [E in DialectEngine]: ChecksOf<E> } = {
   edge: edgeCheckRegistry,
   edgev2: edgeCheckRegistry,
   mutrose: mutroseCheckRegistry,
+  goda: godaCheckRegistry,
 };
 
 /**
@@ -53,6 +62,8 @@ export const ENGINE_PROJECT_RESOURCES: {
   edge: edgeProjectResources,
   edgev2: edgeProjectResources,
   mutrose: mutroseProjectResources,
+  // it reads nothing beside the model
+  goda: {},
 };
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */
@@ -61,6 +72,7 @@ export const ENGINE_MAPPERS = {
   edgev2: edgeV2EngineMapper,
   sleec: sleecEngineMapper,
   mutrose: mutroseEngineMapper,
+  goda: godaEngineMapper,
 } as const satisfies Record<TransformEngine, { allowLeafGoals?: boolean }>;
 
 /** Each engine's name, as the UI shows it: a definition's own, or SLEEC's. */
@@ -69,6 +81,7 @@ export const ENGINE_LABEL: Record<TransformEngine, string> = {
   edgev2: edgeV2.name,
   sleec: 'SLEEC',
   mutrose: mutrose.name,
+  goda: goda.name,
 };
 
 /** How an output is highlighted: PRISM, MutRoSe's runtime annotation, or plain. */
@@ -123,6 +136,16 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'rannot',
     language: 'rannot',
     help: "The runtime annotation MutRoSe's decomposer reads, after checking the model as it does",
+    hasOptions: false,
+  },
+  {
+    id: 'goda',
+    label: ENGINE_LABEL.goda,
+    // the actor's MDP; its PCTL properties and parametric formulas are its other files
+    output: 'PRISM MDP',
+    extension: 'nm',
+    language: 'prism',
+    help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
     hasOptions: false,
   },
 ];

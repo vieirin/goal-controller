@@ -147,6 +147,17 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'mapGoalProps',
     },
   },
+  goda: {
+    file: 'packages/lib/src/engines/goda/definition.ts',
+    lists: { goal: 'goalProperties', task: 'taskProperties' },
+    mapper: 'packages/lib/src/engines/goda/mapper.ts',
+    map: {
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
+      resource: 'mapResourceProps',
+      quality: 'mapGoalProps',
+    },
+  },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
     lists: {

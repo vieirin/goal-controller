@@ -1,8 +1,8 @@
 /**
  * The one spelling of engine names used across the UI and its API:
- * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec' and 'mutrose'.
+ * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec', 'mutrose' and 'goda'.
  */
-export type TransformEngine = 'edge' | 'edgev2' | 'sleec' | 'mutrose';
+export type TransformEngine = 'edge' | 'edgev2' | 'sleec' | 'mutrose' | 'goda';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
@@ -19,6 +19,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'edgev2',
   'sleec',
   'mutrose',
+  'goda',
 ];
 
 export const isTransformEngine = (

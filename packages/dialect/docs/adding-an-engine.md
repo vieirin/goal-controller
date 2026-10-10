@@ -151,6 +151,12 @@ notation: {
 
 Any operator not listed is **disabled** for the dialect: the language parses it, the validator reports it (`` `?` is not an operator of Mission``), completion doesn't offer it. **Precedence and associativity are the language's**, not the definition's: `@` binds tightest, then `!`, then `^ | ? + & # ~ ; -> ,` (all left-associative). `relation` on a construct makes the editors flag a notation that contradicts the goal's AND/OR links.
 
+Three more options, for what a lab dialect's text may be like (GODA's, [goda.md](goda.md)):
+
+- `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (`mapTaskProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
+- `notation.whitespace: 'ignore'`: the spaces in a bracket aren't read (`[D M(T1.1 2)]` is `[DM(T1.12)]`). The editors read the line without them and point at what they report where it is written. Read a text in the dialect with `parseElementLineIn(definition, text)`.
+- `idScope: 'ancestorGoal'` (on the definition, not its notation): a task's id is unique under its goal only, so two goals may each have a `T1.1`.
+
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
@@ -264,6 +270,8 @@ type EngineOutput = { files: EngineOutputFile[] };
 - **Several files** (a PRISM model and its property files, a runtime artefact and a readable one): return them all, the primary one marked, in the order the workbench should show them. Their ids must stay the same from run to run: a project keeps one entry per id and a later run replaces it. `engineOutputProblems(output)` says what is wrong (not exactly one primary, an id or a file name used twice). Run it in your engine's tests, as `test/engines/output.test.ts` does for every engine. That file also has a fixture engine of three files (`test/support/threeFileEngine.ts`).
 - **Trace.** The primary file is traced to the model by the ids its identifiers embed (`g3_state`, `module G3`), as before. Any file can carry `owners` instead: for each line, the ids of the elements it belongs to. A file with neither is plain text.
 - Keep the string-returning function exported. The CLI and external callers may use it, and the output function is a wrapper around it.
+- **What an output function takes.** The tree (`missionOutput(tree, { modelName })`) is enough for most engines. An engine that needs what the tree doesn't keep, such as the actors (GODA names its MDP after the actor of the selected goal), takes goal-tree's validated model (`Model.parse(text)`) and builds its tree with its mapper itself: `godaOutput(model, { modelName })`. Its `services/transform.ts` branch passes `parseResult.model`.
+- **Versions of a target.** When the references an engine is proved against come from several versions of the original generator, make each version a strategy object (its templates and the rules that differ) and let the output function take a `variant`. A version not implemented yet throws an error that names its issue, so a harness reports it as an expected failure (GODA's `GODA_GENERATORS`, `GodaUnsupported`).
 
 ### 3.5 Exports
 - `engines/mission/index.ts`: the definition, mapper, keys, types, template, check registry (the registry lives with the definition whose names it implements).
@@ -393,6 +401,10 @@ Already done on this branch; use it as the worked example. An engine author touc
 ### 7.3 MutRoSe (a new engine, and what the framework needed)
 
 `lib/src/engines/mutrose/` and `ui/components/workbench/engines/mutrose/`: a notation engine with a call construct (`FALLBACK(a,b)`), task ids `AT1`, leaf goals, and checks across elements. [mutrose.md](mutrose.md) lists what fit, what the framework had to grow, and what is still open.
+
+### 7.4 GODA-MDP (several files, a lab dialect's text, and an oracle)
+
+`lib/src/engines/goda/` and `ui/components/workbench/engines/goda/`: a notation engine whose output is eight files (an MDP, four PCTL properties, two parametric formulas and a script), proved byte for byte against upstream's references for AND and OR. It needed variadic calls (`DM(…)`), a leaf's bracket as its cost, `TX` ids, ids scoped by their goal, spaces in brackets ignored, and conditions with a prefix and decimals. [goda.md](goda.md) lists what fit, what grew, the divergences from upstream, and what is still open.
 
 ## 8. Options summary
 

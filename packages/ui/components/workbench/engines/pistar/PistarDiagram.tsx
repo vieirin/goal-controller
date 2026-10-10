@@ -6,6 +6,7 @@ import { useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
 import { EDGE_PALETTE } from '../edge/EdgeDiagram';
 import { EDGEV2_PALETTE } from '../edgeV2/EdgeV2Diagram';
+import { GODA_PALETTE } from '../goda/GodaDiagram';
 import { MUTROSE_PALETTE } from '../mutrose/MutroseDiagram';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
@@ -27,6 +28,8 @@ export const pistarPaletteFor = (
       return null;
     case 'mutrose':
       return MUTROSE_PALETTE;
+    case 'goda':
+      return GODA_PALETTE;
   }
 };
 
