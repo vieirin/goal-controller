@@ -21,6 +21,12 @@ export type OutputEntry = {
   model: string;
   path: string;
   engine?: string;
+  /** the engine's key for the file (EngineOutputFile.id): a later run replaces it */
+  id?: string;
+  /** the file the engine shows first (one per model and engine) */
+  primary?: boolean;
+  /** what it was generated from, hashed: another value means the model changed since */
+  inputs?: string;
 };
 
 export type Manifest = {
@@ -101,10 +107,17 @@ const parseModelEntry = (value: unknown, at: string): ModelEntry => {
 const parseOutput = (value: unknown, at: string): OutputEntry => {
   if (!isRecord(value)) throw new ManifestError(at, 'expected an object');
   const engine = optionalStr(value.engine, `${at}.engine`);
+  const id = optionalStr(value.id, `${at}.id`);
+  const inputs = optionalStr(value.inputs, `${at}.inputs`);
+  if (value.primary !== undefined && typeof value.primary !== 'boolean')
+    throw new ManifestError(`${at}.primary`, 'expected a boolean');
   return {
     model: str(value.model, `${at}.model`),
     path: str(value.path, `${at}.path`),
     ...(engine !== undefined && { engine }),
+    ...(id !== undefined && { id }),
+    ...(value.primary === true && { primary: true }),
+    ...(inputs !== undefined && { inputs }),
   };
 };
 

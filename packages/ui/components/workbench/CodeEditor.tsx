@@ -59,6 +59,10 @@ const LANGUAGES: Record<CodeLanguage, () => Extension> = {
   rannot: () => rannotLanguage,
   text: () => [],
 };
+/** Whether the editor highlights a language (an engine's output file names its own). */
+export const isCodeLanguage = (language: string): language is CodeLanguage =>
+  Object.hasOwn(LANGUAGES, language);
+
 const languageExtension = (language: CodeLanguage): Extension =>
   LANGUAGES[language]();
 

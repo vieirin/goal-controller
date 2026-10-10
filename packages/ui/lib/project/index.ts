@@ -12,6 +12,7 @@ export * from './recent';
 export * from './zip';
 export * from './slots';
 export * from './resources';
+export * from './outputs';
 export * from './handles';
 export { fileStore } from './stores/file';
 export {

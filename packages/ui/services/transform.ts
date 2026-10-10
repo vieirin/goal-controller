@@ -1,10 +1,11 @@
 import {
-  generateValidatedPrismModel,
-  generateEdgeV2PrismModel,
+  edgeOutput,
+  edgeV2Output,
   initLogger,
   initEdgeV2Logger,
-  mutroseRuntimeAnnotation,
-  sleecTemplateEngine,
+  mutroseOutput,
+  sleecOutput,
+  type EngineOutputFile,
   type LoggerReport,
 } from '@goal-controller/lib';
 import { GoalModel } from './goalModel';
@@ -23,14 +24,17 @@ export type TransformOptions = {
   discretisation?: number;
   /** generate from the model without its single-child goals (see goal-tree's `Model.reduce`) */
   reduce?: boolean;
-  /** the output of the latest successful run for the same file and engine, for `clean: false` */
+  /** the primary file of the latest successful run for the same file and engine, for `clean: false` */
   previousOutput?: string;
 };
 
-/** Runs the lib generator for the chosen engine. Throws on parse or generation failure. */
+/**
+ * Runs the lib generator for the chosen engine: its files (one primary).
+ * Throws on parse or generation failure.
+ */
 export const transform = (
   options: TransformOptions,
-): { output: string; report: LoggerReport | null } => {
+): { files: EngineOutputFile[]; report: LoggerReport | null } => {
   const {
     modelJson,
     engine,
@@ -52,26 +56,27 @@ export const transform = (
       : initLogger(fileName || 'model', false, true);
 
   try {
-    let output: string;
+    const modelName = fileName || 'model';
+    let files: EngineOutputFile[];
     if (engine === 'edge') {
       const parseResult = GoalModel.parseForEdge(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
-      output = generateValidatedPrismModel({
+      ({ files } = edgeOutput({
         gm: parseResult.tree,
-        fileName: fileName || 'model',
+        fileName: modelName,
         clean,
         variables,
         generateDecisionVars,
         achievabilitySpace,
         previousOutput,
         writeReport: false,
-      });
+      }));
     } else if (engine === 'edgev2') {
       const parseResult = GoalModel.parseForEdgeV2(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
-      output = generateEdgeV2PrismModel({
+      ({ files } = edgeV2Output({
         gm: parseResult.tree,
-        fileName: fileName || 'model',
+        fileName: modelName,
         clean,
         variables,
         generateDecisionVars,
@@ -80,20 +85,23 @@ export const transform = (
         discretisation,
         previousOutput,
         writeReport: false,
-      });
+      }));
     } else if (engine === 'sleec') {
       const parseResult = GoalModel.parseForSleec(modelJson, { reduce });
       if (!parseResult.success) throw new Error(parseResult.error);
-      output = sleecTemplateEngine(parseResult.tree, { generateFluents });
+      ({ files } = sleecOutput(parseResult.tree, {
+        modelName,
+        generateFluents,
+      }));
     } else {
       // MutRoSe reads the model as written: no single-child goals removed
       const parseResult = GoalModel.parseForMutrose(modelJson);
       if (!parseResult.success) throw new Error(parseResult.error);
-      output = mutroseRuntimeAnnotation(parseResult.tree);
+      ({ files } = mutroseOutput(parseResult.tree, { modelName }));
     }
 
     const report = logger.getReport();
-    return { output, report };
+    return { files, report };
   } finally {
     logger.close();
   }
