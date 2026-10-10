@@ -54,3 +54,5 @@ packages/ui/tsconfig.tsbuildinfo
 
 # public/ copy of the manifest (lib/examples-manifest.json is committed)
 packages/ui/public/examples.json
+# pistarGODA-MDP examples, fetched by scripts/goda-stress (not committed: no upstream licence)
+.cache/
