@@ -27,6 +27,8 @@ export type Container = {
   plans: Container[];
   root: Container | null;
   timeSlot: number;
+  /** the slot it starts after (the 2019-07 producer's; cc808b6 counts from its time path) */
+  prevTimeSlot: number;
   rootTimeSlot: number;
   timePath: number;
   prevTimePath: number;
@@ -141,10 +143,128 @@ const decisionIds = (annotation: RtTree | null, uid: string): string[] => {
   return [...new Set(ids)];
 };
 
+/**
+ * How a version of RTGoreProducer sequences the containers (D14): the slots
+ * a container starts with, a child's before it is read, and its parent's
+ * after; one instance per model (the July 2019 one keeps the largest slots
+ * a decision-making element's children reached).
+ */
+export type TimeSlots = {
+  /** a new container's slots (RTContainer's defaults) */
+  initial: Pick<Container, 'timeSlot' | 'prevTimeSlot'>;
+  /** whether a child is read with its parent's context conditions too */
+  inheritsConditions: boolean;
+  /** a decomposed child, before it is read: whether it is first, whether an annotation decides it */
+  child: (
+    parent: Container,
+    child: Container,
+    how: { first: boolean; decided: boolean; start: TimePaths },
+  ) => void;
+  /** the parent, after a new child was read */
+  afterChild: (parent: Container, child: Container) => void;
+  /** a goal's means-end task, before it is read, and the goal after */
+  meansEnd: (goal: Container, plan: Container) => void;
+  afterMeansEnd: (goal: Container, plan: Container) => void;
+  /** an element with a decision-making annotation, after its children */
+  afterDecisionMaking: (c: Container) => void;
+};
+
+/** A parent's time paths when it starts reading its children. */
+type TimePaths = Pick<Container, 'prevTimePath' | 'futTimePath' | 'timePath'>;
+
+/** cc808b6's (2019-01): time paths; a child an annotation decides goes one path further. */
+export const timePaths = (): TimeSlots => ({
+  initial: { timeSlot: 0, prevTimeSlot: 0 },
+  inheritsConditions: true,
+  child: (parent, dec, { first, decided, start }) => {
+    if (decided) {
+      dec.prevTimePath = parent.prevTimePath + 1;
+      dec.futTimePath = parent.futTimePath + 1;
+      dec.timePath = start.timePath + 1;
+      dec.timeSlot = dec.prevTimePath + 1;
+      if (!first) dec.futTimePath = start.timePath + 1;
+    } else if (!first) {
+      dec.prevTimePath = parent.futTimePath;
+      dec.futTimePath = parent.futTimePath + 1;
+      dec.timePath = start.timePath;
+      dec.timeSlot = dec.prevTimePath + 1;
+    } else {
+      dec.prevTimePath = start.prevTimePath;
+      dec.futTimePath = start.futTimePath;
+      dec.timePath = start.timePath;
+      dec.timeSlot = start.prevTimePath + 1;
+    }
+  },
+  afterChild: (parent, dec) => {
+    parent.futTimePath = Math.max(dec.timeSlot, dec.futTimePath);
+  },
+  meansEnd: (gc, pc) => {
+    pc.prevTimePath = gc.prevTimePath;
+    pc.futTimePath = gc.futTimePath;
+    pc.timePath = gc.timePath;
+    pc.timeSlot = gc.prevTimePath + 1;
+  },
+  afterMeansEnd: (gc, pc) => {
+    gc.futTimePath = Math.max(pc.timeSlot, pc.futTimePath);
+  },
+  afterDecisionMaking: () => {},
+});
+
+/**
+ * 5305bc1's (2019-07, RTGoreProducer's prevMax/timeSlotMax): a container
+ * starts at slot 1 after 0; a decision-making element's children one slot
+ * further, its parent after the furthest of them; any other parent after
+ * its child. Children no longer inherit their parent's conditions.
+ */
+export const maxSlots = (): TimeSlots => {
+  let prevMax = 0;
+  let timeSlotMax = 1;
+  const decides = (c: Container) => c.decisionMaking.length > 0;
+  const follow = (parent: Container, from: Container, step: number) => {
+    parent.prevTimeSlot = from.prevTimeSlot + step;
+    parent.timeSlot = from.timeSlot + step;
+  };
+  return {
+    initial: { timeSlot: 1, prevTimeSlot: 0 },
+    inheritsConditions: false,
+    child: (parent, dec) => follow(dec, parent, decides(parent) ? 1 : 0),
+    afterChild: (parent, dec) => {
+      if (dec.kind === 'goal') {
+        if (decides(parent)) {
+          prevMax = dec.prevTimeSlot + 1;
+          timeSlotMax = dec.timeSlot + 1;
+        } else if (decides(dec)) {
+          parent.timeSlot = timeSlotMax;
+          parent.prevTimeSlot = prevMax;
+        } else follow(parent, dec, 0);
+        return;
+      }
+      const leaf = dec.plans.length === 0 ? 1 : 0;
+      if (decides(parent)) {
+        prevMax = Math.max(prevMax, dec.prevTimeSlot + leaf);
+        timeSlotMax = Math.max(timeSlotMax, dec.timeSlot + leaf);
+      } else follow(parent, dec, leaf);
+    },
+    meansEnd: (gc, pc) => follow(pc, gc, 0),
+    afterMeansEnd: (gc, pc) => {
+      if (pc.plans.length === 0) follow(gc, pc, 1);
+      else if (decides(pc)) {
+        gc.prevTimeSlot = prevMax;
+        gc.timeSlot = timeSlotMax;
+      } else follow(gc, pc, 0);
+    },
+    afterDecisionMaking: (c) => {
+      if (!c.root) return;
+      c.root.timeSlot = timeSlotMax;
+      c.root.prevTimeSlot = prevMax;
+    },
+  };
+};
+
 /** The containers of one actor's goal tree, and its root goals, as RTGoreProducer builds them. */
 export const buildContainers = (
   { roots, selected }: GodaRoots,
-  { siblings: sorted }: { siblings: SiblingOrder },
+  { siblings: sorted, slots }: { siblings: SiblingOrder; slots: TimeSlots },
 ): Container[] => {
   // AgentDefinition's goal and plan bases: an element is one container per text
   const goalBase = new Map<string, Container>();
@@ -165,7 +285,7 @@ export const buildContainers = (
     goals: [],
     plans: [],
     root: null,
-    timeSlot: 0,
+    ...slots.initial,
     rootTimeSlot: 0,
     timePath: 0,
     prevTimePath: 0,
@@ -218,6 +338,7 @@ export const buildContainers = (
     if (dm) gc.decisionMaking = rtDMGoals;
     iterateGoals(gc, children, included);
     iterateMeansEnds(goal, gc, included);
+    if (gc.decisionMaking.length) slots.afterDecisionMaking(gc);
     // upstream makes it optional with an unknown plan TX, built from the goal
     // (`new PlanContainer((Plan) gc)`): a cast that fails, so no model has one
     if (clearElId(gc).includes('X'))
@@ -231,38 +352,20 @@ export const buildContainers = (
     children: GodaGoalNode[],
     included: boolean,
   ) => {
-    const {
-      prevTimePath: prevPath,
-      futTimePath: rootFutPath,
-      timePath: rootPath,
-    } = gc;
+    const start: TimePaths = { ...gc };
     gc.rootTimeSlot = gc.timeSlot;
     for (const child of children) {
       const first = gc.goals.length === 0;
       const { container: dec, isNew } = createGoal(child);
       gc.goals.push(dec);
       setRoot(dec, gc);
-      if (rtDMGoals.includes(elIdOf(dec))) {
-        dec.prevTimePath = gc.prevTimePath + 1;
-        dec.futTimePath = gc.futTimePath + 1;
-        dec.timePath = rootPath + 1;
-        dec.timeSlot = dec.prevTimePath + 1;
-        if (!first) dec.futTimePath = rootPath + 1;
-      } else if (!first) {
-        dec.prevTimePath = gc.futTimePath;
-        dec.futTimePath = gc.futTimePath + 1;
-        dec.timePath = rootPath;
-        dec.timeSlot = dec.prevTimePath + 1;
-      } else {
-        dec.prevTimePath = prevPath;
-        dec.futTimePath = rootFutPath;
-        dec.timePath = rootPath;
-        dec.timeSlot = gc.prevTimePath + 1;
-      }
-      dec.fulfillmentConditions.push(...gc.fulfillmentConditions);
+      const decided = rtDMGoals.includes(elIdOf(dec));
+      slots.child(gc, dec, { first, decided, start });
+      if (slots.inheritsConditions)
+        dec.fulfillmentConditions.push(...gc.fulfillmentConditions);
       if (isNew) {
         addGoal(child, dec, included);
-        gc.futTimePath = Math.max(dec.timeSlot, dec.futTimePath);
+        slots.afterChild(gc, dec);
       }
     }
   };
@@ -276,42 +379,25 @@ export const buildContainers = (
     if (children.length) dm = storeRegexResults(pc);
     if (dm) pc.decisionMaking = rtDMGoals;
     iteratePlans(pc, children);
+    if (pc.decisionMaking.length) slots.afterDecisionMaking(pc);
     // an incomplete task (`T1.X`): optional, pursued or skipped
     if (clearElId(pc).includes('X')) pc.optional = true;
   };
 
   const iteratePlans = (pc: Container, children: GodaTask[]) => {
-    const {
-      prevTimePath: prevPath,
-      futTimePath: rootFutPath,
-      timePath: rootPath,
-    } = pc;
+    const start: TimePaths = { ...pc };
     for (const child of children) {
       const first = pc.plans.length === 0;
       const { container: dec, isNew } = createPlan(child);
       pc.plans.push(dec);
       setRoot(dec, pc);
-      if (rtDMGoals.includes(elIdOf(dec))) {
-        dec.prevTimePath = pc.prevTimePath + 1;
-        dec.futTimePath = pc.futTimePath + 1;
-        dec.timePath = rootPath + 1;
-        dec.timeSlot = dec.prevTimePath + 1;
-        if (!first) dec.futTimePath = rootPath + 1;
-      } else if (!first) {
-        dec.prevTimePath = pc.futTimePath;
-        dec.futTimePath = pc.futTimePath + 1;
-        dec.timePath = rootPath;
-        dec.timeSlot = dec.prevTimePath + 1;
-      } else {
-        dec.prevTimePath = prevPath;
-        dec.futTimePath = rootFutPath;
-        dec.timePath = rootPath;
-        dec.timeSlot = prevPath + 1;
-      }
-      dec.fulfillmentConditions.push(...pc.fulfillmentConditions);
+      const decided = rtDMGoals.includes(elIdOf(dec));
+      slots.child(pc, dec, { first, decided, start });
+      if (slots.inheritsConditions)
+        dec.fulfillmentConditions.push(...pc.fulfillmentConditions);
       if (isNew) {
         addPlan(child, dec);
-        pc.futTimePath = Math.max(dec.timeSlot, dec.futTimePath);
+        slots.afterChild(pc, dec);
       }
     }
   };
@@ -329,14 +415,12 @@ export const buildContainers = (
       // GoalContainer.addMERealPlan
       gc.plans.push(pc);
       setRoot(pc, gc);
-      pc.prevTimePath = gc.prevTimePath;
-      pc.futTimePath = gc.futTimePath;
-      pc.timePath = gc.timePath;
-      pc.timeSlot = gc.prevTimePath + 1;
-      pc.fulfillmentConditions.push(...gc.fulfillmentConditions);
+      slots.meansEnd(gc, pc);
+      if (slots.inheritsConditions)
+        pc.fulfillmentConditions.push(...gc.fulfillmentConditions);
       if (isNew) {
         addPlan(task, pc);
-        gc.futTimePath = Math.max(pc.timeSlot, pc.futTimePath);
+        slots.afterMeansEnd(gc, pc);
       }
     }
   };

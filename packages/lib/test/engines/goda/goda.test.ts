@@ -320,17 +320,17 @@ describe('GODA: models', () => {
     assert.throws(() => outputOf(none), /set selected to true on one goal/);
   });
 
-  it('names the generator versions it does not generate yet', () => {
+  it('generates both generator versions the references come from', () => {
     assert.deepStrictEqual(GODA_VARIANTS, ['cc808b6', '5305bc1']);
-    assert.deepStrictEqual(GODA_IMPLEMENTED_VARIANTS, ['cc808b6']);
+    assert.deepStrictEqual(GODA_IMPLEMENTED_VARIANTS, ['cc808b6', '5305bc1']);
+    // an unknown one is not generated
     assert.throws(
       () =>
         godaOutput(modelOf(twoTasks('And')), {
           modelName: 'model.txt',
-          variant: '5305bc1',
+          variant: 'b0b0b0b' as never,
         }),
-      (error: Error) =>
-        error instanceof GodaUnsupported && error.message.includes('#38'),
+      /no generator b0b0b0b/,
     );
   });
 

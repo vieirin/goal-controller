@@ -12,9 +12,9 @@ import {
   type EngineOutputFile,
 } from '../../output';
 import { godaEngineMapper, type GodaGoalNode } from '../mapper';
-import { adjustName, GodaUnsupported } from './containers';
+import { adjustName } from './containers';
 import { sortRoots, writePrism } from './prism';
-import { GODA_GENERATORS, type GodaVariant } from './variants';
+import { GODA_GENERATORS, GODA_VARIANTS, type GodaVariant } from './variants';
 
 export { GodaUnsupported } from './containers';
 export {
@@ -56,9 +56,9 @@ export type GodaOutputOptions = {
 
 /**
  * What GODA generates of a model (goal-tree's validated model): the files of
- * the actor that holds the selected goal. Throws GodaUnsupported for what the
- * engine doesn't generate yet (a variant, decision making, contexts, an
- * incomplete element), and an Error for a model GODA rejects.
+ * the actor that holds the selected goal, as the generator version `variant`
+ * writes them (#34 D10). Throws an Error for a model GODA rejects, or a
+ * version it has no generator for.
  */
 export const godaOutput = (
   model: IStarModel,
@@ -66,7 +66,9 @@ export const godaOutput = (
 ): EngineOutput => {
   const generator = GODA_GENERATORS[variant];
   if (!generator)
-    throw new GodaUnsupported(`the ${variant} generator`, '#38, #39, #40');
+    throw new Error(
+      `GODA: no generator ${String(variant)} (the versions are ${GODA_VARIANTS.join(', ')})`,
+    );
   const roots = GoalTree.fromModel(model, godaEngineMapper).nodes.filter(
     (node): node is GodaGoalNode => node.type === 'goal',
   );
@@ -113,7 +115,13 @@ export const godaOutput = (
       ),
       file('reliability', 'reliability.out', formulas.reliability, 'text'),
       file('cost', 'cost.out', formulas.cost, 'text'),
-      file('evaluate', 'eval_formula.sh', prism.evalScript, 'shell'),
+      // 2019-07: PARAMProducer writes it (the formulas' parameters), 2019-01: PrismWriter
+      file(
+        'evaluate',
+        'eval_formula.sh',
+        formulas.evalScript ?? prism.evalScript,
+        'shell',
+      ),
     ],
   };
 };

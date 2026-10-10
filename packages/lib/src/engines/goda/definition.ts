@@ -84,6 +84,8 @@ export const goda = defineDialect({
     defaultConstruct: { and: 'and', or: 'or' },
     leafBracket: 'cost',
     whitespace: 'ignore',
+    // GODA's producer splits a line at its colon: a name may hold digits (TAS, BSN)
+    names: 'text',
   },
   idScope: 'ancestorGoal',
   // it reads no resource or quality properties
