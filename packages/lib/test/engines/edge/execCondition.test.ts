@@ -1,12 +1,13 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { GoalTree, Model } from '../../src/index';
+import { GoalTree, Model } from '@goal-controller/goal-tree';
+import { edgeEngineMapper } from '../../../src/engines/edge';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
   const model = Model.load('../../examples/edge/goalModel_TAS_3_.txt');
 
-  const tree = GoalTree.fromModel(model);
+  const tree = GoalTree.fromModel(model, edgeEngineMapper);
   const allGoals = tree.query.allGoalsMap();
   const allTasks = tree.query.allByType('task');
 
@@ -15,19 +16,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g3 = allGoals.get('G3');
       assert.ok(g3, 'G3 not found in the tree');
       assert.ok(
-        g3.properties.edge.execCondition,
+        g3.properties.engine.execCondition,
         'G3 should have execCondition',
       );
       assert.ok(
-        g3.properties.edge.execCondition.assertion,
+        g3.properties.engine.execCondition.assertion,
         'G3 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g3.properties.edge.execCondition.assertion.sentence,
+        g3.properties.engine.execCondition.assertion.sentence,
         'privacyEnabled',
       );
       assert.ok(
-        g3.properties.edge.execCondition.assertion.variables.length > 0,
+        g3.properties.engine.execCondition.assertion.variables.length > 0,
         'G3 assertion should have variables',
       );
     });
@@ -36,27 +37,27 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g4 = allGoals.get('G4');
       assert.ok(g4, 'G4 not found in the tree');
       assert.ok(
-        g4.properties.edge.execCondition,
+        g4.properties.engine.execCondition,
         'G4 should have execCondition',
       );
       assert.ok(
-        g4.properties.edge.execCondition.maintain,
+        g4.properties.engine.execCondition.maintain,
         'G4 should have execCondition.maintain',
       );
       assert.strictEqual(
-        g4.properties.edge.execCondition.maintain.sentence,
+        g4.properties.engine.execCondition.maintain.sentence,
         'inEmergency',
       );
       assert.ok(
-        g4.properties.edge.execCondition.assertion,
+        g4.properties.engine.execCondition.assertion,
         'G4 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g4.properties.edge.execCondition.assertion.sentence,
+        g4.properties.engine.execCondition.assertion.sentence,
         'enoughBattery & highReliability',
       );
       assert.ok(
-        g4.properties.edge.execCondition.assertion.variables.length > 0,
+        g4.properties.engine.execCondition.assertion.variables.length > 0,
         'G4 assertion should have variables',
       );
     });
@@ -65,27 +66,27 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g8 = allGoals.get('G8');
       assert.ok(g8, 'G8 not found in the tree');
       assert.ok(
-        g8.properties.edge.execCondition,
+        g8.properties.engine.execCondition,
         'G8 should have execCondition',
       );
       assert.ok(
-        g8.properties.edge.execCondition.maintain,
+        g8.properties.engine.execCondition.maintain,
         'G8 should have execCondition.maintain',
       );
       assert.strictEqual(
-        g8.properties.edge.execCondition.maintain.sentence,
+        g8.properties.engine.execCondition.maintain.sentence,
         'enoughBattery & highReliability',
       );
       assert.ok(
-        g8.properties.edge.execCondition.assertion,
+        g8.properties.engine.execCondition.assertion,
         'G8 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g8.properties.edge.execCondition.assertion.sentence,
+        g8.properties.engine.execCondition.assertion.sentence,
         'sensorAvailable',
       );
       assert.ok(
-        g8.properties.edge.execCondition.assertion.variables.length > 0,
+        g8.properties.engine.execCondition.assertion.variables.length > 0,
         'G8 assertion should have variables',
       );
     });
@@ -94,19 +95,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g12 = allGoals.get('G12');
       assert.ok(g12, 'G12 not found in the tree');
       assert.ok(
-        g12.properties.edge.execCondition,
+        g12.properties.engine.execCondition,
         'G12 should have execCondition',
       );
       assert.ok(
-        g12.properties.edge.execCondition.assertion,
+        g12.properties.engine.execCondition.assertion,
         'G12 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g12.properties.edge.execCondition.assertion.sentence,
+        g12.properties.engine.execCondition.assertion.sentence,
         'pharmacyAvailable&atHome',
       );
       assert.ok(
-        g12.properties.edge.execCondition.assertion.variables.length > 0,
+        g12.properties.engine.execCondition.assertion.variables.length > 0,
         'G12 assertion should have variables',
       );
     });
@@ -115,27 +116,27 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g18 = allGoals.get('G18');
       assert.ok(g18, 'G18 not found in the tree');
       assert.ok(
-        g18.properties.edge.execCondition,
+        g18.properties.engine.execCondition,
         'G18 should have execCondition',
       );
       assert.ok(
-        g18.properties.edge.execCondition.maintain,
+        g18.properties.engine.execCondition.maintain,
         'G18 should have execCondition.maintain',
       );
       assert.strictEqual(
-        g18.properties.edge.execCondition.maintain.sentence,
+        g18.properties.engine.execCondition.maintain.sentence,
         'inSideEffectWindow',
       );
       assert.ok(
-        g18.properties.edge.execCondition.assertion,
+        g18.properties.engine.execCondition.assertion,
         'G18 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g18.properties.edge.execCondition.assertion.sentence,
+        g18.properties.engine.execCondition.assertion.sentence,
         'medicationApplied',
       );
       assert.ok(
-        g18.properties.edge.execCondition.assertion.variables.length > 0,
+        g18.properties.engine.execCondition.assertion.variables.length > 0,
         'G18 assertion should have variables',
       );
     });
@@ -144,19 +145,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g19 = allGoals.get('G19');
       assert.ok(g19, 'G19 not found in the tree');
       assert.ok(
-        g19.properties.edge.execCondition,
+        g19.properties.engine.execCondition,
         'G19 should have execCondition',
       );
       assert.ok(
-        g19.properties.edge.execCondition.assertion,
+        g19.properties.engine.execCondition.assertion,
         'G19 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g19.properties.edge.execCondition.assertion.sentence,
+        g19.properties.engine.execCondition.assertion.sentence,
         'inEmergency',
       );
       assert.ok(
-        g19.properties.edge.execCondition.assertion.variables.length > 0,
+        g19.properties.engine.execCondition.assertion.variables.length > 0,
         'G19 assertion should have variables',
       );
     });
@@ -165,27 +166,27 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g2 = allGoals.get('G2');
       assert.ok(g2, 'G2 not found in the tree');
       assert.ok(
-        g2.properties.edge.execCondition,
+        g2.properties.engine.execCondition,
         'G2 should have execCondition',
       );
       assert.ok(
-        g2.properties.edge.execCondition.maintain,
+        g2.properties.engine.execCondition.maintain,
         'G2 should have execCondition.maintain',
       );
       assert.strictEqual(
-        g2.properties.edge.execCondition.maintain.sentence,
+        g2.properties.engine.execCondition.maintain.sentence,
         'highPrecision',
       );
       assert.ok(
-        g2.properties.edge.execCondition.assertion,
+        g2.properties.engine.execCondition.assertion,
         'G2 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g2.properties.edge.execCondition.assertion.sentence,
+        g2.properties.engine.execCondition.assertion.sentence,
         'patientTracking',
       );
       assert.ok(
-        g2.properties.edge.execCondition.assertion.variables.length > 0,
+        g2.properties.engine.execCondition.assertion.variables.length > 0,
         'G2 assertion should have variables',
       );
     });
@@ -194,19 +195,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g5 = allGoals.get('G5');
       assert.ok(g5, 'G5 not found in the tree');
       assert.ok(
-        g5.properties.edge.execCondition,
+        g5.properties.engine.execCondition,
         'G5 should have execCondition',
       );
       assert.ok(
-        g5.properties.edge.execCondition.assertion,
+        g5.properties.engine.execCondition.assertion,
         'G5 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g5.properties.edge.execCondition.assertion.sentence,
+        g5.properties.engine.execCondition.assertion.sentence,
         'privacyEnabled',
       );
       assert.ok(
-        g5.properties.edge.execCondition.assertion.variables.length > 0,
+        g5.properties.engine.execCondition.assertion.variables.length > 0,
         'G5 assertion should have variables',
       );
     });
@@ -215,19 +216,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g6 = allGoals.get('G6');
       assert.ok(g6, 'G6 not found in the tree');
       assert.ok(
-        g6.properties.edge.execCondition,
+        g6.properties.engine.execCondition,
         'G6 should have execCondition',
       );
       assert.ok(
-        g6.properties.edge.execCondition.assertion,
+        g6.properties.engine.execCondition.assertion,
         'G6 should have execCondition.assertion',
       );
       assert.strictEqual(
-        g6.properties.edge.execCondition.assertion.sentence,
+        g6.properties.engine.execCondition.assertion.sentence,
         'privacyEnabled=false',
       );
       assert.ok(
-        g6.properties.edge.execCondition.assertion.variables.length > 0,
+        g6.properties.engine.execCondition.assertion.variables.length > 0,
         'G6 assertion should have variables',
       );
     });
@@ -238,19 +239,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t4 = allTasks.find((task) => task.id === 'T4');
       assert.ok(t4, 'T4 not found in the tree');
       assert.ok(
-        t4.properties.edge.execCondition,
+        t4.properties.engine.execCondition,
         'T4 should have execCondition',
       );
       assert.ok(
-        t4.properties.edge.execCondition.assertion,
+        t4.properties.engine.execCondition.assertion,
         'T4 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t4.properties.edge.execCondition.assertion.sentence,
+        t4.properties.engine.execCondition.assertion.sentence,
         'R0=true',
       );
       assert.ok(
-        t4.properties.edge.execCondition.assertion.variables.length > 0,
+        t4.properties.engine.execCondition.assertion.variables.length > 0,
         'T4 assertion should have variables',
       );
     });
@@ -259,19 +260,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t9 = allTasks.find((task) => task.id === 'T9');
       assert.ok(t9, 'T9 not found in the tree');
       assert.ok(
-        t9.properties.edge.execCondition,
+        t9.properties.engine.execCondition,
         'T9 should have execCondition',
       );
       assert.ok(
-        t9.properties.edge.execCondition.assertion,
+        t9.properties.engine.execCondition.assertion,
         'T9 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t9.properties.edge.execCondition.assertion.sentence,
+        t9.properties.engine.execCondition.assertion.sentence,
         'R3=true',
       );
       assert.ok(
-        t9.properties.edge.execCondition.assertion.variables.length > 0,
+        t9.properties.engine.execCondition.assertion.variables.length > 0,
         'T9 assertion should have variables',
       );
     });
@@ -280,19 +281,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t2 = allTasks.find((task) => task.id === 'T2');
       assert.ok(t2, 'T2 not found in the tree');
       assert.ok(
-        t2.properties.edge.execCondition,
+        t2.properties.engine.execCondition,
         'T2 should have execCondition',
       );
       assert.ok(
-        t2.properties.edge.execCondition.assertion,
+        t2.properties.engine.execCondition.assertion,
         'T2 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t2.properties.edge.execCondition.assertion.sentence,
+        t2.properties.engine.execCondition.assertion.sentence,
         'privacyEnabled',
       );
       assert.ok(
-        t2.properties.edge.execCondition.assertion.variables.length > 0,
+        t2.properties.engine.execCondition.assertion.variables.length > 0,
         'T2 assertion should have variables',
       );
     });
@@ -301,24 +302,24 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t3 = allTasks.find((task) => task.id === 'T3');
       assert.ok(t3, 'T3 not found in the tree');
       assert.ok(
-        t3.properties.edge.execCondition,
+        t3.properties.engine.execCondition,
         'T3 should have execCondition',
       );
       assert.ok(
-        t3.properties.edge.execCondition.assertion,
+        t3.properties.engine.execCondition.assertion,
         'T3 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t3.properties.edge.execCondition.assertion.sentence,
+        t3.properties.engine.execCondition.assertion.sentence,
         'R1>50',
       );
       assert.ok(
-        t3.properties.edge.execCondition.assertion.variables.length > 0,
+        t3.properties.engine.execCondition.assertion.variables.length > 0,
         'T3 assertion should have variables',
       );
       // Verify that R1 is extracted as a variable
       const r1Variable =
-        t3.properties.edge.execCondition.assertion.variables.find(
+        t3.properties.engine.execCondition.assertion.variables.find(
           (v) => v.name === 'R1',
         );
       assert.ok(r1Variable, 'T3 assertion should extract R1 as a variable');
@@ -333,24 +334,24 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t10 = allTasks.find((task) => task.id === 'T10');
       assert.ok(t10, 'T10 not found in the tree');
       assert.ok(
-        t10.properties.edge.execCondition,
+        t10.properties.engine.execCondition,
         'T10 should have execCondition',
       );
       assert.ok(
-        t10.properties.edge.execCondition.assertion,
+        t10.properties.engine.execCondition.assertion,
         'T10 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t10.properties.edge.execCondition.assertion.sentence,
+        t10.properties.engine.execCondition.assertion.sentence,
         'R4>35',
       );
       assert.ok(
-        t10.properties.edge.execCondition.assertion.variables.length > 0,
+        t10.properties.engine.execCondition.assertion.variables.length > 0,
         'T10 assertion should have variables',
       );
       // Verify that R4 is extracted as a variable
       const r4Variable =
-        t10.properties.edge.execCondition.assertion.variables.find(
+        t10.properties.engine.execCondition.assertion.variables.find(
           (v) => v.name === 'R4',
         );
       assert.ok(r4Variable, 'T10 assertion should extract R4 as a variable');
@@ -365,19 +366,19 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t11 = allTasks.find((task) => task.id === 'T11');
       assert.ok(t11, 'T11 not found in the tree');
       assert.ok(
-        t11.properties.edge.execCondition,
+        t11.properties.engine.execCondition,
         'T11 should have execCondition',
       );
       assert.ok(
-        t11.properties.edge.execCondition.assertion,
+        t11.properties.engine.execCondition.assertion,
         'T11 should have execCondition.assertion',
       );
       assert.strictEqual(
-        t11.properties.edge.execCondition.assertion.sentence,
+        t11.properties.engine.execCondition.assertion.sentence,
         'networkAvailable',
       );
       assert.ok(
-        t11.properties.edge.execCondition.assertion.variables.length > 0,
+        t11.properties.engine.execCondition.assertion.variables.length > 0,
         'T11 assertion should have variables',
       );
     });
@@ -388,7 +389,7 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g0 = allGoals.get('G0');
       assert.ok(g0, 'G0 not found in the tree');
       assert.ok(
-        !g0.properties.edge.execCondition,
+        !g0.properties.engine.execCondition,
         'G0 should not have execCondition',
       );
     });
@@ -397,7 +398,7 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const g1 = allGoals.get('G1');
       assert.ok(g1, 'G1 not found in the tree');
       assert.ok(
-        !g1.properties.edge.execCondition,
+        !g1.properties.engine.execCondition,
         'G1 should not have execCondition',
       );
     });
@@ -406,7 +407,7 @@ describe('Exec Condition Assertions - goalModel_TAS_3', () => {
       const t1 = allTasks.find((task) => task.id === 'T1');
       assert.ok(t1, 'T1 not found in the tree');
       assert.ok(
-        !t1.properties.edge.execCondition,
+        !t1.properties.engine.execCondition,
         'T1 should not have execCondition',
       );
     });
