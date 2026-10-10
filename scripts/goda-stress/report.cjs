@@ -67,7 +67,12 @@ const divergences = (result) =>
             : name === 'evalScript'
               ? `${check.onlyOurs?.count} parts only ours, ${check.onlyReference?.count} only the reference (compared as a set: upstream builds it from a HashMap)`
               : name === 'parses'
-                ? check.errors.map((e) => e.message).join('; ')
+                ? check.errors
+                    .map(
+                      (e) =>
+                        `${e.elementId ?? '?'} \`${e.text}\`: ${e.message}`,
+                    )
+                    .join('; ')
                 : name === 'roundTrip'
                   ? `${check.edits.length} edits, not listed: ${check.notListed.join(', ') || 'none'}`
                   : name === 'dialectChecks'

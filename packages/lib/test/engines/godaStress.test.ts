@@ -1,7 +1,8 @@
 /**
  * The GODA stress test's harness (scripts/goda-stress, goal-controller#35),
  * on small hand-written fixtures: the upstream models are fetched, not
- * committed (#34 D1), so these tests need no network.
+ * committed (#34 D1), so these tests need no network. The formula evaluator
+ * is lib's, tested with the engine (engines/goda).
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
@@ -69,70 +70,6 @@ describe('GODA stress test: comparisons', () => {
     const spaced = compare.compareBytes('Pmax=? [ F "success" ] \n', pctl);
     assert.strictEqual(spaced.equal, false);
     assert.strictEqual(spaced.firstDifference, 22);
-  });
-
-  it('reads formulas: precedence, unary minus, comments, deep nesting', () => {
-    const value = (text: string, values = {}) =>
-      compare.evaluate(compare.compileFormula(text), values);
-    assert.strictEqual(value('2+3*4'), 14);
-    assert.strictEqual(value('-2*3+1'), -5);
-    assert.strictEqual(value('(-(-(2)))'), 2);
-    assert.strictEqual(value('2^3^2'), 512);
-    assert.strictEqual(value('8/4/2'), 1);
-    assert.strictEqual(value('1-x', { x: 0.25 }), 0.75);
-    assert.deepStrictEqual(compare.compileFormula(RELIABILITY).variables, [
-      'F_A',
-      'F_B',
-      'R_A',
-      'R_B',
-    ]);
-    const deep = `${'('.repeat(20000)}x${')'.repeat(20000)}`;
-    assert.strictEqual(value(deep, { x: 3 }), 3);
-    for (const bad of ['', '(x', 'x)', 'x y', '*x', 'x+', 'x $ y'])
-      assert.throws(() => compare.compileFormula(bad), bad);
-  });
-
-  it('reads the values eval_formula.sh gives', () => {
-    assert.deepStrictEqual(
-      compare.evalFormulaValues(
-        '#!/bin/bash\nW_A="1";\nR_A="0.99";\n\nsed -e "s/W_A/$W_A/g" $1 | bc\n',
-      ),
-      { W_A: 1, R_A: 0.99 },
-    );
-  });
-
-  it('compares formulas numerically: equal when equivalent, not when they differ anywhere', () => {
-    const evalValues = { F_A: 0.99, R_A: 0.99, F_B: 0.99, R_B: 0.99 };
-    // the same polynomial, written another way
-    const same = compare.compareFormulas('R_A*F_A*(R_B*F_B)', RELIABILITY, {
-      evalValues,
-    });
-    assert.strictEqual(same.equal, true);
-    assert.strictEqual(same.points, 101);
-    // equal at the eval_formula.sh point (all 0.99) but not elsewhere
-    const swapped = compare.compareFormulas('F_A*R_A*F_B*F_B', RELIABILITY, {
-      evalValues,
-    });
-    assert.strictEqual(swapped.equal, false);
-    assert.strictEqual(swapped.mismatches.count, 100);
-    // a variable one side lacks
-    const extra = compare.compareFormulas(`${OR}*CTX_A`, OR, {
-      evalValues: { ...evalValues, CTX_A: 1 },
-    });
-    assert.strictEqual(extra.equal, false);
-    assert.deepStrictEqual(extra.variables.onlyOurs, ['CTX_A']);
-    // a value the reference's own script doesn't give: that point is left out
-    const partial = compare.compareFormulas(OR, OR, { evalValues: { F_A: 1 } });
-    assert.strictEqual(partial.equal, true);
-    assert.strictEqual(partial.points, 100);
-    assert.deepStrictEqual(partial.evalPoint.missing, ['F_B', 'R_A', 'R_B']);
-    // within 1e-9, relative above 1
-    assert.ok(compare.close(1e6, 1e6 + 1e-4));
-    assert.ok(!compare.close(0.5, 0.5 + 2e-9));
-    // seeded: the same points every run
-    const a = compare.random(compare.SEED);
-    const b = compare.random(compare.SEED);
-    assert.deepStrictEqual([a(), a(), a()], [b(), b(), b()]);
   });
 
   it('compares eval_formula.sh as a set of lines and sed options (#34 D15)', () => {
