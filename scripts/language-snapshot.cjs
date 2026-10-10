@@ -10,7 +10,9 @@
  *
  * For each example under examples/edge and examples/edgeV2, in both Edge
  * engines: its Notation view document (`notation/`) and its generated PRISM
- * (`prism/`); for examples/pistar-ext, its document in piStar-ext's dialect.
+ * (`prism/`); SLEEC's output for examples/sleec (`sleec/`), MutRoSe's for
+ * examples/mutrose and the medicine-delivery project (`mutrose/`); for
+ * examples/pistar-ext, its document in piStar-ext's dialect.
  * A model an engine rejects is written as `ERROR <message>`. It reads the
  * packages' built output (`out/`), so build them first.
  */
@@ -107,6 +109,37 @@ for (const [engine, { definition, mapper, prism }] of Object.entries(ENGINES))
       attempt(() => {
         const model = goalTree.Model.validate(core.parsePistar(text));
         return prism(goalTree.GoalTree.fromModel(model, mapper).nodes);
+      }),
+    );
+  }
+
+// the engines without a notation document: their output only
+const OUTPUT_ENGINES = {
+  sleec: {
+    files: examples(path.join(EXAMPLES, 'sleec')),
+    mapper: lib.sleecEngineMapper,
+    generate: (gm) => lib.sleecTemplateEngine(gm),
+  },
+  mutrose: {
+    files: [
+      ...examples(path.join(EXAMPLES, 'mutrose')),
+      ...examples(path.join(EXAMPLES, 'projects', 'medicine-delivery')),
+    ],
+    mapper: lib.mutroseEngineMapper,
+    generate: (gm) => lib.mutroseRuntimeAnnotation(gm),
+  },
+};
+for (const [engine, { files, mapper, generate }] of Object.entries(
+  OUTPUT_ENGINES,
+))
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    write(
+      engine,
+      name(engine, file),
+      attempt(() => {
+        const model = goalTree.Model.validate(core.parsePistar(text));
+        return generate(goalTree.GoalTree.fromModel(model, mapper).nodes);
       }),
     );
   }
