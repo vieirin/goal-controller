@@ -4,6 +4,7 @@
  * line, or one value of a predefined type.
  */
 import type { ParseResult } from 'langium';
+import type { AssertionPrefix } from '@goal-controller/dialect';
 import type { ValueType } from './catalog.js';
 import type {
   AnnotatedName,
@@ -11,6 +12,7 @@ import type {
   AssertExpr,
   AssertionValue,
   BoolValue,
+  Cost,
   Declaration,
   Document,
   ElementLine,
@@ -79,6 +81,12 @@ export type DeclarationData = {
   initialValue?: string;
 };
 
+/**
+ * A leaf's cost (`[W = 0.1x]`, GODA's CostRegex.g4): a constant, a variable,
+ * or a constant times a variable, as written.
+ */
+export type CostData = { value: string | null; variable: string | null };
+
 export type ElementLineData = {
   /** `G1`, `T2.1`, ...; empty on a line without an id (an annotated name may have one) */
   id: string;
@@ -86,6 +94,8 @@ export type ElementLineData = {
   name: string;
   annotations: AnnotationData[];
   notation: RtTree | null;
+  /** what its bracket holds when it is a cost (`[W = 0.1]`), not a notation */
+  cost: CostData | null;
   declaration: DeclarationData | null;
 };
 
@@ -245,6 +255,9 @@ const toDeclaration = (
       }
     : null;
 
+const toCost = (cost: Cost | undefined): CostData | null =>
+  cost ? { value: cost.value ?? null, variable: cost.variable ?? null } : null;
+
 export const toElementLine = (
   line: ElementLine | AnnotatedName,
 ): ElementLineData => ({
@@ -252,6 +265,7 @@ export const toElementLine = (
   name: line.label ?? '',
   annotations: line.annotations.map(toAnnotation),
   notation: toRtTree(line.notation),
+  cost: line.$type === 'ElementLine' ? toCost(line.cost) : null,
   declaration: toDeclaration(line.declaration),
 });
 
@@ -270,6 +284,46 @@ export const parseElementLine = (
   const { root, errors } = parse<ElementLine>('elementLine', text);
   return { value: root ? toElementLine(root) : null, errors };
 };
+
+/**
+ * A text with the spaces inside its bracket removed (from its first `[` to
+ * its last `]`, as GODA's `removeBlankSpaceInBrackets` does before it parses:
+ * `T1: Name [D M(T1.1 2)]` reads `[DM(T1.12)]`), and where each offset of
+ * the result was in the text as written.
+ */
+export const withoutBracketSpaces = (
+  text: string,
+): { text: string; origin: (offset: number) => number } => {
+  const open = text.indexOf('[');
+  const close = text.lastIndexOf(']');
+  if (open < 0 || close < open) return { text, origin: (offset) => offset };
+  const kept: number[] = [];
+  let out = '';
+  for (let i = 0; i < text.length; i++) {
+    if (i > open && i < close && text[i] === ' ') continue;
+    kept.push(i);
+    out += text[i];
+  }
+  return {
+    text: out,
+    // the end of the text is the end of what was written
+    origin: (offset) => (offset < kept.length ? kept[offset]! : text.length),
+  };
+};
+
+/**
+ * One element line read in a dialect: as written, or without the spaces in
+ * its bracket where the dialect ignores them (`notation.whitespace`).
+ */
+export const parseElementLineIn = (
+  dialect: { notation?: { whitespace?: 'ignore' } },
+  text: string,
+): Parsed<ElementLineData | null> =>
+  parseElementLine(
+    dialect.notation?.whitespace === 'ignore'
+      ? withoutBracketSpaces(text).text
+      : text,
+  );
 
 /** A document: element lines with ids and property lines, or (`ids: false`) lines without ids. */
 export const parseDocument = (
@@ -370,6 +424,20 @@ const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
     root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
   annotatedName: (root: AnnotatedName) => (root ? toElementLine(root) : null),
   ocl: (root: OclValue) => [...root.parts],
+};
+
+/**
+ * A condition with its prefix (`assertion trigger ctx = 1`): the prefix as
+ * the catalog writes it (spaces between its words aside), or null.
+ */
+export const parseCondition = (
+  text: string,
+): Parsed<{ prefix: AssertionPrefix | null; tree: AssertionTree | null }> => {
+  const { root, errors } = parse<AssertionValue>('assertion', text);
+  const prefix = root.prefix
+    ? (root.prefix.replace(/[ \t]+/, ' ') as AssertionPrefix)
+    : null;
+  return { value: { prefix, tree: toAssertionTree(root.expr) }, errors };
 };
 
 /** One value of a predefined type on its own (an inspector field). Empty is valid. */

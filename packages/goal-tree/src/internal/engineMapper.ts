@@ -116,6 +116,8 @@ export type EngineMapper<
     raw: RawProps<TTaskKeys>;
     name: string;
     id: string;
+    /** its text as written (`T1.1: Name [W = 0.1]`), for an engine that reads its bracket */
+    text: string;
   }) => TTaskEngine;
 
   /**
@@ -173,6 +175,7 @@ export function createEngineMapper<
         raw: RawProps<TTaskKeys>;
         name: string;
         id: string;
+        text: string;
       }) => TTaskEngine;
       afterCreationMapper?: (props: {
         node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>;

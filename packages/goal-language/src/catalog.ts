@@ -10,6 +10,7 @@
  * cannot add an operator or change how tightly one binds. goal.langium is
  * written from this table (the tests check they agree).
  */
+import type { AssertionPrefix } from '@goal-controller/dialect';
 
 export type OperatorForm =
   | 'infix'
@@ -51,12 +52,32 @@ export const POSTFIX_SYMBOLS = ['@'] as const;
 export const STANDALONE_SYMBOLS = ['+', '*', '?', '#'] as const;
 
 /**
- * `FALLBACK(G1,G2)`: a construct written as a call, with the number of
- * operands it takes (MutRoSe's runtime annotations). A call is an operand on
- * its own, like a group: its commas separate operands, they are not `,`.
+ * A construct written as a call, with the number of operands it takes:
+ * exactly `n`, or (variadic) at least `{ min }`.
  */
-export const CALLS = { FALLBACK: { arity: 2 } } as const;
+export type CallArity = number | { min: number };
+
+/**
+ * `FALLBACK(G1,G2)`: a construct written as a call, with the number of
+ * operands it takes (MutRoSe's runtime annotations); `DM(T1,T2,T3)` takes two
+ * or more (GODA's decision making). A call is an operand on its own, like a
+ * group: its commas separate operands, they are not `,`.
+ */
+export const CALLS = {
+  FALLBACK: { arity: 2 },
+  DM: { arity: { min: 2 } },
+} as const satisfies Record<string, { arity: CallArity }>;
 export const CALL_NAMES = Object.keys(CALLS) as (keyof typeof CALLS)[];
+
+/** Whether a call may have this many operands (its arity, exact or a minimum). */
+export const takesOperands = (arity: CallArity, operands: number): boolean =>
+  typeof arity === 'number' ? operands === arity : operands >= arity.min;
+
+/** What a call takes, in words: `2 operands`, `at least 2 operands`. */
+export const arityText = (arity: CallArity): string =>
+  typeof arity === 'number'
+    ? `${arity} operands`
+    : `at least ${arity.min} operands`;
 
 export type InfixSymbol = (typeof INFIX_SYMBOLS)[number];
 export type PrefixSymbol = (typeof PREFIX_SYMBOLS)[number];
@@ -69,6 +90,10 @@ export type OperatorSymbol =
   | PrefixSymbol
   | PostfixSymbol
   | CallName;
+
+/** How many operands a call's example shows: its arity, or its minimum. */
+const callExampleOperands = (arity: CallArity): number =>
+  typeof arity === 'number' ? arity : arity.min;
 
 /** The whole catalog, tightest first (standalone symbols have no precedence: 0). */
 export const OPERATORS: readonly CatalogOperator[] = [
@@ -105,7 +130,7 @@ export const OPERATORS: readonly CatalogOperator[] = [
     form: 'call',
     precedence: 0,
     assoc: 'none',
-    example: `${symbol}(${Array.from({ length: CALLS[symbol].arity }, (_, i) => `G${i + 1}`).join(',')})`,
+    example: `${symbol}(${Array.from({ length: callExampleOperands(CALLS[symbol].arity) }, (_, i) => `G${i + 1}`).join(',')})`,
   })),
 ];
 
@@ -126,6 +151,24 @@ export const ASSERTION = {
   comparators: ['=', '!=', '<', '<=', '>', '>='],
   bool: ['true', 'false'],
 } as const;
+
+/**
+ * The prefixes a condition may start with, where its dialect asks for one
+ * (GODA's CtxRegex.g4: `assertion condition` on goals, `assertion trigger` on
+ * tasks).
+ */
+export const ASSERTION_PREFIXES = [
+  'assertion condition',
+  'assertion trigger',
+] as const satisfies readonly AssertionPrefix[];
+// and every prefix the dialect schema names is here
+const everyPrefix: Exclude<
+  AssertionPrefix,
+  (typeof ASSERTION_PREFIXES)[number]
+> extends never
+  ? true
+  : never = true;
+void everyPrefix;
 
 /**
  * OCL's collection operations, as an `ocl` value writes them after `->`

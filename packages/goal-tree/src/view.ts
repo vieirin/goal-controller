@@ -11,7 +11,10 @@ import {
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
-import { notationRefs, parseElementLine } from '@goal-controller/goal-language';
+import {
+  notationRefs,
+  parseElementLineIn,
+} from '@goal-controller/goal-language';
 import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
@@ -62,8 +65,9 @@ export type GoalView = {
   roots: string[];
 };
 
-/** `ID: name [notation]` as written (the fallback when the grammar cannot read it). */
-const TEXT = /^\s*([A-Za-z]+\d+[A-Za-z0-9.]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
+/** `ID: name [notation]` as written (the fallback when the grammar cannot read it); `TX` is an id too. */
+const TEXT =
+  /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
 
 const KIND: Record<string, ViewKind> = {
   'istar.Goal': 'goal',
@@ -72,9 +76,11 @@ const KIND: Record<string, ViewKind> = {
   'istar.Quality': 'quality',
 };
 
-/** Every id a goal text's notation names, once each, in the order written. */
-const listed = (text: string): string[] => [
-  ...new Set(notationRefs(parseElementLine(text).value?.notation ?? null)),
+/** Every id a goal text's notation names, once each, in the order written (read in the dialect). */
+const listed = (dialect: ReadingDialect, text: string): string[] => [
+  ...new Set(
+    notationRefs(parseElementLineIn(dialect, text).value?.notation ?? null),
+  ),
 ];
 
 /** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
@@ -120,7 +126,7 @@ export function goalView(
       text,
       notation,
       construct: executionDetail?.type ?? null,
-      order: errors.length === 0 ? listed(text) : [],
+      order: errors.length === 0 ? listed(dialect, text) : [],
       notationError:
         notation !== null && errors.length > 0 ? errors.join('; ') : null,
       relation: null,

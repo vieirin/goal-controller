@@ -12,7 +12,7 @@ import type {
 } from '@goal-controller/dialect';
 import {
   errorText,
-  parseElementLine,
+  parseElementLineIn,
   parseValue,
   type AssertionTree,
   type RtTree,
@@ -152,7 +152,7 @@ export const goalNameParserFor =
     dialect: D,
   ): GoalNameParser<ExecutionDetailOf<D>> =>
   ({ goalText, onSyntaxError }) => {
-    const read = parseElementLine(goalText);
+    const read = parseElementLineIn(dialect, goalText);
     for (const error of read.errors) report(errorText(error), onSyntaxError);
     const notation = read.value?.notation ?? null;
     const notated = dialect.notation

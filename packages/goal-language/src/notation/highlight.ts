@@ -79,6 +79,9 @@ const STYLE: Record<string, HighlightStyle> = {
       'trigger',
     ].map((word) => [word, 'keyword' as const]),
   ),
+  // a leaf's cost (`[W = 0.1x]`) and a condition's prefix
+  W: 'keyword',
+  A_PREFIX: 'keyword',
   STRING: 'string',
   WORD: 'string',
   PLAIN_NAME: 'string',
@@ -86,6 +89,7 @@ const STYLE: Record<string, HighlightStyle> = {
   INTEGER: 'number',
   NUMBER: 'number',
   A_INT: 'number',
+  A_NUMBER: 'number',
   FLOAT: 'number',
   A_ID: 'variableName',
   IDENT: 'variableName',

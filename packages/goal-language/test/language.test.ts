@@ -198,6 +198,7 @@ describe('element lines', () => {
         name: ' Battery ',
         annotations: [],
         notation: null,
+        cost: null,
         declaration: {
           type: 'int',
           lowerBound: '0',

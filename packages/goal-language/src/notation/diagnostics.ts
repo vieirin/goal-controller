@@ -20,7 +20,7 @@ import {
   type WithNotation,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
-import { CALLS, type CallName } from '../catalog.js';
+import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 
@@ -119,13 +119,13 @@ const disabled = (
         }))),
     // a call with as many operands as the language's catalog gives it
     ...notation.operators.flatMap(({ symbol, form, span, operands }) => {
-      const arity = form === 'call' && CALLS[symbol as CallName]?.arity;
-      return arity && operands !== arity
+      const arity = form === 'call' ? CALLS[symbol as CallName]?.arity : null;
+      return arity && operands !== undefined && !takesOperands(arity, operands)
         ? [
             {
               ...span,
               severity: 'error' as const,
-              message: `\`${symbol}\` takes ${arity} operands, not ${operands}`,
+              message: `\`${symbol}\` takes ${arityText(arity)}, not ${operands}`,
             },
           ]
         : [];
@@ -161,7 +161,48 @@ type Definition = Pick<
   | 'properties'
   | 'propertyLineOrder'
   | 'problems'
+  | 'idScope'
 >;
+
+/** The kind whose id prefix an id starts with (the longest that matches). */
+const kindOfId = (
+  definition: Pick<AnyDialect, 'elements'>,
+  id: string,
+): string | undefined =>
+  Object.entries(definition.elements)
+    .filter(([, element]) => element?.prefix && id.startsWith(element.prefix))
+    .sort(([, a], [, b]) => b!.prefix!.length - a!.prefix!.length)[0]?.[0];
+
+/**
+ * What an element line's bracket holds against what its dialect reads there:
+ * a cost (`[W = 0.1]`) only on a leaf of a dialect whose leaves have costs,
+ * and on such a leaf, nothing else.
+ */
+const bracketProblem = (
+  definition: Definition,
+  read: ElementReading,
+  leaf: boolean,
+): Diagnostic | null => {
+  const costs = definition.notation?.leafBracket === 'cost';
+  const error = (span: { from: number; to: number }, message: string) => ({
+    ...span,
+    severity: 'error' as const,
+    message,
+  });
+  if (read.cost && !costs)
+    return error(read.cost.span, `A cost is not part of ${definition.name}`);
+  if (read.cost && !leaf)
+    return error(
+      read.cost.span,
+      "Only a leaf's bracket holds a cost: a refined element's holds its notation",
+    );
+  if (costs && leaf && read.notation)
+    return error(
+      read.notation.span,
+      "A leaf's bracket holds its cost: W = 0.1, W = 0.1x or W = x",
+    );
+  return null;
+};
 
 const problem = (
   definition: Definition,
@@ -321,6 +362,9 @@ export const documentDiagnostics = (
         owner && d.elementId === undefined ? { ...d, elementId: owner } : d,
       ),
     );
+  // the goal lines above, by indentation: an id scoped by its nearest goal
+  const goalsAbove: { indent: number; id: string }[] = [];
+  const scoped = definition.idScope === 'ancestorGoal';
   let offset = 0;
   for (const written of lines) {
     const lineFrom = offset;
@@ -347,15 +391,23 @@ export const documentDiagnostics = (
       closeBlock();
       started = true;
       const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
-      if (seen.has(id)) {
+      while (goalsAbove.length && goalsAbove.at(-1)!.indent >= indent)
+        goalsAbove.pop();
+      const isGoal = kindOfId(definition, id) === 'goal';
+      // a goal is unique in the model; under `ancestorGoal`, another element under its goal
+      const scope = scoped && !isGoal ? `${goalsAbove.at(-1)?.id ?? ''}/` : '';
+      if (isGoal) goalsAbove.push({ indent, id });
+      if (seen.has(scope + id)) {
         push({
           ...idSpan,
           severity: 'error',
-          message: `Duplicate id ${written_id ?? id}`,
+          message: scope
+            ? `Duplicate id ${written_id ?? id} under ${goalsAbove.at(-1)?.id ?? 'no goal'}`
+            : `Duplicate id ${written_id ?? id}`,
         });
         continue;
       }
-      seen.add(id);
+      seen.add(scope + id);
       const element = context.elements[id];
       if (!element) {
         push(problem(definition, 'notInDiagram', idSpan.from, idSpan.to));
@@ -444,7 +496,13 @@ export const documentDiagnostics = (
         });
         continue;
       }
-      if (!definition.notation || !read.notation) continue;
+      const bracket = bracketProblem(
+        definition,
+        read,
+        element.children.length === 0,
+      );
+      if (bracket) push({ ...bracket, ...at(bracket) });
+      if (!definition.notation || !read.notation || bracket) continue;
       const notated = definition as Definition & WithNotation;
       const notationSpan = at(read.notation.span);
       push(
