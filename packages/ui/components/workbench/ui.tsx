@@ -17,6 +17,10 @@ export { cx };
 
 // ---------------------------------------------------------------------------
 
+/** Keeps the selected tab visible when the tab list scrolls. */
+const scrollIntoView = (node: HTMLButtonElement | null) =>
+  node?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+
 export function Tabs<T extends string>({
   tabs,
   value,
@@ -36,22 +40,24 @@ export function Tabs<T extends string>({
   trailing?: ReactNode;
 }) {
   return (
-    <div className='flex h-9 shrink-0 items-stretch gap-1 border-b border-line bg-panel px-2'>
+    <div className='flex h-9 min-w-0 shrink-0 items-stretch gap-1 border-b border-line bg-panel px-2'>
+      {/* many tabs (an engine with several output files) scroll here; the actions stay put */}
       <div
         role='tablist'
         aria-label={label}
-        className='flex items-stretch gap-1'
+        className='flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none]'
       >
         {tabs.map((tab) => {
           const active = tab.id === value;
           return (
             <button
               key={tab.id}
+              ref={active ? scrollIntoView : undefined}
               role='tab'
               aria-selected={active}
               onClick={() => onChange(tab.id)}
               className={cx(
-                'relative flex items-center gap-1.5 px-2.5 text-[13px] transition-colors',
+                'relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 text-[13px] transition-colors',
                 active
                   ? 'font-semibold text-ink'
                   : 'text-ink-muted hover:text-ink',
@@ -73,14 +79,16 @@ export function Tabs<T extends string>({
                 </span>
               )}
               {active && (
-                <span className='absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-ink' />
+                <span className='absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-ink' />
               )}
             </button>
           );
         })}
       </div>
       {trailing && (
-        <div className='ml-auto flex items-center gap-1'>{trailing}</div>
+        <div className='ml-auto flex shrink-0 items-center gap-1'>
+          {trailing}
+        </div>
       )}
     </div>
   );
