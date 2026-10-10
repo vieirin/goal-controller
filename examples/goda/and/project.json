@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "goda",
+  "options": {
+    "variant": "cc808b6"
+  },
+  "models": [
+    {
+      "path": "and2.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}
