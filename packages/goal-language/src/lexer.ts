@@ -4,7 +4,12 @@ import {
   type IToken,
 } from 'chevrotain';
 import { DefaultLexer, type LexerResult } from 'langium';
-import { CALL_NAMES, ID_PREFIXES, OCL_OPERATIONS } from './catalog.js';
+import {
+  ASSERTION_PREFIXES,
+  CALL_NAMES,
+  ID_PREFIXES,
+  OCL_OPERATIONS,
+} from './catalog.js';
 
 /** An id prefix, longest first (`AT` before `T`). */
 const PREFIX = [...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|');
@@ -41,9 +46,30 @@ const RT = rules([
   ['{', /\{/],
 ]);
 
-/** An optional id before a plain line's name, with its colon: `G1:`, `T1.2X :`. */
+/**
+ * A leaf's cost in its bracket (`[W = 0.1x]`, GODA's CostRegex.g4): `W`, `=`,
+ * a constant and a variable of letters; spaces between them are hidden.
+ */
+const COST = rules([
+  ...literal('W', '=', ']'),
+  ['FLOAT', /[0-9]+\.?[0-9]*/],
+  ['IDENT', /[A-Za-z_]+/],
+  ['WS', /[ \t]+/],
+]);
+
+/** A bracket that holds a cost: `W =` first (spaces aside). */
+const COST_START = /[ \t]*W[ \t]*=/y;
+
+/**
+ * An id that is a prefix and `X` alone (`TX`, `GX`: an unknown element, in
+ * GODA): WORD matches it for two letters, which beats the prefix's one, so it
+ * is split back into the prefix and `X`.
+ */
+const X_ID = new RegExp(`^(${PREFIX})X$`);
+
+/** An optional id before a plain line's name, with its colon: `G1:`, `T1.2X :`, `TX:`. */
 const PLAIN_ID = new RegExp(
-  `(?:${PREFIX})(?:[0-9]+\\.?[0-9]*X?|[0-9][a-z])[ \\t]*:`,
+  `(?:${PREFIX})(?:[0-9]+\\.?[0-9]*X?|[0-9][a-z]|X)[ \\t]*:`,
   'y',
 );
 
@@ -79,8 +105,20 @@ const ASSERTION = rules([
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],
+  // CtxRegex.g4's FLOAT (`x > 0.5`): longer than the INT it starts with
+  ['A_NUMBER', /[0-9]+\.[0-9]*/],
   ['WS', /[ \t\r\n]+/],
 ]);
+
+/**
+ * A condition's prefix (CtxRegex.g4's `assertion condition `, `assertion
+ * trigger `): read only where the value starts, so `assertion` stays a name
+ * anywhere else.
+ */
+const ASSERTION_PREFIX = new RegExp(
+  `(?:${ASSERTION_PREFIXES.map((prefix) => prefix.replace(' ', '[ \\t]+')).join('|')})(?![A-Za-z0-9_])`,
+  'y',
+);
 
 const SPACE: [string, RegExp] = ['WS', /[ \t\r\n]+/];
 
@@ -142,12 +180,13 @@ export type LexerStart =
 /** Where the lexer is in an element line. */
 type LineState =
   /** before the id or name: annotations, and spaces after them */
-  'lead' | 'stereotype' | 'tag' | 'name' | 'rt' | 'declaration';
+  'lead' | 'stereotype' | 'tag' | 'name' | 'rt' | 'cost' | 'declaration';
 
 const LINE_RULES: Record<Exclude<LineState, 'lead' | 'name'>, Rules> = {
   stereotype: STEREOTYPE,
   tag: TAG,
   rt: RT,
+  cost: COST,
   declaration: DECLARATION,
 };
 
@@ -233,6 +272,13 @@ export class GoalLexer extends DefaultLexer {
         start === 'assertion'
           ? ASSERTION
           : VALUES[start as keyof typeof VALUES];
+      if (start === 'assertion') {
+        // a prefix, before anything else but spaces
+        const space = at(/[ \t\r\n]+/y, text, offset);
+        if (space) push('WS', space);
+        const prefix = at(ASSERTION_PREFIX, text, offset);
+        if (prefix) push('A_PREFIX', prefix);
+      }
       while (offset < text.length) {
         if (start === 'pairList' && tokens.at(-1)?.tokenType.name === ':') {
           const value = at(PAIR_VALUE, text, offset);
@@ -255,6 +301,8 @@ export class GoalLexer extends DefaultLexer {
     // read a leading space as part of a WORD)
     let annotated = false;
     let lineStart = true;
+    // whether the line's bracket has opened (only it may hold a cost)
+    let bracketed = false;
 
     while (offset < text.length) {
       const lineBreak = at(LINE_BREAK, text, offset);
@@ -263,6 +311,7 @@ export class GoalLexer extends DefaultLexer {
         state = 'lead';
         annotated = false;
         lineStart = true;
+        bracketed = false;
         continue;
       }
       if (lineStart && document) {
@@ -350,7 +399,27 @@ export class GoalLexer extends DefaultLexer {
         unrecognized();
         continue;
       }
+      // an id where one may be: not a name right after its colon (`G1:GX`)
+      const xId =
+        state === 'rt' &&
+        best.name === 'WORD' &&
+        tokens.at(-1)?.tokenType.name !== ':' &&
+        X_ID.exec(best.image);
+      if (xId) {
+        push(xId[1]!, xId[1]!);
+        push('X', 'X');
+        continue;
+      }
       push(best.name, best.image);
+      if (state === 'rt' && best.name === '[' && !bracketed) {
+        bracketed = true;
+        if (at(COST_START, text, offset)) state = 'cost';
+        continue;
+      }
+      if (state === 'cost' && best.name === ']') {
+        state = 'rt';
+        continue;
+      }
       if (state === 'stereotype' && best.name === '>>') {
         state = 'lead';
         annotated = true;

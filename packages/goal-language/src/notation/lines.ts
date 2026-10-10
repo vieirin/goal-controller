@@ -20,6 +20,7 @@ import {
   parseValue,
   syntaxErrorsOf,
   toRtTree,
+  withoutBracketSpaces,
   type GoalSyntaxError,
   type RtTree,
 } from '../parse.js';
@@ -58,6 +59,13 @@ export type ElementReading = {
     /** where `skip` is written */
     skips: Span[];
     operators: WrittenOperator[];
+  } | null;
+  /** its bracket when it holds a cost (`[W = 0.1x]`), not a notation */
+  cost: {
+    value: string | null;
+    variable: string | null;
+    /** between the brackets */
+    span: Span;
   } | null;
   declaration: { properties: DeclaredProperties; span: Span } | null;
   errors: GoalSyntaxError[];
@@ -191,17 +199,20 @@ const readElement = (
     to: textTo - (written.length - written.trimEnd().length),
   };
   const open = keywordSpan(line, '[');
-  const close = line.notation ? keywordSpan(line, ']') : null;
-  const notationSpan =
-    open && line.notation
+  const cost = line.$type === 'ElementLine' ? line.cost : undefined;
+  const bracketed = line.notation ?? cost;
+  const close = bracketed ? keywordSpan(line, ']') : null;
+  const bracketSpan =
+    open && bracketed
       ? {
           from: open.to,
           to:
             close && close.from > open.to
               ? close.from
-              : (spanOf(line.notation.$cstNode)?.to ?? open.to),
+              : (spanOf(bracketed.$cstNode)?.to ?? open.to),
         }
       : null;
+  const notationSpan = line.notation ? bracketSpan : null;
   const exprs = line.notation
     ? [line.notation, ...AstUtils.streamAllContents(line.notation)]
     : [];
@@ -239,6 +250,14 @@ const readElement = (
             }),
           }
         : null,
+    cost:
+      cost && bracketSpan
+        ? {
+            value: cost.value ?? null,
+            variable: cost.variable ?? null,
+            span: bracketSpan,
+          }
+        : null,
     declaration,
     errors,
   };
@@ -262,14 +281,77 @@ export const annotatedProperties = (
   return properties;
 };
 
+/** A reading of a line without its bracket's spaces, its spans in the line as written. */
+const writtenAs = (
+  read: ElementReading,
+  text: string,
+  origin: (offset: number) => number,
+): ElementReading => {
+  const span = ({ from, to }: Span): Span => ({
+    from: origin(from),
+    // the end of the last character read, not where the next one starts
+    to: to > from ? origin(to - 1) + 1 : origin(from),
+  });
+  const textSpan = span(read.textSpan);
+  const notationSpan = read.notation && span(read.notation.span);
+  return {
+    ...read,
+    idSpan: read.idSpan && span(read.idSpan),
+    text: text.slice(textSpan.from, textSpan.to),
+    textSpan,
+    annotations: read.annotations.map((a) => ({ ...a, span: span(a.span) })),
+    notation: read.notation &&
+      notationSpan && {
+        ...read.notation,
+        text: text.slice(notationSpan.from, notationSpan.to).trim(),
+        span: notationSpan,
+        refs: read.notation.refs.map((ref) => ({
+          ...ref,
+          span: span(ref.span),
+        })),
+        skips: read.notation.skips.map(span),
+        operators: read.notation.operators.map((op) => ({
+          ...op,
+          span: span(op.span),
+        })),
+      },
+    cost: read.cost && { ...read.cost, span: span(read.cost.span) },
+    declaration: read.declaration && {
+      ...read.declaration,
+      span: span(read.declaration.span),
+    },
+    errors: read.errors.map((error) => {
+      const at = span({ from: error.offset, to: error.offset + error.length });
+      return {
+        ...error,
+        offset: at.from,
+        column: at.from,
+        length: at.to - at.from,
+      };
+    }),
+  };
+};
+
 /**
  * One line of a Notation view document, as the goal language reads it (a
- * definition whose lines have no ids reads annotated names).
+ * definition whose lines have no ids reads annotated names; one that ignores
+ * the spaces in brackets reads the line without them, its spans in the line
+ * as written).
  */
 export const readLine = (
-  definition: Pick<AnyDialect, 'elements'>,
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'notation'>>,
   text: string,
 ): LineReading => {
+  if (definition.notation?.whitespace === 'ignore') {
+    const stripped = withoutBracketSpaces(text);
+    if (stripped.text !== text) {
+      const read = readLine({ elements: definition.elements }, stripped.text);
+      return read.kind === 'element'
+        ? writtenAs(read, text, stripped.origin)
+        : readLine({ elements: definition.elements }, text);
+    }
+  }
   const ids = hasIds(definition);
   const result = parseWith(
     goalServices(),

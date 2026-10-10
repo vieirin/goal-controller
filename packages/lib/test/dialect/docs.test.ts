@@ -20,7 +20,7 @@
  *   a dialect without ids (`rationalAgents`)
  *   checks against `%% model <name> | <name> | …` (its elements, in order)
  *
- * Dialects: edge, edgeV2, mutrose, and edgeV2 / edge with iStar4RationalAgents'
+ * Dialects: edge, edgeV2, mutrose, goda, and edgeV2 / edge with iStar4RationalAgents'
  * annotations (`edgeV2+rationalAgents`, `edge+rationalAgents`).
  */
 import { expect } from 'chai';
@@ -49,7 +49,7 @@ import {
   serverCompletions,
   serverDiagnostics,
 } from '@goal-controller/goal-language/lsp';
-import { edge, edgeV2, istar4RationalAgents, mutrose } from '../../src';
+import { edge, edgeV2, goda, istar4RationalAgents, mutrose } from '../../src';
 
 const DOCS = join(__dirname, '../../../goal-language/docs');
 const FILES = ['reference.md', 'api.md', 'diagnostics.md', 'examples.md'];
@@ -58,6 +58,7 @@ const DIALECTS: Record<string, AnyDialect> = {
   edge: edge as AnyDialect,
   edgeV2: edgeV2 as AnyDialect,
   mutrose: mutrose as AnyDialect,
+  goda: goda as AnyDialect,
   'edge+rationalAgents': withExtension(
     edge as AnyDialect,
     istar4RationalAgents,

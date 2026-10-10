@@ -23,10 +23,18 @@ Line:
 PlainDocument:
     (NL | lines+=AnnotatedName)*;
 
-// `<<action>> {type = duty} T1: Name [T2;T3] {int 0..100 = 80}`
+// `<<action>> {type = duty} T1: Name [T2;T3] {int 0..100 = 80}`; a leaf's
+// bracket may hold its cost instead (`T1.1: Name [W = 0.1x]`), in a dialect
+// that reads it so (`notation.leafBracket`)
 ElementLine:
     annotations+=Annotation* name=ElementId ':' label=WORD
-    ('[' notation=RtExpr ']')? declaration=Declaration?;
+    ('[' (cost=Cost | notation=RtExpr) ']')? declaration=Declaration?;
+
+// GODA's CostRegex.g4: a constant (`W = 0.1`), a constant times a variable
+// (`W = 0.1x`) or a variable (`W = x`); GoalLexer reads it when a bracket
+// starts with `W =`
+Cost:
+    'W' '=' (value=FLOAT variable=IDENT? | variable=IDENT);
 
 // a modelling dialect's line: `<<goal-based>> {Id = A1} Name`, or with an id,
 // `<<goal-based>> G1: Name` (an id names its element; without one, a line is
@@ -76,7 +84,7 @@ RtPostfix infers RtExpr:
 RtPrimary infers RtExpr:
     {infer RtGroup} open='[' expr=RtExpr ']'
     | {infer RtGroup} open='(' expr=RtExpr ')'
-    | {infer RtCall} function='FALLBACK' '(' args+=RtBinary (',' args+=RtBinary)* ')'
+    | {infer RtCall} function=('FALLBACK' | 'DM') '(' args+=RtBinary (',' args+=RtBinary)* ')'
     | {infer RtSkip} keyword='skip'
     | {infer RtStandalone} symbol=('+' | '*' | '?' | '#')
     | {infer RtRef} ref=[ElementLine:ElementId];
@@ -85,8 +93,10 @@ RtPrimary infers RtExpr:
 // Predefined value types, one rule each (an inspector field reads one alone)
 // ---------------------------------------------------------------------------
 
+// `assertion trigger ctx = 1`: a prefix first, where a dialect asks for one
+// (GODA's CtxRegex.g4); GoalLexer reads one only at the value's start
 AssertionValue:
-    {infer AssertionValue} expr=AssertExpr?;
+    {infer AssertionValue} prefix=A_PREFIX? expr=AssertExpr?;
 
 // '&' binds tighter than '|'; '!' negates everything after it
 AssertExpr:
@@ -101,8 +111,8 @@ AssertUnary infers AssertExpr:
 
 AssertPrimary infers AssertExpr:
     {infer AssertParen} '(' expr=AssertExpr ')'
-    | {infer AssertAssign} variable=A_ID '=' value=AssertBool
-    | {infer AssertCompare} variable=A_ID operator=Comparator value=A_INT
+    | {infer AssertAssign} variable=A_ID operator=('=' | '!=') value=AssertBool
+    | {infer AssertCompare} variable=A_ID operator=Comparator value=(A_INT | A_NUMBER)
     | {infer AssertVar} variable=A_ID
     | {infer AssertConst} value=AssertBool;
 
@@ -181,6 +191,10 @@ terminal VALUE: /[^\s](?:[^\r\n]*[^\s])?/;
 // the assertion language
 terminal A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
 terminal A_INT: /[0-9]+/;
+// a decimal (CtxRegex.g4's FLOAT), where a dialect allows them
+terminal A_NUMBER: /[0-9]+\.[0-9]*/;
+// `assertion condition`, `assertion trigger`
+terminal A_PREFIX: /assertion[ \t]+(condition|trigger)/;
 terminal INTEGER: /-?[0-9]+/;
 terminal NUMBER: /-?[0-9]+\.[0-9]+/;
 terminal PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/;

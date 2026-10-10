@@ -296,6 +296,7 @@ const MODES: readonly ModelMode[] = [
   'edge',
   'sleec',
   'mutrose',
+  'goda',
   'pistarext',
   'pistar',
 ];
@@ -388,6 +389,16 @@ const ENGINE_READS: Partial<Record<TransformEngine, Reads>> = {
   // the decomposer reads one actor's goals and tasks, refined by AND/OR links
   mutrose: {
     elements: new Set(['istar.Actor', 'istar.Goal', 'istar.Task']),
+    links: new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink']),
+  },
+  // goals, tasks and resources (read and left out), refined by AND/OR links
+  goda: {
+    elements: new Set([
+      'istar.Actor',
+      'istar.Goal',
+      'istar.Task',
+      'istar.Resource',
+    ]),
     links: new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink']),
   },
 };

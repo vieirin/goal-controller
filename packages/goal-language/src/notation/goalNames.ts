@@ -12,7 +12,7 @@ import type {
 } from '@goal-controller/dialect';
 import {
   errorText,
-  parseElementLine,
+  parseElementLineIn,
   parseValue,
   type AssertionTree,
   type RtTree,
@@ -152,12 +152,19 @@ export const goalNameParserFor =
     dialect: D,
   ): GoalNameParser<ExecutionDetailOf<D>> =>
   ({ goalText, onSyntaxError }) => {
-    const read = parseElementLine(goalText);
+    const read = parseElementLineIn(dialect, goalText);
     for (const error of read.errors) report(errorText(error), onSyntaxError);
     const notation = read.value?.notation ?? null;
     const notated = dialect.notation
       ? (dialect as ReadingDialect & WithNotation)
       : null;
+    // a cost bracket (`[W = 1]`) only where the dialect's leaves have costs
+    const cost = read.value?.cost ?? null;
+    if (cost && dialect.notation?.leafBracket !== 'cost')
+      report(
+        `1:${Math.max(goalText.indexOf('['), 0)} A cost is not part of ${dialect.name}`,
+        onSyntaxError,
+      );
     if (notated)
       for (const symbol of readNotation(notated, notation).disabled)
         report(
@@ -201,7 +208,9 @@ export const assertionVariables = (text: string): AssertionVariable[] => {
         walk(node.expr);
         return;
       case 'assign':
-        variables.push({ name: node.variable, value: node.value });
+        // `x != true` names x, without setting it
+        if (node.negated) named(node.variable);
+        else variables.push({ name: node.variable, value: node.value });
         return;
       case 'compare':
       case 'var':

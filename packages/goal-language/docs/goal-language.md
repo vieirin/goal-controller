@@ -46,8 +46,8 @@ A **document** is lines (`Document`). There are two kinds of line:
   └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
   ```
 
-  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X` or `1a` (`GX`
-  reads as a name: see the [reference](reference.md#ids)). A
+  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X`, `1a` or `X`
+  (GODA's `TX`: see the [reference](reference.md#ids)). A
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
 
@@ -245,7 +245,7 @@ test fails if they are stale. The tests use mocha with tsx, and the root
    - RTRegex.g4's argument list `[G2,G3]` (`,` is now the catalog's
      operator);
    - edge's bare `G11: Choice Goal +`: the language needs `[+]`.
-2. **12 texts both parsers reject** but recover from differently (what is
+2. **11 texts both parsers reject** but recover from differently (what is
    read past an error).
 3. **A group under another operator** (`G1: Group [[G2;G3]#G4]`, not in any
    model): ANTLR's listener kept each construct's last exit and picked one
@@ -259,8 +259,19 @@ test fails if they are stale. The tests use mocha with tsx, and the root
    is byte-identical.
 5. **`x > 0`.** AssertionRegex.g4's `INT` had no zero, so it couldn't parse
    this. The language can.
+6. **`GX`, `TX` are ids** (GODA's unknown elements, goal-controller#32):
+   RTRegex.g4's WORD read them as a name for two letters, so `[GX|TX]` and
+   `GX: name` were rejected. In every dialect, Edge's included, the goal
+   language now reads them as ids (`G1X: Variant [GX|TX]`), except right
+   after a line's colon, where a WORD is a name (`G1:GX`).
+7. **A cost bracket** (`T1: Pick [W = 1]`, GODA's CostRegex.g4): RTRegex.g4
+   couldn't read it. The language reads it, and a dialect without
+   `notation.leafBracket: 'cost'` reports it (`A cost is not part of
+   Edge`), both in the editors and in the engine's reader, so Edge rejects
+   it as it did.
 
 ## Not done yet
 
-- Spaces inside a notation are an error (`[G2; G3]`), as in RTRegex.g4.
-  Relaxing this is a language decision.
+- Spaces inside a notation are an error (`[G2; G3]`), as in RTRegex.g4. A
+  dialect may ignore them (`notation.whitespace: 'ignore'`, GODA); Edge
+  doesn't.

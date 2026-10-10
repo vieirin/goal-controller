@@ -25,6 +25,7 @@ give, where `span` is the text the diagnostic covers.
 | `A property belongs under an element line` | error | a property line before any element line |
 | `Not a property line` | error | a line under an element that is neither an element line nor a property line |
 | `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition) |
+| `Duplicate id T1.1 under G4` | error | with `idScope: 'ancestorGoal'` (GODA): a second line with the same id under the same goal (the nearest goal line above, by indentation) |
 | `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model (without ids: no element's name starts with it) |
 | `N lines for M elements: each line is an element's, in order (add or remove elements in the diagram)` | error | a plain document whose line count isn't its element count |
 
@@ -54,6 +55,18 @@ starts with it, and a line without one is the element at its position
 %% model <<goal-based>> Robot | G1: Deliver sample | Plan it | Other
 %% error [G1] Duplicate id G1
 %% error [G7] Add this element in the diagram
+```
+
+With `idScope: 'ancestorGoal'`, a task's id is scoped by its goal (GODA's
+`G3_T1_1` and `G4_T1_1`):
+
+```goal-check goda
+G3: Collect data
+  T1.1: Read sensor
+G4: Report
+  T1.1: Read sensor
+  T1.1: Read again
+%% error [T1.1] Duplicate id T1.1 under G4
 ```
 
 ```goal-check rationalAgents
@@ -111,6 +124,10 @@ R1: Battery {int 0..}
 | `A task declares nothing on its line in EdgeV2` | error | a declaration on a kind that doesn't `declare` |
 | `An element has one stereotype: this one is not read` | error | a second stereotype (likewise `…one tagged value…`) |
 | ``\`FALLBACK\` takes 2 operands, not 1`` | error | a call with another number of operands than the catalog gives it |
+| ``\`DM\` takes at least 2 operands, not 1`` | error | a variadic call with fewer operands than its minimum |
+| `A cost is not part of EdgeV2` | error | a cost bracket (`[W = 0.1]`) in a dialect without `notation.leafBracket: 'cost'` |
+| `Only a leaf's bracket holds a cost: a refined element's holds its notation` | error | a cost on an element with children |
+| `A leaf's bracket holds its cost: W = 0.1, W = 0.1x or W = x` | error | a notation on a leaf, where leaves hold costs |
 
 ```goal-check edge
 G1: Deliver [G2?G3]
@@ -145,6 +162,30 @@ G1: Deliver [FALLBACK(G2,G3)]
 ```goal-check mutrose
 G1: Deliver [AT1;FALLBACK(G2)]
 %% error [FALLBACK] `FALLBACK` takes 2 operands, not 1
+```
+
+In GODA, `DM` takes two or more operands, a leaf's bracket is its cost, and
+the spaces in a bracket aren't read (`notation.whitespace: 'ignore'`):
+`T1.1 1` is `T1.11`, and a diagnostic points at it as written.
+
+```goal-check goda
+T1: Process sample [DM(T1.1)]
+T1.1: Pick sample [W = 0.5x]
+T2: Store sample [W = 2]
+%% children T2: T2.1
+%% error [DM] `DM` takes at least 2 operands, not 1
+%% error [W = 2] Only a leaf's bracket holds a cost: a refined element's holds its notation
+```
+
+```goal-check goda
+T1: Process [D M(T1.1 1,T1.2)]
+%% children T1: T1.11
+%% error [T1.2] Not a child of this element
+```
+
+```goal-check edgeV2
+T1: Pick sample [W = 1]
+%% error [W = 1] A cost is not part of EdgeV2
 ```
 
 ## The notation against the model
@@ -209,6 +250,11 @@ first.
 | `true or false, not 1` | error | `bool` |
 | `One of maintain, not achieve` | error | `enum` that isn't `open` |
 | `Not a condition: …` | error | `assertion` that doesn't parse |
+| `Starts with assertion condition or assertion trigger` | error | `assertion` with `prefixes`, without one of them |
+| `No prefix: assertion trigger is not read` | error | `assertion` without `prefixes`, with a prefix |
+| `A condition after assertion trigger` | error | a prefix alone |
+| `Not an integer: 0.5` | error | `assertion` without `decimals`, comparing with a decimal |
+| `A boolean is compared with =, not != (x != false)` | error | `assertion` without `booleanInequality`, comparing a boolean with `!=` |
 | `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
@@ -256,6 +302,36 @@ T1: Pick
 R1: Battery {bool = true}
 %% variables charged
 %% info [assertion R1=true & charged & chargd] chargd is not a resource of this model or a known variable
+```
+
+GODA's context conditions (`creationProperty`, CtxRegex.g4) start with a
+prefix and may compare with decimals; Edge's conditions take neither:
+
+```goal-check goda
+T1: Pick
+  creationProperty assertion trigger battery > 0.5 & ready = true
+T2: Drop
+  creationProperty battery > 1
+T3: Hold
+  creationProperty assertion trigger
+T4: Wait
+  creationProperty assertion condition docked != false
+%% variables battery ready docked
+%% error [creationProperty battery > 1] Starts with assertion condition or assertion trigger
+%% error [creationProperty assertion trigger] A condition after assertion trigger
+```
+
+```goal-check edgeV2
+T1: Pick
+  assertion x > 0.5
+T2: Drop
+  assertion assertion trigger x > 1
+T3: Hold
+  assertion x != false
+%% variables x
+%% error [assertion x > 0.5] Not an integer: 0.5
+%% error [assertion x != false] A boolean is compared with =, not != (x != false)
+%% error [assertion assertion trigger x > 1] No prefix: assertion trigger is not read
 ```
 
 ## The engine's reader

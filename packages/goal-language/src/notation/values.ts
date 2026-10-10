@@ -4,7 +4,7 @@
  * elements of the model of the kind it refers to.
  */
 import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
-import { parseValue } from '../parse.js';
+import { parseCondition, parseValue, type AssertionTree } from '../parse.js';
 import { assertionVariables } from './goalNames.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
@@ -20,6 +20,38 @@ const intProblem = (
   if (min !== undefined && n < min) return `At least ${min}`;
   if (max !== undefined && n > max) return `At most ${max}`;
   return null;
+};
+
+/** The first boolean a condition compares with `!=` (`x != false`), as written, if any. */
+const negatedOf = (tree: AssertionTree | null): string | null => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return negatedOf(tree.left) ?? negatedOf(tree.right);
+    case 'not':
+    case 'paren':
+      return negatedOf(tree.expr);
+    case 'assign':
+      return tree.negated ? `${tree.variable} != ${tree.value}` : null;
+    default:
+      return null;
+  }
+};
+
+/** The first decimal a condition compares with (`x > 0.5`), if any. */
+const decimalOf = (tree: AssertionTree | null): string | null => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return decimalOf(tree.left) ?? decimalOf(tree.right);
+    case 'not':
+    case 'paren':
+      return decimalOf(tree.expr);
+    case 'compare':
+      return tree.value.includes('.') ? tree.value : null;
+    default:
+      return null;
+  }
 };
 
 /**
@@ -50,8 +82,21 @@ export const valueProblem = (
         : `One of ${options.join(', ')}, not ${text.trim()}`;
     }
     case 'assertion': {
-      const [error] = parseValue('assertion', text).errors;
-      return error ? `Not a condition: ${error.message}` : null;
+      const read = parseCondition(text);
+      const [error] = read.errors;
+      if (error) return `Not a condition: ${error.message}`;
+      const { prefix, tree } = read.value;
+      const prefixes: readonly string[] = value.prefixes ?? [];
+      if (prefixes.length && (!prefix || !prefixes.includes(prefix)))
+        return `Starts with ${prefixes.join(' or ')}`;
+      if (!prefixes.length && prefix) return `No prefix: ${prefix} is not read`;
+      if (prefix && !tree) return `A condition after ${prefix}`;
+      const decimal = !value.decimals && decimalOf(tree);
+      if (decimal) return `Not an integer: ${decimal}`;
+      const inequality = !value.booleanInequality && negatedOf(tree);
+      return inequality
+        ? `A boolean is compared with =, not != (${inequality})`
+        : null;
     }
     case 'refList': {
       const read = parseValue('refList', text);

@@ -55,7 +55,20 @@ export type ValueConfig =
   | { type: 'text' }
   | { type: 'bool' }
   /** a condition; its identifiers name elements of these kinds, or variables */
-  | { type: 'assertion'; resolves: readonly (ElementKind | 'variable')[] }
+  | {
+      type: 'assertion';
+      resolves: readonly (ElementKind | 'variable')[];
+      /**
+       * the prefixes it starts with, one of them required (GODA's
+       * `assertion trigger ctx = 1`); none: a prefix is an error. The goal
+       * language's ASSERTION_PREFIXES.
+       */
+      prefixes?: readonly AssertionPrefix[];
+      /** whether it compares with decimals (`x > 0.5`), not integers only */
+      decimals?: boolean;
+      /** whether a boolean may be compared with `!=` (`x != false`, CtxRegex.g4), not `=` only */
+      booleanInequality?: boolean;
+    }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: ElementKind }
   /** `name:value` pairs, comma-separated */
@@ -78,6 +91,9 @@ export type ValueConfig =
        */
       memberCandidates?: ResourceCandidates;
     };
+
+/** A condition's prefix (the goal language's ASSERTION_PREFIXES; its tests pin them). */
+export type AssertionPrefix = 'assertion condition' | 'assertion trigger';
 
 /**
  * Where completion takes names from: a project resource's symbols of one
@@ -126,6 +142,18 @@ export type NotationDefinition = {
   constructs: Readonly<Record<string, ConstructDefinition>>;
   /** what a goal without a notation does, by its links */
   defaultConstruct: Readonly<Record<Relation, string>>;
+  /**
+   * `'cost'`: a leaf's bracket holds its cost (`T1.1: Name [W = 0.1x]`,
+   * GODA's CostRegex.g4), not a notation; a refined element's stays its
+   * notation. Default: every bracket is a notation (a cost is an error).
+   */
+  leafBracket?: 'cost';
+  /**
+   * `'ignore'`: spaces inside a bracket are not read (`[D M(T1.1 2)]` is
+   * `[DM(T1.12)]`, as GODA strips them before parsing). Default: a space is
+   * part of a name, as RTRegex.g4 read it (`[G2; G3]` is an error).
+   */
+  whitespace?: 'ignore';
 };
 
 export type Condition =
@@ -205,6 +233,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
   >;
   /** the files beside a model it reads, by kind (goal-controller#25) */
   projectResources?: Readonly<Record<string, ProjectResourceDefinition>>;
+  /**
+   * Where an id must be unique: in the whole model (`'model'`, the default),
+   * or among the elements under the same goal (`'ancestorGoal'`: a task's id
+   * is scoped by its nearest goal, GODA's `G3_T1_1` and `G4_T1_1`; goals stay
+   * unique in the model).
+   */
+  idScope?: 'model' | 'ancestorGoal';
 };
 
 // ---------------------------------------------------------------------------

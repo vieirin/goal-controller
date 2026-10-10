@@ -3,6 +3,7 @@ import { parsePistar } from '@istar-ts/core';
 import {
   edgeEngineMapper,
   edgeV2EngineMapper,
+  godaEngineMapper,
   mutroseEngineMapper,
   sleecEngineMapper,
   type EngineMapper,
@@ -115,5 +116,9 @@ export const GoalModel = {
 
   parseForMutrose(modelJson: string, options: ParseOptions = {}) {
     return this.parseWith(modelJson, mutroseEngineMapper, options);
+  },
+
+  parseForGoda(modelJson: string, options: ParseOptions = {}) {
+    return this.parseWith(modelJson, godaEngineMapper, options);
   },
 };

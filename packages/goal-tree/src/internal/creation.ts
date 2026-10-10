@@ -268,6 +268,7 @@ function createNode<
           raw: rawTaskProps,
           name: goalName,
           id,
+          text: node.name,
         }),
       },
     };

@@ -40,7 +40,9 @@ export const analyze = (
         ? GoalModel.parseForSleec(modelJson)
         : engine === 'mutrose'
           ? GoalModel.parseForMutrose(modelJson)
-          : GoalModel.parseForEdge(modelJson);
+          : engine === 'goda'
+            ? GoalModel.parseForGoda(modelJson)
+            : GoalModel.parseForEdge(modelJson);
 
   const response: AnalyzeResponse = {
     success: true,

@@ -21,6 +21,9 @@ bundles.
 | Export | Signature | Example |
 | --- | --- | --- |
 | `parseElementLine` | `(text) => Parsed<ElementLineData \| null>` | `parseElementLine('G1: A [G2;G3]').value.notation` |
+| `parseElementLineIn` | `(dialect, text) => Parsed<ElementLineData \| null>` | the line as its dialect reads it: without the spaces in its bracket under `notation.whitespace: 'ignore'` |
+| `withoutBracketSpaces` | `(text) => { text, origin(offset) }` | GODA's `removeBlankSpaceInBrackets`, and where each offset was written |
+| `parseCondition` | `(text) => Parsed<{ prefix, tree }>` | `parseCondition('assertion trigger x > 1').value.prefix` → `'assertion trigger'` |
 | `parseDocument` | `(text, { ids? = true }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false })` for a plain document |
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
 | `rtText` | `(tree: RtTree \| null) => string` | the notation with no spaces: `G2@2->G3` (an operand's text in `modifiers`) |
@@ -37,7 +40,10 @@ functions return plain data, with no Langium types:
   `postfix` (with `argument`) or `binary`;
 - `AssertionTree` is one of `and`, `or`, `not`, `paren`, `assign`,
   `compare`, `var` or `bool`;
-- `ElementLineData` is `{ id, name, annotations, notation, declaration }`.
+- `ElementLineData` is `{ id, name, annotations, notation, cost,
+  declaration }`. `cost` is a leaf's bracket when it holds a cost
+  (`[W = 0.5x]`: `{ value: '0.5', variable: 'x' }`), and `notation` is then
+  null.
   For an annotated name (`parseValue('annotatedName', …)`, a plain
   document's lines), `id` is the optional id it starts with, or `''`.
 
@@ -150,7 +156,9 @@ These are also in `/light`.
 | `OPERATORS` | every operator: `{ symbol, form, precedence, assoc, example }` |
 | `INFIX_SYMBOLS` | binary symbols, tightest first |
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
-| `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2) |
+| `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2, `DM`: `{ min: 2 }`) |
+| `takesOperands`, `arityText` | whether a call takes a number of operands, and its arity in words |
+| `ASSERTION_PREFIXES` | a condition's prefixes: `assertion condition`, `assertion trigger` |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |
 | `ID_PREFIXES` | `G`, `T`, `R`, `AT` |

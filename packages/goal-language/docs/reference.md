@@ -81,9 +81,10 @@ element's id when its name starts with one: it writes the name as it is.
 ## Element lines
 
 ```
-ElementLine   : Annotation* ElementId ':' WORD ('[' RtExpr ']')? Declaration? ;
+ElementLine   : Annotation* ElementId ':' WORD ('[' (Cost | RtExpr) ']')? Declaration? ;
 AnnotatedName : Annotation* (ElementId ':')? PLAIN_NAME ('[' RtExpr ']')? Declaration? ;
 ElementId     : ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
+Cost          : 'W' '=' (FLOAT IDENT? | IDENT) ;
 ```
 
 ### Ids
@@ -91,8 +92,10 @@ ElementId     : ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
 An id is a prefix `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by one of:
 
 - `1` (FLOAT): digits;
-- `1.2` (FLOAT): digits, a dot, and optionally more digits;
-- `1X` (FLOAT `X`);
+- `1.2` (FLOAT): digits, a dot, and optionally more digits (`1.11`,
+  `1.411`: GODA's three-level ids);
+- `1X` (FLOAT `X`), and `1.X`, `1.1X`;
+- `X` alone (`TX`, `GX`: GODA's unknown element);
 - `1a` (DIGIT_SUBID): **one** digit and one lowercase letter.
 
 ```goal accept
@@ -104,19 +107,31 @@ G1a: Deliver sample
 T3: Pick sample
 R4: Battery
 AT1: ApproachNurse
+T1.11: Pick sample
+T1.411: Pick sample
+T1.X: Pick sample
+T1.1X: Pick sample
+TX: Pick sample
+GX: Deliver sample
 ```
 
-The grammar also has a bare `X` alternative (`GX`), but the lexer never
-produces it. `GX` matches WORD (letters) for two characters, which beats
-`G` for one (see [the lexer](#the-lexer)), so `GX` is read as a name. This
-was the same in RTRegex.g4. Prefixes other than `G`, `T` and `R` are not
+`GX` and `TX` match WORD (letters) for two characters, which beats `G` for
+one (see [the lexer](#the-lexer)). RTRegex.g4 read them as a name, and the
+line had no id. The lexer splits such a WORD back into the prefix and `X`
+where an id may be, so `GX` is an id. Right after a line's colon it is
+still a name (`G1:GX`). Prefixes other than `G`, `T`, `R` and `AT` are not
 ids, and `G12a` is not one either (DIGIT_SUBID is one digit):
 
 ```goal reject
-GX: Deliver sample
 Q1: Deliver sample
 G12a: Deliver sample
 ```
+
+An id names one element of the model. A dialect with `idScope:
+'ancestorGoal'` (GODA) names a task by its goal: two tasks may have the
+same id under different goals (`T1.1` under `G3` and under `G4`), and the
+validator reports a repeated id only under the same goal
+([diagnostics.md](diagnostics.md#lines)).
 
 ### Names
 
@@ -185,6 +200,36 @@ G1: Deliver [G2; T1]
 G1: Deliver [ G2]
 G1: Deliver [G2] 
 G1: Deliver [G2;T1
+```
+
+A dialect with `notation.whitespace: 'ignore'` (GODA) reads a line without
+the spaces between its first `[` and its last `]`, as GODA's
+`removeBlankSpaceInBrackets` does: `[D M(T1.1 2,T1.13)]` reads
+`[DM(T1.12,T1.13)]`. The editors read the line the same way and point at
+what it says where it is written. Other dialects keep RTRegex.g4's rule.
+
+#### A leaf's cost
+
+In a dialect with `notation.leafBracket: 'cost'` (GODA), a leaf's bracket
+holds its **cost**, GODA's CostRegex.g4: `W =` and a constant (`W = 0.1`), a
+constant times a variable (`W = 0.1x`), or a variable (`W = x`). The
+variable is letters and `_`. Spaces between the parts are skipped. A
+refined element's bracket stays its notation. The lexer reads a cost when
+the bracket starts with `W =`, whatever the dialect. The validator reports
+a cost in a dialect without one, a cost on a refined element, and a
+notation on a leaf of a dialect whose leaves have costs.
+
+```goal accept
+T1.1: Pick sample [W = 0.1]
+T1.1: Pick sample [W=0.1x]
+T1.1: Pick sample [W = x]
+T1.1: Pick sample [W = 2.]
+```
+
+```goal reject
+T1.1: Pick sample [W = ]
+T1.1: Pick sample [W = 0.1 x2]
+T1.1: Pick sample [W = x 0.1]
 ```
 
 ### Declarations
@@ -265,12 +310,13 @@ RtPrimary  : '[' RtExpr ']' | '(' RtExpr ')' | 'FALLBACK' '(' RtBinary (',' RtBi
 - `skip`.
 - A group, `[...]` or `(...)`. Groups can't be empty.
 - A standalone symbol, `+ * ? #`, which is a whole operand on its own.
-- A call, `FALLBACK(G2,G3)` (MutRoSe's runtime annotations). Its commas
-  separate its operands; they are not the `,` operator, which is why `,` is
-  read apart from the other binary operators. The catalog gives each call
-  its number of operands (`FALLBACK`: 2), and the validator reports another
-  number. Like a group, a call is an operand of its own: `G1;FALLBACK(G2,G3)`
-  is a sequence of `G1` and the fallback.
+- A call, `FALLBACK(G2,G3)` (MutRoSe's runtime annotations) or
+  `DM(T1.1,T1.2,T1.3)` (GODA's decision making). Its commas separate its
+  operands; they are not the `,` operator, which is why `,` is read apart
+  from the other binary operators. The catalog gives each call its number
+  of operands, exact or a minimum (`FALLBACK`: 2, `DM`: at least 2), and
+  the validator reports another number. Like a group, a call is an operand
+  of its own: `G1;FALLBACK(G2,G3)` is a sequence of `G1` and the fallback.
 
 ```goal accept
 G1: A [G2;skip]
@@ -279,6 +325,8 @@ G1: A [+]
 G1: A [*]
 G1: A [FALLBACK(G2,G3)]
 G1: A [G2;FALLBACK(G3#G4,AT1)]
+T1: A [DM(T1.1,T1.2)]
+T1: A [DM(T1.1,T1.2,T1.3,T1.X)]
 ```
 
 ```goal reject
@@ -322,6 +370,7 @@ G2@2@3 ⇒ G2@2@3
 G2^G3~G4,G5&G6 ⇒ (((G2^G3)~G4),(G5&G6))
 G2;FALLBACK(G3#G4,AT1;G5) ⇒ (G2;FALLBACK((G3#G4),(AT1;G5)))
 FALLBACK(G2,G3),G4 ⇒ (FALLBACK(G2,G3),G4)
+DM(T1.1,T1.2,T1.3) ⇒ DM(T1.1,T1.2,T1.3)
 ```
 
 `@`'s argument is a number written without a sign (`1.5` is read; engines
@@ -548,17 +597,23 @@ G1:
 
 The assertion language (next section). A dialect adds `resolves`: the
 element kinds, and `variable`, that identifiers may name. Completion
-offers those.
+offers those. Two options read GODA's context conditions (CtxRegex.g4):
+
+- `prefixes`: the value starts with one of them, `assertion condition` or
+  `assertion trigger` (`assertion trigger ctx = 1`). Without it, a prefix
+  is an error.
+- `decimals: true`: a comparison may be with a decimal (`x > 0.5`).
+  Without it, a decimal is an error.
 
 ## The assertion language
 
 ```
-AssertionValue : AssertExpr? ;
+AssertionValue : A_PREFIX? AssertExpr? ;
 infix AssertBinary on AssertUnary : '&' > '|' ;
 AssertUnary    : '!' AssertExpr | AssertPrimary ;
 AssertPrimary  : '(' AssertExpr ')'
-               | A_ID '=' ('true' | 'false')
-               | A_ID ('=' | '!=' | '<' | '<=' | '>' | '>=') A_INT
+               | A_ID ('=' | '!=') ('true' | 'false')
+               | A_ID ('=' | '!=' | '<' | '<=' | '>' | '>=') (A_INT | A_NUMBER)
                | A_ID
                | 'true' | 'false' ;
 ```
@@ -570,8 +625,13 @@ AssertPrimary  : '(' AssertExpr ')'
   unsigned integer last (`0` included; AssertionRegex.g4 couldn't read
   `0`).
 - **Literals:** integers on the right of a comparator, and `true`/`false`.
-  `x = true` sets a boolean variable. `x != false` is not part of the
-  language.
+  `x = true` sets a boolean variable. `x != false` (CtxRegex.g4's) is read,
+  and is an error unless the property allows it (`booleanInequality`). A decimal (`A_NUMBER`, `0.5`, `2.`) is read, and is an error
+  unless the property allows decimals.
+- **Prefix:** `assertion condition` or `assertion trigger` (`A_PREFIX`),
+  read only where the value starts, so `assertion` stays an identifier
+  anywhere else. It is an error unless the property names it, and so is a
+  prefix with no condition after it (`assertion trigger`).
 - **Identifiers:** `A_ID`, a letter or `_`, then letters, digits or `_`.
   They name the resources of the model, or the workbench's variables (the
   property's `resolves`).
@@ -586,14 +646,19 @@ x = true & y
 !a & b
 _x1
 true
+x > 0.5
+x != false
+assertion trigger ctx = 1
+assertion condition SaO2_data > 0 & SaO2_data < 100
+assertion > 1
 ```
 
 ```goal-value assertion reject
-x != false
 3 > x
 x >= -1
 x == 1
 a b
+x assertion trigger
 ```
 
 ## The lexer
@@ -609,18 +674,19 @@ two things this needs:
   | line start (a document) | indentation (skipped); then `<<` / `{` (annotations), an id start (`G`/`T`/`R`/`AT` + digit or `X`), or a KEY (a property line) |
   | `<<…>>` | TEXT, `>>` |
   | `{…}` before the id | TEXT, `=`, `}` |
-  | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->` (with `AT`), then `, ^ & ~ ! ( ) *` and the calls (`FALLBACK`), DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped) |
+  | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->` (with `AT`), then `, ^ & ~ ! ( ) *` and the calls (`FALLBACK`, `DM`), DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped); a WORD that is a prefix and `X` (`GX`) is split into them, but right after the line's colon |
+  | a bracket that starts with `W =` | the cost: `W`, `=`, FLOAT, IDENT (letters and `_`), `]`, spaces (skipped) |
   | an annotated name | an optional id and `:` (`G1:` as an element line's tokens), then PLAIN_NAME, then the RT set with spaces skipped |
   | `{…}` after the name | `}`, `..`, `=`, INTEGER, IDENT, spaces (skipped) |
   | a property value | VALUE (the rest of the line) |
-  | a value on its own | the type's set (an assertion: `& \| ! ( ) = != < <= > >=`, `true`, `false`, A_ID, A_INT) |
+  | a value on its own | the type's set (an assertion: A_PREFIX where it starts, then `& \| ! ( ) = != < <= > >=`, `true`, `false`, A_ID, A_INT, A_NUMBER) |
 
 - **Longest match** (ANTLR's rule). Of all the tokens that match at a
   position, the longest wins, and a tie goes to the one listed first. This
   is why:
   - `Goal` is one WORD and not `G` followed by `oal`;
   - `G1` is `G` and the FLOAT `1`;
-  - `GX` is a WORD;
+  - `GX` is a WORD, which the lexer then splits into `G` and `X`;
   - a space in a notation starts a WORD, which is an error (`[G2; G3]`);
   - `->` beats a WORD `-`.
 

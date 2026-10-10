@@ -69,8 +69,13 @@ export const DIVERGENT = {
     'G1: Step 2',
     'G1: x [G2 ;G3]',
     'G1: x [G2; G3]',
-    'G1X: Variant [GX|TX]',
   ],
+  /**
+   * `GX`, `TX`: a prefix and `X` alone is an id (GODA's unknown elements,
+   * goal-controller#32). RTRegex.g4's WORD matched it for two letters and
+   * the line was rejected; the goal language reads it.
+   */
+  xIds: ['G1X: Variant [GX|TX]', 'GX: name'],
 } as const;
 
 const read = (grammar: 'edge' | 'edgeV2', goalText: string) => {
@@ -111,7 +116,13 @@ describe('parity with the ANTLR readers', () => {
       const differ: string[] = [];
       let same = 0;
       for (const [text, antlr] of Object.entries(ORACLE.goalTexts[grammar])) {
-        if ([...DIVERGENT.both, ...DIVERGENT.outermost].includes(text as never))
+        if (
+          [
+            ...DIVERGENT.both,
+            ...DIVERGENT.outermost,
+            ...DIVERGENT.xIds,
+          ].includes(text as never)
+        )
           continue;
         // a cross-engine text: ANTLR recovered from the unknown operator
         if (grammar === 'edge' && usesEdgeV2Operators(text)) continue;
@@ -163,6 +174,19 @@ describe('parity with the ANTLR readers', () => {
           },
           `${grammar} ${text}`,
         );
+  });
+
+  it('reads `GX` and `TX` as ids, where RTRegex.g4 rejected the line', () => {
+    for (const text of DIVERGENT.xIds)
+      for (const grammar of ['edge', 'edgeV2'] as const) {
+        assert.strictEqual(ORACLE.goalTexts[grammar][text]!.rejected, true);
+        assert.strictEqual(read(grammar, text).rejected, false, text);
+      }
+    assert.deepStrictEqual(
+      read('edgeV2', 'G1X: Variant [GX|TX]').detail.executionDetail?.ids,
+      ['GX', 'TX'],
+    );
+    assert.strictEqual(read('edge', 'GX: name').detail.id, 'GX');
   });
 
   it('reads a notation by its outermost operator, not the listener’s cascade', () => {

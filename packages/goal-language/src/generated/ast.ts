@@ -17,6 +17,8 @@ export const GoalTerminals = {
     VALUE: /[^\s](?:[^\r\n]*[^\s])?/,
     A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/,
     A_INT: /[0-9]+/,
+    A_NUMBER: /[0-9]+\.[0-9]*/,
+    A_PREFIX: /assertion[ \t]+(condition|trigger)/,
     INTEGER: /-?[0-9]+/,
     NUMBER: /-?[0-9]+\.[0-9]+/,
     PAIR_VALUE: /[^\s,:](?:[^\r\n,:]*[^\s,:])?/,
@@ -55,12 +57,14 @@ export type GoalKeywordNames =
     | "?"
     | "@"
     | "AT"
+    | "DM"
     | "FALLBACK"
     | "False"
     | "G"
     | "R"
     | "T"
     | "True"
+    | "W"
     | "X"
     | "["
     | "]"
@@ -124,12 +128,14 @@ export function isAnnotation(item: unknown): item is Annotation {
 export interface AssertAssign extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertAssign';
+    operator: '!=' | '=';
     value: AssertBool;
     variable: string;
 }
 
 export const AssertAssign = {
     $type: 'AssertAssign',
+    operator: 'operator',
     value: 'value',
     variable: 'variable'
 } as const;
@@ -211,11 +217,13 @@ export interface AssertionValue extends langium.AstNode {
     readonly $container: Reach;
     readonly $type: 'AssertionValue';
     expr?: AssertExpr;
+    prefix?: string;
 }
 
 export const AssertionValue = {
     $type: 'AssertionValue',
-    expr: 'expr'
+    expr: 'expr',
+    prefix: 'prefix'
 } as const;
 
 export function isAssertionValue(item: unknown): item is AssertionValue {
@@ -288,6 +296,23 @@ export function isComparator(item: unknown): item is Comparator {
     return item === '=' || item === '!=' || item === '<' || item === '<=' || item === '>' || item === '>=';
 }
 
+export interface Cost extends langium.AstNode {
+    readonly $container: ElementLine;
+    readonly $type: 'Cost';
+    value?: string;
+    variable?: string;
+}
+
+export const Cost = {
+    $type: 'Cost',
+    value: 'value',
+    variable: 'variable'
+} as const;
+
+export function isCost(item: unknown): item is Cost {
+    return reflection.isInstance(item, Cost.$type);
+}
+
 export interface Declaration extends langium.AstNode {
     readonly $container: AnnotatedName | ElementLine;
     readonly $type: 'Declaration';
@@ -335,6 +360,7 @@ export interface ElementLine extends langium.AstNode {
     readonly $container: Document;
     readonly $type: 'ElementLine';
     annotations: Array<Annotation>;
+    cost?: Cost;
     declaration?: Declaration;
     label: string;
     name: ElementId;
@@ -344,6 +370,7 @@ export interface ElementLine extends langium.AstNode {
 export const ElementLine = {
     $type: 'ElementLine',
     annotations: 'annotations',
+    cost: 'cost',
     declaration: 'declaration',
     label: 'label',
     name: 'name',
@@ -590,7 +617,7 @@ export interface RtCall extends langium.AstNode {
     readonly $container: AnnotatedName | ElementLine | RtArgument | RtBinary | RtGroup | RtNot;
     readonly $type: 'RtCall';
     args: Array<RtBinary>;
-    function: 'FALLBACK';
+    function: 'DM' | 'FALLBACK';
 }
 
 export const RtCall = {
@@ -771,6 +798,7 @@ export type GoalAstType = {
     AssertVar: AssertVar
     AssertionValue: AssertionValue
     BoolValue: BoolValue
+    Cost: Cost
     Declaration: Declaration
     Document: Document
     ElementLine: ElementLine
@@ -837,6 +865,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
         AssertAssign: {
             name: AssertAssign.$type,
             properties: {
+                operator: {
+                    name: AssertAssign.operator
+                },
                 value: {
                     name: AssertAssign.value
                 },
@@ -924,6 +955,10 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 expr: {
                     name: AssertionValue.expr,
                     optional: true
+                },
+                prefix: {
+                    name: AssertionValue.prefix,
+                    optional: true
                 }
             },
             superTypes: []
@@ -933,6 +968,20 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             properties: {
                 value: {
                     name: BoolValue.value,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        Cost: {
+            name: Cost.$type,
+            properties: {
+                value: {
+                    name: Cost.value,
+                    optional: true
+                },
+                variable: {
+                    name: Cost.variable,
                     optional: true
                 }
             },
@@ -981,6 +1030,10 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 annotations: {
                     name: ElementLine.annotations,
                     defaultValue: [],
+                    optional: true
+                },
+                cost: {
+                    name: ElementLine.cost,
                     optional: true
                 },
                 declaration: {

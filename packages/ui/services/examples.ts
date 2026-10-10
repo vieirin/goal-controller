@@ -25,6 +25,7 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   edgeV2: 'edgev2',
   sleec: 'sleec',
   mutrose: 'mutrose',
+  goda: 'goda',
   'pistar-ext': 'pistarext',
 };
 

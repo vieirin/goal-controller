@@ -136,6 +136,38 @@ export {
   type MutroseTask,
   type MutroseTaskProps,
 } from './engines/mutrose';
+// GODA-MDP: its definition, checks, mapper and outputs (the MDP, its
+// properties and its parametric formulas), and the formulas as numbers
+export {
+  goda,
+  godaCheckRegistry,
+  godaEngineMapper,
+  godaOutput,
+  GodaUnsupported,
+  GODA_GOAL_KEYS,
+  GODA_IMPLEMENTED_VARIANTS,
+  GODA_TASK_KEYS,
+  GODA_VARIANTS,
+  close,
+  compareFormulas,
+  compileFormula,
+  evalFormulaValues,
+  evaluate,
+  formulaText,
+  random,
+  SEED,
+  TOLERANCE,
+  type CompiledFormula,
+  type FormulaComparison,
+  type GodaCheckName,
+  type GodaGoalNode,
+  type GodaGoalProps,
+  type GodaGoalTree,
+  type GodaOutputOptions,
+  type GodaTask,
+  type GodaTaskProps,
+  type GodaVariant,
+} from './engines/goda';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
