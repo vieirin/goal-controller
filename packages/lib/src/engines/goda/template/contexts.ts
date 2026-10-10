@@ -20,7 +20,8 @@ const visit = (tree: AssertionTree | null): string => {
     case 'compare':
       return `${tree.variable} ${tree.operator} ${tree.value}`;
     case 'assign':
-      return `${tree.variable} = ${tree.value}`;
+      // CtxRegex.g4's `expr '!=' value`, a boolean value
+      return `${tree.variable} ${tree.negated ? '!=' : '='} ${tree.value}`;
     case 'var':
       return tree.variable;
     case 'and':
@@ -53,6 +54,6 @@ export const contextsInfo = (conditions: readonly string[]): string =>
 
 /** `PARAMProducer.clearCtxList`: a condition without its prefix, as written. */
 export const clearCondition = (condition: string): string =>
-  condition.includes('assertion condition')
-    ? condition.replace(/^assertion condition\s*/, '')
-    : condition.replace(/^assertion trigger\s*/, '');
+  // the language reads spaces between the prefix's words (`assertion  trigger`);
+  // upstream's split took one, and failed on more
+  condition.replace(/^assertion[ \t]+(?:condition|trigger)\s*/, '');

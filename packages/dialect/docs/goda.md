@@ -183,6 +183,20 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
 
 ## Divergences from upstream
 
+- **Which decision-making child a leaf's context is.** `getKeyRTContainer`
+  looks the context text up in `nonDeterminismCtxList`, a `HashMap` keyed
+  by containers that don't override `hashCode`. When two decision-making
+  children (of two different DMs) have the same condition text, upstream
+  takes whichever its identity hashes put first, which can change from run
+  to run, and with it whether the leaf declares its own `CTX_` constant.
+  The engine takes the first one written, always. No reference has two
+  such children.
+- **A condition's prefix with more spaces** (`assertion  trigger x = 1`).
+  The language reads it; upstream's `clearCtxList` splits on one space and
+  fails on it. The engine strips the prefix whatever its spacing.
+- **`!=` with a boolean** (`s != false`, CtxRegex.g4's `expr '!=' value`)
+  is printed as written in the decision-making module's comments.
+
 - **A leaf's module name.** Upstream strips an RT regex's bracket from a
   module's name, but not a cost's. A leaf with a cost would be named
   `G1_T1_1_Task[W=0_1]`, which PRISM doesn't read. The engine strips it. No

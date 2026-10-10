@@ -255,6 +255,14 @@ describe('GODA: what decision making is ported from', () => {
       clearCondition('assertion condition  a = 1 & b = 2'),
       'a = 1 & b = 2',
     );
+    // the language reads more than one space between the prefix's words
+    assert.strictEqual(clearCondition('assertion  trigger ctx=1'), 'ctx=1');
+    assert.strictEqual(contextsInfo(['assertion\ttrigger ctx=1']), 'ctx = 1');
+    // CtxRegex.g4's `expr '!=' value`
+    assert.strictEqual(
+      contextsInfo(['assertion trigger docked != false']),
+      'docked != false',
+    );
   });
 
   it("HashMap: Java's iteration order of String keys", () => {
