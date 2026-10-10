@@ -18,6 +18,7 @@ const {
   outputRoles,
 } = require('../../../../scripts/goda-stress/references.cjs');
 const {
+  constantValues,
   undefinedConstants,
 } = require('../../../../scripts/goda-stress/build.cjs');
 const { markdown } = require('../../../../scripts/goda-stress/report.cjs');
@@ -99,6 +100,23 @@ describe('GODA stress test: comparisons', () => {
   it("reads an MDP's undefined constants (the build check's -const)", () => {
     assert.deepStrictEqual(undefinedConstants(MDP), ['R_G1_T1']);
   });
+
+  it('gives a constant the script leaves out a value of its type', () => {
+    // a decision-making module's CTX_<n> is never in eval_formula.sh
+    const dm =
+      'mdp\n\nconst int CTX_1; //ctx = 1\nconst double R_G1_T1_1;\nconst int OPT_G1_T1_X;\nconst bool B;\n';
+    assert.deepStrictEqual(
+      constantValues(dm, { R_G1_T1_1: 0.99, OPT_G1_T1_X: 1 }),
+      {
+        constants: 'CTX_1=1,R_G1_T1_1=0.99,OPT_G1_T1_X=1,B=true',
+        defaulted: ['CTX_1', 'B'],
+      },
+    );
+    assert.deepStrictEqual(constantValues('const double W;\n', {}), {
+      constants: 'W=0.5',
+      defaulted: ['W'],
+    });
+  });
 });
 
 describe('GODA stress test: checks on a model', () => {
@@ -135,6 +153,7 @@ describe('GODA stress test: checks on a model', () => {
   /** A stand-in engine that writes the reference's files (edgeV2's dialect reads the model). */
   const echo = (
     change: (name: string, text: string) => string = (_, t) => t,
+    mdpName = 'AND.nm',
   ) => ({
     definition: edgeV2,
     checks: {},
@@ -143,7 +162,7 @@ describe('GODA stress test: checks on a model', () => {
       files: [
         {
           id: 'model',
-          fileName: 'Model.nm',
+          fileName: mdpName,
           text: change('nm', MDP),
           primary: true,
         },
@@ -195,7 +214,17 @@ describe('GODA stress test: checks on a model', () => {
       performance: 'pass',
       build: 'skipped',
     });
-    assert.strictEqual(checks.mdp.fileName, 'Model.nm');
+    assert.strictEqual(checks.mdp.fileName, 'AND.nm');
+  });
+
+  it("fails the MDP check when the .nm isn't named as the reference's", () => {
+    const checks = checkModel(deps, echo(undefined, 'Lab.nm'), reference, {
+      runs: 1,
+      build: false,
+    });
+    assert.strictEqual(checks.mdp.status, 'fail');
+    assert.strictEqual(checks.mdp.equal, true);
+    assert.strictEqual(checks.mdp.referenceFileName, 'AND.nm');
   });
 
   it('fails the check whose file differs, and only that one', () => {

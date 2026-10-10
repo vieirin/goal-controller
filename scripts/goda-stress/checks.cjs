@@ -194,9 +194,14 @@ const checkModel = (
   checks.mdp = ours.mdp
     ? (() => {
         const diff = diffMdp(ours.mdp.text, reference.reference.mdp.text);
+        // named after the actor, as the reference is (AND.nm)
+        const named = ours.mdp.fileName === reference.reference.mdp.fileName;
         return {
-          status: status(diff.equal),
+          status: status(diff.equal && named),
           fileName: ours.mdp.fileName,
+          ...(!named && {
+            referenceFileName: reference.reference.mdp.fileName,
+          }),
           ...diff,
         };
       })()

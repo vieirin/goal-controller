@@ -15,6 +15,18 @@ needed once). The upstream repository has no licence, so nothing from it is
 committed (#34 D1). Results go to `.cache/goda/results/`: `SUMMARY.md`,
 `summary.json` and one JSON file per model.
 
+What a check compares:
+
+- **mdp**: our `.nm` against the reference after whitespace normalization,
+  and its file name, which is the actor's as the reference's is (`AND.nm`).
+- **performance** is informational. It records generation time (median of
+  the runs) and output size, and always passes: upstream publishes no
+  times to hold it to.
+- **build** gives each constant `eval_formula.sh` leaves out a value of
+  its type: `0.5`, `1` for an `int` (a decision-making module's `CTX_<n>`
+  is never in the script), `true` for a `bool`. It lists those constants as
+  `defaulted`.
+
 | File | What |
 |---|---|
 | `fetch.cjs` | the examples at the pinned commit, cached |

@@ -16,11 +16,34 @@ const onPath = (binary) => {
   return found.status === 0;
 };
 
-/** The undefined constants of a PRISM model (`const double R_G1_T1_1;`). */
-const undefinedConstants = (mdp) =>
-  [...mdp.matchAll(/^\s*const\s+(?:double|int|bool)\s+(\w+)\s*;/gm)].map(
-    ([, name]) => name,
+/** The undefined constants of a PRISM model, with their types (`const double R_G1_T1_1;`). */
+const typedConstants = (mdp) =>
+  [...mdp.matchAll(/^\s*const\s+(double|int|bool)\s+(\w+)\s*;/gm)].map(
+    ([, type, name]) => ({ name, type }),
   );
+
+/** The undefined constants' names. */
+const undefinedConstants = (mdp) => typedConstants(mdp).map(({ name }) => name);
+
+/**
+ * What the tool is given for each undefined constant: eval_formula.sh's
+ * value, else one of its type (0.5, 1, true), listed as defaulted. A
+ * decision-making module's `const int CTX_<n>` is never in the script, and
+ * an int constant can't be 0.5.
+ */
+const DEFAULTS = { double: '0.5', int: '1', bool: 'true' };
+const constantValues = (mdp, evalValues) => {
+  const constants = typedConstants(mdp);
+  const defaulted = constants
+    .filter(({ name }) => evalValues[name] === undefined)
+    .map(({ name }) => name);
+  return {
+    constants: constants
+      .map(({ name, type }) => `${name}=${evalValues[name] ?? DEFAULTS[type]}`)
+      .join(','),
+    defaulted,
+  };
+};
 
 const count = (output, label) => {
   const match = new RegExp(`${label}:\\s*(\\d+)`).exec(output);
@@ -35,11 +58,7 @@ const buildMdp = (mdp, evalValues, { tools = ['storm', 'prism'] } = {}) => {
       status: 'skipped',
       reason: `none of ${tools.join(', ')} is on PATH`,
     };
-  const names = undefinedConstants(mdp);
-  const defaulted = names.filter((name) => evalValues[name] === undefined);
-  const constants = names
-    .map((name) => `${name}=${evalValues[name] ?? 0.5}`)
-    .join(',');
+  const { constants, defaulted } = constantValues(mdp, evalValues);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'goda-build-'));
   const file = path.join(dir, 'model.nm');
   fs.writeFileSync(file, mdp);
@@ -72,4 +91,4 @@ const buildMdp = (mdp, evalValues, { tools = ['storm', 'prism'] } = {}) => {
   }
 };
 
-module.exports = { buildMdp, undefinedConstants };
+module.exports = { buildMdp, constantValues, undefinedConstants };
