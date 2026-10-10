@@ -1,0 +1,173 @@
+{
+  "actors": [
+    {
+      "id": "00000000-0000-4000-8000-000000000000",
+      "text": "Drone",
+      "type": "istar.Actor",
+      "x": 60,
+      "y": 20,
+      "nodes": [
+        {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "text": "G0: Deliver parcel",
+          "type": "istar.Goal",
+          "x": 460,
+          "y": 60,
+          "customProperties": {
+            "selected": "true"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000002",
+          "text": "G1: Reach recipient",
+          "type": "istar.Goal",
+          "x": 260,
+          "y": 170,
+          "customProperties": {
+            "creationProperty": "assertion condition BATTERY >= 30"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000003",
+          "text": "G2: Hand over parcel",
+          "type": "istar.Goal",
+          "x": 660,
+          "y": 170
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000004",
+          "text": "T1: Choose route [DM(T1.1,T1.2,T1.X)]",
+          "type": "istar.Task",
+          "x": 260,
+          "y": 280
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000005",
+          "text": "T1.1: Fly direct [W = 0.3x]",
+          "type": "istar.Task",
+          "x": 100,
+          "y": 400,
+          "customProperties": {
+            "creationProperty": "assertion trigger WIND < 8.5"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000006",
+          "text": "T1.2: Follow road corridor [W = 0.5x]",
+          "type": "istar.Task",
+          "x": 270,
+          "y": 400,
+          "customProperties": {
+            "creationProperty": "assertion trigger WIND >= 8.5 & GPS = true"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000007",
+          "text": "T1.X: Unknown route",
+          "type": "istar.Task",
+          "x": 440,
+          "y": 400,
+          "customProperties": {
+            "creationProperty": "assertion trigger ROUTE_KNOWN = false"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000008",
+          "text": "T2: Release parcel [DM(T2.1,T2.2)]",
+          "type": "istar.Task",
+          "x": 660,
+          "y": 280
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000009",
+          "text": "T2.1: Land and release [W = 1]",
+          "type": "istar.Task",
+          "x": 580,
+          "y": 400,
+          "customProperties": {
+            "creationProperty": "assertion trigger LANDING_ZONE = true"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000010",
+          "text": "T2.2: Lower by winch [W = 2]",
+          "type": "istar.Task",
+          "x": 760,
+          "y": 400,
+          "customProperties": {
+            "creationProperty": "assertion trigger LANDING_ZONE = false"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "type": "istar.AndRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000002",
+      "target": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000102",
+      "type": "istar.AndRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000003",
+      "target": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000103",
+      "type": "istar.AndRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000004",
+      "target": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000104",
+      "type": "istar.OrRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000005",
+      "target": "00000000-0000-4000-8000-000000000004"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000105",
+      "type": "istar.OrRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000006",
+      "target": "00000000-0000-4000-8000-000000000004"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000106",
+      "type": "istar.OrRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000007",
+      "target": "00000000-0000-4000-8000-000000000004"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000107",
+      "type": "istar.AndRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000008",
+      "target": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000108",
+      "type": "istar.OrRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000009",
+      "target": "00000000-0000-4000-8000-000000000008"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000109",
+      "type": "istar.OrRefinementLink",
+      "source": "00000000-0000-4000-8000-000000000010",
+      "target": "00000000-0000-4000-8000-000000000008"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Sat, 10 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 960,
+    "height": 520,
+    "customProperties": {
+      "engine": "goda"
+    }
+  }
+}
