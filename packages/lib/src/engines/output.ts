@@ -69,30 +69,56 @@ export const outputFileNameProblem = (fileName: string): string | null =>
     ? `fileName ${JSON.stringify(fileName)} is not a path inside out/`
     : null;
 
+/** The `key`s used more than once, each time again. */
+const repeated = (output: EngineOutput, key: 'id' | 'fileName'): string[] => {
+  const seen = new Set<string>();
+  return output.files.flatMap((file) => {
+    if (!seen.has(file[key])) {
+      seen.add(file[key]);
+      return [];
+    }
+    return [`${key} ${file[key]} is used twice`];
+  });
+};
+
 /**
- * What is wrong with an engine's output: not exactly one primary file, ids or
- * file names repeated, a file name that isn't a path inside `out/`.
+ * What keeps an output's files from being written as they are: a file name
+ * that isn't a path inside `out/`, one used twice (the second write would
+ * replace the first), or one that another file needs as a directory (`a`
+ * and `a/b`).
  */
-export const engineOutputProblems = (output: EngineOutput): string[] => {
-  const problems: string[] = [];
-  const primaries = output.files.filter((file) => file.primary).length;
-  if (primaries !== 1)
-    problems.push(`expected exactly one primary file, got ${primaries}`);
-  const repeated = (key: 'id' | 'fileName'): string[] => {
-    const seen = new Set<string>();
-    return output.files.flatMap((file) => {
-      if (!seen.has(file[key])) {
-        seen.add(file[key]);
-        return [];
-      }
-      return [`${key} ${file[key]} is used twice`];
-    });
-  };
-  const unsafe = output.files.flatMap((file) => {
-    const problem = outputFileNameProblem(file.fileName);
+export const outputPathProblems = (output: EngineOutput): string[] => {
+  const names = output.files.map((file) => file.fileName);
+  const unsafe = names.flatMap((fileName) => {
+    const problem = outputFileNameProblem(fileName);
     return problem ? [problem] : [];
   });
-  return [...problems, ...repeated('id'), ...repeated('fileName'), ...unsafe];
+  const all = new Set(names);
+  const conflicts = names.flatMap((fileName) => {
+    const parts = fileName.split('/');
+    return parts.slice(1).flatMap((_, i) => {
+      const directory = parts.slice(0, i + 1).join('/');
+      return all.has(directory)
+        ? [`fileName ${directory} is a file and a directory (${fileName})`]
+        : [];
+    });
+  });
+  return [...repeated(output, 'fileName'), ...unsafe, ...conflicts];
+};
+
+/**
+ * What is wrong with an engine's output: not exactly one primary file, an id
+ * repeated, or the path problems of `outputPathProblems`.
+ */
+export const engineOutputProblems = (output: EngineOutput): string[] => {
+  const primaries = output.files.filter((file) => file.primary).length;
+  return [
+    ...(primaries !== 1
+      ? [`expected exactly one primary file, got ${primaries}`]
+      : []),
+    ...repeated(output, 'id'),
+    ...outputPathProblems(output),
+  ];
 };
 
 /** An output's primary file; throws when it hasn't exactly one. */

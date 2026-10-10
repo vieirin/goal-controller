@@ -80,6 +80,30 @@ export const lastGoodRun = <R extends RunFiles>(runs: readonly R[]): R | null =>
   runs.find((run) => run.files !== null) ?? null;
 
 /**
+ * What the workbench shows for an engine, from the runs of every engine
+ * (latest first): its latest run, and its latest that produced files.
+ * Another engine's runs are kept for when it is chosen again, never shown
+ * for this one.
+ */
+export const engineRuns = <R extends RunFiles>(
+  runs: readonly R[],
+  engine: string,
+): { runs: R[]; current: R | null; lastGood: R | null } => {
+  const own = runs.filter((run) => run.engine === engine);
+  return { runs: own, current: own[0] ?? null, lastGood: lastGoodRun(own) };
+};
+
+/**
+ * The runs with a project's saved run of an engine (savedRun) first, unless
+ * that engine has run already; the other engines' runs stay.
+ */
+export const withSavedRun = <R extends RunFiles>(
+  runs: readonly R[],
+  saved: R,
+): readonly R[] =>
+  runs.some((run) => run.engine === saved.engine) ? runs : [saved, ...runs];
+
+/**
  * What an Edge engine reads as `previousOutput`: the primary file of the
  * latest run of that engine that produced files.
  */

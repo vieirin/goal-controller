@@ -21,6 +21,7 @@ import {
 } from '../../../../ui/lib/project';
 import {
   activeFileOf,
+  engineRuns,
   generatedFrom,
   inputsHash,
   lastGoodRun,
@@ -32,6 +33,7 @@ import {
   primaryOf,
   savedRun,
   traceOfFile,
+  withSavedRun,
   type OutputFile,
 } from '../../../../ui/lib/workbench/outputs';
 import { modelSignature } from '../../../../ui/lib/workbench/signature';
@@ -88,6 +90,38 @@ describe('engine outputs in the workbench', () => {
     );
     expect(previousOutputOf(runs, 'mutrose')).to.equal(undefined);
     expect(lastGoodRun(runs)?.engine).to.equal('sleec');
+  });
+
+  it('shows, saves and reads back only the chosen engine’s runs: switching from Edge to SLEEC and back', () => {
+    const edgeRun = { id: 2, engine: 'edge', files: three(['G2']) };
+    const failedEdge = { id: 3, engine: 'edge', files: null };
+    // Edge ran twice, the second time failing
+    const runs = [failedEdge, edgeRun];
+    expect(engineRuns(runs, 'edge')).to.deep.equal({
+      runs,
+      current: failedEdge,
+      lastGood: edgeRun,
+    });
+    // SLEEC chosen: nothing of Edge's is current or shown (or saved as SLEEC's)
+    expect(engineRuns(runs, 'sleec')).to.deep.equal({
+      runs: [],
+      current: null,
+      lastGood: null,
+    });
+    // so SLEEC's saved outputs are read in, before Edge's runs, which stay
+    const sleecSaved = {
+      id: 4,
+      engine: 'sleec',
+      files: [{ id: 's', fileName: 'm.sleec', text: 'sleec', primary: true }],
+    };
+    const withSleec = withSavedRun(runs, sleecSaved);
+    expect(withSleec).to.deep.equal([sleecSaved, failedEdge, edgeRun]);
+    expect(engineRuns(withSleec, 'sleec').lastGood).to.equal(sleecSaved);
+    // back on Edge: its own runs, as they were; its saved run isn't read over them
+    expect(engineRuns(withSleec, 'edge').current).to.equal(failedEdge);
+    expect(engineRuns(withSleec, 'edge').lastGood).to.equal(edgeRun);
+    const edgeSaved = { id: 5, engine: 'edge', files: three(['G9']) };
+    expect(withSavedRun(withSleec, edgeSaved)).to.equal(withSleec);
   });
 
   it('traces a file by the owners its engine gives, the primary by its identifiers, any other not at all', () => {

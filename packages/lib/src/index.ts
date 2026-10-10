@@ -97,6 +97,7 @@ export {
   engineOutputProblems,
   outputBaseName,
   outputFileNameProblem,
+  outputPathProblems,
   primaryFile,
   singleFileOutput,
   type EngineOutput,
@@ -202,7 +203,9 @@ if (require.main === module) {
     );
     console.log(`The file was saved to ${written.join(', ')}!`);
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    // a run whose files weren't written is a failed run
+    process.exitCode = 1;
   } finally {
     logger.close();
   }

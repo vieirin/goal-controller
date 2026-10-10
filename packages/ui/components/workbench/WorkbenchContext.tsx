@@ -106,12 +106,13 @@ import { mergeProblems } from '@/lib/workbench/diagnostics';
 import type { TraceIndex } from '@/lib/workbench/trace';
 import {
   activeFileOf,
+  engineRuns,
   generatedFrom,
-  lastGoodRun,
   outputsToSave,
   previousOutputOf,
   savedRun,
   traceOfFile,
+  withSavedRun,
   type OutputFile,
 } from '@/lib/workbench/outputs';
 import {
@@ -1443,7 +1444,8 @@ function WorkbenchState({
     if (pendingGenerate && variablesReady) generate();
   }, [pendingGenerate, variablesReady, generate]);
 
-  const current = runs[0] ?? null;
+  // the chosen engine's runs: another engine's are kept, not shown
+  const { current, lastGood } = engineRuns(runs, engine);
   const stale = !!current && !generatedFrom(current, inputsSignature);
 
   // live: regenerate when what generation depends on changes
@@ -1472,8 +1474,7 @@ function WorkbenchState({
     generate,
   ]);
 
-  // last successful output (a failed run keeps showing the previous output)
-  const lastGood = lastGoodRun(runs);
+  // lastGood: the last successful output (a failed run keeps showing the previous output)
   const shownFile = lastGood?.files
     ? activeFileOf(lastGood.files, outputFile)
     : undefined;
@@ -1485,7 +1486,10 @@ function WorkbenchState({
   // the latest output's files, kept in the project: out/, one manifest entry each
   const saveOutputs = useCallback(async () => {
     const open = currentProject();
-    const run = lastGoodRun(latest.current.runs);
+    const { lastGood: run } = engineRuns(
+      latest.current.runs,
+      latest.current.engine,
+    );
     const [model] = open?.models ?? [];
     const outputs = run && model && outputsToSave(run, model.path);
     if (!open || !outputs) return;
@@ -1499,19 +1503,20 @@ function WorkbenchState({
   useEffect(() => {
     const open = projectRef.current;
     const [model] = open?.models ?? [];
-    if (!open || !model || pistar || latest.current.runs.length > 0)
-      return undefined;
+    const hasRun = () =>
+      engineRuns(latest.current.runs, engine).runs.length > 0;
+    if (!open || !model || pistar || hasRun()) return undefined;
     let cancelled = false;
     void readOutputs(open, model.path, engine)
       .then((saved) => {
-        if (cancelled || !saved || latest.current.runs.length > 0) return;
+        if (cancelled || !saved || hasRun()) return;
         runId.current += 1;
         const run: Run = savedRun(saved, {
           id: runId.current,
           engine,
           at: Date.now(),
         });
-        setRuns((prev) => (prev.length > 0 ? prev : [run]));
+        setRuns((prev) => [...withSavedRun(prev, run)]);
       })
       .catch(() => {});
     return () => {

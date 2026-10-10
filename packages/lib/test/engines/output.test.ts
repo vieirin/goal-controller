@@ -1,9 +1,18 @@
 /** Engines' outputs as files (goal-controller#33): one primary file each, and an engine of three. */
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import * as assert from 'assert';
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'fs';
+import { spawnSync } from 'child_process';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { before, describe, it } from 'mocha';
 import { writeOutputFiles } from '../../src/cli/outputFiles';
 import {
@@ -200,6 +209,128 @@ describe('engine outputs', () => {
         /not a path inside out/,
       );
       assert.deepStrictEqual(readdirSync(parent), []);
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses two files at one path, and a file another one needs as a directory, and writes nothing', () => {
+    const output = (...fileNames: string[]): EngineOutput => ({
+      files: fileNames.map((fileName, i) => ({
+        id: `f${i}`,
+        fileName,
+        text: fileName,
+        primary: i === 0,
+      })),
+    });
+    assert.deepStrictEqual(engineOutputProblems(output('a', 'a/b')), [
+      'fileName a is a file and a directory (a/b)',
+    ]);
+    assert.deepStrictEqual(engineOutputProblems(output('x/y/z', 'x/y')), [
+      'fileName x/y is a file and a directory (x/y/z)',
+    ]);
+    assert.deepStrictEqual(engineOutputProblems(output('r.txt', 'r.txt')), [
+      'fileName r.txt is used twice',
+    ]);
+    // a shared directory is no conflict
+    assert.deepStrictEqual(
+      engineOutputProblems(output('d/a', 'd/b', 'ab')),
+      [],
+    );
+    const directory = mkdtempSync(join(tmpdir(), 'engine-output-'));
+    try {
+      for (const names of [
+        ['a', 'a/b'],
+        ['r.txt', 'r.txt'],
+      ])
+        assert.throws(
+          () => writeOutputFiles(directory, output(...names)),
+          /is a file and a directory|is used twice/,
+        );
+      assert.deepStrictEqual(readdirSync(directory), []);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('writes nothing through a symbolic link in the output directory, a file or a directory', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'engine-output-'));
+    const directory = join(parent, 'out');
+    const outside = join(parent, 'outside');
+    mkdirSync(directory);
+    mkdirSync(outside);
+    writeFileSync(join(outside, 'kept.nm'), 'kept');
+    const one = (fileName: string): EngineOutput => ({
+      files: [
+        { id: 'model', fileName: 'lab.nm', text: 'mdp', primary: true },
+        { id: 'other', fileName, text: 'written', primary: false },
+      ],
+    });
+    try {
+      // the file itself links outside
+      symlinkSync(join(outside, 'kept.nm'), join(directory, 'linked.nm'));
+      assert.throws(
+        () => writeOutputFiles(directory, one('linked.nm')),
+        /linked\.nm is a symbolic link/,
+      );
+      // a directory on its way does
+      symlinkSync(outside, join(directory, 'goda'));
+      assert.throws(
+        () => writeOutputFiles(directory, one('goda/kept.nm')),
+        /goda is a symbolic link/,
+      );
+      assert.strictEqual(
+        readFileSync(join(outside, 'kept.nm'), 'utf8'),
+        'kept',
+      );
+      assert.deepStrictEqual(readdirSync(directory).sort(), [
+        'goda',
+        'linked.nm',
+      ]);
+      // the output directory itself may be reached through a link
+      symlinkSync(directory, join(parent, 'alias'));
+      writeOutputFiles(join(parent, 'alias'), one('plain.nm'));
+      assert.strictEqual(
+        readFileSync(join(directory, 'plain.nm'), 'utf8'),
+        'written',
+      );
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
+  it('the CLI exits with a failure when it cannot write its files', function () {
+    this.timeout(60000);
+    // two levels down, so its ../../output fallback is the temp dir's too
+    const parent = mkdtempSync(join(tmpdir(), 'engine-cli-'));
+    const cwd = join(parent, 'a', 'b');
+    mkdirSync(cwd, { recursive: true });
+    // output/ can't be made: a file has its name
+    writeFileSync(join(cwd, 'output'), '');
+    try {
+      const run = spawnSync(
+        process.execPath,
+        [
+          '-r',
+          require.resolve('ts-node/register/transpile-only'),
+          resolve('src/index.ts'),
+          resolve(EDGE),
+        ],
+        {
+          cwd,
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            TS_NODE_PROJECT: resolve('tsconfig.json'),
+            TS_NODE_COMPILER_OPTIONS: JSON.stringify({
+              module: 'commonjs',
+              moduleResolution: 'node',
+            }),
+          },
+        },
+      );
+      assert.strictEqual(run.status, 1, run.stderr);
+      assert.match(run.stderr, /EEXIST|ENOTDIR/);
     } finally {
       rmSync(parent, { recursive: true, force: true });
     }
