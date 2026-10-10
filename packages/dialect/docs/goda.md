@@ -136,6 +136,17 @@ skips when the cache is empty. The upstream repository has no licence, so
 its models are fetched, not committed (D1). The other five models are the
 stress test's (#35) and their issues' (#36 to #40).
 
+## Proof: DM (#36)
+
+DM's eight files are also **byte for byte** the references
+(`packages/lib/test/engines/goda/dm.test.ts`). That covers:
+- the decision-making module, with a `CTX_<n>` constant per combination of its children's contexts and a `CTX_<child>` global per child;
+- each chosen leaf started on its global;
+- the DM formulas, with each leaf's `CTX_` factor;
+- the context comments in Java's HashMap order (`template/javaHashMap.ts`).
+
+The same test file checks the module on models of our own: three contexts, which give seven combinations, and a context that no module sets, which gets its own `const int CTX_<leaf>`.
+
 ## What fit as it was
 
 - **The definition.** Kinds with id prefixes, properties with value types,
@@ -161,6 +172,7 @@ stress test's (#35) and their issues' (#36 to #40).
 | BSN's `T1.1` under two goals | `idScope: 'ancestorGoal'` on a definition: the validator reports a repeated id only under the same goal. |
 | Fragmented's `D M(T1.1 2)` | `notation.whitespace: 'ignore'`: the reader and the editors read a line without the spaces in its bracket, and map every span back to the line as written. `parseElementLineIn(dialect, text)`. |
 | Context conditions with a prefix and decimals | The `assertion` type gained `prefixes` (`assertion condition`, `assertion trigger`) and `decimals`. One general type, not a GODA one. |
+| Context variables nobody declares | `declaresVariables` on an `assertion` value (#34 D17). The names a condition compares are known variables because the condition uses them, as upstream turns each into a `CTX_` parameter. Without it, every `ctx`, `ms` or `SaO2_sensor` was a "not a known variable" note (58 across the examples). |
 | A task's bracket in its mapper | `mapTaskProps` gets the task's text, as `mapGoalProps` did. |
 | An engine named after the model's actor | `godaOutput` takes the validated model (D16). |
 
@@ -175,11 +187,16 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
   module's name, but not a cost's. A leaf with a cost would be named
   `G1_T1_1_Task[W=0_1]`, which PRISM doesn't read. The engine strips it. No
   reference has a cost bracket.
-- **Contexts, decision making, unknown elements.** Their PRISM patterns
-  (`pattern_ctx_*`, `pattern_nondeterminism`, `pattern_opt_*`) are each
-  model's work. The base throws `GodaUnsupported` with the issue: DM #36,
-  `X` #37, contexts #36 and #38. RT operators other than `DM` are not
-  enabled; the editors report them.
+- **Unknown elements and the July 2019 generator.** Their PRISM patterns
+  (`pattern_opt_*`, the 5305bc1 templates) are each model's work. The
+  engine throws `GodaUnsupported` with the issue: `X` #37, the 5305bc1
+  generator #38 to #40. Decision making and contexts are ported (#36). RT
+  operators other than `DM` are not enabled, and the editors report them.
+  An element with any RT annotation gets the DM formula (an OR over its
+  children), as upstream's `getNodeForm` does.
+- **A parenthesised context condition.** CtxParser has no visitor for one,
+  so ANTLR's default prints it as `null` in the decision-making module's
+  comments. The engine writes `null` too. No reference has one.
 - **One selected goal.** Upstream generates every actor with a selected goal
   and writes the formulas of the last. The engine requires exactly one
   selected goal (the check reports a second one in the editors).
@@ -191,8 +208,10 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
   the second one has no Notation line, trace or selection of its own (#40).
 - **Upstream's quirks not reached by AND and OR.** Elements with the same
   text share one container. A goal's means-end tasks are read once per
-  incoming link. HashMap orders the context comments and the eval script's
-  lines (D15). The model issues meet them.
+  incoming link. The July 2019 eval script's lines come in HashMap order
+  (D15). The context comments' HashMap order is reproduced
+  (`javaHashMap.ts`), but a bucket that Java turns into a tree is not. The
+  model issues meet these quirks.
 - **`eval_formula.sh` runs `bc`.** The tests evaluate the formulas in
   TypeScript (`formula.ts`); the script is written for parity with upstream.
 - **Seed projects** (`examples/projects/goda-*`) wait for the upstream
