@@ -182,6 +182,31 @@ context from its decided ancestor, a child's `CTX_` in its parent's formula.
 The seven upstream models read with no diagnostics and round-trip through
 the Notation view (`test/dialect/goda.test.ts`).
 
+## Fragmented (#39)
+
+Fragmented's eight files are byte for byte the references with 5305bc1
+(above). Three things were checked for it:
+
+- **No DM operand dangles.** The model was added at 5305bc1 and hasn't
+  changed since. Each of its four `D M(…)` names ten tasks (`T1.11` to
+  `T1.10`, …), and all forty exist, refined under their task. The
+  reference has a module for each, and the editors report nothing.
+  #32's note that `T1.16` to `T1.10` have no element doesn't hold for the
+  model at either commit.
+- **Spaces in its brackets** (`D M(`, `T1.1 2`, `T1.14 ,`) read with no
+  error or warning (`notation.whitespace: 'ignore'`, #32).
+- **The power set of contexts.** Each DM chooses among every non-empty
+  combination of its ten children's contexts: 4 × (2¹⁰ − 1) = 4092
+  `CTX_` constants. With the 5305bc1 variant the files are 1.7 MB in all
+  and generate in about 40 ms. The cc808b6 variant gives 2.75 MB, and
+  generating took 4.9 s, almost all of it `cleanMultipleContexts`. It
+  replaces each product of the cost formula over the whole formula (24,722
+  replacements, scanning 35 GB), and only 212 change anything. A
+  replacement is a function of the text alone, so one that left the text
+  unchanged isn't run again until the text changes. That gives the same
+  bytes (every model's outputs hash the same, in both variants) in about
+  170 ms.
+
 ## Proof: DM (#36)
 
 DM's eight files are also **byte for byte** the references

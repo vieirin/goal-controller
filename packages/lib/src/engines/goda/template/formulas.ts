@@ -206,19 +206,35 @@ export const composeFormulas = (
  */
 const cleanMultipleContexts = (form: string): string => {
   let result = form;
+  // a replacement that left the text as it was leaves it so until the text
+  // changes: it isn't run again (one runs per product, over the whole
+  // formula, and few change anything: Fragmented's 24,722 change 212)
+  let version = 0;
+  const unchangedAt = new Map<string, number>();
   for (const sum of javaSplit(form, /\+/))
     for (const term of javaSplit(sum, /-/)) {
       const bare = term
         .replace(/\(/g, '')
         .replace(/\)/g, '')
         .replace(/\s+/g, '');
-      if (bare !== '1' && bare !== '')
-        result = replaceCtxRepetition(result, javaSplit(term, /\*/));
+      if (bare === '1' || bare === '') continue;
+      const { pattern, replacement } = ctxRepetition(javaSplit(term, /\*/));
+      const key = `${pattern}\u0000${replacement}`;
+      if (unchangedAt.get(key) === version) continue;
+      const next = replaceAll(result, pattern, replacement);
+      if (next === result) unchangedAt.set(key, version);
+      else {
+        result = next;
+        version++;
+      }
     }
   return result;
 };
 
-const replaceCtxRepetition = (form: string, factors: string[]): string => {
+/** `replaceCtxRepetition`: a product as written (a regex), and once each factor. */
+const ctxRepetition = (
+  factors: string[],
+): { pattern: string; replacement: string } => {
   const lump = new Set<string>();
   let without = '';
   let withRepetition = '';
@@ -232,5 +248,5 @@ const replaceCtxRepetition = (form: string, factors: string[]): string => {
       if (factor !== '1') without = without ? `${without}*${factor}` : factor;
     }
   }
-  return replaceAll(form, withRepetition, without);
+  return { pattern: withRepetition, replacement: without };
 };
