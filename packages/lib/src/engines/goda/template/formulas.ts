@@ -150,6 +150,11 @@ export const composeFormulas = (
         reliabilityComments.push(`//R_${id} = reliability of node ${id}\n`);
         if (frequency)
           reliabilityComments.push(`//F_${id} = frequency of node ${id}\n`);
+        // an optional leaf is pursued with its optionality
+        if (node.optional) {
+          form += `*OPT_${id}`;
+          reliabilityComments.push(`//OPT_${id} = optionality of node ${id}\n`);
+        }
       } else {
         // `getCostFormula`: a leaf's cost, or its weight W_
         form = node.cost

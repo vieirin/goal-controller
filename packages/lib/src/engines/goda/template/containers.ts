@@ -218,8 +218,12 @@ export const buildContainers = (
     if (dm) gc.decisionMaking = rtDMGoals;
     iterateGoals(gc, children, included);
     iterateMeansEnds(goal, gc, included);
+    // upstream makes it optional with an unknown plan TX, built from the goal
+    // (`new PlanContainer((Plan) gc)`): a cast that fails, so no model has one
     if (clearElId(gc).includes('X'))
-      throw new GodaUnsupported('an incomplete goal (X)', '#37');
+      throw new Error(
+        `GODA: an incomplete goal (${gc.elId}) is not generated: upstream's generator fails on it`,
+      );
   };
 
   const iterateGoals = (
@@ -272,8 +276,8 @@ export const buildContainers = (
     if (children.length) dm = storeRegexResults(pc);
     if (dm) pc.decisionMaking = rtDMGoals;
     iteratePlans(pc, children);
-    if (clearElId(pc).includes('X'))
-      throw new GodaUnsupported('an incomplete task (X)', '#37');
+    // an incomplete task (`T1.X`): optional, pursued or skipped
+    if (clearElId(pc).includes('X')) pc.optional = true;
   };
 
   const iteratePlans = (pc: Container, children: GodaTask[]) => {

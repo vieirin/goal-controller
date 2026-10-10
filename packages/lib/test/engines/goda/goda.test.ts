@@ -98,10 +98,12 @@ const twoTasks = (kind: 'And' | 'Or', texts = ['T1.1: Pick', 'T1.2: Place']) =>
     ],
   );
 
-describe('GODA: the references of AND and OR', () => {
-  for (const [folder, file] of [
-    ['AND', 'and2.txt'],
-    ['OR', 'or2.txt'],
+describe('GODA: the references of AND, OR and Incompleteness', () => {
+  // each model's folder, file, and the actor its MDP is named after
+  for (const [folder, file, actor] of [
+    ['AND', 'and2.txt', 'AND'],
+    ['OR', 'or2.txt', 'OR'],
+    ['Incompleteness', 'incompleteness.txt', 'Incomplete'],
   ] as const)
     it(`${folder}: every file byte for byte, and its formulas at 101 points`, function () {
       const dir = join(EXAMPLES, folder);
@@ -109,7 +111,7 @@ describe('GODA: the references of AND and OR', () => {
       if (!existsSync(join(dir, file))) this.skip();
       const output = outputOf(readFileSync(join(dir, file), 'utf8'), file);
       assert.deepStrictEqual(engineOutputProblems(output), []);
-      assert.strictEqual(primaryFile(output).fileName, `${folder}.nm`);
+      assert.strictEqual(primaryFile(output).fileName, `${actor}.nm`);
       for (const { fileName, text } of output.files)
         assert.strictEqual(
           text,
@@ -318,15 +320,7 @@ describe('GODA: models', () => {
     assert.throws(() => outputOf(none), /set selected to true on one goal/);
   });
 
-  it('names what it does not generate yet, with its issue', () => {
-    const unsupported = (text: string, issue: string) =>
-      assert.throws(
-        () => outputOf(text),
-        (error: Error) =>
-          error instanceof GodaUnsupported && error.message.includes(issue),
-      );
-    // an unknown element
-    unsupported(twoTasks('And', ['T1.X: Pick', 'T1.2: Place']), '#37');
+  it('names the generator versions it does not generate yet', () => {
     assert.deepStrictEqual(GODA_VARIANTS, ['cc808b6', '5305bc1']);
     assert.deepStrictEqual(GODA_IMPLEMENTED_VARIANTS, ['cc808b6']);
     assert.throws(
@@ -335,7 +329,8 @@ describe('GODA: models', () => {
           modelName: 'model.txt',
           variant: '5305bc1',
         }),
-      GodaUnsupported,
+      (error: Error) =>
+        error instanceof GodaUnsupported && error.message.includes('#38'),
     );
   });
 
@@ -361,6 +356,57 @@ describe('GODA: models', () => {
       check({ selected: 'true' }, { self: 'G1', kindOf: () => undefined }),
       null,
     );
+  });
+});
+
+describe('GODA: an incomplete task (T1.X)', () => {
+  const output = outputOf(twoTasks('And', ['T1.1: Pick', 'T1.X: Something']));
+  const nm = fileOf(output, 'model');
+
+  it('is optional: it starts with its optionality, or is skipped', () => {
+    assert.ok(nm.includes('const int OPT_G1_T1_X;\r\nconst double R_G1_T1_X;'));
+    assert.ok(
+      nm.includes(
+        "sG1_T1_X = 0 -> F_G1_T1_X*OPT_G1_T1_X : (sG1_T1_X'=1) + (1 - F_G1_T1_X*OPT_G1_T1_X) : (sG1_T1_X'=3);",
+      ),
+    );
+    // its goal's formula takes it skipped as done
+    assert.ok(
+      nm.includes('formula G1 = ((sG1_T1_1=2) & (sG1_T1_X=2 | sG1_T1_X=3));'),
+    );
+    assert.ok(!nm.includes('OPT_G1_T1_1'));
+  });
+
+  it('multiplies its reliability by its optionality, and the script gives it 1', () => {
+    assert.ok(
+      fileOf(output, 'reliability').startsWith(
+        '(F_G1_T1_1*R_G1_T1_1*F_G1_T1_X*R_G1_T1_X*OPT_G1_T1_X)\n',
+      ),
+    );
+    assert.ok(
+      fileOf(output, 'reliability').includes(
+        '//OPT_G1_T1_X = optionality of node G1_T1_X\n',
+      ),
+    );
+    const script = fileOf(output, 'evaluate');
+    assert.strictEqual(evalFormulaValues(script).OPT_G1_T1_X, 1);
+    // upstream's substitution, as it writes it (its first `/` missing)
+    assert.ok(script.includes(' -e "sOPT_G1_T1_X/$OPT_G1_T1_X/g"'));
+  });
+
+  it('an incomplete goal is not generated: upstream fails on it', () => {
+    const goalX = model(
+      [
+        ['g1', 'Goal', 'G1: Move', { selected: 'true' }],
+        ['gx', 'Goal', 'G1.X: Unknown'],
+        ['t1', 'Task', 'T1: Handle'],
+      ],
+      [
+        ['gx', 'g1'],
+        ['t1', 'gx'],
+      ],
+    );
+    assert.throws(() => outputOf(goalX), /incomplete goal \(G1\.X\).*upstream/);
   });
 });
 
