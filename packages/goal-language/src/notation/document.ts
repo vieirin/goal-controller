@@ -6,6 +6,7 @@
  * and properties. The syntax is the goal language's; what a line has (an id,
  * annotations, a declaration) is the definition's.
  */
+import { lineScope } from './scope.js';
 import {
   ANNOTATION_KEYS,
   DECLARATION_KEYS,
@@ -27,7 +28,8 @@ import { annotatedProperties, readLine } from './lines.js';
 type Document = Pick<
   AnyDialect,
   'elements' | 'notation' | 'propertyLineOrder' | 'indent'
->;
+> &
+  Partial<Pick<AnyDialect, 'idScope'>>;
 
 /**
  * Whether a node has lines of its own, with property lines and its children
@@ -157,15 +159,21 @@ export const notationEdits = (
   // a line with an id names its element (the id its name starts with)
   const named = order ? writtenIds(tree) : {};
   let index = 0;
+  // a repeated scoped id names the element under the goal above it
+  const scope = lineScope(definition);
   for (const written of lines) {
     const read = readLine(definition, written);
     const writtenId = read.kind === 'element' ? read.id : null;
     const position = order && written.trim() ? order[index++]! : null;
+    const indent = written.length - written.trimStart().length;
     const id = order
       ? writtenId
         ? (named[writtenId] ?? null)
         : position
-      : writtenId;
+      : writtenId &&
+        scope.keyOf(scope.enter(indent, writtenId), writtenId, (key) =>
+          tree.nodes.has(key),
+        );
     if (id && read.kind === 'element') {
       const node = tree.nodes.get(id);
       current = null;
@@ -244,12 +252,13 @@ export const contextFromView = (
   variables: readonly string[],
 ): DefinitionContext => ({
   elements: Object.fromEntries(
-    [...tree.nodes.values()]
-      .filter((node) => definition.elements[node.kind] !== undefined)
-      .map((node) => [
-        node.id,
+    [...tree.nodes]
+      .filter(([, node]) => definition.elements[node.kind] !== undefined)
+      .map(([key, node]) => [
+        key,
         {
           kind: node.kind,
+          ...(key !== node.id && { id: node.id }),
           children: node.children.filter((id) =>
             (
               (definition.notation?.operand.kinds ?? []) as readonly string[]

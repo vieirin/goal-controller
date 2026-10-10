@@ -280,7 +280,7 @@ export function NodeHeader({ node }: { node: GoalViewNode }) {
     ? constructDefinition(notationDefinitionOf(wb.engine), node.construct)
     : undefined;
   const traceLines =
-    wb.trace?.lines.filter((line) => line.primary.includes(node.id)).length ??
+    wb.trace?.lines.filter((line) => line.primary.includes(node.key)).length ??
     0;
   return (
     <div className='flex items-start justify-between gap-2'>
@@ -308,7 +308,7 @@ export function NodeHeader({ node }: { node: GoalViewNode }) {
           variant='outline'
           onClick={() => {
             wb.setOutputTab('output');
-            wb.select(node.id, 'inspector');
+            wb.select(node.key, 'inspector');
           }}
           title='Scroll the generated output to this node'
         >
@@ -719,7 +719,7 @@ export function SelectedNode({
     );
   }
   return modelReadOnly ? (
-    <NodeSummary key={node.id} node={node} />
+    <NodeSummary key={node.key} node={node} />
   ) : (
     children(node)
   );
@@ -885,9 +885,9 @@ export function PropertiesField({
               wb.projectResources,
             )
           : { elements: {}, variables: [] },
-        node.id,
+        node.key,
       ),
-    [engine, node.id, tree, wb.projectResources],
+    [engine, node.key, tree, wb.projectResources],
   );
   const suggestions = known.filter(
     (k) => k !== 'root' && !keys.includes(k) && applies(k),

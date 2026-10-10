@@ -10,6 +10,27 @@ import { clearElId, clearElName, type Container } from './containers';
 import { contextsInfo } from './contexts';
 import type { GodaGenerator } from './variants';
 
+/** Where an element's text starts in the output (null: where no element's does). */
+type Owned = { from: number; owner: string | null };
+
+/**
+ * Each line's owner: the element whose text the line ends in (the text from
+ * one element's start to the next's is that element's; a reward entry starts
+ * after its line's tab); a blank line and a line outside them belong to none.
+ */
+const linesOwned = (text: string, owned: readonly Owned[]): string[][] => {
+  const starts = [...owned].sort((a, b) => a.from - b.from);
+  let at = -1;
+  let from = 0;
+  return text.split('\n').map((line) => {
+    const last = from + Math.max(line.trimEnd().length - 1, 0);
+    while (at + 1 < starts.length && starts[at + 1]!.from <= last) at++;
+    const owner = at >= 0 ? starts[at]!.owner : null;
+    from += line.length + 1;
+    return owner && line.trim() ? [owner] : [];
+  });
+};
+
 /** Java's `String.replace`: every occurrence, literally. */
 const replace = (text: string, target: string, value: string): string =>
   text.split(target).join(value);
@@ -56,9 +77,21 @@ export const writePrism = (
     slots,
     leafContext,
   }: Pick<GodaGenerator, 'templates' | 'guards' | 'slots' | 'leafContext'>,
-): { model: string; evalScript: string } => {
+): {
+  model: string;
+  /** for each line of the model, the piStar ids of the elements it belongs to */
+  owners: string[][];
+  evalScript: string;
+} => {
   let planModules = '';
   let rewardModule = '';
+  // where each element's text is, in planModules and rewardModule
+  const moduleOwners: Owned[] = [];
+  const rewardOwners: Owned[] = [];
+  const emit = (text: string, owner: Container) => {
+    moduleOwners.push({ from: planModules.length, owner: owner.iStarId });
+    planModules += text;
+  };
   const rewardVariables: string[] = [];
   let evalParams = '';
   let evalReplace = '';
@@ -91,6 +124,7 @@ export const writePrism = (
       cost = `W_${id}`;
       if (!rewardVariables.includes(cost)) rewardVariables.push(cost);
     }
+    rewardOwners.push({ from: rewardModule.length, owner: plan.iStarId });
     rewardModule += replace(
       replace(templates.rewardEntry, '$GID$', id),
       '$COST$',
@@ -167,7 +201,7 @@ export const writePrism = (
     const { prev, time } = slots(root);
     module = replace(module, '$PREV_TIME_SLOT$', `_${prev}`);
     module = replace(module, '$TIME_SLOT$', `_${time}`);
-    planModules += `${module}\n`;
+    emit(`${module}\n`, root);
   };
 
   const writeModule = (
@@ -225,7 +259,7 @@ export const writePrism = (
     module = replace(module, '$TIME_SLOT$', `_${time}`);
     module = replace(module, '$GID$', id);
     module = replace(module, '$CONST_PARAM$', 'const');
-    planModules += `${module}\n`;
+    emit(`${module}\n`, plan);
     // an optional leaf succeeds, or is skipped
     return [id, plan.optional ? `s${id}=2 | s${id}=3` : `s${id}=2`];
   };
@@ -262,7 +296,7 @@ export const writePrism = (
         if (previous !== null) formula += previous + operator;
       }
       if (previous !== null) formula = dropLast(formula, operator);
-      if (root.included) planModules += `formula ${id} = ${formula};\n`;
+      if (root.included) emit(`formula ${id} = ${formula};\n`, root);
       return [id, formula];
     }
     if (root.plans.length) {
@@ -272,8 +306,7 @@ export const writePrism = (
         if (child) formula += `(${child})${operator}`;
       }
       if (formula) formula = dropLast(formula, operator);
-      if (root.kind === 'goal')
-        planModules += `formula ${id} = ${formula};\n\n`;
+      if (root.kind === 'goal') emit(`formula ${id} = ${formula};\n\n`, root);
       return [id, formula];
     }
     if (root.kind === 'plan') {
@@ -285,7 +318,7 @@ export const writePrism = (
 
   for (const root of roots) {
     writeElement(root, null);
-    planModules += `label "success" = ${clearElId(root)};`;
+    emit(`label "success" = ${clearElId(root)};`, root);
   }
 
   const body = replace(templates.body, '$GOAL_MODULES$', planModules);
@@ -296,8 +329,31 @@ export const writePrism = (
     '$REPLACE_BASH$',
     evalReplace,
   );
+  const model = `${templates.header}\n${body}${reward}\n`;
+  const modulesAt =
+    templates.header.length + 1 + templates.body.indexOf('$GOAL_MODULES$');
+  const rewardsAt =
+    templates.header.length +
+    1 +
+    body.length +
+    declared.length +
+    1 +
+    templates.reward.indexOf('$REWARD_STRUCTURE$');
   return {
-    model: `${templates.header}\n${body}${reward}\n`,
+    model,
+    owners: linesOwned(model, [
+      ...moduleOwners.map(({ from, owner }) => ({
+        from: modulesAt + from,
+        owner,
+      })),
+      // what follows the modules (the reward variables) is no element's
+      { from: modulesAt + planModules.length, owner: null },
+      ...rewardOwners.map(({ from, owner }) => ({
+        from: rewardsAt + from,
+        owner,
+      })),
+      { from: rewardsAt + rewardModule.length, owner: null },
+    ]),
     evalScript: `${evalScript}\n`,
   };
 };

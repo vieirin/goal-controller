@@ -86,9 +86,15 @@ function NotationField({
   const operands = node.children.filter((id) =>
     operandKinds.includes(tree?.nodes.get(id)?.kind ?? ''),
   );
-  const notChildren = listed.filter((id) => !operands.includes(id));
+  // the notation lists ids; the children are keys (a repeated scoped id's is its goal's)
+  const idOf = (key: string) => tree?.nodes.get(key)?.id ?? key;
+  const notChildren = listed.filter(
+    (id) => !operands.some((key) => idOf(key) === id),
+  );
   const missing =
-    listed.length > 0 ? operands.filter((id) => !listed.includes(id)) : [];
+    listed.length > 0
+      ? operands.filter((key) => !listed.includes(idOf(key)))
+      : [];
   // what is wrong with the saved notation, shown when hovering the field
   const saved = notation.draft.trim() === (node.notation ?? '');
   const mismatch = relationMismatch(definition, node.construct, node.relation);
@@ -255,7 +261,7 @@ function DefinitionNode({
       return (
         <DefinitionValueEditor
           support={support}
-          id={node.id}
+          id={node.key}
           property={key}
           {...props}
         />
@@ -289,7 +295,7 @@ export default function DefinitionInspector({
 }) {
   return (
     <SelectedNode>
-      {(node) => <DefinitionNode key={node.id} node={node} engine={engine} />}
+      {(node) => <DefinitionNode key={node.key} node={node} engine={engine} />}
     </SelectedNode>
   );
 }

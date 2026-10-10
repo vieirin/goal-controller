@@ -114,6 +114,8 @@ export const godaOutput = (
           'prism',
         ),
         primary: true,
+        // each line's element, by piStar id: GODA's ids repeat under goals
+        owners: prism.owners,
       },
       // FileUtility.writeFile: println
       ...PCTL.map(([id, fileName, text]) =>

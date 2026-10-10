@@ -6,12 +6,11 @@ import { setLineMarks } from '@/lib/workbench/codemirror';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import {
   applyNotationEdits,
-  elementOfLine,
+  lineKeys,
   notationDocument,
   notationEdits,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
-import { lineId } from '@goal-controller/goal-language';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
@@ -95,6 +94,35 @@ export default function NotationEditor({
     }, EDIT_DELAY_MS);
   };
 
+  // each line's element key, read once per document text, tree and
+  // definition: a cursor move or a selection reuses it (a repeated scoped
+  // id's key is its goal's)
+  const keysCache = useRef<{
+    text: string;
+    tree: unknown;
+    definition: AnyDialect;
+    keys: (string | null)[];
+  } | null>(null);
+  const keysOf = (text: string): (string | null)[] => {
+    const tree = latestTree.current;
+    const cached = keysCache.current;
+    if (
+      cached?.text === text &&
+      cached.tree === tree &&
+      cached.definition === definition
+    )
+      return cached.keys;
+    const keys = lineKeys(
+      definition,
+      text.split('\n'),
+      (key) => !!tree?.nodes.has(key),
+    );
+    keysCache.current = { text, tree, definition, keys };
+    return keys;
+  };
+  const latestKeysOf = useRef(keysOf);
+  latestKeysOf.current = keysOf;
+
   // cursor on a line → select its element
   const extensions = useMemo(
     () => [
@@ -109,14 +137,17 @@ export default function NotationEditor({
         const { doc } = update.state;
         // a property line belongs to the element line above it
         const line = doc.lineAt(update.state.selection.main.head).number;
-        const id = elementOfLine(
-          definition,
-          doc.toString().split('\n'),
-          line - 1,
-        );
+        // its key, or the element line's above it
+        const id =
+          latestKeysOf
+            .current(doc.toString())
+            .slice(0, line)
+            .filter((key): key is string => key !== null)
+            .at(-1) ?? null;
         const node = id ? latestTree.current?.nodes.get(id) : undefined;
-        if (node && node.id !== latestSelected.current) {
-          latest.current.select(node.id, 'notation');
+        // the key the line names (a repeated scoped id's is its goal's)
+        if (node && id !== latestSelected.current) {
+          latest.current.select(id, 'notation');
         }
       }),
     ],
@@ -127,13 +158,9 @@ export default function NotationEditor({
   useEffect(() => {
     if (!view || !selectable) return;
     const document = view.state.doc;
-    let line = 0;
-    for (let n = 1; n <= document.lines && selected; n++) {
-      if (lineId(definition, document.line(n).text) === selected) {
-        line = n;
-        break;
-      }
-    }
+    const keys = selected ? keysOf(document.toString()) : [];
+    // 1-based; 0: the selected element has no line
+    const line = keys.indexOf(selected) + 1;
     view.dispatch({
       effects: [
         setLineMarks.of(line ? [{ line, className: 'cm-trace-primary' }] : []),

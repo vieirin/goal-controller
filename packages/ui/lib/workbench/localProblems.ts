@@ -105,7 +105,7 @@ export const treeProblems = (
         severity: 'error',
         source: SOURCE.workbench,
         // the view keys an element without an RT id by its piStar id: selectable all the same
-        elementId: node.id,
+        elementId: node.key,
         message: `"${node.text.trim()}" has no id: start its name with one (${idPrefixes(engine)}), e.g. "G4: ${node.name || 'name'}"`,
       });
       continue;
@@ -121,7 +121,7 @@ export const treeProblems = (
       problems.push({
         severity: 'warning',
         source: SOURCE.workbench,
-        elementId: node.id,
+        elementId: node.key,
         message: `${node.id}: the name "${node.name}" has characters the goal notation does not allow (use letters, spaces, hyphens and apostrophes)`,
       });
     }
@@ -135,7 +135,7 @@ export const treeProblems = (
       problems.push({
         severity: 'error',
         source: SOURCE.workbench,
-        elementId: node.id,
+        elementId: node.key,
         message: `${node.id} has no children or tasks; every goal must be refined`,
       });
     }

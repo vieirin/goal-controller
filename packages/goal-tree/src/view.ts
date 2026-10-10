@@ -14,6 +14,7 @@ import {
 import {
   notationRefs,
   parseElementLineIn,
+  scopedKey,
 } from '@goal-controller/goal-language';
 import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
 import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
@@ -31,6 +32,12 @@ export type GoalViewNode = {
   x?: number;
   /** RT id ("G3"); the piStar id when the text has none */
   id: string;
+  /**
+   * what the view knows it by: its id, or, in a dialect whose ids are scoped
+   * by their goal (`idScope: 'ancestorGoal'`), `G3/T1.1` for an id another
+   * element repeats under another goal (`scopedKey`)
+   */
+  key: string;
   kind: ViewKind;
   name: string;
   /** the element's whole text */
@@ -44,12 +51,13 @@ export type GoalViewNode = {
   notationError: string | null;
   /** how the element refines its children: AND/OR refinement (Needed-By is not one) */
   relation: 'and' | 'or' | null;
-  /** RT ids: in notation order, then the others */
+  /** keys: in notation order, then the others */
   children: string[];
+  /** its parent's key */
   parent: string | null;
-  /** RT ids of the Qualities qualifying it (Qualification links: not refinements) */
+  /** keys of the Qualities qualifying it (Qualification links: not refinements) */
   qualities: string[];
-  /** a Quality's: RT ids of the elements it qualifies */
+  /** a Quality's: keys of the elements it qualifies */
   qualifies: string[];
   properties: Record<string, string>;
   /** fill colour saved in the diagram, if any */
@@ -57,7 +65,7 @@ export type GoalViewNode = {
 };
 
 export type GoalView = {
-  /** by RT id; the first element wins when ids repeat */
+  /** by key (its RT id, unless scoped); the first element wins when keys repeat */
   nodes: Map<string, GoalViewNode>;
   /** by piStar id: every element, repeated RT ids included */
   byIStarId: Map<string, GoalViewNode>;
@@ -117,6 +125,8 @@ export function goalView(
       iStarId: element.id,
       x: element.x,
       id: (errors.length === 0 && detail?.id) || written?.[1] || element.id,
+      // set once the parents are known
+      key: '',
       kind,
       name: (
         (errors.length === 0 && detail?.goalName) ||
@@ -159,37 +169,64 @@ export function goalView(
     if (!parents.has(childId)) parents.set(childId, parentId);
   }
 
+  // an id another element repeats, in a dialect that scopes ids by their
+  // goal: keyed by its nearest goal (GODA's G3_T1_1, G4_T1_1)
+  const uses = new Map<string, number>();
+  for (const node of byIStarId.values())
+    uses.set(node.id, (uses.get(node.id) ?? 0) + 1);
+  const goalAbove = (iStarId: string): string | null => {
+    for (let at = parents.get(iStarId); at; at = parents.get(at)) {
+      const node = byIStarId.get(at);
+      if (node?.kind === 'goal') return node.id;
+    }
+    return null;
+  };
   for (const node of byIStarId.values()) {
-    const ids = (children.get(node.iStarId) ?? [])
-      .map((id) => byIStarId.get(id)?.id)
-      .filter((id): id is string => !!id && id !== node.id);
-    // the notation's order first (the priority), then any unlisted child
-    node.children = [...new Set(ids)].sort((a, b) => {
-      const ia = node.order.indexOf(a);
-      const ib = node.order.indexOf(b);
+    const goal =
+      dialect.idScope === 'ancestorGoal' &&
+      node.kind !== 'goal' &&
+      (uses.get(node.id) ?? 0) > 1
+        ? goalAbove(node.iStarId)
+        : null;
+    node.key = goal ? scopedKey(goal, node.id) : node.id;
+  }
+
+  const idByKey = new Map(
+    [...byIStarId.values()].map((node) => [node.key, node.id]),
+  );
+  const keyOf = (iStarId: string | undefined) =>
+    iStarId ? byIStarId.get(iStarId)?.key : undefined;
+  for (const node of byIStarId.values()) {
+    const keys = (children.get(node.iStarId) ?? [])
+      .map(keyOf)
+      .filter((key): key is string => !!key && key !== node.key);
+    // the notation's order first (the priority, by id), then any unlisted child
+    const idOf = (key: string) => idByKey.get(key) ?? key;
+    node.children = [...new Set(keys)].sort((a, b) => {
+      const ia = node.order.indexOf(idOf(a));
+      const ib = node.order.indexOf(idOf(b));
       return (ia < 0 ? Infinity : ia) - (ib < 0 ? Infinity : ib);
     });
-    const parent = parents.get(node.iStarId);
-    node.parent = parent ? (byIStarId.get(parent)?.id ?? null) : null;
+    node.parent = keyOf(parents.get(node.iStarId)) ?? null;
   }
 
   for (const [qualityId, qualifiedId] of qualifications) {
     const quality = byIStarId.get(qualityId);
     const qualified = byIStarId.get(qualifiedId);
     if (!quality || !qualified) continue;
-    if (!quality.qualifies.includes(qualified.id))
-      quality.qualifies.push(qualified.id);
-    if (!qualified.qualities.includes(quality.id))
-      qualified.qualities.push(quality.id);
+    if (!quality.qualifies.includes(qualified.key))
+      quality.qualifies.push(qualified.key);
+    if (!qualified.qualities.includes(quality.key))
+      qualified.qualities.push(quality.key);
   }
 
   const byId = new Map<string, GoalViewNode>();
   for (const node of byIStarId.values())
-    if (!byId.has(node.id)) byId.set(node.id, node);
+    if (!byId.has(node.key)) byId.set(node.key, node);
   const roots = [...model.elements.values()]
     .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id, dialect))
-    .map((element) => byIStarId.get(element.id)?.id)
+    .map((element) => keyOf(element.id))
     .filter((id): id is string => !!id);
   const reachable = new Set<string>();
   const visit = (id: string): void => {
@@ -201,9 +238,9 @@ export function goalView(
   for (const node of byId.values()) {
     // a Quality outside the refinements only qualifies: it is not a tree of its own
     const onlyQualifies = node.kind === 'quality' && node.children.length === 0;
-    if (!reachable.has(node.id) && !node.parent && !onlyQualifies) {
-      roots.push(node.id);
-      visit(node.id);
+    if (!reachable.has(node.key) && !node.parent && !onlyQualifies) {
+      roots.push(node.key);
+      visit(node.key);
     }
   }
 

@@ -241,6 +241,7 @@ The same test file checks the module on models of our own: three contexts, which
 | A leaf's bracket as its cost | The grammar's element line reads `[W = …]` as a `Cost` (constant, variable, or both). GoalLexer reads it when a bracket starts with `W =`. A dialect sets `notation.leafBracket: 'cost'`. The validator reports a cost on a refined element, a notation on such a leaf, and a cost in a dialect without them. `parseElementLine` gives `cost`. |
 | Ids `T1.411`, `T1.X`, `TX` | `T1.411` and `T1.X` already read. `GX` and `TX` were WORD for two letters, a name (RTRegex.g4's divergence, documented): the lexer splits such a WORD into its prefix and `X` where an id may be. The ANTLR parity test names it. |
 | BSN's `T1.1` under two goals | `idScope: 'ancestorGoal'` on a definition: the validator reports a repeated id only under the same goal. |
+| The editors telling them apart (#40) | goal-tree's view keys a repeated scoped id by its goal (`GoalViewNode.key`: `G3/T1.1`, `G4/T1.1`; any other element's key is its id). Every map, selection and context the editors use is by key: the diagram, the inspector and its fields, Problems' attribution, the Notation view (a line's element is found under the goal line above it: `lineScope`, `lineKeys`) and its edits. A context element whose key isn't its id carries `id`. GODA's MDP gives each line's element by piStar id (`owners`), which the trace maps to keys. Edge's ids are the model's: its keys are its ids, and nothing changed for it. |
 | Fragmented's `D M(T1.1 2)` | `notation.whitespace: 'ignore'`: the reader and the editors read a line without the spaces in its bracket, and map every span back to the line as written. `parseElementLineIn(dialect, text)`. |
 | Context conditions with a prefix and decimals | The `assertion` type gained `prefixes` (`assertion condition`, `assertion trigger`) and `decimals`. One general type, not a GODA one. |
 | Context variables nobody declares | `declaresVariables` on an `assertion` value (#34 D17). The names a condition compares are known variables because the condition uses them, as upstream turns each into a `CTX_` parameter. Without it, every `ctx`, `ms` or `SaO2_sensor` was a "not a known variable" note (58 across the examples). |
@@ -297,9 +298,6 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
 
 ## Still open
 
-- **The editors key elements by id.** A repeated `T1.1` (BSN) is valid in
-  the language, but goal-tree's view keeps the first element of an id, so
-  the second one has no Notation line, trace or selection of its own (#40).
 - **Upstream's HashMaps.** The context comments, the July 2019 eval
   script's lines and the order the cost's reliabilities are substituted in
   come in Java's HashMap order, which `javaHashMap.ts` reproduces (all seven

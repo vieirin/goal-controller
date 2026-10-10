@@ -11,6 +11,7 @@ import type {
 import {
   contextFromView,
   lineId,
+  lineScope,
   nodeLine,
   type NotationEdit,
 } from '@goal-controller/goal-language';
@@ -38,17 +39,34 @@ export const applyNotationEdits = (
   );
 
 /** The id of the element a line belongs to: its own, or the element line above it. */
+/**
+ * Each line's element key, null on a line that names none: its id, or, for a
+ * repeated scoped id (`idScope: 'ancestorGoal'`), the element's under the goal
+ * above it (`has` says which keys the model has).
+ */
+export const lineKeys = (
+  definition: DialectDefinition,
+  lines: readonly string[],
+  has: (key: string) => boolean = () => false,
+): (string | null)[] => {
+  const scope = lineScope(definition);
+  return lines.map((written) => {
+    const id = lineId(definition, written);
+    if (!id) return null;
+    const indent = written.length - written.trimStart().length;
+    return scope.keyOf(scope.enter(indent, id), id, has);
+  });
+};
+
 export const elementOfLine = (
   definition: DialectDefinition,
   lines: readonly string[],
   index: number,
-): string | null => {
-  for (let i = index; i >= 0; i--) {
-    const id = lineId(definition, lines[i] ?? '');
-    if (id) return id;
-  }
-  return null;
-};
+  has?: (key: string) => boolean,
+): string | null =>
+  lineKeys(definition, lines.slice(0, index + 1), has)
+    .filter((key): key is string => key !== null)
+    .at(-1) ?? null;
 
 /**
  * What the language checks a model against: its elements, the workbench's
@@ -76,8 +94,8 @@ export const savedLines = (
   tree: GoalView,
 ): SavedLines =>
   Object.fromEntries(
-    [...tree.nodes.values()].map((node) => [
-      node.id,
+    [...tree.nodes.entries()].map(([key, node]) => [
+      key,
       { line: nodeLine(definition, node), error: node.notationError },
     ]),
   );

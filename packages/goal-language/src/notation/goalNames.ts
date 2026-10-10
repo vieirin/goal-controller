@@ -66,6 +66,8 @@ export type GoalNameParser<E = ExecutionDetail> = (props: {
 /** What a reader needs of a dialect: its name, and its notation if it has one. */
 export type ReadingDialect = Pick<AnyDialect, 'name' | 'unlinkedResources'> & {
   notation?: NotationDefinition;
+  /** how unique an id is (a view keys a repeated scoped id by its goal) */
+  idScope?: AnyDialect['idScope'];
 };
 
 /** The outermost enabled operator of a notation (groups and modifiers looked through). */
