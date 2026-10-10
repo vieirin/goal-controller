@@ -46,8 +46,8 @@ A **document** is lines (`Document`). There are two kinds of line:
   └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
   ```
 
-  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X` or `1a` (`GX`
-  reads as a name: see the [reference](reference.md#ids)). A
+  The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X`, `1a` or `X`
+  (GODA's `TX`: see the [reference](reference.md#ids)). A
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
 

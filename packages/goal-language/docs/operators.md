@@ -31,10 +31,13 @@ reads as `(G2;G3);G4`, as ANTLR's left-recursive alternatives did.
 |     — |  `?`   | standalone             | —              | `[?]`    |            | —                      | —                      |
 |     — |  `#`   | standalone             | —              | `[#]`    |            | —                      | —                      |
 |     — | `FALLBACK` | call, 2 operands  | —              | `FALLBACK(G2,G3)` |   | —                      | —                      |
+|     — | `DM` | call, 2 or more operands  | —              | `DM(T1.1,T1.2,T1.3)` |   | —                      | —                      |
 
 A dash in an engine's column means the engine leaves that operator disabled,
 so the validator reports it there (for example "`?` is not an operator of
-Edge"). The spare operators (`^`, `&`, `~`, `,`, `!`, standalone `*`) are
+Edge"). MutRoSe enables `;`, `#` and `FALLBACK`; GODA enables `DM` only
+(decision making), the only construct of its RT regex its MDP generator
+reads. The spare operators (`^`, `&`, `~`, `,`, `!`, standalone `*`) are
 there for dialects that need more constructs than Edge does.
 
 Edge's and edgeV2's operators keep the order their ANTLR grammars gave them
@@ -44,13 +47,13 @@ differently.
 
 ## Operands
 
-- An element id: a prefix `G`, `T`, `R` or `AT`, followed by `1`, `1.2`, `1X`
-  or `1a` (`GX` reads as a name: see [reference.md](reference.md#ids)).
+- An element id: a prefix `G`, `T`, `R` or `AT`, followed by `1`, `1.2`, `1X`,
+  `1a` or `X` (see [reference.md](reference.md#ids)).
 - `skip`.
 - A group: `[...]` or `(...)`.
 - A standalone symbol.
-- A call: `FALLBACK(G2,G3)`. Its commas separate operands; they are not
-  the `,` operator.
+- A call: `FALLBACK(G2,G3)`, or `DM(T1,T2,…)` with two or more operands.
+  Its commas separate operands; they are not the `,` operator.
 
 A space inside a notation is an error (`[G2; G3]`). RTRegex.g4 read a space
 as part of a name, and the language keeps that behaviour so engines read

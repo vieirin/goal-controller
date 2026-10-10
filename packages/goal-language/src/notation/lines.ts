@@ -339,9 +339,8 @@ const writtenAs = (
  * as written).
  */
 export const readLine = (
-  definition: Pick<AnyDialect, 'elements'> & {
-    notation?: { whitespace?: 'ignore' };
-  },
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'notation'>>,
   text: string,
 ): LineReading => {
   if (definition.notation?.whitespace === 'ignore') {

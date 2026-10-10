@@ -4,7 +4,10 @@
  * line, or one value of a predefined type.
  */
 import type { ParseResult } from 'langium';
-import type { AssertionPrefix } from '@goal-controller/dialect';
+import type {
+  AssertionPrefix,
+  NotationDefinition,
+} from '@goal-controller/dialect';
 import type { ValueType } from './catalog.js';
 import type {
   AnnotatedName,
@@ -316,7 +319,7 @@ export const withoutBracketSpaces = (
  * its bracket where the dialect ignores them (`notation.whitespace`).
  */
 export const parseElementLineIn = (
-  dialect: { notation?: { whitespace?: 'ignore' } },
+  dialect: { notation?: Pick<NotationDefinition, 'whitespace'> | undefined },
   text: string,
 ): Parsed<ElementLineData | null> =>
   parseElementLine(
