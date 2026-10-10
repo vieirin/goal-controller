@@ -30,8 +30,21 @@ export type ProducedOutputs = {
 };
 
 /** Where a produced file is kept: `out/<its file name>`. */
-export const outputPath = (file: Pick<ProducedFile, 'fileName'>): string =>
-  normalizePath(`out/${file.fileName}`);
+export const outputPath = (file: Pick<ProducedFile, 'fileName'>): string => {
+  // whatever the engine names it (`../project.json`, `/x`), it stays under out/
+  const refused = new Error(
+    `${JSON.stringify(file.fileName)} is not a file name inside out/`,
+  );
+  if (file.fileName.startsWith('/')) throw refused;
+  let path: string;
+  try {
+    path = normalizePath(`out/${file.fileName}`);
+  } catch {
+    throw refused;
+  }
+  if (!path.startsWith('out/')) throw refused;
+  return path;
+};
 
 /**
  * The project with a run's files as its outputs (not written): each file at

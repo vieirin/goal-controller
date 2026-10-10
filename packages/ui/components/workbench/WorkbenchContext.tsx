@@ -106,9 +106,11 @@ import { mergeProblems } from '@/lib/workbench/diagnostics';
 import type { TraceIndex } from '@/lib/workbench/trace';
 import {
   activeFileOf,
-  inputsHash,
+  generatedFrom,
   lastGoodRun,
+  outputsToSave,
   previousOutputOf,
+  savedRun,
   traceOfFile,
   type OutputFile,
 } from '@/lib/workbench/outputs';
@@ -175,13 +177,6 @@ export type Run = {
    */
   inputs?: string;
 };
-
-/** Whether a run was generated from these inputs (a signature). */
-const generatedFrom = (run: Run, signature: string | null): boolean =>
-  signature !== null &&
-  (run.inputs !== undefined
-    ? run.inputs === inputsHash(signature)
-    : run.signature === signature);
 
 type VariableValues = Record<string, boolean | number>;
 
@@ -1492,13 +1487,9 @@ function WorkbenchState({
     const open = currentProject();
     const run = lastGoodRun(latest.current.runs);
     const [model] = open?.models ?? [];
-    if (!open || !model || !run?.files) return;
-    const { project: next, changes } = withOutputs(open, {
-      model: model.path,
-      engine: run.engine,
-      files: run.files,
-      inputs: run.inputs ?? inputsHash(run.signature),
-    });
+    const outputs = run && model && outputsToSave(run, model.path);
+    if (!open || !outputs) return;
+    const { project: next, changes } = withOutputs(open, outputs);
     await writeProject(open, changes, next);
   }, [currentProject, writeProject]);
 
@@ -1515,18 +1506,11 @@ function WorkbenchState({
       .then((saved) => {
         if (cancelled || !saved || latest.current.runs.length > 0) return;
         runId.current += 1;
-        const run: Run = {
+        const run: Run = savedRun(saved, {
           id: runId.current,
-          at: Date.now(),
           engine,
-          durationMs: 0,
-          signature: '',
-          files: [...saved.files],
-          report: null,
-          error: null,
-          // none kept (written before #33): never what the model is now
-          inputs: saved.inputs ?? '',
-        };
+          at: Date.now(),
+        });
         setRuns((prev) => (prev.length > 0 ? prev : [run]));
       })
       .catch(() => {});

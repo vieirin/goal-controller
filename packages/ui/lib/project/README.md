@@ -217,3 +217,16 @@ forgot it).
    side by side are not.
 4. Workspace-level language services.
 5. Experiments as projects.
+
+## Still open
+
+- **Two models' outputs with the same file name replace each other.** An
+  output is kept at `out/<its file name>`, and `withOutputs` replaces any
+  entry at that path. One model per project can't meet this. With several
+  models of one engine (stage 3), it can: GODA names its four PCTL files the
+  same for every model, and two Edge models named alike would write the same
+  `.prism`. Stage 3 needs a folder per model (`out/<model>/…`) or names
+  that include the model.
+- An output's file name is the engine's, kept inside `out/`: `outputPath`
+  refuses one that would leave it (`../project.json`, `/x`), and lib's
+  `engineOutputProblems` reports it.

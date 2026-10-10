@@ -13,6 +13,63 @@ export type OutputFile = EngineOutputFile;
 /** What the helpers read of a run. */
 type RunFiles = { engine: string; files: readonly OutputFile[] | null };
 
+/** A run's provenance: what it was generated from, or, read from a project, that hashed. */
+type RunInputs = { signature: string; inputs?: string };
+
+/**
+ * Whether a run was generated from these inputs (a signature): its own
+ * signature, or, for a run read from a project, its inputs' hash. A run read
+ * from entries written before #33 (no hash) is never current.
+ */
+export const generatedFrom = (
+  run: RunInputs,
+  signature: string | null,
+): boolean =>
+  signature !== null &&
+  (run.inputs !== undefined
+    ? run.inputs === inputsHash(signature)
+    : run.signature === signature);
+
+/**
+ * A run of a project's saved outputs (readOutputs): shown until the first
+ * generation, current while its inputs' hash matches, and what an Edge
+ * engine reads as previousOutput.
+ */
+export const savedRun = <E extends string>(
+  saved: { files: readonly OutputFile[]; inputs?: string },
+  { id, engine, at }: { id: number; engine: E; at: number },
+) => ({
+  id,
+  at,
+  engine,
+  durationMs: 0,
+  signature: '',
+  files: [...saved.files],
+  report: null,
+  error: null,
+  // none kept (written before #33): never what the model is now
+  inputs: saved.inputs ?? '',
+});
+
+/** What saveOutputs keeps of a run in its project: its files, its engine, its inputs hashed. */
+export const outputsToSave = (
+  run: RunFiles & RunInputs,
+  model: string,
+): {
+  model: string;
+  engine: string;
+  files: readonly OutputFile[];
+  inputs: string;
+} | null =>
+  run.files
+    ? {
+        model,
+        engine: run.engine,
+        files: run.files,
+        inputs: run.inputs ?? inputsHash(run.signature),
+      }
+    : null;
+
 /** The primary file (an engine marks exactly one; the first stands in otherwise). */
 export const primaryOf = (
   files: readonly OutputFile[],

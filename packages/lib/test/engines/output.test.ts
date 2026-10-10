@@ -181,6 +181,30 @@ describe('engine outputs', () => {
     }
   });
 
+  it('refuses a file name outside the output directory, and writes nothing', () => {
+    const one = (fileName: string) => ({
+      files: [{ id: 'model', fileName, text: 'mdp', primary: true }],
+    });
+    for (const fileName of ['../x.nm', '/etc/x.nm', 'a/../../b', 'a\\b', ''])
+      assert.deepStrictEqual(
+        engineOutputProblems(one(fileName)).length,
+        1,
+        fileName,
+      );
+    assert.deepStrictEqual(engineOutputProblems(one('goda/Lab.nm')), []);
+    const parent = mkdtempSync(join(tmpdir(), 'engine-output-'));
+    const directory = join(parent, 'out');
+    try {
+      assert.throws(
+        () => writeOutputFiles(directory, one('../escaped.nm')),
+        /not a path inside out/,
+      );
+      assert.deepStrictEqual(readdirSync(parent), []);
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
   // previousOutput: an Edge engine reads the previous run's primary file
   const handEdit = (prism: string): string =>
     prism.replace(

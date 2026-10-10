@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
-import type { EngineOutput } from '../engines/output';
+import { outputFileNameProblem, type EngineOutput } from '../engines/output';
 
 /**
  * Writes every file of an engine's output into `directory`, by its file
@@ -13,6 +13,11 @@ export const writeOutputFiles = (
   directory: string,
   output: EngineOutput,
 ): string[] => {
+  // nothing is written outside the directory (`../x`, `/x`)
+  for (const { fileName } of output.files) {
+    const problem = outputFileNameProblem(fileName);
+    if (problem) throw new Error(problem);
+  }
   mkdirSync(directory, { recursive: true });
   return [...output.files]
     .sort((a, b) => Number(!!b.primary) - Number(!!a.primary))

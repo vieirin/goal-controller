@@ -96,6 +96,7 @@ export { edgeOutput, edgeV2Output, sleecOutput };
 export {
   engineOutputProblems,
   outputBaseName,
+  outputFileNameProblem,
   primaryFile,
   singleFileOutput,
   type EngineOutput,

@@ -21,13 +21,16 @@ import {
 } from '../../../../ui/lib/project';
 import {
   activeFileOf,
+  generatedFrom,
   inputsHash,
   lastGoodRun,
   outputArchive,
   outputDownloadExtension,
   outputFileTabs,
+  outputsToSave,
   previousOutputOf,
   primaryOf,
+  savedRun,
   traceOfFile,
   type OutputFile,
 } from '../../../../ui/lib/workbench/outputs';
@@ -298,5 +301,83 @@ describe('engine outputs in a project', () => {
     expect(() => parseManifest(manifest({ id: '' })))
       .to.throw(ManifestError)
       .with.property('at', 'outputs[0].id');
+  });
+});
+
+describe('engine outputs: file names that leave out/', () => {
+  it('are refused before anything is written to the project', async () => {
+    const project = await openProject(
+      directoryStore(fakeDirectory('lab', { 'lab.txt': MODEL })),
+    );
+    const save = (fileName: string) =>
+      withOutputs(project, {
+        model: 'lab.txt',
+        engine: 'goda',
+        files: [{ id: 'model', fileName, text: 'mdp', primary: true }],
+      });
+    for (const fileName of [
+      '../project.json',
+      '../../x.nm',
+      'sub/../../lab.txt',
+      '/etc/x.nm',
+    ])
+      expect(() => save(fileName), fileName).to.throw(/inside out\//);
+    // a folder inside out/ is fine
+    expect(Object.keys(save('goda/Lab.nm').changes)).to.include(
+      'out/goda/Lab.nm',
+    );
+  });
+});
+
+describe('engine outputs: a run read from the project', () => {
+  const files = three(['G1']);
+  const signature = 'the model, its engine and options';
+
+  it('is current while its inputs hash to the model’s signature', () => {
+    const fresh = savedRun(
+      { files, inputs: inputsHash(signature) },
+      { id: 1, engine: 'edge', at: 0 },
+    );
+    expect(generatedFrom(fresh, signature)).to.equal(true);
+    expect(generatedFrom(fresh, `${signature} changed`)).to.equal(false);
+    expect(generatedFrom(fresh, null)).to.equal(false);
+    // entries written before #33 keep no hash: never current
+    const old = savedRun({ files }, { id: 2, engine: 'edge', at: 0 });
+    expect(old.inputs).to.equal('');
+    expect(generatedFrom(old, signature)).to.equal(false);
+    // a run generated here compares its own signature
+    expect(generatedFrom({ signature }, signature)).to.equal(true);
+  });
+
+  it('gives an Edge engine its primary file as previousOutput', async () => {
+    // saved as saveOutputs does, read back as the workbench does on opening
+    const tree: Tree = { 'lab.txt': MODEL };
+    const project = await openProject(
+      directoryStore(fakeDirectory('lab', tree)),
+    );
+    const generated = {
+      engine: 'edge',
+      files,
+      signature,
+    };
+    const outputs = outputsToSave(generated, 'lab.txt')!;
+    expect(outputs.inputs).to.equal(inputsHash(signature));
+    const { project: written, changes } = withOutputs(project, outputs);
+    await saveProject(written, changes, written.manifest);
+    const reopened = await openProject(
+      directoryStore(fakeDirectory('lab', tree)),
+    );
+    const saved = (await readOutputs(reopened, 'lab.txt', 'edge'))!;
+    const run = savedRun(saved, { id: 1, engine: 'edge', at: 0 });
+    expect(generatedFrom(run, signature)).to.equal(true);
+    expect(previousOutputOf([run], 'edge')).to.equal(
+      files.find((file) => file.primary)!.text,
+    );
+    // another engine's saved run is not Edge's previous output
+    expect(previousOutputOf([run], 'edgev2')).to.equal(undefined);
+    // a failed run has nothing to save
+    expect(outputsToSave({ ...generated, files: null }, 'lab.txt')).to.equal(
+      null,
+    );
   });
 });

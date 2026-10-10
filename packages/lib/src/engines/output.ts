@@ -57,7 +57,22 @@ export const singleFileOutput = ({
   ],
 });
 
-/** What is wrong with an engine's output: not exactly one primary file, ids or file names repeated. */
+/**
+ * Why a file name can't be an output's, or null: it is relative to `out/`
+ * and stays in it (no `..` or `.` segment, no leading `/`, no `\`, not empty).
+ */
+export const outputFileNameProblem = (fileName: string): string | null =>
+  !fileName ||
+  fileName.startsWith('/') ||
+  fileName.includes('\\') ||
+  fileName.split('/').some((part) => part === '..' || part === '.' || !part)
+    ? `fileName ${JSON.stringify(fileName)} is not a path inside out/`
+    : null;
+
+/**
+ * What is wrong with an engine's output: not exactly one primary file, ids or
+ * file names repeated, a file name that isn't a path inside `out/`.
+ */
 export const engineOutputProblems = (output: EngineOutput): string[] => {
   const problems: string[] = [];
   const primaries = output.files.filter((file) => file.primary).length;
@@ -73,7 +88,11 @@ export const engineOutputProblems = (output: EngineOutput): string[] => {
       return [`${key} ${file[key]} is used twice`];
     });
   };
-  return [...problems, ...repeated('id'), ...repeated('fileName')];
+  const unsafe = output.files.flatMap((file) => {
+    const problem = outputFileNameProblem(file.fileName);
+    return problem ? [problem] : [];
+  });
+  return [...problems, ...repeated('id'), ...repeated('fileName'), ...unsafe];
 };
 
 /** An output's primary file; throws when it hasn't exactly one. */
