@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "goda",
+  "options": {
+    "variant": "5305bc1"
+  },
+  "models": [
+    {
+      "path": "BSN.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}
