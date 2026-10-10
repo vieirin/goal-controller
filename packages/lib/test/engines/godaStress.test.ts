@@ -8,7 +8,6 @@ import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { GoalTree, Model, goalView } from '@goal-controller/goal-tree';
 import { edgeV2 } from '../../src';
-import { edgeEngineMapper as edgeV2EngineMapper } from '../../src/engines/edgeV2';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const compare = require('../../../../scripts/goda-stress/compare.cjs');
@@ -36,6 +35,13 @@ label "success" = (sG1_T1=1);
 `;
 const RELIABILITY = '(F_A*R_A*F_B*R_B)\n\n//R_A = reliability of node A\n';
 const OR = '(-F_A*R_A*F_B*R_B+F_A*R_A+F_B*R_B)';
+const EVAL = `#!/bin/bash
+W_A="1";
+R_A="0.99";
+
+sed   -e "s/W_A/$W_A/g" -e "s/R_A/$R_A/g" $1 |  gawk '{print "scale=20;"$0}' | bc
+exit 0;
+`;
 
 describe('GODA stress test: comparisons', () => {
   it('compares MDPs after whitespace normalization, and says where they part', () => {
@@ -129,6 +135,30 @@ describe('GODA stress test: comparisons', () => {
     assert.deepStrictEqual([a(), a(), a()], [b(), b(), b()]);
   });
 
+  it('compares eval_formula.sh as a set of lines and sed options (#34 D15)', () => {
+    // upstream's HashMap order: the parameters and the -e options in another order
+    const reordered = EVAL.replace(
+      'W_A="1";\nR_A="0.99";',
+      'R_A="0.99";\nW_A="1";',
+    ).replace(
+      '-e "s/W_A/$W_A/g" -e "s/R_A/$R_A/g"',
+      '-e "s/R_A/$R_A/g"  -e "s/W_A/$W_A/g"',
+    );
+    assert.notStrictEqual(reordered, EVAL);
+    assert.strictEqual(compare.compareLineSets(reordered, EVAL).equal, true);
+    const changed = compare.compareLineSets(EVAL.replace('0.99', '0.9'), EVAL);
+    assert.strictEqual(changed.equal, false);
+    assert.deepStrictEqual(changed.onlyOurs.sample, ['R_A="0.9";']);
+    // a missing option is a difference, not only a missing line
+    const dropped = compare.compareLineSets(
+      EVAL.replace(' -e "s/R_A/$R_A/g"', ''),
+      EVAL,
+    );
+    assert.deepStrictEqual(dropped.onlyReference.sample, [
+      'sed-option:-e "s/R_A/$R_A/g"',
+    ]);
+  });
+
   it("reads an MDP's undefined constants (the build check's -const)", () => {
     assert.deepStrictEqual(undefinedConstants(MDP), ['R_G1_T1']);
   });
@@ -160,6 +190,7 @@ describe('GODA stress test: checks on a model', () => {
       },
       reliability: RELIABILITY,
       cost: OR,
+      evalScript: EVAL,
       evalValues: { F_A: 0.99, R_A: 0.99, F_B: 0.99, R_B: 0.99 },
       size: 1,
     },
@@ -170,7 +201,6 @@ describe('GODA stress test: checks on a model', () => {
   ) => ({
     definition: edgeV2,
     checks: {},
-    mapper: edgeV2EngineMapper,
     implements: (variant: string) => variant === 'cc808b6',
     output: () => ({
       files: [
@@ -191,6 +221,11 @@ describe('GODA stress test: checks on a model', () => {
           text: change('reliability', RELIABILITY),
         },
         { id: 'cost', fileName: 'cost.out', text: change('cost', OR) },
+        {
+          id: 'evaluate',
+          fileName: 'eval_formula.sh',
+          text: change('evaluate', EVAL),
+        },
       ],
     }),
   });
@@ -219,6 +254,7 @@ describe('GODA stress test: checks on a model', () => {
       pctl: 'pass',
       reliability: 'pass',
       cost: 'pass',
+      evalScript: 'pass',
       performance: 'pass',
       build: 'skipped',
     });

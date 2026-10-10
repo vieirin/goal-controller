@@ -1,7 +1,8 @@
 /**
  * The checks of #32's "Stress test" table, on one model: whether it parses,
  * round-trips through the notation and passes the dialect's checks; its MDP,
- * PCTL files and formulas against the reference; generation time and size;
+ * PCTL files, formulas and eval_formula.sh (its lines as a set) against
+ * the reference; generation time and size;
  * and (when PRISM or Storm is on PATH) whether the MDP builds.
  *
  * Each check is `{ status, ...details }`, status one of:
@@ -10,7 +11,12 @@
  * - `unavailable`: it needs the engine, or a step before it failed.
  */
 const { buildMdp } = require('./build.cjs');
-const { compareBytes, compareFormulas, diffMdp } = require('./compare.cjs');
+const {
+  compareBytes,
+  compareFormulas,
+  compareLineSets,
+  diffMdp,
+} = require('./compare.cjs');
 const { PCTL, outputRoles } = require('./references.cjs');
 
 /**
@@ -70,6 +76,7 @@ const checkModel = (
       'pctl',
       'reliability',
       'cost',
+      'evalScript',
       'performance',
       'build',
     ])
@@ -169,6 +176,7 @@ const checkModel = (
       'pctl',
       'reliability',
       'cost',
+      'evalScript',
       'performance',
       'build',
     ])
@@ -216,6 +224,16 @@ const checkModel = (
     });
     checks[kind] = { status: status(result.equal), ...result };
   }
+  // upstream writes it from a HashMap: its lines are compared as a set (#34 D15)
+  checks.evalScript = ours.evaluate
+    ? (() => {
+        const result = compareLineSets(
+          ours.evaluate.text,
+          reference.reference.evalScript,
+        );
+        return { status: status(result.equal), ...result };
+      })()
+    : missing('eval_formula.sh');
   const size = output.files.reduce(
     (sum, file) => sum + Buffer.byteLength(file.text, 'utf8'),
     0,

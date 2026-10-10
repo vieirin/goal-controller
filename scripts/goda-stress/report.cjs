@@ -9,6 +9,7 @@ const CHECKS = [
   ['pctl', 'PCTL'],
   ['reliability', 'Reliability'],
   ['cost', 'Cost'],
+  ['evalScript', 'eval_formula.sh'],
   ['performance', 'Time / size'],
   ['build', 'Builds'],
 ];
@@ -20,6 +21,21 @@ const MARK = {
   skipped: '⏭️',
   unavailable: '—',
 };
+
+/**
+ * What upstream's generator does that the engine reproduces or the harness
+ * allows for, not a divergence (#38's design note; #34 D15). Line numbers
+ * are at 5305bc1: PP = PARAMProducer.java, PW = PrismWriter.java.
+ */
+const KNOWN_UPSTREAM = [
+  "**eval_formula.sh's order.** Its parameters and `sed` options come in Java HashMap order (PP:144). It is compared as a set of lines and `sed` options, not byte for byte (D15).",
+  "**Formula comments' order.** The `//CTX_…`, `//R_…` and `//W_…` lines of reliability.out and cost.out are in HashMap order too (PP:179). Comments are dropped before the numeric comparison.",
+  "**BSN's eval_formula.sh lacks values.** It has none for `R_G3_T1_X`, because the optional node's `OPT_` entry replaces its `R_` entry (PP:246, PP:249). It has none for `R_G3_T1_3` or `R_G3_T1_4`, because the `* R_<node>` that the AND cost puts on non-leaf tasks (PP:294) is never declared. That evaluation point is left out, and the random points compare.",
+  "**Module order in the July 2019 references** (TAS, BSN, Fragmented). It follows the producer's traversal, since `Collections.sort` is commented out (PW:164). The MDP diff is order-sensitive and says `reordered` when only the order differs.",
+  '**An OR with three or more children** makes a malformed formula: `currentFormula` is appended twice with no operator (PP:359, PP:365). None of the seven references has one.',
+  "**Fragmented's 4092 `const int CTX_n` constants** are the power set of its decision-making contexts. Both generator versions make them (`writeNondeterministicModule`). This is a size and speed concern for #39, not a variant difference.",
+  "**Not variant behaviour, but framework items of #32:** BSN's repeated ids under G3 and G4 (item 4), TAS's Resources without ids (item 9), and Fragmented's spaces in brackets and dangling decision-making operands (items 5 and 1).",
+];
 
 const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
 
@@ -48,13 +64,15 @@ const divergences = (result) =>
               .join(', ')
           : name === 'reliability' || name === 'cost'
             ? `${check.mismatches?.count ?? 0} of ${check.points} points differ; variables only ours: ${check.variables?.onlyOurs.join(', ') || 'none'}, only the reference: ${check.variables?.onlyReference.join(', ') || 'none'}`
-            : name === 'parses'
-              ? check.errors.map((e) => e.message).join('; ')
-              : name === 'roundTrip'
-                ? `${check.edits.length} edits, not listed: ${check.notListed.join(', ') || 'none'}`
-                : name === 'dialectChecks'
-                  ? `got ${JSON.stringify(check.got)}, expected ${JSON.stringify(check.expected)}`
-                  : JSON.stringify(check).slice(0, 200));
+            : name === 'evalScript'
+              ? `${check.onlyOurs?.count} parts only ours, ${check.onlyReference?.count} only the reference (compared as a set: upstream builds it from a HashMap)`
+              : name === 'parses'
+                ? check.errors.map((e) => e.message).join('; ')
+                : name === 'roundTrip'
+                  ? `${check.edits.length} edits, not listed: ${check.notListed.join(', ') || 'none'}`
+                  : name === 'dialectChecks'
+                    ? `got ${JSON.stringify(check.got)}, expected ${JSON.stringify(check.expected)}`
+                    : JSON.stringify(check).slice(0, 200));
     return [`- **${result.model}** · ${name}: ${what}`];
   });
 
@@ -102,9 +120,13 @@ const markdown = ({
     ...(failures.length ? failures : ['None.']),
     '',
     ...(remarks.length ? ['## Notes', '', ...remarks, ''] : []),
+    '## Known upstream behaviour',
+    '',
+    ...KNOWN_UPSTREAM.map((line) => `- ${line}`),
+    '',
     `Exit code ${exitCode}.`,
     '',
   ].join('\n');
 };
 
-module.exports = { CHECKS, markdown };
+module.exports = { CHECKS, KNOWN_UPSTREAM, markdown };

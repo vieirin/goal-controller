@@ -85,6 +85,50 @@ const compareBytes = (ours, reference) => {
 };
 
 // ---------------------------------------------------------------------------
+// eval_formula.sh: lines as a set (#34 D15)
+// ---------------------------------------------------------------------------
+
+/**
+ * An eval_formula.sh's parts whose order upstream doesn't fix (it builds
+ * them from a HashMap): its non-empty lines, and in the `sed` line each
+ * `-e "s/…/…/g"` option on its own. Counted, so a repeated part still counts.
+ */
+const evalScriptParts = (script) =>
+  script
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .flatMap((line) => {
+      const options = [...line.matchAll(/-e\s+"[^"]*"/g)].map(([option]) =>
+        option.replace(/\s+/g, ' '),
+      );
+      if (!line.startsWith('sed') || options.length === 0) return [line];
+      // the command around the options, then each option
+      const rest = line.replace(/-e\s+"[^"]*"/g, '').replace(/\s+/g, ' ');
+      return [
+        `sed:${rest}`,
+        ...options.map((option) => `sed-option:${option}`),
+      ];
+    });
+
+/** Two eval_formula.sh files as sets of parts (evalScriptParts): equal, or what only one has. */
+const compareLineSets = (ours, reference, { sample = 20 } = {}) => {
+  const a = evalScriptParts(ours);
+  const b = evalScriptParts(reference);
+  const onlyOurs = missingFrom(a, b);
+  const onlyReference = missingFrom(b, a);
+  return {
+    equal: onlyOurs.length === 0 && onlyReference.length === 0,
+    parts: { ours: a.length, reference: b.length },
+    onlyOurs: { count: onlyOurs.length, sample: onlyOurs.slice(0, sample) },
+    onlyReference: {
+      count: onlyReference.length,
+      sample: onlyReference.slice(0, sample),
+    },
+  };
+};
+
+// ---------------------------------------------------------------------------
 // Formulas: parse, evaluate, compare numerically
 // ---------------------------------------------------------------------------
 
@@ -290,9 +334,11 @@ module.exports = {
   close,
   compareBytes,
   compareFormulas,
+  compareLineSets,
   compileFormula,
   diffMdp,
   evalFormulaValues,
+  evalScriptParts,
   evaluate,
   formulaText,
   normalizeMdp,

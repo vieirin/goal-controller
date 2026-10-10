@@ -99,6 +99,7 @@ const loadReference = (examples, { name, folder, model, issue, variant }) => {
       pctl: Object.fromEntries(PCTL.map((file) => [file, read(file)])),
       reliability: read('reliability.out'),
       cost: read('cost.out'),
+      evalScript,
       evalValues: evalFormulaValues(evalScript),
       size: files.reduce(
         (sum, file) => sum + fs.statSync(path.join(outputDir, file)).size,
@@ -114,7 +115,8 @@ const loadReferences = (examples) =>
 
 /**
  * An engine output's files by role, matched by name as upstream writes
- * them: the `.nm` file, the four PCTL files, reliability.out and cost.out.
+ * them: the `.nm` file, the four PCTL files, reliability.out, cost.out and
+ * eval_formula.sh.
  */
 const outputRoles = (files) => {
   const byName = (name) => files.find((file) => file.fileName === name);
@@ -123,6 +125,7 @@ const outputRoles = (files) => {
     pctl: Object.fromEntries(PCTL.map((name) => [name, byName(name)])),
     reliability: byName('reliability.out'),
     cost: byName('cost.out'),
+    evaluate: byName('eval_formula.sh'),
   };
 };
 
