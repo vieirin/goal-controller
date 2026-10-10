@@ -255,7 +255,7 @@ first.
 | `A condition after assertion trigger` | error | a prefix alone |
 | `Not an integer: 0.5` | error | `assertion` without `decimals`, comparing with a decimal |
 | `A boolean is compared with =, not != (x != false)` | error | `assertion` without `booleanInequality`, comparing a boolean with `!=` |
-| `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable |
+| `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable (with `declaresVariables`, any name that isn't an element is a variable) |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
 | `T1 is a task, not a goal` | error | `refList` naming another kind |
@@ -305,7 +305,9 @@ R1: Battery {bool = true}
 ```
 
 GODA's context conditions (`creationProperty`, CtxRegex.g4) start with a
-prefix and may compare with decimals; Edge's conditions take neither:
+prefix and may compare with decimals; Edge's conditions take neither. Their
+names are the context's meta-variables, declared by their use
+(`declaresVariables`), so they need no workbench variable:
 
 ```goal-check goda
 T1: Pick
@@ -316,7 +318,6 @@ T3: Hold
   creationProperty assertion trigger
 T4: Wait
   creationProperty assertion condition docked != false
-%% variables battery ready docked
 %% error [creationProperty battery > 1] Starts with assertion condition or assertion trigger
 %% error [creationProperty assertion trigger] A condition after assertion trigger
 ```

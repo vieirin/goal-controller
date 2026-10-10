@@ -143,7 +143,9 @@ export const valueProblem = (
 /**
  * The names a condition compares that the model doesn't know: neither an
  * element of a kind it resolves nor, when it resolves variables, one of the
- * workbench's (a typo, or a variable the model doesn't use yet).
+ * workbench's (a typo, or a variable the model doesn't use yet). A value
+ * whose variables are declared by their use (`declaresVariables`) knows
+ * every name that isn't an element's.
  */
 export const unknownNames = (
   value: ValueConfig,
@@ -157,7 +159,8 @@ export const unknownNames = (
     const kind = kindOf(context, name);
     return kind
       ? resolves.includes(kind)
-      : resolves.includes('variable') && context.variables.includes(name);
+      : resolves.includes('variable') &&
+          (!!value.declaresVariables || context.variables.includes(name));
   };
   return assertionVariables(text)
     .map((variable) => variable.name)

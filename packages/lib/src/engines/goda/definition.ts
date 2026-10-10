@@ -28,6 +28,8 @@ const CONTEXT = {
     prefixes: ['assertion condition', 'assertion trigger'],
     decimals: true,
     booleanInequality: true,
+    // CtxRegex.g4's VARs are the context's meta-variables, declared by use (#34 D17)
+    declaresVariables: true,
   },
   input: { placeholder: 'assertion trigger battery > 0.5' },
   help: 'the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables',
