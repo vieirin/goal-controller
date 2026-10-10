@@ -64,9 +64,14 @@ export const writePrism = (
   let nonDeterminismCtxId = 1;
   const [rootGoal] = roots;
 
-  const param = (name: string, value: string) => {
+  const param = (
+    name: string,
+    value: string,
+    // upstream writes an optionality's replacement without its first `/`
+    substitute = `s/${name}/$${name}/g`,
+  ) => {
     evalParams += `${name}="${value}";\n`;
-    evalReplace += ` -e "s/${name}/$${name}/g"`;
+    evalReplace += ` -e "${substitute}"`;
   };
 
   const writeReward = (plan: Container) => {
@@ -160,9 +165,22 @@ export const writePrism = (
 
   const writeModule = (plan: Container): [string, string] => {
     const id = clearElId(plan);
+    const contextPresent = plan.fulfillmentConditions.length > 0;
     let header = '';
-    let type = templates.and;
-    if (plan.fulfillmentConditions.length) {
+    let type = '';
+    // an optional leaf starts or is skipped by its optionality, times its own
+    // context when it has one (`$IF_CTX$`)
+    if (plan.optional) {
+      header += templates.optHeader;
+      type += replace(
+        templates.opt,
+        '$IF_CTX$',
+        contextPresent ? '*CTX_$GID$' : '',
+      );
+      // upstream writes this substitution without its first `/`
+      param(`OPT_${id}`, '1', `sOPT_${id}/$OPT_${id}/g`);
+    }
+    if (contextPresent) {
       const ctx = contextsInfo(plan.fulfillmentConditions);
       const node = ndChildWith(ctx);
       // a context a decision-making module sets: its global, under the child's id
@@ -173,11 +191,12 @@ export const writePrism = (
         evalContexts += `CTX_${ctxId}="1";\n`;
         param(`CTX_${ctxId}`, '1');
       }
-      type = replace(templates.ctxSkip, '$CTX_GID$', `CTX_${ctxId}`);
+      if (!plan.optional)
+        type += replace(templates.ctxSkip, '$CTX_GID$', `CTX_${ctxId}`);
       // getContextHeader: its constant, commented with its contexts
       if (!nonDeterminismCtx)
-        header = `${templates.ctxHeader.slice(0, -2)} //${ctx}\n`;
-    }
+        header += `${templates.ctxHeader.slice(0, -2)} //${ctx}\n`;
+    } else if (!plan.optional) type += templates.and;
     let module = replace(
       templates.leafGoal,
       '$MODULE_NAME$',
@@ -195,7 +214,8 @@ export const writePrism = (
     module = replace(module, '$GID$', id);
     module = replace(module, '$CONST_PARAM$', 'const');
     planModules += `${module}\n`;
-    return [id, `s${id}=2`];
+    // an optional leaf succeeds, or is skipped
+    return [id, plan.optional ? `s${id}=2 | s${id}=3` : `s${id}=2`];
   };
 
   /** Without its last operator (`StringBuilder.replace(lastIndexOf(op), length, "")`). */

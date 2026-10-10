@@ -18,6 +18,10 @@ export type GodaTemplates = {
   /** one combination of its contexts: its constant, and its choice in the module */
   ndHeader: string;
   ndBody: string;
+  /** an optional leaf's start (`$IF_CTX$`: its context factor, when it has one) */
+  opt: string;
+  /** an optional leaf's declaration of its optionality */
+  optHeader: string;
   rewardEntry: string;
   evalFormula: string;
   /** whether a leaf has a frequency parameter `F_` (in its module and its formula) */
@@ -41,6 +45,8 @@ export const CC808B6_TEMPLATES: GodaTemplates = {
   ndHeader: 'const int CTX_$N$;',
   ndBody:
     "[] s$GID$ = 1 -> CTX_$N$ : (s$GID$'= $NEXT_STATE$)  + (1 - CTX_$N$) : (s$GID$'=1);\n",
+  opt: "[next$PREV_TIME_SLOT$] s$GID$ = 0 -> F_$GID$*OPT_$GID$$IF_CTX$ : (s$GID$'=1) + (1 - F_$GID$*OPT_$GID$$IF_CTX$) : (s$GID$'=3); //init to running or skip\r\n",
+  optHeader: 'const int OPT_$GID$;\r\n',
   rewardEntry: 's$GID$ = 1 : $COST$;\n\t',
   evalFormula:
     '#!/bin/bash\n$PARAMS_BASH$\n\nsed  $REPLACE_BASH$ $1 |  gawk \'{print "scale=20;"$0}\' | bc\nexit 0;\n',
