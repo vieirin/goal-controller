@@ -105,7 +105,18 @@ export type GodaFormulas = { reliability: string; cost: string };
 /** reliability.out and cost.out (with the trailing newline Java's `println` adds). */
 export const composeFormulas = (
   root: Container,
-  { frequency }: { frequency: boolean },
+  {
+    frequency,
+    skipUnchanged = true,
+  }: {
+    frequency: boolean;
+    /**
+     * skip a clean-up replacement that changed nothing until the text
+     * changes (same output; false runs every one, as upstream: the tests'
+     * oracle)
+     */
+    skipUnchanged?: boolean;
+  },
 ): GodaFormulas => {
   const reliabilityComments: string[] = [];
   const costComments: string[] = [];
@@ -186,7 +197,7 @@ export const composeFormulas = (
   if (cost.includes(' R_'))
     for (const [id, form] of reliabilityByNode)
       cost = replaceAll(cost, ` R_${id} `, ` ${form} `);
-  cost = cleanMultipleContexts(cost).replace(/\s+/g, '');
+  cost = cleanMultipleContexts(cost, skipUnchanged).replace(/\s+/g, '');
 
   // composeFormula: the contexts first, in their HashMap's order
   const contexts = javaHashMapOrder([...ctxInformation.keys()])
@@ -204,21 +215,37 @@ export const composeFormulas = (
  * `cleanMultipleContexts`: in each product of the cost formula, a factor
  * written twice is written once (and a factor `1` dropped).
  */
-const cleanMultipleContexts = (form: string): string => {
+const cleanMultipleContexts = (form: string, skipUnchanged = true): string => {
   let result = form;
+  // a replacement that left the text as it was leaves it so until the text
+  // changes: it isn't run again (one runs per product, over the whole
+  // formula, and few change anything: Fragmented's 24,722 change 212)
+  let version = 0;
+  const unchangedAt = new Map<string, number>();
   for (const sum of javaSplit(form, /\+/))
     for (const term of javaSplit(sum, /-/)) {
       const bare = term
         .replace(/\(/g, '')
         .replace(/\)/g, '')
         .replace(/\s+/g, '');
-      if (bare !== '1' && bare !== '')
-        result = replaceCtxRepetition(result, javaSplit(term, /\*/));
+      if (bare === '1' || bare === '') continue;
+      const { pattern, replacement } = ctxRepetition(javaSplit(term, /\*/));
+      const key = `${pattern}\u0000${replacement}`;
+      if (skipUnchanged && unchangedAt.get(key) === version) continue;
+      const next = replaceAll(result, pattern, replacement);
+      if (next === result) unchangedAt.set(key, version);
+      else {
+        result = next;
+        version++;
+      }
     }
   return result;
 };
 
-const replaceCtxRepetition = (form: string, factors: string[]): string => {
+/** `replaceCtxRepetition`: a product as written (a regex), and once each factor. */
+const ctxRepetition = (
+  factors: string[],
+): { pattern: string; replacement: string } => {
   const lump = new Set<string>();
   let without = '';
   let withRepetition = '';
@@ -232,5 +259,8 @@ const replaceCtxRepetition = (form: string, factors: string[]): string => {
       if (factor !== '1') without = without ? `${without}*${factor}` : factor;
     }
   }
-  return replaceAll(form, withRepetition, without);
+  return { pattern: withRepetition, replacement: without };
 };
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export const __test_only_exports__ = { cleanMultipleContexts };
