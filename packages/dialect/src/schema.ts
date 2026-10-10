@@ -66,6 +66,8 @@ export type ValueConfig =
       prefixes?: readonly AssertionPrefix[];
       /** whether it compares with decimals (`x > 0.5`), not integers only */
       decimals?: boolean;
+      /** whether a boolean may be compared with `!=` (`x != false`, CtxRegex.g4), not `=` only */
+      booleanInequality?: boolean;
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: ElementKind }

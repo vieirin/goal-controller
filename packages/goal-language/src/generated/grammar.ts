@@ -1421,8 +1421,22 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 }
               },
               {
-                "$type": "Keyword",
-                "value": "="
+                "$type": "Assignment",
+                "feature": "operator",
+                "operator": "=",
+                "terminal": {
+                  "$type": "Alternatives",
+                  "elements": [
+                    {
+                      "$type": "Keyword",
+                      "value": "="
+                    },
+                    {
+                      "$type": "Keyword",
+                      "value": "!="
+                    }
+                  ]
+                }
               },
               {
                 "$type": "Assignment",

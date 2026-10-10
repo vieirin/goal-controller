@@ -33,6 +33,14 @@ const PCTL = [
   ['cost-min', 'CostMin.pctl', 'R{"cost"}min=? [ F "success" ]'],
 ] as const;
 
+/**
+ * The MDP's name: the actor's, as AgentDefinition adjusts it, but never a
+ * path (upstream would write `../x.nm` outside its folder: `/` and `\\`
+ * become `_`).
+ */
+const fileNameOf = (actor: string): string =>
+  adjustName(actor).replace(/[/\\]/g, '_');
+
 /** Every goal of a tree, depth first. */
 const goalsOf = (goal: GodaGoalNode): GodaGoalNode[] => [
   goal,
@@ -93,7 +101,7 @@ export const godaOutput = (
         // named after the actor, as AgentDefinition names it
         ...file(
           'model',
-          `${actor ? adjustName(actor.name) : outputBaseName(modelName)}.nm`,
+          `${actor ? fileNameOf(actor.name) : outputBaseName(modelName)}.nm`,
           prism.model,
           'prism',
         ),

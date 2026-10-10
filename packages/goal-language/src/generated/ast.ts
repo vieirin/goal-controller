@@ -128,12 +128,14 @@ export function isAnnotation(item: unknown): item is Annotation {
 export interface AssertAssign extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertAssign';
+    operator: '!=' | '=';
     value: AssertBool;
     variable: string;
 }
 
 export const AssertAssign = {
     $type: 'AssertAssign',
+    operator: 'operator',
     value: 'value',
     variable: 'variable'
 } as const;
@@ -863,6 +865,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
         AssertAssign: {
             name: AssertAssign.$type,
             properties: {
+                operator: {
+                    name: AssertAssign.operator
+                },
                 value: {
                     name: AssertAssign.value
                 },

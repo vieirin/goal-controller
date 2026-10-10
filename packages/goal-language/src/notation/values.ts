@@ -22,6 +22,22 @@ const intProblem = (
   return null;
 };
 
+/** The first boolean a condition compares with `!=` (`x != false`), as written, if any. */
+const negatedOf = (tree: AssertionTree | null): string | null => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return negatedOf(tree.left) ?? negatedOf(tree.right);
+    case 'not':
+    case 'paren':
+      return negatedOf(tree.expr);
+    case 'assign':
+      return tree.negated ? `${tree.variable} != ${tree.value}` : null;
+    default:
+      return null;
+  }
+};
+
 /** The first decimal a condition compares with (`x > 0.5`), if any. */
 const decimalOf = (tree: AssertionTree | null): string | null => {
   switch (tree?.kind) {
@@ -76,7 +92,11 @@ export const valueProblem = (
       if (!prefixes.length && prefix) return `No prefix: ${prefix} is not read`;
       if (prefix && !tree) return `A condition after ${prefix}`;
       const decimal = !value.decimals && decimalOf(tree);
-      return decimal ? `Not an integer: ${decimal}` : null;
+      if (decimal) return `Not an integer: ${decimal}`;
+      const inequality = !value.booleanInequality && negatedOf(tree);
+      return inequality
+        ? `A boolean is compared with =, not != (${inequality})`
+        : null;
     }
     case 'refList': {
       const read = parseValue('refList', text);

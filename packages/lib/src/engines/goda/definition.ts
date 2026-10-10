@@ -27,6 +27,7 @@ const CONTEXT = {
     resolves: ['variable'],
     prefixes: ['assertion condition', 'assertion trigger'],
     decimals: true,
+    booleanInequality: true,
   },
   input: { placeholder: 'assertion trigger battery > 0.5' },
   help: 'the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables',

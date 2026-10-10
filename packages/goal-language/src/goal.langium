@@ -111,7 +111,7 @@ AssertUnary infers AssertExpr:
 
 AssertPrimary infers AssertExpr:
     {infer AssertParen} '(' expr=AssertExpr ')'
-    | {infer AssertAssign} variable=A_ID '=' value=AssertBool
+    | {infer AssertAssign} variable=A_ID operator=('=' | '!=') value=AssertBool
     | {infer AssertCompare} variable=A_ID operator=Comparator value=(A_INT | A_NUMBER)
     | {infer AssertVar} variable=A_ID
     | {infer AssertConst} value=AssertBool;

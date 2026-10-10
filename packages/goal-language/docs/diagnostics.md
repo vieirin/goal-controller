@@ -254,6 +254,7 @@ first.
 | `No prefix: assertion trigger is not read` | error | `assertion` without `prefixes`, with a prefix |
 | `A condition after assertion trigger` | error | a prefix alone |
 | `Not an integer: 0.5` | error | `assertion` without `decimals`, comparing with a decimal |
+| `A boolean is compared with =, not != (x != false)` | error | `assertion` without `booleanInequality`, comparing a boolean with `!=` |
 | `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
@@ -313,7 +314,9 @@ T2: Drop
   creationProperty battery > 1
 T3: Hold
   creationProperty assertion trigger
-%% variables battery ready
+T4: Wait
+  creationProperty assertion condition docked != false
+%% variables battery ready docked
 %% error [creationProperty battery > 1] Starts with assertion condition or assertion trigger
 %% error [creationProperty assertion trigger] A condition after assertion trigger
 ```
@@ -323,8 +326,11 @@ T1: Pick
   assertion x > 0.5
 T2: Drop
   assertion assertion trigger x > 1
+T3: Hold
+  assertion x != false
 %% variables x
 %% error [assertion x > 0.5] Not an integer: 0.5
+%% error [assertion x != false] A boolean is compared with =, not != (x != false)
 %% error [assertion assertion trigger x > 1] No prefix: assertion trigger is not read
 ```
 

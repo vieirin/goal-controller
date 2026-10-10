@@ -612,7 +612,7 @@ AssertionValue : A_PREFIX? AssertExpr? ;
 infix AssertBinary on AssertUnary : '&' > '|' ;
 AssertUnary    : '!' AssertExpr | AssertPrimary ;
 AssertPrimary  : '(' AssertExpr ')'
-               | A_ID '=' ('true' | 'false')
+               | A_ID ('=' | '!=') ('true' | 'false')
                | A_ID ('=' | '!=' | '<' | '<=' | '>' | '>=') (A_INT | A_NUMBER)
                | A_ID
                | 'true' | 'false' ;
@@ -625,8 +625,8 @@ AssertPrimary  : '(' AssertExpr ')'
   unsigned integer last (`0` included; AssertionRegex.g4 couldn't read
   `0`).
 - **Literals:** integers on the right of a comparator, and `true`/`false`.
-  `x = true` sets a boolean variable. `x != false` is not part of the
-  language. A decimal (`A_NUMBER`, `0.5`, `2.`) is read, and is an error
+  `x = true` sets a boolean variable. `x != false` (CtxRegex.g4's) is read,
+  and is an error unless the property allows it (`booleanInequality`). A decimal (`A_NUMBER`, `0.5`, `2.`) is read, and is an error
   unless the property allows decimals.
 - **Prefix:** `assertion condition` or `assertion trigger` (`A_PREFIX`),
   read only where the value starts, so `assertion` stays an identifier
@@ -647,13 +647,13 @@ x = true & y
 _x1
 true
 x > 0.5
+x != false
 assertion trigger ctx = 1
 assertion condition SaO2_data > 0 & SaO2_data < 100
 assertion > 1
 ```
 
 ```goal-value assertion reject
-x != false
 3 > x
 x >= -1
 x == 1

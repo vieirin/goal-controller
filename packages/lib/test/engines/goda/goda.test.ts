@@ -256,6 +256,13 @@ describe('GODA: several actors', () => {
     diagram: { width: 800, height: 600 },
   });
 
+  it('names the MDP after its actor, never as a path out of out/', () => {
+    const escaping = twoActors.replace('"Delivery Robot"', '"../models/lab"');
+    const output = outputOf(escaping, 'lab.txt');
+    assert.strictEqual(primaryFile(output).fileName, '.._models_lab.nm');
+    assert.deepStrictEqual(engineOutputProblems(output), []);
+  });
+
   it('names the MDP after the actor of the selected goal, and writes only its tree', () => {
     const output = outputOf(twoActors, 'lab.txt');
     // AgentDefinition: the actor's name, its whitespace made `_`

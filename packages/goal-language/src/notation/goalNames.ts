@@ -208,7 +208,9 @@ export const assertionVariables = (text: string): AssertionVariable[] => {
         walk(node.expr);
         return;
       case 'assign':
-        variables.push({ name: node.variable, value: node.value });
+        // `x != true` names x, without setting it
+        if (node.negated) named(node.variable);
+        else variables.push({ name: node.variable, value: node.value });
         return;
       case 'compare':
       case 'var':

@@ -67,7 +67,8 @@ export type AssertionTree =
     }
   | { kind: 'not'; expr: AssertionTree | null }
   | { kind: 'paren'; expr: AssertionTree | null }
-  | { kind: 'assign'; variable: string; value: boolean }
+  /** `x = true`; `negated`: `x != true` (CtxRegex.g4's, where a value allows it) */
+  | { kind: 'assign'; variable: string; value: boolean; negated?: true }
   | { kind: 'compare'; variable: string; operator: string; value: string }
   | { kind: 'var'; variable: string }
   | { kind: 'bool'; value: boolean };
@@ -380,6 +381,7 @@ export const toAssertionTree = (
             kind: 'assign',
             variable: expr.variable,
             value: expr.value === 'true',
+            ...(expr.operator === '!=' && { negated: true as const }),
           }
         : null;
     case 'AssertCompare':
