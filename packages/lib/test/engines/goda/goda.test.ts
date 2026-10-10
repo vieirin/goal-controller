@@ -394,6 +394,57 @@ describe('GODA: an incomplete task (T1.X)', () => {
     assert.ok(script.includes(' -e "sOPT_G1_T1_X/$OPT_G1_T1_X/g"'));
   });
 
+  it('with a context: started by its optionality times its context, declared in that order (cc808b6)', () => {
+    const withContext = model(
+      [
+        ['g1', 'Goal', 'G1: Move', { selected: 'true' }],
+        ['t1', 'Task', 'T1: Handle'],
+        ['t11', 'Task', 'T1.1: Pick'],
+        [
+          't1x',
+          'Task',
+          'T1.X: Something',
+          { creationProperty: 'assertion trigger ctx = 1' },
+        ],
+      ],
+      [
+        ['t1', 'g1'],
+        ['t11', 't1'],
+        ['t1x', 't1'],
+      ],
+    );
+    const out = outputOf(withContext);
+    const nm = fileOf(out, 'model');
+    // PrismWriter: the optionality's constant, then the context's (commented with it)
+    assert.ok(
+      nm.includes(
+        'const int OPT_G1_T1_X;\r\nconst int CTX_G1_T1_X; //ctx = 1\nconst double R_G1_T1_X;',
+      ),
+    );
+    // the optional start, times its own context ($IF_CTX$); no context-skip line of its own
+    assert.ok(
+      nm.includes(
+        "sG1_T1_X = 0 -> F_G1_T1_X*OPT_G1_T1_X*CTX_G1_T1_X : (sG1_T1_X'=1) + (1 - F_G1_T1_X*OPT_G1_T1_X*CTX_G1_T1_X) : (sG1_T1_X'=3);",
+      ),
+    );
+    assert.strictEqual(nm.match(/sG1_T1_X = 0 ->/g)?.length, 1);
+    // its reliability: the context's factor around the optional leaf's
+    assert.ok(
+      fileOf(out, 'reliability').startsWith(
+        '(F_G1_T1_1*R_G1_T1_1*CTX_G1_T1_X*F_G1_T1_X*R_G1_T1_X*OPT_G1_T1_X)\n',
+      ),
+    );
+    // the script: its optionality before its context, then its weight, reliability, frequency
+    const names = Object.keys(evalFormulaValues(fileOf(out, 'evaluate')));
+    assert.deepStrictEqual(names.slice(names.indexOf('OPT_G1_T1_X')), [
+      'OPT_G1_T1_X',
+      'CTX_G1_T1_X',
+      'W_G1_T1_X',
+      'R_G1_T1_X',
+      'F_G1_T1_X',
+    ]);
+  });
+
   it('an incomplete goal is not generated: upstream fails on it', () => {
     const goalX = model(
       [
