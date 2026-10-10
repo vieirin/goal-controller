@@ -96,13 +96,23 @@ neither version is the pinned commit (D10):
 - `BSN`, `TAS` and `Fragmented` were (re)generated in `5305bc1`
   (2019-07-10), without it, and with the guard conditions of `9a993f8`.
 
-So `godaOutput` takes a `variant`: `cc808b6` (the default, implemented) or
-`5305bc1` (#38 to #40). A variant is a strategy object, `GodaGenerator`
-(D14). It has the templates, how the containers and their time slots are
-built (the sibling order among them), the guards a leaf's start is written
-with, and how the formulas are composed. Adding a version adds one object
-to `GODA_GENERATORS`. `GODA_VARIANTS` lists both versions, and
-`GODA_IMPLEMENTED_VARIANTS` lists those there are.
+So `godaOutput` takes a `variant`: `cc808b6` (the default) or `5305bc1`
+(#38). Both are implemented. A variant is a strategy object, `GodaGenerator`
+(D14), in `template/variants.ts`:
+
+| Part | cc808b6 (2019-01) | 5305bc1 (2019-07) |
+| --- | --- | --- |
+| `templates` | a leaf with `F_` | no `F_`; `$PREV_SUCCESS$`/`$PREV_EFFECT$` slots; a three-state decision-making module whose choices set the globals |
+| `containers` (`TimeSlots`) | `timePaths()`: time paths; children inherit their parent's conditions | `maxSlots()`: `prevTimeSlot`/`timeSlot`, the largest slots a decision's children reached (`prevMax`, `timeSlotMax`); no inheritance |
+| `slots` | `[next_<slot-1>]`, `[next_<slot>]` | `[next_<prevTimeSlot>]`, `[next_<timeSlot>]` |
+| `leafContext` | the decision-making child with the same contexts (`getKeyRTContainer`, `equalsRoot`) | the nearest ancestor that is a decision-making child (`ndCtxListContainsARoot`) |
+| `guards` | none | 9a993f8: `(prev) & ` and a skip after a sibling goal (`!(prev)` under an OR) |
+| `formulas` | `formulas.ts`: a leaf times its `CTX_`, the eval script from the writer | `formulas5305bc1.ts`: a child times its `CTX_` in its parent's formula, the eval script from the formulas' own parameters |
+
+The writer (`prism.ts`) is shared: it threads each goal's previous
+sibling's formula through `writeElement`, as both versions do, and asks the
+variant for the rest. `GODA_VARIANTS` lists the versions, and
+`GODA_IMPLEMENTED_VARIANTS` the ones there are.
 
 ## The formulas (D11)
 
@@ -152,6 +162,17 @@ Incompleteness's eight files are **byte for byte** the references
   its substitution as upstream writes it, without the first `/`
   (`-e "sOPT_x/$OPT_x/g"`, which `sed` rejects).
 
+## Proof: TAS, and the July 2019 generator (#38)
+
+With the 5305bc1 variant, TAS's eight files are **byte for byte** the
+references, and so are Fragmented's (1.7 MB, 4092 context constants) and
+BSN's (`packages/lib/test/engines/goda/july2019.test.ts`). The same file
+checks the variant's changes on models of our own: no frequency, the guards
+after a sibling goal under AND and OR, the three-state module, a leaf's
+context from its decided ancestor, a child's `CTX_` in its parent's formula.
+The seven upstream models read with no diagnostics and round-trip through
+the Notation view (`test/dialect/goda.test.ts`).
+
 ## Proof: DM (#36)
 
 DM's eight files are also **byte for byte** the references
@@ -191,6 +212,9 @@ The same test file checks the module on models of our own: three contexts, which
 | Context variables nobody declares | `declaresVariables` on an `assertion` value (#34 D17). The names a condition compares are known variables because the condition uses them, as upstream turns each into a `CTX_` parameter. Without it, every `ctx`, `ms` or `SaO2_sensor` was a "not a known variable" note (58 across the examples). |
 | A task's bracket in its mapper | `mapTaskProps` gets the task's text, as `mapGoalProps` did. |
 | An engine named after the model's actor | `godaOutput` takes the validated model (D16). |
+| Names with digits (`medical service 1`, `Collect SaO2 data`) | `notation.names: 'text'` (#34 D17): a name on a line with an id may hold any character, as GODA's producer splits a line at its colon. The reader masks the name to a WORD of the same length, so every span stays, and gives the name as written. Edge keeps RTRegex.g4's WORD. |
+| Resources without ids (TAS) | A Resource linked to nothing is no root of the engines' tree (`actorRootCandidates`), so the model validates. An element whose text writes no id gets no Notation line in a dialect with ids (`isListed`): it can't be named. |
+| A line that reads as nothing, unindented | `Not an element line`, owned by no element; before, `Not a property line` on the element above (T6.3). |
 
 Every change kept the other engines byte for byte. `pnpm snapshot:language`
 gives the same notation documents and outputs for edge, edgeV2, SLEEC,
@@ -217,9 +241,9 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
   module's name, but not a cost's. A leaf with a cost would be named
   `G1_T1_1_Task[W=0_1]`, which PRISM doesn't read. The engine strips it. No
   reference has a cost bracket.
-- **The July 2019 generator.** Its templates and rules (5305bc1) are the
-  later models' work. The engine throws `GodaUnsupported` naming #38 to
-  #40.
+- **An OR of three or more children, at 5305bc1.** Upstream writes the
+  formula before it twice, with no operator between (PP:359, PP:365), and
+  the engine does too. No reference has one; the formula doesn't parse.
 - **An incomplete goal (`G1.X`).** Upstream makes it optional with an
   unknown plan built from the goal (`new PlanContainer((Plan) gc)`), a cast
   that fails at run time, so no reference has one. The engine reports it as
@@ -242,12 +266,12 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
 - **The editors key elements by id.** A repeated `T1.1` (BSN) is valid in
   the language, but goal-tree's view keeps the first element of an id, so
   the second one has no Notation line, trace or selection of its own (#40).
-- **Upstream's quirks not reached by AND and OR.** Elements with the same
-  text share one container. A goal's means-end tasks are read once per
-  incoming link. The July 2019 eval script's lines come in HashMap order
-  (D15). The context comments' HashMap order is reproduced
-  (`javaHashMap.ts`), but a bucket that Java turns into a tree is not. The
-  model issues meet these quirks.
+- **Upstream's HashMaps.** The context comments, the July 2019 eval
+  script's lines and the order the cost's reliabilities are substituted in
+  come in Java's HashMap order, which `javaHashMap.ts` reproduces (all seven
+  references byte for byte). A bucket that Java turns into a tree (8 keys
+  in one bucket of a table of 64 or more) is not modelled. The harness
+  compares eval_formula.sh as a set anyway (D15).
 - **`eval_formula.sh` runs `bc`.** The tests evaluate the formulas in
   TypeScript (`formula.ts`); the script is written for parity with upstream.
 - **Seed projects** (`examples/projects/goda-*`) wait for the upstream

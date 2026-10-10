@@ -6,7 +6,7 @@ the GODA engine in `@goal-controller/lib`.
 ```sh
 pnpm stress:goda                                   # builds the packages, then runs everything
 node scripts/goda-stress/run.cjs --save-baseline   # once, on the base commit: the regression baseline
-node scripts/goda-stress/run.cjs --strict          # also fail on an AND or OR failure
+node scripts/goda-stress/run.cjs --strict          # also fail on a failure of a model whose issue has landed
 node scripts/goda-stress/run.cjs --no-build-check  # don't build the MDPs with Storm or PRISM
 ```
 
@@ -38,11 +38,10 @@ What a check compares:
 | `snapshot.cjs` | the other engines' language snapshot against the baseline |
 | `report.cjs` | `SUMMARY.md`, including upstream's known behaviour |
 
-**Exit code.** It is non-zero only on a regression in the other engines (or,
-with `--strict`, on a failure in AND or OR). A failure on DM, Incompleteness,
-TAS, Fragmented or BSN is an expected failure until its issue (#36 to #40)
-lands. That includes `GodaUnsupported` and a generator version the engine
-doesn't implement yet.
+**Exit code.** It is non-zero only on a regression in the other engines. With
+`--strict`, a failure of a model whose issue has landed also counts (`run.cjs`'s
+`SUPPORTED`: AND, OR, DM, Incompleteness, TAS). A failure on any other model
+(Fragmented #39, BSN #40) is an expected failure until its issue lands.
 
 **Expected diagnostics.** When a model PR settles which dialect diagnostics a
 model should have, it lists them in `checks.cjs`'s `EXPECTED_DIAGNOSTICS`.
