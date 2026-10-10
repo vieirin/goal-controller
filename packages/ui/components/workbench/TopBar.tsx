@@ -85,6 +85,7 @@ const optionsSummary = (
     return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}${reduced}`;
   }
   if (engine === 'edge') return `space ${options.achievabilitySpace}${reduced}`;
+  if (engine === 'goda') return `generator ${options.variant}`;
   return `${options.generateFluents ? 'with fluents' : 'no fluents'}${reduced}`;
 };
 
@@ -564,10 +565,43 @@ export function EngineOptionFields({
           label='Generate fluent definitions'
         />
       )}
-      <ReduceOption
-        checked={options.reduce}
-        onChange={(reduce) => onChange({ reduce })}
-      />
+      {engine === 'goda' && (
+        <div className='space-y-1'>
+          <span className='block'>
+            Generator version
+            <span className='block text-2xs text-ink-muted'>
+              the pistarGODA-MDP generator the output reproduces
+            </span>
+          </span>
+          <Segmented
+            size='sm'
+            label='Generator version'
+            value={options.variant}
+            onChange={(variant) => onChange({ variant })}
+            options={[
+              {
+                id: '5305bc1',
+                label: 'July 2019',
+                title:
+                  '5305bc1: no frequency parameter, guards after a sibling goal (TAS, Fragmented, BSN)',
+              },
+              {
+                id: 'cc808b6',
+                label: 'January 2019',
+                title:
+                  'cc808b6: a frequency parameter per task (AND, OR, DM, Incompleteness)',
+              },
+            ]}
+          />
+        </div>
+      )}
+      {/* GODA reads the model as written */}
+      {engine !== 'goda' && (
+        <ReduceOption
+          checked={options.reduce}
+          onChange={(reduce) => onChange({ reduce })}
+        />
+      )}
     </div>
   );
 }

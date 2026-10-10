@@ -114,6 +114,12 @@ sibling's formula through `writeElement`, as both versions do, and asks the
 variant for the rest. `GODA_VARIANTS` lists the versions, and
 `GODA_IMPLEMENTED_VARIANTS` the ones there are.
 
+In the workbench the version is GODA's engine option `variant`, set in the
+options menu ("Generator version") or in a project's `options.variant`. It
+defaults to `5305bc1`, the newest generator the engine reproduces (#34 D24),
+and `cc808b6` stays selectable (AND, OR, DM and Incompleteness).
+`godaOutput` itself still defaults to `cc808b6` when called without one.
+
 ## The formulas (D11)
 
 Upstream composes the formulas by string substitution over the containers

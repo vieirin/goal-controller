@@ -22,12 +22,18 @@ import { goalView, Model } from '@goal-controller/goal-tree';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { transform } from '../../../ui/services/transform';
 import {
+  checkedOptions,
+  optionsFor,
+} from '../../../ui/lib/workbench/projectSettings';
+import { DEFAULT_OPTIONS } from '../../../ui/lib/workbench/types';
+import {
   edge,
   edgeV2,
   goda,
   godaCheckRegistry,
   mutrose,
   type GodaCheckName,
+  type GodaVariant,
 } from '../../src';
 import { models, ROOT } from './support/models';
 
@@ -270,6 +276,59 @@ describe('GODA in the workbench', () => {
     expect(
       files.filter((file) => file.primary).map((file) => file.id),
     ).to.deep.equal(['model']);
+  });
+
+  it('writes as the July 2019 generator by default, and as January 2019 when the variant says so (#34 D24)', function () {
+    const reference = (folder: string, file: string) =>
+      join(EXAMPLES, folder, file);
+    if (!existsSync(reference('TAS', 'TAS.txt'))) this.skip();
+    const generate = (folder: string, file: string, variant?: GodaVariant) =>
+      transform({
+        modelJson: readFileSync(reference(folder, file), 'utf8'),
+        engine: 'goda',
+        fileName: file.replace(/\.txt$/, ''),
+        // what the workbench passes: the engine's options (a project's options.variant)
+        ...optionsFor('goda', {
+          ...DEFAULT_OPTIONS,
+          ...(variant && { variant }),
+        }),
+      }).files;
+    const sameAsReference = (
+      folder: string,
+      files: ReturnType<typeof generate>,
+    ) => {
+      for (const { fileName, text } of files)
+        expect(text, `${folder}/${fileName}`).to.equal(
+          readFileSync(reference(folder, `output/${fileName}`), 'utf8'),
+        );
+    };
+    // TAS's reference: the default
+    sameAsReference('TAS', generate('TAS', 'TAS.txt'));
+    // AND's: January 2019, chosen
+    sameAsReference('AND', generate('AND', 'and2.txt', 'cc808b6'));
+    // and by default AND is written as July 2019 (no frequency parameter)
+    expect(
+      generate('AND', 'and2.txt').find((file) => file.id === 'model')!.text,
+    ).to.not.include('F_');
+  });
+
+  it("reads the variant from a project's options, and reports one it does not have", () => {
+    expect(optionsFor('goda', DEFAULT_OPTIONS)).to.deep.equal({
+      variant: '5305bc1',
+    });
+    expect(
+      checkedOptions({ mode: 'goda', options: { variant: 'cc808b6' } }),
+    ).to.deep.equal({ options: { variant: 'cc808b6' }, problems: [] });
+    const bad = checkedOptions({ mode: 'goda', options: { variant: '2020' } });
+    expect(bad.options).to.deep.equal({});
+    expect(bad.problems.map((p) => p.message)).to.deep.equal([
+      '"2020" is not a value of "variant"; it is not used',
+    ]);
+    // the other engines have no such option
+    expect(
+      checkedOptions({ mode: 'edgev2', options: { variant: 'cc808b6' } })
+        .problems,
+    ).to.have.length(1);
   });
 });
 
