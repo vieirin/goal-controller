@@ -39,6 +39,8 @@ const OCL = {
   type: 'ocl',
   candidates: WORLD_CLASSES,
   memberCandidates: WORLD_CLASSES,
+  // a variable's collection type, as the decomposer reads it (parse_gm_var_type)
+  collections: ['Sequence'],
 } as const;
 /** an OCL value that uses variables: those Controls and Monitors declare above it */
 const OCL_SCOPED = {

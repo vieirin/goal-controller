@@ -364,7 +364,8 @@ const oclScope = (
       }
   for (const [name, collection] of iterated) {
     const type = types.get(collection);
-    if (type && !types.has(name)) types.set(name, elementType(type));
+    if (type && !types.has(name))
+      types.set(name, elementType(value.collections, type));
   }
   for (const name of context.variables) add(name, 'variable');
   return { options: [...found.values()], types };
@@ -381,9 +382,17 @@ const symbolsOf = (
       ] ?? [])
     : [];
 
-/** `Sequence(Room)` holds Rooms: the type a name's members are looked up in */
-const elementType = (type: string): string =>
-  /^Sequence\(\s*(\w+)\s*\)$/.exec(type)?.[1] ?? type;
+/**
+ * A collection holds a class (MutRoSe's `Sequence(Room)` holds Rooms): the
+ * type a name's members are looked up in, through the dialect's collections
+ */
+const elementType = (
+  collections: readonly string[] = [],
+  type: string,
+): string => {
+  const wrapped = /^(\w+)\(\s*(\w+)\s*\)$/.exec(type);
+  return wrapped && collections.includes(wrapped[1]!) ? wrapped[2]! : type;
+};
 
 /**
  * Completions in an `ocl` value: after `->`, the collection operations
@@ -421,19 +430,34 @@ const oclCompletions = (
       })),
     };
   }
-  // a type (`r : ‸`, `select(r:‸`, `Sequence(‸`): the candidates the definition names
-  if (/(?::|Sequence\()\s*$/.test(ahead)) {
+  // a type (`r : ‸`, `select(r:‸`, a collection's `Sequence(‸`): the
+  // candidates the definition names
+  const collections = value.collections ?? [];
+  const inCollection = collections.some((collection) =>
+    new RegExp(`\\b${collection}\\(\\s*$`).test(ahead),
+  );
+  if (/:\s*$/.test(ahead) || inCollection) {
     const types = symbolsOf(context, value.candidates);
-    return types.length
-      ? {
-          from,
-          options: types.map((symbol) => ({
-            label: symbol.name,
-            type: 'class' as const,
-            ...(symbol.detail && { detail: symbol.detail }),
-          })),
-        }
-      : null;
+    // a declared variable (`rooms : ‸`, not a select's own) may hold one of
+    // the dialect's collections
+    const declared =
+      !inCollection && !/select\(\s*[A-Za-z_]\w*\s*:\s*$/.test(ahead);
+    const options: Completion[] = [
+      ...types.map((symbol) => ({
+        label: symbol.name,
+        type: 'class' as const,
+        ...(symbol.detail && { detail: symbol.detail }),
+      })),
+      ...(declared
+        ? collections.map((collection) => ({
+            label: collection,
+            type: 'keyword' as const,
+            detail: `a collection: ${collection}(Class)`,
+            snippet: `${collection}(\${1})`,
+          }))
+        : []),
+    ];
+    return options.length ? { from, options } : null;
   }
   const scope = oclScope(value, before, context, self);
   // `r.‸`: the members of r's type, when the definition says where they are
@@ -441,7 +465,8 @@ const oclCompletions = (
   const ownerType = owner && scope.types.get(owner);
   if (ownerType) {
     const symbol = symbolsOf(context, value.memberCandidates).find(
-      (candidate) => candidate.name === elementType(ownerType),
+      (candidate) =>
+        candidate.name === elementType(value.collections, ownerType),
     );
     if (symbol?.members?.length)
       return {
