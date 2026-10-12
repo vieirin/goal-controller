@@ -4,6 +4,9 @@ import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import type { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useState } from 'react';
 import { formatOf, sourceLabel } from '@/lib/project';
+import { factsEnabled, useFactsSession } from '@/lib/workbench/facts';
+import { factsExtension } from '@/lib/workbench/factsEditor';
+import { resourceTabId } from '@/lib/workbench/projectResources';
 import CodeEditor, { type CodeLanguage } from './CodeEditor';
 import { useWorkbench } from './WorkbenchContext';
 import { Button } from './ui';
@@ -34,6 +37,33 @@ export default function ResourceView({ path }: { path: string }) {
       ),
     [wb.parsedResources, slot, path],
   );
+
+  // the relational core's services (#61), behind its flag: the file is one of its documents
+  const facts = useMemo(
+    () =>
+      slot && factsEnabled()
+        ? factsExtension({
+            at: (_view, position) => ({ document: path, offset: position }),
+            here: (_view, location) =>
+              location.document === path ? location : null,
+          })
+        : [],
+    [slot, path],
+  );
+  const { reveal } = useFactsSession();
+  useEffect(() => {
+    if (!view || reveal?.tab !== resourceTabId(path)) return;
+    const length = view.state.doc.length;
+    view.dispatch({
+      selection: {
+        anchor: Math.min(reveal.from, length),
+        head: Math.min(reveal.to, length),
+      },
+      scrollIntoView: true,
+    });
+    view.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, reveal?.seq]);
 
   // the parser's problems, underlined
   useEffect(() => {
@@ -79,6 +109,7 @@ export default function ResourceView({ path }: { path: string }) {
           readOnly={readOnly}
           onChange={(value) => wb.setResourceText(path, value)}
           onReady={setView}
+          extensions={facts}
         />
       </div>
     </div>

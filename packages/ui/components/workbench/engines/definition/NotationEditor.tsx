@@ -3,6 +3,16 @@
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
+import {
+  factsEnabled,
+  fieldAt,
+  notationSpans,
+  spanOf,
+  useFactsSession,
+  type FieldSpan,
+} from '@/lib/workbench/facts';
+import { factsExtension } from '@/lib/workbench/factsEditor';
+import type { GoalView } from '@goal-controller/goal-tree';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import {
   applyNotationEdits,
@@ -123,10 +133,57 @@ export default function NotationEditor({
   const latestKeysOf = useRef(keysOf);
   latestKeysOf.current = keysOf;
 
+  // the relational core's services (#61), behind its flag: the model fields
+  // each line shows, as the pool's documents
+  const spansCache = useRef<{
+    text: string;
+    tree: unknown;
+    spans: FieldSpan[];
+  } | null>(null);
+  const spansOf = (text: string): FieldSpan[] => {
+    const current = latestTree.current as GoalView | null;
+    if (!current) return [];
+    const cached = spansCache.current;
+    if (cached?.text === text && cached.tree === current) return cached.spans;
+    const spans = notationSpans(definition, current, text);
+    spansCache.current = { text, tree: current, spans };
+    return spans;
+  };
+  const latestSpansOf = useRef(spansOf);
+  latestSpansOf.current = spansOf;
+  const { reveal } = useFactsSession();
+  useEffect(() => {
+    if (!view || reveal?.tab !== 'notation') return;
+    const length = view.state.doc.length;
+    view.dispatch({
+      selection: {
+        anchor: Math.min(reveal.from, length),
+        head: Math.min(reveal.to, length),
+      },
+      scrollIntoView: true,
+    });
+    view.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, reveal?.seq]);
+
   // cursor on a line → select its element
   const extensions = useMemo(
     () => [
       support.documentExtension(DOCUMENT_URI),
+      factsEnabled()
+        ? factsExtension({
+            at: (editor, position) =>
+              fieldAt(
+                latestSpansOf.current(editor.state.doc.toString()),
+                position,
+              ),
+            here: (editor, location) =>
+              spanOf(
+                latestSpansOf.current(editor.state.doc.toString()),
+                location,
+              ),
+          })
+        : [],
       EditorView.updateListener.of((update) => {
         if (
           !selectable ||

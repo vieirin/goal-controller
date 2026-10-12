@@ -26,7 +26,9 @@ import { baseName, downloadText } from '@/lib/workbench/download';
 import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
 import { hasUnsavedEdits, recentAge, recentId } from '@/lib/project';
 import type { ModelSettings } from '@/lib/workbench/types';
+import { factsEnabled } from '@/lib/workbench/facts';
 import BottomPanel from './BottomPanel';
+import FactsBridge from './FactsBridge';
 import Explorer, {
   recentOrigin,
   useExamples,
@@ -53,8 +55,12 @@ const READ_ONLY_KEY = 'goal-workbench:model-read-only';
 
 export default function Workbench() {
   const mode = normalizeEngineMode(useSearchParams().get('mode'));
+  // the relational core's demo (#61): read after mounting (the page is static)
+  const [facts, setFacts] = useState(false);
+  useEffect(() => setFacts(factsEnabled()), []);
   return (
     <WorkbenchProvider lockedEngine={mode}>
+      {facts && <FactsBridge />}
       <LanguageServices>
         <ShellLayout />
       </LanguageServices>

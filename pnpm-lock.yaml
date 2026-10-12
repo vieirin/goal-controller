@@ -305,6 +305,9 @@ importers:
       '@goal-controller/dialect':
         specifier: workspace:*
         version: link:../dialect
+      '@goal-controller/facts':
+        specifier: workspace:*
+        version: link:../facts
       '@goal-controller/goal-language':
         specifier: workspace:*
         version: link:../goal-language

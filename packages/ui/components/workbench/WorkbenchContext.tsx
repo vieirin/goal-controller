@@ -1,6 +1,7 @@
 'use client';
 
 import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import { useFactsSession } from '@/lib/workbench/facts';
 import { ENGINE_LABEL, isDialectEngine } from '@/lib/workbench/engineDialects';
 import type { LoggerReport } from '@goal-controller/lib';
 import {
@@ -1536,8 +1537,10 @@ function WorkbenchState({
   // ---- problems ----------------------------------------------------------------
   // what the language services say of the open documents (editors, fields)
   const serviceProblems = useServiceDiagnostics();
+  // the relational core's (#61), behind its flag (none without it)
+  const factsProblems = useFactsSession().problems;
   const problems = useMemo(() => {
-    const list: Problem[] = [];
+    const list: Problem[] = [...factsProblems];
     if (parsed.error) list.push(parsed.error);
     // what the model's manifest holds that is not used (its options are the file's)
     else list.push(...modelOptions.problems);
@@ -1597,6 +1600,7 @@ function WorkbenchState({
     stale,
     nodeIds,
     serviceProblems,
+    factsProblems,
   ]);
 
   // ---- persistence ----------------------------------------------------------------
