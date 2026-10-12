@@ -1,0 +1,7 @@
+% HDDL's rules (goal-controller#75; hddl.ts reads the facts).
+% a type is a subtype of itself, and of its supertype's supertypes (recursive)
+hddl_subtypeOf(?T, ?T) :- defines(?T, "hddl.type", _) .
+hddl_subtypeOf(?T, ?U) :- hddl_super(?T, ?R), resolves(?R, ?S), hddl_subtypeOf(?S, ?U) .
+% a task is used when something other than its methods' :task refers to it
+hddl_referenced(?S) :- resolves(?R, ?S), ~hddl_decomposes(?R) .
+problem(?S, "warning", "hddl.unusedTask", "") :- defines(?S, "hddl.task", _), ~hddl_referenced(?S) .

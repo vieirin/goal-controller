@@ -22,6 +22,7 @@
     "packages/goal-language/src/generated/**",
     "packages/lib/src/**/*.rules.ts",
     "packages/lib/test/rules/fixtures/**",
+    "packages/lib/test/rules/oracle/**",
     "packages/lib/test/engines/edgeFamily/antlr-oracle.json"
   ]
 }

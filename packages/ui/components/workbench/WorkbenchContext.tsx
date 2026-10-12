@@ -1,6 +1,12 @@
 'use client';
 
 import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import {
+  checkRulesSoon,
+  ruleProblem,
+  shownDiagnostics,
+  useRuleDiagnostics,
+} from '@/lib/workbench/rules';
 import { ENGINE_LABEL, isDialectEngine } from '@/lib/workbench/engineDialects';
 import type { LoggerReport } from '@goal-controller/lib';
 import {
@@ -1534,11 +1540,40 @@ function WorkbenchState({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outputsOf, project?.store, pistar]);
 
+  // ---- the rule layer (goal-controller#75) ---------------------------------------
+  // the project checked by its engine's rules in the rules worker, after a
+  // pause in its edits; the answer to the latest edit is kept
+  useEffect(() => {
+    checkRulesSoon(
+      !pistar && isDialectEngine(engine) ? engine : null,
+      tree
+        ? {
+            model: tree,
+            resources: resourceSlotsNow.flatMap((slot) =>
+              slot.paths.flatMap((path) =>
+                resourceTexts[path] === undefined
+                  ? []
+                  : [{ kind: slot.kind, path, text: resourceTexts[path]! }],
+              ),
+            ),
+          }
+        : null,
+    );
+  }, [pistar, engine, tree, resourceSlotsNow, resourceTexts]);
+  const rules = useRuleDiagnostics();
+  const ruleProblems = useMemo(
+    () =>
+      shownDiagnostics(rules.diagnostics).map((d) =>
+        ruleProblem(d, rules.texts),
+      ),
+    [rules],
+  );
+
   // ---- problems ----------------------------------------------------------------
   // what the language services say of the open documents (editors, fields)
   const serviceProblems = useServiceDiagnostics();
   const problems = useMemo(() => {
-    const list: Problem[] = [];
+    const list: Problem[] = [...ruleProblems];
     if (parsed.error) list.push(parsed.error);
     // what the model's manifest holds that is not used (its options are the file's)
     else list.push(...modelOptions.problems);
@@ -1598,6 +1633,7 @@ function WorkbenchState({
     stale,
     nodeIds,
     serviceProblems,
+    ruleProblems,
   ]);
 
   // ---- persistence ----------------------------------------------------------------

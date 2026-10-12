@@ -1,0 +1,8 @@
+[
+  {
+    "file": "configuration",
+    "text": "?x",
+    "severity": "error",
+    "check": "hddl-var-not-param"
+  }
+]

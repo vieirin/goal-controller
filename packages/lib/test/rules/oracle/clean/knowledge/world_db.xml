@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The ward the medicine-delivery mission runs in: its rooms and the requests for medicine. -->
+<world_db>
+    <Location>
+        <name>Ward1</name>
+    </Location>
+    <Location>
+        <name>Ward2</name>
+    </Location>
+    <Request>
+        <name>req1</name>
+        <room>Ward1</room>
+        <pending>True</pending>
+        <served>False</served>
+    </Request>
+    <Request>
+        <name>req2</name>
+        <room>Ward2</room>
+        <pending>False</pending>
+        <served>True</served>
+    </Request>
+</world_db>

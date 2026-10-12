@@ -307,6 +307,9 @@ importers:
       lucide-react:
         specifier: ^0.300.0
         version: 0.300.0(react@19.2.3)
+      nemo-wasm:
+        specifier: https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-web-0.10.1-fork.1.tgz
+        version: '@github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-web-0.10.1-fork.1.tgz'
       next:
         specifier: ^15.1.6
         version: 15.5.9(react-dom@19.2.3)(react@19.2.3)
@@ -8186,3 +8189,9 @@ packages:
     name: nemo-wasm
     version: 0.10.1-fork.1
     dev: true
+
+  '@github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-web-0.10.1-fork.1.tgz':
+    resolution: {tarball: https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-web-0.10.1-fork.1.tgz}
+    name: nemo-wasm
+    version: 0.10.1-fork.1
+    dev: false

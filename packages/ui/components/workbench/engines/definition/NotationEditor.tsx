@@ -1,8 +1,17 @@
 'use client';
 
-import { EditorView } from '@codemirror/view';
+import { forceLinting, linter } from '@codemirror/lint';
+import { EditorView, ViewPlugin } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
+import {
+  inNotation,
+  notationSpans,
+  ruleDiagnostics,
+  shownDiagnostics,
+  subscribeRuleDiagnostics,
+} from '@/lib/workbench/rules';
+import type { GoalView } from '@goal-controller/goal-tree';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import {
   applyNotationEdits,
@@ -123,10 +132,44 @@ export default function NotationEditor({
   const latestKeysOf = useRef(keysOf);
   latestKeysOf.current = keysOf;
 
-  // cursor on a line → select its element
+  // cursor on a line → select its element; the rule layer's diagnostics (#75)
+  // underlined where their model field is written
   const extensions = useMemo(
     () => [
       support.documentExtension(DOCUMENT_URI),
+      linter(
+        (editor) => {
+          const current = latestTree.current as GoalView | null;
+          if (!current) return [];
+          const spans = notationSpans(
+            definition,
+            current,
+            editor.state.doc.toString(),
+          );
+          const length = editor.state.doc.length;
+          return shownDiagnostics(ruleDiagnostics().diagnostics).flatMap(
+            (d) => {
+              const range = inNotation(spans, d.location);
+              return range && range.to <= length
+                ? [
+                    {
+                      ...range,
+                      severity: d.severity,
+                      message: d.message,
+                      source: 'rules',
+                    },
+                  ]
+                : [];
+            },
+          );
+        },
+        { delay: 100 },
+      ),
+      ViewPlugin.define((editor) => ({
+        destroy: subscribeRuleDiagnostics(() =>
+          queueMicrotask(() => editor.dom.isConnected && forceLinting(editor)),
+        ),
+      })),
       EditorView.updateListener.of((update) => {
         if (
           !selectable ||

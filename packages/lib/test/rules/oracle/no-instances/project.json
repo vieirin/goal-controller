@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "mutrose",
+  "models": [
+    {
+      "path": "gm/MedicineDelivery.txt"
+    }
+  ],
+  "projectResources": {
+    "world": "knowledge/world_db.xml",
+    "hddl": "hddl/domain.hddl",
+    "configuration": "configuration/configuration.json"
+  },
+  "outputs": []
+}

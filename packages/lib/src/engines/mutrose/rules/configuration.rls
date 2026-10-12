@@ -1,0 +1,20 @@
+% MutRoSe's checks across its four files (goal-controller#75, #59;
+% configuration.ts reads the configuration's facts): the configuration maps
+% the goal model onto the HDDL domain and the world.
+
+% a goal-model task stands for the HDDL task its name's first word names
+through("mutrose.standsFor", ?G, ?H) :- gm_namesTask(?G, ?R), resolves(?R, ?H) .
+
+% a task's Params that its var_mapping doesn't bind
+mutrose_bound(?T, ?N) :- mutrose_binding(?TR, ?GV, _), resolves(?TR, ?T), name(?GV, ?N) .
+problem(?P, "error", "mutrose.unboundParam", "") :- mutrose_configured(_), gm_param(?T, ?P), name(?P, ?N), ~mutrose_bound(?T, ?N) .
+
+% an hddl_var whose parameter's type doesn't take the variable's class,
+% through type_mapping and HDDL's subtypes (hddl_subtypeOf, recursive)
+mutrose_classOf(?X, ?C) :- typeBase(?X, ?T), defines(?C, "world.class", ?T) .
+mutrose_hddlTypeOf(?C, ?H) :- mutrose_typeMap(?HR, ?OR), resolves(?OR, ?C), resolves(?HR, ?H) .
+problem(?HV, "error", "mutrose.paramType", "") :- mutrose_binding(_, ?GV, ?HV), resolves(?GV, ?G), mutrose_classOf(?G, ?C), mutrose_hddlTypeOf(?C, ?H), resolves(?HV, ?P), hddl_paramType(?P, ?PR), resolves(?PR, ?PT), ~hddl_subtypeOf(?H, ?PT) .
+
+% a select or forAll over a class with no instances
+problem(?R, "warning", "mutrose.noInstances", "") :- gm_selects(?R), resolves(?R, ?C), ~world_hasInstance(?C) .
+problem(?R, "warning", "mutrose.iteratesNoInstances", "") :- gm_iterates(?R), resolves(?R, ?V), mutrose_classOf(?V, ?C), ~world_hasInstance(?C) .

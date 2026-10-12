@@ -184,6 +184,22 @@ export {
   type Resolution,
   type RuleProblem,
 } from './rules';
+// The engines on the rule layer (goal-controller#75): readers, rule files, diagnostics
+export {
+  checkProject,
+  diagnosticsOf,
+  readProject,
+  rulesFor,
+  type EngineRules,
+  type RuleDiagnostic,
+  type RuleProject,
+} from './engines/ruleFacts/engine';
+export type { RuleLocation } from './engines/ruleFacts/facts';
+export { modelFieldOf } from './engines/ruleFacts/goalModel';
+export { mutroseRules } from './engines/mutrose/rules';
+export { edgeRules } from './engines/edge/rules';
+export { edgeV2Rules } from './engines/edgeV2/rules';
+export { godaRules } from './engines/goda/rules';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
   projectResourceParsers,

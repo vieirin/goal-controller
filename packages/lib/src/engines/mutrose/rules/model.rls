@@ -1,0 +1,7 @@
+% MutRoSe's goal model (goal-controller#75; model.ts reads its OCL fields):
+% an OCL variable is one its field declares (a select's), else a Controls one.
+gm_local(?R, ?S) :- refers(?R, "gm.variable", ?N), in(?R, ?D), gm_binder(?S, ?D), defines(?S, "gm.variable", ?N) .
+gm_isLocal(?R) :- gm_local(?R, _) .
+gm_binderSymbol(?S) :- gm_binder(?S, _) .
+resolves(?R, ?S) :- gm_local(?R, ?S) .
+resolves(?R, ?S) :- refers(?R, "gm.variable", ?N), ~gm_isLocal(?R), defines(?S, "gm.variable", ?N), ~gm_binderSymbol(?S) .

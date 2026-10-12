@@ -1,0 +1,18 @@
+[
+  {
+    "file": "model",
+    "element": "G2",
+    "field": "QueriedProperty",
+    "text": "Request",
+    "severity": "warning",
+    "check": "no-instances"
+  },
+  {
+    "file": "model",
+    "element": "G3",
+    "field": "AchieveCondition",
+    "text": "requests",
+    "severity": "warning",
+    "check": "no-instances"
+  }
+]

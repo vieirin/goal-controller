@@ -1,0 +1,16 @@
+[
+  {
+    "file": "configuration",
+    "text": "rooom",
+    "severity": "error",
+    "check": "unknown-mapping-variable"
+  },
+  {
+    "file": "model",
+    "element": "AT1",
+    "field": "Params",
+    "text": "room",
+    "severity": "error",
+    "check": "unbound-param"
+  }
+]

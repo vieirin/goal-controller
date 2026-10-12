@@ -4,6 +4,7 @@ import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import type { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useState } from 'react';
 import { formatOf, sourceLabel } from '@/lib/project';
+import { shownDiagnostics, useRuleDiagnostics } from '@/lib/workbench/rules';
 import CodeEditor, { type CodeLanguage } from './CodeEditor';
 import { useWorkbench } from './WorkbenchContext';
 import { Button } from './ui';
@@ -27,12 +28,24 @@ export default function ResourceView({ path }: { path: string }) {
     : listed?.role === 'output'
       ? 'Output'
       : 'File';
+  // the parser's problems, and the rule layer's located in this file (#75)
+  const rules = useRuleDiagnostics();
   const diagnostics = useMemo(
-    () =>
-      (slot ? (wb.parsedResources[slot.kind]?.diagnostics ?? []) : []).filter(
-        (d) => d.path === path,
-      ),
-    [wb.parsedResources, slot, path],
+    () => [
+      ...(slot
+        ? (wb.parsedResources[slot.kind]?.diagnostics ?? [])
+        : []
+      ).filter((d) => d.path === path),
+      ...shownDiagnostics(rules.diagnostics)
+        .filter((d) => d.location.document === path)
+        .map((d) => ({
+          from: d.location.from,
+          to: d.location.to,
+          severity: d.severity,
+          message: d.message,
+        })),
+    ],
+    [wb.parsedResources, slot, path, rules],
   );
 
   // the parser's problems, underlined

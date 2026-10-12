@@ -1,0 +1,8 @@
+[
+  {
+    "file": "configuration",
+    "text": "Order",
+    "severity": "error",
+    "check": "unknown-mapping-class"
+  }
+]

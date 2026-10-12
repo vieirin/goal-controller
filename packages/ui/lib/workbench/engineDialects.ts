@@ -8,17 +8,22 @@ import {
   edgeCheckRegistry,
   edgeEngineMapper,
   edgeProjectResources,
+  edgeRules,
   edgeV2,
   edgeV2EngineMapper,
+  edgeV2Rules,
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  godaRules,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
   mutroseProjectResources,
+  mutroseRules,
   sleecEngineMapper,
   type Check,
+  type EngineRules,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
 import type { CheckNameOf } from '@goal-controller/dialect';
@@ -64,6 +69,17 @@ export const ENGINE_PROJECT_RESOURCES: {
   mutrose: mutroseProjectResources,
   // it reads nothing beside the model
   goda: {},
+};
+
+/**
+ * Each engine's rules on the rule layer (goal-controller#75): its fact
+ * readers and rule files, prepared once per engine in the rules worker.
+ */
+export const ENGINE_RULES: { readonly [E in DialectEngine]: EngineRules } = {
+  edge: edgeRules,
+  edgev2: edgeV2Rules,
+  mutrose: mutroseRules,
+  goda: godaRules,
 };
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */

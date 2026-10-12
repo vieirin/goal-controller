@@ -1,0 +1,18 @@
+% MutRoSe's world knowledge (goal-controller#75; world.ts reads the facts):
+% instances, the values naming them, and each attribute's type.
+world_instanceOf(?V, ?C) :- defines(?I, "world.instance", ?V), owns(?C, ?I) .
+world_hasInstance(?C) :- owns(?C, ?I), defines(?I, "world.instance", _) .
+% a value naming an instance refers to it
+resolves(?R, ?I) :- refers(?R, "world.value", ?N), defines(?I, "world.instance", ?N) .
+% an attribute is of a class when every value names one of its instances
+world_candidate(?A, ?C) :- world_attrValue(?A, ?V), world_instanceOf(?V, ?C) .
+world_notAll(?A, ?C) :- world_candidate(?A, ?C), world_attrValue(?A, ?V), ~world_instanceOf(?V, ?C) .
+world_ofClass(?A, ?T) :- world_candidate(?A, ?C), ~world_notAll(?A, ?C), defines(?C, "world.class", ?T) .
+world_classTyped(?A) :- world_ofClass(?A, _) .
+% else of its values' kind, when they agree
+world_mixed(?A) :- world_valueKind(?A, ?K1), world_valueKind(?A, ?K2), ?K1 != ?K2 .
+world_basic(?A, ?K) :- world_valueKind(?A, ?K), ~world_mixed(?A), ~world_classTyped(?A) .
+typeOf(?A, ?T) :- world_ofClass(?A, ?T) .
+typeBase(?A, ?T) :- world_ofClass(?A, ?T) .
+typeOf(?A, ?K) :- world_basic(?A, ?K) .
+typeBase(?A, ?K) :- world_basic(?A, ?K) .

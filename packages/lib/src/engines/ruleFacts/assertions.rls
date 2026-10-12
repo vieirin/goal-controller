@@ -1,0 +1,24 @@
+% #58: an assertion's variables typed, and what their uses may be
+% (goal-controller#75; assertion.ts reads the uses). A use's type is what it
+% resolves to (gm_declared: Edge's variables.json, an element's declared
+% type, else a boolean), or what every use of its name says (gm_inferred:
+% GODA's variables, declared by their first use).
+gm_numeric("int") .
+gm_numeric("number") .
+gm_typeOfUse(?U, ?T) :- gm_declared(?U), resolves(?U, ?S), typeOf(?S, ?T) .
+% an element is a boolean, unless it declares a type (Edge's int resources)
+gm_typedElement(?S) :- gm_element(?S), typeOf(?S, _) .
+gm_typeOfUse(?U, "boolean") :- gm_declared(?U), resolves(?U, ?S), gm_element(?S), ~gm_typedElement(?S) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "bare"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "eqBool"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "ordered"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "eqNumber"), gm_useName(?U, ?N) .
+gm_conflict(?N) :- gm_usedAs(?N, "boolean"), gm_usedAs(?N, "number") .
+gm_typeOfUse(?U, ?T) :- gm_inferred(?U), gm_useName(?U, ?N), gm_usedAs(?N, ?T), ~gm_conflict(?N) .
+
+problem(?U, "error", "gm.typeConflict", ?N) :- gm_inferred(?U), gm_useName(?U, ?N), gm_conflict(?N) .
+problem(?U, "error", "gm.orderOnBoolean", "") :- gm_use(?U, "ordered"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.boolOnNumber", ?T) :- gm_use(?U, "eqBool"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "error", "gm.numberOnBoolean", "") :- gm_use(?U, "eqNumber"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.needsBoolean", ?T) :- gm_use(?U, "bare"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "warning", "gm.intWithDecimal", "") :- gm_literal(?U, "decimal"), gm_typeOfUse(?U, "int") .
