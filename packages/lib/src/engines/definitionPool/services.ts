@@ -115,7 +115,7 @@ export const renameEdits = (
 export type PoolHover = {
   location: PoolLocation;
   definition?: PoolDefinition;
-  /** its kind's label (`HDDL task`) */
+  /** its kind's label */
   label?: string;
   /** its owner, if it has one */
   owner?: PoolDefinition;

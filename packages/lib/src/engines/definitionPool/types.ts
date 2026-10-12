@@ -10,7 +10,7 @@
 export type PoolDocument = {
   /** a resource file's path; `model` for the goal model */
   id: string;
-  /** a project-resource kind (`world`, `hddl`), or `model` */
+  /** a project-resource kind, or `model` */
   kind: string;
   /** a file's text */
   text?: string;
@@ -29,7 +29,7 @@ export type PoolLocation = { document: string; from: number; to: number };
 export type PoolDefinition = {
   /** unique in the pool: `${kind}:${owner ? owner + '/' : ''}${name, normalized}` */
   id: string;
-  /** qualified by its provider: `hddl.task`, `world.class` */
+  /** qualified by its provider: `<provider>.<kind>` */
   kind: string;
   /** as written */
   name: string;
@@ -74,7 +74,7 @@ export type PoolFacts = {
 export type PoolDiagnostic = PoolLocation & {
   severity: 'error' | 'warning' | 'info';
   message: string;
-  /** what found it: `unknown-hddl-task` */
+  /** what found it: the check's name */
   check: string;
 };
 
@@ -92,9 +92,9 @@ export type PoolCompletion = {
 export type PoolEdit = PoolLocation & { text: string };
 
 export type PoolKind = {
-  /** shown to people: `HDDL task` */
+  /** shown to people */
   label: string;
-  /** names compare lowercased (HDDL's) */
+  /** names compare lowercased */
   caseInsensitive?: boolean;
   /**
    * `owner`: only among its owner's members (a task's parameter); `global`
@@ -123,7 +123,7 @@ export type PoolLookup = {
   references(): readonly PoolReference[];
   /** the documents the pool was built from, by id */
   documents: ReadonlyMap<string, PoolDocument>;
-  /** whether any document of a kind is present (`world`, `model`) */
+  /** whether any document of a kind is present (a resource kind, `model`) */
   has(kind: string): boolean;
 };
 
@@ -132,14 +132,14 @@ export type PoolProvider = {
   /** its namespace: its kinds are `${id}.${kind}` */
   id: string;
   documents: {
-    /** project-resource kinds (`hddl`) */
+    /** project-resource kinds */
     resources?: readonly string[];
-    /** file extensions (`.hddl`) */
+    /** file extensions (with their dot) */
     extensions?: readonly string[];
     /** the goal model */
     model?: boolean;
   };
-  /** the kinds it defines, unqualified (`task`: `hddl.task`) */
+  /** the kinds it defines, unqualified (`kind`: `<provider>.kind`) */
   kinds: Readonly<Record<string, PoolKind>>;
   /** the qualified kinds it refers to (its own or other providers') */
   refers?: readonly string[];
@@ -154,8 +154,9 @@ export type PoolProvider = {
     offset: number,
   ) => PoolCompletion[];
   /**
-   * the text a definition's new name is written as at a location (HDDL
-   * keeps a parameter's `?`); null: it can't be renamed so
+   * the text a definition's new name is written as at a location (a
+   * format may keep a sigil the name is written with); null: it can't be
+   * renamed so
    */
   renameText?: (definition: PoolDefinition, newName: string) => string | null;
 };
@@ -164,7 +165,7 @@ export type PoolProvider = {
 export type PoolRegistration = {
   engine: string;
   providers: readonly PoolProvider[];
-  /** checks that span providers (MutRoSe's cross-file checks) */
+  /** checks that span providers (an engine's cross-file checks) */
   checks?: (pool: PoolLookup) => PoolDiagnostic[];
   /** a scope's `through`, besides `type`: from a definition, the owner to look in */
   resolvers?: Readonly<
@@ -173,6 +174,6 @@ export type PoolRegistration = {
       (definition: PoolDefinition, pool: PoolLookup) => string | undefined
     >
   >;
-  /** the definition a type names (`Sequence(Room)` → `world.class:Room`), for `through: 'type'` */
+  /** the definition a type names, for `through: 'type'` */
   typeDefinition?: (type: string, pool: PoolLookup) => string | undefined;
 };
