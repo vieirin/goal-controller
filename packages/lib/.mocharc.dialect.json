@@ -1,5 +1,5 @@
 {
-  "require": ["ts-node/register"],
+  "require": ["ts-node/register", "./test/support/langium.cjs"],
   "extensions": ["ts"],
   "spec": "test/dialect/**/*.test.ts",
   "recursive": true,

@@ -15,7 +15,11 @@
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
-    "alwaysStrict": true
+    "alwaysStrict": true,
+    // Langium is ESM-only and has no top-level types, which CommonJS's
+    // resolution needs: its types are here (at run time, build.mjs bundles
+    // it, and the tests require test/support/langium.cjs's bundle)
+    "paths": { "langium": ["./node_modules/langium/lib/index.d.ts"] }
   },
   "include": ["src/**/*"],
   "exclude": ["test/**/*", "out"]

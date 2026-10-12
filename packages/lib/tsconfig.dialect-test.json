@@ -9,7 +9,10 @@
     "lib": ["es2022", "dom"],
     // the dialect tests run the UI's React-free workbench modules (lib/workbench)
     "baseUrl": ".",
-    "paths": { "@/*": ["../ui/*"] }
+    "paths": {
+      "@/*": ["../ui/*"],
+      "langium": ["./node_modules/langium/lib/index.d.ts"]
+    }
   },
   "include": ["src/**/*", "test/dialect/**/*"]
 }
