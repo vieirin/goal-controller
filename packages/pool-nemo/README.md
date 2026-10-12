@@ -14,8 +14,7 @@ of the `vieirin/nemo` fork (branch `vn/goal-controller-bindings`).
 ```
 
 Each release is one fixed build. To move to a newer build of the fork, release
-it there (`nemo-wasm/Dockerfile`, then `nemo-wasm/pack.mjs`; see the
-fork's `nemo-wasm/README.md`) and change the URL.
+it there and change the URL, as below.
 
 To try an unreleased build of a local checkout of the fork, link it instead,
 without committing the change:
@@ -23,6 +22,67 @@ without committing the change:
 ```sh
 pnpm --filter @goal-controller/pool-nemo add nemo-wasm@link:<path to the fork>/nemo-wasm/pkg-node
 ```
+
+## Releasing a new build of the fork
+
+Releases are made from a checkout of `vieirin/nemo` (here `~/vieirin/nemo`),
+with Docker and Node.js. No Rust toolchain is needed on the host.
+
+1. Commit and push the change to the fork's `wasm-fast-reevaluation` branch
+   (`git push origin wasm-fast-reevaluation`). Releases are only for pushed
+   commits. Push to `origin` (`vieirin/nemo`) only, never to `upstream`
+   (`knowsys/nemo`).
+
+2. Build the packages and run the smoke test:
+
+   ```sh
+   cd ~/vieirin/nemo
+   docker build -f nemo-wasm/Dockerfile --output type=local,dest=nemo-wasm .
+   node nemo-wasm/tests/smoke.mjs
+   ```
+
+3. Choose the version: Nemo's version with a `-fork.<n>` suffix, where `<n>`
+   is one more than the last release (see `gh release list --repo vieirin/nemo`).
+   Pack both packages outside the repository:
+
+   ```sh
+   V=0.10.1-fork.2
+   OUT=$(mktemp -d)
+   node nemo-wasm/pack.mjs pkg-node $V $OUT   # nemo-wasm-node-$V.tgz
+   node nemo-wasm/pack.mjs pkg-web $V $OUT    # nemo-wasm-web-$V.tgz
+   ```
+
+4. Tag the commit and publish the release, with both tarballs attached.
+   `--repo` is required: for a fork, `gh` defaults to the upstream repository.
+
+   ```sh
+   git tag -a nemo-wasm-v$V -m "nemo-wasm $V"
+   git push origin nemo-wasm-v$V
+   gh release create nemo-wasm-v$V --repo vieirin/nemo --verify-tag --prerelease \
+     --title "nemo-wasm $V" --notes "Built from wasm-fast-reevaluation at $(git rev-parse --short HEAD)." \
+     $OUT/nemo-wasm-node-$V.tgz $OUT/nemo-wasm-web-$V.tgz
+   ```
+
+5. In this repository, change the URL of `nemo-wasm` in `package.json` (and in
+   "The dependency" above) to the new asset,
+   `https://github.com/vieirin/nemo/releases/download/nemo-wasm-v$V/nemo-wasm-node-$V.tgz`,
+   then install and check it:
+
+   ```sh
+   pnpm install
+   pnpm --filter @goal-controller/pool-nemo gates
+   ```
+
+   Edit the URL by hand: `pnpm add nemo-wasm@<url>` (pnpm 8) writes the
+   version (`"0.10.1-fork.1"`) into `package.json` instead of the URL, which
+   would then be looked up on the npm registry.
+
+   Gate 1 must pass. Then commit `package.json`, this README's URL and
+   `pnpm-lock.yaml` together.
+
+Don't replace the assets of an existing release. The lockfile records only
+the tarball's URL, not its checksum, so a replaced asset would change what
+installs without any change here. Publish a new version instead.
 
 ## The gates
 
