@@ -97,6 +97,13 @@ MutRoSe passes the project's other goal models so, as `otherModel`.
   Resolution is lazy: a scope that reads another reference's target
   resolves that one first (a cycle resolves to nothing).
 - The providers' checks and the registration's run over the result.
+- **What resolves to nothing** is reported by the core, for every provider:
+  an `unresolved-reference` warning (`objects_picked is no World attribute
+  of Room`). It isn't reported where a check already reports that place,
+  after an earlier name of its path failed, when the provider that would
+  define it has no document in the project, or when the reference is
+  `silent` (its absence is reported elsewhere: MutRoSe's property checks
+  already report a type the world has no class for).
 - One keystroke in the goal model re-extracts the whole model, because the
   model is one document. A model split into per-field documents would cut
   that; #61 measures the difference.
@@ -156,9 +163,9 @@ shown (`useProjectWorkspace`).
   the checks.
 
 **Could move into the framework:**
-- **Unknown-reference diagnostics.** Most of MutRoSe's mapping checks are
-  "this reference resolves to nothing", with a message per role. A
-  reference could carry its message, and the core report it when present.
+- **Messages per role for what resolves to nothing.** The core reports it
+  generically; most of MutRoSe's mapping checks are the same check, with
+  a message per role. A reference could carry its message.
 - **A declarative provider for JSON and XML resources.** The configuration
   provider is mostly paths to strings (`var_mapping[].task_id → gm.task`).
   A table of JSON paths (or XML element paths) to kinds, with `via` scopes,
@@ -170,3 +177,17 @@ shown (`useProjectWorkspace`).
   want them structured (a class, a collection of one, a basic type).
 - **The model's documents per field.** A provider-level `split` would let a
   keystroke re-read one field instead of the whole model (#61).
+
+## Still open
+
+- **Only the open model is indexed.** The project's other goal models are
+  read by checks only (`otherModel`: MutRoSe's unused-task check), and the
+  workbench doesn't pass them yet.
+- **The model is one document.** A keystroke in it re-extracts the whole
+  model; #61 measures a per-field split.
+- **The goal-model provider reads OCL with a stand-in** with the API of
+  MutRoSe's own Langium language (#62). It switches to the grammar's
+  readers by its import once #62 lands.
+- **A rename's saves.** A rename writes several files at once; the
+  workbench's resource saves share one timer, fixed separately from this
+  issue.

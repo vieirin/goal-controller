@@ -231,6 +231,29 @@ export const createPool = (registration: PoolRegistration) => {
       ),
       ...(registration.checks?.(lookup) ?? []),
     ];
+    // what resolves to nothing, every provider's: unless a check says it
+    // already, an earlier name of its path failed, or what it refers to
+    // isn't in the project
+    const said = new Set(
+      diagnostics.map((d) => `${d.document}\0${d.from}\0${d.to}`),
+    );
+    const speaking = new Set(providers.values());
+    for (const reference of references) {
+      if (reference.silent || lookup.target(reference)) continue;
+      const { document, from, to } = reference.location;
+      if (said.has(`${document}\0${from}\0${to}`)) continue;
+      const kind = kinds.get(reference.kinds[0]!);
+      if (!kind || !speaking.has(kind.provider)) continue;
+      const owner = ownerOf(reference);
+      if (owner === null) continue;
+      const of = owner !== undefined ? byId.get(owner)?.name : undefined;
+      diagnostics.push({
+        ...reference.location,
+        severity: 'warning',
+        check: 'unresolved-reference',
+        message: `${reference.name} is no ${kind.label}${of ? ` of ${of}` : ' the project defines'}`,
+      });
+    }
     return {
       ...lookup,
       registration,

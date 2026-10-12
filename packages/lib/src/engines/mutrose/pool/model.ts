@@ -89,12 +89,14 @@ const extract = (document: PoolDocument): PoolFacts => {
       location: at(key, field, name.from, name.to),
       scope: { owner },
     });
+    // MutRoSe's property checks say a type the world has no class for
     const worldClass = (name: OclName, field: string) => {
       if (!BASIC_TYPES.has(name.name))
         references.push({
           kinds: ['world.class'],
           name: name.name,
           location: at(key, field, name.from, name.to),
+          silent: true,
         });
     };
     if (node.kind === 'task') {

@@ -14,7 +14,6 @@ import {
   definitionAt,
   hoverAt,
   completionsAt,
-  referencesAt,
   renameEdits,
   type PoolDiagnostic,
   type PoolEdit,
@@ -273,6 +272,16 @@ describe('MutRoSe’s definition pool on medicine-delivery', () => {
         ['warning', 'no-instances', 'model:G3:AchieveCondition', 'requests'],
       ]);
     });
+  });
+
+  it('reports a name nothing defines, as any provider’s: an attribute the class doesn’t have (a warning)', () => {
+    expect(
+      reported(
+        changed('model', 'current_request.served', 'current_request.serve'),
+      ),
+    ).to.deep.equal([
+      ['warning', 'unresolved-reference', 'model:G3:AchieveCondition', 'serve'],
+    ]);
   });
 
   describe('go-to-definition across the four files', () => {

@@ -191,11 +191,16 @@ entities' class.
 | `unused-hddl-task`: an HDDL task no model task stands for and no method decomposes into (the project's other models count) | the domain | warning |
 | `no-instances`: a select, or a forAll's collection, of a class the world has no instance of | the model's query or condition | warning |
 
-A check runs only when the files it reads are there. `medicine-delivery`
-gets none of them. The 17 MutRoSe-Docs projects, each with its own world,
-domain and configuration, get none either. Their one reference that
-resolves to nothing is Object Picking's `current_room.objects_picked`: an
-attribute its world doesn't have, which no check reports.
+A check runs only when the files it reads are there. Anything else that
+resolves to nothing is the pool's `unresolved-reference` warning.
+
+- `medicine-delivery` gets none of them.
+- The 17 MutRoSe-Docs projects, each with its own world, domain and
+  configuration, get one: Object Picking's `current_room.objects_picked`,
+  an attribute its world doesn't have.
+- Vital Signs Monitoring's `G3 [FALLBACK(G4,G17)]` names G17, which isn't
+  G3's child. That's the goal language's own error ("Not a child of this
+  goal"), not a check across files.
 
 ## Still open
 
@@ -212,9 +217,6 @@ attribute its world doesn't have, which no check reports.
 - **forAll goals aren't expanded.** The browser has the world database now
   (a project resource), but the template doesn't expand a goal per entity
   yet; it binds types only.
-- **Unknown world attributes aren't reported.** The pool resolves
-  `name.attr` to the class's attribute, but no check reports one that
-  resolves to nothing (Object Picking's `objects_picked`).
 - **Empty properties print.** piStar gives every element `Description: ""`,
   and the Notation view writes a defined property with an empty value as a
   bare key, so every MutRoSe line has a `Description` under it. Skipping

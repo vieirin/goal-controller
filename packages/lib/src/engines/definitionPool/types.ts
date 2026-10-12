@@ -59,6 +59,11 @@ export type PoolReference = {
   name: string;
   location: PoolLocation;
   scope?: PoolScope;
+  /**
+   * resolving to nothing is reported elsewhere (a property check), not as
+   * the pool's `unresolved-reference`
+   */
+  silent?: boolean;
 };
 
 export type PoolFacts = {

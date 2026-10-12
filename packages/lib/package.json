@@ -21,6 +21,8 @@
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
+    "@xml-tools/ast": "^5.0.6",
+    "@xml-tools/parser": "1.0.12",
     "inquirer": "^12.5.2",
     "langium": "4.4.0",
     "lodash": "^4.17.21",

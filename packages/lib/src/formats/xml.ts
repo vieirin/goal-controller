@@ -7,6 +7,9 @@
  * don't use.
  */
 
+import { buildAst, type XMLElement as AstElement } from '@xml-tools/ast';
+import { parse, type DocumentCstNode } from '@xml-tools/parser';
+
 export type XmlElement = {
   name: string;
   attributes: Record<string, string>;
@@ -47,175 +50,114 @@ const decode = (text: string): string =>
         : (ENTITIES[entity] ?? whole),
   );
 
-const NAME = /[A-Za-z_][\w.:-]*/y;
-const ATTRIBUTE = /\s+([A-Za-z_][\w.:-]*)\s*=\s*("([^"]*)"|'([^']*)')/y;
+/** Where a document's tokens are: chevrotain's ends are inclusive. */
+const rangeOf = (token: { startOffset: number; endOffset: number }): Range => ({
+  from: token.startOffset,
+  to: token.endOffset + 1,
+});
 
-/** The document's root element (null when there is none), and its problems. */
+/** A content's text: its comments and processing instructions left out, entities decoded. */
+const contentText = (raw: string): string =>
+  decode(raw.replace(/<!--[\s\S]*?-->|<\?[\s\S]*?\?>/g, '')).trim();
+
+/**
+ * The document's root element (null when there is none), and its problems.
+ * Read with `@xml-tools/parser` and `@xml-tools/ast` (error-tolerant, with
+ * ranges for every token); the problems are said as the workbench says
+ * them.
+ */
 export const readXml = (
   text: string,
 ): { root: XmlElement | null; problems: XmlProblem[] } => {
-  const problems: XmlProblem[] = [];
-  const stack: XmlElement[] = [];
-  // the elements opened at the top: the first is the root, any other an error
-  const tops: XmlElement[] = [];
-  let textFrom = 0;
-  let pos = 0;
-  const addText = (to: number) => {
-    const top = stack[stack.length - 1];
-    const chunk = text.slice(textFrom, to);
-    if (top) top.text += chunk;
-    else if (chunk.trim())
+  const { cst, tokenVector, lexErrors, parseErrors } = parse(text);
+  const document = buildAst(cst as DocumentCstNode, tokenVector);
+  const problems: XmlProblem[] = lexErrors.map((error) => ({
+    message: `Not XML: ${error.message}`,
+    from: error.offset,
+    to: error.offset + error.length,
+  }));
+
+  const read = (element: AstElement): XmlElement => {
+    const name = element.name ?? '';
+    const { openName, closeName, openBody, closeBody, isSelfClosing } =
+      element.syntax;
+    const from = element.position.startOffset;
+    const to = element.position.endOffset + 1;
+    const contentFrom = openBody ? openBody.endOffset + 1 : to;
+    const contentTo = closeBody ? closeBody.startOffset : to;
+    if (closeName && closeName.image !== name)
       problems.push({
-        message: 'Text outside the root element',
-        from: textFrom,
-        to,
+        message: `</${closeName.image}> closes <${name}>`,
+        ...(closeBody ? rangeOf(closeBody) : rangeOf(closeName)),
       });
-  };
-  while (pos < text.length) {
-    const open = text.indexOf('<', pos);
-    if (open < 0) break;
-    addText(open);
-    if (text.startsWith('<!--', open)) {
-      const end = text.indexOf('-->', open + 4);
-      if (end < 0) {
-        problems.push({
-          message: 'Unclosed comment',
-          from: open,
-          to: text.length,
-        });
-        pos = text.length;
-        break;
-      }
-      pos = textFrom = end + 3;
-      continue;
-    }
-    if (text.startsWith('<?', open) || text.startsWith('<!', open)) {
-      const end = text.indexOf('>', open);
-      pos = textFrom = end < 0 ? text.length : end + 1;
-      continue;
-    }
-    const closing = text[open + 1] === '/';
-    NAME.lastIndex = open + (closing ? 2 : 1);
-    const name = NAME.exec(text)?.[0];
-    if (!name) {
+    else if (!closeName && !isSelfClosing)
       problems.push({
-        message: 'Expected a tag name after <',
-        from: open,
-        to: open + 1,
+        message: `<${name}> is not closed`,
+        from,
+        to: openName ? openName.endOffset + 1 : from + 1,
       });
-      pos = textFrom = open + 1;
-      continue;
-    }
-    let at = NAME.lastIndex;
-    if (closing) {
-      const end = text.indexOf('>', at);
-      const to = end < 0 ? text.length : end + 1;
-      const top = stack.pop();
-      if (!top)
-        problems.push({ message: `</${name}> closes nothing`, from: open, to });
-      else if (top.name !== name) {
-        problems.push({
-          message: `</${name}> closes <${top.name}>`,
-          from: open,
-          to,
-        });
-        stack.push(top);
-        // a tag open further up: it closes there, and those inside it with it
-        const match = stack.map((e) => e.name).lastIndexOf(name);
-        if (match >= 0) {
-          const [closed, ...inside] = stack.splice(match);
-          for (const unclosed of inside)
-            unclosed.to = unclosed.contentTo = open;
-          closed!.to = to;
-          closed!.contentTo = open;
-          closed!.closeName = { from: open + 2, to: open + 2 + name.length };
-        }
-      } else {
-        top.to = to;
-        top.contentTo = open;
-        top.closeName = { from: open + 2, to: open + 2 + name.length };
-      }
-      pos = textFrom = to;
-      continue;
-    }
-    const element: XmlElement = {
-      name,
-      attributes: {},
-      children: [],
-      text: '',
-      from: open,
-      to: open,
-      attributeRanges: {},
-      contentFrom: open,
-      contentTo: open,
-    };
-    for (;;) {
-      ATTRIBUTE.lastIndex = at;
-      const attribute = ATTRIBUTE.exec(text);
-      if (!attribute) break;
-      const attributeName = attribute[1]!;
-      element.attributes[attributeName] = decode(
-        attribute[3] ?? attribute[4] ?? '',
-      );
-      const nameFrom = at + attribute[0].indexOf(attributeName);
-      const valueTo = ATTRIBUTE.lastIndex - 1;
-      element.attributeRanges[attributeName] = {
-        name: { from: nameFrom, to: nameFrom + attributeName.length },
-        value: {
-          from: valueTo - (attribute[3] ?? attribute[4] ?? '').length,
-          to: valueTo,
-        },
+    const attributes: Record<string, string> = {};
+    const attributeRanges: XmlElement['attributeRanges'] = {};
+    for (const attribute of element.attributes) {
+      if (!attribute.key || !attribute.syntax.key) continue;
+      attributes[attribute.key] = decode(attribute.value ?? '');
+      const value = attribute.syntax.value;
+      attributeRanges[attribute.key] = {
+        name: rangeOf(attribute.syntax.key),
+        // without its quotes
+        value: value
+          ? { from: value.startOffset + 1, to: value.endOffset }
+          : rangeOf(attribute.syntax.key),
       };
-      at = ATTRIBUTE.lastIndex;
     }
-    const rest = /^\s*(\/?)>/.exec(text.slice(at));
-    if (!rest) {
-      const end = text.indexOf('>', at);
+    const children = element.subElements.map(read);
+    const raw = children.length ? '' : text.slice(contentFrom, contentTo);
+    const content = contentText(raw);
+    const lead = raw.length - raw.trimStart().length;
+    return {
+      name,
+      attributes,
+      children,
+      text: content,
+      from,
+      to,
+      ...(closeName && { closeName: rangeOf(closeName) }),
+      ...(content && {
+        textRange: {
+          from: contentFrom + lead,
+          to: contentFrom + raw.trimEnd().length,
+        },
+      }),
+      attributeRanges,
+      contentFrom,
+      contentTo,
+    };
+  };
+  const root = document.rootElement ? read(document.rootElement) : null;
+
+  // what is after the root element: a second one
+  for (const error of parseErrors) {
+    const at = error.token.startOffset;
+    // at the end of the text: what isn't closed, said above
+    if (Number.isNaN(at)) continue;
+    if (!/EOF/.test(error.message) || text[at] !== '<') {
       problems.push({
-        message: `<${name}>: its attributes are not \`name="value"\``,
-        from: open,
-        to: end < 0 ? text.length : end + 1,
+        message: `Not well-formed XML at ${JSON.stringify(error.token.image)}`,
+        from: at,
+        to: (error.token.endOffset ?? at) + 1,
       });
-      pos = textFrom = end < 0 ? text.length : end + 1;
       continue;
     }
-    const to = at + rest[0].length;
-    const parent = stack[stack.length - 1];
-    if (parent) parent.children.push(element);
-    else {
-      if (tops.length)
-        problems.push({
-          message: `<${name}>: a document has one root element`,
-          from: open,
-          to,
-        });
-      tops.push(element);
+    {
+      const name = /^<([A-Za-z_][\w.:-]*)/.exec(text.slice(at))?.[1] ?? '';
+      problems.push({
+        message: `<${name}>: a document has one root element`,
+        from: at,
+        to: at + name.length + 1,
+      });
     }
-    element.contentFrom = element.contentTo = to;
-    if (rest[1]) element.to = to;
-    else stack.push(element);
-    pos = textFrom = to;
   }
-  for (const unclosed of stack) {
-    problems.push({
-      message: `<${unclosed.name}> is not closed`,
-      from: unclosed.from,
-      to: unclosed.from + unclosed.name.length + 1,
-    });
-    unclosed.to = unclosed.contentTo = text.length;
-  }
-  const root = tops[0] ?? null;
-  const finish = (element: XmlElement) => {
-    element.text = element.children.length ? '' : decode(element.text).trim();
-    if (element.text) {
-      const raw = text.slice(element.contentFrom, element.contentTo);
-      const from = element.contentFrom + raw.length - raw.trimStart().length;
-      element.textRange = { from, to: from + raw.trim().length };
-    }
-    element.children.forEach(finish);
-  };
-  if (root) finish(root);
-  else if (!problems.length)
+  if (!root && !problems.length)
     problems.push({ message: 'No root element', from: 0, to: text.length });
   return { root, problems };
 };

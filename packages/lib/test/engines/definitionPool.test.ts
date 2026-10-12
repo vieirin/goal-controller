@@ -159,6 +159,29 @@ describe('the definition pool, with a provider plugged in', () => {
     ]);
   });
 
+  it('reports what resolves to nothing, for every provider, unless a check says it already', () => {
+    const index = createPool(registration).update([
+      { id: 'a.toy', kind: 'file', text: `${TOY}does UNPACK\n` },
+      { id: 'domain.hddl', kind: 'hddl', text: DOMAIN },
+    ]);
+    expect(
+      index.diagnostics.map((d) => [
+        d.check,
+        TOY.length <= d.from ? 'UNPACK' : 'kite',
+        d.message,
+      ]),
+    ).to.deep.equal([
+      // the toy's own check says kite: not again
+      ['toy.unknown', 'kite', 'No thing kite'],
+      // no check says UNPACK: the pool does
+      [
+        'unresolved-reference',
+        'UNPACK',
+        'UNPACK is no HDDL task the project defines',
+      ],
+    ]);
+  });
+
   it('re-extracts only the documents that changed', () => {
     const pool = createPool(registration);
     const hddl = { id: 'domain.hddl', kind: 'hddl', text: DOMAIN };
