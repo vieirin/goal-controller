@@ -203,7 +203,6 @@ export { godaRules } from './engines/goda/rules';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
   projectResourceParsers,
-  readJson,
   type ParsedResource,
   type ProjectResourceParser,
   type ProjectResourceParsers,

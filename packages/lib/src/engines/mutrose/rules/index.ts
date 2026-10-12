@@ -8,7 +8,10 @@ import { GOAL_MODEL_KINDS, readGoalModel } from '../../ruleFacts/goalModel';
 import type { EngineRules } from '../../ruleFacts/engine';
 import { mutrose } from '../definition';
 import CONFIGURATION_RULES from './configuration.rules';
-import { CONFIGURATION_KINDS, readConfiguration } from './configuration';
+import {
+  CONFIGURATION_KINDS,
+  readConfiguration,
+} from '../readers/configuration';
 import HDDL_RULES from './hddl.rules';
 import { HDDL_KINDS, readHddl } from './hddl';
 import MODEL_RULES from './model.rules';
@@ -18,7 +21,7 @@ import {
   readOtherModel,
 } from './model';
 import WORLD_RULES from './world.rules';
-import { readWorld, WORLD_KINDS } from './world';
+import { readWorld, WORLD_KINDS } from '../readers/world';
 
 export const mutroseRules: EngineRules = {
   engine: 'mutrose',

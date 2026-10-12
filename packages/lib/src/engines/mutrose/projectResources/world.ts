@@ -3,14 +3,16 @@
  * element per entity, its tag the entity's class and its children the
  * attributes (`<Room><name>RoomA</name><is_clean>False</is_clean></Room>`).
  * The decomposer queries it (`world_db->select(r:Room | …)`); its classes are
- * the OCL types a goal model may use.
+ * the OCL types a goal model may use. Read by its typed reader
+ * (readers/world.ts); while it doesn't parse, its last good reading stands.
  */
+import { read } from '../../../readers';
 import type {
   ParsedResource,
   ProjectResourceParser,
   ResourceDiagnostic,
 } from '../../projectResources';
-import { readXml, type XmlElement } from './xml';
+import { nameOf, worldReader } from '../readers/world';
 
 export type WorldClass = {
   /** the attributes its entities have, in the order first seen */
@@ -25,20 +27,23 @@ export type WorldKnowledge = {
   classes: Record<string, WorldClass>;
 };
 
-const nameOf = (entity: XmlElement): string | undefined =>
-  entity.attributes.name ??
-  entity.children.find((child) => child.name === 'name')?.text;
-
 export const parseWorld: ProjectResourceParser<WorldKnowledge> = (
   files,
 ): ParsedResource<WorldKnowledge> => {
   const [file] = files;
-  const diagnostics: ResourceDiagnostic[] = [];
   const world: WorldKnowledge = { root: '', classes: {} };
-  if (!file) return { symbols: {}, data: world, diagnostics };
-  const { root, problems } = readXml(file.text);
-  for (const problem of problems)
-    diagnostics.push({ path: file.path, severity: 'error', ...problem });
+  if (!file) return { symbols: {}, data: world, diagnostics: [] };
+  const {
+    value: root,
+    facts,
+    problems,
+    stale,
+  } = read(worldReader, file.path, file.text);
+  const diagnostics: ResourceDiagnostic[] = [
+    ...problems,
+    // a stale reading's warnings are where the text was
+    ...(stale ? [] : (facts?.warnings ?? [])),
+  ].map((problem) => ({ path: file.path, ...problem }));
   if (root) {
     world.root = root.name;
     for (const entity of root.children) {
@@ -54,23 +59,7 @@ export const parseWorld: ProjectResourceParser<WorldKnowledge> = (
           known.attributes.push(attribute);
       const name = nameOf(entity);
       if (name) known.instances.push(name);
-      else
-        diagnostics.push({
-          path: file.path,
-          severity: 'warning',
-          message: `This ${entity.name} has no name: the decomposer names entities by their \`name\``,
-          from: entity.from,
-          to: entity.from + entity.name.length + 1,
-        });
     }
-    if (!root.children.length)
-      diagnostics.push({
-        path: file.path,
-        severity: 'warning',
-        message: `<${root.name}> has no entities`,
-        from: root.from,
-        to: root.from + root.name.length + 1,
-      });
   }
   return {
     symbols: {

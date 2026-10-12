@@ -24,7 +24,7 @@ describe('Edge variables', () => {
     ]);
   });
 
-  it('says which value is not one, at its key', () => {
+  it('says which value is not one, at the value', () => {
     const text = '{ "ok": true, "bad": "yes" }';
     const { data, diagnostics } = parseVariables([
       { path: 'variables.json', text },
@@ -32,10 +32,10 @@ describe('Edge variables', () => {
     expect(data).to.deep.equal({ ok: true });
     expect(
       diagnostics.map((d) => [d.message, text.slice(d.from, d.to)]),
-    ).to.deep.equal([['bad: a variable is true, false or a number', '"bad"']]);
+    ).to.deep.equal([['A variable is true, false or a number', 'yes']]);
     expect(
       parseVariables([{ path: 'v.json', text: '[1]' }]).diagnostics[0]!.message,
-    ).to.match(/JSON object/);
+    ).to.equal('This should be an object, not a list');
   });
 });
 

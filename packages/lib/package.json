@@ -21,12 +21,15 @@
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
+    "@rgrove/parse-xml": "4.2.3",
     "inquirer": "^12.5.2",
+    "jsonc-parser": "^3.3",
     "langium": "4.4.0",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",
     "lodash.mergewith": "^4.6.2",
-    "minimatch": "^9.0.3"
+    "minimatch": "^9.0.3",
+    "zod": "^4.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",

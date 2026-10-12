@@ -6,7 +6,8 @@ import {
   parseHddl,
   parseWorld,
 } from '../../../src';
-import { readXml } from '../../../src/engines/mutrose/projectResources/xml';
+import { getNodeValue } from 'jsonc-parser';
+import { parseXmlTree } from '../../../src/readers/xml';
 
 const WORLD = `<?xml version="1.0"?>
 <!-- the ward -->
@@ -95,8 +96,11 @@ describe('MutRoSe world knowledge', () => {
       expect(found, String(message)).to.not.equal(undefined);
       return text.slice(found!.from, found!.to);
     };
-    expect(at(/<\/nme> closes <name>/)).to.equal('</nme>');
-    expect(at(/<\/world_db> closes <Nurse>/)).to.equal('</world_db>');
+    // the parser stops at the first error
+    expect(diagnostics).to.have.length(1);
+    expect(at(/^Not valid XML: Missing end tag for element name$/)).to.equal(
+      '<',
+    );
     expect(diagnostics.every((d) => d.path === 'w.xml')).to.equal(true);
     const nameless = parseWorld(
       file('w.xml', '<world_db><Room><is_clean>x</is_clean></Room></world_db>'),
@@ -111,26 +115,43 @@ describe('MutRoSe world knowledge', () => {
     ]);
     expect(
       parseWorld(file('w.xml', '')).diagnostics.map((d) => d.message),
-    ).to.deep.equal(['No root element']);
+    ).to.deep.equal(['Not valid XML: Root element is missing or invalid']);
   });
 
   it('reads entities, attributes and comments as XML has them', () => {
-    const { root, problems } = readXml(
-      '<a x="1" y=\'&lt;2&gt;\'><!-- c --><b/><c>t &amp; u</c></a>',
-    );
+    const text = '<a x="1" y=\'&lt;2&gt;\'><!-- c --><b/><c>t &amp; u</c></a>';
+    const { tree, problems } = parseXmlTree(text);
     expect(problems).to.deep.equal([]);
-    expect(root!.attributes).to.deep.equal({ x: '1', y: '<2>' });
-    expect(root!.children.map((c) => [c.name, c.text])).to.deep.equal([
-      ['b', ''],
-      ['c', 't & u'],
-    ]);
-    expect(readXml('<a></a><b/>').problems.map((p) => p.message)).to.deep.equal(
-      ['<b>: a document has one root element'],
+    expect(getNodeValue(tree!)).to.deep.equal({
+      name: 'a',
+      close: 'a',
+      attributes: { x: '1', y: '<2>' },
+      children: [
+        { name: 'b', attributes: {}, children: [] },
+        { name: 'c', close: 'c', attributes: {}, children: [], text: 't & u' },
+      ],
+    });
+    // each part where it is written: a tag's name, a text as written
+    const c = tree!.children![3]!.children![1]!.children![1]!;
+    const spans = Object.fromEntries(
+      c.children!.map((p) => {
+        const value = p.children![1]!;
+        return [
+          p.children![0]!.value,
+          text.slice(value.offset, value.offset + value.length),
+        ];
+      }),
     );
-    expect(readXml('<a><b>').problems.map((p) => p.message)).to.deep.equal([
-      '<a> is not closed',
-      '<b> is not closed',
+    expect([spans.name, spans.close, spans.text]).to.deep.equal([
+      'c',
+      'c',
+      't &amp; u',
     ]);
+    for (const [broken, message] of [
+      ['<a></a><b/>', /Extra content at the end of the document/],
+      ['<a><b>', /Missing end tag for element b/],
+    ] as const)
+      expect(parseXmlTree(broken).problems[0]!.message).to.match(message);
   });
 });
 
@@ -208,11 +229,20 @@ describe('MutRoSe configuration', () => {
     expect(
       diagnostics.map((d) => [d.message, text.slice(d.from, d.to)]),
     ).to.deep.equal([
-      ['`location_types` is a list of world classes', '"location_types"'],
-      [
-        'Each `type_mapping` entry is `{ "hddl_type": …, "ocl_type": … }`',
-        '"type_mapping"',
-      ],
+      // at the value that is wrong, and at the entry missing a key
+      ['`location_types` should be a list, not a string', 'Room'],
+      ['Missing `ocl_type`', '{'],
+    ]);
+    const unknown = '{ "location_types": ["Room", 4], "typo_mapping": [] }';
+    expect(
+      parseConfiguration(file('c.json', unknown)).diagnostics.map((d) => [
+        d.severity,
+        d.message,
+        unknown.slice(d.from, d.to),
+      ]),
+    ).to.deep.equal([
+      ['error', 'This should be a string, not a number', '4'],
+      ['warning', 'Not read here: `typo_mapping`', 'typo_mapping'],
     ]);
     const broken = parseConfiguration(file('c.json', '{ "a": }'));
     expect(broken.diagnostics).to.have.length(1);

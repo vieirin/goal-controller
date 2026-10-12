@@ -10,9 +10,9 @@ import { ASSERTION_MESSAGES, assertionReader } from '../../ruleFacts/assertion';
 import type { EngineRules } from '../../ruleFacts/engine';
 import GOAL_MODEL_RULES from '../../ruleFacts/goalModel.rules';
 import { GOAL_MODEL_KINDS, readGoalModel } from '../../ruleFacts/goalModel';
-import { readVariables, VARIABLES_KINDS } from './variables';
+import { readVariables, VARIABLES_KINDS } from '../readers/variables';
 
-export * from './variables';
+export * from '../readers/variables';
 
 /** An Edge engine's rules: its dialect's assertions, variables.json's variables. */
 export const edgeFamilyRules = (

@@ -101,7 +101,7 @@ describe('ui project resources', () => {
       source: 'World knowledge',
       line: 2,
       column: 19,
-      message: 'w.xml:2:19: </nme> closes <name>',
+      message: 'w.xml:2:19: Not valid XML: Missing end tag for element name',
     });
     expect(problem).not.to.have.property('elementId');
   });
