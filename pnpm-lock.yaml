@@ -248,8 +248,8 @@ importers:
   packages/pool-nemo:
     dependencies:
       nemo-wasm:
-        specifier: link:../../../../../../nemo/nemo-wasm/pkg-node
-        version: link:../../../../../../nemo/nemo-wasm/pkg-node
+        specifier: https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz
+        version: '@github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz'
 
   packages/ui:
     dependencies:
@@ -8220,4 +8220,10 @@ packages:
       '@types/react': 19.2.9
       react: 19.2.3
       use-sync-external-store: 1.7.0(react@19.2.3)
+    dev: false
+
+  '@github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz':
+    resolution: {tarball: https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz}
+    name: nemo-wasm
+    version: 0.10.1-fork.1
     dev: false

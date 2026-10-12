@@ -6,21 +6,22 @@ of the `vieirin/nemo` fork (branch `vn/goal-controller-bindings`).
 
 ## The dependency
 
-`nemo-wasm` is linked by a relative path to the fork's Node build. It isn't
-vendored and isn't published:
+`nemo-wasm` is the Node.js package of the fork, installed from a release of
+`vieirin/nemo` (branch `wasm-fast-reevaluation`). Nothing is built on install:
 
 ```json
-"nemo-wasm": "link:../../../../../../nemo/nemo-wasm/pkg-node"
+"nemo-wasm": "https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz"
 ```
 
-The path is relative to this `package.json` in the
-`.claude/worktrees/atomic-brewing-owl` worktree, with the fork checked out at
-`~/vieirin/nemo`. From the main checkout, it would be `../../../nemo/nemo-wasm/pkg-node`.
+Each release is one fixed build. To move to a newer build of the fork, release
+it there (`nemo-wasm/Dockerfile`, then `nemo-wasm/pack.mjs`; see the
+fork's `nemo-wasm/README.md`) and change the URL.
 
-To build the fork's packages (in Docker, with no Rust on the host):
+To try an unreleased build of a local checkout of the fork, link it instead,
+without committing the change:
 
 ```sh
-cd ~/vieirin/nemo && docker build -f nemo-wasm/Dockerfile --output type=local,dest=nemo-wasm .
+pnpm --filter @goal-controller/pool-nemo add nemo-wasm@link:<path to the fork>/nemo-wasm/pkg-node
 ```
 
 ## The gates

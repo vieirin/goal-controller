@@ -8,6 +8,6 @@
     "gates:text": "node gates.cjs --text"
   },
   "dependencies": {
-    "nemo-wasm": "link:../../../../../../nemo/nemo-wasm/pkg-node"
+    "nemo-wasm": "https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz"
   }
 }
