@@ -8,7 +8,7 @@
  * with MutRoSe's OCL grammar (goal-controller#62).
  */
 import type { DocumentNode, DocumentTree } from '@goal-controller/dialect';
-import { readOclExpression, readOclVariables, type OclName } from './ocl';
+import { readOclExpression, readOclVariables, type OclName } from '../language';
 import type {
   PoolCompletion,
   PoolDefinition,

@@ -185,9 +185,6 @@ shown (`useProjectWorkspace`).
   workbench doesn't pass them yet.
 - **The model is one document.** A keystroke in it re-extracts the whole
   model; #61 measures a per-field split.
-- **The goal-model provider reads OCL with a stand-in** with the API of
-  MutRoSe's own Langium language (#62). It switches to the grammar's
-  readers by its import once #62 lands.
 - **A rename's saves.** A rename writes several files at once; the
   workbench's resource saves share one timer, fixed separately from this
   issue.

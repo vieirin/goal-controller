@@ -19,7 +19,7 @@ import {
   standsFor,
   type ConfigRole,
 } from './configuration';
-import { readOclExpression } from './ocl';
+import { readOclExpression } from '../language';
 import {
   BASIC_TYPES,
   modelField,
