@@ -6,6 +6,7 @@
  * template on the typed tree (the first problem stops it, as the decomposer).
  */
 import type { ForAll, MutroseVar, Select } from './checks';
+import { readVariableType } from './language';
 
 /** What the walk reads of an element. */
 export type ScopeElement = {
@@ -109,9 +110,16 @@ export const forAllProblem = (
       ? `Did not find iteration variable ${forAll.iteration} in ${id}'s monitored variables list`
       : null;
 
-/** `Sequence(Room)` is a collection of `Room`s: the base type a query compares. */
-const baseType = (type: string) =>
-  /^Sequence\((.*)\)$/i.exec(type)?.[1] ?? type;
+/**
+ * `Sequence(Room)` is a collection of `Room`s: the base type a query
+ * compares. `Sequence` in any case, as `parse_gm_var_type` reads it.
+ */
+const baseType = (type: string) => {
+  const read = readVariableType(type).value;
+  return read?.name.name.toLowerCase() === 'sequence' && read.element
+    ? read.element.name
+    : type;
+};
 
 /** A Query goal's select against its first controlled variable. */
 export const queryProblem = (

@@ -1,0 +1,12 @@
+{
+  "projectName": "MutRoSe",
+  "languages": [
+    {
+      "id": "mutrose",
+      "grammar": "mutrose.langium",
+      "fileExtensions": [".mutrose"]
+    }
+  ],
+  "out": "generated",
+  "importExtension": ""
+}

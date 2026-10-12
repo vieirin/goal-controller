@@ -147,6 +147,9 @@ importers:
       inquirer:
         specifier: ^12.5.2
         version: 12.11.1(@types/node@22.19.7)
+      langium:
+        specifier: 4.4.0
+        version: 4.4.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -190,6 +193,9 @@ importers:
       chai:
         specifier: ^4.3.10
         version: 4.5.0
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       eslint:
         specifier: ^8.47.0
         version: 8.57.1
@@ -214,6 +220,9 @@ importers:
       eslint-plugin-rulesdir:
         specifier: ^0.2.2
         version: 0.2.2
+      langium-cli:
+        specifier: 4.4.0
+        version: 4.4.0
       mocha:
         specifier: ^10.2.0
         version: 10.8.2

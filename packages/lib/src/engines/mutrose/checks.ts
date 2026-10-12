@@ -1,9 +1,19 @@
 /**
  * MutRoSe's property checks, ported from the decomposer's goal model readers
- * (`utils/gm_utils.cpp`), with their messages. They also parse: the mapper
- * reads the values with the same functions.
+ * (`utils/gm_utils.cpp`), with their messages. They read the values with
+ * MutRoSe's language (./language), whose shapes accept what the decomposer's
+ * regexes do; the mapper reads the values with the same functions.
  */
 import { checks, type Check, type CheckContext } from '../checks';
+import {
+  readCreationCondition,
+  readForAll,
+  readNames,
+  readRobotNumber,
+  readSelect,
+  readVariableItems,
+  readVariableType,
+} from './language';
 import type { MutroseConfiguration } from './projectResources/configuration';
 import type { WorldKnowledge } from './projectResources/world';
 import {
@@ -17,15 +27,16 @@ import {
 /** A variable, `name : Type`; Monitors usually omit the type. */
 export type MutroseVar = { name: string; type: string };
 
-/** `parse_vars`: comma-separated `name[ : Type]`, `Sequence(T)` for a collection. */
+/**
+ * `parse_vars`: comma-separated `name[ : Type]`, `Sequence(T)` for a
+ * collection; leniently, as the decomposer (an item's first word, the rest
+ * ignored), so a name may be empty.
+ */
 export const parseVars = (text: string): MutroseVar[] =>
-  text.split(',').map((item) => {
-    const [name = '', type = ''] = item.split(':');
-    return {
-      name: /[A-Za-z][A-Za-z0-9_]*/.exec(name)?.[0] ?? '',
-      type: /[A-Za-z0-9]+(\([A-Za-z]+\))?/.exec(type)?.[0] ?? '',
-    };
-  });
+  readVariableItems(text).map(({ name, type }) => ({
+    name: name?.name ?? '',
+    type,
+  }));
 
 type Elements = NonNullable<CheckContext['elements']>;
 
@@ -76,8 +87,9 @@ const scopeProblem = (
 
 const vars = (text: string | undefined): MutroseVar[] =>
   text?.trim() ? parseVars(text) : [];
+/** A names list's items, as written (spaces around them aside), names or not. */
 const names = (text: string | undefined): string[] =>
-  text?.trim() ? text.split(',').map((name) => name.trim()) : [];
+  readNames(text ?? '').value.map(({ item }) => item.text);
 
 // ---------------------------------------------------------------------------
 // the project's resources (goal-controller#25): what the world and the
@@ -97,8 +109,12 @@ const configurationOf = (
 const BASIC_TYPES = new Set(['Integer', 'Real', 'Boolean', 'String']);
 
 /** `Sequence(Room)` is a collection of Rooms: the class it is of */
-const classOf = (type: string): string =>
-  /^Sequence\((\w+)\)$/.exec(type)?.[1] ?? type;
+const classOf = (type: string): string => {
+  const read = readVariableType(type).value;
+  return read?.name.name === 'Sequence' && read.element
+    ? read.element.name
+    : type;
+};
 
 /** What is wrong with a type, given the world: not one of its classes. */
 const typeProblem = (type: string, context: CheckContext): string | null => {
@@ -131,8 +147,9 @@ const varsCheck =
   (raw, context) => {
     const text = raw[key] ?? '';
     if (!text.trim()) return null;
-    const bad = text.split(',').find((item) => !parseVars(item)[0]!.name);
-    if (bad !== undefined) return `Invalid variable declaration ${bad} in GM.`;
+    // the decomposer quotes the item as written, between its commas
+    const bad = readVariableItems(text).find(({ name }) => !name);
+    if (bad) return `Invalid variable declaration ${bad.item.text} in GM.`;
     return (
       scopeProblem(context, key) ??
       vars(text)
@@ -146,13 +163,18 @@ export type ForAll = { iterated: string; iteration: string; condition: string };
 
 /**
  * `parse_forAll_expr` (`forall_regex_exp`): `coll->forAll(it | condition)`,
- * what it iterates over, with which variable, and its condition.
+ * what it iterates over, with which variable, and its condition. Strict as
+ * the decomposer's regex: no space but before the pipe, the condition any
+ * text on one line.
  */
 export const parseForAll = (text: string): ForAll | null => {
-  const match =
-    /^([a-zA-Z]+[\w.]*)->forAll\(([a-zA-Z]+[\w.]*)[ ]*\|(.*)\)$/.exec(text);
-  return match
-    ? { iterated: match[1]!, iteration: match[2]!, condition: match[3]! }
+  const forAll = readForAll(text).value;
+  return forAll
+    ? {
+        iterated: forAll.iterated.name,
+        iteration: forAll.iteration.name,
+        condition: forAll.condition.text,
+      }
     : null;
 };
 
@@ -165,19 +187,18 @@ export type Select = {
 
 /**
  * `parse_select_expr` (`select_regex_exp`): `source->select(v:Type | condition)`,
- * what a query reads, its variable and type, and its condition.
+ * what a query reads, its variable and type, and its condition. Strict as
+ * the decomposer's regex: `v:Type` with no spaces, a type of two characters
+ * at least.
  */
 export const parseSelect = (text: string): Select | null => {
-  const match =
-    /^([a-zA-Z][\w.]*)->select\(([a-zA-Z][\w.]*):([a-zA-Z]+[\w.]+)[ ]*\|[ ]*(.*)\)$/.exec(
-      text,
-    );
-  return match
+  const select = readSelect(text).value;
+  return select
     ? {
-        source: match[1]!,
-        variable: match[2]!,
-        type: match[3]!,
-        condition: match[4]!,
+        source: select.source.name,
+        variable: select.variable.name,
+        type: select.type.name,
+        condition: select.condition.text,
       }
     : null;
 };
@@ -185,28 +206,21 @@ export const parseSelect = (text: string): Select | null => {
 /** `parse_robot_number`: `N` or `[lo,hi]`, no spaces. */
 export const parseRobotNumber = (
   text: string,
-): number | [number, number] | null => {
-  const range = /^\[(\d+),(\d+)\]$/.exec(text);
-  if (range) return [Number(range[1]), Number(range[2])];
-  return /^\d+$/.test(text) ? Number(text) : null;
-};
+): number | [number, number] | null => readRobotNumber(text).value;
 
-/** `CreationCondition`: `assertion condition "expr"` or `assertion trigger "Event"`. */
+/**
+ * `CreationCondition`: `assertion condition "expr"` or `assertion trigger
+ * "Event"`, its words in any case. The decomposer does not read the
+ * condition's OCL here: neither does the check.
+ */
 export const parseCreationCondition = (
   text: string,
 ): { kind: 'condition' | 'trigger'; value: string } | null => {
-  const match = /^\s*assertion\s+(condition|trigger)\s+"([^"]*)"\s*$/i.exec(
-    text,
-  );
-  return match
-    ? {
-        kind: match[1]!.toLowerCase() as 'condition' | 'trigger',
-        value: match[2]!,
-      }
+  const condition = readCreationCondition(text).value;
+  return condition
+    ? { kind: condition.kind, value: condition.value.text }
     : null;
 };
-
-const IDENTIFIER = /^\s*[A-Za-z][A-Za-z0-9_]*\s*$/;
 
 /**
  * The checks the MutRoSe definition names, by name: the one place the names
@@ -247,21 +261,22 @@ export const mutroseCheckRegistry = checks({
   'mutrose.task.location': (raw, context) => {
     const text = raw.Location ?? '';
     if (!text.trim()) return null;
-    if (!IDENTIFIER.test(text))
-      return `A Location is one variable name, not ${text.trim()}`;
+    const [location, ...more] = readNames(text).value;
+    const name = !more.length && location?.name?.name;
+    if (!name) return `A Location is one variable name, not ${text.trim()}`;
     // with the configuration: the variable's class is one of its location types
     const locations = configurationOf(context)?.locationTypes ?? [];
-    const type = declaredType(text.trim(), context);
+    const type = declaredType(name, context);
     return locations.length && type && !locations.includes(classOf(type))
-      ? `${text.trim()} is a ${classOf(type)}: a Location is one of the configuration's location types (${locations.join(', ')})`
+      ? `${name} is a ${classOf(type)}: a Location is one of the configuration's location types (${locations.join(', ')})`
       : null;
   },
   'mutrose.task.params': (raw, context) => {
     const text = raw.Params ?? '';
     if (!text.trim()) return null;
-    const bad = text.split(',').find((item) => !IDENTIFIER.test(item));
-    return bad !== undefined
-      ? `Params are variable names, comma-separated: not ${bad.trim() || 'an empty name'}`
+    const bad = readNames(text).value.find(({ name }) => !name);
+    return bad
+      ? `Params are variable names, comma-separated: not ${bad.item.text || 'an empty name'}`
       : scopeProblem(context, 'Params');
   },
   'mutrose.task.robotNumber': (raw) => {

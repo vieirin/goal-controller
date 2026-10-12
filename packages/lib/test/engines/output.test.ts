@@ -313,6 +313,9 @@ describe('engine outputs', () => {
         [
           '-r',
           require.resolve('ts-node/register/transpile-only'),
+          // MutRoSe's language requires Langium, as the tests do
+          '-r',
+          resolve('test/support/langium.cjs'),
           resolve('src/index.ts'),
           resolve(EDGE),
         ],

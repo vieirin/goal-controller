@@ -19,6 +19,7 @@ import {
   parseSelect,
   parseVars,
 } from './checks';
+import { readNames } from './language';
 import { mutrose } from './definition';
 import type {
   MutroseGoalProps,
@@ -101,9 +102,7 @@ export const mutroseEngineMapper = createEngineMapper<
     return {
       ...(raw.Description && { description: raw.Description }),
       ...(raw.Location?.trim() && { location: raw.Location.trim() }),
-      params: raw.Params?.trim()
-        ? raw.Params.split(',').map((name) => name.trim())
-        : [],
+      params: readNames(raw.Params ?? '').value.map(({ item }) => item.text),
       ...(robots && { robotNumber: parseRobotNumber(robots)! }),
     };
   },
