@@ -9,9 +9,9 @@
     "goal-controller-cli": "out/cli.js"
   },
   "scripts": {
-    "build": "rm -rf out tsconfig.tsbuildinfo && tsc && node build.mjs",
+    "build": "rm -rf out tsconfig.tsbuildinfo && node scripts/rules.mjs && tsc && node build.mjs",
     "watch": "node build.mjs --watch & tsc --watch",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
+    "test": "node scripts/rules.mjs --check && TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts",
@@ -50,6 +50,7 @@
     "eslint-plugin-rulesdir": "^0.2.2",
     "langium-cli": "4.4.0",
     "mocha": "^10.2.0",
+    "nemo-wasm": "https://github.com/vieirin/nemo/releases/download/nemo-wasm-v0.10.1-fork.1/nemo-wasm-node-0.10.1-fork.1.tgz",
     "nodemon": "^3.1.9",
     "prettier": "^3.0.1",
     "ts-node": "^10.9.2",

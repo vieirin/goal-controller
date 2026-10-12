@@ -1,0 +1,49 @@
+% The rule layer's core rules (goal-controller#74): name resolution over any
+% engine's facts, the problems every project has (an unresolved or an
+% ambiguous reference), and a rename's conflicts. Nemo's Datalog.
+%
+% The facts an engine's reader gives, besides its own relations:
+%   defines(S, Kind, Key)    S defines a name of a kind (Key: the name as
+%                            compared, lower-cased for a case-insensitive kind)
+%   refers(R, Kind, Key)     R refers to a name of a kind, one row per kind
+%                            it may resolve to
+%   name(Id, Written)        as written
+%   in(Id, Document)         where
+%   owns(Owner, S)           S is a member of Owner
+%   typeOf(S, Type)          its type (`Sequence(Room)`)
+%   typeBase(S, Base)        its type's base (`Room`)
+%   scoped(R)                R has a scope:
+%   scope(R, Owner)            given, or
+%   via(R, R2, Through)        through what R2 resolves to (`type`: the
+%                              definition its type names; else an engine's
+%                              `through(Through, X, Owner)`)
+%   kindScope(Kind, How)     global, owner or rules (resolved by an engine's
+%                            rules), or optional (unresolved is no problem)
+%   rename_request(S, Key)   a rename to check (rename_conflict)
+
+% a reference without a scope, to a global kind: by name in the whole project
+resolves(?R, ?S) :- refers(?R, ?K, ?N), kindScope(?K, "global"), ~scoped(?R), defines(?S, ?K, ?N) .
+% a scoped one: among its scope's members
+resolves(?R, ?S) :- refers(?R, ?K, ?N), scope(?R, ?O), owns(?O, ?S), defines(?S, ?K, ?N) .
+
+% a scope through another reference: the definition its target's type names,
+% or what an engine's resolver gives for that target
+scope(?R, ?O) :- via(?R, ?V, "type"), resolves(?V, ?X), typeBase(?X, ?T), defines(?O, _, ?T) .
+scope(?R, ?O) :- via(?R, ?V, ?Through), resolves(?V, ?X), through(?Through, ?X, ?O) .
+
+% a reference that should resolve: to a global kind, one whose scope was
+% found, or one an engine's rules resolve
+resolvable(?R) :- refers(?R, ?K, _), kindScope(?K, "global"), ~scoped(?R) .
+resolvable(?R) :- scope(?R, _) .
+resolvable(?R) :- refers(?R, ?K, _), kindScope(?K, "rules") .
+
+problem(?R, "error", "unresolved", "") :- resolvable(?R), ~resolves(?R, _) .
+% (each pair twice: Nemo doesn't order strings; the problem is the same row)
+problem(?R, "warning", "ambiguous", "") :- resolves(?R, ?S1), resolves(?R, ?S2), ?S1 != ?S2 .
+
+% a rename's conflict: the new name already defined for the same kind in the
+% same scope (members of one owner, or both without one)
+rename_owned(?S) :- owns(_, ?S) .
+rename_sameScope(?S, ?S2) :- rename_request(?S, _), owns(?O, ?S), owns(?O, ?S2) .
+rename_sameScope(?S, ?S2) :- rename_request(?S, ?N), defines(?S2, _, ?N), ~rename_owned(?S), ~rename_owned(?S2) .
+rename_conflict(?S2) :- rename_request(?S, ?N), defines(?S, ?K, _), defines(?S2, ?K, ?N), ?S != ?S2, rename_sameScope(?S, ?S2) .

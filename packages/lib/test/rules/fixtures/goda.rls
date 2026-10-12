@@ -1,0 +1,24 @@
+% #63's goda rules (its providers' and engine's), in Nemo's syntax: a fixture of the rule layer's tests
+resolves(?R, ?S) :- refers(?R, "gm.child", ?N), scope(?R, ?O), owns(?O, ?S), defines(?S, _, ?N), gm_element(?S) .
+gm_local(?R, ?S) :- refers(?R, "gm.variable", ?N), in(?R, ?D), gm_binder(?S, ?D), defines(?S, "gm.variable", ?N) .
+gm_isLocal(?R) :- gm_local(?R, _) .
+gm_binderSymbol(?S) :- gm_binder(?S, _) .
+resolves(?R, ?S) :- gm_local(?R, ?S) .
+resolves(?R, ?S) :- refers(?R, "gm.variable", ?N), ~ gm_isLocal(?R), defines(?S, "gm.variable", ?N), ~ gm_binderSymbol(?S) .
+gm_numeric("int") .
+gm_numeric("number") .
+gm_typeOfUse(?U, ?T) :- gm_declared(?U), resolves(?U, ?S), typeOf(?S, ?T) .
+gm_typedElement(?S) :- gm_element(?S), typeOf(?S, _) .
+gm_typeOfUse(?U, "boolean") :- gm_declared(?U), resolves(?U, ?S), gm_element(?S), ~ gm_typedElement(?S) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "bare"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "eqBool"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "ordered"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "eqNumber"), gm_useName(?U, ?N) .
+gm_conflict(?N) :- gm_usedAs(?N, "boolean"), gm_usedAs(?N, "number") .
+gm_typeOfUse(?U, ?T) :- gm_inferred(?U), gm_useName(?U, ?N), gm_usedAs(?N, ?T), ~ gm_conflict(?N) .
+problem(?U, "error", "gm.typeConflict", ?N) :- gm_inferred(?U), gm_useName(?U, ?N), gm_conflict(?N) .
+problem(?U, "error", "gm.orderOnBoolean", "") :- gm_use(?U, "ordered"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.boolOnNumber", ?T) :- gm_use(?U, "eqBool"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "error", "gm.numberOnBoolean", "") :- gm_use(?U, "eqNumber"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.needsBoolean", ?T) :- gm_use(?U, "bare"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "warning", "gm.intWithDecimal", "") :- gm_literal(?U, "decimal"), gm_typeOfUse(?U, "int") .

@@ -20,6 +20,8 @@
     "packages/lib/test/dialect/reference/**",
     "packages/lib/src/engines/mutrose/language/generated/**",
     "packages/goal-language/src/generated/**",
+    "packages/lib/src/**/*.rules.ts",
+    "packages/lib/test/rules/fixtures/**",
     "packages/lib/test/engines/edgeFamily/antlr-oracle.json"
   ]
 }

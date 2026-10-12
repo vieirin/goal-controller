@@ -1,0 +1,49 @@
+% #63's mutrose rules (its providers' and engine's), in Nemo's syntax: a fixture of the rule layer's tests
+resolves(?R, ?S) :- refers(?R, "gm.child", ?N), scope(?R, ?O), owns(?O, ?S), defines(?S, _, ?N), gm_element(?S) .
+gm_local(?R, ?S) :- refers(?R, "gm.variable", ?N), in(?R, ?D), gm_binder(?S, ?D), defines(?S, "gm.variable", ?N) .
+gm_isLocal(?R) :- gm_local(?R, _) .
+gm_binderSymbol(?S) :- gm_binder(?S, _) .
+resolves(?R, ?S) :- gm_local(?R, ?S) .
+resolves(?R, ?S) :- refers(?R, "gm.variable", ?N), ~ gm_isLocal(?R), defines(?S, "gm.variable", ?N), ~ gm_binderSymbol(?S) .
+gm_numeric("int") .
+gm_numeric("number") .
+gm_typeOfUse(?U, ?T) :- gm_declared(?U), resolves(?U, ?S), typeOf(?S, ?T) .
+gm_typedElement(?S) :- gm_element(?S), typeOf(?S, _) .
+gm_typeOfUse(?U, "boolean") :- gm_declared(?U), resolves(?U, ?S), gm_element(?S), ~ gm_typedElement(?S) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "bare"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "boolean") :- gm_inferred(?U), gm_use(?U, "eqBool"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "ordered"), gm_useName(?U, ?N) .
+gm_usedAs(?N, "number") :- gm_inferred(?U), gm_use(?U, "eqNumber"), gm_useName(?U, ?N) .
+gm_conflict(?N) :- gm_usedAs(?N, "boolean"), gm_usedAs(?N, "number") .
+gm_typeOfUse(?U, ?T) :- gm_inferred(?U), gm_useName(?U, ?N), gm_usedAs(?N, ?T), ~ gm_conflict(?N) .
+problem(?U, "error", "gm.typeConflict", ?N) :- gm_inferred(?U), gm_useName(?U, ?N), gm_conflict(?N) .
+problem(?U, "error", "gm.orderOnBoolean", "") :- gm_use(?U, "ordered"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.boolOnNumber", ?T) :- gm_use(?U, "eqBool"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "error", "gm.numberOnBoolean", "") :- gm_use(?U, "eqNumber"), gm_typeOfUse(?U, "boolean") .
+problem(?U, "error", "gm.needsBoolean", ?T) :- gm_use(?U, "bare"), gm_typeOfUse(?U, ?T), gm_numeric(?T) .
+problem(?U, "warning", "gm.intWithDecimal", "") :- gm_literal(?U, "decimal"), gm_typeOfUse(?U, "int") .
+world_instanceOf(?V, ?C) :- defines(?I, "world.instance", ?V), owns(?C, ?I) .
+world_hasInstance(?C) :- owns(?C, ?I), defines(?I, "world.instance", _) .
+resolves(?R, ?I) :- refers(?R, "world.value", ?N), defines(?I, "world.instance", ?N) .
+world_candidate(?A, ?C) :- world_attrValue(?A, ?V), world_instanceOf(?V, ?C) .
+world_notAll(?A, ?C) :- world_candidate(?A, ?C), world_attrValue(?A, ?V), ~ world_instanceOf(?V, ?C) .
+world_ofClass(?A, ?T) :- world_candidate(?A, ?C), ~ world_notAll(?A, ?C), defines(?C, "world.class", ?T) .
+world_classTyped(?A) :- world_ofClass(?A, _) .
+world_mixed(?A) :- world_valueKind(?A, ?K1), world_valueKind(?A, ?K2), ?K1 != ?K2 .
+world_basic(?A, ?K) :- world_valueKind(?A, ?K), ~ world_mixed(?A), ~ world_classTyped(?A) .
+typeOf(?A, ?T) :- world_ofClass(?A, ?T) .
+typeBase(?A, ?T) :- world_ofClass(?A, ?T) .
+typeOf(?A, ?K) :- world_basic(?A, ?K) .
+typeBase(?A, ?K) :- world_basic(?A, ?K) .
+hddl_subtypeOf(?T, ?T) :- defines(?T, "hddl.type", _) .
+hddl_subtypeOf(?T, ?U) :- hddl_super(?T, ?R), resolves(?R, ?S), hddl_subtypeOf(?S, ?U) .
+hddl_referenced(?S) :- resolves(?R, ?S), ~ hddl_decomposes(?R) .
+problem(?S, "warning", "hddl.unusedTask", "") :- defines(?S, "hddl.task", _), ~ hddl_referenced(?S) .
+through("mutrose.standsFor", ?G, ?H) :- gm_namesTask(?G, ?R), resolves(?R, ?H) .
+mutrose_bound(?T, ?N) :- mutrose_binding(?TR, ?GV, _), resolves(?TR, ?T), name(?GV, ?N) .
+problem(?P, "error", "mutrose.unboundParam", "") :- mutrose_configured(_), gm_param(?T, ?P), name(?P, ?N), ~ mutrose_bound(?T, ?N) .
+mutrose_classOf(?X, ?C) :- typeBase(?X, ?T), defines(?C, "world.class", ?T) .
+mutrose_hddlTypeOf(?C, ?H) :- mutrose_typeMap(?HR, ?OR), resolves(?OR, ?C), resolves(?HR, ?H) .
+problem(?HV, "error", "mutrose.paramType", "") :- mutrose_binding(_, ?GV, ?HV), resolves(?GV, ?G), mutrose_classOf(?G, ?C), mutrose_hddlTypeOf(?C, ?H), resolves(?HV, ?P), hddl_paramType(?P, ?PR), resolves(?PR, ?PT), ~ hddl_subtypeOf(?H, ?PT) .
+problem(?R, "warning", "mutrose.noInstances", "") :- gm_selects(?R), resolves(?R, ?C), ~ world_hasInstance(?C) .
+problem(?R, "warning", "mutrose.iteratesNoInstances", "") :- gm_iterates(?R), resolves(?R, ?V), mutrose_classOf(?V, ?C), ~ world_hasInstance(?C) .

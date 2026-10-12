@@ -170,6 +170,20 @@ export {
   type GodaVariant,
 } from './engines/goda';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
+// The rule layer (goal-controller#74): Datalog rules on Nemo, engine-free
+export {
+  CORE_RULES,
+  evaluateRules,
+  FactSet,
+  prepareRules,
+  renameConflicts,
+  type Evaluation,
+  type FactValue,
+  type NemoModule,
+  type PreparedRules,
+  type Resolution,
+  type RuleProblem,
+} from './rules';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
   projectResourceParsers,
