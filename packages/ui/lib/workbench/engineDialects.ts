@@ -18,6 +18,9 @@ import {
   mutroseEngineMapper,
   mutroseProjectResources,
   mutrosePool,
+  edgePool,
+  edgeV2Pool,
+  godaPool,
   type PoolRegistration,
   sleecEngineMapper,
   type Check,
@@ -74,6 +77,9 @@ export const ENGINE_PROJECT_RESOURCES: {
  */
 export const ENGINE_POOLS: Partial<Record<DialectEngine, PoolRegistration>> = {
   mutrose: mutrosePool,
+  edge: edgePool,
+  edgev2: edgeV2Pool,
+  goda: godaPool,
 };
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */
