@@ -1,0 +1,13 @@
+{
+  "name": "@goal-controller/pool-nemo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Spike (#72, #73): the definition pool's rules on Nemo, through the vieirin/nemo fork's prepared-program bindings",
+  "scripts": {
+    "gates": "node gates.cjs",
+    "gates:text": "node gates.cjs --text"
+  },
+  "dependencies": {
+    "nemo-wasm": "link:../../../../../../nemo/nemo-wasm/pkg-node"
+  }
+}
