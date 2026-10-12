@@ -13,7 +13,7 @@ import type {
   PoolProvider,
   PoolReference,
 } from '../../definitionPool';
-import { readXml, type Range, type XmlElement } from '../projectResources/xml';
+import { readXml, type Range, type XmlElement } from '../../../formats/xml';
 
 const PROVIDER = 'world';
 

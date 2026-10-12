@@ -6,7 +6,7 @@ import {
   parseHddl,
   parseWorld,
 } from '../../../src';
-import { readXml } from '../../../src/engines/mutrose/projectResources/xml';
+import { readXml } from '../../../src/formats/xml';
 
 const WORLD = `<?xml version="1.0"?>
 <!-- the ward -->

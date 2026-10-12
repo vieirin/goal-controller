@@ -32,6 +32,7 @@ import {
   prismLanguage,
   rangeMarksField,
   rannotLanguage,
+  readOnlyEditor,
   workbenchTheme,
 } from '@/lib/workbench/codemirror';
 import { type OutputLanguage } from '@/lib/workbench/engineDialects';
@@ -110,10 +111,7 @@ export default function CodeEditor({
         lineMarksField,
         rangeMarksField,
         EditorView.contentAttributes.of({ 'aria-label': ariaLabel }),
-        editable.current.of([
-          EditorState.readOnly.of(readOnly),
-          EditorView.editable.of(!readOnly),
-        ]),
+        editable.current.of(readOnlyEditor(readOnly)),
         extra.current.of(extensions ?? []),
         EditorView.updateListener.of((update) => {
           if (
@@ -165,10 +163,7 @@ export default function CodeEditor({
 
   useEffect(() => {
     view.current?.dispatch({
-      effects: editable.current.reconfigure([
-        EditorState.readOnly.of(readOnly),
-        EditorView.editable.of(!readOnly),
-      ]),
+      effects: editable.current.reconfigure(readOnlyEditor(readOnly)),
     });
   }, [readOnly]);
 

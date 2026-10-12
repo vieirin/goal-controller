@@ -12,7 +12,7 @@ import type {
   PoolLookup,
   PoolProvider,
   PoolReference,
-} from '../definitionPool';
+} from '../types';
 import {
   atomOf,
   isList,
@@ -20,7 +20,7 @@ import {
   type Atom,
   type Expr,
   type List,
-} from './read';
+} from '../../../formats/hddl';
 
 const PROVIDER = 'hddl';
 

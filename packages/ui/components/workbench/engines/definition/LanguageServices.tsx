@@ -9,7 +9,12 @@ import {
   multiplexSupport,
   type ServiceMode,
 } from '@/lib/workbench/languageServices';
-import { LanguageSupportContext } from './useLanguageSupport';
+import { isDialectEngine } from '@/lib/workbench/engineDialects';
+import { useWorkbench } from '../../WorkbenchContext';
+import {
+  LanguageSupportContext,
+  useProjectWorkspace,
+} from './useLanguageSupport';
 
 /**
  * Provides every view (the dialect engines' and piStar-ext's) the language
@@ -42,7 +47,21 @@ export function LanguageServices({ children }: { children: ReactNode }) {
   );
   return (
     <LanguageSupportContext.Provider value={provide}>
+      <ProjectWorkspace />
       {children}
     </LanguageSupportContext.Provider>
   );
+}
+
+/**
+ * The open project told to its engine's services, whatever tab is shown:
+ * a definition pool's problems reach Problems from the diagram too.
+ */
+function ProjectWorkspace() {
+  const { engine, mode } = useWorkbench();
+  // a model in piStar (or a modelling dialect) mode has no engine's services
+  useProjectWorkspace(
+    mode === engine && isDialectEngine(engine) ? engine : null,
+  );
+  return null;
 }

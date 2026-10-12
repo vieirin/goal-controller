@@ -4,6 +4,7 @@ import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks } from '@/lib/workbench/codemirror';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
+import { notationRange } from '@/lib/workbench/poolDocuments';
 import {
   applyNotationEdits,
   lineKeys,
@@ -175,6 +176,25 @@ export default function NotationEditor({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, selectSeq, doc]);
+
+  // a model field's range another tab asked to show (go-to-definition, a problem)
+  useEffect(() => {
+    const request = wb.revealed;
+    if (!view || !tree || !request?.document.startsWith('model:')) return;
+    const range = notationRange(
+      definition,
+      tree,
+      view.state.doc.toString(),
+      request,
+    );
+    if (!range) return;
+    view.dispatch({
+      selection: { anchor: range.from, head: range.to },
+      effects: EditorView.scrollIntoView(range.from, { y: 'center' }),
+    });
+    view.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, wb.revealed]);
 
   return (
     <CodeEditor

@@ -17,7 +17,10 @@ import {
   type PoolProvider,
   type PoolReference,
 } from '../../src/engines/definitionPool';
-import { createHddlProvider, hddlProvider } from '../../src/engines/hddl';
+import {
+  createHddlProvider,
+  hddlProvider,
+} from '../../src/engines/definitionPool';
 
 /**
  * A toy format: `thing NAME` defines a thing, `use NAME` uses one, `does

@@ -10,7 +10,7 @@ import {
   readJsonTree,
   type JsonNode,
   type JsonRange,
-} from '../../jsonTree';
+} from '../../../formats/json';
 import type {
   PoolCompletion,
   PoolDefinition,

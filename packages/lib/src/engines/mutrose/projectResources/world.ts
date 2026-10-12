@@ -10,7 +10,7 @@ import type {
   ProjectResourceParser,
   ResourceDiagnostic,
 } from '../../projectResources';
-import { readXml, type XmlElement } from './xml';
+import { readXml, type XmlElement } from '../../../formats/xml';
 
 export type WorldClass = {
   /** the attributes its entities have, in the order first seen */

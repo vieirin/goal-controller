@@ -10,7 +10,7 @@ import {
   readExprs,
   type Expr,
   type List,
-} from '../../hddl/read';
+} from '../../../formats/hddl';
 import type {
   ProjectResourceParser,
   ResourceDiagnostic,

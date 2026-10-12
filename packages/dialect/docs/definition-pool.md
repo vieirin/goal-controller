@@ -15,7 +15,8 @@ references with ranges, and may check what spans them.
 | Where | What |
 | --- | --- |
 | `lib/src/engines/definitionPool/` | the core: `definePool`, `createPool`, the services |
-| `lib/src/engines/hddl/` | the HDDL provider (any engine may register it) |
+| `lib/src/engines/definitionPool/providers/` | providers any engine may register: HDDL's |
+| `lib/src/formats/` | the readers of the formats resources are written in, with ranges: XML, JSON, HDDL's s-expressions |
 | `lib/src/engines/mutrose/pool/` | MutRoSe's providers and its cross-file checks ([mutrose.md](mutrose.md)) |
 | `ui/lib/workbench/poolSupport.ts` | a pool as a language service, in every tab |
 | `ui/lib/workbench/poolDocuments.ts` | the pool's documents in the workbench: the Notation view ↔ model fields, a rename applied |
@@ -140,8 +141,8 @@ shown (`useProjectWorkspace`).
 - per-document rebuilds;
 - every service;
 - the registry service, and the Notation ↔ field mapping;
-- `jsonTree` (JSON with ranges);
-- the HDDL provider.
+- the format readers in `lib/src/formats/` (XML, JSON and HDDL, with ranges);
+- the HDDL provider (`definitionPool/providers/`).
 
 **MutRoSe-specific (`engines/mutrose/pool/`):**
 - the world provider (MutRoSe's XML layout: an entity per element, its tag

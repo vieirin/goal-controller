@@ -18,13 +18,25 @@ const published = new Map<string, readonly Problem[]>();
 const slice = (service: string, document: string) =>
   `${service}\u0000${document}`;
 
+/**
+ * What services say of a project's file rather than an element (a definition
+ * pool's, in a resource: it carries where, `reveal`); the store holds
+ * diagnostics about elements only.
+ */
+let fileProblems: readonly Problem[] = [];
+const fileListeners = new Set<() => void>();
+
 /** Every source's union, published to the store (a source gone is cleared). */
 const republish = () => {
   const bySource = new Map<string, Problem[]>();
+  const files: Problem[] = [];
   for (const problems of published.values())
     for (const problem of problems) {
       // the store holds diagnostics about elements; the file's are the workbench's
-      if (problem.elementId === undefined) continue;
+      if (problem.elementId === undefined) {
+        if (problem.reveal) files.push(problem);
+        continue;
+      }
       const source = problem.source ?? SOURCE.language;
       bySource.set(source, [...(bySource.get(source) ?? []), problem]);
     }
@@ -38,6 +50,27 @@ const republish = () => {
         elementId: problem.elementId!,
       })),
     );
+  if (files.length || fileProblems.length) {
+    fileProblems = files;
+    fileListeners.forEach((listener) => listener());
+  }
+};
+
+// the last snapshot, kept while neither part changes
+let snapshot: {
+  elements: readonly Problem[];
+  files: readonly Problem[];
+  all: readonly Problem[];
+} | null = null;
+const allProblems = (): readonly Problem[] => {
+  const elements = serviceDiagnostics.getAll() as readonly Problem[];
+  if (snapshot?.elements !== elements || snapshot.files !== fileProblems)
+    snapshot = {
+      elements,
+      files: fileProblems,
+      all: fileProblems.length ? [...elements, ...fileProblems] : elements,
+    };
+  return snapshot.all;
 };
 
 /** A service's diagnostics of a document: they replace its last ones there. */
@@ -63,7 +96,17 @@ export const forgetDocument = (document: string): void => {
 /** Everything the services say now, re-rendering when it changes. */
 export const useServiceDiagnostics = (): readonly Problem[] =>
   useSyncExternalStore(
-    (listener) => serviceDiagnostics.subscribe(listener),
-    () => serviceDiagnostics.getAll(),
-    () => serviceDiagnostics.getAll(),
+    (listener) => {
+      fileListeners.add(listener);
+      const unsubscribe = serviceDiagnostics.subscribe(listener);
+      return () => {
+        fileListeners.delete(listener);
+        unsubscribe();
+      };
+    },
+    allProblems,
+    allProblems,
   );
+
+/** Everything the services say now (`useServiceDiagnostics` outside React). */
+export const serviceProblemsNow = (): readonly Problem[] => allProblems();

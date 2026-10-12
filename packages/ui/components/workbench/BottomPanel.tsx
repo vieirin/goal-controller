@@ -113,10 +113,13 @@ export function ProblemsView() {
   const hiddenInfo = wb.problems.length - shown.length;
   const canGo = (problem: Problem) =>
     (problem.source === SOURCE.file && !!problem.line) ||
+    !!problem.reveal ||
     (!!problem.elementId && !!wb.tree?.nodes.has(problem.elementId));
   const go = (problem: Problem) => {
     if (problem.source === SOURCE.file && problem.line)
       wb.revealSourceLine(problem.line);
+    // a definition pool's: where it is, in a project file or a model field
+    else if (problem.reveal) wb.revealLocation(problem.reveal);
     else if (problem.elementId) wb.select(problem.elementId, 'problems');
   };
   return (
@@ -168,7 +171,9 @@ export function ProblemsView() {
                             canGo(problem)
                               ? problem.source === SOURCE.file
                                 ? 'Go to this line in the source'
-                                : 'Go to this element in the model'
+                                : problem.reveal && !problem.elementId
+                                  ? 'Go to this place in its file'
+                                  : 'Go to this element in the model'
                               : undefined
                           }
                           className='flex min-w-0 flex-1 items-start gap-2 px-3 py-1 text-left disabled:cursor-default'

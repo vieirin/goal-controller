@@ -12,7 +12,7 @@ import {
   type PoolLookup,
   type PoolReference,
 } from '../../definitionPool';
-import { createHddlProvider } from '../../hddl/provider';
+import { createHddlProvider } from '../../definitionPool/providers/hddl';
 import {
   configurationProvider,
   roleOf,

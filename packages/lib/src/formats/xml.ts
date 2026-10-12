@@ -1,8 +1,10 @@
 /**
- * A small XML reader for MutRoSe's world knowledge: elements, attributes and
- * text, with their offsets, and what is wrong with the text. No DOM (it runs
- * in Node, the browser and the language server's worker alike); no DTDs,
- * namespaces or CDATA, which world files don't use.
+ * A small XML reader for a project's XML resources (MutRoSe's world
+ * knowledge, first): elements, attributes and text, with their offsets (tag
+ * names, closing tags, text and attribute values too), and what is wrong
+ * with the text. No DOM: it runs in Node, the browser and the language
+ * server's worker alike. No DTDs, namespaces or CDATA, which the resources
+ * don't use.
  */
 
 export type XmlElement = {
