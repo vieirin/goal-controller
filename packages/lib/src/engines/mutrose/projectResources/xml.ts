@@ -13,7 +13,18 @@ export type XmlElement = {
   text: string;
   from: number;
   to: number;
+  /** its tag name's range in the closing tag (`</name>`), when it has one */
+  closeName?: Range;
+  /** the range of its trimmed text, when it has text and no children */
+  textRange?: Range;
+  /** each attribute's name and value ranges (the value's without its quotes) */
+  attributeRanges: Record<string, { name: Range; value: Range }>;
+  /** where its content starts (after the opening tag) and ends (before the closing one) */
+  contentFrom: number;
+  contentTo: number;
 };
+
+export type Range = { from: number; to: number };
 
 export type XmlProblem = { message: string; from: number; to: number };
 
@@ -111,10 +122,17 @@ export const readXml = (
         const match = stack.map((e) => e.name).lastIndexOf(name);
         if (match >= 0) {
           const [closed, ...inside] = stack.splice(match);
-          for (const unclosed of inside) unclosed.to = open;
+          for (const unclosed of inside)
+            unclosed.to = unclosed.contentTo = open;
           closed!.to = to;
+          closed!.contentTo = open;
+          closed!.closeName = { from: open + 2, to: open + 2 + name.length };
         }
-      } else top.to = to;
+      } else {
+        top.to = to;
+        top.contentTo = open;
+        top.closeName = { from: open + 2, to: open + 2 + name.length };
+      }
       pos = textFrom = to;
       continue;
     }
@@ -125,14 +143,27 @@ export const readXml = (
       text: '',
       from: open,
       to: open,
+      attributeRanges: {},
+      contentFrom: open,
+      contentTo: open,
     };
     for (;;) {
       ATTRIBUTE.lastIndex = at;
       const attribute = ATTRIBUTE.exec(text);
       if (!attribute) break;
-      element.attributes[attribute[1]!] = decode(
+      const attributeName = attribute[1]!;
+      element.attributes[attributeName] = decode(
         attribute[3] ?? attribute[4] ?? '',
       );
+      const nameFrom = at + attribute[0].indexOf(attributeName);
+      const valueTo = ATTRIBUTE.lastIndex - 1;
+      element.attributeRanges[attributeName] = {
+        name: { from: nameFrom, to: nameFrom + attributeName.length },
+        value: {
+          from: valueTo - (attribute[3] ?? attribute[4] ?? '').length,
+          to: valueTo,
+        },
+      };
       at = ATTRIBUTE.lastIndex;
     }
     const rest = /^\s*(\/?)>/.exec(text.slice(at));
@@ -158,6 +189,7 @@ export const readXml = (
         });
       tops.push(element);
     }
+    element.contentFrom = element.contentTo = to;
     if (rest[1]) element.to = to;
     else stack.push(element);
     pos = textFrom = to;
@@ -168,11 +200,16 @@ export const readXml = (
       from: unclosed.from,
       to: unclosed.from + unclosed.name.length + 1,
     });
-    unclosed.to = text.length;
+    unclosed.to = unclosed.contentTo = text.length;
   }
   const root = tops[0] ?? null;
   const finish = (element: XmlElement) => {
     element.text = element.children.length ? '' : decode(element.text).trim();
+    if (element.text) {
+      const raw = text.slice(element.contentFrom, element.contentTo);
+      const from = element.contentFrom + raw.length - raw.trimStart().length;
+      element.textRange = { from, to: from + raw.trim().length };
+    }
     element.children.forEach(finish);
   };
   if (root) finish(root);

@@ -190,6 +190,20 @@ export {
   type MutroseResourceData,
   type WorldKnowledge,
 } from './engines/mutrose';
+// the definition pool (goal-controller#59): one language across a project's files
+export * from './engines/definitionPool';
+export {
+  createHddlProvider,
+  hddlProvider,
+  type HddlProviderOptions,
+} from './engines/hddl';
+export { readJsonTree, type JsonNode } from './engines/jsonTree';
+export {
+  modelDocument,
+  modelField,
+  mutrosePool,
+  OTHER_MODEL,
+} from './engines/mutrose/pool';
 export {
   edgeProjectResources,
   parseProperties,

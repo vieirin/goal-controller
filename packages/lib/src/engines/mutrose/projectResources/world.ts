@@ -41,7 +41,8 @@ export const parseWorld: ProjectResourceParser<WorldKnowledge> = (
     diagnostics.push({ path: file.path, severity: 'error', ...problem });
   if (root) {
     world.root = root.name;
-    for (const entity of root.children) {
+    // an entity, and the entities a collection attribute holds (`<objects><Object>…`)
+    const read = (entity: XmlElement): void => {
       const known = (world.classes[entity.name] ??= {
         attributes: [],
         instances: [],
@@ -62,7 +63,10 @@ export const parseWorld: ProjectResourceParser<WorldKnowledge> = (
           from: entity.from,
           to: entity.from + entity.name.length + 1,
         });
-    }
+      for (const child of entity.children)
+        child.children.filter((c) => c.children.length).forEach(read);
+    };
+    root.children.forEach(read);
     if (!root.children.length)
       diagnostics.push({
         path: file.path,

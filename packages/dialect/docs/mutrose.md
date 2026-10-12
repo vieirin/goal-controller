@@ -124,13 +124,84 @@ class, a forAll's variable being of its collection's class.
 `examples/projects/medicine-delivery/` is MedicineDelivery as a project,
 with a small world, domain and configuration written for it.
 
+## One definition pool across the four files (goal-controller#59)
+
+A mission is four files that only make sense together. MutRoSe registers
+four providers in the [definition pool](definition-pool.md)
+(`engines/mutrose/pool/`), so they are served as one language. Every name
+has a definition site and its references, across the files, and every tab
+gets go-to-definition, references, rename, hover and completion from it.
+
+**What each file defines** (the kinds, namespaced by provider):
+
+| Provider | Kinds | Where |
+| --- | --- | --- |
+| `gm` (the goal model) | `gm.goal`, `gm.task` (ids, not renamed), `gm.variable` | a Controls declaration (its type: `Sequence(Request)`), a select's `v:Type` (the goal's own) |
+| `world` | `world.class`, `world.attribute` (owned by its class), `world.instance` (its class its type) | a class's and an attribute's first tag (the others, closing ones too, refer to it); an entity's name. Entities in a collection attribute (`<objects><Object>…`) are entities too |
+| `hddl` | `hddl.type`, `hddl.predicate`, `hddl.function`, `hddl.task`, `hddl.method`, `hddl.action`, `hddl.param` (owned by its operation) | the domain's sections; MutRoSe's domains use types they don't list (`robot`), so a type is declared by its first use (`typesDeclaredByUse`) |
+| `mutrose` (the configuration) | `mutrose.locationType` | a `location_types` entry, which is also the world class it names |
+
+An attribute's type comes from its values: `Boolean`, `Integer`, `Real`,
+`String`, or the class whose instances its values name (`room` of a
+Request is a `Location`). A collection attribute is a `Sequence` of its
+entities' class.
+
+**What refers to what:**
+
+- **In the goal model:**
+  - a task's first word → `hddl.task` (any case, as HDDL reads names);
+  - a type in Controls or a select → `world.class` (OCL's Integer, Real,
+    Boolean and String are none);
+  - a Monitors, Params or Location name, a path's head in OCL, and a
+    forAll's variable → `gm.variable`;
+  - `name.attr` → the `world.attribute` of `name`'s class, along a path
+    (`current_request.room.name`).
+
+  The values are read with MutRoSe's own Langium language (#62).
+- **In the configuration:**
+  - `var_mapping.task_id` → `gm.task`;
+  - `map[].gm_var` → `gm.variable`;
+  - `map[].hddl_var` → the `hddl.param` of the HDDL task the model's task
+    stands for;
+  - `type_mapping.hddl_type` and `semantic_mapping`'s `arg_sorts` →
+    `hddl.type`;
+  - `type_mapping.ocl_type`, `location_types[]` and `relates_to` →
+    `world.class` (`Sequence(Room)` names `Room`; a `robots_db` mapping and
+    the decomposer's `robot` aren't the world's);
+  - `pred` → `hddl.predicate` or `hddl.function`.
+- **In the domain:**
+  - a method's `:task` → `hddl.task`;
+  - a subtask → `hddl.task` or `hddl.action`;
+  - a precondition's or effect's atom → `hddl.predicate`, a numeric term →
+    `hddl.function`;
+  - `?x` → its operation's `hddl.param` (a quantifier's variable is
+    none);
+  - `- type` → `hddl.type`.
+- **In the world:** a class's or attribute's later tags, and an attribute
+  value that names an instance (`<room>Ward1</room>`).
+
+**The checks across the files**, each in the file the reference is in:
+
+| Check | Where | Severity |
+| --- | --- | --- |
+| `unknown-hddl-task`: a task whose first word the domain has no task for | the task's name | error |
+| `unbound-param`: a task's Params its var_mapping doesn't bind | the Params name | error |
+| `hddl-var-not-param`: a bound `hddl_var` that isn't the HDDL task's parameter | the configuration | error |
+| `unknown-mapping-task`, `-variable`, `-type`, `-class`: a mapping to what the model, the domain or the world doesn't have | the configuration | error |
+| `unused-hddl-task`: an HDDL task no model task stands for and no method decomposes into (the project's other models count) | the domain | warning |
+| `no-instances`: a select, or a forAll's collection, of a class the world has no instance of | the model's query or condition | warning |
+
+A check runs only when the files it reads are there. `medicine-delivery`
+gets none of them. The 17 MutRoSe-Docs projects, each with its own world,
+domain and configuration, get none either. Their one reference that
+resolves to nothing is Object Picking's `current_room.objects_picked`: an
+attribute its world doesn't have, which no check reports.
+
 ## Still open
 
-- **OCL has tokens, not a grammar.** The `ocl` type colours a value, but
-  its structure is read by MutRoSe's checks, with their messages on the
-  whole field. A grammar for it (paths `a.b`, `->select`, `->forAll`,
-  `&&`/`||`) would point at the part that's wrong and complete the
-  variables in scope; Edge's `assertion` could be a subset of it.
+- **The checks' messages are on the whole field.** MutRoSe's own Langium
+  language (#62) reads its values; a check could point at the part that's
+  wrong, and the editors could complete the variables in scope from it.
 - **The fill follows a property.** A definition gives one fill per kind.
   mutrose-vscode colours goals by `GoalType`, which the MutRoSe diagram's
   goal component does itself. The inspector's Color row doesn't know: it
@@ -141,10 +212,9 @@ with a small world, domain and configuration written for it.
 - **forAll goals aren't expanded.** The browser has the world database now
   (a project resource), but the template doesn't expand a goal per entity
   yet; it binds types only.
-- **The HDDL domain is read, not checked against.** A task's first word as
-  one of the domain's tasks, and its Params against the task's parameters
-  (through the configuration's var_mapping), need the task's name in a
-  check's context, which only has its properties.
+- **Unknown world attributes aren't reported.** The pool resolves
+  `name.attr` to the class's attribute, but no check reports one that
+  resolves to nothing (Object Picking's `objects_picked`).
 - **Empty properties print.** piStar gives every element `Description: ""`,
   and the Notation view writes a defined property with an empty value as a
   bare key, so every MutRoSe line has a `Description` under it. Skipping
