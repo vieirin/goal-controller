@@ -1,0 +1,23 @@
+{
+  "world_db": {
+    "type": "file",
+    "file_type": "xml",
+    "path": "knowledge/world_db.xml",
+    "xml_root": "world_db"
+  },
+  "output": {
+    "output_type": "file",
+    "file_path": "out/decomposition.json",
+    "file_type": "json"
+  },
+  "location_types": ["Location"],
+  "type_mapping": [
+    { "hddl_type": "location", "ocl_type": "Location" },
+    { "hddl_type": "request", "ocl_type": "Request" }
+  ],
+  "var_mapping": [
+    { "task_id": "AT1", "map": [{ "gm_var": "room", "hddl_var": "?l" }] },
+    { "task_id": "AT2", "map": [{ "gm_var": "current_request", "hddl_var": "?r" }] },
+    { "task_id": "AT3", "map": [{ "gm_var": "current_request", "hddl_var": "?r" }] }
+  ]
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "file": "model",
+    "element": "AT2",
+    "field": "Params",
+    "text": "current_request",
+    "severity": "error",
+    "check": "unbound-param"
+  }
+]

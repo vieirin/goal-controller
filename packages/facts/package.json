@@ -1,0 +1,33 @@
+{
+  "name": "@goal-controller/facts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A spike (goal-controller#61): a project's files as facts, and Datalog rules deriving name resolution, types and cross-file checks",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "scripts": {
+    "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
+    "watch": "tsc --watch",
+    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
+    "bench": "TS_NODE_PROJECT='./tsconfig.test.json' node --expose-gc -r ts-node/register bench/run.ts",
+    "clean": "rm -rf out tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@goal-controller/dialect": "workspace:*",
+    "@goal-controller/goal-language": "workspace:*",
+    "@goal-controller/goal-tree": "workspace:*",
+    "@goal-controller/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@istar-ts/core": "^0.12.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^22.6.0",
+    "esbuild": "^0.28.2",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}

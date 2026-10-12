@@ -1,0 +1,172 @@
+{
+  "actors": [
+    {
+      "id": "c4609db9-5489-5cdc-b5fb-46701950e8d4",
+      "text": "M1: Medicine Delivery",
+      "type": "istar.Actor",
+      "x": 300,
+      "y": 30,
+      "customProperties": {
+        "Description": ""
+      },
+      "nodes": [
+        {
+          "id": "7770dc86-1289-5ded-8888-2ca50b14c4ba",
+          "text": "G1: Deliver Medicines [G2;G3]",
+          "type": "istar.Goal",
+          "x": 520,
+          "y": 60,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "19df1d5d-43fb-58e6-94d1-6379c206a45d",
+          "text": "G2: Fetch Pending Requests",
+          "type": "istar.Goal",
+          "x": 330,
+          "y": 170,
+          "customProperties": {
+            "Description": "",
+            "GoalType": "Query",
+            "QueriedProperty": "world_db->select(r:Request | r.pending = True)",
+            "Controls": "requests : Sequence(Request)"
+          }
+        },
+        {
+          "id": "45f074a2-9e66-5423-844f-72a4944408b2",
+          "text": "G3: Serve Every Request [G4;FALLBACK(G5,AT3)]",
+          "type": "istar.Goal",
+          "x": 690,
+          "y": 170,
+          "customProperties": {
+            "Description": "",
+            "GoalType": "Achieve",
+            "AchieveCondition": "requests->forAll(current_request | current_request.served)",
+            "Monitors": "requests",
+            "Controls": "current_request : Request",
+            "Group": "false"
+          }
+        },
+        {
+          "id": "9cc45fac-0a58-5d46-88c1-8fe384d958e1",
+          "text": "G4: Fetch Patient's Room",
+          "type": "istar.Goal",
+          "x": 480,
+          "y": 290,
+          "customProperties": {
+            "Description": "",
+            "GoalType": "Query",
+            "QueriedProperty": "world_db->select(l:Location | l.name in current_request.room)",
+            "Monitors": "current_request",
+            "Controls": "room : Location"
+          }
+        },
+        {
+          "id": "e35b91b9-0d1b-5a38-ac3a-3c7acc325905",
+          "text": "G5: Hand Over in Person [AT1;AT2]",
+          "type": "istar.Goal",
+          "x": 720,
+          "y": 290,
+          "customProperties": {
+            "Description": "",
+            "Monitors": "room, current_request",
+            "Divisible": "false"
+          }
+        },
+        {
+          "id": "f29dc316-fdf9-5642-b1b4-f11500ee49a6",
+          "text": "AT3: NotifyNurse",
+          "type": "istar.Task",
+          "x": 940,
+          "y": 290,
+          "customProperties": {
+            "Description": "",
+            "Params": "current_request",
+            "RobotNumber": "1"
+          }
+        },
+        {
+          "id": "9553a071-4a37-5568-a156-3044305a5c23",
+          "text": "AT1: NavigateTo",
+          "type": "istar.Task",
+          "x": 640,
+          "y": 410,
+          "customProperties": {
+            "Description": "",
+            "Location": "room",
+            "Params": "room"
+          }
+        },
+        {
+          "id": "f0c5cce6-1234-5f9c-880c-0a9539d2be1f",
+          "text": "AT2: HandOver",
+          "type": "istar.Task",
+          "x": 820,
+          "y": 410,
+          "customProperties": {
+            "Description": "",
+            "Params": "current_request"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "52742370-7779-50dd-adde-c2f6f2a90824",
+      "type": "istar.AndRefinementLink",
+      "source": "19df1d5d-43fb-58e6-94d1-6379c206a45d",
+      "target": "7770dc86-1289-5ded-8888-2ca50b14c4ba"
+    },
+    {
+      "id": "d66af652-3b2c-5ce1-9830-72f69bea171e",
+      "type": "istar.AndRefinementLink",
+      "source": "45f074a2-9e66-5423-844f-72a4944408b2",
+      "target": "7770dc86-1289-5ded-8888-2ca50b14c4ba"
+    },
+    {
+      "id": "1da56cbe-dd40-52b7-9289-92f46f7e7004",
+      "type": "istar.AndRefinementLink",
+      "source": "9cc45fac-0a58-5d46-88c1-8fe384d958e1",
+      "target": "45f074a2-9e66-5423-844f-72a4944408b2"
+    },
+    {
+      "id": "162073cd-e57f-58b9-a5e9-d6ed6251f004",
+      "type": "istar.AndRefinementLink",
+      "source": "e35b91b9-0d1b-5a38-ac3a-3c7acc325905",
+      "target": "45f074a2-9e66-5423-844f-72a4944408b2"
+    },
+    {
+      "id": "c6c76ff9-911d-585d-9169-2c7afbf6f538",
+      "type": "istar.AndRefinementLink",
+      "source": "f29dc316-fdf9-5642-b1b4-f11500ee49a6",
+      "target": "45f074a2-9e66-5423-844f-72a4944408b2"
+    },
+    {
+      "id": "914d207c-9fb2-5924-abbe-65be92b67033",
+      "type": "istar.AndRefinementLink",
+      "source": "9553a071-4a37-5568-a156-3044305a5c23",
+      "target": "e35b91b9-0d1b-5a38-ac3a-3c7acc325905"
+    },
+    {
+      "id": "5ac5389d-5c12-5e99-9f6e-7507be165cdd",
+      "type": "istar.AndRefinementLink",
+      "source": "f0c5cce6-1234-5f9c-880c-0a9539d2be1f",
+      "target": "e35b91b9-0d1b-5a38-ac3a-3c7acc325905"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Fri, 09 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 1300,
+    "height": 560,
+    "customProperties": {
+      "Description": "A robot serves every pending medicine request: it fetches the requests and each patient room, hands the medicine over in person, and notifies a nurse when it cannot."
+    }
+  }
+}

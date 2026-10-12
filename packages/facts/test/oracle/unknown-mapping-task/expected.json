@@ -1,0 +1,16 @@
+[
+  {
+    "file": "configuration",
+    "text": "AT9",
+    "severity": "error",
+    "check": "unknown-mapping-task"
+  },
+  {
+    "file": "model",
+    "element": "AT3",
+    "field": "Params",
+    "text": "current_request",
+    "severity": "error",
+    "check": "unbound-param"
+  }
+]

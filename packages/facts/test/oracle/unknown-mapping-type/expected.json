@@ -1,0 +1,8 @@
+[
+  {
+    "file": "configuration",
+    "text": "place",
+    "severity": "error",
+    "check": "unknown-mapping-type"
+  }
+]

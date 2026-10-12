@@ -50,6 +50,43 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  packages/facts:
+    dependencies:
+      '@goal-controller/dialect':
+        specifier: workspace:*
+        version: link:../dialect
+      '@goal-controller/goal-language':
+        specifier: workspace:*
+        version: link:../goal-language
+      '@goal-controller/goal-tree':
+        specifier: workspace:*
+        version: link:../goal-tree
+      '@goal-controller/lib':
+        specifier: workspace:*
+        version: link:../lib
+    devDependencies:
+      '@istar-ts/core':
+        specifier: ^0.12.0
+        version: 0.12.0
+      '@types/mocha':
+        specifier: ^10.0.6
+        version: 10.0.10
+      '@types/node':
+        specifier: ^22.6.0
+        version: 22.19.7
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      mocha:
+        specifier: ^10.2.0
+        version: 10.8.2
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.19.7)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/goal-language:
     dependencies:
       '@goal-controller/dialect':
@@ -1631,7 +1668,6 @@ packages:
 
   /@istar-ts/core@0.12.0:
     resolution: {integrity: sha512-BMmwRmEKz7XheiKP++fsw0nWP+CPGVWkYdRsATgs7wewLO2SbS5JodEg85NSStMKt0HEQaybbvLuxKYVmr/jpw==}
-    dev: false
 
   /@istar-ts/react@0.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-uchunEYDmUwS6e69M/0ReI7UvBU2xbaLQW0gIF2Duf88IzAZHInb1G46zsvtbaoMUiw9vIpIgonNupGBV1agPA==}

@@ -1,0 +1,16 @@
+[
+  {
+    "file": "model",
+    "element": "AT1",
+    "field": "name",
+    "text": "Fly",
+    "severity": "error",
+    "check": "unknown-hddl-task"
+  },
+  {
+    "file": "hddl",
+    "text": "navigateto",
+    "severity": "warning",
+    "check": "unused-hddl-task"
+  }
+]
