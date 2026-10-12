@@ -6,7 +6,7 @@ import {
   fieldCompletionsAt,
   fieldDiagnostics,
 } from '@goal-controller/goal-language';
-import type { DefinitionContext } from '@goal-controller/dialect';
+import type { AnyDialect, DefinitionContext } from '@goal-controller/dialect';
 import { edge, edgeV2, mutrose, parseWorld } from '../../src';
 
 const context: DefinitionContext = {
@@ -276,10 +276,17 @@ describe('completions', () => {
       'robot',
       'battery',
     ]);
-    // without the project's world, a type completes with nothing
+    // without the project's world, a type completes with Sequence alone
     expect(
-      fieldCompletions(mutrose, model, 'G1', 'Controls', 'r : ', 4),
-    ).to.equal(null);
+      fieldCompletions(
+        mutrose,
+        model,
+        'G1',
+        'Controls',
+        'r : ',
+        4,
+      )!.options.map((o) => o.label),
+    ).to.deep.equal(['Sequence']);
     // in a string, nothing
     const quoted = 'assertion condition "r.';
     expect(
@@ -327,9 +334,49 @@ describe('completion from the project resources', () => {
   const at = (id: string, key: string, text: string) =>
     fieldCompletions(mutrose, model, id, key, text, text.length);
 
+  it('completes a declared variable’s type with a Sequence too', () => {
+    for (const text of ['room : ', 'rooms : Seque']) {
+      const found = at('G2', 'Controls', text)!;
+      expect(found.from, text).to.equal(
+        text.length - /\w*$/.exec(text)![0].length,
+      );
+      expect(
+        found.options.map((o) => [o.label, o.type, o.snippet]),
+        text,
+      ).to.deep.equal([
+        ['Room', 'class', undefined],
+        ['Robot', 'class', undefined],
+        ['Sequence', 'keyword', 'Sequence(${1})'],
+      ]);
+    }
+  });
+
+  it('offers only the collections the dialect declares', () => {
+    // MutRoSe without its `Sequence`: a type is a class, and no more
+    const goal = mutrose.properties.goal.map((property) =>
+      property.key === 'Controls'
+        ? { ...property, value: { ...property.value, collections: [] } }
+        : property,
+    );
+    const bare = {
+      ...mutrose,
+      properties: { ...mutrose.properties, goal },
+    } as AnyDialect;
+    const text = 'room : ';
+    expect(
+      fieldCompletions(
+        bare,
+        model,
+        'G2',
+        'Controls',
+        text,
+        text.length,
+      )!.options.map((o) => o.label),
+    ).to.deep.equal(['Room', 'Robot']);
+  });
+
   it("completes a type with the world's classes", () => {
     for (const [key, text] of [
-      ['Controls', 'room : '],
       ['Controls', 'rooms : Sequence('],
       ['QueriedProperty', 'world_db->select(r:'],
       ['QueriedProperty', 'world_db->select(r : Ro'],

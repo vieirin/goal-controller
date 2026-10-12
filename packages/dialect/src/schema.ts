@@ -90,8 +90,14 @@ export type ValueConfig =
        * completion offers them.
        */
       declaredBy?: readonly string[];
-      /** what completes a type (after `:`, in `Sequence(`): a project resource's symbols */
+      /** what completes a type (after `:`, in a collection's `(`): a project resource's symbols */
       candidates?: ResourceCandidates;
+      /**
+       * the collections a declared variable's type may wrap a class in
+       * (MutRoSe's `Sequence`, as `rooms : Sequence(Room)`): offered after
+       * `name :`, and read through to the class's members
+       */
+      collections?: readonly string[];
       /**
        * what completes after `name.`: the members of the symbol (in these
        * candidates) named by `name`'s type
