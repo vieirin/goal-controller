@@ -1,7 +1,8 @@
 // What reads Langium, for lib's CommonJS out/: Langium is ESM-only, so
-// MutRoSe's language (src/engines/mutrose/language) and the pool's protocol
+// MutRoSe's languages (src/engines/mutrose/language, its property values;
+// src/engines/mutrose/hddl, its domains) and the pool's protocol
 // (src/pool, which reads any engine's Langium language) are each bundled
-// with it, into out/engines/mutrose/language.js and out/pool.js. A
+// with it, into out/engines/mutrose/{language,hddl}.js and out/pool.js. A
 // `require('./language')` finds that file before the directory tsc writes,
 // so tsc and this never write the same file (`--watch`: rebuilt on each
 // change, beside `tsc --watch`).
@@ -21,6 +22,11 @@ const bundles = [
     ...shared,
     entryPoints: ['src/engines/mutrose/language/index.ts'],
     outfile: 'out/engines/mutrose/language.js',
+  },
+  {
+    ...shared,
+    entryPoints: ['src/engines/mutrose/hddl/index.ts'],
+    outfile: 'out/engines/mutrose/hddl.js',
   },
   {
     ...shared,

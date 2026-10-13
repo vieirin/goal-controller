@@ -12,7 +12,7 @@ import {
   readRobotNumber,
   readSelect,
   readVariableItems,
-  readVariableType,
+  classOfType,
 } from './language';
 import type { MutroseConfiguration } from './projectResources/configuration';
 import type { WorldKnowledge } from './projectResources/world';
@@ -105,23 +105,11 @@ const configurationOf = (
     | MutroseConfiguration
     | undefined;
 
-/** OCL's own types: not the world's classes */
-const BASIC_TYPES = new Set(['Integer', 'Real', 'Boolean', 'String']);
-
-/** `Sequence(Room)` is a collection of Rooms: the class it is of */
-const classOf = (type: string): string => {
-  const read = readVariableType(type).value;
-  return read?.name.name === 'Sequence' && read.element
-    ? read.element.name
-    : type;
-};
-
 /** What is wrong with a type, given the world: not one of its classes. */
 const typeProblem = (type: string, context: CheckContext): string | null => {
   const world = worldOf(context);
-  const name = classOf(type);
-  if (!world || !name || BASIC_TYPES.has(name) || name in world.classes)
-    return null;
+  const name = classOfType(type);
+  if (!world || !name || name in world.classes) return null;
   const known = Object.keys(world.classes);
   return `${name} is not a class of the world knowledge${known.length ? ` (it has ${known.join(', ')})` : ''}`;
 };
@@ -267,8 +255,9 @@ export const mutroseCheckRegistry = checks({
     // with the configuration: the variable's class is one of its location types
     const locations = configurationOf(context)?.locationTypes ?? [];
     const type = declaredType(name, context);
-    return locations.length && type && !locations.includes(classOf(type))
-      ? `${name} is a ${classOf(type)}: a Location is one of the configuration's location types (${locations.join(', ')})`
+    const typeClass = type && (classOfType(type) ?? type);
+    return locations.length && typeClass && !locations.includes(typeClass)
+      ? `${name} is a ${typeClass}: a Location is one of the configuration's location types (${locations.join(', ')})`
       : null;
   },
   'mutrose.task.params': (raw, context) => {

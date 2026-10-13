@@ -1,0 +1,13 @@
+{
+  "projectName": "Hddl",
+  "languages": [
+    {
+      "id": "hddl",
+      "grammar": "hddl.langium",
+      "fileExtensions": [".hddl"],
+      "caseInsensitive": true
+    }
+  ],
+  "out": "generated",
+  "importExtension": ""
+}

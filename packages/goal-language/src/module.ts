@@ -1,5 +1,6 @@
 import {
   createDefaultCoreModule,
+  createLangiumParser,
   createDefaultSharedCoreModule,
   EmptyFileSystem,
   inject,
@@ -10,21 +11,42 @@ import {
   type ParseResult,
   type PartialLangiumCoreServices,
 } from 'langium';
+import type { GoalAstType } from './generated/ast.js';
 import {
   GoalGeneratedModule,
   GoalGeneratedSharedModule,
 } from './generated/module.js';
 import { GoalLexer, type LexerStart } from './lexer.js';
 
-export type GoalCoreServices = LangiumCoreServices;
+/**
+ * The goal language's services: `$ast` (a type, never set) says which AST
+ * they parse, so a reader typed by it (the pool's `langium(…)`) infers it.
+ */
+export type GoalCoreServices = LangiumCoreServices & {
+  readonly $ast?: GoalAstType;
+};
 
-/** The lexer is GoalLexer (token sets by where it is in a line). */
+/**
+ * The lexer is GoalLexer (token sets by where it is in a line); the parser
+ * tells it the start of the rule it parses with, so `parse(text, { rule })`
+ * is all a reader calls (the definition pool's `langium(…)` does).
+ */
 export const GoalCoreModule: Module<
   GoalCoreServices,
   PartialLangiumCoreServices
 > = {
   parser: {
     Lexer: (services) => new GoalLexer(services),
+    LangiumParser: (services) => {
+      const parser = createLangiumParser(services);
+      const parse = parser.parse.bind(parser);
+      parser.parse = (text, options) => {
+        const start = options?.rule && START_OF_RULE.get(options.rule);
+        if (start) (services.parser.Lexer as GoalLexer).start = start;
+        return parse(text, options);
+      };
+      return parser;
+    },
   },
 };
 
@@ -63,14 +85,17 @@ export const START_RULE: Record<LexerStart, string> = {
   pairList: 'PairListValue',
 };
 
+const START_OF_RULE = new Map(
+  Object.entries(START_RULE).map(([start, rule]) => [
+    rule,
+    start as LexerStart,
+  ]),
+);
+
 /** Parses a text with the rule of a lexer start, synchronously, without linking. */
 export const parseWith = <T extends AstNode>(
   services: GoalCoreServices,
   start: LexerStart,
   text: string,
-): ParseResult<T> => {
-  (services.parser.Lexer as GoalLexer).start = start;
-  return services.parser.LangiumParser.parse<T>(text, {
-    rule: START_RULE[start],
-  });
-};
+): ParseResult<T> =>
+  services.parser.LangiumParser.parse<T>(text, { rule: START_RULE[start] });

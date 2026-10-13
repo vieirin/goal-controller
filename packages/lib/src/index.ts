@@ -194,7 +194,6 @@ export {
 export * from './engines/definitionPool';
 // the pool's protocol (#82): what an engine declares, and poolOf
 export * as pool from './pool';
-export * from './providers';
 // the readers of the formats project resources are written in, with ranges
 export * from './formats';
 export {

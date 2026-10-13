@@ -1,8 +1,8 @@
 /**
- * HDDL in a definition pool (goal-controller#59): a domain's types,
- * predicates, tasks, methods and actions, and their parameters, where they
- * are defined and used. It knows no engine: MutRoSe registers it, and so
- * may any engine whose resources include an HDDL domain.
+ * HDDL in a definition pool, as a hand-written provider (goal-controller
+ * #59): the core's test plugs it in beside a toy one. MutRoSe reads HDDL
+ * with its grammar and declaration since #82
+ * (src/engines/mutrose/files/hddl.ts).
  */
 import type {
   PoolCompletion,
@@ -12,7 +12,7 @@ import type {
   PoolLookup,
   PoolProvider,
   PoolReference,
-} from '../engines/definitionPool';
+} from '../../../src/engines/definitionPool';
 import {
   atomOf,
   isList,
@@ -20,7 +20,7 @@ import {
   type Atom,
   type Expr,
   type List,
-} from '../formats/hddl';
+} from '../../../src/formats/hddl';
 
 const PROVIDER = 'hddl';
 

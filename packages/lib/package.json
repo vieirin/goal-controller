@@ -15,7 +15,8 @@
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts",
-    "generate:mutrose": "langium generate --file src/engines/mutrose/language/langium-config.json"
+    "generate:mutrose": "langium generate --file src/engines/mutrose/language/langium-config.json",
+    "generate:hddl": "langium generate --file src/engines/mutrose/hddl/langium-config.json"
   },
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",

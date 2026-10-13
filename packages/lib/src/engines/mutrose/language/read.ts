@@ -317,6 +317,25 @@ export const readVariableType = (
   };
 };
 
+/** OCL's own types: no world class */
+export const BASIC_TYPES: ReadonlySet<string> = new Set([
+  'Integer',
+  'Real',
+  'Boolean',
+  'String',
+]);
+
+/**
+ * The world class a type names: `Room` in `Room` and in `Sequence(Room)`;
+ * none for OCL's own types (or what isn't a type).
+ */
+export const classOfType = (type: string): string | null => {
+  const read = readVariableType(type).value;
+  const name =
+    read?.name.name === 'Sequence' && read.element ? read.element.name : type;
+  return name && !BASIC_TYPES.has(name) ? name : null;
+};
+
 /** `parse_robot_number`: `N` or `[lo,hi]`, no spaces (empty: none). */
 export const readRobotNumber = (
   text: string,

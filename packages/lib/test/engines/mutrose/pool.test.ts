@@ -117,7 +117,11 @@ const applied = (files: Files, edits: readonly PoolEdit[]): Files => {
   return next;
 };
 
-/** What a broken copy reports: severity, check, where (the file or model field), the text underlined. */
+/**
+ * What a broken copy reports: severity, check, where (the file or model
+ * field), the text underlined. (In what order isn't the pool's to promise:
+ * a case with several compares them as members.)
+ */
 const reported = (files: Files) =>
   indexOf(files).diagnostics.map((d: PoolDiagnostic) => [
     d.severity,
@@ -202,7 +206,7 @@ describe('MutRoSe’s definition pool on medicine-delivery', () => {
         reported(
           changed('configuration', '"task_id": "AT3"', '"task_id": "AT9"'),
         ),
-      ).to.deep.equal([
+      ).to.have.deep.members([
         // and AT3's Params are bound by nothing now
         ['error', 'unbound-param', 'model:AT3:Params', 'current_request'],
         ['error', 'unknown-mapping-task', PATHS.configuration, 'AT9'],
@@ -214,7 +218,7 @@ describe('MutRoSe’s definition pool on medicine-delivery', () => {
         reported(
           changed('configuration', '"gm_var": "room"', '"gm_var": "rooom"'),
         ),
-      ).to.deep.equal([
+      ).to.have.deep.members([
         ['error', 'unbound-param', 'model:AT1:Params', 'room'],
         ['error', 'unknown-mapping-variable', PATHS.configuration, 'rooom'],
       ]);
@@ -469,10 +473,14 @@ describe('MutRoSe’s definition pool on medicine-delivery', () => {
           ) as [string, number]),
         ),
       ).to.deep.equal(['Location', 'Request']);
-      const [text, offset] = config(
-        '"x": { "task_id": "AT2", "map": [{ "hddl_var": "§',
+      // AT2's hddl_var being typed: the file ends at the cursor (a mapping
+      // completes where the configuration's schema says it is, in var_mapping)
+      const typing = EXAMPLE.configuration.slice(
+        0,
+        EXAMPLE.configuration.indexOf('"hddl_var": "?r"') +
+          '"hddl_var": "'.length,
       );
-      expect(labels(text.replace('§', ''), offset)).to.deep.equal(['?r']);
+      expect(labels(typing, typing.length)).to.deep.equal(['?r']);
       expect(
         completionsAt(index, inModel('AT1', 'name', 'NavigateTo')).map(
           (c) => c.label,
