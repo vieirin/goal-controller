@@ -10,7 +10,9 @@
  * Each check is `{ status, ...details }`, status one of:
  * - `pass`, `fail`;
  * - `skipped`: it needs something absent (a tool on PATH);
- * - `unavailable`: it needs the engine, or a step before it failed.
+ * - `unavailable`: it needs the engine, or a step before it failed;
+ * and, as run.cjs counts a failure (withExpectations), `expected-fail` or
+ * `informational`.
  */
 const { buildMdp } = require('./build.cjs');
 const {
@@ -271,20 +273,41 @@ const checkModel = (
 /** The checks that need a binary on PATH (the rest must pass for AND and OR). */
 const EXTERNAL = new Set(['build']);
 
+/** Whether a check is informational for a reference (`{ checks: [...] | 'all' }`). */
+const isInformational = (informational, name) =>
+  !!informational &&
+  (informational.checks === 'all' || informational.checks.includes(name));
+
+/**
+ * A result's failures as they count: an informational check's is
+ * `informational` (reported, never a failure: SA-BSN's against param.zip,
+ * its other variant's, #93 D2); on a model whose issue hasn't landed, the
+ * rest are `expected-fail`.
+ */
+const withExpectations = (checks, { supported, informational }) =>
+  Object.fromEntries(
+    Object.entries(checks).map(([name, check]) => [
+      name,
+      check.status !== 'fail'
+        ? check
+        : isInformational(informational, name)
+          ? { ...check, status: 'informational' }
+          : supported
+            ? check
+            : { ...check, status: 'expected-fail' },
+    ]),
+  );
+
 /**
  * The results that fail `--strict`: a supported model's failed check, but
- * not one needing a binary (EXTERNAL) nor one of the model's informational
- * checks (SA-BSN's against param.zip).
+ * not one needing a binary (EXTERNAL).
  */
 const strictFailures = (results, supported) =>
   results.filter(
     (result) =>
       supported.has(result.model) &&
       Object.entries(result.checks).some(
-        ([name, check]) =>
-          check.status === 'fail' &&
-          !EXTERNAL.has(name) &&
-          !result.informational?.includes(name),
+        ([name, check]) => check.status === 'fail' && !EXTERNAL.has(name),
       ),
   );
 
@@ -292,6 +315,8 @@ module.exports = {
   EXPECTED_DIAGNOSTICS,
   EXTERNAL,
   checkModel,
+  isInformational,
   readModel,
   strictFailures,
+  withExpectations,
 };

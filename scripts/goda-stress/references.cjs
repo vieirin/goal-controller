@@ -79,20 +79,32 @@ const PCTL = [
 ];
 
 /**
- * SA-BSN (lesunb/bsn, #93): a model the BSN runtime consumes. Its GODA
- * outputs' reference is `param.zip`, whose generator version is unknown, so
- * it runs with both variants (a result each) and those checks are
- * informational: they say which variant reproduces which file, if any.
- * What the runtime loads is the `runtime` pair, read by components: the
- * leaves' scoped ids, with dots as underscores.
+ * SA-BSN (lesunb/bsn, #93): a model the BSN runtime consumes. Its variant
+ * is `cc808b6` (#93 D2); it also runs with the other, a result each, so the
+ * report says which variant reproduces which of `param.zip`'s files. What
+ * isn't its variant's to pass is informational (`informational`): reported,
+ * never a failure. What the runtime loads is the `runtime` pair, read by
+ * components: the leaves' scoped ids, with dots as underscores.
  */
 const SA_BSN_MODEL = {
   name: 'SA-BSN',
   model: 'goalModel.txt',
   issue: '#94',
+  variant: VARIANTS.january2019,
   variants: [VARIANTS.january2019, VARIANTS.july2019],
   options: { runtimeFormulas: true },
-  informational: ['mdp', 'pctl', 'reliability', 'cost', 'evalScript'],
+  informational: (variant) =>
+    variant === SA_BSN_MODEL.variant
+      ? {
+          // param.zip comes from an earlier revision of the model (#98)
+          checks: ['mdp', 'pctl', 'reliability', 'cost', 'evalScript'],
+          reason:
+            'param.zip was generated from an earlier revision of the model',
+        }
+      : {
+          checks: 'all',
+          reason: `not SA-BSN's variant (${SA_BSN_MODEL.variant}, #93 D2): upstream ${variant} throws on this model too`,
+        },
   components: [
     'G3_T1_1',
     'G3_T1_2',
@@ -147,7 +159,7 @@ const loadReference = (examples, { name, folder, model, issue, variant }) => {
  * `cost.formula`.
  */
 const loadSaBsnReferences = (directory) => {
-  const { name, model, issue, ...rest } = SA_BSN_MODEL;
+  const { name, model, issue, informational, ...rest } = SA_BSN_MODEL;
   const read = (file) => fs.readFileSync(path.join(directory, file), 'utf8');
   const reference = {
     ...readOutputs(path.join(directory, 'param')),
@@ -159,8 +171,9 @@ const loadSaBsnReferences = (directory) => {
   return rest.variants.map((variant) => ({
     name,
     issue,
-    variant,
     ...rest,
+    variant,
+    informational: informational(variant),
     modelFile: path.join(directory, model),
     modelName: model,
     text: read(model),

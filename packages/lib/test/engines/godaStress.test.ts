@@ -25,6 +25,7 @@ const compare = require('../../../../scripts/goda-stress/compare.cjs');
 const {
   checkModel,
   strictFailures,
+  withExpectations,
 } = require('../../../../scripts/goda-stress/checks.cjs');
 const { godaEngine } = require('../../../../scripts/goda-stress/engine.cjs');
 const {
@@ -374,7 +375,7 @@ describe('GODA stress test: checks on a model', () => {
       name: 'SA-BSN',
       issue: '#94',
       options: { runtimeFormulas: true },
-      informational: ['mdp', 'pctl', 'reliability', 'cost', 'evalScript'],
+      informational: SA_BSN_MODEL.informational('cc808b6'),
       components: COMPONENTS,
       deactivated: 'B_T1',
       reference: {
@@ -675,7 +676,17 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
         references.map((r: any) => r.variant),
         ['cc808b6', '5305bc1'],
       );
-      const [first] = references;
+      const [first, second] = references;
+      // cc808b6 is SA-BSN's variant (#93 D2): only param.zip's files are informational
+      assert.deepStrictEqual(first.informational.checks, [
+        'mdp',
+        'pctl',
+        'reliability',
+        'cost',
+        'evalScript',
+      ]);
+      assert.strictEqual(second.informational.checks, 'all');
+      assert.match(second.informational.reason, /upstream 5305bc1 throws/);
       assert.strictEqual(first.name, 'SA-BSN');
       assert.strictEqual(first.modelName, 'goalModel.txt');
       assert.deepStrictEqual(first.options, { runtimeFormulas: true });
@@ -701,24 +712,67 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
     ]);
   });
 
-  it("doesn't fail --strict on a supported model's informational checks", () => {
-    const supported = new Set(['SA-BSN', 'AND']);
-    const result = (
-      model: string,
-      failing: string,
-      informational?: string[],
-    ) => ({
+  /** A result with one failed check, counted as run.cjs counts it. */
+  const counted = (
+    model: string,
+    variant: string,
+    failing: string,
+    supported: boolean,
+  ) => {
+    const informational =
+      model === 'SA-BSN' ? SA_BSN_MODEL.informational(variant) : undefined;
+    return {
       model,
+      variant,
       ...(informational && { informational }),
-      checks: { [failing]: { status: 'fail' }, parses: { status: 'pass' } },
-    });
-    const informational = SA_BSN_MODEL.informational;
+      checks: withExpectations(
+        { [failing]: { status: 'fail' }, parses: { status: 'pass' } },
+        { supported, informational },
+      ),
+    };
+  };
+
+  it("counts SA-BSN's failures: informational against param.zip and on 5305bc1 (#93 D2)", () => {
+    const status = (r: any, name: string) => r.checks[name].status;
+    // its variant: param.zip's files are informational, the runtime pair gates once supported
+    assert.strictEqual(
+      status(counted('SA-BSN', 'cc808b6', 'mdp', true), 'mdp'),
+      'informational',
+    );
+    assert.strictEqual(
+      status(counted('SA-BSN', 'cc808b6', 'runtimePair', true), 'runtimePair'),
+      'fail',
+    );
+    assert.strictEqual(
+      status(counted('SA-BSN', 'cc808b6', 'runtimePair', false), 'runtimePair'),
+      'expected-fail',
+    );
+    // the other variant: everything, even generating, supported or not
+    for (const supported of [true, false])
+      assert.strictEqual(
+        status(
+          counted('SA-BSN', '5305bc1', 'generates', supported),
+          'generates',
+        ),
+        'informational',
+      );
+    // passing checks are left as they are
+    assert.strictEqual(
+      status(counted('SA-BSN', '5305bc1', 'generates', true), 'parses'),
+      'pass',
+    );
+  });
+
+  it("fails --strict only on a supported model's counted failures (SA-BSN: cc808b6 only)", () => {
+    const supported = new Set(['SA-BSN', 'AND']);
     assert.deepStrictEqual(
       strictFailures(
         [
-          result('SA-BSN', 'mdp', informational),
-          result('SA-BSN', 'build', informational),
-          result('BSN', 'mdp'),
+          counted('SA-BSN', 'cc808b6', 'mdp', true),
+          counted('SA-BSN', '5305bc1', 'generates', true),
+          counted('SA-BSN', '5305bc1', 'runtimePair', true),
+          counted('AND', 'cc808b6', 'build', true),
+          counted('BSN', '5305bc1', 'mdp', false),
         ],
         supported,
       ),
@@ -726,10 +780,13 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
     );
     assert.deepStrictEqual(
       strictFailures(
-        [result('SA-BSN', 'runtimePair', informational), result('AND', 'mdp')],
+        [
+          counted('SA-BSN', 'cc808b6', 'runtimePair', true),
+          counted('AND', 'cc808b6', 'mdp', true),
+        ],
         supported,
-      ).map((r: any) => r.model),
-      ['SA-BSN', 'AND'],
+      ).map((r: any) => `${r.model} ${r.variant}`),
+      ['SA-BSN cc808b6', 'AND cc808b6'],
     );
   });
 
@@ -740,13 +797,16 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
       RUNTIME_MODEL,
       { bc: false },
     );
-    const sa = (variant: string, checks: Record<string, any>) => ({
-      model: 'SA-BSN',
-      issue: '#94',
-      variant,
-      informational: SA_BSN_MODEL.informational,
-      checks,
-    });
+    const sa = (variant: string, checks: Record<string, any>) => {
+      const informational = SA_BSN_MODEL.informational(variant);
+      return {
+        model: 'SA-BSN',
+        issue: '#94',
+        variant,
+        informational,
+        checks: withExpectations(checks, { supported: true, informational }),
+      };
+    };
     const summary = markdown({
       commit: 'c8519f7',
       saBsnCommit: 'f939d3c',
@@ -770,7 +830,7 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
           ...passing,
         }),
         sa('5305bc1', {
-          generates: { status: 'expected-fail', error: 'no context' },
+          generates: { status: 'fail', error: 'no context' },
           mdp: { status: 'unavailable' },
           runtimePair: { status: 'unavailable' },
         }),
@@ -786,8 +846,14 @@ describe('GODA stress test: SA-BSN references (#95)', () => {
     assert.match(summary, /\| CostMin\.pctl \| ✅ \| — \|/);
     assert.match(
       summary,
-      /\*\*SA-BSN cc808b6\*\* · mdp \(informational: param\.zip's generator version is unknown\): CTX_1/,
+      /\*\*SA-BSN cc808b6\*\* · mdp \(informational: param\.zip was generated from an earlier revision of the model\): CTX_1/,
     );
-    assert.match(summary, /\*\*SA-BSN 5305bc1\*\* · generates: no context/);
+    assert.match(
+      summary,
+      /\*\*SA-BSN 5305bc1\*\* · generates \(informational: not SA-BSN's variant \(cc808b6, #93 D2\): upstream 5305bc1 throws on this model too\): no context/,
+    );
+    // informational in the main table, not a failure
+    assert.match(summary, /\| SA-BSN \(#94, 5305bc1\) \|[^\n]*ℹ️/);
+    assert.doesNotMatch(summary, /\| SA-BSN \(#94, 5305bc1\) \|[^\n]*❌/);
   });
 });

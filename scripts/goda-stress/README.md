@@ -34,11 +34,15 @@ The model comes from lesunb/bsn at `f939d3c8` (MIT):
 These are fetched into `.cache/goda/sa-bsn/<commit>/`, and `param.zip` is
 unzipped into `param/` (`zip.cjs`, no `unzip` needed).
 
-- **Against param.zip.** `param.zip`'s generator version is unknown, so the
-  model runs with both variants, one result each. The SUMMARY's
-  "Against param.zip" table says which variant reproduces which of its
-  eight files, if any. Those comparisons are `informational`: they never
-  fail `--strict`.
+- **Variants.** SA-BSN's variant is `cc808b6` (#93 D2). The model also runs
+  with `5305bc1`, which throws on `[G3#G4]` as upstream does; that row is
+  informational throughout. The SUMMARY's "Against param.zip" table says
+  which variant reproduces which of the archive's eight files.
+  `param.zip` was generated from an earlier revision of the model (#98),
+  so those comparisons are informational too. An informational failure
+  (ℹ️) is reported but never fails `--strict`. So with SA-BSN in
+  `SUPPORTED`, only cc808b6's parsing, round-trip, dialect checks,
+  generation and runtime checks gate.
 - **The runtime's files.** The BSN runtime doesn't read the goal model. It
   loads `reliability.formula` and `cost.formula`, and its engines find the
   components by scanning the terms. The engine is run with

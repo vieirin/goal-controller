@@ -17,8 +17,9 @@
  * Exits non-zero only on a regression in the other engines. A failure on a
  * model whose issue hasn't landed is expected and reported as such; one on
  * a model whose issue has (SUPPORTED) is reported as a failure, and fails
- * the run with `--strict`. A model's `informational` checks (SA-BSN's
- * comparisons with param.zip, whose generator version is unknown) never do.
+ * the run with `--strict`. A model's `informational` checks never do: SA-BSN's
+ * comparisons with param.zip, and every check of its other variant (#93 D2).
+ * So once SA-BSN is in SUPPORTED (#94 landed), only its cc808b6 row gates.
  */
 const fs = require('fs');
 const path = require('path');
@@ -29,7 +30,11 @@ const {
   fetchExamples,
   fetchSaBsn,
 } = require('./fetch.cjs');
-const { checkModel, strictFailures } = require('./checks.cjs');
+const {
+  checkModel,
+  strictFailures,
+  withExpectations,
+} = require('./checks.cjs');
 const { godaEngine } = require('./engine.cjs');
 const { markdown } = require('./report.cjs');
 const { loadReferences } = require('./references.cjs');
@@ -55,19 +60,6 @@ const load = () => ({
     require.resolve('@istar-ts/core', { paths: [pkg('goal-tree')] }),
   ),
 });
-
-/** A model's failures are expected until its issue lands. */
-const withExpectations = (name, checks) =>
-  SUPPORTED.has(name)
-    ? checks
-    : Object.fromEntries(
-        Object.entries(checks).map(([key, check]) => [
-          key,
-          check.status === 'fail'
-            ? { ...check, status: 'expected-fail' }
-            : check,
-        ]),
-      );
 
 const main = async () => {
   const args = new Set(process.argv.slice(2));
@@ -99,10 +91,13 @@ const main = async () => {
     let checks;
     try {
       checks = withExpectations(
-        reference.name,
         checkModel(deps, engine, reference, {
           build: !args.has('--no-build-check'),
         }),
+        {
+          supported: SUPPORTED.has(reference.name),
+          informational: reference.informational,
+        },
       );
     } finally {
       loud();
