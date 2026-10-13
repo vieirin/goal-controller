@@ -152,7 +152,7 @@ export default function NotationEditor({
         }
       }),
     ],
-    [definition, support, selectable],
+    [support, selectable],
   );
 
   // the selected element's line: highlighted, and revealed unless chosen here
