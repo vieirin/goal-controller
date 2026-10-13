@@ -87,10 +87,10 @@ const annotationsOf = (file: DeclaredFile): Annotation[] => {
     if (seen.has(parser)) return;
     seen.add(parser);
     for (const kind of Object.values(parser.options.kinds ?? {}))
-      found.push({ defines: kind }, { refersTo: [kind] });
+      if (kind) found.push({ defines: kind }, { refersTo: [kind] });
     for (const properties of Object.values(parser.options.annotate ?? {}))
-      for (const marks of Object.values(properties))
-        if (typeof marks !== 'function')
+      for (const marks of Object.values(properties ?? {}))
+        if (marks && typeof marks !== 'function')
           for (const mark of marks) {
             const annotation = annotationOf(mark);
             if (annotation) found.push(annotation);

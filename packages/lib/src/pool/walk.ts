@@ -335,7 +335,11 @@ export const walkLangium = (
     const mapped = annotate[ast.$type] ?? {};
     const marksOf = (property: string): Annotation[] => {
       const declared = mapped[property];
-      return (typeof declared === 'function' ? declared(ast) : (declared ?? []))
+      return (
+        typeof declared === 'function'
+          ? declared(ast as AstNode & Record<string, unknown>)
+          : (declared ?? [])
+      )
         .map((m: Annotated) => annotationOf(m))
         .filter((m): m is Annotation => m !== undefined);
     };

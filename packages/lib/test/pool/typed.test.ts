@@ -7,6 +7,8 @@
 import { expect } from 'chai';
 import * as z from 'zod/mini';
 import { createPool } from '../../src/engines/definitionPool';
+import type { ToyAstType } from './toy/generated/ast';
+import { toyLanguage } from './toy/language';
 import {
   annotationsFor,
   defineEngine,
@@ -103,6 +105,50 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
     });
     expect(misspelt).to.be.a('function');
     expect(checks).to.have.length(2);
+  });
+
+  it('types a Langium language by its generated AST types', () => {
+    const { langium } = annotationsFor(KINDS, MESSAGES);
+    const typed = () => [
+      langium<ToyAstType>(toyLanguage, {
+        start: 'Model',
+        kinds: { Thing: 'toy.thing', Shelf: 'toy.shelf' },
+        scopes: ['Thing'],
+        annotate: {
+          // the node is a Put: no cast
+          Put: { part: (node) => (node.part ? [refersTo('toy.thing')] : []) },
+        },
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        // @ts-expect-error: no such rule
+        start: 'Modle',
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        // @ts-expect-error: no such kind
+        kinds: { Thing: 'toy.thinng' },
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        // @ts-expect-error: no such AST type
+        kinds: { Thingy: 'toy.thing' },
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        // @ts-expect-error: no such AST type
+        scopes: ['Thingy'],
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        // @ts-expect-error: no such property of a Put
+        annotate: { Put: { parts: [refersTo('toy.thing')] } },
+      }),
+      langium<ToyAstType>(toyLanguage, {
+        annotate: {
+          // @ts-expect-error: a Put has no name
+          Put: { part: (node) => (node.name ? [] : []) },
+        },
+      }),
+      // untyped, as before: any name
+      langium(toyLanguage, { start: 'Anything', kinds: { Any: 'toy.thing' } }),
+    ];
+    expect(typed).to.be.a('function');
   });
 
   it('reads and checks as the untyped protocol does', () => {

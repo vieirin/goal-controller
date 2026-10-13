@@ -22,6 +22,7 @@ import {
   type Parser,
   type RefersToOptions,
   type Scope,
+  type UntypedAst,
 } from './protocol';
 
 export type TypedAnnotations<K extends string, M extends string> = {
@@ -33,7 +34,10 @@ export type TypedAnnotations<K extends string, M extends string> = {
   ) => Annotated;
   link: typeof link;
   written: typeof written;
-  langium: (grammar: LangiumGrammar, options?: LangiumOptions<K>) => Parser;
+  langium: <A extends object = UntypedAst>(
+    grammar: LangiumGrammar,
+    options?: LangiumOptions<K, NoInfer<A>>,
+  ) => Parser;
 };
 
 /**
@@ -44,4 +48,11 @@ export type TypedAnnotations<K extends string, M extends string> = {
 export const annotationsFor = <K extends string, M extends string = string>(
   _kinds?: Readonly<Record<K, unknown>>,
   _messages?: Readonly<Record<M, unknown>>,
-): TypedAnnotations<K, M> => ({ defines, refersTo, link, written, langium });
+): TypedAnnotations<K, M> => ({
+  defines,
+  refersTo,
+  link,
+  written,
+  // the same function: its options typed by the engine's kinds
+  langium: langium as TypedAnnotations<K, M>['langium'],
+});

@@ -169,36 +169,52 @@ declare const parserBrand: unique symbol;
  */
 export type Parser = { readonly [parserBrand]: true; readonly name: string };
 
-export type LangiumOptions<K extends string = Kind> = {
-  /** the rule a text starts with (the grammar's entry rule: none given) */
-  start?: string;
+/**
+ * A language's AST types by name, as `langium generate` writes them
+ * (`<Language>AstType` in its ast.ts). Untyped: any name, any property.
+ */
+export type UntypedAst = Record<string, AstNode & Record<string, unknown>>;
+
+/** An AST type's own properties (not Langium's `$` ones). */
+type PropertyOf<N> = Exclude<keyof N & string, `$${string}`>;
+
+/**
+ * How a Langium language is read, typed by its AST types (`A`, the
+ * generated `<Language>AstType`) and the engine's kinds (`K`):
+ * `langium<ToyAstType>(services, { start: 'Model', ... })`.
+ */
+export type LangiumOptions<
+  K extends string = Kind,
+  A extends object = UntypedAst,
+> = {
+  /**
+   * the rule a text starts with (the grammar's entry rule: none given). It
+   * is typed by the AST types' names, which the rules started from are.
+   */
+  start?: keyof A & string;
   /**
    * AST types as the pool's kinds: a node of a mapped type with a `name`
    * defines it (a member of the nearest enclosing definition); a
    * cross-reference (`[Type:ID]`) to a mapped type refers to it, looked up
    * from the nearest enclosing definition outwards
    */
-  kinds?: Readonly<Record<string, K>>;
+  kinds?: { readonly [T in keyof A & string]?: K };
   /**
    * AST types that own the members written in them, as a definition does,
    * without being one (a quantifier's variables)
    */
-  scopes?: readonly string[];
+  scopes?: readonly (keyof A & string)[];
   /**
    * what the grammar can't say: per AST type, per property, its
    * annotations (or, given the node, which ones apply)
    */
-  annotate?: Readonly<
-    Record<
-      string,
-      Readonly<
-        Record<
-          string,
-          readonly Annotated[] | ((node: AstNode) => readonly Annotated[])
-        >
-      >
-    >
-  >;
+  annotate?: {
+    readonly [T in keyof A & string]?: {
+      readonly [P in PropertyOf<A[T]>]?:
+        | readonly Annotated[]
+        | ((node: A[T]) => readonly Annotated[]);
+    };
+  };
 };
 
 /** A Langium language's services (its generated module, injected), parser only. */

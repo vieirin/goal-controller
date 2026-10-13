@@ -13,26 +13,42 @@ no engine.
 ```ts
 import * as z from 'zod/mini';
 // an engine's folder, lib/src/engines/<engine>/
-import { defineEngine, defineFile, defines, json, langium, refersTo, scope } from '../../pool';
+import {
+  defineEngine,
+  defineFile,
+  defines,
+  json,
+  langium,
+  refersTo,
+  scope,
+} from '../../pool';
 
 const shelves = defineFile({
   kind: 'shelves', // the project-resource kind
   parser: json,
   schema: z.object({
-    shelves: z.array(z.object({
-      name: z.string().check(defines('toy.shelf')),
-      holds: z.array(z.object({
-        thing: z.string().check(refersTo('toy.thing')),
-        part: z.optional(z.string().check(refersTo('toy.part', scope.owner('thing')))),
-      })),
-    })),
+    shelves: z.array(
+      z.object({
+        name: z.string().check(defines('toy.shelf')),
+        holds: z.array(
+          z.object({
+            thing: z.string().check(refersTo('toy.thing')),
+            part: z.optional(
+              z.string().check(refersTo('toy.part', scope.owner('thing'))),
+            ),
+          }),
+        ),
+      }),
+    ),
   }),
 });
 
 const things = defineFile({
   kind: 'things',
   extensions: ['.toy'],
-  parser: langium(toyLanguage, { kinds: { Thing: 'toy.thing', Part: 'toy.part', Shelf: 'toy.shelf' } }),
+  parser: langium(toyLanguage, {
+    kinds: { Thing: 'toy.thing', Part: 'toy.part', Shelf: 'toy.shelf' },
+  }),
 });
 
 export const toy = defineEngine({
@@ -51,11 +67,15 @@ That is a whole engine. `test/pool/toy/engine.ts` is this engine, and
 ## Running it
 
 ```ts
-import { createPool, definitionAt, pool as protocol } from '@goal-controller/lib';
+import {
+  createPool,
+  definitionAt,
+  pool as protocol,
+} from '@goal-controller/lib';
 
 const pool = createPool(protocol.poolOf(toy)); // once per editor
 const index = pool.update(documents); // on every change; only changed documents are read again
-index.diagnostics;                     // every problem, in every document
+index.diagnostics; // every problem, in every document
 definitionAt(index, { document: 'shelves.json', offset: 42 });
 ```
 
@@ -77,13 +97,13 @@ Kinds keep the names you declared.
 
 The parsers are a closed set. An engine picks one and never writes its own.
 
-| parser | reads | the value the schema sees | locations |
-|---|---|---|---|
-| `json` | strict JSON (`jsonc-parser`) | the parsed value | a string's text, without its quotes |
-| `xml` | XML (`@rgrove/parse-xml`) | each element is `{ name, close?, attributes, children, text? }`: `name` is the opening tag's name, `close` the closing tag's (absent when self-closed), `attributes` a record, `children` the child elements, `text` the trimmed text of an element with no children | the tag name, the closing tag name, an attribute's value |
-| `yaml` | YAML (`yaml`) | the parsed value; an alias reads as what it names | a scalar's text, without its quotes |
-| `goalModel` | the goal model's `DocumentTree` | one element at a time: `{ key, id, kind, name, properties }`. The schema describes ONE element, and an element it rejects is left out without a word (the dialect checks the model) | `model:<key>:<field>`, where `<field>` is `id`, `name` or a property's key, and offsets are within that field |
-| `langium(services, options)` | a Langium language | the AST (no schema) | the CST's offsets |
+| parser                       | reads                           | the value the schema sees                                                                                                                                                                                                                                            | locations                                                                                                     |
+| ---------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `json`                       | strict JSON (`jsonc-parser`)    | the parsed value                                                                                                                                                                                                                                                     | a string's text, without its quotes                                                                           |
+| `xml`                        | XML (`@rgrove/parse-xml`)       | each element is `{ name, close?, attributes, children, text? }`: `name` is the opening tag's name, `close` the closing tag's (absent when self-closed), `attributes` a record, `children` the child elements, `text` the trimmed text of an element with no children | the tag name, the closing tag name, an attribute's value                                                      |
+| `yaml`                       | YAML (`yaml`)                   | the parsed value; an alias reads as what it names                                                                                                                                                                                                                    | a scalar's text, without its quotes                                                                           |
+| `goalModel`                  | the goal model's `DocumentTree` | one element at a time: `{ key, id, kind, name, properties }`. The schema describes ONE element, and an element it rejects is left out without a word (the dialect checks the model)                                                                                  | `model:<key>:<field>`, where `<field>` is `id`, `name` or a property's key, and offsets are within that field |
+| `langium(services, options)` | a Langium language              | the AST (no schema)                                                                                                                                                                                                                                                  | the CST's offsets                                                                                             |
 
 A Zod schema (classic or `zod/mini`) checks a JSON, XML or YAML file. What the
 schema rejects becomes a `schema` diagnostic where it is written: a missing
@@ -172,12 +192,12 @@ function). Paths go from the AST up into the objects around the string, so
 An annotation finds a related value by a path. Lists don't count as levels.
 An object counts, and so does a Langium node.
 
-| path | the value at |
-|---|---|
-| `'task_id'` | that key of the object the value is in |
-| `'../task_id'` | that key of the object one level up (one `../` per level) |
-| `'^id'` | that key of the nearest enclosing object that has it, starting with the value's own object |
-| `scope.previous(path)` | the same place in the item before this one in its list; for the first item, `path` |
+| path                   | the value at                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| `'task_id'`            | that key of the object the value is in                                                     |
+| `'../task_id'`         | that key of the object one level up (one `../` per level)                                  |
+| `'^id'`                | that key of the nearest enclosing object that has it, starting with the value's own object |
+| `scope.previous(path)` | the same place in the item before this one in its list; for the first item, `path`         |
 
 There are no indexes, no descent into children, and no references between two
 elements of the goal model.
@@ -258,6 +278,21 @@ const check: Check<keyof typeof KINDS, keyof typeof MESSAGES> = (pool) => …;
 export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, checks: [check] });
 ```
 
+A Langium language is typed by the AST types `langium generate` writes, which
+is the `<Language>AstType` map in its `ast.ts`:
+
+```ts
+langium<ToyAstType>(toyLanguage, {
+  start: 'Model',                                  // an AST type's name
+  kinds: { Thing: 'toy.thing' },                   // AST types → the engine's kinds
+  annotate: { Put: { part: (node) => … } },        // node: Put, its properties checked
+});
+```
+
+`start` is typed by the AST types' names, because no union of rule names is
+generated, and the rules a text starts from are AST types too. Without the
+type argument, any name goes, as before.
+
 After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'])`,
 `unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,
 `problem(…, 'toy.emptyShelve')` and `typeOf: { kinds: ['toy.shelve'] }` all
@@ -272,18 +307,18 @@ same functions. `test/pool/typed.test.ts` is the example.
 A check is `(pool: TypedPool) => Problem[]`. It reads typed values and
 resolved names, never facts.
 
-| `TypedPool` | |
-|---|---|
-| `definitions(kind)` | every definition of a kind |
-| `references(kinds?)` | every reference (to these kinds) |
-| `referencesTo(definition)` | what refers to it |
-| `links(name, definition)` | where its links lead |
-| `typeOf(definition)` | the definition its type names |
-| `find(kinds, name, owner?)` | a definition by name, in an owner, then globally |
-| `has(file)` | whether a document of that file kind is in the project |
-| `values(file)` | the typed values of a file kind's documents |
-| `locate(document, path)` | where a path of a document's value is written |
-| `problem(location, severity, check, args?)` | a problem anywhere |
+| `TypedPool`                                 |                                                        |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `definitions(kind)`                         | every definition of a kind                             |
+| `references(kinds?)`                        | every reference (to these kinds)                       |
+| `referencesTo(definition)`                  | what refers to it                                      |
+| `links(name, definition)`                   | where its links lead                                   |
+| `typeOf(definition)`                        | the definition its type names                          |
+| `find(kinds, name, owner?)`                 | a definition by name, in an owner, then globally       |
+| `has(file)`                                 | whether a document of that file kind is in the project |
+| `values(file)`                              | the typed values of a file kind's documents            |
+| `locate(document, path)`                    | where a path of a document's value is written          |
+| `problem(location, severity, check, args?)` | a problem anywhere                                     |
 
 A `Definition` and a `Reference` carry `name`, `location`, `file`,
 `document`, `path`, `value` (what was annotated) and `parent` (the object or
@@ -305,14 +340,14 @@ that isn't a key is shown as the text itself, under the check name `engine`.
 
 ## What the pool says by itself
 
-| check | severity | when |
-|---|---|---|
-| `syntax` | error | the file doesn't parse (JSON, XML, YAML, a Langium language) |
-| `schema` | error, or warning for an unknown key | the schema rejects a value |
-| `unresolved-reference` | warning | a reference resolves to nothing (see `refersTo`'s `unresolved`) |
-| `ambiguous-reference` | warning | two of a reference's kinds have the name |
-| `duplicate-definition` | error | a definition's (kind, owner, name) is defined already |
-| `unused-definition` | warning | nothing refers to it (`reportUnused` kinds only) |
+| check                  | severity                             | when                                                            |
+| ---------------------- | ------------------------------------ | --------------------------------------------------------------- |
+| `syntax`               | error                                | the file doesn't parse (JSON, XML, YAML, a Langium language)    |
+| `schema`               | error, or warning for an unknown key | the schema rejects a value                                      |
+| `unresolved-reference` | warning                              | a reference resolves to nothing (see `refersTo`'s `unresolved`) |
+| `ambiguous-reference`  | warning                              | two of a reference's kinds have the name                        |
+| `duplicate-definition` | error                                | a definition's (kind, owner, name) is defined already           |
+| `unused-definition`    | warning                              | nothing refers to it (`reportUnused` kinds only)                |
 
 ## Decisions (from #82's open questions)
 
@@ -347,7 +382,7 @@ that isn't a key is shown as the text itself, under the check name `engine`.
 - `read.ts` reads a tree file with its schema. This is #81's reader:
   positions are kept, and what is rejected is left out.
 - `walk.ts` walks the schema and the value together, and a Langium AST with
-  its options, into *entities*: an annotated value, its path, the objects
+  its options, into _entities_: an annotated value, its path, the objects
   around it, and where it is written.
 - `facts.ts` turns entities into #68's `PoolDefinition`/`PoolReference`. It
   computes ids and owners, first uses, types, scopes (`{ owner }`, or
