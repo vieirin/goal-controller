@@ -1,0 +1,8 @@
+{
+  "projectName": "Toy",
+  "languages": [
+    { "id": "toy", "grammar": "toy.langium", "fileExtensions": [".toy"] }
+  ],
+  "out": "generated",
+  "importExtension": ""
+}
