@@ -1,4 +1,5 @@
 /** The stress test's Markdown summary, from its results. */
+const { RUNTIME_CHECKS } = require('./runtime.cjs');
 
 const CHECKS = [
   ['parses', 'Parses'],
@@ -12,6 +13,26 @@ const CHECKS = [
   ['evalScript', 'eval_formula.sh'],
   ['performance', 'Time / size'],
   ['build', 'Builds'],
+];
+
+/** A runtime-consumed model's checks (SA-BSN, runtime.cjs), in their own table. */
+const RUNTIME_TITLES = {
+  runtimePair: 'Runtime pair',
+  termContract: 'Term contract',
+  evaluationParity: 'Evaluation parity',
+};
+const RUNTIME_COLUMNS = RUNTIME_CHECKS.map((key) => [key, RUNTIME_TITLES[key]]);
+
+/** param.zip's eight files, and the check that compares each one. */
+const REFERENCE_FILES = [
+  ['mdp', 'BSN.nm'],
+  ['pctl', 'ReachabilityMax.pctl'],
+  ['pctl', 'ReachabilityMin.pctl'],
+  ['pctl', 'CostMax.pctl'],
+  ['pctl', 'CostMin.pctl'],
+  ['reliability', 'reliability.out'],
+  ['cost', 'cost.out'],
+  ['evalScript', 'eval_formula.sh'],
 ];
 
 const MARK = {
@@ -34,10 +55,25 @@ const KNOWN_UPSTREAM = [
   "**Module order in the July 2019 references** (TAS, BSN, Fragmented). It follows the producer's traversal, since `Collections.sort` is commented out (PW:164). The MDP diff is order-sensitive and says `reordered` when only the order differs.",
   '**An OR with three or more children** makes a malformed formula: `currentFormula` is appended twice with no operator (PP:359, PP:365). None of the seven references has one.',
   "**Fragmented's 4092 `const int CTX_n` constants** are the power set of its decision-making contexts. Both generator versions make them (`writeNondeterministicModule`). This is a size and speed concern for #39, not a variant difference.",
+  "**SA-BSN's param.zip** (2020-07-01) comes from an unknown generator version: its `BSN.nm` numbers the contexts (`const int CTX_1; // SaO2_sensor = true`), and its `reliability.out` is not the runtime's `reliability.formula` (#93). Both variants run on it; those comparisons are informational and never fail `--strict`.",
+  '**The BSN runtime reads `reliability.formula` and `cost.formula`, not the goal model** (#93). Its engines find the components by scanning the terms for `CTX_`, `R_`, `F_` and `W_` (`std::string::find`), so the identifiers are its component set (the term contract).',
   "**Not variant behaviour, but framework items of #32:** BSN's repeated ids under G3 and G4 (item 4), TAS's Resources without ids (item 9), and Fragmented's spaces in brackets and dangling decision-making operands (items 5 and 1).",
 ];
 
 const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
+
+/** Whether a result's variant reproduces one of param.zip's files. */
+const fileCell = (result, [name, file]) => {
+  const check = result.checks[name];
+  if (!check || check.status === 'unavailable') return MARK.unavailable;
+  const equal =
+    name === 'pctl' ? check.files[file]?.equal : check.status === 'pass';
+  return equal ? MARK.pass : MARK.fail;
+};
+
+/** A result's name: with its variant when the model runs with several. */
+const rowName = (result) =>
+  result.informational ? `${result.model} ${result.variant}` : result.model;
 
 const cell = (check) => {
   if (!check) return '';
@@ -62,23 +98,58 @@ const divergences = (result) =>
               .filter(([, file]) => !file.equal)
               .map(([file]) => file)
               .join(', ')
-          : name === 'reliability' || name === 'cost'
-            ? `${check.mismatches?.count ?? 0} of ${check.points} points differ; variables only ours: ${check.variables?.onlyOurs.join(', ') || 'none'}, only the reference: ${check.variables?.onlyReference.join(', ') || 'none'}`
-            : name === 'evalScript'
-              ? `${check.onlyOurs?.count} parts only ours, ${check.onlyReference?.count} only the reference (compared as a set: upstream builds it from a HashMap)`
-              : name === 'parses'
-                ? check.errors
-                    .map(
-                      (e) =>
-                        `${e.elementId ?? '?'} \`${e.text}\`: ${e.message}`,
+          : name === 'runtimePair'
+            ? Object.entries(check.files)
+                .filter(([, file]) => !file.equal)
+                .map(
+                  ([kind, file]) =>
+                    `${kind}.formula differs from byte ${file.firstDifference}`,
+                )
+                .join('; ')
+            : name === 'termContract'
+              ? Object.entries(check.formulas)
+                  .filter(([, formula]) => !formula.equal)
+                  .map(([kind, formula]) =>
+                    formula.error
+                      ? `${kind}: ${formula.error}`
+                      : `${kind}: extra ${formula.extra.join(', ') || 'none'}; missing ${formula.missing.join(', ') || 'none'}`,
+                  )
+                  .join('; ')
+              : name === 'evaluationParity'
+                ? Object.entries(check.formulas)
+                    .filter(([, formula]) => !formula.equal)
+                    .map(([kind, formula]) =>
+                      formula.error
+                        ? `${kind}: ${formula.error}`
+                        : `${kind} at ${formula.points
+                            .filter((p) => !p.equal)
+                            .map(
+                              (p) =>
+                                `${p.point} (lib ${p.lib}, semantics ${p.semantics}${p.bc === undefined ? '' : `, bc ${p.bc}`})`,
+                            )
+                            .join(', ')}`,
                     )
                     .join('; ')
-                : name === 'roundTrip'
-                  ? `${check.edits.length} edits, not listed: ${check.notListed.join(', ') || 'none'}`
-                  : name === 'dialectChecks'
-                    ? `got ${JSON.stringify(check.got)}, expected ${JSON.stringify(check.expected)}`
-                    : JSON.stringify(check).slice(0, 200));
-    return [`- **${result.model}** · ${name}: ${what}`];
+                : name === 'reliability' || name === 'cost'
+                  ? `${check.mismatches?.count ?? 0} of ${check.points} points differ; variables only ours: ${check.variables?.onlyOurs.join(', ') || 'none'}, only the reference: ${check.variables?.onlyReference.join(', ') || 'none'}`
+                  : name === 'evalScript'
+                    ? `${check.onlyOurs?.count} parts only ours, ${check.onlyReference?.count} only the reference (compared as a set: upstream builds it from a HashMap)`
+                    : name === 'parses'
+                      ? check.errors
+                          .map(
+                            (e) =>
+                              `${e.elementId ?? '?'} \`${e.text}\`: ${e.message}`,
+                          )
+                          .join('; ')
+                      : name === 'roundTrip'
+                        ? `${check.edits.length} edits, not listed: ${check.notListed.join(', ') || 'none'}`
+                        : name === 'dialectChecks'
+                          ? `got ${JSON.stringify(check.got)}, expected ${JSON.stringify(check.expected)}`
+                          : JSON.stringify(check).slice(0, 200));
+    const informational = result.informational?.includes(name)
+      ? " (informational: param.zip's generator version is unknown)"
+      : '';
+    return [`- **${rowName(result)}** · ${name}${informational}: ${what}`];
   });
 
 /** Notes that aren't failures: a reference's own gaps, skipped checks. */
@@ -93,6 +164,7 @@ const notes = (result) =>
 
 const markdown = ({
   commit,
+  saBsnCommit,
   engine,
   results,
   regressions,
@@ -107,15 +179,43 @@ const markdown = ({
   );
   const failures = results.flatMap(divergences);
   const remarks = results.flatMap(notes);
+  const runtime = results.filter((result) => result.checks.runtimePair);
+  const againstParam = results.filter((result) => result.informational);
   return [
     '# GODA-MDP stress test',
     '',
-    `pistarGODA-MDP at \`${commit}\` · engine: ${engine ? 'GODA (lib)' : 'not in the built lib (#32): its checks are unavailable'} · ${generatedAt}`,
+    `pistarGODA-MDP at \`${commit}\`${saBsnCommit ? ` · lesunb/bsn at \`${saBsnCommit}\`` : ''} · engine: ${engine ? 'GODA (lib)' : 'not in the built lib (#32): its checks are unavailable'} · ${generatedAt}`,
     '',
     header,
     rule,
     ...rows,
     '',
+    ...(runtime.length
+      ? [
+          '## Runtime checks (the files the BSN runtime loads)',
+          '',
+          `| Model (issue, generator) | ${RUNTIME_COLUMNS.map(([, title]) => title).join(' | ')} |`,
+          `|---|${RUNTIME_COLUMNS.map(() => '---').join('|')}|`,
+          ...runtime.map(
+            (result) =>
+              `| ${result.model} (${result.issue}, ${result.variant}) | ${RUNTIME_COLUMNS.map(([key]) => cell(result.checks[key])).join(' | ')} |`,
+          ),
+          '',
+        ]
+      : []),
+    ...(againstParam.length
+      ? [
+          '## Against param.zip, per file (informational)',
+          '',
+          `| File | ${againstParam.map((result) => result.variant).join(' | ')} |`,
+          `|---|${againstParam.map(() => '---').join('|')}|`,
+          ...REFERENCE_FILES.map(
+            (file) =>
+              `| ${file[1]} | ${againstParam.map((result) => fileCell(result, file)).join(' | ')} |`,
+          ),
+          '',
+        ]
+      : []),
     `${MARK.pass} pass · ${MARK.fail} fail · ${MARK['expected-fail']} fails on a model its issue hasn't brought up yet (expected) · ${MARK.skipped} skipped (a tool not on PATH) · ${MARK.unavailable} unavailable`,
     '',
     `**Regressions in the other engines** (language snapshot against the baseline): ${regressions.status}${regressions.changed ? ` (${regressions.files} files; ${regressions.changed.length} changed, ${regressions.added.length} added, ${regressions.removed.length} removed)` : regressions.reason ? `: ${regressions.reason}` : ''}`,
@@ -134,4 +234,10 @@ const markdown = ({
   ].join('\n');
 };
 
-module.exports = { CHECKS, KNOWN_UPSTREAM, markdown };
+module.exports = {
+  CHECKS,
+  KNOWN_UPSTREAM,
+  REFERENCE_FILES,
+  RUNTIME_COLUMNS,
+  markdown,
+};

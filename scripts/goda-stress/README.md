@@ -1,7 +1,7 @@
 # GODA-MDP stress test (goal-controller#35)
 
-Runs #32's "Stress test" checks on pistarGODA-MDP's seven examples, through
-the GODA engine in `@goal-controller/lib`.
+Runs #32's "Stress test" checks on pistarGODA-MDP's seven examples, and on
+SA-BSN's goal model (#95), through the GODA engine in `@goal-controller/lib`.
 
 ```sh
 pnpm stress:goda                                   # builds the packages, then runs everything
@@ -13,7 +13,7 @@ node scripts/goda-stress/run.cjs --no-build-check  # don't build the MDPs with S
 The first run fetches the examples at `c8519f70` into `.cache/goda/` (network
 needed once). The upstream repository has no licence, so nothing from it is
 committed (#34 D1). Results go to `.cache/goda/results/`: `SUMMARY.md`,
-`summary.json` and one JSON file per model.
+`summary.json` and one JSON file per model (`SA-BSN-<variant>.json` for SA-BSN).
 
 What a check compares:
 
@@ -27,21 +27,50 @@ What a check compares:
   is never in the script), `true` for a `bool`. It lists those constants as
   `defaulted`.
 
-| File | What |
-|---|---|
-| `fetch.cjs` | the examples at the pinned commit, cached |
-| `references.cjs` | each model, its reference outputs, its issue and generator version (#34 D10) |
-| `engine.cjs` | the one adapter over lib's `goda`, `godaOutput`, `GODA_IMPLEMENTED_VARIANTS` |
-| `checks.cjs` | the checks on one model |
-| `compare.cjs` | MDP after whitespace normalization, PCTL bytes, eval_formula.sh as a set (D15); the formulas with lib's evaluator |
-| `build.cjs` | Storm or PRISM builds the MDP when one is on PATH (skipped otherwise) |
-| `snapshot.cjs` | the other engines' language snapshot against the baseline |
-| `report.cjs` | `SUMMARY.md`, including upstream's known behaviour |
+## SA-BSN (#93, #95)
+
+The model comes from lesunb/bsn at `f939d3c8` (MIT):
+`src/sa-bsn/knowledge_repository/resource/models/{goalModel.txt, reliability.formula, cost.formula, param.zip}`.
+These are fetched into `.cache/goda/sa-bsn/<commit>/`, and `param.zip` is
+unzipped into `param/` (`zip.cjs`, no `unzip` needed).
+
+- **Against param.zip.** `param.zip`'s generator version is unknown, so the
+  model runs with both variants, one result each. The SUMMARY's
+  "Against param.zip" table says which variant reproduces which of its
+  eight files, if any. Those comparisons are `informational`: they never
+  fail `--strict`.
+- **The runtime's files.** The BSN runtime doesn't read the goal model. It
+  loads `reliability.formula` and `cost.formula`, and its engines find the
+  components by scanning the terms. The engine is run with
+  `runtimeFormulas: true` (#94), and `runtime.cjs` checks its pair:
+  - **runtimePair**: byte-identical to upstream's (no trailing newline);
+  - **termContract**: the reliability formula's identifiers are exactly
+    `{CTX_, F_, R_}` × the seven components (`G3_T1_1` … `G3_T1_6`,
+    `G4_T1`), and the cost formula's `{CTX_, W_}` × the same;
+  - **evaluationParity**: lib's evaluator against the runtime's semantics
+    in plain arithmetic (Π CTX·F·R, Σ CTX·W), and against `bc` on the same
+    text when `bc` is on PATH, within 1e-12. It uses three value sets:
+    `eval_formula.sh`'s, the engines' initial strategy (`CTX_` 0, `R_`,
+    `F_`, `W_` 1), and `eval_formula.sh`'s with `G3_T1_5` deactivated.
+
+| File             | What                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `fetch.cjs`      | the examples at the pinned commit, and SA-BSN's files, cached                                                     |
+| `zip.cjs`        | `param.zip`'s files, with Node's zlib                                                                             |
+| `references.cjs` | each model, its reference outputs, its issue and generator version (#34 D10); SA-BSN's components                 |
+| `engine.cjs`     | the one adapter over lib's `goda`, `godaOutput`, `GODA_IMPLEMENTED_VARIANTS`                                      |
+| `checks.cjs`     | the checks on one model; which failures count under `--strict`                                                    |
+| `runtime.cjs`    | the runtime pair, the term contract and evaluation parity                                                         |
+| `compare.cjs`    | MDP after whitespace normalization, PCTL bytes, eval_formula.sh as a set (D15); the formulas with lib's evaluator |
+| `build.cjs`      | Storm or PRISM builds the MDP when one is on PATH (skipped otherwise)                                             |
+| `snapshot.cjs`   | the other engines' language snapshot against the baseline                                                         |
+| `report.cjs`     | `SUMMARY.md`, including upstream's known behaviour                                                                |
 
 **Exit code.** It is non-zero only on a regression in the other engines. With
 `--strict`, a failure of a model whose issue has landed also counts (`run.cjs`'s
-`SUPPORTED`: AND, OR, DM, Incompleteness, TAS). A failure on any other model
-(Fragmented #39, BSN #40) is an expected failure until its issue lands.
+`SUPPORTED`: AND, OR, DM, Incompleteness, TAS), except a model's informational
+checks. A failure on any other model (Fragmented #39, BSN #40, SA-BSN #94) is
+an expected failure until its issue lands.
 
 **Expected diagnostics.** When a model PR settles which dialect diagnostics a
 model should have, it lists them in `checks.cjs`'s `EXPECTED_DIAGNOSTICS`.

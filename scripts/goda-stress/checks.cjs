@@ -3,7 +3,9 @@
  * round-trips through the notation and passes the dialect's checks; its MDP,
  * PCTL files, formulas and eval_formula.sh (its lines as a set) against
  * the reference; generation time and size;
- * and (when PRISM or Storm is on PATH) whether the MDP builds.
+ * and (when PRISM or Storm is on PATH) whether the MDP builds. On a model
+ * the BSN runtime consumes (one with `components`: SA-BSN), also the
+ * runtime pair, the term contract and evaluation parity (runtime.cjs).
  *
  * Each check is `{ status, ...details }`, status one of:
  * - `pass`, `fail`;
@@ -18,6 +20,7 @@ const {
   diffMdp,
 } = require('./compare.cjs');
 const { PCTL, outputRoles } = require('./references.cjs');
+const { RUNTIME_CHECKS, checkRuntime } = require('./runtime.cjs');
 
 /**
  * The dialect's diagnostics each model is expected to have (`check: message`),
@@ -65,6 +68,17 @@ const checkModel = (
 ) => {
   const { goalTree, language } = deps;
   const checks = {};
+  // the checks that need the engine's output
+  const outputChecks = [
+    'mdp',
+    'pctl',
+    'reliability',
+    'cost',
+    'evalScript',
+    'performance',
+    'build',
+    ...(reference.components ? RUNTIME_CHECKS : []),
+  ];
   if (!engine) {
     const why = unavailable('the GODA dialect is not in the built lib (#32)');
     for (const name of [
@@ -72,13 +86,7 @@ const checkModel = (
       'roundTrip',
       'dialectChecks',
       'generates',
-      'mdp',
-      'pctl',
-      'reliability',
-      'cost',
-      'evalScript',
-      'performance',
-      'build',
+      ...outputChecks,
     ])
       checks[name] = why;
     return checks;
@@ -157,6 +165,7 @@ const checkModel = (
       for (let i = 0; i < runs; i += 1) {
         const started = process.hrtime.bigint();
         output = engine.output(model, {
+          ...reference.options,
           modelName: reference.modelName,
           variant: reference.variant,
         });
@@ -176,15 +185,7 @@ const checkModel = (
     }
   if (!output) {
     // a failed check before: the ones that need the output can't run
-    for (const name of [
-      'mdp',
-      'pctl',
-      'reliability',
-      'cost',
-      'evalScript',
-      'performance',
-      'build',
-    ])
+    for (const name of outputChecks)
       checks[name] = unavailable(
         `no output: ${checks.generates.error ?? checks.generates.reason}`,
       );
@@ -259,10 +260,38 @@ const checkModel = (
     build && ours.mdp
       ? buildMdp(ours.mdp.text, reference.reference.evalValues)
       : { status: 'skipped', reason: build ? 'no .nm file' : 'not asked for' };
+  if (reference.components)
+    Object.assign(
+      checks,
+      checkRuntime(ours.runtime, reference.reference, reference),
+    );
   return checks;
 };
 
 /** The checks that need a binary on PATH (the rest must pass for AND and OR). */
 const EXTERNAL = new Set(['build']);
 
-module.exports = { EXPECTED_DIAGNOSTICS, EXTERNAL, checkModel, readModel };
+/**
+ * The results that fail `--strict`: a supported model's failed check, but
+ * not one needing a binary (EXTERNAL) nor one of the model's informational
+ * checks (SA-BSN's against param.zip).
+ */
+const strictFailures = (results, supported) =>
+  results.filter(
+    (result) =>
+      supported.has(result.model) &&
+      Object.entries(result.checks).some(
+        ([name, check]) =>
+          check.status === 'fail' &&
+          !EXTERNAL.has(name) &&
+          !result.informational?.includes(name),
+      ),
+  );
+
+module.exports = {
+  EXPECTED_DIAGNOSTICS,
+  EXTERNAL,
+  checkModel,
+  readModel,
+  strictFailures,
+};
