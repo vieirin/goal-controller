@@ -483,7 +483,7 @@ function TracedOutput({
         },
       }),
     ],
-    [],
+    [traced],
   );
 
   // highlight + reveal the selected node
