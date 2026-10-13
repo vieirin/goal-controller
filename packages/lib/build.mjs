@@ -1,13 +1,13 @@
-// MutRoSe's language (src/engines/mutrose/language) for lib's CommonJS out/:
-// Langium is ESM-only, so the language is bundled with it, into
-// out/engines/mutrose/language.js. A `require('./language')` finds that file
-// before the language/ directory tsc writes, so tsc and this never write the
-// same file (`--watch`: rebuilt on each change, beside `tsc --watch`).
+// What reads Langium, for lib's CommonJS out/: Langium is ESM-only, so
+// MutRoSe's language (src/engines/mutrose/language) and the pool's protocol
+// (src/pool, which reads any engine's Langium language) are each bundled
+// with it, into out/engines/mutrose/language.js and out/pool.js. A
+// `require('./language')` finds that file before the directory tsc writes,
+// so tsc and this never write the same file (`--watch`: rebuilt on each
+// change, beside `tsc --watch`).
 import { build, context } from 'esbuild';
 
-const options = {
-  entryPoints: ['src/engines/mutrose/language/index.ts'],
-  outfile: 'out/engines/mutrose/language.js',
+const shared = {
   bundle: true,
   platform: 'node',
   format: 'cjs',
@@ -16,6 +16,28 @@ const options = {
   external: ['@goal-controller/*'],
   logLevel: 'warning',
 };
+const bundles = [
+  {
+    ...shared,
+    entryPoints: ['src/engines/mutrose/language/index.ts'],
+    outfile: 'out/engines/mutrose/language.js',
+  },
+  {
+    ...shared,
+    entryPoints: ['src/pool/index.ts'],
+    outfile: 'out/pool.js',
+    // CommonJS already: not bundled
+    external: [
+      ...shared.external,
+      'zod',
+      'zod/*',
+      'jsonc-parser',
+      'yaml',
+      '@rgrove/parse-xml',
+    ],
+  },
+];
 
-if (process.argv.includes('--watch')) await (await context(options)).watch();
-else await build(options);
+if (process.argv.includes('--watch'))
+  for (const options of bundles) await (await context(options)).watch();
+else await Promise.all(bundles.map((options) => build(options)));

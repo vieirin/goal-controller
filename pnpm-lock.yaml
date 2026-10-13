@@ -144,6 +144,9 @@ importers:
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree
+      '@rgrove/parse-xml':
+        specifier: 4.2.3
+        version: 4.2.3
       '@xml-tools/ast':
         specifier: ^5.0.6
         version: 5.0.6
@@ -153,6 +156,9 @@ importers:
       inquirer:
         specifier: ^12.5.2
         version: 12.11.1(@types/node@22.19.7)
+      jsonc-parser:
+        specifier: ^3.3
+        version: 3.3.1
       langium:
         specifier: 4.4.0
         version: 4.4.0
@@ -168,6 +174,12 @@ importers:
       minimatch:
         specifier: ^9.0.3
         version: 9.0.5
+      yaml:
+        specifier: ^2.9
+        version: 2.9.1
+      zod:
+        specifier: ^4.1
+        version: 4.6.7
     devDependencies:
       '@types/chai':
         specifier: ^4.3.11
@@ -2254,6 +2266,11 @@ packages:
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     dev: true
+
+  /@rgrove/parse-xml@4.2.3:
+    resolution: {integrity: sha512-Jhlb+0zYez1T1yXUQs3F1qAtFuJljBVNdy9TKmLDauAXkxsOXopKYOyQ5Wm6SvP3fycav0GviX4Y15WWhGetMw==}
+    engines: {node: '>=14.0.0'}
+    dev: false
 
   /@rolldown/binding-android-arm64@1.0.0-beta.59:
     resolution: {integrity: sha512-6yLLgyswYwiCfls9+hoNFY9F8TQdwo15hpXDHzlAR0X/GojeKF+AuNcXjYNbOJ4zjl/5D6lliE8CbpB5t1OWIQ==}
@@ -6416,6 +6433,10 @@ packages:
       minimist: 1.2.8
     dev: true
 
+  /jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
+    dev: false
+
   /jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
     dependencies:
@@ -9003,6 +9024,12 @@ packages:
     engines: {node: '>=18'}
     dev: true
 
+  /yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+    dev: false
+
   /yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
@@ -9089,6 +9116,10 @@ packages:
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
     dev: true
+
+  /zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
+    dev: false
 
   /zustand@4.5.7(@types/react@19.2.9)(react@19.2.3):
     resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}

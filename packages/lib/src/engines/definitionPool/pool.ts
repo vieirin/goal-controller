@@ -29,8 +29,9 @@ export type PoolIndex = PoolLookup & {
   kindOf(kind: string): (PoolKind & { provider: PoolProvider }) | undefined;
 };
 
+/** A provider's kind, qualified by its id (none: written qualified already). */
 const qualified = (provider: PoolProvider, kind: string) =>
-  `${provider.id}.${kind}`;
+  provider.id ? `${provider.id}.${kind}` : kind;
 
 /**
  * An engine's pool, checked: provider ids are unique, and what a provider
@@ -80,7 +81,8 @@ const extractChecked = (
   document: PoolDocument,
 ): PoolFacts => {
   const facts = provider.extract(document);
-  const own = (kind: string) => kind.startsWith(`${provider.id}.`);
+  const own = (kind: string) =>
+    !provider.id || kind.startsWith(`${provider.id}.`);
   for (const definition of facts.definitions)
     if (!own(definition.kind))
       throw new Error(
@@ -163,11 +165,18 @@ export const createPool = (registration: PoolRegistration) => {
       for (const kind of kindsToFind) {
         const owners = byName.get(kind);
         const key = normalize(kind, name);
-        const found =
-          (owner !== undefined ? owners?.get(owner)?.get(key) : undefined) ??
-          (kinds.get(kind)?.scope === 'owner'
+        // in the owner, then in the owner's owner, and so on
+        let found: PoolDefinition | undefined;
+        for (
+          let scope = owner;
+          scope !== undefined && !found;
+          scope = byId.get(scope)?.owner
+        )
+          found = owners?.get(scope)?.get(key);
+        found ??=
+          kinds.get(kind)?.scope === 'owner'
             ? undefined
-            : owners?.get('')?.get(key));
+            : owners?.get('')?.get(key);
         if (found) return found;
       }
       return undefined;
