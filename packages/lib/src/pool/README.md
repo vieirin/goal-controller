@@ -265,17 +265,18 @@ Every kind a file names must be declared here, or `poolOf` throws.
 
 ## Typed kinds and messages
 
-Kinds and message keys are strings, so on their own they neither complete
-nor catch typos. To get both, declare the kinds and messages once as
+Kinds, message keys and link names are strings, so on their own they
+neither complete nor catch typos. To get both, declare them once as
 constants and take the annotations from them:
 
 ```ts
 const KINDS = { 'toy.shelf': { label: 'shelf' }, 'toy.thing': { label: 'thing' } } as const satisfies Record<string, KindDeclaration>;
 const MESSAGES = { 'toy.noThing': '{name} is no thing on any shelf' } as const;
-const { defines, refersTo, link, written, langium } = annotationsFor(KINDS, MESSAGES);
+const LINKS = ['holds'] as const;
+const { defines, refersTo, link, scope, written, langium } = annotationsFor(KINDS, MESSAGES, LINKS);
 
-const check: Check<keyof typeof KINDS, keyof typeof MESSAGES> = (pool) => …;
-export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, checks: [check] });
+const check: Check<keyof typeof KINDS, keyof typeof MESSAGES, (typeof LINKS)[number]> = (pool) => …;
+export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, links: LINKS, checks: [check] });
 ```
 
 A Langium language is typed by the AST types `langium generate` writes, which
@@ -305,12 +306,18 @@ gives the AST explicitly.
 
 After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'])`,
 `unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,
-`problem(…, 'toy.emptyShelve')` and `typeOf: { kinds: ['toy.shelve'] }` all
-fail to compile, and an editor completes each of them. `defineEngine` infers
-the kinds from `kinds` and the message keys from `messages`, and types the
-checks with both. An engine without `messages` may give a problem's text
-itself. Nothing changes at run time: the untyped `defines`/`refersTo` are the
-same functions. `test/pool/typed.test.ts` is the example.
+`problem(…, 'toy.emptyShelve')`, `typeOf: { kinds: ['toy.shelve'] }`,
+`link('hold')`, `scope.through('hold', …)` and `pool.links('hold', …)` all
+fail to compile, and an editor completes each of them. `scope.through`
+also takes the built-in `'type'`. `defineEngine` infers the kinds from
+`kinds`, the message keys from `messages` and the link names from `links`,
+and types the checks with all three. With `links` declared, `poolOf` also
+refuses a file that links by any other name. Without it, any link name goes. An engine without `messages` may give a problem's text
+itself. The untyped `defines`/`refersTo`/`link`/`scope` are the same
+functions.
+
+Paths (`'../task_id'`) aren't typed: an annotation is built before it is put
+on a schema, so it can't know the objects around it. `test/pool/typed.test.ts` is the example.
 
 ## Checks
 

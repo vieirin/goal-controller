@@ -153,8 +153,8 @@ const enginePools = new WeakMap<DeclaredEngine, PoolRegistration>();
  * The pool of a declared engine (#68's registration): `createPool(…)` of it
  * gives the index every service of the pool reads.
  */
-export const poolOf = <K extends string, M extends string>(
-  declared: DeclaredEngine<K, M>,
+export const poolOf = <K extends string, M extends string, L extends string>(
+  declared: DeclaredEngine<K, M, L>,
 ): PoolRegistration => {
   // within the core, kinds and messages are strings
   const engine = declared as unknown as DeclaredEngine;
@@ -186,7 +186,13 @@ export const poolOf = <K extends string, M extends string>(
           annotation.defines,
           (definedIn.get(annotation.defines) ?? new Set()).add(file.kind),
         );
-      if ('link' in annotation) links.add(annotation.link);
+      if ('link' in annotation) {
+        if (engine.links && !engine.links.includes(annotation.link))
+          throw new Error(
+            `${file.kind} links by ${annotation.link}, which the engine's links don't declare`,
+          );
+        links.add(annotation.link);
+      }
       if (
         'refersTo' in annotation &&
         annotation.scope &&

@@ -311,7 +311,11 @@ export type Reference<
  * The resolved pool, as an engine's checks read it: typed by the engine's
  * kinds (`K`) and its messages' keys (`M`).
  */
-export type TypedPool<K extends string = Kind, M extends string = string> = {
+export type TypedPool<
+  K extends string = Kind,
+  M extends string = string,
+  L extends string = string,
+> = {
   /** every definition of a kind */
   definitions(kind: K): readonly Definition<K, M>[];
   /** every reference to one of these kinds (none given: all) */
@@ -320,7 +324,7 @@ export type TypedPool<K extends string = Kind, M extends string = string> = {
   referencesTo(definition: Definition<K, M>): readonly Reference<K, M>[];
   /** where a definition's links of a name lead */
   links(
-    name: string,
+    name: L,
     definition: Definition<K, M> | undefined,
   ): readonly Definition<K, M>[];
   /** the definition a definition's type names (`typeOf`) */
@@ -349,9 +353,11 @@ export type TypedPool<K extends string = Kind, M extends string = string> = {
   ): Problem<M>;
 };
 
-export type Check<K extends string = Kind, M extends string = string> = (
-  pool: TypedPool<K, M>,
-) => readonly Problem<M>[];
+export type Check<
+  K extends string = Kind,
+  M extends string = string,
+  L extends string = string,
+> = (pool: TypedPool<K, M, L>) => readonly Problem<M>[];
 
 // ---------------------------------------------------------------- engines
 
@@ -390,18 +396,22 @@ export type Message = string | ((args: MessageArgs) => string);
 export type EngineDeclaration<
   K extends string = Kind,
   M extends string = string,
+  L extends string = string,
 > = {
   files: readonly DeclaredFile[];
   kinds: Readonly<Record<K, KindDeclaration<NoInfer<K>>>>;
-  checks?: readonly Check<NoInfer<K>, NoInfer<M>>[];
+  checks?: readonly Check<NoInfer<K>, NoInfer<M>, NoInfer<L>>[];
   /** the text of each check's problems, by the check's key */
   messages?: Readonly<Record<M, Message>>;
+  /** the links its files declare (`link(name)`): none given, any name */
+  links?: readonly L[];
 };
 
 export type DeclaredEngine<
   K extends string = Kind,
   M extends string = string,
-> = Readonly<EngineDeclaration<K, M>> & {
+  L extends string = string,
+> = Readonly<EngineDeclaration<K, M, L>> & {
   readonly declared: 'engine';
 };
 
@@ -410,6 +420,10 @@ export const defineFile = (declaration: FileDeclaration): DeclaredFile => ({
   declared: 'file',
 });
 
-export const defineEngine = <K extends string, M extends string = string>(
-  declaration: EngineDeclaration<K, M>,
-): DeclaredEngine<K, M> => ({ ...declaration, declared: 'engine' });
+export const defineEngine = <
+  K extends string,
+  M extends string = string,
+  L extends string = string,
+>(
+  declaration: EngineDeclaration<K, M, L>,
+): DeclaredEngine<K, M, L> => ({ ...declaration, declared: 'engine' });
