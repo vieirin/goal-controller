@@ -65,9 +65,11 @@ export const goda = defineDialect({
   defaultFill: DEFAULT_FILL,
   notation: {
     operand: { kinds: ['goal', 'task'] },
-    // RTRegex.g4 also has `;`, `#`, `@n`, `try(a)?b:c` and `skip`; the MDP
-    // generator the references come from reads decision making only
-    operators: { DM: 'decisionMaking' },
+    // RTRegex.g4 also has `;`, `@n`, `try(a)?b:c` and `skip`. The MDP
+    // generator the references come from reads decision making only (its
+    // formulas read any annotation as one); `#` is read for SA-BSN, whose
+    // runtime formulas compose it as a parallel AND (goal-controller#94)
+    operators: { DM: 'decisionMaking', '#': 'parallel' },
     constructs: {
       and: { label: 'And', help: 'pursues every child', relation: 'and' },
       or: {
@@ -78,6 +80,11 @@ export const goda = defineDialect({
       decisionMaking: {
         label: 'Decision making',
         help: 'chooses which operands to pursue, by the context each one needs',
+      },
+      // upstream has a parallel AND and a parallel OR (PARAMProducer, 2019-12)
+      parallel: {
+        label: 'Parallel',
+        help: 'pursues its operands at the same time',
       },
     },
     // without an annotation, a goal pursues its children as its links say

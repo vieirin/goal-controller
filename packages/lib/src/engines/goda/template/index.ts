@@ -12,8 +12,9 @@ import {
   type EngineOutputFile,
 } from '../../output';
 import { godaEngineMapper, type GodaGoalNode } from '../mapper';
-import { adjustName } from './containers';
+import { adjustName, type Container } from './containers';
 import { sortRoots, writePrism } from './prism';
+import { composeRuntimeFormulas } from './runtime';
 import {
   GODA_DEFAULT_VARIANT,
   GODA_GENERATORS,
@@ -58,6 +59,30 @@ export type GodaOutputOptions = {
   modelName: string;
   /** the generator version to write as (default: GODA_DEFAULT_VARIANT, 5305bc1) */
   variant?: GodaVariant;
+  /**
+   * also write `reliability.formula` and `cost.formula`, the one-line
+   * formulas SA-BSN's runtime loads (goal-controller#94; default off)
+   */
+  runtimeFormulas?: boolean;
+};
+
+/** The runtime's pair: the formula line only, as `DataAccess::fetch_formula` reads it (no newline). */
+const runtimeFiles = (root: Container): EngineOutputFile[] => {
+  const { reliability, cost } = composeRuntimeFormulas(root);
+  return [
+    {
+      id: 'runtime-reliability',
+      fileName: 'reliability.formula',
+      text: reliability,
+      language: 'text',
+    },
+    {
+      id: 'runtime-cost',
+      fileName: 'cost.formula',
+      text: cost,
+      language: 'text',
+    },
+  ];
 };
 
 /**
@@ -68,7 +93,11 @@ export type GodaOutputOptions = {
  */
 export const godaOutput = (
   model: IStarModel,
-  { modelName, variant = GODA_DEFAULT_VARIANT }: GodaOutputOptions,
+  {
+    modelName,
+    variant = GODA_DEFAULT_VARIANT,
+    runtimeFormulas = false,
+  }: GodaOutputOptions,
 ): EngineOutput => {
   const generator = GODA_GENERATORS[variant];
   if (!generator)
@@ -130,6 +159,7 @@ export const godaOutput = (
         formulas.evalScript ?? prism.evalScript,
         'shell',
       ),
+      ...(runtimeFormulas ? runtimeFiles(containers[0]!) : []),
     ],
   };
 };

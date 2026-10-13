@@ -78,6 +78,8 @@ export type GenerationOptions = {
   generateFluents: boolean;
   /** GODA only: the generator version it writes as (#34 D24: the July 2019 one) */
   variant: GodaVariant;
+  /** GODA only: also write the formulas SA-BSN's runtime loads (goal-controller#94) */
+  runtimeFormulas: boolean;
   /** generate from the model without its single-child goals (the model itself is kept) */
   reduce: boolean;
 };
@@ -90,6 +92,7 @@ export const DEFAULT_OPTIONS: GenerationOptions = {
   taskLayout: 'taskModules',
   generateFluents: false,
   variant: GODA_DEFAULT_VARIANT,
+  runtimeFormulas: false,
   reduce: false,
 };
 

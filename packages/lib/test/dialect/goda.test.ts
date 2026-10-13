@@ -108,6 +108,28 @@ describe('GODA: what the language reads for it', () => {
     expect(errors).to.deep.equal([]);
   });
 
+  it("reads SA-BSN's `#`: a parallel of any number of operands, on a goal and on a task without a space after its colon (#94)", () => {
+    const errors: string[] = [];
+    const parallel = (goalText: string) =>
+      read({
+        goalText,
+        onSyntaxError: (message) => errors.push(message),
+      });
+    const task = parallel(
+      'T1:Monitor vital signs [T1.1#T1.2#T1.3#T1.4#T1.5#T1.6]',
+    );
+    expect(task.id).to.equal('T1');
+    expect(task.executionDetail).to.deep.equal({
+      type: 'parallel',
+      ids: ['T1.1', 'T1.2', 'T1.3', 'T1.4', 'T1.5', 'T1.6'],
+      modifiers: {},
+    });
+    expect(
+      parallel('G2: Patient status is monitored [G3#G4]').executionDetail,
+    ).to.deep.equal({ type: 'parallel', ids: ['G3', 'G4'], modifiers: {} });
+    expect(errors).to.deep.equal([]);
+  });
+
   it('points at an id as written when it reads the bracket without its spaces', () => {
     const text = 'T1: Pick [D M(T1.1 1,T1.2)]';
     const line = readLine(dialect, text);
@@ -335,10 +357,17 @@ describe('GODA in the workbench', () => {
   it("reads the variant from a project's options, and reports one it does not have", () => {
     expect(optionsFor('goda', DEFAULT_OPTIONS)).to.deep.equal({
       variant: '5305bc1',
+      runtimeFormulas: false,
     });
     expect(
-      checkedOptions({ mode: 'goda', options: { variant: 'cc808b6' } }),
-    ).to.deep.equal({ options: { variant: 'cc808b6' }, problems: [] });
+      checkedOptions({
+        mode: 'goda',
+        options: { variant: 'cc808b6', runtimeFormulas: true },
+      }),
+    ).to.deep.equal({
+      options: { variant: 'cc808b6', runtimeFormulas: true },
+      problems: [],
+    });
     const bad = checkedOptions({ mode: 'goda', options: { variant: '2020' } });
     expect(bad.options).to.deep.equal({});
     expect(bad.problems.map((p) => p.message)).to.deep.equal([
@@ -349,6 +378,37 @@ describe('GODA in the workbench', () => {
       checkedOptions({ mode: 'edgev2', options: { variant: 'cc808b6' } })
         .problems,
     ).to.have.length(1);
+  });
+
+  it("generates SA-BSN's runtime formulas from its project's options (#94)", () => {
+    const project = join(ROOT, 'examples/goda/sa-bsn');
+    const { options: manifest } = JSON.parse(
+      readFileSync(join(project, 'project.json'), 'utf8'),
+    ) as { options: Record<string, string | boolean> };
+    const { options, problems } = checkedOptions({
+      mode: 'goda',
+      options: manifest,
+    });
+    expect(problems).to.deep.equal([]);
+    const generate = (settings: Partial<typeof DEFAULT_OPTIONS>) =>
+      transform({
+        modelJson: readFileSync(join(project, 'goalModel.txt'), 'utf8'),
+        engine: 'goda',
+        fileName: 'goalModel',
+        ...optionsFor('goda', { ...DEFAULT_OPTIONS, ...settings }),
+      }).files;
+    const files = generate(options);
+    for (const fileName of ['reliability.formula', 'cost.formula'])
+      expect(
+        files.find((file) => file.fileName === fileName)?.text,
+        fileName,
+      ).to.equal(readFileSync(join(project, 'reference', fileName), 'utf8'));
+    // off, the output is GODA's eight files, no .formula
+    const off = generate({ ...options, runtimeFormulas: false });
+    expect(off).to.have.length(8);
+    expect(
+      off.filter((file) => file.fileName.endsWith('.formula')),
+    ).to.deep.equal([]);
   });
 });
 

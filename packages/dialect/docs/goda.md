@@ -72,7 +72,8 @@ The relevant files are `integration/Controller.java` (the piStar reader),
 | `template/formulas.ts` | PARAMProducer: `reliability.out` and `cost.out` |
 | `template/templates.ts` | The generator's templates, byte for byte |
 | `template/variants.ts` | A generator version as a strategy: its templates, containers, guards and formulas (D14) |
-| `template/index.ts` | `godaOutput(model, { modelName, variant })` |
+| `template/runtime.ts` | SA-BSN's runtime formulas, `reliability.formula` and `cost.formula` (#94) |
+| `template/index.ts` | `godaOutput(model, { modelName, variant, runtimeFormulas })` |
 | `formula.ts` | The formulas as numbers: `compileFormula`, `evaluate`, `evalFormulaValues`, `compareFormulas`, shared with the stress test (#35) |
 
 `godaOutput` takes goal-tree's validated model (`Model.parse(text)`), not
@@ -285,10 +286,11 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
   an error rather than reproduce the crash.
 - **`eval_formula.sh`'s optionality.** Its substitution is written as
   upstream writes it (`sOPT_x/…`), which `sed` rejects. It is kept for
-  parity; the tests evaluate the formulas in TypeScript. Decision making and contexts are ported (#36). RT
-  operators other than `DM` are not enabled, and the editors report them.
-  An element with any RT annotation gets the DM formula (an OR over its
-  children), as upstream's `getNodeForm` does.
+  parity; the tests evaluate the formulas in TypeScript. Decision making and contexts are ported (#36). Of
+  the other RT operators only `#` is enabled, for SA-BSN (#94); the editors
+  report the rest. An element with any RT annotation gets the DM formula
+  (an OR over its children) in `reliability.out` and `cost.out`, as
+  upstream's `getNodeForm` does.
 - **A parenthesised context condition.** CtxParser has no visitor for one,
   so ANTLR's default prints it as `null` in the decision-making module's
   comments. The engine writes `null` too. No reference has one.
@@ -309,8 +311,104 @@ MutRoSe and piStar-ext. It now also writes GODA's (`notation/goda__…`,
 - **Seed projects** (`examples/projects/goda-*`) wait for the upstream
   licence (#32 item 14).
 
+## SA-BSN (runtime, #94)
+
+The second stress test of #28 is the goal model of the self-adaptive Body
+Sensor Network ([lesunb/bsn](https://github.com/lesunb/bsn) at `f939d3c8`,
+MIT): `examples/goda/sa-bsn/`. The organisation and decisions are in #93.
+
+### What the runtime reads
+
+The running system does not read the goal model. It reads two one-line
+files beside it, `resource/models/reliability.formula` and
+`cost.formula`. `DataAccess::fetch_formula` serves each file's first line;
+`ReliabilityEngine` and `CostEngine` compile it with Lepton and evaluate it
+live, and `simulation/analyzer/Analyzer.py` reads the same files. The
+engines find the components by the terms' prefixes, `CTX_<id>`, `F_<id>`
+and `R_<id>` (reliability) and `CTX_<id>` and `W_<id>` (cost), so the term
+set is the contract between model and runtime. The ids are GODA's scoped
+ids: `G3_T1_1` to `G3_T1_6` and `G4_T1`. `libbsn/goalmodel` is a goal-tree
+library with its own tests, and no node of the system uses it.
+
+With `options.runtimeFormulas: true` (default off), `godaOutput` adds the
+two files, named as upstream names them: ids `runtime-reliability` and
+`runtime-cost`, the formula line only, no newline. They are byte for byte
+upstream's. The composition is `template/runtime.ts`, over the same
+containers (and ids) as `reliability.out` and `cost.out`:
+
+- a leaf is `CTX_x*F_x*R_x` and costs `CTX_x*W_x` (`CTX_x` when it has a
+  context; cc808b6's leaf, with its frequency);
+- an AND-refined element, unannotated or annotated `#`, is its children's
+  product and sum, in parentheses: PARAMProducer's parallel AND (2019-12),
+  whose reliability is the product and whose cost is the sum;
+- an element with one child is that child.
+
+An OR, a `DM`, an optional leaf and a leaf with a cost have no form in
+upstream's files: they throw `GodaUnsupported`. The composition shares the
+containers, the ids and the formula type with `template/formulas.ts`, but
+not its text: `reliability.out` reads `#` as an OR, the runtime as a
+parallel AND, and no generator version writes the runtime's files
+(bc31eaa's parallel AND asks the PARAM tool for a leaf and has no `F_`).
+`formula.ts` compiles them in the tests, to check the term set.
+
+The project sets `options.variant` to `cc808b6`. The July 2019 generator
+rejects the model, as upstream's does: it reads `[G3#G4]` as a decision
+between G3 and G4, and neither has a context (PARAMProducer throws).
+
+### What fit as it was
+
+- **The ids.** Two `T1` under G3 and G4 (`idScope: 'ancestorGoal'`, #40),
+  and `selected: "true"` as a string.
+- **`T1:Monitor vital signs`**, no space after the colon:
+  `names: 'text'` already split the line at its colon.
+- **The 6-operand `#` chain** and `#` on a goal: the grammar had `#` (for
+  MutRoSe), with any number of operands.
+- **The contexts.** `assertion trigger SaO2_sensor = true`, G4's long `&`
+  condition, and `Unknown_sensor` (upstream's slip, kept) are declared by
+  use (D17).
+- **No diagnostics.** The model reads in the editors with none, and its
+  Notation view changes nothing. GODA's pool reports nothing on it.
+
+### Where the framework had to grow
+
+| What SA-BSN needed | What changed |
+| --- | --- |
+| `#` in GODA's notation | GODA's definition gained `'#': 'parallel'`, a construct with no relation (upstream has a parallel AND and a parallel OR). Before, every `#` was `` `#` is not an operator of GODA ``. |
+| The runtime's two files | `godaOutput`'s `runtimeFormulas` option, and the workbench's GODA option of the same name (`project.json`'s `options.runtimeFormulas`, a switch beside the generator version). |
+
+No core package changed. The seven GODA projects' outputs and every other
+engine's are byte for byte as before (`pnpm stress:goda`).
+
+### `param.zip`
+
+`param.zip` (2020-07-01) holds one GODA-MDP output set. It was not made from
+this revision of the model: its `reliability.out` is an OR over T1's six
+leaves, ANDed with G4's. `cc808b6` reproduces all eight files byte for byte
+from the model with `T1 [DM(T1.1,…,T1.6)]`, T1 OR-refined, and no
+annotation on G2. Its `BSN.nm` numbers the decision's contexts
+(`CTX_1`…`CTX_63`, `pattern_nd_header.nm`), which cc808b6 writes for a DM.
+On the model as committed, cc808b6 matches the four PCTL files and
+`eval_formula.sh`; the formulas and the MDP differ. `5305bc1` generates
+nothing. No third variant is needed (the test is `runtime.test.ts`).
+
+### Still open
+
+- **`param.zip`'s provenance.** Which commit of lesunb/bsn held the DM
+  revision is not checked; its generator version is inferred from its
+  outputs (`cc808b6` or any version that writes as it does).
+- **Feeding measured values back.** The runtime evaluates the formulas
+  with values it measures (`R_`, `F_`, `W_`, `CTX_` per component).
+  Nothing here reads `resource/logs/` or evaluates the formulas with those
+  values.
+- **A runtime form for OR, `DM` or a cost.** Upstream's runtime files have
+  none; the engine reports them as not generated.
+
 ## Examples
 
 `examples/goda/LabResults.txt` was written for the workbench. It has an AND
 of two goals, a means-end task refined by AND and by OR, and three cost
 brackets (a constant, a constant times a variable, a variable).
+
+`examples/goda/sa-bsn/` is lesunb/bsn's goal model with upstream's runtime
+formulas and `param.zip` in `reference/`; see
+[SA-BSN (runtime, #94)](#sa-bsn-runtime-94).

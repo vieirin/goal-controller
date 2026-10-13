@@ -85,7 +85,8 @@ const optionsSummary = (
     return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}${reduced}`;
   }
   if (engine === 'edge') return `space ${options.achievabilitySpace}${reduced}`;
-  if (engine === 'goda') return `generator ${options.variant}`;
+  if (engine === 'goda')
+    return `generator ${options.variant}${options.runtimeFormulas ? ' · runtime formulas' : ''}`;
   return `${options.generateFluents ? 'with fluents' : 'no fluents'}${reduced}`;
 };
 
@@ -592,6 +593,11 @@ export function EngineOptionFields({
                   'cc808b6: a frequency parameter per task (AND, OR, DM, Incompleteness)',
               },
             ]}
+          />
+          <Switch
+            checked={options.runtimeFormulas}
+            onChange={(runtimeFormulas) => onChange({ runtimeFormulas })}
+            label='Runtime formulas (reliability.formula, cost.formula)'
           />
         </div>
       )}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "goda",
+  "options": {
+    "variant": "cc808b6",
+    "runtimeFormulas": true
+  },
+  "models": [
+    {
+      "path": "goalModel.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

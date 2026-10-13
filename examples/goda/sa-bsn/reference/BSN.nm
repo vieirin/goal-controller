@@ -1,0 +1,338 @@
+mdp
+
+const int CTX_1; // SaO2_sensor = true 
+const int CTX_2; // ECG_sensor = true 
+const int CTX_3; // SaO2_sensor = true & ECG_sensor = true 
+const int CTX_4; // TEMP_sensor = true 
+const int CTX_5; // SaO2_sensor = true & TEMP_sensor = true 
+const int CTX_6; // ECG_sensor = true & TEMP_sensor = true 
+const int CTX_7; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true 
+const int CTX_8; // ABP_sensor = true 
+const int CTX_9; // SaO2_sensor = true & ABP_sensor = true 
+const int CTX_10; // ECG_sensor = true & ABP_sensor = true 
+const int CTX_11; // SaO2_sensor = true & ECG_sensor = true & ABP_sensor = true 
+const int CTX_12; // TEMP_sensor = true & ABP_sensor = true 
+const int CTX_13; // SaO2_sensor = true & TEMP_sensor = true & ABP_sensor = true 
+const int CTX_14; // ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true 
+const int CTX_15; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true 
+const int CTX_16; // Unknown_sensor = true 
+const int CTX_17; // SaO2_sensor = true & Unknown_sensor = true 
+const int CTX_18; // ECG_sensor = true & Unknown_sensor = true 
+const int CTX_19; // SaO2_sensor = true & ECG_sensor = true & Unknown_sensor = true 
+const int CTX_20; // TEMP_sensor = true & Unknown_sensor = true 
+const int CTX_21; // SaO2_sensor = true & TEMP_sensor = true & Unknown_sensor = true 
+const int CTX_22; // ECG_sensor = true & TEMP_sensor = true & Unknown_sensor = true 
+const int CTX_23; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & Unknown_sensor = true 
+const int CTX_24; // ABP_sensor = true & Unknown_sensor = true 
+const int CTX_25; // SaO2_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_26; // ECG_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_27; // SaO2_sensor = true & ECG_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_28; // TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_29; // SaO2_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_30; // ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_31; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true 
+const int CTX_32; // Glucose_sensor = true 
+const int CTX_33; // SaO2_sensor = true & Glucose_sensor = true 
+const int CTX_34; // ECG_sensor = true & Glucose_sensor = true 
+const int CTX_35; // SaO2_sensor = true & ECG_sensor = true & Glucose_sensor = true 
+const int CTX_36; // TEMP_sensor = true & Glucose_sensor = true 
+const int CTX_37; // SaO2_sensor = true & TEMP_sensor = true & Glucose_sensor = true 
+const int CTX_38; // ECG_sensor = true & TEMP_sensor = true & Glucose_sensor = true 
+const int CTX_39; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & Glucose_sensor = true 
+const int CTX_40; // ABP_sensor = true & Glucose_sensor = true 
+const int CTX_41; // SaO2_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_42; // ECG_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_43; // SaO2_sensor = true & ECG_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_44; // TEMP_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_45; // SaO2_sensor = true & TEMP_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_46; // ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_47; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Glucose_sensor = true 
+const int CTX_48; // Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_49; // SaO2_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_50; // ECG_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_51; // SaO2_sensor = true & ECG_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_52; // TEMP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_53; // SaO2_sensor = true & TEMP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_54; // ECG_sensor = true & TEMP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_55; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_56; // ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_57; // SaO2_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_58; // ECG_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_59; // SaO2_sensor = true & ECG_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_60; // TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_61; // SaO2_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_62; // ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+const int CTX_63; // SaO2_sensor = true & ECG_sensor = true & TEMP_sensor = true & ABP_sensor = true & Unknown_sensor = true & Glucose_sensor = true 
+
+global CTX_G3_T1_1: [0..1] init 0;
+global CTX_G3_T1_2: [0..1] init 0;
+global CTX_G3_T1_3: [0..1] init 0;
+global CTX_G3_T1_4: [0..1] init 0;
+global CTX_G3_T1_5: [0..1] init 0;
+global CTX_G3_T1_6: [0..1] init 0;
+
+
+module NonDeterminism_G3_T1
+	sG3_T1 :[0..65] init 0;
+	
+	[next_0] sG3_T1 = 0 -> (sG3_T1'= 1);
+
+	[] sG3_T1 = 1 -> CTX_1 : (sG3_T1'= 2)  + (1 - CTX_1) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_2 : (sG3_T1'= 3)  + (1 - CTX_2) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_3 : (sG3_T1'= 4)  + (1 - CTX_3) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_4 : (sG3_T1'= 5)  + (1 - CTX_4) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_5 : (sG3_T1'= 6)  + (1 - CTX_5) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_6 : (sG3_T1'= 7)  + (1 - CTX_6) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_7 : (sG3_T1'= 8)  + (1 - CTX_7) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_8 : (sG3_T1'= 9)  + (1 - CTX_8) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_9 : (sG3_T1'= 10)  + (1 - CTX_9) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_10 : (sG3_T1'= 11)  + (1 - CTX_10) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_11 : (sG3_T1'= 12)  + (1 - CTX_11) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_12 : (sG3_T1'= 13)  + (1 - CTX_12) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_13 : (sG3_T1'= 14)  + (1 - CTX_13) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_14 : (sG3_T1'= 15)  + (1 - CTX_14) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_15 : (sG3_T1'= 16)  + (1 - CTX_15) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_16 : (sG3_T1'= 17)  + (1 - CTX_16) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_17 : (sG3_T1'= 18)  + (1 - CTX_17) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_18 : (sG3_T1'= 19)  + (1 - CTX_18) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_19 : (sG3_T1'= 20)  + (1 - CTX_19) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_20 : (sG3_T1'= 21)  + (1 - CTX_20) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_21 : (sG3_T1'= 22)  + (1 - CTX_21) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_22 : (sG3_T1'= 23)  + (1 - CTX_22) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_23 : (sG3_T1'= 24)  + (1 - CTX_23) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_24 : (sG3_T1'= 25)  + (1 - CTX_24) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_25 : (sG3_T1'= 26)  + (1 - CTX_25) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_26 : (sG3_T1'= 27)  + (1 - CTX_26) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_27 : (sG3_T1'= 28)  + (1 - CTX_27) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_28 : (sG3_T1'= 29)  + (1 - CTX_28) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_29 : (sG3_T1'= 30)  + (1 - CTX_29) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_30 : (sG3_T1'= 31)  + (1 - CTX_30) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_31 : (sG3_T1'= 32)  + (1 - CTX_31) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_32 : (sG3_T1'= 33)  + (1 - CTX_32) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_33 : (sG3_T1'= 34)  + (1 - CTX_33) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_34 : (sG3_T1'= 35)  + (1 - CTX_34) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_35 : (sG3_T1'= 36)  + (1 - CTX_35) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_36 : (sG3_T1'= 37)  + (1 - CTX_36) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_37 : (sG3_T1'= 38)  + (1 - CTX_37) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_38 : (sG3_T1'= 39)  + (1 - CTX_38) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_39 : (sG3_T1'= 40)  + (1 - CTX_39) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_40 : (sG3_T1'= 41)  + (1 - CTX_40) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_41 : (sG3_T1'= 42)  + (1 - CTX_41) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_42 : (sG3_T1'= 43)  + (1 - CTX_42) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_43 : (sG3_T1'= 44)  + (1 - CTX_43) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_44 : (sG3_T1'= 45)  + (1 - CTX_44) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_45 : (sG3_T1'= 46)  + (1 - CTX_45) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_46 : (sG3_T1'= 47)  + (1 - CTX_46) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_47 : (sG3_T1'= 48)  + (1 - CTX_47) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_48 : (sG3_T1'= 49)  + (1 - CTX_48) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_49 : (sG3_T1'= 50)  + (1 - CTX_49) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_50 : (sG3_T1'= 51)  + (1 - CTX_50) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_51 : (sG3_T1'= 52)  + (1 - CTX_51) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_52 : (sG3_T1'= 53)  + (1 - CTX_52) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_53 : (sG3_T1'= 54)  + (1 - CTX_53) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_54 : (sG3_T1'= 55)  + (1 - CTX_54) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_55 : (sG3_T1'= 56)  + (1 - CTX_55) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_56 : (sG3_T1'= 57)  + (1 - CTX_56) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_57 : (sG3_T1'= 58)  + (1 - CTX_57) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_58 : (sG3_T1'= 59)  + (1 - CTX_58) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_59 : (sG3_T1'= 60)  + (1 - CTX_59) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_60 : (sG3_T1'= 61)  + (1 - CTX_60) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_61 : (sG3_T1'= 62)  + (1 - CTX_61) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_62 : (sG3_T1'= 63)  + (1 - CTX_62) : (sG3_T1'=1);
+	[] sG3_T1 = 1 -> CTX_63 : (sG3_T1'= 64)  + (1 - CTX_63) : (sG3_T1'=1);
+
+	[] sG3_T1 = 1 -> (sG3_T1'=65); //no uncertainty holding
+
+	[] sG3_T1 = 2 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1);
+	[] sG3_T1 = 3 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1);
+	[] sG3_T1 = 4 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1);
+	[] sG3_T1 = 5 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1);
+	[] sG3_T1 = 6 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1);
+	[] sG3_T1 = 7 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1);
+	[] sG3_T1 = 8 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1);
+	[] sG3_T1 = 9 -> (sG3_T1'=65) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 10 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 11 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 12 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 13 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 14 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 15 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 16 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1);
+	[] sG3_T1 = 17 -> (sG3_T1'=65) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 18 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 19 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 20 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 21 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 22 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 23 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 24 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 25 -> (sG3_T1'=65) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 26 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 27 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 28 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 29 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 30 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 31 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 32 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1);
+	[] sG3_T1 = 33 -> (sG3_T1'=65) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 34 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 35 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 36 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 37 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 38 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 39 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 40 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 41 -> (sG3_T1'=65) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 42 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 43 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 44 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 45 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 46 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 47 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 48 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 49 -> (sG3_T1'=65) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 50 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 51 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 52 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 53 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 54 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 55 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 56 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 57 -> (sG3_T1'=65) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 58 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 59 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 60 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 61 -> (sG3_T1'=65) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 62 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 63 -> (sG3_T1'=65) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+	[] sG3_T1 = 64 -> (sG3_T1'=65) & (CTX_G3_T1_1'=1) & (CTX_G3_T1_2'=1) & (CTX_G3_T1_3'=1) & (CTX_G3_T1_4'=1) & (CTX_G3_T1_5'=1) & (CTX_G3_T1_6'=1);
+
+	 
+	[next_1] sG3_T1 = 65 -> (sG3_T1'=65);
+endmodule
+
+const double R_G3_T1_1;
+const double F_G3_T1_1;
+
+module G3_T1_1_CollectSaO2Data
+	sG3_T1_1 :[0..4] init 0;
+	
+	[next_1] sG3_T1_1 = 0 -> F_G3_T1_1*CTX_G3_T1_1 : (sG3_T1_1'=1) + (1 - F_G3_T1_1*CTX_G3_T1_1) : (sG3_T1_1'=3); //init to running or skip
+
+	[] sG3_T1_1 =  1 -> R_G3_T1_1 : (sG3_T1_1'=2) + (1 - R_G3_T1_1) : (sG3_T1_1'=4);//running to final state
+	[next_2] sG3_T1_1 = 2 -> (sG3_T1_1'=2);//final state success
+	[next_2] sG3_T1_1 = 3 -> (sG3_T1_1'=3);//final state skipped
+	[next_2] sG3_T1_1 = 4 -> (sG3_T1_1'=4);//final state failure
+endmodule
+
+const double R_G3_T1_2;
+const double F_G3_T1_2;
+
+module G3_T1_2_CollectECGData
+	sG3_T1_2 :[0..4] init 0;
+	
+	[next_1] sG3_T1_2 = 0 -> F_G3_T1_2*CTX_G3_T1_2 : (sG3_T1_2'=1) + (1 - F_G3_T1_2*CTX_G3_T1_2) : (sG3_T1_2'=3); //init to running or skip
+
+	[] sG3_T1_2 =  1 -> R_G3_T1_2 : (sG3_T1_2'=2) + (1 - R_G3_T1_2) : (sG3_T1_2'=4);//running to final state
+	[next_2] sG3_T1_2 = 2 -> (sG3_T1_2'=2);//final state success
+	[next_2] sG3_T1_2 = 3 -> (sG3_T1_2'=3);//final state skipped
+	[next_2] sG3_T1_2 = 4 -> (sG3_T1_2'=4);//final state failure
+endmodule
+
+const double R_G3_T1_3;
+const double F_G3_T1_3;
+
+module G3_T1_3_CollectTEMPData
+	sG3_T1_3 :[0..4] init 0;
+	
+	[next_1] sG3_T1_3 = 0 -> F_G3_T1_3*CTX_G3_T1_3 : (sG3_T1_3'=1) + (1 - F_G3_T1_3*CTX_G3_T1_3) : (sG3_T1_3'=3); //init to running or skip
+
+	[] sG3_T1_3 =  1 -> R_G3_T1_3 : (sG3_T1_3'=2) + (1 - R_G3_T1_3) : (sG3_T1_3'=4);//running to final state
+	[next_2] sG3_T1_3 = 2 -> (sG3_T1_3'=2);//final state success
+	[next_2] sG3_T1_3 = 3 -> (sG3_T1_3'=3);//final state skipped
+	[next_2] sG3_T1_3 = 4 -> (sG3_T1_3'=4);//final state failure
+endmodule
+
+const double R_G3_T1_4;
+const double F_G3_T1_4;
+
+module G3_T1_4_CollectSystolicABPData
+	sG3_T1_4 :[0..4] init 0;
+	
+	[next_1] sG3_T1_4 = 0 -> F_G3_T1_4*CTX_G3_T1_4 : (sG3_T1_4'=1) + (1 - F_G3_T1_4*CTX_G3_T1_4) : (sG3_T1_4'=3); //init to running or skip
+
+	[] sG3_T1_4 =  1 -> R_G3_T1_4 : (sG3_T1_4'=2) + (1 - R_G3_T1_4) : (sG3_T1_4'=4);//running to final state
+	[next_2] sG3_T1_4 = 2 -> (sG3_T1_4'=2);//final state success
+	[next_2] sG3_T1_4 = 3 -> (sG3_T1_4'=3);//final state skipped
+	[next_2] sG3_T1_4 = 4 -> (sG3_T1_4'=4);//final state failure
+endmodule
+
+const double R_G3_T1_5;
+const double F_G3_T1_5;
+
+module G3_T1_5_CollectDiastolicABPData
+	sG3_T1_5 :[0..4] init 0;
+	
+	[next_1] sG3_T1_5 = 0 -> F_G3_T1_5*CTX_G3_T1_5 : (sG3_T1_5'=1) + (1 - F_G3_T1_5*CTX_G3_T1_5) : (sG3_T1_5'=3); //init to running or skip
+
+	[] sG3_T1_5 =  1 -> R_G3_T1_5 : (sG3_T1_5'=2) + (1 - R_G3_T1_5) : (sG3_T1_5'=4);//running to final state
+	[next_2] sG3_T1_5 = 2 -> (sG3_T1_5'=2);//final state success
+	[next_2] sG3_T1_5 = 3 -> (sG3_T1_5'=3);//final state skipped
+	[next_2] sG3_T1_5 = 4 -> (sG3_T1_5'=4);//final state failure
+endmodule
+
+const double R_G3_T1_6;
+const double F_G3_T1_6;
+
+module G3_T1_6_CollectGlucoseData
+	sG3_T1_6 :[0..4] init 0;
+	
+	[next_1] sG3_T1_6 = 0 -> F_G3_T1_6*CTX_G3_T1_6 : (sG3_T1_6'=1) + (1 - F_G3_T1_6*CTX_G3_T1_6) : (sG3_T1_6'=3); //init to running or skip
+
+	[] sG3_T1_6 =  1 -> R_G3_T1_6 : (sG3_T1_6'=2) + (1 - R_G3_T1_6) : (sG3_T1_6'=4);//running to final state
+	[next_2] sG3_T1_6 = 2 -> (sG3_T1_6'=2);//final state success
+	[next_2] sG3_T1_6 = 3 -> (sG3_T1_6'=3);//final state skipped
+	[next_2] sG3_T1_6 = 4 -> (sG3_T1_6'=4);//final state failure
+endmodule
+
+formula G3 = ((sG3_T1_1=2) | (sG3_T1_2=2) | (sG3_T1_3=2) | (sG3_T1_4=2) | (sG3_T1_5=2) | (sG3_T1_6=2));
+
+const int CTX_G4_T1; //SaO2_data > 0 & SaO2_data < 100 & ECG_data > 0 & ECG_data < 300 & TEMP_data > 0 & TEMP_data < 50 & Systolic_data > 0 & Systolic_data < 300 & Diastolic_data > 0 & Diastolic_data < 300
+const double R_G4_T1;
+const double F_G4_T1;
+
+module G4_T1_AnalyzeVitalSigns
+	sG4_T1 :[0..4] init 0;
+	
+	[next_2] sG4_T1 = 0 -> F_G4_T1*CTX_G4_T1 : (sG4_T1'=1) + (1 - F_G4_T1*CTX_G4_T1) : (sG4_T1'=3); //init to running or skip
+
+	[] sG4_T1 =  1 -> R_G4_T1 : (sG4_T1'=2) + (1 - R_G4_T1) : (sG4_T1'=4);//running to final state
+	[next_3] sG4_T1 = 2 -> (sG4_T1'=2);//final state success
+	[next_3] sG4_T1 = 3 -> (sG4_T1'=3);//final state skipped
+	[next_3] sG4_T1 = 4 -> (sG4_T1'=4);//final state failure
+endmodule
+
+formula G4 = (sG4_T1=2);
+
+formula G2 = G3 & G4;
+formula G1 = G2;
+label "success" = G1;
+
+const double W_G3_T1_1;
+const double W_G3_T1_2;
+const double W_G3_T1_3;
+const double W_G3_T1_4;
+const double W_G3_T1_5;
+const double W_G3_T1_6;
+const double W_G4_T1;
+rewards "cost"
+	sG3_T1_1 = 1 : W_G3_T1_1;
+	sG3_T1_2 = 1 : W_G3_T1_2;
+	sG3_T1_3 = 1 : W_G3_T1_3;
+	sG3_T1_4 = 1 : W_G3_T1_4;
+	sG3_T1_5 = 1 : W_G3_T1_5;
+	sG3_T1_6 = 1 : W_G3_T1_6;
+	sG4_T1 = 1 : W_G4_T1;
+	
+endrewards
+
