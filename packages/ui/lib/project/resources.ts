@@ -106,13 +106,16 @@ export const copyProject = async (
   return openProject(to, options);
 };
 
+/** A project's name as a folder's: no extension, no spaces or slashes (`my lab.txt` → `my-lab`). */
+export const cleanName = (base: string): string =>
+  base
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^\w.-]+/g, '-')
+    .replace(/^[.-]+/, '') || 'project';
+
 /** A name not taken yet: `lab`, `lab-2`, `lab-3` … */
 export const freeName = (base: string, taken: readonly string[]): string => {
-  const clean =
-    base
-      .replace(/\.[^.]+$/, '')
-      .replace(/[^\w.-]+/g, '-')
-      .replace(/^[.-]+/, '') || 'project';
+  const clean = cleanName(base);
   if (!taken.includes(clean)) return clean;
   for (let n = 2; ; n += 1)
     if (!taken.includes(`${clean}-${n}`)) return `${clean}-${n}`;

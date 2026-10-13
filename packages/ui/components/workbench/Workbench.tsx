@@ -38,7 +38,7 @@ import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
-import TopBar, { readFile, useOpenFile } from './TopBar';
+import TopBar, { openUpload, useOpenFile } from './TopBar';
 import {
   WorkbenchProvider,
   useSelection,
@@ -313,8 +313,7 @@ function ShellLayout() {
           event.preventDefault();
           hideDropTarget();
           const file = event.dataTransfer.files[0];
-          if (file)
-            await wb.openFile(file.name, await readFile(file), { setup: true });
+          if (file) await openUpload(wb, file);
         }}
       >
         <TopBar />

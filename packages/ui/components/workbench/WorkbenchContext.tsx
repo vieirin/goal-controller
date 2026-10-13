@@ -33,9 +33,12 @@ import {
   type ModelMode,
 } from '@/lib/workbench/pistar';
 import {
+  archiveBaseName,
   copyProject,
+  exportArchive,
   fileStore,
   freeName,
+  importArchive,
   indexedDbHandles,
   openProject as readProject,
   opfsProjects,
@@ -104,6 +107,7 @@ import {
 } from '@/lib/workbench/storage';
 import { mergeProblems } from '@/lib/workbench/diagnostics';
 import { saveQueue } from '@/lib/workbench/saveQueue';
+import { downloadBytes } from '@/lib/workbench/download';
 import type { TraceIndex } from '@/lib/workbench/trace';
 import {
   activeFileOf,
@@ -223,6 +227,8 @@ export type Workbench = {
     text: string,
     how?: ProjectOpenOptions,
   ) => Promise<void>;
+  /** a project archive (.tar.gz, .zip), copied into a new browser project (#99) */
+  openArchive: (fileName: string, bytes: Uint8Array) => Promise<void>;
   /** a Recent entry, with its edits and the settings kept with it */
   openRecent: (entry: RecentFile) => Promise<void>;
   /** where the open model's project came from (a single file: an implicit project) */
@@ -329,6 +335,12 @@ export type Workbench = {
    * entry each); a read-only project becomes a browser copy first
    */
   saveOutputs: () => Promise<void>;
+  /**
+   * download the project as a .tar.gz (#99): its manifest (a one-model
+   * project's promoted to project.json), models, project resources as they
+   * are now, and the latest output in out/
+   */
+  exportProject: () => Promise<void>;
 
   // problems
   problems: Problem[];
@@ -869,6 +881,17 @@ function WorkbenchState({
         await readProject(fileStore(fileName, text), PROJECT_OPTIONS),
         how,
       ),
+    [openProject],
+  );
+  const openArchive = useCallback(
+    async (fileName: string, bytes: Uint8Array) => {
+      const name = freeName(
+        archiveBaseName(fileName),
+        await opfsProjects().catch(() => []),
+      );
+      const store = await importArchive(bytes, name);
+      openProject(await readProject(store, PROJECT_OPTIONS), { setup: true });
+    },
     [openProject],
   );
   const openRecent = useCallback(
@@ -1522,19 +1545,40 @@ function WorkbenchState({
     [shownFile, nodeIds, tree],
   );
 
-  // the latest output's files, kept in the project: out/, one manifest entry each
-  const saveOutputs = useCallback(async () => {
-    const open = currentProject();
+  /** the latest output of the engine as the project keeps it (none: no output yet) */
+  const latestOutputs = useCallback((open: Project) => {
     const { lastGood: run } = engineRuns(
       latest.current.runs,
       latest.current.engine,
     );
-    const [model] = open?.models ?? [];
-    const outputs = run && model && outputsToSave(run, model.path);
+    const [model] = open.models;
+    return (run && model && outputsToSave(run, model.path)) || null;
+  }, []);
+
+  // the latest output's files, kept in the project: out/, one manifest entry each
+  const saveOutputs = useCallback(async () => {
+    const open = currentProject();
+    const outputs = open && latestOutputs(open);
     if (!open || !outputs) return;
     const { project: next, changes } = withOutputs(open, outputs);
     await writeProject(open, changes, next);
-  }, [currentProject, writeProject]);
+  }, [currentProject, latestOutputs, writeProject]);
+
+  // the project as a .tar.gz: as it is now, with the latest output as saveOutputs keeps it
+  const exportProject = useCallback(async () => {
+    const open = currentProject();
+    if (!open) return;
+    const outputs = latestOutputs(open);
+    const { project: next, changes } = outputs
+      ? withOutputs(open, outputs)
+      : { project: open, changes: {} };
+    // the project resources and files open in tabs, with their unsaved edits
+    const { fileName, bytes } = await exportArchive(next, {
+      ...resourceTextsRef.current,
+      ...changes,
+    });
+    downloadBytes(fileName, bytes, 'application/gzip');
+  }, [currentProject, latestOutputs]);
 
   // a project's outputs, when it has some for the model and engine: shown
   // until the first generation (stale if the model changed since)
@@ -1676,6 +1720,7 @@ function WorkbenchState({
     revision: model.revision,
     openProject,
     openFile,
+    openArchive,
     openRecent,
     project,
     openFolder,
@@ -1739,6 +1784,7 @@ function WorkbenchState({
     setOutputFile,
     trace,
     saveOutputs,
+    exportProject,
     problems,
     select,
     modelTab,
