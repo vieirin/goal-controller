@@ -9,7 +9,7 @@
  */
 import { check } from 'zod/mini';
 import type { $ZodCheck, $ZodType } from 'zod/v4/core';
-import type { LangiumCoreServices } from 'langium';
+import type { AstNode, LangiumCoreServices } from 'langium';
 
 /**
  * A kind of definition: `<namespace>.<name>` (`gm.task`). The namespace is
@@ -114,7 +114,9 @@ export const annotationOf = (zodCheck: object): Annotation | undefined =>
   annotations.get(zodCheck);
 
 /** An annotation, as a check on a Zod schema (`.check(…)`) or in a Langium map. */
-export type Annotated = $ZodCheck<never>;
+// any: it goes on a schema of any output (it accepts everything)
+// oxlint-disable-next-line no-explicit-any
+export type Annotated = $ZodCheck<any>;
 
 const annotate = (annotation: Annotation): Annotated => {
   // a check that accepts everything: Zod carries it, the pool reads it
@@ -175,9 +177,25 @@ export type LangiumOptions = {
    * from the nearest enclosing definition outwards
    */
   kinds?: Readonly<Record<string, Kind>>;
-  /** what the grammar can't say: per AST type, per property, its annotations */
+  /**
+   * AST types that own the members written in them, as a definition does,
+   * without being one (a quantifier's variables)
+   */
+  scopes?: readonly string[];
+  /**
+   * what the grammar can't say: per AST type, per property, its
+   * annotations (or, given the node, which ones apply)
+   */
   annotate?: Readonly<
-    Record<string, Readonly<Record<string, readonly Annotated[]>>>
+    Record<
+      string,
+      Readonly<
+        Record<
+          string,
+          readonly Annotated[] | ((node: AstNode) => readonly Annotated[])
+        >
+      >
+    >
   >;
 };
 
