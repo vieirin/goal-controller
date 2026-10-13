@@ -109,7 +109,7 @@ export type PoolLookup = {
   definition(id: string): PoolDefinition | undefined;
   /** the definitions of a qualified kind */
   definitionsOf(kind: string): readonly PoolDefinition[];
-  /** a definition by kinds and name, among an owner's members (then the global ones) */
+  /** a definition by kinds and name, among an owner's members (then its owner's, then the global ones) */
   find(
     kinds: readonly string[],
     name: string,
@@ -129,7 +129,10 @@ export type PoolLookup = {
 
 /** A plug-in: the documents it speaks, what it defines, what it refers to. */
 export type PoolProvider = {
-  /** its namespace: its kinds are `${id}.${kind}` */
+  /**
+   * its namespace: its kinds are `${id}.${kind}`; empty, its kinds are
+   * written qualified (a declared engine's, lib/src/pool)
+   */
   id: string;
   documents: {
     /** project-resource kinds */
