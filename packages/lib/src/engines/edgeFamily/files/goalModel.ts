@@ -4,15 +4,15 @@
  * variables of variables.json or elements. An unknown name is the goal
  * language's to report, not the pool's.
  */
+import { goalServices } from '@goal-controller/goal-language';
 import * as z from 'zod/mini';
 import {
   defineFile,
   goalModel as goalModelParser,
   type Occurrence,
 } from '../../../pool';
-import { defines, langium, refersTo, written } from '../pool/vocabulary';
-import { goalServices } from '@goal-controller/goal-language';
 import { assertionType } from '../../assertionUses';
+import { defines, langium, refersTo, written } from '../pool/vocabulary';
 
 /** what a resource declares it is: its `type`, `bool` or `int` */
 const declaredType = (occurrences: readonly Occurrence[]) =>
