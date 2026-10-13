@@ -308,6 +308,13 @@ that isn't a key is shown as the text itself, under the check name `engine`.
   a path between elements. That is #71's generic model provider, and it is
   not here yet.
 
+## Limits
+
+- JSON being typed still has a tree (`jsonc-parser` reads past errors), so
+  completion works in it. XML or YAML that doesn't parse keeps its last good
+  reading, so its locations, and completion in it, are those of the last
+  text that parsed.
+
 ## Inside (for whoever changes the core)
 
 - `read.ts` reads a tree file with its schema. This is #81's reader:
