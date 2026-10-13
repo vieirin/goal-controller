@@ -417,6 +417,53 @@ describe('the pool’s protocol, form by form', () => {
     ]);
   });
 
+  it('makes an ambiguous reference an error, and still resolves it to the first kind', () => {
+    // a pick is a plant or a colour: `rose` is both
+    const picks = defineEngine({
+      files: [
+        defineFile({
+          kind: 'picks',
+          parser: json,
+          schema: z.object({
+            plants: z.array(z.string().check(defines('p.plant'))),
+            colours: z.array(z.string().check(defines('p.colour'))),
+            picks: z.array(
+              z.string().check(refersTo(['p.plant', 'p.colour'], 'global')),
+            ),
+          }),
+        }),
+      ],
+      kinds: {
+        'p.plant': { label: 'plant' },
+        'p.colour': { label: 'colour' },
+      },
+    });
+    const text =
+      '{ "plants": ["rose", "fern"], "colours": ["rose", "blue"], "picks": ["rose", "fern", "blue"] }';
+    const pool = createPool(poolOf(picks)).update([
+      { id: 'picks.json', kind: 'picks', text },
+    ]);
+    const rose = offset(text, 'rose', 2);
+    expect(
+      pool.diagnostics.map((d) => [d.check, d.severity, d.message, d.from]),
+    ).to.deep.equal([
+      [
+        'ambiguous-reference',
+        'error',
+        'rose is both a plant and a colour',
+        rose,
+      ],
+    ]);
+    // while it is fixed, go-to-definition still goes to the plant
+    expect(
+      definitionAt(pool, { document: 'picks.json', offset: rose }),
+    ).to.deep.equal({
+      document: 'picks.json',
+      from: offset(text, 'rose'),
+      to: offset(text, 'rose') + 4,
+    });
+  });
+
   it('refuses a kind the engine doesn’t declare', () => {
     expect(() => poolOf(defineEngine({ files: [plan], kinds: {} }))).to.throw(
       /plan names g.task, which the engine's kinds don't declare/,

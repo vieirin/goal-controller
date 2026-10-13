@@ -710,7 +710,9 @@ export const poolOf = <K extends string, M extends string, L extends string>(
         if (!r.name) continue;
         const target = pool.target(r);
         if (target) {
-          // ambiguous: another of its kinds has the name too
+          // ambiguous, an error: another of its kinds has the name too. It
+          // still resolves to the first kind's, so the services keep working
+          // while it is fixed
           const owner = ownerOf(pool, r) ?? undefined;
           const other = r.kinds
             .filter((k) => k !== target.kind)
@@ -719,9 +721,9 @@ export const poolOf = <K extends string, M extends string, L extends string>(
           if (other)
             diagnostics.push({
               ...r.location,
-              severity: 'warning',
+              severity: 'error',
               check: 'ambiguous-reference',
-              message: `${r.name} is both a ${label(target.kind)} and a ${label(other.kind)}: it is taken as the ${label(target.kind)}`,
+              message: `${r.name} is both a ${label(target.kind)} and a ${label(other.kind)}`,
             });
           continue;
         }
