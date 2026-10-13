@@ -5,7 +5,8 @@
  */
 import * as z from 'zod/mini';
 import type { AssertionType } from '../../assertionUses';
-import { defineFile, defines, json, type Occurrence } from '../../../pool';
+import { defineFile, json, type Occurrence } from '../../../pool';
+import { defines } from '../pool/vocabulary';
 
 const typeOfValue = ([occurrence]: readonly Occurrence[]):
   | AssertionType

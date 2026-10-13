@@ -10,27 +10,23 @@ import type { AstNode } from 'langium';
 import * as z from 'zod/mini';
 import {
   defineFile,
-  defines,
   goalModel as goalModelParser,
-  langium,
-  link,
-  refersTo,
   scope,
-  written,
   type Annotated,
   type NamePart,
   type Occurrence,
 } from '../../../pool';
-import type {
-  OclCall,
-  OclPath,
-  OclVariable,
-  VariableType,
-} from '../language/generated/ast';
-import { mutroseServices } from '../language';
-
-/** OCL's own types: no world class */
-export const BASIC_TYPES = new Set(['Integer', 'Real', 'Boolean', 'String']);
+import {
+  defines,
+  langium,
+  link,
+  refersTo,
+  unresolvedAs,
+  written,
+} from '../pool/vocabulary';
+import type { OclCall, OclPath, OclVariable } from '../language/generated/ast';
+import { BASIC_TYPES, mutroseServices } from '../language';
+import { variableType } from './variableType';
 
 /** The world: no variable */
 const WORLD = 'world_db';
@@ -40,7 +36,7 @@ const KEYWORDS = new Set(['implies', 'null', 'self']);
 const services = mutroseServices();
 
 /** a task's first word: the HDDL task it stands for */
-const firstWord: NamePart = (text) => {
+export const firstWord: NamePart = (text) => {
   const word = /\S+/.exec(text);
   return word && { text: word[0], offset: word.index };
 };
@@ -53,15 +49,6 @@ const worldClass = refersTo('world.class', undefined, {
 
 /** a variable of the element's, or the model's */
 const variable = refersTo('gm.variable', scope.owner('^id'));
-
-/** `Room`, `Sequence(Room)`: the class is the element's, when it has one */
-const variableType = {
-  VariableType: {
-    name: (node: AstNode) =>
-      (node as VariableType).element ? [] : [worldClass],
-    element: [worldClass],
-  },
-};
 
 /** Controls: the model's variables, declared by their first declaration */
 const declarations = langium(services, {
@@ -81,7 +68,7 @@ const declarations = langium(services, {
         }),
       ],
     },
-    ...variableType,
+    ...variableType(worldClass),
   },
 });
 
@@ -158,7 +145,7 @@ const element = z.union([
     name: z.string().check(
       refersTo('hddl.task', undefined, {
         name: firstWord,
-        unresolved: { severity: 'error', message: 'unknown-hddl-task' },
+        ...unresolvedAs('unknown-hddl-task'),
       }),
       link('standsFor'),
     ),

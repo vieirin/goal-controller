@@ -3,25 +3,27 @@
  * declare their variables by using them; a variable used both as a
  * boolean and as a number is an error on every use (#58).
  */
-import { assertionUse, usedAs, type AssertionUse } from '../../assertionUses';
+import { assertionUse, usedAs } from '../../assertionUses';
 import {
   defineEngine,
   poolOf,
   type Check,
   type Definition,
+  type TypedPool,
 } from '../../../pool';
 import { goalModel } from '../files/goalModel';
+import { KINDS, MESSAGES, type GodaCheck, type GodaKind } from './vocabulary';
 
 /** every use of a variable: its first (the definition), and the references to it */
 const usesOf = (
-  pool: Parameters<Check>[0],
-  variable: Definition,
-): AssertionUse[] =>
+  pool: TypedPool<GodaKind, GodaCheck>,
+  variable: Definition<GodaKind, GodaCheck>,
+) =>
   [variable, ...pool.referencesTo(variable)].flatMap(
     (located) => assertionUse(located) ?? [],
   );
 
-const typeConflict: Check = (pool) =>
+const typeConflict: Check<GodaKind, GodaCheck> = (pool) =>
   pool.definitions('gm.variable').flatMap((variable) => {
     const uses = usesOf(pool, variable);
     return new Set(uses.map(usedAs)).size > 1
@@ -35,17 +37,9 @@ const typeConflict: Check = (pool) =>
 
 export const godaEngine = defineEngine({
   files: [goalModel],
-  kinds: {
-    'gm.variable': {
-      label: 'Context variable',
-      rename: (name) => (/^[A-Za-z_]\w*$/.test(name) ? name : null),
-    },
-  },
+  kinds: KINDS,
   checks: [typeConflict],
-  messages: {
-    'assertion-type-conflict':
-      '{name} is used both as a boolean and as a number',
-  },
+  messages: MESSAGES,
 });
 
 export const godaPool = poolOf(godaEngine);

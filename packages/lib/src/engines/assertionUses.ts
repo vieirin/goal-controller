@@ -6,7 +6,6 @@
  * engines and GODA check their variables' types with it.
  */
 import type { ValueType } from '@goal-controller/dialect';
-import type { Definition, Reference } from '../pool';
 
 export type AssertionShape = 'bare' | 'eqBool' | 'eqNumber' | 'ordered';
 
@@ -20,9 +19,12 @@ export const assertionType = (
   type: string | undefined,
 ): AssertionType | undefined => ASSERTION_TYPES.find((t) => t === type);
 
-export type AssertionUse = {
+/** where a name is: a definition or a reference of the pool's (`parent`: its AST node) */
+type Located = { parent?: unknown };
+
+export type AssertionUse<L extends Located = Located> = {
   /** the name used: a reference to its variable, or (first use) its definition */
-  located: Definition | Reference;
+  located: L;
   shape: AssertionShape;
   /** the number it is compared with, when it is: `int` (`3`) or `decimal` (`0.5`) */
   literal?: 'int' | 'decimal';
@@ -31,9 +33,9 @@ export type AssertionUse = {
 type Node = { $type?: string; operator?: string; value?: string };
 
 /** A name's use, if it is a variable of an assertion. */
-export const assertionUse = (
-  located: Definition | Reference,
-): AssertionUse | null => {
+export const assertionUse = <L extends Located>(
+  located: L,
+): AssertionUse<L> | null => {
   const node = located.parent as Node | undefined;
   switch (node?.$type) {
     case 'AssertVar':

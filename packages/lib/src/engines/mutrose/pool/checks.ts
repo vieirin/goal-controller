@@ -5,7 +5,14 @@
  * resolves to nothing is the declarations' (`unresolved`), not these.
  */
 import type { Check, Definition, Reference, TypedPool } from '../../../pool';
-import { OTHER_MODEL } from '../files/goalModel';
+import { firstWord, OTHER_MODEL } from '../files/goalModel';
+import type { MutroseCheck, MutroseKind } from './vocabulary';
+
+type Pool = TypedPool<MutroseKind, MutroseCheck>;
+type Located =
+  | Definition<MutroseKind, MutroseCheck>
+  | Reference<MutroseKind, MutroseCheck>;
+type MutroseCheckFn = Check<MutroseKind, MutroseCheck>;
 
 /** A model element, as the pool reads it. */
 type Element = {
@@ -19,25 +26,28 @@ type Configuration = {
   var_mapping?: { task_id: string; map: { gm_var: string }[] }[];
 };
 
-/** The model field a name is written in (`Params` in `model:AT1:Params`). */
-const fieldOf = ({ location }: Reference | Definition) =>
-  /^model:.*:([^:]*)$/.exec(location.document)?.[1];
-/** The model element a name is written in (`AT1`): its key. */
-const elementKey = ({ location }: Reference | Definition) =>
-  /^model:(.*):[^:]*$/.exec(location.document)?.[1];
+/**
+ * The model element a name is written in, and its field (`id`, `name`, or
+ * a property's key): where its path says it is in the model's value.
+ */
+const inModel = (pool: Pool, located: Located) => {
+  if (located.file !== 'model') return undefined;
+  const [index, key, property] = located.path;
+  const element = elementsOf(pool, 'model')[index as number];
+  return element && { element, field: key === 'properties' ? property : key };
+};
 
 /** The AST node (or object) a value is in. */
 type Node = { $type?: string; $container?: Node; [key: string]: unknown };
-const parentOf = (located: Reference | Definition) =>
-  located.parent as Node | undefined;
+const parentOf = (located: Located) => located.parent as Node | undefined;
 
-const elementsOf = (pool: TypedPool, file: string) =>
+const elementsOf = (pool: Pool, file: string) =>
   pool
     .values(file)
     .flatMap(({ value }) => (value as Element[] | undefined) ?? []);
 
 /** a task's Params its var_mapping doesn't bind */
-export const unboundParam: Check = (pool) => {
+export const unboundParam: MutroseCheckFn = (pool) => {
   if (!pool.has('configuration') || !pool.has('model')) return [];
   const bound = new Map<string, Set<string>>();
   for (const { value } of pool.values('configuration'))
@@ -47,35 +57,33 @@ export const unboundParam: Check = (pool) => {
           entry.task_id,
           (bound.get(entry.task_id) ?? new Set()).add(gm_var),
         );
-  const ids = new Map(elementsOf(pool, 'model').map((e) => [e.key, e.id]));
-  return pool
-    .references('gm.variable')
-    .filter((param) => param.file === 'model' && fieldOf(param) === 'Params')
-    .flatMap((param) => {
-      const id = ids.get(elementKey(param)!) ?? elementKey(param)!;
-      if (bound.get(id)?.has(param.name)) return [];
-      const task = pool.find('gm.task', id);
-      const [hddlTask] = pool.links('standsFor', task);
-      return [
-        param.problem('error', 'unbound-param', {
-          name: param.name,
-          task: id,
-          hddlTask: hddlTask?.name ?? '',
-        }),
-      ];
-    });
+  return pool.references('gm.variable').flatMap((param) => {
+    const at = inModel(pool, param);
+    if (at?.field !== 'Params') return [];
+    const { id } = at.element;
+    if (bound.get(id)?.has(param.name)) return [];
+    const task = pool.find('gm.task', id);
+    const [hddlTask] = pool.links('standsFor', task);
+    return [
+      param.problem('error', 'unbound-param', {
+        name: param.name,
+        task: id,
+        hddlTask: hddlTask?.name ?? '',
+      }),
+    ];
+  });
 };
 
 /**
  * an HDDL task no goal-model task stands for and no method decomposes into
  * (the project's other models count: they may share the domain)
  */
-export const unusedHddlTask: Check = (pool) => {
+export const unusedHddlTask: MutroseCheckFn = (pool) => {
   if (!pool.has('model') || !pool.has('hddl')) return [];
   const others = new Set(
     elementsOf(pool, OTHER_MODEL).flatMap((element) =>
       element.kind === 'task'
-        ? [/\S+/.exec(element.name)?.[0].toLowerCase() ?? '']
+        ? [firstWord(element.name)?.text.toLowerCase() ?? '']
         : [],
     ),
   );
@@ -97,7 +105,7 @@ export const unusedHddlTask: Check = (pool) => {
 };
 
 /** a select or a forAll over a class the world has no instance of */
-export const noInstances: Check = (pool) => {
+export const noInstances: MutroseCheckFn = (pool) => {
   if (!pool.has('world')) return [];
   const instances = (worldClass: Definition) =>
     pool.definitions('world.instance').filter((i) => i.type === worldClass.name)
@@ -106,7 +114,7 @@ export const noInstances: Check = (pool) => {
     .references('world.class')
     .filter(
       (type) =>
-        fieldOf(type) === 'QueriedProperty' &&
+        inModel(pool, type)?.field === 'QueriedProperty' &&
         parentOf(type)?.$type === 'OclType' &&
         type.target &&
         !instances(type.target),
@@ -118,7 +126,7 @@ export const noInstances: Check = (pool) => {
     const path = parentOf(iterated);
     const call = path?.$container;
     if (
-      fieldOf(iterated) !== 'AchieveCondition' ||
+      inModel(pool, iterated)?.field !== 'AchieveCondition' ||
       path?.$type !== 'OclPath' ||
       (path.attributes as unknown[]).length ||
       call?.$type !== 'OclCall' ||

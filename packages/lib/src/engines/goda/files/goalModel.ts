@@ -6,13 +6,8 @@
  * two `T1.2`), which the pool's goal model doesn't read yet.
  */
 import * as z from 'zod/mini';
-import {
-  defineFile,
-  defines,
-  goalModel as goalModelParser,
-  langium,
-  written,
-} from '../../../pool';
+import { defineFile, goalModel as goalModelParser } from '../../../pool';
+import { defines, langium, written } from '../pool/vocabulary';
 import { goalServices } from '@goal-controller/goal-language';
 
 const variable = defines('gm.variable', { firstUse: true });

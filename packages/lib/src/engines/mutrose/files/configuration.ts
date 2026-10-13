@@ -8,37 +8,26 @@
  * are let through.
  */
 import * as z from 'zod/mini';
-import {
-  defineFile,
-  defines,
-  json,
-  refersTo,
-  scope,
-  type NamePart,
-} from '../../../pool';
+import { defineFile, json, scope } from '../../../pool';
+import { defines, refersTo, unresolvedAs, written } from '../pool/vocabulary';
+import { typeWritten } from './variableType';
 
-/** `Room`, or `Room` in `Sequence(Room)`; the decomposer's robots are no class */
-const worldClass: NamePart = (text) => {
-  if (text === 'robot' || text === 'robotteam') return null;
-  const inner = /^(Sequence\()(\w+)\)$/.exec(text);
-  return inner
-    ? { text: inner[2]!, offset: inner[1]!.length }
-    : { text, offset: 0 };
-};
+/** the decomposer's robots: no class of the world's */
+const ROBOTS = new Set(['robot', 'robotteam']);
 
-const error = (message: string) => ({
-  unresolved: { severity: 'error', message } as const,
+/** a world class: an unknown one is an error */
+const worldClass = refersTo('world.class', undefined, {
+  name: (text) => (ROBOTS.has(text) ? null : { text, offset: 0 }),
+  ...unresolvedAs('unknown-mapping-class'),
 });
 
-const toClass = z.string().check(
-  refersTo('world.class', undefined, {
-    name: worldClass,
-    ...error('unknown-mapping-class'),
-  }),
-);
+/** `Room`, `Sequence(Room)`: the class it names */
+const toClass = z.string().check(written(typeWritten(worldClass)));
 const toType = z
   .string()
-  .check(refersTo('hddl.type', undefined, error('unknown-mapping-type')));
+  .check(
+    refersTo('hddl.type', undefined, unresolvedAs('unknown-mapping-type')),
+  );
 
 /** a semantic mapping's predicate (or numeric function, `staphylococcus`) and its sorts */
 const predicate = z.looseObject({
@@ -61,7 +50,11 @@ export const configuration = defineFile({
           .string()
           .check(
             defines('mutrose.locationType'),
-            refersTo('world.class', undefined, error('unknown-mapping-class')),
+            refersTo(
+              'world.class',
+              undefined,
+              unresolvedAs('unknown-mapping-class'),
+            ),
           ),
       ),
     ),
@@ -74,7 +67,11 @@ export const configuration = defineFile({
           task_id: z
             .string()
             .check(
-              refersTo('gm.task', undefined, error('unknown-mapping-task')),
+              refersTo(
+                'gm.task',
+                undefined,
+                unresolvedAs('unknown-mapping-task'),
+              ),
             ),
           map: z.array(
             z.looseObject({
@@ -84,7 +81,7 @@ export const configuration = defineFile({
                   refersTo(
                     'gm.variable',
                     undefined,
-                    error('unknown-mapping-variable'),
+                    unresolvedAs('unknown-mapping-variable'),
                   ),
                 ),
               // the parameters of the HDDL task the model's task stands for
@@ -94,7 +91,7 @@ export const configuration = defineFile({
                   refersTo(
                     'hddl.param',
                     scope.through('standsFor', '../task_id'),
-                    error('hddl-var-not-param'),
+                    unresolvedAs('hddl-var-not-param'),
                   ),
                 ),
             }),

@@ -8,14 +8,8 @@
  * a collection: its entities are read as the root's are.
  */
 import * as z from 'zod/mini';
-import {
-  defineFile,
-  defines,
-  refersTo,
-  xml,
-  type NamePart,
-  type Occurrence,
-} from '../../../pool';
+import { defineFile, xml, type NamePart, type Occurrence } from '../../../pool';
+import { defines, refersTo } from '../pool/vocabulary';
 
 /** An element, as the XML parser gives it. */
 type Element = {

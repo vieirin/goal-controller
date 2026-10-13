@@ -7,13 +7,10 @@
 import * as z from 'zod/mini';
 import {
   defineFile,
-  defines,
   goalModel as goalModelParser,
-  langium,
-  refersTo,
-  written,
   type Occurrence,
 } from '../../../pool';
+import { defines, langium, refersTo, written } from '../pool/vocabulary';
 import { goalServices } from '@goal-controller/goal-language';
 import { assertionType } from '../../assertionUses';
 

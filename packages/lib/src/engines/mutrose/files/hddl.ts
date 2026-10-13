@@ -7,7 +7,8 @@
  * declared by its first use.
  */
 import type { AstNode } from 'langium';
-import { defineFile, defines, langium, type Occurrence } from '../../../pool';
+import { defineFile, type Occurrence } from '../../../pool';
+import { defines, langium } from '../pool/vocabulary';
 import type { Parameter, VariableGroup } from '../hddl/generated/ast';
 import { hddlServices } from '../hddl';
 
