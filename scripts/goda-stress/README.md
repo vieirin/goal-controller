@@ -72,8 +72,8 @@ unzipped into `param/` (`zip.cjs`, no `unzip` needed).
 
 **Exit code.** It is non-zero only on a regression in the other engines. With
 `--strict`, a failure of a model whose issue has landed also counts (`run.cjs`'s
-`SUPPORTED`: AND, OR, DM, Incompleteness, TAS), except a model's informational
-checks. A failure on any other model (Fragmented #39, BSN #40, SA-BSN #94) is
+`SUPPORTED`: AND, OR, DM, Incompleteness, TAS, SA-BSN), except a model's
+informational checks. A failure on any other model (Fragmented #39, BSN #40) is
 an expected failure until its issue lands.
 
 **Expected diagnostics.** When a model PR settles which dialect diagnostics a

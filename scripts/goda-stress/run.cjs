@@ -19,7 +19,7 @@
  * a model whose issue has (SUPPORTED) is reported as a failure, and fails
  * the run with `--strict`. A model's `informational` checks never do: SA-BSN's
  * comparisons with param.zip, and every check of its other variant (#93 D2).
- * So once SA-BSN is in SUPPORTED (#94 landed), only its cc808b6 row gates.
+ * So of SA-BSN, which is in SUPPORTED, only the cc808b6 row gates.
  */
 const fs = require('fs');
 const path = require('path');
@@ -46,10 +46,18 @@ const RESULTS = path.join(CACHE, 'results');
 const BASELINE = path.join(CACHE, 'snapshot-baseline');
 /**
  * The models whose issue has landed in the stack (#32 AND and OR, #36 DM,
- * #37 Incompleteness, #38 TAS); the others' failures are expected until
- * theirs does (#39, #40; SA-BSN #94).
+ * #37 Incompleteness, #38 TAS, #94 SA-BSN: its cc808b6 row only, the rest
+ * is informational, #93 D2); the others' failures are expected until
+ * theirs does (#39, #40).
  */
-const SUPPORTED = new Set(['AND', 'OR', 'DM', 'Incompleteness', 'TAS']);
+const SUPPORTED = new Set([
+  'AND',
+  'OR',
+  'DM',
+  'Incompleteness',
+  'TAS',
+  'SA-BSN',
+]);
 
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const load = () => ({
