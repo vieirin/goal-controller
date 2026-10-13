@@ -1,7 +1,7 @@
 /**
  * The definition pool's core (goal-controller#59): a provider plugs in with
- * no change to the core and gets every service; the HDDL provider is
- * registered without MutRoSe.
+ * no change to the core and gets every service (a toy one, beside a
+ * hand-written HDDL one: ./fixtures/hddlProvider.ts).
  */
 import { expect } from 'chai';
 import {
@@ -17,7 +17,7 @@ import {
   type PoolProvider,
   type PoolReference,
 } from '../../src/engines/definitionPool';
-import { createHddlProvider, hddlProvider } from '../../src/providers';
+import { hddlProvider } from './fixtures/hddlProvider';
 
 /**
  * A toy format: `thing NAME` defines a thing, `use NAME` uses one, `does
@@ -220,50 +220,5 @@ describe('the definition pool, with a provider plugged in', () => {
         { id: 'a.toy', kind: 'file', text: '' },
       ]),
     ).to.throw(/rogue defines toy.thing, outside its namespace/);
-  });
-});
-
-describe('the HDDL provider, on its own', () => {
-  const index = createPool(
-    definePool({ engine: 'planner', providers: [hddlProvider] }),
-  ).update([{ id: 'domain.hddl', kind: 'hddl', text: DOMAIN }]);
-
-  it('defines types, tasks, methods, actions and their parameters, and resolves their uses', () => {
-    expect(index.definitions.map((d) => `${d.kind} ${d.name}`)).to.deep.equal([
-      'hddl.type box',
-      'hddl.task pack',
-      'hddl.param ?b',
-      'hddl.method m-pack',
-      'hddl.param ?b',
-      'hddl.action seal',
-      'hddl.param ?b',
-    ]);
-    expect(index.references().filter((r) => !index.target(r))).to.deep.equal(
-      [],
-    );
-    // a method's ?b is its own, not its task's
-    const methodParam = index.definitions.find(
-      (d) => d.owner === 'hddl.method:m-pack',
-    )!;
-    expect(
-      index.referencesTo(methodParam.id).map((r) => r.location.from),
-    ).to.deep.equal([at(DOMAIN, '?b', 2), at(DOMAIN, '?b', 3)]);
-  });
-
-  it('declares a type by its use when asked to (MutRoSe’s domains use `robot` so)', () => {
-    const text = '(define (domain d) (:task go :parameters (?r - robot)))';
-    const strict = createPool(
-      definePool({ engine: 'p', providers: [hddlProvider] }),
-    ).update([{ id: 'd.hddl', kind: 'hddl', text }]);
-    expect(strict.definitionsOf('hddl.type')).to.deep.equal([]);
-    const lenient = createPool(
-      definePool({
-        engine: 'p',
-        providers: [createHddlProvider({ typesDeclaredByUse: true })],
-      }),
-    ).update([{ id: 'd.hddl', kind: 'hddl', text }]);
-    expect(lenient.definitionsOf('hddl.type').map((d) => d.name)).to.deep.equal(
-      ['robot'],
-    );
   });
 });
