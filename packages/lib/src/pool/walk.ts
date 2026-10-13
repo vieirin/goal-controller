@@ -163,7 +163,7 @@ export const walkValue = (
     const text = (key?: string | number) =>
       (key === undefined
         ? locator.at(path, isKey && 'key')
-        : locator.at([...path, key])
+        : locator.at([...path.slice(0, -1), key])
       )?.text;
     const written = locator.at(path, isKey && 'key');
     const writtenIn = marks.filter(

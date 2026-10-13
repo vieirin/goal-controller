@@ -57,7 +57,8 @@ const elementNode = (text: string, element: XmlElement): Built => {
   );
   const selfClosed = text.slice(element.end - 2, element.end) === '/>';
   if (!selfClosed) {
-    const close = text.lastIndexOf(`</${name}`, element.end) + 2;
+    // its last `</name` before its end (not the one its end may touch)
+    const close = text.lastIndexOf(`</${name}`, element.end - 1) + 2;
     property(node, 'close', string(name, close, close + name.length));
   }
   const tag = text.slice(element.start, text.indexOf('>', element.start));
