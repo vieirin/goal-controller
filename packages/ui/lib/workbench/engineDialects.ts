@@ -17,6 +17,8 @@ import {
   mutroseCheckRegistry,
   mutroseEngineMapper,
   mutroseProjectResources,
+  mutrosePool,
+  type PoolRegistration,
   sleecEngineMapper,
   type Check,
   type ProjectResourceParsers,
@@ -64,6 +66,14 @@ export const ENGINE_PROJECT_RESOURCES: {
   mutrose: mutroseProjectResources,
   // it reads nothing beside the model
   goda: {},
+};
+
+/**
+ * The engines whose project's files share one definition pool
+ * (goal-controller#59): its providers and the checks across them.
+ */
+export const ENGINE_POOLS: Partial<Record<DialectEngine, PoolRegistration>> = {
+  mutrose: mutrosePool,
 };
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */

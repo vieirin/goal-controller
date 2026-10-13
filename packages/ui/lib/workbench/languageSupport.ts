@@ -36,6 +36,8 @@ import type { Check } from '@goal-controller/lib';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
 import { languageProblems } from './diagnostics';
 import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
+import type { PoolWorkspace } from './poolDocuments';
+import type { PoolHost } from './poolSupport';
 import { SOURCE } from './types';
 
 export type { DefinitionContext };
@@ -51,6 +53,14 @@ export type LanguageSupport = {
   setSaved(saved: SavedLines): void;
   /** the model file's text, for a service that reads it (`pistar-json`) */
   setModelText?(text: string): void;
+  /** a project resource's own tab (a definition pool's service speaks it) */
+  resourceExtension?(path: string): Extension;
+  /**
+   * the open model and the project's resources, for a service that reads
+   * them all (a definition pool, goal-controller#59), and how it opens a
+   * location and applies a rename
+   */
+  setWorkspace?(workspace: PoolWorkspace, host: PoolHost): void;
 };
 
 /** What the engine's grammar said of each saved element line, by id. */

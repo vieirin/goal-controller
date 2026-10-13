@@ -9,6 +9,7 @@ import {
   type StreamParser,
 } from '@codemirror/language';
 import {
+  EditorState,
   RangeSetBuilder,
   StateEffect,
   StateField,
@@ -309,3 +310,11 @@ export const rangeMarksField = StateField.define<DecorationSet>({
   },
   provide: (field) => EditorView.decorations.from(field),
 });
+
+/**
+ * An editor that may not be edited: no change from the user (the state is
+ * read only), but it stays focusable, with a cursor and the keys that go
+ * somewhere: go-to-definition, references, search (goal-controller#59).
+ */
+export const readOnlyEditor = (readOnly: boolean): Extension =>
+  EditorState.readOnly.of(readOnly);

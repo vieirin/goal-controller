@@ -346,6 +346,24 @@ export type Workbench = {
   /** ask the Source view to show a line (JSON problems) */
   sourceLine: { line: number; seq: number } | null;
   revealSourceLine: (line: number) => void;
+  /**
+   * a range to show, in a project file's tab or in a model field (a
+   * definition pool's location, goal-controller#59): its tab consumes it
+   */
+  revealed: RevealRequest | null;
+  revealLocation: (location: {
+    document: string;
+    from: number;
+    to: number;
+  }) => void;
+};
+
+/** A range to show: a project file's path, or a model field's `model:<key>:<field>`. */
+export type RevealRequest = {
+  document: string;
+  from: number;
+  to: number;
+  seq: number;
 };
 
 const WorkbenchContext = createContext<Workbench | null>(null);
@@ -1143,6 +1161,19 @@ function WorkbenchState({
     },
     [resourceSlotsNow],
   );
+  const [revealed, setRevealed] = useState<RevealRequest | null>(null);
+  /** a model field's range in the Notation view (its element selected), or a file's in its tab */
+  const revealLocation = useCallback(
+    (location: { document: string; from: number; to: number }) => {
+      const element = /^model:(.*):[^:]*$/.exec(location.document)?.[1];
+      if (element !== undefined) {
+        setModelTab('notation');
+        select(element, 'problems');
+      } else openProjectFile(location.document);
+      setRevealed((prev) => ({ ...location, seq: (prev?.seq ?? 0) + 1 }));
+    },
+    [openProjectFile, select],
+  );
   const parsedResources = useMemo(
     () =>
       pistar ? {} : parseResources(engine, resourceSlotsNow, resourceTexts),
@@ -1719,6 +1750,8 @@ function WorkbenchState({
     bottomRevealSeq,
     sourceLine,
     revealSourceLine,
+    revealed,
+    revealLocation,
   };
 
   return (

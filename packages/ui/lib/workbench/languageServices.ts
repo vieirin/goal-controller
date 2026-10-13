@@ -17,10 +17,12 @@ import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
 import {
   ENGINE_CHECKS,
   ENGINE_DIALECTS,
+  ENGINE_POOLS,
   type DialectEngine,
 } from './engineDialects';
 import { goalClient, onClientDiagnostics } from './goalLsp';
 import { localLanguageSupport, type LanguageSupport } from './languageSupport';
+import { poolSupport } from './poolSupport';
 import { serverLanguageSupport } from './serverLanguageSupport';
 import { SOURCE } from './types';
 
@@ -31,7 +33,9 @@ export type ServiceDocument =
   /** one element's property value (an inspector field) */
   | 'field'
   /** the model file itself (piStar JSON), as MutRoSe's server reads it */
-  | 'pistar-json';
+  | 'pistar-json'
+  /** a project resource's own tab (its file: world, HDDL, configuration) */
+  | 'resource';
 
 export type LanguageService = {
   /** the source of its diagnostics (the Problems panel's group) */
@@ -85,15 +89,42 @@ export const GOAL_LANGUAGE: LanguageService = {
   },
 };
 
+// one pool support per definition, for every view on the page
+const pools = new WeakMap<AnyDialect, LanguageSupport>();
+
 /**
- * The servers engines bring, by mode, after the shared one. None yet:
- * MutRoSe's (lsp-mutrose, rebuilt on Langium) comes from mutrose-vscode, as
- * `{ id: 'mutrose', documents: ['pistar-json'], anchoring: 'data',
- * transport: () => serviceClient(...) }`.
+ * An engine's definition pool (goal-controller#59) as a service: run in the
+ * page, it speaks every document of the project (the model's Notation view
+ * and fields, and each resource's tab), beside the shared language.
+ */
+const poolService = (engine: DialectEngine): LanguageService => ({
+  id: SOURCE.pool,
+  documents: ['goal-notation', 'field', 'resource'],
+  anchoring: 'data',
+  transport: (definition) => {
+    let support = pools.get(definition);
+    if (!support) {
+      support = poolSupport(SOURCE.pool, ENGINE_POOLS[engine]!, definition);
+      pools.set(definition, support);
+    }
+    return support;
+  },
+});
+
+/**
+ * The services engines bring, by mode, after the shared one: each engine's
+ * definition pool. An engine's own server would be registered the same way
+ * (`{ id, documents: ['pistar-json'], anchoring: 'data', transport: () =>
+ * serviceClient(...) }`).
  */
 const ENGINE_SERVICES: Partial<
   Record<ServiceMode, readonly LanguageService[]>
-> = {};
+> = Object.fromEntries(
+  (Object.keys(ENGINE_POOLS) as DialectEngine[]).map((engine) => [
+    engine,
+    [poolService(engine)],
+  ]),
+);
 
 /** The services a mode is served by, the shared one first. */
 export const languageServicesFor = (
@@ -237,7 +268,11 @@ export const multiplexSupport = (
   });
   const speaking = (document: ServiceDocument) =>
     served.filter(({ service }) => service.documents.includes(document));
-  /** The first speaker's extension, the other servers mirroring the document. */
+  /**
+   * The first speaker's extension; the other servers mirror the document,
+   * and the other services run in the page add theirs (a definition pool's
+   * cross-file services beside the shared language's).
+   */
   const editor = (
     document: ServiceDocument,
     uri: string,
@@ -246,10 +281,10 @@ export const multiplexSupport = (
     const [lead, ...others] = speaking(document);
     return [
       lead ? first(lead.support) : [],
-      ...others.flatMap(({ service, transport }) =>
+      ...others.map(({ service, transport, support }) =>
         isClient(transport)
-          ? [mirror(transport, uri, service.languageId ?? service.id)]
-          : [],
+          ? mirror(transport, uri, service.languageId ?? service.id)
+          : first(support),
       ),
       ViewPlugin.define(() => ({ destroy: () => forgetDocument(uri) })),
     ];
@@ -271,5 +306,11 @@ export const multiplexSupport = (
       speaking('pistar-json').forEach(({ support }) =>
         support.setModelText?.(text),
       ),
+    resourceExtension: (path) =>
+      speaking('resource').map(
+        ({ support }) => support.resourceExtension?.(path) ?? [],
+      ),
+    setWorkspace: (workspace, host) =>
+      served.forEach(({ support }) => support.setWorkspace?.(workspace, host)),
   };
 };

@@ -1,9 +1,11 @@
 'use client';
 
 import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
-import type { EditorView } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useState } from 'react';
 import { formatOf, sourceLabel } from '@/lib/project';
+import { isDialectEngine } from '@/lib/workbench/engineDialects';
+import { useOptionalLanguageSupport } from './engines/definition/useLanguageSupport';
 import CodeEditor, { type CodeLanguage } from './CodeEditor';
 import { useWorkbench } from './WorkbenchContext';
 import { Button } from './ui';
@@ -27,6 +29,30 @@ export default function ResourceView({ path }: { path: string }) {
     : listed?.role === 'output'
       ? 'Output'
       : 'File';
+  // the engine's services across the project's files (a definition pool's)
+  const support = useOptionalLanguageSupport(
+    isDialectEngine(wb.engine) ? wb.engine : null,
+  );
+  const extensions = useMemo(
+    () => (slot ? (support?.resourceExtension?.(path) ?? []) : []),
+    [support, slot, path],
+  );
+  // a range another tab asked to show here (go-to-definition, a problem)
+  useEffect(() => {
+    const request = wb.revealed;
+    if (!view || request?.document !== path) return;
+    const length = view.state.doc.length;
+    view.dispatch({
+      selection: {
+        anchor: Math.min(request.from, length),
+        head: Math.min(request.to, length),
+      },
+      effects: EditorView.scrollIntoView(Math.min(request.from, length), {
+        y: 'center',
+      }),
+    });
+    view.focus();
+  }, [view, wb.revealed, path]);
   const diagnostics = useMemo(
     () =>
       (slot ? (wb.parsedResources[slot.kind]?.diagnostics ?? []) : []).filter(
@@ -78,6 +104,7 @@ export default function ResourceView({ path }: { path: string }) {
           ariaLabel={`${label}: ${path}`}
           readOnly={readOnly}
           onChange={(value) => wb.setResourceText(path, value)}
+          extensions={extensions}
           onReady={setView}
         />
       </div>

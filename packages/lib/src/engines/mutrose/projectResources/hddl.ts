@@ -4,62 +4,17 @@
  * stands for one of the domain's tasks (the first word of its name); the
  * configuration maps the model's variables onto their parameters.
  */
+import {
+  atomOf,
+  isList,
+  readExprs,
+  type Expr,
+  type List,
+} from '../../../formats/hddl';
 import type {
   ProjectResourceParser,
   ResourceDiagnostic,
 } from '../../projectResources';
-
-type Atom = { atom: string; from: number; to: number };
-type List = { list: Expr[]; from: number; to: number };
-type Expr = Atom | List;
-
-const isList = (expr: Expr | undefined): expr is List =>
-  expr !== undefined && 'list' in expr;
-const atomOf = (expr: Expr | undefined): string | undefined =>
-  expr && 'atom' in expr ? expr.atom : undefined;
-
-/** The s-expressions of a text (`;` comments to the end of the line), and what is unbalanced. */
-const readExprs = (
-  text: string,
-): {
-  exprs: Expr[];
-  problems: { message: string; from: number; to: number }[];
-} => {
-  const problems: { message: string; from: number; to: number }[] = [];
-  const stack: List[] = [{ list: [], from: 0, to: text.length }];
-  const TOKEN = /\s+|;[^\n]*|\(|\)|[^\s();]+/gy;
-  for (let match = TOKEN.exec(text); match; match = TOKEN.exec(text)) {
-    const [token] = match;
-    const from = match.index;
-    if (/^\s|^;/.test(token)) continue;
-    if (token === '(') stack.push({ list: [], from, to: from });
-    else if (token === ')') {
-      if (stack.length === 1) {
-        problems.push({ message: 'Unbalanced )', from, to: from + 1 });
-        continue;
-      }
-      const done = stack.pop()!;
-      done.to = from + 1;
-      stack[stack.length - 1]!.list.push(done);
-    } else
-      stack[stack.length - 1]!.list.push({
-        atom: token.toLowerCase(),
-        from,
-        to: from + token.length,
-      });
-  }
-  while (stack.length > 1) {
-    const open = stack.pop()!;
-    problems.push({
-      message: 'Unclosed (',
-      from: open.from,
-      to: open.from + 1,
-    });
-    open.to = text.length;
-    stack[stack.length - 1]!.list.push(open);
-  }
-  return { exprs: stack[0]!.list, problems };
-};
 
 export type HddlParameter = { name: string; type: string };
 export type HddlOperation = { name: string; parameters: HddlParameter[] };

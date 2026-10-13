@@ -23,6 +23,8 @@ export type Problem = Omit<GoalDiagnostic, 'elementId'> & {
   /** 1-based, for the file's JSON problems */
   line?: number;
   column?: number;
+  /** where it is, in a project's file or a model field (a definition pool's problem): Problems goes there */
+  reveal?: { document: string; from: number; to: number };
 };
 
 /**
@@ -38,6 +40,8 @@ export const SOURCE = {
   language: 'goal language',
   /** the model's settings, as its project manifest holds them */
   settings: 'model settings',
+  /** an engine's definition pool: what spans the project's files (goal-controller#59) */
+  pool: 'project files',
 } as const;
 
 export type VariableInfo = {
