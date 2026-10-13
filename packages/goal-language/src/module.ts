@@ -11,13 +11,20 @@ import {
   type ParseResult,
   type PartialLangiumCoreServices,
 } from 'langium';
+import type { GoalAstType } from './generated/ast.js';
 import {
   GoalGeneratedModule,
   GoalGeneratedSharedModule,
 } from './generated/module.js';
 import { GoalLexer, type LexerStart } from './lexer.js';
 
-export type GoalCoreServices = LangiumCoreServices;
+/**
+ * The goal language's services: `$ast` (a type, never set) says which AST
+ * they parse, so a reader typed by it (the pool's `langium(…)`) infers it.
+ */
+export type GoalCoreServices = LangiumCoreServices & {
+  readonly $ast?: GoalAstType;
+};
 
 /**
  * The lexer is GoalLexer (token sets by where it is in a line); the parser

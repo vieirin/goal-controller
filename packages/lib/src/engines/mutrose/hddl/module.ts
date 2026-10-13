@@ -9,14 +9,20 @@ import {
   inject,
   type LangiumCoreServices,
 } from 'langium';
+import type { HddlAstType } from './generated/ast';
 import {
   HddlGeneratedModule,
   HddlGeneratedSharedModule,
 } from './generated/module';
 
-let services: LangiumCoreServices | undefined;
+/** HDDL's services: `$ast` (a type, never set) says which AST they parse. */
+export type HddlServices = LangiumCoreServices & {
+  readonly $ast?: HddlAstType;
+};
+
+let services: HddlServices | undefined;
 /** The parser services (no LSP), created on first use. */
-export const hddlServices = (): LangiumCoreServices => {
+export const hddlServices = (): HddlServices => {
   if (services) return services;
   const shared = inject(
     createDefaultSharedCoreModule(EmptyFileSystem),

@@ -6,7 +6,6 @@
  * MutRoSe's domains use types they don't list (`robot`): a type is also
  * declared by its first use.
  */
-import type { AstNode } from 'langium';
 import { defineFile, type Occurrence } from '../../../pool';
 import { defines, langium } from '../pool/vocabulary';
 import type { Parameter, VariableGroup } from '../hddl/generated/ast';
@@ -40,10 +39,8 @@ export const hddl = defineFile({
       },
       // a type the domain doesn't list: declared where first used
       TypeRef: {
-        type: (node: AstNode) =>
-          (node as { object?: boolean }).object
-            ? []
-            : [defines('hddl.type', { firstUse: true })],
+        type: (node) =>
+          node.object ? [] : [defines('hddl.type', { firstUse: true })],
       },
     },
   }),

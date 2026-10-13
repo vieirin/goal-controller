@@ -10,6 +10,7 @@ import {
   type ParseResult,
   type PartialLangiumCoreServices,
 } from 'langium';
+import type { MutRoSeAstType } from './generated/ast';
 import {
   MutRoSeGeneratedModule,
   MutRoSeGeneratedSharedModule,
@@ -55,9 +56,14 @@ const MutroseModule: Module<LangiumCoreServices, PartialLangiumCoreServices> = {
   },
 };
 
-let services: LangiumCoreServices | undefined;
+/** MutRoSe's services: `$ast` (a type, never set) says which AST they parse. */
+export type MutroseServices = LangiumCoreServices & {
+  readonly $ast?: MutRoSeAstType;
+};
+
+let services: MutroseServices | undefined;
 /** The parser services (no LSP), created on first use: MutRoSe's language for the pool's `langium(…)`. */
-export const mutroseServices = (): LangiumCoreServices => {
+export const mutroseServices = (): MutroseServices => {
   if (services) return services;
   const shared = inject(
     createDefaultSharedCoreModule(EmptyFileSystem),

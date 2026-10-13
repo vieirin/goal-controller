@@ -6,7 +6,6 @@
  * are MutRoSe's language (../language/mutrose.langium), each read with the
  * rule its field is written in.
  */
-import type { AstNode } from 'langium';
 import * as z from 'zod/mini';
 import {
   defineFile,
@@ -24,7 +23,7 @@ import {
   unresolvedAs,
   written,
 } from '../pool/vocabulary';
-import type { OclCall, OclPath, OclVariable } from '../language/generated/ast';
+import type { OclCall, OclVariable } from '../language/generated/ast';
 import { BASIC_TYPES, mutroseServices } from '../language';
 import { variableType } from './variableType';
 
@@ -89,20 +88,17 @@ const expression = langium(services, {
   start: 'OclExpression',
   annotate: {
     OclPath: {
-      head: (node: AstNode) => {
-        const { head, attributes } = node as OclPath;
-        return head === WORLD || (!attributes.length && KEYWORDS.has(head))
+      head: ({ head, attributes }) =>
+        head === WORLD || (!attributes.length && KEYWORDS.has(head))
           ? []
-          : [variable];
-      },
-      attributes: (node: AstNode) =>
-        (node as OclPath).head === WORLD ? [] : [attribute],
+          : [variable],
+      attributes: ({ head }) => (head === WORLD ? [] : [attribute]),
     },
     OclCall: {
       // a query's variable is its own, looked up in the element first;
       // forAll iterates with one of the model's
-      variable: (node: AstNode): readonly Annotated[] =>
-        (node as OclCall).operation === 'select' && (node as OclCall).type
+      variable: ({ operation, type }): readonly Annotated[] =>
+        operation === 'select' && type
           ? [
               defines('gm.variable', {
                 owner: '^id',
@@ -110,7 +106,7 @@ const expression = langium(services, {
                   (occurrences[0]?.parent as OclCall | undefined)?.type?.name,
               }),
             ]
-          : (node as OclCall).operation === 'forAll'
+          : operation === 'forAll'
             ? [variable]
             : [],
     },

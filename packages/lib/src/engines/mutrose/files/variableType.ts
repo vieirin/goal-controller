@@ -4,7 +4,6 @@
  * it has one. The goal model's Controls and the configuration's mappings
  * write types so; each says what the class refers to.
  */
-import type { AstNode } from 'langium';
 import { type Annotated } from '../../../pool';
 import { langium } from '../pool/vocabulary';
 import type { VariableType } from '../language/generated/ast';
@@ -13,7 +12,7 @@ import { mutroseServices } from '../language';
 /** VariableType's annotations, the class referred to by `toClass` */
 export const variableType = (toClass: Annotated) => ({
   VariableType: {
-    name: (node: AstNode) => ((node as VariableType).element ? [] : [toClass]),
+    name: (node: VariableType) => (node.element ? [] : [toClass]),
     element: [toClass],
   },
 });
