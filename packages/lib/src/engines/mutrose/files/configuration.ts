@@ -94,7 +94,7 @@ export const configuration = defineFile({
                 .check(
                   refersTo(
                     'hddl.param',
-                    scope.through('standsFor', '../task_id'),
+                    scope.leadsTo('hddlTask', '../task_id'),
                     unresolvedAs('hddl-var-not-param'),
                   ),
                 ),

@@ -1,7 +1,7 @@
 /**
  * The pool's protocol (#82), form by form: YAML and XML files, a record's
- * keys, first uses, paths up and out (`../`, `^`, `previous`), links and
- * `through`, types, the goal model with values written in a Langium
+ * keys, first uses, paths up and out (`../`, `^`, `previous`), what leads
+ * where (`leadsTo`), types, the goal model with values written in a Langium
  * language, and the engine's messages for what resolves to nothing.
  */
 import { expect } from 'chai';
@@ -19,7 +19,7 @@ import {
   goalModel,
   json,
   langium,
-  link,
+  leadsTo,
   poolOf,
   refersTo,
   scope,
@@ -97,7 +97,10 @@ const model = defineFile({
     kind: z.literal('task'),
     name: z
       .string()
-      .check(refersTo('g.plant', 'global', { name: firstWord }), link('grows')),
+      .check(
+        refersTo('g.plant', 'global', { name: firstWord }),
+        leadsTo('grows'),
+      ),
     properties: z.object({
       Things: z.optional(
         z.string().check(
@@ -134,7 +137,7 @@ const plan = defineFile({
               z
                 .string()
                 .check(
-                  refersTo('g.variety', scope.through('grows', '../task')),
+                  refersTo('g.variety', scope.leadsTo('grows', '../task')),
                 ),
             ),
           }),
@@ -149,7 +152,7 @@ const plan = defineFile({
       z
         .string()
         .check(
-          refersTo('g.shade', scope.through('type', scope.previous('nothing'))),
+          refersTo('g.shade', scope.leadsTo('type', scope.previous('nothing'))),
         ),
     ]),
   }),
@@ -298,7 +301,7 @@ describe('the pool’s protocol, form by form', () => {
     expect(definition('toy.part', 'blade')!.owner).to.equal(spade.id);
   });
 
-  it('looks up through a link (`../task` grows a plant), a type, and the item before', () => {
+  it('looks up through what leads where (`../task` grows a plant), a type, and the item before', () => {
     const at = (word: string, nth = 0) =>
       definitionAt(index, {
         document: 'plan.json',
@@ -333,8 +336,8 @@ describe('the pool’s protocol, form by form', () => {
     ]);
   });
 
-  it('gives checks typed definitions, their links and their types', () => {
-    let seen: { links: string[]; type?: string; parent: unknown } | undefined;
+  it('gives checks typed definitions, what they lead to and their types', () => {
+    let seen: { leadsTo: string[]; type?: string; parent: unknown } | undefined;
     const probe = defineEngine({
       ...garden,
       checks: [
@@ -346,7 +349,7 @@ describe('the pool’s protocol, form by form', () => {
             pool.find('g.plant', 'rose'),
           )!;
           seen = {
-            links: pool.links('grows', task).map((d) => d.name),
+            leadsTo: pool.leadsTo('grows', task).map((d) => d.name),
             type: pool.typeOf(red)?.name,
             parent: red.parent,
           };
@@ -356,7 +359,7 @@ describe('the pool’s protocol, form by form', () => {
     });
     createPool(poolOf(probe)).update(documents);
     expect(seen).to.deep.equal({
-      links: ['rose'],
+      leadsTo: ['rose'],
       type: 'Colour',
       parent: ['red', 'white'],
     });

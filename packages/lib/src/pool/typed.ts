@@ -12,7 +12,7 @@
 import { langium } from './parsers';
 import {
   defines,
-  link,
+  leadsTo,
   refersTo,
   scope,
   written,
@@ -38,11 +38,11 @@ export type TypedAnnotations<
     where: Scope,
     options?: RefersToOptions<M>,
   ) => Annotated;
-  link: (name: L, options?: { from?: Path }) => Annotated;
-  /** the scopes, `through` by the engine's links (or the built-in `type`) */
+  leadsTo: (name: L, options?: { from?: Path }) => Annotated;
+  /** the scopes, `leadsTo` by the engine's leads (or the built-in `type`) */
   scope: {
     owner: (path: Path) => Scope;
-    through: (link: L | 'type', path: Path) => Scope;
+    leadsTo: (name: L | 'type', path: Path) => Scope;
     previous: (first: Path) => Path;
   };
   written: typeof written;
@@ -64,11 +64,11 @@ export const annotationsFor = <
 >(
   _kinds?: Readonly<Record<K, unknown>>,
   _messages?: Readonly<Record<M, unknown>>,
-  _links?: readonly L[],
+  _leads?: readonly L[],
 ): TypedAnnotations<K, M, L> => ({
   defines,
   refersTo,
-  link,
+  leadsTo,
   scope,
   written,
   // the same function: its options typed by the engine's kinds

@@ -1,7 +1,7 @@
 /**
  * What a document's annotated values mean to the pool (#68's facts):
  * definitions with their ids, owners and types; references with their
- * scopes; and the links between definitions. A path in an annotation is
+ * scopes; and what definitions lead to. A path in an annotation is
  * resolved here, against the objects the value sits in.
  */
 import type {
@@ -25,16 +25,16 @@ import type { ValuePath } from './read';
 
 type Defines = Extract<Annotation, { defines: Kind }>;
 type RefersTo = Extract<Annotation, { refersTo: readonly Kind[] }>;
-type Link = Extract<Annotation, { link: string }>;
+type LeadsTo = Extract<Annotation, { leadsTo: string }>;
 
 /** A hidden definition's kind: a Langium scope node, which owns members and defines nothing. */
 export const SCOPE_KIND = '#scope';
 /** `scope.owner` through a reference: the definition it resolves to. */
 export const SELF = '#self';
-/** `scope.through('type', …)`: the definition the type names. */
+/** `scope.leadsTo('type', …)`: the definition the type names. */
 export const TYPE = '#type';
-export const linkResolver = (name: string) =>
-  name === 'type' ? TYPE : `link:${name}`;
+export const leadsToResolver = (name: string) =>
+  name === 'type' ? TYPE : `leadsTo:${name}`;
 
 /** A scope that leads nowhere: what it names isn't written (#68 says nothing then). */
 const NOWHERE: PoolReference = {
@@ -57,7 +57,7 @@ export type Meta = {
 
 export type DefinitionMeta = Meta;
 export type ReferenceMeta = Meta & {
-  /** the id of the definition of its object (`link`'s source) */
+  /** the id of the definition of its object (`leadsTo`'s source) */
   owner?: string;
   unresolved?: Unresolved;
   /** what its scope names isn't written */
@@ -72,7 +72,7 @@ export type DocumentFacts = {
   references: PoolReference[];
   /** a definition whose id another one of the document has already */
   duplicates: PoolDefinition[];
-  links: { name: string; source: string; reference: PoolReference }[];
+  leads: { name: string; source: string; reference: PoolReference }[];
 };
 
 /**
@@ -350,7 +350,7 @@ export const factsOf = (
       references.push(reference);
     }
 
-  /** a reference to what a definition draft defines (`through` from a definition) */
+  /** a reference to what a definition draft defines (`leadsTo` from a definition) */
   const toDefinition = (draft: Draft): PoolReference => {
     const owner = ownerOf(draft);
     return {
@@ -384,7 +384,7 @@ export const factsOf = (
       }
       return via ? { via, through: SELF } : nowhere;
     }
-    const through = linkResolver(where.through);
+    const through = leadsToResolver(where.leadsTo);
     if (via) return { via, through };
     return draft ? { via: toDefinition(draft), through } : nowhere;
   };
@@ -394,14 +394,14 @@ export const factsOf = (
     if (scope) reference.scope = scope;
   }
 
-  // the links: from a definition (its object's, or `from`'s) to a reference's target
-  const links: DocumentFacts['links'] = [];
+  // what leads where: from a definition (its object's, or `from`'s) to a reference's target
+  const leads: DocumentFacts['leads'] = [];
   for (const entity of entities)
     for (const annotation of entity.annotations) {
-      if (!('link' in annotation)) continue;
+      if (!('leadsTo' in annotation)) continue;
       const reference = referenceOf.get(entity);
       if (!reference) continue;
-      const { from } = annotation as Link;
+      const { from } = annotation as LeadsTo;
       const source =
         from !== undefined
           ? (() => {
@@ -411,8 +411,8 @@ export const factsOf = (
               return draft && idOf(draft);
             })()
           : definitionOfObject(entity);
-      if (source) links.push({ name: annotation.link, source, reference });
+      if (source) leads.push({ name: annotation.leadsTo, source, reference });
     }
 
-  return { definitions, references, duplicates, links };
+  return { definitions, references, duplicates, leads };
 };

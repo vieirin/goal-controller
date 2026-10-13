@@ -1,18 +1,19 @@
 /**
  * MutRoSe's checks across its files that a declaration can't say: they
- * read the typed, resolved pool (its definitions, references, links and
+ * read the typed, resolved pool (its definitions, references, what leads
+ * where and
  * the files' typed values), never how it was read or resolved. What
  * resolves to nothing is the declarations' (`unresolved`), not these.
  */
 import type { Check, Definition, Reference, TypedPool } from '../../../pool';
 import { firstWord, OTHER_MODEL } from '../files/goalModel';
-import type { MutroseCheck, MutroseKind, MutroseLink } from './vocabulary';
+import type { MutroseCheck, MutroseKind, MutroseLead } from './vocabulary';
 
-type Pool = TypedPool<MutroseKind, MutroseCheck, MutroseLink>;
+type Pool = TypedPool<MutroseKind, MutroseCheck, MutroseLead>;
 type Located =
   | Definition<MutroseKind, MutroseCheck>
   | Reference<MutroseKind, MutroseCheck>;
-type MutroseCheckFn = Check<MutroseKind, MutroseCheck, MutroseLink>;
+type MutroseCheckFn = Check<MutroseKind, MutroseCheck, MutroseLead>;
 
 /** A model element, as the pool reads it. */
 type Element = {
@@ -63,7 +64,7 @@ export const unboundParam: MutroseCheckFn = (pool) => {
     const { id } = at.element;
     if (bound.get(id)?.has(param.name)) return [];
     const task = pool.find('gm.task', id);
-    const [hddlTask] = pool.links('standsFor', task);
+    const [hddlTask] = pool.leadsTo('hddlTask', task);
     return [
       param.problem('error', 'unbound-param', {
         name: param.name,
