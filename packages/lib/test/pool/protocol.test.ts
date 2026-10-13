@@ -26,7 +26,6 @@ import {
   written,
   xml,
   yaml,
-  type Definition,
 } from '../../src/pool';
 import { toyLanguage } from './toy/language';
 
@@ -344,7 +343,7 @@ describe('the pool’s protocol, form by form', () => {
       checks: [
         (pool) => {
           const task = pool.find('g.task', 'T1')!;
-          const red: Definition = pool.find(
+          const red = pool.find(
             'g.variety',
             'red',
             pool.find('g.plant', 'rose'),

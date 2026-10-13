@@ -153,7 +153,11 @@ const enginePools = new WeakMap<DeclaredEngine, PoolRegistration>();
  * The pool of a declared engine (#68's registration): `createPool(…)` of it
  * gives the index every service of the pool reads.
  */
-export const poolOf = (engine: DeclaredEngine): PoolRegistration => {
+export const poolOf = <K extends string, M extends string>(
+  declared: DeclaredEngine<K, M>,
+): PoolRegistration => {
+  // within the core, kinds and messages are strings
+  const engine = declared as unknown as DeclaredEngine;
   const known = enginePools.get(engine);
   if (known) return known;
   const { files, kinds } = engine;

@@ -243,6 +243,30 @@ Every kind a file names must be declared here, or `poolOf` throws.
   definition's name, for example `Sequence(Room)` to `Room`, or returns
   `null` when it names none.
 
+## Typed kinds and messages
+
+Kinds and message keys are strings, so on their own they neither complete
+nor catch typos. To get both, declare the kinds and messages once as
+constants and take the annotations from them:
+
+```ts
+const KINDS = { 'toy.shelf': { label: 'shelf' }, 'toy.thing': { label: 'thing' } } as const satisfies Record<string, KindDeclaration>;
+const MESSAGES = { 'toy.noThing': '{name} is no thing on any shelf' } as const;
+const { defines, refersTo, link, written, langium } = annotationsFor(KINDS, MESSAGES);
+
+const check: Check<keyof typeof KINDS, keyof typeof MESSAGES> = (pool) => …;
+export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, checks: [check] });
+```
+
+After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'])`,
+`unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,
+`problem(…, 'toy.emptyShelve')` and `typeOf: { kinds: ['toy.shelve'] }` all
+fail to compile, and an editor completes each of them. `defineEngine` infers
+the kinds from `kinds` and the message keys from `messages`, and types the
+checks with both. An engine without `messages` may give a problem's text
+itself. Nothing changes at run time: the untyped `defines`/`refersTo` are the
+same functions. `test/pool/typed.test.ts` is the example.
+
 ## Checks
 
 A check is `(pool: TypedPool) => Problem[]`. It reads typed values and

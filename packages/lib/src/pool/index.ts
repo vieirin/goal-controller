@@ -7,3 +7,4 @@
 export * from './protocol';
 export { json, xml, yaml, goalModel, langium } from './parsers';
 export { poolOf } from './engine';
+export { annotationsFor, type TypedAnnotations } from './typed';

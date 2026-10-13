@@ -88,9 +88,11 @@ export type DefinesOptions = {
 };
 
 /** What a reference that resolves to nothing is: a message of the engine's, or nothing the pool says. */
-export type Unresolved = false | { severity: Severity; message: string };
+export type Unresolved<M extends string = string> =
+  | false
+  | { severity: Severity; message: M };
 
-export type RefersToOptions = {
+export type RefersToOptions<M extends string = string> = {
   /** the part of the string that is the name */
   name?: NamePart;
   /**
@@ -98,7 +100,7 @@ export type RefersToOptions = {
    * warning; a key of the engine's `messages` (with `name`, `kind`,
    * `owner` and `candidates` as args); or `false` when a check says it
    */
-  unresolved?: Unresolved;
+  unresolved?: Unresolved<M>;
 };
 
 export type Annotation =
@@ -167,7 +169,7 @@ declare const parserBrand: unique symbol;
  */
 export type Parser = { readonly [parserBrand]: true; readonly name: string };
 
-export type LangiumOptions = {
+export type LangiumOptions<K extends string = Kind> = {
   /** the rule a text starts with (the grammar's entry rule: none given) */
   start?: string;
   /**
@@ -176,7 +178,7 @@ export type LangiumOptions = {
    * cross-reference (`[Type:ID]`) to a mapped type refers to it, looked up
    * from the nearest enclosing definition outwards
    */
-  kinds?: Readonly<Record<string, Kind>>;
+  kinds?: Readonly<Record<string, K>>;
   /**
    * AST types that own the members written in them, as a definition does,
    * without being one (a quantifier's variables)
@@ -230,18 +232,22 @@ export type MessageArgs = Readonly<Record<string, string | number>>;
 
 /**
  * What a check finds. `check` is a key of the engine's `messages` (the text
- * is its, with `args`) or, when it isn't one, the text itself.
+ * is its, with `args`). An engine without `messages` may give the text itself.
  */
-export type Problem = Location & {
+export type Problem<M extends string = string> = Location & {
   severity: Severity;
-  check: string;
+  check: M;
   args?: MessageArgs;
 };
 
-type Located = {
+type Located<M extends string> = {
   location: Location;
   /** the file kind it is in, and the document */
   file: string;
+  /**
+   * the document it was read from (`model`); `location.document` is where
+   * its name is written (`model:<key>:<field>`)
+   */
   document: string;
   /** where it is in its document's typed value */
   path: readonly (string | number)[];
@@ -250,49 +256,58 @@ type Located = {
   /** the object (or Langium node) it is in */
   parent: unknown;
   /** a problem at its name */
-  problem(severity: Severity, check: string, args?: MessageArgs): Problem;
+  problem(severity: Severity, check: M, args?: MessageArgs): Problem<M>;
 };
 
 /** A definition as a check reads it. */
-export type Definition = Located & {
-  kind: Kind;
+export type Definition<
+  K extends string = Kind,
+  M extends string = string,
+> = Located<M> & {
+  kind: K;
   name: string;
   /** the definition it is a member of */
-  owner?: Definition;
+  owner?: Definition<K, M>;
   type?: string;
 };
 
 /** A reference as a check reads it. */
-export type Reference = Located & {
-  kinds: readonly Kind[];
+export type Reference<
+  K extends string = Kind,
+  M extends string = string,
+> = Located<M> & {
+  kinds: readonly K[];
   name: string;
   /** what it resolves to */
-  target?: Definition;
+  target?: Definition<K, M>;
   /** the definition of its object (as `link`'s) */
-  owner?: Definition;
+  owner?: Definition<K, M>;
 };
 
-/** The resolved pool, as an engine's checks read it. */
-export type TypedPool = {
+/**
+ * The resolved pool, as an engine's checks read it: typed by the engine's
+ * kinds (`K`) and its messages' keys (`M`).
+ */
+export type TypedPool<K extends string = Kind, M extends string = string> = {
   /** every definition of a kind */
-  definitions(kind: Kind): readonly Definition[];
+  definitions(kind: K): readonly Definition<K, M>[];
   /** every reference to one of these kinds (none given: all) */
-  references(kinds?: Kind | readonly Kind[]): readonly Reference[];
+  references(kinds?: K | readonly K[]): readonly Reference<K, M>[];
   /** the references that resolve to a definition */
-  referencesTo(definition: Definition): readonly Reference[];
+  referencesTo(definition: Definition<K, M>): readonly Reference<K, M>[];
   /** where a definition's links of a name lead */
   links(
     name: string,
-    definition: Definition | undefined,
-  ): readonly Definition[];
+    definition: Definition<K, M> | undefined,
+  ): readonly Definition<K, M>[];
   /** the definition a definition's type names (`typeOf`) */
-  typeOf(definition: Definition): Definition | undefined;
+  typeOf(definition: Definition<K, M>): Definition<K, M> | undefined;
   /** a definition by kinds and name: in an owner (and its owners), then globally */
   find(
-    kinds: Kind | readonly Kind[],
+    kinds: K | readonly K[],
     name: string,
-    owner?: Definition,
-  ): Definition | undefined;
+    owner?: Definition<K, M>,
+  ): Definition<K, M> | undefined;
   /** whether the project has a document of this file kind */
   has(file: string): boolean;
   /** the typed values of a file kind's documents (what their schema accepted) */
@@ -306,16 +321,18 @@ export type TypedPool = {
   problem(
     location: Location,
     severity: Severity,
-    check: string,
+    check: M,
     args?: MessageArgs,
-  ): Problem;
+  ): Problem<M>;
 };
 
-export type Check = (pool: TypedPool) => readonly Problem[];
+export type Check<K extends string = Kind, M extends string = string> = (
+  pool: TypedPool<K, M>,
+) => readonly Problem<M>[];
 
 // ---------------------------------------------------------------- engines
 
-export type KindDeclaration = {
+export type KindDeclaration<K extends string = Kind> = {
   /** shown to people (`location type`) */
   label: string;
   /** names compare lowercased */
@@ -334,7 +351,7 @@ export type KindDeclaration = {
    * among `kinds`, by the type's `name` (null: it names none, `Integer`)
    */
   typeOf?: {
-    kinds: readonly Kind[];
+    kinds: readonly K[];
     name?: (type: string) => string | null;
   };
 };
@@ -342,15 +359,26 @@ export type KindDeclaration = {
 /** A message: a text with `{arg}`s, or a function of the args. */
 export type Message = string | ((args: MessageArgs) => string);
 
-export type EngineDeclaration = {
+/**
+ * An engine: its files, its kinds (`K`, their names) and its checks'
+ * messages (`M`, their keys). Both are inferred from the declaration, and
+ * the checks are typed by them.
+ */
+export type EngineDeclaration<
+  K extends string = Kind,
+  M extends string = string,
+> = {
   files: readonly DeclaredFile[];
-  kinds: Readonly<Record<Kind, KindDeclaration>>;
-  checks?: readonly Check[];
+  kinds: Readonly<Record<K, KindDeclaration<NoInfer<K>>>>;
+  checks?: readonly Check<NoInfer<K>, NoInfer<M>>[];
   /** the text of each check's problems, by the check's key */
-  messages?: Readonly<Record<string, Message>>;
+  messages?: Readonly<Record<M, Message>>;
 };
 
-export type DeclaredEngine = Readonly<EngineDeclaration> & {
+export type DeclaredEngine<
+  K extends string = Kind,
+  M extends string = string,
+> = Readonly<EngineDeclaration<K, M>> & {
   readonly declared: 'engine';
 };
 
@@ -359,6 +387,6 @@ export const defineFile = (declaration: FileDeclaration): DeclaredFile => ({
   declared: 'file',
 });
 
-export const defineEngine = (
-  declaration: EngineDeclaration,
-): DeclaredEngine => ({ ...declaration, declared: 'engine' });
+export const defineEngine = <K extends string, M extends string = string>(
+  declaration: EngineDeclaration<K, M>,
+): DeclaredEngine<K, M> => ({ ...declaration, declared: 'engine' });
