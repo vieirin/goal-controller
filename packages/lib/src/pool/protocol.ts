@@ -65,7 +65,7 @@ export type Occurrence = {
 };
 
 /**
- * A definition's type (#58): the text at a path (`'ocl_type'`), a literal,
+ * A definition's type (#58): the text at a path (`'type'`), a literal,
  * or computed from its occurrences and its file's value, with no lookup.
  */
 export type TypeSource =
@@ -81,8 +81,8 @@ export type DefinesOptions = {
   name?: NamePart;
   /**
    * the first occurrence (of the kind, owner and name, in its document)
-   * defines it, and the later ones refer to it: a world's class is defined
-   * by its first tag, a variable by its first use
+   * defines it, and the later ones refer to it: an XML class is defined by
+   * its first tag, a variable by its first use
    */
   firstUse?: boolean;
 };
@@ -326,7 +326,7 @@ export type KindDeclaration = {
   reportUnused?: boolean;
   /**
    * renaming: the text a new name is written as (null: not a name of this
-   * kind; HDDL keeps a parameter's `?`), or `false`: it isn't renamed here
+   * kind; a format may keep a sigil, `?x`), or `false`: it isn't renamed here
    */
   rename?: false | ((newName: string) => string | null);
   /**

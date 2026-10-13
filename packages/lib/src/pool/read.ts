@@ -14,7 +14,7 @@ import { safeParse, type $ZodIssue, type $ZodType } from 'zod/v4/core';
 
 export type { Node } from 'jsonc-parser';
 
-/** A value's place in the file's value: keys and indexes (`['type_mapping', 0, 'ocl_type']`). */
+/** A value's place in the file's value: keys and indexes (`['mapping', 0, 'type']`). */
 export type ValuePath = readonly (string | number)[];
 
 /** Where something is written: offsets, and the text between them. */
