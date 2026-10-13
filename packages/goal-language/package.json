@@ -12,6 +12,11 @@
       "import": "./out/esm/index.js",
       "require": "./out/cjs/index.cjs"
     },
+    "./langium": {
+      "types": "./out/esm/langium.d.ts",
+      "import": "./out/esm/langium.js",
+      "require": "./out/cjs/langium.cjs"
+    },
     "./light": {
       "types": "./out/esm/light.d.ts",
       "import": "./out/esm/light.js",

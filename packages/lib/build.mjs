@@ -1,12 +1,24 @@
 // What reads Langium, for lib's CommonJS out/: Langium is ESM-only, so
 // MutRoSe's languages (src/engines/mutrose/language, its property values;
 // src/engines/mutrose/hddl, its domains) and the pool's protocol
-// (src/pool, which reads any engine's Langium language) are each bundled
-// with it, into out/engines/mutrose/{language,hddl}.js and out/pool.js. A
-// `require('./language')` finds that file before the directory tsc writes,
-// so tsc and this never write the same file (`--watch`: rebuilt on each
-// change, beside `tsc --watch`).
+// (src/pool, which reads any engine's Langium language) are each bundled,
+// into out/engines/mutrose/{language,hddl}.js and out/pool.js, with
+// `langium` required from goal-language's one CommonJS copy
+// (`@goal-controller/goal-language/langium`), which goal-language's parser
+// requires too: one Langium at run time. A `require('./language')` finds
+// that file before the directory tsc writes, so tsc and this never write
+// the same file (`--watch`: rebuilt on each change, beside `tsc --watch`).
 import { build, context } from 'esbuild';
+
+/** `langium` is goal-language's one CommonJS copy */
+const sharedLangium = {
+  name: 'shared-langium',
+  setup: (build) =>
+    build.onResolve({ filter: /^langium$/ }, () => ({
+      path: '@goal-controller/goal-language/langium',
+      external: true,
+    })),
+};
 
 const shared = {
   bundle: true,
@@ -16,6 +28,7 @@ const shared = {
   // lib's other packages are CommonJS already
   external: ['@goal-controller/*'],
   logLevel: 'warning',
+  plugins: [sharedLangium],
 };
 const bundles = [
   {
