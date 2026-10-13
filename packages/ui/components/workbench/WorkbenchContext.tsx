@@ -103,6 +103,7 @@ import {
   type RecentFile,
 } from '@/lib/workbench/storage';
 import { mergeProblems } from '@/lib/workbench/diagnostics';
+import { saveQueue } from '@/lib/workbench/saveQueue';
 import type { TraceIndex } from '@/lib/workbench/trace';
 import {
   activeFileOf,
@@ -1282,15 +1283,15 @@ function WorkbenchState({
   );
 
   // a resource edited in its tab: kept, and saved where the project can be written
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // one timer per file: an edit of several files at once saves each
+  const saves = useRef(saveQueue());
   const setResourceText = useCallback((path: string, text: string) => {
     setResourceTexts((prev) => ({ ...prev, [path]: text }));
     const open = projectRef.current;
     if (!open || open.store.readOnly) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
+    saves.current.schedule(path, () => {
       void open.store.write(path, text).catch(() => {});
-    }, 500);
+    });
   }, []);
 
   /** a read-only project (a file, an example) copied to the browser, to edit its resources */

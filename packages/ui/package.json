@@ -6,7 +6,8 @@
     "dev": "bash -c 'pnpm --filter @goal-controller/lib run watch & trap \"kill 0\" EXIT; pnpm run dev:next'",
     "dev:next": "node scripts/examples-manifest.mjs && next dev --turbopack",
     "build": "node scripts/examples-manifest.mjs && next build",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
@@ -36,14 +37,18 @@
     "react-resizable-panels": "^4.13.3"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "^15.1.6",
+    "jsdom": "^26.1.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.7"
   }
 }
