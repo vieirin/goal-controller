@@ -20,8 +20,13 @@ import type { ValuePath } from './read';
 /** An object a value sits in (a Langium node is one), and its path. */
 export type Frame = { value: object; path: ValuePath };
 
-/** Where a value of the walked value is written, and its text there. */
-export type Written = Location & { text: string };
+/**
+ * Where a value of the walked value is written, and its text there; and,
+ * when a definition written there is known by more than its text (a goal
+ * model's `G3/T1.2`, its id `T1.2` repeated under another goal), what it is
+ * known by.
+ */
+export type Written = Location & { text: string; identity?: string };
 
 /** What the walk found: an annotated value. */
 export type Entity = {

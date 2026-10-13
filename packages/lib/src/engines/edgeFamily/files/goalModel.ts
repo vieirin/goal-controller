@@ -57,7 +57,7 @@ const element = (kind: 'goal' | 'task' | 'resource') =>
 
 export const goalModel = defineFile({
   kind: 'model',
-  parser: goalModelParser,
+  parser: goalModelParser(),
   schema: z.union([
     element('goal'),
     element('task'),

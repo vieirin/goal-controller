@@ -9,7 +9,7 @@
  * The same functions as protocol.ts's, with narrower types: nothing changes
  * at run time.
  */
-import { langium } from './parsers';
+import { goalModel, langium } from './parsers';
 import {
   defines,
   leadsTo,
@@ -18,6 +18,7 @@ import {
   written,
   type Annotated,
   type DefinesOptions,
+  type GoalModelOptions,
   type LangiumGrammar,
   type LangiumOptions,
   type Parser,
@@ -50,6 +51,7 @@ export type TypedAnnotations<
     grammar: LangiumGrammar<A>,
     options?: LangiumOptions<K, NoInfer<A>>,
   ) => Parser;
+  goalModel: (options?: GoalModelOptions<K, M>) => Parser;
 };
 
 /**
@@ -73,4 +75,5 @@ export const annotationsFor = <
   written,
   // the same function: its options typed by the engine's kinds
   langium: langium as TypedAnnotations<K, M, L>['langium'],
+  goalModel,
 });

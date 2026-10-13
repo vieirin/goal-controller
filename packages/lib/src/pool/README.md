@@ -97,13 +97,13 @@ Kinds keep the names you declared.
 
 The parsers are a closed set. An engine picks one and never writes its own.
 
-| parser                       | reads                           | the value the schema sees                                                                                                                                                                                                                                            | locations                                                                                                     |
-| ---------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `json`                       | strict JSON (`jsonc-parser`)    | the parsed value                                                                                                                                                                                                                                                     | a string's text, without its quotes                                                                           |
-| `xml`                        | XML (`@rgrove/parse-xml`)       | each element is `{ name, close?, attributes, children, text? }`: `name` is the opening tag's name, `close` the closing tag's (absent when self-closed), `attributes` a record, `children` the child elements, `text` the trimmed text of an element with no children | the tag name, the closing tag name, an attribute's value                                                      |
-| `yaml`                       | YAML (`yaml`)                   | the parsed value; an alias reads as what it names                                                                                                                                                                                                                    | a scalar's text, without its quotes                                                                           |
-| `goalModel`                  | the goal model's `DocumentTree` | one element at a time: `{ key, id, kind, name, properties }`. The schema describes ONE element, and an element it rejects is left out without a word (the dialect checks the model)                                                                                  | `model:<key>:<field>`, where `<field>` is `id`, `name` or a property's key, and offsets are within that field |
-| `langium(services, options)` | a Langium language              | the AST (no schema)                                                                                                                                                                                                                                                  | the CST's offsets                                                                                             |
+| parser                       | reads                           | the value the schema sees                                                                                                                                                                                                                                                         | locations                                                                                                                 |
+| ---------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `json`                       | strict JSON (`jsonc-parser`)    | the parsed value                                                                                                                                                                                                                                                                  | a string's text, without its quotes                                                                                       |
+| `xml`                        | XML (`@rgrove/parse-xml`)       | each element is `{ name, close?, attributes, children, text? }`: `name` is the opening tag's name, `close` the closing tag's (absent when self-closed), `attributes` a record, `children` the child elements, `text` the trimmed text of an element with no children              | the tag name, the closing tag name, an attribute's value                                                                  |
+| `yaml`                       | YAML (`yaml`)                   | the parsed value; an alias reads as what it names                                                                                                                                                                                                                                 | a scalar's text, without its quotes                                                                                       |
+| `goalModel(options?)`        | the goal model's `DocumentTree` | one element at a time: `{ key, id, kind, name, parent, children, notation, properties }` (`parent` and `children` are keys, `notation` the bracket's text). The schema describes ONE element, and an element it rejects is left out without a word (the dialect checks the model) | `model:<key>:<field>`, where `<field>` is `id`, `name`, `notation` or a property's key, and offsets are within that field |
+| `langium(services, options)` | a Langium language              | the AST (no schema)                                                                                                                                                                                                                                                               | the CST's offsets                                                                                                         |
 
 A Zod schema (classic or `zod/mini`) checks a JSON, XML or YAML file. What the
 schema rejects becomes a `schema` diagnostic where it is written: a missing
@@ -111,6 +111,32 @@ key, a wrong type, or an unknown key in a `strictObject`. The rejected part is
 left out and the rest is still read. A key written twice in JSON is a warning,
 and the later one is read. A file that doesn't parse gets `syntax` diagnostics
 and keeps its last good reading.
+
+### The goal model's tree
+
+An element's `id` that `defines` is known by the element's key: in a dialect
+whose ids are scoped by their goal, BSN's two `T1.2` are `gm.task:G3/T1.2`
+and `gm.task:G4/T1.2`, both named `T1.2`, and neither is defined twice. A
+path to `'^id'` reaches the scoped one. A global lookup by name
+(`find('gm.task', 'T1.2')`) still gets the first.
+
+`goalModel({ children: { kind, unresolved? } })` reads what notations name.
+For each element whose `id` defines:
+
+- each child is a definition of `kind`, a member of the element, named by
+  the child's id and written where the child's id is (`model:<child>:id`;
+  the child's own definition comes first there, so hover says what the
+  child is);
+- each id the notation lists refers to `kind`, among the element's own
+  children, at its offsets in `model:<key>:notation`. The ids are the
+  view's (read in the dialect, once each); the core finds them in the
+  bracket's text left to right, each a whole token, spaces inside one
+  skipped (`T1.1 2` is `T1.12`).
+
+So F12, references and completion in a bracket work on the element's
+children. A bracket's id that is no child gets `unresolved` as `refersTo`'s
+does: the pool's warning by default, or `false` when the dialect says it
+already. The engine declares `kind` (`scope: 'owner'`, `rename: false`).
 
 ## Annotations
 
@@ -199,8 +225,10 @@ An object counts, and so does a Langium node.
 | `'^id'`                | that key of the nearest enclosing object that has it, starting with the value's own object |
 | `scope.previous(path)` | the same place in the item before this one in its list; for the first item, `path`         |
 
-There are no indexes, no descent into children, and no references between two
-elements of the goal model.
+There are no indexes and no descent into children. Between two elements of
+the goal model there is only what `goalModel({ children })` reads (a
+notation's ids, among the element's children); a check reads `parent` and
+`children` off the element's value.
 
 ## Scopes
 
@@ -384,10 +412,11 @@ that isn't a key is shown as the text itself, under the check name `engine`.
   `annotate[Type][property]` can be a function of the node.
 - **A format the default parsers can't read** (an s-expression language) gets
   a Langium grammar the engine ships. There is no hand-written reader.
-- **Left out.** The goal model's structure (a parent's scoped ids, a
-  notation's children) needs `parent`/`children` on `goalModel`'s elements and
-  a path between elements. That is #71's generic model provider, and it is
-  not here yet.
+- **The goal model's structure.** Ids scoped by their goal and a notation's
+  children are the core's (`goalModel({ children })`, above), not an
+  engine's walk over the tree. Paths between elements (a parent's
+  property, a sibling's) are not there: a check reads `parent` and
+  `children` off the element.
 
 ## Limits
 
