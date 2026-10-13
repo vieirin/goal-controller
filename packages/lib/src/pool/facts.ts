@@ -366,6 +366,8 @@ export const factsOf = (
     annotation: RefersTo,
   ): PoolScope | undefined => {
     const where = annotation.scope;
+    if (where === 'global') return undefined;
+    // none: the grammar's own (a cross-reference), looked up lexically
     if (!where) {
       if (!lexical.has(annotation) || !entity.langiumOwner) return undefined;
       const owner = ownerEntityId(entity.langiumOwner);

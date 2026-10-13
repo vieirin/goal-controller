@@ -24,7 +24,7 @@ const shelves = defineFile({
         name: z.string().check(defines('toy.shelf')),
         holds: z.array(
           z.strictObject({
-            thing: z.string().check(refersTo('toy.thing')),
+            thing: z.string().check(refersTo('toy.thing', 'global')),
             part: z.optional(
               z.string().check(refersTo('toy.part', scope.owner('thing'))),
             ),

@@ -42,7 +42,7 @@ const shelves = defineFile({
         name: z.string().check(defines('toy.shelf')),
         holds: z.array(
           z.string().check(
-            refersTo('toy.thing', undefined, {
+            refersTo('toy.thing', 'global', {
               unresolved: { severity: 'error', message: 'toy.noThing' },
             }),
           ),
@@ -77,8 +77,12 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
       // @ts-expect-error: no such kind
       defines('toy.shelff'),
       // @ts-expect-error: no such kind, in a list
-      refersTo(['toy.thing', 'toy.thinng']),
-      refersTo('toy.thing', undefined, {
+      refersTo(['toy.thing', 'toy.thinng'], 'global'),
+      // @ts-expect-error: a scope is always said ('global' at least)
+      refersTo('toy.thing'),
+      // @ts-expect-error: nor left undefined
+      refersTo('toy.thing', undefined),
+      refersTo('toy.thing', 'global', {
         // @ts-expect-error: no such message
         unresolved: { severity: 'error', message: 'toy.noThin' },
       }),
@@ -118,7 +122,10 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
         scopes: ['Thing'],
         annotate: {
           // the node is a Put: no cast
-          Put: { part: (node) => (node.part ? [refersTo('toy.thing')] : []) },
+          Put: {
+            part: (node) =>
+              node.part ? [refersTo('toy.thing', 'global')] : [],
+          },
         },
       }),
       langium(toyLanguage, {
@@ -139,7 +146,7 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
       }),
       langium(toyLanguage, {
         // @ts-expect-error: no such property of a Put
-        annotate: { Put: { parts: [refersTo('toy.thing')] } },
+        annotate: { Put: { parts: [refersTo('toy.thing', 'global')] } },
       }),
       langium(toyLanguage, {
         annotate: {
@@ -157,6 +164,42 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
       langium(untyped, { start: 'Anything', kinds: { Any: 'toy.thing' } }),
     ];
     expect(typed).to.be.a('function');
+  });
+
+  it('types links by the engine’s, `type` built in', () => {
+    const LINKS = ['holds'] as const;
+    const typed = annotationsFor(KINDS, MESSAGES, LINKS);
+    const misspelt = () => [
+      typed.link('holds'),
+      typed.scope.through('holds', 'name'),
+      typed.scope.through('type', 'name'),
+      // @ts-expect-error: no such link
+      typed.link('hold'),
+      // @ts-expect-error: no such link
+      typed.scope.through('hold', 'name'),
+    ];
+    const check: Check<ToyKind, ToyCheck, (typeof LINKS)[number]> = (pool) =>
+      pool
+        .definitions('toy.shelf')
+        // @ts-expect-error: no such link
+        .flatMap((shelf) => pool.links('hold', shelf))
+        .map((thing) => thing.problem('warning', 'toy.noThing'));
+    expect(misspelt).to.be.a('function');
+    expect(check).to.be.a('function');
+    // a file linking by a name the engine's links don't declare
+    const linked = defineFile({
+      kind: 'linked',
+      parser: json,
+      schema: z.object({
+        shelf: z.string().check(defines('toy.shelf')),
+        thing: z
+          .string()
+          .check(refersTo('toy.thing', 'global'), typed.link('holds')),
+      }),
+    });
+    expect(() =>
+      poolOf(defineEngine({ files: [linked], kinds: KINDS, links: ['other'] })),
+    ).to.throw(/linked links by holds, which the engine's links don't declare/);
   });
 
   it('reads and checks as the untyped protocol does', () => {
