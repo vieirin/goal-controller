@@ -476,6 +476,7 @@ export const poolOf = (engine: DeclaredEngine): PoolRegistration => {
           .filter(
             (r) =>
               referenceMeta.has(r) &&
+              r.name !== '' &&
               (!wanted || r.kinds.some((k) => wanted.includes(k))),
           )
           .map(reference);
@@ -547,6 +548,8 @@ export const poolOf = (engine: DeclaredEngine): PoolRegistration => {
     for (const extraction of read)
       for (const r of extraction.references) {
         const meta = referenceMeta.get(r)!;
+        // a name about to be typed: a place to complete, nothing to say
+        if (!r.name) continue;
         const target = pool.target(r);
         if (target) {
           // ambiguous: another of its kinds has the name too

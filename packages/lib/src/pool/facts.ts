@@ -76,16 +76,21 @@ export type DocumentFacts = {
   links: { name: string; source: string; reference: PoolReference }[];
 };
 
-/** A name and where it is, from an annotated value and its part (null: no name there). */
+/**
+ * A name and where it is, from an annotated value and its part (null: no
+ * name there). A reference may be empty (a name about to be typed: what may
+ * be written there is known); a definition may not.
+ */
 const nameOf = (
   entity: Entity,
   part: DefinesOptions['name'] | RefersToOptions['name'],
+  empty = false,
 ): { name: string; location: PoolLocation } | null => {
   if (!entity.written) return null;
   const text =
     typeof entity.value === 'string' ? entity.value : entity.written.text;
   const piece = part ? part(text) : { text, offset: 0 };
-  if (!piece || !piece.text) return null;
+  if (!piece || (!piece.text && !empty)) return null;
   const from = entity.written.from + piece.offset;
   return {
     name: piece.text,
@@ -325,7 +330,7 @@ export const factsOf = (
   for (const entity of entities)
     for (const annotation of entity.annotations) {
       if (!('refersTo' in annotation) || referenceOf.has(entity)) continue;
-      const named = nameOf(entity, annotation.name);
+      const named = nameOf(entity, annotation.name, true);
       if (!named) continue;
       const reference: PoolReference = {
         kinds: annotation.refersTo,

@@ -7,6 +7,7 @@
 import { expect } from 'chai';
 import * as z from 'zod/mini';
 import {
+  completionsAt,
   createPool,
   definitionAt,
   type PoolDocument,
@@ -312,6 +313,19 @@ describe('the pool’s protocol, form by form', () => {
       definition('g.variety', 'white')!.location,
     );
     expect(at('dark')).to.deep.equal(definition('g.shade', 'dark')!.location);
+  });
+
+  it('completes an empty name through its scope (`../task` grows rose)', () => {
+    const typed = PLAN.replace('"pink"', '""');
+    const pool = createPool(poolOf(garden)).update(
+      documents.map((d) => (d.id === 'plan.json' ? { ...d, text: typed } : d)),
+    );
+    expect(
+      completionsAt(pool, {
+        document: 'plan.json',
+        offset: typed.indexOf('""') + 1,
+      }).map((c) => c.label),
+    ).to.deep.equal(['red', 'white']);
   });
 
   it('says what resolves to nothing, in the pool’s words or the engine’s', () => {

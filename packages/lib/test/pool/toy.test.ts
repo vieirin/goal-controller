@@ -155,6 +155,36 @@ describe('the pool, from a declared toy engine', () => {
     ).to.deep.equal(['red', 'blue']);
   });
 
+  it('completes an empty name, and one being typed in a file that doesn’t parse yet', () => {
+    const complete = (shelves: string) =>
+      completionsAt(createPool(poolOf(toyChecked)).update(documents(shelves)), {
+        document: 'shelves.json',
+        offset: shelves.length,
+      }).map((c) => c.label);
+    const typing =
+      '{ "shelves": [{ "name": "top", "holds": [{ "thing": "ball", "part": "';
+    // an empty name being typed: its kinds and scope are known
+    expect(complete(typing)).to.deep.equal(['red', 'blue']);
+    // an empty name in valid JSON: the same, and it isn't said to be unresolved
+    const pool = createPool(poolOf(toyChecked)).update(
+      documents(`${typing}" }] }] }`),
+    );
+    expect(
+      completionsAt(pool, {
+        document: 'shelves.json',
+        offset: typing.length,
+      }).map((c) => c.label),
+    ).to.deep.equal(['red', 'blue']);
+    expect(
+      pool.diagnostics.filter(
+        (d) =>
+          d.check === 'unresolved-reference' && d.document === 'shelves.json',
+      ),
+    ).to.deep.equal([]);
+    // a name half typed, its string not closed
+    expect(complete(`${typing}re`)).to.deep.equal(['red', 'blue']);
+  });
+
   it('reports the files’ syntax and schema where they are', () => {
     const shelves = SHELVES.replace(
       '"holds": []',

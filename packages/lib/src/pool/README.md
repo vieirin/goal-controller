@@ -138,7 +138,10 @@ kind with a match wins. If another of its kinds also has the name, that is an
   nothing is said, because one of the engine's checks says it.
 
 Nothing is said when no file that can define its kinds is in the project, or
-when its scope leads nowhere (the value it is scoped by doesn't resolve).
+when its scope leads nowhere (the value it is scoped by doesn't resolve). An
+empty string (a name about to be typed) is a reference with an empty name.
+Completion offers what may be written there, and nothing is said about it.
+It isn't among `TypedPool.references`.
 
 ### `link(name, { from? })`
 
@@ -261,6 +264,13 @@ Langium node it is in). A definition also has `kind`, `owner` and `type`. A
 reference also has `kinds`, `target` and `owner` (its object's definition).
 Both have `problem(severity, check, args?)`, which places the problem at the
 name.
+
+`document` is the id of the `PoolDocument` the value was read from, such as
+`model`. `location.document` is where the name is written, such as
+`model:AT2:Params` for a goal-model field. To tell fields apart, read
+`location.document`, or better, `path`.
+
+Diagnostics come as a set. Their order isn't part of the protocol.
 
 `check` is a key of the engine's `messages`. Its text is that message, with
 `{arg}` replaced by the arg, or computed by a function of the args. A `check`

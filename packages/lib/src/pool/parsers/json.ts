@@ -14,13 +14,16 @@ const words = (code: string) =>
     .replace(/(?<=[a-z])(?=[A-Z])/g, ' ')
     .replace(/ \w/g, (w) => w.toLowerCase());
 
-const unquote = (node: Node) => {
-  if (node.type === 'string' && node.length >= 2) {
+/** A string's span, without its quotes (a string being typed has no closing one). */
+const unquote = (text: string, node: Node) => {
+  if (node.type === 'string' && node.length >= 1) {
     const span = node as { offset: number; length: number };
+    const closed =
+      span.length >= 2 && text[span.offset + span.length - 1] === '"';
     span.offset += 1;
-    span.length -= 2;
+    span.length -= closed ? 2 : 1;
   }
-  node.children?.forEach(unquote);
+  node.children?.forEach((child) => unquote(text, child));
 };
 
 /** Leaves out each key written again later in its object, with a warning. */
@@ -59,7 +62,7 @@ export const parseJson = (text: string): Parsed => {
     to: offset + Math.max(length, 1),
   }));
   if (tree) {
-    unquote(tree);
+    unquote(text, tree);
     duplicates(tree, problems);
   }
   return { tree, problems };
