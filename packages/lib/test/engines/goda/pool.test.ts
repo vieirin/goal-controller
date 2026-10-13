@@ -41,11 +41,11 @@ const indexOf = (edits: Record<string, Record<string, string>> = {}) =>
   ]);
 
 describe('GODA’s pool (#58)', () => {
-  it('reports nothing on the seven committed models', () => {
+  it('reports nothing on the eight committed models (SA-BSN since #94)', () => {
     const projects = readdirSync(EXAMPLES, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name);
-    expect(projects).to.have.length(7);
+    expect(projects).to.have.length(8);
     for (const project of projects)
       expect(
         createPool(godaPool).update([

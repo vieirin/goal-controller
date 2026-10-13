@@ -51,8 +51,9 @@ export const optionsFor = (
           reduce: options.reduce,
         }
       : engine === 'goda'
-        ? // GODA reads the model as written (no reduce): its generator version only
-          { variant: options.variant }
+        ? // GODA reads the model as written (no reduce): its generator version,
+          // and whether it writes the runtime's formulas
+          { variant: options.variant, runtimeFormulas: options.runtimeFormulas }
         : { generateFluents: options.generateFluents, reduce: options.reduce };
 
 /** The options a mode reads: an engine's; none for piStar and the modelling dialects. */

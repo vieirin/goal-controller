@@ -29,6 +29,7 @@ import {
   SEED,
   type EngineOutput,
 } from '../../../src';
+import { model } from './support';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
 const { EXAMPLES } = require('../../../../../scripts/goda-stress/fetch.cjs');
@@ -41,48 +42,6 @@ const outputOf = (text: string, modelName = 'model.txt'): EngineOutput =>
   godaOutput(modelOf(text), { modelName, variant: 'cc808b6' });
 const fileOf = (output: EngineOutput, id: string) =>
   output.files.find((file) => file.id === id)!.text;
-
-/** A one-actor model: its nodes' texts and properties, and its links (child → parent). */
-const model = (
-  nodes: Array<
-    [
-      id: string,
-      kind: 'Goal' | 'Task',
-      text: string,
-      props?: Record<string, string>,
-    ]
-  >,
-  links: Array<[child: string, parent: string, kind?: 'And' | 'Or']>,
-): string =>
-  JSON.stringify({
-    actors: [
-      {
-        id: 'actor',
-        text: 'Robot',
-        type: 'istar.Actor',
-        x: 0,
-        y: 0,
-        nodes: nodes.map(([id, kind, text, props], i) => ({
-          id,
-          text,
-          type: `istar.${kind}`,
-          x: i * 100,
-          y: 100,
-          ...(props && { customProperties: props }),
-        })),
-      },
-    ],
-    dependencies: [],
-    links: links.map(([child, parent, kind = 'And'], i) => ({
-      id: `link${i}`,
-      type: `istar.${kind}RefinementLink`,
-      source: child,
-      target: parent,
-    })),
-    tool: 'pistar.2.1.0',
-    istar: '2.0',
-    diagram: { width: 800, height: 600 },
-  });
 
 /** G1 (selected) → T1, refined into T1.1 and T1.2 (AND or OR). */
 const twoTasks = (kind: 'And' | 'Or', texts = ['T1.1: Pick', 'T1.2: Place']) =>
