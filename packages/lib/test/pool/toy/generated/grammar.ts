@@ -127,6 +127,36 @@ export const ToyGrammar = (): Grammar =>
               },
               "arguments": []
             }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "of"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "kind",
+                "operator": "=",
+                "terminal": {
+                  "$type": "CrossReference",
+                  "type": {
+                    "$ref": "#/rules@1"
+                  },
+                  "terminal": {
+                    "$type": "RuleCall",
+                    "rule": {
+                      "$ref": "#/rules@5"
+                    },
+                    "arguments": []
+                  },
+                  "deprecatedSyntax": false,
+                  "isMulti": false
+                }
+              }
+            ],
+            "cardinality": "?"
           }
         ]
       },

@@ -13,7 +13,15 @@ export const ToyTerminals = {
 
 export type ToyTerminalNames = keyof typeof ToyTerminals;
 
-export type ToyKeywordNames = '.' | 'on' | 'part' | 'put' | 'thing' | '{' | '}';
+export type ToyKeywordNames =
+  | '.'
+  | 'of'
+  | 'on'
+  | 'part'
+  | 'put'
+  | 'thing'
+  | '{'
+  | '}';
 
 export type ToyTokenNames = ToyTerminalNames | ToyKeywordNames;
 
@@ -36,11 +44,13 @@ export function isModel(item: unknown): item is Model {
 export interface Part extends langium.AstNode {
   readonly $container: Thing;
   readonly $type: 'Part';
+  kind?: langium.Reference<Thing>;
   name: string;
 }
 
 export const Part = {
   $type: 'Part',
+  kind: 'kind',
   name: 'name',
 } as const;
 
@@ -127,6 +137,11 @@ export class ToyAstReflection extends langium.AbstractAstReflection {
     Part: {
       name: Part.$type,
       properties: {
+        kind: {
+          name: Part.kind,
+          referenceType: Thing.$type,
+          optional: true,
+        },
         name: {
           name: Part.name,
         },

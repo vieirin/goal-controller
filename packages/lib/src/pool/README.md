@@ -220,6 +220,9 @@ else: no documents, no linker, no scope provider. The pool resolves the names.
   `name` gives that definition its options (`type`, `owner`, ...) instead of
   making a second definition. A `refersTo` on a cross-reference property
   replaces what the grammar says about it (kind and lexical scope).
+  Ownership and lexical lookup belong only to what the grammar says. Any
+  other annotated `defines`, a first use on a cross-reference included, is
+  owned only through its `owner:` path, and without one it is global.
 
 The language's syntax errors are `syntax` diagnostics.
 

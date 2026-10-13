@@ -39,13 +39,10 @@ export type Entity = {
   /** as written: the value's text, or that of a key of its parent */
   text: (key?: string | number) => string | undefined;
   /**
-   * what a Langium language's kinds define and refer to: the nearest
-   * enclosing definition or scope node (lexical scoping; what an annotation
-   * says isn't)
+   * for what a Langium language's kinds define and refer to (`lexical`):
+   * the nearest enclosing definition or scope node
    */
   langiumOwner?: Entity;
-  /** a definition or cross-reference of a Langium language's kinds */
-  lexical?: true;
   /** a Langium scope node (owns members, defines nothing) */
   scopeNode?: true;
 };
@@ -54,6 +51,17 @@ export type Entity = {
 export type Locator = {
   /** where a path of the value is written (a key's, with `'key'`) */
   at: (path: ValuePath, part?: 'key') => Written | undefined;
+};
+
+/**
+ * What a Langium language's kinds say (a mapped node's definition, a
+ * cross-reference's kinds): owned and looked up lexically. What an
+ * annotation says is owned and scoped only as it says.
+ */
+export const lexical = new WeakSet<Annotation>();
+const fromGrammar = <A extends Annotation>(annotation: A): A => {
+  lexical.add(annotation);
+  return annotation;
 };
 
 export const pathKey = (path: ValuePath, isKey?: boolean) =>
@@ -343,7 +351,7 @@ export const walkLangium = (
           (m) => 'defines' in m && m.defines === kind,
         );
         self = {
-          annotations: [{ ...merged, defines: kind }],
+          annotations: [fromGrammar({ ...merged, defines: kind })],
           path: [...path, 'name'],
           frames: inside,
           value: name,
@@ -351,7 +359,6 @@ export const walkLangium = (
           written: at(nameNode.offset, nameNode.end, nameNode.text),
           text: (key) => (key === undefined ? nameNode.text : textOf(key)),
           langiumOwner: owner,
-          lexical: true,
         };
         walk.entities.push(self);
       }
@@ -389,9 +396,10 @@ export const walkLangium = (
           );
           // a `refersTo` on the property says it instead of the grammar
           const own = marks.some((m) => 'refersTo' in m);
-          const lexical = !own && refKinds.length > 0;
           const annotations: Annotation[] = [
-            ...(lexical ? [{ refersTo: refKinds }] : []),
+            ...(!own && refKinds.length
+              ? [fromGrammar({ refersTo: refKinds })]
+              : []),
             ...marks,
           ];
           if (ref && annotations.length)
@@ -404,7 +412,6 @@ export const walkLangium = (
               written: at(ref.offset, ref.end, ref.text),
               text: () => ref.text,
               langiumOwner: self,
-              ...(lexical && { lexical: true as const }),
             });
           return;
         }

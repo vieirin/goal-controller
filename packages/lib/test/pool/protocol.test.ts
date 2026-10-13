@@ -366,6 +366,56 @@ describe('the pool’s protocol, form by form', () => {
     });
   });
 
+  it('owns only what the grammar defines lexically: a first use annotated on a cross-reference is global', () => {
+    // `part a of box`: box, a thing, is defined where first written (not
+    // as a's member); a plain `thing box` wins over every first use
+    const kinds = defineEngine({
+      files: [
+        defineFile({
+          kind: 'things',
+          parser: langium(toyLanguage, {
+            kinds: { Thing: 'toy.thing', Part: 'toy.part' },
+            annotate: {
+              Part: { kind: [defines('toy.thing', { firstUse: true })] },
+            },
+          }),
+        }),
+      ],
+      kinds: {
+        'toy.thing': { label: 'thing' },
+        'toy.part': { label: 'part', scope: 'owner' },
+      },
+    });
+    const things = (text: string) => {
+      const pool = createPool(poolOf(kinds)).update([
+        { id: 'a.toy', kind: 'things', text },
+      ]);
+      return {
+        defined: pool
+          .definitionsOf('toy.thing')
+          .map((d) => [d.name, d.owner, d.location.from]),
+        diagnostics: pool.diagnostics.map((d) => d.check),
+      };
+    };
+    const byUse = 'thing a { part p of box } thing b { part q of box }';
+    expect(things(byUse)).to.deep.equal({
+      defined: [
+        ['a', undefined, 6],
+        ['b', undefined, 32],
+        ['box', undefined, offset(byUse, 'box')],
+      ],
+      diagnostics: [],
+    });
+    const declared = `${byUse} thing box`;
+    expect(
+      things(declared).defined.map(([name, , from]) => [name, from]),
+    ).to.deep.equal([
+      ['a', 6],
+      ['b', 32],
+      ['box', offset(declared, 'box', 2)],
+    ]);
+  });
+
   it('refuses a kind the engine doesn’t declare', () => {
     expect(() => poolOf(defineEngine({ files: [plan], kinds: {} }))).to.throw(
       /plan names g.task, which the engine's kinds don't declare/,

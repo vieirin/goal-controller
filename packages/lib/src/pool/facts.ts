@@ -18,10 +18,9 @@ import type {
   Occurrence,
   Path,
   RefersToOptions,
-  Scope,
   Unresolved,
 } from './protocol';
-import { pathKey, type Entity } from './walk';
+import { lexical, pathKey, type Entity } from './walk';
 import type { ValuePath } from './read';
 
 type Defines = Extract<Annotation, { defines: Kind }>;
@@ -212,7 +211,7 @@ export const factsOf = (
       const target = resolve(draft.entity, draft.annotation.owner);
       const found = target?.entities.find((e) => draftsOf.has(e));
       owner = found && ownerEntityId(found);
-    } else if (draft.entity.lexical && draft.entity.langiumOwner)
+    } else if (lexical.has(draft.annotation) && draft.entity.langiumOwner)
       owner = ownerEntityId(draft.entity.langiumOwner);
     owners.set(draft, owner);
     return owner;
@@ -364,10 +363,11 @@ export const factsOf = (
   };
   const scopeOf = (
     entity: Entity,
-    where: Scope | undefined,
+    annotation: RefersTo,
   ): PoolScope | undefined => {
+    const where = annotation.scope;
     if (!where) {
-      if (!entity.lexical || !entity.langiumOwner) return undefined;
+      if (!lexical.has(annotation) || !entity.langiumOwner) return undefined;
       const owner = ownerEntityId(entity.langiumOwner);
       return owner ? { owner } : undefined;
     }
@@ -387,7 +387,7 @@ export const factsOf = (
     return draft ? { via: toDefinition(draft), through } : nowhere;
   };
   for (const { entity, annotation, reference } of pending) {
-    const scope = scopeOf(entity, annotation.scope);
+    const scope = scopeOf(entity, annotation);
     if (scope === nowhere) referenceMeta.get(reference)!.nowhere = true;
     if (scope) reference.scope = scope;
   }
