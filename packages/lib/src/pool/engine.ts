@@ -27,7 +27,12 @@ import {
   TYPE,
   type DocumentFacts,
 } from './facts';
-import { isLangium, isTreeParser, type LangiumParser } from './parsers';
+import {
+  isGoalModel,
+  isLangium,
+  isTreeParser,
+  type LangiumParser,
+} from './parsers';
 import {
   annotationOf,
   type Annotation,
@@ -66,10 +71,55 @@ type Element = {
   id: string;
   kind: string;
   name: string;
+  /** its parent's key */
+  parent: string | null;
+  /** its children's keys, in notation order, then the others */
+  children: string[];
+  /** what is inside its `[...]`, as written */
+  notation: string | null;
   properties: Record<string, string>;
 };
-type ModelNode = Omit<Element, 'key' | 'properties'> & {
+type ModelNode = Omit<Element, 'key' | 'properties' | 'children'> & {
+  children: readonly string[];
+  /** the ids the notation lists, in order, once each */
+  order?: readonly string[];
   properties: Readonly<Record<string, string>>;
+};
+
+/**
+ * Where each id a notation lists is in it, scanned left to right: an id
+ * may be written with spaces in it (`T1.1 2` is `T1.12`, where a dialect
+ * ignores them), and is a whole token (the nearest other character on
+ * either side is no part of a name). An id not found: no span.
+ */
+const notationSpans = (notation: string, ids: readonly string[]) => {
+  const name = /[A-Za-z0-9._]/;
+  const neighbour = (from: number, step: 1 | -1) => {
+    let at = from;
+    while (/\s/.test(notation[at] ?? '')) at += step;
+    return notation[at] ?? '';
+  };
+  const spans: { id: string; from: number; to: number }[] = [];
+  let cursor = 0;
+  for (const id of ids) {
+    if (!id) continue;
+    for (let from = cursor; from < notation.length; from += 1) {
+      if (notation[from] !== id[0] || name.test(neighbour(from - 1, -1)))
+        continue;
+      let at = from;
+      let matched = 0;
+      while (at < notation.length && matched < id.length) {
+        if (notation[at] === id[matched]) matched += 1;
+        else if (!/\s/.test(notation[at]!)) break;
+        at += 1;
+      }
+      if (matched < id.length || name.test(neighbour(at, 1))) continue;
+      spans.push({ id, from, to: at });
+      cursor = at;
+      break;
+    }
+  }
+  return spans;
 };
 
 const at = (document: string, text: string): Written => ({
@@ -131,6 +181,9 @@ const annotationsOf = (file: DeclaredFile): Annotation[] => {
   };
   visit(file.schema);
   if (isLangium(file.parser)) langium(file.parser);
+  const children = isGoalModel(file.parser) && file.parser.options.children;
+  if (children)
+    found.push({ defines: children.kind }, { refersTo: [children.kind] });
   return found;
 };
 
@@ -219,17 +272,21 @@ export const poolOf = <K extends string, M extends string, L extends string>(
     const walk: Walk = { entities: [], syntax: [] };
     const problems: PoolDiagnostic[] = [];
     const id = document.id;
-    if (file.parser.name === 'goalModel') {
+    if (isGoalModel(file.parser)) {
       const nodes = (
         document.value as { nodes?: ReadonlyMap<string, ModelNode> } | undefined
       )?.nodes;
       const elements: Element[] = [];
+      const orders: (readonly string[])[] = [];
       for (const [key, node] of nodes ?? []) {
         const element: Element = {
           key,
           id: node.id,
           kind: node.kind,
           name: node.name,
+          parent: node.parent ?? null,
+          children: [...(node.children ?? [])],
+          notation: node.notation ?? null,
           properties: { ...node.properties },
         };
         // an element the schema doesn't take isn't the engine's (an actor, a
@@ -237,15 +294,35 @@ export const poolOf = <K extends string, M extends string, L extends string>(
         const result = file.schema
           ? safeParse(file.schema, element)
           : { success: true as const, data: element };
-        if (result.success) elements.push(result.data as Element);
+        // the tree, as read (a schema may strip what it doesn't name)
+        if (result.success) {
+          const { parent, children, notation } = element;
+          elements.push({
+            ...(result.data as Element),
+            key,
+            parent,
+            children,
+            notation,
+          });
+          orders.push(node.order ?? []);
+        }
       }
+      const spans = elements.map((element, index) =>
+        element.notation ? notationSpans(element.notation, orders[index]!) : [],
+      );
       const locator: Locator = {
         at: (path, part) => {
           const [index, field, property] = path;
           const element = elements[index as number];
           if (!element || part) return undefined;
-          if (field === 'id' || field === 'name')
-            return at(`model:${element.key}:${field}`, element[field]);
+          // a repeated id is known by its key (`G3/T1.2`)
+          if (field === 'id')
+            return {
+              ...at(`model:${element.key}:id`, element.id),
+              ...(element.key !== element.id && { identity: element.key }),
+            };
+          if (field === 'name')
+            return at(`model:${element.key}:name`, element.name);
           if (field === 'properties' && typeof property === 'string')
             return element.properties[property] !== undefined
               ? at(
@@ -253,6 +330,24 @@ export const poolOf = <K extends string, M extends string, L extends string>(
                   element.properties[property]!,
                 )
               : undefined;
+          // a child is written where its id is; a notation's id, in the notation
+          if (field === 'children' && typeof property === 'number') {
+            const child = nodes?.get(element.children[property]!);
+            return (
+              child && at(`model:${element.children[property]}:id`, child.id)
+            );
+          }
+          if (field === 'notation' && typeof property === 'number') {
+            const span = spans[index as number]![property];
+            return (
+              span && {
+                document: `model:${element.key}:notation`,
+                from: span.from,
+                to: span.to,
+                text: element.notation!.slice(span.from, span.to),
+              }
+            );
+          }
           return undefined;
         },
       };
@@ -260,6 +355,59 @@ export const poolOf = <K extends string, M extends string, L extends string>(
         elements.forEach((element, index) =>
           walkValue(file.schema!, element, locator, [index], [], walk),
         );
+      // each element that defines itself: its children, and what its notation
+      // names among them (after every element's own: a child's id is
+      // first the child's definition)
+      const { children } = file.parser.options;
+      const self = new Set(
+        walk.entities
+          .filter(
+            (e) =>
+              e.path.length === 2 &&
+              e.path[1] === 'id' &&
+              e.annotations.some((a) => 'defines' in a),
+          )
+          .map((e) => e.path[0]),
+      );
+      if (children)
+        elements.forEach((element, index) => {
+          if (!self.has(index)) return;
+          const frames = [{ value: element, path: [index] }];
+          const entity = (
+            path: ValuePath,
+            value: string,
+            annotation: Annotation,
+          ) => {
+            const written = locator.at(path);
+            if (written)
+              walk.entities.push({
+                annotations: [annotation],
+                path,
+                frames,
+                value,
+                parent: element,
+                written,
+                text: () => written.text,
+              });
+          };
+          element.children.forEach((key, position) => {
+            const child = nodes?.get(key);
+            if (child)
+              entity([index, 'children', position], child.id, {
+                defines: children.kind,
+                owner: '^id',
+              });
+          });
+          spans[index]!.forEach((span, position) =>
+            entity([index, 'notation', position], span.id, {
+              refersTo: [children.kind],
+              scope: { owner: '^id' },
+              ...(children.unresolved !== undefined && {
+                unresolved: children.unresolved,
+              }),
+            }),
+          );
+        });
       return {
         value: elements,
         locate: (path) => locator.at(path),

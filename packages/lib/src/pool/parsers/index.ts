@@ -3,6 +3,7 @@
  * (each a tree with its offsets), the goal model, and a Langium language.
  */
 import type {
+  GoalModelOptions,
   LangiumGrammar,
   LangiumOptions,
   Parser,
@@ -19,6 +20,7 @@ export type LangiumParser = Parser & {
   grammar: LangiumGrammar;
   options: LangiumOptions;
 };
+export type GoalModelParser = Parser & { options: GoalModelOptions };
 
 const parser = <P extends object>(name: string, rest: P) =>
   ({ name, ...rest }) as unknown as Parser & P;
@@ -26,8 +28,13 @@ const parser = <P extends object>(name: string, rest: P) =>
 export const json = parser('json', { tree: parseJson });
 export const xml = parser('xml', { tree: parseXmlTree });
 export const yaml = parser('yaml', { tree: parseYaml });
-/** The project's goal model: its elements, each field a document of its own. */
-export const goalModel = parser('goalModel', {});
+/**
+ * The project's goal model: its elements, each field a document of its own,
+ * with their place in the tree (and, given `children`, what each one's
+ * notation names among its children).
+ */
+export const goalModel = (options: GoalModelOptions = {}): Parser =>
+  parser('goalModel', { options });
 
 /**
  * A Langium language's documents (or, with `written`, values), typed by its
@@ -44,3 +51,5 @@ export const langium = <
 export const isTreeParser = (p: Parser): p is TreeParser => 'tree' in p;
 export const isLangium = (p: Parser): p is LangiumParser =>
   p.name === 'langium';
+export const isGoalModel = (p: Parser): p is GoalModelParser =>
+  p.name === 'goalModel';

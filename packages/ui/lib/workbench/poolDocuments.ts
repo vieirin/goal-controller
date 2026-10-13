@@ -42,7 +42,7 @@ const PROPERTY_LINE = /^(\s+)([A-Za-z][A-Za-z0-9_]*)([ \t]+)/;
 type NotationLine = {
   /** the line's element (its own, or the element line's above it) */
   element: string;
-  /** `id`, `name` or a property key */
+  /** `id`, `name`, `notation` (inside the brackets) or a property key */
   fields: { field: string; from: number }[];
   from: number;
 };
@@ -67,12 +67,21 @@ const notationLines = (
       const indent = line.length - line.trimStart().length;
       const id = node?.id ?? key;
       const name = line.indexOf(': ', indent + id.length - 1);
+      // the notation, as the view has it (trimmed), after the name
+      const afterName =
+        name >= 0 ? name + 2 + (node?.name.length ?? 0) : indent + id.length;
+      const notation = node?.notation
+        ? line.indexOf(node.notation, line.indexOf('[', afterName) + 1)
+        : -1;
       return {
         element: key,
         from: start,
         fields: [
           { field: 'id', from: start + indent },
           ...(name >= 0 ? [{ field: 'name', from: start + name + 2 }] : []),
+          ...(notation > 0
+            ? [{ field: 'notation', from: start + notation }]
+            : []),
         ],
       };
     }
@@ -129,7 +138,8 @@ type WithText = { text?: string };
 /**
  * A rename's edits applied: each resource's new text (only those changed),
  * and the model's new text (null: unchanged). A model edit changes an
- * element's name (within its text) or a property's value.
+ * element's name (within its text) or a property's value; ids, and the
+ * notation's (the children's), aren't renamed here.
  */
 export const appliedPoolEdits = (
   edits: readonly PoolEdit[],
@@ -176,7 +186,7 @@ export const appliedPoolEdits = (
           apply(node.name, own) +
           text.slice(at + node.name.length),
       });
-    } else if (field.field !== 'id')
+    } else if (field.field !== 'id' && field.field !== 'notation')
       notation.push({
         iStarId: node.iStarId,
         key: field.field,

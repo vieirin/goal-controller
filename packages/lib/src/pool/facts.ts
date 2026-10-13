@@ -106,6 +106,8 @@ type Draft = {
   annotation: Defines;
   name: string;
   location: PoolLocation;
+  /** what it is known by, if more than its name (the whole value is the name) */
+  identity?: string;
 };
 
 export const factsOf = (
@@ -180,7 +182,13 @@ export const factsOf = (
       if ('defines' in annotation) {
         const named = nameOf(entity, annotation.name);
         if (!named) continue;
-        const draft = { entity, annotation, ...named };
+        const identity = !annotation.name && entity.written?.identity;
+        const draft: Draft = {
+          entity,
+          annotation,
+          ...named,
+          ...(identity && { identity }),
+        };
         drafts.push(draft);
         draftsOf.set(entity, [...(draftsOf.get(entity) ?? []), draft]);
       }
@@ -221,7 +229,7 @@ export const factsOf = (
     ids.set(draft, undefined);
     const owner = ownerOf(draft);
     const { defines: kind } = draft.annotation;
-    const id = `${kind}:${owner ? `${owner}/` : ''}${normalize(kind, draft.name)}`;
+    const id = `${kind}:${owner ? `${owner}/` : ''}${draft.identity ?? normalize(kind, draft.name)}`;
     ids.set(draft, id);
     return id;
   };

@@ -157,7 +157,7 @@ const element = z.union([
 
 export const goalModel = defineFile({
   kind: 'model',
-  parser: goalModelParser,
+  parser: goalModelParser(),
   schema: element,
 });
 
@@ -169,6 +169,6 @@ export const OTHER_MODEL = 'otherModel';
 
 export const otherModel = defineFile({
   kind: OTHER_MODEL,
-  parser: goalModelParser,
+  parser: goalModelParser(),
   schema: z.looseObject({}),
 });

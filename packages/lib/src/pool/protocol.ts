@@ -234,6 +234,28 @@ export type LangiumGrammar<A extends object = UntypedAst> =
     readonly $ast?: A;
   };
 
+/**
+ * How the goal model is read. Each element's value has its place in the
+ * tree (`parent`, `children`: keys) and its `notation` (the bracket's text);
+ * with `children`, the core also reads what each notation names:
+ * - every child of an element whose `id` defines is a definition of
+ *   `children.kind`, a member of the element, named by the child's id and
+ *   written where the child's id is;
+ * - every id the notation lists refers to one, among the element's own
+ *   children (`model:<key>:notation`, offsets in the bracket's text).
+ */
+export type GoalModelOptions<
+  K extends string = Kind,
+  M extends string = string,
+> = {
+  children?: {
+    /** the kind a child is (a member of its parent: `scope: 'owner'`) */
+    kind: K;
+    /** a bracket's id that is no child: as `refersTo`'s `unresolved` */
+    unresolved?: Unresolved<M>;
+  };
+};
+
 // ---------------------------------------------------------------- files
 
 export type FileDeclaration = {
