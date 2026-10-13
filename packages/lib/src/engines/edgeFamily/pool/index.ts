@@ -5,37 +5,65 @@
  * #58's type rules over every condition.
  */
 import {
+  assertionType,
   assertionUse,
   type AssertionType,
   type AssertionUse,
 } from '../../assertionUses';
-import { defineEngine, poolOf, type Check } from '../../../pool';
+import { defineEngine, poolOf, type Check, type Severity } from '../../../pool';
 import { goalModel } from '../files/goalModel';
 import { variables } from '../files/variables';
 
-const numeric = (type: AssertionType) => type !== 'boolean';
+const numeric = (type: AssertionType) => type !== 'bool';
 
-/** #58's rule a use breaks, if any (a decimal on an int: a warning) */
-const broken = (
-  { shape, literal }: AssertionUse,
-  type: AssertionType,
-): [string, 'error' | 'warning'] | null =>
-  shape === 'ordered' && !numeric(type)
-    ? ['assertion-order-on-boolean', 'error']
-    : shape === 'eqBool' && numeric(type)
-      ? ['assertion-boolean-on-number', 'error']
-      : shape === 'eqNumber' && !numeric(type)
-        ? ['assertion-number-on-boolean', 'error']
-        : shape === 'bare' && numeric(type)
-          ? ['assertion-needs-boolean', 'error']
-          : literal === 'decimal' && type === 'int'
-            ? ['assertion-int-with-decimal', 'warning']
-            : null;
+type Rule = {
+  check: string;
+  severity: Severity;
+  breaks: (use: AssertionUse, type: AssertionType) => boolean;
+  message: string;
+};
+
+/** #58's rules, in the order they're tried: a use breaks the first that applies */
+const RULES = [
+  {
+    check: 'assertion-order-on-boolean',
+    severity: 'error',
+    breaks: ({ shape }, type) => shape === 'ordered' && !numeric(type),
+    message: '{name} is a boolean: compare it with = or !=',
+  },
+  {
+    check: 'assertion-boolean-on-number',
+    severity: 'error',
+    breaks: ({ shape }, type) => shape === 'eqBool' && numeric(type),
+    message: '{name} is a number ({type}): compare it with a number',
+  },
+  {
+    check: 'assertion-number-on-boolean',
+    severity: 'error',
+    breaks: ({ shape }, type) => shape === 'eqNumber' && !numeric(type),
+    message: '{name} is a boolean: compare it with true or false',
+  },
+  {
+    check: 'assertion-needs-boolean',
+    severity: 'error',
+    breaks: ({ shape }, type) => shape === 'bare' && numeric(type),
+    message: '{name} is a number ({type}): a condition needs a boolean',
+  },
+  {
+    check: 'assertion-int-with-decimal',
+    severity: 'warning',
+    breaks: ({ literal }, type) => literal === 'decimal' && type === 'int',
+    message: '{name} is an int: compared with a decimal',
+  },
+] as const satisfies readonly Rule[];
+
+/** what #58's checks are called: their messages' keys */
+export type AssertionCheck = (typeof RULES)[number]['check'];
 
 /**
  * #58's type rules: an ordering on a boolean, = or != with the other type,
  * a bare variable or `!` on a number, an int compared with a decimal. A
- * name nothing defines gets none; an element without a type is a boolean.
+ * name nothing defines gets none; a goal or a task is a bool.
  */
 const assertionTypes: Check = (pool) =>
   pool.has('variables')
@@ -43,14 +71,13 @@ const assertionTypes: Check = (pool) =>
         const use = assertionUse(reference);
         const target = reference.target;
         if (!use || !target) return [];
-        const type = (target.type ??
-          (target.kind === 'edge.variable' ? undefined : 'boolean')) as
-          | AssertionType
-          | undefined;
-        const rule = type && broken(use, type);
+        const type =
+          assertionType(target.type) ??
+          (target.kind === 'edge.variable' ? undefined : 'bool');
+        const rule = type && RULES.find((r) => r.breaks(use, type));
         return rule
           ? [
-              reference.problem(rule[1], rule[0], {
+              reference.problem(rule.severity, rule.check, {
                 name: reference.name,
                 type,
               }),
@@ -73,17 +100,9 @@ export const edgeFamilyEngine = defineEngine({
     },
   },
   checks: [assertionTypes],
-  messages: {
-    'assertion-order-on-boolean':
-      '{name} is a boolean: compare it with = or !=',
-    'assertion-boolean-on-number':
-      '{name} is a number ({type}): compare it with a number',
-    'assertion-number-on-boolean':
-      '{name} is a boolean: compare it with true or false',
-    'assertion-needs-boolean':
-      '{name} is a number ({type}): a condition needs a boolean',
-    'assertion-int-with-decimal': '{name} is an int: compared with a decimal',
-  },
+  messages: Object.fromEntries(
+    RULES.map(({ check, message }) => [check, message]),
+  ),
 });
 
 export const edgePool = poolOf(edgeFamilyEngine);

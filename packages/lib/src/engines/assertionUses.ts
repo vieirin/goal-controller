@@ -5,12 +5,20 @@
  * with a number by = or != (`x = 3`), or ordered (`x > 0.5`). The Edge
  * engines and GODA check their variables' types with it.
  */
+import type { ValueType } from '@goal-controller/dialect';
 import type { Definition, Reference } from '../pool';
 
 export type AssertionShape = 'bare' | 'eqBool' | 'eqNumber' | 'ordered';
 
-/** A variable's type, as an assertion reads it. */
-export type AssertionType = 'boolean' | 'int' | 'number';
+/** A variable's type, as an assertion reads it: one of the goal language's value types. */
+export type AssertionType = Extract<ValueType, 'bool' | 'int' | 'number'>;
+
+const ASSERTION_TYPES: readonly AssertionType[] = ['bool', 'int', 'number'];
+
+/** A definition's type, when it is one an assertion reads. */
+export const assertionType = (
+  type: string | undefined,
+): AssertionType | undefined => ASSERTION_TYPES.find((t) => t === type);
 
 export type AssertionUse = {
   /** the name used: a reference to its variable, or (first use) its definition */
@@ -47,5 +55,5 @@ export const assertionUse = (
 };
 
 /** What a use says of its variable's type. */
-export const usedAs = ({ shape }: AssertionUse): 'boolean' | 'number' =>
-  shape === 'bare' || shape === 'eqBool' ? 'boolean' : 'number';
+export const usedAs = ({ shape }: AssertionUse): 'bool' | 'number' =>
+  shape === 'bare' || shape === 'eqBool' ? 'bool' : 'number';

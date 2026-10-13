@@ -15,17 +15,14 @@ import {
   type Occurrence,
 } from '../../../pool';
 import { goalServices } from '@goal-controller/goal-language';
+import { assertionType } from '../../assertionUses';
 
-/**
- * what a resource declares it is (its `type`: `bool` or `int`), as
- * conditions read it; a goal's `type` (`maintain`) is none
- */
-const declaredType = (occurrences: readonly Occurrence[]) => {
-  const type = (
-    occurrences[0]?.parent as { properties?: Record<string, string> }
-  )?.properties?.type;
-  return type === 'bool' ? 'boolean' : type === 'int' ? 'int' : undefined;
-};
+/** what a resource declares it is: its `type`, `bool` or `int` */
+const declaredType = (occurrences: readonly Occurrence[]) =>
+  assertionType(
+    (occurrences[0]?.parent as { properties?: Record<string, string> })
+      ?.properties?.type,
+  );
 
 const name = refersTo(
   ['edge.variable', 'gm.resource', 'gm.goal', 'gm.task'],
@@ -50,7 +47,14 @@ const condition = z.optional(
 const element = (kind: 'goal' | 'task' | 'resource') =>
   z.looseObject({
     kind: z.literal(kind),
-    id: z.string().check(defines(`gm.${kind}`, { type: declaredType })),
+    id: z
+      .string()
+      .check(
+        defines(
+          `gm.${kind}`,
+          kind === 'resource' ? { type: declaredType } : {},
+        ),
+      ),
     properties: z.looseObject({ maintain: condition, assertion: condition }),
   });
 
