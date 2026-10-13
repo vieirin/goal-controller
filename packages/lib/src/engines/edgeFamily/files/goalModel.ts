@@ -16,16 +16,15 @@ import {
 } from '../../../pool';
 import { goalServices } from '@goal-controller/goal-language';
 
-/** what an element declares it is (`type`), as conditions read it */
+/**
+ * what a resource declares it is (its `type`: `bool` or `int`), as
+ * conditions read it; a goal's `type` (`maintain`) is none
+ */
 const declaredType = (occurrences: readonly Occurrence[]) => {
   const type = (
     occurrences[0]?.parent as { properties?: Record<string, string> }
   )?.properties?.type;
-  return type === 'bool' || type === 'boolean'
-    ? 'boolean'
-    : type === 'int' || type === 'number'
-      ? type
-      : undefined;
+  return type === 'bool' ? 'boolean' : type === 'int' ? 'int' : undefined;
 };
 
 const name = refersTo(
