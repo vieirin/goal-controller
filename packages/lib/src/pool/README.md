@@ -163,20 +163,20 @@ empty string (a name about to be typed) is a reference with an empty name.
 Completion offers what may be written there, and nothing is said about it.
 It isn't among `TypedPool.references`.
 
-### `link(name, { from? })`
+### `leadsTo(name, { from? })`
 
-It goes on a reference, next to its `refersTo`. It links a definition to what
-the reference resolves to. The definition is its object's: the first
-`defines` among the keys of the object the value is in, else the first in an
-enclosing object, or the definition at `from`. A task's name can link the task
-to what the name's first word names:
+It goes on a reference, next to its `refersTo`. It says that a definition
+leads, by `name`, to what the reference resolves to. The definition is its
+object's: the first `defines` among the keys of the object the value is in,
+else the first in an enclosing object, or the definition at `from`. A task
+can lead to what its name's first word names:
 
 ```ts
 id: z.string().check(defines('gm.task')),
-name: z.string().check(refersTo('x.action', 'global', { name: firstWord }), link('performs')),
+name: z.string().check(refersTo('x.action', 'global', { name: firstWord }), leadsTo('performs')),
 ```
 
-`scope.through('performs', path)` and `TypedPool.links('performs', task)`
+`scope.leadsTo('performs', path)` and `TypedPool.leadsTo('performs', task)`
 follow it.
 
 ### `written(langium(services, { start, ... }), { part? })`
@@ -214,11 +214,11 @@ cases.
   The lookup then goes on to the owner's owner, and so on, and finally to the
   global definitions. A kind declared `scope: 'owner'` is never found
   globally.
-- `scope.through(link, path)`: the value at `path` resolves to a definition.
-  The name is looked up among the members of what that definition's `link`
-  leads to. `'type'` is a built-in link: the definition that the type names,
-  found through the kind's `typeOf`. `a.b.c` is
-  `scope.through('type', scope.previous('head'))` on each attribute.
+- `scope.leadsTo(name, path)`: the value at `path` resolves to a definition.
+  The name is looked up among the members of what that definition leads to
+  by `name`. `'type'` is built in: the definition that the type names, found
+  through the kind's `typeOf`. `a.b.c` is
+  `scope.leadsTo('type', scope.previous('head'))` on each attribute.
 
 Names compare exactly, or lowercased for a kind declared `caseInsensitive`.
 
@@ -267,18 +267,18 @@ Every kind a file names must be declared here, or `poolOf` throws.
 
 ## Typed kinds and messages
 
-Kinds, message keys and link names are strings, so on their own they
+Kinds, message keys and lead names are strings, so on their own they
 neither complete nor catch typos. To get both, declare them once as
 constants and take the annotations from them:
 
 ```ts
 const KINDS = { 'toy.shelf': { label: 'shelf' }, 'toy.thing': { label: 'thing' } } as const satisfies Record<string, KindDeclaration>;
 const MESSAGES = { 'toy.noThing': '{name} is no thing on any shelf' } as const;
-const LINKS = ['holds'] as const;
-const { defines, refersTo, link, scope, written, langium } = annotationsFor(KINDS, MESSAGES, LINKS);
+const LEADS = ['holds'] as const;
+const { defines, refersTo, leadsTo, scope, written, langium } = annotationsFor(KINDS, MESSAGES, LEADS);
 
-const check: Check<keyof typeof KINDS, keyof typeof MESSAGES, (typeof LINKS)[number]> = (pool) => …;
-export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, links: LINKS, checks: [check] });
+const check: Check<keyof typeof KINDS, keyof typeof MESSAGES, (typeof LEADS)[number]> = (pool) => …;
+export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, leads: LEADS, checks: [check] });
 ```
 
 A Langium language is typed by the AST types `langium generate` writes, which
@@ -309,13 +309,13 @@ gives the AST explicitly.
 After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'], 'global')`, `refersTo('toy.thing')`,
 `unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,
 `problem(…, 'toy.emptyShelve')`, `typeOf: { kinds: ['toy.shelve'] }`,
-`link('hold')`, `scope.through('hold', …)` and `pool.links('hold', …)` all
-fail to compile, and an editor completes each of them. `scope.through`
+`leadsTo('hold')`, `scope.leadsTo('hold', …)` and `pool.leadsTo('hold', …)`
+all fail to compile, and an editor completes each of them. `scope.leadsTo`
 also takes the built-in `'type'`. `defineEngine` infers the kinds from
-`kinds`, the message keys from `messages` and the link names from `links`,
-and types the checks with all three. With `links` declared, `poolOf` also
-refuses a file that links by any other name. Without it, any link name goes. An engine without `messages` may give a problem's text
-itself. The untyped `defines`/`refersTo`/`link`/`scope` are the same
+`kinds`, the message keys from `messages` and the lead names from `leads`,
+and types the checks with all three. With `leads` declared, `poolOf` also
+refuses a file that leads by any other name. Without it, any name goes. An engine without `messages` may give a problem's text
+itself. The untyped `defines`/`refersTo`/`leadsTo`/`scope` are the same
 functions.
 
 Paths (`'../task_id'`) aren't typed: an annotation is built before it is put
@@ -331,7 +331,7 @@ resolved names, never facts.
 | `definitions(kind)`                         | every definition of a kind                             |
 | `references(kinds?)`                        | every reference (to these kinds)                       |
 | `referencesTo(definition)`                  | what refers to it                                      |
-| `links(name, definition)`                   | where its links lead                                   |
+| `leadsTo(name, definition)`                 | what it leads to, by a name                            |
 | `typeOf(definition)`                        | the definition its type names                          |
 | `find(kinds, name, owner?)`                 | a definition by name, in an owner, then globally       |
 | `has(file)`                                 | whether a document of that file kind is in the project |
@@ -372,8 +372,8 @@ that isn't a key is shown as the text itself, under the check name `engine`.
 
 - **Paths.** Sibling keys, `../` and `^` for parents, and `scope.previous` for
   a chain in a list. There are no general relative paths.
-- **Links that need computing.** A `name` function on `refersTo` (for example
-  "the first word of the name") together with `link`. Anything more is a
+- **Leads that need computing.** A `name` function on `refersTo` (for example
+  "the first word of the name") together with `leadsTo`. Anything more is a
   check.
 - **First-use definitions.** `defines(kind, { firstUse: true })`, rather than
   a hook.
@@ -405,8 +405,8 @@ that isn't a key is shown as the text itself, under the check name `engine`.
   around it, and where it is written.
 - `facts.ts` turns entities into #68's `PoolDefinition`/`PoolReference`. It
   computes ids and owners, first uses, types, scopes (`{ owner }`, or
-  `{ via, through }` with the resolvers `#self`, `#type` and `link:<name>`),
-  and links.
+  `{ via, through }` with the resolvers `#self`, `#type` and `leadsTo:<name>`),
+  and what leads where.
 - `engine.ts` turns a declared engine into #68's `PoolRegistration`: one
   provider with an empty id, so kinds keep their names. Every reference is
   `silent` to #68, and the generic diagnostics above are computed here.

@@ -1,7 +1,7 @@
 /**
  * A declared engine, as #68's pool: one provider reads every file it
- * declares (its kinds are written qualified), resolves through the links
- * its files declare, and checks: the files' syntax and schema, what
+ * declares (its kinds are written qualified), resolves through what its
+ * files say leads where, and checks: the files' syntax and schema, what
  * resolves to nothing or to two kinds, what is defined twice or never used,
  * and the engine's own checks over the typed pool.
  */
@@ -20,7 +20,7 @@ import {
 import {
   definitionMeta,
   factsOf,
-  linkResolver,
+  leadsToResolver,
   referenceMeta,
   SCOPE_KIND,
   SELF,
@@ -165,9 +165,9 @@ export const poolOf = <K extends string, M extends string, L extends string>(
   const read$ = extractions.get(engine) ?? new Map<string, Extraction>();
   extractions.set(engine, read$);
 
-  // what each file may define, and every kind and link the files name
+  // what each file may define, and every kind and lead the files name
   const definedIn = new Map<Kind, Set<string>>();
-  const links = new Set<string>(['type']);
+  const leads = new Set<string>(['type']);
   for (const file of files)
     for (const annotation of annotationsOf(file)) {
       const named =
@@ -186,19 +186,19 @@ export const poolOf = <K extends string, M extends string, L extends string>(
           annotation.defines,
           (definedIn.get(annotation.defines) ?? new Set()).add(file.kind),
         );
-      if ('link' in annotation) {
-        if (engine.links && !engine.links.includes(annotation.link))
+      if ('leadsTo' in annotation) {
+        if (engine.leads && !engine.leads.includes(annotation.leadsTo))
           throw new Error(
-            `${file.kind} links by ${annotation.link}, which the engine's links don't declare`,
+            `${file.kind} leads by ${annotation.leadsTo}, which the engine's leads don't declare`,
           );
-        links.add(annotation.link);
+        leads.add(annotation.leadsTo);
       }
       if (
         'refersTo' in annotation &&
         typeof annotation.scope === 'object' &&
-        'through' in annotation.scope
+        'leadsTo' in annotation.scope
       )
-        links.add(annotation.scope.through);
+        leads.add(annotation.scope.leadsTo);
     }
 
   const fileOf = (document: PoolDocument) =>
@@ -343,25 +343,25 @@ export const poolOf = <K extends string, M extends string, L extends string>(
         : [];
     });
 
-  /** each update's links, by name and source */
-  const linkIndexes = new WeakMap<
+  /** each update's leads, by name and source */
+  const leadIndexes = new WeakMap<
     PoolLookup,
     Map<string, Map<string, PoolReference[]>>
   >();
-  const linksOf = (pool: PoolLookup, name: string, source: string) => {
-    let index = linkIndexes.get(pool);
+  const leadsOf = (pool: PoolLookup, name: string, source: string) => {
+    let index = leadIndexes.get(pool);
     if (!index) {
       index = new Map();
       for (const extraction of present(pool))
-        for (const link of extraction.links) {
-          const sources = index.get(link.name) ?? new Map();
-          index.set(link.name, sources);
-          sources.set(link.source, [
-            ...(sources.get(link.source) ?? []),
-            link.reference,
+        for (const lead of extraction.leads) {
+          const sources = index.get(lead.name) ?? new Map();
+          index.set(lead.name, sources);
+          sources.set(lead.source, [
+            ...(sources.get(lead.source) ?? []),
+            lead.reference,
           ]);
         }
-      linkIndexes.set(pool, index);
+      leadIndexes.set(pool, index);
     }
     return index.get(name)?.get(source) ?? [];
   };
@@ -377,12 +377,12 @@ export const poolOf = <K extends string, M extends string, L extends string>(
     [SELF]: (definition) => definition.id,
     [TYPE]: (definition, pool) => typeDefinition(definition, pool)?.id,
     ...Object.fromEntries(
-      [...links]
+      [...leads]
         .filter((name) => name !== 'type')
         .map((name) => [
-          linkResolver(name),
+          leadsToResolver(name),
           (definition: PoolDefinition, pool: PoolLookup) => {
-            for (const reference of linksOf(pool, name, definition.id)) {
+            for (const reference of leadsOf(pool, name, definition.id)) {
               const target = pool.target(reference);
               if (target) return target.id;
             }
@@ -492,10 +492,10 @@ export const poolOf = <K extends string, M extends string, L extends string>(
           .map(reference);
       },
       referencesTo: (d) => pool.referencesTo(idOf(d)).map(reference),
-      links: (name, d) => {
+      leadsTo: (name, d) => {
         if (!d) return [];
         const id = idOf(d);
-        return linksOf(pool, name, id).flatMap((r) => {
+        return leadsOf(pool, name, id).flatMap((r) => {
           const target = pool.target(r);
           return target ? [definition(target)] : [];
         });

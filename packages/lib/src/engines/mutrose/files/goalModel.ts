@@ -17,7 +17,7 @@ import {
 import {
   defines,
   langium,
-  link,
+  leadsTo,
   refersTo,
   scope,
   unresolvedAs,
@@ -80,7 +80,7 @@ const uses = langium(services, {
 /** a path's attributes: each of its predecessor's type's class */
 const attribute = refersTo(
   'world.attribute',
-  scope.through('type', scope.previous('head')),
+  scope.leadsTo('type', scope.previous('head')),
 );
 
 /** a query or a condition: its paths, and the variables its operations introduce */
@@ -143,7 +143,7 @@ const element = z.union([
         name: firstWord,
         ...unresolvedAs('unknown-hddl-task'),
       }),
-      link('standsFor'),
+      leadsTo('hddlTask'),
     ),
     properties,
   }),

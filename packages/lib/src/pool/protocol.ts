@@ -35,18 +35,18 @@ export type Path = string | { previous: Path };
  * - `owner`: among the members of what the value at `path` defines or
  *   resolves to, then the owner's owner's, then the global ones (unless
  *   the kind says `scope: 'owner'`);
- * - `through`: among the members of what is reached from the definition
- *   the value at `path` resolves to, by a link (`link(name)` declares one;
+ * - `leadsTo`: among the members of what the definition the value at
+ *   `path` resolves to leads to, by a name (`leadsTo(name)` declares one;
  *   `'type'` is built in: the definition its type names, `typeOf`).
  */
 export type Scope =
   | 'global'
   | { owner: Path }
-  | { through: string; path: Path };
+  | { leadsTo: string; path: Path };
 
 export const scope = {
   owner: (path: Path): Scope => ({ owner: path }),
-  through: (link: string, path: Path): Scope => ({ through: link, path }),
+  leadsTo: (name: string, path: Path): Scope => ({ leadsTo: name, path }),
   previous: (first: Path): Path => ({ previous: first }),
 };
 
@@ -110,7 +110,7 @@ export type RefersToOptions<M extends string = string> = {
 export type Annotation =
   | ({ defines: Kind } & DefinesOptions)
   | ({ refersTo: readonly Kind[]; scope?: Scope } & RefersToOptions)
-  | { link: string; from?: Path }
+  | { leadsTo: string; from?: Path }
   | { written: Parser; part?: NamePart };
 
 const annotations = new WeakMap<object, Annotation>();
@@ -151,13 +151,13 @@ export const refersTo = (
   });
 
 /**
- * On a reference (with its `refersTo`): links a definition to the
+ * On a reference (with its `refersTo`): a definition leads to the
  * reference's target, by `name`. The definition is the value's object's (a
  * sibling's `defines`; else the nearest enclosing one), or the one at
- * `from`. `scope.through(name, …)` and `TypedPool.links` follow it.
+ * `from`. `scope.leadsTo(name, …)` and `TypedPool.leadsTo` follow it.
  */
-export const link = (name: string, options: { from?: Path } = {}) =>
-  annotate({ link: name, ...options });
+export const leadsTo = (name: string, options: { from?: Path } = {}) =>
+  annotate({ leadsTo: name, ...options });
 
 /**
  * The string is written in a Langium language (`langium(…)` with a start
@@ -310,7 +310,7 @@ export type Reference<
   name: string;
   /** what it resolves to */
   target?: Definition<K, M>;
-  /** the definition of its object (as `link`'s) */
+  /** the definition of its object (as `leadsTo`'s) */
   owner?: Definition<K, M>;
 };
 
@@ -329,8 +329,8 @@ export type TypedPool<
   references(kinds?: K | readonly K[]): readonly Reference<K, M>[];
   /** the references that resolve to a definition */
   referencesTo(definition: Definition<K, M>): readonly Reference<K, M>[];
-  /** where a definition's links of a name lead */
-  links(
+  /** what a definition leads to, by a name */
+  leadsTo(
     name: L,
     definition: Definition<K, M> | undefined,
   ): readonly Definition<K, M>[];
@@ -383,7 +383,7 @@ export type KindDeclaration<K extends string = Kind> = {
    */
   rename?: false | ((newName: string) => string | null);
   /**
-   * the definition a type of this kind's definitions names (`scope.through('type', …)`):
+   * the definition a type of this kind's definitions names (`scope.leadsTo('type', …)`):
    * among `kinds`, by the type's `name` (null: it names none, `Integer`)
    */
   typeOf?: {
@@ -410,8 +410,8 @@ export type EngineDeclaration<
   checks?: readonly Check<NoInfer<K>, NoInfer<M>, NoInfer<L>>[];
   /** the text of each check's problems, by the check's key */
   messages?: Readonly<Record<M, Message>>;
-  /** the links its files declare (`link(name)`): none given, any name */
-  links?: readonly L[];
+  /** the names its files lead by (`leadsTo(name)`): none given, any name */
+  leads?: readonly L[];
 };
 
 export type DeclaredEngine<
