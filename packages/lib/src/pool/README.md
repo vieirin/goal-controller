@@ -171,9 +171,12 @@ the key schema of `z.record`), or a Langium node.
 
 ### `refersTo(kinds, scope, options?)`
 
-The value is a name of one of `kinds`. They are tried in order, and the first
-kind with a match wins. If another of its kinds also has the name, that is an
-`ambiguous-reference` warning.
+The value is a name of one of `kinds`, which are tried in order. A name that
+more than one of them has is ambiguous, and an ambiguous reference is not
+allowed: it is an `ambiguous-reference` error, for every kind, with no
+opt-out. Until it is fixed, the reference resolves to the first kind's
+definition, so that go-to-definition, references and rename keep working on
+it.
 
 - `name`: as for `defines`.
 - `unresolved`: what is said when it resolves to nothing. By default the
@@ -392,7 +395,7 @@ that isn't a key is shown as the text itself, under the check name `engine`.
 | `syntax`               | error                                | the file doesn't parse (JSON, XML, YAML, a Langium language)    |
 | `schema`               | error, or warning for an unknown key | the schema rejects a value                                      |
 | `unresolved-reference` | warning                              | a reference resolves to nothing (see `refersTo`'s `unresolved`) |
-| `ambiguous-reference`  | warning                              | two of a reference's kinds have the name                        |
+| `ambiguous-reference`  | error                                | two of a reference's kinds have the name                        |
 | `duplicate-definition` | error                                | a definition's (kind, owner, name) is defined already           |
 | `unused-definition`    | warning                              | nothing refers to it (`reportUnused` kinds only)                |
 
