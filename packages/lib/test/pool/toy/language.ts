@@ -7,7 +7,9 @@ import {
   createDefaultSharedCoreModule,
   EmptyFileSystem,
   inject,
+  type LangiumCoreServices,
 } from 'langium';
+import type { ToyAstType } from './generated/ast';
 import {
   ToyGeneratedModule,
   ToyGeneratedSharedModule,
@@ -17,8 +19,15 @@ const shared = inject(
   createDefaultSharedCoreModule(EmptyFileSystem),
   ToyGeneratedSharedModule,
 );
-export const toyLanguage = inject(
+/**
+ * Its services, saying which AST they parse (for the type checker only:
+ * the pool's `langium(…)` infers it, so its options are checked by it)
+ */
+export type ToyServices = LangiumCoreServices & { readonly $ast?: ToyAstType };
+
+const services = inject(
   createDefaultCoreModule({ shared }),
   ToyGeneratedModule,
 );
-shared.ServiceRegistry.register(toyLanguage);
+shared.ServiceRegistry.register(services);
+export const toyLanguage: ToyServices = services;

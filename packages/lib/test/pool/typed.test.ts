@@ -5,6 +5,7 @@
  * nothing changes at run time.
  */
 import { expect } from 'chai';
+import type { LangiumCoreServices } from 'langium';
 import * as z from 'zod/mini';
 import { createPool } from '../../src/engines/definitionPool';
 import type { ToyAstType } from './toy/generated/ast';
@@ -107,10 +108,11 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
     expect(checks).to.have.length(2);
   });
 
-  it('types a Langium language by its generated AST types', () => {
+  it('types a Langium language by the AST types its services say they parse', () => {
     const { langium } = annotationsFor(KINDS, MESSAGES);
+    const untyped: LangiumCoreServices = toyLanguage;
     const typed = () => [
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         start: 'Model',
         kinds: { Thing: 'toy.thing', Shelf: 'toy.shelf' },
         scopes: ['Thing'],
@@ -119,34 +121,40 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
           Put: { part: (node) => (node.part ? [refersTo('toy.thing')] : []) },
         },
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         // @ts-expect-error: no such rule
         start: 'Modle',
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         // @ts-expect-error: no such kind
         kinds: { Thing: 'toy.thinng' },
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         // @ts-expect-error: no such AST type
         kinds: { Thingy: 'toy.thing' },
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         // @ts-expect-error: no such AST type
         scopes: ['Thingy'],
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         // @ts-expect-error: no such property of a Put
         annotate: { Put: { parts: [refersTo('toy.thing')] } },
       }),
-      langium<ToyAstType>(toyLanguage, {
+      langium(toyLanguage, {
         annotate: {
           // @ts-expect-error: a Put has no name
           Put: { part: (node) => (node.name ? [] : []) },
         },
       }),
-      // untyped, as before: any name
-      langium(toyLanguage, { start: 'Anything', kinds: { Any: 'toy.thing' } }),
+      // given explicitly, the same
+      langium<ToyAstType>(untyped, { start: 'Model' }),
+      langium<ToyAstType>(untyped, {
+        // @ts-expect-error: no such rule
+        start: 'Modle',
+      }),
+      // untyped services, as before: any name
+      langium(untyped, { start: 'Anything', kinds: { Any: 'toy.thing' } }),
     ];
     expect(typed).to.be.a('function');
   });

@@ -35,7 +35,7 @@ export type TypedAnnotations<K extends string, M extends string> = {
   link: typeof link;
   written: typeof written;
   langium: <A extends object = UntypedAst>(
-    grammar: LangiumGrammar,
+    grammar: LangiumGrammar<A>,
     options?: LangiumOptions<K, NoInfer<A>>,
   ) => Parser;
 };

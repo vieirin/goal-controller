@@ -279,10 +279,19 @@ export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, check
 ```
 
 A Langium language is typed by the AST types `langium generate` writes, which
-is the `<Language>AstType` map in its `ast.ts`:
+is the `<Language>AstType` map in its `ast.ts`. The language's services say
+which AST they parse, with a key that exists only for the type checker. The
+language declares it without importing lib:
 
 ```ts
-langium<ToyAstType>(toyLanguage, {
+export type ToyServices = LangiumCoreServices & { readonly $ast?: ToyAstType };
+export const toyLanguage: ToyServices = inject(…);
+```
+
+`langium(…)` infers the AST from the services and checks its options with it:
+
+```ts
+langium(toyLanguage, {
   start: 'Model',                                  // an AST type's name
   kinds: { Thing: 'toy.thing' },                   // AST types → the engine's kinds
   annotate: { Put: { part: (node) => … } },        // node: Put, its properties checked
@@ -290,8 +299,9 @@ langium<ToyAstType>(toyLanguage, {
 ```
 
 `start` is typed by the AST types' names, because no union of rule names is
-generated, and the rules a text starts from are AST types too. Without the
-type argument, any name goes, as before.
+generated, and the rules a text starts from are AST types too. Plain
+`LangiumCoreServices` accept any name, as before. `langium<ToyAstType>(…)`
+gives the AST explicitly.
 
 After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'])`,
 `unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,

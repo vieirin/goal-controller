@@ -37,7 +37,7 @@ export const langium = <
   A extends object = UntypedAst,
   K extends string = string,
 >(
-  grammar: LangiumGrammar,
+  grammar: LangiumGrammar<A>,
   options: LangiumOptions<K, NoInfer<A>> = {},
 ): Parser => parser('langium', { grammar, options: options as LangiumOptions });
 

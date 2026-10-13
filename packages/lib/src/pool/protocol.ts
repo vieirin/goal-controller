@@ -218,7 +218,14 @@ export type LangiumOptions<
 };
 
 /** A Langium language's services (its generated module, injected), parser only. */
-export type LangiumGrammar = LangiumCoreServices;
+export type LangiumGrammar<A extends object = UntypedAst> =
+  LangiumCoreServices & {
+    /**
+     * the AST types it parses (`<Language>AstType`), for the type checker
+     * only: a language types its services so, and `langium(…)` infers them
+     */
+    readonly $ast?: A;
+  };
 
 // ---------------------------------------------------------------- files
 
