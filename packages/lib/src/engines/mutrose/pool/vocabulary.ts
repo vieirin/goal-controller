@@ -92,11 +92,14 @@ export const MESSAGES = {
 export type MutroseKind = keyof typeof KINDS;
 /** MutRoSe's checks: what its problems are called */
 export type MutroseCheck = keyof typeof MESSAGES;
+/** MutRoSe's links */
+export type MutroseLink = (typeof LINKS)[number];
 
-export const { defines, refersTo, link, written, langium } = annotationsFor(
-  KINDS,
-  MESSAGES,
-);
+/** the links MutRoSe's files declare: a goal-model task stands for an HDDL task */
+export const LINKS = ['standsFor'] as const;
+
+export const { defines, refersTo, link, written, langium, scope } =
+  annotationsFor(KINDS, MESSAGES, LINKS);
 
 /** A reference that resolves to nothing is an error of this check's. */
 export const unresolvedAs = (check: MutroseCheck) => ({

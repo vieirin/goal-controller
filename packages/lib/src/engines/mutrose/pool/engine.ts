@@ -9,11 +9,12 @@ import { goalModel, otherModel } from '../files/goalModel';
 import { hddl } from '../files/hddl';
 import { world } from '../files/world';
 import { noInstances, unboundParam, unusedHddlTask } from './checks';
-import { KINDS, MESSAGES } from './vocabulary';
+import { KINDS, LINKS, MESSAGES } from './vocabulary';
 
 export const mutrose = defineEngine({
   files: [goalModel, otherModel, world, hddl, configuration],
   kinds: KINDS,
   checks: [unboundParam, unusedHddlTask, noInstances],
   messages: MESSAGES,
+  links: LINKS,
 });

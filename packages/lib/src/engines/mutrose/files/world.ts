@@ -116,7 +116,7 @@ const field = z.looseObject({
   children: z.array(z.union([entity(true), z.unknown()])),
   text: z.optional(
     z.string().check(
-      refersTo('world.instance', undefined, {
+      refersTo('world.instance', 'global', {
         name: maybeInstance,
         unresolved: false,
       }),

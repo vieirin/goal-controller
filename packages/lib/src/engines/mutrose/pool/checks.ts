@@ -6,13 +6,13 @@
  */
 import type { Check, Definition, Reference, TypedPool } from '../../../pool';
 import { firstWord, OTHER_MODEL } from '../files/goalModel';
-import type { MutroseCheck, MutroseKind } from './vocabulary';
+import type { MutroseCheck, MutroseKind, MutroseLink } from './vocabulary';
 
-type Pool = TypedPool<MutroseKind, MutroseCheck>;
+type Pool = TypedPool<MutroseKind, MutroseCheck, MutroseLink>;
 type Located =
   | Definition<MutroseKind, MutroseCheck>
   | Reference<MutroseKind, MutroseCheck>;
-type MutroseCheckFn = Check<MutroseKind, MutroseCheck>;
+type MutroseCheckFn = Check<MutroseKind, MutroseCheck, MutroseLink>;
 
 /** A model element, as the pool reads it. */
 type Element = {

@@ -23,7 +23,7 @@ const declaredType = (occurrences: readonly Occurrence[]) =>
 
 const name = refersTo(
   ['edge.variable', 'gm.resource', 'gm.goal', 'gm.task'],
-  undefined,
+  'global',
   { unresolved: false },
 );
 const condition = z.optional(

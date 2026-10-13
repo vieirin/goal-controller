@@ -8,15 +8,21 @@
  * are let through.
  */
 import * as z from 'zod/mini';
-import { defineFile, json, scope } from '../../../pool';
-import { defines, refersTo, unresolvedAs, written } from '../pool/vocabulary';
+import { defineFile, json } from '../../../pool';
+import {
+  defines,
+  refersTo,
+  scope,
+  unresolvedAs,
+  written,
+} from '../pool/vocabulary';
 import { typeWritten } from './variableType';
 
 /** the decomposer's robots: no class of the world's */
 const ROBOTS = new Set(['robot', 'robotteam']);
 
 /** a world class: an unknown one is an error */
-const worldClass = refersTo('world.class', undefined, {
+const worldClass = refersTo('world.class', 'global', {
   name: (text) => (ROBOTS.has(text) ? null : { text, offset: 0 }),
   ...unresolvedAs('unknown-mapping-class'),
 });
@@ -25,14 +31,12 @@ const worldClass = refersTo('world.class', undefined, {
 const toClass = z.string().check(written(typeWritten(worldClass)));
 const toType = z
   .string()
-  .check(
-    refersTo('hddl.type', undefined, unresolvedAs('unknown-mapping-type')),
-  );
+  .check(refersTo('hddl.type', 'global', unresolvedAs('unknown-mapping-type')));
 
 /** a semantic mapping's predicate (or numeric function, `staphylococcus`) and its sorts */
 const predicate = z.looseObject({
   pred: z.optional(
-    z.string().check(refersTo(['hddl.predicate', 'hddl.function'])),
+    z.string().check(refersTo(['hddl.predicate', 'hddl.function'], 'global')),
   ),
   arg_sorts: z.optional(z.array(toType)),
 });
@@ -52,7 +56,7 @@ export const configuration = defineFile({
             defines('mutrose.locationType'),
             refersTo(
               'world.class',
-              undefined,
+              'global',
               unresolvedAs('unknown-mapping-class'),
             ),
           ),
@@ -69,7 +73,7 @@ export const configuration = defineFile({
             .check(
               refersTo(
                 'gm.task',
-                undefined,
+                'global',
                 unresolvedAs('unknown-mapping-task'),
               ),
             ),
@@ -80,7 +84,7 @@ export const configuration = defineFile({
                 .check(
                   refersTo(
                     'gm.variable',
-                    undefined,
+                    'global',
                     unresolvedAs('unknown-mapping-variable'),
                   ),
                 ),

@@ -10,7 +10,6 @@ import * as z from 'zod/mini';
 import {
   defineFile,
   goalModel as goalModelParser,
-  scope,
   type Annotated,
   type NamePart,
   type Occurrence,
@@ -20,6 +19,7 @@ import {
   langium,
   link,
   refersTo,
+  scope,
   unresolvedAs,
   written,
 } from '../pool/vocabulary';
@@ -41,7 +41,7 @@ export const firstWord: NamePart = (text) => {
 };
 
 /** a world class, unless it's OCL's own (MutRoSe's property checks say an unknown one) */
-const worldClass = refersTo('world.class', undefined, {
+const worldClass = refersTo('world.class', 'global', {
   name: (text) => (BASIC_TYPES.has(text) ? null : { text, offset: 0 }),
   unresolved: false,
 });
@@ -139,7 +139,7 @@ const element = z.union([
     // ids are the diagram's and the runtime annotation's (kinds: not renamed)
     id: z.string().check(defines('gm.task')),
     name: z.string().check(
-      refersTo('hddl.task', undefined, {
+      refersTo('hddl.task', 'global', {
         name: firstWord,
         ...unresolvedAs('unknown-hddl-task'),
       }),
