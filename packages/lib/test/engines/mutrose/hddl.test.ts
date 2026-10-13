@@ -133,7 +133,11 @@ describe('HDDL’s grammar', () => {
   });
 
   it('reports what isn’t HDDL', () => {
-    expect(parsed('(define (domain d) (:task))').errors).not.to.be.empty;
-    expect(parsed('(define (domain d) (:types a - ))').errors).not.to.be.empty;
+    expect(parsed('(define (domain d) (:task))').errors).to.have.length.above(
+      0,
+    );
+    expect(
+      parsed('(define (domain d) (:types a - ))').errors,
+    ).to.have.length.above(0);
   });
 });
