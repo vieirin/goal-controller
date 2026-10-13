@@ -35,7 +35,7 @@ export type TypedAnnotations<
   defines: (kind: K, options?: DefinesOptions) => Annotated;
   refersTo: (
     kinds: K | readonly K[],
-    where?: Scope,
+    where: Scope,
     options?: RefersToOptions<M>,
   ) => Annotated;
   link: (name: L, options?: { from?: Path }) => Annotated;

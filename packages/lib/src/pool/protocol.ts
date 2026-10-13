@@ -29,8 +29,9 @@ export type Kind = string;
 export type Path = string | { previous: Path };
 
 /**
- * Where a reference's name is looked up. A closed set:
- * - global (no scope): among the definitions of its kinds without an owner;
+ * Where a reference's name is looked up, always said (`refersTo` has no
+ * default). A closed set:
+ * - `'global'`: among the definitions of its kinds without an owner;
  * - `owner`: among the members of what the value at `path` defines or
  *   resolves to, then the owner's owner's, then the global ones (unless
  *   the kind says `scope: 'owner'`);
@@ -38,7 +39,10 @@ export type Path = string | { previous: Path };
  *   the value at `path` resolves to, by a link (`link(name)` declares one;
  *   `'type'` is built in: the definition its type names, `typeOf`).
  */
-export type Scope = { owner: Path } | { through: string; path: Path };
+export type Scope =
+  | 'global'
+  | { owner: Path }
+  | { through: string; path: Path };
 
 export const scope = {
   owner: (path: Path): Scope => ({ owner: path }),
@@ -131,15 +135,18 @@ const annotate = (annotation: Annotation): Annotated => {
 export const defines = (kind: Kind, options: DefinesOptions = {}) =>
   annotate({ defines: kind, ...options });
 
-/** The value is a name of one of `kinds`: the first that has it wins. */
+/**
+ * The value is a name of one of `kinds` (the first that has it wins),
+ * looked up where `where` says: `'global'`, or a `scope.…`.
+ */
 export const refersTo = (
   kinds: Kind | readonly Kind[],
-  where?: Scope,
+  where: Scope,
   options: RefersToOptions = {},
 ) =>
   annotate({
     refersTo: typeof kinds === 'string' ? [kinds] : kinds,
-    ...(where && { scope: where }),
+    scope: where,
     ...options,
   });
 

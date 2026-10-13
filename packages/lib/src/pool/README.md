@@ -32,7 +32,7 @@ const shelves = defineFile({
         name: z.string().check(defines('toy.shelf')),
         holds: z.array(
           z.object({
-            thing: z.string().check(refersTo('toy.thing')),
+            thing: z.string().check(refersTo('toy.thing', 'global')),
             part: z.optional(
               z.string().check(refersTo('toy.part', scope.owner('thing'))),
             ),
@@ -143,7 +143,7 @@ the key schema of `z.record`), or a Langium node.
   order. A first use's owner has to be a definition, so it is known while the
   file is read.
 
-### `refersTo(kinds, scope?, options?)`
+### `refersTo(kinds, scope, options?)`
 
 The value is a name of one of `kinds`. They are tried in order, and the first
 kind with a match wins. If another of its kinds also has the name, that is an
@@ -173,7 +173,7 @@ to what the name's first word names:
 
 ```ts
 id: z.string().check(defines('gm.task')),
-name: z.string().check(refersTo('x.action', undefined, { name: firstWord }), link('performs')),
+name: z.string().check(refersTo('x.action', 'global', { name: firstWord }), link('performs')),
 ```
 
 `scope.through('performs', path)` and `TypedPool.links('performs', task)`
@@ -204,9 +204,11 @@ elements of the goal model.
 
 ## Scopes
 
-Where a reference's name is looked up. There are three cases.
+Where a reference's name is looked up. `refersTo` always says it, because
+there is no default and `undefined` doesn't compile. There are three
+cases.
 
-- **Global** (no scope): among the definitions of its kinds that have no owner.
+- `'global'`: among the definitions of its kinds that have no owner.
 - `scope.owner(path)`: among the members of what the value at `path` defines.
   If that value is a reference, among the members of what it resolves to.
   The lookup then goes on to the owner's owner, and so on, and finally to the
@@ -304,7 +306,7 @@ generated, and the rules a text starts from are AST types too. Plain
 `LangiumCoreServices` accept any name, as before. `langium<ToyAstType>(…)`
 gives the AST explicitly.
 
-After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'])`,
+After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'], 'global')`, `refersTo('toy.thing')`,
 `unresolved: { message: 'toy.noThin' }`, `pool.definitions('toy.shelve')`,
 `problem(…, 'toy.emptyShelve')`, `typeOf: { kinds: ['toy.shelve'] }`,
 `link('hold')`, `scope.through('hold', …)` and `pool.links('hold', …)` all

@@ -97,10 +97,7 @@ const model = defineFile({
     kind: z.literal('task'),
     name: z
       .string()
-      .check(
-        refersTo('g.plant', undefined, { name: firstWord }),
-        link('grows'),
-      ),
+      .check(refersTo('g.plant', 'global', { name: firstWord }), link('grows')),
     properties: z.object({
       Things: z.optional(
         z.string().check(
@@ -127,7 +124,7 @@ const plan = defineFile({
     tasks: z.array(
       z.object({
         task: z.string().check(
-          refersTo('g.task', undefined, {
+          refersTo('g.task', 'global', {
             unresolved: { severity: 'error', message: 'g.noTask' },
           }),
         ),
@@ -145,7 +142,7 @@ const plan = defineFile({
       }),
     ),
     look: z.tuple([
-      z.string().check(refersTo('g.plant')),
+      z.string().check(refersTo('g.plant', 'global')),
       z
         .string()
         .check(refersTo('g.variety', scope.owner(scope.previous('nothing')))),

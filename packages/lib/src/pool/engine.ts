@@ -195,7 +195,7 @@ export const poolOf = <K extends string, M extends string, L extends string>(
       }
       if (
         'refersTo' in annotation &&
-        annotation.scope &&
+        typeof annotation.scope === 'object' &&
         'through' in annotation.scope
       )
         links.add(annotation.scope.through);
