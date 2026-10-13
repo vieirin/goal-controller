@@ -5,9 +5,11 @@
  *   pnpm stress:goda                   # builds the packages, then runs this
  *   node scripts/goda-stress/run.cjs [--save-baseline] [--strict] [--no-build-check]
  *
- * 1. fetches pistarGODA-MDP's examples at the pinned commit (fetch.cjs);
- * 2. runs #32's checks on each of the seven models (checks.cjs) through the
- *    GODA engine adapter (engine.cjs);
+ * 1. fetches pistarGODA-MDP's examples at the pinned commit, and SA-BSN's
+ *    models from lesunb/bsn (fetch.cjs);
+ * 2. runs #32's checks on each of the seven models, and on SA-BSN with both
+ *    generator versions plus its runtime checks (checks.cjs, runtime.cjs),
+ *    through the GODA engine adapter (engine.cjs);
  * 3. checks the other engines against the language snapshot's baseline
  *    (snapshot.cjs; `--save-baseline` takes it, on the base commit);
  * 4. writes a JSON result per model and SUMMARY.md to .cache/goda/results/.
@@ -15,12 +17,24 @@
  * Exits non-zero only on a regression in the other engines. A failure on a
  * model whose issue hasn't landed is expected and reported as such; one on
  * a model whose issue has (SUPPORTED) is reported as a failure, and fails
- * the run with `--strict`.
+ * the run with `--strict`. A model's `informational` checks never do: SA-BSN's
+ * comparisons with param.zip, and every check of its other variant (#93 D2).
+ * So of SA-BSN, which is in SUPPORTED, only the cc808b6 row gates.
  */
 const fs = require('fs');
 const path = require('path');
-const { COMMIT, EXAMPLES, fetchExamples } = require('./fetch.cjs');
-const { EXTERNAL, checkModel } = require('./checks.cjs');
+const {
+  COMMIT,
+  EXAMPLES,
+  SA_BSN,
+  fetchExamples,
+  fetchSaBsn,
+} = require('./fetch.cjs');
+const {
+  checkModel,
+  strictFailures,
+  withExpectations,
+} = require('./checks.cjs');
 const { godaEngine } = require('./engine.cjs');
 const { markdown } = require('./report.cjs');
 const { loadReferences } = require('./references.cjs');
@@ -32,10 +46,18 @@ const RESULTS = path.join(CACHE, 'results');
 const BASELINE = path.join(CACHE, 'snapshot-baseline');
 /**
  * The models whose issue has landed in the stack (#32 AND and OR, #36 DM,
- * #37 Incompleteness, #38 TAS); the others' failures are expected until
+ * #37 Incompleteness, #38 TAS, #94 SA-BSN: its cc808b6 row only, the rest
+ * is informational, #93 D2); the others' failures are expected until
  * theirs does (#39, #40).
  */
-const SUPPORTED = new Set(['AND', 'OR', 'DM', 'Incompleteness', 'TAS']);
+const SUPPORTED = new Set([
+  'AND',
+  'OR',
+  'DM',
+  'Incompleteness',
+  'TAS',
+  'SA-BSN',
+]);
 
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const load = () => ({
@@ -46,19 +68,6 @@ const load = () => ({
     require.resolve('@istar-ts/core', { paths: [pkg('goal-tree')] }),
   ),
 });
-
-/** A model's failures are expected until its issue lands. */
-const withExpectations = (name, checks) =>
-  SUPPORTED.has(name)
-    ? checks
-    : Object.fromEntries(
-        Object.entries(checks).map(([key, check]) => [
-          key,
-          check.status === 'fail'
-            ? { ...check, status: 'expected-fail' }
-            : check,
-        ]),
-      );
 
 const main = async () => {
   const args = new Set(process.argv.slice(2));
@@ -71,6 +80,8 @@ const main = async () => {
   console.log(
     `examples: ${fetched.files} files (${fetched.downloaded} downloaded)`,
   );
+  const saBsn = await fetchSaBsn();
+  console.log(`sa-bsn: ${saBsn.files} files (${saBsn.downloaded} downloaded)`);
   const deps = load();
   const engine = godaEngine(deps.lib);
   // the engines write their reports to the console: not the harness's output
@@ -83,15 +94,18 @@ const main = async () => {
   fs.rmSync(RESULTS, { recursive: true, force: true });
   fs.mkdirSync(RESULTS, { recursive: true });
   const results = [];
-  for (const reference of loadReferences(EXAMPLES)) {
+  for (const reference of loadReferences(EXAMPLES, SA_BSN.directory)) {
     quiet();
     let checks;
     try {
       checks = withExpectations(
-        reference.name,
         checkModel(deps, engine, reference, {
           build: !args.has('--no-build-check'),
         }),
+        {
+          supported: SUPPORTED.has(reference.name),
+          informational: reference.informational,
+        },
       );
     } finally {
       loud();
@@ -100,15 +114,22 @@ const main = async () => {
       model: reference.name,
       issue: reference.issue,
       variant: reference.variant,
+      ...(reference.informational && {
+        informational: reference.informational,
+      }),
       checks,
     };
     results.push(result);
+    // a model run with several generator versions: a file per version
+    const id = reference.variants
+      ? `${reference.name}-${reference.variant}`
+      : reference.name;
     fs.writeFileSync(
-      path.join(RESULTS, `${reference.name}.json`),
+      path.join(RESULTS, `${id}.json`),
       `${JSON.stringify(result, null, 2)}\n`,
     );
     log(
-      `${reference.name.padEnd(15)} ${Object.entries(checks)
+      `${id.padEnd(15)} ${Object.entries(checks)
         .map(([name, check]) => `${name}:${check.status}`)
         .join(' ')}`,
     );
@@ -119,13 +140,7 @@ const main = async () => {
     current: path.join(CACHE, 'snapshot-current'),
   });
   log(`regressions: ${regressions.status}`);
-  const supportedFailures = results.filter(
-    (result) =>
-      SUPPORTED.has(result.model) &&
-      Object.entries(result.checks).some(
-        ([name, check]) => check.status === 'fail' && !EXTERNAL.has(name),
-      ),
-  );
+  const supportedFailures = strictFailures(results, SUPPORTED);
   const exitCode =
     regressions.status === 'fail' ||
     (args.has('--strict') && supportedFailures.length > 0)
@@ -133,6 +148,7 @@ const main = async () => {
       : 0;
   const summary = {
     commit: COMMIT,
+    saBsnCommit: SA_BSN.commit,
     engine: !!engine,
     generatedAt: new Date().toISOString(),
     results,

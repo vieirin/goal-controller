@@ -3,12 +3,16 @@
  * round-trips through the notation and passes the dialect's checks; its MDP,
  * PCTL files, formulas and eval_formula.sh (its lines as a set) against
  * the reference; generation time and size;
- * and (when PRISM or Storm is on PATH) whether the MDP builds.
+ * and (when PRISM or Storm is on PATH) whether the MDP builds. On a model
+ * the BSN runtime consumes (one with `components`: SA-BSN), also the
+ * runtime pair, the term contract and evaluation parity (runtime.cjs).
  *
  * Each check is `{ status, ...details }`, status one of:
  * - `pass`, `fail`;
  * - `skipped`: it needs something absent (a tool on PATH);
- * - `unavailable`: it needs the engine, or a step before it failed.
+ * - `unavailable`: it needs the engine, or a step before it failed;
+ * and, as run.cjs counts a failure (withExpectations), `expected-fail` or
+ * `informational`.
  */
 const { buildMdp } = require('./build.cjs');
 const {
@@ -18,6 +22,7 @@ const {
   diffMdp,
 } = require('./compare.cjs');
 const { PCTL, outputRoles } = require('./references.cjs');
+const { RUNTIME_CHECKS, checkRuntime } = require('./runtime.cjs');
 
 /**
  * The dialect's diagnostics each model is expected to have (`check: message`),
@@ -65,6 +70,17 @@ const checkModel = (
 ) => {
   const { goalTree, language } = deps;
   const checks = {};
+  // the checks that need the engine's output
+  const outputChecks = [
+    'mdp',
+    'pctl',
+    'reliability',
+    'cost',
+    'evalScript',
+    'performance',
+    'build',
+    ...(reference.components ? RUNTIME_CHECKS : []),
+  ];
   if (!engine) {
     const why = unavailable('the GODA dialect is not in the built lib (#32)');
     for (const name of [
@@ -72,13 +88,7 @@ const checkModel = (
       'roundTrip',
       'dialectChecks',
       'generates',
-      'mdp',
-      'pctl',
-      'reliability',
-      'cost',
-      'evalScript',
-      'performance',
-      'build',
+      ...outputChecks,
     ])
       checks[name] = why;
     return checks;
@@ -157,6 +167,7 @@ const checkModel = (
       for (let i = 0; i < runs; i += 1) {
         const started = process.hrtime.bigint();
         output = engine.output(model, {
+          ...reference.options,
           modelName: reference.modelName,
           variant: reference.variant,
         });
@@ -176,15 +187,7 @@ const checkModel = (
     }
   if (!output) {
     // a failed check before: the ones that need the output can't run
-    for (const name of [
-      'mdp',
-      'pctl',
-      'reliability',
-      'cost',
-      'evalScript',
-      'performance',
-      'build',
-    ])
+    for (const name of outputChecks)
       checks[name] = unavailable(
         `no output: ${checks.generates.error ?? checks.generates.reason}`,
       );
@@ -259,10 +262,61 @@ const checkModel = (
     build && ours.mdp
       ? buildMdp(ours.mdp.text, reference.reference.evalValues)
       : { status: 'skipped', reason: build ? 'no .nm file' : 'not asked for' };
+  if (reference.components)
+    Object.assign(
+      checks,
+      checkRuntime(ours.runtime, reference.reference, reference),
+    );
   return checks;
 };
 
 /** The checks that need a binary on PATH (the rest must pass for AND and OR). */
 const EXTERNAL = new Set(['build']);
 
-module.exports = { EXPECTED_DIAGNOSTICS, EXTERNAL, checkModel, readModel };
+/** Whether a check is informational for a reference (`{ checks: [...] | 'all' }`). */
+const isInformational = (informational, name) =>
+  !!informational &&
+  (informational.checks === 'all' || informational.checks.includes(name));
+
+/**
+ * A result's failures as they count: an informational check's is
+ * `informational` (reported, never a failure: SA-BSN's against param.zip,
+ * its other variant's, #93 D2); on a model whose issue hasn't landed, the
+ * rest are `expected-fail`.
+ */
+const withExpectations = (checks, { supported, informational }) =>
+  Object.fromEntries(
+    Object.entries(checks).map(([name, check]) => [
+      name,
+      check.status !== 'fail'
+        ? check
+        : isInformational(informational, name)
+          ? { ...check, status: 'informational' }
+          : supported
+            ? check
+            : { ...check, status: 'expected-fail' },
+    ]),
+  );
+
+/**
+ * The results that fail `--strict`: a supported model's failed check, but
+ * not one needing a binary (EXTERNAL).
+ */
+const strictFailures = (results, supported) =>
+  results.filter(
+    (result) =>
+      supported.has(result.model) &&
+      Object.entries(result.checks).some(
+        ([name, check]) => check.status === 'fail' && !EXTERNAL.has(name),
+      ),
+  );
+
+module.exports = {
+  EXPECTED_DIAGNOSTICS,
+  EXTERNAL,
+  checkModel,
+  isInformational,
+  readModel,
+  strictFailures,
+  withExpectations,
+};
