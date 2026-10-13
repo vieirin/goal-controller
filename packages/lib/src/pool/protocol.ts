@@ -247,6 +247,8 @@ type Located = {
   path: readonly (string | number)[];
   /** the typed value annotated (a string; an object; a Langium node) */
   value: unknown;
+  /** the object (or Langium node) it is in */
+  parent: unknown;
   /** a problem at its name */
   problem(severity: Severity, check: string, args?: MessageArgs): Problem;
 };

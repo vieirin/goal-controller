@@ -24,6 +24,8 @@ export type Span = { from: number; to: number; text: string };
 export type At = (path: ValuePath, part?: 'key') => Span | undefined;
 
 export type ReadProblem = {
+  /** the schema's (a value it rejects), not the syntax's */
+  schema?: true;
   severity: 'error' | 'warning';
   message: string;
   from: number;
@@ -141,6 +143,7 @@ const problemsOf = (
         nodeAt(tree, [...(issue.path as ValuePath), key], 'key')!,
       );
       return {
+        schema: true,
         severity: 'warning',
         message: messageOf({ ...issue, keys: [key] }, { missing: false }),
         from: span.from,
@@ -153,6 +156,7 @@ const problemsOf = (
   const span = spanOf(text, key ?? node);
   return [
     {
+      schema: true,
       severity: 'error',
       message: messageOf(issue, { missing, value: getNodeValue(node) }),
       from: span.from,
