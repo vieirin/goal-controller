@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "grl",
+  "models": [
+    {
+      "path": "grl-own.txt"
+    }
+  ],
+  "projectResources": {
+    "strategies": [
+      "strategies/Heating.json"
+    ]
+  },
+  "outputs": []
+}

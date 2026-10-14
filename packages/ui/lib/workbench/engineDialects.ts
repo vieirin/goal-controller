@@ -13,6 +13,11 @@ import {
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  grl,
+  grlEngineMapper,
+  grlAnalyses,
+  grlCheckRegistry,
+  grlProjectResourceParsers,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
@@ -32,6 +37,7 @@ export const ENGINE_DIALECTS = {
   edgev2: edgeV2,
   mutrose,
   goda,
+  grl,
 } as const;
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
@@ -51,6 +57,7 @@ export const ENGINE_CHECKS: { readonly [E in DialectEngine]: ChecksOf<E> } = {
   edgev2: edgeCheckRegistry,
   mutrose: mutroseCheckRegistry,
   goda: godaCheckRegistry,
+  grl: grlCheckRegistry,
 };
 
 /**
@@ -67,6 +74,7 @@ export const ENGINE_PROJECT_RESOURCES: {
   mutrose: mutroseProjectResources,
   // it reads nothing beside the model
   goda: {},
+  grl: grlProjectResourceParsers,
 };
 
 /**
@@ -84,6 +92,7 @@ export const ENGINE_MAPPERS = {
   sleec: sleecEngineMapper,
   mutrose: mutroseEngineMapper,
   goda: godaEngineMapper,
+  grl: grlEngineMapper,
 } as const satisfies Record<TransformEngine, { allowLeafGoals?: boolean }>;
 
 /** Each engine's name, as the UI shows it: a definition's own, or SLEEC's. */
@@ -93,6 +102,7 @@ export const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
   mutrose: mutrose.name,
   goda: goda.name,
+  grl: grl.name,
 };
 
 /** How an output is highlighted: PRISM, MutRoSe's runtime annotation, or plain. */
@@ -159,6 +169,16 @@ export const ENGINES: readonly EngineInfo[] = [
     help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
     hasOptions: true,
   },
+  {
+    id: 'grl',
+    label: ENGINE_LABEL.grl,
+    // an analysis engine: its values are drawn on the model (Analyse), no file
+    output: 'Evaluation',
+    extension: 'json',
+    language: 'text',
+    help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
+    hasOptions: false,
+  },
 ];
 
 const infoOf = (engine: TransformEngine): EngineInfo =>
@@ -197,4 +217,6 @@ export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
  */
 export const ENGINE_ANALYSES: Readonly<
   Partial<Record<TransformEngine, Analyses>>
-> = {};
+> = {
+  grl: grlAnalyses,
+};

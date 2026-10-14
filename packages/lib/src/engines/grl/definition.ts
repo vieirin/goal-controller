@@ -62,13 +62,31 @@ export const grl = defineDialect({
     quality: { fill: DEFAULT_FILL },
   },
   defaultFill: DEFAULT_FILL,
+  // GRL writes no `[…]`: the notation names no operator, and a decomposition
+  // is its refinement links' (an And or an Or; a Xor is read as an Or)
+  notation: {
+    operand: { kinds: ['goal', 'task'] },
+    operators: {},
+    constructs: {
+      and: {
+        label: 'And',
+        help: 'satisfied by all its children',
+        relation: 'and',
+      },
+      or: {
+        label: 'Or',
+        help: 'satisfied by any of its children',
+        relation: 'or',
+      },
+    },
+    defaultConstruct: { and: 'and', or: 'or' },
+  },
   // an element's importance and decomposition type are read from its
   // custom properties (the importer writes them; the evaluation reads them)
   // but not declared: a dialect without ids writes no property lines, and an
   // element line holds annotations and declarations only (#105: a framework
-  // gap, `elementProperties` below is what GRL would declare)
+  // gap; `elementProperties` above is what GRL would declare)
   properties: { goal: [], task: [], resource: [], quality: [] },
-  // no ids, so no property lines: the inspector edits them
   propertyLineOrder: [],
   indent: '  ',
   links: {

@@ -177,6 +177,7 @@ export {
   grl,
   grlAnalyses,
   grlCheckRegistry,
+  grlEngineMapper,
   grlExtension,
   grlMetamodelBlock,
   grlProjectResourceParsers,

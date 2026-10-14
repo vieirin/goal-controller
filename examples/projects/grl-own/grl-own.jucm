@@ -13,20 +13,20 @@
     <intElements name="Supply electricity" id="12" linksSrc="31 33" type="Task" refs="69" importance="High" importanceQuantitative="50"/>
     <actors name="Home owner" id="1" contRefs="51" importance="High" importanceQuantitative="80"/>
     <actors name="Utility company" id="13" contRefs="52"/>
-    <links xsi:type="grl:Decomposition" name="Decomposition20" id="20" refs="80" dest="3" src="4"/>
-    <links xsi:type="grl:Decomposition" name="Decomposition21" id="21" refs="81" dest="3" src="5"/>
-    <links xsi:type="grl:Decomposition" name="Decomposition22" id="22" refs="82" dest="9" src="3"/>
-    <links xsi:type="grl:Decomposition" name="Decomposition23" id="23" refs="83" dest="9" src="10"/>
-    <links xsi:type="grl:Contribution" name="Contribution24" id="24" refs="84" dest="2" src="4" contribution="Make" quantitativeContribution="100"/>
-    <links xsi:type="grl:Contribution" name="Contribution25" id="25" refs="85" dest="2" src="5" contribution="Break" quantitativeContribution="-100"/>
-    <links xsi:type="grl:Contribution" name="Contribution26" id="26" refs="86" dest="2" src="10" quantitativeContribution="50"/>
-    <links xsi:type="grl:Contribution" name="Contribution27" id="27" refs="87" dest="6" src="5" contribution="Hurt" quantitativeContribution="-50"/>
-    <links xsi:type="grl:Contribution" name="Contribution28" id="28" refs="88" dest="6" src="7" quantitativeContribution="70"/>
-    <links xsi:type="grl:Contribution" name="Contribution29" id="29" refs="89" dest="6" src="4"/>
-    <links xsi:type="grl:Dependency" name="Dependency30" id="30" refs="90" dest="3" src="8"/>
-    <links xsi:type="grl:Dependency" name="Dependency31" id="31" refs="91" dest="8" src="12"/>
-    <links xsi:type="grl:Contribution" name="Contribution32" id="32" refs="92" dest="6" src="9" contribution="SomePositive" quantitativeContribution="10" correlation="true"/>
-    <links xsi:type="grl:Contribution" name="Contribution33" id="33" refs="93" dest="2" src="12" contribution="Unknown" quantitativeContribution="0"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition20" id="20" dest="3" src="4"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition21" id="21" dest="3" src="5"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition22" id="22" dest="9" src="3"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition23" id="23" dest="9" src="10"/>
+    <links xsi:type="grl:Contribution" name="Contribution24" id="24" dest="2" src="4" contribution="Make" quantitativeContribution="100"/>
+    <links xsi:type="grl:Contribution" name="Contribution25" id="25" dest="2" src="5" contribution="Break" quantitativeContribution="-100"/>
+    <links xsi:type="grl:Contribution" name="Contribution26" id="26" dest="2" src="10" quantitativeContribution="50"/>
+    <links xsi:type="grl:Contribution" name="Contribution27" id="27" dest="6" src="5" contribution="Hurt" quantitativeContribution="-50"/>
+    <links xsi:type="grl:Contribution" name="Contribution28" id="28" dest="6" src="7" quantitativeContribution="70"/>
+    <links xsi:type="grl:Contribution" name="Contribution29" id="29" dest="6" src="4"/>
+    <links xsi:type="grl:Dependency" name="Dependency30" id="30" dest="3" src="8"/>
+    <links xsi:type="grl:Dependency" name="Dependency31" id="31" dest="8" src="12"/>
+    <links xsi:type="grl:Contribution" name="Contribution32" id="32" dest="6" src="9" contribution="SomePositive" quantitativeContribution="10" correlation="true"/>
+    <links xsi:type="grl:Contribution" name="Contribution33" id="33" dest="2" src="12" contribution="Unknown" quantitativeContribution="0"/>
     <groups name="Heating" id="40" strategies="41 42"/>
     <strategies name="Heat pump" id="41" author="goal-controller" group="40">
       <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="4"/>

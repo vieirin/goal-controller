@@ -1,5 +1,5 @@
 import { propertyKeys } from '@goal-controller/dialect';
-import { sleecEngineMapper } from '@goal-controller/lib';
+import { grlEngineMapper, sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
 import { ENGINE_DIALECTS } from '../workbench/engineDialects';
@@ -41,4 +41,6 @@ export const KNOWN_PROPERTIES: Record<
   sleec: keysOf(sleecEngineMapper),
   mutrose: definedKeys(ENGINE_DIALECTS.mutrose),
   goda: definedKeys(ENGINE_DIALECTS.goda),
+  // GRL's element properties are read but not declarable yet (#105): its mapper's
+  grl: keysOf(grlEngineMapper),
 };
