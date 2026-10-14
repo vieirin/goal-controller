@@ -10,9 +10,22 @@
  * It is a property line as the grammar already reads it (`KEY VALUE`): no
  * token, no grammar rule, no lexer state of its own. This module reads and
  * writes its value, and says which link a line names.
+ *
+ * A dialect without ids that writes link lines (`linkLines`) names the
+ * target by its line's text, quoted, and the n-th of several elements so
+ * named with `#n` (in the document's order):
+ *
+ *     Heat with the heat pump
+ *       link "Low running cost" {contribution = Make}
+ *       link "Comfort"#2 {contribution = Help}
+ *
+ * Its document has no property lines, so `readLine` reads a line starting
+ * `link "` as this one (`isPlainLinkLine`).
  */
 import {
   LINK_LINE_KEY,
+  hasIds,
+  linkLinesOf,
   linkPropertiesOf,
   valueOf,
   type AnyDialect,
@@ -36,6 +49,8 @@ export type LinkLineReading = {
 };
 
 const TARGET = /^\S+?(?=\s|\{|$)/;
+/** a quoted target, `\"` and `\\` escaped in it, and its ordinal: `"Heat"#2` */
+const QUOTED = /^"((?:[^"\\]|\\.)*)"(?:#(\d+))?(?=\s|\{|$)/;
 const PROPERTY = /\{(\s*)([A-Za-z][A-Za-z0-9_]*)(\s*=\s*)([^{}]*?)\s*\}/y;
 const BLANKS = /\s*/y;
 
@@ -45,7 +60,18 @@ export const readLinkLine = (
 ):
   | { value: LinkLineReading }
   | { error: { message: string; from: number; to: number } } => {
-  const target = TARGET.exec(value)?.[0];
+  const target = value.startsWith('"')
+    ? QUOTED.exec(value)?.[0]
+    : TARGET.exec(value)?.[0];
+  if (value.startsWith('"') && !target)
+    return {
+      error: {
+        message:
+          'A link line names its target by its text, in quotes: link "Name" {key = value}',
+        from: 0,
+        to: value.length,
+      },
+    };
   if (!target || target.startsWith('{'))
     return {
       error: {
@@ -87,6 +113,65 @@ export const readLinkLine = (
   };
 };
 
+/** A target as a dialect without ids writes it: its text, quoted, and `#n` when other elements share it. */
+export const quotedTarget = (name: string, ordinal?: number): string =>
+  `"${name.replace(/[\\"]/g, '\\$&')}"${ordinal === undefined ? '' : `#${ordinal}`}`;
+
+/** Whether a line of a document without ids is a link line (`link "…`): it has no property lines else. */
+export const isPlainLinkLine = (
+  definition: Parameters<typeof linkLinesOf>[0],
+  text: string,
+): boolean =>
+  !hasIds(definition) &&
+  linkLinesOf(definition) &&
+  new RegExp(`^\\s*${LINK_LINE_KEY}\\s+"`).test(text);
+
+/**
+ * The element a written target names: in a dialect with ids, its id; in one
+ * without, by its text in `names` (`DefinitionContext['names']`), `#n` the
+ * n-th so named. An error says why it names none.
+ */
+export const targetKey = (
+  names: Readonly<Record<string, readonly string[]>> | undefined,
+  target: string,
+): { key: string } | { error: string } => {
+  if (!names) return { key: target };
+  const quoted = QUOTED.exec(target);
+  if (!quoted) return { error: `No element ${target}` };
+  const name = quoted[1]!.replace(/\\(.)/g, '$1');
+  const keys = names[name] ?? [];
+  const ordinal = quoted[2] === undefined ? undefined : Number(quoted[2]);
+  if (!keys.length) return { error: `No element ${quotedTarget(name)}` };
+  if (ordinal === undefined) {
+    if (keys.length === 1) return { key: keys[0]! };
+    return {
+      error: `${keys.length} elements are named ${quotedTarget(name)}: write ${keys
+        .map((_, i) => quotedTarget(name, i + 1))
+        .join(', ')}`,
+    };
+  }
+  const key = keys[ordinal - 1];
+  return key
+    ? { key }
+    : {
+        error: `No element ${quotedTarget(name, ordinal)}: ${keys.length} ${keys.length === 1 ? 'is' : 'are'} named so`,
+      };
+};
+
+/** How a line names an element whose key is `key`: its id, or its quoted text (`names` given). */
+export const writtenTarget = (
+  names: Readonly<Record<string, readonly string[]>> | undefined,
+  key: string,
+): string => {
+  if (!names) return key;
+  for (const [name, keys] of Object.entries(names)) {
+    const index = keys.indexOf(key);
+    if (index >= 0)
+      return quotedTarget(name, keys.length > 1 ? index + 1 : undefined);
+  }
+  return key;
+};
+
 /** A link line, written: `link G1 {weight = 50}`, the kind's keys in its order. */
 export const linkLine = (
   definition: Pick<AnyDialect, 'links'>,
@@ -103,11 +188,13 @@ export const linkLine = (
     ].join(' '),
   );
 
-/** Whether a link has a line: its kind has properties in the dialect, and some are set. */
+/** Whether a link has a line: the dialect writes them, its kind has properties there, and some are set. */
 export const hasLinkLine = (
-  definition: Pick<AnyDialect, 'links'>,
+  definition: Pick<AnyDialect, 'elements' | 'links'> &
+    Partial<Pick<AnyDialect, 'linkLines'>>,
   link: Pick<DocumentLink, 'kind' | 'properties'>,
 ): boolean =>
+  linkLinesOf(definition) &&
   linkPropertiesOf(definition, link.kind).some(
     ({ key }) => link.properties[key] !== undefined,
   );

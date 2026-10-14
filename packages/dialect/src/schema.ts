@@ -277,6 +277,15 @@ export type DialectDefinition<K extends string = ElementKind> = {
    */
   links?: Readonly<Record<string, readonly PropertyDefinition[]>>;
   /**
+   * Whether the Notation view writes a link's properties, as a `link` line
+   * under its source (`linkLinesOf`). By default a dialect with ids does,
+   * naming the target by its id (`link G1 {weight = 50}`), and one without
+   * doesn't. One without that turns it on names the target by its line's
+   * text, quoted, and the n-th of several so named with `#n`
+   * (`link "Low running cost" {weight = 50}`, `link "Heat"#2 {…}`).
+   */
+  linkLines?: boolean;
+  /**
    * Properties on actors (iStar's actors, agents and roles, and an
    * extension's actor kinds; `kinds` narrows one), stored in the actor's
    * `customProperties` (goal-controller#107).
@@ -290,6 +299,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
  * Reserved in a dialect that declares `links`.
  */
 export const LINK_LINE_KEY = 'link';
+
+/** Whether the Notation view writes link lines in a dialect (`linkLines`, by default whether it has ids). */
+export const linkLinesOf = (
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'links' | 'linkLines'>>,
+): boolean =>
+  !!definition.links && (definition.linkLines ?? hasIds(definition));
 
 /** A property on actors; `kinds`: only these actor kinds have it (default: every actor). */
 export type ActorPropertyDefinition<C extends string = string> =
@@ -405,6 +421,12 @@ export type DefinitionContext = {
    * id: a line written with one is that element's, wherever it is
    */
   named?: Readonly<Record<string, string>>;
+  /**
+   * a definition without ids that writes link lines: its elements' keys by
+   * their lines' text, each list in the document's order (a link line names
+   * its target so, `"Heat"#2` the second)
+   */
+  names?: Readonly<Record<string, readonly string[]>>;
   /** the project's resources, parsed, by kind (none: the model alone) */
   projectResources?: Readonly<Record<string, ProjectResourceContext>>;
   /** the model's links, by piStar id, as checks read them (`readLink`, goal-controller#107) */

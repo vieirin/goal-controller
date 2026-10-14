@@ -10,6 +10,8 @@ import {
   evaluateCondition,
   fillTemplate,
   hasIds,
+  linkLinesOf,
+  linkPropertiesOf,
   propertyOf,
   relationMismatch,
   valueOf,
@@ -27,6 +29,8 @@ import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
+  targetKey,
+  writtenTarget,
   linkPropertyProblems,
   readLinkLine,
 } from './linkLine.js';
@@ -170,7 +174,7 @@ type Definition = Pick<
   | 'problems'
   | 'idScope'
 > &
-  Partial<Pick<AnyDialect, 'links'>>;
+  Partial<Pick<AnyDialect, 'links' | 'linkLines'>>;
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -596,7 +600,7 @@ export const documentDiagnostics = (
     }
     const keySpan = at(read.keySpan);
     // a link's properties, under its source (goal-controller#107)
-    if (definition.links && read.key === LINK_LINE_KEY) {
+    if (linkLinesOf(definition) && read.key === LINK_LINE_KEY) {
       const valueAt = (span: { from: number; to: number }) =>
         at({
           from: read.valueSpan.from + span.from,
@@ -616,26 +620,33 @@ export const documentDiagnostics = (
         ...l,
         iStarId,
       }));
-      const found = linkOfLine(definition, links, block.id, target);
-      const linesTo = block.linkTargets.get(target) ?? 0;
-      block.linkTargets.set(target, linesTo + 1);
-      if (!(target in context.elements))
+      // its target's key: the id written, or (without ids) the element its text names
+      const named = targetKey(context.names, target);
+      const key = 'key' in named ? named.key : null;
+      // the source as its line names it: its id, or (without ids) its quoted text
+      const source = context.names
+        ? writtenTarget(context.names, block.id)
+        : idOf(block.id);
+      const found = key ? linkOfLine(definition, links, block.id, key) : [];
+      const linesTo = key ? (block.linkTargets.get(key) ?? 0) : 0;
+      if (key) block.linkTargets.set(key, linesTo + 1);
+      if (!key || !(key in context.elements))
         push({
           ...valueAt(targetSpan),
           severity: 'error',
-          message: `No element ${target}`,
+          message: 'error' in named ? named.error : `No element ${target}`,
         });
       else if (found.length === 0)
         push({
           ...valueAt(targetSpan),
           severity: 'error',
-          message: `No link from ${idOf(block.id)} to ${target} has properties in ${definition.name}`,
+          message: `No link from ${source} to ${target} has properties in ${definition.name}`,
         });
       else if (found.length > 1)
         push({
           ...valueAt(targetSpan),
           severity: 'error',
-          message: `Links of ${found.length} kinds join ${idOf(block.id)} to ${target}: which one this line is can't be told`,
+          message: `Links of ${found.length} kinds join ${source} to ${target}: which one this line is can't be told`,
         });
       else if (linesTo > 0)
         push({
@@ -643,21 +654,42 @@ export const documentDiagnostics = (
           severity: 'error',
           message: `The link to ${target} is written twice`,
         });
-      else
-        for (const problem of linkPropertyProblems(
-          definition,
-          found[0]!.kind,
-          link.value,
-        )) {
-          const written = properties[problem.index]!;
-          push({
-            ...valueAt(
-              problem.on === 'key' ? written.keySpan : written.valueSpan,
-            ),
-            severity: 'error',
-            message: problem.message,
-          });
+      else {
+        const [{ kind, iStarId }] = found as [(typeof found)[number]];
+        const problems = linkPropertyProblems(definition, kind, link.value);
+        // the engine's named check on a property, the link its `self` (its
+        // context's readLink reads it), its message first, as an element's
+        const written = Object.fromEntries(
+          properties.map(({ key, value }) => [key, value]),
+        );
+        for (const [index, property] of properties.entries()) {
+          const check = linkPropertiesOf(definition, kind).find(
+            ({ key }) => key === property.key,
+          )?.check;
+          const own = problems.filter((p) => p.index === index);
+          const checked =
+            check &&
+            !own.some((p) => p.on === 'key') &&
+            runCheck?.(check, written, iStarId);
+          if (checked) {
+            push({
+              ...valueAt(property.valueSpan),
+              severity: 'error',
+              message: checked,
+              check,
+            });
+            continue;
+          }
+          for (const problem of own)
+            push({
+              ...valueAt(
+                problem.on === 'key' ? property.keySpan : property.valueSpan,
+              ),
+              severity: 'error',
+              message: problem.message,
+            });
         }
+      }
       continue;
     }
     if (!propertyOf(definition, block.element.kind, read.key)) {
