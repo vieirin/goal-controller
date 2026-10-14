@@ -15,6 +15,7 @@ import {
   godaEngineMapper,
   grl,
   grlEngineMapper,
+  grlExtension,
   grlAnalyses,
   grlCheckRegistry,
   grlProjectResourceParsers,
@@ -29,7 +30,11 @@ import {
   type Check,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
-import type { AnyDialect, CheckNameOf } from '@goal-controller/dialect';
+import type {
+  AnyDialect,
+  CheckNameOf,
+  ExtensionDefinition,
+} from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_DIALECTS = {
@@ -219,4 +224,16 @@ export const ENGINE_ANALYSES: Readonly<
   Partial<Record<TransformEngine, Analyses>>
 > = {
   grl: grlAnalyses,
+};
+
+/**
+ * The engines whose models declare kinds of their own, in their file's
+ * `"metamodel"` block (written by the engine's importer: GRL's indicators
+ * and beliefs, #106), by the extension that defines them. Such a model is
+ * read with its block applied; the other engines read iStar 2.0 only.
+ */
+export const ENGINE_FILE_KINDS: Readonly<
+  Partial<Record<TransformEngine, ExtensionDefinition>>
+> = {
+  grl: grlExtension,
 };

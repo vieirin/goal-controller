@@ -121,6 +121,7 @@ Our evaluations equal jUCMNav's on every row of the seeds checked:
   - properties on links and on actors;
   - analysis engines (`Analysis`, `analysisModel`, `defineAnalyses`, the Analyse control);
   - a link check's context, `readLink` with the ends' kinds, which "a contribution to a belief" needs.
+- **Engine modes read a model's own kinds (#106).** The workbench read a model's `"metamodel"` block only in a modelling dialect's mode, so an imported GRL model, with its indicators and beliefs, didn't load in the GRL mode. An engine whose models declare kinds of their own is now listed with its extension (`ENGINE_FILE_KINDS`), and its models are read with their block applied. The other engines still read iStar 2.0 only, so Edge still rejects a model with kinds of its own.
 - **lib's XML reader (#106).** It dropped a tag's namespace prefix, so every `.jucm` was malformed to it (`</urn:URNspec> closes <URNspec>`). It now reads a prefixed name as written; MutRoSe's world files read the same.
 - **Logged on #105, not built:**
   - *Element properties in a dialect without ids.* GRL's `quality` kind has no id prefix, so the dialect has none. defineDialect then allows no element property: there are no property lines, and an element line holds only annotations and declarations. So `importance`, `importanceQuantitative` and `decompositionType` are read from the model, but not declared, and the inspector can't edit them. The proposal: an inspector-only element property (`line: false`), allowed in such a dialect.

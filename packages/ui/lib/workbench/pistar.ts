@@ -316,6 +316,7 @@ const MODES: readonly ModelMode[] = [
   'sleec',
   'mutrose',
   'goda',
+  'grl',
   'pistarext',
   'pistar',
 ];
