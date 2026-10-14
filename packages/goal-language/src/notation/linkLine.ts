@@ -87,6 +87,24 @@ export const readLinkLine = (
   };
 };
 
+/**
+ * Whether a value can be written in a `{key = value}`: one with a brace
+ * can't be read back (PROPERTY stops at a brace), so it is not written; the
+ * link keeps it in the model, and the line shows the others.
+ */
+export const isWritableLinkValue = (value: string): boolean =>
+  !/[{}]/.test(value);
+
+/** The declared properties a link has that a line can carry, in the kind's order. */
+const writableProperties = (
+  definition: Pick<AnyDialect, 'links'>,
+  link: Pick<DocumentLink, 'kind' | 'properties'>,
+) =>
+  linkPropertiesOf(definition, link.kind).filter(({ key }) => {
+    const value = link.properties[key];
+    return value !== undefined && isWritableLinkValue(value);
+  });
+
 /** A link line, written: `link G1 {weight = 50}`, the kind's keys in its order. */
 export const linkLine = (
   definition: Pick<AnyDialect, 'links'>,
@@ -97,20 +115,17 @@ export const linkLine = (
     LINK_LINE_KEY,
     [
       target,
-      ...linkPropertiesOf(definition, link.kind)
-        .filter(({ key }) => link.properties[key] !== undefined)
-        .map(({ key }) => `{${key} = ${link.properties[key]}}`),
+      ...writableProperties(definition, link).map(
+        ({ key }) => `{${key} = ${link.properties[key]}}`,
+      ),
     ].join(' '),
   );
 
-/** Whether a link has a line: its kind has properties in the dialect, and some are set. */
+/** Whether a link has a line: its kind has properties in the dialect, and some writable ones are set. */
 export const hasLinkLine = (
   definition: Pick<AnyDialect, 'links'>,
   link: Pick<DocumentLink, 'kind' | 'properties'>,
-): boolean =>
-  linkPropertiesOf(definition, link.kind).some(
-    ({ key }) => link.properties[key] !== undefined,
-  );
+): boolean => writableProperties(definition, link).length > 0;
 
 /**
  * The link a line under `source` names by its `target`: among the links from

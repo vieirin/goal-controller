@@ -181,6 +181,9 @@ importers:
         specifier: ^4.1
         version: 4.6.7
     devDependencies:
+      '@istar-ts/core':
+        specifier: ^0.12.0
+        version: 0.12.0
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -1723,7 +1726,6 @@ packages:
 
   /@istar-ts/core@0.12.0:
     resolution: {integrity: sha512-BMmwRmEKz7XheiKP++fsw0nWP+CPGVWkYdRsATgs7wewLO2SbS5JodEg85NSStMKt0HEQaybbvLuxKYVmr/jpw==}
-    dev: false
 
   /@istar-ts/react@0.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-uchunEYDmUwS6e69M/0ReI7UvBU2xbaLQW0gIF2Duf88IzAZHInb1G46zsvtbaoMUiw9vIpIgonNupGBV1agPA==}

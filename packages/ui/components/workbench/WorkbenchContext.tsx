@@ -820,6 +820,8 @@ function WorkbenchState({
 
   // ---- generation state (declared early: openModel resets it) --------------
   const [runs, setRuns] = useState<Run[]>([]);
+  // the analysis run shown on the model (#107); null: none, or cleared
+  const [analysisRun, setAnalysisRun] = useState<AnalysisRun | null>(null);
 
   const modelRef = useRef(model);
   modelRef.current = model;
@@ -888,6 +890,7 @@ function WorkbenchState({
       undoStack.current = [];
       redoStack.current = [];
       setRuns([]);
+      setAnalysisRun(null);
       clearSelection();
       setConversion(null);
       forceHistory((n) => n + 1);
@@ -983,6 +986,7 @@ function WorkbenchState({
     undoStack.current = [];
     redoStack.current = [];
     setRuns([]);
+    setAnalysisRun(null);
     clearSelection();
     setConversion(null);
     setProject(null);
@@ -1571,7 +1575,7 @@ function WorkbenchState({
   // an analysis: run on a click, on the model as it is now and its input's
   // files as the tabs hold them; never written to the model
   const analyses = ENGINE_ANALYSES[engine] ?? null;
-  const [analysisRun, setAnalysisRun] = useState<AnalysisRun | null>(null);
+  // (declared with the runs above; cleared with them when a model is opened or closed)
   useEffect(() => setAnalysisRun(null), [engine]);
   const runAnalysisNow = useCallback(
     (id: string) => {
