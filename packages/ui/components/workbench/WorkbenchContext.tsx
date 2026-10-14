@@ -4,6 +4,7 @@ import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
 import {
   ENGINE_ANALYSES,
   ENGINE_LABEL,
+  generatesFiles,
   isDialectEngine,
 } from '@/lib/workbench/engineDialects';
 import type { Analysis, LoggerReport } from '@goal-controller/lib';
@@ -1467,6 +1468,8 @@ function WorkbenchState({
       runs: priorRuns,
     } = latest.current;
     if (!text.trim() || signature === null) return;
+    // an analysis engine generates nothing (its values are Analyse's)
+    if (!generatesFiles(runEngine)) return;
     if (!latest.current.variablesReady) {
       setPendingGenerate(true);
       return;

@@ -123,6 +123,8 @@ type EngineInfo = {
   help: string;
   /** whether it takes generation options (MutRoSe reads the model as written) */
   hasOptions: boolean;
+  /** false: it generates no file, its values are the Analyse control's (an analysis engine) */
+  generates?: false;
 };
 
 /** The engines a model can be for, in the order the UI offers them, with what each generates. */
@@ -183,6 +185,7 @@ export const ENGINES: readonly EngineInfo[] = [
     language: 'text',
     help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
     hasOptions: false,
+    generates: false,
   },
 ];
 
@@ -194,6 +197,9 @@ export const outputLabelOf = (engine: TransformEngine): string =>
 /** How an engine's output is highlighted. */
 export const outputLanguageOf = (engine: TransformEngine): OutputLanguage =>
   infoOf(engine).language;
+/** Whether an engine generates files (an analysis engine draws values instead). */
+export const generatesFiles = (engine: TransformEngine): boolean =>
+  infoOf(engine).generates !== false;
 /** Whether an engine takes generation options. */
 export const hasOptions = (engine: TransformEngine): boolean =>
   infoOf(engine).hasOptions;
