@@ -124,8 +124,35 @@ G1: Deliver
   same elements make the line ambiguous: it is reported, and changes nothing.
 - **Diagnostics:** the target isn't an element; no link from the element to
   it has properties; ambiguous; the link written twice; a key the link's
-  kind doesn't declare; a value its type rejects.
+  kind doesn't declare; a value its type rejects. A property with a named
+  `check` runs it with the link's piStar id as `self`, so its context's
+  `readLink` reads the link; its message comes first, as an element's.
+- **Whether they're written** is the dialect's `linkLines`: by default a
+  dialect with ids writes them, and one without doesn't. `false` turns them
+  off; then the view leaves the links' properties to the inspector.
 - In a dialect without `links`, `link` is an unknown property key, as any.
+
+**Without ids.** A dialect without ids that sets `linkLines: true` names
+the target by its element line's text, quoted (`\"` and `\\` escaped). When
+several elements have that text, `#n` names the n-th of them in the
+document's order:
+
+```
+Heat with the heat pump
+  link "Low running cost" {weight = 100}
+  link "Comfort"#2 {weight = 25}
+```
+
+- Such a document has no property lines, so a line starting `link "` is read
+  as a link line, and any other line as an element line. An element whose
+  text starts `link "` would be read as a link line.
+- A link line keeps its place in the document's order: lines are still their
+  elements' by position, and a link line's is its source's.
+- **Diagnostics** besides the ones above: a text no element has
+  (`No element "Nope"`); a text several have, without `#n`
+  (`2 elements are named "Heat": write "Heat"#1, "Heat"#2`); an `#n` past
+  them. While a target names no element, or several, its line changes
+  nothing.
 - Actors have no line in the Notation view; their properties are edited in
   the inspector, and get a written form when actors get a line (#105 D3).
 

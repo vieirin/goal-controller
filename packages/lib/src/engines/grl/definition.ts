@@ -89,6 +89,9 @@ export const grl = defineDialect({
   properties: { goal: [], task: [], resource: [], quality: [] },
   propertyLineOrder: [],
   indent: '  ',
+  // a contribution's type and weight are what the evaluations read: written
+  // as link lines under its source, the target named by its text
+  linkLines: true,
   links: {
     'istar.ContributionLink': [
       {
