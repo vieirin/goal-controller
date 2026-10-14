@@ -175,8 +175,8 @@ export const propagate = (
     }
     const evaluation = evaluations.get(element.id)!;
     evaluation.value = algorithm(element, evaluations);
-    const label = labelOf(evaluation.value, preferences.range);
-    if (label) evaluation.label = label;
+    // a value no label has sets none, which EMF's setter makes the default
+    evaluation.label = labelOf(evaluation.value, preferences.range) ?? 'None';
   }
   return evaluations;
 };

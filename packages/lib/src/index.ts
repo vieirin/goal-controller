@@ -171,6 +171,30 @@ export {
   type GodaTaskProps,
   type GodaVariant,
 } from './engines/goda';
+// GRL (goal-controller#106): its definition, kinds, checks, strategies and
+// analyses (jUCMNav's evaluations), and the .jucm importer
+export {
+  grl,
+  grlAnalyses,
+  grlCheckRegistry,
+  grlExtension,
+  grlMetamodelBlock,
+  grlProjectResourceParsers,
+  evaluateStrategy,
+  grlGraph,
+  readStrategies,
+  type GrlAlgorithm,
+  type GrlCheckName,
+  type GrlEvaluation,
+  type GrlPreferences,
+  type GrlStrategy,
+} from './engines/grl';
+export {
+  importJucm,
+  type DialectRecord,
+  type ImportDiagnostic,
+  type ImportResult,
+} from './importers/jucm';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
