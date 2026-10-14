@@ -210,6 +210,60 @@ describe('defineDialect', () => {
     );
   });
 
+  it('declares properties on links by link kind, iStar’s or an extension’s (#107)', () => {
+    const weight = {
+      key: 'weight',
+      value: { type: 'int' as const },
+      help: 'how much',
+    };
+    const withLinks = (links: AnyDialect['links']) =>
+      bad((d) => ({ ...d, links }) as AnyDialect);
+    expect(
+      withLinks({
+        'istar.ContributionLink': [weight],
+        'toy.Trace': [weight],
+      }),
+    ).not.to.throw();
+    expect(withLinks({ 'istar.Contribution': [weight] })).to.throw(
+      /links: unknown link kind istar.Contribution/,
+    );
+    expect(withLinks({ contribution: [weight] })).to.throw(
+      /links: unknown link kind contribution/,
+    );
+    expect(withLinks({ 'istar.ContributionLink': [weight, weight] })).to.throw(
+      /repeated istar.ContributionLink property key/,
+    );
+    expect(
+      withLinks({
+        'istar.ContributionLink': [
+          { ...weight, applies: { when: { key: 'kind', equals: 'x' } } },
+        ],
+      }),
+    ).to.throw(/istar.ContributionLink.weight depends on unknown kind/);
+  });
+
+  it('declares properties on actors, narrowed by actor kind (#107)', () => {
+    const importance = {
+      key: 'importance',
+      value: { type: 'int' as const },
+      help: 'how much it matters',
+    };
+    const withActors = (actors: AnyDialect['actors']) =>
+      bad((d) => ({ ...d, actors }) as AnyDialect);
+    expect(
+      withActors([
+        importance,
+        { ...importance, key: 'role', kinds: ['istar.Role', 'toy.Team'] },
+      ]),
+    ).not.to.throw();
+    expect(withActors([importance, importance])).to.throw(
+      /repeated actor property key/,
+    );
+    expect(withActors([{ ...importance, kinds: ['istar.Goal'] }])).to.throw(
+      /actor.importance: unknown actor kind istar.Goal/,
+    );
+  });
+
   it('has ids on every line or on none', () => {
     expect(hasIds(toy)).to.equal(true);
     expect(

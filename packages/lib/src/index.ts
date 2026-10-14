@@ -103,6 +103,8 @@ export {
   type EngineOutput,
   type EngineOutputFile,
 } from './engines/output';
+// Analysis engines (goal-controller#107): values on the model, not a file
+export * from './engines/analysis';
 
 // Validation
 export { validate };

@@ -268,7 +268,25 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * an unreadable line to give an id in place.
    */
   idlessElements?: 'unlisted';
+  /**
+   * Properties on links, by link kind: iStar's (`istar.ContributionLink`) or
+   * one a dialect extension adds (`<namespace>.<Kind>`). Stored in the link's
+   * `customProperties` in the piStar file, as an element's are; iStar's own
+   * contribution value (`make`, `help`, …) is the link's `label`, not one of
+   * these (goal-controller#107).
+   */
+  links?: Readonly<Record<string, readonly PropertyDefinition[]>>;
+  /**
+   * Properties on actors (iStar's actors, agents and roles, and an
+   * extension's actor kinds; `kinds` narrows one), stored in the actor's
+   * `customProperties` (goal-controller#107).
+   */
+  actors?: readonly ActorPropertyDefinition[];
 };
+
+/** A property on actors; `kinds`: only these actor kinds have it (default: every actor). */
+export type ActorPropertyDefinition<C extends string = string> =
+  PropertyDefinition<C> & { kinds?: readonly string[] };
 
 // ---------------------------------------------------------------------------
 // project resources: the files beside a model an engine reads (goal-controller#25)
@@ -415,10 +433,24 @@ export type PropertyKeyOf<
   K extends ElementKind,
 > = D['properties'][K][number]['key'];
 
-/** The check names a definition refers to. */
-export type CheckNameOf<D extends { properties: object }> = CheckOfList<
-  D['properties'][keyof D['properties']]
->;
+/** The property keys a definition has for a link kind (literal when declared const). */
+export type LinkPropertyKeyOf<
+  D extends { links?: Readonly<Record<string, readonly { key: string }[]>> },
+  L extends keyof NonNullable<D['links']>,
+> = NonNullable<D['links']>[L][number]['key'];
+
+/** The property keys a definition has for actors (literal when declared const). */
+export type ActorPropertyKeyOf<
+  D extends { actors?: readonly { key: string }[] },
+> = NonNullable<D['actors']>[number]['key'];
+
+/** The check names a definition refers to: its elements', links' and actors' properties'. */
+export type CheckNameOf<D extends { properties: object }> =
+  | CheckOfList<D['properties'][keyof D['properties']]>
+  | (D extends { links: infer L extends object }
+      ? CheckOfList<L[keyof L]>
+      : never)
+  | (D extends { actors: infer A } ? CheckOfList<A> : never);
 
 type CheckOfList<L> = L extends readonly (infer P)[]
   ? P extends { check: infer C extends string }
@@ -500,18 +532,43 @@ export const defineDialect = <const D extends AnyDialect>(
   const named = Object.values(elements).filter((e) => e?.prefix !== undefined);
   if (named.length && named.length !== Object.keys(elements).length)
     fail('either every element has an id prefix, or none has');
-  for (const [kind, list] of Object.entries(definition.properties)) {
+  const resources = definition.projectResources ?? {};
+  // a list of properties (an element kind's, a link kind's, the actors'): its
+  // keys once, its conditions on its own keys, its completions from known files
+  const checkList = (owner: string, list: readonly PropertyDefinition[]) => {
     const keys = list.map((p) => p.key);
     if (new Set(keys).size !== keys.length)
-      fail(`repeated ${kind} property key`);
+      fail(`repeated ${owner} property key`);
     for (const property of list) {
       const value = property.value;
       for (const key of [property.applies, property.required, value].map(
         conditionKey,
       ))
         if (key !== null && !keys.includes(key))
-          fail(`${kind}.${property.key} depends on unknown ${key}`);
+          fail(`${owner}.${property.key} depends on unknown ${key}`);
+      const values =
+        'when' in value ? [value.matching, value.otherwise] : [value];
+      for (const config of values)
+        if (config.type === 'ocl')
+          for (const candidates of [config.candidates, config.memberCandidates])
+            if (candidates && !(candidates.resource in resources))
+              fail(
+                `${owner}.${property.key} completes from unknown project resource ${candidates.resource}`,
+              );
     }
+  };
+  for (const [kind, list] of Object.entries(definition.properties))
+    checkList(kind, list);
+  for (const [kind, list] of Object.entries(definition.links ?? {})) {
+    if (!isLinkKind(kind)) fail(`links: unknown link kind ${kind}`);
+    checkList(kind, list);
+  }
+  if (definition.actors) {
+    checkList('actor', definition.actors);
+    for (const property of definition.actors)
+      for (const kind of property.kinds ?? [])
+        if (!isActorKind(kind))
+          fail(`actor.${property.key}: unknown actor kind ${kind}`);
   }
   const properties = definition.properties as AnyDialect['properties'];
   for (const [kind, element] of Object.entries(elements)) {
@@ -532,7 +589,6 @@ export const defineDialect = <const D extends AnyDialect>(
   // without ids, a line is its element's by position: there are no property lines
   if (!named.length && lineKeys.size)
     fail('lines without ids write every property on the element line');
-  const resources = definition.projectResources ?? {};
   for (const [kind, resource] of Object.entries(resources)) {
     if (!PROJECT_RESOURCE_FORMATS.includes(resource.format))
       fail(`project resource ${kind}: unknown format ${resource.format}`);
@@ -552,20 +608,6 @@ export const defineDialect = <const D extends AnyDialect>(
       if (!extension.startsWith('.'))
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
-  for (const [kind, list] of Object.entries(definition.properties))
-    for (const property of list) {
-      const values =
-        'when' in property.value
-          ? [property.value.matching, property.value.otherwise]
-          : [property.value];
-      for (const value of values)
-        if (value.type === 'ocl')
-          for (const candidates of [value.candidates, value.memberCandidates])
-            if (candidates && !(candidates.resource in resources))
-              fail(
-                `${kind}.${property.key} completes from unknown project resource ${candidates.resource}`,
-              );
-    }
   const order = new Set(definition.propertyLineOrder);
   if (
     order.size !== definition.propertyLineOrder.length ||
@@ -602,6 +644,24 @@ export const ISTAR_LINK_KINDS = [
   'istar.QualificationLink',
   'istar.ContributionLink',
 ] as const;
+
+/** A kind an extension adds: namespaced, not iStar's own (`<namespace>.<Kind>`). */
+const isExtensionKind = (kind: string): boolean =>
+  /^[A-Za-z][\w-]*\.[A-Za-z]\w*$/.test(kind) && !kind.startsWith('istar.');
+
+/**
+ * A link kind a dialect may give properties: iStar's, or an extension's (a
+ * dialect doesn't name its extension, so any namespaced kind; the extension
+ * checks its own, defineExtension).
+ */
+export const isLinkKind = (kind: string): boolean =>
+  (ISTAR_LINK_KINDS as readonly string[]).includes(kind) ||
+  isExtensionKind(kind);
+
+/** An actor kind: iStar's actor, agent or role, or an extension's. */
+export const isActorKind = (kind: string): boolean =>
+  (ISTAR_ACTOR_KINDS as readonly string[]).includes(kind) ||
+  isExtensionKind(kind);
 
 /** The iStar kind each element kind an engine reads is drawn as. */
 export const ISTAR_KIND_OF = {
