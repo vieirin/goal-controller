@@ -38,6 +38,15 @@ export const opfsStore = (
   );
 };
 
+/** Removes a project from the private file system, with its files (none: nothing to do). */
+export const removeOpfsProject = async (
+  name: string,
+  root?: DirectoryHandleLike,
+): Promise<void> => {
+  const dir = await projectsDir(root);
+  await dir.removeEntry?.(name, { recursive: true }).catch(() => {});
+};
+
 /** The projects kept in the private file system, by name. */
 export const opfsProjects = async (
   root?: DirectoryHandleLike,

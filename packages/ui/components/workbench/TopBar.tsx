@@ -7,6 +7,7 @@ import {
   Download,
   FileJson,
   FileOutput,
+  FolderArchive,
   FolderOpen,
   Loader2,
   PanelLeftClose,
@@ -26,6 +27,7 @@ import {
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { isArchiveName } from '@/lib/project';
 import {
   downloadOutput,
   outputDownloadExtension,
@@ -53,19 +55,27 @@ const readFile = (file: File): Promise<string> =>
     reader.readAsText(file);
   });
 
+/** A file opened or dropped: a project archive (.tar.gz, .zip, #99), else a model. */
+export const openUpload = async (
+  wb: Pick<ReturnType<typeof useWorkbench>, 'openFile' | 'openArchive'>,
+  file: File,
+): Promise<void> =>
+  isArchiveName(file.name)
+    ? wb.openArchive(file.name, new Uint8Array(await file.arrayBuffer()))
+    : wb.openFile(file.name, await readFile(file), { setup: true });
+
 export const useOpenFile = (): { open: () => void; input: ReactElement } => {
-  const { openFile } = useWorkbench();
+  const wb = useWorkbench();
   const ref = useRef<HTMLInputElement>(null);
   const input = (
     <input
       ref={ref}
       type='file'
-      accept='.txt,.json,application/json,text/plain'
+      accept='.txt,.json,.tar.gz,.tgz,.tar,.zip,application/json,text/plain,application/gzip,application/x-tar,application/zip'
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
-        if (file)
-          await openFile(file.name, await readFile(file), { setup: true });
+        if (file) await openUpload(wb, file);
         event.target.value = '';
       }}
     />
@@ -411,6 +421,15 @@ export default function TopBar() {
                   }}
                 >
                   Generated output (.{outputExtension})
+                </MenuItem>
+                <MenuItem
+                  icon={FolderArchive}
+                  onClick={() => {
+                    void wb.exportProject();
+                    close();
+                  }}
+                >
+                  Project (.tar.gz)
                 </MenuItem>
               </>
             )}

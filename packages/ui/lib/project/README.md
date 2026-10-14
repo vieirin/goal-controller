@@ -6,7 +6,7 @@ knowledge, HDDL domain and configuration; Edge's variables and property
 suites), and the **outputs** the engines produced from them, described by a
 **manifest** (issue #25).
 
-> These are called *project resources* everywhere (the manifest's and the
+> These are called _project resources_ everywhere (the manifest's and the
 > dialect's `projectResources`), never "resources", so they aren't confused
 > with iStar's Resource element.
 
@@ -33,16 +33,27 @@ in Problems.
 // project.json
 {
   "version": 1,
-  "dialect": "edgev2",                    // the project's default (none: plain piStar)
-  "options": { "discretisation": 10 },    // the project's default engine options
+  "dialect": "edgev2", // the project's default (none: plain piStar)
+  "options": { "discretisation": 10 }, // the project's default engine options
   "models": [
     { "path": "models/lab.txt" },
-    { "path": "models/lab-sleec.txt", "dialect": "sleec", "options": { "generateFluents": true } }
+    {
+      "path": "models/lab-sleec.txt",
+      "dialect": "sleec",
+      "options": { "generateFluents": true },
+    },
   ],
   "projectResources": { "properties": ["props/lab.pctl"] },
   "outputs": [
-    { "model": "models/lab.txt", "path": "out/lab.prism", "engine": "edgev2", "id": "model", "primary": true, "inputs": "1x9b2k7q" }
-  ]
+    {
+      "model": "models/lab.txt",
+      "path": "out/lab.prism",
+      "engine": "edgev2",
+      "id": "model",
+      "primary": true,
+      "inputs": "1x9b2k7q",
+    },
+  ],
 }
 ```
 
@@ -65,7 +76,7 @@ one never creates a second file:
   carried before projects, and piStar keeps custom properties, so the mode
   survives a round-trip through the piStar tool;
 - its **options** are a top-level `project` key, `{ "version": 1, "options":
-  { … } }`. It is written only when the model has options that differ from
+{ … } }`. It is written only when the model has options that differ from
   the defaults, so a bare model stays byte for byte as it was.
 
 `embedded.ts` is the one place that knows these two paths (`modeRecord`,
@@ -121,21 +132,21 @@ diff act on the shown file, and "Download all" gives every file in one zip
 
 ```ts
 interface ProjectStore {
-  source: ProjectSource;          // serialisable: Recent keeps it
+  source: ProjectSource; // serialisable: Recent keeps it
   readOnly: boolean;
-  form?: 'embedded' | 'file';     // known in advance (the examples index)
-  list(): Promise<string[]>;      // POSIX paths from the project root
+  form?: 'embedded' | 'file'; // known in advance (the examples index)
+  list(): Promise<string[]>; // POSIX paths from the project root
   read(path): Promise<string>;
   write(path, text): Promise<void>;
 }
 ```
 
-| Store | Where | Notes |
-|---|---|---|
-| `fileStore(name, text, { onWrite?, source? })` | one file in memory | the implicit one-model project (an upload, a new model, a Recent entry with the source it came from); writes go back to the caller (the workbench downloads them) |
-| `directoryStore(handle)` | a folder on disk (File System Access API, Chrome/Edge) | any handle with `DirectoryHandleLike`'s methods; tests use fakes |
-| `opfsStore(name)` | the browser's private file system (OPFS) | the fallback where folders can't be opened (Safari, Firefox) and for scratch projects; in and out as a zip (`importZip`, `exportZip`) |
-| `githubStore({ ref, path, files, form })` | a folder of the public repository, read-only | the examples. `files` and `form` come from the deploy-time index, so opening fetches only the files read, one request each |
+| Store                                          | Where                                                  | Notes                                                                                                                                                              |
+| ---------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `fileStore(name, text, { onWrite?, source? })` | one file in memory                                     | the implicit one-model project (an upload, a new model, a Recent entry with the source it came from); writes go back to the caller (the workbench downloads them)  |
+| `directoryStore(handle)`                       | a folder on disk (File System Access API, Chrome/Edge) | any handle with `DirectoryHandleLike`'s methods; tests use fakes                                                                                                   |
+| `opfsStore(name)`                              | the browser's private file system (OPFS)               | the fallback where folders can't be opened (Safari, Firefox), for scratch projects and for an imported archive (`importArchive`: `.tar.gz` or `.zip`; `exportZip`) |
+| `githubStore({ ref, path, files, form })`      | a folder of the public repository, read-only           | the examples. `files` and `form` come from the deploy-time index, so opening fetches only the files read, one request each                                         |
 
 `openProject(store)` returns one `Project` shape whatever the store:
 `{ name, source, store, form, manifest, models: [{ path, text, settings }],
@@ -145,6 +156,32 @@ model that isn't JSON still opens (`unreadable`, no settings): the module
 reads the manifest, not the model, and the workbench reports the JSON
 problem. Every model the workbench opens goes through `openProject`: an
 example, an upload, a new model and a Recent entry.
+
+### A project as one archive (goal-controller#99)
+
+Export → "Project (.tar.gz)" downloads the open project as a `.tar.gz` in the
+examples' layout. Its top folder is the project's name (`cleanName`:
+`lab.txt` → `lab/`), and it holds `project.json`, the models, the project
+resources at their manifest paths, and the project's other files.
+`exportArchive(project, changes)` packs what `projectFiles` gives: the
+store's files, with the models as they are now and the changes over them.
+The workbench passes the resource tabs' unsaved texts and the latest
+output, through `withOutputs` as "Save the output in the project" keeps it,
+so `out/` and the manifest's `outputs` come with it. A one-model project is
+promoted, so its manifest is a `project.json` in the archive. The model
+stays as it is, except that options leave its `project` key.
+
+The tar is written in `archive.ts` (POSIX ustar, regular files only) and
+compressed with fflate's gzip: no new dependency. Writing is
+deterministic, so the same project gives the same bytes: paths in order,
+mode 0644, no owners and no times in the tar or gzip headers.
+
+Opening or dropping a `.tar.gz`, `.tgz`, `.tar` or `.zip` imports it.
+`readArchive` tells the format by its first bytes and reads pax and GNU
+long names. It drops a single top folder and what macOS adds (`__MACOSX/`,
+`._` files). `importArchive` copies the files into a new browser project
+(`opfsStore`, named after the archive, `freeName` when the name is taken),
+which the workbench opens. Export → import → export gives the same bytes.
 
 ### The examples index
 
