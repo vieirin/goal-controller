@@ -284,6 +284,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
   actors?: readonly ActorPropertyDefinition[];
 };
 
+/**
+ * The property-line key a link's properties are written with in the goal
+ * language, under the link's source: `link G1 {weight = 50}` (goal-controller#107).
+ * Reserved in a dialect that declares `links`.
+ */
+export const LINK_LINE_KEY = 'link';
+
 /** A property on actors; `kinds`: only these actor kinds have it (default: every actor). */
 export type ActorPropertyDefinition<C extends string = string> =
   PropertyDefinition<C> & { kinds?: readonly string[] };
@@ -400,6 +407,36 @@ export type DefinitionContext = {
   named?: Readonly<Record<string, string>>;
   /** the project's resources, parsed, by kind (none: the model alone) */
   projectResources?: Readonly<Record<string, ProjectResourceContext>>;
+  /** the model's links, by piStar id, as checks read them (`readLink`, goal-controller#107) */
+  links?: Readonly<Record<string, DefinitionContextLink>>;
+  /** the model's actors, by piStar id, as checks read them (`readActor`, goal-controller#107) */
+  actors?: Readonly<Record<string, DefinitionContextActor>>;
+};
+
+/** A link as a check reads it: its kind, its ends' keys (null: not an element the view lists) and properties. */
+export type DefinitionContextLink = {
+  kind: string;
+  source: string | null;
+  target: string | null;
+  label?: string;
+  properties: Readonly<Record<string, string>>;
+  /** its ends as the model has them: piStar id and kind, any kind (an extension's too) */
+  ends?: LinkEnds;
+};
+
+/** A link's ends in the model: each its piStar id and kind (null: the model lacks it). */
+export type LinkEnds = {
+  source: { iStarId: string; kind: string | null };
+  target: { iStarId: string; kind: string | null };
+};
+
+/** An actor as a check reads it. */
+export type DefinitionContextActor = {
+  kind: string;
+  name: string;
+  properties: Readonly<Record<string, string>>;
+  /** its elements' keys */
+  elements: readonly string[];
 };
 
 /** What the document reads of a view node (goal-tree's `GoalViewNode` is one). */
@@ -421,6 +458,36 @@ export type DocumentNode = {
 export type DocumentTree = {
   nodes: ReadonlyMap<string, DocumentNode>;
   roots: readonly string[];
+  /**
+   * the model's links (goal-controller#107): a link of a kind the dialect
+   * gives properties is written as a `link` line under its source (goal-tree's
+   * `GoalView` has them)
+   */
+  links?: readonly DocumentLink[];
+  /** the model's actors (goal-controller#107; goal-tree's `GoalView` has them) */
+  actors?: readonly DocumentActor[];
+};
+
+/** What the document reads of an actor: its kind, name, properties and its elements' keys. */
+export type DocumentActor = {
+  iStarId: string;
+  kind: string;
+  name: string;
+  properties: Readonly<Record<string, string>>;
+  elements: readonly string[];
+};
+
+/** What the document reads of a link: its ends' keys in `nodes` (null: not listed), its properties. */
+export type DocumentLink = {
+  iStarId: string;
+  kind: string;
+  source: string | null;
+  target: string | null;
+  /** iStar's contribution value (`make`, `help`, …), when it has one */
+  label?: string;
+  properties: Readonly<Record<string, string>>;
+  /** its ends as the model has them (goal-tree's view has them) */
+  ends?: LinkEnds;
 };
 
 // ---------------------------------------------------------------------------
@@ -559,6 +626,12 @@ export const defineDialect = <const D extends AnyDialect>(
   };
   for (const [kind, list] of Object.entries(definition.properties))
     checkList(kind, list);
+  if (definition.links)
+    for (const [kind, list] of Object.entries(definition.properties))
+      if (list.some((p) => p.key === LINK_LINE_KEY))
+        fail(
+          `${kind}.${LINK_LINE_KEY}: the key a link's properties are written with (it declares links)`,
+        );
   for (const [kind, list] of Object.entries(definition.links ?? {})) {
     if (!isLinkKind(kind)) fail(`links: unknown link kind ${kind}`);
     checkList(kind, list);

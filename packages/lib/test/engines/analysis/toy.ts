@@ -1,13 +1,8 @@
-/**
- * A toy dialect for goal-controller#107: one property on contribution links,
- * one on actors, and one analysis summing the links' property over each
- * actor, with no engine and no core change.
- */
-import { defineDialect } from '@goal-controller/dialect';
+/** #107's toy: a link property, an actor property, an analysis summing one over the other. */
+import { defineDialect, type ProblemKind } from '@goal-controller/dialect';
 import { defineAnalyses, type AnalysisModel } from '../../../src';
 
 const problem = { severity: 'warning' as const, message: 'mismatch' };
-
 export const toyGraph = defineDialect({
   id: 'toygraph',
   name: 'Toy graph',
@@ -19,12 +14,14 @@ export const toyGraph = defineDialect({
   properties: { goal: [], task: [] },
   propertyLineOrder: [],
   indent: '  ',
-  problems: {
-    notAChild: problem,
-    missingFromNotation: problem,
-    relationMismatch: problem,
-    notInDiagram: problem,
-  },
+  problems: Object.fromEntries(
+    [
+      'notAChild',
+      'missingFromNotation',
+      'relationMismatch',
+      'notInDiagram',
+    ].map((kind) => [kind, problem]),
+  ) as Record<ProblemKind, typeof problem>,
   links: {
     'istar.ContributionLink': [
       { key: 'weight', value: { type: 'int' }, help: 'how much it adds' },
@@ -57,7 +54,6 @@ const sumWeights = (model: AnalysisModel) => ({
     },
   ],
 });
-
 export const toyAnalyses = defineAnalyses(toyGraph, {
   weights: { label: 'Contribution weight', run: sumWeights },
 });

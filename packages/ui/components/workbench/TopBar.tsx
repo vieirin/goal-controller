@@ -8,6 +8,7 @@ import {
   FileJson,
   FileOutput,
   FolderOpen,
+  Gauge,
   Loader2,
   PanelLeftClose,
   PanelLeftOpen,
@@ -17,6 +18,7 @@ import {
   Shapes,
   SlidersHorizontal,
   Undo2,
+  X,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
@@ -31,6 +33,7 @@ import {
   outputDownloadExtension,
 } from '@/lib/workbench/outputs';
 import type { GenerationOptions } from '@/lib/workbench/types';
+import { shownCase } from '@/lib/workbench/analysis';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
@@ -340,6 +343,7 @@ export default function TopBar() {
               description='Regenerate automatically after each change'
             />
           )}
+          {!shell.pistarMode && <AnalyseControl />}
           {!shell.pistarMode && (
             <Button
               variant='primary'
@@ -418,6 +422,94 @@ export default function TopBar() {
         </div>
       )}
     </header>
+  );
+}
+
+/**
+ * An analysis engine's control (goal-controller#107): its analyses, run on a
+ * click, and the case (a strategy) whose values the canvas draws. None for
+ * an engine without analyses.
+ */
+export function AnalyseControl() {
+  const wb = useWorkbench();
+  const { analyses, analysisRun: run } = wb;
+  if (!analyses || Object.keys(analyses).length === 0) return null;
+  const cases = run && 'result' in run ? run.result.cases : [];
+  const shown = shownCase(run);
+  return (
+    <>
+      <Menu
+        label='Analyse'
+        trigger={({ toggle, open }) => (
+          <Button
+            onClick={toggle}
+            aria-expanded={open}
+            disabled={!wb.hasModel || !!wb.jsonError}
+            title='Run an analysis: its values are drawn on the model, not saved in it'
+          >
+            <Gauge className='h-4 w-4' aria-hidden /> Analyse
+            <ChevronDown className='h-3 w-3' aria-hidden />
+          </Button>
+        )}
+      >
+        {(close) => (
+          <>
+            {Object.entries(analyses).map(([id, analysis]) => (
+              <MenuItem
+                key={id}
+                icon={Gauge}
+                onClick={() => {
+                  wb.runAnalysis(id);
+                  close();
+                }}
+              >
+                {analysis.label}
+              </MenuItem>
+            ))}
+            {run && (
+              <MenuItem
+                icon={X}
+                onClick={() => {
+                  wb.clearAnalysis();
+                  close();
+                }}
+              >
+                Clear the values
+              </MenuItem>
+            )}
+          </>
+        )}
+      </Menu>
+      {cases.length > 1 && (
+        <select
+          aria-label='Case'
+          className='h-8 rounded-md border border-line bg-white px-2 text-xs text-ink'
+          value={shown?.id}
+          onChange={(event) => wb.setAnalysisCase(event.target.value)}
+        >
+          {cases.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      )}
+      {run && 'error' in run && (
+        <span className='text-xs text-danger' title={run.error} role='status'>
+          {run.label} failed
+        </span>
+      )}
+      {wb.analysisStale && (
+        <span
+          className='text-xs text-ink-muted'
+          title='The model changed since the analysis ran: run it again'
+          role='status'
+        >
+          values out of date
+        </span>
+      )}
+      <span className='h-5 w-px bg-line' aria-hidden />
+    </>
   );
 }
 

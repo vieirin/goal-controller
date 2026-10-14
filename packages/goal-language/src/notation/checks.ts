@@ -30,6 +30,18 @@ export type CheckContext = {
    * what they would tell.
    */
   projectResources?: DefinitionContext['projectResources'];
+  /**
+   * A link by its piStar id (goal-controller#107): its kind, ends, label and
+   * properties, in a dialect that gives links properties; a link property's
+   * check gets the link's id as `self`.
+   */
+  readLink?: (
+    linkId: string,
+  ) => NonNullable<DefinitionContext['links']>[string] | undefined;
+  /** An actor by its piStar id (goal-controller#107), in a dialect that gives actors properties. */
+  readActor?: (
+    actorId: string,
+  ) => NonNullable<DefinitionContext['actors']>[string] | undefined;
 };
 
 /** An engine's named check: what is wrong with the element's value, or null. */
@@ -52,4 +64,6 @@ export const checkContextOf = (
   },
   elements: model.elements,
   ...(model.projectResources && { projectResources: model.projectResources }),
+  ...(model.links && { readLink: (id: string) => model.links?.[id] }),
+  ...(model.actors && { readActor: (id: string) => model.actors?.[id] }),
 });

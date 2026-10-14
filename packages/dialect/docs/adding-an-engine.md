@@ -39,6 +39,7 @@ Three things you write, one you get. **You do not write a parser:** goal texts (
 | Properties on goals/tasks, output is text                                                     | **properties-only engine** | SLEEC                                                                      | none                         | none                                    |
 | Properties **and** ordering/choice semantics among children (sequence, alternative, retries…) | **notation engine**        | edgeV2                                                                     | `[G1;G2]` in the goal's name | none: enable operators from the catalog |
 | New element kinds / symbols / stereotypes (an iStar dialect, no engine)                       | **dialect**                | piStar-ext (`packages/lib/src/dialects/pistarExt/istar4RationalAgents.ts`) | none                         | none                                    |
+| A value per element and actor, drawn on the model, not a file (an evaluation, a strategy)     | **analysis engine**        | lib's toy (`packages/lib/test/engines/analysis/toy.ts`)                     | optional                     | none                                    |
 
 If your engine reads something the goal language can't write (an id prefix, a construct, a value syntax), the language grows for every dialect: see `packages/goal-language/docs/extending-the-grammar.md`. Most new engines are the first row. If you are "reimplementing SLEEC", that's exactly it. Reimplementing EDGE is the second row. This guide does the first row fully and marks the extra steps for the second.
 
@@ -156,6 +157,50 @@ Three more options, for what a lab dialect's text may be like (GODA's, [goda.md]
 - `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (`mapTaskProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
 - `notation.whitespace: 'ignore'`: the spaces in a bracket aren't read (`[D M(T1.1 2)]` is `[DM(T1.12)]`). The editors read the line without them and point at what they report where it is written. Read a text in the dialect with `parseElementLineIn(definition, text)`.
 - `idScope: 'ancestorGoal'` (on the definition, not its notation): a task's id is unique under its goal only, so two goals may each have a `T1.1`.
+
+### 2.4 Properties on links
+
+A link kind's properties are declared like an element kind's, keyed by the
+link kind: iStar's (`istar.ContributionLink`, `istar.AndRefinementLink`, …) or
+one your extension adds (`<namespace>.<Kind>`):
+
+```ts
+links: {
+  'istar.ContributionLink': [
+    { key: 'weight', value: { type: 'int', min: -100, max: 100 }, help: '…', check: 'mission.weight' },
+  ],
+},
+```
+
+- **Storage:** the link's `customProperties` in the piStar file, as an
+  element's. iStar's own contribution value (`make`, `help`, `hurt`,
+  `break`) is the link's `label`, not a property; don't declare it again.
+- **Validated** by `defineDialect` as an element kind's list: an unknown link
+  kind, a repeated key, a condition on an unknown key. A dialect with `links`
+  may not key an element property `link` (the key their line is written with).
+- **The inspector** shows a link's rows when the diagram selects it, from
+  `linkSpecsFromDefinition`.
+- **The Notation view** writes a link with properties as a `link` line under
+  its source: `link G1 {weight = 50}` (the goal language's
+  [link lines](../../goal-language/docs/goal-language.md#link-lines-properties-on-links)).
+- **Checks:** a link property's check gets the link's piStar id as
+  `context.self`, and `context.readLink(id)`: its kind, its ends' keys,
+  its `ends` as the model has them (piStar id and kind, an extension's kinds
+  too), its label and properties.
+
+### 2.5 Properties on actors
+
+One list for every actor kind; `kinds` narrows a property to some
+(`['istar.Agent', 'istar.Role']`, or an extension's actor kind):
+
+```ts
+actors: [{ key: 'importance', value: { type: 'int', min: 0, max: 100 }, help: '…' }],
+```
+
+Stored in the actor's `customProperties`, edited in the inspector when the
+diagram selects the actor (`actorSpecsFromDefinition`), read by checks with
+`context.readActor(id)`. Actors have no line in the Notation view, so their
+properties have no written form yet (#105 D3).
 
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
@@ -311,6 +356,49 @@ projectResources: {
 - An `ocl` value completes from a resource's symbols when the definition
   says where: `candidates: { resource: 'world', category: 'classes' }` (types),
   `memberCandidates` (after `name.`).
+
+### 3.7 An analysis engine: values on the model, not a file
+
+An analysis computes a value per element and actor (a satisfaction level
+under a strategy, a cost, a risk) and the workbench draws it on the
+diagram. It writes no file and changes nothing in the model.
+
+```ts
+// packages/lib/src/engines/mission/analyses.ts
+import { defineAnalyses, type AnalysisModel } from '../analysis';
+
+export const missionAnalyses = defineAnalyses(mission, {
+  load: {
+    label: 'Robot load',
+    input: 'plans', // optional: one of the definition's projectResources
+    run: (model: AnalysisModel, resource) => ({
+      cases: [{ id: 'all', label: 'All plans', values: { [actorId]: { value: 3, label: '3 tasks' } } }],
+    }),
+  },
+});
+```
+
+- **Input:** `AnalysisModel` (`analysisModel(istarModel)`): every actor (kind,
+  name, properties, its elements), element (kind, name, properties, its
+  actor) and link (kind, ends, label, properties), as the piStar file has
+  them. `resource` is the `input` kind's files, path → text, as the tabs hold
+  them (a `many` kind: all its files).
+- **Output:** `AnalysisResult = { cases: { id, label, values }[] }`, where
+  `values` maps an element's or actor's piStar id to `{ value: number | string;
+  label?; severity?: 'info' | 'warning' }`. A case is one evaluation (a
+  strategy); a single-case analysis has one.
+- `defineAnalyses` checks that each analysis has a label and reads only a
+  project resource the definition declares. `runAnalysis` gives `{ result }`
+  or `{ error }` (what the analysis threw).
+- **The workbench:** register `ENGINE_ANALYSES.mission = missionAnalyses`
+  (`lib/workbench/engineDialects.ts`). An "Analyse" menu appears beside
+  Generate, with the engine's analyses; a click runs one on the model as it
+  is. With several cases, a picker chooses the one drawn. The values go to
+  the canvas as istar-ts host diagnostics, keyed by piStar id: `info`, or
+  the value's own severity, with `<case>: <label or value>` as the message.
+  istar-ts 0.12 badges elements, actors and links with them. Once the model
+  changes the values are "out of date" and aren't drawn until the next run.
+  Nothing runs without a click, and nothing is saved in the model file.
 
 ## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 

@@ -15,6 +15,7 @@ import {
   type DefinitionContext,
   type DocumentNode,
   type DocumentTree,
+  linkPropertiesOf,
 } from '@goal-controller/dialect';
 import {
   elementLine,
@@ -24,12 +25,20 @@ import {
 } from '../print.js';
 import { parseValue } from '../parse.js';
 import { annotatedProperties, readLine } from './lines.js';
+import {
+  LINK_LINE_KEY,
+  hasLinkLine,
+  linkLine,
+  linkOfLine,
+  readLinkLine,
+  type LinkLineReading,
+} from './linkLine.js';
 
 type Document = Pick<
   AnyDialect,
   'elements' | 'notation' | 'propertyLineOrder' | 'indent'
 > &
-  Partial<Pick<AnyDialect, 'idScope'>>;
+  Partial<Pick<AnyDialect, 'idScope' | 'links' | 'actors'>>;
 
 /**
  * Whether a node has lines of its own, with property lines and its children
@@ -104,6 +113,15 @@ export const notationDocument = (
         ids.push(id);
       }
     }
+    // its links with properties (goal-controller#107), each a `link` line
+    for (const link of tree.links ?? [])
+      if (link.source === id && link.target && hasLinkLine(definition, link)) {
+        lines.push(
+          definition.indent.repeat(depth + 1) +
+            linkLine(definition, link, link.target),
+        );
+        ids.push(id);
+      }
     for (const child of node.children) visit(child, depth + 1);
   };
   for (const root of tree.roots) visit(root, 0);
@@ -114,7 +132,9 @@ export const notationDocument = (
 
 export type NotationEdit =
   | { iStarId: string; text: string }
-  | { iStarId: string; key: string; value: string | null };
+  | { iStarId: string; key: string; value: string | null }
+  /** a link's property (goal-controller#107), by the link's piStar id */
+  | { link: string; key: string; value: string | null };
 
 /**
  * What a notation document changes in the model: element texts that differ,
@@ -142,9 +162,13 @@ export const notationEdits = (
     }
   };
   type Block = {
+    key: string;
     node: DocumentNode;
     properties: Map<string, string>;
     unreadable: boolean;
+    /** its `link` lines, read; `linksUnreadable`: one isn't (being typed) */
+    links: LinkLineReading[];
+    linksUnreadable: boolean;
   };
   const blocks: Block[] = [];
   let current: Block | null = null;
@@ -201,11 +225,29 @@ export const notationEdits = (
       if (read.text !== nodeLine(definition, node)) {
         edits.push({ iStarId: node.iStarId, text: read.text });
       }
-      current = { node, properties: new Map(), unreadable: false };
+      current = {
+        key: id,
+        node,
+        properties: new Map(),
+        unreadable: false,
+        links: [],
+        linksUnreadable: false,
+      };
       blocks.push(current);
       continue;
     }
     if (!current || !written.trim()) continue;
+    if (
+      definition.links &&
+      read.kind === 'property' &&
+      !read.errors.length &&
+      read.key === LINK_LINE_KEY
+    ) {
+      const link = readLinkLine(read.value);
+      if ('value' in link) current.links.push(link.value);
+      else current.linksUnreadable = true;
+      continue;
+    }
     if (
       read.kind === 'property' &&
       !read.errors.length &&
@@ -214,6 +256,9 @@ export const notationEdits = (
       current.properties.set(read.key, read.value);
     else current.unreadable = true;
   }
+  if (definition.links)
+    for (const block of blocks)
+      edits.push(...linkEdits(definition, tree, block));
   for (const { node, properties, unreadable } of blocks) {
     for (const key of definition.propertyLineOrder) {
       const value = properties.get(key);
@@ -223,6 +268,40 @@ export const notationEdits = (
       } else if (value === undefined && stored !== undefined && !unreadable) {
         edits.push({ iStarId: node.iStarId, key, value: null });
       }
+    }
+  }
+  return edits;
+};
+
+/**
+ * What a block's `link` lines change in its element's links: each link
+ * from it whose kind has properties takes the properties its line writes
+ * (none written: removed). A target two such links share (ambiguous), or two
+ * lines name, changes nothing; while a line can't be read, a link without
+ * one keeps its properties.
+ */
+const linkEdits = (
+  definition: Pick<AnyDialect, 'links'>,
+  tree: DocumentTree,
+  block: { key: string; links: LinkLineReading[]; linksUnreadable: boolean },
+): NotationEdit[] => {
+  const edits: NotationEdit[] = [];
+  const links = tree.links ?? [];
+  for (const link of links) {
+    if (link.source !== block.key || !link.target) continue;
+    const declared = linkPropertiesOf(definition, link.kind);
+    if (!declared.length) continue;
+    if (linkOfLine(definition, links, block.key, link.target).length > 1)
+      continue;
+    const lines = block.links.filter((line) => line.target === link.target);
+    if (lines.length > 1 || (!lines.length && block.linksUnreadable)) continue;
+    const written = new Map(
+      (lines[0]?.properties ?? []).map(({ key, value }) => [key, value]),
+    );
+    for (const { key } of declared) {
+      const value = written.get(key) ?? null;
+      if (value !== (link.properties[key] ?? null))
+        edits.push({ link: link.iStarId, key, value });
     }
   }
   return edits;
@@ -277,6 +356,36 @@ export const contextFromView = (
       ]),
   ),
   variables: [...variables],
+  // a dialect with properties on links or actors (goal-controller#107): what
+  // its checks read with readLink and readActor
+  ...(definition.links && {
+    links: Object.fromEntries(
+      (tree.links ?? []).map((link) => [
+        link.iStarId,
+        {
+          kind: link.kind,
+          source: link.source,
+          target: link.target,
+          ...(link.label !== undefined && { label: link.label }),
+          properties: { ...link.properties },
+          ...(link.ends && { ends: link.ends }),
+        },
+      ]),
+    ),
+  }),
+  ...(definition.actors && {
+    actors: Object.fromEntries(
+      (tree.actors ?? []).map((actor) => [
+        actor.iStarId,
+        {
+          kind: actor.kind,
+          name: actor.name,
+          properties: { ...actor.properties },
+          elements: [...actor.elements],
+        },
+      ]),
+    ),
+  }),
   ...(hasIds(definition)
     ? {}
     : {

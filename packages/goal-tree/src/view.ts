@@ -64,6 +64,35 @@ export type GoalViewNode = {
   color: string | null;
 };
 
+/** A link, with its ends as the view knows them (goal-controller#107). */
+export type ViewLink = {
+  /** piStar link id */
+  iStarId: string;
+  kind: string;
+  /** its ends' keys; null: an end the view doesn't list (an actor, a dependum, an extension's kind) */
+  source: string | null;
+  target: string | null;
+  /** its ends as the model has them: piStar id and kind, whatever the kind (an extension's too) */
+  ends: { source: LinkEnd; target: LinkEnd };
+  /** iStar's contribution value (`make`, `help`, …), when it has one */
+  label?: string;
+  properties: Record<string, string>;
+};
+
+/** A link's end: its piStar id, and its kind (null: the model lacks it). */
+export type LinkEnd = { iStarId: string; kind: string | null };
+
+/** An actor (or agent, role, an extension's actor kind), with its properties (goal-controller#107). */
+export type ViewActor = {
+  /** piStar id */
+  iStarId: string;
+  kind: string;
+  name: string;
+  properties: Record<string, string>;
+  /** its elements' keys */
+  elements: string[];
+};
+
 export type GoalView = {
   /** by key (its RT id, unless scoped); the first element wins when keys repeat */
   nodes: Map<string, GoalViewNode>;
@@ -71,6 +100,10 @@ export type GoalView = {
   byIStarId: Map<string, GoalViewNode>;
   /** each actor's root candidates, then anything not reachable from them */
   roots: string[];
+  /** every link, in the model's order */
+  links: ViewLink[];
+  /** every actor, in the model's order */
+  actors: ViewActor[];
 };
 
 /** `ID: name [notation]` as written (the fallback when the grammar cannot read it); `TX` is an id too. */
@@ -244,5 +277,48 @@ export function goalView(
     }
   }
 
-  return { nodes: byId, byIStarId, roots: [...new Set(roots)] };
+  const strings = (properties: Readonly<Record<string, unknown>> | undefined) =>
+    Object.fromEntries(
+      Object.entries(properties ?? {}).filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      ),
+    );
+  const links = [...model.links.values()].map((link): ViewLink => ({
+    iStarId: link.id,
+    kind: link.kind,
+    source: keyOf(link.source) ?? null,
+    target: keyOf(link.target) ?? null,
+    ends: {
+      source: {
+        iStarId: link.source,
+        kind: model.elements.get(link.source)?.kind ?? null,
+      },
+      target: {
+        iStarId: link.target,
+        kind: model.elements.get(link.target)?.kind ?? null,
+      },
+    },
+    ...(link.label !== undefined && { label: link.label }),
+    properties: strings(link.customProperties),
+  }));
+  const actors = [...model.elements.values()]
+    .filter(isActorIn(metamodelOf(model)))
+    .map((actor): ViewActor => ({
+      iStarId: actor.id,
+      kind: actor.kind,
+      name: actor.name,
+      properties: strings(actor.customProperties),
+      elements: [...model.elements.values()]
+        .filter((inner) => inner.parent === actor.id)
+        .map((inner) => keyOf(inner.id))
+        .filter((key): key is string => !!key),
+    }));
+
+  return {
+    nodes: byId,
+    byIStarId,
+    roots: [...new Set(roots)],
+    links,
+    actors,
+  };
 }

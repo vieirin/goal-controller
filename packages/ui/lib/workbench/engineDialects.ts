@@ -20,10 +20,11 @@ import {
   mutrosePool,
   type PoolRegistration,
   sleecEngineMapper,
+  type Analyses,
   type Check,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
-import type { CheckNameOf } from '@goal-controller/dialect';
+import type { AnyDialect, CheckNameOf } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_DIALECTS = {
@@ -185,3 +186,15 @@ export const isDialectEngine = (
  */
 export const notationDefinitionOf = (engine: TransformEngine) =>
   ENGINE_DIALECTS[isDialectEngine(engine) ? engine : 'edge'];
+
+/** An engine's own dialect, when it has one (none: SLEEC). */
+export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
+  isDialectEngine(engine) ? ENGINE_DIALECTS[engine] : null;
+
+/**
+ * An engine's analyses (goal-controller#107): its values drawn on the model,
+ * not a file, by id. An engine without any has no Analyse control.
+ */
+export const ENGINE_ANALYSES: Readonly<
+  Partial<Record<TransformEngine, Analyses>>
+> = {};

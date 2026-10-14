@@ -240,6 +240,23 @@ describe('defineDialect', () => {
         ],
       }),
     ).to.throw(/istar.ContributionLink.weight depends on unknown kind/);
+    // `link` is the key a link's properties are written with, in a dialect with links
+    const linkKey = (links: AnyDialect['links']) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            links,
+            properties: {
+              ...d.properties,
+              quality: [{ key: 'link', value: { type: 'text' }, help: '' }],
+            },
+          }) as AnyDialect,
+      );
+    expect(linkKey(undefined)).not.to.throw();
+    expect(linkKey({ 'istar.ContributionLink': [weight] })).to.throw(
+      /quality.link: the key a link's properties are written with/,
+    );
   });
 
   it('declares properties on actors, narrowed by actor kind (#107)', () => {

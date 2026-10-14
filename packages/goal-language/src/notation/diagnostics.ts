@@ -24,6 +24,12 @@ import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { lineScope, scopedKey } from './scope.js';
 import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
+import {
+  LINK_LINE_KEY,
+  linkOfLine,
+  linkPropertyProblems,
+  readLinkLine,
+} from './linkLine.js';
 
 /**
  * Where an element line cannot be read, in its parts: an annotation (before
@@ -163,7 +169,8 @@ type Definition = Pick<
   | 'propertyLineOrder'
   | 'problems'
   | 'idScope'
->;
+> &
+  Partial<Pick<AnyDialect, 'links'>>;
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -320,6 +327,8 @@ export const documentDiagnostics = (
     element: DefinitionContextElement;
     lines: Map<string, { from: number; to: number }>;
     values: Map<string, string>;
+    /** the targets its `link` lines name, and how many times */
+    linkTargets: Map<string, number>;
   };
   let block: Block | null = null;
   // the indentation of the open block's element line
@@ -486,7 +495,13 @@ export const documentDiagnostics = (
         continue;
       }
       if (!owned) continue;
-      block = { id, element, lines: new Map(), values: new Map() };
+      block = {
+        id,
+        element,
+        lines: new Map(),
+        values: new Map(),
+        linkTargets: new Map(),
+      };
       blockIndent = indent;
       if (savedError) {
         push({
@@ -580,6 +595,71 @@ export const documentDiagnostics = (
       continue;
     }
     const keySpan = at(read.keySpan);
+    // a link's properties, under its source (goal-controller#107)
+    if (definition.links && read.key === LINK_LINE_KEY) {
+      const valueAt = (span: { from: number; to: number }) =>
+        at({
+          from: read.valueSpan.from + span.from,
+          to: read.valueSpan.from + span.to,
+        });
+      const link = readLinkLine(read.value);
+      if ('error' in link) {
+        push({
+          ...valueAt(link.error),
+          severity: 'error',
+          message: link.error.message,
+        });
+        continue;
+      }
+      const { target, targetSpan, properties } = link.value;
+      const links = Object.entries(context.links ?? {}).map(([iStarId, l]) => ({
+        ...l,
+        iStarId,
+      }));
+      const found = linkOfLine(definition, links, block.id, target);
+      const linesTo = block.linkTargets.get(target) ?? 0;
+      block.linkTargets.set(target, linesTo + 1);
+      if (!(target in context.elements))
+        push({
+          ...valueAt(targetSpan),
+          severity: 'error',
+          message: `No element ${target}`,
+        });
+      else if (found.length === 0)
+        push({
+          ...valueAt(targetSpan),
+          severity: 'error',
+          message: `No link from ${idOf(block.id)} to ${target} has properties in ${definition.name}`,
+        });
+      else if (found.length > 1)
+        push({
+          ...valueAt(targetSpan),
+          severity: 'error',
+          message: `Links of ${found.length} kinds join ${idOf(block.id)} to ${target}: which one this line is can't be told`,
+        });
+      else if (linesTo > 0)
+        push({
+          ...valueAt(targetSpan),
+          severity: 'error',
+          message: `The link to ${target} is written twice`,
+        });
+      else
+        for (const problem of linkPropertyProblems(
+          definition,
+          found[0]!.kind,
+          link.value,
+        )) {
+          const written = properties[problem.index]!;
+          push({
+            ...valueAt(
+              problem.on === 'key' ? written.keySpan : written.valueSpan,
+            ),
+            severity: 'error',
+            message: problem.message,
+          });
+        }
+      continue;
+    }
     if (!propertyOf(definition, block.element.kind, read.key)) {
       push({
         ...keySpan,
