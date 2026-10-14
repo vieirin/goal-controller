@@ -1572,9 +1572,12 @@ function WorkbenchState({
     const { project: next, changes } = outputs
       ? withOutputs(open, outputs)
       : { project: open, changes: {} };
-    // the project resources and files open in tabs, with their unsaved edits
+    // the project resources and files open in tabs, with their unsaved edits;
+    // the open model is as it is now (currentProject), never a tab's older text
+    const { [open.models[0]?.path ?? '']: _model, ...tabs } =
+      resourceTextsRef.current;
     const { fileName, bytes } = await exportArchive(next, {
-      ...resourceTextsRef.current,
+      ...tabs,
       ...changes,
     });
     downloadBytes(fileName, bytes, 'application/gzip');

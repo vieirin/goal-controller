@@ -10,7 +10,7 @@ import { gunzipSync, gzipSync, strFromU8, strToU8, unzipSync } from 'fflate';
 import { promote, type Project } from './open';
 import { cleanName } from './resources';
 import { normalizePath, type ProjectStore } from './store';
-import { opfsStore } from './stores/opfs';
+import { opfsStore, removeOpfsProject } from './stores/opfs';
 import type { DirectoryHandleLike } from './stores/directory';
 
 // ---------------------------------------------------------------------------
@@ -107,6 +107,9 @@ export const untar = (bytes: Uint8Array): Map<string, Uint8Array> => {
     );
     if (stored !== sum) throw new Error('not a tar archive (bad checksum)');
     const size = Number.parseInt(field(block, 124, 12).trim() || '0', 8);
+    // a corrupt size: fail, rather than read the rest as truncated files
+    if (!Number.isFinite(size) || size < 0 || at + BLOCK + size > bytes.length)
+      throw new Error('not a tar archive (bad entry size)');
     const type = String.fromCharCode(block[156]!);
     const data = bytes.subarray(at + BLOCK, at + BLOCK + size);
     at += BLOCK + Math.ceil(size / BLOCK) * BLOCK;
@@ -190,7 +193,13 @@ export const importArchive = async (
   const files = readArchive(bytes);
   if (files.size === 0) throw new Error('the archive has no files');
   const store = opfsStore(name, root);
-  for (const [path, text] of files) await store.write(path, text);
+  try {
+    for (const [path, text] of files) await store.write(path, text);
+  } catch (error) {
+    // no half-imported project left behind, holding the name
+    await removeOpfsProject(name, root);
+    throw error;
+  }
   return store;
 };
 

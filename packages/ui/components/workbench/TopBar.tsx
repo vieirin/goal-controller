@@ -71,7 +71,7 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
     <input
       ref={ref}
       type='file'
-      accept='.txt,.json,.tar.gz,.tgz,.zip,application/json,text/plain,application/gzip,application/zip'
+      accept='.txt,.json,.tar.gz,.tgz,.tar,.zip,application/json,text/plain,application/gzip,application/x-tar,application/zip'
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];

@@ -165,6 +165,20 @@ describe('project archive: tar', () => {
     expect(() => untar(bad)).to.throw(/bad checksum/);
   });
 
+  it('refuses an entry whose size is corrupt or runs past the archive, rather than truncating it', () => {
+    const withSize = (size: string) => {
+      const archive = tar(bytesOf({ a: 'a' }));
+      archive.set(strToU8(size.padEnd(12, '\0')), 124);
+      archive.fill(32, 148, 156);
+      const sum = archive.subarray(0, 512).reduce((t, b) => t + b, 0);
+      archive.set(strToU8(`${sum.toString(8).padStart(6, '0')}\0 `), 148);
+      return archive;
+    };
+    expect(() => untar(withSize('zz'))).to.throw(/bad entry size/);
+    // 4096 bytes in an archive of 2048
+    expect(() => untar(withSize('00000010000'))).to.throw(/bad entry size/);
+  });
+
   const hasTar = spawnSync('tar', ['--version']).status === 0;
   (hasTar ? it : it.skip)(
     "is read by the system's tar (when on PATH)",
@@ -349,6 +363,20 @@ describe('project archive: export and import (#99)', () => {
     expect((await exportArchive(imported)).bytes).to.deep.equal(
       (await exportArchive(await medicine())).bytes,
     );
+  });
+
+  it('leaves no half-imported project behind when a write fails', async () => {
+    const browser: Tree = {};
+    // `a` is a file, so `a/b` can't be written: the import fails after `a`
+    const bytes = gzipSync(tar(bytesOf({ 'p/a': 'a', 'p/a/b': 'b' })));
+    let error: unknown;
+    try {
+      await importArchive(bytes, 'lab', fakeDirectory('opfs', browser));
+    } catch (caught) {
+      error = caught;
+    }
+    expect(String(error)).to.match(/NotFoundError: a/);
+    expect(browser).to.deep.equal({ projects: {} });
   });
 
   it('refuses an archive with no files', async () => {
