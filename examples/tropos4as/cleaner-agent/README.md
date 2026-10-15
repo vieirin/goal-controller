@@ -16,7 +16,7 @@ scaled from it (0.6 piStar units per pixel of the figure at 400 dpi).
 | actor Cleaner Agent (orange) | actor `CleanerAgent` | its dashed ellipse is istar-ts's boundary rectangle, fitted to its elements |
 | dependum RoomClean (hard goal) | goal `RoomCleanDependum` | Stakehoder → RoomClean → Cleaner Agent |
 | dependum efficiency (softgoal) | quality `efficiencyDependum` | Stakehoder → efficiency → Cleaner Agent |
-| (A) RoomClean | goal `RC`, achieve | §5: achievement condition `room.clean`, written `roomClean` until member references land (goal-controller#137); no failure condition (f = false) |
+| (A) RoomClean | goal `RC`, achieve | §5's belief predicate is `room.clean`, but Fig. 1 draws no artifact, so the condition stays the variable `roomClean` (#134: a member needs an element the figure doesn't have); no failure condition (f = false) |
 | (P) WetCleaning, (P) DryCleaning | goals `WC`, `DC`, `type: perform` | OR decomposition of RoomClean, WC's link first (drawn left to right) |
 | (M) MaintainBattLoaded | goal `MBL`, `type: maintain` | its maintain condition `batteryLoaded` is ours: the paper gives none |
 | plans mop, sweep, load battery | tasks `mop`, `sweep`, `loadBattery` | means-end to WC, DC, MBL: iStar 2.0 has no means-end link, so a plan's means-end is written as an OR-refinement of its goal |
