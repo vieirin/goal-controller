@@ -736,7 +736,7 @@ export const documentDiagnostics = (
         });
         continue;
       }
-      const { target, targetSpan, properties } = link.value;
+      const { target, targetSpan } = link.value;
       const links = Object.entries(context.links ?? {}).map(([iStarId, l]) => ({
         ...l,
         iStarId,
