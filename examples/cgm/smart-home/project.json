@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "cgm",
+  "models": [
+    {
+      "path": "smart-home.txt"
+    }
+  ],
+  "projectResources": {
+    "situations": ["situations/anxious-at-night.json"],
+    "relations": ["relations/ist-2013.json"]
+  },
+  "outputs": []
+}

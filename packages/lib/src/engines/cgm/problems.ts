@@ -1,0 +1,142 @@
+/**
+ * What is wrong with a contextual goal model as a whole, for its analyses
+ * (goal-controller#153): the named checks' rules (./checks), said of every
+ * element and link, and what they can't say alone: a formula the goal
+ * language can't read, or one naming what the model doesn't have.
+ */
+import type { CheckContext } from '../checks';
+import type { AnalysisModel } from '../analysis';
+import { cgmCheckRegistry } from './checks';
+import { cgm as cgmDialect } from './definition';
+import { formulaOf, namesOf } from './formulas';
+import { readCgmModel } from './model';
+import { CGM_KEYS, CGM_KINDS } from './vocabulary';
+
+export type CgmProblem = {
+  severity: 'error' | 'warning';
+  message: string;
+  /** the element's or link's piStar id */
+  at?: string;
+};
+
+/** The keys holding formulas, and the kinds their names must be. */
+const FORMULAS: Readonly<Record<string, readonly string[]>> = {
+  [CGM_KEYS.activation]: [CGM_KINDS.context],
+  [CGM_KEYS.context]: [CGM_KINDS.context],
+  [CGM_KEYS.opposite]: [CGM_KINDS.context],
+  [CGM_KEYS.formula]: [CGM_KINDS.statement, CGM_KINDS.fact],
+  [CGM_KEYS.supportedBy]: [CGM_KINDS.statement, CGM_KINDS.fact],
+};
+
+/** The properties a link kind declares. */
+const propertyKeysOfLink = (kind: string): string[] =>
+  (
+    (cgmDialect.links as Readonly<Record<string, readonly { key: string }[]>>)[
+      kind
+    ] ?? []
+  ).map((property) => property.key);
+
+export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
+  const cgm = readCgmModel(model);
+  const problems: CgmProblem[] = [];
+  const children = new Map<string, string[]>();
+  for (const element of model.elements)
+    children.set(
+      cgm.idOf(element.id),
+      cgm.refinementsOf(element.id).map((r) => cgm.idOf(r.child)),
+    );
+  const context = (self: string): CheckContext => ({
+    self,
+    kindOf: () => undefined,
+    elements: Object.fromEntries(
+      model.elements.map((element) => [
+        cgm.idOf(element.id),
+        {
+          kind: element.kind,
+          children: children.get(cgm.idOf(element.id)) ?? [],
+          properties: element.properties,
+        },
+      ]),
+    ),
+  });
+  const formulas = (
+    at: string,
+    name: string,
+    properties: Readonly<Record<string, string>>,
+  ) => {
+    for (const [key, kinds] of Object.entries(FORMULAS)) {
+      const text = properties[key];
+      if (!text?.trim()) continue;
+      const tree = formulaOf(text);
+      if (!tree) {
+        problems.push({
+          severity: 'error',
+          at,
+          message: `${name}'s ${key} is not a formula: ${text}`,
+        });
+        continue;
+      }
+      for (const named of namesOf(tree)) {
+        const element = cgm.byId(named);
+        if (!element || !kinds.includes(element.kind))
+          problems.push({
+            severity: 'error',
+            at,
+            message: `${name}'s ${key} names ${named}, which is no ${kinds.map((k) => k.split('.')[1]!.toLowerCase()).join(' or ')}`,
+          });
+      }
+    }
+  };
+  for (const element of model.elements) {
+    const id = cgm.idOf(element.id);
+    formulas(element.id, id, element.properties);
+    for (const [key, check] of [
+      [CGM_KEYS.activation, 'cgm.goal.activation'],
+      [CGM_KEYS.formula, 'cgm.context.monitorable'],
+      [CGM_KEYS.supportedBy, 'cgm.statement.supported'],
+    ] as const) {
+      if (!(key in element.properties)) continue;
+      const message = cgmCheckRegistry[check](element.properties, context(id));
+      if (message)
+        problems.push({
+          severity: 'error',
+          at: element.id,
+          message: `${id}: ${message}`,
+        });
+    }
+    if (
+      element.kind === CGM_KINDS.statement &&
+      !element.properties[CGM_KEYS.supportedBy]?.trim()
+    )
+      problems.push({
+        severity: 'error',
+        at: element.id,
+        message: `${id}: a statement is supported by a formula (REJ 2010 Def. 6)`,
+      });
+  }
+  for (const link of model.links) {
+    const name = `${cgm.idOf(link.source)} → ${cgm.idOf(link.target)}`;
+    formulas(link.id, name, link.properties);
+    for (const key of [CGM_KEYS.context, CGM_KEYS.opposite])
+      if (
+        link.properties[key]?.trim() &&
+        !propertyKeysOfLink(link.kind).includes(key)
+      )
+        problems.push({
+          severity: 'error',
+          at: link.id,
+          message: `${name}: a ${link.kind.split('.')[1]} has no ${key} (REJ 2010 Table 1: contexts sit on AND and OR refinements, means-end, dependencies and contributions)`,
+        });
+    const message = cgmCheckRegistry['cgm.contribution.opposite'](
+      link.properties,
+      context(link.id),
+    );
+    if (message)
+      problems.push({
+        severity: 'error',
+        at: link.id,
+        message: `${name}: ${message}`,
+      });
+  }
+  return problems;
+};

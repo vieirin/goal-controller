@@ -319,6 +319,7 @@ const MODES: readonly ModelMode[] = [
   'grl',
   'istardt',
   'tropos4as',
+  'cgm',
   'pistarext',
   'pistar',
 ];

@@ -29,6 +29,7 @@
     "stress:grl": "pnpm run build:lib && node scripts/grl-stress/run.cjs",
     "stress:istardt": "pnpm run build:lib && node scripts/istardt-stress/run.cjs",
     "stress:tropos4as": "pnpm run build:lib && node scripts/tropos4as-stress/run.cjs",
+    "stress:cgm": "pnpm run build:lib && node scripts/cgm-stress/run.cjs",
     "build:lib": "pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:goal-tree && pnpm --filter @goal-controller/lib run build",
     "build:ui": "pnpm --filter @goal-controller/ui run build",
     "test": "pnpm run build:lib && pnpm --filter @goal-controller/dialect run test && pnpm --filter @goal-controller/goal-language run test && pnpm --filter @goal-controller/goal-tree run test && pnpm --filter @goal-controller/lib run test && pnpm --filter @goal-controller/ui run test",

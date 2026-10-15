@@ -1,0 +1,70 @@
+% RE-Context (REJ 2010 Code 2): the goal model and its contexts
+ach(g12).
+c0 :- ach(g12).
+ach(g13) :- ach(g12).
+ach(g1) | drop(g1) :- ach(g12).
+c1 :- ach(g1).
+not_c1 :- drop(g1).
+ach(g14) | drop(g14) :- ach(g13).
+c2 :- ach(g14).
+not_c2 :- drop(g14).
+ach(g15) | drop(g15) :- ach(g13).
+c3 :- ach(g15).
+not_c3 :- drop(g15).
+todo(t13) :- ach(g14).
+todo(t14) | drop(t14) :- todo(t13).
+c7 :- todo(t14).
+not_c7 :- drop(t14).
+todo(t15) | drop(t15) :- todo(t13).
+c8 :- todo(t15).
+not_c8 :- drop(t15).
+ach(g16) | ach(g2) | ach(g3) :- ach(g1).
+c4 :- ach(g16).
+c5 :- ach(g2).
+c6 :- ach(g3).
+ach(g17) :- ach(g16).
+ach(g18) :- ach(g16).
+ach(g19) :- ach(g16).
+todo(t16) | todo(t17) :- ach(g17).
+c9 :- todo(t16).
+not_c9 :- todo(t17).
+todo(t18) :- ach(g18).
+todo(t19) :- ach(g19).
+ach(g4) :- ach(g2).
+ach(g5) :- ach(g2).
+todo(t1) | todo(t2) :- ach(g4).
+todo(t3) | todo(t4) :- ach(g5).
+ach(g3_1) :- ach(g3).
+c10 :- ach(g3_1).
+ach(g3_2) :- ach(g3_1).
+ach(g6) :- ach(g3_2).
+ach(g7) :- ach(g3_2).
+ach(g8) | ach(g9) :- ach(g6).
+c11 :- ach(g9).
+todo(t5) | todo(t6) :- ach(g8).
+c12 :- todo(t5).
+c13 :- todo(t6).
+todo(t7) :- ach(g9).
+ach(g10) | ach(g11) :- ach(g7).
+c15 :- ach(g11).
+todo(t12) :- ach(g10).
+todo(t8) :- todo(t12).
+todo(t9) :- todo(t12).
+todo(t10) | todo(t11) :- ach(g11).
+% Code 3: REJ 2010 Example 1 (Fig. 7): C14 false, staff is more comfortable 4, visitor well informed 3
+phi(c0).
+phi(c1).
+phi(c6).
+phi(c10).
+phi(c13).
+phi(c15).
+softgoal(sg1,3).
+softgoal(sg2,4).
+contrib(g10,sg1,pos).
+contrib(g10,sg2,pos) :- phi(c14).
+contrib(g10,sg2,neg) :- not phi(c14).
+contrib(g11,sg1,neg).
+contrib(g11,sg2,pos).
+contrib(t5,sg3,neg).
+contrib(t6,sg3,pos).
+contrib(t7,sg3,neg).

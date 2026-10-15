@@ -1,0 +1,14 @@
+{
+  "label": "REJ 2010 Code 3: C14 holds, SG1 priority 3, SG2 priority 1 (Code 3 covers only G10 and G11; C6, C10, C12, C15 make that fragment applicable)",
+  "contexts": {
+    "C6": true,
+    "C10": true,
+    "C12": true,
+    "C14": true,
+    "C15": true
+  },
+  "priorities": {
+    "SG1": 3,
+    "SG2": 1
+  }
+}

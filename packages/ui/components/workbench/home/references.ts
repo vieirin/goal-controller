@@ -117,6 +117,18 @@ export const SECTION_REFERENCES: Readonly<
       examples: ['tropos4as/patient-monitoring'],
     },
   ],
+  cgm: [
+    {
+      text: 'R. Ali, F. Dalpiaz, P. Giorgini. A goal-based framework for contextual requirements modeling and analysis. Requirements Engineering 15 (2010): Fig. 2, the museum guide, Fig. 4, the context analysis of C1, and Fig. 13, its minimum-cost fragment.',
+      url: 'https://doi.org/10.1007/s00766-010-0110-z',
+      examples: ['cgm/museum-guide', 'cgm/museum-guide-costs'],
+    },
+    {
+      text: 'R. Ali, F. Dalpiaz, P. Giorgini. Reasoning with contextual requirements: detecting inconsistency and conflicts. Information and Software Technology 55 (2013): Fig. 1, the smart home, its contexts and the analysis of ϕ1.',
+      url: 'https://doi.org/10.1016/j.infsof.2012.06.013',
+      examples: ['cgm/smart-home'],
+    },
+  ],
   'pistar-ext': [
     {
       text: 'J. Pimentel, J. Castro. piStar Tool: A Pluggable Online Tool for Goal Modeling. RE 2018.',

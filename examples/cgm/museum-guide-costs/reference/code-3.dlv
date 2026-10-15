@@ -1,0 +1,78 @@
+% RE-Context (REJ 2010 Code 2): the goal model and its contexts
+ach(g1).
+ach(g2) | ach(g3) :- ach(g1).
+c5 :- ach(g2).
+c6 :- ach(g3).
+ach(g4) :- ach(g2).
+ach(g5) :- ach(g2).
+todo(t1) | todo(t2) :- ach(g4).
+todo(t3) | todo(t4) :- ach(g5).
+ach(g3_1) :- ach(g3).
+c10 :- ach(g3_1).
+ach(g3_2) :- ach(g3_1).
+ach(g6) :- ach(g3_2).
+ach(g7) :- ach(g3_2).
+ach(g8) | ach(g9) :- ach(g6).
+c11 :- ach(g9).
+todo(t5) | todo(t6) :- ach(g8).
+c12 :- todo(t5).
+c13 :- todo(t6).
+todo(t7) :- ach(g9).
+ach(g10) | ach(g11) :- ach(g7).
+c15 :- ach(g11).
+todo(t12) :- ach(g10).
+todo(t8) :- todo(t12).
+todo(t9) :- todo(t12).
+todo(t10) | todo(t11) :- ach(g11).
+% Code 3: REJ 2010 Code 3: C14 holds, SG1 priority 3, SG2 priority 1 (Code 3 covers only G10 and G11; C6, C10, C12, C15 make that fragment applicable)
+phi(c6).
+phi(c10).
+phi(c12).
+phi(c14).
+phi(c15).
+softgoal(sg1,3).
+softgoal(sg2,1).
+contrib(g10,sg1,pos).
+contrib(g10,sg2,pos) :- phi(c14).
+contrib(g10,sg2,neg) :- not phi(c14).
+contrib(g11,sg1,neg).
+contrib(g11,sg2,pos).
+% Code 4: development costs
+cost(r_t1,0) :- needed(r_t1).
+needed(r_t1) :- todo(t1).
+cost(r_t2,10) :- needed(r_t2).
+needed(r_t2) :- todo(t2).
+cost(r_t3,0) :- needed(r_t3).
+needed(r_t3) :- todo(t3).
+cost(r_t4,-10) :- needed(r_t4).
+needed(r_t4) :- todo(t4).
+cost(r_t5,-15) :- needed(r_t5).
+needed(r_t5) :- todo(t5).
+cost(r_t6,35) :- needed(r_t6).
+needed(r_t6) :- todo(t6).
+cost(r_t7,50) :- needed(r_t7).
+needed(r_t7) :- todo(t7).
+cost(r_t8,30) :- needed(r_t8).
+needed(r_t8) :- todo(t8).
+cost(r_t9,20) :- needed(r_t9).
+needed(r_t9) :- todo(t9).
+cost(r_t10,50) :- needed(r_t10).
+needed(r_t10) :- todo(t10).
+cost(r_t11,30) :- needed(r_t11).
+needed(r_t11) :- todo(t11).
+cost(r_t2_t1,30) :- needed(r_t2_t1).
+needed(r_t2_t1) :- todo(t2).
+needed(r_t2_t1) :- todo(t1).
+cost(r_t3_t4,40) :- needed(r_t3_t4).
+needed(r_t3_t4) :- todo(t3).
+needed(r_t3_t4) :- todo(t4).
+cost(r_t3_t5,20) :- needed(r_t3_t5).
+needed(r_t3_t5) :- todo(t3).
+needed(r_t3_t5) :- todo(t5).
+cost(r_t4_t5,20) :- needed(r_t4_t5).
+needed(r_t4_t5) :- todo(t4).
+needed(r_t4_t5) :- todo(t5).
+cost(r_t4_t9,30) :- needed(r_t4_t9).
+needed(r_t4_t9) :- todo(t4).
+needed(r_t4_t9) :- todo(t9).
+total(S) :- #sum{K,R : cost(R,K)} = S.

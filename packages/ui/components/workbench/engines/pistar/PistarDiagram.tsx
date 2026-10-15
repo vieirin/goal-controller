@@ -12,6 +12,7 @@ import { ISTARDT_PALETTE } from '../istardt/IstardtDiagram';
 import { MUTROSE_PALETTE } from '../mutrose/MutroseDiagram';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 import { TROPOS4AS_PALETTE } from '../tropos4as/Tropos4asDiagram';
+import { CGM_PALETTE } from '../cgm/CgmDiagram';
 
 const NO_EXTENSIONS: readonly IstarExtension[] = [];
 
@@ -39,6 +40,8 @@ export const pistarPaletteFor = (
       return ISTARDT_PALETTE;
     case 'tropos4as':
       return TROPOS4AS_PALETTE;
+    case 'cgm':
+      return CGM_PALETTE;
   }
 };
 

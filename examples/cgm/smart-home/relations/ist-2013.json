@@ -1,0 +1,4 @@
+{
+  "label": "IST 2013 §4.1: ϕ1 against ϕ7 (Example 1, Fig. 6), ϕ7 against ϕ10",
+  "absolute": ["!F1 | !F7.1", "!F7.2 | !F10.1"]
+}
