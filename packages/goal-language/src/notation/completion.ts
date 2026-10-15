@@ -27,6 +27,7 @@ import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
 import {
   argumentsText,
+  fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
@@ -247,8 +248,6 @@ const ownLineCompletions = (
   const opened = value.lastIndexOf('{');
   const inBraces = opened >= 0 && value.lastIndexOf('}') < opened;
   if (inBraces) {
-    // a key being typed: not after its `=`
-    if (value.slice(opened).includes('=')) return null;
     const typed = /[A-Za-z0-9_]*$/.exec(value)?.[0] ?? '';
     const whole = text.slice(valueFrom);
     let declared: readonly PropertyDefinition[] = [];
@@ -282,6 +281,37 @@ const ownLineCompletions = (
       if (found.length === 1)
         declared = linkPropertiesOf(definition, found[0]!.kind);
     }
+    // after a key's `=`: its value, as its type completes it (goal-controller#152)
+    const assigned = /^\{\s*([A-Za-z0-9_]+)\s*=\s*/.exec(value.slice(opened));
+    if (assigned) {
+      const property = declared.find(({ key }) => key === assigned[1]);
+      if (!property || property.servedBy === 'engine') return null;
+      const valueStart = valueFrom + opened + assigned[0].length;
+      const closing = text.indexOf('}', valueStart);
+      const reading = readLinkLine(whole);
+      const written = Object.fromEntries(
+        'value' in reading
+          ? reading.value.properties.map((p) => [p.key, p.value])
+          : [],
+      );
+      const completed = fieldCompletionsAt(
+        definition,
+        valueOf(property, written),
+        text.slice(valueStart, closing < 0 ? undefined : closing),
+        before.length - valueStart,
+        context,
+      );
+      return (
+        completed && {
+          ...completed,
+          from: start + valueStart + completed.from,
+          ...(completed.to !== undefined && {
+            to: start + valueStart + completed.to,
+          }),
+        }
+      );
+    }
+    if (value.slice(opened).includes('=')) return null;
     return {
       from: start + before.length - typed.length,
       options: keyOptions(declared, value),
@@ -719,16 +749,15 @@ export const fieldCompletions = (
   text: string,
   pos: number,
 ): CompletionResult | null => {
-  const element = context.elements[elementId];
-  const property = element && propertyOf(definition, element.kind, key);
-  if (!property || property.servedBy === 'engine') return null;
+  const field = fieldPropertyOf(definition, context, elementId, key);
+  if (!field || field.property.servedBy === 'engine') return null;
   return fieldCompletionsAt(
     definition,
-    valueOf(property, element.properties),
+    field.value,
     text,
     pos,
     context,
-    elementId,
+    field.on === 'element' ? elementId : undefined,
   );
 };
 

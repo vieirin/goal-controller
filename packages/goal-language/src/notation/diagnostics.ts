@@ -22,13 +22,19 @@ import {
   type Severity,
   type WithNotation,
   type PropertyDefinition,
+  type ValueConfig,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { lineScope, scopedKey } from './scope.js';
-import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
+import {
+  fieldPropertyOf,
+  unknownNameMessage,
+  unknownNames,
+  valueProblem,
+} from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
@@ -274,16 +280,33 @@ const propertyDiagnostics = (
     }
     const message = valueProblem(value, properties[key]!, context, definition);
     if (message) diagnostics.push({ ...where, severity: 'error', message });
-    else if (context && value.type === 'assertion')
-      for (const name of unknownNames(value, properties[key]!, context))
-        diagnostics.push({
-          ...where,
-          severity: 'info',
-          message: unknownNameMessage(value, name),
-        });
+    else if (context)
+      for (const unknown of unknownNameProblems(
+        value,
+        properties[key]!,
+        context,
+      ))
+        diagnostics.push({ ...where, ...unknown });
   }
   return diagnostics;
 };
+
+/**
+ * The names a condition compares that the model doesn't know: `info` where
+ * it resolves variables (one the model doesn't use yet), else an `error`,
+ * as no name but an element's can be right (goal-controller#152).
+ */
+const unknownNameProblems = (
+  value: ValueConfig,
+  text: string,
+  context: DefinitionContext,
+): { severity: 'info' | 'error'; message: string }[] =>
+  value.type === 'assertion'
+    ? unknownNames(value, text, context).map((name) => ({
+        severity: value.resolves.includes('variable') ? 'info' : 'error',
+        message: unknownNameMessage(value, name),
+      }))
+    : [];
 
 /** An element's properties with what its line declares (an undefined value unsets). */
 const withDeclared = (
@@ -328,9 +351,17 @@ const writtenPropertyDiagnostics = (
   self: string,
   runCheck: RunCheck | undefined,
   at: (span: { from: number; to: number }) => { from: number; to: number },
+  context: DefinitionContext,
+  definition: Pick<AnyDialect, 'properties'>,
 ): Diagnostic[] => {
   const found: Diagnostic[] = [];
-  const problems = writtenPropertyProblems(declared, kind, read);
+  const problems = writtenPropertyProblems(
+    declared,
+    kind,
+    read,
+    context,
+    definition,
+  );
   const written = Object.fromEntries(
     read.properties.map(({ key, value }) => [key, value]),
   );
@@ -356,6 +387,14 @@ const writtenPropertyDiagnostics = (
         severity: 'error',
         message: problem.message,
       });
+    const config = declared.find(({ key }) => key === property.key);
+    if (!own.length && config && config.servedBy !== 'engine')
+      for (const unknown of unknownNameProblems(
+        valueOf(config, written),
+        property.value,
+        context,
+      ))
+        found.push({ ...at(property.valueSpan), ...unknown });
   }
   return found;
 };
@@ -685,6 +724,8 @@ export const documentDiagnostics = (
             named.key,
             runCheck,
             valueAt,
+            context,
+            definition,
           ),
         );
       }
@@ -785,6 +826,8 @@ export const documentDiagnostics = (
             iStarId,
             runCheck,
             valueAt,
+            context,
+            definition,
           ),
         );
       }
@@ -815,7 +858,26 @@ export const fieldDiagnostics = (
   runCheck: RunCheck | undefined,
 ): Diagnostic[] => {
   const element = context.elements[self];
-  if (!element) return [];
+  if (!element) {
+    // a link's or an actor's field (goal-controller#152): as its line reads it
+    const field = fieldPropertyOf(definition, context, self, key);
+    if (!field) return [];
+    const span = { from: 0, to: value.length };
+    return writtenPropertyDiagnostics(
+      [field.property],
+      field.kind,
+      {
+        target: '',
+        targetSpan: { from: 0, to: 0 },
+        properties: [{ key, value, keySpan: span, valueSpan: span }],
+      },
+      self,
+      runCheck,
+      (at) => at,
+      context,
+      definition,
+    );
+  }
   return propertyDiagnostics(
     definition,
     element.kind,

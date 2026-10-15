@@ -50,8 +50,6 @@ import {
 import type { TextDocument } from 'langium';
 import {
   hasIds,
-  propertyOf,
-  valueOf,
   type AnyDialect,
   type DefinitionContext,
 } from '@goal-controller/dialect';
@@ -76,6 +74,7 @@ import {
   type RunCheck,
 } from '../notation/diagnostics.js';
 import { definitionAt, fieldHover, hoverAt } from '../notation/navigation.js';
+import { fieldPropertyOf } from '../notation/values.js';
 import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
@@ -114,10 +113,10 @@ const startOf = (
   const field = readFieldUri(uri.toString());
   if (!field)
     return !params || hasIds(params.dialect) ? 'document' : 'plainDocument';
-  const element = params?.context.elements[field.id];
-  const property =
-    params && element && propertyOf(params.dialect, element.kind, field.key);
-  return property ? valueOf(property, element.properties).type : 'text';
+  const found =
+    params &&
+    fieldPropertyOf(params.dialect, params.context, field.id, field.key);
+  return found ? found.value.type : 'text';
 };
 
 const SEVERITY = {

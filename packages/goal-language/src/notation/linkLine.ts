@@ -30,6 +30,7 @@ import {
   linkPropertiesOf,
   valueOf,
   type AnyDialect,
+  type DefinitionContext,
   type DocumentLink,
   type PropertyDefinition,
 } from '@goal-controller/dialect';
@@ -280,11 +281,19 @@ export const linkOfLine = <
 
 /** What is wrong with a link line's properties, for a link of this kind: the written property (its index), and where. */
 export const linkPropertyProblems = (
-  definition: Pick<AnyDialect, 'links'>,
+  definition: Pick<AnyDialect, 'links'> &
+    Partial<Pick<AnyDialect, 'properties'>>,
   kind: string,
   read: LinkLineReading,
+  context?: DefinitionContext,
 ): { index: number; on: 'key' | 'value'; message: string }[] =>
-  writtenPropertyProblems(linkPropertiesOf(definition, kind), kind, read);
+  writtenPropertyProblems(
+    linkPropertiesOf(definition, kind),
+    kind,
+    read,
+    context,
+    definition.properties && { properties: definition.properties },
+  );
 
 /**
  * What is wrong with a line's `{key = value}` properties (a link's, an
@@ -295,6 +304,9 @@ export const writtenPropertyProblems = (
   declared: readonly PropertyDefinition[],
   kind: string,
   read: Pick<LinkLineReading, 'properties'>,
+  /** the model, which a reference in a value names (goal-controller#152) */
+  context?: DefinitionContext,
+  definition?: Pick<AnyDialect, 'properties'>,
 ): { index: number; on: 'key' | 'value'; message: string }[] => {
   const properties = Object.fromEntries(
     read.properties.map(({ key, value }) => [key, value]),
@@ -317,7 +329,12 @@ export const writtenPropertyProblems = (
       });
       continue;
     }
-    const problem = valueProblem(valueOf(property, properties), value);
+    const problem = valueProblem(
+      valueOf(property, properties),
+      value,
+      context,
+      definition,
+    );
     if (problem) problems.push({ index, on: 'value', message: problem });
   }
   return problems;

@@ -3,13 +3,18 @@
  * type (read with the type's rule), within its options or bounds, naming
  * elements of the model of the kind it refers to.
  */
-import type {
-  AnyDialect,
-  DefinitionContext,
-  DialectKind,
-  FunctionDefinition,
-  MemberSource,
-  ValueConfig,
+import {
+  actorPropertiesOf,
+  linkPropertiesOf,
+  propertyOf,
+  valueOf,
+  type AnyDialect,
+  type DefinitionContext,
+  type DialectKind,
+  type FunctionDefinition,
+  type MemberSource,
+  type PropertyDefinition,
+  type ValueConfig,
 } from '@goal-controller/dialect';
 import {
   assertionExpressions,
@@ -26,6 +31,47 @@ import { assertionVariables } from './goalNames.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
+
+/**
+ * An inspector field's property (goal-controller#152): the property `key`
+ * of an element, a link or an actor, by its id (an element's key, a link's
+ * or an actor's piStar id), with what it is on and its value's config as its
+ * properties make it. Null: nothing has such a property.
+ */
+export const fieldPropertyOf = (
+  definition: Pick<AnyDialect, 'properties'> &
+    Partial<Pick<AnyDialect, 'links' | 'actors'>>,
+  context: DefinitionContext,
+  id: string,
+  key: string,
+): {
+  on: 'element' | 'link' | 'actor';
+  kind: string;
+  properties: Readonly<Record<string, string>>;
+  property: PropertyDefinition;
+  value: ValueConfig;
+} | null => {
+  const element = context.elements[id];
+  const link = element ? undefined : context.links?.[id];
+  const actor = element || link ? undefined : context.actors?.[id];
+  const owner = element ?? link ?? actor;
+  if (!owner) return null;
+  const property = element
+    ? propertyOf(definition, owner.kind, key)
+    : (link
+        ? linkPropertiesOf(definition, owner.kind)
+        : actorPropertiesOf(definition, owner.kind)
+      ).find((p) => p.key === key);
+  return property
+    ? {
+        on: element ? 'element' : link ? 'link' : 'actor',
+        kind: owner.kind,
+        properties: owner.properties,
+        property,
+        value: valueOf(property, owner.properties),
+      }
+    : null;
+};
 
 /**
  * A member's type, as its element's pair writes it (goal-controller#135):

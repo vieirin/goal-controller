@@ -769,6 +769,11 @@ export type DocumentTree = {
   links?: readonly DocumentLink[];
   /** the model's actors (goal-controller#107; goal-tree's `GoalView` has them) */
   actors?: readonly DocumentActor[];
+  /**
+   * the dependums, by key (goal-controller#152): no line of their own, but a
+   * dependency's link line names one (goal-tree's `GoalView` has them)
+   */
+  dependums?: ReadonlyMap<string, DocumentNode>;
 };
 
 /** What the document reads of an actor: its kind, name, properties and its elements' keys. */
