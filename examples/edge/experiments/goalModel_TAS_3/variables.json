@@ -1,0 +1,14 @@
+{
+  "privacyEnabled": true,
+  "enoughBattery": true,
+  "highReliability": true,
+  "inEmergency": false,
+  "sensorAvailable": true,
+  "pharmacyAvailable": true,
+  "atHome": true,
+  "inSideEffectWindow": false,
+  "medicationApplied": false,
+  "networkAvailable": true,
+  "patientTracking": true,
+  "highPrecision": true
+}
