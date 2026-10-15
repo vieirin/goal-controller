@@ -136,8 +136,13 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
-        if (file) await openUpload(wb, file);
-        event.target.value = '';
+        try {
+          if (file) await openUpload(wb, file);
+        } catch (error) {
+          window.alert(error instanceof Error ? error.message : String(error));
+        } finally {
+          event.target.value = '';
+        }
       }}
     />
   );

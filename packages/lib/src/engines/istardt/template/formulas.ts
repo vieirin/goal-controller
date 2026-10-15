@@ -234,6 +234,13 @@ export const conditionText = (
       const atom = termOf(tree, resolve);
       if (atom.kind !== 'atom')
         throw new FormulaError('previous takes an element');
+      if (
+        atom.element.kind !== 'predicate' &&
+        atom.element.kind !== 'condition'
+      )
+        throw new FormulaError(
+          `previous in a condition takes a predicate or a condition, not ${atom.element.identifier}`,
+        );
       return `${atom.element.identifier}_fl(s0)`;
     }
     case 'assign': {
