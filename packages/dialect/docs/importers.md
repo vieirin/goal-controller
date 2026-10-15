@@ -1,11 +1,76 @@
+# Native files and importers
+
+A dialect's **native file** is a model in its own format, another tool's or
+its own: jUCMNav's `.jucm`, an XSD-described XML, a text with its own
+grammar (goal-controller#143). It is kept **1:1 with the piStar model**:
+open it and the piStar model is read from it; edit the model and the file is
+written from it again. An **importer** is a native file with a reader only.
+
+Readers and writers are the dialect's, on helpers the core provides (below).
+Nothing in the core names a format or a dialect; the toy dialect in
+`packages/lib/test/dialect/support/native/` (an invented XMI format and a
+five-rule Langium grammar) shows the whole path.
+
+## Declaring one: `nativeFiles`
+
+```ts
+defineDialect({
+  …,
+  nativeFiles: {
+    board: {
+      label: 'Board XMI',
+      extensions: ['.board'],          // lower case, with the dot; never .json or .txt (a piStar model's)
+      format: 'xmi',                   // 'xmi' | 'xml' | 'json' | 'text': the tab's highlighting
+      schema: { kind: 'ecore', path: 'schema/board.ecore' }, // optional, from the engine's folder
+      read: (text, context) => …,      // the importer's result (Shape, below)
+      write: (model, context) => …,    // optional: { text, diagnostics }; text null: this model can't be written, the diagnostics say why
+      canonical: (text) => …,          // optional: the form two texts are compared in
+      lossy: ['actors.*.nodes.*.x', 'actors.*.nodes.*.y', 'display'],
+      language: …,                     // a text format's: highlighting and completion (defineLanguage)
+    },
+  },
+});
+```
+
+- **The context** both get: `{ modelName, projectResources?, options? }`, the model's name and what the project holds beside it.
+- **`schema`**: its kind says what it describes: `ecore` an XMI format, `xsd` an XML or XMI one, `json-schema` a JSON one, `langium` a text one (the grammar it is read with).
+- **`lossy`**: what the format can't carry, as piStar paths (`*`: any key or index). A model written and read back is the model but for these, and a file is in sync with a model it reads to but for these. What the file holds that the model never keeps (a `.jucm`'s Use Case Maps) is not a model path: the engine's doc says it, and its fixtures with it aren't lossless (the round trip, below).
+- **`defineDialect` checks** the id, the label, the format, each extension (lower case, dotted, one native file's), the schema's kind against the format and its path (a file inside the engine's folder), that `read` (and `write`, `canonical`) are functions, that a language is a text format's, and the lossy paths.
+- **Extensions across dialects**: the Open dialog finds a file's dialect by its longest extension (`nativeFileFor`); no two registered dialects may take the same one (`sharedNativeExtensions`, which the workbench's tests check).
+
+## The helpers
+
+- **EMF XMI**, `importers/xmi.ts`: `readXmi` (below) and its inverse, `writeXmi(root, { idAttribute, namespaces, order, xmiVersion, encoding, indent })`. A node to write is `{ feature, type?, id?, attributes?, references?, hrefs?, children?, text? }`; references into the document are written as the target's id, or its path fragment when it has none (`//@actors.0/@goals.2`), space-separated; references into another file as `<feature href="other.ecore#//X"/>`. The root gets `xmi:version` and its namespaces (`xmi`, `xsi` when a node has an `xsi:type`, then the given ones); attributes are written `xsi:type` first, then in `order`, then as given; values escaped as EMF does (`&#xA;` for a line break), what the encoding can't carry as character references. A reference to a node not in the document is an error, and left out. `canonicalXml(text, { order })` is a canonical form for any XML: attributes in `order`, then by name, EMF's indents, comments out.
+- **JSON**, `formats/json.ts`: `readJson(text) → { value, diagnostics }` (where it stops being JSON), `writeJson(value)` (two spaces, a final line break), `canonicalJson(text)` (keys sorted).
+- **Langium**, `formats/language.ts`: `defineLanguage(generated, { language?, module?, terminals? })` turns a grammar's generated module into `{ id, services, parse, highlight, complete }`. `parse(text) → { ast, diagnostics }` gives Langium's AST (references unlinked: `$refText` names them), its syntax errors as diagnostics; `highlight` reads the grammar's keywords, terminals (a rule returning a number is `number`, one named like `STRING` is `string`) and assignments (a `name=` is a definition, a cross-reference a reference); `complete` offers the grammar's keywords and the names the text defines. Each language has its own services, apart from the goal language's. The dialect's `read` maps the AST to the model, its `write` prints it. Where it goes: [adding-an-engine.md](adding-an-engine.md).
+- **The model compared**, `packages/dialect/src/native.ts`: `modelDifference(a, b, lossy)` (the first path where two piStar models differ, but for the lossy paths, keys sorted and id'd lists in id order), `canonicalModel`, `withoutLossy`.
+
+## The round-trip contract
+
+`modelRoundTrip(file, model, context)` and `textRoundTrip(file, text, context)` (lib, `importers/native.ts`) check it, and give `{ ok, problem, diagnostics }`; every dialect with native files runs them on its fixtures with `describeNativeRoundTrips(dialect, fixtures)` (`packages/lib/test/support/nativeRoundTrip.ts`):
+
+1. each fixture reads without an error;
+2. with a writer, `read(write(m))` is `m` but for the format's `lossy` paths, `m` the fixture's model;
+3. for a fixture marked `lossless` (one that holds only what the model keeps), `write(read(f))` is `f`, both in the format's `canonical` form (as written, without one).
+
+The stress scripts' `native` column is the same check.
+
+## In a project
+
+A model's native file sits beside its piStar file (`<model>.<ext>`), listed in project.json under the model (`"native": { "<id>": "<path>" }`); the archive carries it. Opening a native file makes that project; the sync rule is in the project module's README (`packages/ui/lib/project/README.md`).
+
 # Importers
 
 An importer reads another tool's file into goal-controller's model: a piStar
-file in one of our dialects, with what the dialect reads beside it. Importers
-live in `packages/lib/src/importers/<format>/`. They are lib's, not the core
-packages', since they know an engine's dialect.
+file in one of our dialects, with what the dialect reads beside it. As a
+dialect's native file, it is its `read`; the importers below are lib's
+functions, which goal-controller#144 moves into their engines' `nativeFiles`
+(with writers). They live in `packages/lib/src/importers/<format>/`, and know
+an engine's dialect.
 
 ## Shape
+
+An importer's result is a native file's `read`'s (`NativeReadResult`, `@goal-controller/dialect`; lib's `ImportResult` is the same type).
 
 ```ts
 import(text) → {
@@ -22,7 +87,7 @@ import(text) → {
 - **The result.** No model and an `error` diagnostic: the text is not one this importer reads. Warnings and infos say what was read differently, or left out.
 - **Ids.** An importer keeps the source's ids (piStar's ids are free text), so the source's rows (a reference tool's evaluations, say) join on them.
 - **Kinds.** Kinds iStar 2.0 doesn't have go in the model's own `"metamodel"` block (istar-ts), declared by the engine's extension, which its dialect names (`defineDialect({ …, extension: grlExtension })`, goal-controller#132). The engine object says its models carry them, so the workbench reads such a model with its block applied: `defineEngine({ id: 'grl', dialect: grl, …, fileKinds: true })` (`engines/grl/engine.ts`; `ENGINE_FILE_KINDS` is derived from it).
-- **Direction.** One way. An export back to the source format is a separate decision, per importer.
+- **Direction.** One way, for an importer. A native file with a writer goes both ways (above).
 - **Positions.** The source's, where it has them. A node it doesn't place is left without `x` and `y` and placed by the layout below.
 
 ## A layout for what has no diagram: `importers/layout.ts`

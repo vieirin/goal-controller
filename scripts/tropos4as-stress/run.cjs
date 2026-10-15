@@ -33,6 +33,7 @@ const SEEDS = path.join(ROOT, 'examples', 'tropos4as');
 const RESULTS = path.join(ROOT, '.cache', 'tropos4as', 'results');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
+const { nativeCell, nativeCheck } = require('../native-column.cjs');
 const language = require(path.join(pkg('goal-language'), 'out/cjs/index.cjs'));
 const goalTree = require(path.join(pkg('goal-tree'), 'out/index.js'));
 // parsePistar is @istar-ts/core's, as goal-tree resolves it
@@ -141,6 +142,12 @@ const checkSeed = (dir) => {
     status: 'skip',
     reason: 'the TAOM4E importer waits for the XMI reader (#137) on main',
   };
+  checks.native = nativeCheck(
+    lib,
+    lib.tropos4as,
+    JSON.parse(fs.readFileSync(file, 'utf8')),
+    { modelName: path.basename(dir) },
+  );
   const { scenarios, diagnostics } = lib.readTropos4asScenarios(files);
   if (diagnostics.length)
     checks.scenarios = {
@@ -188,8 +195,8 @@ const markdown = (results) =>
     '',
     `Generated ${new Date().toISOString()}. Seeds: examples/tropos4as/ (each transcribed from a paper's figure, its README says what is ours).`,
     '',
-    '| Seed | Scenario | Imported | Checks | Notation | Analysis | Trace | Importer |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| Seed | Scenario | Imported | Checks | Notation | Analysis | Trace | Importer | Native |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...results.flatMap(({ seed, checks, scenarios }) => {
       const common = [
         checks.import.status === 'pass'
@@ -210,6 +217,7 @@ const markdown = (results) =>
           : '',
       ];
       const importer = describe(checks.importer);
+      const native = nativeCell(checks.native);
       return (
         scenarios.length ? scenarios : [{ scenario: '', trace: null }]
       ).map(
@@ -226,6 +234,7 @@ const markdown = (results) =>
                   ? `${ICON.fail} row ${trace.first.row}: expected \`${trace.first.expected}\`, got \`${trace.first.actual}\``
                   : describe(trace),
             importer,
+            native,
           ]
             .map(cell)
             .join(' | ')} |`,

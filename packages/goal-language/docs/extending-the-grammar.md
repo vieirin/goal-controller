@@ -13,6 +13,14 @@ MutRoSe:
 - its task ids, `AT1`, as a new **id prefix**;
 - its runtime annotation `FALLBACK(G2,G3)`, as a new **call** construct.
 
+**Not this page: a dialect's own file format.** A dialect that reads a
+text format of its own (a native file, goal-controller#143) brings its own
+Langium grammar under its engine's folder (`defineLanguage`,
+[adding-an-engine.md](../../dialect/docs/adding-an-engine.md)). That grammar
+is another language, with services of its own: it never changes
+`goal.langium`, its lexer or its generated parser, and the goal language
+never reads it.
+
 ## Before you change the language
 
 1. **Check that a dialect can't already do it.**

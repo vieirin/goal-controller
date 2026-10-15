@@ -245,6 +245,8 @@ describe('GODA stress test: checks on a model', () => {
       parses: 'pass',
       roundTrip: 'pass',
       dialectChecks: 'pass',
+      // GODA declares no native file: its native file is piStar itself (#143)
+      native: 'unavailable',
       generates: 'pass',
       mdp: 'pass',
       pctl: 'pass',

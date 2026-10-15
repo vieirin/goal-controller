@@ -23,6 +23,7 @@ const {
 } = require('./compare.cjs');
 const { PCTL, outputRoles } = require('./references.cjs');
 const { RUNTIME_CHECKS, checkRuntime } = require('./runtime.cjs');
+const { nativeCheck } = require('../native-column.cjs');
 
 /**
  * The dialect's diagnostics each model is expected to have (`check: message`),
@@ -87,6 +88,7 @@ const checkModel = (
       'parses',
       'roundTrip',
       'dialectChecks',
+      'native',
       'generates',
       ...outputChecks,
     ])
@@ -147,6 +149,15 @@ const checkModel = (
     checks.roundTrip = unavailable('the model did not read');
     checks.dialectChecks = unavailable('the model did not read');
   }
+  // its native files' round trip (goal-controller#143): GODA's is piStar itself
+  const native = nativeCheck(
+    deps.lib,
+    engine.definition,
+    JSON.parse(reference.text),
+    { modelName: reference.modelName },
+  );
+  checks.native =
+    native.status === 'skip' ? unavailable(native.reason) : native;
 
   // the engine: generated `runs` times, timed, with the reference's generator version
   let output = null;
