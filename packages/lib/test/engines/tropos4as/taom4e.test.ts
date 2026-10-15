@@ -19,7 +19,8 @@ import {
   tropos4asAnalysisModel,
 } from '../../../src/engines/tropos4as';
 import { goda, godaGoalModel, godaOutput } from '../../../src';
-import { importerFor } from '../../../src/importers';
+import { nativeFileFor } from '@goal-controller/dialect';
+import { tropos4as } from '../../../src/engines/tropos4as';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
 const {
@@ -229,10 +230,11 @@ describe('readTaom4e: the mapping (#134, item 4’s D)', () => {
     );
     assert.deepStrictEqual(
       model.links.map((l: Json) => [l.id, l.label]),
+      // each its relation's id
       [
-        ['p-ContributionLink-q', 'make'],
-        ['p-ContributionLink-q-2', 'break'],
-        ['p-ContributionLink-q-3', 'unknown'],
+        ['c0', 'make'],
+        ['c1', 'break'],
+        ['c2', 'unknown'],
       ],
     );
     assert.deepStrictEqual(ofKind('warning', diagnostics), [
@@ -270,7 +272,10 @@ describe('readTaom4e: the mapping (#134, item 4’s D)', () => {
     }
   });
 
-  it('is the workbench’s importer for .tropos', () => {
-    assert.strictEqual(importerFor('Cleaner.TROPOS')?.importer.label, 'TAOM4E');
+  it('is Tropos4AS’s native file, .tropos', () => {
+    assert.strictEqual(
+      nativeFileFor([tropos4as], 'Cleaner.TROPOS')?.file.label,
+      'TAOM4E',
+    );
   });
 });

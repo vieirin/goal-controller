@@ -3,59 +3,60 @@
   Patient monitoring (iStar 2011 Fig. 1), what TAOM4E's base metamodel carries of it: examples/tropos4as/patient-monitoring's twin.
   Written by hand against TAOM4E-MM.ecore (packages/lib/src/engines/tropos4as/taom4e/reference/):
   UNVERIFIED AGAINST TAOM4E, no .tropos file it wrote survives (goal-controller#134).
-  Two roots in an xmi:XMI (the project and its business model), references by xmi:id.
+  Two roots in an xmi:XMI (the project and its business model), as EMF writes a resource of two;
+  the packages' nsPrefixes as EMF writes them; references by xmi:id.
 -->
 <xmi:XMI xmi:version="2.0"
     xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:project="http:///it/itc/sra/taom4e/model/project.ecore"
-    xmlns:informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
-    xmlns:formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
-    xmlns:goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
-    xmlns:actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
-  <project:Project name="Patient monitoring" BusinessModel="bm">
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-CareAssistant" name="Care Assistant" phase="LR" Actor="CareAssistant">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-CareAssistant" core="CareAssistant" x="3" y="38"/>
+    xmlns:it.itc.sra.taom4e.model.project="http:///it/itc/sra/taom4e/model/project.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore.formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
+  <it.itc.sra.taom4e.model.project:Project name="Patient monitoring" BusinessModel="bm">
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-CareAssistant" name="Care Assistant" phase="LR" Actor="CareAssistant">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-CareAssistant" core="CareAssistant" x="3" y="38"/>
     </Diagram>
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-Patient" name="Patient" phase="LR" Actor="Patient">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-Patient" core="Patient" x="-11" y="223"/>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-Patient" name="Patient" phase="LR" Actor="Patient">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-Patient" core="Patient" x="-11" y="223"/>
     </Diagram>
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-PMA" name="PMA" phase="LR" Actor="PMA">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-PMA" core="PMA" x="322" y="58" children="n-followInstructions n-eatMeals n-takeMedicine n-takeMedicineNoDinner n-callAssistant n-rememberSpeakers"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-followInstructions" core="followInstructions" x="464" y="128" width="225" height="37" container="n-PMA"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-eatMeals" core="eatMeals" x="434" y="245" width="87" height="36" container="n-PMA"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-takeMedicine" core="takeMedicine" x="606" y="313" width="126" height="49" container="n-PMA"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-takeMedicineNoDinner" core="takeMedicineNoDinner" x="806" y="468" width="123" height="51" container="n-PMA"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-callAssistant" core="callAssistant" x="87" y="396" width="156" height="36" container="n-PMA"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-rememberSpeakers" core="rememberSpeakers" x="642" y="506" width="168" height="45" container="n-PMA"/>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-PMA" name="PMA" phase="LR" Actor="PMA">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-PMA" core="PMA" x="322" y="58" children="n-followInstructions n-eatMeals n-takeMedicine n-takeMedicineNoDinner n-callAssistant n-rememberSpeakers"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-followInstructions" core="followInstructions" x="464" y="128" width="225" height="37" container="n-PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-eatMeals" core="eatMeals" x="434" y="245" width="87" height="36" container="n-PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-takeMedicine" core="takeMedicine" x="606" y="313" width="126" height="49" container="n-PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-takeMedicineNoDinner" core="takeMedicineNoDinner" x="806" y="468" width="123" height="51" container="n-PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-callAssistant" core="callAssistant" x="87" y="396" width="156" height="36" container="n-PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-rememberSpeakers" core="rememberSpeakers" x="642" y="506" width="168" height="45" container="n-PMA"/>
     </Diagram>
-    <Diagram xsi:type="actordiagram:ActorDiagram" xmi:id="d-actors" name="Actor diagram" phase="ER">
-      <DiagramNodes xsi:type="actordiagram:AD_ActorUI" xmi:id="na-CareAssistant" core="CareAssistant" x="3" y="38"/>
-      <DiagramNodes xsi:type="actordiagram:AD_ActorUI" xmi:id="na-Patient" core="Patient" x="-11" y="223"/>
-      <DiagramNodes xsi:type="actordiagram:AD_ActorUI" xmi:id="na-PMA" core="PMA" x="322" y="58"/>
-      <DiagramNodes xsi:type="actordiagram:AD_HardGoalUI" xmi:id="na-followInstructionsDependum" core="followInstructionsDependum" x="138" y="15" width="225" height="36"/>
-      <DiagramNodes xsi:type="actordiagram:AD_SoftGoalUI" xmi:id="na-reduceNeed" core="reduceNeed" x="124" y="72" width="129" height="57"/>
-      <DiagramNodes xsi:type="actordiagram:AD_SoftGoalUI" xmi:id="na-noAnnoyances" core="noAnnoyances" x="32" y="140" width="213" height="31"/>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:ActorDiagram" xmi:id="d-actors" name="Actor diagram" phase="ER">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="na-CareAssistant" core="CareAssistant" x="3" y="38"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="na-Patient" core="Patient" x="-11" y="223"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="na-PMA" core="PMA" x="322" y="58"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_HardGoalUI" xmi:id="na-followInstructionsDependum" core="followInstructionsDependum" x="138" y="15" width="225" height="36"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_SoftGoalUI" xmi:id="na-reduceNeed" core="reduceNeed" x="124" y="72" width="129" height="57"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_SoftGoalUI" xmi:id="na-noAnnoyances" core="noAnnoyances" x="32" y="140" width="213" height="31"/>
     </Diagram>
-  </project:Project>
-  <formalcore:FormalBusinessModel xmi:id="bm" name="Patient monitoring">
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="CareAssistant" name="Care Assistant"/>
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="Patient" name="Patient"/>
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="PMA" name="PMA" wanted="followInstructions eatMeals takeMedicine takeMedicineNoDinner" plans="callAssistant rememberSpeakers"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="followInstructions" name="follow medical instructins" wanter="PMA" mode="MAINTAIN" invariantProperty="instructionsFollowed"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="eatMeals" name="eat meals" wanter="PMA" mode="ACHIEVE" fulfillmentProperty="mealSensor.meals &gt;= 2"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="takeMedicine" name="take medicine before 8PM" wanter="PMA" mode="ACHIEVE" creationProperty="hour &gt;= 6" fulfillmentProperty="medicineSensor.taken"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="takeMedicineNoDinner" name="take medicine without dinner" wanter="PMA"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="callAssistant" name="call assistant" capableOf="PMA"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="rememberSpeakers" name="remember through speakers" capableOf="PMA"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="followInstructionsDependum" name="follow medical instructins"/>
-    <TroposClasses xsi:type="formalcore:FSoftGoal" xmi:id="reduceNeed" name="reduce need for assistance"/>
-    <TroposClasses xsi:type="formalcore:FSoftGoal" xmi:id="noAnnoyances" name="don't bring annoyances"/>
-    <TroposRelations xsi:type="informalcore:BooleanDecomposition" xmi:id="bd1" type="AND" rootGoal="followInstructions" BooleanDecLink="dl1-0 dl1-1" actorDecPointOfView="PMA"/>
-    <TroposRelations xsi:type="informalcore:AndDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetGoal="eatMeals"/>
-    <TroposRelations xsi:type="informalcore:AndDecLink" xmi:id="dl1-1" BooleanDecomposition="bd1" targetGoal="takeMedicine"/>
-    <TroposRelations xsi:type="informalcore:MeansEnd" xmi:id="me1" meansPlan="rememberSpeakers" end="takeMedicine" actorMeansEndPointOfView="PMA"/>
-    <TroposRelations xsi:type="informalcore:Dependency" xmi:id="dep1" depender="CareAssistant" dependee="PMA" goalDependum="followInstructionsDependum"/>
-    <TroposRelations xsi:type="informalcore:Dependency" xmi:id="dep2" depender="CareAssistant" dependee="PMA" goalDependum="reduceNeed"/>
-    <TroposRelations xsi:type="informalcore:Dependency" xmi:id="dep3" depender="Patient" dependee="PMA" goalDependum="noAnnoyances"/>
-  </formalcore:FormalBusinessModel>
+  </it.itc.sra.taom4e.model.project:Project>
+  <it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel xmi:id="bm" name="Patient monitoring">
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="CareAssistant" name="Care Assistant"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="Patient" name="Patient"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="PMA" name="PMA" wanted="followInstructions eatMeals takeMedicine takeMedicineNoDinner" plans="callAssistant rememberSpeakers"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="followInstructions" name="follow medical instructins" wanter="PMA" mode="MAINTAIN" invariantProperty="instructionsFollowed"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="eatMeals" name="eat meals" wanter="PMA" mode="ACHIEVE" fulfillmentProperty="mealSensor.meals &gt;= 2"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="takeMedicine" name="take medicine before 8PM" wanter="PMA" mode="ACHIEVE" creationProperty="hour &gt;= 6" fulfillmentProperty="medicineSensor.taken"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="takeMedicineNoDinner" name="take medicine without dinner" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="callAssistant" name="call assistant" capableOf="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="rememberSpeakers" name="remember through speakers" capableOf="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="followInstructionsDependum" name="follow medical instructins"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" xmi:id="reduceNeed" name="reduce need for assistance"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" xmi:id="noAnnoyances" name="don't bring annoyances"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:BooleanDecomposition" xmi:id="bd1" type="AND" rootGoal="followInstructions" BooleanDecLink="dl1-0 dl1-1" actorDecPointOfView="PMA"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:AndDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetGoal="eatMeals"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:AndDecLink" xmi:id="dl1-1" BooleanDecomposition="bd1" targetGoal="takeMedicine"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:MeansEnd" xmi:id="me1" meansPlan="rememberSpeakers" end="takeMedicine" actorMeansEndPointOfView="PMA"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="dep1" depender="CareAssistant" dependee="PMA" goalDependum="followInstructionsDependum"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="dep2" depender="CareAssistant" dependee="PMA" goalDependum="reduceNeed"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="dep3" depender="Patient" dependee="PMA" goalDependum="noAnnoyances"/>
+  </it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel>
 </xmi:XMI>
