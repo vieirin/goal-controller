@@ -5,6 +5,7 @@ import { GoalTree, Model } from '@goal-controller/goal-tree';
 import path from 'path';
 import { writeOutputFiles } from './cli/outputFiles';
 import { readPreviousOutput } from './cli/previousOutput';
+import { readVariablesFile } from './cli/variablesFile';
 import {
   edgeEngineMapper,
   edgeOutput,
@@ -274,12 +275,14 @@ if (require.main === module) {
   const fileName = path.basename(inputFile);
   const baseName = path.parse(inputFile).name;
   const previousOutput = readPreviousOutput(baseName);
+  // the model's variables.json, beside it (a project) or under input/<model>/
+  const variables = readVariablesFile(inputFile);
 
   try {
     // every file the engine makes, into output/ (Edge's: <model>.prism)
     const written = writeOutputFiles(
       'output',
-      edgeOutput({ gm: tree.nodes, fileName, previousOutput }),
+      edgeOutput({ gm: tree.nodes, fileName, previousOutput, variables }),
     );
     console.log(`The file was saved to ${written.join(', ')}!`);
   } catch (err) {

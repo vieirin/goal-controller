@@ -5,8 +5,12 @@
     "name": "anotherSimple.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["anotherSimple.txt"],
-    "models": ["anotherSimple.txt"],
+    "files": [
+      "anotherSimple.txt"
+    ],
+    "models": [
+      "anotherSimple.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -24,9 +28,13 @@
       "reference/1-minimal.result",
       "reference/1-minimal.result.storm"
     ],
-    "models": ["1-minimal.txt"],
+    "models": [
+      "1-minimal.txt"
+    ],
     "projectResources": {
-      "properties": ["props/1-minimal.props"]
+      "properties": [
+        "props/1-minimal.props"
+      ]
     },
     "outputs": []
   },
@@ -43,9 +51,13 @@
       "props/10-minimalMaintainResource.props",
       "reference/10-minimalMaintainResource.result.storm"
     ],
-    "models": ["10-minimalMaintainResource.txt"],
+    "models": [
+      "10-minimalMaintainResource.txt"
+    ],
     "projectResources": {
-      "properties": ["props/10-minimalMaintainResource.props"]
+      "properties": [
+        "props/10-minimalMaintainResource.props"
+      ]
     },
     "outputs": []
   },
@@ -63,9 +75,13 @@
       "reference/2-OrVariation.result",
       "reference/2-OrVariation.result.storm"
     ],
-    "models": ["2-OrVariation.txt"],
+    "models": [
+      "2-OrVariation.txt"
+    ],
     "projectResources": {
-      "properties": ["props/2-OrVariation.props"]
+      "properties": [
+        "props/2-OrVariation.props"
+      ]
     },
     "outputs": []
   },
@@ -83,9 +99,13 @@
       "reference/3-interleavedPaltPseq.result",
       "reference/3-interleavedPaltPseq.result.storm"
     ],
-    "models": ["3-interleavedPaltPseq.txt"],
+    "models": [
+      "3-interleavedPaltPseq.txt"
+    ],
     "projectResources": {
-      "properties": ["props/3-interleavedPaltPseq.props"]
+      "properties": [
+        "props/3-interleavedPaltPseq.props"
+      ]
     },
     "outputs": []
   },
@@ -104,9 +124,13 @@
       "reference/4-interleavedChoicePDegradation.result.storm",
       "reference/4-interleavedChoicePDegradation_individual.storm"
     ],
-    "models": ["4-interleavedChoicePDegradation.txt"],
+    "models": [
+      "4-interleavedChoicePDegradation.txt"
+    ],
     "projectResources": {
-      "properties": ["props/4-interleavedChoicePDegradation.props"]
+      "properties": [
+        "props/4-interleavedChoicePDegradation.props"
+      ]
     },
     "outputs": []
   },
@@ -116,8 +140,12 @@
     "name": "experiments/5-allAnnotations.txt",
     "form": "embedded",
     "root": "edge/experiments",
-    "files": ["5-allAnnotations.txt"],
-    "models": ["5-allAnnotations.txt"],
+    "files": [
+      "5-allAnnotations.txt"
+    ],
+    "models": [
+      "5-allAnnotations.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -135,9 +163,13 @@
       "reference/6-allnotationsReduced.result",
       "reference/6-allnotationsReduced.result.storm"
     ],
-    "models": ["6-allnotationsReduced.txt"],
+    "models": [
+      "6-allnotationsReduced.txt"
+    ],
     "projectResources": {
-      "properties": ["props/6-allnotationsReduced.props"]
+      "properties": [
+        "props/6-allnotationsReduced.props"
+      ]
     },
     "outputs": []
   },
@@ -155,9 +187,13 @@
       "reference/7-minimalAll.result",
       "reference/7-minimalAll.result.storm"
     ],
-    "models": ["7-minimalAll.txt"],
+    "models": [
+      "7-minimalAll.txt"
+    ],
     "projectResources": {
-      "properties": ["props/7-minimalAll.props"]
+      "properties": [
+        "props/7-minimalAll.props"
+      ]
     },
     "outputs": []
   },
@@ -174,9 +210,13 @@
       "props/8-minimalMaintain.props",
       "reference/8-minimalMaintain.result.storm"
     ],
-    "models": ["8-minimalMaintain.txt"],
+    "models": [
+      "8-minimalMaintain.txt"
+    ],
     "projectResources": {
-      "properties": ["props/8-minimalMaintain.props"]
+      "properties": [
+        "props/8-minimalMaintain.props"
+      ]
     },
     "outputs": []
   },
@@ -193,9 +233,13 @@
       "props/9-minimalMaintainContext.props",
       "reference/9-minimalMaintainContext.result.storm"
     ],
-    "models": ["9-minimalMaintainContext.txt"],
+    "models": [
+      "9-minimalMaintainContext.txt"
+    ],
     "projectResources": {
-      "properties": ["props/9-minimalMaintainContext.props"]
+      "properties": [
+        "props/9-minimalMaintainContext.props"
+      ]
     },
     "outputs": []
   },
@@ -211,11 +255,17 @@
       "project.json",
       "props/goalModel_TAS_3.props",
       "reference/goalModel_TAS_3.result",
-      "reference/goalModel_TAS_3.result.storm"
+      "reference/goalModel_TAS_3.result.storm",
+      "variables.json"
     ],
-    "models": ["goalModel_TAS_3.txt"],
+    "models": [
+      "goalModel_TAS_3.txt"
+    ],
     "projectResources": {
-      "properties": ["props/goalModel_TAS_3.props"]
+      "variables": "variables.json",
+      "properties": [
+        "props/goalModel_TAS_3.props"
+      ]
     },
     "outputs": []
   },
@@ -232,9 +282,13 @@
       "props/labSamplesWithSideEffect.props",
       "reference/labSamplesWithSideEffect.result.storm"
     ],
-    "models": ["labSamplesWithSideEffect.txt"],
+    "models": [
+      "labSamplesWithSideEffect.txt"
+    ],
     "projectResources": {
-      "properties": ["props/labSamplesWithSideEffect.props"]
+      "properties": [
+        "props/labSamplesWithSideEffect.props"
+      ]
     },
     "outputs": []
   },
@@ -244,8 +298,12 @@
     "name": "simpleAlternative.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleAlternative.txt"],
-    "models": ["simpleAlternative.txt"],
+    "files": [
+      "simpleAlternative.txt"
+    ],
+    "models": [
+      "simpleAlternative.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -255,8 +313,12 @@
     "name": "simpleChoice.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleChoice.txt"],
-    "models": ["simpleChoice.txt"],
+    "files": [
+      "simpleChoice.txt"
+    ],
+    "models": [
+      "simpleChoice.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -266,8 +328,12 @@
     "name": "simpleDegradation.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleDegradation.txt"],
-    "models": ["simpleDegradation.txt"],
+    "files": [
+      "simpleDegradation.txt"
+    ],
+    "models": [
+      "simpleDegradation.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -277,8 +343,12 @@
     "name": "simpleInterleaved.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleInterleaved.txt"],
-    "models": ["simpleInterleaved.txt"],
+    "files": [
+      "simpleInterleaved.txt"
+    ],
+    "models": [
+      "simpleInterleaved.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -288,8 +358,12 @@
     "name": "simpleMaintain.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleMaintain.txt"],
-    "models": ["simpleMaintain.txt"],
+    "files": [
+      "simpleMaintain.txt"
+    ],
+    "models": [
+      "simpleMaintain.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -299,8 +373,12 @@
     "name": "simpleSequential.txt",
     "form": "embedded",
     "root": "edge",
-    "files": ["simpleSequential.txt"],
-    "models": ["simpleSequential.txt"],
+    "files": [
+      "simpleSequential.txt"
+    ],
+    "models": [
+      "simpleSequential.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -316,9 +394,13 @@
       "project.json",
       "props/10-minimalMaintainResource.props"
     ],
-    "models": ["10-minimalMaintainResource.txt"],
+    "models": [
+      "10-minimalMaintainResource.txt"
+    ],
     "projectResources": {
-      "properties": ["props/10-minimalMaintainResource.props"]
+      "properties": [
+        "props/10-minimalMaintainResource.props"
+      ]
     },
     "outputs": []
   },
@@ -334,9 +416,13 @@
       "project.json",
       "props/4-interleavedChoicePDegradation.props"
     ],
-    "models": ["4-interleavedChoicePDegradation.txt"],
+    "models": [
+      "4-interleavedChoicePDegradation.txt"
+    ],
     "projectResources": {
-      "properties": ["props/4-interleavedChoicePDegradation.props"]
+      "properties": [
+        "props/4-interleavedChoicePDegradation.props"
+      ]
     },
     "outputs": []
   },
@@ -346,8 +432,12 @@
     "name": "experiments/5-allAnnotations.txt",
     "form": "embedded",
     "root": "edgeV2/experiments",
-    "files": ["5-allAnnotations.txt"],
-    "models": ["5-allAnnotations.txt"],
+    "files": [
+      "5-allAnnotations.txt"
+    ],
+    "models": [
+      "5-allAnnotations.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -363,9 +453,13 @@
       "project.json",
       "props/6-allnotationsReduced.props"
     ],
-    "models": ["6-allnotationsReduced.txt"],
+    "models": [
+      "6-allnotationsReduced.txt"
+    ],
     "projectResources": {
-      "properties": ["props/6-allnotationsReduced.props"]
+      "properties": [
+        "props/6-allnotationsReduced.props"
+      ]
     },
     "outputs": []
   },
@@ -376,10 +470,18 @@
     "form": "file",
     "dialect": "edgev2",
     "root": "edgeV2/experiments/7-minimalAll",
-    "files": ["7-minimalAll.txt", "project.json", "props/7-minimalAll.props"],
-    "models": ["7-minimalAll.txt"],
+    "files": [
+      "7-minimalAll.txt",
+      "project.json",
+      "props/7-minimalAll.props"
+    ],
+    "models": [
+      "7-minimalAll.txt"
+    ],
     "projectResources": {
-      "properties": ["props/7-minimalAll.props"]
+      "properties": [
+        "props/7-minimalAll.props"
+      ]
     },
     "outputs": []
   },
@@ -395,9 +497,13 @@
       "project.json",
       "props/8-minimalMaintain.props"
     ],
-    "models": ["8-minimalMaintain.txt"],
+    "models": [
+      "8-minimalMaintain.txt"
+    ],
     "projectResources": {
-      "properties": ["props/8-minimalMaintain.props"]
+      "properties": [
+        "props/8-minimalMaintain.props"
+      ]
     },
     "outputs": []
   },
@@ -413,9 +519,13 @@
       "project.json",
       "props/9-minimalMaintainContext.props"
     ],
-    "models": ["9-minimalMaintainContext.txt"],
+    "models": [
+      "9-minimalMaintainContext.txt"
+    ],
     "projectResources": {
-      "properties": ["props/9-minimalMaintainContext.props"]
+      "properties": [
+        "props/9-minimalMaintainContext.props"
+      ]
     },
     "outputs": []
   },
@@ -433,10 +543,14 @@
       "reference/goalModel_TAS_3.expected.txt",
       "variables.json"
     ],
-    "models": ["goalModel_TAS_3.txt"],
+    "models": [
+      "goalModel_TAS_3.txt"
+    ],
     "projectResources": {
       "variables": "variables.json",
-      "properties": ["props/goalModel_TAS_3.props"]
+      "properties": [
+        "props/goalModel_TAS_3.props"
+      ]
     },
     "outputs": []
   },
@@ -446,8 +560,12 @@
     "name": "experiments/labSamplesWithSideEffect.txt",
     "form": "embedded",
     "root": "edgeV2/experiments",
-    "files": ["labSamplesWithSideEffect.txt"],
-    "models": ["labSamplesWithSideEffect.txt"],
+    "files": [
+      "labSamplesWithSideEffect.txt"
+    ],
+    "models": [
+      "labSamplesWithSideEffect.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -457,8 +575,12 @@
     "name": "simpleChoice.txt",
     "form": "embedded",
     "root": "edgeV2",
-    "files": ["simpleChoice.txt"],
-    "models": ["simpleChoice.txt"],
+    "files": [
+      "simpleChoice.txt"
+    ],
+    "models": [
+      "simpleChoice.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -468,8 +590,12 @@
     "name": "simpleChoiceRewards.txt",
     "form": "embedded",
     "root": "edgeV2",
-    "files": ["simpleChoiceRewards.txt"],
-    "models": ["simpleChoiceRewards.txt"],
+    "files": [
+      "simpleChoiceRewards.txt"
+    ],
+    "models": [
+      "simpleChoiceRewards.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -493,7 +619,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["and2.txt"],
+    "models": [
+      "and2.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -517,7 +645,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["BSN.txt"],
+    "models": [
+      "BSN.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -541,7 +671,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["dm2.txt"],
+    "models": [
+      "dm2.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -551,8 +683,12 @@
     "name": "DroneDelivery.txt",
     "form": "embedded",
     "root": "goda",
-    "files": ["DroneDelivery.txt"],
-    "models": ["DroneDelivery.txt"],
+    "files": [
+      "DroneDelivery.txt"
+    ],
+    "models": [
+      "DroneDelivery.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -576,7 +712,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["Fragmented.txt"],
+    "models": [
+      "Fragmented.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -600,7 +738,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["incompleteness.txt"],
+    "models": [
+      "incompleteness.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -610,8 +750,12 @@
     "name": "LabResults.txt",
     "form": "embedded",
     "root": "goda",
-    "files": ["LabResults.txt"],
-    "models": ["LabResults.txt"],
+    "files": [
+      "LabResults.txt"
+    ],
+    "models": [
+      "LabResults.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -635,7 +779,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["or2.txt"],
+    "models": [
+      "or2.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -661,7 +807,9 @@
       "reference/reliability.formula",
       "reference/reliability.out"
     ],
-    "models": ["goalModel.txt"],
+    "models": [
+      "goalModel.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -685,7 +833,9 @@
       "reference/eval_formula.sh",
       "reference/reliability.out"
     ],
-    "models": ["TAS.txt"],
+    "models": [
+      "TAS.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -704,9 +854,13 @@
       "reference/evaluations.csv",
       "strategies/Heating.json"
     ],
-    "models": ["grl-own.txt"],
+    "models": [
+      "grl-own.txt"
+    ],
     "projectResources": {
-      "strategies": ["strategies/Heating.json"]
+      "strategies": [
+        "strategies/Heating.json"
+      ]
     },
     "outputs": []
   },
@@ -726,9 +880,13 @@
       "reference/evaluations.csv",
       "strategies/StrategiesGroup5.json"
     ],
-    "models": ["SmartHome2.txt"],
+    "models": [
+      "SmartHome2.txt"
+    ],
     "projectResources": {
-      "strategies": ["strategies/StrategiesGroup5.json"]
+      "strategies": [
+        "strategies/StrategiesGroup5.json"
+      ]
     },
     "outputs": []
   },
@@ -746,7 +904,9 @@
       "knowledge/world_db.xml",
       "project.json"
     ],
-    "models": ["gm/LabSampleLogistics.txt"],
+    "models": [
+      "gm/LabSampleLogistics.txt"
+    ],
     "projectResources": {
       "world": "knowledge/world_db.xml",
       "hddl": "hddl/domain.hddl",
@@ -768,7 +928,9 @@
       "knowledge/world_db.xml",
       "project.json"
     ],
-    "models": ["gm/MedicineDelivery.txt"],
+    "models": [
+      "gm/MedicineDelivery.txt"
+    ],
     "projectResources": {
       "world": "knowledge/world_db.xml",
       "hddl": "hddl/domain.hddl",
@@ -782,8 +944,12 @@
     "name": "iStar4RationalAgents.txt",
     "form": "embedded",
     "root": "pistar-ext",
-    "files": ["iStar4RationalAgents.txt"],
-    "models": ["iStar4RationalAgents.txt"],
+    "files": [
+      "iStar4RationalAgents.txt"
+    ],
+    "models": [
+      "iStar4RationalAgents.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -793,8 +959,12 @@
     "name": "minimal.txt",
     "form": "embedded",
     "root": "pistar-ext",
-    "files": ["minimal.txt"],
-    "models": ["minimal.txt"],
+    "files": [
+      "minimal.txt"
+    ],
+    "models": [
+      "minimal.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -804,8 +974,12 @@
     "name": "stereotypes-and-tags.txt",
     "form": "embedded",
     "root": "pistar-ext",
-    "files": ["stereotypes-and-tags.txt"],
-    "models": ["stereotypes-and-tags.txt"],
+    "files": [
+      "stereotypes-and-tags.txt"
+    ],
+    "models": [
+      "stereotypes-and-tags.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -815,8 +989,12 @@
     "name": "goalModel - 2026-01-23T112755.270.txt",
     "form": "embedded",
     "root": "sleec",
-    "files": ["goalModel - 2026-01-23T112755.270.txt"],
-    "models": ["goalModel - 2026-01-23T112755.270.txt"],
+    "files": [
+      "goalModel - 2026-01-23T112755.270.txt"
+    ],
+    "models": [
+      "goalModel - 2026-01-23T112755.270.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -826,8 +1004,12 @@
     "name": "goalModel-sleec.txt",
     "form": "embedded",
     "root": "sleec",
-    "files": ["goalModel-sleec.txt"],
-    "models": ["goalModel-sleec.txt"],
+    "files": [
+      "goalModel-sleec.txt"
+    ],
+    "models": [
+      "goalModel-sleec.txt"
+    ],
     "projectResources": {},
     "outputs": []
   },
@@ -837,8 +1019,12 @@
     "name": "goalModel-sleec2.txt",
     "form": "embedded",
     "root": "sleec",
-    "files": ["goalModel-sleec2.txt"],
-    "models": ["goalModel-sleec2.txt"],
+    "files": [
+      "goalModel-sleec2.txt"
+    ],
+    "models": [
+      "goalModel-sleec2.txt"
+    ],
     "projectResources": {},
     "outputs": []
   }
