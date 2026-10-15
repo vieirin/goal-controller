@@ -9,7 +9,7 @@
       "customProperties": {},
       "nodes": [
         {
-          "id": "G12",
+          "id": "e5406b84-bdf2-44b6-ae93-9b882bc3f61d",
           "text": "G12: visitor is assisted",
           "type": "istar.Goal",
           "x": 1165,
@@ -19,7 +19,7 @@
           }
         },
         {
-          "id": "G13",
+          "id": "048569b4-5cbd-448d-ab50-1cf9a6d6e284",
           "text": "G13: visitor (v) follows museum (m) process and rules",
           "type": "istar.Goal",
           "x": 310,
@@ -27,7 +27,7 @@
           "customProperties": {}
         },
         {
-          "id": "G14",
+          "id": "d39272d5-739a-4d92-ae4d-19e6f0541a25",
           "text": "G14: (v) is out of museum by closing time",
           "type": "istar.Goal",
           "x": 215,
@@ -35,7 +35,7 @@
           "customProperties": {}
         },
         {
-          "id": "G15",
+          "id": "16634362-a1b4-4a9f-ad37-b5b06d145c34",
           "text": "G15: (v) accomplishes registration",
           "type": "istar.Goal",
           "x": 500,
@@ -43,7 +43,7 @@
           "customProperties": {}
         },
         {
-          "id": "T13",
+          "id": "19b5b162-81ee-4a74-a0ad-f9591264c7cd",
           "text": "T13: (v) is notified before closing time",
           "type": "istar.Task",
           "x": 215,
@@ -51,7 +51,7 @@
           "customProperties": {}
         },
         {
-          "id": "T14",
+          "id": "7677894e-90d5-42f8-aa19-7d5e1b3b125b",
           "text": "T14: (v) is notified to not enter",
           "type": "istar.Task",
           "x": 120,
@@ -59,7 +59,7 @@
           "customProperties": {}
         },
         {
-          "id": "T15",
+          "id": "5c5adc5f-c4ff-4a9a-a26e-0f57a3bc317c",
           "text": "T15: (v) is notified to get out",
           "type": "istar.Task",
           "x": 310,
@@ -67,7 +67,7 @@
           "customProperties": {}
         },
         {
-          "id": "G1",
+          "id": "20f946ff-f7fe-4eed-a405-c9ed34c647b8",
           "text": "G1: visitor (v) gets informed about a piece of art (p) in museum (m)",
           "type": "istar.Goal",
           "x": 1450,
@@ -75,7 +75,7 @@
           "customProperties": {}
         },
         {
-          "id": "G16",
+          "id": "dff93ef6-990b-4b11-a006-9eec7394831a",
           "text": "G16: (v) gets info via terminal (t)",
           "type": "istar.Goal",
           "x": 975,
@@ -83,7 +83,7 @@
           "customProperties": {}
         },
         {
-          "id": "G17",
+          "id": "7c9a2606-eadf-4abe-a4bd-a707527ca5dd",
           "text": "G17: (v) is notified for the service through (v)'s PDA",
           "type": "istar.Goal",
           "x": 785,
@@ -91,7 +91,7 @@
           "customProperties": {}
         },
         {
-          "id": "G18",
+          "id": "d989c4fa-21b6-4841-a557-5b187ea796db",
           "text": "G18: (v) arrives to (t)",
           "type": "istar.Goal",
           "x": 1070,
@@ -99,7 +99,7 @@
           "customProperties": {}
         },
         {
-          "id": "G19",
+          "id": "6633f1ed-9b09-4c11-a668-fec5d5da65f2",
           "text": "G19: (v) know how to use (t)",
           "type": "istar.Goal",
           "x": 1260,
@@ -107,7 +107,7 @@
           "customProperties": {}
         },
         {
-          "id": "T16",
+          "id": "64a4beb3-94a7-42fa-ab75-c31da6959dd3",
           "text": "T16: send (v) a voice command",
           "type": "istar.Task",
           "x": 690,
@@ -115,7 +115,7 @@
           "customProperties": {}
         },
         {
-          "id": "T17",
+          "id": "142cd310-8832-4c71-a288-eaad84f698d9",
           "text": "T17: alert (v) via PDA vibration and SMS",
           "type": "istar.Task",
           "x": 880,
@@ -123,7 +123,7 @@
           "customProperties": {}
         },
         {
-          "id": "T18",
+          "id": "01d6d281-6a92-430c-ad61-c7d4ca81ccec",
           "text": "T18: direct (v) to (t) place",
           "type": "istar.Task",
           "x": 1070,
@@ -131,7 +131,7 @@
           "customProperties": {}
         },
         {
-          "id": "T19",
+          "id": "57b1e496-1965-437f-a60c-cc1738c2f48c",
           "text": "T19: show demo to (v) how to use (t)",
           "type": "istar.Task",
           "x": 1260,
@@ -139,7 +139,7 @@
           "customProperties": {}
         },
         {
-          "id": "G2",
+          "id": "e0284198-ce1a-49b2-af1f-dec62522b9cc",
           "text": "G2: (v) gets info via his/her PDA",
           "type": "istar.Goal",
           "x": 1735,
@@ -147,7 +147,7 @@
           "customProperties": {}
         },
         {
-          "id": "G3",
+          "id": "4a84d12e-1e6b-48bf-ae0b-adf7351f4de0",
           "text": "G3: (v) gets info through (m) staff (s)",
           "type": "istar.Goal",
           "x": 2210,
@@ -155,7 +155,7 @@
           "customProperties": {}
         },
         {
-          "id": "G4",
+          "id": "caa22667-5940-4607-a69d-47a76c943620",
           "text": "G4: (p) info suitable to (v) is prepared",
           "type": "istar.Goal",
           "x": 1545,
@@ -163,7 +163,7 @@
           "customProperties": {}
         },
         {
-          "id": "G5",
+          "id": "441b70e2-d64d-4622-ae5d-61bd50604aa5",
           "text": "G5: (p) info is presented to (v)",
           "type": "istar.Goal",
           "x": 1925,
@@ -171,7 +171,7 @@
           "customProperties": {}
         },
         {
-          "id": "T1",
+          "id": "0c80f514-e91d-4902-a607-4aa3ade560b7",
           "text": "T1: prepare (p) brief simple information",
           "type": "istar.Task",
           "x": 1450,
@@ -179,7 +179,7 @@
           "customProperties": {}
         },
         {
-          "id": "T2",
+          "id": "2aceb7bf-941a-4e86-ae67-1951c2080af1",
           "text": "T2: prepare (p) detailed information",
           "type": "istar.Task",
           "x": 1640,
@@ -187,7 +187,7 @@
           "customProperties": {}
         },
         {
-          "id": "T3",
+          "id": "e5050687-351e-49b6-a588-03f6f67e7f68",
           "text": "T3: (p) info is presented to (v) via video",
           "type": "istar.Task",
           "x": 1830,
@@ -195,7 +195,7 @@
           "customProperties": {}
         },
         {
-          "id": "T4",
+          "id": "fa78cb2a-7cf2-4e4b-aa4e-02e777e33f59",
           "text": "T4: (v) info is presented to (v) interactively",
           "type": "istar.Task",
           "x": 2020,
@@ -203,7 +203,7 @@
           "customProperties": {}
         },
         {
-          "id": "C0",
+          "id": "7b872826-d5f3-40a2-a216-dddb976ff09d",
           "text": "C0: the visitor is inside the museum area (parking places and the public square in front of the museum included) and has accepted the assistance of the mobile information system",
           "type": "cgm.Context",
           "x": 100,
@@ -213,7 +213,7 @@
           }
         },
         {
-          "id": "C1",
+          "id": "fcbc529c-6ccc-4eee-ab1d-4bc2ca2ff737",
           "text": "C1: the visitor is still inside the gallery building and is interested in the piece of art",
           "type": "cgm.Context",
           "x": 1545,
@@ -224,7 +224,7 @@
           }
         },
         {
-          "id": "C2",
+          "id": "682a8fb0-d79a-4c9e-a017-95ce9da67f8d",
           "text": "C2: closing time is approaching",
           "type": "cgm.Context",
           "x": 300,
@@ -234,7 +234,7 @@
           }
         },
         {
-          "id": "C3",
+          "id": "660bc62d-c1a2-4827-ac43-768dc34b60af",
           "text": "C3: the visitor has entered the museum building",
           "type": "cgm.Context",
           "x": 500,
@@ -244,7 +244,7 @@
           }
         },
         {
-          "id": "C4",
+          "id": "e7b1d021-c3b4-4b7b-afc1-bdea5e85997b",
           "text": "C4: the terminal is available and close to the visitor, and the visitor is able to use and interact with it",
           "type": "cgm.Context",
           "x": 700,
@@ -254,7 +254,7 @@
           }
         },
         {
-          "id": "C5",
+          "id": "d2df3d44-8599-4b74-aa31-d53fd6ca41f4",
           "text": "C5: the piece of art's information is not complicated, and the visitor has the ability and knowledge to use PDAs",
           "type": "cgm.Context",
           "x": 900,
@@ -264,7 +264,7 @@
           }
         },
         {
-          "id": "C6",
+          "id": "4c755da6-227e-4637-a131-ee1ab02ad3d2",
           "text": "C6: the visitor is not able to use a PDA and not familiar with terminals, or is classified as an important visitor",
           "type": "cgm.Context",
           "x": 1100,
@@ -274,7 +274,7 @@
           }
         },
         {
-          "id": "C7",
+          "id": "b7086793-9c78-4026-aad7-2b39d8645170",
           "text": "C7: the visitor is on the way to enter the museum building",
           "type": "cgm.Context",
           "x": 3160,
@@ -285,7 +285,7 @@
           }
         },
         {
-          "id": "C8",
+          "id": "1fac732a-a3d1-4078-a6f2-6f1f9e52b056",
           "text": "C8: the visitor is still inside the museum building and is not walking towards the exit",
           "type": "cgm.Context",
           "x": 3445,
@@ -296,7 +296,7 @@
           }
         },
         {
-          "id": "C9",
+          "id": "5421d6a7-93c7-42ca-a04e-6a2716b6efc6",
           "text": "C9: the visitor has headphones on and is not using his PDA for a call",
           "type": "cgm.Context",
           "x": 1300,
@@ -306,7 +306,7 @@
           }
         },
         {
-          "id": "C10",
+          "id": "2433ae8e-5026-418b-ac7c-561714ed0d7f",
           "text": "C10: a staff member is available who talks the visitor's language and knows enough about the piece of art",
           "type": "cgm.Context",
           "x": 1500,
@@ -316,7 +316,7 @@
           }
         },
         {
-          "id": "ST1",
+          "id": "307fe907-e45f-4ca0-a4f2-6621db742d8f",
           "text": "ST1: (v) is in a place where (p) can be still of interest",
           "type": "cgm.Statement",
           "x": 500,
@@ -326,7 +326,7 @@
           }
         },
         {
-          "id": "ST2",
+          "id": "6770ec3b-35b0-4270-af10-4ba83138f478",
           "text": "ST2: there is still time to accomplish explanation about (p) to (v)",
           "type": "cgm.Statement",
           "x": 1260,
@@ -336,7 +336,7 @@
           }
         },
         {
-          "id": "ST3",
+          "id": "82b5b44f-a81c-4a62-aa6e-6a1b49733461",
           "text": "ST3: (p) is interesting to (v)",
           "type": "cgm.Statement",
           "x": 2210,
@@ -346,7 +346,7 @@
           }
         },
         {
-          "id": "ST4",
+          "id": "e3886f3e-d073-41ed-a498-91a3d9d3abb6",
           "text": "ST4: (v) does not already know about (p)",
           "type": "cgm.Statement",
           "x": 2875,
@@ -356,7 +356,7 @@
           }
         },
         {
-          "id": "ST5",
+          "id": "157abb77-da3f-45c4-a77a-64649ea10705",
           "text": "ST5: (v) is not in a hurry",
           "type": "cgm.Statement",
           "x": 1165,
@@ -366,7 +366,7 @@
           }
         },
         {
-          "id": "ST6",
+          "id": "8ccf48dd-c071-4878-a01a-93391bcc83c7",
           "text": "ST6: (v) does not have to work",
           "type": "cgm.Statement",
           "x": 1070,
@@ -376,7 +376,7 @@
           }
         },
         {
-          "id": "ST7",
+          "id": "f9ec51cb-4e96-40a7-a09c-d68f7155f078",
           "text": "ST7: (v) behaves in calm way",
           "type": "cgm.Statement",
           "x": 1450,
@@ -386,7 +386,7 @@
           }
         },
         {
-          "id": "ST8",
+          "id": "05eafb5c-116a-4d39-a1ef-c01a825b052a",
           "text": "ST8: (v) historically interested in (p)",
           "type": "cgm.Statement",
           "x": 2020,
@@ -396,7 +396,7 @@
           }
         },
         {
-          "id": "ST9",
+          "id": "61ab2277-e014-43a9-a9d6-6a8a16571ad7",
           "text": "ST9: (v) behaviorally interested in (p)",
           "type": "cgm.Statement",
           "x": 2495,
@@ -406,7 +406,7 @@
           }
         },
         {
-          "id": "ST1.2",
+          "id": "4fcecb3d-52d1-45ad-aa05-ef815aaa1239",
           "text": "ST1.2: visitor (v) is interested in getting explanation of piece of art (p) in museum (m)",
           "type": "cgm.Statement",
           "x": 1640,
@@ -416,7 +416,7 @@
           }
         },
         {
-          "id": "F1",
+          "id": "47078590-4548-4143-a70a-5331d3f4f382",
           "text": "F1: (v) place is close (p) room",
           "type": "cgm.Fact",
           "x": 310,
@@ -424,7 +424,7 @@
           "customProperties": {}
         },
         {
-          "id": "F2",
+          "id": "a6862933-1223-4677-a690-18effdbfc6d0",
           "text": "F2: (v) is in the corridor of (p) floor",
           "type": "cgm.Fact",
           "x": 500,
@@ -432,7 +432,7 @@
           "customProperties": {}
         },
         {
-          "id": "F3",
+          "id": "bed85ab4-b02d-4938-aa2d-88ec68c748b7",
           "text": "F3: (v) is in the same room of (p)",
           "type": "cgm.Fact",
           "x": 690,
@@ -440,7 +440,7 @@
           "customProperties": {}
         },
         {
-          "id": "F4",
+          "id": "02f9ae39-b034-4526-aa05-f69a80e37ada",
           "text": "F4: it is a holiday in (m) region",
           "type": "cgm.Fact",
           "x": 880,
@@ -448,7 +448,7 @@
           "customProperties": {}
         },
         {
-          "id": "F5",
+          "id": "ee5d4c2f-41cd-413a-a0c2-91b6a2f3e1ea",
           "text": "F5: (v) is retired",
           "type": "cgm.Fact",
           "x": 1070,
@@ -456,7 +456,7 @@
           "customProperties": {}
         },
         {
-          "id": "F6",
+          "id": "9923f0a8-21ff-43cc-a2a0-f360737fffc6",
           "text": "F6: still early to (v) visit slot end",
           "type": "cgm.Fact",
           "x": 1260,
@@ -464,7 +464,7 @@
           "customProperties": {}
         },
         {
-          "id": "F7",
+          "id": "cc1f2765-f4f5-4feb-a6e8-7556a2c8bf5f",
           "text": "F7: (v) walks slowly",
           "type": "cgm.Fact",
           "x": 1450,
@@ -472,7 +472,7 @@
           "customProperties": {}
         },
         {
-          "id": "F8",
+          "id": "4d87a205-830b-41a2-a2a2-50e8bdd59c65",
           "text": "F8: more than 30 minutes until (m) closes",
           "type": "cgm.Fact",
           "x": 1640,
@@ -480,7 +480,7 @@
           "customProperties": {}
         },
         {
-          "id": "F9",
+          "id": "3f145522-760f-49b7-a60c-0177edd56063",
           "text": "F9: (v) often asks about pieces of the same artist as (p)",
           "type": "cgm.Fact",
           "x": 1830,
@@ -488,7 +488,7 @@
           "customProperties": {}
         },
         {
-          "id": "F10",
+          "id": "4f665e57-4f4d-4da8-ae30-92b42f1fd1db",
           "text": "F10: (v) often asks about pieces belong to the same art genre as (p)",
           "type": "cgm.Fact",
           "x": 2020,
@@ -496,7 +496,7 @@
           "customProperties": {}
         },
         {
-          "id": "F11",
+          "id": "74d3fc14-63e2-4aa7-a662-e8975a4d05fc",
           "text": "F11: (v) attended (p) gallery opening",
           "type": "cgm.Fact",
           "x": 2210,
@@ -504,7 +504,7 @@
           "customProperties": {}
         },
         {
-          "id": "F12",
+          "id": "c4dbf558-841c-4494-a6b7-4a67f55f7e88",
           "text": "F12: (v) looks at (p) for long time",
           "type": "cgm.Fact",
           "x": 2400,
@@ -512,7 +512,7 @@
           "customProperties": {}
         },
         {
-          "id": "F13",
+          "id": "70730ce3-1388-4f0d-a815-9f20dfd03f44",
           "text": "F13: (v) had a look so often on (p)",
           "type": "cgm.Fact",
           "x": 2590,
@@ -520,7 +520,7 @@
           "customProperties": {}
         },
         {
-          "id": "F14",
+          "id": "01edd960-e010-4288-a45a-d92e3c784a05",
           "text": "F14: (v) never got info of (p) by (m) means",
           "type": "cgm.Fact",
           "x": 2780,
@@ -528,7 +528,7 @@
           "customProperties": {}
         },
         {
-          "id": "F15",
+          "id": "4ab234e3-0436-4252-a9a1-b2cb44a231e6",
           "text": "F15: (p) was created after (v) last visit",
           "type": "cgm.Fact",
           "x": 2970,
@@ -536,7 +536,7 @@
           "customProperties": {}
         },
         {
-          "id": "F1.1",
+          "id": "35201fe1-b0a0-4411-a6b5-1aadb656d74c",
           "text": "F1.1: visitor is inside the gallery building",
           "type": "cgm.Fact",
           "x": 120,
@@ -544,7 +544,7 @@
           "customProperties": {}
         },
         {
-          "id": "F7.1",
+          "id": "f2299667-17ac-416e-a39e-483ba7cd752e",
           "text": "F7.1: visitor is on the way to enter the museum",
           "type": "cgm.Fact",
           "x": 3160,
@@ -552,7 +552,7 @@
           "customProperties": {}
         },
         {
-          "id": "F8.1",
+          "id": "f2821f23-5264-4b81-a818-4455ac34acdb",
           "text": "F8.1: visitor is inside the museum",
           "type": "cgm.Fact",
           "x": 3350,
@@ -560,7 +560,7 @@
           "customProperties": {}
         },
         {
-          "id": "F8.2",
+          "id": "1391359f-ee63-49f5-acc0-bc790a921eb2",
           "text": "F8.2: visitor is not walking towards the exit",
           "type": "cgm.Fact",
           "x": 3540,
@@ -578,7 +578,7 @@
       "customProperties": {},
       "nodes": [
         {
-          "id": "G3.2",
+          "id": "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097",
           "text": "G3.2: (v) gets info through (m) staff (s)",
           "type": "istar.Goal",
           "x": 4510,
@@ -586,7 +586,7 @@
           "customProperties": {}
         },
         {
-          "id": "G6",
+          "id": "03346531-533d-4264-a4b6-fedd9cc94d96",
           "text": "G6: (s) is alerted",
           "type": "istar.Goal",
           "x": 4130,
@@ -594,7 +594,7 @@
           "customProperties": {}
         },
         {
-          "id": "G7",
+          "id": "71a71880-ed2b-4fb7-ae55-8fb7394988cb",
           "text": "G7: (s) gives (p) info to (v)",
           "type": "istar.Goal",
           "x": 4795,
@@ -602,7 +602,7 @@
           "customProperties": {}
         },
         {
-          "id": "G8",
+          "id": "91bbc162-9109-468e-a38e-aa85cab36004",
           "text": "G8: (s) is alerted through (s)'s PDA",
           "type": "istar.Goal",
           "x": 4035,
@@ -610,7 +610,7 @@
           "customProperties": {}
         },
         {
-          "id": "G9",
+          "id": "9f5191de-3431-4cd9-abd9-ef952acbb7e5",
           "text": "G9: (s) is alerted through public call",
           "type": "istar.Goal",
           "x": 4320,
@@ -618,7 +618,7 @@
           "customProperties": {}
         },
         {
-          "id": "G10",
+          "id": "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17",
           "text": "G10: (s) gives (p) info to (v) in person",
           "type": "istar.Goal",
           "x": 4605,
@@ -626,7 +626,7 @@
           "customProperties": {}
         },
         {
-          "id": "G11",
+          "id": "67ac25dc-625d-4fc3-ae67-95eec86c0f62",
           "text": "G11: (s) gives (p) info to (v) by call",
           "type": "istar.Goal",
           "x": 4985,
@@ -634,7 +634,7 @@
           "customProperties": {}
         },
         {
-          "id": "T5",
+          "id": "07885dd3-166b-442c-a24f-eca6c3ffb1bb",
           "text": "T5: (s) is alerted via ringing tone and SMS",
           "type": "istar.Task",
           "x": 3940,
@@ -642,7 +642,7 @@
           "customProperties": {}
         },
         {
-          "id": "T6",
+          "id": "52ba450a-6dac-4dc5-a71e-2545c20397b4",
           "text": "T6: send (s) a voice command",
           "type": "istar.Task",
           "x": 4130,
@@ -650,7 +650,7 @@
           "customProperties": {}
         },
         {
-          "id": "T7",
+          "id": "37499649-b708-4d78-ad77-4876cb26aeee",
           "text": "T7: make a call through speakers in (s) room",
           "type": "istar.Task",
           "x": 4320,
@@ -658,7 +658,7 @@
           "customProperties": {}
         },
         {
-          "id": "T12",
+          "id": "e0215d3c-6800-42a5-a39a-af122e9a1bbf",
           "text": "T12: direct (s) to (v) place",
           "type": "istar.Task",
           "x": 4605,
@@ -666,7 +666,7 @@
           "customProperties": {}
         },
         {
-          "id": "T8",
+          "id": "486ec467-2ec4-4d48-abb9-44dc0d1e6b83",
           "text": "T8: show (v) picture",
           "type": "istar.Task",
           "x": 4510,
@@ -674,7 +674,7 @@
           "customProperties": {}
         },
         {
-          "id": "T9",
+          "id": "9d742852-298d-4172-a441-146ce7aecd88",
           "text": "T9: direct (s) to (v) place",
           "type": "istar.Task",
           "x": 4700,
@@ -682,7 +682,7 @@
           "customProperties": {}
         },
         {
-          "id": "T10",
+          "id": "5d2aa272-6198-40f4-a50e-329691cb603b",
           "text": "T10: make video call between (s) and (v)",
           "type": "istar.Task",
           "x": 4890,
@@ -690,7 +690,7 @@
           "customProperties": {}
         },
         {
-          "id": "T11",
+          "id": "faa6381e-4257-4426-ad30-49e262489c37",
           "text": "T11: make voice call between (s) and (v)",
           "type": "istar.Task",
           "x": 5080,
@@ -698,7 +698,7 @@
           "customProperties": {}
         },
         {
-          "id": "SG1",
+          "id": "ccdbbf9c-3fac-41fd-a8d9-1689e9976c00",
           "text": "SG1: visitor well informed",
           "type": "istar.Quality",
           "x": 5270,
@@ -706,7 +706,7 @@
           "customProperties": {}
         },
         {
-          "id": "SG2",
+          "id": "66a8c42e-0587-45c1-a4ec-04be8d1d20d0",
           "text": "SG2: staff is more comfortable",
           "type": "istar.Quality",
           "x": 5270,
@@ -714,7 +714,7 @@
           "customProperties": {}
         },
         {
-          "id": "SG3",
+          "id": "dda8bb5a-8ea4-4c9b-a535-e0ba5faf8c87",
           "text": "SG3: calm museum",
           "type": "istar.Quality",
           "x": 5270,
@@ -722,7 +722,7 @@
           "customProperties": {}
         },
         {
-          "id": "C11",
+          "id": "ab41a82c-a596-4c6e-afeb-f81f8632b16f",
           "text": "C11: the room does not include audio art contents",
           "type": "cgm.Context",
           "x": 3920,
@@ -732,7 +732,7 @@
           }
         },
         {
-          "id": "C12",
+          "id": "3537166e-7b72-4baf-af68-4edc7fea880c",
           "text": "C12: the staff member is not calling",
           "type": "cgm.Context",
           "x": 4120,
@@ -742,7 +742,7 @@
           }
         },
         {
-          "id": "C13",
+          "id": "cdc111ae-f3b6-4e4e-a70a-30610539050c",
           "text": "C13: the staff member is not calling and is putting the headphone on",
           "type": "cgm.Context",
           "x": 4320,
@@ -752,7 +752,7 @@
           }
         },
         {
-          "id": "C14",
+          "id": "8641b8c9-0782-41db-a603-d0ff95315d10",
           "text": "C14: the visitor is close to the staff member",
           "type": "cgm.Context",
           "x": 4520,
@@ -762,7 +762,7 @@
           }
         },
         {
-          "id": "C15",
+          "id": "c6bff3ac-61b2-4df9-afc6-c50c42847048",
           "text": "C15: the staff member's PDA and the visitor's PDA are not busy",
           "type": "cgm.Context",
           "x": 4720,
@@ -777,293 +777,293 @@
   "orphans": [],
   "dependencies": [
     {
-      "id": "G3.1",
+      "id": "20040bcf-1826-4f79-a500-1731057656be",
       "text": "G3.1: (v) gets info through (m) staff (s)",
       "type": "istar.Goal",
       "x": 3360,
       "y": 290,
       "customProperties": {},
-      "source": "G3",
-      "target": "G3.2"
+      "source": "4a84d12e-1e6b-48bf-ae0b-adf7351f4de0",
+      "target": "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097"
     }
   ],
   "links": [
     {
-      "id": "G13-AndRefinementLink-G12",
+      "id": "2ddf61ef-a879-45ed-acb3-92e367c7f9a6",
       "type": "istar.AndRefinementLink",
-      "source": "G13",
-      "target": "G12"
+      "source": "048569b4-5cbd-448d-ab50-1cf9a6d6e284",
+      "target": "e5406b84-bdf2-44b6-ae93-9b882bc3f61d"
     },
     {
-      "id": "G1-AndRefinementLink-G12",
+      "id": "178de455-54aa-43bf-a7f0-77d06aab625a",
       "type": "istar.AndRefinementLink",
-      "source": "G1",
-      "target": "G12",
+      "source": "20f946ff-f7fe-4eed-a405-c9ed34c647b8",
+      "target": "e5406b84-bdf2-44b6-ae93-9b882bc3f61d",
       "customProperties": {
         "context": "C1"
       }
     },
     {
-      "id": "G14-AndRefinementLink-G13",
+      "id": "c18725df-f13e-4139-aaea-44a117bc0ecf",
       "type": "istar.AndRefinementLink",
-      "source": "G14",
-      "target": "G13",
+      "source": "d39272d5-739a-4d92-ae4d-19e6f0541a25",
+      "target": "048569b4-5cbd-448d-ab50-1cf9a6d6e284",
       "customProperties": {
         "context": "C2"
       }
     },
     {
-      "id": "G15-AndRefinementLink-G13",
+      "id": "50032c4f-1dbe-4d29-a8a2-b4522bf09f25",
       "type": "istar.AndRefinementLink",
-      "source": "G15",
-      "target": "G13",
+      "source": "16634362-a1b4-4a9f-ad37-b5b06d145c34",
+      "target": "048569b4-5cbd-448d-ab50-1cf9a6d6e284",
       "customProperties": {
         "context": "C3"
       }
     },
     {
-      "id": "T13-OrRefinementLink-G14",
+      "id": "2103409a-859b-4669-a95b-4662f63c9a96",
       "type": "istar.OrRefinementLink",
-      "source": "T13",
-      "target": "G14"
+      "source": "19b5b162-81ee-4a74-a0ad-f9591264c7cd",
+      "target": "d39272d5-739a-4d92-ae4d-19e6f0541a25"
     },
     {
-      "id": "T14-AndRefinementLink-T13",
+      "id": "5b059428-f61d-43d2-a063-bc72d0c9be68",
       "type": "istar.AndRefinementLink",
-      "source": "T14",
-      "target": "T13",
+      "source": "7677894e-90d5-42f8-aa19-7d5e1b3b125b",
+      "target": "19b5b162-81ee-4a74-a0ad-f9591264c7cd",
       "customProperties": {
         "context": "C7"
       }
     },
     {
-      "id": "T15-AndRefinementLink-T13",
+      "id": "15992d0d-c402-4aa6-a244-5ac4ab53f401",
       "type": "istar.AndRefinementLink",
-      "source": "T15",
-      "target": "T13",
+      "source": "5c5adc5f-c4ff-4a9a-a26e-0f57a3bc317c",
+      "target": "19b5b162-81ee-4a74-a0ad-f9591264c7cd",
       "customProperties": {
         "context": "C8"
       }
     },
     {
-      "id": "G16-OrRefinementLink-G1",
+      "id": "8246e4c3-15ae-461c-a883-fc3ee756b439",
       "type": "istar.OrRefinementLink",
-      "source": "G16",
-      "target": "G1",
+      "source": "dff93ef6-990b-4b11-a006-9eec7394831a",
+      "target": "20f946ff-f7fe-4eed-a405-c9ed34c647b8",
       "customProperties": {
         "context": "C4"
       }
     },
     {
-      "id": "G17-AndRefinementLink-G16",
+      "id": "41183388-0533-49ba-a8c8-fd219a50a102",
       "type": "istar.AndRefinementLink",
-      "source": "G17",
-      "target": "G16"
+      "source": "7c9a2606-eadf-4abe-a4bd-a707527ca5dd",
+      "target": "dff93ef6-990b-4b11-a006-9eec7394831a"
     },
     {
-      "id": "G18-AndRefinementLink-G16",
+      "id": "69b2967e-eaca-499b-ac32-e6f440a565ca",
       "type": "istar.AndRefinementLink",
-      "source": "G18",
-      "target": "G16"
+      "source": "d989c4fa-21b6-4841-a557-5b187ea796db",
+      "target": "dff93ef6-990b-4b11-a006-9eec7394831a"
     },
     {
-      "id": "G19-AndRefinementLink-G16",
+      "id": "ad44dd56-be55-4805-a0b3-ca6285601221",
       "type": "istar.AndRefinementLink",
-      "source": "G19",
-      "target": "G16"
+      "source": "6633f1ed-9b09-4c11-a668-fec5d5da65f2",
+      "target": "dff93ef6-990b-4b11-a006-9eec7394831a"
     },
     {
-      "id": "T16-OrRefinementLink-G17",
+      "id": "6ceda9b3-fd9c-4ad1-a6ea-40e81eb4339b",
       "type": "istar.OrRefinementLink",
-      "source": "T16",
-      "target": "G17",
+      "source": "64a4beb3-94a7-42fa-ab75-c31da6959dd3",
+      "target": "7c9a2606-eadf-4abe-a4bd-a707527ca5dd",
       "customProperties": {
         "context": "C9"
       }
     },
     {
-      "id": "T17-OrRefinementLink-G17",
+      "id": "4a583f8c-f22e-41fe-ae98-a17fee7c44d5",
       "type": "istar.OrRefinementLink",
-      "source": "T17",
-      "target": "G17",
+      "source": "142cd310-8832-4c71-a288-eaad84f698d9",
+      "target": "7c9a2606-eadf-4abe-a4bd-a707527ca5dd",
       "customProperties": {
         "context": "!C9"
       }
     },
     {
-      "id": "T18-OrRefinementLink-G18",
+      "id": "f1ab7b3e-f8c8-41b3-a89d-181e32605091",
       "type": "istar.OrRefinementLink",
-      "source": "T18",
-      "target": "G18"
+      "source": "01d6d281-6a92-430c-ad61-c7d4ca81ccec",
+      "target": "d989c4fa-21b6-4841-a557-5b187ea796db"
     },
     {
-      "id": "T19-OrRefinementLink-G19",
+      "id": "103b93d6-fdf0-45e1-a16b-57601fcb3e55",
       "type": "istar.OrRefinementLink",
-      "source": "T19",
-      "target": "G19"
+      "source": "57b1e496-1965-437f-a60c-cc1738c2f48c",
+      "target": "6633f1ed-9b09-4c11-a668-fec5d5da65f2"
     },
     {
-      "id": "G2-OrRefinementLink-G1",
+      "id": "f0cf723e-9aa6-491e-a2e9-b10597cae781",
       "type": "istar.OrRefinementLink",
-      "source": "G2",
-      "target": "G1",
+      "source": "e0284198-ce1a-49b2-af1f-dec62522b9cc",
+      "target": "20f946ff-f7fe-4eed-a405-c9ed34c647b8",
       "customProperties": {
         "context": "C5"
       }
     },
     {
-      "id": "G3-OrRefinementLink-G1",
+      "id": "e5ee4226-b7a9-46bf-a9c5-403ec09f58fc",
       "type": "istar.OrRefinementLink",
-      "source": "G3",
-      "target": "G1",
+      "source": "4a84d12e-1e6b-48bf-ae0b-adf7351f4de0",
+      "target": "20f946ff-f7fe-4eed-a405-c9ed34c647b8",
       "customProperties": {
         "context": "C6"
       }
     },
     {
-      "id": "G4-AndRefinementLink-G2",
+      "id": "f0010f46-553b-4c32-a163-a37c21ac19d2",
       "type": "istar.AndRefinementLink",
-      "source": "G4",
-      "target": "G2"
+      "source": "caa22667-5940-4607-a69d-47a76c943620",
+      "target": "e0284198-ce1a-49b2-af1f-dec62522b9cc"
     },
     {
-      "id": "G5-AndRefinementLink-G2",
+      "id": "1a859723-61de-487a-a4f2-acf78521ec0e",
       "type": "istar.AndRefinementLink",
-      "source": "G5",
-      "target": "G2"
+      "source": "441b70e2-d64d-4622-ae5d-61bd50604aa5",
+      "target": "e0284198-ce1a-49b2-af1f-dec62522b9cc"
     },
     {
-      "id": "T1-OrRefinementLink-G4",
+      "id": "6a2faba9-420b-4bfe-a1bb-ac8fc572785c",
       "type": "istar.OrRefinementLink",
-      "source": "T1",
-      "target": "G4"
+      "source": "0c80f514-e91d-4902-a607-4aa3ade560b7",
+      "target": "caa22667-5940-4607-a69d-47a76c943620"
     },
     {
-      "id": "T2-OrRefinementLink-G4",
+      "id": "62aa4b82-83f6-4ee4-a97b-2c021ed1b393",
       "type": "istar.OrRefinementLink",
-      "source": "T2",
-      "target": "G4"
+      "source": "2aceb7bf-941a-4e86-ae67-1951c2080af1",
+      "target": "caa22667-5940-4607-a69d-47a76c943620"
     },
     {
-      "id": "T3-OrRefinementLink-G5",
+      "id": "d83bf252-ab5a-4730-a689-3a1ae667754c",
       "type": "istar.OrRefinementLink",
-      "source": "T3",
-      "target": "G5"
+      "source": "e5050687-351e-49b6-a588-03f6f67e7f68",
+      "target": "441b70e2-d64d-4622-ae5d-61bd50604aa5"
     },
     {
-      "id": "T4-OrRefinementLink-G5",
+      "id": "ef720c99-5d9b-4384-afcf-4f21a9cb68f6",
       "type": "istar.OrRefinementLink",
-      "source": "T4",
-      "target": "G5"
+      "source": "fa78cb2a-7cf2-4e4b-aa4e-02e777e33f59",
+      "target": "441b70e2-d64d-4622-ae5d-61bd50604aa5"
     },
     {
-      "id": "G6-AndRefinementLink-G3.2",
+      "id": "28b417b1-018a-492f-a78f-72402f0ec679",
       "type": "istar.AndRefinementLink",
-      "source": "G6",
-      "target": "G3.2"
+      "source": "03346531-533d-4264-a4b6-fedd9cc94d96",
+      "target": "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097"
     },
     {
-      "id": "G7-AndRefinementLink-G3.2",
+      "id": "19d36637-3023-45ae-af05-37bfdb89f6e6",
       "type": "istar.AndRefinementLink",
-      "source": "G7",
-      "target": "G3.2"
+      "source": "71a71880-ed2b-4fb7-ae55-8fb7394988cb",
+      "target": "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097"
     },
     {
-      "id": "G8-OrRefinementLink-G6",
+      "id": "571aa085-6d99-4786-a159-60ad81291193",
       "type": "istar.OrRefinementLink",
-      "source": "G8",
-      "target": "G6"
+      "source": "91bbc162-9109-468e-a38e-aa85cab36004",
+      "target": "03346531-533d-4264-a4b6-fedd9cc94d96"
     },
     {
-      "id": "G9-OrRefinementLink-G6",
+      "id": "6ef68f4a-0cfe-4f72-ac9f-b233323349cf",
       "type": "istar.OrRefinementLink",
-      "source": "G9",
-      "target": "G6",
+      "source": "9f5191de-3431-4cd9-abd9-ef952acbb7e5",
+      "target": "03346531-533d-4264-a4b6-fedd9cc94d96",
       "customProperties": {
         "context": "C11"
       }
     },
     {
-      "id": "T5-OrRefinementLink-G8",
+      "id": "98fe7e7a-5542-48a6-aaea-2794b629dd76",
       "type": "istar.OrRefinementLink",
-      "source": "T5",
-      "target": "G8",
+      "source": "07885dd3-166b-442c-a24f-eca6c3ffb1bb",
+      "target": "91bbc162-9109-468e-a38e-aa85cab36004",
       "customProperties": {
         "context": "C12"
       }
     },
     {
-      "id": "T6-OrRefinementLink-G8",
+      "id": "2b505f7b-fe2d-4cf8-a9db-9ce14d2226a1",
       "type": "istar.OrRefinementLink",
-      "source": "T6",
-      "target": "G8",
+      "source": "52ba450a-6dac-4dc5-a71e-2545c20397b4",
+      "target": "91bbc162-9109-468e-a38e-aa85cab36004",
       "customProperties": {
         "context": "C13"
       }
     },
     {
-      "id": "T7-OrRefinementLink-G9",
+      "id": "1e98eff8-ae49-4567-a7b7-09fd68ba2290",
       "type": "istar.OrRefinementLink",
-      "source": "T7",
-      "target": "G9"
+      "source": "37499649-b708-4d78-ad77-4876cb26aeee",
+      "target": "9f5191de-3431-4cd9-abd9-ef952acbb7e5"
     },
     {
-      "id": "G10-OrRefinementLink-G7",
+      "id": "6df9608c-11f4-49ed-a192-06cf82f4f5f2",
       "type": "istar.OrRefinementLink",
-      "source": "G10",
-      "target": "G7"
+      "source": "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17",
+      "target": "71a71880-ed2b-4fb7-ae55-8fb7394988cb"
     },
     {
-      "id": "G11-OrRefinementLink-G7",
+      "id": "be1bc783-9f55-435b-a41d-cfff03f658df",
       "type": "istar.OrRefinementLink",
-      "source": "G11",
-      "target": "G7",
+      "source": "67ac25dc-625d-4fc3-ae67-95eec86c0f62",
+      "target": "71a71880-ed2b-4fb7-ae55-8fb7394988cb",
       "customProperties": {
         "context": "C15"
       }
     },
     {
-      "id": "T12-OrRefinementLink-G10",
+      "id": "99df2a4a-8494-40f2-aac5-1d3b8234cf43",
       "type": "istar.OrRefinementLink",
-      "source": "T12",
-      "target": "G10"
+      "source": "e0215d3c-6800-42a5-a39a-af122e9a1bbf",
+      "target": "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17"
     },
     {
-      "id": "T8-AndRefinementLink-T12",
+      "id": "1d213f9e-2bd9-4ba1-ae04-57f75cb1e33e",
       "type": "istar.AndRefinementLink",
-      "source": "T8",
-      "target": "T12"
+      "source": "486ec467-2ec4-4d48-abb9-44dc0d1e6b83",
+      "target": "e0215d3c-6800-42a5-a39a-af122e9a1bbf"
     },
     {
-      "id": "T9-AndRefinementLink-T12",
+      "id": "e9197392-c68b-440d-ab04-c156a5265df0",
       "type": "istar.AndRefinementLink",
-      "source": "T9",
-      "target": "T12"
+      "source": "9d742852-298d-4172-a441-146ce7aecd88",
+      "target": "e0215d3c-6800-42a5-a39a-af122e9a1bbf"
     },
     {
-      "id": "T10-OrRefinementLink-G11",
+      "id": "c87b8110-8904-4cd3-affe-156a5ba547d6",
       "type": "istar.OrRefinementLink",
-      "source": "T10",
-      "target": "G11"
+      "source": "5d2aa272-6198-40f4-a50e-329691cb603b",
+      "target": "67ac25dc-625d-4fc3-ae67-95eec86c0f62"
     },
     {
-      "id": "T11-OrRefinementLink-G11",
+      "id": "46143c8e-296d-4516-a317-491adcb3e882",
       "type": "istar.OrRefinementLink",
-      "source": "T11",
-      "target": "G11"
+      "source": "faa6381e-4257-4426-ad30-49e262489c37",
+      "target": "67ac25dc-625d-4fc3-ae67-95eec86c0f62"
     },
     {
-      "id": "G10-ContributionLink-SG1",
+      "id": "9c168a9f-e09d-4e0d-af55-3dec668d5cc5",
       "type": "istar.ContributionLink",
-      "source": "G10",
-      "target": "SG1",
+      "source": "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17",
+      "target": "ccdbbf9c-3fac-41fd-a8d9-1689e9976c00",
       "label": "help"
     },
     {
-      "id": "G10-ContributionLink-SG2",
+      "id": "5b748daa-be37-4ffc-a548-09a4873fddaf",
       "type": "istar.ContributionLink",
-      "source": "G10",
-      "target": "SG2",
+      "source": "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17",
+      "target": "66a8c42e-0587-45c1-a4ec-04be8d1d20d0",
       "label": "help",
       "customProperties": {
         "context": "C14",
@@ -1071,493 +1071,493 @@
       }
     },
     {
-      "id": "G11-ContributionLink-SG1",
+      "id": "d0eaae6e-1655-4bc8-a35a-d505d8c76a42",
       "type": "istar.ContributionLink",
-      "source": "G11",
-      "target": "SG1",
+      "source": "67ac25dc-625d-4fc3-ae67-95eec86c0f62",
+      "target": "ccdbbf9c-3fac-41fd-a8d9-1689e9976c00",
       "label": "break"
     },
     {
-      "id": "G11-ContributionLink-SG2",
+      "id": "9ab10177-9a4e-4fa1-a49e-c85630f877e4",
       "type": "istar.ContributionLink",
-      "source": "G11",
-      "target": "SG2",
+      "source": "67ac25dc-625d-4fc3-ae67-95eec86c0f62",
+      "target": "66a8c42e-0587-45c1-a4ec-04be8d1d20d0",
       "label": "help"
     },
     {
-      "id": "T5-ContributionLink-SG3",
+      "id": "501027aa-72dc-49b8-ae63-52e51a3604d8",
       "type": "istar.ContributionLink",
-      "source": "T5",
-      "target": "SG3",
+      "source": "07885dd3-166b-442c-a24f-eca6c3ffb1bb",
+      "target": "dda8bb5a-8ea4-4c9b-a535-e0ba5faf8c87",
       "label": "break"
     },
     {
-      "id": "T6-ContributionLink-SG3",
+      "id": "00198f66-d1a0-464f-ab76-4be2b5e4edf0",
       "type": "istar.ContributionLink",
-      "source": "T6",
-      "target": "SG3",
+      "source": "52ba450a-6dac-4dc5-a71e-2545c20397b4",
+      "target": "dda8bb5a-8ea4-4c9b-a535-e0ba5faf8c87",
       "label": "help"
     },
     {
-      "id": "T7-ContributionLink-SG3",
+      "id": "48a8c42d-f905-4a6c-af41-686220cfa3e7",
       "type": "istar.ContributionLink",
-      "source": "T7",
-      "target": "SG3",
+      "source": "37499649-b708-4d78-ad77-4876cb26aeee",
+      "target": "dda8bb5a-8ea4-4c9b-a535-e0ba5faf8c87",
       "label": "break"
     },
     {
-      "id": "G3-DependencyLink-G3.1",
+      "id": "9ced1a44-0a1d-49e7-a302-7537f858a6cf",
       "type": "istar.DependencyLink",
-      "source": "G3",
-      "target": "G3.1",
+      "source": "4a84d12e-1e6b-48bf-ae0b-adf7351f4de0",
+      "target": "20040bcf-1826-4f79-a500-1731057656be",
       "customProperties": {
         "context": "C10"
       }
     },
     {
-      "id": "G3.1-DependencyLink-G3.2",
+      "id": "3c3ef7b8-ca2b-471a-a374-f977b826b34e",
       "type": "istar.DependencyLink",
-      "source": "G3.1",
-      "target": "G3.2"
+      "source": "20040bcf-1826-4f79-a500-1731057656be",
+      "target": "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097"
     }
   ],
   "display": {
-    "G12": {
+    "e5406b84-bdf2-44b6-ae93-9b882bc3f61d": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G13": {
+    "048569b4-5cbd-448d-ab50-1cf9a6d6e284": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G14": {
+    "d39272d5-739a-4d92-ae4d-19e6f0541a25": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G15": {
+    "16634362-a1b4-4a9f-ad37-b5b06d145c34": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T13": {
+    "19b5b162-81ee-4a74-a0ad-f9591264c7cd": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T14": {
+    "7677894e-90d5-42f8-aa19-7d5e1b3b125b": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T15": {
+    "5c5adc5f-c4ff-4a9a-a26e-0f57a3bc317c": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G1": {
+    "20f946ff-f7fe-4eed-a405-c9ed34c647b8": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G16": {
+    "dff93ef6-990b-4b11-a006-9eec7394831a": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G17": {
+    "7c9a2606-eadf-4abe-a4bd-a707527ca5dd": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G18": {
+    "d989c4fa-21b6-4841-a557-5b187ea796db": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G19": {
+    "6633f1ed-9b09-4c11-a668-fec5d5da65f2": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T16": {
+    "64a4beb3-94a7-42fa-ab75-c31da6959dd3": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T17": {
+    "142cd310-8832-4c71-a288-eaad84f698d9": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T18": {
+    "01d6d281-6a92-430c-ad61-c7d4ca81ccec": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T19": {
+    "57b1e496-1965-437f-a60c-cc1738c2f48c": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G2": {
+    "e0284198-ce1a-49b2-af1f-dec62522b9cc": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G3": {
+    "4a84d12e-1e6b-48bf-ae0b-adf7351f4de0": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G4": {
+    "caa22667-5940-4607-a69d-47a76c943620": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G5": {
+    "441b70e2-d64d-4622-ae5d-61bd50604aa5": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T1": {
+    "0c80f514-e91d-4902-a607-4aa3ade560b7": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T2": {
+    "2aceb7bf-941a-4e86-ae67-1951c2080af1": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T3": {
+    "e5050687-351e-49b6-a588-03f6f67e7f68": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T4": {
+    "fa78cb2a-7cf2-4e4b-aa4e-02e777e33f59": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "C0": {
+    "7b872826-d5f3-40a2-a216-dddb976ff09d": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C1": {
+    "fcbc529c-6ccc-4eee-ab1d-4bc2ca2ff737": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C2": {
+    "682a8fb0-d79a-4c9e-a017-95ce9da67f8d": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C3": {
+    "660bc62d-c1a2-4827-ac43-768dc34b60af": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C4": {
+    "e7b1d021-c3b4-4b7b-afc1-bdea5e85997b": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C5": {
+    "d2df3d44-8599-4b74-aa31-d53fd6ca41f4": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C6": {
+    "4c755da6-227e-4637-a131-ee1ab02ad3d2": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C7": {
+    "b7086793-9c78-4026-aad7-2b39d8645170": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C8": {
+    "1fac732a-a3d1-4078-a6f2-6f1f9e52b056": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C9": {
+    "5421d6a7-93c7-42ca-a04e-6a2716b6efc6": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C10": {
+    "2433ae8e-5026-418b-ac7c-561714ed0d7f": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "ST1": {
+    "307fe907-e45f-4ca0-a4f2-6621db742d8f": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST2": {
+    "6770ec3b-35b0-4270-af10-4ba83138f478": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST3": {
+    "82b5b44f-a81c-4a62-aa6e-6a1b49733461": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST4": {
+    "e3886f3e-d073-41ed-a498-91a3d9d3abb6": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST5": {
+    "157abb77-da3f-45c4-a77a-64649ea10705": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST6": {
+    "8ccf48dd-c071-4878-a01a-93391bcc83c7": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST7": {
+    "f9ec51cb-4e96-40a7-a09c-d68f7155f078": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST8": {
+    "05eafb5c-116a-4d39-a1ef-c01a825b052a": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST9": {
+    "61ab2277-e014-43a9-a9d6-6a8a16571ad7": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "ST1.2": {
+    "4fcecb3d-52d1-45ad-aa05-ef815aaa1239": {
       "backgroundColor": "#D9D9D9",
       "width": 170,
       "height": 54
     },
-    "F1": {
+    "47078590-4548-4143-a70a-5331d3f4f382": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F2": {
+    "a6862933-1223-4677-a690-18effdbfc6d0": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F3": {
+    "bed85ab4-b02d-4938-aa2d-88ec68c748b7": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F4": {
+    "02f9ae39-b034-4526-aa05-f69a80e37ada": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F5": {
+    "ee5d4c2f-41cd-413a-a0c2-91b6a2f3e1ea": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F6": {
+    "9923f0a8-21ff-43cc-a2a0-f360737fffc6": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F7": {
+    "cc1f2765-f4f5-4feb-a6e8-7556a2c8bf5f": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F8": {
+    "4d87a205-830b-41a2-a2a2-50e8bdd59c65": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F9": {
+    "3f145522-760f-49b7-a60c-0177edd56063": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F10": {
+    "4f665e57-4f4d-4da8-ae30-92b42f1fd1db": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F11": {
+    "74d3fc14-63e2-4aa7-a662-e8975a4d05fc": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F12": {
+    "c4dbf558-841c-4494-a6b7-4a67f55f7e88": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F13": {
+    "70730ce3-1388-4f0d-a815-9f20dfd03f44": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F14": {
+    "01edd960-e010-4288-a45a-d92e3c784a05": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F15": {
+    "4ab234e3-0436-4252-a9a1-b2cb44a231e6": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F1.1": {
+    "35201fe1-b0a0-4411-a6b5-1aadb656d74c": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F7.1": {
+    "f2299667-17ac-416e-a39e-483ba7cd752e": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F8.1": {
+    "f2821f23-5264-4b81-a818-4455ac34acdb": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "F8.2": {
+    "1391359f-ee63-49f5-acc0-bc790a921eb2": {
       "backgroundColor": "#FFFFFF",
       "width": 160,
       "height": 50
     },
-    "G3.2": {
+    "6efcdd0b-3d02-4f87-a9ee-757fd9cc0097": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G6": {
+    "03346531-533d-4264-a4b6-fedd9cc94d96": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G7": {
+    "71a71880-ed2b-4fb7-ae55-8fb7394988cb": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G8": {
+    "91bbc162-9109-468e-a38e-aa85cab36004": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G9": {
+    "9f5191de-3431-4cd9-abd9-ef952acbb7e5": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G10": {
+    "f10a585b-f0b2-4f56-a2ad-e7bf0b176d17": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "G11": {
+    "67ac25dc-625d-4fc3-ae67-95eec86c0f62": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T5": {
+    "07885dd3-166b-442c-a24f-eca6c3ffb1bb": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T6": {
+    "52ba450a-6dac-4dc5-a71e-2545c20397b4": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T7": {
+    "37499649-b708-4d78-ad77-4876cb26aeee": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T12": {
+    "e0215d3c-6800-42a5-a39a-af122e9a1bbf": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T8": {
+    "486ec467-2ec4-4d48-abb9-44dc0d1e6b83": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T9": {
+    "9d742852-298d-4172-a441-146ce7aecd88": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T10": {
+    "5d2aa272-6198-40f4-a50e-329691cb603b": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "T11": {
+    "faa6381e-4257-4426-ad30-49e262489c37": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54
     },
-    "SG1": {
+    "ccdbbf9c-3fac-41fd-a8d9-1689e9976c00": {
       "backgroundColor": "#CDFECD",
       "width": 130,
       "height": 54
     },
-    "SG2": {
+    "66a8c42e-0587-45c1-a4ec-04be8d1d20d0": {
       "backgroundColor": "#CDFECD",
       "width": 130,
       "height": 54
     },
-    "SG3": {
+    "dda8bb5a-8ea4-4c9b-a535-e0ba5faf8c87": {
       "backgroundColor": "#CDFECD",
       "width": 130,
       "height": 54
     },
-    "C11": {
+    "ab41a82c-a596-4c6e-afeb-f81f8632b16f": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C12": {
+    "3537166e-7b72-4baf-af68-4edc7fea880c": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C13": {
+    "cdc111ae-f3b6-4e4e-a70a-30610539050c": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C14": {
+    "8641b8c9-0782-41db-a603-d0ff95315d10": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "C15": {
+    "c6bff3ac-61b2-4df9-afc6-c50c42847048": {
       "backgroundColor": "#E6E6E6",
       "width": 180,
       "height": 50
     },
-    "G3.1": {
+    "20040bcf-1826-4f79-a500-1731057656be": {
       "backgroundColor": "#CDFECD",
       "width": 150,
       "height": 54

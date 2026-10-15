@@ -183,19 +183,20 @@ describe('Contextual goal models: situations, contributions and costs', () => {
 
   it("a contribution's sign: Code 3's, and Example 1's when C14 is false (#151 D10)", () => {
     const cgm = readCgmModel(seedModel('museum-guide-costs'));
-    const sign = (id: string, holding: string[]) =>
+    // a contribution by its ends' ids, `G10 SG1`
+    const sign = (ends: string, holding: string[]) =>
       contributionSign(
-        cgm.contributions.find((l) => l.id === id)!,
+        cgm.contributions.find(
+          (l) => `${cgm.idOf(l.source)} ${cgm.idOf(l.target)}` === ends,
+        )!,
         (formula) =>
           evaluate(readAssertion(formula), (n) => holding.includes(n)),
       );
     assert.deepStrictEqual(
-      [
-        'G10-ContributionLink-SG1',
-        'G10-ContributionLink-SG2',
-        'G11-ContributionLink-SG1',
-        'G11-ContributionLink-SG2',
-      ].map((id) => [sign(id, ['C14']), sign(id, [])]),
+      ['G10 SG1', 'G10 SG2', 'G11 SG1', 'G11 SG2'].map((id) => [
+        sign(id, ['C14']),
+        sign(id, []),
+      ]),
       [
         ['pos', 'pos'],
         ['pos', 'neg'],

@@ -274,17 +274,21 @@ describe('Contextual goal models in the Notation view', () => {
   it('sets a link context and a cost from their lines', () => {
     const view = seedView('museum-guide-costs');
     const { text } = notationDocument(cgm, view);
+    const iStarIdOf = (id: string) => view.nodes.get(id)!.iStarId;
+    const link = view.links.find(
+      (l) => l.source === 'G2' && l.target === 'G1',
+    )!.iStarId;
     assert.deepStrictEqual(
       notationEdits(
         cgm,
         text.replace('link G1 {context = C5}', 'link G1 {context = C5 & !C6}'),
         view,
       ),
-      [{ link: 'G2-OrRefinementLink-G1', key: 'context', value: 'C5 & !C6' }],
+      [{ link, key: 'context', value: 'C5 & !C6' }],
     );
     assert.deepStrictEqual(
       notationEdits(cgm, text.replace('cost 60', 'cost 65'), view),
-      [{ iStarId: 'T3', key: 'cost', value: '65' }],
+      [{ iStarId: iStarIdOf('T3'), key: 'cost', value: '65' }],
     );
   });
 });
