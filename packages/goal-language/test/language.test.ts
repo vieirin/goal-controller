@@ -351,22 +351,68 @@ describe('documents', () => {
 });
 
 describe('values', () => {
-  it('reads an assertion: & before |, ! takes the rest, zero is an int', () => {
+  it('reads an assertion: ! before & before |, zero is an int', () => {
     assert.deepEqual(parseValue('assertion', 'x > 0 & !y = true | z'), {
       value: {
-        kind: 'and',
-        left: { kind: 'compare', variable: 'x', operator: '>', value: '0' },
-        right: {
-          kind: 'not',
-          expr: {
-            kind: 'or',
-            left: { kind: 'assign', variable: 'y', value: true },
-            right: { kind: 'var', variable: 'z' },
+        kind: 'or',
+        left: {
+          kind: 'and',
+          left: { kind: 'compare', variable: 'x', operator: '>', value: '0' },
+          right: {
+            kind: 'not',
+            expr: { kind: 'assign', variable: 'y', value: true },
           },
         },
+        right: { kind: 'var', variable: 'z' },
       },
       errors: [],
     });
+  });
+
+  it('reads ! as negating the operand it precedes, and a group when it precedes one', () => {
+    assert.deepEqual(readAssertion('!C13 | C12'), {
+      kind: 'or',
+      left: { kind: 'not', expr: { kind: 'var', variable: 'C13' } },
+      right: { kind: 'var', variable: 'C12' },
+    });
+    assert.deepEqual(readAssertion('!(a | b)'), {
+      kind: 'not',
+      expr: {
+        kind: 'paren',
+        expr: {
+          kind: 'or',
+          left: { kind: 'var', variable: 'a' },
+          right: { kind: 'var', variable: 'b' },
+        },
+      },
+    });
+    assert.deepEqual(readAssertion('!!a & b'), {
+      kind: 'and',
+      left: {
+        kind: 'not',
+        expr: { kind: 'not', expr: { kind: 'var', variable: 'a' } },
+      },
+      right: { kind: 'var', variable: 'b' },
+    });
+  });
+
+  it('reads a dotted id of any prefix as one name (F7.1, ST1.2), and G3.1 as before', () => {
+    assert.deepEqual(readAssertion('F7.1 & !ST1.2'), {
+      kind: 'and',
+      left: { kind: 'var', variable: 'F7.1' },
+      right: { kind: 'not', expr: { kind: 'var', variable: 'ST1.2' } },
+    });
+    assert.deepEqual(readAssertion('G3.1 | T1.2X'), {
+      kind: 'or',
+      left: { kind: 'var', variable: 'G3.1' },
+      right: { kind: 'var', variable: 'T1.2X' },
+    });
+    assert.deepEqual(readAssertion('room.clean'), {
+      kind: 'member',
+      ref: 'room',
+      member: 'clean',
+    });
+    assert.equal(assertionText(parseValue('assertion', 'F7.1 & !ST1.2').value), 'F7.1 & !ST1.2');
   });
 
   it('reads each predefined type', () => {
@@ -584,20 +630,17 @@ describe('assertions with expressions', () => {
   it('reads a call as a condition on its own, and a comparison of one as before', () => {
     const text = 'previous(hvacOn) & !signalOffS | signalOnS';
     assert.deepEqual(readAssertion(text), {
-      kind: 'and',
+      kind: 'or',
       left: {
-        kind: 'call',
-        name: 'previous',
-        args: [{ kind: 'var', name: 'hvacOn' }],
-      },
-      right: {
-        kind: 'not',
-        expr: {
-          kind: 'or',
-          left: { kind: 'var', variable: 'signalOffS' },
-          right: { kind: 'var', variable: 'signalOnS' },
+        kind: 'and',
+        left: {
+          kind: 'call',
+          name: 'previous',
+          args: [{ kind: 'var', name: 'hvacOn' }],
         },
+        right: { kind: 'not', expr: { kind: 'var', variable: 'signalOffS' } },
       },
+      right: { kind: 'var', variable: 'signalOnS' },
     });
     assert.equal(assertionText(parseValue('assertion', text).value), text);
     assert.equal(readAssertion('(previous(on)) | f(G1, 2)')?.kind, 'or');
