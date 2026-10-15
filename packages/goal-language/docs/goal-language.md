@@ -66,6 +66,53 @@ of `AnnotatedName` lines. A name there is any text on one line except
 brackets and braces. A line may start with an id (`G1: Deliver`), which
 names its element; a line without one is the element at its position.
 
+### Property lines without ids
+
+A dialect without ids may declare properties on the kinds it lists
+(goal-controller#138). Its **declared keys are tokens**, as id prefixes are:
+
+```
+RoomClean
+  type achieve
+  achievement roomClean
+  "type achieve"
+    type maintain
+```
+
+- A line that starts (after its indentation) with one of the dialect's
+  declared keys (`propertyLineOrder`), followed by a space or the line's end,
+  is a `PropertyLine` of the element line above it. Any other line is an
+  `AnnotatedName`, its element's by position. A key is a whole word, before
+  any annotation: `typed in`, `Type it` and `<<x>> type achieve` are element
+  lines.
+- The value is the property's, read by its type as on a line with ids: a
+  value its type rejects (`type perform`) is a diagnostic on the line, and
+  the line stays a property line. A line doesn't turn into an element line
+  while its value is being typed, so completion and the element order hold.
+- **Positions count element lines only.** Property lines, like link and
+  actor lines, are added and removed freely; the `ids` of
+  `notationDocument` (the context's `order`) list the element lines alone.
+- The Notation view writes an element's properties under its line, in
+  `propertyLineOrder`, indented one `indent` deeper, as a document with ids
+  does.
+- **A name that would read as a property line is written quoted**
+  (`"type achieve"`), as a link line names its target: `\"` and `\\` are
+  escaped in it. A name that is itself quoted (`"sweep"`) is quoted again
+  (`"\"sweep\""`), so a quoted line always reads back as the name in its
+  quotes. Only the line is quoted: the element's text in the model, and a
+  link line's target, are the name itself. No new token: `PLAIN_NAME`
+  already reads a quoted name, and `readLine` takes its quotes off
+  (`writtenName`, `unquotedName`).
+- The GoalLexer reads keys only where it is given the dialect's
+  (`propertyKeysOf(definition)`, passed as `parseWith`'s `keys`, as
+  `idPrefixesOf` gives the id prefixes). A dialect without declared keys
+  (GRL) reads every line as before, and quotes no name.
+- **Completion:** after the indentation, on a line that isn't an element's
+  (a blank one, or one past the elements' count), the keys the element above
+  declares and hasn't set; after a key, its value by its type. **Hover,
+  diagnostics and navigation** treat the line as an id document's property
+  line, the element above being the one at its position.
+
 ### Predefined value types
 
 Each value type has a rule of its own, so an inspector field can read one
@@ -177,9 +224,10 @@ Heat with the heat pump
   link "Comfort"#2 {weight = 25}
 ```
 
-- Such a document has no property lines, so a line starting `link "` is read
-  as a link line, and any other line as an element line. An element whose
-  text starts `link "` would be read as a link line.
+- Such a document reads a line starting `link "` as a link line, a line
+  starting with one of its declared keys as a property line (above), and any
+  other line as an element line. An element whose text starts `link "` would
+  be read as a link line.
 - A link line keeps its place in the document's order: lines are still their
   elements' by position, and a link line's is its source's.
 - **Diagnostics** besides the ones above: a text no element has
