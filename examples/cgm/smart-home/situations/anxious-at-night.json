@@ -1,0 +1,21 @@
+{
+  "label": "Ours: the patient is at home, anxious (pounding heart, sweating, short of breath), at night, the phone free",
+  "contexts": {
+    "C0": true,
+    "C4": true,
+    "C9": true,
+    "C11": true
+  },
+  "facts": {
+    "F1": true,
+    "F2": true,
+    "F3": true,
+    "F4": true,
+    "F7.2": true
+  },
+  "priorities": {
+    "SG1": 2,
+    "SG2": 1,
+    "SG3": 3
+  }
+}

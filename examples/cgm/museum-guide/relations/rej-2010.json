@@ -1,0 +1,4 @@
+{
+  "label": "REJ 2010 Examples 2–4: wp8.1 → ¬wp7.1, C7 against C1 (Fig. 9), C13 → C12 (Fig. 11)",
+  "absolute": ["!F8.1 | !F7.1", "!F7.1 | !F1.1", "!C13 | C12"]
+}

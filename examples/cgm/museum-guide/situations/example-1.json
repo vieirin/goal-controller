@@ -1,0 +1,15 @@
+{
+  "label": "REJ 2010 Example 1 (Fig. 7): C14 false, staff is more comfortable 4, visitor well informed 3",
+  "contexts": {
+    "C0": true,
+    "C1": true,
+    "C6": true,
+    "C10": true,
+    "C13": true,
+    "C15": true
+  },
+  "priorities": {
+    "SG1": 3,
+    "SG2": 4
+  }
+}

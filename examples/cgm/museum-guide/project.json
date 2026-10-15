@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "cgm",
+  "models": [
+    {
+      "path": "museum-guide.txt"
+    }
+  ],
+  "projectResources": {
+    "situations": ["situations/example-1.json"],
+    "relations": ["relations/rej-2010.json"]
+  },
+  "outputs": []
+}

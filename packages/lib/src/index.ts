@@ -250,6 +250,32 @@ export {
   type Tropos4asModel,
   type Tropos4asProblem,
 } from './engines/tropos4as';
+// Contextual goal models (goal-controller#153): the dialect, its kinds,
+// checks and resources (situations, logical relations)
+export {
+  cgm,
+  cgmAnalysisModel,
+  cgmCheckRegistry,
+  cgmEngineMapper,
+  cgmExtension,
+  cgmMetamodelBlock,
+  cgmProjectResourceParsers,
+  readRelationSets as readCgmRelations,
+  readSituations as readCgmSituations,
+  readCgmModel,
+  cgmProblems,
+  type CgmProblem,
+  reContextDlv,
+  dlvGuardAtom,
+  dlvConstant,
+  contextsHolding,
+  contributionSign,
+  costOfTasks,
+  type CgmModel,
+  type CgmCheckName,
+  type RelationSet as CgmRelationSet,
+  type Situation as CgmSituation,
+} from './engines/cgm';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
 // native files (goal-controller#143): the round-trip contract (the formats
@@ -310,6 +336,7 @@ export { godaEngine } from './engines/goda/engine';
 export { grlEngine } from './engines/grl/engine';
 export { istardtEngine } from './engines/istardt/engine';
 export { tropos4asEngine } from './engines/tropos4as/engine';
+export { cgmEngine } from './engines/cgm/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

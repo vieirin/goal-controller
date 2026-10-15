@@ -1,0 +1,45 @@
+% RE-Context (REJ 2010 Code 2): the goal model and its contexts
+ach(g0).
+c0 :- ach(g0).
+ach(g1) | drop(g1) :- ach(g0).
+c1 :- ach(g1).
+not_c1 :- drop(g1).
+ach(g2) | drop(g2) :- ach(g0).
+c2 :- ach(g2).
+not_c2 :- drop(g2).
+ach(g3) :- ach(g0).
+ach(g4) | ach(g5) :- ach(g1).
+c3 :- ach(g4).
+c4 :- ach(g5).
+todo(t1) | todo(t2) :- ach(g4).
+ach(g8) :- ach(g5).
+ach(g9) :- ach(g5).
+ach(g10) :- ach(g5).
+todo(t3) :- ach(g8).
+todo(t4) | todo(t5) :- ach(g9).
+c9 :- todo(t4).
+c10 :- todo(t5).
+todo(t15) :- ach(g10).
+todo(t6) | todo(t7) :- todo(t15).
+c11 :- todo(t6).
+todo(t8) | todo(t9) :- ach(g2).
+c5 :- todo(t8).
+ach(g6) | drop(g6) :- ach(g3).
+c7 :- ach(g6).
+not_c7 :- drop(g6).
+ach(g7) | drop(g7) :- ach(g3).
+c8 :- ach(g7).
+not_c8 :- drop(g7).
+todo(t10) :- ach(g6).
+ach(g11) :- ach(g7).
+ach(g12) :- ach(g7).
+todo(t14) :- ach(g11).
+ach(g13) | ach(g14) :- ach(g12).
+todo(t16) :- ach(g13).
+todo(t11) :- todo(t16).
+todo(t12) | drop(t12) :- todo(t16).
+c12 :- todo(t12).
+not_c12 :- drop(t12).
+todo(t13) :- todo(t16).
+ach(g14_1) :- ach(g14).
+c13 :- ach(g14_1).

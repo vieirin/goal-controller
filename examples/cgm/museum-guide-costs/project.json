@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "dialect": "cgm",
+  "models": [
+    {
+      "path": "museum-guide-costs.txt"
+    }
+  ],
+  "projectResources": {
+    "situations": ["situations/code-3.json"],
+    "relations": ["relations/fig-13.json"]
+  },
+  "outputs": []
+}

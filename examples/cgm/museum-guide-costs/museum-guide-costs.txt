@@ -1,0 +1,874 @@
+{
+  "actors": [
+    {
+      "id": "VisitorAssistanceSystem",
+      "text": "Visitor Assistance System",
+      "type": "istar.Actor",
+      "x": 40,
+      "y": 40,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "G1",
+          "text": "G1: visitor (v) gets informed about a piece of art (p) in museum (m)",
+          "type": "istar.Goal",
+          "x": 500,
+          "y": 120,
+          "customProperties": {}
+        },
+        {
+          "id": "G2",
+          "text": "G2: (v) gets info via his/her PDA",
+          "type": "istar.Goal",
+          "x": 405,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G3",
+          "text": "G3: (v) gets info through (m) staff (s)",
+          "type": "istar.Goal",
+          "x": 880,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G4",
+          "text": "G4: (p) info suitable to (v) is prepared",
+          "type": "istar.Goal",
+          "x": 215,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G5",
+          "text": "G5: (p) info is presented to (v)",
+          "type": "istar.Goal",
+          "x": 595,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T1",
+          "text": "T1: prepare (p) brief simple information",
+          "type": "istar.Task",
+          "x": 120,
+          "y": 450,
+          "customProperties": {
+            "cost": "30"
+          }
+        },
+        {
+          "id": "T2",
+          "text": "T2: prepare (p) detailed information",
+          "type": "istar.Task",
+          "x": 310,
+          "y": 450,
+          "customProperties": {
+            "cost": "40"
+          }
+        },
+        {
+          "id": "T3",
+          "text": "T3: (p) info is presented to (v) via video",
+          "type": "istar.Task",
+          "x": 500,
+          "y": 450,
+          "customProperties": {
+            "cost": "60"
+          }
+        },
+        {
+          "id": "T4",
+          "text": "T4: (v) info is presented to (v) interactively",
+          "type": "istar.Task",
+          "x": 690,
+          "y": 450,
+          "customProperties": {
+            "cost": "80"
+          }
+        },
+        {
+          "id": "C5",
+          "text": "C5: the piece of art's information is not complicated, and the visitor has the ability and knowledge to use PDAs",
+          "type": "cgm.Context",
+          "x": 100,
+          "y": 560,
+          "customProperties": {
+            "description": "the piece of art’s information is not complicated, and the visitor has the ability and knowledge to use PDAs"
+          }
+        },
+        {
+          "id": "C6",
+          "text": "C6: the visitor is not able to use a PDA and not familiar with terminals, or is classified as an important visitor",
+          "type": "cgm.Context",
+          "x": 300,
+          "y": 560,
+          "customProperties": {
+            "description": "the visitor is not able to use a PDA and not familiar with terminals, or is classified as an important visitor"
+          }
+        },
+        {
+          "id": "C10",
+          "text": "C10: a staff member is available who talks the visitor's language and knows enough about the piece of art",
+          "type": "cgm.Context",
+          "x": 500,
+          "y": 560,
+          "customProperties": {
+            "description": "a staff member is available who talks the visitor’s language and knows enough about the piece of art"
+          }
+        }
+      ]
+    },
+    {
+      "id": "StaffAssistanceSystem",
+      "text": "Staff Assistance System",
+      "type": "istar.Actor",
+      "x": 1200,
+      "y": 40,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "G3.2",
+          "text": "G3.2: (v) gets info through (m) staff (s)",
+          "type": "istar.Goal",
+          "x": 1850,
+          "y": 120,
+          "customProperties": {}
+        },
+        {
+          "id": "G6",
+          "text": "G6: (s) is alerted",
+          "type": "istar.Goal",
+          "x": 1470,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G7",
+          "text": "G7: (s) gives (p) info to (v)",
+          "type": "istar.Goal",
+          "x": 2135,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G8",
+          "text": "G8: (s) is alerted through (s)'s PDA",
+          "type": "istar.Goal",
+          "x": 1375,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G9",
+          "text": "G9: (s) is alerted through public call",
+          "type": "istar.Goal",
+          "x": 1660,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G10",
+          "text": "G10: (s) gives (p) info to (v) in person",
+          "type": "istar.Goal",
+          "x": 1945,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G11",
+          "text": "G11: (s) gives (p) info to (v) by call",
+          "type": "istar.Goal",
+          "x": 2325,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T5",
+          "text": "T5: (s) is alerted via ringing tone and SMS",
+          "type": "istar.Task",
+          "x": 1280,
+          "y": 450,
+          "customProperties": {
+            "cost": "25"
+          }
+        },
+        {
+          "id": "T6",
+          "text": "T6: send (s) a voice command",
+          "type": "istar.Task",
+          "x": 1470,
+          "y": 450,
+          "customProperties": {
+            "cost": "35"
+          }
+        },
+        {
+          "id": "T7",
+          "text": "T7: make a call through speakers in (s) room",
+          "type": "istar.Task",
+          "x": 1660,
+          "y": 450,
+          "customProperties": {
+            "cost": "50"
+          }
+        },
+        {
+          "id": "T12",
+          "text": "T12: direct (s) to (v) place",
+          "type": "istar.Task",
+          "x": 1945,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T8",
+          "text": "T8: show (v) picture",
+          "type": "istar.Task",
+          "x": 1850,
+          "y": 560,
+          "customProperties": {
+            "cost": "30"
+          }
+        },
+        {
+          "id": "T9",
+          "text": "T9: direct (s) to (v) place",
+          "type": "istar.Task",
+          "x": 2040,
+          "y": 560,
+          "customProperties": {
+            "cost": "50"
+          }
+        },
+        {
+          "id": "T10",
+          "text": "T10: make video call between (s) and (v)",
+          "type": "istar.Task",
+          "x": 2230,
+          "y": 450,
+          "customProperties": {
+            "cost": "50"
+          }
+        },
+        {
+          "id": "T11",
+          "text": "T11: make voice call between (s) and (v)",
+          "type": "istar.Task",
+          "x": 2420,
+          "y": 450,
+          "customProperties": {
+            "cost": "30"
+          }
+        },
+        {
+          "id": "SG1",
+          "text": "SG1: visitor well informed",
+          "type": "istar.Quality",
+          "x": 2610,
+          "y": 200,
+          "customProperties": {}
+        },
+        {
+          "id": "SG2",
+          "text": "SG2: staff is more comfortable",
+          "type": "istar.Quality",
+          "x": 2610,
+          "y": 310,
+          "customProperties": {}
+        },
+        {
+          "id": "C11",
+          "text": "C11: the room does not include audio art contents",
+          "type": "cgm.Context",
+          "x": 1260,
+          "y": 670,
+          "customProperties": {
+            "description": "the room does not include audio art contents"
+          }
+        },
+        {
+          "id": "C12",
+          "text": "C12: the staff member is not calling",
+          "type": "cgm.Context",
+          "x": 1460,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member is not calling"
+          }
+        },
+        {
+          "id": "C13",
+          "text": "C13: the staff member is not calling and is putting the headphone on",
+          "type": "cgm.Context",
+          "x": 1660,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member is not calling and is putting the headphone on"
+          }
+        },
+        {
+          "id": "C14",
+          "text": "C14: the visitor is close to the staff member",
+          "type": "cgm.Context",
+          "x": 1860,
+          "y": 670,
+          "customProperties": {
+            "description": "the visitor is close to the staff member"
+          }
+        },
+        {
+          "id": "C15",
+          "text": "C15: the staff member's PDA and the visitor's PDA are not busy",
+          "type": "cgm.Context",
+          "x": 2060,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member’s PDA and the visitor’s PDA are not busy"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [
+    {
+      "id": "G3.1",
+      "text": "G3.1: (v) gets info through (m) staff (s)",
+      "type": "istar.Goal",
+      "x": 1365,
+      "y": 235,
+      "customProperties": {},
+      "source": "G3",
+      "target": "G3.2"
+    }
+  ],
+  "links": [
+    {
+      "id": "G2-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G2",
+      "target": "G1",
+      "customProperties": {
+        "context": "C5"
+      }
+    },
+    {
+      "id": "G3-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G3",
+      "target": "G1",
+      "customProperties": {
+        "context": "C6"
+      }
+    },
+    {
+      "id": "G4-AndRefinementLink-G2",
+      "type": "istar.AndRefinementLink",
+      "source": "G4",
+      "target": "G2"
+    },
+    {
+      "id": "G5-AndRefinementLink-G2",
+      "type": "istar.AndRefinementLink",
+      "source": "G5",
+      "target": "G2"
+    },
+    {
+      "id": "T1-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T1",
+      "target": "G4"
+    },
+    {
+      "id": "T2-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T2",
+      "target": "G4"
+    },
+    {
+      "id": "T3-OrRefinementLink-G5",
+      "type": "istar.OrRefinementLink",
+      "source": "T3",
+      "target": "G5"
+    },
+    {
+      "id": "T4-OrRefinementLink-G5",
+      "type": "istar.OrRefinementLink",
+      "source": "T4",
+      "target": "G5"
+    },
+    {
+      "id": "G6-AndRefinementLink-G3.2",
+      "type": "istar.AndRefinementLink",
+      "source": "G6",
+      "target": "G3.2"
+    },
+    {
+      "id": "G7-AndRefinementLink-G3.2",
+      "type": "istar.AndRefinementLink",
+      "source": "G7",
+      "target": "G3.2"
+    },
+    {
+      "id": "G8-OrRefinementLink-G6",
+      "type": "istar.OrRefinementLink",
+      "source": "G8",
+      "target": "G6"
+    },
+    {
+      "id": "G9-OrRefinementLink-G6",
+      "type": "istar.OrRefinementLink",
+      "source": "G9",
+      "target": "G6",
+      "customProperties": {
+        "context": "C11"
+      }
+    },
+    {
+      "id": "T5-OrRefinementLink-G8",
+      "type": "istar.OrRefinementLink",
+      "source": "T5",
+      "target": "G8",
+      "customProperties": {
+        "context": "C12"
+      }
+    },
+    {
+      "id": "T6-OrRefinementLink-G8",
+      "type": "istar.OrRefinementLink",
+      "source": "T6",
+      "target": "G8",
+      "customProperties": {
+        "context": "C13"
+      }
+    },
+    {
+      "id": "T7-OrRefinementLink-G9",
+      "type": "istar.OrRefinementLink",
+      "source": "T7",
+      "target": "G9"
+    },
+    {
+      "id": "G10-OrRefinementLink-G7",
+      "type": "istar.OrRefinementLink",
+      "source": "G10",
+      "target": "G7"
+    },
+    {
+      "id": "G11-OrRefinementLink-G7",
+      "type": "istar.OrRefinementLink",
+      "source": "G11",
+      "target": "G7",
+      "customProperties": {
+        "context": "C15"
+      }
+    },
+    {
+      "id": "T12-OrRefinementLink-G10",
+      "type": "istar.OrRefinementLink",
+      "source": "T12",
+      "target": "G10"
+    },
+    {
+      "id": "T8-AndRefinementLink-T12",
+      "type": "istar.AndRefinementLink",
+      "source": "T8",
+      "target": "T12"
+    },
+    {
+      "id": "T9-AndRefinementLink-T12",
+      "type": "istar.AndRefinementLink",
+      "source": "T9",
+      "target": "T12"
+    },
+    {
+      "id": "T10-OrRefinementLink-G11",
+      "type": "istar.OrRefinementLink",
+      "source": "T10",
+      "target": "G11"
+    },
+    {
+      "id": "T11-OrRefinementLink-G11",
+      "type": "istar.OrRefinementLink",
+      "source": "T11",
+      "target": "G11"
+    },
+    {
+      "id": "G10-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "G10",
+      "target": "SG1",
+      "label": "help"
+    },
+    {
+      "id": "G10-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "G10",
+      "target": "SG2",
+      "label": "help",
+      "customProperties": {
+        "context": "C14",
+        "opposite": "!C14"
+      }
+    },
+    {
+      "id": "G11-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "G11",
+      "target": "SG1",
+      "label": "break"
+    },
+    {
+      "id": "G11-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "G11",
+      "target": "SG2",
+      "label": "help"
+    },
+    {
+      "id": "T2-IncludesLink-T1",
+      "type": "cgm.IncludesLink",
+      "source": "T2",
+      "target": "T1"
+    },
+    {
+      "id": "T3-IntersectsLink-T4",
+      "type": "cgm.IntersectsLink",
+      "source": "T3",
+      "target": "T4",
+      "customProperties": {
+        "amount": "40"
+      }
+    },
+    {
+      "id": "T3-IntersectsLink-T5",
+      "type": "cgm.IntersectsLink",
+      "source": "T3",
+      "target": "T5",
+      "customProperties": {
+        "amount": "20"
+      }
+    },
+    {
+      "id": "T4-IntersectsLink-T5",
+      "type": "cgm.IntersectsLink",
+      "source": "T4",
+      "target": "T5",
+      "customProperties": {
+        "amount": "20"
+      }
+    },
+    {
+      "id": "T4-IntersectsLink-T9",
+      "type": "cgm.IntersectsLink",
+      "source": "T4",
+      "target": "T9",
+      "customProperties": {
+        "amount": "30"
+      }
+    },
+    {
+      "id": "G3-DependencyLink-G3.1",
+      "type": "istar.DependencyLink",
+      "source": "G3",
+      "target": "G3.1",
+      "customProperties": {
+        "context": "C10"
+      }
+    },
+    {
+      "id": "G3.1-DependencyLink-G3.2",
+      "type": "istar.DependencyLink",
+      "source": "G3.1",
+      "target": "G3.2"
+    }
+  ],
+  "display": {
+    "G1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "C5": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C6": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C10": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "G3.2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T12": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "SG1": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "SG2": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "C11": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C12": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C13": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C14": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C15": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "G3.1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 15 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 2860,
+    "height": 820,
+    "name": "museum-guide-costs",
+    "customProperties": {
+      "Description": "REJ 2010 Fig. 13: the fragment of the museum guide (Fig. 2) the minimum-cost reasoning is shown on, with its task costs and cost relations"
+    }
+  },
+  "metamodel": {
+    "name": "cgm",
+    "elements": [
+      {
+        "kind": "cgm.Context",
+        "label": "Context",
+        "category": "node",
+        "size": {
+          "width": 80,
+          "height": 36
+        },
+        "shape": {
+          "path": "M 2 2 L 78 2 L 78 34 L 2 34 Z",
+          "viewBox": "0 0 80 36"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Statement",
+        "label": "Statement",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 46
+        },
+        "shape": {
+          "path": "M 2 2 L 92 2 L 92 38 L 2 38 Z M 92 8 L 98 8 L 98 44 L 8 44 L 8 38",
+          "viewBox": "0 0 100 46"
+        },
+        "textBox": {
+          "top": 0.08,
+          "right": 0.12,
+          "bottom": 0.2,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Fact",
+        "label": "Fact",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 14 2 L 98 2 L 86 38 L 2 38 Z",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.16,
+          "bottom": 0.1,
+          "left": 0.16
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "cgm.IncludesLink",
+        "label": "includes",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "cgm.IntersectsLink",
+        "label": "intersects",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      }
+    ]
+  }
+}

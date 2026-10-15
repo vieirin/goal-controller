@@ -1,0 +1,1675 @@
+{
+  "actors": [
+    {
+      "id": "VisitorAssistanceSystem",
+      "text": "Visitor Assistance System",
+      "type": "istar.Actor",
+      "x": 40,
+      "y": 40,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "G12",
+          "text": "G12: visitor is assisted",
+          "type": "istar.Goal",
+          "x": 1165,
+          "y": 120,
+          "customProperties": {
+            "activation": "C0"
+          }
+        },
+        {
+          "id": "G13",
+          "text": "G13: visitor (v) follows museum (m) process and rules",
+          "type": "istar.Goal",
+          "x": 310,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G14",
+          "text": "G14: (v) is out of museum by closing time",
+          "type": "istar.Goal",
+          "x": 215,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G15",
+          "text": "G15: (v) accomplishes registration",
+          "type": "istar.Goal",
+          "x": 500,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T13",
+          "text": "T13: (v) is notified before closing time",
+          "type": "istar.Task",
+          "x": 215,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T14",
+          "text": "T14: (v) is notified to not enter",
+          "type": "istar.Task",
+          "x": 120,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T15",
+          "text": "T15: (v) is notified to get out",
+          "type": "istar.Task",
+          "x": 310,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "G1",
+          "text": "G1: visitor (v) gets informed about a piece of art (p) in museum (m)",
+          "type": "istar.Goal",
+          "x": 1450,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G16",
+          "text": "G16: (v) gets info via terminal (t)",
+          "type": "istar.Goal",
+          "x": 975,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G17",
+          "text": "G17: (v) is notified for the service through (v)'s PDA",
+          "type": "istar.Goal",
+          "x": 785,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G18",
+          "text": "G18: (v) arrives to (t)",
+          "type": "istar.Goal",
+          "x": 1070,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G19",
+          "text": "G19: (v) know how to use (t)",
+          "type": "istar.Goal",
+          "x": 1260,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T16",
+          "text": "T16: send (v) a voice command",
+          "type": "istar.Task",
+          "x": 690,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T17",
+          "text": "T17: alert (v) via PDA vibration and SMS",
+          "type": "istar.Task",
+          "x": 880,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T18",
+          "text": "T18: direct (v) to (t) place",
+          "type": "istar.Task",
+          "x": 1070,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T19",
+          "text": "T19: show demo to (v) how to use (t)",
+          "type": "istar.Task",
+          "x": 1260,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "G2",
+          "text": "G2: (v) gets info via his/her PDA",
+          "type": "istar.Goal",
+          "x": 1735,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G3",
+          "text": "G3: (v) gets info through (m) staff (s)",
+          "type": "istar.Goal",
+          "x": 2210,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G4",
+          "text": "G4: (p) info suitable to (v) is prepared",
+          "type": "istar.Goal",
+          "x": 1545,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G5",
+          "text": "G5: (p) info is presented to (v)",
+          "type": "istar.Goal",
+          "x": 1925,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T1",
+          "text": "T1: prepare (p) brief simple information",
+          "type": "istar.Task",
+          "x": 1450,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T2",
+          "text": "T2: prepare (p) detailed information",
+          "type": "istar.Task",
+          "x": 1640,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T3",
+          "text": "T3: (p) info is presented to (v) via video",
+          "type": "istar.Task",
+          "x": 1830,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T4",
+          "text": "T4: (v) info is presented to (v) interactively",
+          "type": "istar.Task",
+          "x": 2020,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "C0",
+          "text": "C0: the visitor is inside the museum area (parking places and the public square in front of the museum included) and has accepted the assistance of the mobile information system",
+          "type": "cgm.Context",
+          "x": 100,
+          "y": 1380,
+          "customProperties": {
+            "description": "the visitor is inside the museum area (parking places and the public square in front of the museum included) and has accepted the assistance of the mobile information system"
+          }
+        },
+        {
+          "id": "C1",
+          "text": "C1: the visitor is still inside the gallery building and is interested in the piece of art",
+          "type": "cgm.Context",
+          "x": 1545,
+          "y": 720,
+          "customProperties": {
+            "description": "the visitor is still inside the gallery building and is interested in the piece of art",
+            "formula": "F1.1 & ST1.2"
+          }
+        },
+        {
+          "id": "C2",
+          "text": "C2: closing time is approaching",
+          "type": "cgm.Context",
+          "x": 300,
+          "y": 1380,
+          "customProperties": {
+            "description": "closing time is approaching"
+          }
+        },
+        {
+          "id": "C3",
+          "text": "C3: the visitor has entered the museum building",
+          "type": "cgm.Context",
+          "x": 500,
+          "y": 1380,
+          "customProperties": {
+            "description": "the visitor has entered the museum building"
+          }
+        },
+        {
+          "id": "C4",
+          "text": "C4: the terminal is available and close to the visitor, and the visitor is able to use and interact with it",
+          "type": "cgm.Context",
+          "x": 700,
+          "y": 1380,
+          "customProperties": {
+            "description": "the terminal is available and close to the visitor, and the visitor is able to use and interact with it"
+          }
+        },
+        {
+          "id": "C5",
+          "text": "C5: the piece of art's information is not complicated, and the visitor has the ability and knowledge to use PDAs",
+          "type": "cgm.Context",
+          "x": 900,
+          "y": 1380,
+          "customProperties": {
+            "description": "the piece of art’s information is not complicated, and the visitor has the ability and knowledge to use PDAs"
+          }
+        },
+        {
+          "id": "C6",
+          "text": "C6: the visitor is not able to use a PDA and not familiar with terminals, or is classified as an important visitor",
+          "type": "cgm.Context",
+          "x": 1100,
+          "y": 1380,
+          "customProperties": {
+            "description": "the visitor is not able to use a PDA and not familiar with terminals, or is classified as an important visitor"
+          }
+        },
+        {
+          "id": "C7",
+          "text": "C7: the visitor is on the way to enter the museum building",
+          "type": "cgm.Context",
+          "x": 3160,
+          "y": 720,
+          "customProperties": {
+            "description": "the visitor is on the way to enter the museum building",
+            "formula": "F7.1"
+          }
+        },
+        {
+          "id": "C8",
+          "text": "C8: the visitor is still inside the museum building and is not walking towards the exit",
+          "type": "cgm.Context",
+          "x": 3445,
+          "y": 720,
+          "customProperties": {
+            "description": "the visitor is still inside the museum building and is not walking towards the exit",
+            "formula": "F8.1 & F8.2"
+          }
+        },
+        {
+          "id": "C9",
+          "text": "C9: the visitor has headphones on and is not using his PDA for a call",
+          "type": "cgm.Context",
+          "x": 1300,
+          "y": 1380,
+          "customProperties": {
+            "description": "the visitor has headphones on and is not using his PDA for a call"
+          }
+        },
+        {
+          "id": "C10",
+          "text": "C10: a staff member is available who talks the visitor's language and knows enough about the piece of art",
+          "type": "cgm.Context",
+          "x": 1500,
+          "y": 1380,
+          "customProperties": {
+            "description": "a staff member is available who talks the visitor’s language and knows enough about the piece of art"
+          }
+        },
+        {
+          "id": "ST1",
+          "text": "ST1: (v) is in a place where (p) can be still of interest",
+          "type": "cgm.Statement",
+          "x": 500,
+          "y": 940,
+          "customProperties": {
+            "supportedBy": "(F1 & F2) | F3"
+          }
+        },
+        {
+          "id": "ST2",
+          "text": "ST2: there is still time to accomplish explanation about (p) to (v)",
+          "type": "cgm.Statement",
+          "x": 1260,
+          "y": 940,
+          "customProperties": {
+            "supportedBy": "ST5 & F8"
+          }
+        },
+        {
+          "id": "ST3",
+          "text": "ST3: (p) is interesting to (v)",
+          "type": "cgm.Statement",
+          "x": 2210,
+          "y": 940,
+          "customProperties": {
+            "supportedBy": "ST8 | ST9"
+          }
+        },
+        {
+          "id": "ST4",
+          "text": "ST4: (v) does not already know about (p)",
+          "type": "cgm.Statement",
+          "x": 2875,
+          "y": 940,
+          "customProperties": {
+            "supportedBy": "F14 | F15"
+          }
+        },
+        {
+          "id": "ST5",
+          "text": "ST5: (v) is not in a hurry",
+          "type": "cgm.Statement",
+          "x": 1165,
+          "y": 1050,
+          "customProperties": {
+            "supportedBy": "ST6 | ST7"
+          }
+        },
+        {
+          "id": "ST6",
+          "text": "ST6: (v) does not have to work",
+          "type": "cgm.Statement",
+          "x": 1070,
+          "y": 1160,
+          "customProperties": {
+            "supportedBy": "(F4 | F5) & F6"
+          }
+        },
+        {
+          "id": "ST7",
+          "text": "ST7: (v) behaves in calm way",
+          "type": "cgm.Statement",
+          "x": 1450,
+          "y": 1160,
+          "customProperties": {
+            "supportedBy": "F7"
+          }
+        },
+        {
+          "id": "ST8",
+          "text": "ST8: (v) historically interested in (p)",
+          "type": "cgm.Statement",
+          "x": 2020,
+          "y": 1050,
+          "customProperties": {
+            "supportedBy": "F9 | F10 | F11"
+          }
+        },
+        {
+          "id": "ST9",
+          "text": "ST9: (v) behaviorally interested in (p)",
+          "type": "cgm.Statement",
+          "x": 2495,
+          "y": 1050,
+          "customProperties": {
+            "supportedBy": "F12 | F13"
+          }
+        },
+        {
+          "id": "ST1.2",
+          "text": "ST1.2: visitor (v) is interested in getting explanation of piece of art (p) in museum (m)",
+          "type": "cgm.Statement",
+          "x": 1640,
+          "y": 830,
+          "customProperties": {
+            "supportedBy": "ST1 & ST2 & ST3 & ST4"
+          }
+        },
+        {
+          "id": "F1",
+          "text": "F1: (v) place is close (p) room",
+          "type": "cgm.Fact",
+          "x": 310,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F2",
+          "text": "F2: (v) is in the corridor of (p) floor",
+          "type": "cgm.Fact",
+          "x": 500,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F3",
+          "text": "F3: (v) is in the same room of (p)",
+          "type": "cgm.Fact",
+          "x": 690,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F4",
+          "text": "F4: it is a holiday in (m) region",
+          "type": "cgm.Fact",
+          "x": 880,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F5",
+          "text": "F5: (v) is retired",
+          "type": "cgm.Fact",
+          "x": 1070,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F6",
+          "text": "F6: still early to (v) visit slot end",
+          "type": "cgm.Fact",
+          "x": 1260,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F7",
+          "text": "F7: (v) walks slowly",
+          "type": "cgm.Fact",
+          "x": 1450,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F8",
+          "text": "F8: more than 30 minutes until (m) closes",
+          "type": "cgm.Fact",
+          "x": 1640,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F9",
+          "text": "F9: (v) often asks about pieces of the same artist as (p)",
+          "type": "cgm.Fact",
+          "x": 1830,
+          "y": 1160,
+          "customProperties": {}
+        },
+        {
+          "id": "F10",
+          "text": "F10: (v) often asks about pieces belong to the same art genre as (p)",
+          "type": "cgm.Fact",
+          "x": 2020,
+          "y": 1160,
+          "customProperties": {}
+        },
+        {
+          "id": "F11",
+          "text": "F11: (v) attended (p) gallery opening",
+          "type": "cgm.Fact",
+          "x": 2210,
+          "y": 1160,
+          "customProperties": {}
+        },
+        {
+          "id": "F12",
+          "text": "F12: (v) looks at (p) for long time",
+          "type": "cgm.Fact",
+          "x": 2400,
+          "y": 1160,
+          "customProperties": {}
+        },
+        {
+          "id": "F13",
+          "text": "F13: (v) had a look so often on (p)",
+          "type": "cgm.Fact",
+          "x": 2590,
+          "y": 1160,
+          "customProperties": {}
+        },
+        {
+          "id": "F14",
+          "text": "F14: (v) never got info of (p) by (m) means",
+          "type": "cgm.Fact",
+          "x": 2780,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F15",
+          "text": "F15: (p) was created after (v) last visit",
+          "type": "cgm.Fact",
+          "x": 2970,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F1.1",
+          "text": "F1.1: visitor is inside the gallery building",
+          "type": "cgm.Fact",
+          "x": 120,
+          "y": 830,
+          "customProperties": {}
+        },
+        {
+          "id": "F7.1",
+          "text": "F7.1: visitor is on the way to enter the museum",
+          "type": "cgm.Fact",
+          "x": 3160,
+          "y": 830,
+          "customProperties": {}
+        },
+        {
+          "id": "F8.1",
+          "text": "F8.1: visitor is inside the museum",
+          "type": "cgm.Fact",
+          "x": 3350,
+          "y": 830,
+          "customProperties": {}
+        },
+        {
+          "id": "F8.2",
+          "text": "F8.2: visitor is not walking towards the exit",
+          "type": "cgm.Fact",
+          "x": 3540,
+          "y": 830,
+          "customProperties": {}
+        }
+      ]
+    },
+    {
+      "id": "StaffAssistanceSystem",
+      "text": "Staff Assistance System",
+      "type": "istar.Actor",
+      "x": 3860,
+      "y": 40,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "G3.2",
+          "text": "G3.2: (v) gets info through (m) staff (s)",
+          "type": "istar.Goal",
+          "x": 4510,
+          "y": 120,
+          "customProperties": {}
+        },
+        {
+          "id": "G6",
+          "text": "G6: (s) is alerted",
+          "type": "istar.Goal",
+          "x": 4130,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G7",
+          "text": "G7: (s) gives (p) info to (v)",
+          "type": "istar.Goal",
+          "x": 4795,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G8",
+          "text": "G8: (s) is alerted through (s)'s PDA",
+          "type": "istar.Goal",
+          "x": 4035,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G9",
+          "text": "G9: (s) is alerted through public call",
+          "type": "istar.Goal",
+          "x": 4320,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G10",
+          "text": "G10: (s) gives (p) info to (v) in person",
+          "type": "istar.Goal",
+          "x": 4605,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G11",
+          "text": "G11: (s) gives (p) info to (v) by call",
+          "type": "istar.Goal",
+          "x": 4985,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T5",
+          "text": "T5: (s) is alerted via ringing tone and SMS",
+          "type": "istar.Task",
+          "x": 3940,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T6",
+          "text": "T6: send (s) a voice command",
+          "type": "istar.Task",
+          "x": 4130,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T7",
+          "text": "T7: make a call through speakers in (s) room",
+          "type": "istar.Task",
+          "x": 4320,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T12",
+          "text": "T12: direct (s) to (v) place",
+          "type": "istar.Task",
+          "x": 4605,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T8",
+          "text": "T8: show (v) picture",
+          "type": "istar.Task",
+          "x": 4510,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T9",
+          "text": "T9: direct (s) to (v) place",
+          "type": "istar.Task",
+          "x": 4700,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T10",
+          "text": "T10: make video call between (s) and (v)",
+          "type": "istar.Task",
+          "x": 4890,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T11",
+          "text": "T11: make voice call between (s) and (v)",
+          "type": "istar.Task",
+          "x": 5080,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "SG1",
+          "text": "SG1: visitor well informed",
+          "type": "istar.Quality",
+          "x": 5270,
+          "y": 200,
+          "customProperties": {}
+        },
+        {
+          "id": "SG2",
+          "text": "SG2: staff is more comfortable",
+          "type": "istar.Quality",
+          "x": 5270,
+          "y": 310,
+          "customProperties": {}
+        },
+        {
+          "id": "SG3",
+          "text": "SG3: calm museum",
+          "type": "istar.Quality",
+          "x": 5270,
+          "y": 420,
+          "customProperties": {}
+        },
+        {
+          "id": "C11",
+          "text": "C11: the room does not include audio art contents",
+          "type": "cgm.Context",
+          "x": 3920,
+          "y": 670,
+          "customProperties": {
+            "description": "the room does not include audio art contents"
+          }
+        },
+        {
+          "id": "C12",
+          "text": "C12: the staff member is not calling",
+          "type": "cgm.Context",
+          "x": 4120,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member is not calling"
+          }
+        },
+        {
+          "id": "C13",
+          "text": "C13: the staff member is not calling and is putting the headphone on",
+          "type": "cgm.Context",
+          "x": 4320,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member is not calling and is putting the headphone on"
+          }
+        },
+        {
+          "id": "C14",
+          "text": "C14: the visitor is close to the staff member",
+          "type": "cgm.Context",
+          "x": 4520,
+          "y": 670,
+          "customProperties": {
+            "description": "the visitor is close to the staff member"
+          }
+        },
+        {
+          "id": "C15",
+          "text": "C15: the staff member's PDA and the visitor's PDA are not busy",
+          "type": "cgm.Context",
+          "x": 4720,
+          "y": 670,
+          "customProperties": {
+            "description": "the staff member’s PDA and the visitor’s PDA are not busy"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [
+    {
+      "id": "G3.1",
+      "text": "G3.1: (v) gets info through (m) staff (s)",
+      "type": "istar.Goal",
+      "x": 3360,
+      "y": 290,
+      "customProperties": {},
+      "source": "G3",
+      "target": "G3.2"
+    }
+  ],
+  "links": [
+    {
+      "id": "G13-AndRefinementLink-G12",
+      "type": "istar.AndRefinementLink",
+      "source": "G13",
+      "target": "G12"
+    },
+    {
+      "id": "G1-AndRefinementLink-G12",
+      "type": "istar.AndRefinementLink",
+      "source": "G1",
+      "target": "G12",
+      "customProperties": {
+        "context": "C1"
+      }
+    },
+    {
+      "id": "G14-AndRefinementLink-G13",
+      "type": "istar.AndRefinementLink",
+      "source": "G14",
+      "target": "G13",
+      "customProperties": {
+        "context": "C2"
+      }
+    },
+    {
+      "id": "G15-AndRefinementLink-G13",
+      "type": "istar.AndRefinementLink",
+      "source": "G15",
+      "target": "G13",
+      "customProperties": {
+        "context": "C3"
+      }
+    },
+    {
+      "id": "T13-OrRefinementLink-G14",
+      "type": "istar.OrRefinementLink",
+      "source": "T13",
+      "target": "G14"
+    },
+    {
+      "id": "T14-AndRefinementLink-T13",
+      "type": "istar.AndRefinementLink",
+      "source": "T14",
+      "target": "T13",
+      "customProperties": {
+        "context": "C7"
+      }
+    },
+    {
+      "id": "T15-AndRefinementLink-T13",
+      "type": "istar.AndRefinementLink",
+      "source": "T15",
+      "target": "T13",
+      "customProperties": {
+        "context": "C8"
+      }
+    },
+    {
+      "id": "G16-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G16",
+      "target": "G1",
+      "customProperties": {
+        "context": "C4"
+      }
+    },
+    {
+      "id": "G17-AndRefinementLink-G16",
+      "type": "istar.AndRefinementLink",
+      "source": "G17",
+      "target": "G16"
+    },
+    {
+      "id": "G18-AndRefinementLink-G16",
+      "type": "istar.AndRefinementLink",
+      "source": "G18",
+      "target": "G16"
+    },
+    {
+      "id": "G19-AndRefinementLink-G16",
+      "type": "istar.AndRefinementLink",
+      "source": "G19",
+      "target": "G16"
+    },
+    {
+      "id": "T16-OrRefinementLink-G17",
+      "type": "istar.OrRefinementLink",
+      "source": "T16",
+      "target": "G17",
+      "customProperties": {
+        "context": "C9"
+      }
+    },
+    {
+      "id": "T17-OrRefinementLink-G17",
+      "type": "istar.OrRefinementLink",
+      "source": "T17",
+      "target": "G17",
+      "customProperties": {
+        "context": "!C9"
+      }
+    },
+    {
+      "id": "T18-OrRefinementLink-G18",
+      "type": "istar.OrRefinementLink",
+      "source": "T18",
+      "target": "G18"
+    },
+    {
+      "id": "T19-OrRefinementLink-G19",
+      "type": "istar.OrRefinementLink",
+      "source": "T19",
+      "target": "G19"
+    },
+    {
+      "id": "G2-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G2",
+      "target": "G1",
+      "customProperties": {
+        "context": "C5"
+      }
+    },
+    {
+      "id": "G3-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G3",
+      "target": "G1",
+      "customProperties": {
+        "context": "C6"
+      }
+    },
+    {
+      "id": "G4-AndRefinementLink-G2",
+      "type": "istar.AndRefinementLink",
+      "source": "G4",
+      "target": "G2"
+    },
+    {
+      "id": "G5-AndRefinementLink-G2",
+      "type": "istar.AndRefinementLink",
+      "source": "G5",
+      "target": "G2"
+    },
+    {
+      "id": "T1-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T1",
+      "target": "G4"
+    },
+    {
+      "id": "T2-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T2",
+      "target": "G4"
+    },
+    {
+      "id": "T3-OrRefinementLink-G5",
+      "type": "istar.OrRefinementLink",
+      "source": "T3",
+      "target": "G5"
+    },
+    {
+      "id": "T4-OrRefinementLink-G5",
+      "type": "istar.OrRefinementLink",
+      "source": "T4",
+      "target": "G5"
+    },
+    {
+      "id": "G6-AndRefinementLink-G3.2",
+      "type": "istar.AndRefinementLink",
+      "source": "G6",
+      "target": "G3.2"
+    },
+    {
+      "id": "G7-AndRefinementLink-G3.2",
+      "type": "istar.AndRefinementLink",
+      "source": "G7",
+      "target": "G3.2"
+    },
+    {
+      "id": "G8-OrRefinementLink-G6",
+      "type": "istar.OrRefinementLink",
+      "source": "G8",
+      "target": "G6"
+    },
+    {
+      "id": "G9-OrRefinementLink-G6",
+      "type": "istar.OrRefinementLink",
+      "source": "G9",
+      "target": "G6",
+      "customProperties": {
+        "context": "C11"
+      }
+    },
+    {
+      "id": "T5-OrRefinementLink-G8",
+      "type": "istar.OrRefinementLink",
+      "source": "T5",
+      "target": "G8",
+      "customProperties": {
+        "context": "C12"
+      }
+    },
+    {
+      "id": "T6-OrRefinementLink-G8",
+      "type": "istar.OrRefinementLink",
+      "source": "T6",
+      "target": "G8",
+      "customProperties": {
+        "context": "C13"
+      }
+    },
+    {
+      "id": "T7-OrRefinementLink-G9",
+      "type": "istar.OrRefinementLink",
+      "source": "T7",
+      "target": "G9"
+    },
+    {
+      "id": "G10-OrRefinementLink-G7",
+      "type": "istar.OrRefinementLink",
+      "source": "G10",
+      "target": "G7"
+    },
+    {
+      "id": "G11-OrRefinementLink-G7",
+      "type": "istar.OrRefinementLink",
+      "source": "G11",
+      "target": "G7",
+      "customProperties": {
+        "context": "C15"
+      }
+    },
+    {
+      "id": "T12-OrRefinementLink-G10",
+      "type": "istar.OrRefinementLink",
+      "source": "T12",
+      "target": "G10"
+    },
+    {
+      "id": "T8-AndRefinementLink-T12",
+      "type": "istar.AndRefinementLink",
+      "source": "T8",
+      "target": "T12"
+    },
+    {
+      "id": "T9-AndRefinementLink-T12",
+      "type": "istar.AndRefinementLink",
+      "source": "T9",
+      "target": "T12"
+    },
+    {
+      "id": "T10-OrRefinementLink-G11",
+      "type": "istar.OrRefinementLink",
+      "source": "T10",
+      "target": "G11"
+    },
+    {
+      "id": "T11-OrRefinementLink-G11",
+      "type": "istar.OrRefinementLink",
+      "source": "T11",
+      "target": "G11"
+    },
+    {
+      "id": "G10-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "G10",
+      "target": "SG1",
+      "label": "help"
+    },
+    {
+      "id": "G10-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "G10",
+      "target": "SG2",
+      "label": "help",
+      "customProperties": {
+        "context": "C14",
+        "opposite": "!C14"
+      }
+    },
+    {
+      "id": "G11-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "G11",
+      "target": "SG1",
+      "label": "break"
+    },
+    {
+      "id": "G11-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "G11",
+      "target": "SG2",
+      "label": "help"
+    },
+    {
+      "id": "T5-ContributionLink-SG3",
+      "type": "istar.ContributionLink",
+      "source": "T5",
+      "target": "SG3",
+      "label": "break"
+    },
+    {
+      "id": "T6-ContributionLink-SG3",
+      "type": "istar.ContributionLink",
+      "source": "T6",
+      "target": "SG3",
+      "label": "help"
+    },
+    {
+      "id": "T7-ContributionLink-SG3",
+      "type": "istar.ContributionLink",
+      "source": "T7",
+      "target": "SG3",
+      "label": "break"
+    },
+    {
+      "id": "G3-DependencyLink-G3.1",
+      "type": "istar.DependencyLink",
+      "source": "G3",
+      "target": "G3.1",
+      "customProperties": {
+        "context": "C10"
+      }
+    },
+    {
+      "id": "G3.1-DependencyLink-G3.2",
+      "type": "istar.DependencyLink",
+      "source": "G3.1",
+      "target": "G3.2"
+    }
+  ],
+  "display": {
+    "G12": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G13": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G14": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G15": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T13": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T14": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T15": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G16": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G17": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G18": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G19": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T16": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T17": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T18": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T19": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "C0": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C1": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C2": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C3": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C4": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C5": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C6": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C7": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C8": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C9": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C10": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "ST1": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST2": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST3": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST4": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST5": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST6": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST7": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST8": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST9": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST1.2": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "F1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F2": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F3": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F4": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F5": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F6": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F7": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F8": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F9": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F10": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F11": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F12": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F13": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F14": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F15": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F1.1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F7.1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F8.1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F8.2": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "G3.2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T12": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "SG1": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "SG2": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "SG3": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "C11": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C12": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C13": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C14": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C15": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "G3.1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 15 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 5520,
+    "height": 1530,
+    "name": "museum-guide",
+    "customProperties": {
+      "Description": "REJ 2010 Fig. 2: the goal model of the museum-guide system with context annotation, C0–C15 as §3.3 describes them, and the context analysis of C1 (Fig. 4)"
+    }
+  },
+  "metamodel": {
+    "name": "cgm",
+    "elements": [
+      {
+        "kind": "cgm.Context",
+        "label": "Context",
+        "category": "node",
+        "size": {
+          "width": 80,
+          "height": 36
+        },
+        "shape": {
+          "path": "M 2 2 L 78 2 L 78 34 L 2 34 Z",
+          "viewBox": "0 0 80 36"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Statement",
+        "label": "Statement",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 46
+        },
+        "shape": {
+          "path": "M 2 2 L 92 2 L 92 38 L 2 38 Z M 92 8 L 98 8 L 98 44 L 8 44 L 8 38",
+          "viewBox": "0 0 100 46"
+        },
+        "textBox": {
+          "top": 0.08,
+          "right": 0.12,
+          "bottom": 0.2,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Fact",
+        "label": "Fact",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 14 2 L 98 2 L 86 38 L 2 38 Z",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.16,
+          "bottom": 0.1,
+          "left": 0.16
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "cgm.IncludesLink",
+        "label": "includes",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "cgm.IntersectsLink",
+        "label": "intersects",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      }
+    ]
+  }
+}

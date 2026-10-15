@@ -1,0 +1,1392 @@
+{
+  "actors": [
+    {
+      "id": "PatientCaregivingSystem",
+      "text": "Patient Caregiving System",
+      "type": "istar.Actor",
+      "x": 40,
+      "y": 40,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "G0",
+          "text": "G0: home is managed for safety of patient",
+          "type": "istar.Goal",
+          "x": 1450,
+          "y": 120,
+          "customProperties": {
+            "activation": "C0"
+          }
+        },
+        {
+          "id": "G1",
+          "text": "G1: enforce routine exit procedure",
+          "type": "istar.Goal",
+          "x": 690,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G2",
+          "text": "G2: refresh air inside home",
+          "type": "istar.Goal",
+          "x": 1545,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G3",
+          "text": "G3: home is protected against robbery",
+          "type": "istar.Goal",
+          "x": 2305,
+          "y": 230,
+          "customProperties": {}
+        },
+        {
+          "id": "G4",
+          "text": "G4: patient is alerted",
+          "type": "istar.Goal",
+          "x": 215,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G5",
+          "text": "G5: patient is prevented from exiting",
+          "type": "istar.Goal",
+          "x": 880,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T1",
+          "text": "T1: alert via voice message",
+          "type": "istar.Task",
+          "x": 120,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T2",
+          "text": "T2: switch on lights at patient location",
+          "type": "istar.Task",
+          "x": 310,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G8",
+          "text": "G8: actuate the home",
+          "type": "istar.Goal",
+          "x": 500,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G9",
+          "text": "G9: notify caregiver",
+          "type": "istar.Goal",
+          "x": 785,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G10",
+          "text": "G10: calm the patient",
+          "type": "istar.Goal",
+          "x": 1165,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T3",
+          "text": "T3: lock balcony door, windows & main entrance",
+          "type": "istar.Task",
+          "x": 500,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T4",
+          "text": "T4: call caregiver by phone",
+          "type": "istar.Task",
+          "x": 690,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T5",
+          "text": "T5: call caregiver by public call",
+          "type": "istar.Task",
+          "x": 880,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T15",
+          "text": "T15: make relaxation effects",
+          "type": "istar.Task",
+          "x": 1165,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T6",
+          "text": "T6: give warm light color",
+          "type": "istar.Task",
+          "x": 1070,
+          "y": 670,
+          "customProperties": {}
+        },
+        {
+          "id": "T7",
+          "text": "T7: turn on calm music",
+          "type": "istar.Task",
+          "x": 1260,
+          "y": 670,
+          "customProperties": {}
+        },
+        {
+          "id": "T8",
+          "text": "T8: open windows",
+          "type": "istar.Task",
+          "x": 1450,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T9",
+          "text": "T9: turn on air ventilator",
+          "type": "istar.Task",
+          "x": 1640,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G6",
+          "text": "G6: give Illusion of being lived in",
+          "type": "istar.Goal",
+          "x": 1830,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "G7",
+          "text": "G7: act against potential robbery",
+          "type": "istar.Goal",
+          "x": 2400,
+          "y": 340,
+          "customProperties": {}
+        },
+        {
+          "id": "T10",
+          "text": "T10: turn on/off light iteratively",
+          "type": "istar.Task",
+          "x": 1830,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G11",
+          "text": "G11: prevent robber from entering",
+          "type": "istar.Goal",
+          "x": 2020,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "G12",
+          "text": "G12: assistance comes",
+          "type": "istar.Goal",
+          "x": 2495,
+          "y": 450,
+          "customProperties": {}
+        },
+        {
+          "id": "T14",
+          "text": "T14: lock doors",
+          "type": "istar.Task",
+          "x": 2020,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "G13",
+          "text": "G13: police comes",
+          "type": "istar.Goal",
+          "x": 2400,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "G14",
+          "text": "G14: a neighbor comes",
+          "type": "istar.Goal",
+          "x": 2780,
+          "y": 560,
+          "customProperties": {}
+        },
+        {
+          "id": "T16",
+          "text": "T16: police is notified",
+          "type": "istar.Task",
+          "x": 2400,
+          "y": 670,
+          "customProperties": {}
+        },
+        {
+          "id": "T11",
+          "text": "T11: phone police",
+          "type": "istar.Task",
+          "x": 2210,
+          "y": 780,
+          "customProperties": {}
+        },
+        {
+          "id": "T12",
+          "text": "T12: turn all lights on",
+          "type": "istar.Task",
+          "x": 2400,
+          "y": 780,
+          "customProperties": {}
+        },
+        {
+          "id": "T13",
+          "text": "T13: turn on security cameras",
+          "type": "istar.Task",
+          "x": 2590,
+          "y": 780,
+          "customProperties": {}
+        },
+        {
+          "id": "SG1",
+          "text": "SG1: patient privacy",
+          "type": "istar.Quality",
+          "x": 2970,
+          "y": 200,
+          "customProperties": {}
+        },
+        {
+          "id": "SG2",
+          "text": "SG2: energy spent wisely",
+          "type": "istar.Quality",
+          "x": 2970,
+          "y": 310,
+          "customProperties": {}
+        },
+        {
+          "id": "SG3",
+          "text": "SG3: less noise",
+          "type": "istar.Quality",
+          "x": 2970,
+          "y": 420,
+          "customProperties": {}
+        },
+        {
+          "id": "C0",
+          "text": "C0: the home is lived in, and the patient is expected to have some dementia problems, and there is no awaken caregiver or healthy relative at home",
+          "type": "cgm.Context",
+          "x": 100,
+          "y": 1490,
+          "customProperties": {
+            "description": "The home is lived in, and the patient is expected to have some dementia problems, and there is no awaken caregiver or healthy relative at home. Technology: Database (info about home and patient), RFID tags (caregiver and relative)."
+          }
+        },
+        {
+          "id": "C1",
+          "text": "C1: the patient is at home and anxious",
+          "type": "cgm.Context",
+          "x": 975,
+          "y": 940,
+          "customProperties": {
+            "formula": "F1 & ST1",
+            "description": "The patient is at home and anxious. Technology: Smart-shirt or oxymeter, camera with motion recognition."
+          }
+        },
+        {
+          "id": "C2",
+          "text": "C2: the humidity level is high, or home windows and doors haven't been opened for a long time",
+          "type": "cgm.Context",
+          "x": 300,
+          "y": 1490,
+          "customProperties": {
+            "description": "The humidity level is high, or home windows and doors haven’t been opened for a long time. Technology: Humidity sensor, magnetic sensor (open-close), database."
+          }
+        },
+        {
+          "id": "C3",
+          "text": "C3: the patient dementia disease is not in an advanced stage or he is moderately anxious",
+          "type": "cgm.Context",
+          "x": 500,
+          "y": 1490,
+          "customProperties": {
+            "description": "The patient dementia disease is not in an advanced stage or he is moderately anxious. Technology: Database (disease status), smart-shirt (anxiety)."
+          }
+        },
+        {
+          "id": "C4",
+          "text": "C4: the patient suffers of advanced dementia, and he seems to be extremely anxious",
+          "type": "cgm.Context",
+          "x": 700,
+          "y": 1490,
+          "customProperties": {
+            "description": "The patient suffers of advanced dementia, and he seems to be extremely anxious Technology: Database, smart-shirt."
+          }
+        },
+        {
+          "id": "C5",
+          "text": "C5: it is sunny and not very windy",
+          "type": "cgm.Context",
+          "x": 900,
+          "y": 1490,
+          "customProperties": {
+            "description": "It is sunny and not very windy. Technology: Barometer and wind sensor."
+          }
+        },
+        {
+          "id": "C6",
+          "text": "C6: the patient is outside home",
+          "type": "cgm.Context",
+          "x": 1100,
+          "y": 1490,
+          "customProperties": {
+            "description": "The patient is outside home. Technology: GPS or RFID."
+          }
+        },
+        {
+          "id": "C7",
+          "text": "C7: the patient is outside home since a long time and it is night time",
+          "type": "cgm.Context",
+          "x": 2115,
+          "y": 940,
+          "customProperties": {
+            "formula": "F7.1 & F7.2",
+            "description": "The patient is outside home since a long time and it is night time. Technology: GPS/RFID, database, digital clock."
+          }
+        },
+        {
+          "id": "C8",
+          "text": "C8: a person is trying to get into the yard in a suspicious way (for example enter from a place different from the main gate)",
+          "type": "cgm.Context",
+          "x": 1300,
+          "y": 1490,
+          "customProperties": {
+            "description": "A person is trying to get into the yard in a suspicious way (e.g., enter from a place different from the main gate). Technology: Surveillance camera."
+          }
+        },
+        {
+          "id": "C9",
+          "text": "C9: the phone is free and the caregiver is not using his phone for a call",
+          "type": "cgm.Context",
+          "x": 1500,
+          "y": 1490,
+          "customProperties": {
+            "description": "The phone is free and the caregiver is not using his phone for a call. Technology: Information from telephone provider company, phone status sensor."
+          }
+        },
+        {
+          "id": "C10",
+          "text": "C10: it is not night time",
+          "type": "cgm.Context",
+          "x": 2400,
+          "y": 940,
+          "customProperties": {
+            "formula": "F10.1",
+            "description": "It is not night time. Technology: Digital clock."
+          }
+        },
+        {
+          "id": "C11",
+          "text": "C11: the light level at the patient's location is too low or too high",
+          "type": "cgm.Context",
+          "x": 1700,
+          "y": 1490,
+          "customProperties": {
+            "description": "The light level at the patient’s location is too low or too high. Technology: Light sensor."
+          }
+        },
+        {
+          "id": "C12",
+          "text": "C12: it is too dark inside home",
+          "type": "cgm.Context",
+          "x": 1900,
+          "y": 1490,
+          "customProperties": {
+            "description": "It is too dark inside home. Technology: Light sensor."
+          }
+        },
+        {
+          "id": "C13",
+          "text": "C13: the neighbour is healthy, is at home, and can see or reach easily the patient's home",
+          "type": "cgm.Context",
+          "x": 2100,
+          "y": 1490,
+          "customProperties": {
+            "description": "The neighbour is healthy, is at home, and can see or reach easily the patient’s home. Technology: Database (health status and house location), GPS/RFID (neighbour position)."
+          }
+        },
+        {
+          "id": "C14",
+          "text": "C14: the patient health turns bad or he has fallen down",
+          "type": "cgm.Context",
+          "x": 2300,
+          "y": 1490,
+          "customProperties": {
+            "description": "The patient health turns bad or he has fallen down. Technology: Smart-shirt, oxymeter, camera with motion recognition."
+          }
+        },
+        {
+          "id": "C15",
+          "text": "C15: the MERC is reachable and online",
+          "type": "cgm.Context",
+          "x": 2500,
+          "y": 1490,
+          "customProperties": {
+            "description": "The MERC is reachable and online. Technology: Check connection."
+          }
+        },
+        {
+          "id": "C16",
+          "text": "C16: the home has a screen that shows the patient's medical record",
+          "type": "cgm.Context",
+          "x": 2700,
+          "y": 1490,
+          "customProperties": {
+            "description": "The home has a screen that shows the patient’s medical record. Technology: Database."
+          }
+        },
+        {
+          "id": "ST1",
+          "text": "ST1: patient is anxious",
+          "type": "cgm.Statement",
+          "x": 1070,
+          "y": 1050,
+          "customProperties": {
+            "supportedBy": "ST2 | ST3 | ST4"
+          }
+        },
+        {
+          "id": "ST2",
+          "text": "ST2: physiological anxiety",
+          "type": "cgm.Statement",
+          "x": 500,
+          "y": 1160,
+          "customProperties": {
+            "supportedBy": "F2 & F3 & F4"
+          }
+        },
+        {
+          "id": "ST3",
+          "text": "ST3: moving without target",
+          "type": "cgm.Statement",
+          "x": 975,
+          "y": 1160,
+          "customProperties": {
+            "supportedBy": "F5 | F6"
+          }
+        },
+        {
+          "id": "ST4",
+          "text": "ST4: can not sleep",
+          "type": "cgm.Statement",
+          "x": 1545,
+          "y": 1160,
+          "customProperties": {
+            "supportedBy": "ST5 & ST6"
+          }
+        },
+        {
+          "id": "ST5",
+          "text": "ST5: trying to sleep",
+          "type": "cgm.Statement",
+          "x": 1355,
+          "y": 1270,
+          "customProperties": {
+            "supportedBy": "F7 | F8"
+          }
+        },
+        {
+          "id": "ST6",
+          "text": "ST6: not sleeping",
+          "type": "cgm.Statement",
+          "x": 1735,
+          "y": 1270,
+          "customProperties": {
+            "supportedBy": "F9 & F10"
+          }
+        },
+        {
+          "id": "F1",
+          "text": "F1: patient at home",
+          "type": "cgm.Fact",
+          "x": 120,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F2",
+          "text": "F2: shortness of breath",
+          "type": "cgm.Fact",
+          "x": 310,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F3",
+          "text": "F3: sweating abnormally",
+          "type": "cgm.Fact",
+          "x": 500,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F4",
+          "text": "F4: pounding heart",
+          "type": "cgm.Fact",
+          "x": 690,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F5",
+          "text": "F5: moving randomly",
+          "type": "cgm.Fact",
+          "x": 880,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F6",
+          "text": "F6: back & forth",
+          "type": "cgm.Fact",
+          "x": 1070,
+          "y": 1270,
+          "customProperties": {}
+        },
+        {
+          "id": "F7",
+          "text": "F7: lying in bed most of time",
+          "type": "cgm.Fact",
+          "x": 1260,
+          "y": 1380,
+          "customProperties": {}
+        },
+        {
+          "id": "F8",
+          "text": "F8: lying on sofa most of time",
+          "type": "cgm.Fact",
+          "x": 1450,
+          "y": 1380,
+          "customProperties": {}
+        },
+        {
+          "id": "F9",
+          "text": "F9: moves often",
+          "type": "cgm.Fact",
+          "x": 1640,
+          "y": 1380,
+          "customProperties": {}
+        },
+        {
+          "id": "F10",
+          "text": "F10: irregular breathing",
+          "type": "cgm.Fact",
+          "x": 1830,
+          "y": 1380,
+          "customProperties": {}
+        },
+        {
+          "id": "F7.1",
+          "text": "F7.1: patient is outside the home area for long time",
+          "type": "cgm.Fact",
+          "x": 2020,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F7.2",
+          "text": "F7.2: it is night time",
+          "type": "cgm.Fact",
+          "x": 2210,
+          "y": 1050,
+          "customProperties": {}
+        },
+        {
+          "id": "F10.1",
+          "text": "F10.1: it is not night time",
+          "type": "cgm.Fact",
+          "x": 2400,
+          "y": 1050,
+          "customProperties": {}
+        }
+      ]
+    },
+    {
+      "id": "NeighborSmartHome",
+      "text": "Neighbor Smart home",
+      "type": "istar.Actor",
+      "x": 3290,
+      "y": 40,
+      "customProperties": {},
+      "nodes": []
+    }
+  ],
+  "orphans": [],
+  "dependencies": [
+    {
+      "id": "G14.1",
+      "text": "G14.1: a neighbor comes",
+      "type": "istar.Goal",
+      "x": 3035,
+      "y": 360,
+      "customProperties": {},
+      "source": "G14",
+      "target": "NeighborSmartHome"
+    }
+  ],
+  "links": [
+    {
+      "id": "G1-AndRefinementLink-G0",
+      "type": "istar.AndRefinementLink",
+      "source": "G1",
+      "target": "G0",
+      "customProperties": {
+        "context": "C1"
+      }
+    },
+    {
+      "id": "G2-AndRefinementLink-G0",
+      "type": "istar.AndRefinementLink",
+      "source": "G2",
+      "target": "G0",
+      "customProperties": {
+        "context": "C2"
+      }
+    },
+    {
+      "id": "G3-AndRefinementLink-G0",
+      "type": "istar.AndRefinementLink",
+      "source": "G3",
+      "target": "G0"
+    },
+    {
+      "id": "G4-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G4",
+      "target": "G1",
+      "customProperties": {
+        "context": "C3"
+      }
+    },
+    {
+      "id": "G5-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "G5",
+      "target": "G1",
+      "customProperties": {
+        "context": "C4"
+      }
+    },
+    {
+      "id": "T1-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T1",
+      "target": "G4"
+    },
+    {
+      "id": "T2-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T2",
+      "target": "G4"
+    },
+    {
+      "id": "G8-AndRefinementLink-G5",
+      "type": "istar.AndRefinementLink",
+      "source": "G8",
+      "target": "G5"
+    },
+    {
+      "id": "G9-AndRefinementLink-G5",
+      "type": "istar.AndRefinementLink",
+      "source": "G9",
+      "target": "G5"
+    },
+    {
+      "id": "G10-AndRefinementLink-G5",
+      "type": "istar.AndRefinementLink",
+      "source": "G10",
+      "target": "G5"
+    },
+    {
+      "id": "T3-OrRefinementLink-G8",
+      "type": "istar.OrRefinementLink",
+      "source": "T3",
+      "target": "G8"
+    },
+    {
+      "id": "T4-OrRefinementLink-G9",
+      "type": "istar.OrRefinementLink",
+      "source": "T4",
+      "target": "G9",
+      "customProperties": {
+        "context": "C9"
+      }
+    },
+    {
+      "id": "T5-OrRefinementLink-G9",
+      "type": "istar.OrRefinementLink",
+      "source": "T5",
+      "target": "G9",
+      "customProperties": {
+        "context": "C10"
+      }
+    },
+    {
+      "id": "T15-OrRefinementLink-G10",
+      "type": "istar.OrRefinementLink",
+      "source": "T15",
+      "target": "G10"
+    },
+    {
+      "id": "T6-OrRefinementLink-T15",
+      "type": "istar.OrRefinementLink",
+      "source": "T6",
+      "target": "T15",
+      "customProperties": {
+        "context": "C11"
+      }
+    },
+    {
+      "id": "T7-OrRefinementLink-T15",
+      "type": "istar.OrRefinementLink",
+      "source": "T7",
+      "target": "T15"
+    },
+    {
+      "id": "T8-OrRefinementLink-G2",
+      "type": "istar.OrRefinementLink",
+      "source": "T8",
+      "target": "G2",
+      "customProperties": {
+        "context": "C5"
+      }
+    },
+    {
+      "id": "T9-OrRefinementLink-G2",
+      "type": "istar.OrRefinementLink",
+      "source": "T9",
+      "target": "G2"
+    },
+    {
+      "id": "G6-AndRefinementLink-G3",
+      "type": "istar.AndRefinementLink",
+      "source": "G6",
+      "target": "G3",
+      "customProperties": {
+        "context": "C7"
+      }
+    },
+    {
+      "id": "G7-AndRefinementLink-G3",
+      "type": "istar.AndRefinementLink",
+      "source": "G7",
+      "target": "G3",
+      "customProperties": {
+        "context": "C8"
+      }
+    },
+    {
+      "id": "T10-OrRefinementLink-G6",
+      "type": "istar.OrRefinementLink",
+      "source": "T10",
+      "target": "G6"
+    },
+    {
+      "id": "G11-AndRefinementLink-G7",
+      "type": "istar.AndRefinementLink",
+      "source": "G11",
+      "target": "G7"
+    },
+    {
+      "id": "G12-AndRefinementLink-G7",
+      "type": "istar.AndRefinementLink",
+      "source": "G12",
+      "target": "G7"
+    },
+    {
+      "id": "T14-OrRefinementLink-G11",
+      "type": "istar.OrRefinementLink",
+      "source": "T14",
+      "target": "G11"
+    },
+    {
+      "id": "G13-OrRefinementLink-G12",
+      "type": "istar.OrRefinementLink",
+      "source": "G13",
+      "target": "G12"
+    },
+    {
+      "id": "G14-OrRefinementLink-G12",
+      "type": "istar.OrRefinementLink",
+      "source": "G14",
+      "target": "G12"
+    },
+    {
+      "id": "T16-OrRefinementLink-G13",
+      "type": "istar.OrRefinementLink",
+      "source": "T16",
+      "target": "G13"
+    },
+    {
+      "id": "T11-AndRefinementLink-T16",
+      "type": "istar.AndRefinementLink",
+      "source": "T11",
+      "target": "T16"
+    },
+    {
+      "id": "T12-AndRefinementLink-T16",
+      "type": "istar.AndRefinementLink",
+      "source": "T12",
+      "target": "T16",
+      "customProperties": {
+        "context": "C12"
+      }
+    },
+    {
+      "id": "T13-AndRefinementLink-T16",
+      "type": "istar.AndRefinementLink",
+      "source": "T13",
+      "target": "T16"
+    },
+    {
+      "id": "T8-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "T8",
+      "target": "SG1",
+      "label": "help",
+      "customProperties": {
+        "context": "C6",
+        "opposite": "!C6"
+      }
+    },
+    {
+      "id": "T8-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "T8",
+      "target": "SG2",
+      "label": "help"
+    },
+    {
+      "id": "T9-ContributionLink-SG1",
+      "type": "istar.ContributionLink",
+      "source": "T9",
+      "target": "SG1",
+      "label": "help"
+    },
+    {
+      "id": "T9-ContributionLink-SG2",
+      "type": "istar.ContributionLink",
+      "source": "T9",
+      "target": "SG2",
+      "label": "break",
+      "customProperties": {
+        "context": "C5"
+      }
+    },
+    {
+      "id": "T4-ContributionLink-SG3",
+      "type": "istar.ContributionLink",
+      "source": "T4",
+      "target": "SG3",
+      "label": "help"
+    },
+    {
+      "id": "T5-ContributionLink-SG3",
+      "type": "istar.ContributionLink",
+      "source": "T5",
+      "target": "SG3",
+      "label": "break"
+    },
+    {
+      "id": "G14-DependencyLink-G14.1",
+      "type": "istar.DependencyLink",
+      "source": "G14",
+      "target": "G14.1",
+      "customProperties": {
+        "context": "C13"
+      }
+    },
+    {
+      "id": "G14.1-DependencyLink-NeighborSmartHome",
+      "type": "istar.DependencyLink",
+      "source": "G14.1",
+      "target": "NeighborSmartHome"
+    }
+  ],
+  "display": {
+    "G0": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T2": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T3": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T4": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T5": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T15": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T8": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T9": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G6": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G7": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T10": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G12": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T14": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G13": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "G14": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T16": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T11": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T12": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "T13": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    },
+    "SG1": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "SG2": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "SG3": {
+      "backgroundColor": "#CDFECD",
+      "width": 130,
+      "height": 54
+    },
+    "C0": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C1": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C2": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C3": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C4": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C5": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C6": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C7": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C8": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C9": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C10": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C11": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C12": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C13": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C14": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C15": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "C16": {
+      "backgroundColor": "#E6E6E6",
+      "width": 180,
+      "height": 50
+    },
+    "ST1": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST2": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST3": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST4": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST5": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "ST6": {
+      "backgroundColor": "#D9D9D9",
+      "width": 170,
+      "height": 54
+    },
+    "F1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F2": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F3": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F4": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F5": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F6": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F7": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F8": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F9": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F10": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F7.1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F7.2": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "F10.1": {
+      "backgroundColor": "#FFFFFF",
+      "width": 160,
+      "height": 50
+    },
+    "G14.1": {
+      "backgroundColor": "#CDFECD",
+      "width": 150,
+      "height": 54
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Thu, 15 Oct 2026 12:00:00 GMT",
+  "diagram": {
+    "width": 3220,
+    "height": 1640,
+    "name": "smart-home",
+    "customProperties": {
+      "Description": "IST 2013 Fig. 1: a partial Tropos goal model for the smart-home case study, its contexts ϕ0–ϕ16 (Table 2) and the context analysis of ϕ1 (Fig. 2)"
+    }
+  },
+  "metamodel": {
+    "name": "cgm",
+    "elements": [
+      {
+        "kind": "cgm.Context",
+        "label": "Context",
+        "category": "node",
+        "size": {
+          "width": 80,
+          "height": 36
+        },
+        "shape": {
+          "path": "M 2 2 L 78 2 L 78 34 L 2 34 Z",
+          "viewBox": "0 0 80 36"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Statement",
+        "label": "Statement",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 46
+        },
+        "shape": {
+          "path": "M 2 2 L 92 2 L 92 38 L 2 38 Z M 92 8 L 98 8 L 98 44 L 8 44 L 8 38",
+          "viewBox": "0 0 100 46"
+        },
+        "textBox": {
+          "top": 0.08,
+          "right": 0.12,
+          "bottom": 0.2,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "cgm.Fact",
+        "label": "Fact",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 14 2 L 98 2 L 86 38 L 2 38 Z",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.16,
+          "bottom": 0.1,
+          "left": 0.16
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "cgm.IncludesLink",
+        "label": "includes",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "cgm.IntersectsLink",
+        "label": "intersects",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istar.Task"
+          ],
+          "unique": "kind",
+          "sameActor": false
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      }
+    ]
+  }
+}

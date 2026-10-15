@@ -1,0 +1,4 @@
+{
+  "label": "REJ 2010 Fig. 13: C13 → C12 (and the trivial C15 → true)",
+  "absolute": ["!C13 | C12"]
+}
