@@ -44,3 +44,7 @@ D3).
 DryCleaning is tried first because sweep contributes + to efficiency and mop
 − (§3.1; the engine's ordering of OR alternatives, #134 D8), not because of
 link order.
+
+## Native file
+
+`cleaner-agent.tropos` is the model as TAOM4E's `.tropos`, written by the engine's writer from `cleaner-agent.txt` (goal-controller#144): what TAOM4E has no class for is in goal-controller's extension. **Unverified against TAOM4E**: no tool can re-read it. `pnpm stress:tropos4as` fails when it isn't what the writer writes now.

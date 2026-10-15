@@ -191,6 +191,8 @@ The dialect declares `nativeFiles.tropos` (#143, #144 item 3): `.tropos`, format
   - `write(read(f))` is `f`, canonically, for the fixtures;
   - the GODA-shaped fixture, written and read back, generates `examples/goda/dm`'s 8 files through the GODA engine.
 
+- **The seeds ship theirs**: `examples/tropos4as/<seed>/<seed>.tropos`, the writer's output for the committed model, listed under the model in `project.json` (`"native": { "tropos": "<seed>.tropos" }`). The stress test fails when one isn't what the writer writes now, so they never drift.
+
 **Unverified against TAOM4E.** No tool can re-read what it writes: TAOM4E and its Tropos4AS plug-ins are gone (#134). The round trip is ours alone.
 
 ## Examples
