@@ -270,8 +270,9 @@ export const mission = defineDialect({
   in `propertyLineOrder` with the others). The goal language reads that
   prefix in your dialect only. A kind you don't list has no line: its
   properties are the inspector's, and its text stays as written. A
-  dialect without ids can't list one (it has no prefix to give it); its
-  iStar kinds' properties are property lines all the same (#138).
+  dialect without ids lists one without a prefix, as its other kinds: its
+  elements' lines are matched by position, with their property lines under
+  them (#138).
 - **The engine's kinds** are its dialect's extension: `defineEngine` takes
   them from `dialect.extension` (§3.9).
 

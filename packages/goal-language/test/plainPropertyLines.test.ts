@@ -27,7 +27,7 @@ import {
   unquotedName,
   writtenName,
 } from '../src/index.js';
-import { node, toy } from '../../dialect/test/support/toy.js';
+import { node, sensing, toy } from '../../dialect/test/support/toy.js';
 
 /** No ids; a goal has a type (an enum) and an achievement condition (an assertion). */
 const plain = defineDialect({
@@ -326,6 +326,43 @@ describe('property lines without ids (goal-controller#138)', () => {
     expect(labels(value, value.indexOf('type ') + 5)).to.include.members([
       'achieve',
       'maintain',
+    ]);
+  });
+
+  it('lists an extension’s kind without a prefix, its properties on lines too', () => {
+    const sensed = defineDialect({
+      ...plain,
+      id: 'plainSensed',
+      extension: sensing,
+      elements: { ...plain.elements, 'sensing.Sensor': { fill: '#000000' } },
+      properties: {
+        ...plain.properties,
+        'sensing.Sensor': [
+          { key: 'attributes', value: { type: 'pairList' }, help: 'what' },
+        ],
+      },
+      propertyLineOrder: ['type', 'achievement', 'attributes'],
+    });
+    const tree: DocumentTree = {
+      nodes: new Map([
+        [
+          's',
+          node({
+            id: 's',
+            kind: 'sensing.Sensor',
+            name: 'room',
+            properties: { attributes: 'clean:bool' },
+          }),
+        ],
+      ]),
+      roots: ['s'],
+    };
+    const text = 'room\n  attributes clean:bool';
+    expect(notationDocument(sensed, tree)).to.deep.equal({ text, ids: ['s'] });
+    expect(
+      notationEdits(sensed, text.replace('bool', 'number'), tree),
+    ).to.deep.equal([
+      { iStarId: 'i-s', key: 'attributes', value: 'clean:number' },
     ]);
   });
 

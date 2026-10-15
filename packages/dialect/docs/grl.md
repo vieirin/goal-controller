@@ -29,7 +29,7 @@ The references are jUCMNavPlus's sources:
   - `importance` (High, Medium, Low, None);
   - `importanceQuantitative` (0..100, which the quantitative evaluation weighs);
   - `decompositionType` (And, Or, Xor).
-- An indicator's `importance` and `importanceQuantitative` are declared on its kind (`'grl.Indicator'` in the dialect's `properties`, goal-controller#132): the inspector edits them. GRL lists no indicator in the Notation view (an extension's kind needs an id prefix to be listed), and the other kinds' are read, not declared (below).
+- An indicator's `importance` and `importanceQuantitative` are declared on its kind (`'grl.Indicator'` in the dialect's `properties`, goal-controller#132): the inspector edits them. GRL lists no indicator in the Notation view (a dialect without ids may since #138; GRL doesn't), and the other kinds' are read, not declared (below).
 
 **Links**
 - A *decomposition* (child → parent) is an iStar refinement: And as `istar.AndRefinementLink`, Or as `istar.OrRefinementLink`.
