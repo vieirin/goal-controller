@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urn:URNspec xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:grl="http:///grl.ecore" xmlns:grl.kpimodel="http:///grl/kpimodel.ecore" xmlns:urn="http:///urn.ecore" name="Home heating" author="goal-controller" created="October 13, 2026" modified="October 13, 2026" specVersion="1" urnVersion="1.27" nextGlobalID="100">
+  <grlspec>
+    <intElements name="Low running cost" id="2" linksDest="24 25 26 33" type="Softgoal" refs="60" importance="High" importanceQuantitative="80"/>
+    <intElements name="Keep the home warm" id="3" linksDest="20 21 30" linksSrc="22" type="Goal" refs="61" decompositionType="Xor" importance="High" importanceQuantitative="100"/>
+    <intElements name="Heat with the heat pump" id="4" linksSrc="20 24 29" type="Task" refs="62"/>
+    <intElements name="Heat with the gas boiler" id="5" linksSrc="21 25 27" type="Task" refs="63"/>
+    <intElements name="Comfort" id="6" linksDest="27 28 29 32" type="Softgoal" refs="64" importance="Medium" importanceQuantitative="50"/>
+    <intElements xsi:type="grl.kpimodel:Indicator" name="Indoor temperature" id="7" linksSrc="28" type="Indicator" refs="65"/>
+    <intElements name="Electricity" id="8" linksDest="31" linksSrc="30" type="Ressource" refs="66"/>
+    <intElements name="Run the house" id="9" linksDest="22 23" linksSrc="32" type="Goal" refs="67" importance="Low" importanceQuantitative="20"/>
+    <intElements name="Monitor consumption" id="10" linksSrc="23 26" type="Task" refs="68"/>
+    <intElements name="Supply electricity" id="12" linksSrc="31 33" type="Task" refs="69" importance="High" importanceQuantitative="50"/>
+    <actors name="Home owner" id="1" contRefs="51" importance="High" importanceQuantitative="80"/>
+    <actors name="Utility company" id="13" contRefs="52"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition20" id="20" dest="3" src="4"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition21" id="21" dest="3" src="5"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition22" id="22" dest="9" src="3"/>
+    <links xsi:type="grl:Decomposition" name="Decomposition23" id="23" dest="9" src="10"/>
+    <links xsi:type="grl:Contribution" name="Contribution24" id="24" dest="2" src="4" contribution="Make" quantitativeContribution="100"/>
+    <links xsi:type="grl:Contribution" name="Contribution25" id="25" dest="2" src="5" contribution="Break" quantitativeContribution="-100"/>
+    <links xsi:type="grl:Contribution" name="Contribution26" id="26" dest="2" src="10" quantitativeContribution="50"/>
+    <links xsi:type="grl:Contribution" name="Contribution27" id="27" dest="6" src="5" contribution="Hurt" quantitativeContribution="-50"/>
+    <links xsi:type="grl:Contribution" name="Contribution28" id="28" dest="6" src="7" quantitativeContribution="70"/>
+    <links xsi:type="grl:Contribution" name="Contribution29" id="29" dest="6" src="4"/>
+    <links xsi:type="grl:Dependency" name="Dependency30" id="30" dest="3" src="8"/>
+    <links xsi:type="grl:Dependency" name="Dependency31" id="31" dest="8" src="12"/>
+    <links xsi:type="grl:Contribution" name="Contribution32" id="32" dest="6" src="9" contribution="SomePositive" quantitativeContribution="10" correlation="true"/>
+    <links xsi:type="grl:Contribution" name="Contribution33" id="33" dest="2" src="12" contribution="Unknown" quantitativeContribution="0"/>
+    <groups name="Heating" id="40" strategies="41 42"/>
+    <strategies name="Heat pump" id="41" author="goal-controller" group="40">
+      <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="4"/>
+      <evaluations intElement="5"/>
+      <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="7"/>
+      <evaluations evaluation="60" qualitativeEvaluation="WeaklySatisfied" intElement="8"/>
+      <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="10"/>
+      <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="12"/>
+    </strategies>
+    <strategies name="Gas boiler" id="42" author="goal-controller" group="40" includedStrategies="41">
+      <evaluations intElement="4"/>
+      <evaluations evaluation="100" qualitativeEvaluation="Satisfied" intElement="5"/>
+      <evaluations intElement="7">
+        <kpiEvalValueSet targetValue="21" thresholdValue="18" worstValue="15" evaluationValue="19.5" unit="degrees C"/>
+      </evaluations>
+    </strategies>
+  </grlspec>
+  <urndef>
+    <specDiagrams xsi:type="grl:GRLGraph" name="Home heating" id="50">
+      <nodes xsi:type="grl:IntentionalElementRef" id="60" x="120" y="60" contRef="51" def="2"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="61" x="420" y="220" contRef="51" def="3"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="62" x="300" y="360" contRef="51" def="4"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="63" x="540" y="360" contRef="51" def="5"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="64" x="660" y="60" contRef="51" def="6"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="65" x="780" y="200" contRef="51" def="7"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="66" x="960" y="380" def="8"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="67" x="420" y="100" contRef="51" def="9"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="68" x="160" y="220" contRef="51" def="10"/>
+      <nodes xsi:type="grl:IntentionalElementRef" id="69" x="1180" y="380" contRef="52" def="12"/>
+      <nodes xsi:type="grl:Belief" name="Heat pumps stay efficient in this climate" id="70" x="140" y="460" contRef="51" description="Winters here rarely go below -5 degrees C"/>
+      <contRefs xsi:type="grl:ActorRef" id="51" name="Home owner" x="80" y="20" width="820" height="520" contDef="1" nodes="60 61 62 63 64 65 67 68 70">
+        <label/>
+      </contRefs>
+      <contRefs xsi:type="grl:ActorRef" id="52" name="Utility company" x="1120" y="300" width="220" height="200" contDef="13" nodes="69">
+        <label/>
+      </contRefs>
+      <connections xsi:type="grl:LinkRef" source="62" target="61" link="20"/>
+      <connections xsi:type="grl:LinkRef" source="63" target="61" link="21"/>
+      <connections xsi:type="grl:LinkRef" source="61" target="67" link="22"/>
+      <connections xsi:type="grl:LinkRef" source="68" target="67" link="23"/>
+      <connections xsi:type="grl:LinkRef" source="62" target="60" link="24"/>
+      <connections xsi:type="grl:LinkRef" source="63" target="60" link="25"/>
+      <connections xsi:type="grl:LinkRef" source="68" target="60" link="26"/>
+      <connections xsi:type="grl:LinkRef" source="63" target="64" link="27"/>
+      <connections xsi:type="grl:LinkRef" source="65" target="64" link="28"/>
+      <connections xsi:type="grl:LinkRef" source="62" target="64" link="29"/>
+      <connections xsi:type="grl:LinkRef" source="66" target="61" link="30"/>
+      <connections xsi:type="grl:LinkRef" source="69" target="66" link="31"/>
+      <connections xsi:type="grl:LinkRef" source="67" target="64" link="32"/>
+      <connections xsi:type="grl:LinkRef" source="69" target="60" link="33"/>
+      <connections xsi:type="grl:BeliefLink" source="70" target="62"/>
+    </specDiagrams>
+  </urndef>
+</urn:URNspec>

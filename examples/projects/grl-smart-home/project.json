@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "grl",
+  "models": [
+    {
+      "path": "SmartHome2.txt"
+    }
+  ],
+  "projectResources": {
+    "strategies": [
+      "strategies/StrategiesGroup5.json"
+    ]
+  },
+  "outputs": []
+}

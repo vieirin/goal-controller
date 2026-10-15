@@ -316,6 +316,7 @@ const MODES: readonly ModelMode[] = [
   'sleec',
   'mutrose',
   'goda',
+  'grl',
   'pistarext',
   'pistar',
 ];
@@ -428,8 +429,9 @@ const prefixIn = (
   kind: IstarElement['kind'],
 ): string | undefined => {
   if (!isEngineMode(target) || !isDialectEngine(target)) return PREFIX[kind];
-  const elements: Readonly<Record<string, { prefix?: string } | undefined>> =
-    ENGINE_DIALECTS[target].elements;
+  const elements = ENGINE_DIALECTS[target].elements as Readonly<
+    Record<string, { prefix?: string } | undefined>
+  >;
   const key = kind.replace(/^istar\./, '').toLowerCase();
   return key === 'quality' ? elements.goal?.prefix : elements[key]?.prefix;
 };

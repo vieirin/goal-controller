@@ -16,6 +16,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GoalView, ViewKind } from '@goal-controller/goal-tree';
 import {
+  ENGINE_LABEL,
+  generatesFiles,
   outputLabelOf,
   outputLanguageOf,
 } from '@/lib/workbench/engineDialects';
@@ -98,6 +100,11 @@ export default function OutputPane() {
       <div className='min-h-0 flex-1'>
         {!wb.hasModel ? (
           <Empty>Open a goal model to generate its specification.</Empty>
+        ) : !generatesFiles(wb.engine) ? (
+          <Empty>
+            {ENGINE_LABEL[wb.engine]} generates no file: Analyse evaluates the
+            model, and draws its values on it.
+          </Empty>
         ) : !lastGood ? (
           wb.generating ? (
             <Empty>

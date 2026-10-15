@@ -1,5 +1,7 @@
 import { GoalTree, Model, type RootReading } from '@goal-controller/goal-tree';
 import { parsePistar } from '@istar-ts/core';
+import { recordedMode } from '../lib/project';
+import { ENGINE_FILE_KINDS } from '../lib/workbench/engineDialects';
 import {
   edgeEngineMapper,
   edgeV2EngineMapper,
@@ -43,7 +45,11 @@ export const GoalModel = {
     // Parse the piStar file
     let model: IStarModel;
     try {
-      model = parsePistar(modelJson);
+      // an engine whose models declare kinds of their own reads its block
+      const mode = recordedMode(modelJson);
+      model = parsePistar(modelJson, {
+        fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
+      });
     } catch (error) {
       return {
         success: false,
@@ -118,6 +124,23 @@ export const GoalModel = {
 
   parseForMutrose(modelJson: string, options: ParseOptions = {}) {
     return this.parseWith(modelJson, mutroseEngineMapper, options);
+  },
+
+  /**
+   * A model read as a graph (an analysis engine's, GRL's): parsed with the
+   * kinds its block declares, without a root or a tree.
+   */
+  parseAsGraph(modelJson: string): { success: true; tree: null } | ParseError {
+    try {
+      parsePistar(modelJson, { fileMetamodel: true });
+      return { success: true, tree: null };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Invalid model: ${error instanceof Error ? error.message : 'Unknown parse error'}`,
+        stage: 'parse',
+      };
+    }
   },
 
   parseForGoda(modelJson: string, options: ParseOptions = {}) {

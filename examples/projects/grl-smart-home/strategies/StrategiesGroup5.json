@@ -1,0 +1,42 @@
+{
+  "group": "StrategiesGroup5",
+  "strategies": [
+    {
+      "id": "6",
+      "name": "EvaluationStrategy6",
+      "author": "YK",
+      "evaluations": {
+        "19": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        },
+        "65": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        },
+        "86": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        },
+        "147": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        },
+        "1374": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        },
+        "1376": {
+          "value": 100,
+          "label": "Satisfied",
+          "kpi": {}
+        }
+      }
+    }
+  ]
+}

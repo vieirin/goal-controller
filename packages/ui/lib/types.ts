@@ -6,9 +6,16 @@ import {
 
 /**
  * The one spelling of engine names used across the UI and its API:
- * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec', 'mutrose' and 'goda'.
+ * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec', 'mutrose', 'goda' and
+ * 'grl' (an analysis engine: it evaluates, it generates no file).
  */
-export type TransformEngine = 'edge' | 'edgev2' | 'sleec' | 'mutrose' | 'goda';
+export type TransformEngine =
+  | 'edge'
+  | 'edgev2'
+  | 'sleec'
+  | 'mutrose'
+  | 'goda'
+  | 'grl';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
@@ -32,6 +39,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'sleec',
   'mutrose',
   'goda',
+  'grl',
 ];
 
 export const isTransformEngine = (

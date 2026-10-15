@@ -13,6 +13,12 @@ import {
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  grl,
+  grlEngineMapper,
+  grlExtension,
+  grlAnalyses,
+  grlCheckRegistry,
+  grlProjectResourceParsers,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
@@ -24,7 +30,11 @@ import {
   type Check,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
-import type { AnyDialect, CheckNameOf } from '@goal-controller/dialect';
+import type {
+  AnyDialect,
+  CheckNameOf,
+  ExtensionDefinition,
+} from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_DIALECTS = {
@@ -32,6 +42,7 @@ export const ENGINE_DIALECTS = {
   edgev2: edgeV2,
   mutrose,
   goda,
+  grl,
 } as const;
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
@@ -51,6 +62,7 @@ export const ENGINE_CHECKS: { readonly [E in DialectEngine]: ChecksOf<E> } = {
   edgev2: edgeCheckRegistry,
   mutrose: mutroseCheckRegistry,
   goda: godaCheckRegistry,
+  grl: grlCheckRegistry,
 };
 
 /**
@@ -67,6 +79,7 @@ export const ENGINE_PROJECT_RESOURCES: {
   mutrose: mutroseProjectResources,
   // it reads nothing beside the model
   goda: {},
+  grl: grlProjectResourceParsers,
 };
 
 /**
@@ -84,6 +97,7 @@ export const ENGINE_MAPPERS = {
   sleec: sleecEngineMapper,
   mutrose: mutroseEngineMapper,
   goda: godaEngineMapper,
+  grl: grlEngineMapper,
 } as const satisfies Record<TransformEngine, { allowLeafGoals?: boolean }>;
 
 /** Each engine's name, as the UI shows it: a definition's own, or SLEEC's. */
@@ -93,6 +107,7 @@ export const ENGINE_LABEL: Record<TransformEngine, string> = {
   sleec: 'SLEEC',
   mutrose: mutrose.name,
   goda: goda.name,
+  grl: grl.name,
 };
 
 /** How an output is highlighted: PRISM, MutRoSe's runtime annotation, or plain. */
@@ -108,6 +123,8 @@ type EngineInfo = {
   help: string;
   /** whether it takes generation options (MutRoSe reads the model as written) */
   hasOptions: boolean;
+  /** false: it generates no file, its values are the Analyse control's (an analysis engine) */
+  generates?: false;
 };
 
 /** The engines a model can be for, in the order the UI offers them, with what each generates. */
@@ -159,6 +176,17 @@ export const ENGINES: readonly EngineInfo[] = [
     help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
     hasOptions: true,
   },
+  {
+    id: 'grl',
+    label: ENGINE_LABEL.grl,
+    // an analysis engine: its values are drawn on the model (Analyse), no file
+    output: 'Evaluation',
+    extension: 'json',
+    language: 'text',
+    help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
+    hasOptions: false,
+    generates: false,
+  },
 ];
 
 const infoOf = (engine: TransformEngine): EngineInfo =>
@@ -169,6 +197,9 @@ export const outputLabelOf = (engine: TransformEngine): string =>
 /** How an engine's output is highlighted. */
 export const outputLanguageOf = (engine: TransformEngine): OutputLanguage =>
   infoOf(engine).language;
+/** Whether an engine generates files (an analysis engine draws values instead). */
+export const generatesFiles = (engine: TransformEngine): boolean =>
+  infoOf(engine).generates !== false;
 /** Whether an engine takes generation options. */
 export const hasOptions = (engine: TransformEngine): boolean =>
   infoOf(engine).hasOptions;
@@ -197,4 +228,18 @@ export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
  */
 export const ENGINE_ANALYSES: Readonly<
   Partial<Record<TransformEngine, Analyses>>
-> = {};
+> = {
+  grl: grlAnalyses,
+};
+
+/**
+ * The engines whose models declare kinds of their own, in their file's
+ * `"metamodel"` block (written by the engine's importer: GRL's indicators
+ * and beliefs, #106), by the extension that defines them. Such a model is
+ * read with its block applied; the other engines read iStar 2.0 only.
+ */
+export const ENGINE_FILE_KINDS: Readonly<
+  Partial<Record<TransformEngine, ExtensionDefinition>>
+> = {
+  grl: grlExtension,
+};

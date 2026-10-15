@@ -4,6 +4,7 @@ import { useWorkbench } from '../WorkbenchContext';
 import EdgeDiagram from './edge/EdgeDiagram';
 import EdgeV2Diagram from './edgeV2/EdgeV2Diagram';
 import GodaDiagram from './goda/GodaDiagram';
+import GrlDiagram from './grl/GrlDiagram';
 import MutroseDiagram from './mutrose/MutroseDiagram';
 import PistarDiagram from './pistar/PistarDiagram';
 import PistarExtDiagram from './pistarExt/PistarExtDiagram';
@@ -27,5 +28,7 @@ export default function ModelDiagram() {
       return <MutroseDiagram />;
     case 'goda':
       return <GodaDiagram />;
+    case 'grl':
+      return <GrlDiagram />;
   }
 }

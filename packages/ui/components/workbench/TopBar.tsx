@@ -25,6 +25,7 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
 import {
   ENGINE_LABEL,
+  generatesFiles,
   hasOptions,
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
@@ -345,7 +346,7 @@ export default function TopBar() {
               <span className='h-5 w-px bg-line' aria-hidden />
             </>
           )}
-          {!shell.pistarMode && (
+          {!shell.pistarMode && generatesFiles(wb.engine) && (
             <Switch
               checked={wb.live}
               onChange={wb.setLive}
@@ -354,7 +355,7 @@ export default function TopBar() {
             />
           )}
           {!shell.pistarMode && <AnalyseControl />}
-          {!shell.pistarMode && (
+          {!shell.pistarMode && generatesFiles(wb.engine) && (
             <Button
               variant='primary'
               onClick={wb.generate}

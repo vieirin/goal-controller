@@ -35,6 +35,7 @@ import {
 import { istar4RationalAgents } from '@goal-controller/lib';
 // the mode a model records: read by the project module, the one place that knows where
 import { recordedMode } from '../project';
+import { ENGINE_FILE_KINDS } from './engineDialects';
 
 /** The dialects, by the mode a model records for them. */
 export const DIALECTS = {
@@ -144,7 +145,11 @@ export const parseModel = (
   mode: string | null = recordedMode(text),
 ): IstarModel => {
   if (!isDialectMode(mode))
-    return parsePistar(text, { metamodel: ISTAR_2_0 }) as unknown as IstarModel;
+    return parsePistar(text, {
+      metamodel: ISTAR_2_0,
+      // an engine whose models declare kinds of their own: their block applied
+      fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
+    }) as unknown as IstarModel;
   const model = parsePistar(text, {
     metamodel: HOSTS[mode],
     fileMetamodel: true,
