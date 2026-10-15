@@ -212,6 +212,10 @@ describe('defineDialect', () => {
         /\.json opens a piStar model/,
       ],
       [
+        { shelf: { ...shelf, extensions: ['.txt'] } },
+        /\.txt opens a piStar model/,
+      ],
+      [
         { shelf, other: { ...shelf, extensions: ['.shelfx'] } },
         /native file other: \.shelfx is native file shelf’s too/,
       ],

@@ -308,6 +308,7 @@ function MobileModel() {
     wb.engine,
     wb.resourceSlots,
     wb.openedFiles,
+    wb.nativeSlots,
   );
   return (
     <section className='flex h-full flex-col' aria-label='Goal model'>

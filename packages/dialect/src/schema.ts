@@ -503,8 +503,8 @@ export const NATIVE_SCHEMA_KINDS = {
 
 export type NativeSchemaKind = keyof typeof NATIVE_SCHEMA_KINDS;
 
-/** The extension a piStar model is opened by, which no native file takes. */
-export const PISTAR_EXTENSION = '.json';
+/** The extensions a piStar model is opened by (the workbench's model files), which no native file takes. */
+export const PISTAR_EXTENSIONS: readonly string[] = ['.json', '.txt'];
 
 /** What reading or writing a native file found: what was read differently, left out, or can't be. */
 export type NativeDiagnostic = {
@@ -924,7 +924,7 @@ const checkNativeFiles = (
         fail(
           `${where}: ${extension} is not an extension (lower case, with its dot)`,
         );
-      if (extension === PISTAR_EXTENSION)
+      if (PISTAR_EXTENSIONS.includes(extension))
         fail(`${where}: ${extension} opens a piStar model`);
       const other = taken.get(extension);
       if (other) fail(`${where}: ${extension} is native file ${other}’s too`);

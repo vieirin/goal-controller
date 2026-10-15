@@ -425,6 +425,7 @@ function ModelColumn() {
     wb.engine,
     wb.resourceSlots,
     wb.openedFiles,
+    wb.nativeSlots,
   );
 
   return (

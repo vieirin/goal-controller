@@ -192,9 +192,23 @@ export const importArchive = async (
 ): Promise<ProjectStore> => {
   const files = readArchive(bytes);
   if (files.size === 0) throw new Error('the archive has no files');
+  return importFiles(files, name, root);
+};
+
+/**
+ * Writes files (path → text) into a new browser project (OPFS): an
+ * archive's, a native file's project (nativeProjectFiles). `root` replaces
+ * the browser's (tests).
+ */
+export const importFiles = async (
+  files: ReadonlyMap<string, string> | Readonly<Record<string, string>>,
+  name: string,
+  root?: DirectoryHandleLike,
+): Promise<ProjectStore> => {
   const store = opfsStore(name, root);
   try {
-    for (const [path, text] of files) await store.write(path, text);
+    const entries = files instanceof Map ? [...files] : Object.entries(files);
+    for (const [path, text] of entries) await store.write(path, text);
   } catch (error) {
     // no half-imported project left behind, holding the name
     await removeOpfsProject(name, root);

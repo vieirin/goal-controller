@@ -31,33 +31,42 @@ const failed = (problem: string, diagnostics: NativeDiagnostic[]) => ({
   diagnostics,
 });
 
-/** `read(write(m))` equals `m` but for the format's lossy paths. */
+/** `read(write(m))` equals `m` but for the format's lossy paths; `written`: the text it wrote. */
 export const modelRoundTrip = (
   file: NativeFileDefinition,
   model: PistarJson,
   context: NativeFileContext,
-): RoundTrip => {
-  if (!file.write) return failed('it has no writer', []);
+): RoundTrip & { written: string | null } => {
+  if (!file.write) return { ...failed('it has no writer', []), written: null };
   const written = file.write(model, context);
   if (written.text === null)
-    return failed(
-      `not written: ${errorsOf(written.diagnostics)[0]?.message ?? 'no reason given'}`,
-      written.diagnostics,
-    );
+    return {
+      ...failed(
+        `not written: ${errorsOf(written.diagnostics)[0]?.message ?? 'no reason given'}`,
+        written.diagnostics,
+      ),
+      written: null,
+    };
   const read = file.read(written.text, context);
   const diagnostics = [...written.diagnostics, ...read.diagnostics];
   if (!read.model)
-    return failed(
-      `what it wrote doesn't read: ${errorsOf(read.diagnostics)[0]?.message ?? 'no reason given'}`,
-      diagnostics,
-    );
+    return {
+      ...failed(
+        `what it wrote doesn't read: ${errorsOf(read.diagnostics)[0]?.message ?? 'no reason given'}`,
+        diagnostics,
+      ),
+      written: written.text,
+    };
   const difference = modelDifference(model, read.model, file.lossy);
   return difference
-    ? failed(
-        `read back, ${difference.path} is ${difference.b}, not ${difference.a}`,
-        diagnostics,
-      )
-    : { ok: true, problem: null, diagnostics };
+    ? {
+        ...failed(
+          `read back, ${difference.path} is ${difference.b}, not ${difference.a}`,
+          diagnostics,
+        ),
+        written: written.text,
+      }
+    : { ok: true, problem: null, diagnostics, written: written.text };
 };
 
 /** The first line two texts differ on, 1-based, with both lines. */

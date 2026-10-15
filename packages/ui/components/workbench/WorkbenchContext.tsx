@@ -44,7 +44,12 @@ import {
   fileStore,
   freeName,
   importArchive,
+  importFiles,
   indexedDbHandles,
+  memoryStore,
+  modelText,
+  nativeProjectFiles,
+  nativeSlots,
   openProject as readProject,
   opfsProjects,
   opfsStore,
@@ -70,8 +75,17 @@ import {
   type Project,
   type ProjectSource,
   type ProjectStore,
+  type NativeSlot,
   type ResourceSlot,
 } from '@/lib/project';
+import {
+  heldAtOpen,
+  nativeDeclarationsOf,
+  nativeFileOf,
+  nativeProblems,
+  nativeStates,
+  type NativeState,
+} from '@/lib/workbench/nativeFiles';
 import type { DefinitionContext } from '@goal-controller/dialect';
 import {
   declarationsOf,
@@ -92,6 +106,7 @@ import {
 /** What every project opens with: the resources its model's dialect reads. */
 const PROJECT_OPTIONS: OpenProjectOptions = {
   projectResources: declarationsOf,
+  nativeFiles: nativeDeclarationsOf,
 };
 
 /** Where the folders a user opened are kept (IndexedDB), opened when first used. */
@@ -282,6 +297,16 @@ export type Workbench = {
   copyToBrowser: () => Promise<void>;
   /** what just happened to the project (it became a browser copy) */
   resourceNotice: string | null;
+  /** the model's native files its dialect declares: where the project has each, or missing (goal-controller#143) */
+  nativeSlots: NativeSlot[];
+  /** each present native file: its text, and how it stands with the model */
+  nativeStates: NativeState[];
+  /** a native file written from the model again (it follows the model from now) */
+  regenerateNative: (path: string) => void;
+  /** the model read again from a native file (an edit, undoable) */
+  reimportModel: (path: string) => void;
+  /** a native file opened: the project of it and its model, in the browser */
+  openNativeFile: (fileName: string, text: string) => Promise<void>;
 
   // structure
   tree: GoalView | null;
@@ -946,6 +971,29 @@ function WorkbenchState({
     },
     [openProject],
   );
+  const openNativeFile = useCallback(
+    async (fileName: string, text: string) => {
+      const found = nativeFileOf(fileName);
+      if (!found) throw new Error(`${fileName}: no dialect's native file`);
+      const read = found.file.read(text, { modelName: found.baseName });
+      if (!read.model)
+        throw new Error(
+          `Not a model ${found.file.label} reads: ${
+            read.diagnostics
+              .filter((d) => d.severity === 'error')
+              .map((d) => d.message)
+              .join('; ') || 'no reason given'
+          }`,
+        );
+      const { files } = nativeProjectFiles(fileName, text, found, read);
+      // kept in the browser; where it has no private file system, in memory
+      const store = await opfsProjects()
+        .then((taken) => importFiles(files, freeName(found.baseName, taken)))
+        .catch(() => memoryStore(files, { kind: 'file', name: fileName }));
+      openProject(await readProject(store, PROJECT_OPTIONS), { setup: true });
+    },
+    [openProject],
+  );
   const openRecent = useCallback(
     async (entry: RecentFile) => {
       // a folder or a browser project is opened where it is (its resources with it),
@@ -1167,6 +1215,19 @@ function WorkbenchState({
         : [],
     [project, engine, pistar],
   );
+  // the model's native files (goal-controller#143), by the engine's dialect
+  const nativeSlotsNow = useMemo<NativeSlot[]>(
+    () =>
+      project
+        ? nativeSlots(
+            project.manifest,
+            project.files,
+            project.models.map((m) => m.path),
+            (!pistar && nativeDeclarationsOf(engine)) || {},
+          )
+        : [],
+    [project, engine, pistar],
+  );
   // the open project's own files, by role: what the Explorer lists (never the examples)
   const listing = useMemo<ListedFile[]>(
     () =>
@@ -1176,9 +1237,10 @@ function WorkbenchState({
             project.files,
             resourceSlotsNow,
             project.models.map((m) => m.path),
+            nativeSlotsNow,
           )
         : [],
-    [project, resourceSlotsNow],
+    [project, resourceSlotsNow, nativeSlotsNow],
   );
   // the project's other files opened in a tab (outputs, notes), besides its resources'
   const [openedFiles, setOpenedFiles] = useState<string[]>([]);
@@ -1201,6 +1263,7 @@ function WorkbenchState({
     const kept = fresh ? {} : resourceTextsRef.current;
     const missing = [
       ...resourceSlotsNow.flatMap((slot) => slot.paths),
+      ...nativeSlotsNow.flatMap((slot) => (slot.missing ? [] : [slot.path])),
       ...(fresh ? [] : openedFiles),
     ].filter((path) => !(path in kept));
     if (fresh) {
@@ -1225,17 +1288,20 @@ function WorkbenchState({
     return () => {
       cancelled = true;
     };
-  }, [project, resourceSlotsNow, openedFiles]);
+  }, [project, resourceSlotsNow, nativeSlotsNow, openedFiles]);
   /** one of the project's files in its tab (read when first opened) */
   const openProjectFile = useCallback(
     (path: string) => {
-      if (!resourceSlotsNow.some((slot) => slot.paths.includes(path)))
+      if (
+        !resourceSlotsNow.some((slot) => slot.paths.includes(path)) &&
+        !nativeSlotsNow.some((slot) => !slot.missing && slot.path === path)
+      )
         setOpenedFiles((prev) =>
           prev.includes(path) ? prev : [...prev, path],
         );
       setModelTab(`resource:${path}`);
     },
-    [resourceSlotsNow],
+    [resourceSlotsNow, nativeSlotsNow],
   );
   const [revealed, setRevealed] = useState<RevealRequest | null>(null);
   /** a model field's range in the Notation view (its element selected), or a file's in its tab */
@@ -1385,6 +1451,128 @@ function WorkbenchState({
       aside: undefined,
     }));
   }, [currentProject, leaving, toWritable]);
+
+  // ---- native files (goal-controller#143) ----------------------------------------
+  // held: not in sync when the project opened, kept as they are until regenerated
+  // or re-imported; inSyncWith: the model's text each was last in sync with
+  const [nativeHeld, setNativeHeld] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const [inSyncWith, setInSyncWith] = useState<Record<string, string>>({});
+  const nativeChecked = useRef<{ store: ProjectStore | null; paths: string[] }>(
+    { store: null, paths: [] },
+  );
+  const nativeContext = useCallback(
+    (slot: NativeSlot) => ({
+      modelName: (slot.model.split('/').pop() ?? slot.model).replace(
+        /\.[^.]*$/,
+        '',
+      ),
+      projectResources: Object.fromEntries(
+        resourceSlotsNow.map((resource) => [
+          resource.kind,
+          Object.fromEntries(
+            resource.paths.flatMap((path) =>
+              resourceTexts[path] === undefined
+                ? []
+                : [[path, resourceTexts[path]!]],
+            ),
+          ),
+        ]),
+      ),
+      options: settings.options,
+    }),
+    [resourceSlotsNow, resourceTexts, settings.options],
+  );
+  // each native file, checked against the model once its text is read
+  useEffect(() => {
+    const store = project?.store ?? null;
+    if (nativeChecked.current.store !== store) {
+      nativeChecked.current = { store, paths: [] };
+      setNativeHeld(new Set());
+      setInSyncWith({});
+    }
+    const checked = nativeChecked.current.paths;
+    const fresh = nativeSlotsNow.filter(
+      (slot) =>
+        !slot.missing &&
+        resourceTexts[slot.path] !== undefined &&
+        !checked.includes(slot.path),
+    );
+    if (!fresh.length) return;
+    checked.push(...fresh.map((slot) => slot.path));
+    const held = fresh.filter((slot) =>
+      heldAtOpen(
+        slot,
+        resourceTexts[slot.path]!,
+        textRef.current,
+        nativeContext(slot),
+      ),
+    );
+    if (held.length)
+      setNativeHeld(
+        (prev) => new Set([...prev, ...held.map((slot) => slot.path)]),
+      );
+    setInSyncWith((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        fresh
+          .filter((slot) => !held.includes(slot))
+          .map((slot) => [slot.path, textRef.current]),
+      ),
+    }));
+  }, [project, nativeSlotsNow, resourceTexts, nativeContext]);
+  const nativeStatesNow = useMemo(
+    () =>
+      nativeStates(
+        nativeSlotsNow,
+        resourceTexts,
+        model.text,
+        nativeHeld,
+        inSyncWith,
+        nativeContext,
+      ),
+    [
+      nativeSlotsNow,
+      resourceTexts,
+      model.text,
+      nativeHeld,
+      inSyncWith,
+      nativeContext,
+    ],
+  );
+  // a file that follows the model: written as the model is edited
+  useEffect(() => {
+    for (const state of nativeStatesNow)
+      if (
+        state.following &&
+        state.write?.text != null &&
+        state.write.text !== resourceTextsRef.current[state.slot.path]
+      )
+        setResourceText(state.slot.path, state.write.text);
+  }, [nativeStatesNow, setResourceText]);
+  const regenerateNative = useCallback((path: string) => {
+    setNativeHeld((prev) => new Set([...prev].filter((p) => p !== path)));
+    setInSyncWith(({ [path]: _was, ...rest }) => rest);
+  }, []);
+  const reimportModel = useCallback(
+    (path: string) => {
+      const slot = nativeSlotsNow.find((s) => s.path === path);
+      const text = resourceTextsRef.current[path];
+      if (!slot || text === undefined) return;
+      const read = slot.definition.read(text, nativeContext(slot));
+      if (!read.model) return;
+      const next = modelText(read.model);
+      setText(next, 'convert');
+      setNativeHeld((prev) => new Set([...prev].filter((p) => p !== path)));
+      setInSyncWith((prev) => ({ ...prev, [path]: next }));
+    },
+    [nativeSlotsNow, nativeContext, setText],
+  );
+  const nativeProblemsNow = useMemo(
+    () => nativeProblems(nativeStatesNow),
+    [nativeStatesNow],
+  );
 
   // ---- variables -------------------------------------------------------------
   const variables = useMemo(
@@ -1715,6 +1903,8 @@ function WorkbenchState({
     else list.push(...modelOptions.problems);
     // what is wrong in the project's resources (Model group, by the resource's label)
     list.push(...resourceProblemsNow);
+    // the model's native files: out of sync, unreadable, or not written (goal-controller#143)
+    list.push(...nativeProblemsNow);
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     if (tree && !parsed.error) {
@@ -1759,6 +1949,7 @@ function WorkbenchState({
     parsed.error,
     modelOptions,
     resourceProblemsNow,
+    nativeProblemsNow,
     projectResources,
     pistar,
     tree,
@@ -1817,6 +2008,7 @@ function WorkbenchState({
     openProject,
     openFile,
     openArchive,
+    openNativeFile,
     openRecent,
     project,
     openFolder,
@@ -1831,6 +2023,10 @@ function WorkbenchState({
     setResourceText,
     copyToBrowser,
     resourceNotice,
+    nativeSlots: nativeSlotsNow,
+    nativeStates: nativeStatesNow,
+    regenerateNative,
+    reimportModel,
     projectSource: model.projectSource,
     closeModel,
     setText,

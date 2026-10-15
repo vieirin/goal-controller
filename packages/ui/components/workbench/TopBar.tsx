@@ -39,6 +39,12 @@ import {
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { FILE_IMPORTERS, importerFor } from '@goal-controller/lib';
+import { nativeFileFor } from '@goal-controller/dialect';
+import {
+  NATIVE_DIALECTS,
+  NATIVE_EXTENSIONS,
+  openAccept,
+} from '@/lib/workbench/nativeFiles';
 import { isArchiveName } from '@/lib/project';
 import {
   downloadOutput,
@@ -95,37 +101,35 @@ export const importedModel = (
 };
 
 /**
- * A file opened or dropped: a project archive (.tar.gz, .zip, #99), another
+ * A file opened or dropped: a project archive (.tar.gz, .zip, #99), a
+ * dialect's native file (the project of it and its model, #143), another
  * tool's model (imported), else a model.
  */
 export const openUpload = async (
-  wb: Pick<ReturnType<typeof useWorkbench>, 'openFile' | 'openArchive'>,
+  wb: Pick<
+    ReturnType<typeof useWorkbench>,
+    'openFile' | 'openArchive' | 'openNativeFile'
+  >,
   file: File,
+  /** the dialects whose native files it opens (the registered engines') */
+  dialects = NATIVE_DIALECTS,
 ): Promise<void> => {
   if (isArchiveName(file.name))
     return wb.openArchive(file.name, new Uint8Array(await file.arrayBuffer()));
   const text = await readFile(file);
+  if (nativeFileFor(dialects, file.name))
+    return wb.openNativeFile(file.name, text);
   const imported = importedModel(file.name, text);
   return imported
     ? wb.openFile(imported.fileName, imported.text, { setup: true })
     : wb.openFile(file.name, text, { setup: true });
 };
 
-/** What the open dialog takes: piStar models, archives, and every importer's extensions. */
-const OPEN_ACCEPT = [
-  '.txt',
-  '.json',
-  '.tar.gz',
-  '.tgz',
-  '.tar',
-  '.zip',
-  ...FILE_IMPORTERS.flatMap((importer) => importer.extensions),
-  'application/json',
-  'text/plain',
-  'application/gzip',
-  'application/x-tar',
-  'application/zip',
-].join(',');
+/** What the open dialog takes (piStar models, archives, the declared native files, the importers'). */
+export const OPEN_ACCEPT = openAccept(
+  NATIVE_EXTENSIONS,
+  FILE_IMPORTERS.flatMap((importer) => importer.extensions),
+);
 
 export const useOpenFile = (): { open: () => void; input: ReactElement } => {
   const wb = useWorkbench();

@@ -448,6 +448,7 @@ describe('the toy dialect’s native files (#143)', () => {
     expect(modelRoundTrip(chores, model!, context)).to.include({
       ok: true,
       problem: null,
+      written: fixture('house.chores'),
     });
     // a property the format doesn't carry: not lossy, so the trip says so
     const extra = structuredClone(model!) as PistarJson;

@@ -24,6 +24,11 @@ import {
   type ProjectStore,
 } from './store';
 import {
+  nativeSlots,
+  type NativeDeclarations,
+  type NativeSlot,
+} from './native';
+import {
   resourceSlots,
   type ProjectResourceDeclarations,
   type ResourceSlot,
@@ -55,6 +60,10 @@ export type Project = {
   declarations: ProjectResourceDeclarations;
   /** each declared kind: where the project has it, or missing */
   resources: ResourceSlot[];
+  /** the native files its dialect declares, as data (none: it declares none, or isn't known) */
+  nativeDeclarations: NativeDeclarations;
+  /** each model's native files: where the project has them, or missing */
+  natives: NativeSlot[];
 };
 
 /** What openProject asks the workbench: the project resources a dialect reads. */
@@ -62,6 +71,8 @@ export type OpenProjectOptions = {
   projectResources?: (
     dialect: string | null,
   ) => ProjectResourceDeclarations | undefined;
+  /** the native files a dialect declares (goal-controller#143) */
+  nativeFiles?: (dialect: string | null) => NativeDeclarations | undefined;
 };
 
 const MODEL_FILE = /\.(txt|json)$/i;
@@ -97,6 +108,7 @@ type Shape = {
   name: string;
   files: readonly string[];
   declarations: ProjectResourceDeclarations;
+  nativeDeclarations: NativeDeclarations;
 };
 
 const project = ({
@@ -107,6 +119,7 @@ const project = ({
   name,
   files,
   declarations,
+  nativeDeclarations,
 }: Shape): Project => ({
   name,
   source: store.source,
@@ -119,6 +132,13 @@ const project = ({
   files: [...files].sort(),
   declarations,
   resources: resourceSlots(manifest, files, declarations),
+  nativeDeclarations,
+  natives: nativeSlots(
+    manifest,
+    files,
+    models.map((model) => model.path),
+    nativeDeclarations,
+  ),
 });
 
 /** the project's resources the dialect of its (first) model reads */
@@ -127,6 +147,13 @@ const declarationsFor = (
   options: OpenProjectOptions,
 ): ProjectResourceDeclarations =>
   options.projectResources?.(models[0]?.settings.mode ?? null) ?? {};
+
+/** the native files the dialect of its (first) model declares */
+const nativeDeclarationsFor = (
+  models: readonly ProjectModel[],
+  options: OpenProjectOptions,
+): NativeDeclarations =>
+  options.nativeFiles?.(models[0]?.settings.mode ?? null) ?? {};
 
 const embedded = (
   store: ProjectStore,
@@ -152,12 +179,14 @@ const embedded = (
     name: baseName(path),
     files,
     declarations: declarationsFor(models, options),
+    nativeDeclarations: nativeDeclarationsFor(models, options),
   });
 };
 
 /** the options a project was opened with, again (its declarations, by its own dialect) */
 const sameOptions = (from: Project): OpenProjectOptions => ({
   projectResources: () => from.declarations,
+  nativeFiles: () => from.nativeDeclarations,
 });
 
 /**
@@ -238,6 +267,7 @@ export const openProject = async (
       name: folderName(store.source),
       files,
       declarations: declarationsFor(models, options),
+      nativeDeclarations: nativeDeclarationsFor(models, options),
     });
   }
   const candidates = await Promise.all(
@@ -273,6 +303,7 @@ export const openProject = async (
     name: folderName(store.source),
     files,
     declarations: declarationsFor(models, options),
+    nativeDeclarations: nativeDeclarationsFor(models, options),
   });
 };
 
@@ -356,5 +387,6 @@ export const saveProject = async (
     name: from.name,
     files,
     declarations: from.declarations,
+    nativeDeclarations: from.nativeDeclarations,
   });
 };
