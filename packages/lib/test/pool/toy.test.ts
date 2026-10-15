@@ -16,7 +16,7 @@ import {
   renameEdits,
   type PoolDocument,
 } from '../../src/engines/definitionPool';
-import { defineEngine, poolOf } from '../../src/pool';
+import { declarePool, poolOf } from '../../src/pool';
 import { toy } from './toy/engine';
 
 const SHELVES = `{
@@ -49,7 +49,7 @@ const span = (document: string, text: string, word: string, nth = 0) => ({
 });
 
 /** the toy, with a check of its own: a shelf nothing is put on */
-const toyChecked = defineEngine({
+const toyChecked = declarePool({
   ...toy,
   checks: [
     (pool) =>

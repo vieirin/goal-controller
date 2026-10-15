@@ -4,13 +4,13 @@
  * serves every tab from, and the names of the goal model's documents.
  */
 import { poolOf } from '../../../pool';
-import { mutrose } from './engine';
+import { mutrosePoolDeclaration } from './engine';
 
-export { mutrose as mutroseEngine } from './engine';
+export { mutrosePoolDeclaration } from './engine';
 export { OTHER_MODEL } from '../files/goalModel';
 
 /** MutRoSe's pool. */
-export const mutrosePool = poolOf(mutrose);
+export const mutrosePool = poolOf(mutrosePoolDeclaration);
 
 /** A model field's document id. */
 export const modelDocument = (element: string, field: string) =>

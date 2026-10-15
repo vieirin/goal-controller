@@ -1,0 +1,384 @@
+{
+  "id": "edge",
+  "name": "Edge",
+  "elements": {
+    "goal": {
+      "prefix": "G",
+      "fill": "#CDFECD"
+    },
+    "task": {
+      "prefix": "T",
+      "fill": "#CDFECD"
+    },
+    "resource": {
+      "prefix": "R",
+      "fill": "#FAF383",
+      "declares": true
+    }
+  },
+  "defaultFill": "#CDFECD",
+  "properties": {
+    "goal": [
+      {
+        "key": "type",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "",
+              "label": "achieve (default)"
+            },
+            {
+              "value": "maintain",
+              "label": "maintain"
+            }
+          ]
+        },
+        "required": "always",
+        "help": "achieve (default) or maintain"
+      },
+      {
+        "key": "maintain",
+        "value": {
+          "type": "assertion",
+          "resolves": ["resource", "variable"]
+        },
+        "input": {
+          "placeholder": "condition kept while the goal is pursued"
+        },
+        "applies": {
+          "when": {
+            "key": "type",
+            "equals": "maintain"
+          }
+        },
+        "required": {
+          "when": {
+            "key": "type",
+            "equals": "maintain"
+          }
+        },
+        "notApplying": "Only read when type is maintain",
+        "help": "the condition kept while a maintain goal is pursued",
+        "check": "edge.goal.maintain"
+      },
+      {
+        "key": "assertion",
+        "value": {
+          "type": "assertion",
+          "resolves": ["resource", "variable"]
+        },
+        "input": {
+          "placeholder": "condition, e.g. battery > 20"
+        },
+        "required": {
+          "when": {
+            "key": "type",
+            "equals": "maintain"
+          }
+        },
+        "help": "the condition under which the element may be pursued",
+        "check": "edge.goal.assertion"
+      },
+      {
+        "key": "maxRetries",
+        "value": {
+          "type": "int",
+          "min": 0
+        },
+        "help": "how many times it may be retried (a non-negative integer)",
+        "check": "edge.goal.maxRetries"
+      },
+      {
+        "key": "utility",
+        "value": {
+          "type": "number"
+        },
+        "help": "the utility reward of achieving it"
+      },
+      {
+        "key": "cost",
+        "value": {
+          "type": "number"
+        },
+        "help": "the cost reward of pursuing it"
+      },
+      {
+        "key": "dependsOn",
+        "value": {
+          "type": "refList",
+          "kind": "goal"
+        },
+        "input": {
+          "placeholder": "goal ids, comma-separated: G2, G5"
+        },
+        "help": "the goals that must be achieved first (comma-separated ids)",
+        "check": "edge.goal.dependsOn"
+      },
+      {
+        "key": "variables",
+        "value": {
+          "type": "pairList",
+          "value": "int"
+        },
+        "input": {
+          "placeholder": "decision variables, name:space, …"
+        },
+        "help": "decision variables, `name:space` pairs separated by commas",
+        "check": "edge.goal.variables"
+      },
+      {
+        "key": "root",
+        "value": {
+          "type": "text"
+        },
+        "help": "marks the root goal",
+        "inspector": false
+      }
+    ],
+    "task": [
+      {
+        "key": "type",
+        "value": {
+          "type": "text"
+        },
+        "help": "achieve (default) or maintain"
+      },
+      {
+        "key": "assertion",
+        "value": {
+          "type": "assertion",
+          "resolves": ["resource", "variable"]
+        },
+        "input": {
+          "placeholder": "condition, e.g. battery > 20"
+        },
+        "help": "the condition under which the element may be pursued"
+      },
+      {
+        "key": "maxRetries",
+        "value": {
+          "type": "int",
+          "min": 0
+        },
+        "help": "how many times it may be retried (a non-negative integer)",
+        "check": "edge.task.maxRetries"
+      },
+      {
+        "key": "utility",
+        "value": {
+          "type": "number"
+        },
+        "help": "the utility reward of achieving it"
+      },
+      {
+        "key": "cost",
+        "value": {
+          "type": "number"
+        },
+        "help": "the cost reward of pursuing it"
+      }
+    ],
+    "resource": [
+      {
+        "key": "type",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "bool",
+              "label": "bool"
+            },
+            {
+              "value": "int",
+              "label": "int"
+            }
+          ]
+        },
+        "required": "always",
+        "help": "bool or int",
+        "check": "edge.resource.type"
+      },
+      {
+        "key": "initialValue",
+        "value": {
+          "when": {
+            "key": "type",
+            "equals": "int"
+          },
+          "matching": {
+            "type": "int"
+          },
+          "otherwise": {
+            "type": "bool"
+          }
+        },
+        "required": "always",
+        "help": "the value it starts with (within the bounds, for an int)",
+        "check": "edge.resource.initialValue"
+      },
+      {
+        "key": "lowerBound",
+        "value": {
+          "type": "int"
+        },
+        "applies": {
+          "when": {
+            "key": "type",
+            "equals": "int"
+          }
+        },
+        "required": {
+          "when": {
+            "key": "type",
+            "equals": "int"
+          }
+        },
+        "notApplying": "Not used while type is {type} (bounds are for int resources)",
+        "help": "the smallest value an int resource takes",
+        "check": "edge.resource.lowerBound"
+      },
+      {
+        "key": "upperBound",
+        "value": {
+          "type": "int"
+        },
+        "applies": {
+          "when": {
+            "key": "type",
+            "equals": "int"
+          }
+        },
+        "required": {
+          "when": {
+            "key": "type",
+            "equals": "int"
+          }
+        },
+        "notApplying": "Not used while type is {type} (bounds are for int resources)",
+        "help": "the largest value an int resource takes",
+        "check": "edge.resource.upperBound"
+      }
+    ],
+    "quality": []
+  },
+  "propertyLineOrder": [
+    "maintain",
+    "assertion",
+    "dependsOn",
+    "variables",
+    "utility",
+    "cost",
+    "maxRetries",
+    "type",
+    "root"
+  ],
+  "indent": "  ",
+  "problems": {
+    "notAChild": {
+      "severity": "error",
+      "message": "Not a child of this goal"
+    },
+    "relationMismatch": {
+      "severity": "error",
+      "message": "{construct} needs {needs} refinement links, but this goal is refined with {relation} links (the engine ignores the notation)"
+    },
+    "missingFromNotation": {
+      "severity": "warning",
+      "message": "Missing from the notation"
+    },
+    "notInDiagram": {
+      "severity": "error",
+      "message": "Add this element in the diagram"
+    }
+  },
+  "projectResources": {
+    "variables": {
+      "label": "Variables",
+      "format": "json",
+      "path": "variables.json",
+      "accept": [".json"],
+      "help": "a value for each context variable (true/false) and achievability variable (a probability)"
+    },
+    "properties": {
+      "label": "Properties",
+      "format": "pctl",
+      "many": true,
+      "path": "props/",
+      "accept": [".pctl", ".props"],
+      "help": "the PCTL property suites the generated model is checked against"
+    }
+  },
+  "notation": {
+    "operand": {
+      "kinds": ["goal", "task"],
+      "skip": true
+    },
+    "modifiers": {
+      "retry": {
+        "argument": {
+          "name": "retries",
+          "value": {
+            "type": "int",
+            "min": 1
+          },
+          "default": "3"
+        },
+        "label": "Retry",
+        "help": "retries the goal on its left up to N times (G1@3)",
+        "appliesTo": ["degradation"],
+        "action": "Retry the first child up to {retries} times before falling back"
+      }
+    },
+    "constructs": {
+      "sequence": {
+        "label": "Sequence",
+        "help": "does every child, one after another",
+        "relation": "and"
+      },
+      "anyOrder": {
+        "label": "Any order",
+        "help": "does every child, one at a time, in any order",
+        "relation": "and"
+      },
+      "interleaved": {
+        "label": "Interleaved",
+        "help": "does every child, possibly at the same time",
+        "relation": "and"
+      },
+      "alternative": {
+        "label": "Alternative",
+        "help": "needs one child; picks again after each failed attempt",
+        "relation": "or"
+      },
+      "choice": {
+        "label": "Choice",
+        "help": "needs one child; picks once and keeps it",
+        "relation": "or"
+      },
+      "degradation": {
+        "label": "Degradation",
+        "help": "retries the first child, then falls back to any child",
+        "relation": "or"
+      },
+      "decisionMaking": {
+        "label": "Decision making",
+        "help": "the controller decides which children to pursue"
+      }
+    },
+    "defaultConstruct": {
+      "and": "interleaved",
+      "or": "alternative"
+    },
+    "operators": {
+      "@": "retry",
+      "|": "alternative",
+      "#": "interleaved",
+      ";": "sequence",
+      "->": "degradation"
+    },
+    "standalone": {
+      "+": "choice"
+    }
+  }
+}

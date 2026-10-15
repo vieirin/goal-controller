@@ -14,7 +14,7 @@ no engine.
 import * as z from 'zod/mini';
 // an engine's folder, lib/src/engines/<engine>/
 import {
-  defineEngine,
+  declarePool,
   defineFile,
   defines,
   json,
@@ -51,7 +51,7 @@ const things = defineFile({
   }),
 });
 
-export const toy = defineEngine({
+export const toy = declarePool({
   files: [shelves, things],
   kinds: {
     'toy.shelf': { label: 'shelf' },
@@ -309,7 +309,7 @@ const LEADS = ['holds'] as const;
 const { defines, refersTo, leadsTo, scope, written, langium } = annotationsFor(KINDS, MESSAGES, LEADS);
 
 const check: Check<keyof typeof KINDS, keyof typeof MESSAGES, (typeof LEADS)[number]> = (pool) => …;
-export const toy = defineEngine({ files, kinds: KINDS, messages: MESSAGES, leads: LEADS, checks: [check] });
+export const toy = declarePool({ files, kinds: KINDS, messages: MESSAGES, leads: LEADS, checks: [check] });
 ```
 
 A Langium language is typed by the AST types `langium generate` writes, which
@@ -342,7 +342,7 @@ After that, `defines('toy.shelff')`, `refersTo([... 'toy.thinng'], 'global')`, `
 `problem(…, 'toy.emptyShelve')`, `typeOf: { kinds: ['toy.shelve'] }`,
 `leadsTo('hold')`, `scope.leadsTo('hold', …)` and `pool.leadsTo('hold', …)`
 all fail to compile, and an editor completes each of them. `scope.leadsTo`
-also takes the built-in `'type'`. `defineEngine` infers the kinds from
+also takes the built-in `'type'`. `declarePool` infers the kinds from
 `kinds`, the message keys from `messages` and the lead names from `leads`,
 and types the checks with all three. With `leads` declared, `poolOf` also
 refuses a file that leads by any other name. Without it, any name goes. An engine without `messages` may give a problem's text
@@ -439,7 +439,7 @@ that isn't a key is shown as the text itself, under the check name `engine`.
   computes ids and owners, first uses, types, scopes (`{ owner }`, or
   `{ via, through }` with the resolvers `#self`, `#type` and `leadsTo:<name>`),
   and what leads where.
-- `engine.ts` turns a declared engine into #68's `PoolRegistration`: one
+- `engine.ts` turns a declared pool into #68's `PoolRegistration`: one
   provider with an empty id, so kinds keep their names. Every reference is
   `silent` to #68, and the generic diagnostics above are computed here.
 - Evaluation is #68's TS pool (`engines/definitionPool`). Replacing it changes

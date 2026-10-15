@@ -12,7 +12,7 @@ import type { ToyAstType } from './toy/generated/ast';
 import { toyLanguage } from './toy/language';
 import {
   annotationsFor,
-  defineEngine,
+  declarePool,
   defineFile,
   json,
   poolOf,
@@ -64,7 +64,7 @@ const emptyShelf: Check<ToyKind, ToyCheck> = (pool) =>
       shelf.problem('warning', 'toy.emptyShelf', { name: shelf.name }),
     );
 
-const toy = defineEngine({
+const toy = declarePool({
   files: [shelves],
   kinds: KINDS,
   messages: MESSAGES,
@@ -100,7 +100,7 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
           // @ts-expect-error: no such message
           .map((shelf) => shelf.problem('error', 'toy.emptyShelve')),
     ];
-    defineEngine({
+    declarePool({
       files: [shelves],
       kinds: {
         // @ts-expect-error: a type among kinds the engine doesn't declare
@@ -198,9 +198,7 @@ describe('the protocol, typed by an engine’s kinds and messages', () => {
       }),
     });
     expect(() =>
-      poolOf(
-        defineEngine({ files: [leading], kinds: KINDS, leads: ['other'] }),
-      ),
+      poolOf(declarePool({ files: [leading], kinds: KINDS, leads: ['other'] })),
     ).to.throw(
       /leading leads by holds, which the engine's leads don't declare/,
     );

@@ -15,7 +15,7 @@ import {
   type PoolDocument,
 } from '../../src/engines/definitionPool';
 import {
-  defineEngine,
+  declarePool,
   defineFile,
   defines,
   goalModel,
@@ -160,7 +160,7 @@ const plan = defineFile({
   }),
 });
 
-const garden = defineEngine({
+const garden = declarePool({
   files: [plants, beds, model, plan],
   kinds: {
     'g.plant': { label: 'plant' },
@@ -340,7 +340,7 @@ describe('the pool’s protocol, form by form', () => {
 
   it('gives checks typed definitions, what they lead to and their types', () => {
     let seen: { leadsTo: string[]; type?: string; parent: unknown } | undefined;
-    const probe = defineEngine({
+    const probe = declarePool({
       ...garden,
       checks: [
         (pool) => {
@@ -370,7 +370,7 @@ describe('the pool’s protocol, form by form', () => {
   it('owns only what the grammar defines lexically: a first use annotated on a cross-reference is global', () => {
     // `part a of box`: box, a thing, is defined where first written (not
     // as a's member); a plain `thing box` wins over every first use
-    const kinds = defineEngine({
+    const kinds = declarePool({
       files: [
         defineFile({
           kind: 'things',
@@ -419,7 +419,7 @@ describe('the pool’s protocol, form by form', () => {
 
   it('makes an ambiguous reference an error, and still resolves it to the first kind', () => {
     // a pick is a plant or a colour: `rose` is both
-    const picks = defineEngine({
+    const picks = declarePool({
       files: [
         defineFile({
           kind: 'picks',
@@ -465,7 +465,7 @@ describe('the pool’s protocol, form by form', () => {
   });
 
   it('refuses a kind the engine doesn’t declare', () => {
-    expect(() => poolOf(defineEngine({ files: [plan], kinds: {} }))).to.throw(
+    expect(() => poolOf(declarePool({ files: [plan], kinds: {} }))).to.throw(
       /plan names g.task, which the engine's kinds don't declare/,
     );
   });
@@ -507,7 +507,7 @@ describe('the goal model’s tree', () => {
   };
   const engine = (unresolved?: false) => {
     let values: unknown;
-    const declared = defineEngine({
+    const declared = declarePool({
       files: [
         defineFile({
           kind: 'model',

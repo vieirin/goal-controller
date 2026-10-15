@@ -42,6 +42,11 @@ import {
   sleecOutput,
   sleecTemplateEngine,
 } from '../../src/engines/sleec';
+import { edgeEngine } from '../../src/engines/edge/engine';
+import { edgeV2Engine } from '../../src/engines/edgeV2/engine';
+import { mutroseEngine } from '../../src/engines/mutrose/engine';
+import { sleecEngine } from '../../src/engines/sleec/engine';
+import type { Engine } from '../../src/engines/engine';
 import { threeFileEngine } from '../support/threeFileEngine';
 
 const EDGE =
@@ -59,12 +64,15 @@ const edgeV2Tree = () =>
 /** Every engine through its output path, with the string it made before (#33). */
 const ENGINES: Array<{
   engine: string;
+  /** its registration, whose `outputs` declare the files it writes */
+  registered: Engine;
   output: () => EngineOutput;
   text: () => string;
   fileName: string;
 }> = [
   {
     engine: 'edge',
+    registered: edgeEngine,
     output: () =>
       edgeOutput({ gm: edgeTree(), fileName: 'lab.txt', writeReport: false }),
     text: () =>
@@ -77,6 +85,7 @@ const ENGINES: Array<{
   },
   {
     engine: 'edgeV2',
+    registered: edgeV2Engine,
     output: () =>
       edgeV2Output({ gm: edgeV2Tree(), fileName: 'lab', writeReport: false }),
     text: () =>
@@ -89,6 +98,7 @@ const ENGINES: Array<{
   },
   {
     engine: 'sleec',
+    registered: sleecEngine,
     output: () =>
       sleecOutput(
         GoalTree.fromModel(Model.load(SLEEC), sleecEngineMapper).nodes,
@@ -108,6 +118,7 @@ const ENGINES: Array<{
   },
   {
     engine: 'mutrose',
+    registered: mutroseEngine,
     output: () =>
       mutroseOutput(
         GoalTree.fromModel(Model.load(MUTROSE), mutroseEngineMapper).nodes,
@@ -128,6 +139,15 @@ describe('engine outputs', () => {
     initLogger('output-test', false, true);
     initEdgeV2Logger('output-test', false, true);
   });
+
+  for (const { engine, registered, output } of ENGINES)
+    it(`${engine}: writes the files its registration declares (defineEngine's outputs)`, () => {
+      const { files } = output();
+      assert.deepStrictEqual(
+        files.map(({ id, language }) => ({ id, language })),
+        registered.outputs,
+      );
+    });
 
   for (const { engine, output, text, fileName } of ENGINES)
     it(`${engine}: one primary file, named after the model, with the text it made before`, () => {

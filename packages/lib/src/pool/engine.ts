@@ -1,5 +1,5 @@
 /**
- * A declared engine, as #68's pool: one provider reads every file it
+ * An engine's declared pool, as #68's: one provider reads every file it
  * declares (its kinds are written qualified), resolves through what its
  * files say leads where, and checks: the files' syntax and schema, what
  * resolves to nothing or to two kinds, what is defined twice or never used,
@@ -36,7 +36,7 @@ import {
 import {
   annotationOf,
   type Annotation,
-  type DeclaredEngine,
+  type DeclaredPool,
   type DeclaredFile,
   type Definition,
   type Kind,
@@ -198,19 +198,19 @@ const format = (
       );
 
 /** What the provider made of each document, by id: its last reading. */
-const extractions = new WeakMap<DeclaredEngine, Map<string, Extraction>>();
+const extractions = new WeakMap<DeclaredPool, Map<string, Extraction>>();
 
-const enginePools = new WeakMap<DeclaredEngine, PoolRegistration>();
+const enginePools = new WeakMap<DeclaredPool, PoolRegistration>();
 
 /**
- * The pool of a declared engine (#68's registration): `createPool(…)` of it
+ * An engine's declared pool as #68's registration: `createPool(…)` of it
  * gives the index every service of the pool reads.
  */
 export const poolOf = <K extends string, M extends string, L extends string>(
-  declared: DeclaredEngine<K, M, L>,
+  declared: DeclaredPool<K, M, L>,
 ): PoolRegistration => {
   // within the core, kinds and messages are strings
-  const engine = declared as unknown as DeclaredEngine;
+  const engine = declared as unknown as DeclaredPool;
   const known = enginePools.get(engine);
   if (known) return known;
   const { files, kinds } = engine;

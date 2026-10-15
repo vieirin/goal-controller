@@ -5,3 +5,4 @@ export * from './derive/operators';
 export * from './derive/specs';
 export * from './derive/extensions';
 export * from './derive/modelExtension';
+export * from './helpers';
