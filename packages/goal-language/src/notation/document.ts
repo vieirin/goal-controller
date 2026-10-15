@@ -16,6 +16,7 @@ import {
   type DocumentNode,
   type DocumentTree,
   linkLinesOf,
+  actorPropertiesOf,
   linkPropertiesOf,
 } from '@goal-controller/dialect';
 import {
@@ -27,6 +28,15 @@ import {
 import { parseValue } from '../parse.js';
 import { annotatedProperties, readLine } from './lines.js';
 import {
+  ACTOR_LINE_KEY,
+  actorLine,
+  actorNames,
+  hasActorLine,
+  readActorLine,
+  type ActorLineReading,
+} from './actorLine.js';
+import {
+  isWritableLinkValue,
   LINK_LINE_KEY,
   hasLinkLine,
   linkLine,
@@ -126,6 +136,15 @@ export const notationDocument = (
   const lines: string[] = [];
   const ids: string[] = [];
   const names = lineNames(definition, tree);
+  // its actors with properties (goal-controller#109), at the top: each an
+  // `actor` line, which is no element's
+  if (definition.actors) {
+    const actors = tree.actors ?? [];
+    const byName = actorNames(actors);
+    for (const actor of actors)
+      if (hasActorLine(definition, actor))
+        lines.push(actorLine(definition, actor, byName));
+  }
   for (const { id, node, depth } of lineOrder(definition, tree)) {
     const element = definition.elements[node.kind];
     const annotations = element?.annotated
@@ -175,7 +194,9 @@ export type NotationEdit =
   | { iStarId: string; text: string }
   | { iStarId: string; key: string; value: string | null }
   /** a link's property (goal-controller#107), by the link's piStar id */
-  | { link: string; key: string; value: string | null };
+  | { link: string; key: string; value: string | null }
+  /** an actor's property (goal-controller#109), by the actor's piStar id */
+  | { actor: string; key: string; value: string | null };
 
 /**
  * What a notation document changes in the model: element texts that differ,
@@ -213,6 +234,9 @@ export const notationEdits = (
   };
   const blocks: Block[] = [];
   let current: Block | null = null;
+  // the actor lines, wherever they are (goal-controller#109)
+  const actorLines: ActorLineReading[] = [];
+  let actorsUnreadable = false;
   // lines that name no element are their elements' in order: while lines are
   // added or removed (elements are, in the diagram), nothing changes; link
   // lines take no position (adding or removing one sets its link's properties)
@@ -283,6 +307,17 @@ export const notationEdits = (
       blocks.push(current);
       continue;
     }
+    if (
+      definition.actors &&
+      read.kind === 'property' &&
+      !read.errors.length &&
+      read.key === ACTOR_LINE_KEY
+    ) {
+      const actor = readActorLine(read.value);
+      if ('value' in actor) actorLines.push(actor.value);
+      else actorsUnreadable = true;
+      continue;
+    }
     if (!current || !written.trim()) continue;
     if (
       linkLinesOf(definition) &&
@@ -303,6 +338,15 @@ export const notationEdits = (
       current.properties.set(read.key, read.value);
     else current.unreadable = true;
   }
+  if (definition.actors)
+    edits.push(
+      ...actorEdits(
+        definition,
+        tree.actors ?? [],
+        actorLines,
+        actorsUnreadable,
+      ),
+    );
   // a dialect that doesn't write link lines leaves its links' properties be
   if (linkLinesOf(definition)) {
     const names = lineNames(definition, tree);
@@ -360,6 +404,50 @@ const linkEdits = (
       const value = written.get(key) ?? null;
       if (value !== (link.properties[key] ?? null))
         edits.push({ link: link.iStarId, key, value });
+    }
+  }
+  return edits;
+};
+
+/**
+ * What the actor lines change in the actors: each actor whose kind has
+ * properties takes the properties its line writes (none written: removed).
+ * An actor two lines name changes nothing; while a line can't be read, or
+ * names no actor (being typed), an actor without one keeps its properties.
+ */
+const actorEdits = (
+  definition: Pick<AnyDialect, 'actors'>,
+  actors: NonNullable<DocumentTree['actors']>,
+  lines: readonly ActorLineReading[],
+  linesUnreadable: boolean,
+): NotationEdit[] => {
+  const edits: NotationEdit[] = [];
+  const names = actorNames(actors);
+  const named = lines.map((line) => targetKey(names, line.target, 'actor'));
+  const unreadable = linesUnreadable || named.some((n) => 'error' in n);
+  for (const actor of actors) {
+    const declared = actorPropertiesOf(definition, actor.kind);
+    if (!declared.length) continue;
+    const own = lines.filter((_, i) => {
+      const n = named[i]!;
+      return 'key' in n && n.key === actor.iStarId;
+    });
+    if (own.length > 1 || (!own.length && unreadable)) continue;
+    const written = new Map(
+      (own[0]?.properties ?? []).map(({ key, value }) => [key, value]),
+    );
+    for (const { key } of declared) {
+      const stored = actor.properties[key];
+      // a value a line can't carry (a brace) stays, unless the line sets another
+      if (
+        !written.has(key) &&
+        stored !== undefined &&
+        !isWritableLinkValue(stored)
+      )
+        continue;
+      const value = written.get(key) ?? null;
+      if (value !== (stored ?? null))
+        edits.push({ actor: actor.iStarId, key, value });
     }
   }
   return edits;

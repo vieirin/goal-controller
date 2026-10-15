@@ -11,7 +11,7 @@
  * For each example under examples/edge and examples/edgeV2, in both Edge
  * engines: its Notation view document (`notation/`) and its generated PRISM
  * (`prism/`); SLEEC's output for examples/sleec (`sleec/`), MutRoSe's for
- * examples/mutrose and the medicine-delivery project (`mutrose/`); GODA's
+ * examples/mutrose, its projects included (`mutrose/`); GODA's
  * Notation view document and its files for examples/goda (`notation/`,
  * `goda/`); for examples/pistar-ext, its document in piStar-ext's dialect.
  * An engine's output of several files is written as one file each
@@ -128,6 +128,7 @@ const OUTPUT_ENGINES = {
     generate: (gm) => lib.sleecOutput(gm, { modelName: 'm' }),
   },
   mutrose: {
+    // its projects (medicine-delivery, lab-sample-logistics) are folders in it
     files: examples(path.join(EXAMPLES, 'mutrose')),
     mapper: lib.mutroseEngineMapper,
     generate: (gm) => lib.mutroseOutput(gm, { modelName: 'm' }),

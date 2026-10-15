@@ -6,6 +6,9 @@
  * local support and the language server both use them.
  */
 import {
+  actorPropertiesOf,
+  linkLinesOf,
+  linkPropertiesOf,
   propertyOf,
   valueOf,
   type AnyDialect,
@@ -13,6 +16,14 @@ import {
   type ValueConfig,
 } from '@goal-controller/dialect';
 import { highlightValue } from './highlight.js';
+import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
+import { ownerOf } from './completion.js';
+import {
+  LINK_LINE_KEY,
+  linkOfLine,
+  readLinkLine,
+  targetKey,
+} from './linkLine.js';
 import { isEnabled } from './reading.js';
 import { argumentsText } from './values.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
@@ -20,7 +31,89 @@ import { readLine, type ElementReading, type Span } from './lines.js';
 type Definition = Pick<
   AnyDialect,
   'name' | 'elements' | 'notation' | 'properties' | 'propertyLineOrder'
->;
+> &
+  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
+
+/**
+ * A key's hover on a link or an actor line (goal-controller#109): its help,
+ * as the kind of the link (or actor) the line names declares it. Null: not
+ * such a line, or not on one of its keys.
+ */
+const ownLineHover = (
+  definition: Definition,
+  lines: Line[],
+  line: Line,
+  read: { key: string; keySpan: Span; value: string; valueSpan: Span },
+  at: number,
+  context: DefinitionContext,
+): { span: Span; markdown: string } | null => {
+  const isLink = linkLinesOf(definition) && read.key === LINK_LINE_KEY;
+  const isActor = !!definition.actors && read.key === ACTOR_LINE_KEY;
+  if (!isLink && !isActor) return null;
+  if (within(read.keySpan, at))
+    return {
+      span: read.keySpan,
+      markdown: isLink
+        ? `**${LINK_LINE_KEY}**: a link's properties, under its source: its target, then \`{key = value}\` each`
+        : `**${ACTOR_LINE_KEY}**: an actor's properties: its name in quotes, then \`{key = value}\` each`,
+    };
+  const reading = isLink ? readLinkLine(read.value) : readActorLine(read.value);
+  if (!('value' in reading)) return null;
+  const offset = at - read.valueSpan.from;
+  const property = reading.value.properties.find((p) =>
+    within(p.keySpan, offset),
+  );
+  if (!property) return null;
+  let kind: string | undefined;
+  if (isActor) {
+    const named = targetKey(
+      actorNames(
+        Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+          iStarId,
+          name,
+        })),
+      ),
+      reading.value.target,
+      'actor',
+    );
+    kind = 'key' in named ? context.actors?.[named.key]?.kind : undefined;
+  } else {
+    const source = ownerOf(
+      definition,
+      lines.map((l) => l.text),
+      lines.indexOf(line),
+      context,
+    );
+    const named = targetKey(context.names, reading.value.target);
+    const found =
+      source && 'key' in named
+        ? linkOfLine(
+            definition,
+            Object.values(context.links ?? {}),
+            source,
+            named.key,
+          )
+        : [];
+    kind = found.length === 1 ? found[0]!.kind : undefined;
+  }
+  // the line names no link (or actor) yet: the key as any kind declares it
+  const declared = kind
+    ? isLink
+      ? linkPropertiesOf(definition, kind)
+      : actorPropertiesOf(definition, kind)
+    : isLink
+      ? Object.values(definition.links ?? {}).flat()
+      : (definition.actors ?? []);
+  const help = declared.find((p) => p.key === property.key)?.help;
+  if (!help) return null;
+  return {
+    span: {
+      from: read.valueSpan.from + property.keySpan.from,
+      to: read.valueSpan.from + property.keySpan.to,
+    },
+    markdown: `**${property.key}**: ${help}`,
+  };
+};
 
 export type Hover = Span & { markdown: string };
 
@@ -151,6 +244,13 @@ export const hoverAt = (
     return null;
   }
   if (read.kind === 'property') {
+    const own = ownLineHover(definition, lines, line, read, at, context);
+    if (own) return shift(own.span, own.markdown);
+    if (
+      (linkLinesOf(definition) && read.key === LINK_LINE_KEY) ||
+      (definition.actors && read.key === ACTOR_LINE_KEY)
+    )
+      return null;
     const owner = ownerAbove(definition, lines, line);
     const kind = owner?.id ? context.elements[owner.id]?.kind : undefined;
     const property =

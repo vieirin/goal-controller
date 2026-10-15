@@ -34,9 +34,12 @@ export const applyNotationEdits = (
     (model, edit) =>
       'link' in edit
         ? setLinkProperty(model, edit.link, edit.key, edit.value)
-        : 'key' in edit
-          ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
-          : setNodeText(model, edit.iStarId, edit.text),
+        : // an actor's properties are its element's (goal-controller#109)
+          'actor' in edit
+          ? setNodeProperty(model, edit.actor, edit.key, edit.value)
+          : 'key' in edit
+            ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
+            : setNodeText(model, edit.iStarId, edit.text),
     text,
   );
 
