@@ -5,7 +5,7 @@
  */
 import { assertionUse, usedAs } from '../../assertionUses';
 import {
-  defineEngine,
+  declarePool,
   poolOf,
   type Check,
   type Definition,
@@ -35,11 +35,11 @@ const typeConflict: Check<GodaKind, GodaCheck> = (pool) =>
       : [];
   });
 
-export const godaEngine = defineEngine({
+export const godaPoolDeclaration = declarePool({
   files: [goalModel],
   kinds: KINDS,
   checks: [typeConflict],
   messages: MESSAGES,
 });
 
-export const godaPool = poolOf(godaEngine);
+export const godaPool = poolOf(godaPoolDeclaration);

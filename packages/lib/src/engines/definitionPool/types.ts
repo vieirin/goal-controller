@@ -131,7 +131,7 @@ export type PoolLookup = {
 export type PoolProvider = {
   /**
    * its namespace: its kinds are `${id}.${kind}`; empty, its kinds are
-   * written qualified (a declared engine's, lib/src/pool)
+   * written qualified (a declared pool's, lib/src/pool)
    */
   id: string;
   documents: {

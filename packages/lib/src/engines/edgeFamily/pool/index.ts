@@ -10,7 +10,7 @@ import {
   type AssertionType,
   type AssertionUse,
 } from '../../assertionUses';
-import { defineEngine, poolOf, type Check, type Severity } from '../../../pool';
+import { declarePool, poolOf, type Check, type Severity } from '../../../pool';
 import { goalModel } from '../files/goalModel';
 import { variables } from '../files/variables';
 import { KINDS, MESSAGES, type EdgeCheck, type EdgeKind } from './vocabulary';
@@ -79,12 +79,12 @@ const assertionTypes: Check<EdgeKind, EdgeCheck> = (pool) =>
     : [];
 
 /** edge and edgeV2: the same files, kinds and checks */
-export const edgeFamilyEngine = defineEngine({
+export const edgeFamilyPoolDeclaration = declarePool({
   files: [goalModel, variables],
   kinds: KINDS,
   checks: [assertionTypes],
   messages: MESSAGES,
 });
 
-export const edgePool = poolOf(edgeFamilyEngine);
-export const edgeV2Pool = poolOf(edgeFamilyEngine);
+export const edgePool = poolOf(edgeFamilyPoolDeclaration);
+export const edgeV2Pool = poolOf(edgeFamilyPoolDeclaration);

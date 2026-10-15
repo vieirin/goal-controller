@@ -418,11 +418,11 @@ export type KindDeclaration<K extends string = Kind> = {
 export type Message = string | ((args: MessageArgs) => string);
 
 /**
- * An engine: its files, its kinds (`K`, their names) and its checks'
+ * An engine's pool: its files, its kinds (`K`, their names) and its checks'
  * messages (`M`, their keys). Both are inferred from the declaration, and
  * the checks are typed by them.
  */
-export type EngineDeclaration<
+export type PoolDeclaration<
   K extends string = Kind,
   M extends string = string,
   L extends string = string,
@@ -436,12 +436,12 @@ export type EngineDeclaration<
   leads?: readonly L[];
 };
 
-export type DeclaredEngine<
+export type DeclaredPool<
   K extends string = Kind,
   M extends string = string,
   L extends string = string,
-> = Readonly<EngineDeclaration<K, M, L>> & {
-  readonly declared: 'engine';
+> = Readonly<PoolDeclaration<K, M, L>> & {
+  readonly declared: 'pool';
 };
 
 export const defineFile = (declaration: FileDeclaration): DeclaredFile => ({
@@ -449,10 +449,10 @@ export const defineFile = (declaration: FileDeclaration): DeclaredFile => ({
   declared: 'file',
 });
 
-export const defineEngine = <
+export const declarePool = <
   K extends string,
   M extends string = string,
   L extends string = string,
 >(
-  declaration: EngineDeclaration<K, M, L>,
-): DeclaredEngine<K, M, L> => ({ ...declaration, declared: 'engine' });
+  declaration: PoolDeclaration<K, M, L>,
+): DeclaredPool<K, M, L> => ({ ...declaration, declared: 'pool' });
