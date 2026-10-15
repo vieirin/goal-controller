@@ -53,6 +53,10 @@ export const termOf = (tree: ExpressionTree, resolve: Resolve): Term => {
     case 'var':
     case 'ref':
       return atomOf(tree, resolve, false);
+    case 'member':
+      throw new FormulaError(
+        `${tree.ref}.${tree.member}: iStar-DT reads no members`,
+      );
     case 'call':
       if (tree.name !== PREVIOUS || tree.args.length !== 1)
         throw new FormulaError(
@@ -243,7 +247,15 @@ export const conditionText = (
         );
       return `${atom.element.identifier}_fl(s0)`;
     }
+    case 'member':
+      throw new FormulaError(
+        `${tree.ref}.${tree.member}: iStar-DT reads no members`,
+      );
     case 'assign': {
+      if (tree.member)
+        throw new FormulaError(
+          `${tree.variable}.${tree.member}: iStar-DT reads no members`,
+        );
       const element = resolve(tree.variable);
       if (!element) throw new FormulaError(`${tree.variable} names no element`);
       return tree.value !== Boolean(tree.negated)

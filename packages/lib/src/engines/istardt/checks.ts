@@ -82,6 +82,10 @@ const expressionNames = (tree: ExpressionTree): string[] => {
       return [tree.name];
     case 'ref':
       return [tree.id];
+    // a member reads its element or variable (iStar-DT declares no members:
+    // the value's validator says so)
+    case 'member':
+      return [tree.ref];
     case 'call':
       return tree.args.flatMap(expressionNames);
     case 'binary':
@@ -105,6 +109,8 @@ const assertionNames = (tree: AssertionReading | null): string[] => {
     case 'var':
     case 'assign':
       return [tree.variable];
+    case 'member':
+      return [tree.ref];
     case 'call':
       return tree.args.flatMap(expressionNames);
     case 'comparison':
