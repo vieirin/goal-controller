@@ -55,6 +55,12 @@ export const failedOf = (goal: string) => `failed(${goal})`;
 const belief = (name: string, beliefs: Beliefs, goals: ReadonlySet<string>) =>
   goals.has(name) ? beliefs.get(successOf(name)) : beliefs.get(name);
 
+/**
+ * A member reference's belief (`room.clean`, goal-controller#135): the
+ * belief named `ref.member`, as a scenario writes it.
+ */
+const memberName = (ref: string, member: string) => `${ref}.${member}`;
+
 const number = (
   tree: ExpressionTree,
   beliefs: Beliefs,
@@ -64,9 +70,14 @@ const number = (
     case 'number':
       return Number(tree.value);
     case 'var':
-    case 'ref': {
+    case 'ref':
+    case 'member': {
       const value = belief(
-        tree.kind === 'var' ? tree.name : tree.id,
+        tree.kind === 'var'
+          ? tree.name
+          : tree.kind === 'ref'
+            ? tree.id
+            : memberName(tree.ref, tree.member),
         beliefs,
         goals,
       );
@@ -132,9 +143,13 @@ const evaluate = (
       return tree.value;
     case 'var':
       return belief(tree.variable, beliefs, goals) === true;
+    case 'member':
+      return belief(memberName(tree.ref, tree.member), beliefs, goals) === true;
     case 'assign': {
-      const is =
-        (belief(tree.variable, beliefs, goals) ?? false) === tree.value;
+      const name = tree.member
+        ? memberName(tree.variable, tree.member)
+        : tree.variable;
+      const is = (belief(name, beliefs, goals) ?? false) === tree.value;
       return tree.negated ? !is : is;
     }
     case 'comparison': {
