@@ -144,6 +144,70 @@ export const analysisViewOf = (
   ),
 });
 
+type PistarNode = {
+  id?: unknown;
+  type?: unknown;
+  text?: unknown;
+  customProperties?: Record<string, unknown>;
+};
+const textsOf = (properties: Record<string, unknown> | undefined) =>
+  Object.fromEntries(
+    Object.entries(properties ?? {}).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  );
+
+/**
+ * A piStar model's JSON as analyses read it, without the engine's mapper:
+ * every actor, element (an actor's, an orphan, a dependum) and link as the
+ * file has them, their properties' texts. For what reads a model's file
+ * itself (a native file's writer), where the workbench's `GoalModel` isn't
+ * at hand.
+ */
+export const pistarAnalysisModel = (
+  json: Readonly<Record<string, unknown>>,
+): AnalysisModel => {
+  const list = (value: unknown) =>
+    (Array.isArray(value) ? value : []) as (PistarNode & {
+      nodes?: unknown;
+      source?: unknown;
+      target?: unknown;
+      label?: unknown;
+    })[];
+  const element = (node: PistarNode, actor?: string): AnalysisElement => ({
+    id: String(node.id),
+    kind: String(node.type),
+    name: String(node.text ?? ''),
+    properties: textsOf(node.customProperties),
+    ...(actor !== undefined && { actor }),
+  });
+  const actors = list(json.actors);
+  return {
+    actors: actors.map((actor) => ({
+      id: String(actor.id),
+      kind: String(actor.type),
+      name: String(actor.text ?? ''),
+      properties: textsOf(actor.customProperties),
+      elements: list(actor.nodes).map((node) => String(node.id)),
+    })),
+    elements: [
+      ...actors.flatMap((actor) =>
+        list(actor.nodes).map((node) => element(node, String(actor.id))),
+      ),
+      ...list(json.orphans).map((node) => element(node)),
+      ...list(json.dependencies).map((node) => element(node)),
+    ],
+    links: list(json.links).map((link) => ({
+      id: String(link.id),
+      kind: String(link.type),
+      source: String(link.source),
+      target: String(link.target),
+      ...(typeof link.label === 'string' && { label: link.label }),
+      properties: textsOf(link.customProperties),
+    })),
+  };
+};
+
 /**
  * What is wrong with an engine's analyses, as `defineAnalyses` and
  * `defineEngine` reject them: one without an id or a label, or reading a

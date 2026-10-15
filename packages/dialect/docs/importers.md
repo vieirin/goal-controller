@@ -166,10 +166,9 @@ iStar-DT dialect ([istardt.md](istardt.md), #119):
 - The header in `diagram.customProperties`, the options in `dialectRecord.options`.
 - No positions: the file has none, so the whole model is laid out by the layout above.
 - What a file names and doesn't declare is a warning.
-- **In the workbench:** opening or dropping a `.istardt`/`.istardtx` file imports it (lib's `FILE_IMPORTERS`, by extension) and opens the model as `<name>.txt`; a file it can't read is refused with its errors. `.jucm` isn't listed yet: its strategies are a project resource, which a lone model can't carry.
+- **In the workbench:** iStarDT-X is iStar-DT's native file (`nativeFiles.istardtx`, with a writer): opening a `.istardt`/`.istardtx` makes its project. The writer, its canonical form and its oracle (dtx2dtg's validator) are in [istardt.md](istardt.md), Native file. `FILE_IMPORTERS` lists none now: every importer is a native file.
 
 **Not in scope:**
-- the round trip: there is no export to iStarDT-X;
 - mx2dtx's `.drawio` (positions, iStarDT-V's shapes), which is still open ([istardt.md](istardt.md)).
 
 ## `.tropos` (TAOM4E, Tropos4AS or GODA): `engines/tropos4as/taom4e`

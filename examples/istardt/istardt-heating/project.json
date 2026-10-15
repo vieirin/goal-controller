@@ -3,7 +3,10 @@
   "dialect": "istardt",
   "models": [
     {
-      "path": "Heating.txt"
+      "path": "Heating.txt",
+      "native": {
+        "istardtx": "Heating.istardtx"
+      }
     }
   ],
   "projectResources": {},

@@ -3,7 +3,10 @@
   "dialect": "istardt",
   "models": [
     {
-      "path": "Order.txt"
+      "path": "Order.txt",
+      "native": {
+        "istardtx": "Order.istardtx"
+      }
     }
   ],
   "projectResources": {},

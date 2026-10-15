@@ -5,7 +5,6 @@
  * project resource beside the model (`.jucm`'s strategies) needs a project
  * to open into, so it isn't listed here yet.
  */
-import { importIstardt } from './istardt';
 import type { ImportResult } from './types';
 
 export type FileImporter = {
@@ -18,14 +17,9 @@ export type FileImporter = {
   import: (text: string, options: { modelName: string }) => ImportResult;
 };
 
-export const FILE_IMPORTERS: readonly FileImporter[] = [
-  {
-    label: 'iStarDT-X',
-    extensions: ['.istardt', '.istardtx'],
-    engine: 'istardt',
-    import: importIstardt,
-  },
-];
+// iStarDT-X and TAOM4E's .tropos are their dialects' native files now
+// (nativeFiles, goal-controller#143/#144); none is an importer alone
+export const FILE_IMPORTERS: readonly FileImporter[] = [];
 
 /** The importer a file's name says it is for, and the name without its extension. */
 export const importerFor = (

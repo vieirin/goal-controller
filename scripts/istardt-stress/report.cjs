@@ -67,7 +67,17 @@ const markdown = ({ sources, generatedAt, exitCode, oracle, results }) => {
       importCell(checks.import),
       result.committed ? describe(checks.model) : '',
       checksCell(checks.checks),
-      nativeCell(checks.native),
+      nativeCell(checks.native) +
+        (checks.native?.status === 'pass'
+          ? [
+              checks.native.shipped?.length
+                ? `; ${checks.native.shipped.join(', ')} as written`
+                : '',
+              checks.native.validator?.status === 'pass'
+                ? '; dtx2dtg: VALID'
+                : '',
+            ].join('')
+          : ''),
       dtgologCell(checks.dtgolog),
       oracleCell(checks.oracle),
       trialsCell(result.trials, checks.oracle),

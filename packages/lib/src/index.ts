@@ -216,6 +216,8 @@ export {
   istardtOutput,
   istardtProblems,
   istardtTemplate,
+  canonicalIstardtx,
+  writeIstardtx,
   IstardtWriteError,
   readIstardtModel,
   type IstardtCheckName,

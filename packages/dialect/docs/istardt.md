@@ -184,13 +184,31 @@ DT-Golog runs it (`reference/utility.txt`). Unverified otherwise.
 ## Still open
 
 - **A `.drawio` importer** (mx2dtx's conventions, the `iStarDT-V` shapes, positions): not in #119. `scripts/istardt-stress/fetch.cjs` fetches mx2dtx's eight `.drawio` at `97b8a18`; `1.Order.drawio` is the pending fixture.
-- **The round trip to iStarDT-X**: no export.
 - **`terminal`**: read and kept, not written (`com2dtg` writes nothing for it).
 - **The DKE 2026 additions**, beyond the BNF at `649c9be`: none read.
 - **dtg2sim's `GMEnv`** as a back-end (#117 D1.3): the image has no Python; not run.
 - **A goal-controller-native RL environment** is P12's own work.
 - **A quality's line**: iStar's kind takes the catalog's prefixes only, so `Q1` has none; its properties are the inspector's, and a quality's utility links to another quality are written on no line.
 - **What the shapes can't say**: the root goal's episode badge, and PRE as a node of its own (here a dashed link). Drawn as iStarDT-V draws them: an effect and a condition as ellipses (an effect green when it satisfies its task, pink when it doesn't; a condition lavender), an effect group as a hub with a cross, a state variable as a cloud in a brown box, a quality as iStar's cloud, reads links dotted and `pre` solid. A predicate, which iStarDT-V draws as its effect, is a small white label.
+
+## Native file
+
+iStarDT-X is the dialect's native file (`nativeFiles.istardtx`, #143, #144 item 2): `.istardt` and `.istardtx`, format `xml`, schema the XSD at `649c9be` (`engines/istardt/schema/istar_dt_x_schema.xsd`, LGPL-2.1, copied unchanged). The workbench opens one as a project, and writes it again as the model is edited.
+
+- **Read**: `importIstardt` ([importers.md](importers.md)).
+- **Write** (`writeIstardtx`, `engines/istardt/istardtx.ts`): the importer's inverse. The model is read as the DT-Golog writer reads it (`readIstardtModel`), over the file's piStar (`pistarAnalysisModel`):
+  - each element's name is its identifier, its description its name;
+  - goals with their refinement, tasks with their effect groups (each effect's probability, `turnsTrue`/`turnsFalse`, `set`), qualities, condition boxes, the initializations, cross-runs and exports (a continuous export's bounds), predicates and variables;
+  - a quality's formula is its `formula`, or its utility links' weighted sum; a condition's its `formula`. Formulas are written from the goal language's trees, a left-to-right chain of `+`, `*`, `&`, `|` as one element with its operands;
+  - `pre`/`npr` name the element their link comes from. For a condition the importer made of a formula (`<holder>Pre`, `<holder>Npr`, no name of its own), the formula is written inline, as the file had it;
+  - the header from the diagram's properties; the options from the project's, else the engine's defaults (`continuous` true, `infeasibleActionPenalty` 100);
+  - what dtx2dtg's Schematron asks beyond the XSD: every goal's `episodeLength`, and a `description` on every element.
+- **`lossy`**: the positions (the format has none: the importer lays the model out), the display, the diagram's extent.
+- **`canonical`** (`canonicalIstardtx`): what the importer reads of a file. Comments, the schema location and empty sections are left out. Attributes are sorted by name, and those at the XSD's defaults are dropped: an empty or name-repeating description, a non-root goal's episode length, a discrete export's bounds. A goal's and a task's parts (an `xsd:all`) are put in one order.
+- **What it can't carry**, with a warning: a second actor, an effect in no task's group, more than one `pre` or `npr` link on an element, a formula iStarDT-X has no element for (a member, a function but `previous`). A formula's operands are written in the model's order; dtx2dtg's Jackson reads them grouped by tag (above), so a model's formula that interleaves tags reads back reordered (same value).
+- **The oracle**: dtx2dtg's validator, the XSD then the Schematron (`docker/dtx2dtg`, green's), run by `pnpm stress:istardt --oracle` in Docker. Every seed and every one of dtx2dtg's nine fixtures, written by our writer, is VALID.
+- **Round trips**: `read(write(m))` is `m` but for `lossy`, for the three committed sources, the three seeds' models and the nine fixtures; `write(read(f))` is `f`, canonically, for all twelve files (`test/engines/istardt/native.test.ts`, and the stress test's Native column).
+- **The seeds' native files**: `istardt-order` and `istardt-heating` ship `Order.istardtx` and `Heating.istardtx`, the writer's output for their models, listed in `project.json` (`models[].native`) beside the upstream sources, which stay as copied. The stress test fails when one isn't what the writer writes now. `istardt-own` ships none: its source, `istardt-own.istardtx`, is our hand-written file with its comments, and the workbench finds it by the model's name. It reads to the model, but isn't the writer's bytes.
 
 ## Examples
 
