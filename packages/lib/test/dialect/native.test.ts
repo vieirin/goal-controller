@@ -332,12 +332,17 @@ describe('native files as data (#143)', () => {
     ).to.deep.equal([{ extension: '.xmi', dialects: ['other', 'third'] }]);
   });
 
-  it('compares models but for the lossy paths, in id order, keys sorted', () => {
+  it('compares models but for the lossy paths, keys sorted, the links and dependencies as sets, the rest in order', () => {
     const model = {
       actors: [
         { id: 'b', x: 1, nodes: [{ id: 'T1', x: 5, text: 't' }] },
         { id: 'a', x: 2, nodes: [] },
       ],
+      links: [
+        { id: 'l1', source: 'T1', target: 'G1' },
+        { id: 'l2', source: 'T2', target: 'G1' },
+      ],
+      dependencies: [],
       display: { T1: {} },
     };
     expect(withoutLossy(model, ['actors.*.x', 'display'])).to.deep.equal({
@@ -345,28 +350,52 @@ describe('native files as data (#143)', () => {
         { id: 'b', nodes: [{ id: 'T1', x: 5, text: 't' }] },
         { id: 'a', nodes: [] },
       ],
+      links: model.links,
+      dependencies: [],
     });
+    // moved, its keys in another order, its links in another order
     const moved = {
       display: {},
+      dependencies: [],
+      links: [model.links[1], model.links[0]],
       actors: [
-        { nodes: [], x: 9, id: 'a' },
         { id: 'b', x: 7, nodes: [{ text: 't', id: 'T1', x: 6 }] },
+        { nodes: [], x: 9, id: 'a' },
       ],
     };
     const lossy = ['actors.*.x', 'actors.*.nodes.*.x', 'display'];
     expect(modelDifference(model, moved, lossy)).to.equal(null);
     expect(modelDifference(model, moved, ['display'])).to.deep.equal({
-      path: 'actors.a.x',
-      a: '2',
-      b: '9',
+      path: 'actors.b.nodes.T1.x',
+      a: '5',
+      b: '6',
     });
     const renamed = structuredClone(moved);
-    renamed.actors[1]!.nodes[0]!.text = 'u';
+    renamed.actors[0]!.nodes[0]!.text = 'u';
     expect(modelDifference(model, renamed, lossy)).to.deep.equal({
       path: 'actors.b.nodes.T1.text',
       a: '"t"',
       b: '"u"',
     });
+    // the actors in another order: the model's order is not the file's
+    const swapped = { ...moved, actors: [moved.actors[1], moved.actors[0]] };
+    expect(modelDifference(model, swapped, lossy)).to.deep.include({
+      path: 'actors.b.id',
+      a: '"b"',
+      b: '"a"',
+    });
+    // repeated link ids: compared by content too, in one order
+    const twice = {
+      ...model,
+      links: [model.links[0], { ...model.links[1], id: 'l1' }],
+    };
+    expect(
+      modelDifference(
+        twice,
+        { ...twice, links: [...twice.links].reverse() },
+        lossy,
+      ),
+    ).to.equal(null);
   });
 });
 

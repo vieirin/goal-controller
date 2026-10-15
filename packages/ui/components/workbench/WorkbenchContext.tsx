@@ -1528,7 +1528,9 @@ function WorkbenchState({
     [nativeSlotsNow, storeTexts, model.text, trackingNow, nativeContext],
   );
   // a file that follows the model: written from it as the model is edited,
-  // kept with the model (exported, copied with the project), once per model text
+  // once per model text, and saved where the project can be written (as a
+  // resource's edit is; a read-only project keeps it with the model: Recent
+  // reopens the edited model, and the file then reads to it)
   useEffect(() => {
     const { writes, tracking: next } = followed(
       trackingNow,
@@ -1537,11 +1539,8 @@ function WorkbenchState({
     );
     if (!writes.length) return;
     setTracking(next);
-    setResourceTexts((prev) => ({
-      ...prev,
-      ...Object.fromEntries(writes.map(({ path, text }) => [path, text])),
-    }));
-  }, [nativeStatesNow, trackingNow]);
+    for (const { path, text } of writes) setResourceText(path, text);
+  }, [nativeStatesNow, trackingNow, setResourceText]);
   const regenerateNative = useCallback(
     (path: string) =>
       setTracking((prev) =>

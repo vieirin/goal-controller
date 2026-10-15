@@ -259,6 +259,24 @@ describe('the sync rule (#143)', () => {
     });
   });
 
+  it('is out of sync when the file lists the items in another order, in sync when only its links are', () => {
+    const permuted = text.replace(
+      'task T1 "Sweep" cost 2\ntask T2 "Mop" cost 3.5\n',
+      'task T2 "Mop" cost 3.5\ntask T1 "Sweep" cost 2\n',
+    );
+    expect(permuted).not.to.equal(text);
+    const sync = nativeSync(chores, permuted, model, context);
+    expect(sync.state).to.equal('out-of-sync');
+    // the model's third node is T1, the file's T2
+    expect(sync.state !== 'in-sync' && sync.why).to.equal(
+      'actors.chores.nodes.T1.customProperties.cost is "3.5" in the file, "2" in the model',
+    );
+    // the same refinements, needed in another order: the links are a set
+    const needs = text.replace('needs all G2, T3', 'needs all T3, G2');
+    expect(needs).not.to.equal(text);
+    expect(nativeSync(chores, needs, model, context).state).to.equal('in-sync');
+  });
+
   it('is unreadable when the file doesn’t read', () => {
     const sync = nativeSync(chores, 'chores', model, context);
     expect(sync.state).to.equal('unreadable');

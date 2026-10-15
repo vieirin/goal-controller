@@ -119,26 +119,39 @@ export const withoutLossy = (
   return walk(value, []);
 };
 
-/** A value with its keys sorted and its lists of id'd objects in id order, at any depth. */
-const ordered = (value: unknown): unknown => {
+/**
+ * The piStar lists whose order means nothing, compared as sets: the links
+ * and the dependencies (a file may write them in any order). Every other
+ * list is compared in order: the actors, their nodes, the orphans (the
+ * model's order, which the Notation view and the layout keep).
+ */
+export const UNORDERED_LISTS: readonly string[] = ['links', 'dependencies'];
+
+const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+/**
+ * A value with its keys sorted at any depth; the top-level lists of
+ * UNORDERED_LISTS in one order (by id, then by content: repeated ids too).
+ */
+const ordered = (value: unknown, path: readonly string[] = []): unknown => {
   if (Array.isArray(value)) {
-    const items = value.map(ordered);
-    const ids = items.map((item) =>
-      item && typeof item === 'object' && 'id' in item
-        ? String((item as { id: unknown }).id)
-        : null,
-    );
-    if (!ids.every((id) => id !== null)) return items;
+    const items = value.map((item, i) => ordered(item, [...path, String(i)]));
+    if (path.length !== 1 || !UNORDERED_LISTS.includes(path[0]!)) return items;
+    const key = (item: unknown) =>
+      `${item && typeof item === 'object' && 'id' in item ? String((item as { id: unknown }).id) : ''}\u0000${JSON.stringify(item)}`;
     return items
-      .map((item, i) => [ids[i]!, item] as const)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map((item) => [key(item), item] as const)
+      .sort(([a], [b]) => byText(a, b))
       .map(([, item]) => item);
   }
   if (value && typeof value === 'object')
     return Object.fromEntries(
       Object.keys(value)
         .sort()
-        .map((key) => [key, ordered((value as Record<string, unknown>)[key])]),
+        .map((key) => [
+          key,
+          ordered((value as Record<string, unknown>)[key], [...path, key]),
+        ]),
     );
   return value;
 };
@@ -146,7 +159,8 @@ const ordered = (value: unknown): unknown => {
 /**
  * A piStar model as two are compared: what the lossy paths name left out
  * (before anything is reordered: an index is the model's), every object's
- * keys sorted, every list of objects with ids in id order.
+ * keys sorted, the lists whose order means nothing (UNORDERED_LISTS: the
+ * links, the dependencies) in one order; every other list as it is.
  */
 export const canonicalModel = (
   model: PistarJson,
@@ -156,6 +170,8 @@ export const canonicalModel = (
 /**
  * Where two piStar models differ, but for the lossy paths: the first
  * differing path and both values there (JSON), or null when they don't.
+ * Order counts but in the links and the dependencies (UNORDERED_LISTS):
+ * two models with their actors or nodes in another order differ.
  */
 export const modelDifference = (
   a: PistarJson,
