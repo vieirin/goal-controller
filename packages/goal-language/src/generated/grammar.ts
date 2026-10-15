@@ -1428,6 +1428,28 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 }
               },
               {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "."
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "member",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@49"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ],
+                "cardinality": "?"
+              },
+              {
                 "$type": "Assignment",
                 "feature": "operator",
                 "operator": "=",
@@ -1576,6 +1598,46 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
               {
                 "$type": "Keyword",
                 "value": ")"
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
+                  "name": "AssertMember"
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "ref",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@20"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Keyword",
+                "value": "."
+              },
+              {
+                "$type": "Assignment",
+                "feature": "member",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@49"
+                  },
+                  "arguments": []
+                }
               }
             ]
           },
@@ -2009,6 +2071,46 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                       "arguments": []
                     }
                   ]
+                }
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
+                  "name": "ExprMember"
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "ref",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@20"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Keyword",
+                "value": "."
+              },
+              {
+                "$type": "Assignment",
+                "feature": "member",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@49"
+                  },
+                  "arguments": []
                 }
               }
             ]

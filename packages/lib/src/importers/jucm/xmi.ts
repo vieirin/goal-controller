@@ -14,7 +14,7 @@ import {
   GRL_IMPORTANCES,
   GRL_QUALITATIVE_LABELS,
 } from '../../engines/grl/vocabulary';
-import { readXml, type XmlElement } from '../../formats/xml';
+import { readXmi, type XmiNode, type XmiReader } from '../xmi';
 
 /**
  * IntentionalElementType; `Feature` is the 2014 metamodel's (SmartHome2's),
@@ -227,52 +227,38 @@ export type GrlReadDiagnostic = {
   message: string;
 };
 
-const childrenNamed = (element: XmlElement | undefined, name: string) =>
-  element?.children.filter((child) => child.name === name) ?? [];
-
-const metadataOf = (element: XmlElement): Record<string, string> =>
+const metadataOf = (reader: XmiReader, node: XmiNode): Record<string, string> =>
   Object.fromEntries(
-    childrenNamed(element, 'metadata').map((m) => [
-      m.attributes.name ?? '',
-      m.attributes.value ?? '',
-    ]),
+    reader
+      .children(node, 'metadata')
+      .map((m) => [m.attributes.name ?? '', m.attributes.value ?? '']),
   );
 
 /**
  * A `.jucm` text read as GRL, or the reason it is not one: the error
  * diagnostics. An XMI element whose attributes don't fit its schema is left
- * out, with an error.
+ * out, with an error. Read with the shared XMI reader (`../xmi`); jUCMNav
+ * keys its elements by `id`.
  */
 export const readJucm = (
   text: string,
 ): { document: GrlDocument | null; diagnostics: GrlReadDiagnostic[] } => {
-  const diagnostics: GrlReadDiagnostic[] = [];
-  const { root, problems } = readXml(text);
-  for (const problem of problems)
-    diagnostics.push({ severity: 'error', message: problem.message });
-  if (!root || problems.length) return { document: null, diagnostics };
-  if (root.name !== 'urn:URNspec') {
-    diagnostics.push({
+  const read = readXmi(text, { idAttribute: 'id' });
+  // as jUCMNav's reader said them: a severity and a message
+  const diagnostics = (): GrlReadDiagnostic[] =>
+    read.diagnostics.map(({ severity, message }) => ({ severity, message }));
+  const { reader } = read;
+  if (!reader) return { document: null, diagnostics: diagnostics() };
+  const root = reader.document.root;
+  if (root.feature !== 'urn:URNspec') {
+    reader.diagnostics.push({
       severity: 'error',
-      message: `not a jUCMNav file: its root is <${root.name}>, not <urn:URNspec>`,
+      message: `not a jUCMNav file: its root is <${root.feature}>, not <urn:URNspec>`,
     });
-    return { document: null, diagnostics };
+    return { document: null, diagnostics: diagnostics() };
   }
-
-  /** an XMI element's attributes, typed; null (and an error) when they don't fit */
-  const typed = <S extends z.ZodMiniType>(
-    schema: S,
-    element: XmlElement,
-  ): z.infer<S> | null => {
-    const result = z.safeParse(schema, element.attributes);
-    if (result.success) return result.data;
-    const issue = result.error.issues[0];
-    diagnostics.push({
-      severity: 'error',
-      message: `<${element.name}${element.attributes.id ? ` id="${element.attributes.id}"` : ''}>: ${issue?.path.join('.') || 'its attributes'}: ${issue?.message ?? 'not read'}; left out`,
-    });
-    return null;
-  };
+  const childrenNamed = reader.children;
+  const typed = reader.typed;
 
   const grlspec = childrenNamed(root, 'grlspec')[0];
   const urndef = childrenNamed(root, 'urndef')[0];
@@ -288,7 +274,7 @@ export const readJucm = (
           // a kpimodel Indicator is one whatever its type says
           type: xsiType.endsWith(':Indicator') ? 'Indicator' : type,
           feature: xsiType === 'grl:Feature' || type === 'Feature',
-          metadata: metadataOf(element),
+          metadata: metadataOf(reader, element),
         },
       ];
     },
@@ -317,7 +303,7 @@ export const readJucm = (
             },
           ];
         default:
-          diagnostics.push({
+          reader.diagnostics.push({
             severity: 'warning',
             message: `link ${id}: ${read['xsi:type']} is not read`,
           });
@@ -420,7 +406,7 @@ export const readJucm = (
   return {
     document: {
       name: root.attributes.name ?? '',
-      metadata: metadataOf(root),
+      metadata: metadataOf(reader, root),
       elements,
       links,
       actors,
@@ -433,6 +419,6 @@ export const readJucm = (
       beliefLinks,
       skipped,
     },
-    diagnostics,
+    diagnostics: diagnostics(),
   };
 };

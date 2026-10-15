@@ -149,6 +149,9 @@ const EXPRESSION_SYMBOLS = [
   ...EXPRESSION.prefix,
   ...EXPRESSION.parens,
   EXPRESSION.separator,
+  // `room.clean`: a token of its own, so `a.b` and `a . b` read the same
+  // (`T1.1` and `0.5` stay one token: longer than an id or a number)
+  EXPRESSION.member,
 ];
 
 /**

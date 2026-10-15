@@ -117,9 +117,10 @@ AssertUnary infers AssertExpr:
 // its own too (`previous(on) & !off`), where a dialect declares its function.
 AssertPrimary infers AssertExpr:
     {infer AssertParen} '(' expr=AssertExpr ')'
-    | {infer AssertAssign} variable=AName operator=('=' | '!=') value=AssertBool
+    | {infer AssertAssign} variable=AName ('.' member=A_ID)? operator=('=' | '!=') value=AssertBool
     | {infer AssertCompare} left=Expr operator=Comparator right=Expr
     | {infer AssertCall} function=A_ID '(' (args+=Expr (',' args+=Expr)*)? ')'
+    | {infer AssertMember} ref=AName '.' member=A_ID
     | {infer AssertVar} variable=AName
     | {infer AssertConst} value=AssertBool;
 
@@ -156,6 +157,8 @@ ExprPrimary infers Expr:
     {infer ExprParen} '(' expr=Expr ')'
     | {infer ExprCall} function=A_ID '(' (args+=Expr (',' args+=Expr)*)? ')'
     | {infer ExprNumber} value=(A_INT | A_NUMBER)
+    // a member of an element (or of a variable): `room.clean`, `T1.1.done`
+    | {infer ExprMember} ref=AName '.' member=A_ID
     | {infer ExprRef} id=A_REF
     | {infer ExprVar} name=A_ID;
 

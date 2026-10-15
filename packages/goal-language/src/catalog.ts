@@ -199,6 +199,12 @@ export const EXPRESSION = {
   parens: ['(', ')'],
   /** between a call's arguments: `f(a, b)` */
   separator: ',',
+  /**
+   * between an element's id (or a variable) and one of its members:
+   * `room.clean`, `tank.level` (goal-controller#135). A member atom binds
+   * tighter than everything: `-tank.level` is `-(tank.level)`.
+   */
+  member: '.',
 } as const;
 
 /**

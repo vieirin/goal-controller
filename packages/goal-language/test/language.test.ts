@@ -101,7 +101,7 @@ describe('the grammar and the catalog', () => {
     assert.deepEqual(keywords('ExprUnary'), [...EXPRESSION.prefix]);
     assert.deepEqual(
       [...new Set(keywords('ExprPrimary'))],
-      [...EXPRESSION.parens, EXPRESSION.separator],
+      [...EXPRESSION.parens, EXPRESSION.separator, EXPRESSION.member],
     );
   });
 
