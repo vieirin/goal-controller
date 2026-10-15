@@ -6,13 +6,16 @@
 import {
   edge,
   edgeCheckRegistry,
+  edgeOptions,
   edgeEngineMapper,
   edgeProjectResources,
   edgeV2,
   edgeV2EngineMapper,
+  edgeV2Options,
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  godaOptions,
   grl,
   grlEngineMapper,
   grlExtension,
@@ -26,6 +29,7 @@ import {
   mutrosePool,
   type PoolRegistration,
   sleecEngineMapper,
+  sleecOptions,
   type Analyses,
   type Check,
   type ProjectResourceParsers,
@@ -34,6 +38,7 @@ import type {
   AnyDialect,
   CheckNameOf,
   ExtensionDefinition,
+  OptionDefinition,
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
@@ -100,6 +105,21 @@ export const ENGINE_MAPPERS = {
   grl: grlEngineMapper,
 } as const satisfies Record<TransformEngine, { allowLeafGoals?: boolean }>;
 
+/**
+ * Each engine's generation options, as it declares them, typed as
+ * properties are (goal-controller#118): the options menu, the defaults and
+ * a manifest's check are these.
+ */
+export const ENGINE_OPTIONS = {
+  edge: edgeOptions,
+  edgev2: edgeV2Options,
+  sleec: sleecOptions,
+  goda: godaOptions,
+  // MutRoSe reads the model as written; GRL generates nothing
+  mutrose: [],
+  grl: [],
+} as const satisfies Record<TransformEngine, readonly OptionDefinition[]>;
+
 /** Each engine's name, as the UI shows it: a definition's own, or SLEEC's. */
 export const ENGINE_LABEL: Record<TransformEngine, string> = {
   edge: edge.name,
@@ -121,8 +141,6 @@ type EngineInfo = {
   extension: string;
   language: OutputLanguage;
   help: string;
-  /** whether it takes generation options (MutRoSe reads the model as written) */
-  hasOptions: boolean;
   /** false: it generates no file, its values are the Analyse control's (an analysis engine) */
   generates?: false;
 };
@@ -136,7 +154,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'prism',
     language: 'prism',
     help: 'EDGE reference encoding, with cost and utility rewards',
-    hasOptions: true,
   },
   {
     id: 'edge',
@@ -145,7 +162,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'prism',
     language: 'prism',
     help: 'Legacy Edge encoding',
-    hasOptions: true,
   },
   {
     id: 'sleec',
@@ -154,7 +170,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'sleec',
     language: 'text',
     help: 'SLEEC rules from the goal conditions',
-    hasOptions: true,
   },
   {
     id: 'mutrose',
@@ -164,7 +179,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'rannot',
     language: 'rannot',
     help: "The runtime annotation MutRoSe's decomposer reads, after checking the model as it does",
-    hasOptions: false,
   },
   {
     id: 'goda',
@@ -174,7 +188,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'nm',
     language: 'prism',
     help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
-    hasOptions: true,
   },
   {
     id: 'grl',
@@ -184,7 +197,6 @@ export const ENGINES: readonly EngineInfo[] = [
     extension: 'json',
     language: 'text',
     help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
-    hasOptions: false,
     generates: false,
   },
 ];
@@ -202,7 +214,7 @@ export const generatesFiles = (engine: TransformEngine): boolean =>
   infoOf(engine).generates !== false;
 /** Whether an engine takes generation options. */
 export const hasOptions = (engine: TransformEngine): boolean =>
-  infoOf(engine).hasOptions;
+  ENGINE_OPTIONS[engine].length > 0;
 /** The extension of what an engine generates: `prism`. */
 export const outputExtensionOf = (engine: TransformEngine): string =>
   infoOf(engine).extension;

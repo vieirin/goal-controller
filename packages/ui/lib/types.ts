@@ -1,8 +1,4 @@
-import {
-  GODA_DEFAULT_VARIANT,
-  GODA_VARIANTS,
-  type GodaVariant,
-} from '@goal-controller/lib';
+import type { GodaVariant } from '@goal-controller/lib';
 
 /**
  * The one spelling of engine names used across the UI and its API:
@@ -19,19 +15,9 @@ export type TransformEngine =
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
-export const EDGE_V2_TASK_LAYOUTS: EdgeV2TaskLayout[] = [
-  'taskModules',
-  'changeManager',
-];
-export const isEdgeV2TaskLayout = (value: unknown): value is EdgeV2TaskLayout =>
-  typeof value === 'string' &&
-  (EDGE_V2_TASK_LAYOUTS as string[]).includes(value);
 
 /** GODA: the generator version it writes as (lib's GODA_VARIANTS, goal-controller#34 D10). */
-export { GODA_DEFAULT_VARIANT, type GodaVariant };
-export const isGodaVariant = (value: unknown): value is GodaVariant =>
-  typeof value === 'string' &&
-  (GODA_VARIANTS as readonly string[]).includes(value);
+export type { GodaVariant };
 
 const TRANSFORM_ENGINES: TransformEngine[] = [
   'edge',

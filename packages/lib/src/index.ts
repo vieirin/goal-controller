@@ -282,3 +282,9 @@ if (require.main === module) {
     logger.close();
   }
 }
+
+// each engine's generation options, typed as properties are (#118); MutRoSe and GRL have none
+export { edgeOptions } from './engines/edge/options';
+export { edgeV2Options } from './engines/edgeV2/options';
+export { godaOptions } from './engines/goda/options';
+export { sleecOptions } from './engines/sleec/options';

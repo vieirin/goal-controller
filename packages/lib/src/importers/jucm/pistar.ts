@@ -13,6 +13,7 @@ import {
   type GrlStrategyFile,
 } from '../../engines/grl/strategies';
 import { ISTAR_CONTRIBUTION_OF } from '../../engines/grl/vocabulary';
+import { layOut, LAYOUT_GRID } from '../layout';
 import type {
   GrlDocument,
   GrlElement,
@@ -39,8 +40,6 @@ export const STRATEGIES_FOLDER = 'strategies/';
 type Json = Record<string, unknown>;
 type Properties = Record<string, string>;
 
-/** a grid for what no diagram places: below the diagrams */
-const GRID = { columns: 6, dx: 160, dy: 100 };
 /** the space between two diagrams, one below the other */
 const DIAGRAM_GAP = 150;
 /** an element's box, for the diagrams' extents */
@@ -92,16 +91,6 @@ export const toPistar = (
     x: at.x,
     y: at.y + (offset.get(at.diagram) ?? 0),
   });
-  let grid = 0;
-  const gridPlace = () => {
-    const at = {
-      x: 40 + (grid % GRID.columns) * GRID.dx,
-      y: top + 40 + Math.floor(grid / GRID.columns) * GRID.dy,
-    };
-    grid++;
-    return at;
-  };
-
   // actors: at their first ActorRef; an element is in the actor its first ref is drawn in
   const actorOfRef = new Map(document.actorRefs.map((r) => [r.ref, r]));
   const actorAt = new Map<string, (typeof document.actorRefs)[number]>();
@@ -131,7 +120,7 @@ export const toPistar = (
   }
   if (unplaced.length)
     warn(
-      `${unplaced.length} element(s) are in no diagram (${unplaced.join(', ')}): placed in a grid below the diagrams`,
+      `${unplaced.length} element(s) are in no diagram (${unplaced.join(', ')}): laid out below the diagrams, by their links`,
     );
 
   // dependencies: a dependum is the element between a depender and a
@@ -165,19 +154,19 @@ export const toPistar = (
       id: element.id,
       text: element.name,
       type: KIND_OF_TYPE[element.type],
-      ...(refs[0] ? place(refs[0]) : gridPlace()),
+      // without a diagram's position, the layout's (below)
+      ...(refs[0] && place(refs[0])),
       customProperties: elementProperties(element),
     };
   };
 
   const actors = document.actors.map((actor) => {
     const ref = actorAt.get(actor.id);
-    const at = ref ? place({ ...ref, diagram: ref.diagram }) : gridPlace();
     return {
       id: actor.id,
       text: actor.name,
       type: 'istar.Actor',
-      ...at,
+      ...(ref && place(ref)),
       customProperties: {
         ...(actor.importance !== 'None' && { importance: actor.importance }),
         ...(actor.importanceQuantitative !== 0 && {
@@ -364,8 +353,14 @@ export const toPistar = (
     strategies[path] = writeStrategyFile(file);
   }
 
+  // what no diagram draws, laid out below them (importers/layout.ts)
+  const laidOut = layOut(
+    { actors, orphans, dependencies: dependencyElements, links },
+    { x: LAYOUT_GRID.padding, y: top + LAYOUT_GRID.padding },
+  );
   const width = Math.max(
     1000,
+    laidOut?.right ?? 0,
     ...[...document.elementRefs.values()].flat().map((r) => r.x + NODE.width),
     ...document.actorRefs.map((r) => r.x + r.width),
   );
@@ -379,10 +374,7 @@ export const toPistar = (
     istar: '2.0',
     diagram: {
       width,
-      height: Math.max(
-        700,
-        top + 40 + Math.ceil(grid / GRID.columns) * GRID.dy,
-      ),
+      height: Math.max(700, laidOut?.bottom ?? top + 40),
       name: document.name,
       customProperties: { engine: 'grl' },
     },
