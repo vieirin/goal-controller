@@ -18,8 +18,10 @@ import {
   notation,
   property,
 } from '@goal-controller/dialect';
+import { importJucm } from '../../importers/jucm';
 import type { GrlCheckName } from './checks';
 import { grlExtension } from './extension';
+import { canonicalJucm, JUCM_LOSSY, writeJucm } from './jucm';
 import {
   GRL_CONTRIBUTIONS,
   GRL_DECOMPOSITIONS,
@@ -132,6 +134,20 @@ export const grl = defineDialect({
       path: 'strategies/',
       accept: ['.json'],
       help: 'one file per strategies group: each strategy’s initial values, which the evaluation propagates',
+    },
+  },
+  // jUCMNav's own file, read and written (goal-controller#144): the model
+  // and its strategies, evaluated by jUCMNav as by the analyses
+  nativeFiles: {
+    jucm: {
+      label: 'jUCMNav',
+      extensions: ['.jucm'],
+      format: 'xmi',
+      schema: { kind: 'ecore', path: 'schema/grl.ecore' },
+      read: (text) => importJucm(text),
+      write: (model, context) => writeJucm(model, context),
+      canonical: canonicalJucm,
+      lossy: JUCM_LOSSY,
     },
   },
   problems: {

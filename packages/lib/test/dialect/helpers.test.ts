@@ -30,11 +30,23 @@ const DEFINITIONS = {
   istar4RationalAgents,
 };
 
+/** A definition's data: a native file's read, write and canonical are functions, which a literal can't hold (#143). */
+const dataOf = (value: unknown): unknown =>
+  Array.isArray(value)
+    ? value.map(dataOf)
+    : value && typeof value === 'object'
+      ? Object.fromEntries(
+          Object.entries(value)
+            .filter(([, item]) => typeof item !== 'function')
+            .map(([key, item]) => [key, dataOf(item)]),
+        )
+      : value;
+
 describe('definitions written with the helpers', () => {
   for (const [name, definition] of Object.entries(DEFINITIONS))
     it(`${name} is its hand-written literal`, () => {
       const text = readFileSync(join(LITERAL, `${name}.json`), 'utf8');
-      expect(definition).to.deep.equal(JSON.parse(text));
+      expect(dataOf(definition)).to.deep.equal(JSON.parse(text));
       // the same keys in the same order: what is written of it stays byte for byte
       expect(JSON.stringify(definition)).to.equal(
         JSON.stringify(JSON.parse(text)),

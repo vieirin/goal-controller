@@ -39,6 +39,13 @@ rtfm_mini_goal_model, sepsis_goal_model, bpic2019_goal_model}.jucm`.
   oracle's three runs (quantitative at tolerance 0 and 10, qualitative). Each
   reference row (every intentional element and actor) must match exactly, in
   value and in label.
+- **native** (goal-controller#144): the model written back with `writeJucm`.
+  - **Round trip:** the written file imports to the same model and
+    strategies, the diagram's extent aside, and writing it again gives the
+    same bytes.
+  - **Oracle:** with `--oracle`, jUCMNav evaluates the written files too
+    (`.cache/grl/native/` into `.cache/grl/native-reference/`), and each
+    one's rows must equal its seed's reference, every one.
 
 ## The oracle
 
@@ -58,6 +65,7 @@ strategy, with the first differences) and one JSON per seed.
 | `references.cjs` | the committed seeds, each seed's reference, running the oracle       |
 | `seed.cjs`       | the checks on one seed                                               |
 | `compare.cjs`    | the oracle's CSV, read; a strategy's evaluations against it, exactly |
+| `native.cjs`     | the written .jucm: its round trip, jUCMNav on it against the seed    |
 | `report.cjs`     | `SUMMARY.md`                                                         |
 
 **Exit code.** Non-zero only with `--strict`, when a committed seed fails a

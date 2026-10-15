@@ -175,7 +175,7 @@ export {
   type GodaVariant,
 } from './engines/goda';
 // GRL (goal-controller#106): its definition, kinds, checks, strategies and
-// analyses (jUCMNav's evaluations), and the .jucm importer
+// analyses (jUCMNav's evaluations), and the .jucm importer and writer (#144)
 export {
   grl,
   grlAnalyses,
@@ -195,6 +195,7 @@ export {
   type GrlStrategy,
 } from './engines/grl';
 export { importJucm } from './importers/jucm';
+export { canonicalJucm, JUCM_LOSSY, writeJucm } from './engines/grl/jucm';
 export type {
   DialectRecord,
   ImportDiagnostic,
