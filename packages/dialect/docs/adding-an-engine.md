@@ -865,6 +865,10 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/tropos4as/` and `ui/components/workbench/engines/tropos4as/`: an analysis engine with no file output. It runs AAMAS 2009's goal lifecycle over a scenario, a project resource, and draws each goal's state per step on the model. The transition rules and the goal types' condition–action sets are data (`lifecycle/architecture.ts`, `lifecycle/instantiations.ts`), each tested against its premises. The paper's hand-executed trace is the oracle. The seeds reproduce the papers' figures. The dialect has no ids, so element texts read as drawn, with properties as lines under them (#138). [tropos4as.md](tropos4as.md) lists what fit, what grew, how the rules are read, and what is still open.
 
+### 7.7 Contextual goal models (variants, a solver, cases that are selections)
+
+`lib/src/engines/cgm/` and `ui/components/workbench/engines/cgm/`: an analysis engine whose conditions sit on links (contexts at Table 1's variation points, link properties with link lines) and whose extension's kinds are formulas (contexts, statements, facts). Its four analyses enumerate variants with `variantsOf` (§3.7b). Each gives `guard`, `relation` and `follow`, and the analyses reason over the variants with the propositional solver. Each case is a variant or a set of them, drawn as a selection. The papers' numbers are the oracle, with DLV and z3 in Docker as independent checks. [cgm.md](cgm.md) lists what fit, what grew, the errata, and what is still open.
+
 ## 8. Options summary
 
 | Decision                    | Options                                                                      | Pick when                                                                                                             |

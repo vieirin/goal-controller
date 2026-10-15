@@ -257,3 +257,21 @@ export const reContextDlv = (
     '',
   ].join('\n');
 };
+
+/**
+ * Code 4 alone, for a set of tasks to develop (each a `todo` fact): its one
+ * answer set's `total` is the set's cost, what the oracle checks #151 D11's
+ * pairwise rule against (Fig. 13: 340 for all, 215 for its answer).
+ */
+export const reContextCosts = (
+  model: AnalysisModel,
+  tasks: readonly string[],
+): string => {
+  const cgm = readCgmModel(model);
+  return [
+    '% Code 4: development costs, for these tasks',
+    ...tasks.map((task) => `todo(${dlvConstant(cgm.idOf(task))}).`),
+    ...costRules(cgm),
+    '',
+  ].join('\n');
+};

@@ -38,6 +38,7 @@ const GROUP_ORDER = [
   'mutrose',
   'grl',
   'tropos4as',
+  'cgm',
   'sleec',
   'pistar-ext',
 ];

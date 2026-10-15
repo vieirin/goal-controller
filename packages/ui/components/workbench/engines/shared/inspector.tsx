@@ -195,6 +195,17 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'mapGoalProps',
     },
   },
+  cgm: {
+    file: 'packages/lib/src/engines/cgm/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/cgm/mapper.ts',
+    map: {
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
+      resource: 'skipResource',
+      quality: 'mapGoalProps',
+    },
+  },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
     lists: {

@@ -1569,9 +1569,13 @@
   "diagram": {
     "width": 5520,
     "height": 1530,
-    "name": "museum-guide",
+    "name": "Museum guide",
     "customProperties": {
-      "Description": "REJ 2010 Fig. 2: the goal model of the museum-guide system with context annotation, C0–C15 as §3.3 describes them, and the context analysis of C1 (Fig. 4)"
+      "engine": "cgm",
+      "title": "Museum guide",
+      "author": "goal-controller",
+      "source": "REJ 2010, Ali, Dalpiaz, Giorgini, Fig. 2, Fig. 4 and §3.3",
+      "lastUpdated": "2026-10-15"
     }
   },
   "metamodel": {

@@ -64,4 +64,5 @@ export const KNOWN_PROPERTIES: Record<
     ...extensionKeys(ENGINE_DIALECTS.istardt),
   },
   tropos4as: definedKeys(ENGINE_DIALECTS.tropos4as),
+  cgm: definedKeys(ENGINE_DIALECTS.cgm),
 };

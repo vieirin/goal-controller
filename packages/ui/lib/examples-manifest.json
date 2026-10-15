@@ -1,5 +1,74 @@
 [
   {
+    "path": "cgm/museum-guide",
+    "group": "cgm",
+    "name": "museum-guide",
+    "form": "file",
+    "dialect": "cgm",
+    "root": "cgm/museum-guide",
+    "files": [
+      "README.md",
+      "museum-guide.txt",
+      "project.json",
+      "reference/example-1.dlv",
+      "reference/museum-guide.dlv",
+      "relations/rej-2010.json",
+      "situations/example-1.json"
+    ],
+    "models": ["museum-guide.txt"],
+    "projectResources": {
+      "situations": ["situations/example-1.json"],
+      "relations": ["relations/rej-2010.json"]
+    },
+    "outputs": []
+  },
+  {
+    "path": "cgm/museum-guide-costs",
+    "group": "cgm",
+    "name": "museum-guide-costs",
+    "form": "file",
+    "dialect": "cgm",
+    "root": "cgm/museum-guide-costs",
+    "files": [
+      "README.md",
+      "museum-guide-costs.txt",
+      "project.json",
+      "reference/code-3.dlv",
+      "reference/museum-guide-costs.dlv",
+      "relations/fig-13.json",
+      "situations/code-3.json"
+    ],
+    "models": ["museum-guide-costs.txt"],
+    "projectResources": {
+      "situations": ["situations/code-3.json"],
+      "relations": ["relations/fig-13.json"]
+    },
+    "outputs": []
+  },
+  {
+    "path": "cgm/smart-home",
+    "group": "cgm",
+    "name": "smart-home",
+    "form": "file",
+    "dialect": "cgm",
+    "root": "cgm/smart-home",
+    "files": [
+      "README.md",
+      "project.json",
+      "reference/anxious-at-night.dlv",
+      "reference/smart-home.dlv",
+      "relations/ist-2013.json",
+      "situations/anxious-at-night.json",
+      "smart-home.txt"
+    ],
+    "models": ["smart-home.txt"],
+    "projectResources": {
+      "situations": ["situations/anxious-at-night.json"],
+      "relations": ["relations/ist-2013.json"]
+    },
+    "outputs": []
+  },
+  {
     "path": "edge/anotherSimple.txt",
     "group": "edge",
     "name": "anotherSimple.txt",

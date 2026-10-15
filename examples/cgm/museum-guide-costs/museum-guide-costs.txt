@@ -768,9 +768,13 @@
   "diagram": {
     "width": 2860,
     "height": 820,
-    "name": "museum-guide-costs",
+    "name": "Museum guide, minimum-cost fragment",
     "customProperties": {
-      "Description": "REJ 2010 Fig. 13: the fragment of the museum guide (Fig. 2) the minimum-cost reasoning is shown on, with its task costs and cost relations"
+      "engine": "cgm",
+      "title": "Museum guide, minimum-cost fragment",
+      "author": "goal-controller",
+      "source": "REJ 2010, Ali, Dalpiaz, Giorgini, Fig. 13 (with Code 3)",
+      "lastUpdated": "2026-10-15"
     }
   },
   "metamodel": {

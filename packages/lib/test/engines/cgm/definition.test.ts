@@ -244,6 +244,8 @@ describe('Contextual goal models in the Notation view', () => {
       'ST1.2: visitor (v) is interested in getting explanation of piece of art (p) in museum (m)\n  supportedBy ST1 & ST2 & ST3 & ST4',
       'F1.1: visitor is inside the gallery building',
       '        T17: alert (v) via PDA vibration and SMS\n          link G17 {context = !C9}',
+      // a dependency's context, on its depender's line (#152 item 4)
+      '    G3: (v) gets info through (m) staff (s)\n      link G1 {context = C6}\n      link G3.1 {context = C10}',
     ])
       assert.ok(text.includes(lines), lines);
   });
@@ -253,8 +255,6 @@ describe('Contextual goal models in the Notation view', () => {
       const view = seedView(seed);
       const { text } = notationDocument(cgm, view);
       assert.deepStrictEqual(notationEdits(cgm, text, view), []);
-      // a link line to a quality is written, and read back, but the validator
-      // doesn't know the quality yet: #152 item 4 (#151, green's finding)
       const model = contextFromView(cgm, view, []);
       const runCheck = (
         name: string,
@@ -266,9 +266,7 @@ describe('Contextual goal models in the Notation view', () => {
           checkContextOf(model, self),
         );
       assert.deepStrictEqual(
-        documentDiagnostics(cgm, text, model, { runCheck }).filter(
-          (d) => !/^No element SG\d+$/.test(d.message),
-        ),
+        documentDiagnostics(cgm, text, model, { runCheck }),
         [],
       );
     });

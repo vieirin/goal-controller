@@ -1286,9 +1286,13 @@
   "diagram": {
     "width": 3220,
     "height": 1640,
-    "name": "smart-home",
+    "name": "Smart home",
     "customProperties": {
-      "Description": "IST 2013 Fig. 1: a partial Tropos goal model for the smart-home case study, its contexts ϕ0–ϕ16 (Table 2) and the context analysis of ϕ1 (Fig. 2)"
+      "engine": "cgm",
+      "title": "Smart home",
+      "author": "goal-controller",
+      "source": "IST 2013, Ali, Dalpiaz, Giorgini, Fig. 1, Table 2 and Fig. 2",
+      "lastUpdated": "2026-10-15"
     }
   },
   "metamodel": {
