@@ -75,7 +75,7 @@ const readFile = (file: File): Promise<string> =>
   });
 
 /**
- * Another tool's model (lib's FILE_IMPORTERS, by extension: iStarDT-X), as
+ * Another tool's model (lib's FILE_IMPORTERS, by extension; none now: iStarDT-X and .tropos are native files), as
  * the piStar model its importer writes, `<name>.txt`; it rejects with the
  * importer's errors when the file isn't one it reads.
  */

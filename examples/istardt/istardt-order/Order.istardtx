@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iStarDT xmlns="https://example.org/istar-dt-x">
+  <header title="" author="" source="" lastUpdated="Test"/>
+  <options continuous="true" infeasibleActionPenalty="100"/>
+  <actors>
+    <actor name="default" description="">
+      <goals>
+        <goal name="orderMaterial" description="Order Material" root="true" episodeLength="1">
+          <refinement type="OR">
+            <childTask ref="orderFromSupplierA"/>
+            <childTask ref="orderFromSupplierB"/>
+          </refinement>
+        </goal>
+      </goals>
+      <tasks>
+        <task name="orderFromSupplierA" description="Order From Supplier A">
+          <effectGroup>
+            <effect name="deliveredInTimeA_Eff" description="deliveredInTimeA" probability="0.75">
+              <turnsTrue>deliveredInTimeA</turnsTrue>
+            </effect>
+            <effect name="neverDeliveredA_Eff" description="neverDeliveredA" satisfying="false" probability="0.05">
+              <turnsTrue>neverDeliveredA</turnsTrue>
+            </effect>
+            <effect name="deliveredLateA_Eff" description="deliveredLateA" probability="0.2">
+              <turnsTrue>deliveredLateA</turnsTrue>
+            </effect>
+          </effectGroup>
+        </task>
+        <task name="orderFromSupplierB" description="Order From Supplier B">
+          <effectGroup>
+            <effect name="deliveredInTimeB_Eff" description="deliveredInTimeB" probability="0.5">
+              <turnsTrue>deliveredInTimeB</turnsTrue>
+            </effect>
+            <effect name="neverDeliveredB_Eff" description="neverDeliveredB" satisfying="false" probability="0.15">
+              <turnsTrue>neverDeliveredB</turnsTrue>
+            </effect>
+            <effect name="deliveredLateB_Eff" description="deliveredLateB" probability="0.35">
+              <turnsTrue>deliveredLateB</turnsTrue>
+            </effect>
+          </effectGroup>
+        </task>
+      </tasks>
+      <qualities>
+        <quality name="cost" description="Cost">
+          <add>
+            <multiply>
+              <numConst>0.5</numConst>
+              <predicateID>deliveredInTimeA</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>0.5</numConst>
+              <predicateID>deliveredLateA</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>0.5</numConst>
+              <predicateID>neverDeliveredA</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>1.0</numConst>
+              <predicateID>deliveredInTimeB</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>1.0</numConst>
+              <predicateID>deliveredLateB</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>1.0</numConst>
+              <predicateID>neverDeliveredB</predicateID>
+            </multiply>
+          </add>
+        </quality>
+        <quality name="happyCustomer" description="Happy Customer">
+          <add>
+            <multiply>
+              <numConst>1.0</numConst>
+              <predicateID>deliveredInTimeA</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>0.7</numConst>
+              <predicateID>deliveredLateA</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>1.0</numConst>
+              <predicateID>deliveredInTimeB</predicateID>
+            </multiply>
+            <multiply>
+              <numConst>0.7</numConst>
+              <predicateID>deliveredLateB</predicateID>
+            </multiply>
+          </add>
+        </quality>
+        <quality name="overallQuality" description="Overall Quality" root="true">
+          <add>
+            <multiply>
+              <numConst>0.7</numConst>
+              <qualID>cost</qualID>
+            </multiply>
+            <multiply>
+              <numConst>0.3</numConst>
+              <qualID>happyCustomer</qualID>
+            </multiply>
+          </add>
+        </quality>
+      </qualities>
+      <condBoxes/>
+      <initializations>
+        <initialization element="happyCustomer">0</initialization>
+        <initialization element="cost">0</initialization>
+        <initialization element="overallQuality">0</initialization>
+      </initializations>
+      <crossRuns>
+        <crossRun>
+          <qualID>cost</qualID>
+        </crossRun>
+        <crossRun>
+          <qualID>happyCustomer</qualID>
+        </crossRun>
+      </crossRuns>
+      <exportedSet>
+        <export continuous="false">
+          <predicateID>deliveredInTimeA</predicateID>
+        </export>
+        <export continuous="false">
+          <predicateID>deliveredInTimeB</predicateID>
+        </export>
+        <export continuous="false">
+          <predicateID>deliveredLateA</predicateID>
+        </export>
+        <export continuous="false">
+          <predicateID>deliveredLateB</predicateID>
+        </export>
+        <export continuous="false">
+          <predicateID>neverDeliveredA</predicateID>
+        </export>
+        <export continuous="false">
+          <predicateID>neverDeliveredB</predicateID>
+        </export>
+      </exportedSet>
+      <predicates>
+        <predicate description="">neverDeliveredB</predicate>
+        <predicate description="">deliveredInTimeB</predicate>
+        <predicate description="">deliveredLateB</predicate>
+        <predicate description="">neverDeliveredA</predicate>
+        <predicate description="">deliveredInTimeA</predicate>
+        <predicate description="">deliveredLateA</predicate>
+      </predicates>
+      <variables/>
+    </actor>
+  </actors>
+</iStarDT>

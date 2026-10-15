@@ -54,6 +54,7 @@ const committedSeeds = () =>
     source: inProject(project, project.source),
     golden: project.golden && inProject(project, project.golden),
     model: inProject(project, project.model),
+    project: inProject(project, 'project.json'),
     utility: inProject(project, 'reference/utility.txt'),
   }));
 

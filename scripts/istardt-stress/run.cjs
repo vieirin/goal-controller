@@ -12,7 +12,8 @@
  *    it with the golden one after the header (seed.cjs);
  * 3. with `--oracle`, runs ours and the golden files with DT-Golog in
  *    Docker (never on the host) and compares their utility and policy
- *    (oracle.cjs);
+ *    (oracle.cjs), and dtx2dtg's validator on each seed's iStarDT-X as our
+ *    writer wrote it (validator.cjs, `docker/dtx2dtg`);
  * 4. writes a JSON result per seed and SUMMARY.md to .cache/istardt/results/.
  *
  * Exits non-zero only with `--strict`, on a failure of a committed seed. A
@@ -25,6 +26,7 @@ const { committedSeeds, fetchedSeeds } = require('./projects.cjs');
 const { checkSeed, oracleCheck } = require('./seed.cjs');
 const { oracleOf, readResult, runOracle, TRIALS } = require('./oracle.cjs');
 const { markdown } = require('./report.cjs');
+const { runValidator } = require('./validator.cjs');
 
 const ROOT = path.join(__dirname, '..', '..');
 const RESULTS = path.join(CACHE, 'results');
@@ -62,6 +64,27 @@ const main = async () => {
     const { checks, program } = checkSeed(deps, seed);
     return { ...base, checks, program };
   });
+
+  // dtx2dtg's validator on what the native column wrote (Docker)
+  const validated = args.has('--oracle')
+    ? runValidator(
+        results
+          .filter((r) => r.checks?.native?.written?.istardtx)
+          .map((r) => ({ id: r.seed, text: r.checks.native.written.istardtx })),
+      )
+    : {};
+  for (const result of results) {
+    const native = result.checks?.native;
+    if (!native) continue;
+    native.validator = validated[result.seed] ?? null;
+    if (native.status === 'pass' && native.validator?.status === 'fail')
+      Object.assign(native, {
+        status: 'fail',
+        error: `dtx2dtg's validator: ${native.validator.error}`,
+      });
+    // the texts are the validator's input, not the result's
+    delete native.written;
+  }
 
   if (args.has('--oracle'))
     runOracle(

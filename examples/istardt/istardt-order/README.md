@@ -6,6 +6,7 @@
 - **Licence:** GNU LGPL 2.1. `LICENSE-LGPL-2.1` is the repository's `LICENSE`, copied unchanged. The model and `reference/Order.pl` are © their authors (Liaskos et al., York University's CMG), redistributed unmodified under the LGPL with this notice.
 - **What is in the project:**
   - `1.Order.istardtx`: the source.
+  - `Order.istardtx`: the model as our iStarDT-X writer writes it, its native file (`project.json`'s `models[].native`, goal-controller#144); dtx2dtg's validator accepts it, and `pnpm stress:istardt` fails when it isn't what the writer writes now. The source above stays as copied.
   - `Order.txt`: the model `importIstardt` makes of it, in the iStar-DT dialect, laid out by `importers/layout.ts` (the file has no diagram).
   - `reference/Order.pl`: dtx2dtg's golden output, `1.Order-Auth.pl`.
   - `reference/utility.txt`: DT-Golog's run of our output (`docker/dtgolog/`): expected utility 0.9235, the optimum dtg2sim's `1Order_Trials.py` records, probability 1.0, and the policy.

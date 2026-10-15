@@ -31,6 +31,8 @@ import { SET_KEYS } from './model';
 import { istardtExtension } from './extension';
 import { ISTARDT_LINKS } from './vocabulary';
 import { PREVIOUS } from './template/formulas';
+import { importIstardt } from '../../importers/istardt';
+import { canonicalIstardtx, ISTARDTX_LOSSY, writeIstardtx } from './istardtx';
 
 type IstardtProperty = PropertyDefinition<IstardtCheckName>;
 
@@ -200,6 +202,20 @@ export const istardt = defineDialect({
         help: 'a term of the quality’s weighted sum: weight × the quality it comes from, or × the predicate its effect turns true (a quality has these or a formula)',
       },
     ],
+  },
+  // iStarDT-X, cmg-york/istardt's own file, read and written
+  // (goal-controller#144 item 2): dtx2dtg's validator accepts what it writes
+  nativeFiles: {
+    istardtx: {
+      label: 'iStarDT-X',
+      extensions: ['.istardt', '.istardtx'],
+      format: 'xml',
+      schema: { kind: 'xsd', path: 'schema/istar_dt_x_schema.xsd' },
+      read: (text, { modelName }) => importIstardt(text, { modelName }),
+      write: (model, context) => writeIstardtx(model, context),
+      canonical: canonicalIstardtx,
+      lossy: ISTARDTX_LOSSY,
+    },
   },
   actors: [
     {

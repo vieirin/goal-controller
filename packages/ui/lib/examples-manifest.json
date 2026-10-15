@@ -743,6 +743,7 @@
     "root": "istardt/istardt-heating",
     "files": [
       "3.2.Heating_10R_Mixed.istardtx",
+      "Heating.istardtx",
       "Heating.txt",
       "LICENSE-LGPL-2.1",
       "README.md",
@@ -764,6 +765,7 @@
     "files": [
       "1.Order.istardtx",
       "LICENSE-LGPL-2.1",
+      "Order.istardtx",
       "Order.txt",
       "README.md",
       "project.json",

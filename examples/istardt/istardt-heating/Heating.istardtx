@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iStarDT xmlns="https://example.org/istar-dt-x">
+  <header title="" author="" source="" lastUpdated="Test"/>
+  <options continuous="true" infeasibleActionPenalty="100"/>
+  <actors>
+    <actor name="default" description="">
+      <goals>
+        <goal name="controlHeater" description="Control Heater" root="true" episodeLength="10">
+          <refinement type="OR">
+            <childTask ref="sendOnSignal"/>
+            <childTask ref="sendOffSignal"/>
+          </refinement>
+        </goal>
+      </goals>
+      <tasks>
+        <task name="sendOnSignal" description="Send On Signal">
+          <effectGroup>
+            <effect name="signalOnS_Eff" description="signalOnS" probability="0.95">
+              <turnsTrue>signalOnS</turnsTrue>
+            </effect>
+            <effect name="signalOnF_Eff" description="signalOnF" satisfying="false" probability="0.05">
+              <turnsTrue>signalOnF</turnsTrue>
+            </effect>
+          </effectGroup>
+        </task>
+        <task name="sendOffSignal" description="Send Off Signal">
+          <effectGroup>
+            <effect name="signalOffS_Eff" description="signalOffS" probability="0.95">
+              <turnsTrue>signalOffS</turnsTrue>
+            </effect>
+            <effect name="signalOffF_Eff" description="signalOffF" satisfying="false" probability="0.05">
+              <turnsTrue>signalOffF</turnsTrue>
+            </effect>
+          </effectGroup>
+        </task>
+      </tasks>
+      <qualities>
+        <quality name="cost" description="Cost">
+          <subtract>
+            <left>
+              <numConst>0</numConst>
+            </left>
+            <right>
+              <multiply>
+                <numConst>0.06</numConst>
+                <qualID>runningTime</qualID>
+              </multiply>
+            </right>
+          </subtract>
+        </quality>
+        <quality name="comfort" description="Comfort">
+          <multiply>
+            <subtract>
+              <left>
+                <qualID>roomTemperature</qualID>
+              </left>
+              <right>
+                <numConst>23</numConst>
+              </right>
+            </subtract>
+            <subtract>
+              <left>
+                <qualID>roomTemperature</qualID>
+              </left>
+              <right>
+                <numConst>23</numConst>
+              </right>
+            </subtract>
+            <numConst>-0.1</numConst>
+          </multiply>
+        </quality>
+        <quality name="overallQuality" description="Overall Quality" root="true">
+          <add>
+            <multiply>
+              <numConst>0.3</numConst>
+              <qualID>cost</qualID>
+            </multiply>
+            <multiply>
+              <numConst>0.7</numConst>
+              <qualID>comfort</qualID>
+            </multiply>
+          </add>
+        </quality>
+        <quality name="roomTemperature" description="Room Temperature">
+          <add>
+            <numConst>0.5</numConst>
+            <multiply>
+              <numConst>0.9</numConst>
+              <previous>
+                <qualID>roomTemperature</qualID>
+              </previous>
+            </multiply>
+            <multiply>
+              <conditionID>hvacOn</conditionID>
+              <add>
+                <multiply>
+                  <numConst>0.05</numConst>
+                  <previous>
+                    <qualID>roomTemperature</qualID>
+                  </previous>
+                </multiply>
+                <numConst>1.75</numConst>
+              </add>
+            </multiply>
+          </add>
+        </quality>
+        <quality name="runningTime" description="Running Time">
+          <add>
+            <previous>
+              <qualID>runningTime</qualID>
+            </previous>
+            <multiply>
+              <numConst>10</numConst>
+              <conditionID>hvacOn</conditionID>
+            </multiply>
+          </add>
+        </quality>
+      </qualities>
+      <condBoxes>
+        <condBox name="hvacOn" description="Condition Box">
+          <or>
+            <and>
+              <previous>
+                <conditionID>hvacOn</conditionID>
+              </previous>
+              <not>
+                <predicateID>signalOffS</predicateID>
+              </not>
+            </and>
+            <predicateID>signalOnS</predicateID>
+          </or>
+        </condBox>
+      </condBoxes>
+      <initializations>
+        <initialization element="roomTemperature">30</initialization>
+        <initialization element="runningTime">0</initialization>
+      </initializations>
+      <crossRuns>
+        <crossRun>
+          <qualID>roomTemperature</qualID>
+        </crossRun>
+        <crossRun>
+          <qualID>runningTime</qualID>
+        </crossRun>
+        <crossRun>
+          <conditionID>hvacOn</conditionID>
+        </crossRun>
+      </crossRuns>
+      <exportedSet>
+        <export continuous="false">
+          <conditionID>hvacOn</conditionID>
+        </export>
+        <export continuous="true" minVal="-10" maxVal="100">
+          <qualID>roomTemperature</qualID>
+        </export>
+        <export continuous="true" minVal="0" maxVal="100">
+          <qualID>runningTime</qualID>
+        </export>
+      </exportedSet>
+      <predicates>
+        <predicate description="">signalOnF</predicate>
+        <predicate description="">signalOffF</predicate>
+        <predicate description="">signalOnS</predicate>
+        <predicate description="">signalOffS</predicate>
+      </predicates>
+      <variables/>
+    </actor>
+  </actors>
+</iStarDT>
