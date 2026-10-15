@@ -1,13 +1,12 @@
 import { defineEngine } from '../engine';
 import { istardtCheckRegistry } from './checks';
 import { istardt } from './definition';
-import { istardtExtension } from './extension';
 import { istardtEngineMapper } from './mapper';
 import { istardtOptions } from './options';
 
 /**
  * iStar-DT, as the workbench registers it (goal-controller#119): the
- * DT-Golog program dtx2dtg writes, its models declaring the `istardt`
+ * DT-Golog program dtx2dtg writes, its models declaring its dialect's
  * extension's kinds.
  */
 export const istardtEngine = defineEngine({
@@ -20,6 +19,5 @@ export const istardtEngine = defineEngine({
   output: { label: 'DT-Golog', extension: 'pl', language: 'text' },
   outputs: [{ id: 'dtgolog', language: 'prolog' }],
   options: istardtOptions,
-  extension: istardtExtension,
   fileKinds: true,
 });

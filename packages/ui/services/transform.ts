@@ -4,7 +4,7 @@ import {
   GODA_DEFAULT_VARIANT,
   godaGoalModel,
   godaOutput,
-  analysisModel,
+  istardtAnalysisModel,
   istardtOutput,
   initLogger,
   initEdgeV2Logger,
@@ -125,7 +125,7 @@ export const transform = (
       // precedences are links and kinds goal-tree's tree doesn't keep (#125)
       const parseResult = GoalModel.parseAsGraph(modelJson);
       if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = istardtOutput(analysisModel(parseResult.model), {
+      ({ files } = istardtOutput(istardtAnalysisModel(parseResult.model), {
         modelName,
         continuous,
       }));

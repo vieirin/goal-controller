@@ -42,9 +42,12 @@ DT-Golog names an element `identifier ?? camelCase(name)`, `Formatter.toCamelCas
 | `predicate` | `istardt.Predicate` | `P1` (text) | `exportMin`, `exportMax`, `identifier` |
 | `variable` | `istardt.Variable` | `V1` (text) | `exportMin`, `exportMax`, `identifier` |
 
-`G` and `T` are the goal language's ids: goals and tasks have Notation
-lines. `Q`, `E`, `C`, `P` and `V` are text on kinds the Notation view doesn't
-list (the language's prefixes are `G`, `T`, `R` and `AT`). An element's
+Goals, tasks, effects, conditions, predicates and variables have Notation
+lines (`G1:`, `T1:`, `E1:`, `C1:`, `P1:`, `V1:`, the dialect's prefixes,
+#133), each with its property lines under it. A quality is iStar's kind,
+which takes only the catalog's prefixes: `Q1` is its text's, and it has no
+line (its properties are the inspector's; a link line can name it). An
+effect group has neither text nor line. An element's
 piStar id is the file's name for it (`orderMaterial`), the source's id as
 importers keep it; a task's effect group's is `<task>/effectGroup`. A piStar
 id equal to the text's id would read, in the workbench, as an element without
@@ -83,16 +86,16 @@ everything.
 
 ## The writer
 
-`istardtOutput(analysisModel(model), { modelName })` → one file, `dtgolog`
+`istardtOutput(istardtAnalysisModel(model), { modelName })` → one file, `dtgolog`
 (`<model>.pl`). It is `com2dtg.translate` ported section by section and string
 by string: the header, options, cross-run and exported sets, initializations,
 action lists, `nondetActions`, `prob`, `proc` (`#` for OR; one procedure per
 order of an AND's children), `dtgRun`, the successor-state axioms, `poss`, the
 `_Sat`/`_Att` formulas, the condition boxes, `goalAchieved`, a clause per
-quality and `rewardInst`. It reads the model as a graph: the effects,
-conditions and precedences are kinds and links goal-tree's tree doesn't keep;
-goal-controller#125 (the IR's actors and links) is the follow-up that moves it
-to the IR.
+quality and `rewardInst`. It reads the model as a graph, the view of its
+`GoalModel` (goal-tree's IR of actors, elements and links, #125/#128):
+`istardtAnalysisModel` builds it with the engine's mapper, which keeps the
+actor's sets and the links' probabilities and weights.
 
 What the translator does, and the writer with it:
 - numbers are Java `float`s printed with `Float.toString` (`23` → `23.0`, `-10` → `-10.0`);
@@ -151,12 +154,14 @@ the same; the stress test reports it as the model's, not the writer's.
 
 ## Where the framework had to grow
 
-Nothing in the core packages: the gate (`grep -ri 'istardt\|istar-dt\|golog\|drawio\|mxgraph'` over dialect, goal-language, goal-tree, lib's pool and the layout) is empty. What this engine works around, for blue:
+No engine names in the core packages: the gate (`grep -ri 'istardt\|istar-dt\|golog\|drawio\|mxgraph'` over dialect, goal-language, goal-tree, lib's pool and the layout) finds this page and the docs beside it only.
 
-- **Properties on an extension's kinds (#117 D7).** The schema keys element properties by `goal | task | resource | quality`, so an effect's, a condition's, a predicate's and a variable's can't be declared: the definition lists them as `extensionProperties`, they are kept in custom properties, the engine checks them (`istardtProblems`), and the inspector doesn't offer them. The same holds for value types: `assertion`'s `resolves` and `refList`'s `kind` can't name an extension's kind, so formulas name identifiers (variables to the language) and a named check resolves them.
-- **Checks across an extension's elements.** A property check's context has the elements the view lists; what crosses effects, conditions and predicates is the engine's (`istardtProblems`, the Problems panel through `analyze`).
-- **Non-refinement links and actor data in the IR** (#125): the writer reads them from piStar, as GRL's engine does.
-- **The importers' result type** moved to `importers/types.ts`, with the options an importer records (`dialectRecord.options`).
+- **Properties on an extension's kinds (#117 D7)**: grown by #132/#133. The dialect names its extension; effects, conditions, predicates and variables declare their properties and have lines.
+- **A link line to an unlisted iStar kind.** #133's check context left out an iStar kind the dialect gives properties without listing it (iStar-DT's qualities), so the document wrote `link Q1 {weight = 0.5}` under an effect and then reported "No element Q1". `contextFromView` now holds such an element (`goal-language/src/notation/document.ts`); no other dialect has one, and the language snapshot is byte-identical.
+- **Formulas name identifiers, not keys** (the owner's choice on #133's follow-up): a condition's and a quality's formulas keep the DT-Golog identifiers the file writes (`previous(hvacOn) & !(signalOffS)`), variables to the language; `istardtProblems` resolves them. Typing them as references would make them `previous(C1) & !(P4)`.
+- **Checks across elements.** A group's probabilities, an effect's task, a quality's formula or links: the engine's (`istardtProblems`, the Problems panel through `analyze`).
+- **Links and actor data in the IR**: #125/#128's `GoalModel`, read through the mapper.
+- **The importers' result type** moved to `importers/types.ts`, with the options an importer records (`dialectRecord.options`); `FILE_IMPORTERS` lists the importers the workbench opens a file with, by extension.
 
 ## Divergences from dtx2dtg, and what is unverified
 
@@ -183,7 +188,8 @@ DT-Golog runs it (`reference/utility.txt`). Unverified otherwise.
 - **The DKE 2026 additions**, beyond the BNF at `649c9be`: none read.
 - **dtg2sim's `GMEnv`** as a back-end (#117 D1.3): the image has no Python; not run.
 - **A goal-controller-native RL environment** is P12's own work.
-- **The extension's properties in the definition and the IR**: #117 D7 and #125 above.
+- **A quality's line**: iStar's kind takes the catalog's prefixes only, so `Q1` has none; its properties are the inspector's, and a quality's utility links to another quality are written on no line.
+- **The paper's figure** (dtg2sim's `GoalModels.drawio`): formula references as arrows, `previous(x)` as PRE nodes, ellipses and clouds; this follows mx2dtx's fixture diagrams (#117).
 
 ## Examples
 

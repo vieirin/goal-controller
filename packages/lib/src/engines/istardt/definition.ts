@@ -8,16 +8,19 @@
  * RL agent observes and carries from run to run (goal-controller#117,
  * #119).
  *
- * - Ids (#117 D1): goals and tasks are `G1`, `T1` (the goal language's);
- *   qualities and the extension's kinds `Q1`, `E1`, `C1`, `P1`, `V1` in
- *   their text, on kinds the Notation view doesn't list. The name DT-Golog
- *   gives an element is its `identifier`, or its name in camelCase.
+ * - Ids (#117 D1): goals `G1`, tasks `T1`, effects `E1`, conditions
+ *   `C1`, predicates `P1`, variables `V1` (the dialect's prefixes);
+ *   qualities `Q1` in their text only (iStar's kind takes the catalog's
+ *   prefixes). The name DT-Golog gives an element is its `identifier`, or
+ *   its name in camelCase.
  * - No notation: iStar-DT writes no `[…]`; a decomposition is its
  *   refinement links.
  * - Formulas name elements by their identifier, as the file does (#117 D6).
- * - The extension's kinds can't declare properties yet (the schema keys
- *   them by `goal | task | resource | quality`, #117 D7): what they have is
- *   `extensionProperties`, read and checked by the engine (`istardtProblems`).
+ * - The extension's kinds are the dialect's (#132/#133): effects,
+ *   conditions, predicates and variables declare their properties and have
+ *   lines (`E1: …`, `C1: …`, `P1: …`, `V1: …`); an effect group has
+ *   neither. What crosses elements (a group's probabilities, the names a
+ *   formula gives) is `istardtProblems`'s.
  */
 import {
   defineDialect,
@@ -25,7 +28,8 @@ import {
 } from '@goal-controller/dialect';
 import type { IstardtCheckName } from './checks';
 import { SET_KEYS } from './model';
-import { ISTARDT_KINDS, ISTARDT_LINKS } from './vocabulary';
+import { istardtExtension } from './extension';
+import { ISTARDT_LINKS } from './vocabulary';
 import { PREVIOUS } from './template/formulas';
 
 type IstardtProperty = PropertyDefinition<IstardtCheckName>;
@@ -63,9 +67,16 @@ const previous = [{ name: PREVIOUS, arity: 1 }] as const;
 export const istardt = defineDialect({
   id: 'istardt',
   name: 'iStar-DT',
+  // the kinds it adds (#133): effects, conditions, predicates and variables
+  // have lines, `E1: …`, `C1: …`, `P1: …`, `V1: …`; an effect group has none
+  extension: istardtExtension,
   elements: {
     goal: { prefix: 'G', fill: DEFAULT_FILL },
     task: { prefix: 'T', fill: DEFAULT_FILL },
+    'istardt.Effect': { prefix: 'E', fill: DEFAULT_FILL },
+    'istardt.Condition': { prefix: 'C', fill: DEFAULT_FILL },
+    'istardt.Predicate': { prefix: 'P', fill: DEFAULT_FILL },
+    'istardt.Variable': { prefix: 'V', fill: DEFAULT_FILL },
   },
   defaultFill: DEFAULT_FILL,
   notation: {
@@ -126,8 +137,50 @@ export const istardt = defineDialect({
       ...EXPORT_BOUNDS,
       IDENTIFIER,
     ],
+    'istardt.Effect': [
+      {
+        key: 'satisfying',
+        value: { type: 'bool' },
+        help: 'whether it satisfies its task (default: true)',
+      },
+      {
+        key: 'set',
+        value: { type: 'pairList', value: 'number' },
+        help: 'the variables it sets, and to what: `name:value`, comma-separated (identifiers)',
+      },
+      IDENTIFIER,
+    ],
+    'istardt.Condition': [
+      {
+        key: 'formula',
+        // names are DT-Golog identifiers, as the file writes them (#117 D6):
+        // variables to the language; istardtProblems resolves them
+        value: {
+          type: 'assertion',
+          resolves: ['variable'],
+          declaresVariables: true,
+          decimals: true,
+          functions: previous,
+        },
+        help: 'when it holds: & (and), | (or), !(…), comparisons, the identifiers of predicates, goals, tasks, effects and conditions, previous(x)',
+        required: 'always',
+      },
+      IDENTIFIER,
+    ],
+    'istardt.Predicate': [...EXPORT_BOUNDS, IDENTIFIER],
+    'istardt.Variable': [...EXPORT_BOUNDS, IDENTIFIER],
   },
-  propertyLineOrder: ['root', 'episodeLength', 'terminal', 'identifier'],
+  propertyLineOrder: [
+    'root',
+    'episodeLength',
+    'terminal',
+    'satisfying',
+    'set',
+    'formula',
+    'exportMin',
+    'exportMax',
+    'identifier',
+  ],
   indent: '  ',
   links: {
     [ISTARDT_LINKS.effectGroup]: [
@@ -183,40 +236,3 @@ export const istardt = defineDialect({
     },
   },
 });
-
-/**
- * What the extension's kinds would declare (#117 D7: not declarable yet).
- * Kept in their custom properties as written here; the engine reads and
- * checks them.
- */
-export const extensionProperties = {
-  [ISTARDT_KINDS.effect]: [
-    {
-      key: 'satisfying',
-      value: { type: 'bool' },
-      help: 'whether it satisfies its task (default: true)',
-    },
-    {
-      key: 'set',
-      value: { type: 'pairList', value: 'number' },
-      help: 'the variables it sets, and to what: `name:value`, comma-separated',
-    },
-    IDENTIFIER,
-  ],
-  [ISTARDT_KINDS.condition]: [
-    {
-      key: 'formula',
-      value: {
-        type: 'assertion',
-        resolves: ['variable'],
-        declaresVariables: true,
-        decimals: true,
-        functions: previous,
-      },
-      help: 'when it holds: & (and), | (or), !(…), comparisons, the identifiers of predicates, goals, tasks, effects and conditions, previous(x)',
-    },
-    IDENTIFIER,
-  ],
-  [ISTARDT_KINDS.predicate]: [...EXPORT_BOUNDS, IDENTIFIER],
-  [ISTARDT_KINDS.variable]: [...EXPORT_BOUNDS, IDENTIFIER],
-} as const satisfies Record<string, readonly IstardtProperty[]>;

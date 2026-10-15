@@ -200,13 +200,6 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       pairItems(effect.properties.set).map(([name]) => name),
       ['variable'],
     );
-    for (const [name, value] of pairItems(effect.properties.set))
-      if (!value || !Number.isFinite(Number(value)))
-        say(
-          'error',
-          effect,
-          `${label(effect)} sets ${name} to a number, not ${value || 'nothing'}`,
-        );
   }
   // effect groups: each of one task, one per task
   for (const group of model.effectGroups)
@@ -298,19 +291,10 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
     else names(quality, 'formula', expressionNames(tree), QUALITY_READS);
   }
   for (const condition of model.ofKind('condition')) {
-    const text = condition.properties.formula?.trim();
-    if (!text) {
-      say('error', condition, `${label(condition)} has no formula`);
-      continue;
-    }
-    const tree = readAssertion(text);
-    if (!tree)
-      say(
-        'error',
-        condition,
-        `${label(condition)}'s formula is not a condition: ${text}`,
-      );
-    else names(condition, 'formula', assertionNames(tree), CONDITION_READS);
+    // its presence and syntax are its value type's (#133); the names, ours
+    const tree = readAssertion(condition.properties.formula?.trim() ?? '');
+    if (tree)
+      names(condition, 'formula', assertionNames(tree), CONDITION_READS);
   }
 
   // the sets
@@ -371,12 +355,13 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
           element,
           `${label(element)} is exported continuous without exportMin and exportMax: written as 0.0..0.0`,
         );
-      else if (!(min < max))
-        say(
-          'error',
-          element,
-          `${label(element)}'s export range is empty: ${min} is not below ${max}`,
+      else {
+        const empty = istardtCheckRegistry['istardt.export.bounds'](
+          element.properties,
+          { self: element.id ?? element.pistarId, kindOf: () => undefined },
         );
+        if (empty) say('error', element, `${label(element)}: ${empty}`);
+      }
     }
   }
 

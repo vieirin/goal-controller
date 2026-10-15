@@ -36,6 +36,7 @@ import {
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
+import { FILE_IMPORTERS, importerFor } from '@goal-controller/lib';
 import { isArchiveName } from '@/lib/project';
 import {
   downloadOutput,
@@ -65,14 +66,64 @@ const readFile = (file: File): Promise<string> =>
     reader.readAsText(file);
   });
 
-/** A file opened or dropped: a project archive (.tar.gz, .zip, #99), else a model. */
+/**
+ * Another tool's model (lib's FILE_IMPORTERS, by extension: iStarDT-X), as
+ * the piStar model its importer writes, `<name>.txt`; it rejects with the
+ * importer's errors when the file isn't one it reads.
+ */
+export const importedModel = (
+  fileName: string,
+  text: string,
+): { fileName: string; text: string } | null => {
+  const found = importerFor(fileName);
+  if (!found) return null;
+  const { importer, baseName } = found;
+  const result = importer.import(text, { modelName: baseName });
+  if (!result.model)
+    throw new Error(
+      `Not a model ${importer.label} reads: ${result.diagnostics
+        .filter((d) => d.severity === 'error')
+        .map((d) => d.message)
+        .join('; ')}`,
+    );
+  return {
+    fileName: `${baseName}.txt`,
+    text: `${JSON.stringify(result.model, null, 2)}\n`,
+  };
+};
+
+/**
+ * A file opened or dropped: a project archive (.tar.gz, .zip, #99), another
+ * tool's model (imported), else a model.
+ */
 export const openUpload = async (
   wb: Pick<ReturnType<typeof useWorkbench>, 'openFile' | 'openArchive'>,
   file: File,
-): Promise<void> =>
-  isArchiveName(file.name)
-    ? wb.openArchive(file.name, new Uint8Array(await file.arrayBuffer()))
-    : wb.openFile(file.name, await readFile(file), { setup: true });
+): Promise<void> => {
+  if (isArchiveName(file.name))
+    return wb.openArchive(file.name, new Uint8Array(await file.arrayBuffer()));
+  const text = await readFile(file);
+  const imported = importedModel(file.name, text);
+  return imported
+    ? wb.openFile(imported.fileName, imported.text, { setup: true })
+    : wb.openFile(file.name, text, { setup: true });
+};
+
+/** What the open dialog takes: piStar models, archives, and every importer's extensions. */
+const OPEN_ACCEPT = [
+  '.txt',
+  '.json',
+  '.tar.gz',
+  '.tgz',
+  '.tar',
+  '.zip',
+  ...FILE_IMPORTERS.flatMap((importer) => importer.extensions),
+  'application/json',
+  'text/plain',
+  'application/gzip',
+  'application/x-tar',
+  'application/zip',
+].join(',');
 
 export const useOpenFile = (): { open: () => void; input: ReactElement } => {
   const wb = useWorkbench();
@@ -81,7 +132,7 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
     <input
       ref={ref}
       type='file'
-      accept='.txt,.json,.tar.gz,.tgz,.tar,.zip,application/json,text/plain,application/gzip,application/x-tar,application/zip'
+      accept={OPEN_ACCEPT}
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
@@ -216,7 +267,7 @@ export default function TopBar() {
         <span className='h-5 w-px bg-line' aria-hidden />
         <Button
           onClick={open}
-          title='Open a goal model (piStar .txt / .json) or a project archive (.tar.gz / .zip)'
+          title='Open a goal model (piStar .txt / .json, iStarDT-X .istardt / .istardtx) or a project archive (.tar.gz / .zip)'
         >
           <FolderOpen className='h-4 w-4' aria-hidden /> Open
         </Button>

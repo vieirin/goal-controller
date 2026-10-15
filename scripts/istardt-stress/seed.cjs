@@ -73,7 +73,7 @@ const checkSeed = ({ lib, core }, seed) => {
   let model;
   try {
     model = lib.readIstardtModel(
-      lib.analysisModel(
+      lib.istardtAnalysisModel(
         core.parsePistar(result.model, { fileMetamodel: true }),
       ),
     );

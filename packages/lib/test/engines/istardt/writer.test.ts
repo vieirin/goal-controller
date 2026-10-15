@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
-import { analysisModel } from '../../../src/engines/analysis';
+import { istardtAnalysisModel } from '../../../src/engines/istardt';
 import {
   camelCase,
   istardtOutput,
@@ -27,7 +27,9 @@ const read = (file: string) =>
   fs.readFileSync(path.join(PROJECTS, file), 'utf8');
 
 const modelOf = (file: string) =>
-  analysisModel(parsePistar(JSON.parse(read(file)), { fileMetamodel: true }));
+  istardtAnalysisModel(
+    parsePistar(JSON.parse(read(file)), { fileMetamodel: true }),
+  );
 const write = (file: string, modelName = 'Spec') =>
   istardtTemplate(readIstardtModel(modelOf(file)), { modelName });
 const afterHeader = (text: string) => text.split('\n').slice(4).join('\n');
@@ -256,7 +258,7 @@ describe('the DT-Golog writer’s conventions', () => {
     );
     delete goal.customProperties.root;
     const model = readIstardtModel(
-      analysisModel(parsePistar(json, { fileMetamodel: true })),
+      istardtAnalysisModel(parsePistar(json, { fileMetamodel: true })),
     );
     assert.throws(
       () => istardtTemplate(model, { modelName: 'Order' }),

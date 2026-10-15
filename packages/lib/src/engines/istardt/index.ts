@@ -3,8 +3,8 @@
  * kinds (the `istardt` extension), its checks, its options and the
  * DT-Golog writer. The iStarDT-X importer is `importers/istardt`.
  */
-export { istardt, extensionProperties } from './definition';
-export { istardtEngineMapper } from './mapper';
+export { istardt } from './definition';
+export { istardtAnalysisModel, istardtEngineMapper } from './mapper';
 export {
   istardtCheckRegistry,
   istardtProblems,

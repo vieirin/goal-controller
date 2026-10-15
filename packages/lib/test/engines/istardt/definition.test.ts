@@ -16,7 +16,7 @@ import {
   notationDocument,
   notationEdits,
 } from '@goal-controller/goal-language';
-import { analysisModel } from '../../../src/engines/analysis';
+import { istardtAnalysisModel } from '../../../src/engines/istardt';
 import {
   istardt,
   istardtCheckRegistry,
@@ -31,7 +31,7 @@ const json = (file: string) =>
 const problemsOf = (model: Record<string, any>) =>
   istardtProblems(
     readIstardtModel(
-      analysisModel(parsePistar(model, { fileMetamodel: true })),
+      istardtAnalysisModel(parsePistar(model, { fileMetamodel: true })),
     ),
   ).map((p) => `${p.severity}: ${p.message}`);
 /** a node by the id its text starts with (`G1`) */
@@ -46,11 +46,20 @@ const groupLinkTo = (model: Record<string, any>, effect: string) =>
   );
 
 describe('the iStar-DT definition', () => {
-  it('has goals G and tasks T, qualities on no line, and no notation operator', () => {
-    assert.deepStrictEqual(istardt.elements, {
-      goal: { prefix: 'G', fill: '#CDFECD' },
-      task: { prefix: 'T', fill: '#CDFECD' },
-    });
+  it('lists goals, tasks and its extension’s kinds with their prefixes, qualities on no line, no notation operator', () => {
+    assert.deepStrictEqual(
+      Object.entries(istardt.elements).map(
+        ([kind, e]) => `${kind} ${e?.prefix}`,
+      ),
+      [
+        'goal G',
+        'task T',
+        'istardt.Effect E',
+        'istardt.Condition C',
+        'istardt.Predicate P',
+        'istardt.Variable V',
+      ],
+    );
     assert.deepStrictEqual(istardt.notation?.operators, {});
     assert.deepStrictEqual(
       istardt.properties.quality.map((p) => p.key),

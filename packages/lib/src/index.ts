@@ -204,6 +204,7 @@ export type {
 // the DT-Golog writer, and the iStarDT-X importer
 export {
   istardt,
+  istardtAnalysisModel,
   istardtCheckRegistry,
   istardtEngineMapper,
   istardtExtension,
@@ -219,6 +220,8 @@ export {
   type IstardtWriteOptions,
 } from './engines/istardt';
 export { importIstardt } from './importers/istardt';
+// the importers the workbench opens a file with, by its extension
+export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {

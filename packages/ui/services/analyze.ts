@@ -3,7 +3,7 @@ import { GoalModel } from './goalModel';
 import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
 import { isPrismEngine, type TransformEngine } from '../lib/types';
 import {
-  analysisModel,
+  istardtAnalysisModel,
   istardtProblems,
   mutroseProblem,
   readIstardtModel,
@@ -35,22 +35,26 @@ type WithCondition = {
  * problems, and the custom properties the engine reads. A parse failure is reported as
  * a problem, not thrown.
  */
+/**
+ * A model text read as its engine reads it: through its mapper, or as a
+ * graph (an analysis engine's; iStar-DT's, whose writer reads its kinds and
+ * links, not a tree).
+ */
+const parseFor = (modelJson: string, engine: TransformEngine) => {
+  if (engine === 'edgev2') return GoalModel.parseForEdgeV2(modelJson);
+  if (engine === 'sleec') return GoalModel.parseForSleec(modelJson);
+  if (engine === 'mutrose') return GoalModel.parseForMutrose(modelJson);
+  if (engine === 'goda') return GoalModel.parseForGoda(modelJson);
+  if (!generatesFiles(engine) || engine === 'istardt')
+    return GoalModel.parseAsGraph(modelJson);
+  return GoalModel.parseForEdge(modelJson);
+};
+
 export const analyze = (
   modelJson: string,
   engine: TransformEngine,
 ): AnalyzeResponse => {
-  const parsed =
-    engine === 'edgev2'
-      ? GoalModel.parseForEdgeV2(modelJson)
-      : engine === 'sleec'
-        ? GoalModel.parseForSleec(modelJson)
-        : engine === 'mutrose'
-          ? GoalModel.parseForMutrose(modelJson)
-          : engine === 'goda'
-            ? GoalModel.parseForGoda(modelJson)
-            : !generatesFiles(engine) || engine === 'istardt'
-              ? GoalModel.parseAsGraph(modelJson)
-              : GoalModel.parseForEdge(modelJson);
+  const parsed = parseFor(modelJson, engine);
 
   const response: AnalyzeResponse = {
     success: true,
@@ -79,7 +83,7 @@ export const analyze = (
   if (engine === 'istardt' && 'model' in parsed && parsed.model) {
     // what crosses the extension's kinds, which no property check sees (#117 D7)
     for (const problem of istardtProblems(
-      readIstardtModel(analysisModel(parsed.model)),
+      readIstardtModel(istardtAnalysisModel(parsed.model)),
     ))
       response.problems.push({
         severity: problem.severity,
