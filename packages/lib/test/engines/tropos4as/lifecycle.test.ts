@@ -396,7 +396,7 @@ describe('Tropos4AS: the lifecycle analysis', () => {
     });
     assert.strictEqual(
       cases[0]!.label,
-      'AAMAS 2009 §5, step 1: DryCleaning succeeds; stubborn dirt remains',
+      'AAMAS 2009 §5, step 1: DryCleaning succeeds',
     );
     assert.deepStrictEqual(cases[1]!.values.RC, {
       value: 'success',

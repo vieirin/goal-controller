@@ -56,6 +56,23 @@ Not read: SEAMS 2008 and REJ 2017 (paywalled), and the 2011 thesis (unreachable 
     - `ReadsLink`: artifact → goal or error, the dashed lines of a condition note;
     - `SymptomLink`: symptom → failure.
 - **No ids.** Element texts are the figures' (`RoomClean`). Scenarios and traces name elements by their piStar ids (`RC`, `DC`, `WC`, as §5 abbreviates them).
+- **The Notation view** lists every kind: an element's line is its name, its properties are lines under it (#138), in `propertyLineOrder`. A name that starts with a property key (`type`, `achievement`, …) is written quoted. Links have no properties, so they have no lines; they are the diagram's. Both seeds' documents read back to the same model (the stress test checks it):
+
+  ```
+  RoomClean
+    achievement roomClean
+    WetCleaning
+      type perform
+      mop
+    DryCleaning
+      type perform
+      sweep
+  MaintainBattLoaded
+    type maintain
+    maintain batteryLoaded
+    load battery
+  efficiency
+  ```
 - **Checks.**
   - Named checks (errors):
     - a perform-goal with a condition (§4.3.1, D4);
@@ -107,7 +124,7 @@ Not read: SEAMS 2008 and REJ 2017 (paywalled), and the 2011 thesis (unreachable 
 ## What fit as it was
 
 - Goal types and conditions: `enum`, and `assertion` with `resolves` and `declaresVariables`, each applying to its type (`applies`).
-- New kinds and links with shapes and rules: a dialect extension (#110), declared in the model's `"metamodel"` block (#106); properties on an extension's kinds (#132), in the inspector.
+- New kinds and links with shapes and rules: a dialect extension (#110), declared in the model's `"metamodel"` block (#106); properties on an extension's kinds (#132), on lines as the iStar kinds' are.
 - A scenario beside the model: a project resource (#25), as GRL's strategies.
 - Values drawn on the model per case: an analysis engine (#107), its model read through the IR (#125/#128): actors, links and dependums.
 - The engine object (#124), registered in the workbench as GRL is.
@@ -118,7 +135,7 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 
 - **Members** (`room.clean`): blue's #137. Until it lands, conditions name bare variables (`roomClean`); then `medicineSensor.taken`, `mealSensor.meals` and `room.clean`.
 - **A step series** for an analysis: blue's #137. Until then, a case per step.
-- **Property lines in a dialect without ids**: #138, blue, option A (the declared keys read as tokens). Without it, the properties are the inspector's.
+- **Property lines in a dialect without ids**: #138 (blue; merged as #141), option A: the declared keys read as tokens, a name that starts with one quoted. Tropos4AS lists its kinds with no prefix and writes its properties as lines.
 - **Shared by engines** (in lib, not the core):
   - an element's text read as its id and name, and `name:value` lists (`engines/elementText.ts`, from iStar-DT's model);
   - an extension's `"metamodel"` block (`engines/metamodelBlock.ts`, which GRL's and iStar-DT's were copies of).

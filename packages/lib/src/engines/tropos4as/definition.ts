@@ -8,15 +8,17 @@
  * (#134 D2). The lifecycle is the analysis (./lifecycle).
  *
  * - No ids: an element's text is its name, as the papers' figures write it
- *   (the seeds reproduce them); scenarios and traces name elements by their
- *   piStar ids (`RC`, `DC`, `WC` in the Cleaner Agent, as §5 abbreviates).
+ *   (the seeds reproduce them), its line in the Notation view that name with
+ *   its property lines under it (#138); scenarios and traces name elements
+ *   by their piStar ids (`RC`, `DC`, `WC` in the Cleaner Agent, as §5
+ *   abbreviates).
  * - No operators: a decomposition is its refinement links.
  * - Conditions are assertions in the goal language (#134 D3), over the
  *   artifacts' attributes and variables declared by their use. Until member
  *   references land (#135) they name bare variables (`roomClean`, not
  *   `room.clean`).
  */
-import { defineDialect, property } from '@goal-controller/dialect';
+import { defineDialect, element, property } from '@goal-controller/dialect';
 import type { Tropos4asCheckName } from './checks';
 import { tropos4asExtension } from './extension';
 import { GOAL_TYPES, TROPOS4AS_KINDS } from './vocabulary';
@@ -49,10 +51,21 @@ export const tropos4as = defineDialect({
   // its artifacts, failures, errors and symptoms (./extension)
   extension: tropos4asExtension,
   // no ids: an element's text is its name as the papers draw it
-  // (`RoomClean`), so no kind is listed (none has a line) and every kind's
-  // properties are the inspector's (as GRL's indicator's are); scenarios and
-  // traces name elements by their piStar ids
-  elements: {},
+  // (`RoomClean`), so no kind has a prefix; every kind is listed, its
+  // element line its name, its properties on lines under it (#138); a name
+  // that starts with a property key is written quoted. Scenarios and traces
+  // name elements by their piStar ids.
+  elements: {
+    goal: element({ fill: DEFAULT_FILL }),
+    task: element({ fill: DEFAULT_FILL }),
+    resource: element({ fill: DEFAULT_FILL }),
+    quality: element({ fill: DEFAULT_FILL }),
+    // iStar 2011's Fig. 1: a yellow artifact, a red failure, a pink error
+    'tropos4as.Artifact': element({ fill: '#FFFF66' }),
+    'tropos4as.Failure': element({ fill: '#E06666' }),
+    'tropos4as.Error': element({ fill: '#F4C2E0' }),
+    'tropos4as.Symptom': element({ fill: '#FFFFFF' }),
+  },
   defaultFill: DEFAULT_FILL,
   notation: {
     operand: { kinds: ['goal', 'task'] },
@@ -152,8 +165,19 @@ export const tropos4as = defineDialect({
       }),
     ],
   },
-  // no kind has a line: no property lines
-  propertyLineOrder: [],
+  propertyLineOrder: [
+    'type',
+    'creation',
+    'achievement',
+    'failure',
+    'onFailure',
+    'maintain',
+    'target',
+    'drop',
+    'precondition',
+    'attributes',
+    'condition',
+  ],
   indent: '  ',
   // a goal's lifecycle runs in its actor; an agent per actor, every tree
   model: { actors: 'many', treesPerActor: 'many' },

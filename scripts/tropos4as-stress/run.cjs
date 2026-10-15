@@ -11,6 +11,8 @@
  * - **import**: the piStar file, read with its metamodel block, as the
  *   lifecycle reads it (`tropos4asAnalysisModel`, `readTropos4asModel`);
  * - **checks**: `tropos4asProblems`, no error (warnings are listed);
+ * - **notation**: the model's Notation view document reads back to the same
+ *   model (`notationEdits` gives no edit) and has no diagnostic;
  * - **analysis**: the engine's analysis on every scenario, without error;
  * - **trace** per scenario (its project's `scenarios`): the lifecycle's
  *   trace against `reference/trace-<scenario>.txt`, exactly, row for row
@@ -31,6 +33,8 @@ const SEEDS = path.join(ROOT, 'examples', 'tropos4as');
 const RESULTS = path.join(ROOT, '.cache', 'tropos4as', 'results');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
+const language = require(path.join(pkg('goal-language'), 'out/cjs/index.cjs'));
+const goalTree = require(path.join(pkg('goal-tree'), 'out/index.js'));
 // parsePistar is @istar-ts/core's, as goal-tree resolves it
 const core = require(
   require.resolve('@istar-ts/core', { paths: [pkg('goal-tree')] }),
@@ -72,10 +76,12 @@ const checkSeed = (dir) => {
   const checks = {};
   let model;
   let analysisModel;
+  let pistar;
   try {
-    analysisModel = lib.tropos4asAnalysisModel(
-      core.parsePistar(fs.readFileSync(file, 'utf8'), { fileMetamodel: true }),
-    );
+    pistar = core.parsePistar(fs.readFileSync(file, 'utf8'), {
+      fileMetamodel: true,
+    });
+    analysisModel = lib.tropos4asAnalysisModel(pistar);
     model = lib.readTropos4asModel(analysisModel);
     checks.import = {
       status: 'pass',
@@ -95,6 +101,27 @@ const checkSeed = (dir) => {
       .filter((p) => p.severity === 'warning')
       .map((p) => p.message),
   };
+  try {
+    const view = goalTree.goalView(pistar, lib.tropos4as);
+    const { text } = language.notationDocument(lib.tropos4as, view);
+    const edits = language.notationEdits(lib.tropos4as, text, view);
+    const diagnostics = language.documentDiagnostics(
+      lib.tropos4as,
+      text,
+      language.contextFromView(lib.tropos4as, view, []),
+    );
+    checks.notation =
+      edits.length || diagnostics.length
+        ? {
+            status: 'fail',
+            error: edits.length
+              ? `reads back with ${edits.length} edit(s): ${JSON.stringify(edits[0])}`
+              : `${diagnostics.length} diagnostic(s): ${diagnostics[0].message}`,
+          }
+        : { status: 'pass', lines: text.split('\n').filter(Boolean).length };
+  } catch (error) {
+    checks.notation = { status: 'fail', error: errorText(error) };
+  }
   const paths = project.projectResources?.scenarios ?? [];
   const files = paths.map((p) => ({
     path: p,
@@ -161,8 +188,8 @@ const markdown = (results) =>
     '',
     `Generated ${new Date().toISOString()}. Seeds: examples/tropos4as/ (each transcribed from a paper's figure, its README says what is ours).`,
     '',
-    '| Seed | Scenario | Imported | Checks | Analysis | Trace | Importer |',
-    '| --- | --- | --- | --- | --- | --- | --- |',
+    '| Seed | Scenario | Imported | Checks | Notation | Analysis | Trace | Importer |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...results.flatMap(({ seed, checks, scenarios }) => {
       const common = [
         checks.import.status === 'pass'
@@ -173,6 +200,9 @@ const markdown = (results) =>
             ? `${ICON.pass}${checks.checks.warnings.length ? ` (${checks.checks.warnings.length} warning(s): ${checks.checks.warnings[0]})` : ''}`
             : `${ICON.fail} ${checks.checks.errors[0]}`
           : '',
+        checks.notation?.status === 'pass'
+          ? `${ICON.pass} ${checks.notation.lines} lines, read back unchanged`
+          : describe(checks.notation),
         checks.analysis
           ? checks.analysis.status === 'pass'
             ? `${ICON.pass} ${checks.analysis.cases} case(s)`

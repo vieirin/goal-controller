@@ -686,7 +686,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 ### 7.6 Tropos4AS (an analysis engine that runs a model over a scenario)
 
-`lib/src/engines/tropos4as/` and `ui/components/workbench/engines/tropos4as/`: an analysis engine with no file output. It runs AAMAS 2009's goal lifecycle over a scenario, a project resource, and draws each goal's state per step on the model. The transition rules and the goal types' condition–action sets are data (`lifecycle/architecture.ts`, `lifecycle/instantiations.ts`), each tested against its premises. The paper's hand-executed trace is the oracle. The seeds reproduce the papers' figures. The dialect has no ids, so element texts read as drawn. [tropos4as.md](tropos4as.md) lists what fit, what grew, how the rules are read, and what is still open.
+`lib/src/engines/tropos4as/` and `ui/components/workbench/engines/tropos4as/`: an analysis engine with no file output. It runs AAMAS 2009's goal lifecycle over a scenario, a project resource, and draws each goal's state per step on the model. The transition rules and the goal types' condition–action sets are data (`lifecycle/architecture.ts`, `lifecycle/instantiations.ts`), each tested against its premises. The paper's hand-executed trace is the oracle. The seeds reproduce the papers' figures. The dialect has no ids, so element texts read as drawn, with properties as lines under them (#138). [tropos4as.md](tropos4as.md) lists what fit, what grew, how the rules are read, and what is still open.
 
 ## 8. Options summary
 

@@ -25,6 +25,9 @@ Tropos4AS tool survives, goal-controller#134):
 - **import**: the piStar file, read with its metamodel block, as the
   lifecycle reads it (`tropos4asAnalysisModel`, `readTropos4asModel`).
 - **checks**: `tropos4asProblems` reports no error (warnings are listed).
+- **notation**: the model's Notation view document (an element's name, its
+  property lines under it, #138) reads back to the same model:
+  `notationEdits` gives no edit, `documentDiagnostics` nothing.
 - **analysis**: the engine's analysis runs on every scenario without error.
 - **trace**: per scenario of the project, the lifecycle's trace against
   `reference/trace-<scenario>.txt`, row for row (`#` lines aside). A

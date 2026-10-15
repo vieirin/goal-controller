@@ -1,15 +1,22 @@
 {
-  "label": "Both alternatives fail (derived, not from the paper)",
+  "label": "All fail (derived)",
   "steps": [
     {
-      "label": "DryCleaning fails; the room is dirty",
-      "beliefs": { "roomClean": false, "batteryLoaded": true },
-      "outcomes": { "DC": "failure" }
+      "label": "DryCleaning fails",
+      "beliefs": {
+        "roomClean": false,
+        "batteryLoaded": true
+      },
+      "outcomes": {
+        "DC": "failure"
+      }
     },
     {
-      "label": "WetCleaning fails; the room is still dirty",
+      "label": "WetCleaning fails",
       "beliefs": {},
-      "outcomes": { "WC": "failure" }
+      "outcomes": {
+        "WC": "failure"
+      }
     }
   ]
 }

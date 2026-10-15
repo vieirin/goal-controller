@@ -2,14 +2,23 @@
   "label": "AAMAS 2009 §5",
   "steps": [
     {
-      "label": "DryCleaning succeeds; stubborn dirt remains",
-      "beliefs": { "roomClean": false, "batteryLoaded": true },
-      "outcomes": { "DC": "success" }
+      "label": "DryCleaning succeeds",
+      "beliefs": {
+        "roomClean": false,
+        "batteryLoaded": true
+      },
+      "outcomes": {
+        "DC": "success"
+      }
     },
     {
-      "label": "WetCleaning fails, out of water; the spots are removed",
-      "beliefs": { "roomClean": true },
-      "outcomes": { "WC": "failure" }
+      "label": "WetCleaning fails",
+      "beliefs": {
+        "roomClean": true
+      },
+      "outcomes": {
+        "WC": "failure"
+      }
     }
   ]
 }

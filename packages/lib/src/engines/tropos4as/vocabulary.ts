@@ -58,7 +58,7 @@ export const isAttributeType = (type: string): boolean =>
   (ATTRIBUTE_TYPES as readonly string[]).includes(type) ||
   /^\w+(\|\w+)+$/.test(type);
 
-/** The goal properties that hold a condition, in the order the inspector lists them. */
+/** The goal properties that hold a condition, in the order they are listed. */
 export const CONDITION_KEYS = [
   'creation',
   'achievement',

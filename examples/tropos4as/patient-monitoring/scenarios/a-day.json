@@ -1,5 +1,5 @@
 {
-  "label": "A day: the medicine not taken by 8PM (ours, not from the paper)",
+  "label": "A day (ours)",
   "steps": [
     {
       "label": "6 AM",
@@ -14,14 +14,24 @@
       "outcomes": {}
     },
     {
-      "label": "noon: two meals eaten",
-      "beliefs": { "hour": 12, "meals": 2 },
-      "outcomes": { "eatMeals": "success" }
+      "label": "noon",
+      "beliefs": {
+        "hour": 12,
+        "meals": 2
+      },
+      "outcomes": {
+        "eatMeals": "success"
+      }
     },
     {
-      "label": "8 PM: the reminder failed, the medicine not taken",
-      "beliefs": { "hour": 20, "medicineTakenAutonomously": false },
-      "outcomes": { "rememberSpeakers": "failure" }
+      "label": "8 PM",
+      "beliefs": {
+        "hour": 20,
+        "medicineTakenAutonomously": false
+      },
+      "outcomes": {
+        "rememberSpeakers": "failure"
+      }
     }
   ]
 }
