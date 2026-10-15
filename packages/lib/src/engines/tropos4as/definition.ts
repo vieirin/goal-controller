@@ -18,7 +18,12 @@
  *   references land (#135) they name bare variables (`roomClean`, not
  *   `room.clean`).
  */
-import { defineDialect, element, property } from '@goal-controller/dialect';
+import {
+  defineDialect,
+  element,
+  links,
+  property,
+} from '@goal-controller/dialect';
 import type { Tropos4asCheckName } from './checks';
 import { tropos4asExtension } from './extension';
 import { GOAL_TYPES, TROPOS4AS_KINDS } from './vocabulary';
@@ -179,6 +184,20 @@ export const tropos4as = defineDialect({
     'condition',
   ],
   indent: '  ',
+  // every link kind it reads, none with properties: declared so that a
+  // selected link is inspected (its kind); without ids, no link lines
+  links: links({
+    'istar.AndRefinementLink': [],
+    'istar.OrRefinementLink': [],
+    'istar.ContributionLink': [],
+    'istar.DependencyLink': [],
+    'tropos4as.InhibitsLink': [],
+    'tropos4as.SequenceLink': [],
+    'tropos4as.FailureLink': [],
+    'tropos4as.ErrorLink': [],
+    'tropos4as.ReadsLink': [],
+    'tropos4as.SymptomLink': [],
+  }),
   // a goal's lifecycle runs in its actor; an agent per actor, every tree
   model: { actors: 'many', treesPerActor: 'many' },
   projectResources: {

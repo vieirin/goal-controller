@@ -62,6 +62,21 @@ describe('Tropos4AS: the definition', () => {
       'istar.Goal',
     );
     assert.strictEqual(tropos4asMetamodelBlock().links.length, 6);
+    // every link kind it reads is declared (no properties), so a selected link is inspected
+    assert.deepStrictEqual(Object.keys(tropos4as.links ?? {}), [
+      'istar.AndRefinementLink',
+      'istar.OrRefinementLink',
+      'istar.ContributionLink',
+      'istar.DependencyLink',
+      ...tropos4asExtension.links
+        .map((l) => l.kind)
+        .filter(
+          (kind) =>
+            kind !== 'tropos4as.ReadsLink' && kind !== 'tropos4as.SymptomLink',
+        ),
+      'tropos4as.ReadsLink',
+      'tropos4as.SymptomLink',
+    ]);
     assert.strictEqual(tropos4asEngine.id, 'tropos4as');
   });
 
