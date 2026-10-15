@@ -164,6 +164,8 @@ function ProjectSection() {
   const lastOutput = wb.lastGood;
   const outputs = wb.listing.filter((file) => file.role === 'output');
   const others = wb.listing.filter((file) => file.role === 'other');
+  // the model's native files (goal-controller#143), under it
+  const natives = wb.listing.filter((file) => file.role === 'native');
   const variablesSlot = wb.resourceSlots.find(
     (slot) => slot.kind === 'variables',
   );
@@ -197,6 +199,7 @@ function ProjectSection() {
         detail={wb.dirty ? <span className='text-trace'>●</span> : null}
         onClick={() => wb.setModelTab('source')}
       />
+      {natives.map(({ path }) => fileRow(path))}
       {/* the model's variables: one row with the file their values are in, when the engine reads one */}
       {isPrismEngine(wb.engine) && !variablesSlot && (
         <Row
