@@ -215,7 +215,7 @@ export const propertyKeyOf = (
 export const ASSERTION = {
   /** tightest first */
   infix: ['&', '|'],
-  /** takes everything after it (`!a & b` is `!(a & b)`) */
+  /** negates the operand it precedes (`!a & b` is `(!a) & b`) */
   prefix: ['!'],
   parens: ['(', ')'],
   comparators: ['=', '!=', '<', '<=', '>', '>='],

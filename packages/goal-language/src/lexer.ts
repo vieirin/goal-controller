@@ -136,7 +136,14 @@ const DECLARATION = rules([
  * of its length and wins (`R1`, `GX`), a longer name is a name (`Rate`, `G1a`).
  */
 const OPERANDS: Array<[string, RegExp]> = [
-  ['A_REF', new RegExp(`(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`)],
+  // the catalog's ids (`G3.1`, `TX`), and a dotted id of any kind (`F7.1`; an
+  // undotted `F7` ties with a name and reads as one, resolved by the value)
+  [
+    'A_REF',
+    new RegExp(
+      `(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(?:\\.[0-9]+)+`,
+    ),
+  ],
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],

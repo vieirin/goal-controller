@@ -135,7 +135,7 @@ value alone (`parseValue(type, text)`).
 The **assertion language** works as follows:
 
 - `&` binds tighter than `|`.
-- `!` negates everything after it.
+- `!` negates the operand it precedes (`!a & b` is `(!a) & b`).
 - Parentheses group.
 - An operand is an identifier, `x = true`/`false`, `x op n` (where `op` is
   one of `= != < <= > >=`), or `true`/`false`.

@@ -17,7 +17,7 @@ export const GoalTerminals = {
     KEY: /[A-Za-z][A-Za-z0-9_]*/,
     VALUE: /[^\s](?:[^\r\n]*[^\s])?/,
     A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/,
-    A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/,
+    A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(\.[0-9]+)+/,
     A_INT: /[0-9]+/,
     A_NUMBER: /[0-9]+\.[0-9]*/,
     A_PREFIX: /assertion[ \t]+(condition|trigger)/,
@@ -99,7 +99,7 @@ export type GoalTokenNames = GoalTerminalNames | GoalKeywordNames;
 export type AName = string;
 
 export function isAName(item: unknown): item is AName {
-    return (typeof item === 'string' && (/[a-zA-Z_][a-zA-Z0-9_]*/.test(item) || /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/.test(item)));
+    return (typeof item === 'string' && (/[a-zA-Z_][a-zA-Z0-9_]*/.test(item) || /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(\.[0-9]+)+/.test(item)));
 }
 
 export interface AnnotatedName extends langium.AstNode {
