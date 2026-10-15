@@ -25,7 +25,12 @@ import {
   targetKey,
 } from './linkLine.js';
 import { isEnabled } from './reading.js';
-import { argumentsText } from './values.js';
+import {
+  argumentsText,
+  MEMBER_REF,
+  membersOf,
+  memberTypeText,
+} from './values.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<
@@ -267,6 +272,17 @@ export const hoverAt = (
     const word = wordAt(line.text, at);
     if (!word) return null;
     const name = line.text.slice(word.from, word.to);
+    // a member (`room.clean`): its declared type, in the value's config
+    const dotted = /^(.+)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(name);
+    const config =
+      property && kind && owner
+        ? valueOf(property, context.elements[owner]?.properties ?? {})
+        : undefined;
+    const member =
+      dotted && config && !lineNamed(definition, lines, name)
+        ? memberHover(config, context, dotted[1]!, dotted[2]!)
+        : null;
+    if (member) return shift(word, member);
     const target = lineNamed(definition, lines, name);
     if (target)
       return shift(
@@ -311,6 +327,18 @@ export const definitionAt = (
   if (!target) return null;
   const span = target.read.idSpan ?? target.read.textSpan;
   return { from: target.line.from + span.from, to: target.line.from + span.to };
+};
+
+/** A member's hover: `**room.clean**: a bool, a member of room` (goal-controller#135). */
+const memberHover = (
+  value: ValueConfig,
+  context: DefinitionContext,
+  ref: string,
+  member: string,
+): string | null => {
+  if (value.type !== 'assertion' && value.type !== 'expression') return null;
+  const type = membersOf(context, ref, value.members)?.get(member);
+  return `**${ref}.${member}**: ${type ? memberTypeText(type) : 'a member'}, a member of ${ref}`;
 };
 
 /** An element a field names, by its id or its name (an assertion compares a resource by name). */
@@ -358,6 +386,15 @@ export const fieldHoverAt = (
       ? hover(`**${name}**: a function of ${argumentsText(declared.arity)}`)
       : null;
   }
+  // a member (`room.clean`, goal-controller#135): its declared type
+  const dotted = new RegExp(`(${MEMBER_REF})\\s*\\.\\s*$`).exec(
+    text.slice(0, span.from),
+  );
+  const member =
+    dotted && span.style === 'variableName'
+      ? memberHover(value, context, dotted[1]!, name)
+      : null;
+  if (member) return hover(member);
   const element = elementNamed(context, name);
   if (element)
     return hover(

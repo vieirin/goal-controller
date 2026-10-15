@@ -115,6 +115,7 @@ import { saveQueue } from '@/lib/workbench/saveQueue';
 import {
   analyse,
   analysisResource,
+  stepped,
   type AnalysisRun,
 } from '@/lib/workbench/analysis';
 import { downloadBytes } from '@/lib/workbench/download';
@@ -362,6 +363,8 @@ export type Workbench = {
   runAnalysis: (id: string) => void;
   /** the case whose values are drawn (a strategy) */
   setAnalysisCase: (caseId: string) => void;
+  /** a case run step by step: the step drawn, `delta` steps on (back when negative) */
+  stepAnalysis: (delta: number) => void;
   clearAnalysis: () => void;
 
   // problems
@@ -1625,7 +1628,12 @@ function WorkbenchState({
   );
   const setAnalysisCase = useCallback(
     (caseId: string) =>
-      setAnalysisRun((run) => (run ? { ...run, caseId } : run)),
+      setAnalysisRun((run) => (run ? { ...run, caseId, step: 0 } : run)),
+    [],
+  );
+  const stepAnalysis = useCallback(
+    (delta: number) =>
+      setAnalysisRun((run) => (run ? stepped(run, delta) : run)),
     [],
   );
   const clearAnalysis = useCallback(() => setAnalysisRun(null), []);
@@ -1877,6 +1885,7 @@ function WorkbenchState({
     analysisStale: !!analysisRun && analysisRun.text !== model.text,
     runAnalysis: runAnalysisNow,
     setAnalysisCase,
+    stepAnalysis,
     clearAnalysis,
     exportProject,
     problems,

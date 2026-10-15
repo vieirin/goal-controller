@@ -138,6 +138,7 @@ export function isAnnotation(item: unknown): item is Annotation {
 export interface AssertAssign extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertAssign';
+    member?: string;
     operator: '!=' | '=';
     value: AssertBool;
     variable: AName;
@@ -145,6 +146,7 @@ export interface AssertAssign extends langium.AstNode {
 
 export const AssertAssign = {
     $type: 'AssertAssign',
+    member: 'member',
     operator: 'operator',
     value: 'value',
     variable: 'variable'
@@ -230,7 +232,7 @@ export function isAssertConst(item: unknown): item is AssertConst {
     return reflection.isInstance(item, AssertConst.$type);
 }
 
-export type AssertExpr = AssertAssign | AssertBinary | AssertCall | AssertCompare | AssertConst | AssertNot | AssertParen | AssertVar;
+export type AssertExpr = AssertAssign | AssertBinary | AssertCall | AssertCompare | AssertConst | AssertMember | AssertNot | AssertParen | AssertVar;
 
 export const AssertExpr = {
     $type: 'AssertExpr'
@@ -255,6 +257,23 @@ export const AssertionValue = {
 
 export function isAssertionValue(item: unknown): item is AssertionValue {
     return reflection.isInstance(item, AssertionValue.$type);
+}
+
+export interface AssertMember extends langium.AstNode {
+    readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+    readonly $type: 'AssertMember';
+    member: string;
+    ref: AName;
+}
+
+export const AssertMember = {
+    $type: 'AssertMember',
+    member: 'member',
+    ref: 'ref'
+} as const;
+
+export function isAssertMember(item: unknown): item is AssertMember {
+    return reflection.isInstance(item, AssertMember.$type);
 }
 
 export interface AssertNot extends langium.AstNode {
@@ -423,7 +442,7 @@ export function isEnumValue(item: unknown): item is EnumValue {
     return reflection.isInstance(item, EnumValue.$type);
 }
 
-export type Expr = ExprBinary | ExprCall | ExprNegation | ExprNumber | ExprParen | ExprRef | ExprVar;
+export type Expr = ExprBinary | ExprCall | ExprMember | ExprNegation | ExprNumber | ExprParen | ExprRef | ExprVar;
 
 export const Expr = {
     $type: 'Expr'
@@ -482,6 +501,23 @@ export const ExpressionValue = {
 
 export function isExpressionValue(item: unknown): item is ExpressionValue {
     return reflection.isInstance(item, ExpressionValue.$type);
+}
+
+export interface ExprMember extends langium.AstNode {
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprMember';
+    member: string;
+    ref: AName;
+}
+
+export const ExprMember = {
+    $type: 'ExprMember',
+    member: 'member',
+    ref: 'ref'
+} as const;
+
+export function isExprMember(item: unknown): item is ExprMember {
+    return reflection.isInstance(item, ExprMember.$type);
 }
 
 export interface ExprNegation extends langium.AstNode {
@@ -971,6 +1007,7 @@ export type GoalAstType = {
     AssertCompare: AssertCompare
     AssertConst: AssertConst
     AssertExpr: AssertExpr
+    AssertMember: AssertMember
     AssertNot: AssertNot
     AssertParen: AssertParen
     AssertVar: AssertVar
@@ -984,6 +1021,7 @@ export type GoalAstType = {
     Expr: Expr
     ExprBinary: ExprBinary
     ExprCall: ExprCall
+    ExprMember: ExprMember
     ExprNegation: ExprNegation
     ExprNumber: ExprNumber
     ExprParen: ExprParen
@@ -1053,6 +1091,10 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
         AssertAssign: {
             name: AssertAssign.$type,
             properties: {
+                member: {
+                    name: AssertAssign.member,
+                    optional: true
+                },
                 operator: {
                     name: AssertAssign.operator
                 },
@@ -1123,6 +1165,18 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             properties: {
             },
             superTypes: []
+        },
+        AssertMember: {
+            name: AssertMember.$type,
+            properties: {
+                member: {
+                    name: AssertMember.member
+                },
+                ref: {
+                    name: AssertMember.ref
+                }
+            },
+            superTypes: [AssertExpr.$type]
         },
         AssertNot: {
             name: AssertNot.$type,
@@ -1296,6 +1350,18 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 function: {
                     name: ExprCall.function
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprMember: {
+            name: ExprMember.$type,
+            properties: {
+                member: {
+                    name: ExprMember.member
+                },
+                ref: {
+                    name: ExprMember.ref
                 }
             },
             superTypes: [Expr.$type]

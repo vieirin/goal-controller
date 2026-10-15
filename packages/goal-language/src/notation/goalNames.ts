@@ -219,13 +219,17 @@ export const assertionVariables = (text: string): AssertionVariable[] => {
         walk(node.expr);
         return;
       case 'assign':
-        // `x != true` names x, without setting it
-        if (node.negated) named(node.variable);
+        // `x != true` names x, without setting it; `room.clean = true`
+        // names room (it sets a member, not the name)
+        if (node.negated || node.member) named(node.variable);
         else variables.push({ name: node.variable, value: node.value });
         return;
       case 'compare':
       case 'var':
         named(node.variable);
+        return;
+      case 'member':
+        named(node.ref);
         return;
       case 'comparison':
       case 'call':
@@ -233,6 +237,7 @@ export const assertionVariables = (text: string): AssertionVariable[] => {
         for (const part of assertionExpressions(node).flatMap(expressionNodes))
           if (part.kind === 'var') named(part.name);
           else if (part.kind === 'ref') named(part.id);
+          else if (part.kind === 'member') named(part.ref);
         return;
       default:
         return;

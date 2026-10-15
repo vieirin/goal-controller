@@ -123,6 +123,7 @@ describe('the workbench’s analysis (#107)', () => {
       label: 'X',
       text: '',
       caseId: 'b',
+      step: 0,
       result: {
         cases: [
           { id: 'a', label: 'A', values: { g1: { value: 1 } } },

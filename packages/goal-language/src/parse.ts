@@ -79,6 +79,11 @@ export type ExpressionTree =
   | { kind: 'ref'; id: string }
   /** any other name: a variable, declared by its use */
   | { kind: 'var'; name: string }
+  /**
+   * a member of an element or a variable (`room.clean`, goal-controller#135):
+   * `ref` is its id or name, as written, `member` the member's name
+   */
+  | { kind: 'member'; ref: string; member: string }
   | { kind: 'call'; name: string; args: ExpressionTree[] }
   | {
       kind: 'binary';
@@ -102,9 +107,20 @@ export type AssertionNode<Comparison> =
     }
   | { kind: 'not'; expr: AssertionNode<Comparison> | null }
   | { kind: 'paren'; expr: AssertionNode<Comparison> | null }
-  /** `x = true`; `negated`: `x != true` (CtxRegex.g4's, where a value allows it) */
-  | { kind: 'assign'; variable: string; value: boolean; negated?: true }
+  /**
+   * `x = true`; `negated`: `x != true` (CtxRegex.g4's, where a value allows
+   * it); `member`: `room.clean = true`, a member of `variable`
+   */
+  | {
+      kind: 'assign';
+      variable: string;
+      value: boolean;
+      negated?: true;
+      member?: string;
+    }
   | { kind: 'var'; variable: string }
+  /** `room.clean`: a member, as a condition on its own (goal-controller#135) */
+  | { kind: 'member'; ref: string; member: string }
   | { kind: 'bool'; value: boolean }
   /** `previous(on)`: a call to a function the value declares, as a condition */
   | { kind: 'call'; name: string; args: ExpressionTree[] }
@@ -500,6 +516,10 @@ export const toExpressionTree = (
       return expr.id ? { kind: 'ref', id: expr.id } : null;
     case 'ExprVar':
       return expr.name ? { kind: 'var', name: expr.name } : null;
+    case 'ExprMember':
+      return expr.ref && expr.member
+        ? { kind: 'member', ref: expr.ref, member: expr.member }
+        : null;
     case 'ExprParen':
       return toExpressionTree(expr.expr);
     case 'ExprNegation': {
@@ -598,7 +618,12 @@ const assertionAtom = (
             variable: expr.variable,
             value: expr.value === 'true',
             ...(expr.operator === '!=' && { negated: true as const }),
+            ...(expr.member && { member: expr.member }),
           }
+        : null;
+    case 'AssertMember':
+      return expr.ref && expr.member
+        ? { kind: 'member', ref: expr.ref, member: expr.member }
         : null;
     case 'AssertVar':
       return expr.variable ? { kind: 'var', variable: expr.variable } : null;
@@ -638,6 +663,8 @@ export const expressionText = (tree: ExpressionTree): string => {
       return tree.id;
     case 'var':
       return tree.name;
+    case 'member':
+      return `${tree.ref}.${tree.member}`;
     case 'call':
       return `${tree.name}(${tree.args.map(expressionText).join(', ')})`;
     case 'unary': {
@@ -676,7 +703,9 @@ export const assertionText = (tree: AssertionTree | null): string => {
     case 'paren':
       return `(${assertionText(tree.expr)})`;
     case 'assign':
-      return `${tree.variable} ${tree.negated ? '!=' : '='} ${tree.value}`;
+      return `${tree.variable}${tree.member ? `.${tree.member}` : ''} ${tree.negated ? '!=' : '='} ${tree.value}`;
+    case 'member':
+      return `${tree.ref}.${tree.member}`;
     case 'compare':
       return `${tree.variable} ${tree.operator} ${tree.value}`;
     case 'comparison':
@@ -810,3 +839,36 @@ export const assertionExpressions = (
   comparisonsOf(tree).flatMap((atom) =>
     atom.kind === 'call' ? [atom] : [atom.left, atom.right],
   );
+
+/**
+ * Every member an assertion reads (`room.clean`, `tank.level < 3`,
+ * `room.clean = true`, goal-controller#135), in the order written: what a
+ * check or an engine reads of them, never splitting the text.
+ */
+export const assertionMembers = (
+  tree: AssertionTree | AssertionReading | null,
+): { ref: string; member: string }[] => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return [...assertionMembers(tree.left), ...assertionMembers(tree.right)];
+    case 'not':
+    case 'paren':
+      return assertionMembers(tree.expr);
+    case 'member':
+      return [{ ref: tree.ref, member: tree.member }];
+    case 'assign':
+      return tree.member ? [{ ref: tree.variable, member: tree.member }] : [];
+    case 'comparison':
+    case 'call':
+      return assertionExpressions(tree)
+        .flatMap(expressionNodes)
+        .flatMap((node) =>
+          node.kind === 'member'
+            ? [{ ref: node.ref, member: node.member }]
+            : [],
+        );
+    default:
+      return [];
+  }
+};

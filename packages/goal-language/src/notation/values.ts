@@ -4,14 +4,17 @@
  * elements of the model of the kind it refers to.
  */
 import type {
+  AnyDialect,
   DefinitionContext,
   DialectKind,
   FunctionDefinition,
+  MemberSource,
   ValueConfig,
 } from '@goal-controller/dialect';
 import {
   assertionExpressions,
   assertionText,
+  expressionText,
   comparisonsOf,
   expressionNodes,
   parseCondition,
@@ -23,6 +26,113 @@ import { assertionVariables } from './goalNames.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
+
+/**
+ * A member's type, as its element's pair writes it (goal-controller#135):
+ * `bool`, a number (`int`, `number`), or an enum's options (`low|high`).
+ */
+export type MemberType =
+  | { type: 'bool' }
+  | { type: 'number' }
+  | { type: 'enum'; options: string[] };
+
+const memberTypeOf = (written: string): MemberType =>
+  written === 'bool'
+    ? { type: 'bool' }
+    : written === 'int' || written === 'number'
+      ? { type: 'number' }
+      : {
+          type: 'enum',
+          options: written
+            .split('|')
+            .map((option) => option.trim())
+            .filter(Boolean),
+        };
+
+/** A member's type in words: `a bool`, `a number`, `one of low, high`. */
+export const memberTypeText = (type: MemberType): string =>
+  type.type === 'enum' ? `one of ${type.options.join(', ')}` : `a ${type.type}`;
+
+/**
+ * The members an element of the model has, by name, with their types: the
+ * pairs of its `from` property (`clean:bool, level:number`). Null: it has
+ * none written (or isn't an element of the model).
+ */
+export const membersOf = (
+  context: DefinitionContext | undefined,
+  ref: string,
+  source: MemberSource | undefined,
+): Map<string, MemberType> | null => {
+  if (!source || source === 'any') return null;
+  const text = context?.elements[ref]?.properties[source.from];
+  if (text === undefined) return null;
+  return new Map(
+    parseValue('pairList', text).value.map(
+      (pair) => [pair.name, memberTypeOf(pair.value)] as const,
+    ),
+  );
+};
+
+/** A member read: its reference (an id or a name) and its name. */
+type MemberUse = { ref: string; member: string };
+
+/**
+ * A reference a member follows, as written: a name, or an id with its dots
+ * (`room`, `T1.1`). The editors find `ref.` before a position with it.
+ */
+export const MEMBER_REF = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[0-9]+)*';
+
+/**
+ * What is wrong with a member a value reads (`room.dirty`): the value reads
+ * no members, the element's kind declares none, or the element has no
+ * member of that name. A variable's members are declared by its use.
+ */
+const memberProblem = (
+  value: { members?: MemberSource },
+  { ref, member }: MemberUse,
+  context: DefinitionContext | undefined,
+  definition: Pick<AnyDialect, 'properties'> | undefined,
+): string | null => {
+  const source = value.members;
+  if (!source) return `${ref}.${member}: this value reads no members`;
+  if (source === 'any' || !context) return null;
+  const element = context.elements[ref];
+  if (!element) return null;
+  if (
+    definition &&
+    !(definition.properties[element.kind] ?? []).some(
+      (property) => property.key === source.from,
+    )
+  )
+    return `${ref} is a ${element.kind}, which has no members`;
+  const members = membersOf(context, ref, source) ?? new Map();
+  return members.has(member)
+    ? null
+    : `${ref} has no member ${member} (${members.size ? `its members: ${[...members.keys()].join(', ')}` : 'it declares none'})`;
+};
+
+/** A declared member's type, when its element has one of that name. */
+const declaredType = (
+  value: { members?: MemberSource },
+  { ref, member }: MemberUse,
+  context: DefinitionContext | undefined,
+): MemberType | undefined =>
+  membersOf(context, ref, value.members)?.get(member);
+
+/** What is wrong with a member read as a number (in an expression, or compared). */
+const numberMemberProblem = (
+  value: { members?: MemberSource },
+  use: MemberUse,
+  context: DefinitionContext | undefined,
+  definition: Pick<AnyDialect, 'properties'> | undefined,
+): string | null => {
+  const problem = memberProblem(value, use, context, definition);
+  if (problem) return problem;
+  const type = declaredType(value, use, context);
+  return type && type.type !== 'number'
+    ? `${use.ref}.${use.member} is ${memberTypeText(type)}, not a number`
+    : null;
+};
 
 const intProblem = (
   text: string,
@@ -118,7 +228,13 @@ const refProblem = (
   context: DefinitionContext,
 ): string | null => {
   for (const node of expressionNodes(tree)) {
-    const id = elementOfOperand(node, context);
+    // a member's element (`room.level`): of a kind the value resolves too
+    const id =
+      node.kind === 'member'
+        ? kindOf(context, node.ref)
+          ? node.ref
+          : null
+        : elementOfOperand(node, context);
     if (id === null) continue;
     const kind = kindOf(context, id);
     if (!kind) return `${id} is not an element of this model`;
@@ -138,6 +254,8 @@ export const valueProblem = (
   value: ValueConfig,
   text: string,
   context?: DefinitionContext,
+  /** its definition: whether a kind declares members (`members.from`) */
+  definition?: Pick<AnyDialect, 'properties'>,
 ): string | null => {
   if (!text.trim()) return null;
   switch (value.type) {
@@ -167,9 +285,11 @@ export const valueProblem = (
         return `Starts with ${prefixes.join(' or ')}`;
       if (!prefixes.length && prefix) return `No prefix: ${prefix} is not read`;
       if (prefix && !tree) return `A condition after ${prefix}`;
-      // a comparison other than a name and a number, where the value declares functions
+      // a comparison other than a name and a number, where the value
+      // declares functions (a member and a number, or a member and a name,
+      // `room.mode = low`, is a name's)
       const comparison = comparisonsOf(tree).find(
-        (atom) => atom.kind === 'comparison',
+        (atom) => atom.kind === 'comparison' && !isMemberComparison(atom),
       );
       if (comparison && !value.functions)
         return `A name is compared with a number here, not ${assertionText(comparison)}`;
@@ -177,6 +297,8 @@ export const valueProblem = (
         const problem = callProblem(expression, value.functions ?? []);
         if (problem) return problem;
       }
+      const member = assertionMemberProblem(value, tree, context, definition);
+      if (member) return member;
       const decimal = !value.decimals && decimalOf(tree);
       if (decimal) return `Not an integer: ${decimal}`;
       const inequality = !value.booleanInequality && negatedOf(tree);
@@ -191,7 +313,10 @@ export const valueProblem = (
       if (!read.value) return null;
       return (
         callProblem(read.value, value.functions ?? []) ??
-        (context ? refProblem(read.value, value.resolves ?? [], context) : null)
+        (context
+          ? refProblem(read.value, value.resolves ?? [], context)
+          : null) ??
+        expressionMemberProblem(value, read.value, context, definition)
       );
     }
     case 'refList': {
@@ -274,4 +399,111 @@ export const unknownNameMessage = (
     ? 'a known variable'
     : '';
   return `${name} is not ${[element, variable].filter(Boolean).join(' or ')}`;
+};
+
+/** `room.level < 3`, `room.mode = low`: a member compared with a number or a name. */
+const isMemberComparison = (
+  atom: Extract<AssertionTree, { kind: 'comparison' }>,
+): boolean =>
+  atom.left.kind === 'member' &&
+  (atom.right.kind === 'number' || atom.right.kind === 'var');
+
+/**
+ * The first member an expression reads that is wrong (unknown, on a kind
+ * without members) or isn't a number (an expression is one).
+ */
+const expressionMemberProblem = (
+  value: { members?: MemberSource },
+  tree: ExpressionTree,
+  context: DefinitionContext | undefined,
+  definition: Pick<AnyDialect, 'properties'> | undefined,
+): string | null => {
+  for (const node of expressionNodes(tree)) {
+    const problem =
+      node.kind === 'member' &&
+      numberMemberProblem(value, node, context, definition);
+    if (problem) return problem;
+  }
+  return null;
+};
+
+/**
+ * The first member a condition reads that is wrong, or read as what it
+ * isn't: a member alone or set (`room.clean`, `room.clean = true`) is a
+ * bool; one compared with a number is a number; one compared with a name,
+ * by `=` or `!=`, is an enum and the name one of its options.
+ */
+const assertionMemberProblem = (
+  value: { members?: MemberSource },
+  tree: AssertionTree | null,
+  context: DefinitionContext | undefined,
+  definition: Pick<AnyDialect, 'properties'> | undefined,
+): string | null => {
+  const text = (use: MemberUse) => `${use.ref}.${use.member}`;
+  const asBool = (use: MemberUse): string | null => {
+    const problem = memberProblem(value, use, context, definition);
+    if (problem) return problem;
+    const type = declaredType(value, use, context);
+    return type && type.type !== 'bool'
+      ? `${text(use)} is ${memberTypeText(type)}: compare it${type.type === 'enum' ? ' with = and one of them' : ' with a number'}`
+      : null;
+  };
+  const walk = (node: AssertionTree | null): string | null => {
+    switch (node?.kind) {
+      case 'and':
+      case 'or':
+        return walk(node.left) ?? walk(node.right);
+      case 'not':
+      case 'paren':
+        return walk(node.expr);
+      case 'member':
+        return asBool(node);
+      case 'assign':
+        return node.member
+          ? asBool({ ref: node.variable, member: node.member })
+          : null;
+      case 'comparison': {
+        if (isMemberComparison(node) && node.left.kind === 'member') {
+          const use = node.left;
+          const problem = memberProblem(value, use, context, definition);
+          if (problem) return problem;
+          const type = declaredType(value, use, context);
+          if (type?.type === 'enum') {
+            if (node.operator !== '=' && node.operator !== '!=')
+              return `${text(use)} is ${memberTypeText(type)}: compare it with = or !=`;
+            if (
+              node.right.kind !== 'var' ||
+              !type.options.includes(node.right.name)
+            )
+              return `${text(use)} is ${memberTypeText(type)}, not ${expressionText(node.right)}`;
+            return null;
+          }
+          if (type?.type === 'bool')
+            return `${text(use)} is a bool: write ${text(use)}, or ${text(use)} = true`;
+          if (type?.type === 'number' && node.right.kind !== 'number')
+            // a number member compared with a variable: a number variable
+            return null;
+        }
+        for (const side of [node.left, node.right])
+          for (const part of expressionNodes(side)) {
+            const problem =
+              part.kind === 'member' &&
+              part !== node.left &&
+              numberMemberProblem(value, part, context, definition);
+            if (problem) return problem;
+          }
+        return null;
+      }
+      case 'call':
+        for (const part of node.args.flatMap(expressionNodes)) {
+          if (part.kind !== 'member') continue;
+          const problem = memberProblem(value, part, context, definition);
+          if (problem) return problem;
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+  return walk(tree);
 };

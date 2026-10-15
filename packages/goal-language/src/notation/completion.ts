@@ -25,7 +25,12 @@ import {
 } from '@goal-controller/dialect';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
-import { argumentsText } from './values.js';
+import {
+  argumentsText,
+  MEMBER_REF,
+  membersOf,
+  memberTypeText,
+} from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
@@ -59,6 +64,11 @@ type Definition = Pick<
   Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
 
 const WORD = /[A-Za-z0-9_.]*$/;
+
+/** A reference and its dot, and the member being typed: `room.`, `room.cl`, `T1.1 . d` */
+const MEMBER_BEFORE = new RegExp(
+  `(${MEMBER_REF})\\s*\\.\\s*([A-Za-z_][A-Za-z0-9_]*)?$`,
+);
 
 /** The operators a dialect enables, with the construct (or modifier) each one is. */
 const operatorOptions = ({ notation }: WithNotation): Completion[] => {
@@ -452,6 +462,20 @@ export const fieldCompletionsAt = (
 ): CompletionResult | null => {
   const word = WORD.exec(text.slice(0, pos))?.[0] ?? '';
   const from = pos - word.length;
+  // after `room.`: its members (goal-controller#135)
+  if (value.type === 'assertion' || value.type === 'expression') {
+    const dotted = MEMBER_BEFORE.exec(text.slice(0, pos));
+    const members = dotted && membersOf(context, dotted[1]!, value.members);
+    if (dotted && members)
+      return {
+        from: pos - (dotted[2]?.length ?? 0),
+        options: [...members].map(([name, type]) => ({
+          label: name,
+          type: 'property' as const,
+          detail: memberTypeText(type),
+        })),
+      };
+  }
   const ids = (kinds: readonly string[]) =>
     Object.entries(context.elements)
       .filter(([, element]) => kinds.includes(element.kind))
