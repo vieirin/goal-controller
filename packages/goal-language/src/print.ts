@@ -4,6 +4,7 @@
  * only whether its lines have ids (`G1: Name`) or not (`Name`).
  */
 import { hasIds, type AnyDialect } from '@goal-controller/dialect';
+import { propertyKeyOf, propertyKeysOf } from './catalog.js';
 
 /** The properties a line's annotations or declaration set, by key. */
 export type DeclaredProperties = Partial<Record<string, string>>;
@@ -22,6 +23,36 @@ export const elementLine = (
     : base;
   const declared = declaration ? `${line} ${declaration}` : line;
   return annotations ? `${annotations} ${declared}` : declared;
+};
+
+/** A name in quotes, `\"` and `\\` escaped in it: `"Low running cost"`. */
+export const quotedName = (name: string): string =>
+  `"${name.replace(/[\\"]/g, '\\$&')}"`;
+
+/**
+ * A name as a line without an id writes it (goal-controller#138): quoted
+ * (`quotedName`) where its dialect has property lines and the name would
+ * read as one (it starts with a declared key) or is quoted itself; as it is
+ * otherwise. A line reads it back with `unquotedName`.
+ */
+export const writtenName = (
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'propertyLineOrder'>>,
+  name: string,
+): string => {
+  const keys = propertyKeysOf(definition);
+  return keys.length &&
+    (propertyKeyOf(keys, name) !== null || QUOTED_NAME.test(name.trim()))
+    ? quotedName(name.trim())
+    : name;
+};
+
+const QUOTED_NAME = /^"((?:[^"\\]|\\.)*)"$/;
+
+/** The name a quoted one is (`writtenName`), null if it is not quoted. */
+export const unquotedName = (written: string): string | null => {
+  const quoted = QUOTED_NAME.exec(written);
+  return quoted ? quoted[1]!.replace(/\\(.)/g, '$1') : null;
 };
 
 /** `<<stereotype>> {tag = tagValue}` from the properties they set (null: none set). */

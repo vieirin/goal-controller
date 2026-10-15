@@ -685,7 +685,8 @@ The workbench loads examples from GitHub at `main`
     `WithNotation` types what needs a notation.
 - **`defineDialect`:**
   - either every element has an id prefix, or none has;
-  - lines without ids can't have property lines.
+  - lines without ids could have no property lines; since goal-controller#138
+    they do: a line that starts with a declared key is one.
 - **A kind is listed in the document if the definition has it.** One that
   declares something on its line has no property lines or children. For
   Edge this is exactly the old rule (goals and tasks; resources with their

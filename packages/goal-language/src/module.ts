@@ -96,15 +96,19 @@ const START_OF_RULE = new Map(
 /**
  * Parses a text with the rule of a lexer start, synchronously, without
  * linking. `prefixes`: the id prefixes its dialect declares besides the
- * catalog's (`idPrefixesOf`), read in its element lines.
+ * catalog's (`idPrefixesOf`), read in its element lines. `keys`: the keys a
+ * document without ids reads as property lines' (`propertyKeysOf`).
  */
 export const parseWith = <T extends AstNode>(
   services: GoalCoreServices,
   start: LexerStart,
   text: string,
   prefixes: readonly string[] = [],
+  keys: readonly string[] = [],
 ): ParseResult<T> => {
-  (services.parser.Lexer as GoalLexer).prefixes = prefixes;
+  const lexer = services.parser.Lexer as GoalLexer;
+  lexer.prefixes = prefixes;
+  lexer.keys = keys;
   return services.parser.LangiumParser.parse<T>(text, {
     rule: START_RULE[start],
   });

@@ -872,9 +872,6 @@ export const defineDialect = <const D extends AnyDialect>(
         .filter((key) => !onElementLine.includes(key));
     }),
   );
-  // without ids, a line is its element's by position: there are no property lines
-  if (!named.length && lineKeys.size)
-    fail('lines without ids write every property on the element line');
   for (const [kind, resource] of Object.entries(resources)) {
     if (!PROJECT_RESOURCE_FORMATS.includes(resource.format))
       fail(`project resource ${kind}: unknown format ${resource.format}`);

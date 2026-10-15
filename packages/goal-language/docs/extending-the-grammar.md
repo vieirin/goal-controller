@@ -34,6 +34,11 @@ MutRoSe:
      where it isn't enabled (`` `FALLBACK` is not an operator of EdgeV2 ``).
    - Only id prefixes are read everywhere: a dialect's kinds still say which
      prefix each kind uses.
+   - A dialect's own words are tokens only where the lexer is given them: an
+     extension's id prefixes (`ID_PREFIX`, `idPrefixesOf`) in element lines,
+     and a document without ids' declared keys (`KEY`, `propertyKeysOf`) at a
+     line's start (goal-controller#138). A dialect without them reads as
+     before.
 
 ## Where a change goes
 
