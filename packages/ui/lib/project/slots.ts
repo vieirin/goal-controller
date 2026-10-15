@@ -132,14 +132,14 @@ export const resourceSlots = (
 /** A file of the open project, as its listing shows it. */
 export type ListedFile = {
   path: string;
-  role: 'model' | 'projectResource' | 'output' | 'other';
-  /** a project resource's kind */
+  role: 'model' | 'native' | 'projectResource' | 'output' | 'other';
+  /** a project resource's kind, a native file's id */
   kind?: string;
 };
 
 /**
- * What a project lists: its own files only, by role (its models, its
- * project resources by slot, its outputs, the rest). An open project is its
+ * What a project lists: its own files only, by role (its models, their
+ * native files, its project resources by slot, its outputs, the rest). An open project is its
  * own tree: other projects (the examples) are opened from the start screen,
  * never listed beside it.
  */
@@ -148,9 +148,17 @@ export const projectListing = (
   files: readonly string[],
   slots: readonly ResourceSlot[],
   models: readonly string[],
+  natives: readonly { path: string; id: string; missing: boolean }[] = [],
 ): ListedFile[] => {
   const listed = new Map<string, ListedFile>();
   for (const path of models) listed.set(path, { path, role: 'model' });
+  for (const native of natives)
+    if (!native.missing && !listed.has(native.path))
+      listed.set(native.path, {
+        path: native.path,
+        role: 'native',
+        kind: native.id,
+      });
   for (const slot of slots)
     for (const path of slot.paths)
       if (!listed.has(path))

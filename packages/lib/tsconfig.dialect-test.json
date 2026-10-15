@@ -11,7 +11,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["../ui/*"],
-      "langium": ["./node_modules/langium/lib/index.d.ts"]
+      "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"]
     }
   },
   "include": ["src/**/*", "test/dialect/**/*"]

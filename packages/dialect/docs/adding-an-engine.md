@@ -457,6 +457,53 @@ projectResources: {
   says where: `candidates: { resource: 'world', category: 'classes' }` (types),
   `memberCandidates` (after `name.`).
 
+### 3.6b Native files (optional): the model in the engine's own format
+
+If the tool the engine stands for has a file format of its own (an EMF
+XMI, an XML with its XSD, a text), the dialect declares it as a native
+file, kept 1:1 with the piStar model (goal-controller#143; the declaration,
+the helpers and the round-trip contract are in
+[importers.md](importers.md)):
+
+```ts
+nativeFiles: {
+  board: { label: 'Board XMI', extensions: ['.board'], format: 'xmi', read, write, canonical, lossy },
+},
+```
+
+- `read` and `write` live in the engine's folder, on the core's helpers
+  (`@goal-controller/goal-language/formats`): `readXmi`/`writeXmi`,
+  `readXml`, `readJson`/`writeJson`. A format only one engine reads (MutRoSe's
+  HDDL s-expressions) is that engine's, in its folder. The workbench's
+  Open dialog takes the declared extensions; opening one makes the project
+  of the file and its model.
+- Test it with `describeNativeRoundTrips(dialect, fixtures)`
+  (`packages/lib/test/support/nativeRoundTrip.ts`), on the fixtures the
+  engine commits and, for a format another tool owns, against that tool
+  (its oracle, in Docker).
+- A text format may bring its **own Langium grammar**: put
+  `<name>.langium` and its `langium-config.json` (`"out": "generated"`)
+  under `src/engines/<engine>/language/`, and an `index.ts` there that
+  makes the language:
+
+  ```ts
+  import { defineLanguage } from '@goal-controller/goal-language/formats';
+  import * as generated from './generated/module';
+  export const boardLanguage = defineLanguage<Board>(generated);
+  ```
+
+  `pnpm --filter @goal-controller/lib run build` runs `langium generate`
+  for every `langium-config.json` under `src/engines` (commit
+  `generated/` as the generator writes it: oxfmt leaves it alone), and
+  bundles each such folder against the goal language's one Langium, the
+  runtime its parser is generated for (lib has no Langium of its own;
+  `out/engines/<engine>/language.js`;
+  require it as `./language` from the engine's other files). The
+  language's `parse` gives the AST the dialect's `read` maps; `highlight`
+  and `complete` are the native file's tab's (`language: boardLanguage`).
+  It has services of its own: the goal language's grammar is untouched
+  ([extending-the-grammar.md](../../goal-language/docs/extending-the-grammar.md)).
+
 ### 3.7 An analysis engine: values on the model, not a file
 
 An analysis computes a value per element and actor (a satisfaction level

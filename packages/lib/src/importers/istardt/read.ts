@@ -11,7 +11,10 @@
  * qualID, multiply`). Sums and products are commutative, so nothing changes
  * but the order the output writes them in, which is the translator's.
  */
-import { readXml, type XmlElement } from '../../formats/xml';
+import {
+  readXml,
+  type XmlElement,
+} from '@goal-controller/goal-language/formats';
 import type { ImportDiagnostic } from '../types';
 
 /** A formula, as the file's tree (the BNF's boolean and numeric expressions). */

@@ -6,7 +6,7 @@ import {
   parseHddl,
   parseWorld,
 } from '../../../src';
-import { readXml } from '../../../src/formats/xml';
+import { readXml } from '@goal-controller/goal-language/formats';
 
 const WORLD = `<?xml version="1.0"?>
 <!-- the ward -->

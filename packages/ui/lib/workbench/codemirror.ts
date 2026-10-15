@@ -15,7 +15,22 @@ import {
   StateField,
   type Extension,
 } from '@codemirror/state';
-import { Decoration, EditorView, type DecorationSet } from '@codemirror/view';
+import {
+  autocompletion,
+  type CompletionContext,
+  type CompletionResult,
+} from '@codemirror/autocomplete';
+import {
+  Decoration,
+  EditorView,
+  ViewPlugin,
+  type DecorationSet,
+  type ViewUpdate,
+} from '@codemirror/view';
+import type {
+  NativeHighlightKind,
+  NativeLanguage,
+} from '@goal-controller/dialect';
 import { Tag, tags as t } from '@lezer/highlight';
 
 // ---------------------------------------------------------------------------
@@ -318,3 +333,81 @@ export const rangeMarksField = StateField.define<DecorationSet>({
  */
 export const readOnlyEditor = (readOnly: boolean): Extension =>
   EditorState.readOnly.of(readOnly);
+
+// ---------------------------------------------------------------------------
+// a native file's own language (goal-controller#143): its grammar's
+// highlighting, in the theme's colours, and its completions
+// ---------------------------------------------------------------------------
+
+/** The theme's tag for each kind a language's highlighting gives (a plain name has none). */
+const NATIVE_TAGS: Record<NativeHighlightKind, Tag | null> = {
+  keyword: t.keyword,
+  definition: t.labelName,
+  reference: t.variableName,
+  name: null,
+  string: t.string,
+  number: t.number,
+  comment: t.comment,
+  punctuation: t.punctuation,
+};
+
+const nativeMarks = (language: NativeLanguage, text: string): DecorationSet => {
+  const builder = new RangeSetBuilder<Decoration>();
+  let at = 0;
+  for (const { from, to, kind } of language.highlight(text)) {
+    const tag = NATIVE_TAGS[kind];
+    const className = tag && highlight.style([tag]);
+    if (!className || from < at || from >= to || to > text.length) continue;
+    builder.add(from, to, Decoration.mark({ class: className }));
+    at = to;
+  }
+  return builder.finish();
+};
+
+/**
+ * A textual native file's language as editor extensions: its highlighting
+ * (read again on each change) and, when it completes, its completions.
+ */
+export const nativeLanguageExtension = (
+  language: NativeLanguage,
+): Extension => [
+  ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
+      constructor(view: EditorView) {
+        this.decorations = nativeMarks(language, view.state.doc.toString());
+      }
+      update(update: ViewUpdate) {
+        if (update.docChanged)
+          this.decorations = nativeMarks(language, update.state.doc.toString());
+      }
+    },
+    { decorations: (plugin) => plugin.decorations },
+  ),
+  ...(language.complete
+    ? [
+        autocompletion({
+          override: [
+            (context: CompletionContext): CompletionResult | null => {
+              const word = context.matchBefore(/[\p{L}\p{N}_-]*/u);
+              if (!word || (word.from === word.to && !context.explicit))
+                return null;
+              const items = language.complete!(
+                context.state.doc.toString(),
+                context.pos,
+              );
+              return items.length
+                ? {
+                    from: word.from,
+                    options: items.map(({ label, kind }) => ({
+                      label,
+                      type: kind === 'keyword' ? 'keyword' : 'variable',
+                    })),
+                  }
+                : null;
+            },
+          ],
+        }),
+      ]
+    : []),
+];

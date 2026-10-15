@@ -179,6 +179,90 @@ describe('defineDialect', () => {
     same<Same<ProjectResourceKindOf<typeof toy>, never>>();
   });
 
+  it('declares its native files, and checks their extensions, schema, functions and lossy paths (#143)', () => {
+    const read = () => ({ model: null, dialectRecord: null, diagnostics: [] });
+    const shelf = {
+      label: 'Shelf XMI',
+      extensions: ['.shelf', '.shelfx'],
+      format: 'xmi',
+      schema: { kind: 'ecore', path: 'schema/shelf.ecore' },
+      read,
+      write: () => ({ text: '<shelf/>', diagnostics: [] }),
+      canonical: (text: string) => text.trim(),
+      lossy: ['actors.*.nodes.*.x', 'display'],
+    } as const;
+    const withFiles = (files: Record<string, unknown>) =>
+      bad((d) => ({ ...d, nativeFiles: files }) as AnyDialect);
+    expect(withFiles({ shelf })).not.to.throw();
+    const failures: [Record<string, unknown>, RegExp][] = [
+      [{ 'a b': shelf }, /native file a b: its id is a name/],
+      [{ shelf: { ...shelf, label: '' } }, /native file shelf: no label/],
+      [{ shelf: { ...shelf, format: 'yaml' } }, /unknown format yaml/],
+      [{ shelf: { ...shelf, extensions: [] } }, /no extension/],
+      [
+        { shelf: { ...shelf, extensions: ['shelf'] } },
+        /shelf is not an extension/,
+      ],
+      [
+        { shelf: { ...shelf, extensions: ['.Shelf'] } },
+        /\.Shelf is not an extension/,
+      ],
+      [
+        { shelf: { ...shelf, extensions: ['.json'] } },
+        /\.json opens a piStar model/,
+      ],
+      [
+        { shelf: { ...shelf, extensions: ['.txt'] } },
+        /\.txt opens a piStar model/,
+      ],
+      [
+        { shelf, other: { ...shelf, extensions: ['.shelfx'] } },
+        /native file other: \.shelfx is native file shelf’s too/,
+      ],
+      [
+        { shelf: { ...shelf, schema: { kind: 'dtd', path: 'a.dtd' } } },
+        /unknown schema kind dtd/,
+      ],
+      [
+        { shelf: { ...shelf, schema: { kind: 'langium', path: 'a.langium' } } },
+        /a langium schema describes text, not xmi/,
+      ],
+      [
+        { shelf: { ...shelf, schema: { kind: 'ecore', path: '../a.ecore' } } },
+        /its schema is a file in the engine’s folder/,
+      ],
+      [{ shelf: { ...shelf, read: undefined } }, /read is a function/],
+      [{ shelf: { ...shelf, write: 'yes' } }, /write is a function/],
+      [
+        {
+          shelf: {
+            ...shelf,
+            language: { id: 'shelf', highlight: () => [] },
+          },
+        },
+        /a language is a text format's, not xmi's/,
+      ],
+      [
+        { shelf: { ...shelf, lossy: ['actors..x'] } },
+        /lossy actors\.\.x is not a piStar path/,
+      ],
+      [{ shelf: { ...shelf, lossy: ['display', 'display'] } }, /lossy repeats/],
+    ];
+    for (const [files, why] of failures) expect(withFiles(files)).to.throw(why);
+    // a text format with its language, a reader only
+    expect(
+      withFiles({
+        notes: {
+          label: 'Notes',
+          extensions: ['.notes'],
+          format: 'text',
+          schema: { kind: 'langium', path: 'language/notes.langium' },
+          read,
+          language: { id: 'notes', highlight: () => [] },
+        },
+      }),
+    ).not.to.throw();
+  });
   it('completes from the project resources it declares only', () => {
     const ocl = (candidates: { resource: string; category: string }) =>
       bad(

@@ -10,7 +10,10 @@ import type {
   ProjectResourceParser,
   ResourceDiagnostic,
 } from '../../projectResources';
-import { readXml, type XmlElement } from '../../../formats/xml';
+import {
+  readXml,
+  type XmlElement,
+} from '@goal-controller/goal-language/formats';
 
 export type WorldClass = {
   /** the attributes its entities have, in the order first seen */

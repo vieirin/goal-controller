@@ -14,7 +14,11 @@ import {
   GRL_IMPORTANCES,
   GRL_QUALITATIVE_LABELS,
 } from '../../engines/grl/vocabulary';
-import { readXmi, type XmiNode, type XmiReader } from '../xmi';
+import {
+  readXmi,
+  type XmiNode,
+  type XmiReader,
+} from '@goal-controller/goal-language/formats';
 
 /**
  * IntentionalElementType; `Feature` is the 2014 metamodel's (SmartHome2's),

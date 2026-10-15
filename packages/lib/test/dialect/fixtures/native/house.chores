@@ -1,0 +1,6 @@
+chores "House"
+goal G1 "Clean the house" needs all G2, T3
+goal G2 "Floors done" needs any T1, T2
+task T1 "Sweep" cost 2
+task T2 "Mop" cost 3.5
+task T3 "Dust"

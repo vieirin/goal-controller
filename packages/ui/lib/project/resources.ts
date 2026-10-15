@@ -10,6 +10,7 @@ import {
   type OpenProjectOptions,
   type Project,
 } from './open';
+import { nativeSlots } from './native';
 import { resourceSlots, type ResourceSlot } from './slots';
 import { normalizePath, type ProjectStore } from './store';
 
@@ -75,6 +76,12 @@ export const withProjectResource = (
       projectResources: manifest.projectResources,
       files,
       resources: resourceSlots(manifest, files, promoted.declarations),
+      natives: nativeSlots(
+        manifest,
+        files,
+        promoted.models.map((model) => model.path),
+        promoted.nativeDeclarations,
+      ),
     },
     changes: {
       ...changes,
@@ -93,7 +100,10 @@ export const copyProject = async (
   from: Project,
   to: ProjectStore,
   changes: Readonly<Record<string, string>> = {},
-  options: OpenProjectOptions = { projectResources: () => from.declarations },
+  options: OpenProjectOptions = {
+    projectResources: () => from.declarations,
+    nativeFiles: () => from.nativeDeclarations,
+  },
 ): Promise<Project> => {
   const texts: Record<string, string> = {};
   for (const path of from.files)

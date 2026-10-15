@@ -16,6 +16,7 @@
  */
 const fs = require('fs');
 const { modelText } = require('./projects.cjs');
+const { nativeCheck } = require('../native-column.cjs');
 
 const HEADER_LINES = 4;
 
@@ -58,6 +59,11 @@ const checkSeed = ({ lib, core }, seed) => {
         }
     : { status: 'fail', errors: result.diagnostics.map((d) => d.message) };
   if (!result.model) return { checks, program };
+  checks.native = nativeCheck(lib, lib.istardt, result.model, {
+    modelName: seed.modelName,
+    projectResources: result.dialectRecord.projectResources,
+    options: result.dialectRecord.options,
+  });
 
   if (seed.committed)
     checks.model = !fs.existsSync(seed.model)

@@ -5,6 +5,7 @@ const CHECKS = [
   ['parses', 'Parses'],
   ['roundTrip', 'Round-trip'],
   ['dialectChecks', 'Dialect checks'],
+  ['native', 'Native'],
   ['generates', 'Generates'],
   ['mdp', 'MDP'],
   ['pctl', 'PCTL'],

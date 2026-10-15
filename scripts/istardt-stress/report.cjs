@@ -2,6 +2,8 @@
  * SUMMARY.md: one row per seed, what each check says, and the oracle's
  * utilities (ours, the golden's, dtg2sim's trials for information).
  */
+const { nativeCell } = require('../native-column.cjs');
+
 const ICON = { pass: '✅', fail: '❌', skip: '⏭️' };
 
 /** A table cell: no pipes or line breaks. */
@@ -48,6 +50,7 @@ const HEADERS = [
   'Imported',
   'Model',
   'Checks',
+  'Native',
   'DT-Golog (byte-exact after the header)',
   'Oracle: utility and policy',
   'dtg2sim trials (informational)',
@@ -57,13 +60,14 @@ const markdown = ({ sources, generatedAt, exitCode, oracle, results }) => {
   const rows = results.map((result) => {
     const name = result.committed ? `**${result.seed}**` : result.seed;
     if (result.missing)
-      return [name, `${ICON.skip} ${result.missing}`, '', '', '', '', ''];
+      return [name, `${ICON.skip} ${result.missing}`, '', '', '', '', '', ''];
     const { checks } = result;
     return [
       name,
       importCell(checks.import),
       result.committed ? describe(checks.model) : '',
       checksCell(checks.checks),
+      nativeCell(checks.native),
       dtgologCell(checks.dtgolog),
       oracleCell(checks.oracle),
       trialsCell(result.trials, checks.oracle),

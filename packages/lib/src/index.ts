@@ -249,6 +249,14 @@ export {
 } from './engines/tropos4as';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
+// native files (goal-controller#143): the round-trip contract (the formats
+// they are read and written in are the goal language's:
+// `@goal-controller/goal-language/formats`)
+export {
+  modelRoundTrip,
+  textRoundTrip,
+  type RoundTrip,
+} from './importers/native';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
@@ -274,8 +282,6 @@ export {
 export * from './engines/definitionPool';
 // the pool's protocol (#82): what an engine declares, and poolOf
 export * as pool from './pool';
-// the readers of the formats project resources are written in, with ranges
-export * from './formats';
 export {
   modelDocument,
   modelField,

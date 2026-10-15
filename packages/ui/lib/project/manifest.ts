@@ -13,6 +13,11 @@ export type ModelEntry = {
   dialect?: string;
   /** overrides the project's options for this model, key by key */
   options?: EngineOptions;
+  /**
+   * its native files (goal-controller#143), by the dialect's native file id:
+   * the same model in the dialect's own format, kept 1:1 with it
+   */
+  native?: Readonly<Record<string, string>>;
 };
 
 /** A file an engine produced from a model; a missing one means "not generated yet". */
@@ -93,14 +98,27 @@ const parseVersion = (value: unknown, at: string): 1 => {
   return MANIFEST_VERSION;
 };
 
+const parseNative = (
+  value: unknown,
+  at: string,
+): Record<string, string> | undefined => {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) throw new ManifestError(at, 'expected an object');
+  return Object.fromEntries(
+    Object.entries(value).map(([id, path]) => [id, str(path, `${at}.${id}`)]),
+  );
+};
+
 const parseModelEntry = (value: unknown, at: string): ModelEntry => {
   if (!isRecord(value)) throw new ManifestError(at, 'expected an object');
   const dialect = optionalStr(value.dialect, `${at}.dialect`);
   const options = parseOptions(value.options, `${at}.options`);
+  const native = parseNative(value.native, `${at}.native`);
   return {
     path: str(value.path, `${at}.path`),
     ...(dialect !== undefined && { dialect }),
     ...(options !== undefined && { options }),
+    ...(native !== undefined && { native }),
   };
 };
 
@@ -198,11 +216,12 @@ export const serializeManifest = (manifest: Manifest): string =>
 
 /**
  * The promotion rule: a project needs project.json once it has more than one
- * file (a second model, a project resource or an output); before that its
+ * file (a second model, a native file, a project resource or an output); before that its
  * manifest lives in the model itself.
  */
 export const needsProjectFile = (manifest: Manifest): boolean =>
   manifest.models.length > 1 ||
+  manifest.models.some((model) => Object.keys(model.native ?? {}).length > 0) ||
   Object.values(manifest.projectResources).some((paths) =>
     Array.isArray(paths) ? paths.length > 0 : true,
   ) ||

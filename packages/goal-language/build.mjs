@@ -40,6 +40,16 @@ await build({
   outfile: 'out/cjs/light.cjs',
   external: ['@goal-controller/dialect'],
 });
+// the formats (XML, EMF XMI, JSON, a dialect's own language), for CommonJS
+// consumers (lib's importers, its engines' bundled languages): their
+// Langium is this package's one copy
+await build({
+  ...common,
+  entryPoints: ['src/formats/index.ts'],
+  outfile: 'out/cjs/formats.cjs',
+  external: ['@goal-controller/dialect', '@xml-tools/*', 'zod', 'zod/*'],
+  plugins: [sharedLangium],
+});
 // the language server's services, for CommonJS tests (the worker is ESM, for browsers)
 await build({
   ...common,

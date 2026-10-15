@@ -1,0 +1,12 @@
+{
+  "projectName": "Chores",
+  "languages": [
+    {
+      "id": "chores",
+      "grammar": "chores.langium",
+      "fileExtensions": [".chores"]
+    }
+  ],
+  "out": "generated",
+  "importExtension": ""
+}

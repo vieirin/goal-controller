@@ -9,25 +9,21 @@
     "goal-controller-cli": "out/cli.js"
   },
   "scripts": {
-    "build": "rm -rf out tsconfig.tsbuildinfo && tsc && node build.mjs",
+    "build": "rm -rf out tsconfig.tsbuildinfo && node scripts/langium-generate.mjs && tsc && node build.mjs",
     "watch": "node build.mjs --watch & tsc --watch",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts",
-    "generate:mutrose": "langium generate --file src/engines/mutrose/language/langium-config.json",
-    "generate:hddl": "langium generate --file src/engines/mutrose/hddl/langium-config.json"
+    "generate": "node scripts/langium-generate.mjs src/engines test/dialect/support"
   },
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
     "@rgrove/parse-xml": "4.2.3",
-    "@xml-tools/ast": "^5.0.6",
-    "@xml-tools/parser": "1.0.12",
     "inquirer": "^12.5.2",
     "jsonc-parser": "^3.3",
-    "langium": "4.4.0",
     "lodash": "^4.17.21",
     "lodash.groupby": "^4.6.0",
     "lodash.mergewith": "^4.6.2",

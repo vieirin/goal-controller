@@ -12,10 +12,12 @@ export * from './recent';
 export * from './zip';
 export * from './archive';
 export * from './slots';
+export * from './native';
 export * from './resources';
 export * from './outputs';
 export * from './handles';
 export { fileStore } from './stores/file';
+export { memoryStore } from './stores/memory';
 export {
   directoryStore,
   type DirectoryHandleLike,

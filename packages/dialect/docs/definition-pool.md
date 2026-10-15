@@ -16,7 +16,8 @@ references with ranges, and may check what spans them.
 | --- | --- |
 | `lib/src/engines/definitionPool/` | the core: `definePool`, `createPool`, the services |
 | `lib/src/providers/` | providers no engine owns, any engine may register: HDDL's |
-| `lib/src/formats/` | the readers of the formats resources are written in, with ranges: XML, JSON, HDDL's s-expressions |
+| `goal-language/src/formats/` | the readers of the formats files are written in, with ranges: XML, JSON (`@goal-controller/goal-language/formats`) |
+| `lib/src/engines/mutrose/projectResources/sexpressions.ts` | HDDL's s-expressions, with ranges: MutRoSe's |
 | `lib/src/engines/mutrose/pool/` | MutRoSe's providers and its cross-file checks ([mutrose.md](mutrose.md)) |
 | `ui/lib/workbench/poolSupport.ts` | a pool as a language service, in every tab |
 | `ui/lib/workbench/poolDocuments.ts` | the pool's documents in the workbench: the Notation view ↔ model fields, a rename applied |
@@ -154,7 +155,7 @@ shown (`useProjectWorkspace`).
 - per-document rebuilds;
 - every service;
 - the registry service, and the Notation ↔ field mapping;
-- the format readers in `lib/src/formats/` (XML, JSON and HDDL, with ranges);
+- the format readers in `goal-language/src/formats/` (XML and JSON, with ranges);
 - the HDDL provider (`lib/src/providers/`).
 
 **MutRoSe-specific (`engines/mutrose/pool/`):**

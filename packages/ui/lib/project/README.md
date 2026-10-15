@@ -242,6 +242,52 @@ used; `memoryHandles()` in tests. `rememberDirectory` keeps one;
 `reopenDirectory` gives a Recent entry's folder back (null when the browser
 forgot it).
 
+## Native files (goal-controller#143)
+
+A dialect may declare **native files** (`nativeFiles`, its own formats:
+[importers.md](../../../dialect/docs/importers.md)). A model's native file is
+the same model in that format, kept 1:1 with its piStar file (`native.ts`):
+
+- **Where.** Beside the model, listed under it in project.json
+  (`"models": [{ "path": "home.txt", "native": { "jucm": "home.jucm" } }]`);
+  one the manifest doesn't list is found at the model's name with one of
+  the format's extensions (`nativeSlots`). A model with a native file needs
+  project.json (`needsProjectFile`). The archive carries it like any file.
+- **Opening one** (`nativeProjectFiles`): the dialect's `read` gives the
+  model, written beside it as `<name>.txt` (the workbench's model files),
+  the reader's project resources at their paths, and project.json listing
+  the model with its native file, the dialect and the reader's options. The
+  workbench writes them into a new browser project (`importFiles`, as an
+  archive is imported; in memory where the browser has no private file
+  system).
+- **The sync rule.** A native file is **in sync** when it reads to the
+  model but for what its format can't carry (`lossy`) and the workbench's
+  own keys (`nativeSync`). The piStar model is the canonical one. Order
+  counts, but in the links and the dependencies (`UNORDERED_LISTS`): a
+  file that lists the actors or their elements in another order is out of
+  sync.
+  - A file its dialect **writes** follows the model: once the model is
+    edited, the file is written from it again (`writeNative`), once per
+    model text (an undo writes it back); its tab is read only. It is saved
+    where the project can be written, as a resource's edit is (a read-only
+    project keeps it in memory, exported and copied with the model). The
+    workbench keeps an edited model in Recent, not in the project's files:
+    reopened from Recent, the model is the edited one and the file reads
+    to it; opened afresh, the model is the one on disk, so the file (newer)
+    is out of sync, and **Re-import** brings the edits back. Before the file is checked it is never written, so
+    a file in sync keeps its bytes. A model it can't write leaves the
+    file as it was, and says why; what writing it said is a problem too.
+    The workbench's steps are `lib/workbench/nativeFiles.ts`'s
+    (`checkNatives`, `nativeStates`, `followed`), tracked per store.
+  - A file that **isn't in sync when the project opens** (or doesn't read)
+    is held as it is, never overwritten, until one of two actions: write it
+    from the model again (**Regenerate**), or read the model from it
+    (**Re-import**, an edit of the model, undoable). There is no merge.
+  - A file its dialect **only reads** (an importer) is edited in its tab;
+    when it no longer reads to the model, **Re-import** is the action.
+  - A project without a native file never gets one by itself: a dialect's
+    writer writes the files the project has.
+
 ## Stages (issue #25)
 
 1. Project over a single file (this module, the workbench reading its model
