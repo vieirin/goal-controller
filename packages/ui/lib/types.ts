@@ -3,7 +3,8 @@ import type { GodaVariant } from '@goal-controller/lib';
 /**
  * The one spelling of engine names used across the UI and its API:
  * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec', 'mutrose', 'goda' and
- * 'grl' (an analysis engine: it evaluates, it generates no file).
+ * 'grl' (an analysis engine: it evaluates, it generates no file) and
+ * 'istardt' (iStar-DT: DT-Golog).
  */
 export type TransformEngine =
   | 'edge'
@@ -11,7 +12,8 @@ export type TransformEngine =
   | 'sleec'
   | 'mutrose'
   | 'goda'
-  | 'grl';
+  | 'grl'
+  | 'istardt';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
@@ -26,6 +28,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'mutrose',
   'goda',
   'grl',
+  'istardt',
 ];
 
 export const isTransformEngine = (

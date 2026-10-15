@@ -13,6 +13,7 @@ import(text) → {
   dialectRecord: {
     engine,                      // recorded as the model's diagram.customProperties.engine
     projectResources,            // each project resource kind's files, by path
+    options?,                    // the engine's options the source sets (a project's manifest keeps them)
   } | null,
   diagnostics: { severity: 'error' | 'warning' | 'info', message }[],
 }
@@ -81,3 +82,23 @@ node types to piStar.
 **Not in scope:**
 - the round trip: there is no export to `.jucm`;
 - Z.151 (`.z151`, the standard's XML), which is still open ([grl.md](grl.md)).
+
+## iStarDT-X (iStar-DT): `importers/istardt`
+
+`importIstardt(text, { modelName })` reads cmg-york/istardt's iStarDT-X
+(`.istardt`, `.istardtx`) with lib's XML reader into a model in the
+iStar-DT dialect ([istardt.md](istardt.md), #119):
+
+- The one actor's goals, tasks, effects, qualities, condition boxes, predicates and variables, numbered by kind in the file's order (`G1`, `T1`, `Q1`, `E1`, `C1`, `P1`, `V1`): the file has names, not ids. An element's name is its description; `identifier` keeps the file's name where it isn't the camelCase of that name (#117 D1). A second actor is left out, with a warning.
+- The file's names as the piStar ids (G1 and the like are the texts' ids).
+- Refinements; each task's effect group, its effects linked from it with their probabilities; turns-true and turns-false links to the predicates; `pre`/`npr` as precedence links (a `pre` that is a formula becomes a condition the importer names, with an info); a quality that is a weighted sum as its utility links, as mx2dtx's diagrams draw them.
+- Formulas as the goal language's texts, in the operand order the translator's xmlparser (Jackson) reads them in.
+- The sets as the actor's ordered lists, a continuous export's bounds on its element.
+- The header in `diagram.customProperties`, the options in `dialectRecord.options`.
+- No positions: the file has none, so the whole model is laid out by the layout above.
+- What a file names and doesn't declare is a warning.
+- **In the workbench:** opening or dropping a `.istardt`/`.istardtx` file imports it (lib's `FILE_IMPORTERS`, by extension) and opens the model as `<name>.txt`; a file it can't read is refused with its errors. `.jucm` isn't listed yet: its strategies are a project resource, which a lone model can't carry.
+
+**Not in scope:**
+- the round trip: there is no export to iStarDT-X;
+- mx2dtx's `.drawio` (positions, iStarDT-V's shapes), which is still open ([istardt.md](istardt.md)).

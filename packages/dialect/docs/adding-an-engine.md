@@ -709,6 +709,10 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/goda/` and `ui/components/workbench/engines/goda/`: a notation engine whose output is eight files (an MDP, four PCTL properties, two parametric formulas and a script), proved byte for byte against upstream's references for AND and OR. It needed variadic calls (`DM(…)`), a leaf's bracket as its cost, `TX` ids, ids scoped by their goal, spaces in brackets ignored, and conditions with a prefix and decimals. [goda.md](goda.md) lists what fit, what grew, the divergences from upstream, and what is still open.
 
+### 7.5 iStar-DT (an importer without a diagram, an extension's kinds, a solver as oracle)
+
+`lib/src/engines/istardt/`, `lib/src/importers/istardt/` and `ui/components/workbench/engines/istardt/`: an engine whose kinds are mostly its extension's (effects, conditions, predicates, variables), whose source has no diagram, and whose output (DT-Golog) is proved byte for byte against upstream's nine golden files and run by DT-Golog itself in Docker. It reads its links and the actor's sets from piStar (#125 moves them to the IR), and checks what crosses its extension's kinds as the model's problems, since an extension's kinds can't declare properties yet. [istardt.md](istardt.md) lists what fit, what it worked around, the divergences from upstream, and what is still open.
+
 ## 8. Options summary
 
 | Decision                    | Options                                                                      | Pick when                                                                                                             |

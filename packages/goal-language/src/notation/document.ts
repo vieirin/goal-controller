@@ -484,14 +484,20 @@ export const contextFromView = (
 ): DefinitionContext => {
   const names = lineNames(definition, tree);
   // the kinds it lists, and its extension's it reads (goal-controller#132:
-  // given properties, or named by a reference)
+  // given properties, or named by a reference); an iStar kind it gives
+  // properties without listing it too, so a link line can name one
   const read = new Set(extensionKindsRead(definition));
+  const properties = definition.properties as Readonly<
+    Partial<Record<string, readonly unknown[]>>
+  >;
   return {
     elements: Object.fromEntries(
       [...tree.nodes]
         .filter(
           ([, node]) =>
-            definition.elements[node.kind] !== undefined || read.has(node.kind),
+            definition.elements[node.kind] !== undefined ||
+            read.has(node.kind) ||
+            (properties[node.kind]?.length ?? 0) > 0,
         )
         .map(([key, node]) => [
           key,
