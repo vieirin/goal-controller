@@ -3,7 +3,9 @@
  * Analyse control runs, and how a result is drawn. The values go to the
  * canvas as istar-ts host diagnostics, keyed by the element's or actor's
  * piStar id, `info` (or the value's own severity) with the value as the
- * message: istar-ts 0.12 badges elements, actors and links with them. Nothing
+ * message: istar-ts 0.12 badges elements, actors and links with them. A
+ * case that is a selection (a variant, goal-controller#152) dims the rest
+ * of the diagram, and the case picker searches a run's many cases. Nothing
  * runs without a click, and results are never written to the model file.
  */
 import type { GoalDiagnostic } from '@istar-ts/core';
@@ -59,6 +61,65 @@ export const analysisDiagnostics = (
       };
     },
   );
+};
+
+/** The attribute the canvas's container has while a selection is drawn (goal-controller#152). */
+export const SELECTION_ATTRIBUTE = 'data-analysis-selection';
+
+/** An id as a CSS string, for an attribute selector. */
+const cssString = (id: string) => `"${id.replace(/["\\]/g, '\\$&')}"`;
+
+/**
+ * How the canvas draws a case that is a selection (goal-controller#152): a
+ * stylesheet, under the container's SELECTION_ATTRIBUTE, that dims every
+ * element and link the case doesn't select (its actors stay); null for a
+ * case without one. The diagram's nodes and edges carry their piStar ids
+ * (React Flow's `data-id`).
+ */
+export const selectionStyle = (
+  analysisCase: AnalysisCase | undefined,
+): string | null => {
+  if (!analysisCase?.selection) return null;
+  const scope = `[${SELECTION_ATTRIBUTE}]`;
+  const all = `${scope} .react-flow__node.istar-node-element, ${scope} .react-flow__edge`;
+  const kept = analysisCase.selection
+    .flatMap((id) => [
+      `${scope} .react-flow__node[data-id=${cssString(id)}]`,
+      `${scope} .react-flow__edge[data-id=${cssString(id)}]`,
+    ])
+    .join(', ');
+  return `${all} { opacity: 0.25; }${kept ? `\n${kept} { opacity: 1; }` : ''}`;
+};
+
+/** How many cases the picker lists at once: a run may have thousands (variants). */
+export const PICKED_CASES = 100;
+
+/** A case as the picker lists it: its label, and its summary after it. */
+export const caseText = (analysisCase: AnalysisCase): string =>
+  analysisCase.summary
+    ? `${analysisCase.label} — ${analysisCase.summary}`
+    : analysisCase.label;
+
+/**
+ * The cases the picker lists for what is typed in its search (every word,
+ * in the label or the summary, any case), at most PICKED_CASES, and how many
+ * match; the case shown is listed too, first, when it doesn't match.
+ */
+export const pickableCases = (
+  cases: readonly AnalysisCase[],
+  query: string,
+  shown?: AnalysisCase,
+): { cases: AnalysisCase[]; matching: number } => {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const matching = cases.filter((c) => {
+    const text = caseText(c).toLowerCase();
+    return words.every((word) => text.includes(word));
+  });
+  const listed = matching.slice(0, PICKED_CASES);
+  return {
+    cases: shown && !listed.includes(shown) ? [shown, ...listed] : listed,
+    matching: matching.length,
+  };
 };
 
 /** The step control's model: the shown case's step, of how many, its label (null: no steps). */

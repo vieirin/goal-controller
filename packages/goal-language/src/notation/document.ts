@@ -490,19 +490,33 @@ export const contextFromView = (
   const names = lineNames(definition, tree);
   // the kinds it lists, and its extension's it reads (goal-controller#132:
   // given properties, or named by a reference); an iStar kind it gives
-  // properties without listing it too, so a link line can name one
+  // properties without listing it too; and whatever a link line names, a
+  // quality or a dependum (goal-controller#152)
   const read = new Set(extensionKindsRead(definition));
   const properties = definition.properties as Readonly<
     Partial<Record<string, readonly unknown[]>>
   >;
+  const linked = new Set(
+    linkLinesOf(definition)
+      ? (tree.links ?? [])
+          .filter((link) => linkPropertiesOf(definition, link.kind).length > 0)
+          .map((link) => link.target)
+      : [],
+  );
   return {
     elements: Object.fromEntries(
-      [...tree.nodes]
+      [
+        ...tree.nodes,
+        ...[...(tree.dependums ?? [])].filter(
+          ([key]) => linked.has(key) && !tree.nodes.has(key),
+        ),
+      ]
         .filter(
-          ([, node]) =>
+          ([key, node]) =>
             definition.elements[node.kind] !== undefined ||
             read.has(node.kind) ||
-            (properties[node.kind]?.length ?? 0) > 0,
+            (properties[node.kind]?.length ?? 0) > 0 ||
+            linked.has(key),
         )
         .map(([key, node]) => [
           key,

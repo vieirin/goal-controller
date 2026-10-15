@@ -15,8 +15,6 @@ import { forceLinting, linter } from '@codemirror/lint';
 import type { Extension } from '@codemirror/state';
 import { ViewPlugin, type EditorView } from '@codemirror/view';
 import {
-  propertyOf,
-  valueOf,
   type DefinitionContext,
   type AnyDialect,
   type CheckNameOf,
@@ -27,6 +25,7 @@ import {
   documentDiagnostics,
   fieldCompletions,
   fieldDiagnostics,
+  fieldPropertyOf,
   type CompletionResult as DefinitionCompletions,
   type Diagnostic as LanguageDiagnostic,
   type RunCheck,
@@ -163,15 +162,13 @@ export const localLanguageSupport = <D extends AnyDialect>(
       }),
     ],
     fieldExtension: (elementId, key) => {
-      const element = () => context.elements[elementId];
-      const value = () => {
-        const kind = element()?.kind;
-        const property = kind && propertyOf(definition, kind, key);
-        return property
-          ? valueOf(property, element()?.properties ?? {})
-          : undefined;
-      };
-      const initial = value();
+      // an element's, a link's or an actor's (goal-controller#152)
+      const initial = fieldPropertyOf(
+        definition,
+        context,
+        elementId,
+        key,
+      )?.value;
       return [
         initial ? valueLanguage(initial) : [],
         lintWith(fieldUri(elementId, key), (view) =>

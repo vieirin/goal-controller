@@ -4,8 +4,10 @@
  * A link's or an actor's properties (goal-controller#107), edited as an
  * element's are: the rows the dialect declares for its kind (`links`,
  * `actors`), each with the input its value type gives and the engine check
- * it names. Shown when the diagram selects a link or an actor in a dialect
- * that gives them properties.
+ * it names; a value in the engine's value language (an assertion) in its
+ * one-line editor, with completion and lint (goal-controller#152). Shown
+ * when the diagram selects a link or an actor in a dialect that gives them
+ * properties.
  */
 import {
   actorSpecsFromDefinition,
@@ -13,7 +15,10 @@ import {
   linkSpecsOfKind,
   type PropertySpec,
 } from '@goal-controller/dialect';
-import { checkContextOf } from '@goal-controller/goal-language';
+import {
+  checkContextOf,
+  fieldPropertyOf,
+} from '@goal-controller/goal-language';
 import type { Check } from '@goal-controller/lib';
 import { useMemo } from 'react';
 import {
@@ -25,7 +30,15 @@ import { contextOf } from '@/lib/workbench/notationDocument';
 import { setLinkProperty, setNodeProperty } from '@/lib/workbench/pistar';
 import { type SelectedPart, useWorkbench } from '../../WorkbenchContext';
 import { CreatableSelect } from '../../ui';
-import { PropertyRow, useEditModel } from '../shared/inspector';
+import {
+  PropertyRow,
+  useEditModel,
+  type PropertyEditor,
+} from '../shared/inspector';
+import DefinitionValueEditor, {
+  LANGUAGE_VALUES,
+} from './DefinitionValueEditor';
+import { useLanguageSupport } from './useLanguageSupport';
 
 const kindLabel = (kind: string) => kind.replace(/^[^.]+\./, '');
 
@@ -38,6 +51,7 @@ export default function PartInspector({
 }) {
   const wb = useWorkbench();
   const edit = useEditModel();
+  const support = useLanguageSupport(engine);
   const definition = ENGINE_DIALECTS[engine];
   const registry = ENGINE_CHECKS[engine] as Readonly<
     Record<string, Check | undefined>
@@ -58,16 +72,18 @@ export default function PartInspector({
           : actorSpecsFromDefinition(definition, registry, kind),
     [definition, registry, kind, part.type],
   );
-  // a check of a link's or an actor's property is given its id as `self`
-  const checkContext = useMemo(
+  // the model as the language reads it: a check's context (given the link's
+  // or actor's id as `self`), and what a field's value is
+  const model = useMemo(
     () =>
-      checkContextOf(
-        tree
-          ? contextOf(definition, tree, [], wb.projectResources)
-          : { elements: {}, variables: [] },
-        part.id,
-      ),
-    [definition, tree, wb.projectResources, part.id],
+      tree
+        ? contextOf(definition, tree, [], wb.projectResources)
+        : { elements: {}, variables: [] },
+    [definition, tree, wb.projectResources],
+  );
+  const checkContext = useMemo(
+    () => checkContextOf(model, part.id),
+    [model, part.id],
   );
   if (!found) return null;
   const properties = found.properties;
@@ -78,6 +94,21 @@ export default function PartInspector({
         : setNodeProperty(text, part.id, key, value),
     );
   const specOf = (key: string) => specs.find((spec) => spec.key === key);
+  // the keys whose values are written in the engine's value languages
+  const editorFor = (key: string): PropertyEditor | undefined => {
+    const field = fieldPropertyOf(definition, model, part.id, key);
+    if (!field || !LANGUAGE_VALUES.has(field.value.type)) return undefined;
+    return function ValueEditor(props) {
+      return (
+        <DefinitionValueEditor
+          support={support}
+          id={part.id}
+          property={key}
+          {...props}
+        />
+      );
+    };
+  };
   const applies = (key: string) => specOf(key)?.applies?.(properties) ?? true;
   // rows: the declared ones set or needed, in their order; then any other set one
   const keys = [
@@ -136,6 +167,7 @@ export default function PartInspector({
                 notReadBy={
                   spec ? null : `Not read for a ${kindLabel(found.kind)}`
                 }
+                editor={editorFor(key)}
                 onChange={(value) => write(key, value)}
               />
             );

@@ -7,7 +7,6 @@ import {
   relationMismatch,
   valueOf,
   type Severity,
-  type ValueType,
 } from '@goal-controller/dialect';
 import {
   constructHint,
@@ -39,17 +38,10 @@ import {
   useEditModel,
   type PropertyEditor,
 } from '../shared/inspector';
-import DefinitionValueEditor from './DefinitionValueEditor';
+import DefinitionValueEditor, {
+  LANGUAGE_VALUES,
+} from './DefinitionValueEditor';
 import { useLanguageSupport } from './useLanguageSupport';
-
-/** Value configs edited in the engine's value language (one-line editors with its support). */
-const LANGUAGE_VALUES = new Set<ValueType>([
-  'assertion',
-  'expression',
-  'refList',
-  'pairList',
-  'ocl',
-]);
 
 const BUTTON =
   'rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink';
