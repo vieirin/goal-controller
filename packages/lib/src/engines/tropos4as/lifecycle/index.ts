@@ -55,7 +55,7 @@ export const runLifecycleAnalysis = (
         const run = runLifecycle(tropos, scenario);
         return run.steps.map((step, i) => ({
           id: `${scenario.path}#${i + 1}`,
-          label: `${scenario.label} · ${i + 1} ${step.label}`,
+          label: `${scenario.label}, step ${i + 1}: ${step.label}`,
           values: Object.fromEntries([
             ...[...step.goals].map(([id, status]) => [
               tropos.find(id)!.pistarId,

@@ -74,13 +74,13 @@ export type ConditionKey = (typeof CONDITION_KEYS)[number];
 export const GOAL_STATES = ['Suspended', 'AD', 'AU', 'AS', 'AF'] as const;
 export type GoalState = (typeof GOAL_STATES)[number];
 
-/** How a state is shown (Fig. 2's names). */
+/** How a state is shown (§4.1's names). */
 export const STATE_LABELS: Readonly<Record<GoalState, string>> = {
   Suspended: 'suspended',
-  AD: 'active deliberate',
-  AU: 'active undefined',
-  AS: 'active succeeded',
-  AF: 'active failed',
+  AD: 'active-deliberate',
+  AU: 'active-undefined',
+  AS: 'active-success',
+  AF: 'active-failure',
 };
 
 /** §4.1: the transition actions of a condition–action pair. */

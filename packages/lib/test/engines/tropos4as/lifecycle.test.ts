@@ -392,8 +392,12 @@ describe('Tropos4AS: the lifecycle analysis', () => {
     );
     assert.deepStrictEqual(cases[0]!.values.RC, {
       value: 'AU',
-      label: 'active undefined [retryC]',
+      label: 'active-undefined [retryC]',
     });
+    assert.strictEqual(
+      cases[0]!.label,
+      'AAMAS 2009 §5, step 1: DryCleaning succeeds; stubborn dirt remains',
+    );
     assert.deepStrictEqual(cases[1]!.values.RC, {
       value: 'success',
       label: 'dropped: success [drop-successE]',
