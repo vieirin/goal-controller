@@ -1,0 +1,402 @@
+{
+  "actors": [
+    {
+      "id": "actor",
+      "text": "default",
+      "type": "istar.Actor",
+      "customProperties": {
+        "crossRun": "roomTemperature, runningTime, hvacOn",
+        "exported": "hvacOn, roomTemperature, runningTime",
+        "initializations": "roomTemperature:30, runningTime:0"
+      },
+      "nodes": [
+        {
+          "id": "G1",
+          "text": "G1: Control Heater",
+          "type": "istar.Goal",
+          "customProperties": {
+            "root": "true",
+            "episodeLength": "10"
+          },
+          "x": 400,
+          "y": 80
+        },
+        {
+          "id": "T1",
+          "text": "T1: Send On Signal",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 80,
+          "y": 180
+        },
+        {
+          "id": "T2",
+          "text": "T2: Send Off Signal",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 560,
+          "y": 180
+        },
+        {
+          "id": "E1",
+          "text": "E1: signalOnS",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "signalOnS_Eff",
+            "probability": "0.95",
+            "satisfying": "true",
+            "turnsTrue": "signalOnS"
+          },
+          "x": 240,
+          "y": 180
+        },
+        {
+          "id": "E2",
+          "text": "E2: signalOnF",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "signalOnF_Eff",
+            "probability": "0.05",
+            "satisfying": "false",
+            "turnsTrue": "signalOnF"
+          },
+          "x": 400,
+          "y": 180
+        },
+        {
+          "id": "E3",
+          "text": "E3: signalOffS",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "signalOffS_Eff",
+            "probability": "0.95",
+            "satisfying": "true",
+            "turnsTrue": "signalOffS"
+          },
+          "x": 720,
+          "y": 180
+        },
+        {
+          "id": "E4",
+          "text": "E4: signalOffF",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "signalOffF_Eff",
+            "probability": "0.05",
+            "satisfying": "false",
+            "turnsTrue": "signalOffF"
+          },
+          "x": 880,
+          "y": 180
+        },
+        {
+          "id": "Q1",
+          "text": "Q1: Cost",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "0 - 0.06 * runningTime"
+          },
+          "x": 1040,
+          "y": 80
+        },
+        {
+          "id": "Q2",
+          "text": "Q2: Comfort",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "(roomTemperature - 23) * (roomTemperature - 23) * -0.1"
+          },
+          "x": 1200,
+          "y": 80
+        },
+        {
+          "id": "Q3",
+          "text": "Q3: Overall Quality",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "0.3 * cost + 0.7 * comfort",
+            "root": "true"
+          },
+          "x": 1360,
+          "y": 80
+        },
+        {
+          "id": "Q4",
+          "text": "Q4: Room Temperature",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "0.5 + 0.9 * previous(roomTemperature) + hvacOn * (0.05 * previous(roomTemperature) + 1.75)",
+            "exportMin": "-10",
+            "exportMax": "100"
+          },
+          "x": 1520,
+          "y": 80
+        },
+        {
+          "id": "Q5",
+          "text": "Q5: Running Time",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "previous(runningTime) + 10 * hvacOn",
+            "exportMin": "0",
+            "exportMax": "100"
+          },
+          "x": 1680,
+          "y": 80
+        },
+        {
+          "id": "C1",
+          "text": "C1: Condition Box",
+          "type": "istardt.Condition",
+          "customProperties": {
+            "identifier": "hvacOn",
+            "formula": "((previous(hvacOn) & (!(signalOffS))) | signalOnS)"
+          },
+          "x": 1840,
+          "y": 80
+        },
+        {
+          "id": "P1",
+          "text": "P1: signalOnF",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 2000,
+          "y": 80
+        },
+        {
+          "id": "P2",
+          "text": "P2: signalOffF",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 2160,
+          "y": 80
+        },
+        {
+          "id": "P3",
+          "text": "P3: signalOnS",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 2320,
+          "y": 80
+        },
+        {
+          "id": "P4",
+          "text": "P4: signalOffS",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 2480,
+          "y": 80
+        }
+      ],
+      "x": 40,
+      "y": 40
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "T1-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "T1",
+      "target": "G1"
+    },
+    {
+      "id": "T2-OrRefinementLink-G1",
+      "type": "istar.OrRefinementLink",
+      "source": "T2",
+      "target": "G1"
+    },
+    {
+      "id": "T1-EffectLink-E1",
+      "type": "istardt.EffectLink",
+      "source": "T1",
+      "target": "E1"
+    },
+    {
+      "id": "T1-EffectLink-E2",
+      "type": "istardt.EffectLink",
+      "source": "T1",
+      "target": "E2"
+    },
+    {
+      "id": "T2-EffectLink-E3",
+      "type": "istardt.EffectLink",
+      "source": "T2",
+      "target": "E3"
+    },
+    {
+      "id": "T2-EffectLink-E4",
+      "type": "istardt.EffectLink",
+      "source": "T2",
+      "target": "E4"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 2680,
+    "height": 700,
+    "name": "Heating",
+    "customProperties": {
+      "engine": "istardt",
+      "lastUpdated": "Test"
+    }
+  },
+  "metamodel": {
+    "name": "istardt",
+    "elements": [
+      {
+        "kind": "istardt.Effect",
+        "label": "Effect",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 10 2 L 80 2 A 8 8 0 0 1 88 10 L 88 30 A 8 8 0 0 1 80 38 L 10 38 A 8 8 0 0 1 2 30 L 2 10 A 8 8 0 0 1 10 2 Z",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.08,
+          "bottom": 0.1,
+          "left": 0.08
+        }
+      },
+      {
+        "kind": "istardt.Condition",
+        "label": "Condition",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 50
+        },
+        "shape": {
+          "path": "M 2 2 L 84 2 L 98 16 L 98 48 L 2 48 Z M 84 2 L 84 16 L 98 16",
+          "viewBox": "0 0 100 50"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.1,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "istardt.Predicate",
+        "label": "Predicate",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.14,
+          "bottom": 0.1,
+          "left": 0.14
+        }
+      },
+      {
+        "kind": "istardt.Variable",
+        "label": "Variable",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z M 7 11 L 83 11",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.14,
+          "bottom": 0.05,
+          "left": 0.14
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "istardt.EffectLink",
+        "label": "Effect",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istardt.Effect"
+          ],
+          "unique": "any"
+        },
+        "line": {
+          "marker": false
+        }
+      },
+      {
+        "kind": "istardt.PrecedenceLink",
+        "label": "pre",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Condition"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Effect"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "istardt.NegativePrecedenceLink",
+        "label": "npr",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Condition"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Effect"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "istardt.UtilityLink",
+        "label": "Utility",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istar.Quality"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "marker": false
+        }
+      }
+    ]
+  }
+}

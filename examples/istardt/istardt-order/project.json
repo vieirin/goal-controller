@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "dialect": "istardt",
+  "models": [
+    {
+      "path": "Order.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  goal-controller's own iStar-DT model (goal-controller#119): what the
+  nine dtx2dtg fixtures don't have, in one model DT-Golog solves.
+  - an npr link (runSprinkler after the soil is read wet) and an OR
+    sibling's (lookAtPlants, implied: said as info);
+  - a pre that is a formula, not a name (waterByHand's: a condition the
+    importer names), and a pre that names a goal (waterGarden's);
+  - turnsFalse, set, a variable (moisture) read by a condition's
+    comparison and a quality, exported continuous and carried across runs;
+  - a division and a negation in the qualities' formulas;
+  - the gardener's goals and the owner's (reportToOwner) under the one
+    actor iStar-DT has.
+-->
+<iStarDT xmlns="https://example.org/istar-dt-x"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://example.org/istar-dt-x ../xsd/istar_dt_x_schema.xsd">
+
+<header title = "Garden"
+    author = "goal-controller"
+    source = "goal-controller#119"
+    lastUpdated = "2026-10-15">
+</header>
+
+<options continuous = "true"
+    infeasibleActionPenalty = "100">
+</options>
+
+<actors>
+<actor name="gardener" description="The gardener, and the owner's goals they serve">
+
+<goals>
+   <goal name = "tendGarden" description = "Tend Garden" root = "true" terminal = "false" episodeLength = "2">
+      <refinement type = "AND">
+         <childGoal ref = "inspectGarden"/>
+         <childGoal ref = "waterGarden"/>
+         <childGoal ref = "reportToOwner"/>
+      </refinement>
+   </goal>
+   <goal name = "inspectGarden" description = "Inspect Garden" root = "false" terminal = "false" episodeLength = "1">
+      <refinement type = "OR">
+         <childTask ref = "checkSoilSensor"/>
+         <childTask ref = "lookAtPlants"/>
+      </refinement>
+   </goal>
+   <goal name = "waterGarden" description = "Water Garden" root = "false" terminal = "false" episodeLength = "1">
+      <refinement type = "OR">
+         <childTask ref = "waterByHand"/>
+         <childTask ref = "runSprinkler"/>
+      </refinement>
+      <pre>
+         <goalID>inspectGarden</goalID>
+      </pre>
+   </goal>
+   <goal name = "reportToOwner" description = "Report to Owner" root = "false" terminal = "false" episodeLength = "1">
+      <refinement type = "OR">
+         <childTask ref = "sendText"/>
+         <childTask ref = "leaveNote"/>
+      </refinement>
+   </goal>
+</goals>
+
+<tasks>
+   <task name = "checkSoilSensor" description = "Check Soil Sensor">
+      <effectGroup>
+         <effect name = "readDry" description = "Soil read dry" satisfying = "true" probability = "0.6">
+            <turnsTrue>soilDry</turnsTrue>
+            <set><variableID>moisture</variableID><numConst>20</numConst></set>
+         </effect>
+         <effect name = "readWet" description = "Soil read wet" satisfying = "true" probability = "0.3">
+            <turnsTrue>soilWetRead</turnsTrue>
+            <set><variableID>moisture</variableID><numConst>70</numConst></set>
+         </effect>
+         <effect name = "sensorFailed" description = "Sensor failed" satisfying = "false" probability = "0.1">
+            <turnsTrue>sensorBroken</turnsTrue>
+         </effect>
+      </effectGroup>
+   </task>
+   <task name = "lookAtPlants" description = "Look at Plants">
+      <effectGroup>
+         <effect name = "seenWilted" description = "Plants seen wilted" satisfying = "true" probability = "0.5">
+            <turnsTrue>plantsWilted</turnsTrue>
+         </effect>
+         <effect name = "seenFine" description = "Plants seen fine" satisfying = "true" probability = "0.5">
+            <turnsTrue>plantsFine</turnsTrue>
+         </effect>
+      </effectGroup>
+      <npr>
+         <taskID>checkSoilSensor</taskID>
+      </npr>
+   </task>
+   <task name = "waterByHand" description = "Water by Hand">
+      <effectGroup>
+         <effect name = "handWatered" description = "Watered by hand" satisfying = "true" probability = "0.9">
+            <turnsTrue>watered</turnsTrue>
+            <turnsFalse>soilDry</turnsFalse>
+            <set><variableID>moisture</variableID><numConst>60</numConst></set>
+         </effect>
+         <effect name = "spilled" description = "Spilled" satisfying = "false" probability = "0.1">
+            <turnsTrue>spilledWater</turnsTrue>
+         </effect>
+      </effectGroup>
+      <pre>
+         <or>
+            <predicateID>soilDry</predicateID>
+            <predicateID>plantsWilted</predicateID>
+         </or>
+      </pre>
+   </task>
+   <task name = "runSprinkler" description = "Run Sprinkler">
+      <effectGroup>
+         <effect name = "sprinkled" description = "Sprinkled" satisfying = "true" probability = "0.95">
+            <turnsTrue>watered</turnsTrue>
+            <turnsFalse>soilDry</turnsFalse>
+            <turnsFalse>plantsWilted</turnsFalse>
+            <set><variableID>moisture</variableID><numConst>80</numConst></set>
+         </effect>
+         <effect name = "sprinklerJammed" description = "Sprinkler jammed" satisfying = "false" probability = "0.05">
+            <turnsTrue>jammed</turnsTrue>
+         </effect>
+      </effectGroup>
+      <npr>
+         <conditionID>soilWet</conditionID>
+      </npr>
+   </task>
+   <task name = "sendText" description = "Send Text">
+      <effectGroup>
+         <effect name = "textSent" description = "Text sent" satisfying = "true" probability = "0.8">
+            <turnsTrue>ownerInformed</turnsTrue>
+         </effect>
+         <effect name = "lostText" description = "Text lost" satisfying = "false" probability = "0.2">
+            <turnsTrue>textLost</turnsTrue>
+         </effect>
+      </effectGroup>
+   </task>
+   <task name = "leaveNote" description = "Leave Note">
+      <effectGroup>
+         <effect name = "noteLeft" description = "Note left" satisfying = "true" probability = "1.0">
+            <turnsTrue>ownerInformed</turnsTrue>
+         </effect>
+      </effectGroup>
+   </task>
+</tasks>
+
+<qualities>
+   <quality name = "plantHealth" description = "Plant Health" root = "false">
+      <add>
+         <multiply><numConst>1.0</numConst><predicateID>watered</predicateID></multiply>
+         <multiply><numConst>-0.5</numConst><predicateID>plantsWilted</predicateID></multiply>
+         <multiply><numConst>-1.0</numConst><predicateID>jammed</predicateID></multiply>
+         <multiply><numConst>0.2</numConst><conditionID>soilWet</conditionID></multiply>
+      </add>
+   </quality>
+   <quality name = "waterCost" description = "Water Cost" root = "false">
+      <divide>
+         <left><variableID>moisture</variableID></left>
+         <right><numConst>100</numConst></right>
+      </divide>
+   </quality>
+   <quality name = "ownerHappiness" description = "Owner Happiness" root = "false">
+      <add>
+         <multiply><numConst>0.5</numConst><previous><qualID>ownerHappiness</qualID></previous></multiply>
+         <multiply><numConst>0.5</numConst><predicateID>ownerInformed</predicateID></multiply>
+      </add>
+   </quality>
+   <quality name = "overall" description = "Overall" root = "true">
+      <add>
+         <multiply><numConst>0.6</numConst><qualID>plantHealth</qualID></multiply>
+         <multiply><numConst>0.3</numConst><qualID>ownerHappiness</qualID></multiply>
+         <negate><qualID>waterCost</qualID></negate>
+      </add>
+   </quality>
+</qualities>
+
+<condBoxes>
+   <condBox name = "soilWet" description = "Soil is wet">
+      <or>
+         <predicateID>soilWetRead</predicateID>
+         <gt>
+            <left><variableID>moisture</variableID></left>
+            <right><numConst>50</numConst></right>
+         </gt>
+      </or>
+   </condBox>
+</condBoxes>
+
+<initializations>
+      <initialization element = "moisture">40</initialization>
+      <initialization element = "plantHealth">0</initialization>
+      <initialization element = "ownerHappiness">0</initialization>
+</initializations>
+
+<crossRuns>
+      <crossRun><variableID>moisture</variableID></crossRun>
+      <crossRun><qualID>ownerHappiness</qualID></crossRun>
+</crossRuns>
+
+<exportedSet>
+      <export continuous = "false"><goalID>inspectGarden</goalID></export>
+      <export continuous = "false"><predicateID>watered</predicateID></export>
+      <export continuous = "true" minVal = "0" maxVal = "100"><variableID>moisture</variableID></export>
+      <export continuous = "true" minVal = "-2" maxVal = "2"><qualID>plantHealth</qualID></export>
+</exportedSet>
+
+<predicates>
+   <predicate description = "">soilDry</predicate>
+   <predicate description = "">soilWetRead</predicate>
+   <predicate description = "">sensorBroken</predicate>
+   <predicate description = "">plantsWilted</predicate>
+   <predicate description = "">plantsFine</predicate>
+   <predicate description = "">watered</predicate>
+   <predicate description = "">spilledWater</predicate>
+   <predicate description = "">jammed</predicate>
+   <predicate description = "">ownerInformed</predicate>
+   <predicate description = "">textLost</predicate>
+</predicates>
+
+<variables>
+   <variable description = "Soil moisture, %">moisture</variable>
+</variables>
+
+</actor>
+</actors>
+</iStarDT>

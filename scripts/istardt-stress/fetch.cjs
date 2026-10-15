@@ -63,6 +63,43 @@ const ISTARDT = {
     'src/main/java/ca/yorku/cmg/istardt/translators/dtx2dtg/FormulaParser.java',
     'src/main/java/ca/yorku/cmg/istardt/translators/dtx2dtg/Formatter.java',
     'src/main/java/ca/yorku/cmg/istardt/translators/dtx2dtg/PermutationsGenerator.java',
+    'src/test/java/ca/yorku/cmg/istardt/translators/dtx2dtg/End2EndTest.java',
+    // The xmlparser the translator reads with: element order, number
+    // formatting and the formula trees come from here.
+    ...[
+      ...[
+        'Actor',
+        'Atom',
+        'Condition',
+        'DecompositionElement',
+        'Effect',
+        'Element',
+        'Goal',
+        'Model',
+        'NumericConstant',
+        'OperatorDecorator',
+        'Quality',
+        'Task',
+      ].map((name) => `objects/${name}`),
+      ...[
+        'ActorDeserializer',
+        'BaseDeserializer',
+        'ConditionDeserializer',
+        'EffectDeserializer',
+        'FormulaDeserializer',
+        'GoalDeserializer',
+        'ModelDeserializer',
+        'QualityDeserializer',
+        'TaskDeserializer',
+        'VariableDeserializer',
+      ].map((name) => `xml/deserializers/${name}`),
+      'xml/ReferenceResolver',
+      'xml/formula/FormulaNodeVisitorImpl',
+      'xml/processing/ReferenceProcessor',
+      'xml/utils/DeserializerUtils',
+    ].map(
+      (name) => `src/main/java/ca/yorku/cmg/istardt/xmlparser/${name}.java`,
+    ),
     'LICENSE',
   ],
 };

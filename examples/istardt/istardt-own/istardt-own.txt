@@ -1,0 +1,738 @@
+{
+  "actors": [
+    {
+      "id": "actor",
+      "text": "gardener",
+      "type": "istar.Actor",
+      "customProperties": {
+        "Description": "The gardener, and the owner's goals they serve",
+        "crossRun": "moisture, ownerHappiness",
+        "exported": "inspectGarden, watered, moisture, plantHealth",
+        "initializations": "moisture:40, plantHealth:0, ownerHappiness:0"
+      },
+      "nodes": [
+        {
+          "id": "G1",
+          "text": "G1: Tend Garden",
+          "type": "istar.Goal",
+          "customProperties": {
+            "root": "true",
+            "episodeLength": "2"
+          },
+          "x": 1520,
+          "y": 80
+        },
+        {
+          "id": "G2",
+          "text": "G2: Inspect Garden",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 560,
+          "y": 180
+        },
+        {
+          "id": "G3",
+          "text": "G3: Water Garden",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1680,
+          "y": 180
+        },
+        {
+          "id": "G4",
+          "text": "G4: Report to Owner",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2800,
+          "y": 180
+        },
+        {
+          "id": "T1",
+          "text": "T1: Check Soil Sensor",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 80,
+          "y": 280
+        },
+        {
+          "id": "T2",
+          "text": "T2: Look at Plants",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 720,
+          "y": 280
+        },
+        {
+          "id": "T3",
+          "text": "T3: Water by Hand",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 1200,
+          "y": 280
+        },
+        {
+          "id": "T4",
+          "text": "T4: Run Sprinkler",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 1840,
+          "y": 280
+        },
+        {
+          "id": "T5",
+          "text": "T5: Send Text",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 2480,
+          "y": 280
+        },
+        {
+          "id": "T6",
+          "text": "T6: Leave Note",
+          "type": "istar.Task",
+          "customProperties": {},
+          "x": 2960,
+          "y": 280
+        },
+        {
+          "id": "E1",
+          "text": "E1: Soil read dry",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "readDry",
+            "probability": "0.6",
+            "satisfying": "true",
+            "turnsTrue": "soilDry",
+            "set": "moisture:20"
+          },
+          "x": 240,
+          "y": 280
+        },
+        {
+          "id": "E2",
+          "text": "E2: Soil read wet",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "readWet",
+            "probability": "0.3",
+            "satisfying": "true",
+            "turnsTrue": "soilWetRead",
+            "set": "moisture:70"
+          },
+          "x": 400,
+          "y": 280
+        },
+        {
+          "id": "E3",
+          "text": "E3: Sensor failed",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "0.1",
+            "satisfying": "false",
+            "turnsTrue": "sensorBroken"
+          },
+          "x": 560,
+          "y": 280
+        },
+        {
+          "id": "E4",
+          "text": "E4: Plants seen wilted",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "seenWilted",
+            "probability": "0.5",
+            "satisfying": "true",
+            "turnsTrue": "plantsWilted"
+          },
+          "x": 880,
+          "y": 280
+        },
+        {
+          "id": "E5",
+          "text": "E5: Plants seen fine",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "seenFine",
+            "probability": "0.5",
+            "satisfying": "true",
+            "turnsTrue": "plantsFine"
+          },
+          "x": 1040,
+          "y": 280
+        },
+        {
+          "id": "E6",
+          "text": "E6: Watered by hand",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "handWatered",
+            "probability": "0.9",
+            "satisfying": "true",
+            "turnsTrue": "watered",
+            "turnsFalse": "soilDry",
+            "set": "moisture:60"
+          },
+          "x": 1360,
+          "y": 280
+        },
+        {
+          "id": "E7",
+          "text": "E7: Spilled",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "0.1",
+            "satisfying": "false",
+            "turnsTrue": "spilledWater"
+          },
+          "x": 1520,
+          "y": 280
+        },
+        {
+          "id": "E8",
+          "text": "E8: Sprinkled",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "0.95",
+            "satisfying": "true",
+            "turnsTrue": "watered",
+            "turnsFalse": "soilDry, plantsWilted",
+            "set": "moisture:80"
+          },
+          "x": 2000,
+          "y": 280
+        },
+        {
+          "id": "E9",
+          "text": "E9: Sprinkler jammed",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "0.05",
+            "satisfying": "false",
+            "turnsTrue": "jammed"
+          },
+          "x": 2160,
+          "y": 280
+        },
+        {
+          "id": "E10",
+          "text": "E10: Text sent",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "0.8",
+            "satisfying": "true",
+            "turnsTrue": "ownerInformed"
+          },
+          "x": 2640,
+          "y": 280
+        },
+        {
+          "id": "E11",
+          "text": "E11: Text lost",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "lostText",
+            "probability": "0.2",
+            "satisfying": "false",
+            "turnsTrue": "textLost"
+          },
+          "x": 2800,
+          "y": 280
+        },
+        {
+          "id": "E12",
+          "text": "E12: Note left",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "probability": "1.0",
+            "satisfying": "true",
+            "turnsTrue": "ownerInformed"
+          },
+          "x": 3120,
+          "y": 280
+        },
+        {
+          "id": "Q1",
+          "text": "Q1: Plant Health",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "1.0 * watered + -0.5 * plantsWilted + -1.0 * jammed + 0.2 * soilWet",
+            "exportMin": "-2",
+            "exportMax": "2"
+          },
+          "x": 3280,
+          "y": 80
+        },
+        {
+          "id": "Q2",
+          "text": "Q2: Water Cost",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "moisture / 100"
+          },
+          "x": 3440,
+          "y": 80
+        },
+        {
+          "id": "Q3",
+          "text": "Q3: Owner Happiness",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "0.5 * previous(ownerHappiness) + 0.5 * ownerInformed"
+          },
+          "x": 3600,
+          "y": 80
+        },
+        {
+          "id": "Q4",
+          "text": "Q4: Overall",
+          "type": "istar.Quality",
+          "customProperties": {
+            "formula": "0.6 * plantHealth + 0.3 * ownerHappiness + -waterCost",
+            "root": "true"
+          },
+          "x": 3760,
+          "y": 80
+        },
+        {
+          "id": "C1",
+          "text": "C1: Soil is wet",
+          "type": "istardt.Condition",
+          "customProperties": {
+            "identifier": "soilWet",
+            "formula": "(soilWetRead | (moisture > 50))"
+          },
+          "x": 2320,
+          "y": 280
+        },
+        {
+          "id": "P1",
+          "text": "P1: soilDry",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 3920,
+          "y": 80
+        },
+        {
+          "id": "P2",
+          "text": "P2: soilWetRead",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4080,
+          "y": 80
+        },
+        {
+          "id": "P3",
+          "text": "P3: sensorBroken",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4240,
+          "y": 80
+        },
+        {
+          "id": "P4",
+          "text": "P4: plantsWilted",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4400,
+          "y": 80
+        },
+        {
+          "id": "P5",
+          "text": "P5: plantsFine",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4560,
+          "y": 80
+        },
+        {
+          "id": "P6",
+          "text": "P6: watered",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4720,
+          "y": 80
+        },
+        {
+          "id": "P7",
+          "text": "P7: spilledWater",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 4880,
+          "y": 80
+        },
+        {
+          "id": "P8",
+          "text": "P8: jammed",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 5040,
+          "y": 80
+        },
+        {
+          "id": "P9",
+          "text": "P9: ownerInformed",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 5200,
+          "y": 80
+        },
+        {
+          "id": "P10",
+          "text": "P10: textLost",
+          "type": "istardt.Predicate",
+          "customProperties": {},
+          "x": 5360,
+          "y": 80
+        },
+        {
+          "id": "V1",
+          "text": "V1: Soil moisture, %",
+          "type": "istardt.Variable",
+          "customProperties": {
+            "identifier": "moisture",
+            "exportMin": "0",
+            "exportMax": "100"
+          },
+          "x": 5520,
+          "y": 80
+        },
+        {
+          "id": "C2",
+          "text": "C2: waterByHandPre",
+          "type": "istardt.Condition",
+          "customProperties": {
+            "formula": "(soilDry | plantsWilted)"
+          },
+          "x": 1680,
+          "y": 280
+        }
+      ],
+      "x": 40,
+      "y": 40
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "G2-AndRefinementLink-G1",
+      "type": "istar.AndRefinementLink",
+      "source": "G2",
+      "target": "G1"
+    },
+    {
+      "id": "G3-AndRefinementLink-G1",
+      "type": "istar.AndRefinementLink",
+      "source": "G3",
+      "target": "G1"
+    },
+    {
+      "id": "G4-AndRefinementLink-G1",
+      "type": "istar.AndRefinementLink",
+      "source": "G4",
+      "target": "G1"
+    },
+    {
+      "id": "T1-OrRefinementLink-G2",
+      "type": "istar.OrRefinementLink",
+      "source": "T1",
+      "target": "G2"
+    },
+    {
+      "id": "T2-OrRefinementLink-G2",
+      "type": "istar.OrRefinementLink",
+      "source": "T2",
+      "target": "G2"
+    },
+    {
+      "id": "T3-OrRefinementLink-G3",
+      "type": "istar.OrRefinementLink",
+      "source": "T3",
+      "target": "G3"
+    },
+    {
+      "id": "T4-OrRefinementLink-G3",
+      "type": "istar.OrRefinementLink",
+      "source": "T4",
+      "target": "G3"
+    },
+    {
+      "id": "T5-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T5",
+      "target": "G4"
+    },
+    {
+      "id": "T6-OrRefinementLink-G4",
+      "type": "istar.OrRefinementLink",
+      "source": "T6",
+      "target": "G4"
+    },
+    {
+      "id": "T1-EffectLink-E1",
+      "type": "istardt.EffectLink",
+      "source": "T1",
+      "target": "E1"
+    },
+    {
+      "id": "T1-EffectLink-E2",
+      "type": "istardt.EffectLink",
+      "source": "T1",
+      "target": "E2"
+    },
+    {
+      "id": "T1-EffectLink-E3",
+      "type": "istardt.EffectLink",
+      "source": "T1",
+      "target": "E3"
+    },
+    {
+      "id": "T2-EffectLink-E4",
+      "type": "istardt.EffectLink",
+      "source": "T2",
+      "target": "E4"
+    },
+    {
+      "id": "T2-EffectLink-E5",
+      "type": "istardt.EffectLink",
+      "source": "T2",
+      "target": "E5"
+    },
+    {
+      "id": "T3-EffectLink-E6",
+      "type": "istardt.EffectLink",
+      "source": "T3",
+      "target": "E6"
+    },
+    {
+      "id": "T3-EffectLink-E7",
+      "type": "istardt.EffectLink",
+      "source": "T3",
+      "target": "E7"
+    },
+    {
+      "id": "T4-EffectLink-E8",
+      "type": "istardt.EffectLink",
+      "source": "T4",
+      "target": "E8"
+    },
+    {
+      "id": "T4-EffectLink-E9",
+      "type": "istardt.EffectLink",
+      "source": "T4",
+      "target": "E9"
+    },
+    {
+      "id": "T5-EffectLink-E10",
+      "type": "istardt.EffectLink",
+      "source": "T5",
+      "target": "E10"
+    },
+    {
+      "id": "T5-EffectLink-E11",
+      "type": "istardt.EffectLink",
+      "source": "T5",
+      "target": "E11"
+    },
+    {
+      "id": "T6-EffectLink-E12",
+      "type": "istardt.EffectLink",
+      "source": "T6",
+      "target": "E12"
+    },
+    {
+      "id": "G2-PrecedenceLink-G3",
+      "type": "istardt.PrecedenceLink",
+      "source": "G2",
+      "target": "G3"
+    },
+    {
+      "id": "T1-NegativePrecedenceLink-T2",
+      "type": "istardt.NegativePrecedenceLink",
+      "source": "T1",
+      "target": "T2"
+    },
+    {
+      "id": "C2-PrecedenceLink-T3",
+      "type": "istardt.PrecedenceLink",
+      "source": "C2",
+      "target": "T3"
+    },
+    {
+      "id": "C1-NegativePrecedenceLink-T4",
+      "type": "istardt.NegativePrecedenceLink",
+      "source": "C1",
+      "target": "T4"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 5720,
+    "height": 700,
+    "name": "Garden",
+    "customProperties": {
+      "engine": "istardt",
+      "title": "Garden",
+      "author": "goal-controller",
+      "source": "goal-controller#119",
+      "lastUpdated": "2026-10-15"
+    }
+  },
+  "metamodel": {
+    "name": "istardt",
+    "elements": [
+      {
+        "kind": "istardt.Effect",
+        "label": "Effect",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 10 2 L 80 2 A 8 8 0 0 1 88 10 L 88 30 A 8 8 0 0 1 80 38 L 10 38 A 8 8 0 0 1 2 30 L 2 10 A 8 8 0 0 1 10 2 Z",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.08,
+          "bottom": 0.1,
+          "left": 0.08
+        }
+      },
+      {
+        "kind": "istardt.Condition",
+        "label": "Condition",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 50
+        },
+        "shape": {
+          "path": "M 2 2 L 84 2 L 98 16 L 98 48 L 2 48 Z M 84 2 L 84 16 L 98 16",
+          "viewBox": "0 0 100 50"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.1,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "istardt.Predicate",
+        "label": "Predicate",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.14,
+          "bottom": 0.1,
+          "left": 0.14
+        }
+      },
+      {
+        "kind": "istardt.Variable",
+        "label": "Variable",
+        "category": "node",
+        "size": {
+          "width": 90,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z M 7 11 L 83 11",
+          "viewBox": "0 0 90 40"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.14,
+          "bottom": 0.05,
+          "left": 0.14
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "istardt.EffectLink",
+        "label": "Effect",
+        "rules": {
+          "sources": [
+            "istar.Task"
+          ],
+          "targets": [
+            "istardt.Effect"
+          ],
+          "unique": "any"
+        },
+        "line": {
+          "marker": false
+        }
+      },
+      {
+        "kind": "istardt.PrecedenceLink",
+        "label": "pre",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Condition"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Effect"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "istardt.NegativePrecedenceLink",
+        "label": "npr",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Condition"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Task",
+            "istardt.Effect"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "istardt.UtilityLink",
+        "label": "Utility",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istar.Quality"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "marker": false
+        }
+      }
+    ]
+  }
+}

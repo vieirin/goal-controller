@@ -891,6 +891,64 @@
     "outputs": []
   },
   {
+    "path": "istardt/istardt-heating",
+    "group": "istardt",
+    "name": "istardt-heating",
+    "form": "file",
+    "dialect": "istardt",
+    "root": "istardt/istardt-heating",
+    "files": [
+      "3.2.Heating_10R_Mixed.istardtx",
+      "Heating.txt",
+      "LICENSE-LGPL-2.1",
+      "README.md",
+      "project.json",
+      "reference/Heating.pl",
+      "reference/utility.txt"
+    ],
+    "models": ["Heating.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "istardt/istardt-order",
+    "group": "istardt",
+    "name": "istardt-order",
+    "form": "file",
+    "dialect": "istardt",
+    "root": "istardt/istardt-order",
+    "files": [
+      "1.Order.istardtx",
+      "LICENSE-LGPL-2.1",
+      "Order.txt",
+      "README.md",
+      "project.json",
+      "reference/Order.pl",
+      "reference/utility.txt"
+    ],
+    "models": ["Order.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "istardt/istardt-own",
+    "group": "istardt",
+    "name": "istardt-own",
+    "form": "file",
+    "dialect": "istardt",
+    "root": "istardt/istardt-own",
+    "files": [
+      "README.md",
+      "istardt-own.istardtx",
+      "istardt-own.txt",
+      "project.json",
+      "reference/utility.txt"
+    ],
+    "models": ["istardt-own.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "mutrose/lab-sample-logistics",
     "group": "mutrose",
     "name": "lab-sample-logistics",
