@@ -911,6 +911,7 @@
     "root": "tropos4as/cleaner-agent",
     "files": [
       "README.md",
+      "cleaner-agent.tropos",
       "cleaner-agent.txt",
       "project.json",
       "reference/trace-all-fail.txt",
@@ -933,6 +934,7 @@
     "root": "tropos4as/patient-monitoring",
     "files": [
       "README.md",
+      "patient-monitoring.tropos",
       "patient-monitoring.txt",
       "project.json",
       "reference/trace-a-day.txt",

@@ -3,11 +3,17 @@
   "dialect": "tropos4as",
   "models": [
     {
-      "path": "cleaner-agent.txt"
+      "path": "cleaner-agent.txt",
+      "native": {
+        "tropos": "cleaner-agent.tropos"
+      }
     }
   ],
   "projectResources": {
-    "scenarios": ["scenarios/all-fail.json", "scenarios/paper.json"]
+    "scenarios": [
+      "scenarios/all-fail.json",
+      "scenarios/paper.json"
+    ]
   },
   "outputs": []
 }

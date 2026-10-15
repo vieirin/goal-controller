@@ -248,6 +248,23 @@ const checkSeed = (dir) => {
     JSON.parse(fs.readFileSync(file, 'utf8')),
     { modelName: path.basename(dir) },
   );
+  // the native files the project ships: each what the writer writes now
+  // (#144), so a seed never drifts from its writer
+  const shipped = Object.entries(project.models[0].native ?? {});
+  if (checks.native.status === 'pass')
+    for (const [id, shippedPath] of shipped) {
+      const at = path.join(dir, shippedPath);
+      const committed = fs.existsSync(at) ? fs.readFileSync(at, 'utf8') : null;
+      if (committed !== checks.native.written[id])
+        Object.assign(checks.native, {
+          status: 'fail',
+          error:
+            committed === null
+              ? `${shippedPath} is listed but missing`
+              : `${shippedPath} isn't what the writer writes now: regenerate it`,
+        });
+    }
+  checks.native.shipped = shipped.map(([, shippedPath]) => shippedPath);
   const { scenarios, diagnostics } = lib.readTropos4asScenarios(files);
   if (diagnostics.length)
     checks.scenarios = {
@@ -320,7 +337,10 @@ const markdown = (results, godaTwin) =>
         checks.importer?.status === 'pass'
           ? `${ICON.pass} unverified twin: ${checks.importer.elements} elements, ${checks.importer.links} links carried${checks.importer.warnings ? `, ${checks.importer.warnings} warning(s)` : ''}`
           : describe(checks.importer);
-      const native = nativeCell(checks.native);
+      const native =
+        checks.native?.status === 'pass' && checks.native.shipped?.length
+          ? `${nativeCell(checks.native)}; ${checks.native.shipped.join(', ')} as written`
+          : nativeCell(checks.native);
       return (
         scenarios.length ? scenarios : [{ scenario: '', trace: null }]
       ).map(

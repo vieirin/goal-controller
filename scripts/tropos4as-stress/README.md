@@ -44,7 +44,7 @@ Tropos4AS tool survives, goal-controller#134):
   is read as GODA's, and the GODA engine generates from it what it does from
   `dm2.txt`, file for file (#134 D1.3).
 
-- **native**: the seed through Tropos4AS's native file, `.tropos` (#144 item 3): written and read back, it is the model but for `lossy` (the shared `nativeCheck`). The GODA twin's row checks the same, and that the model read back still generates `dm2.txt`'s files through the GODA engine. Unverified against TAOM4E: no tool can re-read the file.
+- **native**: the seed through Tropos4AS's native file, `.tropos` (#144 item 3): written and read back, it is the model but for `lossy` (the shared `nativeCheck`). A `.tropos` the seed ships (`models[].native` in its `project.json`) must be byte for byte what the writer writes now. The GODA twin's row checks the same, and that the model read back still generates `dm2.txt`'s files through the GODA engine. Unverified against TAOM4E: no tool can re-read the file.
 
 Results go to `.cache/tropos4as/results/`: `SUMMARY.md` (a row per seed and
 scenario, and the GODA twin's), one JSON per seed and `goda-twin.json`.
