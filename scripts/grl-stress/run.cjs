@@ -40,13 +40,17 @@ const load = () => ({
   ),
 });
 
-/** Whether a seed's result fails: a check of it, or of a strategy's run. */
+/**
+ * Whether a seed's result fails: a check of it, or of a strategy's run; a
+ * committed seed that is missing fails too (a fetched one is skipped).
+ */
 const failed = (result) =>
-  !result.missing &&
-  (Object.values(result.checks).some((check) => check.status === 'fail') ||
-    result.strategies.some((strategy) =>
-      Object.values(strategy.runs).some((run) => run.status === 'fail'),
-    ));
+  result.missing
+    ? result.committed
+    : Object.values(result.checks).some((check) => check.status === 'fail') ||
+      result.strategies.some((strategy) =>
+        Object.values(strategy.runs).some((run) => run.status === 'fail'),
+      );
 
 const main = async () => {
   const args = new Set(process.argv.slice(2));

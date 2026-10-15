@@ -138,6 +138,85 @@ describe('GRL strategies (the strategies resource)', () => {
       ],
     );
   });
+
+  it('gives a label alone its value, Conflict and Unknown their sentinels', () => {
+    const evaluations = (range: string) => {
+      const { strategies, diagnostics } = readStrategies([
+        file({
+          group: 'G',
+          preferences: { range },
+          strategies: [
+            {
+              id: 'a',
+              evaluations: {
+                s: { label: 'Satisfied' },
+                w: { label: 'WeaklyDenied' },
+                c: { label: 'Conflict' },
+                u: { value: -102, label: 'Unknown' },
+              },
+            },
+          ],
+        }),
+      ]);
+      assert.deepStrictEqual(diagnostics, []);
+      return [...strategies[0]!.evaluations].map(([id, e]) => [id, e.value]);
+    };
+    assert.deepStrictEqual(evaluations('full'), [
+      ['s', 100],
+      ['w', -50],
+      ['c', -101],
+      ['u', -102],
+    ]);
+    assert.deepStrictEqual(evaluations('positive'), [
+      ['s', 100],
+      ['w', 25],
+      ['c', -101],
+      ['u', -102],
+    ]);
+  });
+
+  it('resolves a strategy shared by many includes once', () => {
+    // two strategies a level, each including both of the level below: 2^40
+    // walks if each include were expanded again
+    const strategies: object[] = [
+      { id: '0a', evaluations: { x: { value: 1 } } },
+      { id: '0b', evaluations: { y: { value: 2 } } },
+    ];
+    for (let level = 1; level <= 40; level++)
+      for (const side of ['a', 'b'])
+        strategies.push({
+          id: `${level}${side}`,
+          includes: [`${level - 1}a`, `${level - 1}b`],
+          evaluations: {},
+        });
+    const read = readStrategies([file({ group: 'G', strategies })]);
+    assert.deepStrictEqual(read.diagnostics, []);
+    const top = read.strategies.find((s) => s.id === '40a')!;
+    assert.deepStrictEqual(
+      [...top.evaluations].map(([id, e]) => [id, e.value]),
+      [
+        ['x', 1],
+        ['y', 2],
+      ],
+    );
+  });
+
+  it('resolves each strategy of a cycle from where it starts', () => {
+    const { strategies } = readStrategies([
+      file({
+        group: 'G',
+        strategies: [
+          { id: 'a', includes: ['b'], evaluations: { x: { value: 1 } } },
+          { id: 'b', includes: ['a'], evaluations: { y: { value: 2 } } },
+        ],
+      }),
+    ]);
+    for (const strategy of strategies)
+      assert.deepStrictEqual([...strategy.evaluations.keys()].sort(), [
+        'x',
+        'y',
+      ]);
+  });
 });
 
 describe('GRL’s analyses', () => {

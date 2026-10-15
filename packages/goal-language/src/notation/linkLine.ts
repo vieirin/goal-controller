@@ -127,6 +127,16 @@ export const isPlainLinkLine = (
   new RegExp(`^\\s*${LINK_LINE_KEY}\\s+"`).test(text);
 
 /**
+ * Whether a line of a document without ids takes an element's position: any
+ * nonblank line but a link line (link lines are added and removed freely,
+ * their properties read by `linkEdits`).
+ */
+export const takesPosition = (
+  definition: Parameters<typeof linkLinesOf>[0],
+  text: string,
+): boolean => text.trim() !== '' && !isPlainLinkLine(definition, text);
+
+/**
  * The element a written target names: in a dialect with ids, its id; in one
  * without, by its text in `names` (`DefinitionContext['names']`), `#n` the
  * n-th so named. An error says why it names none.

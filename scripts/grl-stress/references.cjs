@@ -43,16 +43,18 @@ const withReference = (seed) => ({
 
 /**
  * A seed's reference, read; `{ skip }` when there is none. A committed
- * seed's reference that is there but unusable (the oracle didn't load the
- * seed) is `fatal` too: the seed in the repository isn't one jUCMNav reads.
+ * seed's missing reference is `fatal` (its evaluations would go unchecked),
+ * and so is one that is there but unusable (the oracle didn't load the
+ * seed): the seed in the repository isn't one jUCMNav reads.
  */
 const loadReference = (seed) => {
   if (!fs.existsSync(seed.reference))
-    return {
-      skip: seed.committed
-        ? `no reference (${path.relative(ROOT, seed.reference)} is missing)`
-        : 'no reference (run --oracle)',
-    };
+    return seed.committed
+      ? {
+          skip: `no reference (${path.relative(ROOT, seed.reference)} is missing)`,
+          fatal: true,
+        }
+      : { skip: 'no reference (run --oracle)' };
   const reference = readReference(fs.readFileSync(seed.reference, 'utf8'));
   return reference.skip && seed.committed
     ? { ...reference, fatal: true }

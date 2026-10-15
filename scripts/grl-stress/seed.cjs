@@ -154,11 +154,28 @@ const checkSeed = (deps, text, references) => {
     checks.checks = { status: 'fail', error: errorText(error) };
   }
 
+  // the strategies the reference evaluates: each must be imported, or its
+  // rows would go unchecked
+  const referenced = new Set(
+    [...(references.rows?.keys() ?? [])].map((key) =>
+      key.slice(key.indexOf('|') + 1),
+    ),
+  );
+  const notImported = (ids) => {
+    const lost = [...referenced].filter((id) => !ids.has(id));
+    return lost.length
+      ? `the reference evaluates strategies the import lacks: ${lost.join(', ')}`
+      : null;
+  };
   const files = Object.entries(
     imported.dialectRecord?.projectResources?.strategies ?? {},
   ).map(([path, text]) => ({ path, text }));
   if (!files.length) {
-    checks.evaluations = { status: 'skip', reason: 'no strategies' };
+    const lost =
+      notImported(new Set()) ?? (references.fatal ? references.skip : null);
+    checks.evaluations = lost
+      ? { status: 'fail', error: lost }
+      : { status: 'skip', reason: 'no strategies' };
     return { checks, strategies: [] };
   }
   let graph;
@@ -193,13 +210,16 @@ const checkSeed = (deps, text, references) => {
   const statuses = results.flatMap((result) =>
     Object.values(result.runs).map((run) => run.status),
   );
+  const lost = notImported(new Set(strategies.map((s) => s.id)));
   checks.evaluations = {
-    status: statuses.includes('fail')
-      ? 'fail'
-      : statuses.every((status) => status === 'skip')
-        ? 'skip'
-        : 'pass',
+    status:
+      lost || statuses.includes('fail')
+        ? 'fail'
+        : statuses.every((status) => status === 'skip')
+          ? 'skip'
+          : 'pass',
     strategies: strategies.length,
+    ...(lost && { error: lost }),
     ...(references.skip && {
       [references.fatal ? 'error' : 'reason']: references.skip,
     }),

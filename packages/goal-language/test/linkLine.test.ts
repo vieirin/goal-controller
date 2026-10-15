@@ -329,10 +329,10 @@ const PLAIN_TEXT = [
 ].join('\n');
 
 describe('link lines without ids (linkLines)', () => {
-  it('writes the target by its text, quoted, #n among elements so named; the line keeps its place in the order', () => {
+  it('writes the target by its text, quoted, #n among elements so named; the line takes no place in the order', () => {
     expect(notationDocument(plainLinked, PLAIN)).to.deep.equal({
       text: PLAIN_TEXT,
-      ids: ['g', 'h1', 'h1', 'h2', 'q', 'q'],
+      ids: ['g', 'h1', 'h2', 'q'],
     });
     expect(
       notationDocument(
@@ -389,6 +389,38 @@ describe('link lines without ids (linkLines)', () => {
       ).to.deep.equal([]);
   });
 
+  it('reads a link line removed or added: the elements keep their lines', () => {
+    // removed: its link's properties are
+    expect(
+      notationEdits(
+        plainLinked,
+        PLAIN_TEXT.replace('\n    link "Go" {weight = 50}', ''),
+        PLAIN,
+      ),
+    ).to.deep.equal([{ link: 'l1', key: 'weight', value: null }]);
+    // added under the second Heat: l3 takes the properties it writes
+    expect(
+      notationEdits(
+        plainLinked,
+        PLAIN_TEXT.replace(
+          '  Heat\n  Say',
+          '  Heat\n    link "Say \\"hi\\"" {weight = 3}\n  Say',
+        ),
+        PLAIN,
+      ),
+    ).to.deep.equal([{ link: 'l3', key: 'weight', value: '3' }]);
+  });
+
+  it('names no element `constructor` or `__proto__` would inherit', () => {
+    const tree = plainTree([]);
+    tree.nodes.get('h1')!.name = 'constructor';
+    tree.nodes.get('h2')!.name = '__proto__';
+    expect(contextFromView(plainLinked, tree, []).names).to.deep.include({
+      constructor: ['h1'],
+      ['__proto__']: ['h2'],
+    });
+  });
+
   describe('diagnostics', () => {
     const run = (
       name: string,
@@ -416,6 +448,12 @@ describe('link lines without ids (linkLines)', () => {
 
     it('says nothing of the document as written', () => {
       expect(messages(PLAIN_TEXT)).to.deep.equal([]);
+    });
+
+    it('counts no link line as an element’s', () => {
+      expect(
+        messages(PLAIN_TEXT.replace('\n    link "Go" {weight = 50}', '')),
+      ).to.deep.equal([]);
     });
 
     it('reports a target that names no element, or several', () => {

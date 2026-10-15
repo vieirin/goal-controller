@@ -158,6 +158,34 @@ describe('importJucm: our model of every construct (grl-own.jucm)', () => {
     assert.strictEqual(gas.evaluations.get('5')!.value, 100);
     assert.strictEqual(gas.evaluations.get('7')!.kpi!.evaluationValue, '19.5');
   });
+
+  it('keeps a strategy in two groups (or twice in one) in the first, saying so', () => {
+    const { dialectRecord: record, diagnostics: said } = imported(
+      read('grl-own/grl-own.jucm').replace(
+        '<groups name="Heating" id="40" strategies="41 42"/>',
+        '<groups name="Heating" id="40" strategies="41 42 41"/><groups name="Cooling" id="43" strategies="42"/>',
+      ),
+    );
+    const files = record!.projectResources.strategies!;
+    const { strategies, diagnostics: problems } = readStrategies(
+      Object.entries(files).map(([p, text]) => ({ path: p, text })),
+    );
+    assert.deepStrictEqual(problems, []);
+    assert.deepStrictEqual(
+      strategies.map((s) => [s.id, s.group]),
+      [
+        ['41', 'Heating'],
+        ['42', 'Heating'],
+      ],
+    );
+    assert.deepStrictEqual(
+      said.map((d) => d.message).filter((m) => /more than one group/.test(m)),
+      [
+        'strategy 41 is in more than one group: kept in the first',
+        'strategy 42 is in more than one group: kept in the first',
+      ],
+    );
+  });
 });
 
 describe('importJucm: jUCMNav’s 2014 SmartHome2.jucm', () => {

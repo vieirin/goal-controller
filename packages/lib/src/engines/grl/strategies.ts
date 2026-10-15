@@ -25,8 +25,9 @@
  *
  * - `id`: the strategy's (the `.jucm`'s, when imported); unique in the project.
  * - `evaluations`: by element id (the piStar id); `value` −100..100 (0..100
- *   with `range: "positive"`), `label` one of GRL's qualitative labels; a
- *   missing value is 0, a missing label None.
+ *   with `range: "positive"`; −101 with Conflict, −102 with Unknown), `label`
+ *   one of GRL's qualitative labels; a missing value is the label's (jUCMNav's
+ *   `getQuantitativeValueForQualitativeEvaluation`), a missing label None.
  * - `includes`: strategies whose evaluations come first, as jUCMNav's
  *   `includedStrategies` (this strategy's own win).
  * - `preferences` (optional, the group's): jUCMNav's evaluation range
@@ -44,6 +45,27 @@ import {
   type ResourceFile,
 } from '../projectResources';
 import { GRL_QUALITATIVE_LABELS, type GrlQualitativeLabel } from './vocabulary';
+import {
+  CONFLICT,
+  DENIED,
+  NONE,
+  SATISFIED,
+  toPositiveRange,
+  UNDECIDED,
+  WEAKLY_DENIED,
+  WEAKLY_SATISFIED,
+} from './evaluation/propagation';
+
+/** each label's value in −100..100 (`getQuantitativeValueForQualitativeEvaluation`) */
+const LABEL_VALUE: Readonly<Record<GrlQualitativeLabel, number>> = {
+  Denied: DENIED,
+  WeaklyDenied: WEAKLY_DENIED,
+  WeaklySatisfied: WEAKLY_SATISFIED,
+  Satisfied: SATISFIED,
+  Conflict: CONFLICT,
+  Unknown: UNDECIDED,
+  None: NONE,
+};
 
 export type GrlPreferences = {
   /** −100..100, or 0..100 (jUCMNav's "0 to 100" evaluation range) */
@@ -180,27 +202,40 @@ const readFile = (
         );
         continue;
       }
-      const raw = evaluation.value ?? 0;
       const label = evaluation.label ?? 'None';
+      const known = GRL_QUALITATIVE_LABELS.includes(
+        label as GrlQualitativeLabel,
+      )
+        ? (label as GrlQualitativeLabel)
+        : 'None';
+      if (known !== label)
+        problem(
+          element,
+          `Strategy ${strategy.id}: element ${element}'s label is one of ${GRL_QUALITATIVE_LABELS.join(', ')}`,
+        );
+      // a label alone sets its value: propagation labels a leaf by its value
+      const fromLabel =
+        preferences.range === 'positive'
+          ? toPositiveRange(LABEL_VALUE[known])
+          : LABEL_VALUE[known];
+      const raw = evaluation.value ?? fromLabel;
+      // Conflict's and Unknown's values are out of range: jUCMNav's sentinels
+      const sentinel =
+        (known === 'Conflict' && raw === CONFLICT) ||
+        (known === 'Unknown' && raw === UNDECIDED);
       if (
-        !Number.isInteger(raw) ||
-        (raw as number) < low ||
-        (raw as number) > 100
+        !sentinel &&
+        (!Number.isInteger(raw) ||
+          (raw as number) < low ||
+          (raw as number) > 100)
       )
         problem(
           element,
           `Strategy ${strategy.id}: element ${element}'s value is an integer, ${low}..100`,
         );
-      if (!GRL_QUALITATIVE_LABELS.includes(label as GrlQualitativeLabel))
-        problem(
-          element,
-          `Strategy ${strategy.id}: element ${element}'s label is one of ${GRL_QUALITATIVE_LABELS.join(', ')}`,
-        );
       evaluations.set(element, {
         value: Number.isInteger(raw) ? (raw as number) : 0,
-        label: GRL_QUALITATIVE_LABELS.includes(label as GrlQualitativeLabel)
-          ? (label as GrlQualitativeLabel)
-          : 'None',
+        label: known,
         ...(isRecord(evaluation.kpi) && {
           kpi: evaluation.kpi as Record<string, string | number>,
         }),
@@ -248,14 +283,22 @@ export const readStrategies = (
       });
     else byId.set(entry.entry.id, entry);
   }
+  // each strategy resolved once: shared includes would otherwise be expanded
+  // again for every strategy that reaches them. One a cycle cut short is not
+  // kept: what it has depends on where the walk entered the cycle.
+  const resolved = new Map<string, Map<string, GrlStrategyEvaluation>>();
   const resolve = (
     entry: Entry,
     trail: readonly string[],
-  ): Map<string, GrlStrategyEvaluation> => {
+  ): { evaluations: Map<string, GrlStrategyEvaluation>; cut: boolean } => {
+    const done = resolved.get(entry.entry.id);
+    if (done) return { evaluations: done, cut: false };
     const evaluations = new Map<string, GrlStrategyEvaluation>();
+    let cut = false;
     for (const include of entry.entry.includes) {
       const included = byId.get(include);
       if (!included || trail.includes(include)) {
+        cut ||= !!included;
         diagnostics.push({
           path: entry.path,
           severity: 'error',
@@ -266,15 +309,15 @@ export const readStrategies = (
         });
         continue;
       }
-      for (const [element, evaluation] of resolve(included, [
-        ...trail,
-        include,
-      ]))
+      const inner = resolve(included, [...trail, include]);
+      cut ||= inner.cut;
+      for (const [element, evaluation] of inner.evaluations)
         evaluations.set(element, evaluation);
     }
     for (const [element, evaluation] of entry.entry.evaluations)
       evaluations.set(element, evaluation);
-    return evaluations;
+    if (!cut) resolved.set(entry.entry.id, evaluations);
+    return { evaluations, cut };
   };
   const strategies = [...byId.values()].map((entry): GrlStrategy => ({
     id: entry.entry.id,
@@ -282,7 +325,7 @@ export const readStrategies = (
     group: entry.group,
     path: entry.path,
     preferences: entry.preferences,
-    evaluations: resolve(entry, [entry.entry.id]),
+    evaluations: resolve(entry, [entry.entry.id]).evaluations,
   }));
   return { strategies, diagnostics };
 };

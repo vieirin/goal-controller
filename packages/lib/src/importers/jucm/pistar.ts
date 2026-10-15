@@ -302,6 +302,11 @@ export const toPistar = (
   const files: GrlStrategyFile[] = [];
   const grouped = new Set<string>();
   const entryOf = (id: string) => {
+    // a strategy in two groups (or twice in one) would be defined twice
+    if (grouped.has(id)) {
+      warn(`strategy ${id} is in more than one group: kept in the first`);
+      return [];
+    }
     const strategy = document.strategies.find((s) => s.id === id);
     if (!strategy) {
       warn(`a strategies group names unknown strategy ${id}`);

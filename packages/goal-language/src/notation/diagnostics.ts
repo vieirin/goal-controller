@@ -29,6 +29,7 @@ import { unknownNameMessage, unknownNames, valueProblem } from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
+  takesPosition,
   targetKey,
   writtenTarget,
   linkPropertyProblems,
@@ -311,10 +312,13 @@ export const documentDiagnostics = (
   const diagnostics: Diagnostic[] = [];
   const seen = new Set<string>();
   const lines = doc.split('\n');
-  // lines that name no element are their elements' in order
+  // lines that name no element are their elements' in order (link lines take
+  // no position)
   const order = hasIds(definition) ? null : (context.order ?? []);
   if (order) {
-    const count = lines.filter((line) => line.trim()).length;
+    const count = lines.filter((line) =>
+      takesPosition(definition, line),
+    ).length;
     if (count !== order.length)
       return [
         {
@@ -384,9 +388,10 @@ export const documentDiagnostics = (
       to: lineFrom + span.to,
     });
     // a line without ids' definition: an id written names its element, else
-    // the line is its element's by position (every line counts)
+    // the line is its element's by position (every line but a link line counts)
     const written_id = read.kind === 'element' ? read.id : null;
-    const position = order && written.trim() ? order[index++]! : null;
+    const position =
+      order && takesPosition(definition, written) ? order[index++]! : null;
     const named = order
       ? written_id
         ? (context.named?.[written_id] ?? `unknown ${written_id}`)

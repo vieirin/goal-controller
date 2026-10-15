@@ -32,6 +32,7 @@ import {
   linkLine,
   linkOfLine,
   readLinkLine,
+  takesPosition,
   targetKey,
   writtenTarget,
   type LinkLineReading,
@@ -107,13 +108,17 @@ export const lineNames = (
   tree: DocumentTree,
 ): Record<string, string[]> | undefined => {
   if (hasIds(definition) || !linkLinesOf(definition)) return undefined;
-  const names: Record<string, string[]> = {};
+  // no inherited keys: an element's text may be `constructor`
+  const names: Record<string, string[]> = Object.create(null);
   for (const { id, node } of lineOrder(definition, tree))
     (names[nodeLine(definition, node)] ??= []).push(id);
   return names;
 };
 
-/** Depth-first from the roots, each element once (at its first parent). */
+/**
+ * Depth-first from the roots, each element once (at its first parent). `ids`:
+ * the element each line is, but a link line without ids (`takesPosition`).
+ */
 export const notationDocument = (
   definition: Document,
   tree: DocumentTree,
@@ -160,7 +165,7 @@ export const notationDocument = (
           definition.indent.repeat(depth + 1) +
             linkLine(definition, link, writtenTarget(names, link.target)),
         );
-        ids.push(id);
+        if (hasIds(definition)) ids.push(id);
       }
   }
   return { text: lines.join('\n'), ids };
@@ -209,12 +214,17 @@ export const notationEdits = (
   const blocks: Block[] = [];
   let current: Block | null = null;
   // lines that name no element are their elements' in order: while lines are
-  // added or removed (elements are, in the diagram), nothing changes
+  // added or removed (elements are, in the diagram), nothing changes; link
+  // lines take no position (adding or removing one sets its link's properties)
   const order = hasIds(definition)
     ? null
     : notationDocument(definition, tree).ids;
   const lines = doc.split('\n');
-  if (order && lines.filter((line) => line.trim()).length !== order.length)
+  if (
+    order &&
+    lines.filter((line) => takesPosition(definition, line)).length !==
+      order.length
+  )
     return [];
   // a line with an id names its element (the id its name starts with)
   const named = order ? writtenIds(tree) : {};
@@ -224,7 +234,8 @@ export const notationEdits = (
   for (const written of lines) {
     const read = readLine(definition, written);
     const writtenId = read.kind === 'element' ? read.id : null;
-    const position = order && written.trim() ? order[index++]! : null;
+    const position =
+      order && takesPosition(definition, written) ? order[index++]! : null;
     const indent = written.length - written.trimStart().length;
     const id = order
       ? writtenId
