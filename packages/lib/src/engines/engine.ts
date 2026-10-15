@@ -9,6 +9,7 @@ import type {
   AnyDialect,
   CheckNameOf,
   ExtensionDefinition,
+  OptionDefinition,
   ProjectResourceKindOf,
 } from '@goal-controller/dialect';
 import type { EngineMapper } from '@goal-controller/goal-tree';
@@ -55,11 +56,8 @@ export type EngineDefinition = {
   analyses?: Analyses;
   /** the files it writes, by id */
   outputs?: readonly EngineOutputDeclaration[];
-  /**
-   * whether it takes generation options (the workbench's options menu);
-   * goal-controller#118's declared options, once they are in
-   */
-  options?: true | Readonly<Record<string, unknown>>;
+  /** its generation options (`defineOptions`, goal-controller#118): none, no options menu */
+  options?: readonly OptionDefinition[];
   /** the parsers of the project resources its dialect declares */
   projectResources?: Readonly<Record<string, unknown>>;
   /** its project's files share one definition pool (goal-controller#59) */

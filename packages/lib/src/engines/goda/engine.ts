@@ -2,6 +2,7 @@ import { defineEngine } from '../engine';
 import { godaCheckRegistry } from './checks';
 import { goda } from './definition';
 import { godaEngineMapper } from './mapper';
+import { godaOptions } from './options';
 
 /** GODA-MDP, as the workbench registers it. */
 export const godaEngine = defineEngine({
@@ -25,5 +26,5 @@ export const godaEngine = defineEngine({
     { id: 'runtime-reliability', language: 'text' },
     { id: 'runtime-cost', language: 'text' },
   ],
-  options: true,
+  options: godaOptions,
 });

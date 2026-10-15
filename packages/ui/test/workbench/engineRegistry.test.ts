@@ -9,12 +9,15 @@ import {
   edge,
   edgeCheckRegistry,
   edgeEngineMapper,
+  edgeOptions,
   edgeProjectResources,
   edgeV2,
   edgeV2EngineMapper,
+  edgeV2Options,
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  godaOptions,
   grl,
   grlAnalyses,
   grlCheckRegistry,
@@ -27,6 +30,7 @@ import {
   mutrosePool,
   mutroseProjectResources,
   sleecEngineMapper,
+  sleecOptions,
 } from '@goal-controller/lib';
 import {
   dialectOf,
@@ -36,6 +40,7 @@ import {
   ENGINE_FILE_KINDS,
   ENGINE_LABEL,
   ENGINE_MAPPERS,
+  ENGINE_OPTIONS,
   ENGINE_POOLS,
   ENGINE_PROJECT_RESOURCES,
   ENGINES,
@@ -111,6 +116,18 @@ describe('the engine registry', () => {
       grl: grlEngineMapper,
     }));
 
+  it('derives ENGINE_OPTIONS (MutRoSe and GRL declare none)', () => {
+    const { mutrose: none, grl: nothing, ...declared } = ENGINE_OPTIONS;
+    expect(none).toEqual([]);
+    expect(nothing).toEqual([]);
+    expectSameEntries(declared, {
+      edge: edgeOptions,
+      edgev2: edgeV2Options,
+      sleec: sleecOptions,
+      goda: godaOptions,
+    });
+  });
+
   it('derives ENGINE_LABEL', () =>
     expect(ENGINE_LABEL).toEqual({
       edge: 'Edge',
@@ -130,7 +147,6 @@ describe('the engine registry', () => {
         extension: 'prism',
         language: 'prism',
         help: 'EDGE reference encoding, with cost and utility rewards',
-        hasOptions: true,
       },
       {
         id: 'edge',
@@ -139,7 +155,6 @@ describe('the engine registry', () => {
         extension: 'prism',
         language: 'prism',
         help: 'Legacy Edge encoding',
-        hasOptions: true,
       },
       {
         id: 'sleec',
@@ -148,7 +163,6 @@ describe('the engine registry', () => {
         extension: 'sleec',
         language: 'text',
         help: 'SLEEC rules from the goal conditions',
-        hasOptions: true,
       },
       {
         id: 'mutrose',
@@ -157,7 +171,6 @@ describe('the engine registry', () => {
         extension: 'rannot',
         language: 'rannot',
         help: "The runtime annotation MutRoSe's decomposer reads, after checking the model as it does",
-        hasOptions: false,
       },
       {
         id: 'goda',
@@ -166,7 +179,6 @@ describe('the engine registry', () => {
         extension: 'nm',
         language: 'prism',
         help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
-        hasOptions: true,
       },
       {
         id: 'grl',
@@ -175,7 +187,6 @@ describe('the engine registry', () => {
         extension: 'json',
         language: 'text',
         help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
-        hasOptions: false,
         generates: false,
       },
     ]));

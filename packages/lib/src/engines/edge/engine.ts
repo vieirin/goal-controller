@@ -2,6 +2,7 @@ import { defineEngine } from '../engine';
 import { edgeCheckRegistry, edgeProjectResources } from '../edgeFamily';
 import { edge } from './definition';
 import { edgeEngineMapper } from './mapper';
+import { edgeOptions } from './options';
 
 /** Edge (v1), as the workbench registers it. */
 export const edgeEngine = defineEngine({
@@ -12,6 +13,6 @@ export const edgeEngine = defineEngine({
   mapper: edgeEngineMapper,
   output: { label: 'PRISM', extension: 'prism', language: 'prism' },
   outputs: [{ id: 'model', language: 'prism' }],
-  options: true,
+  options: edgeOptions,
   projectResources: edgeProjectResources,
 });

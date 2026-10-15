@@ -580,4 +580,27 @@ describe('assertions with expressions', () => {
     });
     assert.equal(readAssertion('x >'), null);
   });
+
+  it('reads a call as a condition on its own, and a comparison of one as before', () => {
+    const text = 'previous(hvacOn) & !signalOffS | signalOnS';
+    assert.deepEqual(readAssertion(text), {
+      kind: 'and',
+      left: {
+        kind: 'call',
+        name: 'previous',
+        args: [{ kind: 'var', name: 'hvacOn' }],
+      },
+      right: {
+        kind: 'not',
+        expr: {
+          kind: 'or',
+          left: { kind: 'var', variable: 'signalOffS' },
+          right: { kind: 'var', variable: 'signalOnS' },
+        },
+      },
+    });
+    assert.equal(assertionText(parseValue('assertion', text).value), text);
+    assert.equal(readAssertion('(previous(on)) | f(G1, 2)')?.kind, 'or');
+    assert.equal(readAssertion('previous(t) < 18')?.kind, 'comparison');
+  });
 });

@@ -124,7 +124,7 @@ Each value type is a rule of the goal language that reads a value on its own; th
 | `number`                                         | number field                    | a number                                                                                                                      |
 | `text`                                           | text field                      | nothing                                                                                                                       |
 | `bool`                                           | true/false select               | `true` or `false`                                                                                                             |
-| `assertion` `{resolves, functions?}`             | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`); a call to another function, or with another number of arguments, is an error |
+| `assertion` `{resolves, functions?}`             | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`), and a call is a condition on its own (`previous(on) & !off`); a call to another function, or with another number of arguments, is an error |
 | `expression` `{resolves?, functions?}`           | one-line editor with completion | a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`, a negation, parentheses, ids of elements of the `resolves` kinds, variables (declared by their use) and calls to the `functions`, each with its arity; completion offers those, hover shows the element an id names. Read it with `readExpression(value)`: a tree (`number`, `ref`, `var`, `call`, `binary`, `unary`) the engine walks, never the text |
 | `refList` `{kind}`                               | editor with id completion       | ids, comma-separated, of elements of that kind (Edge's `dependsOn: G2, G5`)                                                   |
 | `pairList` `{value}`                             | editor                          | `name:value` pairs, comma-separated, values of that type (Edge's `variables: speed:3, mode:2`)                                |
@@ -298,7 +298,7 @@ The editors, the inspector and the language server always have the model (`check
 Build the definition's properties with these names
 (`property.for<MissionCheckName>()`, as in step 1 and as
 `edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`
-then doesn't compile where it is written. `defineEngine` (§3.8) needs a
+then doesn't compile where it is written. `defineEngine` (§3.9) needs a
 check for every name the definition gives, so a missing one doesn't compile
 (and is reported at definition time); so does
 `specsFromDefinition(definition, registry)`. Keep `checks.ts` free of
@@ -416,7 +416,7 @@ export const missionAnalyses = defineAnalyses(mission, {
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).
 - **The workbench:** give them to the engine object as `analyses:
-  missionAnalyses` (§3.8). An analysis engine generates no file. `defineEngine`
+  missionAnalyses` (§3.9). An analysis engine generates no file. `defineEngine`
   repeats `defineAnalyses`' checks against its dialect. An "Analyse" menu appears beside
   Generate, with the engine's analyses; a click runs one on the model as it
   is. With several cases, a picker chooses the one drawn. The values go to
@@ -426,7 +426,30 @@ export const missionAnalyses = defineAnalyses(mission, {
   changes the values are "out of date" and aren't drawn until the next run.
   Nothing runs without a click, and nothing is saved in the model file.
 
-### 3.8 The engine object: what the workbench registers
+### 3.8 Generation options (optional): the template's knobs
+
+An option the user sets for a whole model (EdgeV2's discretisation, GODA's generator version) is declared with the same value types as a property: `bool`, `number`, `int` (`min`, `max`) or `enum` (`options`, each with a `help` shown on hover), and a default. File: `packages/lib/src/engines/mission/options.ts`, exported from `packages/lib/src/index.ts`:
+
+```ts
+import { defineOptions } from '@goal-controller/dialect';
+import { reduceOption } from '../options';
+
+export const missionOptions = defineOptions([
+  {
+    key: 'horizon',
+    label: 'Horizon',
+    help: 'steps the plan looks ahead',
+    value: { type: 'int', min: 1, max: 50 },
+    default: 10,
+    summary: 'horizon {value}', // what the options button says; a bool's only when on
+  },
+  reduceOption, // shared: generate without single-child goals (asks first: its `confirm`)
+]);
+```
+
+`defineOptions` rejects a key declared twice and a default its option doesn't take, and keeps the literal types: the workbench's `GenerationOptions` is derived from every engine's declarations (an `enum`'s value is the union of its values). From them the workbench renders the options menu and the settings dialog's fields (a switch, a number, a segmented choice), checks a manifest's options (a value its option doesn't take is reported and not used), and keeps those that differ from the defaults. An option two engines read (`clean`, `reduce`) is one object both lists hold, so it has one default. An engine without knobs declares none. Your template still takes them as arguments: thread them through `TransformOptions` (#5 below).
+
+### 3.9 The engine object: what the workbench registers
 
 Everything the workbench needs to know about an engine goes in one object, in `engines/mission/engine.ts`, exported from `packages/lib/src/index.ts` (goal-controller#124):
 
@@ -445,7 +468,7 @@ export const missionEngine = defineEngine({
   mapper: missionEngineMapper,
   output: { label: 'Mission plan', extension: 'yaml', language: 'text' },
   outputs: [{ id: 'mission', language: 'text' }], // the files its output function writes, by id
-  // options: true,                        its template has knobs (the options menu, §4)
+  // options: missionOptions,            its template's knobs (§3.8; none: no options menu)
   // projectResources: missionResources,  a parser per kind the definition declares (§3.6)
   // analyses: missionAnalyses,           an analysis engine (§3.7): no file
   // pool: missionPool,                   its files share one definition pool (definition-pool.md)
@@ -468,7 +491,7 @@ Each message starts with the engine's id. Check `outputs` against what the engin
 | #   | File | Edit |
 | --- | --- | --- |
 | 1   | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is registered: import `missionEngine` and add it to `registerEngines(…)`, at the place the UI should offer it. `ENGINE_DIALECTS`, `ENGINE_CHECKS`, `ENGINE_PROJECT_RESOURCES`, `ENGINE_POOLS`, `ENGINE_MAPPERS`, `ENGINE_LABEL`, `ENGINES`, `ENGINE_ANALYSES` and `ENGINE_FILE_KINDS` are derived from the engine objects, typed per engine, and so are `dialectOf`, `hasOptions` and `outputExtensionOf` |
+| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is registered: import `missionEngine` and add it to `registerEngines(…)`, at the place the UI should offer it. `ENGINE_DIALECTS`, `ENGINE_CHECKS`, `ENGINE_PROJECT_RESOURCES`, `ENGINE_POOLS`, `ENGINE_MAPPERS`, `ENGINE_OPTIONS` (its `options`, §3.8; `[]` for none), `ENGINE_LABEL`, `ENGINES`, `ENGINE_ANALYSES` and `ENGINE_FILE_KINDS` are derived from the engine objects, typed per engine, and so are `dialectOf`, `hasOptions` and `outputExtensionOf` |
 | 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
@@ -480,7 +503,7 @@ Each message starts with the engine's id. Check `outputs` against what the engin
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
 | 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
 
-Adding `'mission'` to `TransformEngine` makes the type-checker flag #2 (the registry must register every `TransformEngine`, and only those), #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
+Adding `'mission'` to `TransformEngine` makes the type-checker flag #2 (the registry must register every `TransformEngine`, and only those), #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (the top bar's menu, the settings modal) are rendered from `ENGINE_OPTIONS` (#2): nothing to add in the UI but #5's arguments.
 
 The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
 
@@ -535,7 +558,7 @@ each element in Problems, and drawn as the canvas's badges.
 
 **Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names (`property.for<…>()`) · `template/` (reads `executionDetail.ids`, `.modifiers`) · `engine.ts`: `defineEngine` · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
-**UI (wiring):** the 12 edits in §4 (the registry is one import and one entry) · palette extension · engine options if any.
+**UI (wiring):** the 12 edits in §4 (the registry is one import and one entry) · palette extension · engine options (§3.8) if any.
 
 **Evidence:** examples · expected outputs · mapper/template tests · round-trip/differential tests.
 
@@ -567,7 +590,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 | Output emitter              | string templates · AST + printer                                             | strings for flat text; AST for structured targets or when you'll emit two formats                                     |
 | Output files                | one (`singleFileOutput`) · several, one primary (`EngineOutput`)             | one unless the target is a set of files (a model and its properties, a runtime artefact and a readable one)            |
 | Resources                   | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps`            | skip unless the output models state/variables                                                                         |
-| Engine options              | none · `TransformOptions` + Model Settings card                              | only if the template has knobs                                                                                        |
+| Engine options              | none · `defineOptions` (§3.8) + `TransformOptions`                           | only if the template has knobs                                                                                        |
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 
 ## 9. Pitfalls seen so far

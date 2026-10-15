@@ -1,5 +1,6 @@
 import { defineEngine } from '../engine';
 import { sleecEngineMapper } from './mapper';
+import { sleecOptions } from './options';
 
 /**
  * SLEEC, as the workbench registers it: no dialect of its own (its view reads
@@ -12,5 +13,5 @@ export const sleecEngine = defineEngine({
   mapper: sleecEngineMapper,
   output: { label: 'SLEEC', extension: 'sleec', language: 'text' },
   outputs: [{ id: 'specification', language: 'sleec' }],
-  options: true,
+  options: sleecOptions,
 });

@@ -24,6 +24,7 @@ import type {
   AnyDialect,
   CheckNameOf,
   ExtensionDefinition,
+  OptionDefinition,
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
@@ -99,6 +100,22 @@ export const ENGINE_MAPPERS = byEngine((engine) => engine.mapper) as {
   readonly [E in Registered as E['id']]: E['mapper'];
 };
 
+/**
+ * Each engine's generation options, as it declares them, typed as
+ * properties are (goal-controller#118): the options menu, the defaults and
+ * a manifest's check are these. MutRoSe reads the model as written and GRL
+ * generates nothing: they declare none.
+ */
+export const ENGINE_OPTIONS = Object.fromEntries(
+  ENGINE_LIST.map((engine: Engine) => [engine.id, engine.options ?? []]),
+) as {
+  readonly [E in Registered as E['id']]: E extends {
+    options: infer O extends readonly OptionDefinition[];
+  }
+    ? O
+    : readonly [];
+};
+
 /** Each engine's name, as the UI shows it: its own label, or its definition's name. */
 export const ENGINE_LABEL: Record<TransformEngine, string> = byEngine(
   engineLabel,
@@ -115,8 +132,6 @@ type EngineInfo = {
   extension: string;
   language: OutputLanguage;
   help: string;
-  /** whether it takes generation options (MutRoSe reads the model as written) */
-  hasOptions: boolean;
   /** false: it generates no file, its values are the Analyse control's (an analysis engine) */
   generates?: false;
 };
@@ -130,7 +145,6 @@ export const ENGINES: readonly EngineInfo[] = ENGINE_LIST.map(
     extension: engine.output.extension,
     language: engine.output.language,
     help: engine.help,
-    hasOptions: engine.options !== undefined,
     ...(engine.analyses && { generates: false as const }),
   }),
 );
@@ -148,7 +162,7 @@ export const generatesFiles = (engine: TransformEngine): boolean =>
   infoOf(engine).generates !== false;
 /** Whether an engine takes generation options. */
 export const hasOptions = (engine: TransformEngine): boolean =>
-  infoOf(engine).hasOptions;
+  ENGINE_OPTIONS[engine].length > 0;
 /** The extension of what an engine generates: `prism`. */
 export const outputExtensionOf = (engine: TransformEngine): string =>
   infoOf(engine).extension;

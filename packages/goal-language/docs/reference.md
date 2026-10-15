@@ -653,6 +653,7 @@ AssertUnary    : '!' AssertExpr | AssertPrimary ;
 AssertPrimary  : '(' AssertExpr ')'
                | AName ('=' | '!=') ('true' | 'false')
                | Expr ('=' | '!=' | '<' | '<=' | '>' | '>=') Expr
+               | A_ID '(' (Expr (',' Expr)*)? ')'
                | AName
                | 'true' | 'false' ;
 AName          : A_ID | A_REF ;
@@ -666,6 +667,9 @@ AName          : A_ID | A_REF ;
   `functions`, a comparison is an identifier first and an unsigned number
   last (`x > 3`, `0` included: AssertionRegex.g4 couldn't read `0`), and
   any other (`3 > x`, `x >= -1`) is an error.
+- **Calls:** a call to one of the property's `functions` is a condition on
+  its own (`previous(on) & !off`); it is an error where the property
+  declares none. `readAssertion` gives it as `{ kind: 'call', name, args }`.
 - **Parentheses** group a condition (`(a | b) & c`) or an expression
   (`(x + 1) * 2 > 3`): what follows the closing one says which.
 - **Literals:** integers on the right of a comparator, and `true`/`false`.
@@ -705,6 +709,7 @@ Each of these reads, and is an error where the property declares no
 x >= -1
 previous(t) < 18 & 0.9 * x >= 1 + y
 (x + 1) * 2 > 3 & (a | b)
+(previous(hvacOn) & !(signalOffS)) | signalOnS
 ```
 
 ```goal-value assertion reject

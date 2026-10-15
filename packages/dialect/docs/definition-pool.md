@@ -89,7 +89,7 @@ definePool({ engine, providers, checks?, resolvers?, typeDefinition? })
 
 and gives the registration to the engine object the workbench registers:
 `defineEngine({ id: 'mutrose', …, pool: mutrosePool })` (see
-[adding-an-engine.md §3.8](adding-an-engine.md#38-the-engine-object-what-the-workbench-registers)).
+[adding-an-engine.md §3.9](adding-an-engine.md#39-the-engine-object-what-the-workbench-registers)).
 
 A document that no provider speaks is still in the pool, for checks to read.
 MutRoSe passes the project's other goal models so, as `otherModel`.
