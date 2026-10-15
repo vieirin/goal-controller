@@ -135,7 +135,7 @@ export function ProblemsView() {
         return (
           <section key={elementId ?? ''} className='border-b border-line/60'>
             <h3 className='flex items-center gap-2 px-3 pt-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
-              {node && node.id !== node.iStarId ? (
+              {node?.hasId ? (
                 <>
                   <NodeChip id={node.id} tone={nodeTone(node)} />
                   <span className='truncate normal-case tracking-normal'>

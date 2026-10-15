@@ -408,7 +408,7 @@ export function QualificationChips({ ids }: { ids: readonly string[] }) {
           <NodeChip
             key={id}
             id={id}
-            label={other && other.id === other.iStarId ? other.name : id}
+            label={other && !other.hasId ? other.name : id}
             tone={nodeTone(other)}
             onClick={() => wb.select(id, 'inspector')}
           />

@@ -71,8 +71,8 @@ describe('Contextual goal models: the variants (#152, #151 D13, D16)', () => {
     const fig3 = all.filter(
       (v) =>
         variantName(cgm, v) === '{T7, T8, T9}' &&
-        !v.elements.includes('G14') &&
-        !v.elements.includes('G15'),
+        !v.elements.includes(cgm.byId('G14')!.id) &&
+        !v.elements.includes(cgm.byId('G15')!.id),
     );
     assert.strictEqual(fig3.length, 1);
     assert.strictEqual(
@@ -184,7 +184,8 @@ describe('Contextual goal models: unadoptable variants (§5.1)', () => {
     assert.strictEqual(fig9.length, 1);
     assert.match(fig9[0]!.summary!, /unsatisfiable with !F7\.1 \| !F1\.1$/);
     assert.match(fig9[0]!.label, /\{T14, T16, T18, T19\} is unadoptable$/);
-    assert.ok(fig9[0]!.selection!.includes('T14'));
+    const cgm = readCgmModel(seedModel('museum-guide'));
+    assert.ok(fig9[0]!.selection!.includes(cgm.byId('T14')!.id));
   });
 
   it("reads an environment's relations with the absolute ones, a case each", () => {

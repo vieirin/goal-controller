@@ -43,6 +43,12 @@ export type GoalViewNode = {
   /** RT id ("G3"); the piStar id when the text has none */
   id: string;
   /**
+   * whether the text gave it an RT id: `id` is the piStar id otherwise, and
+   * a piStar id may be an RT id too (`"id": "T17"`), so `id === iStarId`
+   * doesn't tell (goal-controller#158)
+   */
+  hasId: boolean;
+  /**
    * what the view knows it by: its id, or, in a dialect whose ids are scoped
    * by their goal (`idScope: 'ancestorGoal'`), `G3/T1.1` for an id another
    * element repeats under another goal (`scopedKey`)
@@ -187,6 +193,7 @@ export function goalView(
       iStarId: element.id,
       x: element.x,
       id: (errors.length === 0 && detail?.id) || written?.[1] || element.id,
+      hasId: Boolean((errors.length === 0 && detail?.id) || written?.[1]),
       // set once the parents are known
       key: '',
       kind,

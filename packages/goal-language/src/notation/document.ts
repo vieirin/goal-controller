@@ -77,7 +77,7 @@ export const isListed = (
   return (
     !!element &&
     !element.declares &&
-    (node.id !== node.iStarId ||
+    ((node.hasId ?? node.id !== node.iStarId) ||
       definition.idlessElements !== 'unlisted' ||
       !hasIds(definition))
   );

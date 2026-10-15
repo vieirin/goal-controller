@@ -107,7 +107,7 @@ export const treeProblems = (
       continue;
     // the view falls back to the piStar id when the text has no RT id (a
     // dialect without ids has none to ask for)
-    if (node.id === node.iStarId) {
+    if (!node.hasId) {
       if (!hasIds(engine)) continue;
       problems.push({
         severity: 'error',
