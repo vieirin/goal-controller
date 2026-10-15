@@ -12,8 +12,12 @@ import type {
   OptionDefinition,
   ProjectResourceKindOf,
 } from '@goal-controller/dialect';
-import type { EngineMapper } from '@goal-controller/goal-tree';
-import { analysesProblems, type Analyses } from './analysis';
+import type { EngineMapper, IStarModel } from '@goal-controller/goal-tree';
+import {
+  analysesProblems,
+  type Analyses,
+  type AnalysisModel,
+} from './analysis';
 import type { Check } from './checks';
 import type { PoolRegistration } from './definitionPool';
 import type { ProjectResourceParsers } from './projectResources';
@@ -54,6 +58,8 @@ export type EngineDefinition = {
   output: EngineOutputInfo;
   /** an analysis engine's analyses: its values are drawn on the model, no file */
   analyses?: Analyses;
+  /** how it reads a model for its analyses (the view of its `GoalModel`, goal-controller#125) */
+  analysisModel?: (model: IStarModel) => AnalysisModel;
   /** the files it writes, by id */
   outputs?: readonly EngineOutputDeclaration[];
   /** its generation options (`defineOptions`, goal-controller#118): none, no options menu */
@@ -122,6 +128,12 @@ const engineProblems = (engine: EngineDefinition): string[] => {
         : [`a parser for unknown project resource ${kind}`],
     ),
     ...(engine.analyses ? analysesProblems(dialect, engine.analyses) : []),
+    ...(engine.analyses && !engine.analysisModel
+      ? ['analyses without an analysisModel']
+      : []),
+    ...(engine.analysisModel && !engine.analyses
+      ? ['an analysisModel without analyses']
+      : []),
     ...ids.flatMap((id, i) =>
       ids.indexOf(id) === i ? [] : [`output ${id} is declared twice`],
     ),

@@ -2,9 +2,55 @@
  * Engine Mapper types and factory function
  * Defines how raw iStar properties are mapped to engine-specific properties
  */
+import type { AnyDialect, ModelShape } from '@goal-controller/dialect';
 import type { ExecutionDetailOf } from '@goal-controller/goal-language';
 import type { ReadingDialect } from '../parsers/goalNameParser';
-import type { GoalExecutionDetail, TreeNode } from '../types/';
+import type { GoalExecutionDetail, GoalModel, TreeNode } from '../types/';
+
+/**
+ * The engine's dialect as goal-tree reads it: its goal texts, the model shape
+ * it accepts, and its elements (goal-controller#125: in a dialect whose
+ * elements have no prefix, no text holds an id).
+ */
+export type MapperDialect = ReadingDialect & {
+  model?: ModelShape;
+  elements?: AnyDialect['elements'];
+};
+
+/** What `mapActorProps` is given for an actor (goal-controller#125). */
+export type ActorPropsInput<TKeys extends string> = {
+  raw: RawProps<TKeys>;
+  /** `istar.Actor`, `istar.Agent`, `istar.Role` or an extension's actor kind */
+  kind: string;
+  /** its piStar id */
+  id: string;
+  name: string;
+};
+
+/** What `mapLinkProps` is given for a link (goal-controller#125). */
+export type LinkPropsInput<TKeys extends string> = {
+  raw: RawProps<TKeys>;
+  kind: string;
+  /** its piStar id */
+  id: string;
+};
+
+/**
+ * The actor and link mappers (goal-controller#125), optional: an engine
+ * without actor or link properties omits them and gets `{}`. The allowed
+ * keys are the definition's (`actorPropertyKeys`, `linkPropertyKeys`).
+ */
+export type ActorLinkMappers<
+  TActorEngine,
+  TLinkEngine,
+  TActorKeys extends string,
+  TLinkKeys extends string,
+> = {
+  allowedActorKeys?: readonly TActorKeys[];
+  mapActorProps?: (props: ActorPropsInput<TActorKeys>) => TActorEngine;
+  allowedLinkKeys?: readonly TLinkKeys[];
+  mapLinkProps?: (props: LinkPropsInput<TLinkKeys>) => TLinkEngine;
+};
 
 /**
  * Raw custom properties extracted from the iStar model
@@ -72,12 +118,17 @@ export type EngineMapper<
   TTaskKeys extends string = string,
   TResourceKeys extends string = string,
   TQualityKeys extends string = never,
+  TActorEngine = {},
+  TLinkEngine = {},
+  TActorKeys extends string = never,
+  TLinkKeys extends string = never,
 > = {
   /**
    * the engine's dialect (its definition): goal texts (`G1: Goal [G2;G3]`) are
-   * read with the reader goal-tree derives from it
+   * read with the reader goal-tree derives from it, and its `model` is the
+   * shape the engine accepts (goal-controller#125)
    */
-  dialect: ReadingDialect;
+  dialect: MapperDialect;
 
   /**
    * Allowed keys for goal custom properties
@@ -129,8 +180,27 @@ export type EngineMapper<
     node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>;
     allNodes: Map<string, TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
     rawProperties: RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys>;
+    /** the whole IR (goal-controller#125): its actors, links and elements */
+    model: GoalModel<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TActorEngine,
+      TLinkEngine
+    >;
   }) => TGoalEngine | TTaskEngine | TResourceEngine;
-} & ResourceMapperConfig<TResourceEngine, TResourceKeys>;
+} & ResourceMapperConfig<TResourceEngine, TResourceKeys> &
+  ActorLinkMappers<TActorEngine, TLinkEngine, TActorKeys, TLinkKeys>;
+
+/** The actor and link mappers a config gives, only those it has. */
+const actorLinkMappers = <A, L, AK extends string, LK extends string>(
+  config: ActorLinkMappers<A, L, AK, LK>,
+): ActorLinkMappers<A, L, AK, LK> => ({
+  ...(config.allowedActorKeys && { allowedActorKeys: config.allowedActorKeys }),
+  ...(config.mapActorProps && { mapActorProps: config.mapActorProps }),
+  ...(config.allowedLinkKeys && { allowedLinkKeys: config.allowedLinkKeys }),
+  ...(config.mapLinkProps && { mapLinkProps: config.mapLinkProps }),
+});
 
 /**
  * Curried helper to create an engine mapper with full type inference.
@@ -156,9 +226,18 @@ export function createEngineMapper<
     TTaskKeys extends string,
     TResourceKeys extends string = never,
     TQualityKeys extends string = never,
-    TDialect extends ReadingDialect = ReadingDialect,
+    TDialect extends MapperDialect = MapperDialect,
+    TActorEngine = {},
+    TLinkEngine = {},
+    TActorKeys extends string = never,
+    TLinkKeys extends string = never,
   >(
-    config: {
+    config: ActorLinkMappers<
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
+    > & {
       /** the engine's definition: `executionDetail` names its constructs and modifiers */
       dialect: TDialect;
       allowedGoalKeys: readonly TGoalKeys[];
@@ -184,22 +263,29 @@ export function createEngineMapper<
           TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
         >;
         rawProperties: RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys>;
+        model: GoalModel<
+          TGoalEngine,
+          TTaskEngine,
+          TResourceEngine,
+          TActorEngine,
+          TLinkEngine
+        >;
       }) => TGoalEngine | TTaskEngine | TResourceEngine;
     } & (
-      | {
-          allowedResourceKeys: readonly TResourceKeys[];
-          skipResource?: false;
-          mapResourceProps: (props: {
-            raw: RawProps<TResourceKeys>;
-            id: string;
-          }) => TResourceEngine;
-        }
-      | {
-          allowedResourceKeys?: undefined;
-          skipResource: true;
-          mapResourceProps?: never;
-        }
-    ),
+        | {
+            allowedResourceKeys: readonly TResourceKeys[];
+            skipResource?: false;
+            mapResourceProps: (props: {
+              raw: RawProps<TResourceKeys>;
+              id: string;
+            }) => TResourceEngine;
+          }
+        | {
+            allowedResourceKeys?: undefined;
+            skipResource: true;
+            mapResourceProps?: never;
+          }
+      ),
   ): EngineMapper<
     TGoalEngine,
     TTaskEngine,
@@ -207,7 +293,11 @@ export function createEngineMapper<
     TGoalKeys,
     TTaskKeys,
     TResourceKeys,
-    TQualityKeys
+    TQualityKeys,
+    TActorEngine,
+    TLinkEngine,
+    TActorKeys,
+    TLinkKeys
   > => {
     const skipResource = config.allowedResourceKeys === undefined;
     // goal-tree reads goal texts with the reader derived from `config.dialect`,
@@ -225,8 +315,13 @@ export function createEngineMapper<
         TGoalKeys,
         TTaskKeys,
         TResourceKeys,
-        TQualityKeys
+        TQualityKeys,
+        TActorEngine,
+        TLinkEngine,
+        TActorKeys,
+        TLinkKeys
       > = {
+        ...actorLinkMappers(config),
         dialect: config.dialect,
         allowedGoalKeys: config.allowedGoalKeys,
         allowedTaskKeys: config.allowedTaskKeys,
@@ -257,8 +352,13 @@ export function createEngineMapper<
       TGoalKeys,
       TTaskKeys,
       TResourceKeys,
-      TQualityKeys
+      TQualityKeys,
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
     > = {
+      ...actorLinkMappers(config),
       dialect: config.dialect,
       allowedGoalKeys: config.allowedGoalKeys,
       allowedTaskKeys: config.allowedTaskKeys,

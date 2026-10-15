@@ -24,7 +24,12 @@ const godaEngine = (lib) => {
     checks: lib.godaCheckRegistry ?? {},
     output:
       typeof lib.godaOutput === 'function'
-        ? (model, options) => lib.godaOutput(model, options)
+        ? // its IR (goal-controller#125), where the lib has one
+          (model, options) =>
+            lib.godaOutput(
+              lib.godaGoalModel ? lib.godaGoalModel(model) : model,
+              options,
+            )
         : null,
     implements: (variant) =>
       (lib.GODA_IMPLEMENTED_VARIANTS ?? ['cc808b6']).includes(variant),

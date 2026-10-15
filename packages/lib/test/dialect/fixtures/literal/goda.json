@@ -55,6 +55,10 @@
   "idScope": "ancestorGoal",
   "unlinkedResources": "ignore",
   "idlessElements": "unlisted",
+  "model": {
+    "actors": "many",
+    "treesPerActor": "one"
+  },
   "properties": {
     "goal": [
       {

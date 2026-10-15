@@ -15,6 +15,7 @@ import {
   engineOutputProblems,
   evaluate,
   goda,
+  godaGoalModel,
   godaOutput,
   type EngineOutput,
 } from '../../../src';
@@ -92,7 +93,7 @@ const decision = (
   });
 
 const generate = (text: string) =>
-  godaOutput(Model.parse(text, goda), {
+  godaOutput(godaGoalModel(Model.parse(text, goda)), {
     modelName: 'robot.txt',
     variant: 'cc808b6',
   });
@@ -103,7 +104,9 @@ describe('GODA: the DM reference (#36)', () => {
     // the upstream models are fetched, not committed (#34 D1)
     if (!existsSync(join(dir, 'dm2.txt'))) this.skip();
     const output = godaOutput(
-      Model.parse(readFileSync(join(dir, 'dm2.txt'), 'utf8'), goda),
+      godaGoalModel(
+        Model.parse(readFileSync(join(dir, 'dm2.txt'), 'utf8'), goda),
+      ),
       { modelName: 'dm2.txt', variant: 'cc808b6' },
     );
     assert.deepStrictEqual(engineOutputProblems(output), []);

@@ -145,7 +145,9 @@ export {
   goda,
   godaCheckRegistry,
   godaEngineMapper,
+  godaGoalModel,
   godaOutput,
+  type GodaGoalModel,
   GodaUnsupported,
   GODA_DEFAULT_VARIANT,
   GODA_GOAL_KEYS,
@@ -177,6 +179,7 @@ export {
 export {
   grl,
   grlAnalyses,
+  grlAnalysisModel,
   grlCheckRegistry,
   grlEngineMapper,
   grlExtension,

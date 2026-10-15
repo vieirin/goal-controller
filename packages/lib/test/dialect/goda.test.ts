@@ -248,11 +248,12 @@ describe('GODA: what the language reads for it', () => {
 
     // Edge has neither: the Resource is a second root, and an element
     // without an id is listed by its piStar id, to be given one
+    // (goal-controller#125: the shape the engine reads, one actor with one root)
     expect(() => Model.validate(parsePistar(model), edgeV2)).to.throw(
-      /Invalid number of roots/,
+      '[INVALID_MODEL]: EdgeV2 reads one actor with one root goal; actor "Robot" has 2 root goals (G1, battery msg)',
     );
     expect(() => Model.validate(parsePistar(model))).to.throw(
-      /Invalid number of roots/,
+      '[INVALID_MODEL]: The engine reads one actor with one root goal; actor "Robot" has 2 root goals (G1, battery msg)',
     );
     const unnamed = model.replace('T1: Pick', 'Pick');
     expect(

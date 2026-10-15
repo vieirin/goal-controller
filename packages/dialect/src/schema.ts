@@ -318,6 +318,25 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * `customProperties` (goal-controller#107).
    */
   actors?: readonly ActorPropertyDefinition[];
+  /**
+   * The model shape the engine reads (goal-controller#125): how many actors,
+   * and how many trees (root goals) each. Default: one actor with one tree,
+   * as the PRISM engines read a model. A model outside it is a dialect
+   * problem, reported before generation.
+   */
+  model?: ModelShape;
+};
+
+/** How many: exactly one, or any number. */
+export type ShapeCount = 'one' | 'many';
+
+/** The model shape an engine reads: its actors, and its trees (root goals) per actor. */
+export type ModelShape = { actors: ShapeCount; treesPerActor: ShapeCount };
+
+/** The shape an engine reads when its definition declares none. */
+export const DEFAULT_MODEL_SHAPE: ModelShape = {
+  actors: 'one',
+  treesPerActor: 'one',
 };
 
 /**
@@ -758,6 +777,10 @@ export const defineDialect = <const D extends AnyDialect>(
       if (!extension.startsWith('.'))
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
+  if (definition.model)
+    for (const [part, count] of Object.entries(definition.model))
+      if (count !== 'one' && count !== 'many')
+        fail(`model.${part}: one or many, not ${String(count)}`);
   const order = new Set(definition.propertyLineOrder);
   if (
     order.size !== definition.propertyLineOrder.length ||

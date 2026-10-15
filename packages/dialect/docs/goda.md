@@ -73,12 +73,16 @@ The relevant files are `integration/Controller.java` (the piStar reader),
 | `template/templates.ts` | The generator's templates, byte for byte |
 | `template/variants.ts` | A generator version as a strategy: its templates, containers, guards and formulas (D14) |
 | `template/runtime.ts` | SA-BSN's runtime formulas, `reliability.formula` and `cost.formula` (#94) |
-| `template/index.ts` | `godaOutput(model, { modelName, variant, runtimeFormulas })` |
+| `template/index.ts` | `godaGoalModel(model)`; `godaOutput(goalModel, { modelName, variant, runtimeFormulas })` |
 | `formula.ts` | The formulas as numbers: `compileFormula`, `evaluate`, `evalFormulaValues`, `compareFormulas`, shared with the stress test (#35) |
 
-`godaOutput` takes goal-tree's validated model (`Model.parse(text)`), not
-the tree. GODA names the MDP after the actor that holds the selected goal,
-and the tree doesn't keep actors (D16). It returns eight files, the MDP
+`godaOutput` takes the model's `GoalModel`, goal-tree's typed IR
+(goal-controller#125), not the tree. GODA names the MDP after the actor that
+holds the selected goal (D16). Before #125 the tree didn't keep actors, so
+`godaOutput` took the validated model. Now the IR's actors hold their trees,
+and D16 is closed. `godaGoalModel(Model.parse(text, goda))` builds the IR.
+GODA's definition declares the shape it reads, `model: { actors: 'many',
+treesPerActor: 'one' }`: any number of actors, each with one root goal. It returns eight files, the MDP
 first and primary (goal-controller#33): ids `model`, `reachability-max`,
 `reachability-min`, `cost-max`, `cost-min`, `reliability`, `cost` and
 `evaluate`. Each file's bytes are what upstream's `PrintWriter` writes,
@@ -247,7 +251,7 @@ The same test file checks the module on models of our own: three contexts, which
 | Context conditions with a prefix and decimals | The `assertion` type gained `prefixes` (`assertion condition`, `assertion trigger`) and `decimals`. One general type, not a GODA one. |
 | Context variables nobody declares | `declaresVariables` on an `assertion` value (#34 D17). The names a condition compares are known variables because the condition uses them, as upstream turns each into a `CTX_` parameter. Without it, every `ctx`, `ms` or `SaO2_sensor` was a "not a known variable" note (58 across the examples). |
 | A task's bracket in its mapper | `mapTaskProps` gets the task's text, as `mapGoalProps` did. |
-| An engine named after the model's actor | `godaOutput` takes the validated model (D16). |
+| An engine named after the model's actor | `godaOutput` takes the `GoalModel`, whose actors hold their trees (D16, closed by goal-controller#125). |
 | Names with digits (`medical service 1`, `Collect SaO2 data`) | `notation.names: 'text'` (#34 D17): a name on a line with an id may hold any character, as GODA's producer splits a line at its colon. The reader masks the name to a WORD of the same length, so every span stays, and gives the name as written. Edge keeps RTRegex.g4's WORD. |
 | Resources without ids (TAS) | GODA's definition sets `unlinkedResources: 'ignore'`: a Resource linked to nothing is no root of the engines' tree (`actorRootCandidates`), so the model validates when it's read with GODA's dialect (`Model.validate(model, goda)`). It sets `idlessElements: 'unlisted'` too: an element whose text writes no id gets no Notation line (`isListed`), since it can't be named. Edge sets neither: a stray Resource is a second root, and an element without an id is listed by its piStar id. |
 | A line that reads as nothing, unindented | `Not an element line`, owned by no element; before, `Not a property line` on the element above (T6.3). |

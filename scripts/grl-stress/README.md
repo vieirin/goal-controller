@@ -34,7 +34,7 @@ rtfm_mini_goal_model, sepsis_goal_model, bpic2019_goal_model}.jucm`.
   imported actors' nodes, orphans and dependums; its grlspec `links` and
   BeliefLinks against `model.links`.
 - **checks**: `grlCheckRegistry` over every contribution link's properties.
-- **evaluations**: `grlGraph(analysisModel(parsePistar(model, { fileMetamodel: true })))`,
+- **evaluations**: `grlGraph(grlAnalysisModel(parsePistar(model, { fileMetamodel: true })))` (the view of its `GoalModel`, goal-controller#125),
   then each strategy from `readStrategies` with `evaluateStrategy`, under the
   oracle's three runs (quantitative at tolerance 0 and 10, qualitative). Each
   reference row (every intentional element and actor) must match exactly, in

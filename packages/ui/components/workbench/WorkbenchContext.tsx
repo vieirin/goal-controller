@@ -1599,18 +1599,20 @@ function WorkbenchState({
 
   // an analysis: run on a click, on the model as it is now and its input's
   // files as the tabs hold them; never written to the model
-  const analyses = ENGINE_ANALYSES[engine] ?? null;
+  const analysisEngine = ENGINE_ANALYSES[engine] ?? null;
+  const analyses = analysisEngine?.analyses ?? null;
   // (declared with the runs above; cleared with them when a model is opened or closed)
   useEffect(() => setAnalysisRun(null), [engine]);
   const runAnalysisNow = useCallback(
     (id: string) => {
       const analysis = analyses?.[id];
-      if (!analysis) return;
+      if (!analysis || !analysisEngine) return;
       setAnalysisRun(
         analyse(
           id,
           analysis,
           textRef.current,
+          analysisEngine.model,
           analysisResource(
             analysis,
             resourceSlotsNow,
@@ -1619,7 +1621,7 @@ function WorkbenchState({
         ),
       );
     },
-    [analyses, resourceSlotsNow],
+    [analyses, analysisEngine, resourceSlotsNow],
   );
   const setAnalysisCase = useCallback(
     (caseId: string) =>

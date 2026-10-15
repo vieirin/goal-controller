@@ -109,6 +109,8 @@ export const grl = defineDialect({
   linkLines: true,
   links: links({ 'istar.ContributionLink': CONTRIBUTION }),
   actors: actors(IMPORTANCE),
+  // its analyses evaluate every actor and every tree (goal-controller#125)
+  model: { actors: 'many', treesPerActor: 'many' },
   projectResources: {
     strategies: {
       label: 'Strategies',

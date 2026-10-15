@@ -8,14 +8,15 @@
  */
 import type { GoalDiagnostic } from '@istar-ts/core';
 import {
-  analysisModel,
   runAnalysis,
   type Analysis,
   type AnalysisCase,
+  type AnalysisModel,
   type AnalysisResult,
 } from '@goal-controller/lib';
 import type { ResourceSlot } from '@/lib/project';
 import { parseModel } from './dialects';
+import type { IStarModel } from '@goal-controller/goal-tree';
 
 /** Where the canvas's analysis diagnostics come from (one source, replaced as a whole). */
 export const ANALYSIS_SOURCE = 'analysis';
@@ -61,18 +62,18 @@ export const analysisResource = (
   );
 };
 
-/** Runs an analysis on a model text (its actor kinds: iStar's and `actorKinds`). */
+/** Runs an analysis on a model text, read as its engine reads it (`readModel`: the view of its `GoalModel`). */
 export const analyse = (
   id: string,
   analysis: Analysis,
   text: string,
+  readModel: (model: IStarModel) => AnalysisModel,
   resource?: Readonly<Record<string, string>>,
-  actorKinds: readonly string[] = [],
 ): AnalysisRun => {
   const base = { analysis: id, label: analysis.label, text, caseId: null };
   let model;
   try {
-    model = analysisModel(parseModel(text), { actorKinds });
+    model = readModel(parseModel(text));
   } catch (error) {
     return {
       ...base,

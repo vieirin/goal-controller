@@ -95,6 +95,9 @@ export const goda = defineDialect({
   // TAS draws its Resources beside the goals, linked to nothing and without ids
   unlinkedResources: 'ignore',
   idlessElements: 'unlisted',
+  // a model of several actors names the one holding the selected goal (#34
+  // D16): it generates from that actor's one tree (goal-controller#125)
+  model: { actors: 'many', treesPerActor: 'one' },
   // it reads no resource or quality properties
   properties: {
     goal: goalProperties,

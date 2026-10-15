@@ -3,7 +3,7 @@ import { grlCheckRegistry } from './checks';
 import { grl } from './definition';
 import { grlExtension } from './extension';
 import { grlAnalyses, grlProjectResourceParsers } from './index';
-import { grlEngineMapper } from './mapper';
+import { grlAnalysisModel, grlEngineMapper } from './mapper';
 
 /**
  * GRL, as the workbench registers it: an analysis engine (its values are
@@ -17,6 +17,7 @@ export const grlEngine = defineEngine({
   mapper: grlEngineMapper,
   output: { label: 'Evaluation', extension: 'json', language: 'text' },
   analyses: grlAnalyses,
+  analysisModel: grlAnalysisModel,
   projectResources: grlProjectResourceParsers,
   extension: grlExtension,
   fileKinds: true,

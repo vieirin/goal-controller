@@ -142,6 +142,10 @@
       "help": "how much it matters to its actor, 0..100 (the quantitative evaluation weighs it; 0 leaves it out)"
     }
   ],
+  "model": {
+    "actors": "many",
+    "treesPerActor": "many"
+  },
   "projectResources": {
     "strategies": {
       "label": "Strategies",

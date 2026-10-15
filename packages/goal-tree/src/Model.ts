@@ -4,26 +4,31 @@
 import { isActor, parsePistar, updateElement } from '@istar-ts/core';
 import { readFileSync } from 'fs';
 import { reduceModel, singleChildGoals } from './internal/reduce';
-import { findActorRoot, type RootReading } from './internal/roots';
+import {
+  actorRoots,
+  modelShapeProblem,
+  type RootReading,
+} from './internal/roots';
 import type { Model as IStarModel } from './types/';
 
 /**
- * Validate an iStar model: every actor must have exactly one root (resolved
- * from the link graph, as `dialect` reads it; see `findActorRoot`).
+ * Validate an iStar model: it must have the shape `dialect`'s engine reads
+ * (its `model`, by default one actor with one root goal; goal-controller#125),
+ * its roots resolved from the link graph as `dialect` reads it (`actorRoots`).
  *
  * @returns the model with each root marked by the `root: "true"` custom property
- * @throws Error if the model is invalid
+ * @throws Error if the model is outside the shape (`modelShapeProblem`)
  */
 function validateModel(model: IStarModel, dialect?: RootReading): IStarModel {
-  const actors = [...model.elements.values()].filter(isActor);
+  const problem = modelShapeProblem(model, dialect);
+  if (problem) throw new Error(`[INVALID_MODEL]: ${problem}`);
 
   let validated = model;
-  for (const actor of actors) {
-    const root = findActorRoot(model, actor.id, dialect);
-    validated = updateElement(validated, root.id, {
-      customProperties: { ...root.customProperties, root: 'true' },
-    });
-  }
+  for (const actor of [...model.elements.values()].filter(isActor))
+    for (const root of actorRoots(model, actor.id, dialect))
+      validated = updateElement(validated, root.id, {
+        customProperties: { ...root.customProperties, root: 'true' },
+      });
 
   return validated;
 }

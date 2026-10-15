@@ -97,6 +97,20 @@ describe('defineEngine', () => {
       /^Error: toy: analysis evaluation reads unknown project resource strategies$/,
     ));
 
+  it('rejects analyses without the reader of their model, and a reader without analyses', () => {
+    const analysisModel = () => ({ actors: [], elements: [], links: [] });
+    assert.throws(
+      define({
+        analyses: { sum: { label: 'Sum', run: () => ({ cases: [] }) } },
+      }),
+      /^Error: toy: analyses without an analysisModel$/,
+    );
+    assert.throws(
+      define({ analysisModel }),
+      /^Error: toy: an analysisModel without analyses$/,
+    );
+  });
+
   it('rejects an output id declared twice', () =>
     assert.throws(
       define({ outputs: [{ id: 'model' }, { id: 'cost' }, { id: 'model' }] }),

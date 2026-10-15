@@ -1,6 +1,20 @@
 /** #107's toy: a link property, an actor property, an analysis summing one over the other. */
-import { defineDialect, type ProblemKind } from '@goal-controller/dialect';
-import { defineAnalyses, type AnalysisModel } from '../../../src';
+import {
+  actorPropertyKeys,
+  defineDialect,
+  linkPropertyKeys,
+  type ProblemKind,
+} from '@goal-controller/dialect';
+import {
+  createEngineMapper,
+  GoalTree,
+  type IStarModel,
+} from '@goal-controller/goal-tree';
+import {
+  analysisViewOf,
+  defineAnalyses,
+  type AnalysisModel,
+} from '../../../src';
 
 const problem = { severity: 'warning' as const, message: 'mismatch' };
 export const toyGraph = defineDialect({
@@ -29,6 +43,25 @@ export const toyGraph = defineDialect({
   },
   actors: [{ key: 'budget', value: { type: 'int', min: 0 }, help: 'its cap' }],
 });
+
+/** The toy's mapper: its actors' and links' properties kept as written (goal-controller#125). */
+export const toyMapper = createEngineMapper<object, object, never>()({
+  dialect: toyGraph,
+  allowedGoalKeys: [],
+  allowedTaskKeys: [],
+  skipResource: true,
+  allowLeafGoals: true,
+  mapGoalProps: () => ({}),
+  mapTaskProps: () => ({}),
+  allowedActorKeys: actorPropertyKeys(toyGraph),
+  mapActorProps: ({ raw }) => raw,
+  allowedLinkKeys: linkPropertyKeys(toyGraph),
+  mapLinkProps: ({ raw }) => raw,
+});
+
+/** A toy model as its analyses read it: the view of its GoalModel. */
+export const toyAnalysisModel = (model: IStarModel): AnalysisModel =>
+  analysisViewOf(GoalTree.goalModel(model, toyMapper));
 
 /** Each actor: the weights of the contributions from its elements, summed. */
 const sumWeights = (model: AnalysisModel) => ({

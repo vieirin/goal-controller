@@ -20,6 +20,7 @@ import {
   godaOptions,
   grl,
   grlAnalyses,
+  grlAnalysisModel,
   grlCheckRegistry,
   grlEngineMapper,
   grlExtension,
@@ -192,7 +193,10 @@ describe('the engine registry', () => {
     ]));
 
   it('derives ENGINE_ANALYSES and ENGINE_FILE_KINDS', () => {
-    expectSameEntries(ENGINE_ANALYSES, { grl: grlAnalyses });
+    // an analysis engine's analyses, with how it reads a model for them (#125)
+    expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl']);
+    expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
+    expect(ENGINE_ANALYSES.grl?.model).toBe(grlAnalysisModel);
     expectSameEntries(ENGINE_FILE_KINDS, { grl: grlExtension });
   });
 

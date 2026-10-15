@@ -2,6 +2,7 @@ import {
   edgeOutput,
   edgeV2Output,
   GODA_DEFAULT_VARIANT,
+  godaGoalModel,
   godaOutput,
   initLogger,
   initEdgeV2Logger,
@@ -109,7 +110,7 @@ export const transform = (
       // GODA reads the model as written, and names its MDP after the actor
       const parseResult = GoalModel.parseForGoda(modelJson);
       if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = godaOutput(parseResult.model, {
+      ({ files } = godaOutput(godaGoalModel(parseResult.model), {
         modelName,
         variant,
         runtimeFormulas,

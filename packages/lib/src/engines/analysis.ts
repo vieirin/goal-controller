@@ -1,13 +1,15 @@
 /**
  * Analysis engines (goal-controller#107): an engine whose output is a value
  * per element and actor, drawn on the model, not a file. An engine declares
- * its analyses by id; each runs on the model (as `AnalysisModel`: its actors,
- * elements and links with their properties) and, when it reads one, a
+ * its analyses by id; each runs on the model (as `AnalysisModel`, a view of
+ * its `GoalModel`: its actors, elements and links with their properties) and,
+ * when it reads one, a
  * project resource. A result has one or more cases (one evaluation each: a
  * strategy, a scenario; a single-case analysis has one), each a value per
  * element or actor id. Nothing here names an engine.
  */
 import type { AnyDialect } from '@goal-controller/dialect';
+import type { GoalModel } from '@goal-controller/goal-tree';
 
 /** A value on an element or actor: a number or a word, its label, how to show it. */
 export type AnalysisValue = {
@@ -76,82 +78,47 @@ export type Analysis = {
 
 export type Analyses = Readonly<Record<string, Analysis>>;
 
-/** What analysisModel reads of an istar-ts model (any kinds: an extension's too). */
-export type AnalysedModel = {
-  readonly elements: ReadonlyMap<
-    string,
-    {
-      readonly id: string;
-      readonly kind: string;
-      readonly name: string;
-      readonly parent?: string;
-      readonly customProperties?: Readonly<Record<string, unknown>>;
-    }
-  >;
-  readonly links: ReadonlyMap<
-    string,
-    {
-      readonly id: string;
-      readonly kind: string;
-      readonly source: string;
-      readonly target: string;
-      readonly label?: string;
-      readonly customProperties?: Readonly<Record<string, unknown>>;
-    }
-  >;
-};
+/** Properties as an analysis reads them: their texts, by key. */
+type PropertyTexts = Readonly<Partial<Record<string, string>>>;
 
-const ACTOR_KINDS = new Set(['istar.Actor', 'istar.Agent', 'istar.Role']);
+const texts = (properties: PropertyTexts): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(properties).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    ),
+  );
 
 /**
- * The model as analyses read it. An actor is an element of an actor kind
- * (iStar's, or `actorKinds` an extension adds); the rest are elements.
+ * The model as analyses read it: a view of the engine's `GoalModel`
+ * (goal-controller#125), its actors, elements and links in the file's
+ * order. An actor's and a link's properties are what the engine's mapper
+ * keeps of them (`mapActorProps`, `mapLinkProps`: their texts), an
+ * element's are as written.
  */
-export const analysisModel = (
-  model: AnalysedModel,
-  { actorKinds = [] }: { actorKinds?: readonly string[] } = {},
-): AnalysisModel => {
-  const isActor = (kind: string) =>
-    ACTOR_KINDS.has(kind) || actorKinds.includes(kind);
-  const props = (p: Readonly<Record<string, unknown>> | undefined) =>
-    Object.fromEntries(
-      Object.entries(p ?? {}).filter(
-        (entry): entry is [string, string] => typeof entry[1] === 'string',
-      ),
-    );
-  const actors: AnalysisActor[] = [];
-  const elements: AnalysisElement[] = [];
-  for (const element of model.elements.values()) {
-    const { kind } = element;
-    if (isActor(kind))
-      actors.push({
-        id: element.id,
-        kind,
-        name: element.name,
-        properties: props(element.customProperties),
-        elements: [...model.elements.values()]
-          .filter((inner) => inner.parent === element.id)
-          .map((inner) => inner.id),
-      });
-    else
-      elements.push({
-        id: element.id,
-        kind,
-        name: element.name,
-        properties: props(element.customProperties),
-        ...(element.parent !== undefined && { actor: element.parent }),
-      });
-  }
-  const links = [...model.links.values()].map((link): AnalysisLink => ({
-    id: link.id,
-    kind: link.kind,
-    source: link.source,
-    target: link.target,
-    ...(link.label !== undefined && { label: link.label }),
-    properties: props(link.customProperties),
-  }));
-  return { actors, elements, links };
-};
+export const analysisViewOf = (
+  goalModel: GoalModel<unknown, unknown, unknown, PropertyTexts, PropertyTexts>,
+): AnalysisModel => ({
+  actors: goalModel.actors.map(
+    ({ id, kind, name, properties, elements }): AnalysisActor => ({
+      id,
+      kind,
+      name,
+      properties: texts(properties.engine),
+      elements,
+    }),
+  ),
+  elements: goalModel.elements,
+  links: goalModel.links.map(
+    ({ id, kind, source, target, label, properties }): AnalysisLink => ({
+      id,
+      kind,
+      source,
+      target,
+      ...(label !== undefined && { label }),
+      properties: texts(properties.engine),
+    }),
+  ),
+});
 
 /**
  * What is wrong with an engine's analyses, as `defineAnalyses` and

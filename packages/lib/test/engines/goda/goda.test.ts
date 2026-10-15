@@ -20,6 +20,7 @@ import {
   goda,
   godaCheckRegistry,
   GODA_DEFAULT_VARIANT,
+  godaGoalModel,
   godaOutput,
   GodaUnsupported,
   GODA_IMPLEMENTED_VARIANTS,
@@ -37,7 +38,7 @@ const { EXAMPLES } = require('../../../../../scripts/goda-stress/fetch.cjs');
 const ROOT = join(__dirname, '../../../../..');
 const LAB = join(ROOT, 'examples/goda/LabResults.txt');
 
-const modelOf = (text: string) => Model.parse(text, goda);
+const modelOf = (text: string) => godaGoalModel(Model.parse(text, goda));
 const outputOf = (text: string, modelName = 'model.txt'): EngineOutput =>
   godaOutput(modelOf(text), { modelName, variant: 'cc808b6' });
 const fileOf = (output: EngineOutput, id: string) =>

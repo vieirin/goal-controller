@@ -23,7 +23,7 @@ import {
   lineKeys,
 } from '../../../ui/lib/workbench/notationDocument';
 import { traceOfFile } from '../../../ui/lib/workbench/outputs';
-import { edgeV2, goda, godaOutput, mutrose } from '../../src';
+import { edgeV2, goda, godaGoalModel, godaOutput, mutrose } from '../../src';
 import { serverProblems } from '../../../ui/lib/workbench/diagnostics';
 
 const ROOT_DIR = join(__dirname, '../../../..');
@@ -156,7 +156,9 @@ describe('GODA: a task id repeated under two goals', () => {
 
   it("traces the MDP's lines to each one, by piStar id", () => {
     const tree = view();
-    const [nm] = godaOutput(Model.parse(MODEL), { modelName: 'm' }).files;
+    const [nm] = godaOutput(godaGoalModel(Model.parse(MODEL)), {
+      modelName: 'm',
+    }).files;
     const trace = traceOfFile(
       nm!,
       tree.nodes.keys(),
