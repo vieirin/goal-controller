@@ -1,6 +1,7 @@
 'use client';
 
 import { EditorState, Prec } from '@codemirror/state';
+import type { ValueType } from '@goal-controller/dialect';
 import {
   EditorView,
   keymap,
@@ -12,10 +13,20 @@ import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import { cx } from '../../ui';
 import { inputClass } from '../shared/inspector';
 
+/** Value configs edited in the engine's value language (one-line editors with its support). */
+export const LANGUAGE_VALUES: ReadonlySet<ValueType> = new Set<ValueType>([
+  'assertion',
+  'expression',
+  'refList',
+  'pairList',
+  'ocl',
+]);
+
 /**
  * A property value as a one-line editor with the engine's language support (its
  * value language, lint and completion; a language server's when there is one):
- * the field's document is one element's property.
+ * the field's document is one element's property, or a link's or an actor's
+ * (goal-controller#152).
  */
 export default function DefinitionValueEditor({
   support,
@@ -28,7 +39,7 @@ export default function DefinitionValueEditor({
   onBlur,
 }: {
   support: LanguageSupport;
-  /** the element's id */
+  /** the element's id, or the link's or actor's piStar id */
   id: string;
   property: string;
   value: string;

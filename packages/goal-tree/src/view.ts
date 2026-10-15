@@ -79,7 +79,10 @@ export type ViewLink = {
   /** piStar link id */
   iStarId: string;
   kind: string;
-  /** its ends' keys; null: an end the view doesn't list (an actor, a dependum, an extension's kind) */
+  /**
+   * its ends' keys (a target dependum's too: a dependency's link line names
+   * it); null: an end the view doesn't list (an actor, an extension's kind)
+   */
   source: string | null;
   target: string | null;
   /** its ends as the model has them: piStar id and kind, whatever the kind (an extension's too) */
@@ -110,6 +113,11 @@ export type GoalView = {
   byIStarId: Map<string, GoalViewNode>;
   /** each actor's root candidates, then anything not reachable from them */
   roots: string[];
+  /**
+   * the dependums, by key (goal-controller#152): in no tree and no actor, so
+   * no line of their own, but a link to one (a dependency's) names it
+   */
+  dependums: Map<string, GoalViewNode>;
   /** every link, in the model's order */
   links: ViewLink[];
   /** every actor, in the model's order */
@@ -145,6 +153,7 @@ export function goalView(
   dialect: ReadingDialect,
 ): GoalView {
   const byIStarId = new Map<string, GoalViewNode>();
+  const dependumsByIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
   const parents = new Map<string, string>();
   const extensionKinds = new Set(extensionKindsRead(dialect));
@@ -155,7 +164,7 @@ export function goalView(
       (extensionKinds.has(element.kind)
         ? (element.kind as ViewKind)
         : undefined);
-    if (!kind || !isNode(element) || element.isDependum) continue;
+    if (!kind || !isNode(element)) continue;
     const text = element.name;
     const written = TEXT.exec(text);
     const notation = written?.[3] !== undefined ? written[3].trim() : null;
@@ -174,7 +183,7 @@ export function goalView(
     }
     const executionDetail =
       errors.length === 0 ? (detail?.executionDetail ?? null) : null;
-    byIStarId.set(element.id, {
+    (element.isDependum ? dependumsByIStarId : byIStarId).set(element.id, {
       iStarId: element.id,
       x: element.x,
       id: (errors.length === 0 && detail?.id) || written?.[1] || element.id,
@@ -249,6 +258,14 @@ export function goalView(
   );
   const keyOf = (iStarId: string | undefined) =>
     iStarId ? byIStarId.get(iStarId)?.key : undefined;
+  // a dependum is keyed by its id: no goal scopes it
+  const dependums = new Map<string, GoalViewNode>();
+  for (const node of dependumsByIStarId.values()) {
+    node.key = node.id;
+    if (!dependums.has(node.key)) dependums.set(node.key, node);
+  }
+  const endKeyOf = (iStarId: string) =>
+    keyOf(iStarId) ?? dependumsByIStarId.get(iStarId)?.key;
   for (const node of byIStarId.values()) {
     const keys = (children.get(node.iStarId) ?? [])
       .map(keyOf)
@@ -315,7 +332,7 @@ export function goalView(
     iStarId: link.id,
     kind: link.kind,
     source: keyOf(link.source) ?? null,
-    target: keyOf(link.target) ?? null,
+    target: endKeyOf(link.target) ?? null,
     ends: {
       source: {
         iStarId: link.source,
@@ -346,6 +363,7 @@ export function goalView(
     nodes: byId,
     byIStarId,
     roots: [...new Set(roots)],
+    dependums,
     links,
     actors,
   };

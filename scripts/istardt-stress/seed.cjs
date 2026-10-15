@@ -5,6 +5,10 @@
  * - **import**: `importIstardt` gives a model and no `error` diagnostic;
  * - **model** (a committed seed): the project's model is the import's, as
  *   `projects.cjs --write` writes it;
+ * - **native**: the import through iStarDT-X, the native file, written
+ *   and read back (`nativeCheck`); a native file the project ships is what
+ *   the writer writes of its model now; with `--oracle`, dtx2dtg's
+ *   validator accepts what it wrote (run.cjs, `docker/dtx2dtg`);
  * - **checks**: `istardtProblems` finds no error (its warnings counted);
  * - **dtgolog**: the writer's file equals the golden one after the four
  *   header lines, byte for byte (#117 D1.1);
@@ -15,6 +19,7 @@
  * (with its `reason`).
  */
 const fs = require('fs');
+const path = require('path');
 const { modelText } = require('./projects.cjs');
 const { nativeCheck } = require('../native-column.cjs');
 
@@ -64,6 +69,33 @@ const checkSeed = ({ lib, core }, seed) => {
     projectResources: result.dialectRecord.projectResources,
     options: result.dialectRecord.options,
   });
+
+  // the native files the project ships: each what the writer writes of
+  // its model now (goal-controller#144), so it never drifts from the writer
+  if (seed.committed && checks.native.status === 'pass' && seed.project) {
+    const project = JSON.parse(fs.readFileSync(seed.project, 'utf8'));
+    const entry = project.models.find(
+      (m) => path.join(path.dirname(seed.project), m.path) === seed.model,
+    );
+    const shipped = Object.entries(entry?.native ?? {});
+    for (const [id, file] of shipped) {
+      const at = path.join(path.dirname(seed.project), file);
+      const written = fs.existsSync(seed.model)
+        ? lib.istardt.nativeFiles[id]?.write(
+            JSON.parse(fs.readFileSync(seed.model, 'utf8')),
+            { modelName: seed.modelName, options: project.options },
+          ).text
+        : null;
+      if (!fs.existsSync(at) || fs.readFileSync(at, 'utf8') !== written)
+        Object.assign(checks.native, {
+          status: 'fail',
+          error: fs.existsSync(at)
+            ? `${file} isn't what the writer writes now: regenerate it`
+            : `${file} is listed but missing`,
+        });
+    }
+    checks.native.shipped = shipped.map(([, file]) => file);
+  }
 
   if (seed.committed)
     checks.model = !fs.existsSync(seed.model)

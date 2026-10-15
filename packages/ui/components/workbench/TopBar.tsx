@@ -51,7 +51,14 @@ import {
   outputDownloadExtension,
 } from '@/lib/workbench/outputs';
 import type { GenerationOptions } from '@/lib/workbench/types';
-import { shownCase, shownStep } from '@/lib/workbench/analysis';
+import {
+  caseText,
+  PICKED_CASES,
+  pickableCases,
+  shownCase,
+  shownStep,
+} from '@/lib/workbench/analysis';
+import type { AnalysisCase } from '@goal-controller/lib';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
@@ -75,7 +82,7 @@ const readFile = (file: File): Promise<string> =>
   });
 
 /**
- * Another tool's model (lib's FILE_IMPORTERS, by extension: iStarDT-X), as
+ * Another tool's model (lib's FILE_IMPORTERS, by extension; none now: iStarDT-X and .tropos are native files), as
  * the piStar model its importer writes, `<name>.txt`; it rejects with the
  * importer's errors when the file isn't one it reads.
  */
@@ -505,9 +512,64 @@ export default function TopBar() {
 }
 
 /**
+ * The case the canvas draws, picked by its label and summary; a run with
+ * more cases than the list shows at once (variants, goal-controller#152)
+ * is searched first, by words of either.
+ */
+function CasePicker({
+  cases,
+  shown,
+  onPick,
+}: {
+  cases: readonly AnalysisCase[];
+  shown: AnalysisCase | undefined;
+  onPick: (id: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const searched = cases.length > PICKED_CASES;
+  const listed = searched
+    ? pickableCases(cases, query, shown)
+    : { cases: [...cases], matching: cases.length };
+  return (
+    <span className='flex items-center gap-1'>
+      {searched && (
+        <input
+          type='search'
+          aria-label='Search the cases'
+          placeholder={`Search ${cases.length} cases`}
+          className='h-8 w-40 rounded-md border border-line bg-white px-2 text-xs text-ink'
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      )}
+      <select
+        aria-label='Case'
+        className='h-8 max-w-[28rem] rounded-md border border-line bg-white px-2 text-xs text-ink'
+        value={shown?.id}
+        title={shown && caseText(shown)}
+        onChange={(event) => onPick(event.target.value)}
+      >
+        {listed.cases.map((c) => (
+          <option key={c.id} value={c.id}>
+            {caseText(c)}
+          </option>
+        ))}
+      </select>
+      {searched && (
+        <span className='text-xs text-ink-muted' role='status'>
+          {listed.matching > PICKED_CASES
+            ? `first ${PICKED_CASES} of ${listed.matching}`
+            : `${listed.matching} matching`}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
  * An analysis engine's control (goal-controller#107): its analyses, run on a
- * click, and the case (a strategy) whose values the canvas draws. None for
- * an engine without analyses.
+ * click, and the case (a strategy, a variant) whose values the canvas draws.
+ * None for an engine without analyses.
  */
 export function AnalyseControl() {
   const wb = useWorkbench();
@@ -562,18 +624,11 @@ export function AnalyseControl() {
         )}
       </Menu>
       {cases.length > 1 && (
-        <select
-          aria-label='Case'
-          className='h-8 rounded-md border border-line bg-white px-2 text-xs text-ink'
-          value={shown?.id}
-          onChange={(event) => wb.setAnalysisCase(event.target.value)}
-        >
-          {cases.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+        <CasePicker
+          cases={cases}
+          shown={shown}
+          onPick={(id) => wb.setAnalysisCase(id)}
+        />
       )}
       {step && (
         <span className='flex items-center gap-1 text-xs text-ink'>

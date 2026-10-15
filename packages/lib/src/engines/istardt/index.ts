@@ -1,7 +1,8 @@
 /**
  * iStar-DT (goal-controller#119): its definition (the dialect), its own
  * kinds (the `istardt` extension), its checks, its options and the
- * DT-Golog writer. The iStarDT-X importer is `importers/istardt`.
+ * DT-Golog writer; iStarDT-X, its native file: the importer is
+ * `importers/istardt`, the writer ./istardtx.
  */
 export { istardt } from './definition';
 export { istardtAnalysisModel, istardtEngineMapper } from './mapper';
@@ -26,4 +27,5 @@ export {
   IstardtWriteError,
   type IstardtWriteOptions,
 } from './template';
+export { canonicalIstardtx, ISTARDTX_LOSSY, writeIstardtx } from './istardtx';
 export * from './vocabulary';

@@ -6,7 +6,12 @@
  * when it reads one, a
  * project resource. A result has one or more cases (one evaluation each: a
  * strategy, a scenario; a single-case analysis has one), each a value per
- * element or actor id. Nothing here names an engine.
+ * element or actor id; a case may be a selection (goal-controller#152: a
+ * variant, the elements and links it consists of, with a one-line summary),
+ * which the workbench draws by dimming the rest. An analysis that derives
+ * variants or reasons over conditions has `variantsOf` (./variants) and
+ * `satisfiable`, `implies`, `equivalent` (./propositional). Nothing here
+ * names an engine.
  */
 import type { AnyDialect } from '@goal-controller/dialect';
 import type { GoalModel } from '@goal-controller/goal-tree';
@@ -31,13 +36,18 @@ export type AnalysisStep = { label: string; values: AnalysisValues };
 /**
  * One evaluation: its values by element or actor id (the piStar ids). A
  * case run step by step has `steps` too, in order (the workbench steps
- * through them); its `values` are then its outcome (its last step's).
+ * through them); its `values` are then its outcome (its last step's). A
+ * case that is a selection (goal-controller#152: a variant) has the piStar
+ * ids of the elements and links it consists of (the workbench dims the
+ * rest), and a one-line `summary` (its context, score, cost).
  */
 export type AnalysisCase = {
   id: string;
   label: string;
   values: AnalysisValues;
   steps?: readonly AnalysisStep[];
+  selection?: readonly string[];
+  summary?: string;
 };
 
 export type AnalysisResult = { cases: readonly AnalysisCase[] };
@@ -134,6 +144,70 @@ export const analysisViewOf = (
   ),
 });
 
+type PistarNode = {
+  id?: unknown;
+  type?: unknown;
+  text?: unknown;
+  customProperties?: Record<string, unknown>;
+};
+const textsOf = (properties: Record<string, unknown> | undefined) =>
+  Object.fromEntries(
+    Object.entries(properties ?? {}).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  );
+
+/**
+ * A piStar model's JSON as analyses read it, without the engine's mapper:
+ * every actor, element (an actor's, an orphan, a dependum) and link as the
+ * file has them, their properties' texts. For what reads a model's file
+ * itself (a native file's writer), where the workbench's `GoalModel` isn't
+ * at hand.
+ */
+export const pistarAnalysisModel = (
+  json: Readonly<Record<string, unknown>>,
+): AnalysisModel => {
+  const list = (value: unknown) =>
+    (Array.isArray(value) ? value : []) as (PistarNode & {
+      nodes?: unknown;
+      source?: unknown;
+      target?: unknown;
+      label?: unknown;
+    })[];
+  const element = (node: PistarNode, actor?: string): AnalysisElement => ({
+    id: String(node.id),
+    kind: String(node.type),
+    name: String(node.text ?? ''),
+    properties: textsOf(node.customProperties),
+    ...(actor !== undefined && { actor }),
+  });
+  const actors = list(json.actors);
+  return {
+    actors: actors.map((actor) => ({
+      id: String(actor.id),
+      kind: String(actor.type),
+      name: String(actor.text ?? ''),
+      properties: textsOf(actor.customProperties),
+      elements: list(actor.nodes).map((node) => String(node.id)),
+    })),
+    elements: [
+      ...actors.flatMap((actor) =>
+        list(actor.nodes).map((node) => element(node, String(actor.id))),
+      ),
+      ...list(json.orphans).map((node) => element(node)),
+      ...list(json.dependencies).map((node) => element(node)),
+    ],
+    links: list(json.links).map((link) => ({
+      id: String(link.id),
+      kind: String(link.type),
+      source: String(link.source),
+      target: String(link.target),
+      ...(typeof link.label === 'string' && { label: link.label }),
+      properties: textsOf(link.customProperties),
+    })),
+  };
+};
+
 /**
  * What is wrong with an engine's analyses, as `defineAnalyses` and
  * `defineEngine` reject them: one without an id or a label, or reading a
@@ -184,7 +258,8 @@ const valueText = (value: AnalysisValue): string =>
   value.label ?? String(value.value);
 
 /**
- * A result as text (goal-controller#135): each case, its values (or, for a
+ * A result as text (goal-controller#135): each case, its summary and
+ * selection when it has them (goal-controller#152), its values (or, for a
  * case run step by step, each step and its values), one `id: value` line
  * per element or actor, named by `nameOf` (default: its id).
  */
@@ -199,6 +274,12 @@ export const analysisText = (
   return result.cases
     .flatMap((analysisCase) => [
       analysisCase.label,
+      ...(analysisCase.summary !== undefined
+        ? [`  summary: ${analysisCase.summary}`]
+        : []),
+      ...(analysisCase.selection
+        ? [`  selection: ${analysisCase.selection.map(nameOf).join(', ')}`]
+        : []),
       ...(analysisCase.steps?.length
         ? analysisCase.steps.flatMap((step, i) => [
             `  step ${i + 1}: ${step.label}`,

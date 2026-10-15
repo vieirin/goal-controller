@@ -27,6 +27,7 @@ import {
 import { isEnabled } from './reading.js';
 import {
   argumentsText,
+  fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
@@ -41,8 +42,10 @@ type Definition = Pick<
 
 /**
  * A key's hover on a link or an actor line (goal-controller#109): its help,
- * as the kind of the link (or actor) the line names declares it. Null: not
- * such a line, or not on one of its keys.
+ * as the kind of the link (or actor) the line names declares it; in a
+ * value, the value's config, whose names hoverAt explains
+ * (goal-controller#152). Null: not such a line, or not on one of its
+ * properties.
  */
 const ownLineHover = (
   definition: Definition,
@@ -51,7 +54,7 @@ const ownLineHover = (
   read: { key: string; keySpan: Span; value: string; valueSpan: Span },
   at: number,
   context: DefinitionContext,
-): { span: Span; markdown: string } | null => {
+): { span: Span; markdown: string } | { value: ValueConfig } | null => {
   const isLink = linkLinesOf(definition) && read.key === LINK_LINE_KEY;
   const isActor = !!definition.actors && read.key === ACTOR_LINE_KEY;
   if (!isLink && !isActor) return null;
@@ -65,8 +68,8 @@ const ownLineHover = (
   const reading = isLink ? readLinkLine(read.value) : readActorLine(read.value);
   if (!('value' in reading)) return null;
   const offset = at - read.valueSpan.from;
-  const property = reading.value.properties.find((p) =>
-    within(p.keySpan, offset),
+  const property = reading.value.properties.find(
+    (p) => within(p.keySpan, offset) || within(p.valueSpan, offset),
   );
   if (!property) return null;
   let kind: string | undefined;
@@ -109,7 +112,19 @@ const ownLineHover = (
     : isLink
       ? Object.values(definition.links ?? {}).flat()
       : (definition.actors ?? []);
-  const help = declared.find((p) => p.key === property.key)?.help;
+  const found = declared.find((p) => p.key === property.key);
+  if (!within(property.keySpan, offset))
+    return found && found.servedBy !== 'engine'
+      ? {
+          value: valueOf(
+            found,
+            Object.fromEntries(
+              reading.value.properties.map((p) => [p.key, p.value]),
+            ),
+          ),
+        }
+      : null;
+  const help = found?.help;
   if (!help) return null;
   return {
     span: {
@@ -243,12 +258,11 @@ export const hoverAt = (
   }
   if (read.kind === 'property') {
     const own = ownLineHover(definition, lines, line, read, at, context);
-    if (own) return shift(own.span, own.markdown);
-    if (
+    if (own && 'markdown' in own) return shift(own.span, own.markdown);
+    const ownLine =
       (linkLinesOf(definition) && read.key === LINK_LINE_KEY) ||
-      (definition.actors && read.key === ACTOR_LINE_KEY)
-    )
-      return null;
+      (definition.actors && read.key === ACTOR_LINE_KEY);
+    if (ownLine && !own) return null;
     // its element: by id, or (without ids) by position
     const owner = ownerOf(
       definition,
@@ -262,20 +276,22 @@ export const hoverAt = (
       Object.values(definition.properties)
         .flatMap((list) => list ?? [])
         .find((p) => p.key === read.key);
-    if (within(read.keySpan, at))
+    if (!own && within(read.keySpan, at))
       return property
         ? shift(read.keySpan, `**${read.key}**: ${property.help}`)
         : null;
     // an engine-owned server explains the value
-    if (property && property.servedBy === 'engine') return null;
+    if (!own && property && property.servedBy === 'engine') return null;
     // a name in the value: an element (a resource an assertion compares), a variable
     const word = wordAt(line.text, at);
     if (!word) return null;
     const name = line.text.slice(word.from, word.to);
     // a member (`room.clean`): its declared type, in the value's config
     const dotted = /^(.+)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(name);
-    const config =
-      property && kind && owner
+    // a link's or an actor's value: its property's (ownLineHover's)
+    const config = own
+      ? own.value
+      : property && kind && owner
         ? valueOf(property, context.elements[owner]?.properties ?? {})
         : undefined;
     const member =
@@ -409,20 +425,15 @@ export const fieldHoverAt = (
 
 /** An inspector field's hover: its element's property, read with its value type. */
 export const fieldHover = (
-  definition: Pick<AnyDialect, 'properties'>,
+  definition: Pick<AnyDialect, 'properties'> &
+    Partial<Pick<AnyDialect, 'links' | 'actors'>>,
   context: DefinitionContext,
   elementId: string,
   key: string,
   text: string,
   pos: number,
 ): Hover | null => {
-  const element = context.elements[elementId];
-  const property = element && propertyOf(definition, element.kind, key);
-  if (!property || property.servedBy === 'engine') return null;
-  return fieldHoverAt(
-    valueOf(property, element.properties),
-    text,
-    pos,
-    context,
-  );
+  const field = fieldPropertyOf(definition, context, elementId, key);
+  if (!field || field.property.servedBy === 'engine') return null;
+  return fieldHoverAt(field.value, text, pos, context);
 };

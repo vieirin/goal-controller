@@ -412,7 +412,10 @@ describe('values', () => {
       ref: 'room',
       member: 'clean',
     });
-    assert.equal(assertionText(parseValue('assertion', 'F7.1 & !ST1.2').value), 'F7.1 & !ST1.2');
+    assert.equal(
+      assertionText(parseValue('assertion', 'F7.1 & !ST1.2').value),
+      'F7.1 & !ST1.2',
+    );
   });
 
   it('reads each predefined type', () => {

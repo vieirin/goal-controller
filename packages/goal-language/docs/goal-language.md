@@ -223,6 +223,45 @@ G1: Deliver
   off; then the view leaves the links' properties to the inspector.
 - In a dialect without `links`, `link` is an unknown property key, as any.
 
+**A condition on a link** (goal-controller#152). A link property may be an
+`assertion` that resolves the dialect's own kinds, such as a context on a
+refinement, a contribution or a dependency:
+
+```ts
+links: links({
+  'istar.OrRefinementLink': [assertion('context', { resolves: ['ctx.Context'] })],
+  'istar.ContributionLink': [assertion('context', { resolves: ['ctx.Context'] })],
+  'istar.DependencyLink': [assertion('context', { resolves: ['ctx.Context'] })],
+}),
+```
+
+```
+G2: Inform
+  T1: Show
+    link G2 {context = C5 & !C9}
+    link G5 {context = C2}
+  T2: Call
+    link Q1 {context = C1}
+```
+
+- A value reads, completes, hovers and validates as an element's assertion
+  does. After `=`, completion offers the ids of the kinds it resolves. Hover
+  over a name in the value shows its element. A name that is no element of
+  those kinds is an error when the value doesn't resolve variables (`C9 is
+  not a ctx.Context of this model`). Where it does resolve variables, the
+  name is `info`, as on an element's line, since it may be a variable the
+  model doesn't use yet.
+- **The target** of a contribution may be a quality the dialect doesn't list
+  (it has no line). The line names it by the id its text starts with
+  (`Q1`). A dependency's line is under the depender and names the dependum
+  by its id (`G5`). The dependum has no line of its own either. The
+  context (`contextFromView`) holds both, so the line validates.
+- **The inspector** edits the same value in the engine's value language,
+  with the same completion and lint (a link's or an actor's field, by its
+  piStar id: `fieldPropertyOf`).
+- An engine reads it with `readAssertion(link.properties.context)`, which
+  gives the tree. It never parses the text itself.
+
 **Without ids.** A dialect without ids that sets `linkLines: true` names
 the target by its element line's text, quoted (`\"` and `\\` escaped). When
 several elements have that text, `#n` names the n-th of them in the

@@ -6,6 +6,7 @@
 - **Licence:** GNU LGPL 2.1. `LICENSE-LGPL-2.1` is the repository's `LICENSE`, copied unchanged. The model and `reference/Heating.pl` are © their authors (Liaskos et al., York University's CMG), redistributed unmodified under the LGPL with this notice.
 - **What is in the project:**
   - `3.2.Heating_10R_Mixed.istardtx`: the source.
+  - `Heating.istardtx`: the model as our iStarDT-X writer writes it, its native file (`project.json`'s `models[].native`, goal-controller#144); dtx2dtg's validator accepts it, and `pnpm stress:istardt` fails when it isn't what the writer writes now. The source above stays as copied.
   - `Heating.txt`: the model `importIstardt` makes of it, laid out by `importers/layout.ts`.
   - `reference/Heating.pl`: dtx2dtg's golden output, `3.2.Heating_10R_Mixed-Auth.pl`.
   - `reference/utility.txt`: DT-Golog's run of our output (`docker/dtgolog/`): expected utility −4.8475 over `bp`'s horizon of 10, probability 1.0. dtg2sim's `7HeatingContinuousMutiRun4_Trials.py` (−1.360857) is a hand-written four-run model, not this one.

@@ -6,7 +6,7 @@ ones, and runs both with DT-Golog itself, through lib's built `out/` only.
 
 ```sh
 pnpm stress:istardt                            # builds lib, then runs everything but the oracle
-node scripts/istardt-stress/run.cjs --oracle   # also runs DT-Golog (Docker) on ours and the golden files
+node scripts/istardt-stress/run.cjs --oracle   # also runs DT-Golog (Docker) on ours and the golden files, and dtx2dtg's validator on our iStarDT-X
 node scripts/istardt-stress/run.cjs --strict   # fail on a committed seed's failure
 ```
 
@@ -32,6 +32,7 @@ each project's `reference/utility.txt` from the last `--oracle` run.
 
 - **import**: `importIstardt` gives a model and no `error` diagnostic.
 - **model** (committed): the project's model is the import's.
+- **native**: the import through iStarDT-X, the native file (#144 item 2): written and read back, the model but for positions (`nativeCheck`). A native file the project ships (`models[].native`) must be byte for byte what the writer writes of its model now. With `--oracle`, dtx2dtg's validator (`docker/dtx2dtg`: the XSD, then the Schematron) accepts what the writer wrote (`validator.cjs`), in Docker.
 - **checks**: `istardtProblems` finds no error.
 - **dtgolog**: the writer's file equals the golden `*-Auth.pl` after the four
   header lines, byte for byte (#117 D1.1).

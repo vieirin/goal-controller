@@ -228,6 +228,16 @@ links: links({
   its `ends` as the model has them (piStar id and kind, an extension's kinds
   too), its label and properties. The Notation view runs it on a link
   line's value.
+- **A condition on a link** (goal-controller#152): an `assertion` whose
+  `resolves` names your extension's kinds, such as `assertion('context', {
+  resolves: ['ctx.Context'] })` on refinement, contribution and dependency
+  links. Its link line (`link G2 {context = C5 & !C9}`) and its inspector
+  field complete those kinds' ids, hover them, and report a name that is
+  none of them. A contribution's line may name a quality the dialect
+  doesn't list (`link Q1 {…}`). A dependency's line is under the depender
+  and names the dependum (`link G5 {…}`). See the goal language's
+  [link lines](../../goal-language/docs/goal-language.md#link-lines-properties-on-links).
+  The engine reads the tree with `readAssertion`; §3.7b reasons over it.
 
 ### 2.5 Properties on actors
 
@@ -549,6 +559,24 @@ export const missionAnalyses = defineAnalyses(mission, {
   (a case without steps keeps `<case>: <value>`).
   `analysisText(result, nameOf?)` lists a result as text: each case, and
   each step of a case that has them, one `name: value` line per element.
+- **A selection** (goal-controller#152): a case that is a part of the
+  model, such as a variant (§3.7b), gives `selection`, the piStar ids of the
+  elements and links it consists of, and `summary`, one line (its context,
+  score, cost):
+
+  ```ts
+  { id: 'v2', label: 'V2', summary: 'C5 & !C9, cost 60',
+    selection: [...variant.elements, ...variant.links], values: { t4: { value: 80 } } }
+  ```
+
+  The workbench dims every element and link outside the selection (actors
+  stay) and draws the case's values as before. The case picker shows
+  `<label> — <summary>`. A run with more than 100 cases gets a search box
+  above the picker. It matches every typed word against the label or the
+  summary, lists the first 100 matches, and says how many match. A run can
+  still be too big to compute: cap what you return (`variantsOf`'s
+  `limit`). `analysisText` prints a `summary:` and a `selection:` line under
+  the case's label. A case without them prints as before.
 - `defineAnalyses` checks that each analysis has a label and reads only a
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).
@@ -564,6 +592,76 @@ export const missionAnalyses = defineAnalyses(mission, {
   istar-ts 0.12 badges elements, actors and links with them. Once the model
   changes the values are "out of date" and aren't drawn until the next run.
   Nothing runs without a click, and nothing is saved in the model file.
+
+### 3.7b Variants and conditions: enumerating, and reasoning over assertions
+
+An analysis that asks "which ways of achieving this root are there, and
+when does each apply" (contextual goal models, #151) builds on two generic
+modules beside `analysis.ts`. Neither knows a property name or a dialect.
+
+**`variantsOf(model, root, { guard, relation?, follow?, limit? })`**
+(`engines/variants.ts`) enumerates the variants of `root` over the
+`AnalysisModel`:
+
+```ts
+const { variants, truncated, total } = variantsOf(model, rootId, {
+  // the condition at a point: the root's, or a link's (a tree, or nothing)
+  guard: (at) =>
+    readAssertion((at.point === 'root' ? at.element : at.link).properties.context ?? ''),
+  follow: () => true, // dependencies: into the dependee's tree
+  limit: 1000,
+});
+```
+
+- **The walk:** a parent keeps each of its `and` children and takes one of
+  its `or` children. A link with a guard is taken with the guard true. An
+  `and` child with a guard is also dropped with it false, so it gives two
+  variants (REJ 2010's `¬C2 → Null`). The root's own guard is on every
+  variant.
+- **`guard(point)`** is asked once per point: `{ point: 'root', element }`,
+  or `{ point: 'and' | 'or', link, from, to, dependency? }` for each link the
+  walk takes (`from` is the parent, or the depender). If your conditions
+  sit on elements rather than links, answer a link's guard with its child's
+  (`to`).
+- **`relation(link)`** says how a link joins its parent: `'and'`, `'or'`
+  or nothing (not walked). The default is iStar's. AND refinement and
+  NeededBy are `and`, OR refinement is `or` (iStar 2.0's means-end is a
+  task's OR refinement), and a dependency is `and`. Return `'or'` to make a
+  dependency an alternative to its depender's other children. A link to a
+  dependum (an element in no actor) joins its source, the depender. Any
+  other link joins its target, the parent.
+- **`follow(dependency)`** is given `{ link, dependum, dependee? }`. `true`
+  goes on at the element the dependum's own link points to, a string at
+  that element, and nothing stops at the dependum (a leaf). An element
+  already on the path is a leaf too, so a cycle of dependencies ends.
+- **A variant** is `{ elements, links, leaves, literals }`, in the walk's
+  order (the root first). `literals` are `{ at, condition, holds }` in tree
+  order: the root's guard, then each guarded link, true where it was taken
+  and false where it was dropped. `variantContext(variant)` is their
+  conjunction as a tree. Its `assertionText` reads back as itself, Fig. 3's
+  `C0 & !C2 & !C3 & C1`.
+- **Size:** `total` counts the variants without enumerating them. The
+  first `limit` (default 10,000) are returned, and `truncated` says there
+  are more. `eachVariant` is the lazy generator underneath, in the same
+  deterministic order.
+
+**`satisfiable(formula, assumptions?)`, `implies(a, b, assumptions?)`,
+`equivalent(a, b, assumptions?)`** (`engines/propositional.ts`) work over
+`readAssertion` trees (#151 D7: a DPLL in TypeScript, no dependency):
+
+- Atoms are refs and variables (`C5`), members (`room.clean`) and
+  `x = true` (`x`; `x = false` and `x != true` are `!x`). A comparison
+  (`x > 3`) or a call is an **opaque** atom, by its text, and every result
+  lists those under `opaque`. Without arithmetic, an unsatisfiable verdict
+  is sound, but a satisfiable one may not be.
+- `satisfiable` gives `{ satisfiable: true, model }` (each atom's value,
+  false unless it must hold), or `{ satisfiable: false, conflict }`, the
+  indices of a minimal set of assumptions the formula conflicts with
+  (empty: it can't hold on its own). Your relations between conditions
+  (`C7 → ¬C8`, written `!C7 | !C8`) are the assumptions.
+- `implies` and `equivalent` give `{ holds }`, and a `counterexample` where
+  they don't hold.
+- Ranking, cost and core-variant algorithms are yours, written over these.
 
 ### 3.8 Generation options (optional): the template's knobs
 
