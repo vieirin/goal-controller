@@ -1,0 +1,3 @@
+Utility: -1.3735999999999997
+Probability: 0.6
+Policy: checkSoilSensor:senseEffect(checkSoilSensor):if(readDry_Occured,waterByHand:senseEffect(waterByHand):if(handWatered_Occured,leaveNote:senseEffect(leaveNote): ?(noteLeft_Occured):nil,?(spilled_Occured):leaveNote:senseEffect(leaveNote): ?(noteLeft_Occured):nil),if(readWet_Occured,runSprinkler:senseEffect(runSprinkler): ?(sprinklerJammed_Occured):stop,?(sensorFailed_Occured):runSprinkler:senseEffect(runSprinkler): ?(sprinklerJammed_Occured):stop))

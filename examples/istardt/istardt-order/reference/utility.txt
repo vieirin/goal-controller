@@ -1,0 +1,3 @@
+Utility: 0.9235
+Probability: 1.0
+Policy: orderFromSupplierB:senseEffect(orderFromSupplierB):if(deliveredInTimeB_Eff_Occured,nil,if(neverDeliveredB_Eff_Occured,nil,?(deliveredLateB_Eff_Occured):nil))

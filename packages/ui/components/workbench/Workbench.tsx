@@ -307,7 +307,13 @@ function ShellLayout() {
           event.preventDefault();
           hideDropTarget();
           const file = event.dataTransfer.files[0];
-          if (file) await openUpload(wb, file);
+          try {
+            if (file) await openUpload(wb, file);
+          } catch (error) {
+            window.alert(
+              error instanceof Error ? error.message : String(error),
+            );
+          }
         }}
       >
         <TopBar />

@@ -25,6 +25,11 @@ import {
   grlEngineMapper,
   grlExtension,
   grlProjectResourceParsers,
+  istardt,
+  istardtCheckRegistry,
+  istardtEngineMapper,
+  istardtExtension,
+  istardtOptions,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
@@ -62,6 +67,7 @@ const ALL: TransformEngine[] = [
   'mutrose',
   'goda',
   'grl',
+  'istardt',
 ];
 
 /** Same keys, and each value the same object (the engines' own, not copies). */
@@ -82,6 +88,7 @@ describe('the engine registry', () => {
       mutrose,
       goda,
       grl,
+      istardt,
     }));
 
   it('derives ENGINE_CHECKS', () =>
@@ -91,11 +98,17 @@ describe('the engine registry', () => {
       mutrose: mutroseCheckRegistry,
       goda: godaCheckRegistry,
       grl: grlCheckRegistry,
+      istardt: istardtCheckRegistry,
     }));
 
-  it('derives ENGINE_PROJECT_RESOURCES (GODA reads nothing beside the model)', () => {
-    const { goda: none, ...parsers } = ENGINE_PROJECT_RESOURCES;
+  it('derives ENGINE_PROJECT_RESOURCES (GODA and iStar-DT read nothing beside the model)', () => {
+    const {
+      goda: none,
+      istardt: nothing,
+      ...parsers
+    } = ENGINE_PROJECT_RESOURCES;
     expect(none).toEqual({});
+    expect(nothing).toEqual({});
     expectSameEntries(parsers, {
       edge: edgeProjectResources,
       edgev2: edgeProjectResources,
@@ -115,6 +128,7 @@ describe('the engine registry', () => {
       mutrose: mutroseEngineMapper,
       goda: godaEngineMapper,
       grl: grlEngineMapper,
+      istardt: istardtEngineMapper,
     }));
 
   it('derives ENGINE_OPTIONS (MutRoSe and GRL declare none)', () => {
@@ -126,6 +140,7 @@ describe('the engine registry', () => {
       edgev2: edgeV2Options,
       sleec: sleecOptions,
       goda: godaOptions,
+      istardt: istardtOptions,
     });
   });
 
@@ -137,6 +152,7 @@ describe('the engine registry', () => {
       mutrose: 'MutRoSe',
       goda: 'GODA',
       grl: 'GRL',
+      istardt: 'iStar-DT',
     }));
 
   it('derives ENGINES, in the order the UI offers them', () =>
@@ -190,6 +206,14 @@ describe('the engine registry', () => {
         help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
         generates: false,
       },
+      {
+        id: 'istardt',
+        label: 'iStar-DT',
+        output: 'DT-Golog',
+        extension: 'pl',
+        language: 'text',
+        help: "iStar-DT: the DT-Golog program (Prolog) dtx2dtg writes, for DT-Golog's solver and dtg2sim's RL environment",
+      },
     ]));
 
   it('derives ENGINE_ANALYSES and ENGINE_FILE_KINDS', () => {
@@ -197,7 +221,10 @@ describe('the engine registry', () => {
     expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl']);
     expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
     expect(ENGINE_ANALYSES.grl?.model).toBe(grlAnalysisModel);
-    expectSameEntries(ENGINE_FILE_KINDS, { grl: grlExtension });
+    expectSameEntries(ENGINE_FILE_KINDS, {
+      grl: grlExtension,
+      istardt: istardtExtension,
+    });
   });
 
   it('answers the helpers as before, for every engine', () => {
@@ -208,6 +235,7 @@ describe('the engine registry', () => {
       mutrose: ['Runtime annotation', 'rannot', 'rannot', true, false, mutrose],
       goda: ['PRISM MDP', 'nm', 'prism', true, true, goda],
       grl: ['Evaluation', 'json', 'text', false, false, grl],
+      istardt: ['DT-Golog', 'pl', 'text', true, true, istardt],
     } as const;
     for (const engine of ALL) {
       const [output, extension, language, generates, options, dialect] =

@@ -194,12 +194,34 @@ export {
   type GrlPreferences,
   type GrlStrategy,
 } from './engines/grl';
+export { importJucm } from './importers/jucm';
+export type {
+  DialectRecord,
+  ImportDiagnostic,
+  ImportResult,
+} from './importers/types';
+// iStar-DT (goal-controller#119): its definition, kinds, checks and options,
+// the DT-Golog writer, and the iStarDT-X importer
 export {
-  importJucm,
-  type DialectRecord,
-  type ImportDiagnostic,
-  type ImportResult,
-} from './importers/jucm';
+  istardt,
+  istardtAnalysisModel,
+  istardtCheckRegistry,
+  istardtEngineMapper,
+  istardtExtension,
+  istardtMetamodelBlock,
+  istardtOutput,
+  istardtProblems,
+  istardtTemplate,
+  IstardtWriteError,
+  readIstardtModel,
+  type IstardtCheckName,
+  type IstardtModel,
+  type IstardtProblem,
+  type IstardtWriteOptions,
+} from './engines/istardt';
+export { importIstardt } from './importers/istardt';
+// the importers the workbench opens a file with, by its extension
+export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
 // Project resources (goal-controller#25): each engine's parsers, data in, data out
 export {
@@ -250,6 +272,7 @@ export { sleecEngine } from './engines/sleec/engine';
 export { mutroseEngine } from './engines/mutrose/engine';
 export { godaEngine } from './engines/goda/engine';
 export { grlEngine } from './engines/grl/engine';
+export { istardtEngine } from './engines/istardt/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
@@ -301,4 +324,5 @@ if (require.main === module) {
 export { edgeOptions } from './engines/edge/options';
 export { edgeV2Options } from './engines/edgeV2/options';
 export { godaOptions } from './engines/goda/options';
+export { istardtOptions } from './engines/istardt/options';
 export { sleecOptions } from './engines/sleec/options';
