@@ -279,6 +279,8 @@ export function goalView(
   const roots = [...model.elements.values()]
     .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id, dialect))
+    // an extension's element is no tree's root (goal-controller#132)
+    .filter((element) => !extensionKinds.has(element.kind))
     .map((element) => keyOf(element.id))
     .filter((id): id is string => !!id);
   const reachable = new Set<string>();

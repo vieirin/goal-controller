@@ -772,7 +772,7 @@ export const defineDialect = <const D extends AnyDialect>(
     if (prefix === undefined) continue;
     if (!isExtensionKind(kind)) {
       if (!(ISTAR_ID_PREFIXES as readonly string[]).includes(prefix))
-        fail(`${kind}: ${prefix} is not one of the goal language's prefixes`);
+        fail(`${kind}: ${prefix} is not one of the goal language’s prefixes`);
     } else if (!isExtensionIdPrefix(prefix))
       fail(
         `${kind}: its prefix is one or two capitals, none of G, T, R, AT, X, W (not ${prefix})`,
@@ -782,7 +782,7 @@ export const defineDialect = <const D extends AnyDialect>(
         ([other, e]) => other !== kind && e?.prefix === prefix,
       )
     )
-      fail(`${kind}: prefix ${prefix} is another kind's`);
+      fail(`${kind}: prefix ${prefix} is another kind’s`);
   }
   for (const kind of Object.keys(definition.properties))
     if (!isKind(kind) && !(kind in elements))
