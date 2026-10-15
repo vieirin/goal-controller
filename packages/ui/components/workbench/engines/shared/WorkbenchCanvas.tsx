@@ -28,6 +28,8 @@ import {
 import { dialectOf } from '@/lib/workbench/engineDialects';
 import {
   analysisDiagnostics,
+  SELECTION_ATTRIBUTE,
+  selectionStyle,
   shownCase,
   shownStep,
 } from '@/lib/workbench/analysis';
@@ -308,6 +310,11 @@ export default function WorkbenchCanvas({
     ],
     [wb.problems, wb.tree, wb.analysisRun, wb.analysisStale],
   );
+  // a case that is a selection (a variant, goal-controller#152): the rest dimmed
+  const selection = useMemo(
+    () => (wb.analysisStale ? null : selectionStyle(shownCase(wb.analysisRun))),
+    [wb.analysisRun, wb.analysisStale],
+  );
 
   // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
   const onKeyDownCapture = (event: KeyboardEvent) => {
@@ -334,7 +341,9 @@ export default function WorkbenchCanvas({
       ref={container}
       className='relative h-full'
       onKeyDownCapture={onKeyDownCapture}
+      {...(selection && { [SELECTION_ATTRIBUTE]: '' })}
     >
+      {selection && <style>{selection}</style>}
       <IstarProvider
         store={store}
         diagnostics={diagnostics}

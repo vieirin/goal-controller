@@ -6,7 +6,12 @@
  * when it reads one, a
  * project resource. A result has one or more cases (one evaluation each: a
  * strategy, a scenario; a single-case analysis has one), each a value per
- * element or actor id. Nothing here names an engine.
+ * element or actor id; a case may be a selection (goal-controller#152: a
+ * variant, the elements and links it consists of, with a one-line summary),
+ * which the workbench draws by dimming the rest. An analysis that derives
+ * variants or reasons over conditions has `variantsOf` (./variants) and
+ * `satisfiable`, `implies`, `equivalent` (./propositional). Nothing here
+ * names an engine.
  */
 import type { AnyDialect } from '@goal-controller/dialect';
 import type { GoalModel } from '@goal-controller/goal-tree';
@@ -189,7 +194,8 @@ const valueText = (value: AnalysisValue): string =>
   value.label ?? String(value.value);
 
 /**
- * A result as text (goal-controller#135): each case, its values (or, for a
+ * A result as text (goal-controller#135): each case, its summary and
+ * selection when it has them (goal-controller#152), its values (or, for a
  * case run step by step, each step and its values), one `id: value` line
  * per element or actor, named by `nameOf` (default: its id).
  */
@@ -204,6 +210,12 @@ export const analysisText = (
   return result.cases
     .flatMap((analysisCase) => [
       analysisCase.label,
+      ...(analysisCase.summary !== undefined
+        ? [`  summary: ${analysisCase.summary}`]
+        : []),
+      ...(analysisCase.selection
+        ? [`  selection: ${analysisCase.selection.map(nameOf).join(', ')}`]
+        : []),
       ...(analysisCase.steps?.length
         ? analysisCase.steps.flatMap((step, i) => [
             `  step ${i + 1}: ${step.label}`,

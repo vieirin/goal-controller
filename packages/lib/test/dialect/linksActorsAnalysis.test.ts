@@ -24,8 +24,13 @@ import {
   analyse,
   analysisDiagnostics,
   analysisResource,
+  caseText,
+  PICKED_CASES,
+  pickableCases,
+  selectionStyle,
   shownCase,
 } from '../../../ui/lib/workbench/analysis';
+import { analysisText } from '../../src';
 
 const view = () => goalView(parsePistar(TOY_MODEL), toyGraph);
 
@@ -140,6 +145,70 @@ describe('the workbench’s analysis (#107)', () => {
     );
     expect(shownCase({ ...run, caseId: null })!.id).to.equal('a');
     expect(shownCase(null)).to.equal(undefined);
+  });
+
+  it('draws a case that is a selection by dimming the rest, its values as before (#152)', () => {
+    const variant = {
+      id: 'v2',
+      label: 'V2',
+      summary: 'C1 & !C2, cost 60',
+      selection: ['g1', 't1', 'l1', 'x"y'],
+      values: { t1: { value: 60 } },
+    };
+    expect(selectionStyle(variant)).to.equal(
+      [
+        '[data-analysis-selection] .react-flow__node.istar-node-element, [data-analysis-selection] .react-flow__edge { opacity: 0.25; }',
+        ['g1', 't1', 'l1', 'x\\"y']
+          .flatMap((id) => [
+            `[data-analysis-selection] .react-flow__node[data-id="${id}"]`,
+            `[data-analysis-selection] .react-flow__edge[data-id="${id}"]`,
+          ])
+          .join(', ') + ' { opacity: 1; }',
+      ].join('\n'),
+    );
+    // a case without a selection dims nothing
+    expect(selectionStyle({ ...variant, selection: undefined })).to.equal(null);
+    expect(analysisDiagnostics(variant)).to.deep.equal([
+      {
+        elementId: 't1',
+        severity: 'info',
+        message: 'V2: 60',
+        source: 'analysis',
+      },
+    ]);
+    // the result as text: the summary and the selection, by name
+    expect(
+      analysisText({ cases: [variant] }, (id) => id.toUpperCase()),
+    ).to.equal(
+      'V2\n  summary: C1 & !C2, cost 60\n  selection: G1, T1, L1, X"Y\n  T1: 60',
+    );
+  });
+
+  it('searches a run’s many cases by words of their labels and summaries (#152)', () => {
+    const cases = Array.from({ length: 300 }, (_, i) => ({
+      id: `v${i}`,
+      label: `V${i}`,
+      summary: i % 2 ? 'C1 & C2' : 'C1 & !C2',
+      values: {},
+    }));
+    expect(caseText(cases[1]!)).to.equal('V1 — C1 & C2');
+    expect(caseText({ id: 'a', label: 'A', values: {} })).to.equal('A');
+    const all = pickableCases(cases, '');
+    expect(all.matching).to.equal(300);
+    expect(all.cases).to.have.length(PICKED_CASES);
+    const found = pickableCases(cases, 'v1 !c2');
+    expect(found.cases.map((c) => c.id)).to.deep.equal([
+      'v10',
+      'v12',
+      'v14',
+      'v16',
+      'v18',
+      ...Array.from({ length: 50 }, (_, i) => `v${100 + 2 * i}`),
+    ]);
+    // the case shown stays listed, first
+    expect(pickableCases(cases, 'v1 !c2', cases[7]).cases[0]!.id).to.equal(
+      'v7',
+    );
   });
 
   it('gives an analysis its input’s files, as the tabs hold them', () => {
