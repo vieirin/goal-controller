@@ -285,8 +285,15 @@ the same model in that format, kept 1:1 with its piStar file (`native.ts`):
     (**Re-import**, an edit of the model, undoable). There is no merge.
   - A file its dialect **only reads** (an importer) is edited in its tab;
     when it no longer reads to the model, **Re-import** is the action.
-  - A project without a native file never gets one by itself: a dialect's
-    writer writes the files the project has.
+  - A project that **ships without** a native file its dialect writes
+    (an example, a folder, an archive, a Recent entry) gets it as it opens:
+    written from the model at once (`generateAbsent`, once the project's
+    resources are read, since a writer may read them), at the model's name
+    with the format's first extension, listed under the model and given its
+    tab, saved where the project can be written (in memory otherwise, and
+    exported with the project). It is in sync with the model from then on,
+    and follows it. A model it can't write is a problem saying why, and no
+    file. A native file its dialect only reads is never made.
 
 ## Stages (issue #25)
 
