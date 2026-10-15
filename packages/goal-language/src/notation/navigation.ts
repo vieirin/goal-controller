@@ -165,16 +165,6 @@ const lineNamed = (definition: Definition, lines: Line[], name: string) =>
     ({ read }) => read.id === name || read.name === name,
   );
 
-/** The element line above a position (a property line's owner). */
-const ownerAbove = (definition: Definition, lines: Line[], line: Line) => {
-  const index = lines.indexOf(line);
-  for (let i = index; i >= 0; i--) {
-    const read = readLine(definition, lines[i]!.text);
-    if (read.kind === 'element') return read;
-  }
-  return undefined;
-};
-
 const operatorHover = (
   definition: Definition,
   symbol: string,
@@ -259,8 +249,14 @@ export const hoverAt = (
       (definition.actors && read.key === ACTOR_LINE_KEY)
     )
       return null;
-    const owner = ownerAbove(definition, lines, line);
-    const kind = owner?.id ? context.elements[owner.id]?.kind : undefined;
+    // its element: by id, or (without ids) by position
+    const owner = ownerOf(
+      definition,
+      lines.map((l) => l.text),
+      lines.indexOf(line),
+      context,
+    );
+    const kind = owner ? context.elements[owner]?.kind : undefined;
     const property =
       (kind && propertyOf(definition, kind, read.key)) ??
       Object.values(definition.properties)

@@ -316,10 +316,22 @@ describe('defineDialect', () => {
         ]),
       ),
     });
-    // without ids, every property is on the element line: there are no property lines
-    expect(bad(noIds)).to.throw(
-      /lines without ids write every property on the element line/,
-    );
+    // without ids, its kinds' properties are property lines too
+    // (goal-controller#138): the resource's, which declared none, now listed
+    const plain = noIds(structuredClone(toy) as AnyDialect);
+    expect(bad(noIds)).to.throw(/propertyLineOrder must list each/);
+    expect(
+      defineDialect({
+        ...plain,
+        propertyLineOrder: [
+          ...toy.propertyLineOrder,
+          'type',
+          'lowerBound',
+          'upperBound',
+          'initialValue',
+        ],
+      }).propertyLineOrder,
+    ).to.include('initialValue');
     expect(
       hasIds(
         defineDialect({

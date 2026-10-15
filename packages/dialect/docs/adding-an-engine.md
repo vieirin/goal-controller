@@ -108,7 +108,7 @@ The helpers come from `@goal-controller/dialect`, and a definition needs no othe
 
 The line's syntax is the goal language's (`<<s>> {tag = v} G1: Name [G2;G3] {int 0..9 = 3}`); a kind only says which parts it has:
 
-- `prefix: 'G' | 'T' | 'R' | 'AT'` → lines name their element (`G1: Deliver sample`); every kind then needs one. An extension's kind you list takes a prefix of its own (§2.6). **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
+- `prefix: 'G' | 'T' | 'R' | 'AT'` → lines name their element (`G1: Deliver sample`); every kind then needs one. An extension's kind you list takes a prefix of its own (§2.6). **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids). Their property lines start with a key you declare: a line that starts with one of `propertyLineOrder`'s keys (then a space, or nothing) is a property line of the element line above, and takes no position; a name that would read so is written quoted (`"type achieve"`). See the goal language's [property lines without ids](../../goal-language/docs/goal-language.md#property-lines-without-ids) (goal-controller#138).
 - `declares: true` → the line ends with a declaration setting `type`, `lowerBound`, `upperBound`, `initialValue` (Edge's resource `{int 0..100 = 80}`); the kind must have those properties.
 - `annotated: true` → the line starts with annotations setting `stereotype`, `tag`, `tagValue` (the piStar-ext mechanism, added by `withExtension`).
 - Names on lines with ids are letters, spaces, `-` and `'` (as RTRegex.g4 read them).
@@ -293,7 +293,9 @@ export const mission = defineDialect({
   in `propertyLineOrder` with the others). The goal language reads that
   prefix in your dialect only. A kind you don't list has no line: its
   properties are the inspector's, and its text stays as written. A
-  dialect without ids lists none (it writes no property lines).
+  dialect without ids lists one without a prefix, as its other kinds: its
+  elements' lines are matched by position, with their property lines under
+  them (#138).
 - **The engine's kinds** are its dialect's extension: `defineEngine` takes
   them from `dialect.extension` (§3.9).
 

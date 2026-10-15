@@ -24,7 +24,7 @@ bundles.
 | `parseElementLineIn` | `(dialect, text) => Parsed<ElementLineData \| null>` | the line as its dialect reads it: without the spaces in its bracket under `notation.whitespace: 'ignore'` |
 | `withoutBracketSpaces` | `(text) => { text, origin(offset) }` | GODA's `removeBlankSpaceInBrackets`, and where each offset was written |
 | `parseCondition` | `(text) => Parsed<{ prefix, tree }>` | `parseCondition('assertion trigger x > 1').value.prefix` → `'assertion trigger'` |
-| `parseDocument` | `(text, { ids? = true }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false })` for a plain document |
+| `parseDocument` | `(text, { ids? = true, prefixes?, keys? }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false, keys: propertyKeysOf(d) })` for a plain document, its property lines read by its keys |
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
 | `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
 | `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
@@ -101,7 +101,7 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 
 | Export | Signature | What it does |
 | --- | --- | --- |
-| `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document, one id per line |
+| `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document, one id per line (without ids, per element line: link, actor and property lines take no position) |
 | `notationEdits` | `(D, text, tree) => NotationEdit[]` | what a document changes: element texts, and properties set or removed |
 | `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against; for a definition without ids, `order` (the elements by position) and `named` (the elements whose names start with an id, by that id) |
 | `writtenIds` | `(tree) => Record<id, key>` | the elements whose names start with an id (`G1: Deliver`), by that id |
@@ -109,6 +109,7 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | `lineId`, `readPropertyLine` | `(D, line) => …` | a line's id; a property line's key and value |
 | `annotatedProperties` | `(reading) => DeclaredProperties` | what a line's annotations set (the first of each kind) |
 | `nodeLine` | `(D, node) => string` | a node's element text |
+| `writtenName`, `unquotedName` | `(D, name) => string`, `(written) => string \| null` | a name as a line without ids writes it: quoted where it would read as a property line, or is quoted (goal-controller#138); the name in a quoted one |
 | `isValidName` | `(D, kind, name) => boolean` | whether a name can be written on that kind's line |
 | `operatorsFor` | `(D & WithNotation) => { constructs, arguments }` | the inspector's operator buttons, for the enabled operators only |
 
@@ -170,4 +171,6 @@ These are also in `/light`.
 | `VALUE_TYPES` | the predefined value types |
 | `ID_PREFIXES` | `G`, `T`, `R`, `AT` |
 | `idPrefixesOf(definition)` | the prefixes a dialect gives its extension's kinds besides these (`S` in `S1`), read in its element lines only (goal-controller#132) |
+| `propertyKeysOf(definition)` | a dialect without ids' declared keys (`propertyLineOrder`), which start its property lines (goal-controller#138); none with ids |
+| `propertyKeyOf(keys, line)` | the key a line without ids starts with (indentation aside), followed by a space or its end; null: an element line |
 | `SKIP` | `skip` |

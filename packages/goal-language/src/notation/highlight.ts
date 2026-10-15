@@ -13,7 +13,12 @@ import {
 } from '@goal-controller/dialect';
 import type { IToken } from 'chevrotain';
 import type { GoalLexer, LexerStart } from '../lexer.js';
-import { CALL_NAMES, ID_PREFIXES, idPrefixesOf } from '../catalog.js';
+import {
+  CALL_NAMES,
+  ID_PREFIXES,
+  idPrefixesOf,
+  propertyKeysOf,
+} from '../catalog.js';
 import { goalServices } from '../parse.js';
 
 export type HighlightStyle =
@@ -107,10 +112,12 @@ const tokensOf = (
   start: LexerStart,
   text: string,
   prefixes: readonly string[] = [],
+  keys: readonly string[] = [],
 ): IToken[] => {
   const lexer = goalServices().parser.Lexer as GoalLexer;
   lexer.start = start;
   lexer.prefixes = prefixes;
+  lexer.keys = keys;
   return lexer.tokenize(text).tokens;
 };
 
@@ -227,13 +234,15 @@ const lineValue = (
 
 /** One line of a Notation view document; a property's value as its type reads. */
 export const highlightLine = (
-  definition: Pick<AnyDialect, 'properties' | 'elements'>,
+  definition: Pick<AnyDialect, 'properties' | 'elements'> &
+    Partial<Pick<AnyDialect, 'propertyLineOrder'>>,
   text: string,
 ): Highlight[] => {
   const tokens = tokensOf(
     hasIds(definition) ? 'document' : 'plainDocument',
     text,
     idPrefixesOf(definition),
+    propertyKeysOf(definition),
   );
   const value = tokens.find((token) => token.tokenType.name === 'VALUE');
   const key = tokens.find((token) => token.tokenType.name === 'KEY');

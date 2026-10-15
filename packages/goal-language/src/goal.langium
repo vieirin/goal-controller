@@ -5,7 +5,8 @@
 //
 // - A document is lines: element lines (`G1: Name [G2;G3]`, with annotations
 //   before and a declaration after) and property lines under them
-//   (`maintain battery > 20`). A dialect without ids writes PlainDocument.
+//   (`maintain battery > 20`). A dialect without ids writes PlainDocument:
+//   its property lines start with one of its declared keys.
 // - Tokens are made by GoalLexer (src/lexer.ts), which switches token sets by
 //   where it is in a line and reads with ANTLR's longest-match rule (the
 //   terminals below only declare the vocabulary). Element lines with ids read as
@@ -20,8 +21,15 @@ entry Document:
 Line:
     ElementLine | PropertyLine;
 
+// a document without ids: its lines are its elements' by position, but a line
+// that starts with one of its dialect's declared keys, which is a property
+// line of the element above (goal-controller#138; GoalLexer reads a KEY only
+// where it is given the dialect's keys)
 PlainDocument:
-    (NL | lines+=AnnotatedName)*;
+    (NL | lines+=PlainLine)*;
+
+PlainLine:
+    AnnotatedName | PropertyLine;
 
 // `<<action>> {type = duty} T1: Name [T2;T3] {int 0..100 = 80}`; a leaf's
 // bracket may hold its cost instead (`T1.1: Name [W = 0.1x]`), in a dialect

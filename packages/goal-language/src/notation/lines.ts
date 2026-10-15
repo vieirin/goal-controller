@@ -18,7 +18,7 @@ import type {
   PlainDocument,
   RtExpr,
 } from '../generated/ast.js';
-import { idPrefixesOf } from '../catalog.js';
+import { idPrefixesOf, propertyKeysOf } from '../catalog.js';
 import { parseWith } from '../module.js';
 import {
   goalServices,
@@ -31,7 +31,7 @@ import {
   type GoalSyntaxError,
   type RtTree,
 } from '../parse.js';
-import type { DeclaredProperties } from '../print.js';
+import { unquotedName, type DeclaredProperties } from '../print.js';
 import { isPlainActorLine, isPlainLinkLine } from './linkLine.js';
 
 /** Where something is, in the text read (offsets). */
@@ -51,9 +51,9 @@ export type ElementReading = {
   /** null on a line without an id */
   id: string | null;
   idSpan: Span | null;
-  /** as written, trimmed */
+  /** as written, trimmed; a quoted one (`writtenName`), without its quotes */
   name: string;
-  /** the element's text (its id, name and notation): from after the annotations to the declaration */
+  /** the element's text (its id, name and notation): from after the annotations to the declaration, its name unquoted */
   text: string;
   textSpan: Span;
   annotations: { properties: DeclaredProperties; span: Span }[];
@@ -348,10 +348,16 @@ const writtenAs = (
  */
 export const readLine = (
   definition: Pick<AnyDialect, 'elements'> &
-    Partial<Pick<AnyDialect, 'notation' | 'links' | 'linkLines' | 'actors'>>,
+    Partial<
+      Pick<
+        AnyDialect,
+        'notation' | 'links' | 'linkLines' | 'actors' | 'propertyLineOrder'
+      >
+    >,
   text: string,
 ): LineReading => {
-  // a document without ids has no property lines but its link and actor lines
+  // a document without ids: its link and actor lines (quoted), read here;
+  // its property lines start with a declared key, which GoalLexer reads
   const plainKey = isPlainLinkLine(definition, text)
     ? LINK_LINE_KEY
     : isPlainActorLine(definition, text)
@@ -389,18 +395,32 @@ export const readLine = (
   if (definition.notation?.whitespace === 'ignore') {
     const stripped = withoutBracketSpaces(text);
     if (stripped.text !== text) {
-      const read = readLine({ elements: definition.elements }, stripped.text);
+      const read = readLine(
+        {
+          elements: definition.elements,
+          propertyLineOrder: definition.propertyLineOrder,
+        },
+        stripped.text,
+      );
       return read.kind === 'element'
         ? writtenAs(read, text, stripped.origin)
-        : readLine({ elements: definition.elements }, text);
+        : readLine(
+            {
+              elements: definition.elements,
+              propertyLineOrder: definition.propertyLineOrder,
+            },
+            text,
+          );
     }
   }
   const ids = hasIds(definition);
+  const keys = propertyKeysOf(definition);
   const result = parseWith(
     goalServices(),
     ids ? 'document' : 'plainDocument',
     text,
     idPrefixesOf(definition),
+    keys,
   );
   const errors = syntaxErrorsOf(result, text.length);
   const root = result.value as Document | PlainDocument;
@@ -421,7 +441,17 @@ export const readLine = (
       errors,
     };
   }
-  return readElement(line, text, errors);
+  const read = readElement(line, text, errors);
+  // a quoted name (`"type achieve"`, `writtenName`) is the name in the quotes
+  const name = keys.length ? unquotedName(read.name) : null;
+  if (name === null) return read;
+  const at = read.text.indexOf(read.name);
+  return {
+    ...read,
+    name,
+    text:
+      read.text.slice(0, at) + name + read.text.slice(at + read.name.length),
+  };
 };
 
 /** The id a line starts with (indentation and annotations aside), if it is an element line with one. */
