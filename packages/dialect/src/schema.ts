@@ -112,7 +112,12 @@ export type ResourceCandidates = { resource: string; category: string };
 
 export type ValueType = ValueConfig['type'];
 
-export type EnumOption = { value: string; label: string };
+export type EnumOption = {
+  value: string;
+  label: string;
+  /** what it means, where it is offered (an option menu's title) */
+  help?: string;
+};
 
 /** What a postfix operator means: it modifies its operand, with an argument. */
 export type ModifierDefinition = {
