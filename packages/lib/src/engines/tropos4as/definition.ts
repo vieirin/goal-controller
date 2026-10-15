@@ -26,6 +26,7 @@ import {
 } from '@goal-controller/dialect';
 import type { Tropos4asCheckName } from './checks';
 import { tropos4asExtension } from './extension';
+import { taom4eNativeFile } from './taom4e/native';
 import { GOAL_TYPES, TROPOS4AS_KINDS } from './vocabulary';
 
 const {
@@ -201,6 +202,9 @@ export const tropos4as = defineDialect({
   }),
   // a goal's lifecycle runs in its actor; an agent per actor, every tree
   model: { actors: 'many', treesPerActor: 'many' },
+  // TAOM4E's own file, read and written (goal-controller#144 item 3); what
+  // TAOM4E has no class for kept in goal-controller's extension
+  nativeFiles: { tropos: taom4eNativeFile },
   projectResources: {
     scenarios: {
       label: 'Scenarios',

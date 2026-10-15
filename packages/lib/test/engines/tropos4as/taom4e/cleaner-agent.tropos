@@ -3,59 +3,60 @@
   The Cleaner Agent (AAMAS 2009 Fig. 1) in TAOM4E's base metamodel: examples/tropos4as/cleaner-agent's twin.
   Written by hand against TAOM4E-MM.ecore (packages/lib/src/engines/tropos4as/taom4e/reference/):
   UNVERIFIED AGAINST TAOM4E, no .tropos file it wrote survives (goal-controller#134).
-  Two roots in an xmi:XMI (the project and its business model), references by xmi:id.
+  Two roots in an xmi:XMI (the project and its business model), as EMF writes a resource of two;
+  the packages' nsPrefixes as EMF writes them; references by xmi:id.
 -->
 <xmi:XMI xmi:version="2.0"
     xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:project="http:///it/itc/sra/taom4e/model/project.ecore"
-    xmlns:informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
-    xmlns:formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
-    xmlns:goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
-    xmlns:actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
-  <project:Project name="Cleaner Agent" BusinessModel="bm">
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-Stakeholder" name="Stakehoder" phase="LR" Actor="Stakeholder">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-Stakeholder" core="Stakeholder" x="37" y="59"/>
+    xmlns:it.itc.sra.taom4e.model.project="http:///it/itc/sra/taom4e/model/project.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore.formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
+  <it.itc.sra.taom4e.model.project:Project name="Cleaner Agent" BusinessModel="bm">
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-Stakeholder" name="Stakehoder" phase="LR" Actor="Stakeholder">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-Stakeholder" core="Stakeholder" x="37" y="59"/>
     </Diagram>
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-CleanerAgent" name="Cleaner Agent" phase="LR" Actor="CleanerAgent">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-CleanerAgent" core="CleanerAgent" x="324" y="53" children="n-RC n-MBL n-WC n-DC n-mop n-sweep n-loadBattery n-efficiency"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-RC" core="RC" x="393" y="141" width="132" height="42" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-MBL" core="MBL" x="576" y="168" width="150" height="66" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-WC" core="WC" x="288" y="263" width="144" height="48" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-DC" core="DC" x="458" y="258" width="141" height="48" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-mop" core="mop" x="302" y="358" width="81" height="45" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-sweep" core="sweep" x="498" y="354" width="108" height="45" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-loadBattery" core="loadBattery" x="580" y="303" width="183" height="48" container="n-CleanerAgent"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_SoftGoalUI" xmi:id="n-efficiency" core="efficiency" x="400" y="422" width="117" height="45" container="n-CleanerAgent"/>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-CleanerAgent" name="Cleaner Agent" phase="LR" Actor="CleanerAgent">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-CleanerAgent" core="CleanerAgent" x="324" y="53" children="n-RC n-MBL n-WC n-DC n-mop n-sweep n-loadBattery n-efficiency"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-RC" core="RC" x="393" y="141" width="132" height="42" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-MBL" core="MBL" x="576" y="168" width="150" height="66" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-WC" core="WC" x="288" y="263" width="144" height="48" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-DC" core="DC" x="458" y="258" width="141" height="48" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-mop" core="mop" x="302" y="358" width="81" height="45" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-sweep" core="sweep" x="498" y="354" width="108" height="45" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-loadBattery" core="loadBattery" x="580" y="303" width="183" height="48" container="n-CleanerAgent"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_SoftGoalUI" xmi:id="n-efficiency" core="efficiency" x="400" y="422" width="117" height="45" container="n-CleanerAgent"/>
     </Diagram>
-    <Diagram xsi:type="actordiagram:ActorDiagram" xmi:id="d-actors" name="Actor diagram" phase="ER">
-      <DiagramNodes xsi:type="actordiagram:AD_ActorUI" xmi:id="na-Stakeholder" core="Stakeholder" x="37" y="59"/>
-      <DiagramNodes xsi:type="actordiagram:AD_ActorUI" xmi:id="na-CleanerAgent" core="CleanerAgent" x="324" y="53"/>
-      <DiagramNodes xsi:type="actordiagram:AD_HardGoalUI" xmi:id="na-RoomCleanDependum" core="RoomCleanDependum" x="128" y="24" width="135" height="48"/>
-      <DiagramNodes xsi:type="actordiagram:AD_SoftGoalUI" xmi:id="na-efficiencyDependum" core="efficiencyDependum" x="148" y="110" width="117" height="45"/>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:ActorDiagram" xmi:id="d-actors" name="Actor diagram" phase="ER">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="na-Stakeholder" core="Stakeholder" x="37" y="59"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="na-CleanerAgent" core="CleanerAgent" x="324" y="53"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_HardGoalUI" xmi:id="na-RoomCleanDependum" core="RoomCleanDependum" x="128" y="24" width="135" height="48"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_SoftGoalUI" xmi:id="na-efficiencyDependum" core="efficiencyDependum" x="148" y="110" width="117" height="45"/>
     </Diagram>
-  </project:Project>
-  <formalcore:FormalBusinessModel xmi:id="bm" name="Cleaner Agent">
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="Stakeholder" name="Stakehoder"/>
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="CleanerAgent" name="Cleaner Agent" wanted="RC MBL WC DC efficiency" plans="mop sweep loadBattery"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="RC" name="RoomClean" wanter="CleanerAgent" mode="ACHIEVE" fulfillmentProperty="roomClean"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="MBL" name="MaintainBattLoaded" wanter="CleanerAgent" mode="MAINTAIN" invariantProperty="batteryLoaded"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="WC" name="WetCleaning" wanter="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="DC" name="DryCleaning" wanter="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="mop" name="mop" capableOf="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="sweep" name="sweep" capableOf="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="loadBattery" name="load battery" capableOf="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FSoftGoal" xmi:id="efficiency" name="efficiency" wanter="CleanerAgent"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="RoomCleanDependum" name="RoomClean"/>
-    <TroposClasses xsi:type="formalcore:FSoftGoal" xmi:id="efficiencyDependum" name="efficiency"/>
-    <TroposRelations xsi:type="informalcore:BooleanDecomposition" xmi:id="bd1" type="OR" rootGoal="RC" BooleanDecLink="dl1-0 dl1-1" actorDecPointOfView="CleanerAgent"/>
-    <TroposRelations xsi:type="informalcore:OrDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetGoal="WC"/>
-    <TroposRelations xsi:type="informalcore:OrDecLink" xmi:id="dl1-1" BooleanDecomposition="bd1" targetGoal="DC"/>
-    <TroposRelations xsi:type="informalcore:MeansEnd" xmi:id="me1" meansPlan="mop" end="WC" actorMeansEndPointOfView="CleanerAgent"/>
-    <TroposRelations xsi:type="informalcore:MeansEnd" xmi:id="me2" meansPlan="sweep" end="DC" actorMeansEndPointOfView="CleanerAgent"/>
-    <TroposRelations xsi:type="informalcore:MeansEnd" xmi:id="me3" meansPlan="loadBattery" end="MBL" actorMeansEndPointOfView="CleanerAgent"/>
-    <TroposRelations xsi:type="formalcore:FContribution" xmi:id="c1" contributer="mop" contributed="efficiency" metric="-"/>
-    <TroposRelations xsi:type="formalcore:FContribution" xmi:id="c2" contributer="sweep" contributed="efficiency" metric="+"/>
-    <TroposRelations xsi:type="informalcore:Dependency" xmi:id="dep1" depender="Stakeholder" dependee="CleanerAgent" goalDependum="RoomCleanDependum"/>
-    <TroposRelations xsi:type="informalcore:Dependency" xmi:id="dep2" depender="Stakeholder" dependee="CleanerAgent" goalDependum="efficiencyDependum"/>
-  </formalcore:FormalBusinessModel>
+  </it.itc.sra.taom4e.model.project:Project>
+  <it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel xmi:id="bm" name="Cleaner Agent">
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="Stakeholder" name="Stakehoder"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="CleanerAgent" name="Cleaner Agent" wanted="RC MBL WC DC efficiency" plans="mop sweep loadBattery"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="RC" name="RoomClean" wanter="CleanerAgent" mode="ACHIEVE" fulfillmentProperty="roomClean"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="MBL" name="MaintainBattLoaded" wanter="CleanerAgent" mode="MAINTAIN" invariantProperty="batteryLoaded"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="WC" name="WetCleaning" wanter="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="DC" name="DryCleaning" wanter="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="mop" name="mop" capableOf="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="sweep" name="sweep" capableOf="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="loadBattery" name="load battery" capableOf="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" xmi:id="efficiency" name="efficiency" wanter="CleanerAgent"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="RoomCleanDependum" name="RoomClean"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" xmi:id="efficiencyDependum" name="efficiency"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:BooleanDecomposition" xmi:id="bd1" type="OR" rootGoal="RC" BooleanDecLink="dl1-0 dl1-1" actorDecPointOfView="CleanerAgent"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:OrDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetGoal="WC"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:OrDecLink" xmi:id="dl1-1" BooleanDecomposition="bd1" targetGoal="DC"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:MeansEnd" xmi:id="me1" meansPlan="mop" end="WC" actorMeansEndPointOfView="CleanerAgent"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:MeansEnd" xmi:id="me2" meansPlan="sweep" end="DC" actorMeansEndPointOfView="CleanerAgent"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:MeansEnd" xmi:id="me3" meansPlan="loadBattery" end="MBL" actorMeansEndPointOfView="CleanerAgent"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FContribution" xmi:id="c1" contributer="mop" contributed="efficiency" metric="-"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FContribution" xmi:id="c2" contributer="sweep" contributed="efficiency" metric="+"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="dep1" depender="Stakeholder" dependee="CleanerAgent" goalDependum="RoomCleanDependum"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="dep2" depender="Stakeholder" dependee="CleanerAgent" goalDependum="efficiencyDependum"/>
+  </it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel>
 </xmi:XMI>

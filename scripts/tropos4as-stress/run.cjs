@@ -134,19 +134,39 @@ const checkGodaTwin = () => {
         modelName: 'dm2.txt',
         variant: 'cc808b6',
       }).files;
-    const ours = generate(JSON.stringify(model));
     const theirs = generate(
       fs.readFileSync(path.join(ROOT, GODA_TWIN.seed), 'utf8'),
     );
-    const differs = theirs.find(
-      (f, i) => ours[i]?.fileName !== f.fileName || ours[i]?.text !== f.text,
-    );
-    return differs || ours.length !== theirs.length
+    const differs = (ours) =>
+      theirs.find(
+        (f, i) => ours[i]?.fileName !== f.fileName || ours[i]?.text !== f.text,
+      ) ??
+      (ours.length !== theirs.length ? { fileName: 'the file list' } : null);
+    const imported = differs(generate(JSON.stringify(model)));
+    // the native column: through .tropos and back, the same files still
+    const native = nativeCheck(lib, lib.tropos4as, model, { modelName: 'dm2' });
+    if (native.status === 'pass') {
+      const back = lib.tropos4as.nativeFiles.tropos.read(
+        native.written.tropos,
+        {
+          modelName: 'dm2',
+        },
+      );
+      const written =
+        back.model && differs(generate(JSON.stringify(back.model)));
+      if (!back.model || written)
+        Object.assign(native, {
+          status: 'fail',
+          error: `written and read back, ${written?.fileName ?? 'the model'} differs from ${GODA_TWIN.seed}'s`,
+        });
+    }
+    return imported
       ? {
           status: 'fail',
-          error: `${differs?.fileName ?? 'the file list'} differs from ${GODA_TWIN.seed}'s`,
+          error: `${imported.fileName} differs from ${GODA_TWIN.seed}'s`,
+          native,
         }
-      : { status: 'pass', files: theirs.length };
+      : { status: 'pass', files: theirs.length, native };
   } catch (error) {
     return { status: 'fail', error: errorText(error) };
   }
@@ -329,7 +349,11 @@ const markdown = (results, godaTwin) =>
             godaTwin.status === 'pass'
               ? `${ICON.pass} GODA engine: ${godaTwin.files} files equal ${GODA_TWIN.seed}'s`
               : describe(godaTwin),
-          )} | |`,
+          )} | ${cell(
+            godaTwin.native?.status === 'pass'
+              ? `${nativeCell(godaTwin.native)}: GODA engine, the same ${godaTwin.files} files`
+              : nativeCell(godaTwin.native),
+          )} |`,
         ]
       : []),
     '',
@@ -367,7 +391,9 @@ const main = () => {
     path.join(RESULTS, 'goda-twin.json'),
     `${JSON.stringify(godaTwin, null, 2)}\n`,
   );
-  console.log(`${'taom4e/dm-goda'.padEnd(24)} importer:${godaTwin.status}`);
+  console.log(
+    `${'taom4e/dm-goda'.padEnd(24)} importer:${godaTwin.status} native:${godaTwin.native?.status}`,
+  );
   fs.writeFileSync(
     path.join(RESULTS, 'SUMMARY.md'),
     markdown(results, godaTwin),
@@ -377,7 +403,9 @@ const main = () => {
   );
   const failures = [
     ...results.filter(failed),
-    ...(godaTwin.status === 'fail' ? [{ seed: 'taom4e/dm-goda' }] : []),
+    ...(godaTwin.status === 'fail' || godaTwin.native?.status === 'fail'
+      ? [{ seed: 'taom4e/dm-goda' }]
+      : []),
   ];
   if (failures.length)
     console.log(`failing: ${failures.map((r) => r.seed).join(', ')}`);

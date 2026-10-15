@@ -3,34 +3,35 @@
   GODA-shaped: pistarGODA-MDP's DM example (examples/goda/dm/dm2.txt) as CRGMToPRISM would read it from TAOM4E.
   Written by hand against TAOM4E-MM.ecore (packages/lib/src/engines/tropos4as/taom4e/reference/):
   UNVERIFIED AGAINST TAOM4E, no .tropos file it wrote survives (goal-controller#134).
-  Two roots in an xmi:XMI (the project and its business model), references by xmi:id.
+  Two roots in an xmi:XMI (the project and its business model), as EMF writes a resource of two;
+  the packages' nsPrefixes as EMF writes them; references by xmi:id.
 -->
 <xmi:XMI xmi:version="2.0"
     xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:project="http:///it/itc/sra/taom4e/model/project.ecore"
-    xmlns:informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
-    xmlns:formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
-    xmlns:goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
-    xmlns:actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
-  <project:Project name="DM" BusinessModel="bm">
-    <Diagram xsi:type="goaldiagram:GoalDiagram" xmi:id="d-63eb2c4b-6903-4521-97bb-17e6755ba20d" name="DM" phase="LR" Actor="63eb2c4b-6903-4521-97bb-17e6755ba20d">
-      <DiagramNodes xsi:type="goaldiagram:GD_ActorUI" xmi:id="n-63eb2c4b-6903-4521-97bb-17e6755ba20d" core="63eb2c4b-6903-4521-97bb-17e6755ba20d" x="117" y="99" children="n-5b90cdf2-ae55-42b1-9aa3-c8338baa2498 n-dd5e3ccb-15e4-45c4-9263-5068537d37b6 n-a5736600-b24a-4f78-8f92-97f9a2a57dc9 n-825e9afa-8137-4271-a0cb-9d110e6b580b"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_HardGoalUI" xmi:id="n-5b90cdf2-ae55-42b1-9aa3-c8338baa2498" core="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" x="250" y="119" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-dd5e3ccb-15e4-45c4-9263-5068537d37b6" core="dd5e3ccb-15e4-45c4-9263-5068537d37b6" x="243" y="183" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-a5736600-b24a-4f78-8f92-97f9a2a57dc9" core="a5736600-b24a-4f78-8f92-97f9a2a57dc9" x="154" y="257" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-      <DiagramNodes xsi:type="goaldiagram:GD_PlanUI" xmi:id="n-825e9afa-8137-4271-a0cb-9d110e6b580b" core="825e9afa-8137-4271-a0cb-9d110e6b580b" x="305" y="256" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+    xmlns:it.itc.sra.taom4e.model.project="http:///it/itc/sra/taom4e/model/project.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.core.informalcore.formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore"
+    xmlns:it.itc.sra.taom4e.model.diagram.actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
+  <it.itc.sra.taom4e.model.project:Project name="DM" BusinessModel="bm">
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" xmi:id="d-63eb2c4b-6903-4521-97bb-17e6755ba20d" name="DM" phase="LR" Actor="63eb2c4b-6903-4521-97bb-17e6755ba20d">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="n-63eb2c4b-6903-4521-97bb-17e6755ba20d" core="63eb2c4b-6903-4521-97bb-17e6755ba20d" x="117" y="99" children="n-5b90cdf2-ae55-42b1-9aa3-c8338baa2498 n-dd5e3ccb-15e4-45c4-9263-5068537d37b6 n-a5736600-b24a-4f78-8f92-97f9a2a57dc9 n-825e9afa-8137-4271-a0cb-9d110e6b580b"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="n-5b90cdf2-ae55-42b1-9aa3-c8338baa2498" core="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" x="250" y="119" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-dd5e3ccb-15e4-45c4-9263-5068537d37b6" core="dd5e3ccb-15e4-45c4-9263-5068537d37b6" x="243" y="183" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-a5736600-b24a-4f78-8f92-97f9a2a57dc9" core="a5736600-b24a-4f78-8f92-97f9a2a57dc9" x="154" y="257" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="n-825e9afa-8137-4271-a0cb-9d110e6b580b" core="825e9afa-8137-4271-a0cb-9d110e6b580b" x="305" y="256" container="n-63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
     </Diagram>
-  </project:Project>
-  <formalcore:FormalBusinessModel xmi:id="bm" name="DM">
-    <TroposClasses xsi:type="formalcore:FActor" xmi:id="63eb2c4b-6903-4521-97bb-17e6755ba20d" name="DM" wanted="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" plans="dd5e3ccb-15e4-45c4-9263-5068537d37b6 a5736600-b24a-4f78-8f92-97f9a2a57dc9 825e9afa-8137-4271-a0cb-9d110e6b580b"/>
-    <TroposClasses xsi:type="formalcore:FHardGoal" xmi:id="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" name="G1: goal" wanter="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="dd5e3ccb-15e4-45c4-9263-5068537d37b6" name="T1: task [DM(T1.1,T1.2)]" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="a5736600-b24a-4f78-8f92-97f9a2a57dc9" name="T1.1: task" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d" creationProperty="assertion trigger ctx=1"/>
-    <TroposClasses xsi:type="formalcore:FPlan" xmi:id="825e9afa-8137-4271-a0cb-9d110e6b580b" name="T1.2: task" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d" creationProperty="assertion trigger ctx=2"/>
-    <TroposRelations xsi:type="informalcore:BooleanDecomposition" xmi:id="bd1" type="AND" rootGoal="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" BooleanDecLink="dl1-0" actorDecPointOfView="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-    <TroposRelations xsi:type="informalcore:AndDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetPlan="dd5e3ccb-15e4-45c4-9263-5068537d37b6"/>
-    <TroposRelations xsi:type="informalcore:BooleanDecomposition" xmi:id="bd2" type="OR" rootPlan="dd5e3ccb-15e4-45c4-9263-5068537d37b6" BooleanDecLink="dl2-0 dl2-1" actorDecPointOfView="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
-    <TroposRelations xsi:type="informalcore:OrDecLink" xmi:id="dl2-0" BooleanDecomposition="bd2" targetPlan="a5736600-b24a-4f78-8f92-97f9a2a57dc9"/>
-    <TroposRelations xsi:type="informalcore:OrDecLink" xmi:id="dl2-1" BooleanDecomposition="bd2" targetPlan="825e9afa-8137-4271-a0cb-9d110e6b580b"/>
-  </formalcore:FormalBusinessModel>
+  </it.itc.sra.taom4e.model.project:Project>
+  <it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel xmi:id="bm" name="DM">
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" xmi:id="63eb2c4b-6903-4521-97bb-17e6755ba20d" name="DM" wanted="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" plans="dd5e3ccb-15e4-45c4-9263-5068537d37b6 a5736600-b24a-4f78-8f92-97f9a2a57dc9 825e9afa-8137-4271-a0cb-9d110e6b580b"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" name="G1: goal" wanter="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="dd5e3ccb-15e4-45c4-9263-5068537d37b6" name="T1: task [DM(T1.1,T1.2)]" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="a5736600-b24a-4f78-8f92-97f9a2a57dc9" name="T1.1: task" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d" creationProperty="assertion trigger ctx=1"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="825e9afa-8137-4271-a0cb-9d110e6b580b" name="T1.2: task" capableOf="63eb2c4b-6903-4521-97bb-17e6755ba20d" creationProperty="assertion trigger ctx=2"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:BooleanDecomposition" xmi:id="bd1" type="AND" rootGoal="5b90cdf2-ae55-42b1-9aa3-c8338baa2498" BooleanDecLink="dl1-0" actorDecPointOfView="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:AndDecLink" xmi:id="dl1-0" BooleanDecomposition="bd1" targetPlan="dd5e3ccb-15e4-45c4-9263-5068537d37b6"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:BooleanDecomposition" xmi:id="bd2" type="OR" rootPlan="dd5e3ccb-15e4-45c4-9263-5068537d37b6" BooleanDecLink="dl2-0 dl2-1" actorDecPointOfView="63eb2c4b-6903-4521-97bb-17e6755ba20d"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:OrDecLink" xmi:id="dl2-0" BooleanDecomposition="bd2" targetPlan="a5736600-b24a-4f78-8f92-97f9a2a57dc9"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:OrDecLink" xmi:id="dl2-1" BooleanDecomposition="bd2" targetPlan="825e9afa-8137-4271-a0cb-9d110e6b580b"/>
+  </it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel>
 </xmi:XMI>

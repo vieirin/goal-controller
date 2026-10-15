@@ -223,8 +223,10 @@ export { importIstardt } from './importers/istardt';
 // Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios,
 // the goal lifecycle of AAMAS 2009 as an analysis, and TAOM4E's importer
 export {
+  canonicalTaom4e,
   carriedDifference,
   readTaom4e,
+  writeTaom4e,
   taom4eCarried,
   tropos4as,
   tropos4asAnalyses,
