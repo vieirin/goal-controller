@@ -15,15 +15,16 @@ import type {
   NativeWriteResult,
   PistarJson,
 } from '@goal-controller/dialect';
-import { STRATEGIES_RESOURCE } from '../../importers/jucm';
-import type { GrlElementType } from '../../importers/jucm/xmi';
-import { readXml, type XmlElement } from '../../formats/xml';
 import {
+  readXml,
   writeXmi,
   writeXmlTree,
   type XmiWriteNode,
+  type XmlElement,
   type XmlTree,
-} from '../../importers/xmi';
+} from '@goal-controller/goal-language/formats';
+import { STRATEGIES_RESOURCE } from '../../importers/jucm';
+import type { GrlElementType } from '../../importers/jucm/xmi';
 import { CONTRIBUTION_OF_LABEL, integer, pick } from './evaluation/graph';
 import { readStrategyGroups } from './strategies';
 import {
