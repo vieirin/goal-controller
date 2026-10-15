@@ -72,8 +72,9 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
   }
 };
 
-/** `1 argument`, `2 arguments`. */
-const argumentsText = (n: number) => `${n} argument${n === 1 ? '' : 's'}`;
+/** `1 argument`, `2 arguments`: what a function takes, in words. */
+export const argumentsText = (n: number) =>
+  `${n} argument${n === 1 ? '' : 's'}`;
 
 /** The first call of an expression to a function not declared, or with another number of arguments. */
 const callProblem = (

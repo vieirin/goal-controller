@@ -42,7 +42,7 @@ it, and the [gates](#gates) fail until they agree.
 
 | What | File | Notes |
 | --- | --- | --- |
-| The catalog | `src/catalog.ts` | The source of truth: `ID_PREFIXES`, `INFIX_SYMBOLS`, `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS`, `CALLS`, `VALUE_TYPES`, `ASSERTION`. The grammar, the lexer, the highlighter and the docs follow it. |
+| The catalog | `src/catalog.ts` | The source of truth: `ID_PREFIXES`, `INFIX_SYMBOLS`, `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS`, `CALLS`, `VALUE_TYPES`, `ASSERTION`, `EXPRESSION`. The grammar, the lexer, the highlighter and the docs follow it. |
 | The tokens | `src/lexer.ts` | GoalLexer makes every token itself. A keyword in `goal.langium` that it never emits can't be parsed. Build literal lists from the catalog (`literal(...ID_PREFIXES, …)`, `...CALL_NAMES`). |
 | The grammar | `src/goal.langium`, then `pnpm --filter @goal-controller/goal-language run generate` | Commit `src/generated/` with it. |
 | The parse tree's data | `src/parse.ts` | `RtTree`, `toRtTree` and `rtText`. |
@@ -181,3 +181,8 @@ A dialect then enables it like any operator:
     with `goal-value` blocks.
   - Prefer a general type (a condition language) over one engine's syntax;
     an engine's own rules go in its named checks.
+  - A type that reads a structure gives a tree with a reader of its own
+    (`readExpression`), so an engine walks the tree and never parses the
+    text. `expression` is the worked case: its rule (`ExpressionValue`)
+    is also each side of an assertion's comparison, so the two share one
+    numeric sub-grammar.

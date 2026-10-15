@@ -398,6 +398,7 @@ export const contextFromView = (
           {
             kind: node.kind,
             ...(key !== node.id && { id: node.id }),
+            ...(node.name && { name: node.name }),
             children: node.children.filter((id) =>
               (
                 (definition.notation?.operand.kinds ?? []) as readonly string[]

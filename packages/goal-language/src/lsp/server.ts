@@ -74,7 +74,7 @@ import {
   type Diagnostic,
   type RunCheck,
 } from '../notation/diagnostics.js';
-import { definitionAt, hoverAt } from '../notation/navigation.js';
+import { definitionAt, fieldHover, hoverAt } from '../notation/navigation.js';
 import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
@@ -302,13 +302,20 @@ export const createGoalLspServices = (
       params: HoverParams,
     ): Promise<Hover | undefined> {
       const found = store.for(document.uri);
-      if (!found || readFieldUri(document.uri.toString())) return undefined;
-      const hover = hoverAt(
-        found.dialect,
-        document.textDocument.getText(),
-        document.textDocument.offsetAt(params.position),
-        found.context,
-      );
+      if (!found) return undefined;
+      const text = document.textDocument.getText();
+      const offset = document.textDocument.offsetAt(params.position);
+      const field = readFieldUri(document.uri.toString());
+      const hover = field
+        ? fieldHover(
+            found.dialect,
+            found.context,
+            field.id,
+            field.key,
+            text,
+            offset,
+          )
+        : hoverAt(found.dialect, text, offset, found.context);
       return hover
         ? {
             contents: { kind: 'markdown', value: hover.markdown },

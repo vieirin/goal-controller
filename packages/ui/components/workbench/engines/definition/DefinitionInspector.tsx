@@ -45,6 +45,7 @@ import { useLanguageSupport } from './useLanguageSupport';
 /** Value configs edited in the engine's value language (one-line editors with its support). */
 const LANGUAGE_VALUES = new Set<ValueType>([
   'assertion',
+  'expression',
   'refList',
   'pairList',
   'ocl',

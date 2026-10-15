@@ -512,8 +512,9 @@ describe('harness 5: the notation document', () => {
 
 describe('harness 6: context', () => {
   /**
-   * A context without the elements' diagram positions, which the pinned
-   * reference predates; they are the view's (checked on their own).
+   * A context without the elements' diagram positions and names (a field's
+   * hover shows them), which the pinned reference predates; they are the
+   * view's (checked on their own).
    */
   const withoutPositions = (
     context: ReturnType<typeof contextFromView>,
@@ -521,8 +522,9 @@ describe('harness 6: context', () => {
   ) => ({
     ...context,
     elements: Object.fromEntries(
-      Object.entries(context.elements).map(([id, { x, ...element }]) => {
+      Object.entries(context.elements).map(([id, { x, name, ...element }]) => {
         expect(x, id).to.equal(tree.nodes.get(id)?.x);
+        expect(name, id).to.equal(tree.nodes.get(id)?.name || undefined);
         return [id, element];
       }),
     ),

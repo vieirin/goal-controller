@@ -423,6 +423,8 @@ export type DefinitionContextElement = {
   kind: string;
   /** its id as written, when its key isn't (a repeated scoped id: key `G3/T1.1`, id `T1.1`) */
   id?: string;
+  /** its name, as a hover shows it (`G2: Reach lab`) */
+  name?: string;
   /** ids of its operand children, in the notation's order */
   children: readonly string[];
   /** its custom properties, as stored */
