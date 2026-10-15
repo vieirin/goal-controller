@@ -79,8 +79,10 @@ import {
   type ResourceSlot,
 } from '@/lib/project';
 import {
+  absentProblems,
   checkNatives,
   followed,
+  generateAbsent,
   inSyncNow,
   nativeDeclarationsOf,
   nativeFileOf,
@@ -1571,9 +1573,70 @@ function WorkbenchState({
     },
     [nativeSlotsNow, storeTexts, nativeContext, setText],
   );
+  // a native file its dialect writes, absent when the project opens: written
+  // from the model at once, beside it (in the project's files, saved where
+  // the project can be written), once per project
+  const absentDone = useRef<ProjectStore | null>(null);
+  const [absentFailed, setAbsentFailed] = useState<{
+    store: ProjectStore;
+    problems: Problem[];
+  } | null>(null);
+  useEffect(() => {
+    const store = project?.store ?? null;
+    if (!store || absentDone.current === store) return;
+    // a writer reads the project's resources too (GRL's strategies): once they are read
+    if (
+      resourceSlotsNow.some((slot) =>
+        slot.paths.some((path) => storeTexts[path] === undefined),
+      )
+    )
+      return;
+    absentDone.current = store;
+    const generated = generateAbsent(
+      nativeSlotsNow,
+      textRef.current,
+      nativeContext,
+    );
+    setAbsentFailed({ store, problems: absentProblems(generated) });
+    const made = generated.filter(({ write }) => write.text !== null);
+    if (!made.length) return;
+    for (const { slot, write } of made) {
+      setResourceText(slot.path, write.text!);
+      setTracking((prev) =>
+        inSyncNow(
+          trackingFor(prev, store),
+          slot.path,
+          textRef.current,
+          write.diagnostics,
+        ),
+      );
+    }
+    setProject((prev) =>
+      prev && prev.store === store
+        ? {
+            ...prev,
+            files: [
+              ...new Set([...prev.files, ...made.map(({ slot }) => slot.path)]),
+            ].sort(),
+          }
+        : prev,
+    );
+  }, [
+    project,
+    nativeSlotsNow,
+    resourceSlotsNow,
+    storeTexts,
+    nativeContext,
+    setResourceText,
+  ]);
   const nativeProblemsNow = useMemo(
-    () => nativeProblems(nativeStatesNow),
-    [nativeStatesNow],
+    () => [
+      ...nativeProblems(nativeStatesNow),
+      ...(absentFailed && absentFailed.store === project?.store
+        ? absentFailed.problems
+        : []),
+    ],
+    [nativeStatesNow, absentFailed, project],
   );
 
   // ---- variables -------------------------------------------------------------

@@ -61,7 +61,7 @@ The stress scripts' `native` column is the same check.
 
 ## In a project
 
-A model's native file sits beside its piStar file (`<model>.<ext>`), listed in project.json under the model (`"native": { "<id>": "<path>" }`); the archive carries it. Opening a native file makes that project; the sync rule is in the project module's README (`packages/ui/lib/project/README.md`).
+A model's native file sits beside its piStar file (`<model>.<ext>`), listed in project.json under the model (`"native": { "<id>": "<path>" }`); the archive carries it. Opening a native file makes that project. A project that ships without the native file its dialect writes gets it when it opens, written from the model (a file its dialect only reads is never made). The sync rule is in the project module's README (`packages/ui/lib/project/README.md`).
 
 # Importers
 
