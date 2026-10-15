@@ -102,9 +102,9 @@ export const grl = defineDialect({
   extension: grlExtension,
   // an element's importance and decomposition type are read from its
   // custom properties (the importer writes them; the evaluation reads them)
-  // but not declared: a dialect without ids writes no property lines, and an
-  // element line holds annotations and declarations only (#105: a framework
-  // gap; `elementProperties` above is what GRL would declare). An
+  // but not declared (#105; `elementProperties` above is what GRL would
+  // declare). A dialect without ids may write property lines since #138;
+  // GRL hasn't moved them there, so its documents stay as they are. An
   // indicator's importance is declared: GRL lists no indicator, so it has no
   // line, and the inspector edits it.
   properties: {

@@ -313,7 +313,7 @@ describe('a dialect of its own (no engine)', () => {
     ).to.deep.equal(['stereotype', 'tag', 'tagValue']);
   });
 
-  it('rejects lines with ids for some kinds only, and property lines without ids', () => {
+  it('rejects lines with ids for some kinds only; takes property lines without ids', () => {
     const base = structuredClone(definition) as AnyDialect;
     expect(() =>
       defineDialect({
@@ -327,19 +327,20 @@ describe('a dialect of its own (no engine)', () => {
         },
       }),
     ).to.throw(/either every element has an id prefix/);
-    expect(() =>
-      defineDialect({
-        ...base,
-        properties: {
-          ...base.properties,
-          'istar.Goal': [
-            ...base.properties['istar.Goal']!,
-            { key: 'note', value: { type: 'text' }, help: '' },
-          ],
-        },
-        propertyLineOrder: ['note'],
-      }),
-    ).to.throw(/lines without ids write every property on the element line/);
+    // a property line without ids starts with its key (goal-controller#138)
+    const noted = defineDialect({
+      ...base,
+      properties: {
+        ...base.properties,
+        'istar.Goal': [
+          ...base.properties['istar.Goal']!,
+          { key: 'note', value: { type: 'text' }, help: '' },
+        ],
+      },
+      propertyLineOrder: ['note'],
+    });
+    expect(hasIds(noted)).to.equal(false);
+    expect(noted.propertyLineOrder).to.deep.equal(['note']);
   });
 
   it('writes its lines, and reads them by position', () => {

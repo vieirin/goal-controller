@@ -11,6 +11,7 @@ import {
   ID_PREFIXES,
   OCL_OPERATIONS,
   idPrefixPattern,
+  propertyKeyOf,
 } from './catalog.js';
 
 type Rules = ReadonlyArray<readonly [name: string, pattern: RegExp]>;
@@ -253,6 +254,7 @@ const INDENT = /[ \t]+/y;
 const ANNOTATION = /<<|\{/y;
 const KEY = /[A-Za-z][A-Za-z0-9_]*/y;
 const AFTER_KEY = /[ \t]+/y;
+const LINE_REST = /[^\r\n]*/y;
 const PROPERTY_VALUE = /[^\s](?:[^\r\n]*[^\s])?/y;
 
 const at = (pattern: RegExp, text: string, offset: number) => {
@@ -268,6 +270,11 @@ export class GoalLexer extends DefaultLexer {
    * dialect's own, an extension's kinds' (reset after each call).
    */
   prefixes: readonly string[] = [];
+  /**
+   * The keys the next `tokenize` reads as property lines' in a document
+   * without ids (`propertyKeysOf`; reset after each call).
+   */
+  keys: readonly string[] = [];
 
   override tokenize(text: string): LexerResult {
     const tokens: IToken[] = [];
@@ -277,6 +284,8 @@ export class GoalLexer extends DefaultLexer {
     this.start = 'document';
     const ids = idRulesOf(this.prefixes);
     this.prefixes = [];
+    const keys = this.keys;
+    this.keys = [];
     let offset = 0;
     let line = 1;
     let column = 1;
@@ -413,6 +422,21 @@ export class GoalLexer extends DefaultLexer {
           at(KEY, text, offset)
         ) {
           push('KEY', at(KEY, text, offset)!);
+          const space = at(AFTER_KEY, text, offset);
+          if (space) push('WS', space);
+          state = 'property';
+          continue;
+        }
+        // a line without an id that starts with a declared key is its
+        // property line (goal-controller#138); a name so written is quoted
+        const key =
+          document &&
+          plain &&
+          !annotated &&
+          keys.length > 0 &&
+          propertyKeyOf(keys, at(LINE_REST, text, offset) ?? '');
+        if (key) {
+          push('KEY', key);
           const space = at(AFTER_KEY, text, offset);
           if (space) push('WS', space);
           state = 'property';

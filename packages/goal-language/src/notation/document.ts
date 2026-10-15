@@ -25,6 +25,7 @@ import {
   propertyLine,
   writeAnnotations,
   writeDeclaration,
+  writtenName,
 } from '../print.js';
 import { parseValue } from '../parse.js';
 import { annotatedProperties, readLine } from './lines.js';
@@ -133,7 +134,8 @@ export const lineNames = (
 
 /**
  * Depth-first from the roots, each element once (at its first parent). `ids`:
- * the element each line is, but a link line without ids (`takesPosition`).
+ * the element each line is, but, without ids, a link, an actor or a property
+ * line (`takesPosition`).
  */
 export const notationDocument = (
   definition: Document,
@@ -151,7 +153,9 @@ export const notationDocument = (
       if (hasActorLine(definition, actor))
         lines.push(actorLine(definition, actor, byName));
   }
-  for (const { id, node, depth } of lineOrder(definition, tree)) {
+  for (const { id, node: listed, depth } of lineOrder(definition, tree)) {
+    // a name that would read as a property line is quoted (goal-controller#138)
+    const node = { ...listed, name: writtenName(definition, listed.name) };
     const element = definition.elements[node.kind];
     const annotations = element?.annotated
       ? writeAnnotations(node.properties)
@@ -180,7 +184,8 @@ export const notationDocument = (
         lines.push(
           definition.indent.repeat(depth + 1) + propertyLine(key, value),
         );
-        ids.push(id);
+        // without ids, a property line takes no position
+        if (hasIds(definition)) ids.push(id);
       }
     }
     // its links with properties (goal-controller#107), each a `link` line

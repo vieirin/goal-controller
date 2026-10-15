@@ -63,9 +63,15 @@ id prefix, such as piStar-ext's own definition:
   whose name starts with the same id, wherever the line is;
 - a line without an id is the element at its position: the n-th non-blank
   line is the n-th element of the model, in the order the Notation view
-  writes them. Every line counts in the positions, with or without an id;
+  writes them. Every element line counts in the positions, with or without
+  an id;
 - lines with and without ids may be mixed;
-- there are no property lines.
+- a line that starts with one of the dialect's declared keys (followed by a
+  space or the line's end) is a `PropertyLine` of the element line above,
+  and takes no position (goal-controller#138). GoalLexer reads a `KEY` there
+  only where it is given the dialect's keys (`propertyKeysOf`). A name that
+  would read so is written quoted (`"type achieve"`), and read without its
+  quotes ([goal-language.md](goal-language.md#property-lines-without-ids)).
 
 A line's id that names no element is reported, and so is an id written
 twice ([diagnostics.md](diagnostics.md#lines)). The Notation view writes an

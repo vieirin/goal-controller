@@ -171,6 +171,46 @@ export const idPrefixesOf = (definition: {
       : [],
   );
 
+/**
+ * The keys a document without ids reads as property lines'
+ * (goal-controller#138): its dialect's declared keys (`propertyLineOrder`).
+ * A document with ids reads any key so, and gets none here.
+ */
+export const propertyKeysOf = (definition: {
+  elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
+  propertyLineOrder?: readonly string[];
+}): string[] =>
+  Object.values(definition.elements ?? {}).some(
+    (element) => element?.prefix !== undefined,
+  )
+    ? []
+    : [...(definition.propertyLineOrder ?? [])];
+
+const keyPatterns = new Map<string, RegExp>();
+
+/**
+ * The key a line of a document without ids starts with (indentation aside),
+ * if it is one of `keys` followed by a space or the line's end: the line is
+ * that key's property line, not an element's (null: it is an element's).
+ */
+export const propertyKeyOf = (
+  keys: readonly string[],
+  line: string,
+): string | null => {
+  if (!keys.length) return null;
+  const cacheKey = keys.join(',');
+  let pattern = keyPatterns.get(cacheKey);
+  if (!pattern) {
+    const alternatives = [...keys]
+      .sort((a, b) => b.length - a.length)
+      .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    pattern = new RegExp(`^[ \\t]*(${alternatives})(?=[ \\t\\r\\n]|$)`);
+    keyPatterns.set(cacheKey, pattern);
+  }
+  return pattern.exec(line)?.[1] ?? null;
+};
+
 /** The assertion language: `battery > 20 & !charging`. */
 export const ASSERTION = {
   /** tightest first */

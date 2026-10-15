@@ -59,7 +59,7 @@ import {
   GoalGeneratedModule,
   GoalGeneratedSharedModule,
 } from '../generated/module.js';
-import { idPrefixesOf } from '../catalog.js';
+import { idPrefixesOf, propertyKeysOf } from '../catalog.js';
 import type { LexerStart } from '../lexer.js';
 import { GoalCoreModule, parseWith } from '../module.js';
 import { syntaxErrorsOf } from '../parse.js';
@@ -174,6 +174,10 @@ export const createGoalLspServices = (
         text,
         // a document's element lines: its dialect's own id prefixes too
         start === 'document' && params ? idPrefixesOf(params.dialect) : [],
+        // a document without ids: its declared keys start property lines
+        start === 'plainDocument' && params
+          ? propertyKeysOf(params.dialect)
+          : [],
       );
     }
 
