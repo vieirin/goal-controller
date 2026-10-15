@@ -7,6 +7,7 @@
  * kind does not read or that do not apply. Nothing here knows an engine.
  */
 import {
+  actorPropertiesOf,
   evaluateCondition,
   fillTemplate,
   hasIds,
@@ -20,8 +21,10 @@ import {
   type DefinitionContextElement,
   type Severity,
   type WithNotation,
+  type PropertyDefinition,
 } from '@goal-controller/dialect';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
+import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { lineScope, scopedKey } from './scope.js';
@@ -32,8 +35,9 @@ import {
   takesPosition,
   targetKey,
   writtenTarget,
-  linkPropertyProblems,
   readLinkLine,
+  writtenPropertyProblems,
+  type LinkLineReading,
 } from './linkLine.js';
 
 /**
@@ -175,7 +179,7 @@ type Definition = Pick<
   | 'problems'
   | 'idScope'
 > &
-  Partial<Pick<AnyDialect, 'links' | 'linkLines'>>;
+  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -302,6 +306,60 @@ export type DocumentDiagnosticsOptions = {
   saved?: Readonly<Record<string, { line: string; error: string | null }>>;
 };
 
+/** The actors' ids by their names, in the model's order: what an actor line names one by. */
+const actorNamesOf = (context: DefinitionContext) =>
+  actorNames(
+    Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+      iStarId,
+      name,
+    })),
+  );
+
+/**
+ * A line's `{key = value}` properties (a link's, an actor's) against what
+ * its kind declares: each key's and value's problems, and the engine's named
+ * check on a property, its message first, as an element's. `self` is the
+ * link's or actor's piStar id (its context's readLink or readActor reads it).
+ */
+const writtenPropertyDiagnostics = (
+  declared: readonly PropertyDefinition[],
+  kind: string,
+  read: LinkLineReading,
+  self: string,
+  runCheck: RunCheck | undefined,
+  at: (span: { from: number; to: number }) => { from: number; to: number },
+): Diagnostic[] => {
+  const found: Diagnostic[] = [];
+  const problems = writtenPropertyProblems(declared, kind, read);
+  const written = Object.fromEntries(
+    read.properties.map(({ key, value }) => [key, value]),
+  );
+  for (const [index, property] of read.properties.entries()) {
+    const check = declared.find(({ key }) => key === property.key)?.check;
+    const own = problems.filter((p) => p.index === index);
+    const checked =
+      check &&
+      !own.some((p) => p.on === 'key') &&
+      runCheck?.(check, written, self);
+    if (checked) {
+      found.push({
+        ...at(property.valueSpan),
+        severity: 'error',
+        message: checked,
+        check,
+      });
+      continue;
+    }
+    for (const problem of own)
+      found.push({
+        ...at(problem.on === 'key' ? property.keySpan : property.valueSpan),
+        severity: 'error',
+        message: problem.message,
+      });
+  }
+  return found;
+};
+
 /** The diagnostics of a whole Notation view document. */
 export const documentDiagnostics = (
   definition: Definition,
@@ -311,6 +369,8 @@ export const documentDiagnostics = (
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
   const seen = new Set<string>();
+  // the actors the actor lines have named (goal-controller#109)
+  const actorsWritten = new Set<string>();
   const lines = doc.split('\n');
   // lines that name no element are their elements' in order (link lines take
   // no position)
@@ -574,6 +634,62 @@ export const documentDiagnostics = (
       from: lineFrom + indent,
       to: lineFrom + written.trimEnd().length,
     };
+    // an actor's properties (goal-controller#109), wherever the line is: no element's
+    if (
+      definition.actors &&
+      read.kind === 'property' &&
+      !read.errors.length &&
+      read.key === ACTOR_LINE_KEY
+    ) {
+      owner = undefined;
+      const valueAt = (at_: { from: number; to: number }) =>
+        at({
+          from: read.valueSpan.from + at_.from,
+          to: read.valueSpan.from + at_.to,
+        });
+      const actor = readActorLine(read.value);
+      if ('error' in actor) {
+        push({
+          ...valueAt(actor.error),
+          severity: 'error',
+          message: actor.error.message,
+        });
+        continue;
+      }
+      const named = targetKey(
+        actorNamesOf(context),
+        actor.value.target,
+        'actor',
+      );
+      const found = 'key' in named ? context.actors?.[named.key] : undefined;
+      if ('error' in named || !found)
+        push({
+          ...valueAt(actor.value.targetSpan),
+          severity: 'error',
+          message:
+            'error' in named ? named.error : `No actor ${actor.value.target}`,
+        });
+      else if (actorsWritten.has(named.key))
+        push({
+          ...valueAt(actor.value.targetSpan),
+          severity: 'error',
+          message: `The actor ${actor.value.target} is written twice`,
+        });
+      else {
+        actorsWritten.add(named.key);
+        push(
+          ...writtenPropertyDiagnostics(
+            actorPropertiesOf(definition, found.kind),
+            found.kind,
+            actor.value,
+            named.key,
+            runCheck,
+            valueAt,
+          ),
+        );
+      }
+      continue;
+    }
     // a line that reads as nothing, where an element line would be (not
     // under the element above): no element's
     if (
@@ -661,39 +777,16 @@ export const documentDiagnostics = (
         });
       else {
         const [{ kind, iStarId }] = found as [(typeof found)[number]];
-        const problems = linkPropertyProblems(definition, kind, link.value);
-        // the engine's named check on a property, the link its `self` (its
-        // context's readLink reads it), its message first, as an element's
-        const written = Object.fromEntries(
-          properties.map(({ key, value }) => [key, value]),
+        push(
+          ...writtenPropertyDiagnostics(
+            linkPropertiesOf(definition, kind),
+            kind,
+            link.value,
+            iStarId,
+            runCheck,
+            valueAt,
+          ),
         );
-        for (const [index, property] of properties.entries()) {
-          const check = linkPropertiesOf(definition, kind).find(
-            ({ key }) => key === property.key,
-          )?.check;
-          const own = problems.filter((p) => p.index === index);
-          const checked =
-            check &&
-            !own.some((p) => p.on === 'key') &&
-            runCheck?.(check, written, iStarId);
-          if (checked) {
-            push({
-              ...valueAt(property.valueSpan),
-              severity: 'error',
-              message: checked,
-              check,
-            });
-            continue;
-          }
-          for (const problem of own)
-            push({
-              ...valueAt(
-                problem.on === 'key' ? property.keySpan : property.valueSpan,
-              ),
-              severity: 'error',
-              message: problem.message,
-            });
-        }
       }
       continue;
     }

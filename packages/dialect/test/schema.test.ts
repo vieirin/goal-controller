@@ -279,6 +279,23 @@ describe('defineDialect', () => {
     expect(withActors([{ ...importance, kinds: ['istar.Goal'] }])).to.throw(
       /actor.importance: unknown actor kind istar.Goal/,
     );
+    // `actor` is the key an actor's properties are written with (#109)
+    const actorKey = (actors: AnyDialect['actors']) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            actors,
+            properties: {
+              ...d.properties,
+              quality: [{ key: 'actor', value: { type: 'text' }, help: '' }],
+            },
+          }) as AnyDialect,
+      );
+    expect(actorKey(undefined)).not.to.throw();
+    expect(actorKey([importance])).to.throw(
+      /quality.actor: the key an actor's properties are written with/,
+    );
   });
 
   it('has ids on every line or on none', () => {

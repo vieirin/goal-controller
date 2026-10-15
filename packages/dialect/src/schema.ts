@@ -300,6 +300,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
  */
 export const LINK_LINE_KEY = 'link';
 
+/**
+ * The property-line key an actor's properties are written with in the goal
+ * language, at the top of the document: `actor "Ann" {importance = 50}`
+ * (goal-controller#109). Reserved in a dialect that declares `actors`.
+ */
+export const ACTOR_LINE_KEY = 'actor';
+
 /** Whether the Notation view writes link lines in a dialect (`linkLines`, by default whether it has ids). */
 export const linkLinesOf = (
   definition: Pick<AnyDialect, 'elements'> &
@@ -648,12 +655,23 @@ export const defineDialect = <const D extends AnyDialect>(
   };
   for (const [kind, list] of Object.entries(definition.properties))
     checkList(kind, list);
-  if (definition.links)
-    for (const [kind, list] of Object.entries(definition.properties))
-      if (list.some((p) => p.key === LINK_LINE_KEY))
-        fail(
-          `${kind}.${LINK_LINE_KEY}: the key a link's properties are written with (it declares links)`,
-        );
+  // the keys link and actor lines are written with, where the dialect has them
+  for (const [declared, key, what] of [
+    [
+      definition.links,
+      LINK_LINE_KEY,
+      `a link's properties are written with (it declares links)`,
+    ],
+    [
+      definition.actors,
+      ACTOR_LINE_KEY,
+      `an actor's properties are written with (it declares actors)`,
+    ],
+  ] as const)
+    if (declared)
+      for (const [kind, list] of Object.entries(definition.properties))
+        if (list.some((p) => p.key === key))
+          fail(`${kind}.${key}: the key ${what}`);
   for (const [kind, list] of Object.entries(definition.links ?? {})) {
     if (!isLinkKind(kind)) fail(`links: unknown link kind ${kind}`);
     checkList(kind, list);

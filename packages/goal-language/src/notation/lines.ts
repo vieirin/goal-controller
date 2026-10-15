@@ -5,6 +5,7 @@
  * leaves the others readable.
  */
 import {
+  ACTOR_LINE_KEY,
   LINK_LINE_KEY,
   hasIds,
   type AnyDialect,
@@ -30,7 +31,7 @@ import {
   type RtTree,
 } from '../parse.js';
 import type { DeclaredProperties } from '../print.js';
-import { isPlainLinkLine } from './linkLine.js';
+import { isPlainActorLine, isPlainLinkLine } from './linkLine.js';
 
 /** Where something is, in the text read (offsets). */
 export type Span = { from: number; to: number };
@@ -346,18 +347,23 @@ const writtenAs = (
  */
 export const readLine = (
   definition: Pick<AnyDialect, 'elements'> &
-    Partial<Pick<AnyDialect, 'notation' | 'links' | 'linkLines'>>,
+    Partial<Pick<AnyDialect, 'notation' | 'links' | 'linkLines' | 'actors'>>,
   text: string,
 ): LineReading => {
-  // a document without ids has no property lines but its link lines
-  if (isPlainLinkLine(definition, text)) {
+  // a document without ids has no property lines but its link and actor lines
+  const plainKey = isPlainLinkLine(definition, text)
+    ? LINK_LINE_KEY
+    : isPlainActorLine(definition, text)
+      ? ACTOR_LINE_KEY
+      : null;
+  if (plainKey) {
     const from = text.length - text.trimStart().length;
-    const keySpan = { from, to: from + LINK_LINE_KEY.length };
+    const keySpan = { from, to: from + plainKey.length };
     const valueFrom = text.length - text.slice(keySpan.to).trimStart().length;
     const value = text.slice(valueFrom).trimEnd();
     return {
       kind: 'property',
-      key: LINK_LINE_KEY,
+      key: plainKey,
       keySpan,
       value,
       valueSpan: { from: valueFrom, to: valueFrom + value.length },
