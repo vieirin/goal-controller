@@ -8,10 +8,11 @@ import type {
   AssertionPrefix,
   NotationDefinition,
 } from '@goal-controller/dialect';
-import { ID_PREFIXES, type ValueType } from './catalog.js';
+import { EXPRESSION, ID_PREFIXES, type ValueType } from './catalog.js';
 import type {
   AnnotatedName,
   Annotation,
+  AssertCompare,
   AssertExpr,
   AssertionValue,
   BoolValue,
@@ -20,6 +21,8 @@ import type {
   Document,
   ElementLine,
   EnumValue,
+  Expr,
+  ExpressionValue,
   IntValue,
   NumberValue,
   OclValue,
@@ -58,20 +61,73 @@ export type RtTree =
       right: RtTree | null;
     };
 
-/** An assertion (AssertionRegex.g4's alternatives). */
-export type AssertionTree =
+/**
+ * An expression (the catalog's EXPRESSION), as an engine walks it to write
+ * its own syntax. Its parentheses are its shape.
+ */
+export type ExpressionTree =
+  /** as written: `2`, `0.5` */
+  | { kind: 'number'; value: string }
+  /** an element, by its id: `G1`, `T2.1` */
+  | { kind: 'ref'; id: string }
+  /** any other name: a variable, declared by its use */
+  | { kind: 'var'; name: string }
+  | { kind: 'call'; name: string; args: ExpressionTree[] }
+  | {
+      kind: 'binary';
+      operator: ExpressionOperator;
+      left: ExpressionTree;
+      right: ExpressionTree;
+    }
+  | { kind: 'unary'; operator: '-'; expr: ExpressionTree };
+
+export type ExpressionOperator = (typeof EXPRESSION.infix)[number][number];
+
+/**
+ * An assertion: AssertionRegex.g4's alternatives, with the comparisons it
+ * has (`Comparison`).
+ */
+export type AssertionNode<Comparison> =
   | {
       kind: 'and' | 'or';
-      left: AssertionTree | null;
-      right: AssertionTree | null;
+      left: AssertionNode<Comparison> | null;
+      right: AssertionNode<Comparison> | null;
     }
-  | { kind: 'not'; expr: AssertionTree | null }
-  | { kind: 'paren'; expr: AssertionTree | null }
+  | { kind: 'not'; expr: AssertionNode<Comparison> | null }
+  | { kind: 'paren'; expr: AssertionNode<Comparison> | null }
   /** `x = true`; `negated`: `x != true` (CtxRegex.g4's, where a value allows it) */
   | { kind: 'assign'; variable: string; value: boolean; negated?: true }
-  | { kind: 'compare'; variable: string; operator: string; value: string }
   | { kind: 'var'; variable: string }
-  | { kind: 'bool'; value: boolean };
+  | { kind: 'bool'; value: boolean }
+  | Comparison;
+
+/** `x > 3`: a name and a number, as AssertionRegex.g4 read every comparison. */
+export type NameComparison = {
+  kind: 'compare';
+  variable: string;
+  operator: string;
+  value: string;
+};
+
+/** `previous(t) < 18`, `0.9 * x >= 1`: two expressions compared. */
+export type ExpressionComparison = {
+  kind: 'comparison';
+  operator: string;
+  left: ExpressionTree;
+  right: ExpressionTree;
+};
+
+/**
+ * An assertion as its engines have read it: a comparison of a name and a
+ * number is a `compare`, any other a `comparison` (only an assertion that
+ * declares functions may have those).
+ */
+export type AssertionTree = AssertionNode<
+  NameComparison | ExpressionComparison
+>;
+
+/** An assertion with every comparison's sides as expressions (`readAssertion`). */
+export type AssertionReading = AssertionNode<ExpressionComparison>;
 
 export type AnnotationData =
   | { kind: 'stereotype'; stereotype: string }
@@ -408,20 +464,102 @@ export const parseDocument = (
   };
 };
 
-export const toAssertionTree = (
-  expr: AssertExpr | undefined,
-): AssertionTree | null => {
+/** An expression's tree; null where it is unfinished (after a syntax error). */
+export const toExpressionTree = (
+  expr: Expr | undefined,
+): ExpressionTree | null => {
   switch (expr?.$type) {
-    case 'AssertBinary':
-      return {
-        kind: expr.operator === '&' ? 'and' : 'or',
-        left: toAssertionTree(expr.left),
-        right: toAssertionTree(expr.right),
-      };
-    case 'AssertNot':
-      return { kind: 'not', expr: toAssertionTree(expr.expr) };
-    case 'AssertParen':
-      return { kind: 'paren', expr: toAssertionTree(expr.expr) };
+    case 'ExprNumber':
+      return expr.value ? { kind: 'number', value: expr.value } : null;
+    case 'ExprRef':
+      return expr.id ? { kind: 'ref', id: expr.id } : null;
+    case 'ExprVar':
+      return expr.name ? { kind: 'var', name: expr.name } : null;
+    case 'ExprParen':
+      return toExpressionTree(expr.expr);
+    case 'ExprNegation': {
+      const operand = toExpressionTree(expr.expr);
+      return operand && { kind: 'unary', operator: '-', expr: operand };
+    }
+    case 'ExprCall': {
+      const args = expr.args.map(toExpressionTree);
+      return expr.function && args.every((arg) => arg !== null)
+        ? { kind: 'call', name: expr.function, args: args as ExpressionTree[] }
+        : null;
+    }
+    case 'ExprBinary': {
+      const left = toExpressionTree(expr.left);
+      const right = toExpressionTree(expr.right);
+      return left && right && expr.operator
+        ? { kind: 'binary', operator: expr.operator, left, right }
+        : null;
+    }
+    default:
+      return null;
+  }
+};
+
+/** A comparison's two sides as expressions. */
+const expressionComparison = (
+  expr: AssertCompare,
+): ExpressionComparison | null => {
+  const left = toExpressionTree(expr.left);
+  const right = toExpressionTree(expr.right);
+  return left && right && expr.operator
+    ? { kind: 'comparison', operator: expr.operator, left, right }
+    : null;
+};
+
+/** A comparison as AssertionRegex.g4 read it (a name and a number), else as expressions. */
+const nameComparison = (
+  expr: AssertCompare,
+): NameComparison | ExpressionComparison | null => {
+  const { left, right } = expr;
+  if (
+    (left?.$type === 'ExprVar' || left?.$type === 'ExprRef') &&
+    right?.$type === 'ExprNumber'
+  ) {
+    const variable = left.$type === 'ExprVar' ? left.name : left.id;
+    return variable && expr.operator && right.value
+      ? {
+          kind: 'compare',
+          variable,
+          operator: expr.operator,
+          value: right.value,
+        }
+      : null;
+  }
+  return expressionComparison(expr);
+};
+
+/** An assertion's tree, its comparisons read by `comparison`. */
+const assertionOf = <C>(comparison: (expr: AssertCompare) => C | null) => {
+  const walk = (expr: AssertExpr | undefined): AssertionNode<C> | null => {
+    switch (expr?.$type) {
+      case 'AssertBinary':
+        return {
+          kind: expr.operator === '&' ? 'and' : 'or',
+          left: walk(expr.left),
+          right: walk(expr.right),
+        };
+      case 'AssertNot':
+        return { kind: 'not', expr: walk(expr.expr) };
+      case 'AssertParen':
+        return { kind: 'paren', expr: walk(expr.expr) };
+      case 'AssertCompare':
+        return comparison(expr);
+      default:
+        return assertionAtom(expr);
+    }
+  };
+  return walk;
+};
+
+/** An assertion's atoms besides comparisons: `x = true`, `x`, `true`. */
+const assertionAtom = (
+  expr: AssertExpr | undefined,
+): AssertionNode<never> | null => {
+  switch (expr?.$type) {
     case 'AssertAssign':
       return expr.variable && expr.value
         ? {
@@ -429,15 +567,6 @@ export const toAssertionTree = (
             variable: expr.variable,
             value: expr.value === 'true',
             ...(expr.operator === '!=' && { negated: true as const }),
-          }
-        : null;
-    case 'AssertCompare':
-      return expr.variable && expr.operator && expr.value
-        ? {
-            kind: 'compare',
-            variable: expr.variable,
-            operator: expr.operator,
-            value: expr.value,
           }
         : null;
     case 'AssertVar':
@@ -449,9 +578,89 @@ export const toAssertionTree = (
   }
 };
 
+export const toAssertionTree: (
+  expr: AssertExpr | undefined,
+) => AssertionTree | null = assertionOf(nameComparison);
+
+const toAssertionReading: (
+  expr: AssertExpr | undefined,
+) => AssertionReading | null = assertionOf(expressionComparison);
+
+/** How tightly each binary operator binds: 0 tightest (the catalog's levels). */
+const LEVEL = new Map<string, number>(
+  EXPRESSION.infix.flatMap((level, i) =>
+    level.map((operator) => [operator, i] as const),
+  ),
+);
+
+/**
+ * An expression's text: `0.5 + 0.9 * previous(t)`, with the parentheses its
+ * shape needs and no others. It reads back as the same tree.
+ */
+export const expressionText = (tree: ExpressionTree): string => {
+  switch (tree.kind) {
+    case 'number':
+      return tree.value;
+    case 'ref':
+      return tree.id;
+    case 'var':
+      return tree.name;
+    case 'call':
+      return `${tree.name}(${tree.args.map(expressionText).join(', ')})`;
+    case 'unary': {
+      const operand = expressionText(tree.expr);
+      return tree.expr.kind === 'binary'
+        ? `${tree.operator}(${operand})`
+        : `${tree.operator}${operand}`;
+    }
+    case 'binary': {
+      const level = LEVEL.get(tree.operator)!;
+      // an operand that binds looser is grouped; on the right, one that binds
+      // as tightly too (every operator is left-associative)
+      const side = (
+        operand: ExpressionTree,
+        grouped: (l: number) => boolean,
+      ) =>
+        operand.kind === 'binary' && grouped(LEVEL.get(operand.operator)!)
+          ? `(${expressionText(operand)})`
+          : expressionText(operand);
+      return `${side(tree.left, (l) => l > level)} ${tree.operator} ${side(tree.right, (l) => l >= level)}`;
+    }
+  }
+};
+
+/**
+ * An assertion's text, as read (its groups are its `paren` nodes):
+ * `previous(t) < 18 & !on`. It reads back as the same tree.
+ */
+export const assertionText = (tree: AssertionTree | null): string => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return `${assertionText(tree.left)} ${tree.kind === 'and' ? '&' : '|'} ${assertionText(tree.right)}`;
+    case 'not':
+      return `!${assertionText(tree.expr)}`;
+    case 'paren':
+      return `(${assertionText(tree.expr)})`;
+    case 'assign':
+      return `${tree.variable} ${tree.negated ? '!=' : '='} ${tree.value}`;
+    case 'compare':
+      return `${tree.variable} ${tree.operator} ${tree.value}`;
+    case 'comparison':
+      return `${expressionText(tree.left)} ${tree.operator} ${expressionText(tree.right)}`;
+    case 'var':
+      return tree.variable;
+    case 'bool':
+      return String(tree.value);
+    default:
+      return '';
+  }
+};
+
 /** What each value type reads into. */
 export type ValueData = {
   assertion: AssertionTree | null;
+  expression: ExpressionTree | null;
   int: string | null;
   number: string | null;
   bool: boolean | null;
@@ -466,6 +675,7 @@ export type ValueData = {
 
 const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
   assertion: (root: AssertionValue) => toAssertionTree(root.expr),
+  expression: (root: ExpressionValue) => toExpressionTree(root.expr),
   int: (root: IntValue) => root.value ?? null,
   number: (root: NumberValue) => root.value ?? null,
   bool: (root: BoolValue) => (root.value ? root.value === 'true' : null),
@@ -499,4 +709,60 @@ export const parseValue = <T extends ValueType>(
 ): Parsed<ValueData[T]> => {
   const { root, errors } = parse<never>(type, text);
   return { value: READ[type](root), errors };
+};
+
+/**
+ * The tree of an `expression` value, as checks and engines read it (they
+ * never parse a formula's text themselves). Null when it is empty or isn't an
+ * expression.
+ */
+export const readExpression = (text: string): ExpressionTree | null => {
+  const read = parseValue('expression', text);
+  return read.errors.length ? null : read.value;
+};
+
+/**
+ * The tree of an `assertion` value (its prefix aside) with every comparison's
+ * sides as expressions (`x > 3` too: a `var` and a `number`). Null when it is
+ * empty or isn't an assertion.
+ */
+export const readAssertion = (text: string): AssertionReading | null => {
+  const { root, errors } = parse<AssertionValue>('assertion', text);
+  return errors.length ? null : toAssertionReading(root.expr);
+};
+
+/** An expression's nodes, each before its operands (a check or an engine walks them). */
+export const expressionNodes = (tree: ExpressionTree): ExpressionTree[] => {
+  switch (tree.kind) {
+    case 'call':
+      return [tree, ...tree.args.flatMap(expressionNodes)];
+    case 'binary':
+      return [
+        tree,
+        ...expressionNodes(tree.left),
+        ...expressionNodes(tree.right),
+      ];
+    case 'unary':
+      return [tree, ...expressionNodes(tree.expr)];
+    default:
+      return [tree];
+  }
+};
+
+/** An assertion's comparisons of expressions, in the order written. */
+export const comparisonsOf = (
+  tree: AssertionTree | null,
+): ExpressionComparison[] => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return [...comparisonsOf(tree.left), ...comparisonsOf(tree.right)];
+    case 'not':
+    case 'paren':
+      return comparisonsOf(tree.expr);
+    case 'comparison':
+      return [tree];
+    default:
+      return [];
+  }
 };

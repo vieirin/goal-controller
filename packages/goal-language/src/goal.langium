@@ -11,7 +11,7 @@
 //   terminals below only declare the vocabulary). Element lines with ids read as
 //   packages/lib/grammar/*/RTRegex.g4 did.
 // - Each value type has a rule reading one value on its own (an inspector
-//   field): AssertionValue, IntValue, ... AnnotatedName.
+//   field): AssertionValue, ExpressionValue, IntValue, ... AnnotatedName.
 grammar Goal
 
 entry Document:
@@ -109,18 +109,51 @@ AssertUnary infers AssertExpr:
     {infer AssertNot} '!' expr=AssertExpr
     | AssertPrimary;
 
+// a comparison's sides are expressions (`previous(t) < 18`); AssertionRegex.g4
+// read a name and a number (`x > 3`), and a dialect whose assertions declare
+// no functions still does (the validator says so)
 AssertPrimary infers AssertExpr:
     {infer AssertParen} '(' expr=AssertExpr ')'
-    | {infer AssertAssign} variable=A_ID operator=('=' | '!=') value=AssertBool
-    | {infer AssertCompare} variable=A_ID operator=Comparator value=(A_INT | A_NUMBER)
-    | {infer AssertVar} variable=A_ID
+    | {infer AssertAssign} variable=AName operator=('=' | '!=') value=AssertBool
+    | {infer AssertCompare} left=Expr operator=Comparator right=Expr
+    | {infer AssertVar} variable=AName
     | {infer AssertConst} value=AssertBool;
+
+// a name an assertion compares: a variable, or an element by its id
+AName returns string:
+    A_ID | A_REF;
 
 Comparator returns string:
     '=' | '!=' | '<' | '<=' | '>' | '>=';
 
 AssertBool returns string:
     'true' | 'false';
+
+// ---------------------------------------------------------------------------
+// The expression language (the catalog's EXPRESSION): an `expression` value,
+// and an assertion's comparison sides. `*` and `/` bind tighter than `+` and
+// `-`, every one left-associative; a negation binds tighter than all of them.
+// ---------------------------------------------------------------------------
+
+ExpressionValue:
+    {infer ExpressionValue} expr=Expr?;
+
+Expr:
+    ExprBinary;
+
+infix ExprBinary on ExprUnary:
+    '*' | '/' > '+' | '-';
+
+ExprUnary infers Expr:
+    {infer ExprNegation} operator='-' expr=ExprUnary
+    | ExprPrimary;
+
+ExprPrimary infers Expr:
+    {infer ExprParen} '(' expr=Expr ')'
+    | {infer ExprCall} function=A_ID '(' (args+=Expr (',' args+=Expr)*)? ')'
+    | {infer ExprNumber} value=(A_INT | A_NUMBER)
+    | {infer ExprRef} id=A_REF
+    | {infer ExprVar} name=A_ID;
 
 IntValue:
     {infer IntValue} value=INTEGER?;
@@ -169,7 +202,7 @@ Reach:
     REACH plain=PlainDocument REACH assertion=AssertionValue REACH int=IntValue
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
     REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
-    REACH ocl=OclValue;
+    REACH ocl=OclValue REACH expression=ExpressionValue;
 
 // ---------------------------------------------------------------------------
 // The vocabulary (GoalLexer makes the tokens)
@@ -190,6 +223,8 @@ terminal KEY: /[A-Za-z][A-Za-z0-9_]*/;
 terminal VALUE: /[^\s](?:[^\r\n]*[^\s])?/;
 // the assertion language
 terminal A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
+// an element's id, where an expression names one (`G1`, `T2.1`, `GX`)
+terminal A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/;
 terminal A_INT: /[0-9]+/;
 // a decimal (CtxRegex.g4's FLOAT), where a dialect allows them
 terminal A_NUMBER: /[0-9]+\.[0-9]*/;

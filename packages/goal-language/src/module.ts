@@ -75,6 +75,7 @@ export const START_RULE: Record<LexerStart, string> = {
   elementLine: 'ElementLine',
   annotatedName: 'AnnotatedName',
   assertion: 'AssertionValue',
+  expression: 'ExpressionValue',
   int: 'IntValue',
   number: 'NumberValue',
   bool: 'BoolValue',

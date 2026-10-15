@@ -7,6 +7,7 @@ import { DefaultLexer, type LexerResult } from 'langium';
 import {
   ASSERTION_PREFIXES,
   CALL_NAMES,
+  EXPRESSION,
   ID_PREFIXES,
   OCL_OPERATIONS,
 } from './catalog.js';
@@ -98,15 +99,36 @@ const DECLARATION = rules([
   ['WS', /[ \t]+/],
 ]);
 
-/** AssertionRegex.g4, in its definition order (its WS skips line breaks too). */
-const ASSERTION = rules([
-  ...literal('&', '|', '!', '(', ')', '=', '!=', '<', '<=', '>', '>='),
-  ...literal('true', 'false'),
+/**
+ * An expression's operands (the catalog's EXPRESSION): an id ties with a name
+ * of its length and wins (`R1`, `GX`), a longer name is a name (`Rate`, `G1a`).
+ */
+const OPERANDS: Array<[string, RegExp]> = [
+  ['A_REF', new RegExp(`(?:${PREFIX})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`)],
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],
   // CtxRegex.g4's FLOAT (`x > 0.5`): longer than the INT it starts with
   ['A_NUMBER', /[0-9]+\.[0-9]*/],
+];
+
+/** The expression language's symbols: its operators, parentheses and separator. */
+const EXPRESSION_SYMBOLS = [
+  ...EXPRESSION.infix.flat(),
+  ...EXPRESSION.prefix,
+  ...EXPRESSION.parens,
+  EXPRESSION.separator,
+];
+
+/**
+ * AssertionRegex.g4, in its definition order (its WS skips line breaks too),
+ * with the expression language's symbols and operands (a comparison's sides).
+ */
+const ASSERTION = rules([
+  ...literal('&', '|', '!', '(', ')', '=', '!=', '<', '<=', '>', '>='),
+  ...literal('true', 'false'),
+  ...literal(...EXPRESSION_SYMBOLS),
+  ...OPERANDS,
   ['WS', /[ \t\r\n]+/],
 ]);
 
@@ -126,6 +148,7 @@ const VALUE = /[^\s](?:[^\r\n]*[^\s])?/;
 
 /** One value on its own, by its type (the grammar's value rules). */
 const VALUES = {
+  expression: rules([...literal(...EXPRESSION_SYMBOLS), ...OPERANDS, SPACE]),
   int: rules([['INTEGER', /-?[0-9]+/], SPACE]),
   number: rules([
     ['INTEGER', /-?[0-9]+/],

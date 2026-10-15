@@ -605,6 +605,45 @@ offers those. Two options read GODA's context conditions (CtxRegex.g4):
 - `decimals: true`: a comparison may be with a decimal (`x > 0.5`).
   Without it, a decimal is an error.
 
+A third makes its comparisons numeric expressions:
+
+- `functions: [{ name, arity }]`: the functions its comparisons may call,
+  and how many arguments each takes (`previous(t) < 18`). With it, even
+  empty, each side of a comparison is an
+  [expression](#the-expression-language) (`0.9 * x >= 1 + y`). Without it,
+  a comparison is a name and an unsigned number (`x > 3`), as
+  AssertionRegex.g4 read every one, and any other is an error.
+
+### `expression`
+
+A numeric expression (the [expression language](#the-expression-language)):
+`0.5 + 0.9 * previous(t)`. A dialect adds:
+
+- `resolves`: the element kinds its ids may name (`G1`, `T2.1`). An id of
+  another kind, or of no element of the model, is an error.
+- `functions: [{ name, arity }]`: the functions it may call. A call to
+  another name, or with another number of arguments, is an error.
+
+Any other name is a variable, declared by its use. `readExpression(text)`
+gives the tree an engine walks (`number`, `ref`, `var`, `call`, `binary`,
+`unary`); an engine never reads the text itself.
+
+```goal-value expression accept
+0.5 + 0.9 * previous(roomTemperature)
+hvacOn * (0.05 * previous(T2.1) + 1.75)
+-x / 2
+f()
+G1 - -3
+```
+
+```goal-value expression reject
+a +
+(a
+f(a,)
+x > 1
+a b
+```
+
 ## The assertion language
 
 ```
@@ -612,18 +651,23 @@ AssertionValue : A_PREFIX? AssertExpr? ;
 infix AssertBinary on AssertUnary : '&' > '|' ;
 AssertUnary    : '!' AssertExpr | AssertPrimary ;
 AssertPrimary  : '(' AssertExpr ')'
-               | A_ID ('=' | '!=') ('true' | 'false')
-               | A_ID ('=' | '!=' | '<' | '<=' | '>' | '>=') (A_INT | A_NUMBER)
-               | A_ID
+               | AName ('=' | '!=') ('true' | 'false')
+               | Expr ('=' | '!=' | '<' | '<=' | '>' | '>=') Expr
+               | AName
                | 'true' | 'false' ;
+AName          : A_ID | A_REF ;
 ```
 
 - `&` binds tighter than `|`, and both are left-associative.
 - `!` negates **everything after it**: `!a & b` is `!(a & b)`. Use
   parentheses to negate one operand (`(!a) & b`).
-- **Comparators:** `= != < <= > >=`. The identifier comes first and an
-  unsigned integer last (`0` included; AssertionRegex.g4 couldn't read
-  `0`).
+- **Comparators:** `= != < <= > >=`, between two
+  [expressions](#the-expression-language). Where the property declares no
+  `functions`, a comparison is an identifier first and an unsigned number
+  last (`x > 3`, `0` included: AssertionRegex.g4 couldn't read `0`), and
+  any other (`3 > x`, `x >= -1`) is an error.
+- **Parentheses** group a condition (`(a | b) & c`) or an expression
+  (`(x + 1) * 2 > 3`): what follows the closing one says which.
 - **Literals:** integers on the right of a comparator, and `true`/`false`.
   `x = true` sets a boolean variable. `x != false` (CtxRegex.g4's) is read,
   and is an error unless the property allows it (`booleanInequality`). A decimal (`A_NUMBER`, `0.5`, `2.`) is read, and is an error
@@ -632,9 +676,9 @@ AssertPrimary  : '(' AssertExpr ')'
   read only where the value starts, so `assertion` stays an identifier
   anywhere else. It is an error unless the property names it, and so is a
   prefix with no condition after it (`assertion trigger`).
-- **Identifiers:** `A_ID`, a letter or `_`, then letters, digits or `_`.
-  They name the resources of the model, or the workbench's variables (the
-  property's `resolves`).
+- **Identifiers:** `A_ID`, a letter or `_`, then letters, digits or `_`;
+  or an id (`A_REF`: `R1`, `T2.1`). They name the resources of the model,
+  or the workbench's variables (the property's `resolves`).
 - Whitespace, line breaks included, is free.
 
 ```goal-value assertion accept
@@ -653,13 +697,52 @@ assertion condition SaO2_data > 0 & SaO2_data < 100
 assertion > 1
 ```
 
-```goal-value assertion reject
+Each of these reads, and is an error where the property declares no
+`functions`:
+
+```goal-value assertion accept
 3 > x
 x >= -1
+previous(t) < 18 & 0.9 * x >= 1 + y
+(x + 1) * 2 > 3 & (a | b)
+```
+
+```goal-value assertion reject
 x == 1
+x >
 a b
 x assertion trigger
 ```
+
+## The expression language
+
+The catalog's `EXPRESSION`: an `expression` value, and each side of an
+assertion's comparison.
+
+```
+ExpressionValue : Expr? ;
+infix ExprBinary on ExprUnary : '*' | '/' > '+' | '-' ;
+ExprUnary      : '-' ExprUnary | ExprPrimary ;
+ExprPrimary    : '(' Expr ')'
+               | A_ID '(' (Expr (',' Expr)*)? ')'
+               | A_INT | A_NUMBER
+               | A_REF
+               | A_ID ;
+```
+
+- `*` and `/` bind tighter than `+` and `-`; each is left-associative
+  (`a - b - c` is `(a - b) - c`).
+- `-` before an operand negates it, and binds tighter than every binary
+  operator (`-a * b` is `(-a) * b`). A number has no sign of its own.
+- **Numbers:** `A_INT` (`2`, `0`) and `A_NUMBER` (`0.5`, `2.`).
+- **Ids:** `A_REF`, an id prefix and a number (`G1`, `T2.1`, `R3`, `AT1`,
+  with an optional `X`, and `GX`): an element. It ties with an `A_ID` of
+  its length and wins; a longer name (`Rate`, `G1a`) is an `A_ID`.
+- **Calls:** a name and its arguments, `f(a, b)`, none included (`f()`).
+- **Variables:** any other `A_ID`.
+
+`expressionText(tree)` writes a tree back, with the parentheses its shape
+needs; `readExpression(text)` and `readAssertion(text)` give the trees.
 
 ## The lexer
 
@@ -679,7 +762,7 @@ two things this needs:
   | an annotated name | an optional id and `:` (`G1:` as an element line's tokens), then PLAIN_NAME, then the RT set with spaces skipped |
   | `{…}` after the name | `}`, `..`, `=`, INTEGER, IDENT, spaces (skipped) |
   | a property value | VALUE (the rest of the line) |
-  | a value on its own | the type's set (an assertion: A_PREFIX where it starts, then `& \| ! ( ) = != < <= > >=`, `true`, `false`, A_ID, A_INT, A_NUMBER) |
+  | a value on its own | the type's set (an assertion: A_PREFIX where it starts, then `& \| ! ( ) = != < <= > >=`, `true`, `false`, the expression language's `* / + - ,`, A_REF, A_ID, A_INT, A_NUMBER; an expression: the last of those) |
 
 - **Longest match** (ANTLR's rule). Of all the tokens that match at a
   position, the longest wins, and a tie goes to the one listed first. This

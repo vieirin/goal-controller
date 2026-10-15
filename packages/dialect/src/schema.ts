@@ -75,6 +75,22 @@ export type ValueConfig =
        * `resolves`
        */
       declaresVariables?: boolean;
+      /**
+       * the functions its comparisons may call (`previous(x) < 18`); with
+       * them (even none), a comparison's sides are expressions (`0.9 * x >=
+       * 1`), not a name and a number only
+       */
+      functions?: readonly FunctionDefinition[];
+    }
+  /**
+   * a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`,
+   * parentheses, ids of elements of these kinds, variables (declared by
+   * their use) and calls to these functions
+   */
+  | {
+      type: 'expression';
+      resolves?: readonly ElementKind[];
+      functions?: readonly FunctionDefinition[];
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: ElementKind }
@@ -98,6 +114,12 @@ export type ValueConfig =
        */
       memberCandidates?: ResourceCandidates;
     };
+
+/**
+ * A function an `expression` or an `assertion` may call (`previous(x)`), and
+ * how many arguments it takes. The engine says what it means.
+ */
+export type FunctionDefinition = { name: string; arity: number };
 
 /** A condition's prefix (the goal language's ASSERTION_PREFIXES; its tests pin them). */
 export type AssertionPrefix = 'assertion condition' | 'assertion trigger';
@@ -637,13 +659,21 @@ export const defineDialect = <const D extends AnyDialect>(
           fail(`${owner}.${property.key} depends on unknown ${key}`);
       const values =
         'when' in value ? [value.matching, value.otherwise] : [value];
-      for (const config of values)
+      for (const config of values) {
+        const functions =
+          config.type === 'expression' || config.type === 'assertion'
+            ? (config.functions ?? [])
+            : [];
+        const names = functions.map((f) => f.name);
+        if (new Set(names).size !== names.length)
+          fail(`${owner}.${property.key}: a function is declared twice`);
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))
               fail(
                 `${owner}.${property.key} completes from unknown project resource ${candidates.resource}`,
               );
+      }
     }
   };
   for (const [kind, list] of Object.entries(definition.properties))

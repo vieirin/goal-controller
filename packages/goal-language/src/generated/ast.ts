@@ -16,6 +16,7 @@ export const GoalTerminals = {
     KEY: /[A-Za-z][A-Za-z0-9_]*/,
     VALUE: /[^\s](?:[^\r\n]*[^\s])?/,
     A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/,
+    A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/,
     A_INT: /[0-9]+/,
     A_NUMBER: /[0-9]+\.[0-9]*/,
     A_PREFIX: /assertion[ \t]+(condition|trigger)/,
@@ -41,9 +42,11 @@ export type GoalKeywordNames =
     | "*"
     | "+"
     | ","
+    | "-"
     | "->"
     | "."
     | ".."
+    | "/"
     | ":"
     | ";"
     | "<"
@@ -92,6 +95,12 @@ export type GoalKeywordNames =
 
 export type GoalTokenNames = GoalTerminalNames | GoalKeywordNames;
 
+export type AName = string;
+
+export function isAName(item: unknown): item is AName {
+    return (typeof item === 'string' && (/[a-zA-Z_][a-zA-Z0-9_]*/.test(item) || /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/.test(item)));
+}
+
 export interface AnnotatedName extends langium.AstNode {
     readonly $container: PlainDocument;
     readonly $type: 'AnnotatedName';
@@ -130,7 +139,7 @@ export interface AssertAssign extends langium.AstNode {
     readonly $type: 'AssertAssign';
     operator: '!=' | '=';
     value: AssertBool;
-    variable: string;
+    variable: AName;
 }
 
 export const AssertAssign = {
@@ -172,16 +181,16 @@ export function isAssertBool(item: unknown): item is AssertBool {
 export interface AssertCompare extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertCompare';
+    left: Expr;
     operator: Comparator;
-    value: string;
-    variable: string;
+    right: Expr;
 }
 
 export const AssertCompare = {
     $type: 'AssertCompare',
+    left: 'left',
     operator: 'operator',
-    value: 'value',
-    variable: 'variable'
+    right: 'right'
 } as const;
 
 export function isAssertCompare(item: unknown): item is AssertCompare {
@@ -263,7 +272,7 @@ export function isAssertParen(item: unknown): item is AssertParen {
 export interface AssertVar extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertVar';
-    variable: string;
+    variable: AName;
 }
 
 export const AssertVar = {
@@ -394,6 +403,144 @@ export const EnumValue = {
 
 export function isEnumValue(item: unknown): item is EnumValue {
     return reflection.isInstance(item, EnumValue.$type);
+}
+
+export type Expr = ExprBinary | ExprCall | ExprNegation | ExprNumber | ExprParen | ExprRef | ExprVar;
+
+export const Expr = {
+    $type: 'Expr'
+} as const;
+
+export function isExpr(item: unknown): item is Expr {
+    return reflection.isInstance(item, Expr.$type);
+}
+
+export interface ExprBinary extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprBinary';
+    left: Expr;
+    operator: '*' | '+' | '-' | '/';
+    right: Expr;
+}
+
+export const ExprBinary = {
+    $type: 'ExprBinary',
+    left: 'left',
+    operator: 'operator',
+    right: 'right'
+} as const;
+
+export function isExprBinary(item: unknown): item is ExprBinary {
+    return reflection.isInstance(item, ExprBinary.$type);
+}
+
+export interface ExprCall extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprCall';
+    args: Array<Expr>;
+    function: string;
+}
+
+export const ExprCall = {
+    $type: 'ExprCall',
+    args: 'args',
+    function: 'function'
+} as const;
+
+export function isExprCall(item: unknown): item is ExprCall {
+    return reflection.isInstance(item, ExprCall.$type);
+}
+
+export interface ExpressionValue extends langium.AstNode {
+    readonly $container: Reach;
+    readonly $type: 'ExpressionValue';
+    expr?: Expr;
+}
+
+export const ExpressionValue = {
+    $type: 'ExpressionValue',
+    expr: 'expr'
+} as const;
+
+export function isExpressionValue(item: unknown): item is ExpressionValue {
+    return reflection.isInstance(item, ExpressionValue.$type);
+}
+
+export interface ExprNegation extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprNegation';
+    expr: Expr;
+    operator: '-';
+}
+
+export const ExprNegation = {
+    $type: 'ExprNegation',
+    expr: 'expr',
+    operator: 'operator'
+} as const;
+
+export function isExprNegation(item: unknown): item is ExprNegation {
+    return reflection.isInstance(item, ExprNegation.$type);
+}
+
+export interface ExprNumber extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprNumber';
+    value: string;
+}
+
+export const ExprNumber = {
+    $type: 'ExprNumber',
+    value: 'value'
+} as const;
+
+export function isExprNumber(item: unknown): item is ExprNumber {
+    return reflection.isInstance(item, ExprNumber.$type);
+}
+
+export interface ExprParen extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprParen';
+    expr: Expr;
+}
+
+export const ExprParen = {
+    $type: 'ExprParen',
+    expr: 'expr'
+} as const;
+
+export function isExprParen(item: unknown): item is ExprParen {
+    return reflection.isInstance(item, ExprParen.$type);
+}
+
+export interface ExprRef extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprRef';
+    id: string;
+}
+
+export const ExprRef = {
+    $type: 'ExprRef',
+    id: 'id'
+} as const;
+
+export function isExprRef(item: unknown): item is ExprRef {
+    return reflection.isInstance(item, ExprRef.$type);
+}
+
+export interface ExprVar extends langium.AstNode {
+    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $type: 'ExprVar';
+    name: string;
+}
+
+export const ExprVar = {
+    $type: 'ExprVar',
+    name: 'name'
+} as const;
+
+export function isExprVar(item: unknown): item is ExprVar {
+    return reflection.isInstance(item, ExprVar.$type);
 }
 
 export interface IntValue extends langium.AstNode {
@@ -533,6 +680,7 @@ export interface Reach extends langium.AstNode {
     assertion: AssertionValue;
     bool: BoolValue;
     enum: EnumValue;
+    expression: ExpressionValue;
     int: IntValue;
     number: NumberValue;
     ocl: OclValue;
@@ -547,6 +695,7 @@ export const Reach = {
     assertion: 'assertion',
     bool: 'bool',
     enum: 'enum',
+    expression: 'expression',
     int: 'int',
     number: 'number',
     ocl: 'ocl',
@@ -803,6 +952,15 @@ export type GoalAstType = {
     Document: Document
     ElementLine: ElementLine
     EnumValue: EnumValue
+    Expr: Expr
+    ExprBinary: ExprBinary
+    ExprCall: ExprCall
+    ExprNegation: ExprNegation
+    ExprNumber: ExprNumber
+    ExprParen: ExprParen
+    ExprRef: ExprRef
+    ExprVar: ExprVar
+    ExpressionValue: ExpressionValue
     IntValue: IntValue
     Line: Line
     NumberValue: NumberValue
@@ -895,14 +1053,14 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
         AssertCompare: {
             name: AssertCompare.$type,
             properties: {
+                left: {
+                    name: AssertCompare.left
+                },
                 operator: {
                     name: AssertCompare.operator
                 },
-                value: {
-                    name: AssertCompare.value
-                },
-                variable: {
-                    name: AssertCompare.variable
+                right: {
+                    name: AssertCompare.right
                 }
             },
             superTypes: [AssertExpr.$type]
@@ -1063,6 +1221,99 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        Expr: {
+            name: Expr.$type,
+            properties: {
+            },
+            superTypes: []
+        },
+        ExprBinary: {
+            name: ExprBinary.$type,
+            properties: {
+                left: {
+                    name: ExprBinary.left
+                },
+                operator: {
+                    name: ExprBinary.operator
+                },
+                right: {
+                    name: ExprBinary.right
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprCall: {
+            name: ExprCall.$type,
+            properties: {
+                args: {
+                    name: ExprCall.args,
+                    defaultValue: [],
+                    optional: true
+                },
+                function: {
+                    name: ExprCall.function
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprNegation: {
+            name: ExprNegation.$type,
+            properties: {
+                expr: {
+                    name: ExprNegation.expr
+                },
+                operator: {
+                    name: ExprNegation.operator
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprNumber: {
+            name: ExprNumber.$type,
+            properties: {
+                value: {
+                    name: ExprNumber.value
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprParen: {
+            name: ExprParen.$type,
+            properties: {
+                expr: {
+                    name: ExprParen.expr
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprRef: {
+            name: ExprRef.$type,
+            properties: {
+                id: {
+                    name: ExprRef.id
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExprVar: {
+            name: ExprVar.$type,
+            properties: {
+                name: {
+                    name: ExprVar.name
+                }
+            },
+            superTypes: [Expr.$type]
+        },
+        ExpressionValue: {
+            name: ExpressionValue.$type,
+            properties: {
+                expr: {
+                    name: ExpressionValue.expr,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         IntValue: {
             name: IntValue.$type,
             properties: {
@@ -1158,6 +1409,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 enum: {
                     name: Reach.enum
+                },
+                expression: {
+                    name: Reach.expression
                 },
                 int: {
                     name: Reach.int

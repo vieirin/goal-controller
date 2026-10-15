@@ -30,7 +30,13 @@ export type AssertionUse<L extends Located = Located> = {
   literal?: 'int' | 'decimal';
 };
 
-type Node = { $type?: string; operator?: string; value?: string };
+type Node = {
+  $type?: string;
+  $container?: Node;
+  operator?: string;
+  value?: string;
+  right?: Node;
+};
 
 /** A name's use, if it is a variable of an assertion. */
 export const assertionUse = <L extends Located>(
@@ -42,15 +48,24 @@ export const assertionUse = <L extends Located>(
       return { located, shape: 'bare' };
     case 'AssertAssign':
       return { located, shape: 'eqBool' };
-    case 'AssertCompare':
+    // a side of a comparison (`x > 3`: the name is an expression's)
+    case 'ExprVar':
+    case 'ExprRef': {
+      const comparison = node.$container;
+      if (comparison?.$type !== 'AssertCompare') return null;
+      const number =
+        comparison.right?.$type === 'ExprNumber'
+          ? comparison.right.value
+          : undefined;
       return {
         located,
         shape:
-          node.operator === '=' || node.operator === '!='
+          comparison.operator === '=' || comparison.operator === '!='
             ? 'eqNumber'
             : 'ordered',
-        literal: node.value?.includes('.') ? 'decimal' : 'int',
+        literal: number?.includes('.') ? 'decimal' : 'int',
       };
+    }
     default:
       return null;
   }
