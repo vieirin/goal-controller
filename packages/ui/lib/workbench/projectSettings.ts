@@ -13,14 +13,10 @@ import {
   withModelSettings,
   type EngineOptions,
 } from '../project';
-import {
-  isEdgeV2TaskLayout,
-  isGodaVariant,
-  isTransformEngine,
-  type TransformEngine,
-} from '../types';
+import { isOptionValue, type OptionDefinition } from '@goal-controller/dialect';
+import { isTransformEngine, type TransformEngine } from '../types';
 import { isDialectMode } from './dialects';
-import { ENGINE_LABEL } from './engineDialects';
+import { ENGINE_LABEL, ENGINE_OPTIONS } from './engineDialects';
 import type { ModelMode } from './pistar';
 import {
   DEFAULT_OPTIONS,
@@ -30,51 +26,27 @@ import {
   type Problem,
 } from './types';
 
+/** The options a mode reads, as its engine declares them; none for piStar and the modelling dialects. */
+const declaredOptions = (mode: string | null): readonly OptionDefinition[] =>
+  isTransformEngine(mode) ? ENGINE_OPTIONS[mode] : [];
+
 /** What an engine is given of the options; also what a manifest may hold for it. */
 export const optionsFor = (
   engine: TransformEngine,
   options: GenerationOptions,
 ): Partial<GenerationOptions> =>
-  engine === 'edgev2'
-    ? {
-        clean: options.clean,
-        generateDecisionVars: options.generateDecisionVars,
-        discretisation: options.discretisation,
-        taskLayout: options.taskLayout,
-        reduce: options.reduce,
-      }
-    : engine === 'edge'
-      ? {
-          clean: options.clean,
-          generateDecisionVars: options.generateDecisionVars,
-          achievabilitySpace: options.achievabilitySpace,
-          reduce: options.reduce,
-        }
-      : engine === 'goda'
-        ? // GODA reads the model as written (no reduce): its generator version,
-          // and whether it writes the runtime's formulas
-          { variant: options.variant, runtimeFormulas: options.runtimeFormulas }
-        : { generateFluents: options.generateFluents, reduce: options.reduce };
+  Object.fromEntries(
+    optionKeysOf(engine).map((key) => [key, options[key]]),
+  ) as Partial<GenerationOptions>;
 
 /** The options a mode reads: an engine's; none for piStar and the modelling dialects. */
 export const optionKeysOf = (
   mode: string | null,
 ): (keyof GenerationOptions)[] =>
-  isTransformEngine(mode)
-    ? (Object.keys(
-        optionsFor(mode, DEFAULT_OPTIONS),
-      ) as (keyof GenerationOptions)[])
-    : [];
+  declaredOptions(mode).map((option) => option.key as keyof GenerationOptions);
 
 const modeLabel = (mode: string | null): string =>
   isTransformEngine(mode) ? ENGINE_LABEL[mode] : 'a model without an engine';
-
-const validValue = (key: keyof GenerationOptions, value: unknown): boolean =>
-  key === 'taskLayout'
-    ? isEdgeV2TaskLayout(value)
-    : key === 'variant'
-      ? isGodaVariant(value)
-      : typeof value === typeof DEFAULT_OPTIONS[key];
 
 export type ModelOptions = {
   /** the options the model's manifest sets, among those its mode reads */
@@ -112,17 +84,18 @@ export const readModelOptions = (text: string): ModelOptions => {
  * reads, of their type; the others are reported and not used.
  */
 export const checkedOptions = (read: ManifestSettings): ModelOptions => {
-  const known = new Set<string>(optionKeysOf(read.mode));
+  const declared = declaredOptions(read.mode);
   const options: Partial<GenerationOptions> = {};
   const problems: Problem[] = [];
   for (const [key, value] of Object.entries(read.options)) {
-    if (!known.has(key)) {
+    const option = declared.find((o) => o.key === key);
+    if (!option) {
       problems.push({
         severity: 'warning',
         source: SOURCE.settings,
         message: `${modeLabel(read.mode)} has no option "${key}"; it is not used`,
       });
-    } else if (!validValue(key as keyof GenerationOptions, value)) {
+    } else if (!isOptionValue(option, value)) {
       problems.push({
         severity: 'warning',
         source: SOURCE.settings,
