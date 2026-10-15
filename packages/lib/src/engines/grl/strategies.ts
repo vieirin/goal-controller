@@ -284,21 +284,23 @@ export const readStrategies = (
     else byId.set(entry.entry.id, entry);
   }
   // each strategy resolved once: shared includes would otherwise be expanded
-  // again for every strategy that reaches them. One a cycle cut short is not
-  // kept: what it has depends on where the walk entered the cycle.
+  // again for every strategy that reaches them. A strategy on a cycle is not
+  // kept (what it has depends on where the walk entered); one above a cycle
+  // still is, so a shared subgraph over a cycle is not expanded again.
   const resolved = new Map<string, Map<string, GrlStrategyEvaluation>>();
+  const onCycle = new Set<string>();
   const resolve = (
     entry: Entry,
     trail: readonly string[],
-  ): { evaluations: Map<string, GrlStrategyEvaluation>; cut: boolean } => {
+  ): Map<string, GrlStrategyEvaluation> => {
     const done = resolved.get(entry.entry.id);
-    if (done) return { evaluations: done, cut: false };
+    if (done) return done;
     const evaluations = new Map<string, GrlStrategyEvaluation>();
-    let cut = false;
     for (const include of entry.entry.includes) {
       const included = byId.get(include);
       if (!included || trail.includes(include)) {
-        cut ||= !!included;
+        if (included)
+          for (const id of trail.slice(trail.indexOf(include))) onCycle.add(id);
         diagnostics.push({
           path: entry.path,
           severity: 'error',
@@ -309,15 +311,16 @@ export const readStrategies = (
         });
         continue;
       }
-      const inner = resolve(included, [...trail, include]);
-      cut ||= inner.cut;
-      for (const [element, evaluation] of inner.evaluations)
+      for (const [element, evaluation] of resolve(included, [
+        ...trail,
+        include,
+      ]))
         evaluations.set(element, evaluation);
     }
     for (const [element, evaluation] of entry.entry.evaluations)
       evaluations.set(element, evaluation);
-    if (!cut) resolved.set(entry.entry.id, evaluations);
-    return { evaluations, cut };
+    if (!onCycle.has(entry.entry.id)) resolved.set(entry.entry.id, evaluations);
+    return evaluations;
   };
   const strategies = [...byId.values()].map((entry): GrlStrategy => ({
     id: entry.entry.id,
@@ -325,7 +328,7 @@ export const readStrategies = (
     group: entry.group,
     path: entry.path,
     preferences: entry.preferences,
-    evaluations: resolve(entry, [entry.entry.id]).evaluations,
+    evaluations: resolve(entry, [entry.entry.id]),
   }));
   return { strategies, diagnostics };
 };

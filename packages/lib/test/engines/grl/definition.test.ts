@@ -217,6 +217,36 @@ describe('GRL strategies (the strategies resource)', () => {
         'y',
       ]);
   });
+
+  it('resolves a shared subgraph above a cycle once', () => {
+    // diamond into a cycle: 2^40 walks if a cut on the cycle blocked caching
+    // every ancestor (cycle members still re-expand; strategies above do not)
+    const strategies: object[] = [
+      { id: 'c0', includes: ['c1'], evaluations: { x: { value: 1 } } },
+      { id: 'c1', includes: ['c0'], evaluations: { y: { value: 2 } } },
+      { id: '0a', includes: ['c0'], evaluations: {} },
+      { id: '0b', includes: ['c1'], evaluations: {} },
+    ];
+    for (let level = 1; level <= 40; level++)
+      for (const side of ['a', 'b'])
+        strategies.push({
+          id: `${level}${side}`,
+          includes: [`${level - 1}a`, `${level - 1}b`],
+          evaluations: {},
+        });
+    const read = readStrategies([file({ group: 'G', strategies })]);
+    assert.ok(
+      read.diagnostics.every((d) => d.message.includes('includes itself')),
+    );
+    const top = read.strategies.find((s) => s.id === '40a')!;
+    assert.deepStrictEqual(
+      [...top.evaluations].map(([id, e]) => [id, e.value]).sort(),
+      [
+        ['x', 1],
+        ['y', 2],
+      ],
+    );
+  });
 });
 
 describe('GRL’s analyses', () => {
