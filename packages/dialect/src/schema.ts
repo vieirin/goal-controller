@@ -748,6 +748,11 @@ export type DocumentNode = {
   x?: number;
   /** its id as written (`T1.1`); the tree keys it by its own key, which may be scoped (`G3/T1.1`) */
   id: string;
+  /**
+   * whether its text gave it an id (`T1: …`): its `id` may equal its piStar
+   * id either way. None: told by `id !== iStarId`, as before (#158)
+   */
+  hasId?: boolean;
   kind: string;
   name: string;
   notation: string | null;
