@@ -19,7 +19,7 @@
             "root": "true",
             "episodeLength": "2"
           },
-          "x": 3120,
+          "x": 3280,
           "y": 80
         },
         {
@@ -27,7 +27,7 @@
           "text": "G2: Inspect Garden",
           "type": "istar.Goal",
           "customProperties": {},
-          "x": 1360,
+          "x": 1200,
           "y": 180
         },
         {
@@ -35,7 +35,7 @@
           "text": "G3: Water Garden",
           "type": "istar.Goal",
           "customProperties": {},
-          "x": 3920,
+          "x": 3760,
           "y": 180
         },
         {
@@ -43,7 +43,7 @@
           "text": "G4: Report to Owner",
           "type": "istar.Goal",
           "customProperties": {},
-          "x": 5680,
+          "x": 5840,
           "y": 180
         },
         {
@@ -59,7 +59,7 @@
           "text": "T2: Look at Plants",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 1360,
+          "x": 1200,
           "y": 280
         },
         {
@@ -67,7 +67,7 @@
           "text": "T3: Water by Hand",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 2960,
+          "x": 2640,
           "y": 280
         },
         {
@@ -75,7 +75,7 @@
           "text": "T4: Run Sprinkler",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 4080,
+          "x": 3760,
           "y": 280
         },
         {
@@ -83,7 +83,7 @@
           "text": "T5: Send Text",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 5040,
+          "x": 5200,
           "y": 280
         },
         {
@@ -91,7 +91,7 @@
           "text": "T6: Leave Note",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 6000,
+          "x": 6160,
           "y": 280
         },
         {
@@ -136,7 +136,7 @@
             "identifier": "seenWilted",
             "satisfying": "true"
           },
-          "x": 1680,
+          "x": 1520,
           "y": 280
         },
         {
@@ -147,7 +147,7 @@
             "identifier": "seenFine",
             "satisfying": "true"
           },
-          "x": 1840,
+          "x": 1680,
           "y": 280
         },
         {
@@ -159,7 +159,7 @@
             "satisfying": "true",
             "set": "moisture:60"
           },
-          "x": 3440,
+          "x": 3120,
           "y": 280
         },
         {
@@ -169,7 +169,7 @@
           "customProperties": {
             "satisfying": "false"
           },
-          "x": 3600,
+          "x": 3280,
           "y": 280
         },
         {
@@ -200,7 +200,7 @@
           "customProperties": {
             "satisfying": "true"
           },
-          "x": 5360,
+          "x": 5520,
           "y": 280
         },
         {
@@ -211,7 +211,7 @@
             "identifier": "lostText",
             "satisfying": "false"
           },
-          "x": 5520,
+          "x": 5680,
           "y": 280
         },
         {
@@ -221,7 +221,7 @@
           "customProperties": {
             "satisfying": "true"
           },
-          "x": 6320,
+          "x": 6480,
           "y": 280
         },
         {
@@ -232,7 +232,7 @@
             "exportMin": "-2",
             "exportMax": "2"
           },
-          "x": 2000,
+          "x": 1840,
           "y": 280
         },
         {
@@ -242,7 +242,7 @@
           "customProperties": {
             "formula": "-(moisture / 100)"
           },
-          "x": 2640,
+          "x": 4880,
           "y": 280
         },
         {
@@ -252,7 +252,7 @@
           "customProperties": {
             "formula": "0.5 * previous(ownerHappiness) + 0.5 * ownerInformed"
           },
-          "x": 2800,
+          "x": 2480,
           "y": 280
         },
         {
@@ -262,7 +262,7 @@
           "customProperties": {
             "root": "true"
           },
-          "x": 2160,
+          "x": 2000,
           "y": 280
         },
         {
@@ -273,7 +273,7 @@
             "identifier": "soilWet",
             "formula": "(soilWetRead | (moisture > 50))"
           },
-          "x": 4240,
+          "x": 3920,
           "y": 280
         },
         {
@@ -289,7 +289,7 @@
           "text": "P2: soilWetRead",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 1040,
+          "x": 4080,
           "y": 280
         },
         {
@@ -297,7 +297,7 @@
           "text": "P3: sensorBroken",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 1200,
+          "x": 1040,
           "y": 280
         },
         {
@@ -305,7 +305,7 @@
           "text": "P4: plantsWilted",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2320,
+          "x": 2160,
           "y": 280
         },
         {
@@ -313,7 +313,7 @@
           "text": "P5: plantsFine",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2480,
+          "x": 2320,
           "y": 280
         },
         {
@@ -321,7 +321,7 @@
           "text": "P6: watered",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 3760,
+          "x": 3440,
           "y": 280
         },
         {
@@ -329,7 +329,7 @@
           "text": "P7: spilledWater",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 3920,
+          "x": 3600,
           "y": 280
         },
         {
@@ -337,7 +337,7 @@
           "text": "P8: jammed",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 4880,
+          "x": 5040,
           "y": 280
         },
         {
@@ -345,7 +345,7 @@
           "text": "P9: ownerInformed",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 5680,
+          "x": 5840,
           "y": 280
         },
         {
@@ -353,7 +353,7 @@
           "text": "P10: textLost",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 5840,
+          "x": 6000,
           "y": 280
         },
         {
@@ -365,8 +365,8 @@
             "exportMin": "0",
             "exportMax": "100"
           },
-          "x": 6480,
-          "y": 80
+          "x": 4240,
+          "y": 280
         },
         {
           "id": "waterByHandPre",
@@ -375,7 +375,7 @@
           "customProperties": {
             "formula": "(soilDry | plantsWilted)"
           },
-          "x": 3120,
+          "x": 2800,
           "y": 280
         },
         {
@@ -391,7 +391,7 @@
           "text": "",
           "type": "istardt.EffectGroup",
           "customProperties": {},
-          "x": 1520,
+          "x": 1360,
           "y": 280
         },
         {
@@ -399,7 +399,7 @@
           "text": "",
           "type": "istardt.EffectGroup",
           "customProperties": {},
-          "x": 3280,
+          "x": 2960,
           "y": 280
         },
         {
@@ -415,7 +415,7 @@
           "text": "",
           "type": "istardt.EffectGroup",
           "customProperties": {},
-          "x": 5200,
+          "x": 5360,
           "y": 280
         },
         {
@@ -423,7 +423,7 @@
           "text": "",
           "type": "istardt.EffectGroup",
           "customProperties": {},
-          "x": 6160,
+          "x": 6320,
           "y": 280
         }
       ],
@@ -808,6 +808,48 @@
       "type": "istardt.NegativePrecedenceLink",
       "source": "soilWet",
       "target": "runSprinkler"
+    },
+    {
+      "id": "soilDry-ReadsLink-waterByHandPre",
+      "type": "istardt.ReadsLink",
+      "source": "soilDry",
+      "target": "waterByHandPre"
+    },
+    {
+      "id": "plantsWilted-ReadsLink-waterByHandPre",
+      "type": "istardt.ReadsLink",
+      "source": "plantsWilted",
+      "target": "waterByHandPre"
+    },
+    {
+      "id": "moisture-ReadsLink-waterCost",
+      "type": "istardt.ReadsLink",
+      "source": "moisture",
+      "target": "waterCost"
+    },
+    {
+      "id": "ownerHappiness-ReadsPreviousLink-ownerHappiness",
+      "type": "istardt.ReadsPreviousLink",
+      "source": "ownerHappiness",
+      "target": "ownerHappiness"
+    },
+    {
+      "id": "ownerInformed-ReadsLink-ownerHappiness",
+      "type": "istardt.ReadsLink",
+      "source": "ownerInformed",
+      "target": "ownerHappiness"
+    },
+    {
+      "id": "soilWetRead-ReadsLink-soilWet",
+      "type": "istardt.ReadsLink",
+      "source": "soilWetRead",
+      "target": "soilWet"
+    },
+    {
+      "id": "moisture-ReadsLink-soilWet",
+      "type": "istardt.ReadsLink",
+      "source": "moisture",
+      "target": "soilWet"
     }
   ],
   "display": {},
@@ -1025,6 +1067,52 @@
           "unique": "any"
         },
         "line": {}
+      },
+      {
+        "kind": "istardt.ReadsLink",
+        "label": "reads",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.ReadsPreviousLink",
+        "label": "PRE",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
       },
       {
         "kind": "istardt.TurnsFalseLink",

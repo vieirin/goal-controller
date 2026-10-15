@@ -136,6 +136,46 @@ export const istardtExtension = defineExtension({
       line: { dash: 'continuous' },
     },
     {
+      kind: ISTARDT_LINKS.reads,
+      label: 'reads',
+      // what a formula names, to the quality or condition it is of
+      rules: {
+        sources: [
+          'istar.Goal',
+          'istar.Task',
+          'istar.Quality',
+          ISTARDT_KINDS.effect,
+          ISTARDT_KINDS.condition,
+          ISTARDT_KINDS.predicate,
+          ISTARDT_KINDS.variable,
+        ],
+        targets: ['istar.Quality', ISTARDT_KINDS.condition],
+        allowSelf: true,
+        unique: 'kind',
+      },
+      line: { dash: 'continuous' },
+    },
+    {
+      kind: ISTARDT_LINKS.readsPrevious,
+      label: 'PRE',
+      // the same, read as its previous value: the element itself, too
+      rules: {
+        sources: [
+          'istar.Goal',
+          'istar.Task',
+          'istar.Quality',
+          ISTARDT_KINDS.effect,
+          ISTARDT_KINDS.condition,
+          ISTARDT_KINDS.predicate,
+          ISTARDT_KINDS.variable,
+        ],
+        targets: ['istar.Quality', ISTARDT_KINDS.condition],
+        allowSelf: true,
+        unique: 'kind',
+      },
+      line: { dash: 'dotted' },
+    },
+    {
       kind: ISTARDT_LINKS.turnsFalse,
       label: 'turns false',
       rules: {

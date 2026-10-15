@@ -638,6 +638,52 @@
         "line": {}
       },
       {
+        "kind": "istardt.ReadsLink",
+        "label": "reads",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.ReadsPreviousLink",
+        "label": "PRE",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
         "kind": "istardt.TurnsFalseLink",
         "label": "turns false",
         "rules": {

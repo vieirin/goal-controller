@@ -137,11 +137,19 @@ export const assertionText = (formula: Formula): string => {
 };
 
 /** The names a formula's atoms give (to check they name declared elements). */
-const atomsOf = (formula: Formula): { tag: string; name: string }[] => {
+const atomsOf = (
+  formula: Formula,
+): { tag: string; name: string; previous: boolean }[] => {
   switch (formula.op) {
     case 'atom':
     case 'previous':
-      return [{ tag: formula.tag, name: formula.name }];
+      return [
+        {
+          tag: formula.tag,
+          name: formula.name,
+          previous: formula.op === 'previous',
+        },
+      ];
     case 'add':
     case 'multiply':
     case 'and':
@@ -404,6 +412,8 @@ export const toPistar = (
         { customProperties: { weight } },
       );
 
+  // the qualities and conditions whose formula names elements
+  const readers: { node: Node; formula: Formula }[] = [];
   const precedence = (
     holder: Node,
     formula: Formula | null,
@@ -427,6 +437,7 @@ export const toPistar = (
     const condition = add('condition', name, '', {
       formula: assertionText(formula),
     });
+    readers.push({ node: condition, formula });
     info(
       `${holder.file}'s ${which} is a formula: read as condition ${condition.id} (${name})`,
     );
@@ -447,6 +458,32 @@ export const toPistar = (
       precedence(effectNode, effect.npr, 'npr');
     });
   });
+
+  // what a formula names, linked to the quality or condition it is of (the
+  // paper's arrows; PRE for a previous value): drawn from the formula, which
+  // stays the source; a weighted sum is its utility links instead
+  for (const quality of document.qualities)
+    if (quality.formula && !weightedSum(quality.formula, document))
+      readers.push({
+        node: byName.get(quality.name)!,
+        formula: quality.formula,
+      });
+  for (const condition of document.conditions)
+    if (condition.formula)
+      readers.push({
+        node: byName.get(condition.name)!,
+        formula: condition.formula,
+      });
+  for (const { node, formula } of readers) {
+    const drawn = new Set<string>();
+    for (const { name, previous } of atomsOf(formula)) {
+      const source = byName.get(name);
+      const type = previous ? ISTARDT_LINKS.readsPrevious : ISTARDT_LINKS.reads;
+      if (!source || drawn.has(`${type} ${name}`)) continue;
+      drawn.add(`${type} ${name}`);
+      link(type, source, node);
+    }
+  }
 
   // the sets: the actor's ordered lists; a continuous export's bounds on its element
   const listed = (names: string[], what: string) =>

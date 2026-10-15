@@ -297,6 +297,39 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       names(condition, 'formula', assertionNames(tree), CONDITION_READS);
   }
 
+  // a formula's reads links show what it names (the formula is the source)
+  const shown = (element: IstardtElement, named: readonly string[]) => {
+    const linked = new Set(model.reads(element).map((e) => e.identifier));
+    const read = new Set(
+      named.flatMap((name) => {
+        const e = resolve(name);
+        return e ? [e.identifier] : [];
+      }),
+    );
+    const missing = [...read].filter((name) => !linked.has(name));
+    const extra = [...linked].filter((name) => !read.has(name));
+    if (missing.length || extra.length)
+      say(
+        'warning',
+        element,
+        `${label(element)}'s links don't show what its formula reads: ${[
+          missing.length && `no link from ${missing.join(', ')}`,
+          extra.length &&
+            `a link from ${extra.join(', ')}, which it doesn't read`,
+        ]
+          .filter(Boolean)
+          .join('; ')}`,
+      );
+  };
+  for (const quality of model.ofKind('quality')) {
+    const tree = readExpression(quality.properties.formula?.trim() ?? '');
+    if (tree) shown(quality, expressionNames(tree));
+  }
+  for (const condition of model.ofKind('condition')) {
+    const tree = readAssertion(condition.properties.formula?.trim() ?? '');
+    if (tree) shown(condition, assertionNames(tree));
+  }
+
   // the sets
   const actor = model.actor ? { pistarId: model.actor } : undefined;
   const setNames = (

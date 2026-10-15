@@ -154,6 +154,8 @@ describe('istardtProblems: the model as a whole', () => {
       'error: Q1 (cost) has a formula and utility links: give it one or the other',
       "error: E1 (deliveredInTimeA_Eff)'s utility link to Q1 (cost): an effect weighs on a quality by the one predicate it turns true (it turns 2)",
       "error: Q2 (happyCustomer)'s formula names nowhere, which is no element",
+      // its formula changed, its links didn't
+      "warning: Q2 (happyCustomer)'s links don't show what its formula reads: no link from orderMaterial",
       'error: the cross-run set has predicate, condition, variable, quality: orderMaterial is a goal',
     ]);
   });

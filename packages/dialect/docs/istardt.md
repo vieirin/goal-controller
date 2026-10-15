@@ -37,10 +37,10 @@ DT-Golog names an element `identifier ?? camelCase(name)`, `Formatter.toCamelCas
 | `task` | `istar.Task` | `T1` | `identifier` |
 | `quality` | `istar.Quality` | `Q1` (text) | `formula` (an expression; none when its utility links are its sum), `root` (the reward), `exportMin`, `exportMax`, `identifier` |
 | `effectGroup` | `istardt.EffectGroup` | (none: a hub) | |
-| `effect` | `istardt.Effect` | `E1` (text) | `satisfying`, `set`, `identifier` |
-| `condBox` | `istardt.Condition` | `C1` (text) | `formula` (an assertion), `identifier` |
-| `predicate` | `istardt.Predicate` | `P1` (text) | `exportMin`, `exportMax`, `identifier` |
-| `variable` | `istardt.Variable` | `V1` (text) | `exportMin`, `exportMax`, `identifier` |
+| `effect` | `istardt.Effect` | `E1` | `satisfying`, `set`, `identifier` |
+| `condBox` | `istardt.Condition` | `C1` | `formula` (an assertion), `identifier` |
+| `predicate` | `istardt.Predicate` | `P1` | `exportMin`, `exportMax`, `identifier` |
+| `variable` | `istardt.Variable` | `V1` | `exportMin`, `exportMax`, `identifier` |
 
 Goals, tasks, effects, conditions, predicates and variables have Notation
 lines (`G1:`, `T1:`, `E1:`, `C1:`, `P1:`, `V1:`, the dialect's prefixes,
@@ -59,7 +59,8 @@ mx2dtx's diagrams):
 - `istardt.EffectLink` (`eff`): a task to its effect group; `istardt.EffectGroupLink`: the group to each of its effects, in order, with the effect's `probability` (mx2dtx's `effectGroupLink`, labelled with it).
 - `istardt.TurnsTrueLink` and `istardt.TurnsFalseLink`: an effect to the predicates it makes true and false, in order.
 - `istardt.PrecedenceLink` and `istardt.NegativePrecedenceLink` (`pre`, `npr`): from the goal, task or condition the formula names to the goal, task or effect that holds it. A formula that isn't one element's name becomes a condition the importer names `<holder>Pre` (`<holder>Npr`), with an info (#117 D2).
-- `istardt.UtilityLink` (#117 D3, corrected): a term of a quality's weighted sum, from a quality (`weight × q`) or from an effect (`weight × p`, the one predicate the effect turns true), with its `weight`; mx2dtx's `contributionLink`. A quality whose formula is such a sum is drawn as its links and keeps no `formula` (Order: all three; Heating: Overall Quality); any other quality keeps its formula and has no links (Heating's Cost, Comfort, Room Temperature, Running Time, as mx2dtx's diagram).
+- `istardt.UtilityLink` (#117 D3, corrected): a term of a quality's weighted sum, from a quality (`weight × q`) or from an effect (`weight × p`, the one predicate the effect turns true), with its `weight`; mx2dtx's `contributionLink`. A quality whose formula is such a sum is drawn as its links and keeps no `formula` (Order: all three; Heating: Overall Quality); any other quality keeps its formula.
+- `istardt.ReadsLink` and `istardt.ReadsPreviousLink` (PRE): from each element a quality's or a condition's formula names to it, the second for a name read through `previous(x)` (an element's own previous value is a link to itself), as the paper's figures draw them (ER 2024; dtg2sim's `GoalModels.drawio`). The importer draws them from the formula, which stays the source; the writer doesn't read them, and `istardtProblems` warns when they don't show what the formula reads. Heating: `hvacOn` → Running Time and Room Temperature, Running Time → Cost, Room Temperature → Comfort, `signalOnS` and `signalOffS` → `hvacOn`, and PRE on `hvacOn`, Room Temperature and Running Time. The figure draws all four effects into `hvacOn`, its two failure effects too; the formula reads the two predicates.
 
 **Formulas (#117 D6).** A quality's formula is the goal language's
 `expression` (`0.5 + 0.9 * previous(roomTemperature) + hvacOn * (…)`); a
@@ -189,7 +190,7 @@ DT-Golog runs it (`reference/utility.txt`). Unverified otherwise.
 - **dtg2sim's `GMEnv`** as a back-end (#117 D1.3): the image has no Python; not run.
 - **A goal-controller-native RL environment** is P12's own work.
 - **A quality's line**: iStar's kind takes the catalog's prefixes only, so `Q1` has none; its properties are the inspector's, and a quality's utility links to another quality are written on no line.
-- **The paper's figure** (dtg2sim's `GoalModels.drawio`): formula references as arrows, `previous(x)` as PRE nodes, ellipses and clouds; this follows mx2dtx's fixture diagrams (#117).
+- **The paper's figure's shapes** (dtg2sim's `GoalModels.drawio`): ellipses for effects and conditions, clouds for qualities and variables, a satisfying effect's colour; PRE is a link here, not a node of its own.
 
 ## Examples
 

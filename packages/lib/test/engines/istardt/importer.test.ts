@@ -263,6 +263,27 @@ describe('importIstardt: dtx2dtg’s Heating (3.2.Heating_10R_Mixed.istardtx)', 
     );
   });
 
+  it('links what each formula reads to its quality or condition, previous values as PRE (the paper’s figure)', () => {
+    assert.deepStrictEqual(linksOf(model, 'istardt.ReadsLink'), [
+      'Q5->Q1',
+      'Q4->Q2',
+      'C1->Q4',
+      'C1->Q5',
+      'P4->C1',
+      'P3->C1',
+    ]);
+    assert.deepStrictEqual(linksOf(model, 'istardt.ReadsPreviousLink'), [
+      'Q4->Q4',
+      'Q5->Q5',
+      'C1->C1',
+    ]);
+    // a weighted sum is its utility links, not reads links
+    assert.deepStrictEqual(linksOf(model, 'istardt.UtilityLink'), [
+      'Q1->Q3',
+      'Q2->Q3',
+    ]);
+  });
+
   it('is the model the project keeps', () => {
     assert.strictEqual(
       read('istardt-heating/Heating.txt'),

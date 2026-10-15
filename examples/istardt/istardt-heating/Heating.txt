@@ -18,7 +18,7 @@
             "root": "true",
             "episodeLength": "10"
           },
-          "x": 880,
+          "x": 1360,
           "y": 80
         },
         {
@@ -88,8 +88,8 @@
           "customProperties": {
             "formula": "0 - 0.06 * runningTime"
           },
-          "x": 2000,
-          "y": 80
+          "x": 2480,
+          "y": 180
         },
         {
           "id": "comfort",
@@ -98,8 +98,8 @@
           "customProperties": {
             "formula": "(roomTemperature - 23) * (roomTemperature - 23) * -0.1"
           },
-          "x": 2160,
-          "y": 80
+          "x": 2640,
+          "y": 180
         },
         {
           "id": "overallQuality",
@@ -108,8 +108,8 @@
           "customProperties": {
             "root": "true"
           },
-          "x": 2320,
-          "y": 80
+          "x": 2800,
+          "y": 180
         },
         {
           "id": "roomTemperature",
@@ -120,8 +120,8 @@
             "exportMin": "-10",
             "exportMax": "100"
           },
-          "x": 2480,
-          "y": 80
+          "x": 2160,
+          "y": 180
         },
         {
           "id": "runningTime",
@@ -132,8 +132,8 @@
             "exportMin": "0",
             "exportMax": "100"
           },
-          "x": 2640,
-          "y": 80
+          "x": 2320,
+          "y": 180
         },
         {
           "id": "hvacOn",
@@ -143,8 +143,8 @@
             "identifier": "hvacOn",
             "formula": "((previous(hvacOn) & (!(signalOffS))) | signalOnS)"
           },
-          "x": 2800,
-          "y": 80
+          "x": 2000,
+          "y": 180
         },
         {
           "id": "signalOnF",
@@ -303,6 +303,60 @@
       "customProperties": {
         "weight": "0.7"
       }
+    },
+    {
+      "id": "runningTime-ReadsLink-cost",
+      "type": "istardt.ReadsLink",
+      "source": "runningTime",
+      "target": "cost"
+    },
+    {
+      "id": "roomTemperature-ReadsLink-comfort",
+      "type": "istardt.ReadsLink",
+      "source": "roomTemperature",
+      "target": "comfort"
+    },
+    {
+      "id": "roomTemperature-ReadsPreviousLink-roomTemperature",
+      "type": "istardt.ReadsPreviousLink",
+      "source": "roomTemperature",
+      "target": "roomTemperature"
+    },
+    {
+      "id": "hvacOn-ReadsLink-roomTemperature",
+      "type": "istardt.ReadsLink",
+      "source": "hvacOn",
+      "target": "roomTemperature"
+    },
+    {
+      "id": "runningTime-ReadsPreviousLink-runningTime",
+      "type": "istardt.ReadsPreviousLink",
+      "source": "runningTime",
+      "target": "runningTime"
+    },
+    {
+      "id": "hvacOn-ReadsLink-runningTime",
+      "type": "istardt.ReadsLink",
+      "source": "hvacOn",
+      "target": "runningTime"
+    },
+    {
+      "id": "hvacOn-ReadsPreviousLink-hvacOn",
+      "type": "istardt.ReadsPreviousLink",
+      "source": "hvacOn",
+      "target": "hvacOn"
+    },
+    {
+      "id": "signalOffS-ReadsLink-hvacOn",
+      "type": "istardt.ReadsLink",
+      "source": "signalOffS",
+      "target": "hvacOn"
+    },
+    {
+      "id": "signalOnS-ReadsLink-hvacOn",
+      "type": "istardt.ReadsLink",
+      "source": "signalOnS",
+      "target": "hvacOn"
     }
   ],
   "display": {},
@@ -517,6 +571,52 @@
           "unique": "any"
         },
         "line": {}
+      },
+      {
+        "kind": "istardt.ReadsLink",
+        "label": "reads",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.ReadsPreviousLink",
+        "label": "PRE",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Task",
+            "istar.Quality",
+            "istardt.Effect",
+            "istardt.Condition",
+            "istardt.Predicate",
+            "istardt.Variable"
+          ],
+          "targets": [
+            "istar.Quality",
+            "istardt.Condition"
+          ],
+          "allowSelf": true,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
       },
       {
         "kind": "istardt.TurnsFalseLink",

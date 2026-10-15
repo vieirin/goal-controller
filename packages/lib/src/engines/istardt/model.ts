@@ -81,6 +81,8 @@ export type IstardtModel = {
   pre: (element: IstardtElement) => IstardtElement[];
   /** the sources of an element's negative precedence links */
   npr: (element: IstardtElement) => IstardtElement[];
+  /** what a quality's or a condition's reads links come from (previous values too) */
+  reads: (element: IstardtElement) => IstardtElement[];
   /** a quality's utility links, in order: the effect or quality and the link's weight */
   utilities: (
     quality: IstardtElement,
@@ -278,6 +280,10 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
     turnsFalse: targetsOf(ISTARDT_LINKS.turnsFalse),
     pre: sourcesOf(ISTARDT_LINKS.precedence),
     npr: sourcesOf(ISTARDT_LINKS.negativePrecedence),
+    reads: (element) => [
+      ...sourcesOf(ISTARDT_LINKS.reads)(element),
+      ...sourcesOf(ISTARDT_LINKS.readsPrevious)(element),
+    ],
     utilities,
     crossRun: listItems(actorProperties[SET_KEYS.crossRun]),
     exported: listItems(actorProperties[SET_KEYS.exported]),

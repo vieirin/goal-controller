@@ -34,6 +34,13 @@ export const ISTARDT_LINKS = {
   turnsTrue: 'istardt.TurnsTrueLink',
   /** an effect to a predicate it makes false */
   turnsFalse: 'istardt.TurnsFalseLink',
+  /**
+   * an element a quality's or a condition's formula names, to it (the
+   * paper's arrows); drawn from the formula, which stays the source
+   */
+  reads: 'istardt.ReadsLink',
+  /** the same, read through `previous(x)` (the paper's PRE) */
+  readsPrevious: 'istardt.ReadsPreviousLink',
 } as const;
 
 /** What an element is to the writer, by its piStar kind. */
