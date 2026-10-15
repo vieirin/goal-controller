@@ -124,12 +124,35 @@ Each value type is a rule of the goal language that reads a value on its own; th
 | `number`                                         | number field                    | a number                                                                                                                      |
 | `text`                                           | text field                      | nothing                                                                                                                       |
 | `bool`                                           | true/false select               | `true` or `false`                                                                                                             |
-| `assertion` `{resolves, functions?}`             | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`), and a call is a condition on its own (`previous(on) & !off`); a call to another function, or with another number of arguments, is an error |
-| `expression` `{resolves?, functions?}`           | one-line editor with completion | a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`, a negation, parentheses, ids of elements of the `resolves` kinds, variables (declared by their use) and calls to the `functions`, each with its arity; completion offers those, hover shows the element an id names. Read it with `readExpression(value)`: a tree (`number`, `ref`, `var`, `call`, `binary`, `unary`) the engine walks, never the text |
+| `assertion` `{resolves, functions?, members?}`   | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`), and a call is a condition on its own (`previous(on) & !off`); a call to another function, or with another number of arguments, is an error. With `members` (below), a reference may be followed by `.member` (`room.clean`, `tank.level < 10`) |
+| `expression` `{resolves?, functions?, members?}` | one-line editor with completion | a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`, a negation, parentheses, ids of elements of the `resolves` kinds, variables (declared by their use), members (`tank.level`, with `members`) and calls to the `functions`, each with its arity; completion offers those, hover shows the element an id names. Read it with `readExpression(value)`: a tree (`number`, `ref`, `var`, `member`, `call`, `binary`, `unary`) the engine walks, never the text |
 | `refList` `{kind}`                               | editor with id completion       | ids, comma-separated, of elements of that kind (Edge's `dependsOn: G2, G5`)                                                   |
 | `pairList` `{value}`                             | editor                          | `name:value` pairs, comma-separated, values of that type (Edge's `variables: speed:3, mode:2`)                                |
 | `annotatedName`                                  | editor                          | a line without an id                                                                                                          |
 | `ConditionalValue` `{when, matching, otherwise}` | depends on another property     | e.g. a resource's `initialValue` is an int or a bool depending on `type`                                                      |
+
+**Members** (goal-controller#135). A condition may read a member of an
+element (`room.clean`, `tank.level < 10`), where the element's kind says
+what members it has. The value's `members` says where they come from:
+
+- `members: { from: 'attributes' }`: the keys of the referenced element's
+  `attributes` property, a `pairList` its kind declares (`defineDialect`
+  checks one of the `resolves` kinds does). Each pair is a member and its
+  type: `bool`, `int` or `number`, or its options (`low|high`):
+  `clean:bool, level:number, mode:wet|dry`.
+- `members: 'any'`: any name (members declared elsewhere, not checked).
+- None: a member is an error.
+
+The type says what a member compares to: a `bool` stands alone or is set
+(`room.clean`, `room.clean = true`), a number is compared with a number
+(`tank.level < 10`), an enum with `=` or `!=` and one of its options
+(`room.mode = wet`). The validator reports a member on an element whose
+kind declares none, an unknown member and one read as what it isn't;
+completion offers an element's members after its dot, and hover shows a
+member's type. A member of a variable (`x.y`, declared by its use) isn't
+checked. Read a condition with `readAssertion` (`{ kind: 'member', ref,
+member }`, and an `assign` with a `member`) and its members with
+`assertionMembers(tree)`; never split the text.
 
 Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
 
@@ -464,10 +487,18 @@ export const missionAnalyses = defineAnalyses(mission, {
   every actor and tree, so declare `model: { actors: 'many', treesPerActor:
   'many' }`. `resource` is the `input` kind's files, path → text, as the
   tabs hold them (a `many` kind: all its files).
-- **Output:** `AnalysisResult = { cases: { id, label, values }[] }`, where
+- **Output:** `AnalysisResult = { cases: { id, label, values, steps? }[] }`, where
   `values` maps an element's or actor's piStar id to `{ value: number | string;
   label?; severity?: 'info' | 'warning' }`. A case is one evaluation (a
   strategy); a single-case analysis has one.
+- **A step series** (goal-controller#135): a case run as a sequence (a
+  scenario's steps, a lifecycle's states) gives `steps: [{ label, values }]`
+  in order, each step's values as a case's, and its outcome (its last
+  step's) as `values`. The workbench shows a step control beside the
+  Analyse menu (previous, next, `2/7: <the step's label>`) over the same
+  per-element values, each message `<case>, <step>: <value>`.
+  `analysisText(result, nameOf?)` lists a result as text: each case, and
+  each step of a case that has them, one `name: value` line per element.
 - `defineAnalyses` checks that each analysis has a label and reads only a
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).

@@ -35,9 +35,36 @@ import(text) → {
 
 Nodes that have a position keep it. The others are laid out as a model of their own from `origin`: links to positioned nodes are not followed. It returns how far they reach (`{ right, bottom }`) to size the diagram, or `null` when there was nothing to place.
 
+## EMF XMI: `importers/xmi.ts`, the reader every XMI importer starts from
+
+`readXmi(text, { idAttribute?, fileName? })` reads an EMF XMI document for
+any metamodel (goal-controller#135). It knows none: the importer maps its
+node types to piStar.
+
+- **Nodes.** Each XML element is an `XmiNode`: its containment `feature`
+  (the element's name), its `type` (`xsi:type`, or null), its `id` (from
+  `xmi:id`, or `idAttribute`: jUCMNav keys by `id`), its `path` fragment
+  (`//@actors.0/@goals.2`; the root's is `/`), its `attributes`, its
+  `children` and its `parent`. `reader.document` has them all (`nodes`, in
+  the file's order), `byId` and `byPath`. `reader.children(node, feature)`
+  gives a node's children in one feature.
+- **References**, in the forms EMF writes: an id list (`subgoals="g2 g3"`),
+  path fragments (`//@actors.0/@goals.2`; a single-valued feature's `.0`
+  may be left out), and an `href` to the same document (`#g2`,
+  `model.xmi#//@goals.0`, where `fileName` is `model.xmi`), as an attribute
+  or as children of the feature's name. `reader.references(node, feature)`
+  gives the nodes they name; `reader.resolve(reference)` one.
+- **Diagnostics.** A reference that names nothing in the document, or names
+  another file, is a warning, and left out; a repeated id a warning (the
+  first one keeps it). `reader.typed(schema, node)` types a node's
+  attributes with a zod schema, whose defaults are the metamodel's (EMF
+  writes no attribute that has its default); when they don't fit, it gives
+  null and an error, and the importer leaves the node out. Text that isn't
+  XML gives no reader and an error.
+
 ## `.jucm` (jUCMNav, GRL): `importers/jucm`
 
-`importJucm(text)` reads jUCMNav's EMF XMI 2.0 with lib's XML reader (`formats/xml.ts`). Each XMI element's attributes are typed by a zod schema, whose defaults are the metamodel's, since EMF writes no attribute that has its default (#105: no Ecore runtime). It writes a model in the GRL dialect ([grl.md](grl.md)):
+`importJucm(text)` reads jUCMNav's EMF XMI 2.0 with the XMI reader above (its ids in `id`). Each XMI element's attributes are typed by a zod schema, whose defaults are the metamodel's, since EMF writes no attribute that has its default (#105: no Ecore runtime). It writes a model in the GRL dialect ([grl.md](grl.md)):
 
 - The `grlspec`'s elements, links, actors and strategies.
   - Only the *link* side of each element–link pair is read (`src`, `dest`): some writers (GoalCat) write only that side.

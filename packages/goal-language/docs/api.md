@@ -28,6 +28,7 @@ bundles.
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
 | `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
 | `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
+| `assertionMembers` | `(tree) => { ref, member }[]` | the members a condition reads (`room.clean`, `tank.level < 3`, `room.clean = true`), in order (goal-controller#135); an `ExpressionTree`'s member is `{ kind: 'member', ref, member }` |
 | `expressionNodes` | `(tree: ExpressionTree) => ExpressionTree[]` | every node, each before its operands (what a check walks) |
 | `expressionText`, `assertionText` | `(tree) => string` | a tree written back: `0.5 + 0.9 * previous(t)`, with the parentheses its shape needs |
 | `rtText` | `(tree: RtTree \| null) => string` | the notation with no spaces: `G2@2->G3` (an operand's text in `modifiers`) |
@@ -163,7 +164,7 @@ These are also in `/light`.
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
 | `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2, `DM`: `{ min: 2 }`) |
 | `takesOperands`, `arityText` | whether a call takes a number of operands, and its arity in words |
-| `EXPRESSION` | the expression language: `infix` levels tightest first (`*` `/`, then `+` `-`), `prefix` (`-`), `parens`, `separator` |
+| `EXPRESSION` | the expression language: `infix` levels tightest first (`*` `/`, then `+` `-`), `prefix` (`-`), `parens`, `separator`, `member` (`.`, goal-controller#135) |
 | `ASSERTION_PREFIXES` | a condition's prefixes: `assertion condition`, `assertion trigger` |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |

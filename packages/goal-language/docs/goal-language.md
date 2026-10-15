@@ -102,12 +102,22 @@ tightest first:
 
 | Level | Operators | Associativity |
 | --- | --- | --- |
+| 0 | `.` between a reference and its member (`tank.level`) | |
 | 1 | `-` before an operand (`-x`) | |
 | 2 | `*` `/` | left |
 | 3 | `+` `-` | left |
 
+- A **member** (goal-controller#135), `ref.member`: an element's id or a
+  variable, a dot, and a name (`room.clean`, `T1.1.done`; `room . clean`
+  reads the same: the dot is a token of its own, so `T1.1` and `0.5` are
+  as before). It binds tighter than everything: `-tank.level * 2` is
+  `(-(tank.level)) * 2`. It is an operand of an expression (`member`) and,
+  in an assertion, a condition on its own (`room.clean`) or set
+  (`room.clean = true`: an `assign` with a `member`). The property's
+  `members` says which members an element has; see the engine guide's
+  [value types](../../dialect/docs/adding-an-engine.md#22-properties-the-predefined-value-types).
 - An operand is a number (`2`, `0.5`; no sign of its own), an element id
-  (`G1`, `T2.1`: a `ref`), a call (`previous(t)`, to a function the property
+  (`G1`, `T2.1`: a `ref`), a member (`room.level`), a call (`previous(t)`, to a function the property
   declares, with as many arguments as it declares), another name (a
   variable, declared by its use), or an expression in parentheses. A name
   that is an element's key in the model (an extension's kind's, `S1`,
