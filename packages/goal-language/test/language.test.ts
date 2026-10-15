@@ -9,16 +9,22 @@ import { GoalGrammar } from '../src/generated/grammar.js';
 import {
   ASSERTION,
   CALL_NAMES,
+  EXPRESSION,
   INFIX_SYMBOLS,
   POSTFIX_SYMBOLS,
   PREFIX_SYMBOLS,
   STANDALONE_SYMBOLS,
   VALUE_TYPES,
+  assertionText,
   errorText,
+  expressionText,
   parseDocument,
   parseElementLine,
   parseValue,
+  readAssertion,
+  readExpression,
   rtText,
+  type ExpressionTree,
   type RtTree,
 } from '../src/index.js';
 
@@ -75,6 +81,15 @@ describe('the grammar and the catalog', () => {
     assert.deepEqual(
       infix('AssertBinary'),
       ASSERTION.infix.map((s) => [s]),
+    );
+    assert.deepEqual(infix('ExprBinary'), EXPRESSION.infix);
+  });
+
+  it('has the expression language’s negation, parentheses and separator', () => {
+    assert.deepEqual(keywords('ExprUnary'), [...EXPRESSION.prefix]);
+    assert.deepEqual(
+      [...new Set(keywords('ExprPrimary'))],
+      [...EXPRESSION.parens, EXPRESSION.separator],
     );
   });
 
@@ -388,5 +403,169 @@ describe('values', () => {
     assert.equal(parseValue('int', 'x').errors.length, 1);
     assert.equal(parseValue('bool', '1').errors.length, 1);
     assert.equal(parseValue('refList', 'G2 G3').errors.length, 1);
+  });
+});
+
+/** an expression with its groups made explicit: `((a+b)*c)` */
+const groupedExpression = (tree: ExpressionTree | null): string => {
+  switch (tree?.kind) {
+    case 'binary':
+      return `(${groupedExpression(tree.left)}${tree.operator}${groupedExpression(tree.right)})`;
+    case 'unary':
+      return `${tree.operator}${groupedExpression(tree.expr)}`;
+    case 'call':
+      return `${tree.name}(${tree.args.map(groupedExpression).join(',')})`;
+    default:
+      return tree ? expressionText(tree) : '';
+  }
+};
+
+describe('expressions', () => {
+  const read = (text: string) => {
+    const parsed = parseValue('expression', text);
+    assert.deepEqual(parsed.errors.map(errorText), [], text);
+    return parsed.value;
+  };
+
+  it('binds * and / before + and -, each left-associative, a negation tightest', () => {
+    for (const [text, grouped] of [
+      ['a + b * c', '(a+(b*c))'],
+      ['a - b - c', '((a-b)-c)'],
+      ['a / b * c', '((a/b)*c)'],
+      ['(a - b) * c', '((a-b)*c)'],
+      ['-a * b', '(-a*b)'],
+      ['- -a', '--a'],
+      ['-(a + b)', '-(a+b)'],
+      ['f(a, b + 1) - g()', '(f(a,(b+1))-g())'],
+    ])
+      assert.equal(groupedExpression(read(text!)), grouped, text);
+  });
+
+  it('reads numbers, ids, variables and calls (readExpression)', () => {
+    assert.deepEqual(readExpression('0.5 + 0.9 * previous(T2.1) - -x'), {
+      kind: 'binary',
+      operator: '-',
+      left: {
+        kind: 'binary',
+        operator: '+',
+        left: { kind: 'number', value: '0.5' },
+        right: {
+          kind: 'binary',
+          operator: '*',
+          left: { kind: 'number', value: '0.9' },
+          right: {
+            kind: 'call',
+            name: 'previous',
+            args: [{ kind: 'ref', id: 'T2.1' }],
+          },
+        },
+      },
+      right: { kind: 'unary', operator: '-', expr: { kind: 'var', name: 'x' } },
+    });
+    // an id is an element's, a longer name a variable
+    assert.deepEqual(readExpression('R1'), { kind: 'ref', id: 'R1' });
+    assert.deepEqual(readExpression('GX'), { kind: 'ref', id: 'GX' });
+    assert.deepEqual(readExpression('Rate'), { kind: 'var', name: 'Rate' });
+    assert.deepEqual(readExpression('G1a'), { kind: 'var', name: 'G1a' });
+    assert.equal(readExpression(''), null);
+    assert.equal(readExpression('a +'), null);
+  });
+
+  it('prints with the parentheses its shape needs, and reads back the same', () => {
+    for (const [text, printed] of [
+      ['(a)*((b))', 'a * b'],
+      ['a-(b-c)', 'a - (b - c)'],
+      ['(a-b)-c', 'a - b - c'],
+      ['a*(b+c)', 'a * (b + c)'],
+      ['-(a*b)', '-(a * b)'],
+      ['f( G1 ,2.50)', 'f(G1, 2.50)'],
+    ]) {
+      const tree = read(text!);
+      assert.equal(expressionText(tree!), printed, text);
+      assert.deepEqual(read(printed!), tree, printed);
+    }
+  });
+
+  it('reports what is not an expression', () => {
+    for (const text of ['a +', '(a', 'f(a,)', 'a b', 'a > 1', 'x = true'])
+      assert.ok(parseValue('expression', text).errors.length, text);
+  });
+});
+
+describe('assertions with expressions', () => {
+  it('reads every assertion as before: a name and a number is a compare', () => {
+    for (const text of [
+      'x > 0 & !y = true | z',
+      'R1 >= 2.5',
+      '(a < 3) | b != false',
+    ])
+      assert.equal(assertionText(parseValue('assertion', text).value), text);
+    assert.deepEqual(parseValue('assertion', 'R1 >= 2.5').value, {
+      kind: 'compare',
+      variable: 'R1',
+      operator: '>=',
+      value: '2.5',
+    });
+  });
+
+  it('compares expressions: calls and arithmetic on either side', () => {
+    const text = 'previous(t) < 18 & 0.9 * x >= 1 + y';
+    const read = parseValue('assertion', text);
+    assert.deepEqual(read.errors, []);
+    assert.equal(assertionText(read.value), text);
+    assert.deepEqual(read.value, {
+      kind: 'and',
+      left: {
+        kind: 'comparison',
+        operator: '<',
+        left: {
+          kind: 'call',
+          name: 'previous',
+          args: [{ kind: 'var', name: 't' }],
+        },
+        right: { kind: 'number', value: '18' },
+      },
+      right: {
+        kind: 'comparison',
+        operator: '>=',
+        left: {
+          kind: 'binary',
+          operator: '*',
+          left: { kind: 'number', value: '0.9' },
+          right: { kind: 'var', name: 'x' },
+        },
+        right: {
+          kind: 'binary',
+          operator: '+',
+          left: { kind: 'number', value: '1' },
+          right: { kind: 'var', name: 'y' },
+        },
+      },
+    });
+    // a parenthesis groups an expression, or a condition, as what follows says
+    assert.equal(
+      assertionText(parseValue('assertion', '(x + 1) * 2 > 3 & (a | b)').value),
+      '(x + 1) * 2 > 3 & (a | b)',
+    );
+  });
+
+  it('gives every comparison’s sides as expressions (readAssertion)', () => {
+    assert.deepEqual(readAssertion('assertion trigger x > 3 & on'), {
+      kind: 'and',
+      left: {
+        kind: 'comparison',
+        operator: '>',
+        left: { kind: 'var', name: 'x' },
+        right: { kind: 'number', value: '3' },
+      },
+      right: { kind: 'var', variable: 'on' },
+    });
+    assert.deepEqual(readAssertion('G1 = 2'), {
+      kind: 'comparison',
+      operator: '=',
+      left: { kind: 'ref', id: 'G1' },
+      right: { kind: 'number', value: '2' },
+    });
+    assert.equal(readAssertion('x >'), null);
   });
 });

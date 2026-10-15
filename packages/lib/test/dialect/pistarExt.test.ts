@@ -45,8 +45,8 @@ const applied = (tree: DocumentTree, doc: string): DocumentTree => {
   );
   const byIStarId = new Map([...nodes.values()].map((n) => [n.iStarId, n]));
   for (const edit of notationEdits(ra, doc, tree)) {
-    // an element's property (a link's, goal-controller#107, is no element's)
-    if (!('key' in edit) || 'link' in edit) continue;
+    // an element's property (a link's, #107, or an actor's, #109, is no element's)
+    if (!('key' in edit) || 'link' in edit || 'actor' in edit) continue;
     const target = byIStarId.get(edit.iStarId)!;
     const properties = target.properties as Record<string, string>;
     if (edit.value === null) delete properties[edit.key];

@@ -6,17 +6,114 @@
  * local support and the language server both use them.
  */
 import {
+  actorPropertiesOf,
+  linkLinesOf,
+  linkPropertiesOf,
   propertyOf,
+  valueOf,
   type AnyDialect,
   type DefinitionContext,
+  type ValueConfig,
 } from '@goal-controller/dialect';
+import { highlightValue } from './highlight.js';
+import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
+import { ownerOf } from './completion.js';
+import {
+  LINK_LINE_KEY,
+  linkOfLine,
+  readLinkLine,
+  targetKey,
+} from './linkLine.js';
 import { isEnabled } from './reading.js';
+import { argumentsText } from './values.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<
   AnyDialect,
   'name' | 'elements' | 'notation' | 'properties' | 'propertyLineOrder'
->;
+> &
+  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
+
+/**
+ * A key's hover on a link or an actor line (goal-controller#109): its help,
+ * as the kind of the link (or actor) the line names declares it. Null: not
+ * such a line, or not on one of its keys.
+ */
+const ownLineHover = (
+  definition: Definition,
+  lines: Line[],
+  line: Line,
+  read: { key: string; keySpan: Span; value: string; valueSpan: Span },
+  at: number,
+  context: DefinitionContext,
+): { span: Span; markdown: string } | null => {
+  const isLink = linkLinesOf(definition) && read.key === LINK_LINE_KEY;
+  const isActor = !!definition.actors && read.key === ACTOR_LINE_KEY;
+  if (!isLink && !isActor) return null;
+  if (within(read.keySpan, at))
+    return {
+      span: read.keySpan,
+      markdown: isLink
+        ? `**${LINK_LINE_KEY}**: a link's properties, under its source: its target, then \`{key = value}\` each`
+        : `**${ACTOR_LINE_KEY}**: an actor's properties: its name in quotes, then \`{key = value}\` each`,
+    };
+  const reading = isLink ? readLinkLine(read.value) : readActorLine(read.value);
+  if (!('value' in reading)) return null;
+  const offset = at - read.valueSpan.from;
+  const property = reading.value.properties.find((p) =>
+    within(p.keySpan, offset),
+  );
+  if (!property) return null;
+  let kind: string | undefined;
+  if (isActor) {
+    const named = targetKey(
+      actorNames(
+        Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+          iStarId,
+          name,
+        })),
+      ),
+      reading.value.target,
+      'actor',
+    );
+    kind = 'key' in named ? context.actors?.[named.key]?.kind : undefined;
+  } else {
+    const source = ownerOf(
+      definition,
+      lines.map((l) => l.text),
+      lines.indexOf(line),
+      context,
+    );
+    const named = targetKey(context.names, reading.value.target);
+    const found =
+      source && 'key' in named
+        ? linkOfLine(
+            definition,
+            Object.values(context.links ?? {}),
+            source,
+            named.key,
+          )
+        : [];
+    kind = found.length === 1 ? found[0]!.kind : undefined;
+  }
+  // the line names no link (or actor) yet: the key as any kind declares it
+  const declared = kind
+    ? isLink
+      ? linkPropertiesOf(definition, kind)
+      : actorPropertiesOf(definition, kind)
+    : isLink
+      ? Object.values(definition.links ?? {}).flat()
+      : (definition.actors ?? []);
+  const help = declared.find((p) => p.key === property.key)?.help;
+  if (!help) return null;
+  return {
+    span: {
+      from: read.valueSpan.from + property.keySpan.from,
+      to: read.valueSpan.from + property.keySpan.to,
+    },
+    markdown: `**${property.key}**: ${help}`,
+  };
+};
 
 export type Hover = Span & { markdown: string };
 
@@ -147,6 +244,13 @@ export const hoverAt = (
     return null;
   }
   if (read.kind === 'property') {
+    const own = ownLineHover(definition, lines, line, read, at, context);
+    if (own) return shift(own.span, own.markdown);
+    if (
+      (linkLinesOf(definition) && read.key === LINK_LINE_KEY) ||
+      (definition.actors && read.key === ACTOR_LINE_KEY)
+    )
+      return null;
     const owner = ownerAbove(definition, lines, line);
     const kind = owner?.id ? context.elements[owner.id]?.kind : undefined;
     const property =
@@ -205,4 +309,81 @@ export const definitionAt = (
   if (!target) return null;
   const span = target.read.idSpan ?? target.read.textSpan;
   return { from: target.line.from + span.from, to: target.line.from + span.to };
+};
+
+/** An element a field names, by its id or its name (an assertion compares a resource by name). */
+const elementNamed = (context: DefinitionContext, name: string) => {
+  const found =
+    name in context.elements
+      ? ([name, context.elements[name]!] as const)
+      : Object.entries(context.elements).find(
+          ([, element]) => element.name === name,
+        );
+  return found && { key: found[0], ...found[1] };
+};
+
+/**
+ * The hover at a position of a field's value: an element it names (its id
+ * and name: `**G2**: Reach lab (a goal of this model)`), a variable, or a
+ * function its value type declares.
+ */
+export const fieldHoverAt = (
+  value: ValueConfig,
+  text: string,
+  pos: number,
+  context: DefinitionContext,
+): Hover | null => {
+  const span = highlightValue(value, text).find(
+    (h) =>
+      pos >= h.from &&
+      pos <= h.to &&
+      ['labelName', 'variableName', 'keyword'].includes(h.style),
+  );
+  if (!span) return null;
+  const name = text.slice(span.from, span.to);
+  const hover = (markdown: string): Hover => ({
+    from: span.from,
+    to: span.to,
+    markdown,
+  });
+  const functions =
+    value.type === 'expression' || value.type === 'assertion'
+      ? (value.functions ?? [])
+      : [];
+  if (span.style === 'keyword') {
+    const declared = functions.find((f) => f.name === name);
+    return declared
+      ? hover(`**${name}**: a function of ${argumentsText(declared.arity)}`)
+      : null;
+  }
+  const element = elementNamed(context, name);
+  if (element)
+    return hover(
+      `**${element.id ?? element.key}**${element.name ? `: ${element.name}` : ''} (a ${element.kind} of this model)`,
+    );
+  if (context.variables.includes(name))
+    return hover(`**${name}**: a workbench variable`);
+  return value.type === 'expression' && span.style === 'variableName'
+    ? hover(`**${name}**: a variable`)
+    : null;
+};
+
+/** An inspector field's hover: its element's property, read with its value type. */
+export const fieldHover = (
+  definition: Pick<AnyDialect, 'properties'>,
+  context: DefinitionContext,
+  elementId: string,
+  key: string,
+  text: string,
+  pos: number,
+): Hover | null => {
+  const element = context.elements[elementId];
+  const property = element && propertyOf(definition, element.kind, key);
+  if (!property || property.servedBy === 'engine') return null;
+  return fieldHoverAt(
+    valueOf(property, element.properties),
+    text,
+    pos,
+    context,
+  );
 };

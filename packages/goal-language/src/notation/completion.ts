@@ -7,18 +7,34 @@
  * field, its enum's options, or the ids or names its value refers to.
  */
 import {
+  actorPropertiesOf,
   constructDefinition,
+  hasIds,
+  linkLinesOf,
+  linkPropertiesOf,
+  type PropertyDefinition,
   propertyOf,
   valueOf,
   type DefinitionContext,
   type AnyDialect,
+  type FunctionDefinition,
   type ResourceCandidates,
   type ResourceSymbol,
   type WithNotation,
   type ValueConfig,
 } from '@goal-controller/dialect';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
-import { lineId, readPropertyLine } from './lines.js';
+import { lineId, readLine, readPropertyLine } from './lines.js';
+import { argumentsText } from './values.js';
+import {
+  LINK_LINE_KEY,
+  linkOfLine,
+  readLinkLine,
+  takesPosition,
+  targetKey,
+  writtenTarget,
+} from './linkLine.js';
+import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 
 export type Completion = {
   label: string;
@@ -39,7 +55,8 @@ export type CompletionResult = {
 type Definition = Pick<
   AnyDialect,
   'elements' | 'notation' | 'properties' | 'propertyLineOrder'
->;
+> &
+  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
 
 const WORD = /[A-Za-z0-9_.]*$/;
 
@@ -145,6 +162,162 @@ const annotationCompletions = (
   return null;
 };
 
+/**
+ * The element a line belongs to (a link line's source): with ids, the id of
+ * the element line above; without, the element of the nearest line above
+ * that takes a position (`context.order`).
+ */
+export const ownerOf = (
+  definition: Definition,
+  lines: readonly string[],
+  index: number,
+  context: DefinitionContext,
+): string | null => {
+  if (hasIds(definition)) {
+    for (let i = index - 1; i >= 0; i--) {
+      const id = lineId(definition, lines[i]!);
+      if (id) return id;
+    }
+    return null;
+  }
+  for (let i = index - 1; i >= 0; i--)
+    if (takesPosition(definition, lines[i]!))
+      return (
+        context.order?.[
+          lines.slice(0, i).filter((l) => takesPosition(definition, l)).length
+        ] ?? null
+      );
+  return null;
+};
+
+/** The keys a `{key = value}` list may still take: the declared ones it hasn't written. */
+const keyOptions = (
+  declared: readonly PropertyDefinition[],
+  value: string,
+): Completion[] => {
+  const written = new Set(
+    [...value.matchAll(/\{\s*([A-Za-z][A-Za-z0-9_]*)\s*=/g)].map((m) => m[1]),
+  );
+  return declared
+    .filter((p) => p.inspector !== false && !written.has(p.key))
+    .map((p) => ({ label: p.key, type: 'property' as const, detail: p.help }));
+};
+
+/**
+ * On a link or an actor line (goal-controller#109): after the key, the
+ * targets of the source's links whose kinds have properties (as the line
+ * names them), or the actors' names; inside `{ }`, the keys the link's or
+ * actor's kind declares and the line hasn't written. Null: not such a line.
+ */
+const ownLineCompletions = (
+  definition: Definition,
+  lines: readonly string[],
+  index: number,
+  before: string,
+  start: number,
+  context: DefinitionContext,
+): CompletionResult | null => {
+  const text = lines[index] ?? '';
+  const read = readLine(definition, text);
+  const isLink =
+    linkLinesOf(definition) &&
+    read.kind === 'property' &&
+    read.key === LINK_LINE_KEY;
+  const isActor =
+    !!definition.actors &&
+    read.kind === 'property' &&
+    read.key === ACTOR_LINE_KEY;
+  if (!isLink && !isActor) return null;
+  const keyed = new RegExp(
+    `^\\s*(?:${LINK_LINE_KEY}|${ACTOR_LINE_KEY})[ \\t]+`,
+  ).exec(before);
+  if (!keyed) return null;
+  const valueFrom = keyed[0].length;
+  const value = before.slice(valueFrom);
+  const opened = value.lastIndexOf('{');
+  const inBraces = opened >= 0 && value.lastIndexOf('}') < opened;
+  if (inBraces) {
+    // a key being typed: not after its `=`
+    if (value.slice(opened).includes('=')) return null;
+    const typed = /[A-Za-z0-9_]*$/.exec(value)?.[0] ?? '';
+    const whole = text.slice(valueFrom);
+    let declared: readonly PropertyDefinition[] = [];
+    if (isActor) {
+      const reading = readActorLine(whole.replace(/\{[^}]*$/, '').trimEnd());
+      const named =
+        'value' in reading &&
+        targetKey(
+          actorNames(
+            Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+              iStarId,
+              name,
+            })),
+          ),
+          reading.value.target,
+          'actor',
+        );
+      const actor =
+        named && 'key' in named ? context.actors?.[named.key] : undefined;
+      if (actor) declared = actorPropertiesOf(definition, actor.kind);
+    } else {
+      const source = ownerOf(definition, lines, index, context);
+      const reading = readLinkLine(whole.replace(/\{[^}]*$/, '').trimEnd());
+      const named =
+        'value' in reading && targetKey(context.names, reading.value.target);
+      const links = Object.values(context.links ?? {});
+      const found =
+        source && named && 'key' in named
+          ? linkOfLine(definition, links, source, named.key)
+          : [];
+      if (found.length === 1)
+        declared = linkPropertiesOf(definition, found[0]!.kind);
+    }
+    return {
+      from: start + before.length - typed.length,
+      options: keyOptions(declared, value),
+    };
+  }
+  // the target (a link's) or the actor, before any `{`
+  if (opened >= 0) return null;
+  if (isActor) {
+    const names = actorNames(
+      Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+        iStarId,
+        name,
+      })),
+    );
+    return {
+      from: start + valueFrom,
+      options: Object.entries(context.actors ?? {})
+        .filter(
+          ([, actor]) => actorPropertiesOf(definition, actor.kind).length > 0,
+        )
+        .map(([iStarId, actor]) => ({
+          label: writtenTarget(names, iStarId),
+          type: 'variable' as const,
+          detail: actor.kind.replace(/^[^.]+\./, ''),
+        })),
+    };
+  }
+  const source = ownerOf(definition, lines, index, context);
+  const links = Object.values(context.links ?? {});
+  return {
+    from: start + valueFrom,
+    options: links
+      .filter(
+        (link) =>
+          link.source === source &&
+          link.target !== null &&
+          linkPropertiesOf(definition, link.kind).length > 0,
+      )
+      .map((link) => ({
+        label: writtenTarget(context.names, link.target!),
+        type: 'variable' as const,
+        detail: link.kind.replace(/^[^.]+\./, ''),
+      })),
+  };
+};
+
 /** Completions in a Notation view document at `pos`, if any apply there. */
 export const completionsAt = (
   definition: Definition,
@@ -165,6 +338,15 @@ export const completionsAt = (
   const from = pos - word.length;
   const annotated = annotationCompletions(definition, before, start);
   if (annotated) return annotated;
+  const own = ownLineCompletions(
+    definition,
+    lines,
+    index,
+    before,
+    start,
+    context,
+  );
+  if (own) return own;
   const id = lineId(definition, text);
   if (id) {
     if (!definition.notation) return null;
@@ -275,33 +457,62 @@ export const fieldCompletionsAt = (
           detail: option.label,
         })),
     };
-  if (value.type === 'assertion') {
-    const elements = ids(value.resolves.filter((kind) => kind !== 'variable'));
+  /** the elements of some kinds, then the variables that aren't one of them */
+  const names = (kinds: readonly string[], variables: boolean) => {
+    const elements = ids(kinds);
     const named = new Set(elements.map((option) => option.label));
+    return [
+      ...elements,
+      ...(variables
+        ? context.variables
+            .filter((name) => !named.has(name))
+            .map((name) => ({
+              label: name,
+              type: 'variable' as const,
+              detail: 'variable',
+            }))
+        : []),
+    ];
+  };
+  if (value.type === 'assertion')
     return {
       from,
       options: [
-        ...elements,
-        ...(value.resolves.includes('variable')
-          ? context.variables
-              .filter((name) => !named.has(name))
-              .map((name) => ({
-                label: name,
-                type: 'variable' as const,
-                detail: 'variable',
-              }))
-          : []),
+        ...names(
+          value.resolves.filter((kind) => kind !== 'variable'),
+          value.resolves.includes('variable'),
+        ),
+        ...functionOptions(value.functions ?? []),
         ...ASSERTION.bool.map((keyword) => ({
           label: keyword,
           type: 'keyword' as const,
         })),
       ],
     };
-  }
+  // its variables are declared by their use: the workbench's are offered
+  if (value.type === 'expression')
+    return {
+      from,
+      options: [
+        ...names(value.resolves ?? [], true),
+        ...functionOptions(value.functions ?? []),
+      ],
+    };
   if (value.type === 'ocl')
     return oclCompletions(value, text, pos, context, elementId);
   return null;
 };
+
+/** A value's functions, each inserted with a placeholder per argument: `previous(${1})`. */
+const functionOptions = (
+  functions: readonly FunctionDefinition[],
+): Completion[] =>
+  functions.map((f) => ({
+    label: f.name,
+    type: 'function' as const,
+    detail: argumentsText(f.arity),
+    snippet: `${f.name}(${Array.from({ length: f.arity }, (_, i) => `\${${i + 1}}`).join(', ')})`,
+  }));
 
 const NAME = /[A-Za-z_][A-Za-z0-9_]*/;
 

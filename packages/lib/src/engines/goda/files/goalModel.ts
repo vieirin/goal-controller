@@ -22,7 +22,9 @@ const context = langium(goalServices(), {
   annotate: {
     AssertVar: { variable: [variable] },
     AssertAssign: { variable: [variable] },
-    AssertCompare: { variable: [variable] },
+    // a comparison's sides: the names and ids it compares
+    ExprVar: { name: [variable] },
+    ExprRef: { id: [variable] },
   },
 });
 

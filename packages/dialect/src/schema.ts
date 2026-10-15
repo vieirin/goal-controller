@@ -75,6 +75,22 @@ export type ValueConfig =
        * `resolves`
        */
       declaresVariables?: boolean;
+      /**
+       * the functions its comparisons may call (`previous(x) < 18`); with
+       * them (even none), a comparison's sides are expressions (`0.9 * x >=
+       * 1`), not a name and a number only
+       */
+      functions?: readonly FunctionDefinition[];
+    }
+  /**
+   * a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`,
+   * parentheses, ids of elements of these kinds, variables (declared by
+   * their use) and calls to these functions
+   */
+  | {
+      type: 'expression';
+      resolves?: readonly ElementKind[];
+      functions?: readonly FunctionDefinition[];
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: ElementKind }
@@ -98,6 +114,12 @@ export type ValueConfig =
        */
       memberCandidates?: ResourceCandidates;
     };
+
+/**
+ * A function an `expression` or an `assertion` may call (`previous(x)`), and
+ * how many arguments it takes. The engine says what it means.
+ */
+export type FunctionDefinition = { name: string; arity: number };
 
 /** A condition's prefix (the goal language's ASSERTION_PREFIXES; its tests pin them). */
 export type AssertionPrefix = 'assertion condition' | 'assertion trigger';
@@ -305,6 +327,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
  */
 export const LINK_LINE_KEY = 'link';
 
+/**
+ * The property-line key an actor's properties are written with in the goal
+ * language, at the top of the document: `actor "Ann" {importance = 50}`
+ * (goal-controller#109). Reserved in a dialect that declares `actors`.
+ */
+export const ACTOR_LINE_KEY = 'actor';
+
 /** Whether the Notation view writes link lines in a dialect (`linkLines`, by default whether it has ids). */
 export const linkLinesOf = (
   definition: Pick<AnyDialect, 'elements'> &
@@ -406,6 +435,8 @@ export type DefinitionContextElement = {
   kind: string;
   /** its id as written, when its key isn't (a repeated scoped id: key `G3/T1.1`, id `T1.1`) */
   id?: string;
+  /** its name, as a hover shows it (`G2: Reach lab`) */
+  name?: string;
   /** ids of its operand children, in the notation's order */
   children: readonly string[];
   /** its custom properties, as stored */
@@ -642,23 +673,42 @@ export const defineDialect = <const D extends AnyDialect>(
           fail(`${owner}.${property.key} depends on unknown ${key}`);
       const values =
         'when' in value ? [value.matching, value.otherwise] : [value];
-      for (const config of values)
+      for (const config of values) {
+        const functions =
+          config.type === 'expression' || config.type === 'assertion'
+            ? (config.functions ?? [])
+            : [];
+        const names = functions.map((f) => f.name);
+        if (new Set(names).size !== names.length)
+          fail(`${owner}.${property.key}: a function is declared twice`);
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))
               fail(
                 `${owner}.${property.key} completes from unknown project resource ${candidates.resource}`,
               );
+      }
     }
   };
   for (const [kind, list] of Object.entries(definition.properties))
     checkList(kind, list);
-  if (definition.links)
-    for (const [kind, list] of Object.entries(definition.properties))
-      if (list.some((p) => p.key === LINK_LINE_KEY))
-        fail(
-          `${kind}.${LINK_LINE_KEY}: the key a link's properties are written with (it declares links)`,
-        );
+  // the keys link and actor lines are written with, where the dialect has them
+  for (const [declared, key, what] of [
+    [
+      definition.links,
+      LINK_LINE_KEY,
+      `a link's properties are written with (it declares links)`,
+    ],
+    [
+      definition.actors,
+      ACTOR_LINE_KEY,
+      `an actor's properties are written with (it declares actors)`,
+    ],
+  ] as const)
+    if (declared)
+      for (const [kind, list] of Object.entries(definition.properties))
+        if (list.some((p) => p.key === key))
+          fail(`${kind}.${key}: the key ${what}`);
   for (const [kind, list] of Object.entries(definition.links ?? {})) {
     if (!isLinkKind(kind)) fail(`links: unknown link kind ${kind}`);
     checkList(kind, list);

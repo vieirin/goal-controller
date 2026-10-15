@@ -44,6 +44,7 @@ The references are jUCMNavPlus's sources:
 
 **Actors**
 - An `istar.Actor` with `importance` and `importanceQuantitative`.
+- Written in the Notation view as an actor line at the top of the document, `actor "Home owner" {importance = High} {importanceQuantitative = 80}` (goal-controller#109).
 - Its elements are those its diagram box (`ActorRef`) draws.
 
 **Strategies**

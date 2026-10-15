@@ -69,6 +69,7 @@ export const inputFor = (
     case 'number':
       return { kind: 'number' };
     case 'assertion':
+    case 'expression':
     case 'ocl':
       return withPlaceholder({ kind: 'long' as const });
     case 'text':

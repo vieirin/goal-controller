@@ -23,6 +23,7 @@
  * `link "` as this one (`isPlainLinkLine`).
  */
 import {
+  ACTOR_LINE_KEY,
   LINK_LINE_KEY,
   hasIds,
   linkLinesOf,
@@ -30,6 +31,7 @@ import {
   valueOf,
   type AnyDialect,
   type DocumentLink,
+  type PropertyDefinition,
 } from '@goal-controller/dialect';
 import { propertyLine } from '../print.js';
 import { valueProblem } from './values.js';
@@ -127,14 +129,31 @@ export const isPlainLinkLine = (
   new RegExp(`^\\s*${LINK_LINE_KEY}\\s+"`).test(text);
 
 /**
+ * Whether a line of a document without ids is an actor line (`actor "…`,
+ * goal-controller#109): in a dialect that gives actors properties.
+ */
+export const isPlainActorLine = (
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'actors'>>,
+  text: string,
+): boolean =>
+  !hasIds(definition) &&
+  !!definition.actors &&
+  new RegExp(`^\\s*${ACTOR_LINE_KEY}\\s+"`).test(text);
+
+/**
  * Whether a line of a document without ids takes an element's position: any
- * nonblank line but a link line (link lines are added and removed freely,
- * their properties read by `linkEdits`).
+ * nonblank line but a link or an actor line (they are added and removed
+ * freely, their properties read by `linkEdits` and `actorEdits`).
  */
 export const takesPosition = (
-  definition: Parameters<typeof linkLinesOf>[0],
+  definition: Parameters<typeof linkLinesOf>[0] &
+    Partial<Pick<AnyDialect, 'actors'>>,
   text: string,
-): boolean => text.trim() !== '' && !isPlainLinkLine(definition, text);
+): boolean =>
+  text.trim() !== '' &&
+  !isPlainLinkLine(definition, text) &&
+  !isPlainActorLine(definition, text);
 
 /**
  * The element a written target names: in a dialect with ids, its id; in one
@@ -144,18 +163,20 @@ export const takesPosition = (
 export const targetKey = (
   names: Readonly<Record<string, readonly string[]>> | undefined,
   target: string,
+  /** what is named: an element (a link's target), an actor (an actor line) */
+  noun: 'element' | 'actor' = 'element',
 ): { key: string } | { error: string } => {
   if (!names) return { key: target };
   const quoted = QUOTED.exec(target);
-  if (!quoted) return { error: `No element ${target}` };
+  if (!quoted) return { error: `No ${noun} ${target}` };
   const name = quoted[1]!.replace(/\\(.)/g, '$1');
   const keys = names[name] ?? [];
   const ordinal = quoted[2] === undefined ? undefined : Number(quoted[2]);
-  if (!keys.length) return { error: `No element ${quotedTarget(name)}` };
+  if (!keys.length) return { error: `No ${noun} ${quotedTarget(name)}` };
   if (ordinal === undefined) {
     if (keys.length === 1) return { key: keys[0]! };
     return {
-      error: `${keys.length} elements are named ${quotedTarget(name)}: write ${keys
+      error: `${keys.length} ${noun}s are named ${quotedTarget(name)}: write ${keys
         .map((_, i) => quotedTarget(name, i + 1))
         .join(', ')}`,
     };
@@ -164,7 +185,7 @@ export const targetKey = (
   return key
     ? { key }
     : {
-        error: `No element ${quotedTarget(name, ordinal)}: ${keys.length} ${keys.length === 1 ? 'is' : 'are'} named so`,
+        error: `No ${noun} ${quotedTarget(name, ordinal)}: ${keys.length} ${keys.length === 1 ? 'is' : 'are'} named so`,
       };
 };
 
@@ -249,8 +270,19 @@ export const linkPropertyProblems = (
   definition: Pick<AnyDialect, 'links'>,
   kind: string,
   read: LinkLineReading,
+): { index: number; on: 'key' | 'value'; message: string }[] =>
+  writtenPropertyProblems(linkPropertiesOf(definition, kind), kind, read);
+
+/**
+ * What is wrong with a line's `{key = value}` properties (a link's, an
+ * actor's) against what its kind declares: the written property (its
+ * index), and where.
+ */
+export const writtenPropertyProblems = (
+  declared: readonly PropertyDefinition[],
+  kind: string,
+  read: Pick<LinkLineReading, 'properties'>,
 ): { index: number; on: 'key' | 'value'; message: string }[] => {
-  const declared = linkPropertiesOf(definition, kind);
   const properties = Object.fromEntries(
     read.properties.map(({ key, value }) => [key, value]),
   );

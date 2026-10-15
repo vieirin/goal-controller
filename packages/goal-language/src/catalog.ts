@@ -1,10 +1,10 @@
 /**
  * What the goal language offers every dialect, as data (no parser here, so the
  * dialect package and the browser read it without loading Langium): the RT
- * notation's operator catalog with its fixed precedence, the assertion
- * language's operators and the predefined value types. (The properties an
- * element line's annotations and declaration set are the dialect package's
- * DECLARATION_KEYS and ANNOTATION_KEYS.)
+ * notation's operator catalog with its fixed precedence, the assertion and
+ * expression languages' operators and the predefined value types. (The
+ * properties an element line's annotations and declaration set are the
+ * dialect package's DECLARATION_KEYS and ANNOTATION_KEYS.)
  *
  * A dialect enables operators and names the construct each one means; it
  * cannot add an operator or change how tightly one binds. goal.langium is
@@ -153,6 +153,25 @@ export const ASSERTION = {
 } as const;
 
 /**
+ * The expression language: `0.5 + 0.9 * previous(t)`, an `expression` value,
+ * and each side of an assertion's comparison where its type declares
+ * functions. Its operands are numbers (`2`, `0.5`), element ids (`G1`,
+ * `T2.1`), variables (any other name) and calls (`previous(t)`).
+ */
+export const EXPRESSION = {
+  /** binary operators by level, tightest first; every one left-associative */
+  infix: [
+    ['*', '/'],
+    ['+', '-'],
+  ],
+  /** negation: binds tighter than every binary operator (`-x * y` is `(-x) * y`) */
+  prefix: ['-'],
+  parens: ['(', ')'],
+  /** between a call's arguments: `f(a, b)` */
+  separator: ',',
+} as const;
+
+/**
  * The prefixes a condition may start with, where its dialect asks for one
  * (GODA's CtxRegex.g4: `assertion condition` on goals, `assertion trigger` on
  * tasks).
@@ -208,6 +227,7 @@ export const OCL_OPERATIONS = [
  * reads one value on its own (an inspector field).
  *
  * - `assertion`: the assertion language
+ * - `expression`: the expression language (`0.9 * x + f(G1)`)
  * - `int`, `number`, `bool`: `-3`, `-1.5`, `true`
  * - `text`: anything on one line
  * - `enum`: one or more words (`maintain`, `goal-based`)
@@ -220,6 +240,7 @@ export const OCL_OPERATIONS = [
  */
 export const VALUE_TYPES = [
   'assertion',
+  'expression',
   'int',
   'number',
   'bool',
