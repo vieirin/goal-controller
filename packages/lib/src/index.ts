@@ -106,6 +106,9 @@ export {
 } from './engines/output';
 // Analysis engines (goal-controller#107): values on the model, not a file
 export * from './engines/analysis';
+// variants of a root and propositional reasoning over assertions (goal-controller#152)
+export * from './engines/variants';
+export * from './engines/propositional';
 
 // Validation
 export { validate };

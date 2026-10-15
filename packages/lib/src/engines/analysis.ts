@@ -31,13 +31,18 @@ export type AnalysisStep = { label: string; values: AnalysisValues };
 /**
  * One evaluation: its values by element or actor id (the piStar ids). A
  * case run step by step has `steps` too, in order (the workbench steps
- * through them); its `values` are then its outcome (its last step's).
+ * through them); its `values` are then its outcome (its last step's). A
+ * case that is a selection (goal-controller#152: a variant) has the piStar
+ * ids of the elements and links it consists of (the workbench dims the
+ * rest), and a one-line `summary` (its context, score, cost).
  */
 export type AnalysisCase = {
   id: string;
   label: string;
   values: AnalysisValues;
   steps?: readonly AnalysisStep[];
+  selection?: readonly string[];
+  summary?: string;
 };
 
 export type AnalysisResult = { cases: readonly AnalysisCase[] };
