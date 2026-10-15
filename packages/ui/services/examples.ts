@@ -50,6 +50,7 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   mutrose: 'mutrose',
   goda: 'goda',
   grl: 'grl',
+  istardt: 'istardt',
   'pistar-ext': 'pistarext',
 };
 

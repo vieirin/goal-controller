@@ -59,4 +59,8 @@ export const KNOWN_PROPERTIES: Record<
   // GRL's element properties are read but not declarable yet (#105): its
   // mapper's; an indicator's are declared (goal-controller#132)
   grl: { ...keysOf(grlEngineMapper), ...extensionKeys(ENGINE_DIALECTS.grl) },
+  istardt: {
+    ...definedKeys(ENGINE_DIALECTS.istardt),
+    ...extensionKeys(ENGINE_DIALECTS.istardt),
+  },
 };

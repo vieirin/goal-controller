@@ -5,6 +5,7 @@ import EdgeInspector from './edge/EdgeInspector';
 import EdgeV2Inspector from './edgeV2/EdgeV2Inspector';
 import GodaInspector from './goda/GodaInspector';
 import GrlInspector from './grl/GrlInspector';
+import IstardtInspector from './istardt/IstardtInspector';
 import MutroseInspector from './mutrose/MutroseInspector';
 import SleecInspector from './sleec/SleecInspector';
 
@@ -30,5 +31,7 @@ export default function ModelInspector() {
       return <GodaInspector />;
     case 'grl':
       return <GrlInspector />;
+    case 'istardt':
+      return <IstardtInspector />;
   }
 }

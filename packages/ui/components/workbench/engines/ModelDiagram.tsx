@@ -5,6 +5,7 @@ import EdgeDiagram from './edge/EdgeDiagram';
 import EdgeV2Diagram from './edgeV2/EdgeV2Diagram';
 import GodaDiagram from './goda/GodaDiagram';
 import GrlDiagram from './grl/GrlDiagram';
+import IstardtDiagram from './istardt/IstardtDiagram';
 import MutroseDiagram from './mutrose/MutroseDiagram';
 import PistarDiagram from './pistar/PistarDiagram';
 import PistarExtDiagram from './pistarExt/PistarExtDiagram';
@@ -30,5 +31,7 @@ export default function ModelDiagram() {
       return <GodaDiagram />;
     case 'grl':
       return <GrlDiagram />;
+    case 'istardt':
+      return <IstardtDiagram />;
   }
 }

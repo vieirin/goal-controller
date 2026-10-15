@@ -269,6 +269,7 @@ export { sleecEngine } from './engines/sleec/engine';
 export { mutroseEngine } from './engines/mutrose/engine';
 export { godaEngine } from './engines/goda/engine';
 export { grlEngine } from './engines/grl/engine';
+export { istardtEngine } from './engines/istardt/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

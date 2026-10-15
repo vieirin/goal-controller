@@ -2,7 +2,13 @@ import { GoalTree } from '@goal-controller/goal-tree';
 import { GoalModel } from './goalModel';
 import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
 import { isPrismEngine, type TransformEngine } from '../lib/types';
-import { mutroseProblem, type MutroseGoalTree } from '@goal-controller/lib';
+import {
+  analysisModel,
+  istardtProblems,
+  mutroseProblem,
+  readIstardtModel,
+  type MutroseGoalTree,
+} from '@goal-controller/lib';
 import { nodeIdInMessage } from '../lib/workbench/localProblems';
 import {
   SOURCE,
@@ -42,7 +48,7 @@ export const analyze = (
           ? GoalModel.parseForMutrose(modelJson)
           : engine === 'goda'
             ? GoalModel.parseForGoda(modelJson)
-            : !generatesFiles(engine)
+            : !generatesFiles(engine) || engine === 'istardt'
               ? GoalModel.parseAsGraph(modelJson)
               : GoalModel.parseForEdge(modelJson);
 
@@ -70,7 +76,18 @@ export const analyze = (
     return response;
   }
 
-  if (engine === 'mutrose') {
+  if (engine === 'istardt' && 'model' in parsed && parsed.model) {
+    // what crosses the extension's kinds, which no property check sees (#117 D7)
+    for (const problem of istardtProblems(
+      readIstardtModel(analysisModel(parsed.model)),
+    ))
+      response.problems.push({
+        severity: problem.severity,
+        source: ENGINE_LABEL[engine],
+        message: problem.message,
+        ...(problem.element && { elementId: problem.element }),
+      });
+  } else if (engine === 'mutrose') {
     // what the decomposer checks across goals (variables' scope, query types)
     const problem = mutroseProblem(parsed.tree as MutroseGoalTree);
     if (problem)

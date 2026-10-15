@@ -1,5 +1,5 @@
 import { GoalTree, Model, type RootReading } from '@goal-controller/goal-tree';
-import { parsePistar } from '@istar-ts/core';
+import { parsePistar, type IstarModel } from '@istar-ts/core';
 import { recordedMode } from '../lib/project';
 import { ENGINE_FILE_KINDS } from '../lib/workbench/engineDialects';
 import {
@@ -127,13 +127,17 @@ export const GoalModel = {
   },
 
   /**
-   * A model read as a graph (an analysis engine's, GRL's): parsed with the
-   * kinds its block declares, without a root or a tree.
+   * A model read as a graph (an analysis engine's, GRL's; iStar-DT's writer):
+   * parsed with the kinds its block declares, without a root or a tree.
    */
-  parseAsGraph(modelJson: string): { success: true; tree: null } | ParseError {
+  parseAsGraph(
+    modelJson: string,
+  ):
+    | { success: true; tree: null; model: IstarModel<string, string> }
+    | ParseError {
     try {
-      parsePistar(modelJson, { fileMetamodel: true });
-      return { success: true, tree: null };
+      const model = parsePistar(modelJson, { fileMetamodel: true });
+      return { success: true, tree: null, model };
     } catch (error) {
       return {
         success: false,

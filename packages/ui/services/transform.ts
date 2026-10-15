@@ -4,6 +4,8 @@ import {
   GODA_DEFAULT_VARIANT,
   godaGoalModel,
   godaOutput,
+  analysisModel,
+  istardtOutput,
   initLogger,
   initEdgeV2Logger,
   mutroseOutput,
@@ -33,6 +35,8 @@ export type TransformOptions = {
   variant?: GodaVariant;
   /** GODA: also write reliability.formula and cost.formula, SA-BSN's runtime formulas (#94) */
   runtimeFormulas?: boolean;
+  /** iStar-DT: the observations' type, `getObsType(continuous)` (default) or `discrete` */
+  continuous?: boolean;
   /** generate from the model without its single-child goals (see goal-tree's `Model.reduce`) */
   reduce?: boolean;
   /** the primary file of the latest successful run for the same file and engine, for `clean: false` */
@@ -61,6 +65,7 @@ export const transform = (
     previousOutput,
     variant = GODA_DEFAULT_VARIANT,
     runtimeFormulas = false,
+    continuous = true,
   } = options;
 
   const logger =
@@ -114,6 +119,15 @@ export const transform = (
         modelName,
         variant,
         runtimeFormulas,
+      }));
+    } else if (engine === 'istardt') {
+      // iStar-DT reads the model as a graph: its effects, conditions and
+      // precedences are links and kinds goal-tree's tree doesn't keep (#125)
+      const parseResult = GoalModel.parseAsGraph(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      ({ files } = istardtOutput(analysisModel(parseResult.model), {
+        modelName,
+        continuous,
       }));
     } else {
       // MutRoSe reads the model as written: no single-child goals removed
