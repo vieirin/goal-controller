@@ -53,3 +53,7 @@ reminder fails and the medicine isn't taken. `reference/trace-a-day.txt` is
 dropped (its failure condition holds), medicine not taken occurs, follow
 medical instructins fails its AND decomposition and restarts, and the error
 "medicine not taken autonomously" is adopted.
+
+## Native file
+
+`patient-monitoring.tropos` is the model as TAOM4E's `.tropos`, written by the engine's writer from `patient-monitoring.txt` (goal-controller#144): what TAOM4E has no class for is in goal-controller's extension. **Unverified against TAOM4E**: no tool can re-read it. `pnpm stress:tropos4as` fails when it isn't what the writer writes now.

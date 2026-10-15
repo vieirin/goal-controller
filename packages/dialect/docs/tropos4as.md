@@ -21,7 +21,7 @@ This page records:
 - what fit as it was;
 - where the framework had to grow;
 - what is still open;
-- TAOM4E's `.tropos` importer.
+- TAOM4E's `.tropos`: the importer and the native file.
 
 ## What Tropos4AS reads
 
@@ -155,7 +155,7 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 
 ## TAOM4E's `.tropos`: `engines/tropos4as/taom4e/`
 
-`readTaom4e(text, { modelName, fileName })` reads TAOM4E's EMF XMI of its base Tropos metamodel with the shared XMI reader (#137), in #143's `read` shape (`{ model, dialectRecord, diagnostics }`); the workbench opens `.tropos` with it (`FILE_IMPORTERS`). `TAOM4E-MM.ecore` is committed beside it (`taom4e/reference/`, its origin in the README there). [importers.md](importers.md) has the mapping, logged on #134 (item 4's D):
+`readTaom4e(text, { modelName, fileName })` reads TAOM4E's EMF XMI of its base Tropos metamodel with the shared XMI reader (#137), in #143's `read` shape (`{ model, dialectRecord, diagnostics }`). It is the native file's reader (below). `TAOM4E-MM.ecore` is committed beside it (`taom4e/reference/`, its origin in the README there). [importers.md](importers.md) has the mapping, logged on #134 (item 4's D):
 - iStar's kinds and links for Tropos's, a means-end as an OR-refinement of its end, positions from the `diagram` package;
 - `creationProperty`, `fulfillmentProperty` and `invariantProperty` → `creation`, `achievement` and `maintain`; `mode` → `type` where it maps;
 - **GODA-shaped** (CRGMToPRISM's `G1: …`/`T1.1: …` labels, no Tropos4AS attribute): a GODA model, `creationProperty` kept, its root goal selected.
@@ -165,6 +165,35 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 - the GODA-shaped twin of `examples/goda/dm` generates, through the GODA engine, what `dm2.txt` does, file for file (#134 D1.3).
 
 `pnpm stress:tropos4as`'s importer column runs both.
+
+## Native file
+
+The dialect declares `nativeFiles.tropos` (#143, #144 item 3): `.tropos`, format `xmi`, schema the committed `taom4e/reference/TAOM4E-MM.ecore`. The workbench opens a `.tropos` as a project with it, and writes it again as the model is edited.
+
+- **Read**: `readTaom4e`, above.
+- **Write** (`writeTaom4e`, `taom4e/write.ts`, through the goal language's `writeXmi`): what EMF writes for a resource of two roots, an `xmi:XMI`, with the packages' `nsPrefix`es:
+  - the `it.itc.sra.taom4e.model.project:Project`: a goal diagram per actor (its box, and a figure per element at the model's position and size), and an actor diagram for the dependums;
+  - the `FormalBusinessModel`: the actors, hard goals, softgoals, plans and resources, each with its piStar id as its `xmi:id`. Then the decompositions (`BooleanDecomposition` and its `AndDecLink`/`OrDecLink`s), the means-ends (a task OR-refining a goal), the contributions (`metric` `++`, `+`, `-`, `--`) and the dependencies;
+  - Formal Tropos's attributes: `creation`, `achievement` and `maintain` as `creationProperty`, `fulfillmentProperty` and `invariantProperty`; `mode` `MAINTAIN` for a maintain-goal, `ACHIEVE` for an achieve-goal with a condition. A **GODA** model writes `creationProperty` as it is, on goals and plans, as CRGMToPRISM reads it, and all its refinements as decompositions.
+- **What TAOM4E has no class for** is not dropped. No Tropos4AS metamodel survives to write it as TAOM4E's plug-ins did (#134), so it goes in goal-controller's extension, `<xmi:Extension extender="goal-controller" engine="…">`: XMI 2.0's place for a tool's own data, which EMF and TAOM4E skip. It holds:
+  - Tropos4AS's kinds (artifacts, failures, errors, symptoms) and links;
+  - the conditions with no Formal Tropos slot (`failure`, `drop`, `target`, `onFailure`, `precondition`) and a perform-goal's type;
+  - GODA's `selected`;
+  - the diagram's properties;
+  - each list's order;
+  - the dependencies' link ids.
+
+  A file with the extension reads back to its model. It names its engine there, so the reader neither guesses it from the labels nor selects a root goal. TAOM4E would read the Tropos part only. The writer's info diagnostic says how many nodes and links the extension keeps.
+- **`lossy`**: `display` (colours; the sizes are the diagram's) and `diagram.width`, `diagram.height` (the reader computes the extent).
+- **`canonical`** (`canonicalTaom4e`): what TAOM4E reads of a file only (no comments, no extension), its `xmi:id`s renumbered in the file's order with every reference, attributes by name, EMF's indents.
+- **Round trips** (`test/engines/tropos4as/native.test.ts`, and the stress script's native column):
+  - `read(write(m))` is `m`, but for `lossy`, for both seeds and the three fixtures;
+  - `write(read(f))` is `f`, canonically, for the fixtures;
+  - the GODA-shaped fixture, written and read back, generates `examples/goda/dm`'s 8 files through the GODA engine.
+
+- **The seeds ship theirs**: `examples/tropos4as/<seed>/<seed>.tropos`, the writer's output for the committed model, listed under the model in `project.json` (`"native": { "tropos": "<seed>.tropos" }`). The stress test fails when one isn't what the writer writes now, so they never drift.
+
+**Unverified against TAOM4E.** No tool can re-read what it writes: TAOM4E and its Tropos4AS plug-ins are gone (#134). The round trip is ours alone.
 
 ## Examples
 

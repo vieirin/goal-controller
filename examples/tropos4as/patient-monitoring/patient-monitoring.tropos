@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:it.itc.sra.taom4e.model.project="http:///it/itc/sra/taom4e/model/project.ecore" xmlns:it.itc.sra.taom4e.model.core.informalcore="http:///it/itc/sra/taom4e/model/core/informalcore.ecore" xmlns:it.itc.sra.taom4e.model.core.informalcore.formalcore="http:///it/itc/sra/taom4e/model/core/informalcore/formalcore.ecore" xmlns:it.itc.sra.taom4e.model.diagram.goaldiagram="http:///it/itc/sra/taom4e/model/diagram/goaldiagram.ecore" xmlns:it.itc.sra.taom4e.model.diagram.actordiagram="http:///it/itc/sra/taom4e/model/diagram/actordiagram.ecore">
+  <it.itc.sra.taom4e.model.project:Project name="Patient monitoring" BusinessModel="business-model">
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" name="Care Assistant" xmi:id="CareAssistant-diagram" phase="LR" Actor="CareAssistant">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="CareAssistant-figure" x="3" y="38" core="CareAssistant"/>
+    </Diagram>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" name="Patient" xmi:id="Patient-diagram" phase="LR" Actor="Patient">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="Patient-figure" x="-11" y="223" core="Patient"/>
+    </Diagram>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GoalDiagram" name="PMA" xmi:id="PMA-diagram" phase="LR" Actor="PMA">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_ActorUI" xmi:id="PMA-figure" x="322" y="58" core="PMA" children="followInstructions-figure eatMeals-figure takeMedicine-figure takeMedicineNoDinner-figure callAssistant-figure rememberSpeakers-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="followInstructions-figure" x="464" y="128" width="225" height="37" core="followInstructions" container="PMA-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="eatMeals-figure" x="434" y="245" width="87" height="36" core="eatMeals" container="PMA-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="takeMedicine-figure" x="606" y="313" width="126" height="49" core="takeMedicine" container="PMA-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_HardGoalUI" xmi:id="takeMedicineNoDinner-figure" x="806" y="468" width="123" height="51" core="takeMedicineNoDinner" container="PMA-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="callAssistant-figure" x="87" y="396" width="156" height="36" core="callAssistant" container="PMA-figure"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.goaldiagram:GD_PlanUI" xmi:id="rememberSpeakers-figure" x="642" y="506" width="168" height="45" core="rememberSpeakers" container="PMA-figure"/>
+    </Diagram>
+    <Diagram xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:ActorDiagram" name="Actor diagram" xmi:id="actor-diagram" phase="ER">
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="CareAssistant-actor-figure" x="3" y="38" core="CareAssistant"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="Patient-actor-figure" x="-11" y="223" core="Patient"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_ActorUI" xmi:id="PMA-actor-figure" x="322" y="58" core="PMA"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_HardGoalUI" xmi:id="followInstructionsDependum-figure" x="138" y="15" width="225" height="36" core="followInstructionsDependum"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_SoftGoalUI" xmi:id="reduceNeed-figure" x="124" y="72" width="129" height="57" core="reduceNeed"/>
+      <DiagramNodes xsi:type="it.itc.sra.taom4e.model.diagram.actordiagram:AD_SoftGoalUI" xmi:id="noAnnoyances-figure" x="32" y="140" width="213" height="31" core="noAnnoyances"/>
+    </Diagram>
+  </it.itc.sra.taom4e.model.project:Project>
+  <it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel name="Patient monitoring" xmi:id="business-model">
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" name="Care Assistant" xmi:id="CareAssistant"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" name="Patient" xmi:id="Patient"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FActor" name="PMA" xmi:id="PMA" wanted="followInstructions eatMeals takeMedicine takeMedicineNoDinner" plans="callAssistant rememberSpeakers"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="follow medical instructins" xmi:id="followInstructions" invariantProperty="instructionsFollowed" mode="MAINTAIN" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="eat meals" xmi:id="eatMeals" fulfillmentProperty="mealSensor.meals &gt;= 2" mode="ACHIEVE" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="take medicine before 8PM" xmi:id="takeMedicine" creationProperty="hour &gt;= 6" fulfillmentProperty="medicineSensor.taken" mode="ACHIEVE" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="take medicine without dinner" xmi:id="takeMedicineNoDinner" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" name="call assistant" xmi:id="callAssistant" capableOf="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" name="remember through speakers" xmi:id="rememberSpeakers" capableOf="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="follow medical instructins" xmi:id="followInstructionsDependum"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" name="reduce need for assistance" xmi:id="reduceNeed"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FSoftGoal" name="don't bring annoyances" xmi:id="noAnnoyances"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:BooleanDecomposition" xmi:id="followInstructions-and" type="AND" rootGoal="followInstructions" actorDecPointOfView="PMA" BooleanDecLink="eatMeals-AndRefinementLink-followInstructions takeMedicine-AndRefinementLink-followInstructions"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:AndDecLink" xmi:id="eatMeals-AndRefinementLink-followInstructions" BooleanDecomposition="followInstructions-and" targetGoal="eatMeals"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:AndDecLink" xmi:id="takeMedicine-AndRefinementLink-followInstructions" BooleanDecomposition="followInstructions-and" targetGoal="takeMedicine"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:MeansEnd" xmi:id="rememberSpeakers-OrRefinementLink-takeMedicine" meansPlan="rememberSpeakers" end="takeMedicine" actorMeansEndPointOfView="PMA"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="followInstructionsDependum-dependency" depender="CareAssistant" dependee="PMA" goalDependum="followInstructionsDependum"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="reduceNeed-dependency" depender="CareAssistant" dependee="PMA" goalDependum="reduceNeed"/>
+    <TroposRelations xsi:type="it.itc.sra.taom4e.model.core.informalcore:Dependency" xmi:id="noAnnoyances-dependency" depender="Patient" dependee="PMA" goalDependum="noAnnoyances"/>
+  </it.itc.sra.taom4e.model.core.informalcore.formalcore:FormalBusinessModel>
+  <xmi:Extension extender="goal-controller" engine="tropos4as">
+    <property of="takeMedicine" key="failure" value="hour &gt;= 20"/>
+    <property of="takeMedicineNoDinner" key="precondition" value="mealSensor.meals &gt;= 2"/>
+    <dependency of="followInstructionsDependum-dependency" depender="CareAssistant-DependencyLink-followInstructionsDependum" dependee="followInstructionsDependum-DependencyLink-PMA"/>
+    <dependency of="reduceNeed-dependency" depender="CareAssistant-DependencyLink-reduceNeed" dependee="reduceNeed-DependencyLink-PMA"/>
+    <dependency of="noAnnoyances-dependency" depender="Patient-DependencyLink-noAnnoyances" dependee="noAnnoyances-DependencyLink-PMA"/>
+    <node id="mealsNotEaten" type="tropos4as.Failure" text="meals not eaten" where="actor" actor="PMA" x="249" y="150"/>
+    <node id="medicineNotTaken" type="tropos4as.Failure" text="medicine not taken" where="actor" actor="PMA" x="765" y="195"/>
+    <node id="errorNotEat" type="tropos4as.Error" text="ERROR: patient did not eat autonomously" where="actor" actor="PMA" x="165" y="301">
+      <property key="condition" value="!ateAutonomously"/>
+    </node>
+    <node id="errorMedicine" type="tropos4as.Error" text="ERROR: medicine not taken autonomously" where="actor" actor="PMA" x="879" y="308">
+      <property key="condition" value="!medicineTakenAutonomously"/>
+    </node>
+    <node id="errorNoDinner" type="tropos4as.Error" text="ERROR: no dinner until 8PM" where="actor" actor="PMA" x="778" y="361">
+      <property key="condition" value="hour &gt;= 20 &amp; mealSensor.meals &lt; 2"/>
+    </node>
+    <node id="medicineSensor" type="tropos4as.Artifact" text="medicine sensor" where="actor" actor="PMA" x="828" y="68">
+      <property key="attributes" value="taken:bool"/>
+    </node>
+    <node id="mealSensor" type="tropos4as.Artifact" text="meal sensor" where="actor" actor="PMA" x="1072" y="430">
+      <property key="attributes" value="meals:int"/>
+    </node>
+    <link id="eatMeals-FailureLink-mealsNotEaten" type="tropos4as.FailureLink" source="eatMeals" target="mealsNotEaten"/>
+    <link id="takeMedicine-FailureLink-medicineNotTaken" type="tropos4as.FailureLink" source="takeMedicine" target="medicineNotTaken"/>
+    <link id="errorNotEat-ErrorLink-mealsNotEaten" type="tropos4as.ErrorLink" source="errorNotEat" target="mealsNotEaten"/>
+    <link id="errorMedicine-ErrorLink-medicineNotTaken" type="tropos4as.ErrorLink" source="errorMedicine" target="medicineNotTaken"/>
+    <link id="errorNoDinner-ErrorLink-medicineNotTaken" type="tropos4as.ErrorLink" source="errorNoDinner" target="medicineNotTaken"/>
+    <link id="callAssistant-OrRefinementLink-errorNotEat" type="istar.OrRefinementLink" source="callAssistant" target="errorNotEat"/>
+    <link id="takeMedicineNoDinner-OrRefinementLink-errorNoDinner" type="istar.OrRefinementLink" source="takeMedicineNoDinner" target="errorNoDinner"/>
+    <link id="eatMeals-SequenceLink-takeMedicine" type="tropos4as.SequenceLink" source="eatMeals" target="takeMedicine"/>
+    <link id="mealSensor-ReadsLink-eatMeals" type="tropos4as.ReadsLink" source="mealSensor" target="eatMeals"/>
+    <link id="medicineSensor-ReadsLink-takeMedicine" type="tropos4as.ReadsLink" source="medicineSensor" target="takeMedicine"/>
+    <link id="medicineSensor-ReadsLink-errorMedicine" type="tropos4as.ReadsLink" source="medicineSensor" target="errorMedicine"/>
+    <link id="mealSensor-ReadsLink-errorNoDinner" type="tropos4as.ReadsLink" source="mealSensor" target="errorNoDinner"/>
+    <link id="mealSensor-ReadsLink-takeMedicineNoDinner" type="tropos4as.ReadsLink" source="mealSensor" target="takeMedicineNoDinner"/>
+    <order of="CareAssistant" ids=""/>
+    <order of="Patient" ids=""/>
+    <order of="PMA" ids="followInstructions eatMeals takeMedicine mealsNotEaten medicineNotTaken errorNotEat errorMedicine errorNoDinner takeMedicineNoDinner medicineSensor mealSensor callAssistant rememberSpeakers"/>
+    <order of="" ids=""/>
+    <diagram>
+      <property key="title" value="Patient monitoring"/>
+      <property key="author" value="goal-controller"/>
+      <property key="source" value="iStar 2011, Morandini, Perini, Marchetto, Fig. 1"/>
+      <property key="lastUpdated" value="2026-10-15"/>
+    </diagram>
+  </xmi:Extension>
+</xmi:XMI>

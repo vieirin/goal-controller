@@ -63,22 +63,26 @@ export type GrlGraph = {
 };
 
 /** iStar's contribution value as GRL's, when the link has no GRL label */
-const CONTRIBUTION_OF_LABEL: Readonly<Record<string, GrlContribution>> = {
-  make: 'Make',
-  help: 'Help',
-  hurt: 'Hurt',
-  break: 'Break',
-};
+export const CONTRIBUTION_OF_LABEL: Readonly<Record<string, GrlContribution>> =
+  {
+    make: 'Make',
+    help: 'Help',
+    hurt: 'Hurt',
+    break: 'Break',
+  };
 
 /** an enum property: its value, or the metamodel's default */
-const pick = <T extends string>(
+export const pick = <T extends string>(
   value: string | undefined,
   literals: readonly T[],
   fallback: T,
 ): T => (literals.includes(value as T) ? (value as T) : fallback);
 
 /** an int property: its value, or the metamodel's default */
-const integer = (value: string | undefined, fallback: number): number => {
+export const integer = (
+  value: string | undefined,
+  fallback: number,
+): number => {
   const read = Number(value);
   return value !== undefined && value.trim() !== '' && Number.isInteger(read)
     ? read

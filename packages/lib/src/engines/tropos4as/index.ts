@@ -44,7 +44,13 @@ export {
   type ScenarioStep,
 } from './scenarios';
 export * from './lifecycle';
-export { readTaom4e, type Taom4eContext } from './taom4e';
+export {
+  canonicalTaom4e,
+  readTaom4e,
+  taom4eNativeFile,
+  writeTaom4e,
+  type Taom4eContext,
+} from './taom4e';
 export {
   carriedDifference,
   taom4eCarried,

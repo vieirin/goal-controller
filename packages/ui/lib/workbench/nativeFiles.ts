@@ -299,3 +299,40 @@ export const nativeProblems = (states: readonly NativeState[]): Problem[] =>
       ];
     return [];
   });
+
+/** A native file the project lacked, written from the model when it opened: its text, or why not. */
+export type GeneratedNative = { slot: NativeSlot; write: NativeWriteResult };
+
+/**
+ * The native files a project lacks that its dialect writes, each written
+ * from the model as it opened (goal-controller#143): a project that ships
+ * without its native file gets it at once. A file its dialect only reads
+ * is never made.
+ */
+export const generateAbsent = (
+  slots: readonly NativeSlot[],
+  modelText: string,
+  context: (slot: NativeSlot) => NativeFileContext,
+): GeneratedNative[] =>
+  slots
+    .filter((slot) => slot.missing && slot.definition.write)
+    .map((slot) => ({
+      slot,
+      write: writeNative(slot.definition, modelText, context(slot)),
+    }));
+
+/** Why an absent native file couldn't be made from the model, as problems (the file has no tab to open). */
+export const absentProblems = (
+  generated: readonly GeneratedNative[],
+): Problem[] =>
+  generated.flatMap(({ slot, write }): Problem[] =>
+    write.text === null
+      ? [
+          {
+            severity: 'warning',
+            source: slot.definition.label,
+            message: `${fileName(slot.path)} can't be written from the model: ${firstError(write.diagnostics)}`,
+          },
+        ]
+      : [],
+  );
