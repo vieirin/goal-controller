@@ -47,6 +47,8 @@ describe('engine options', () => {
       generateFluents: false,
       variant: '5305bc1',
       runtimeFormulas: false,
+      continuous: true,
+      infeasibleActionPenalty: 100,
     });
   });
 
