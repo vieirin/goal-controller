@@ -2,8 +2,8 @@
  * jUCMNav's `.jucm` into goal-controller (goal-controller#106, #28 item 15):
  * the GRL half of a URN specification as a piStar model in the GRL dialect,
  * its strategies as the dialect's `strategies` project resource, and what
- * the import could not keep. One way: no export back to `.jucm`
- * (packages/dialect/docs/importers.md).
+ * the import could not keep (packages/dialect/docs/importers.md). The way
+ * back is engines/grl/jucm's `writeJucm` (#144).
  */
 import type { ImportResult } from '../types';
 import { readJucm } from './xmi';

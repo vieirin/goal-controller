@@ -131,27 +131,32 @@ export const strategyFileName = (group: string): string =>
 export const writeStrategyFile = (file: GrlStrategyFile): string =>
   `${JSON.stringify(file, null, 2)}\n`;
 
-type Entry = {
+/** A strategy as its file declares it: its includes not resolved, a value the label's when not written. */
+export type GrlStrategyEntry = {
+  id: string;
+  name: string;
+  author?: string;
+  includes: string[];
+  evaluations: Map<string, GrlStrategyEvaluation>;
+};
+
+/** One file read: its group, its preferences and its strategies, in the file's order. */
+export type GrlStrategyGroup = {
   path: string;
   text: string;
   group: string;
   preferences: GrlPreferences;
-  entry: {
-    id: string;
-    name: string;
-    includes: string[];
-    evaluations: Map<string, GrlStrategyEvaluation>;
-  };
+  strategies: GrlStrategyEntry[];
 };
 
 /** Reads one file's strategies, with what is wrong in it. */
 const readFile = (
   file: ResourceFile,
   diagnostics: ResourceDiagnostic[],
-): Entry[] => {
+): GrlStrategyGroup | null => {
   const { value, diagnostics: json } = readJson(file);
   diagnostics.push(...json);
-  if (value === undefined) return [];
+  if (value === undefined) return null;
   const problem = (key: string, message: string) =>
     diagnostics.push({
       path: file.path,
@@ -161,7 +166,7 @@ const readFile = (
     });
   if (!isRecord(value) || !Array.isArray(value.strategies)) {
     problem('strategies', 'A strategies file has a `strategies` list');
-    return [];
+    return null;
   }
   const group = typeof value.group === 'string' ? value.group : file.path;
   const preferences: GrlPreferences = { ...DEFAULT_PREFERENCES };
@@ -186,70 +191,69 @@ const readFile = (
     }
   }
   const low = preferences.range === 'positive' ? 0 : -100;
-  return value.strategies.flatMap((strategy): Entry[] => {
-    if (!isRecord(strategy) || typeof strategy.id !== 'string') {
-      problem('id', 'A strategy has a string `id`');
-      return [];
-    }
-    const evaluations = new Map<string, GrlStrategyEvaluation>();
-    for (const [element, evaluation] of Object.entries(
-      isRecord(strategy.evaluations) ? strategy.evaluations : {},
-    )) {
-      if (!isRecord(evaluation)) {
-        problem(
-          element,
-          `Strategy ${strategy.id}: element ${element}'s evaluation is an object`,
-        );
-        continue;
+  const strategies = value.strategies.flatMap(
+    (strategy): GrlStrategyEntry[] => {
+      if (!isRecord(strategy) || typeof strategy.id !== 'string') {
+        problem('id', 'A strategy has a string `id`');
+        return [];
       }
-      const label = evaluation.label ?? 'None';
-      const known = GRL_QUALITATIVE_LABELS.includes(
-        label as GrlQualitativeLabel,
-      )
-        ? (label as GrlQualitativeLabel)
-        : 'None';
-      if (known !== label)
-        problem(
-          element,
-          `Strategy ${strategy.id}: element ${element}'s label is one of ${GRL_QUALITATIVE_LABELS.join(', ')}`,
-        );
-      // a label alone sets its value: propagation labels a leaf by its value
-      const fromLabel =
-        preferences.range === 'positive'
-          ? toPositiveRange(LABEL_VALUE[known])
-          : LABEL_VALUE[known];
-      const raw = evaluation.value ?? fromLabel;
-      // Conflict's and Unknown's values are out of range: jUCMNav's sentinels
-      const sentinel =
-        (known === 'Conflict' && raw === CONFLICT) ||
-        (known === 'Unknown' && raw === UNDECIDED);
-      if (
-        !sentinel &&
-        (!Number.isInteger(raw) ||
-          (raw as number) < low ||
-          (raw as number) > 100)
-      )
-        problem(
-          element,
-          `Strategy ${strategy.id}: element ${element}'s value is an integer, ${low}..100`,
-        );
-      evaluations.set(element, {
-        value: Number.isInteger(raw) ? (raw as number) : 0,
-        label: known,
-        ...(isRecord(evaluation.kpi) && {
-          kpi: evaluation.kpi as Record<string, string | number>,
-        }),
-      });
-    }
-    return [
-      {
-        path: file.path,
-        text: file.text,
-        group,
-        preferences,
-        entry: {
+      const evaluations = new Map<string, GrlStrategyEvaluation>();
+      for (const [element, evaluation] of Object.entries(
+        isRecord(strategy.evaluations) ? strategy.evaluations : {},
+      )) {
+        if (!isRecord(evaluation)) {
+          problem(
+            element,
+            `Strategy ${strategy.id}: element ${element}'s evaluation is an object`,
+          );
+          continue;
+        }
+        const label = evaluation.label ?? 'None';
+        const known = GRL_QUALITATIVE_LABELS.includes(
+          label as GrlQualitativeLabel,
+        )
+          ? (label as GrlQualitativeLabel)
+          : 'None';
+        if (known !== label)
+          problem(
+            element,
+            `Strategy ${strategy.id}: element ${element}'s label is one of ${GRL_QUALITATIVE_LABELS.join(', ')}`,
+          );
+        // a label alone sets its value: propagation labels a leaf by its value
+        const fromLabel =
+          preferences.range === 'positive'
+            ? toPositiveRange(LABEL_VALUE[known])
+            : LABEL_VALUE[known];
+        const raw = evaluation.value ?? fromLabel;
+        // Conflict's and Unknown's values are out of range: jUCMNav's sentinels
+        const sentinel =
+          (known === 'Conflict' && raw === CONFLICT) ||
+          (known === 'Unknown' && raw === UNDECIDED);
+        if (
+          !sentinel &&
+          (!Number.isInteger(raw) ||
+            (raw as number) < low ||
+            (raw as number) > 100)
+        )
+          problem(
+            element,
+            `Strategy ${strategy.id}: element ${element}'s value is an integer, ${low}..100`,
+          );
+        evaluations.set(element, {
+          value: Number.isInteger(raw) ? (raw as number) : 0,
+          label: known,
+          ...(isRecord(evaluation.kpi) && {
+            kpi: evaluation.kpi as Record<string, string | number>,
+          }),
+        });
+      }
+      return [
+        {
           id: strategy.id,
           name: typeof strategy.name === 'string' ? strategy.name : strategy.id,
+          ...(typeof strategy.author === 'string' && {
+            author: strategy.author,
+          }),
           includes: Array.isArray(strategy.includes)
             ? strategy.includes.filter(
                 (id): id is string => typeof id === 'string',
@@ -257,9 +261,23 @@ const readFile = (
             : [],
           evaluations,
         },
-      },
-    ];
-  });
+      ];
+    },
+  );
+  return { path: file.path, text: file.text, group, preferences, strategies };
+};
+
+/** Each file's group as it is written (includes not resolved), with what is wrong in them. */
+export const readStrategyGroups = (
+  files: readonly ResourceFile[],
+): { groups: GrlStrategyGroup[]; diagnostics: ResourceDiagnostic[] } => {
+  const diagnostics: ResourceDiagnostic[] = [];
+  const groups = files.flatMap((file) => readFile(file, diagnostics) ?? []);
+  return { groups, diagnostics };
+};
+
+type Entry = Omit<GrlStrategyGroup, 'strategies'> & {
+  entry: GrlStrategyEntry;
 };
 
 /**
@@ -270,8 +288,10 @@ const readFile = (
 export const readStrategies = (
   files: readonly ResourceFile[],
 ): { strategies: GrlStrategy[]; diagnostics: ResourceDiagnostic[] } => {
-  const diagnostics: ResourceDiagnostic[] = [];
-  const entries = files.flatMap((file) => readFile(file, diagnostics));
+  const { groups, diagnostics } = readStrategyGroups(files);
+  const entries = groups.flatMap(({ strategies, ...group }) =>
+    strategies.map((entry): Entry => ({ ...group, entry })),
+  );
   const byId = new Map<string, Entry>();
   for (const entry of entries) {
     if (byId.has(entry.entry.id))

@@ -11,7 +11,10 @@
  *    into .cache/grl/reference/ (never on the host);
  * 3. imports each seed, checks its counts and its contributions, and
  *    evaluates its strategies against the reference (seed.cjs);
- * 4. writes a JSON result per seed and SUMMARY.md to .cache/grl/results/.
+ * 4. writes each seed's model back as a `.jucm` and imports it again; with
+ *    `--oracle`, jUCMNav evaluates the written files too, each against its
+ *    seed's reference (native.cjs, goal-controller#144);
+ * 5. writes a JSON result per seed and SUMMARY.md to .cache/grl/results/.
  *
  * Exits non-zero only with `--strict`, on a failure of a committed seed. A
  * fetched seed's failures are reported, never fatal.
@@ -22,9 +25,15 @@ const { CACHE, SOURCES, fetchSeeds } = require('./fetch.cjs');
 const {
   committedSeeds,
   loadReference,
+  oracle,
   runOracle,
   withReference,
 } = require('./references.cjs');
+const {
+  NATIVE_REFERENCE,
+  checkNative,
+  writeNativeSeeds,
+} = require('./native.cjs');
 const { checkSeed } = require('./seed.cjs');
 const { markdown } = require('./report.cjs');
 
@@ -62,6 +71,10 @@ const main = async () => {
   if (args.has('--oracle')) runOracle(upstream);
   const seeds = [...committedSeeds(), ...upstream];
   const deps = load();
+  if (args.has('--oracle')) {
+    fs.rmSync(NATIVE_REFERENCE, { recursive: true, force: true });
+    oracle(writeNativeSeeds(deps.lib, seeds), NATIVE_REFERENCE);
+  }
 
   fs.rmSync(RESULTS, { recursive: true, force: true });
   fs.mkdirSync(RESULTS, { recursive: true });
@@ -72,14 +85,19 @@ const main = async () => {
       origin: seed.origin,
       committed: seed.committed,
     };
-    const result = fs.existsSync(seed.file)
+    const text = fs.existsSync(seed.file)
+      ? fs.readFileSync(seed.file, 'utf8')
+      : null;
+    const reference = text === null ? null : loadReference(seed);
+    const checked = text === null ? null : checkSeed(deps, text, reference);
+    const result = checked
       ? {
           ...base,
-          ...checkSeed(
-            deps,
-            fs.readFileSync(seed.file, 'utf8'),
-            loadReference(seed),
-          ),
+          ...checked,
+          checks: {
+            ...checked.checks,
+            native: checkNative(deps.lib, seed.id, text, reference),
+          },
         }
       : {
           ...base,

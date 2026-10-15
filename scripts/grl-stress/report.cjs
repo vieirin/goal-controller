@@ -38,12 +38,23 @@ const runCell = (run) =>
     ? `${ICON[run.status]} ${run.equal}/${run.rows}`
     : describe(run);
 
+/** the round trip, then jUCMNav on the written file (native.cjs) */
+const nativeCell = (check) =>
+  check?.roundTrip
+    ? `${describe(check.roundTrip)} round trip; ${
+        check.oracle.rows !== undefined
+          ? `${ICON[check.oracle.status]} jUCMNav ${check.oracle.equal}/${check.oracle.rows}`
+          : `jUCMNav ${describe(check.oracle)}`
+      }`
+    : describe(check);
+
 const HEADERS = [
   'Seed',
   'Strategy',
   'Imported',
   'Conformance',
   'Checks',
+  'Native',
   ...RUNS.map((run) =>
     run.algorithm === 'quantitative'
       ? `Quantitative (tolerance ${run.tolerance})`
@@ -59,6 +70,7 @@ const rowsOf = (result) => {
     importCell(checks.import),
     conformanceCell(checks.conformance),
     checksCell(checks.checks),
+    nativeCell(checks.native),
   ];
   const seed = result.committed ? `**${result.seed}**` : result.seed;
   if (!result.strategies.length)
@@ -87,6 +99,13 @@ const differences = (results) => {
             `  - ${d.kind} ${d.id}: jUCMNav ${d.jucmnav.value} ${d.jucmnav.label || '(no label)'}, ours ${d.ours ? `${d.ours.value} ${d.ours.label || '(no label)'}` : 'none'}`,
           );
       }
+  for (const result of results) {
+    const oracle = result.checks?.native?.oracle;
+    const rows = [...(oracle?.differences ?? []), ...(oracle?.extra ?? [])];
+    if (!rows.length) continue;
+    lines.push(`- **${result.seed}**, jUCMNav on the written file:`);
+    for (const row of rows.slice(0, 5)) lines.push(`  - ${row}`);
+  }
   return lines;
 };
 

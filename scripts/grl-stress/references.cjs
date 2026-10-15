@@ -61,6 +61,14 @@ const loadReference = (seed) => {
     : reference;
 };
 
+/** jUCMNav, in Docker, on every `.jucm` of a flat directory: a CSV each into `out`. */
+const oracle = (seeds, out) => {
+  fs.mkdirSync(out, { recursive: true });
+  execFileSync(path.join(ROOT, 'docker', 'jucmnav', 'run.sh'), [seeds, out], {
+    stdio: 'inherit',
+  });
+};
+
 /**
  * Runs the oracle on the fetched seeds: each copied as `<id>.jucm` into one
  * directory (run.sh reads a flat directory), the CSVs into REFERENCE.
@@ -70,12 +78,7 @@ const runOracle = (seeds) => {
   fs.mkdirSync(ORACLE_SEEDS, { recursive: true });
   for (const seed of seeds)
     fs.copyFileSync(seed.file, path.join(ORACLE_SEEDS, `${seed.id}.jucm`));
-  fs.mkdirSync(REFERENCE, { recursive: true });
-  execFileSync(
-    path.join(ROOT, 'docker', 'jucmnav', 'run.sh'),
-    [ORACLE_SEEDS, REFERENCE],
-    { stdio: 'inherit' },
-  );
+  oracle(ORACLE_SEEDS, REFERENCE);
 };
 
 module.exports = {
@@ -83,6 +86,7 @@ module.exports = {
   REFERENCE,
   committedSeeds,
   loadReference,
+  oracle,
   runOracle,
   withReference,
 };

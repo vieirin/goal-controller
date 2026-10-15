@@ -148,9 +148,9 @@ node types to piStar.
 - Strategies: one `strategies/<group>.json` per strategies group (ungrouped ones in `Strategies.json`). The model's 0..100 range (`_Use0to100EvaluationRange`) is the group's `range`.
 - An XMI element whose attributes don't fit its schema (`importanceQuantitative="high"`) is left out, with an error naming it.
 
-**Not in scope:**
-- the round trip: there is no export to `.jucm`;
-- Z.151 (`.z151`, the standard's XML), which is still open ([grl.md](grl.md)).
+The way back is `writeJucm`, GRL's native file writer ([grl.md § Native file](grl.md#native-file-144)).
+
+**Not in scope:** Z.151 (`.z151`, the standard's XML), which is still open ([grl.md](grl.md)).
 
 ## iStarDT-X (iStar-DT): `importers/istardt`
 

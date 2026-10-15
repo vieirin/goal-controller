@@ -88,7 +88,56 @@ A strategy that evaluates an element the model doesn't have is said in its case'
 
 ## The importer
 
-`importJucm` (`packages/lib/src/importers/jucm/`) reads a `.jucm` into a piStar model in the GRL dialect. See [importers.md](importers.md). It keeps the file's ids, so a model element is the `.jucm`'s and jUCMNav's rows join on them. The import is one way: there is no export back to `.jucm`.
+`importJucm` (`packages/lib/src/importers/jucm/`) reads a `.jucm` into a piStar model in the GRL dialect. See [importers.md](importers.md). It keeps the file's ids, so a model element is the `.jucm`'s and jUCMNav's rows join on them.
+
+## Native file (#144)
+
+- **Declared** as the dialect's `nativeFiles.jucm` (#143): `.jucm`, format `xmi`, its reader, writer, canonical form and lossy paths.
+- **Format.** jUCMNav's `.jucm`, EMF XMI 2.0, written with lib's `writeXmi`.
+- **Schema.** jUCMNav's Ecore metamodel, committed in `packages/lib/src/engines/grl/schema/` (`grl.ecore` with `kpimodel`, `urn.ecore`, `urncore.ecore`, `ucm.ecore`; EPL-1.0).
+- **Read.** `importJucm`, above.
+- **Write.** `writeJucm(model, { projectResources })` (`packages/lib/src/engines/grl/jucm.ts`) writes the piStar model and its `strategies` resource back as a `.jucm`:
+  - one `GRLGraph` draws every element, belief and actor at the model's positions;
+  - an element's actor is the ActorRef that draws it;
+  - each strategies file is a strategies group.
+  - Ids:
+    - the model's ids are kept where jUCMNav would keep them (a number);
+    - the others are renumbered from the largest, with an `info` that lists them;
+    - the drawings' ids come after the largest.
+  - Every value is written as the evaluation reads it, so jUCMNav's evaluations of the file are the model's:
+    - a decomposition is its element's `decompositionType`, else its refinement links' kind;
+    - a contribution is its `contribution` property, else its iStar label's;
+    - a label-only strategy evaluation is written with the label's value.
+  - As EMF does, the writer leaves out any attribute that holds the metamodel's default.
+  - What it can't write is a diagnostic: a node or a link GRL has no kind for; an element property other than GRL's.
+- **Canonical form.** `canonicalJucm(text)` is the form byte comparisons use:
+  - ids renumbered in the file's order, and every reference with them;
+  - attributes sorted;
+  - the metamodel's defaults, the dates and `nextGlobalID` left out.
+- **Lossy.**
+  - **The `lossy` paths** (`JUCM_LOSSY`), which a round trip and the sync check leave out:
+    - `diagram.width` and `diagram.height`, which the importer computes from the positions;
+    - `display`: a box is always written, so an actor without one comes back with one.
+  - **Model to file, said by the writer's diagnostics:**
+    - non-numeric ids, renumbered;
+    - the diagram's custom properties (only its name is written);
+    - element properties other than GRL's;
+    - roles and agents, written as actors;
+    - links GRL has no kind for;
+    - a group's tolerance (a jUCMNav preference);
+    - a label-only evaluation's form.
+  - **File to model:** what the importer leaves out:
+    - the UCM half, feature models and metadata;
+    - the URNspec's author, dates and version;
+    - every drawing of an element but its first;
+    - a belief's actor box.
+
+  So no seed is lossless: `write(read(f))` is checked against jUCMNav, not against `canonicalJucm(f)`.
+- **Round trip.** `pnpm stress:grl`'s Native column checks every seed in two ways:
+  - **round trip:** `read(write(read(f)))` is `read(f)`, the diagram's extent aside, and writing it again gives the same bytes;
+  - **oracle** (with `--oracle`, Docker): jUCMNav loads `write(read(f))` and evaluates it exactly as it evaluates `f`, row for row.
+
+  On 2026-10-15 all 54 seeds passed both checks: 435/435 rows, from SmartHome2, our own model and GoalCat's four (TURNtoURN's have no strategies, so jUCMNav only opens them).
 
 ## The oracle (#105 D1)
 
@@ -141,7 +190,6 @@ Our evaluations equal jUCMNav's on every row of the seeds checked:
   - KPI qualitative mappings (`QualitativeMappings`);
   - the `ST_Legal` stereotype (jUCMNav leaves an element tagged `No` out of AND decompositions and actors; the importer warns);
   - aggregate contributions (run-time metadata).
-- **Round trip.** There is no export to `.jucm`.
 - **Feature models.** Features are read as tasks.
 - **Xor.** Drawn as Or. A check that at most one child is satisfied is not written.
 - **Actors inside actors**, which jUCMNav weighs too: piStar has none.

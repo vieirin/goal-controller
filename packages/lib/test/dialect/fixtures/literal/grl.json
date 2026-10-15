@@ -250,6 +250,15 @@
       "help": "one file per strategies group: each strategy’s initial values, which the evaluation propagates"
     }
   },
+  "nativeFiles": {
+    "jucm": {
+      "label": "jUCMNav",
+      "extensions": [".jucm"],
+      "format": "xmi",
+      "schema": { "kind": "ecore", "path": "schema/grl.ecore" },
+      "lossy": ["diagram.width", "diagram.height", "display"]
+    }
+  },
   "problems": {
     "notAChild": {
       "severity": "error",
