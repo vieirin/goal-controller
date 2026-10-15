@@ -223,7 +223,10 @@ export default function TopBar() {
         )}
         <HomeLogo />
         <span className='h-5 w-px bg-line' aria-hidden />
-        <Button onClick={open} title='Open a goal model (piStar .txt / .json)'>
+        <Button
+          onClick={open}
+          title='Open a goal model (piStar .txt / .json) or a project archive (.tar.gz / .zip)'
+        >
           <FolderOpen className='h-4 w-4' aria-hidden /> Open
         </Button>
         {wb.hasModel && (

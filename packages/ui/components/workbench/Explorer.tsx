@@ -161,6 +161,9 @@ function ProjectSection() {
   const lastOutput = wb.lastGood;
   const outputs = wb.listing.filter((file) => file.role === 'output');
   const others = wb.listing.filter((file) => file.role === 'other');
+  const variablesSlot = wb.resourceSlots.find(
+    (slot) => slot.kind === 'variables',
+  );
   const fileRow = (path: string) => (
     <Row
       key={path}
@@ -191,7 +194,8 @@ function ProjectSection() {
         detail={wb.dirty ? <span className='text-trace'>●</span> : null}
         onClick={() => wb.setModelTab('source')}
       />
-      {isPrismEngine(wb.engine) && (
+      {/* the model's variables: one row with the file their values are in, when the engine reads one */}
+      {isPrismEngine(wb.engine) && !variablesSlot && (
         <Row
           icon={SlidersHorizontal}
           label='variables'
@@ -217,6 +221,14 @@ function ProjectSection() {
         <ResourceSlotRows
           key={slot.kind}
           slot={slot}
+          values={
+            slot === variablesSlot && isPrismEngine(wb.engine)
+              ? {
+                  count: wb.variables.length,
+                  open: () => wb.setBottomTab('variables'),
+                }
+              : undefined
+          }
           onAdd={(file) => run(() => wb.addResource(slot.kind, file))}
         />
       ))}
@@ -269,9 +281,15 @@ export const useOpenFolder = () => {
 
 function ResourceSlotRows({
   slot,
+  values,
   onAdd,
 }: {
   slot: ResourceSlot;
+  /**
+   * the model's values this kind holds (Edge's variables.json): how many, and
+   * where they are set. Without the file they are kept in the workbench.
+   */
+  values?: { count: number; open: () => void };
   onAdd: (file: { name: string; text: string }) => void;
 }) {
   const wb = useWorkbench();
@@ -280,25 +298,36 @@ function ResourceSlotRows({
   return (
     <div>
       <Row
-        icon={slot.missing ? Plus : FileCode2}
+        icon={values ? SlidersHorizontal : slot.missing ? Plus : FileCode2}
         label={slot.definition.label}
         detail={
-          slot.missing ? (
-            <span title={slot.definition.help}>missing</span>
-          ) : problems ? (
+          problems ? (
             <span className='text-caution'>{problems} problems</span>
+          ) : values ? (
+            slot.missing ? (
+              <span title='Kept in the workbench: add a file to keep them in the project'>
+                {values.count} · no file
+              </span>
+            ) : (
+              values.count
+            )
+          ) : slot.missing ? (
+            <span title={slot.definition.help}>missing</span>
           ) : (
             slot.paths.length
           )
         }
         onClick={() =>
-          // a kind no dialect declares (a seed's files) is shown, not added to
-          slot.declared && (slot.missing || slot.definition.many)
-            ? input.current?.click()
-            : slot.paths[0] && wb.setModelTab(resourceTabId(slot.paths[0]))
+          // values without their file are set where the workbench keeps them
+          values && slot.missing
+            ? values.open()
+            : // a kind no dialect declares (a seed's files) is shown, not added to
+              slot.declared && (slot.missing || slot.definition.many)
+              ? input.current?.click()
+              : slot.paths[0] && wb.setModelTab(resourceTabId(slot.paths[0]))
         }
         trailing={
-          slot.missing || !slot.declared ? null : (
+          (slot.missing && !values) || !slot.declared ? null : (
             <button
               type='button'
               aria-label={`Add a file to ${slot.definition.label}`}

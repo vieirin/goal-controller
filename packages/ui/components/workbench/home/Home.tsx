@@ -115,8 +115,10 @@ export default function Home({ onNewModel }: { onNewModel: () => void }) {
             <h1 className='text-lg font-semibold text-ink'>Goal models</h1>
             <p className='text-2xs text-ink-muted'>
               A piStar model (<span className='font-mono'>.txt</span> or{' '}
-              <span className='font-mono'>.json</span>): drop it anywhere on
-              this window, open it from disk, or draw a new one.
+              <span className='font-mono'>.json</span>) or a project archive (
+              <span className='font-mono'>.tar.gz</span> or{' '}
+              <span className='font-mono'>.zip</span>): drop it anywhere on this
+              window, open it from disk, or draw a new one.
             </p>
           </div>
           <label className='relative flex items-center'>
