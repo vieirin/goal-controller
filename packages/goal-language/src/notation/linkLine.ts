@@ -19,8 +19,8 @@
  *       link "Low running cost" {contribution = Make}
  *       link "Comfort"#2 {contribution = Help}
  *
- * Its document has no property lines, so `readLine` reads a line starting
- * `link "` as this one (`isPlainLinkLine`).
+ * Its document reads a line starting `link "` as this one
+ * (`isPlainLinkLine`): `link` is never a declared key.
  */
 import {
   ACTOR_LINE_KEY,
@@ -120,7 +120,7 @@ export const readLinkLine = (
 export const quotedTarget = (name: string, ordinal?: number): string =>
   `${quotedName(name)}${ordinal === undefined ? '' : `#${ordinal}`}`;
 
-/** Whether a line of a document without ids is a link line (`link "…`): it has no property lines else. */
+/** Whether a line of a document without ids is a link line (`link "…`). */
 export const isPlainLinkLine = (
   definition: Parameters<typeof linkLinesOf>[0],
   text: string,

@@ -13,8 +13,10 @@ import { expect } from 'chai';
 import {
   completionsAt,
   contextFromView,
+  definitionAt,
   documentDiagnostics,
   highlightLine,
+  hoverAt,
   notationDocument,
   notationEdits,
   parseDocument,
@@ -325,6 +327,30 @@ describe('property lines without ids (goal-controller#138)', () => {
       'achieve',
       'maintain',
     ]);
+  });
+
+  it('explains a key by the element at its position, and leads a name in a value to its line', () => {
+    // a task's type is another property than a goal's
+    const typed = {
+      ...plain,
+      properties: {
+        ...plain.properties,
+        task: [{ key: 'type', value: { type: 'text' }, help: 'what it does' }],
+      },
+    } as typeof plain;
+    const doc = `${TEXT}\n    type sweeping`;
+    const context = contextFromView(typed, TREE, []);
+    const hover = (pos: number) => hoverAt(typed, doc, pos, context)?.markdown;
+    expect(hover(doc.indexOf('type achieve') + 1)).to.equal(
+      '**type**: its goal type',
+    );
+    expect(hover(doc.lastIndexOf('type') + 1)).to.equal(
+      '**type**: what it does',
+    );
+    const named = TEXT.replace('roomClean', 'RoomClean');
+    expect(
+      definitionAt(plain, named, named.indexOf('RoomClean', 9)),
+    ).to.deep.equal({ from: 0, to: 'RoomClean'.length });
   });
 
   it('highlights a property line’s key and its value as its type reads', () => {
