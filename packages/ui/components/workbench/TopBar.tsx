@@ -4,6 +4,8 @@ import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
 import {
   ArrowRightLeft,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Download,
   FileJson,
   FileOutput,
@@ -42,7 +44,7 @@ import {
   outputDownloadExtension,
 } from '@/lib/workbench/outputs';
 import type { GenerationOptions } from '@/lib/workbench/types';
-import { shownCase } from '@/lib/workbench/analysis';
+import { shownCase, shownStep } from '@/lib/workbench/analysis';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
@@ -453,6 +455,8 @@ export function AnalyseControl() {
   if (!analyses || Object.keys(analyses).length === 0) return null;
   const cases = run && 'result' in run ? run.result.cases : [];
   const shown = shownCase(run);
+  // a case run step by step (goal-controller#135): previous, next, the step's label
+  const step = shownStep(run);
   return (
     <>
       <Menu
@@ -510,6 +514,29 @@ export function AnalyseControl() {
             </option>
           ))}
         </select>
+      )}
+      {step && (
+        <span className='flex items-center gap-1 text-xs text-ink'>
+          <Button
+            onClick={() => wb.stepAnalysis(-1)}
+            disabled={step.index === 0}
+            aria-label='Previous step'
+            title='Previous step'
+          >
+            <ChevronLeft className='h-3 w-3' aria-hidden />
+          </Button>
+          <span role='status' title={step.label}>
+            {step.index + 1}/{step.count}: {step.label}
+          </span>
+          <Button
+            onClick={() => wb.stepAnalysis(1)}
+            disabled={step.index === step.count - 1}
+            aria-label='Next step'
+            title='Next step'
+          >
+            <ChevronRight className='h-3 w-3' aria-hidden />
+          </Button>
+        </span>
       )}
       {run && 'error' in run && (
         <span className='text-xs text-danger' title={run.error} role='status'>

@@ -19,11 +19,25 @@ export type AnalysisValue = {
   severity?: 'info' | 'warning';
 };
 
-/** One evaluation: its values by element or actor id (the piStar ids). */
+/** Values by element or actor id (the piStar ids). */
+export type AnalysisValues = Readonly<Record<string, AnalysisValue>>;
+
+/**
+ * One step of a case run as a sequence (goal-controller#135): a scenario's
+ * step, its label (`3: WetCleaning fails`) and every value then.
+ */
+export type AnalysisStep = { label: string; values: AnalysisValues };
+
+/**
+ * One evaluation: its values by element or actor id (the piStar ids). A
+ * case run step by step has `steps` too, in order (the workbench steps
+ * through them); its `values` are then its outcome (its last step's).
+ */
 export type AnalysisCase = {
   id: string;
   label: string;
-  values: Readonly<Record<string, AnalysisValue>>;
+  values: AnalysisValues;
+  steps?: readonly AnalysisStep[];
 };
 
 export type AnalysisResult = { cases: readonly AnalysisCase[] };
@@ -163,4 +177,34 @@ export const runAnalysis = (
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
+};
+
+/** A value as text: its label, or the value. */
+const valueText = (value: AnalysisValue): string =>
+  value.label ?? String(value.value);
+
+/**
+ * A result as text (goal-controller#135): each case, its values (or, for a
+ * case run step by step, each step and its values), one `id: value` line
+ * per element or actor, named by `nameOf` (default: its id).
+ */
+export const analysisText = (
+  result: AnalysisResult,
+  nameOf: (id: string) => string = (id) => id,
+): string => {
+  const valueLines = (values: AnalysisValues, indent: string) =>
+    Object.entries(values).map(
+      ([id, value]) => `${indent}${nameOf(id)}: ${valueText(value)}`,
+    );
+  return result.cases
+    .flatMap((analysisCase) => [
+      analysisCase.label,
+      ...(analysisCase.steps?.length
+        ? analysisCase.steps.flatMap((step, i) => [
+            `  step ${i + 1}: ${step.label}`,
+            ...valueLines(step.values, '    '),
+          ])
+        : valueLines(analysisCase.values, '  ')),
+    ])
+    .join('\n');
 };

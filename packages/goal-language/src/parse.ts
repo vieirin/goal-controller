@@ -841,3 +841,36 @@ export const assertionExpressions = (
   comparisonsOf(tree).flatMap((atom) =>
     atom.kind === 'call' ? [atom] : [atom.left, atom.right],
   );
+
+/**
+ * Every member an assertion reads (`room.clean`, `tank.level < 3`,
+ * `room.clean = true`, goal-controller#135), in the order written: what a
+ * check or an engine reads of them, never splitting the text.
+ */
+export const assertionMembers = (
+  tree: AssertionTree | AssertionReading | null,
+): { ref: string; member: string }[] => {
+  switch (tree?.kind) {
+    case 'and':
+    case 'or':
+      return [...assertionMembers(tree.left), ...assertionMembers(tree.right)];
+    case 'not':
+    case 'paren':
+      return assertionMembers(tree.expr);
+    case 'member':
+      return [{ ref: tree.ref, member: tree.member }];
+    case 'assign':
+      return tree.member ? [{ ref: tree.variable, member: tree.member }] : [];
+    case 'comparison':
+    case 'call':
+      return assertionExpressions(tree)
+        .flatMap(expressionNodes)
+        .flatMap((node) =>
+          node.kind === 'member'
+            ? [{ ref: node.ref, member: node.member }]
+            : [],
+        );
+    default:
+      return [];
+  }
+};

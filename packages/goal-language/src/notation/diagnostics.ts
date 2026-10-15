@@ -272,7 +272,7 @@ const propertyDiagnostics = (
       });
       continue;
     }
-    const message = valueProblem(value, properties[key]!, context);
+    const message = valueProblem(value, properties[key]!, context, definition);
     if (message) diagnostics.push({ ...where, severity: 'error', message });
     else if (context && value.type === 'assertion')
       for (const name of unknownNames(value, properties[key]!, context))

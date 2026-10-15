@@ -17,6 +17,7 @@ import {
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
   type FunctionDefinition,
+  type MemberSource,
   type ISTAR_LINK_KINDS,
   type ModifierDefinition,
   type NotationDefinition,
@@ -97,8 +98,9 @@ const ASSERTION_KEYS = [
   'booleanInequality',
   'declaresVariables',
   'functions',
+  'members',
 ] as const;
-const EXPRESSION_KEYS = ['resolves', 'functions'] as const;
+const EXPRESSION_KEYS = ['resolves', 'functions', 'members'] as const;
 const OCL_KEYS = ['declaredBy', 'candidates', 'memberCandidates'] as const;
 
 type IntOptions = { min?: number; max?: number };
@@ -109,10 +111,12 @@ type AssertionOptions = {
   booleanInequality?: boolean;
   declaresVariables?: boolean;
   functions?: readonly FunctionDefinition[];
+  members?: MemberSource;
 };
 type ExpressionOptions = {
   resolves?: readonly DialectKind[];
   functions?: readonly FunctionDefinition[];
+  members?: MemberSource;
 };
 type OclOptions = {
   declaredBy?: readonly string[];

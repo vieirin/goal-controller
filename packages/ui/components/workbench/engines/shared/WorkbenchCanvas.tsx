@@ -26,7 +26,11 @@ import {
   useWorkbench,
 } from '../../WorkbenchContext';
 import { dialectOf } from '@/lib/workbench/engineDialects';
-import { analysisDiagnostics, shownCase } from '@/lib/workbench/analysis';
+import {
+  analysisDiagnostics,
+  shownCase,
+  shownStep,
+} from '@/lib/workbench/analysis';
 import { useShell } from '../../shell';
 
 /**
@@ -297,7 +301,10 @@ export default function WorkbenchCanvas({
       }),
       ...(wb.analysisStale
         ? []
-        : analysisDiagnostics(shownCase(wb.analysisRun))),
+        : analysisDiagnostics(
+            shownCase(wb.analysisRun),
+            shownStep(wb.analysisRun)?.index,
+          )),
     ],
     [wb.problems, wb.tree, wb.analysisRun, wb.analysisStale],
   );

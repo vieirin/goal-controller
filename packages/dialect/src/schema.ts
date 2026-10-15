@@ -113,6 +113,14 @@ export type ValueConfig =
        * 1`), not a name and a number only
        */
       functions?: readonly FunctionDefinition[];
+      /**
+       * what a reference's members are (`room.clean`, goal-controller#135):
+       * the keys of the referenced element's `from` property (a pairList,
+       * each pair's value the member's type: `bool`, `int`, `number`, or
+       * its options, `low|high`), or `'any'` name. None: a member is an
+       * error.
+       */
+      members?: MemberSource;
     }
   /**
    * a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`,
@@ -123,6 +131,14 @@ export type ValueConfig =
       type: 'expression';
       resolves?: readonly DialectKind[];
       functions?: readonly FunctionDefinition[];
+      /**
+       * what a reference's members are (`room.clean`, goal-controller#135):
+       * the keys of the referenced element's `from` property (a pairList,
+       * each pair's value the member's type: `bool`, `int`, `number`, or
+       * its options, `low|high`), or `'any'` name. None: a member is an
+       * error.
+       */
+      members?: MemberSource;
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: DialectKind }
@@ -146,6 +162,14 @@ export type ValueConfig =
        */
       memberCandidates?: ResourceCandidates;
     };
+
+/**
+ * Where the members of a reference in an `assertion` or an `expression` come
+ * from (`room.clean`, goal-controller#135): the referenced element's
+ * pairList property `from` (each pair a member and its type), or any name
+ * (`'any'`: its members are declared elsewhere).
+ */
+export type MemberSource = { from: string } | 'any';
 
 /**
  * A function an `expression` or an `assertion` may call (`previous(x)`), and
@@ -817,6 +841,27 @@ export const defineDialect = <const D extends AnyDialect>(
         for (const kind of referencedKinds(config))
           if (!isKind(kind))
             fail(`${owner}.${property.key} names unknown kind ${kind}`);
+        // members from a property: a pairList some kind it resolves declares
+        const members =
+          (config.type === 'assertion' || config.type === 'expression') &&
+          config.members;
+        if (
+          members &&
+          members !== 'any' &&
+          !referencedKinds(config).some((kind) =>
+            (
+              (definition.properties as AnyDialect['properties'])[kind] ?? []
+            ).some(
+              (p) =>
+                p.key === members.from &&
+                !('when' in p.value) &&
+                p.value.type === 'pairList',
+            ),
+          )
+        )
+          fail(
+            `${owner}.${property.key}: its members are from ${members.from}, a pairList none of the kinds it resolves declares`,
+          );
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))
