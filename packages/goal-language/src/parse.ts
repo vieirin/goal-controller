@@ -222,8 +222,9 @@ const parse = <T>(
   start: LexerStart,
   text: string,
   prefixes: readonly string[] = [],
+  keys: readonly string[] = [],
 ) => {
-  const result = parseWith(goalServices(), start, text, prefixes);
+  const result = parseWith(goalServices(), start, text, prefixes, keys);
   return {
     root: result.value as T,
     errors: syntaxErrorsOf(result, text.length),
@@ -452,30 +453,27 @@ export const parseElementLineIn = (
     : read;
 };
 
-/** A document: element lines with ids and property lines, or (`ids: false`) lines without ids. */
+/**
+ * A document: element lines with ids and property lines, or (`ids: false`)
+ * lines without ids, and property lines that start with one of `keys`.
+ */
 export const parseDocument = (
   text: string,
   {
     ids = true,
     prefixes = [],
+    keys = [],
   }: {
     ids?: boolean;
     /** its dialect's own id prefixes (`idPrefixesOf`) */
     prefixes?: readonly string[];
+    /** without ids, its declared keys (`propertyKeysOf`) */
+    keys?: readonly string[];
   } = {},
 ): Parsed<DocumentLine[]> => {
-  if (!ids) {
-    const { root, errors } = parse<PlainDocument>('plainDocument', text);
-    return {
-      value: root.lines.map((line) => ({
-        kind: 'element',
-        line: lineOf(line),
-        ...toElementLine(line),
-      })),
-      errors,
-    };
-  }
-  const { root, errors } = parse<Document>('document', text, prefixes);
+  const { root, errors } = ids
+    ? parse<Document>('document', text, prefixes)
+    : parse<PlainDocument>('plainDocument', text, [], keys);
   return {
     value: root.lines.map((line): DocumentLine =>
       line.$type === 'PropertyLine'

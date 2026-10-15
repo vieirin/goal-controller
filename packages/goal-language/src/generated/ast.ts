@@ -663,7 +663,7 @@ export function isPairListValue(item: unknown): item is PairListValue {
 export interface PlainDocument extends langium.AstNode {
     readonly $container: Reach;
     readonly $type: 'PlainDocument';
-    lines: Array<AnnotatedName>;
+    lines: Array<PlainLine>;
 }
 
 export const PlainDocument = {
@@ -675,8 +675,18 @@ export function isPlainDocument(item: unknown): item is PlainDocument {
     return reflection.isInstance(item, PlainDocument.$type);
 }
 
+export type PlainLine = AnnotatedName | PropertyLine;
+
+export const PlainLine = {
+    $type: 'PlainLine'
+} as const;
+
+export function isPlainLine(item: unknown): item is PlainLine {
+    return reflection.isInstance(item, PlainLine.$type);
+}
+
 export interface PropertyLine extends langium.AstNode {
-    readonly $container: Document;
+    readonly $container: Document | PlainDocument;
     readonly $type: 'PropertyLine';
     key: string;
     value?: string;
@@ -987,6 +997,7 @@ export type GoalAstType = {
     Pair: Pair
     PairListValue: PairListValue
     PlainDocument: PlainDocument
+    PlainLine: PlainLine
     PropertyLine: PropertyLine
     Reach: Reach
     RefListValue: RefListValue
@@ -1031,7 +1042,7 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                     optional: true
                 }
             },
-            superTypes: []
+            superTypes: [PlainLine.$type]
         },
         Annotation: {
             name: Annotation.$type,
@@ -1418,6 +1429,12 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        PlainLine: {
+            name: PlainLine.$type,
+            properties: {
+            },
+            superTypes: []
+        },
         PropertyLine: {
             name: PropertyLine.$type,
             properties: {
@@ -1429,7 +1446,7 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                     optional: true
                 }
             },
-            superTypes: [Line.$type]
+            superTypes: [Line.$type, PlainLine.$type]
         },
         Reach: {
             name: Reach.$type,

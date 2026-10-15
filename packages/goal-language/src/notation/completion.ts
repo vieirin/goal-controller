@@ -375,17 +375,32 @@ export const completionsAt = (
   const valued = /^(\s*)([A-Za-z][A-Za-z0-9_]*)[ \t]+/.exec(before);
   const onKey = before.trim() === word;
   if (!onKey && !valued) return null;
+  // without ids (goal-controller#138), an element's line is one that takes a
+  // position: a key is typed on a line past the elements' (or a blank one)
+  const ids = hasIds(definition);
+  const isElementLine = (line: string) =>
+    ids ? lineId(definition, line) !== null : takesPosition(definition, line);
+  if (
+    !ids &&
+    onKey &&
+    takesPosition(definition, text) &&
+    lines.filter(isElementLine).length <= (context.order?.length ?? 0)
+  )
+    return null;
   let above = index - 1;
-  let owner: string | null = null;
   const set = new Set<string>();
-  for (; above >= 0; above--) {
-    owner = lineId(definition, lines[above]!);
-    if (owner) break;
+  for (; above >= 0 && !isElementLine(lines[above]!); above--) {
     const property = readPropertyLine(definition, lines[above]!);
     if (property) set.add(property.key);
   }
+  const owner =
+    above < 0
+      ? null
+      : ids
+        ? lineId(definition, lines[above]!)
+        : ownerOf(definition, lines, index, context);
   for (const next of lines.slice(index + 1)) {
-    if (lineId(definition, next)) break;
+    if (isElementLine(next)) break;
     const property = readPropertyLine(definition, next);
     if (property) set.add(property.key);
   }

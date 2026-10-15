@@ -33,7 +33,8 @@ import {
   type DocumentLink,
   type PropertyDefinition,
 } from '@goal-controller/dialect';
-import { propertyLine } from '../print.js';
+import { propertyKeyOf, propertyKeysOf } from '../catalog.js';
+import { propertyLine, quotedName } from '../print.js';
 import { valueProblem } from './values.js';
 
 export { LINK_LINE_KEY };
@@ -117,7 +118,7 @@ export const readLinkLine = (
 
 /** A target as a dialect without ids writes it: its text, quoted, and `#n` when other elements share it. */
 export const quotedTarget = (name: string, ordinal?: number): string =>
-  `"${name.replace(/[\\"]/g, '\\$&')}"${ordinal === undefined ? '' : `#${ordinal}`}`;
+  `${quotedName(name)}${ordinal === undefined ? '' : `#${ordinal}`}`;
 
 /** Whether a line of a document without ids is a link line (`link "…`): it has no property lines else. */
 export const isPlainLinkLine = (
@@ -142,18 +143,30 @@ export const isPlainActorLine = (
   new RegExp(`^\\s*${ACTOR_LINE_KEY}\\s+"`).test(text);
 
 /**
+ * Whether a line of a document without ids is a property line: it starts
+ * with one of its dialect's declared keys (goal-controller#138).
+ */
+export const isPlainPropertyLine = (
+  definition: Pick<AnyDialect, 'elements'> &
+    Partial<Pick<AnyDialect, 'propertyLineOrder'>>,
+  text: string,
+): boolean => propertyKeyOf(propertyKeysOf(definition), text) !== null;
+
+/**
  * Whether a line of a document without ids takes an element's position: any
- * nonblank line but a link or an actor line (they are added and removed
- * freely, their properties read by `linkEdits` and `actorEdits`).
+ * nonblank line but a link, an actor or a property line (they are added and
+ * removed freely, their properties read by `linkEdits`, `actorEdits` and the
+ * element above).
  */
 export const takesPosition = (
   definition: Parameters<typeof linkLinesOf>[0] &
-    Partial<Pick<AnyDialect, 'actors'>>,
+    Partial<Pick<AnyDialect, 'actors' | 'propertyLineOrder'>>,
   text: string,
 ): boolean =>
   text.trim() !== '' &&
   !isPlainLinkLine(definition, text) &&
-  !isPlainActorLine(definition, text);
+  !isPlainActorLine(definition, text) &&
+  !isPlainPropertyLine(definition, text);
 
 /**
  * The element a written target names: in a dialect with ids, its id; in one
