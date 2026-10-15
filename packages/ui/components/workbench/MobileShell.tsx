@@ -6,6 +6,7 @@ import {
   Download,
   FileCode2,
   FileJson,
+  FolderArchive,
   FolderOpen,
   GitFork,
   Loader2,
@@ -499,6 +500,15 @@ function MobileTopBar() {
                   }}
                 >
                   Export output (.{outputExtension})
+                </MenuItem>
+                <MenuItem
+                  icon={FolderArchive}
+                  onClick={() => {
+                    void wb.exportProject();
+                    close();
+                  }}
+                >
+                  Export project (.tar.gz)
                 </MenuItem>
               </div>
             )}

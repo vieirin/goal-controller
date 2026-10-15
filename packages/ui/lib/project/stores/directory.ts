@@ -27,6 +27,8 @@ export interface DirectoryHandleLike {
     name: string,
     options?: { create?: boolean },
   ): Promise<FileHandleLike>;
+  /** removes an entry (a folder with what it holds, `recursive`) */
+  removeEntry?(name: string, options?: { recursive?: boolean }): Promise<void>;
 }
 
 /** hidden folders and dependencies are not project files */

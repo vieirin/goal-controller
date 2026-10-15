@@ -10,7 +10,7 @@
 import {
   actorSpecsFromDefinition,
   inputOf,
-  linkSpecsFromDefinition,
+  linkSpecsOfKind,
   type PropertySpec,
 } from '@goal-controller/dialect';
 import { checkContextOf } from '@goal-controller/goal-language';
@@ -47,14 +47,16 @@ export default function PartInspector({
     part.type === 'link'
       ? tree?.links.find((link) => link.iStarId === part.id)
       : tree?.actors.find((actor) => actor.iStarId === part.id);
+  // the selected part's kind only: `found` changes on every model edit
+  const kind = found?.kind;
   const specs: readonly PropertySpec<string, Check>[] = useMemo(
     () =>
-      !found
+      kind === undefined
         ? []
         : part.type === 'link'
-          ? (linkSpecsFromDefinition(definition, registry)[found.kind] ?? [])
-          : actorSpecsFromDefinition(definition, registry, found.kind),
-    [definition, registry, found, part.type],
+          ? linkSpecsOfKind(definition, registry, kind)
+          : actorSpecsFromDefinition(definition, registry, kind),
+    [definition, registry, kind, part.type],
   );
   // a check of a link's or an actor's property is given its id as `self`
   const checkContext = useMemo(

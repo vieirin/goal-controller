@@ -35,6 +35,12 @@ export const fakeDirectory = (
     }
     return fakeFile(tree, child);
   },
+  async removeEntry(child, options) {
+    if (!(child in tree)) throw new Error(`NotFoundError: ${child}`);
+    if (typeof tree[child] === 'object' && !options?.recursive)
+      throw new Error(`InvalidModificationError: ${child}`);
+    delete tree[child];
+  },
 });
 const fakeFile = (tree: Tree, name: string): FileHandleLike => ({
   kind: 'file',

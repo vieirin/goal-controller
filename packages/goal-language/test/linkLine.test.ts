@@ -14,6 +14,7 @@ import {
   checkContextOf,
   contextFromView,
   documentDiagnostics,
+  hasLinkLine,
   linkLine,
   notationDocument,
   notationEdits,
@@ -121,6 +122,19 @@ describe('link lines (#107)', () => {
         'G1',
       ),
     ).to.equal('link G1 {weight = 2} {note = x}');
+  });
+
+  it('leaves out a value with a brace, which no line could read back; a link with only such values has no line', () => {
+    const braced = link('l', 'T1', 'G1', { weight: '2', note: 'a {b}' });
+    expect(linkLine(linked, braced, 'G1')).to.equal('link G1 {weight = 2}');
+    expect(hasLinkLine(linked, braced)).to.equal(true);
+    expect(
+      hasLinkLine(linked, link('l', 'T1', 'G1', { note: '{only}' })),
+    ).to.equal(false);
+    // the line's value (after its `link ` key) reads back
+    expect(
+      readLinkLine(linkLine(linked, braced, 'G1').replace(/^link /, '')),
+    ).to.have.property('value');
   });
 
   it('writes a link line under its source, after its properties; a link without properties has none', () => {

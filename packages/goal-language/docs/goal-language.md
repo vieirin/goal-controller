@@ -112,7 +112,9 @@ G1: Deliver
 
 - The value is the target's id, then one `{key = value}` per property, in
   annotation syntax. The keys are written in the link kind's order, and only
-  the ones it declares and the link has.
+  the ones it declares and the link has. A value with a brace can't be read
+  back, so it is not written: the link keeps it, the line shows the others
+  (`isWritableLinkValue`).
 - It is a `PropertyLine` as the grammar reads any (`KEY VALUE`): no token,
   rule or lexer state of its own (#105 D2). `notation/linkLine.ts` reads and
   writes the value; every document without links reads and prints as before.

@@ -4,7 +4,7 @@
  * dialect (test/engines/analysis/toy.ts): no core change names it.
  */
 import { expect } from 'chai';
-import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
+import { parsePistar } from '@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
 import { checkContextOf } from '@goal-controller/goal-language';
 import { toyAnalyses, toyGraph } from '../engines/analysis/toy';

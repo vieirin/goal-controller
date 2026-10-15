@@ -14,6 +14,7 @@ import {
   actorPropertiesOf,
   evaluateCondition,
   fillTemplate,
+  linkPropertiesOf,
   valueOf,
   type Properties,
 } from './properties';
@@ -156,6 +157,14 @@ export const linkSpecsFromDefinition = <C>(
       specsOfList<C>(definition.id, list, registry),
     ]),
   );
+
+/** The inspector specs of a link of this kind (goal-controller#107); none: its kind has no properties. */
+export const linkSpecsOfKind = <C>(
+  definition: Pick<AnyDialect, 'id' | 'links'>,
+  registry: Readonly<Record<string, C | undefined>>,
+  kind: string,
+): PropertySpec<string, C>[] =>
+  specsOfList<C>(definition.id, linkPropertiesOf(definition, kind), registry);
 
 /** The inspector specs of an actor of this kind (goal-controller#107): the actors' properties its kind has. */
 export const actorSpecsFromDefinition = <C>(
