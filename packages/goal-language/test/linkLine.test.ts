@@ -138,8 +138,9 @@ describe('link lines (#107)', () => {
   });
 
   it('writes a link line under its source, after its properties; a link without properties has none', () => {
+    // its actor's budget is an actor line at the top (#109), which is no element's
     expect(notationDocument(linked, WEIGHTED)).to.deep.equal({
-      text: 'G1: Go\n  T1: Drive\n    robot r2\n    link G1 {weight = 50} {note = cheap}\n  T2: Fly',
+      text: 'actor "Ann" {budget = 5}\nG1: Go\n  T1: Drive\n    robot r2\n    link G1 {weight = 50} {note = cheap}\n  T2: Fly',
       ids: ['G1', 'T1', 'T1', 'T1', 'T2'],
     });
   });

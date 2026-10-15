@@ -44,6 +44,35 @@ describe('GRL in the Notation view', () => {
     );
   });
 
+  it('writes an actor’s importance as an actor line at the top, and edits it back (#109)', () => {
+    const tree = view();
+    const { text } = notationDocument(grl, tree);
+    // the utility company has no importance set: no line
+    assert.ok(
+      text.startsWith(
+        'actor "Home owner" {importance = High} {importanceQuantitative = 80}\n',
+      ),
+      text,
+    );
+    assert.ok(!text.includes('actor "Utility company"'), text);
+    const owner = tree.actors.find((a) => a.name === 'Home owner')!.iStarId;
+    const company = tree.actors.find(
+      (a) => a.name === 'Utility company',
+    )!.iStarId;
+    const edited = `actor "Utility company" {importance = Low}\n${text.replace(
+      '{importanceQuantitative = 80}',
+      '{importanceQuantitative = 60}',
+    )}`;
+    assert.deepStrictEqual(notationEdits(grl, edited, tree), [
+      { actor: owner, key: 'importanceQuantitative', value: '60' },
+      { actor: company, key: 'importance', value: 'Low' },
+    ]);
+    assert.deepStrictEqual(
+      documentDiagnostics(grl, edited, contextFromView(grl, tree, [])),
+      [],
+    );
+  });
+
   it('reads its own document back: no diagnostic, no edit', () => {
     const tree = view();
     const { text } = notationDocument(grl, tree);

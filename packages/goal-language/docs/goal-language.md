@@ -155,8 +155,49 @@ Heat with the heat pump
   (`2 elements are named "Heat": write "Heat"#1, "Heat"#2`); an `#n` past
   them. While a target names no element, or several, its line changes
   nothing.
-- Actors have no line in the Notation view; their properties are edited in
-  the inspector, and get a written form when actors get a line (#105 D3).
+- **Completion and hover** (goal-controller#109): after `link `, the targets
+  of the source's links whose kinds have properties, written as the line
+  names them (an id, or a quoted text); inside `{ }`, the keys the link's
+  kind declares that the line hasn't written; on a key, its `help`.
+
+### Actor lines: properties on actors
+
+A dialect that gives actors properties (`actors` in its definition,
+goal-controller#109) writes an actor with properties as a **property line with
+the key `actor`**. The Notation view writes all of them at the **top of the
+document**, before the first element line, in the model's order of actors:
+
+```
+actor "Patient" {importance = High} {importanceQuantitative = 50}
+actor "Robot"#2 {importance = Low}
+G1: Deliver the medicine
+  T1: Fetch it
+```
+
+- The value is the actor's **name, in quotes** (actors have no ids, in any
+  dialect), then one `{key = value}` per property, as a link line's. `#n`
+  picks the n-th of several actors with that name, in the model's order.
+- It names its actor **wherever it is**: it belongs to no element, so a
+  line moved under the elements still sets its actor. In a dialect without
+  ids it takes no element's position, as a link line doesn't.
+- It is a `PropertyLine` as the grammar reads any; a document without ids
+  reads a line starting `actor "` as one. No token, rule or lexer state of
+  its own: a document without actor properties reads and prints as before.
+- The keys written are the ones the actor's kind has (`actors[].kinds`),
+  in the declaration's order; a value with a brace isn't written (it couldn't
+  be read back) and stays in the model.
+- **Editing:** a changed value sets the actor's `customProperties` (the edit
+  `{ actor, key, value }`), and a removed line removes its kind's keys.
+  While a line can't be read, or names no actor, the actors keep their
+  properties.
+- **Diagnostics:** no actor of that name (`No actor "Anna"`); a name several
+  share, without `#n` (`2 actors are named "Robot": write "Robot"#1,
+  "Robot"#2`); an actor written twice; a key its kind doesn't declare; a
+  value its type rejects; the engine's named check, the actor its `self`.
+- **Completion and hover:** after `actor `, the names of the actors whose
+  kinds have properties; inside `{ }`, the keys the actor's kind declares;
+  on a key, its `help`.
+- In a dialect without `actors`, `actor` is an unknown property key, as any.
 
 ## The RT notation: operators and precedence
 

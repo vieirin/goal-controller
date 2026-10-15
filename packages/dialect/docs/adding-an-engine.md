@@ -204,8 +204,13 @@ actors: [{ key: 'importance', value: { type: 'int', min: 0, max: 100 }, help: 'â
 
 Stored in the actor's `customProperties`, edited in the inspector when the
 diagram selects the actor (`actorSpecsFromDefinition`), read by checks with
-`context.readActor(id)`. Actors have no line in the Notation view, so their
-properties have no written form yet (#105 D3).
+`context.readActor(id)` (a property's check gets the actor's piStar id as
+`self`). **The Notation view** writes an actor with properties as an
+`actor` line at the top of the document: `actor "Patient" {importance = 50}`
+(the goal language's
+[actor lines](../../goal-language/docs/goal-language.md#actor-lines-properties-on-actors),
+goal-controller#109). A dialect with `actors` may not key an element
+property `actor`, the key those lines are written with.
 
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
