@@ -10,6 +10,7 @@ export * from './store';
 export * from './open';
 export * from './recent';
 export * from './zip';
+export * from './archive';
 export * from './slots';
 export * from './resources';
 export * from './outputs';
