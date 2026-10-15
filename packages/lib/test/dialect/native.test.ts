@@ -169,6 +169,10 @@ describe('the EMF XMI writer (#143)', () => {
     );
     expect(canonicalXml(a, { order: ['z'] })).to.contain('<m z="1" a="2">');
     expect(canonicalXml('<a><b></a>')).to.equal('<a><b></a>');
+    // a declaration in single quotes keeps its encoding
+    expect(
+      canonicalXml("<?xml version='1.0' encoding='ISO-8859-1'?><m/>"),
+    ).to.equal('<?xml version="1.0" encoding="ISO-8859-1"?>\n<m/>\n');
   });
 });
 
@@ -266,6 +270,10 @@ describe('defineLanguage: a dialect’s Langium grammar (#143)', () => {
     expect(
       choresLanguage.complete!('chores "H" g', 12).map((c) => c.label),
     ).to.deep.equal(['goal']);
+    // the grammar's keywords only: not a terminal rule's characters ('0'..'9')
+    expect(
+      choresLanguage.complete!('chores "H" ', 11).map((c) => c.label),
+    ).to.deep.equal(['all', 'any', 'chores', 'cost', 'goal', 'needs', 'task']);
   });
 
   it('has services of its own, apart from the goal language’s', () => {

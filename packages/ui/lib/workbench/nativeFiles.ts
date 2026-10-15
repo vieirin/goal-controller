@@ -9,9 +9,11 @@
  * wrong is a problem (Model group), which opens the file's tab.
  */
 import {
+  firstError,
   nativeExtensions,
   nativeFileFor,
   type FoundNativeFile,
+  type NativeDiagnostic,
   type NativeFileContext,
   type NativeWriteResult,
 } from '@goal-controller/dialect';
@@ -90,6 +92,90 @@ export const openAccept = (
     'application/zip',
   ].join(',');
 
+/**
+ * What the workbench knows of the open project's native files: the store
+ * it learned it in (another project's knows nothing of them), the files it
+ * has checked against the model, those held (not in sync when the project
+ * opened: kept as they are until regenerated or re-imported), the model's
+ * text each was last in sync with (`''`: none, write it from the model as
+ * it is), and what writing each last said.
+ */
+export type NativeTracking = {
+  store: unknown;
+  checked: readonly string[];
+  held: readonly string[];
+  inSyncWith: Readonly<Record<string, string>>;
+  wrote: Readonly<Record<string, readonly NativeDiagnostic[]>>;
+};
+
+/** Tracking for a store: what is known of it, or nothing when it was another's. */
+export const trackingFor = (
+  tracking: NativeTracking | null,
+  store: unknown,
+): NativeTracking =>
+  tracking && tracking.store === store
+    ? tracking
+    : { store, checked: [], held: [], inSyncWith: {}, wrote: {} };
+
+/**
+ * Each native file whose text has been read (from the tracking's store)
+ * and isn't checked yet, checked against the model: one its dialect writes
+ * that doesn't read to the model is held; the others are in sync with it
+ * now. The same tracking when there is nothing new to check.
+ */
+export const checkNatives = (
+  tracking: NativeTracking,
+  slots: readonly NativeSlot[],
+  texts: Readonly<Record<string, string>>,
+  modelText: string,
+  context: (slot: NativeSlot) => NativeFileContext,
+): NativeTracking => {
+  const fresh = slots.filter(
+    (slot) =>
+      !slot.missing &&
+      texts[slot.path] !== undefined &&
+      !tracking.checked.includes(slot.path),
+  );
+  if (!fresh.length) return tracking;
+  const held = fresh.filter(
+    (slot) =>
+      !!slot.definition.write &&
+      nativeSync(slot.definition, texts[slot.path]!, modelText, context(slot))
+        .state !== 'in-sync',
+  );
+  return {
+    ...tracking,
+    checked: [...tracking.checked, ...fresh.map((slot) => slot.path)],
+    held: [...tracking.held, ...held.map((slot) => slot.path)],
+    inSyncWith: {
+      ...tracking.inSyncWith,
+      ...Object.fromEntries(
+        fresh
+          .filter((slot) => !held.includes(slot))
+          .map((slot) => [slot.path, modelText]),
+      ),
+    },
+  };
+};
+
+/**
+ * A file in sync with this model text from now (the model re-imported
+ * from it, or it written from the model), not held; `modelText` `''`: to
+ * be written from the model as it is (regenerated).
+ */
+export const inSyncNow = (
+  tracking: NativeTracking,
+  path: string,
+  modelText: string,
+  wrote?: readonly NativeDiagnostic[],
+): NativeTracking => ({
+  ...tracking,
+  held: tracking.held.filter((p) => p !== path),
+  checked: [...new Set([...tracking.checked, path])],
+  inSyncWith: { ...tracking.inSyncWith, [path]: modelText },
+  wrote: wrote ? { ...tracking.wrote, [path]: wrote } : tracking.wrote,
+});
+
 /** What the editors show of a native file, and how it stands with the model. */
 export type NativeState = {
   slot: NativeSlot;
@@ -97,65 +183,82 @@ export type NativeState = {
   text: string;
   /** written from the model after each edit (its dialect writes it, and it isn't held) */
   following: boolean;
-  /** what writing it from the model said (while it follows) */
+  /** what writing it from the model gave, when the model changed since the file was in sync with it */
   write: NativeWriteResult | null;
+  /** what its last writing said (what it left out, wrote differently) */
+  wrote: readonly NativeDiagnostic[];
   /** how it stands with the model (when it doesn't follow it) */
   sync: NativeSync | null;
 };
 
 /**
- * Each present native file's state, given its text as read (or edited),
- * the model's text, the files held because they weren't in sync when the
- * project opened, and the model's text each file was last in sync with: a
- * file that follows is written only once the model is edited (until then
- * it stays as it was written). A file whose text isn't read yet has none.
+ * Each present native file's state. A file its dialect writes follows the
+ * model once it is checked and not held: as it is while the model is the
+ * one it was last in sync with, else written from the model. Before its
+ * check, it is as it is and never written. A held file, or one its dialect
+ * only reads, is compared with the model. A file whose text isn't read
+ * yet has none.
  */
 export const nativeStates = (
   slots: readonly NativeSlot[],
   texts: Readonly<Record<string, string>>,
   modelText: string,
-  held: ReadonlySet<string>,
-  inSyncWith: Readonly<Record<string, string>>,
+  tracking: NativeTracking,
   context: (slot: NativeSlot) => NativeFileContext,
 ): NativeState[] =>
   slots.flatMap((slot): NativeState[] => {
     const stored = texts[slot.path];
     if (slot.missing || stored === undefined) return [];
-    const following = !!slot.definition.write && !held.has(slot.path);
-    if (following && inSyncWith[slot.path] === modelText)
-      return [{ slot, text: stored, following, write: null, sync: null }];
+    const following =
+      !!slot.definition.write && !tracking.held.includes(slot.path);
+    const inSyncWith = tracking.inSyncWith[slot.path];
+    const wrote = tracking.wrote[slot.path] ?? [];
+    const base = { slot, following, wrote, write: null, sync: null };
+    if (following && (inSyncWith === undefined || inSyncWith === modelText))
+      return [{ ...base, text: stored }];
     if (following) {
       const write = writeNative(slot.definition, modelText, context(slot));
-      return [
-        { slot, text: write.text ?? stored, following, write, sync: null },
-      ];
+      return [{ ...base, text: write.text ?? stored, write }];
     }
     return [
       {
-        slot,
+        ...base,
         text: stored,
-        following,
-        write: null,
         sync: nativeSync(slot.definition, stored, modelText, context(slot)),
       },
     ];
   });
 
-/** Whether a native file with a writer is held when its project opens: it doesn't read to the model. */
-export const heldAtOpen = (
-  slot: NativeSlot,
-  text: string,
+/**
+ * The files to write after an edit of the model (those that follow it, as
+ * written from it anew), and the tracking with each in sync with this
+ * model text: each written once per model text.
+ */
+export const followed = (
+  tracking: NativeTracking,
+  states: readonly NativeState[],
   modelText: string,
-  context: NativeFileContext,
-): boolean =>
-  !!slot.definition.write &&
-  nativeSync(slot.definition, text, modelText, context).state !== 'in-sync';
+): { writes: { path: string; text: string }[]; tracking: NativeTracking } => {
+  const written = states.flatMap((state) =>
+    state.following && state.write?.text != null
+      ? [{ state, text: state.write.text }]
+      : [],
+  );
+  return {
+    writes: written.map(({ state, text }) => ({ path: state.slot.path, text })),
+    tracking: written.reduce(
+      (next, { state }) =>
+        inSyncNow(next, state.slot.path, modelText, state.write!.diagnostics),
+      tracking,
+    ),
+  };
+};
 
 const fileName = (path: string) => path.split('/').pop() ?? path;
 
 /** What is wrong with the native files, as problems that open the file's tab. */
 export const nativeProblems = (states: readonly NativeState[]): Problem[] =>
-  states.flatMap(({ slot, write, sync }): Problem[] => {
+  states.flatMap(({ slot, following, write, wrote, sync }): Problem[] => {
     const name = fileName(slot.path);
     const reveal = { document: slot.path, from: 0, to: 0 };
     const source = slot.definition.label;
@@ -164,10 +267,18 @@ export const nativeProblems = (states: readonly NativeState[]): Problem[] =>
         {
           severity: 'warning',
           source,
-          message: `${name} can't be written from the model: ${write.diagnostics.find((d) => d.severity === 'error')?.message ?? 'no reason given'}`,
+          message: `${name} can't be written from the model: ${firstError(write.diagnostics)}`,
           reveal,
         },
       ];
+    // what its last writing said: what it left out, or wrote differently
+    if (following)
+      return wrote.map((d) => ({
+        severity: d.severity,
+        source,
+        message: `${name}: ${d.message}`,
+        reveal,
+      }));
     if (sync?.state === 'unreadable')
       return [
         {

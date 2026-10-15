@@ -5,6 +5,8 @@
  * other text): `readJson` says what is wrong with it.
  */
 
+import { jsonText } from '@goal-controller/dialect';
+
 export type JsonRange = { from: number; to: number };
 
 export type JsonNode =
@@ -160,8 +162,7 @@ export const readJson = (
 };
 
 /** A value as a JSON file: two-space indents, a final line break. */
-export const writeJson = (value: unknown): string =>
-  `${JSON.stringify(value, null, 2)}\n`;
+export const writeJson = jsonText;
 
 /** A value with every object's keys sorted, at any depth. */
 const sortedKeys = (value: unknown): unknown =>

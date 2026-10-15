@@ -7,6 +7,7 @@
  * holding what the model doesn't keep isn't).
  */
 import {
+  firstError,
   modelDifference,
   type NativeDiagnostic,
   type NativeFileContext,
@@ -21,9 +22,6 @@ export type RoundTrip = {
   problem: string | null;
   diagnostics: NativeDiagnostic[];
 };
-
-const errorsOf = (diagnostics: readonly NativeDiagnostic[]) =>
-  diagnostics.filter((d) => d.severity === 'error');
 
 const failed = (problem: string, diagnostics: NativeDiagnostic[]) => ({
   ok: false,
@@ -42,7 +40,7 @@ export const modelRoundTrip = (
   if (written.text === null)
     return {
       ...failed(
-        `not written: ${errorsOf(written.diagnostics)[0]?.message ?? 'no reason given'}`,
+        `not written: ${firstError(written.diagnostics)}`,
         written.diagnostics,
       ),
       written: null,
@@ -52,7 +50,7 @@ export const modelRoundTrip = (
   if (!read.model)
     return {
       ...failed(
-        `what it wrote doesn't read: ${errorsOf(read.diagnostics)[0]?.message ?? 'no reason given'}`,
+        `what it wrote doesn't read: ${firstError(read.diagnostics)}`,
         diagnostics,
       ),
       written: written.text,
@@ -88,7 +86,7 @@ export const textRoundTrip = (
   if (!read.model)
     return {
       ...failed(
-        `it doesn't read: ${errorsOf(read.diagnostics)[0]?.message ?? 'no reason given'}`,
+        `it doesn't read: ${firstError(read.diagnostics)}`,
         read.diagnostics,
       ),
       written: null,
@@ -103,10 +101,7 @@ export const textRoundTrip = (
   const diagnostics = [...read.diagnostics, ...written.diagnostics];
   if (written.text === null)
     return {
-      ...failed(
-        `not written: ${errorsOf(written.diagnostics)[0]?.message ?? 'no reason given'}`,
-        diagnostics,
-      ),
+      ...failed(`not written: ${firstError(written.diagnostics)}`, diagnostics),
       written: null,
     };
   const canonical = file.canonical ?? ((same: string) => same);

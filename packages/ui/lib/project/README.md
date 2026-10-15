@@ -264,9 +264,14 @@ the same model in that format, kept 1:1 with its piStar file (`native.ts`):
   model but for what its format can't carry (`lossy`) and the workbench's
   own keys (`nativeSync`). The piStar model is the canonical one.
   - A file its dialect **writes** follows the model: once the model is
-    edited, the file is written from it again (`writeNative`) and saved
-    where the project can be written; its tab is read only. A model it
-    can't write leaves the file as it was, and says why.
+    edited, the file is written from it again (`writeNative`), once per
+    model text (an undo writes it back); its tab is read only. It goes
+    where the model goes: exported and copied with it, never saved to the
+    store ahead of it. Before the file is checked it is never written, so
+    a file in sync keeps its bytes. A model it can't write leaves the
+    file as it was, and says why; what writing it said is a problem too.
+    The workbench's steps are `lib/workbench/nativeFiles.ts`'s
+    (`checkNatives`, `nativeStates`, `followed`), tracked per store.
   - A file that **isn't in sync when the project opens** (or doesn't read)
     is held as it is, never overwritten, until one of two actions: write it
     from the model again (**Regenerate**), or read the model from it

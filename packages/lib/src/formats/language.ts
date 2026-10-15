@@ -132,9 +132,11 @@ export const defineLanguage = <A extends AstNode = AstNode>(
     if (grammar) return grammar;
     const rules = services().Grammar.rules;
     const keywords = new Set<string>();
+    // a terminal rule's characters (`'a'..'z'`) are no keywords
     for (const rule of rules)
-      for (const node of AstUtils.streamAllContents(rule))
-        if (GrammarAST.isKeyword(node)) keywords.add(node.value);
+      if (!GrammarAST.isTerminalRule(rule))
+        for (const node of AstUtils.streamAllContents(rule))
+          if (GrammarAST.isKeyword(node)) keywords.add(node.value);
     const kinds = new Map<string, NativeHighlightKind>();
     for (const rule of rules)
       if (GrammarAST.isTerminalRule(rule))

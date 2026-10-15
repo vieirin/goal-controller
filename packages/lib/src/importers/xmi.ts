@@ -467,7 +467,7 @@ export const canonicalXml = (
 ): string => {
   const { root, problems } = readXml(text);
   if (!root || problems.length) return text;
-  const declared = /^\s*<\?xml[^>]*\bencoding="([^"]+)"/.exec(text)?.[1];
+  const declared = /^\s*<\?xml[^>]*\bencoding=(["'])([^"']+)\1/.exec(text)?.[2];
   const tree = (element: XmlElement): XmlTree => ({
     name: element.name,
     attributes: ordered(

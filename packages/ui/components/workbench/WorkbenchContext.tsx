@@ -79,12 +79,16 @@ import {
   type ResourceSlot,
 } from '@/lib/project';
 import {
-  heldAtOpen,
+  checkNatives,
+  followed,
+  inSyncNow,
   nativeDeclarationsOf,
   nativeFileOf,
   nativeProblems,
   nativeStates,
+  trackingFor,
   type NativeState,
+  type NativeTracking,
 } from '@/lib/workbench/nativeFiles';
 import type { DefinitionContext } from '@goal-controller/dialect';
 import {
@@ -1250,6 +1254,9 @@ function WorkbenchState({
   );
   const resourceTextsRef = useRef(resourceTexts);
   resourceTextsRef.current = resourceTexts;
+  // the store each text was read from (or written to): another project's
+  // texts stay in state until its own are read
+  const textStore = useRef(new Map<string, ProjectStore>());
   // the store the texts were read from: another project starts with none of them
   const textsOf = useRef<ProjectStore | null>(null);
   useEffect(() => {
@@ -1278,6 +1285,8 @@ function WorkbenchState({
       ),
     )
       .then((read) => {
+        if (cancelled) return;
+        for (const [path] of read) textStore.current.set(path, project.store);
         if (!cancelled)
           setResourceTexts((prev) => ({
             ...prev,
@@ -1388,6 +1397,9 @@ function WorkbenchState({
           path !== PROJECT_FILE && !result.models.some((m) => m.path === path),
       );
       textsOf.current = result.store;
+      for (const [path] of written) textStore.current.set(path, result.store);
+      for (const path of Object.keys(resourceTextsRef.current))
+        if (result.store !== open.store) textStore.current.delete(path);
       setResourceTexts((prev) => ({
         ...(result.store === open.store ? prev : {}),
         ...Object.fromEntries(written),
@@ -1430,6 +1442,7 @@ function WorkbenchState({
   const setResourceText = useCallback((path: string, text: string) => {
     setResourceTexts((prev) => ({ ...prev, [path]: text }));
     const open = projectRef.current;
+    if (open) textStore.current.set(path, open.store);
     if (!open || open.store.readOnly) return;
     saves.current.schedule(path, () => {
       void open.store.write(path, text).catch(() => {});
@@ -1444,6 +1457,9 @@ function WorkbenchState({
     const copy = await toWritable(open, resourceTextsRef.current, open);
     if (left) rememberRecent(left);
     textsOf.current = copy.store;
+    // the texts are the copy's now (written into it)
+    for (const path of Object.keys(resourceTextsRef.current))
+      textStore.current.set(path, copy.store);
     setProject(copy);
     setModel((prev) => ({
       ...prev,
@@ -1453,14 +1469,19 @@ function WorkbenchState({
   }, [currentProject, leaving, toWritable]);
 
   // ---- native files (goal-controller#143) ----------------------------------------
-  // held: not in sync when the project opened, kept as they are until regenerated
-  // or re-imported; inSyncWith: the model's text each was last in sync with
-  const [nativeHeld, setNativeHeld] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
-  const [inSyncWith, setInSyncWith] = useState<Record<string, string>>({});
-  const nativeChecked = useRef<{ store: ProjectStore | null; paths: string[] }>(
-    { store: null, paths: [] },
+  // what is known of the open project's native files (held, in sync with which model)
+  const [tracking, setTracking] = useState<NativeTracking | null>(null);
+  const trackingNow = trackingFor(tracking, project?.store ?? null);
+  // the texts read from the open project's store (not another project's, still in state)
+  const storeTexts = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(resourceTexts).filter(
+          ([path]) =>
+            !!project && textStore.current.get(path) === project.store,
+        ),
+      ),
+    [resourceTexts, project],
   );
   const nativeContext = useCallback(
     (slot: NativeSlot) => ({
@@ -1473,101 +1494,83 @@ function WorkbenchState({
           resource.kind,
           Object.fromEntries(
             resource.paths.flatMap((path) =>
-              resourceTexts[path] === undefined
-                ? []
-                : [[path, resourceTexts[path]!]],
+              storeTexts[path] === undefined ? [] : [[path, storeTexts[path]!]],
             ),
           ),
         ]),
       ),
       options: settings.options,
     }),
-    [resourceSlotsNow, resourceTexts, settings.options],
+    [resourceSlotsNow, storeTexts, settings.options],
   );
   // each native file, checked against the model once its text is read
   useEffect(() => {
     const store = project?.store ?? null;
-    if (nativeChecked.current.store !== store) {
-      nativeChecked.current = { store, paths: [] };
-      setNativeHeld(new Set());
-      setInSyncWith({});
-    }
-    const checked = nativeChecked.current.paths;
-    const fresh = nativeSlotsNow.filter(
-      (slot) =>
-        !slot.missing &&
-        resourceTexts[slot.path] !== undefined &&
-        !checked.includes(slot.path),
-    );
-    if (!fresh.length) return;
-    checked.push(...fresh.map((slot) => slot.path));
-    const held = fresh.filter((slot) =>
-      heldAtOpen(
-        slot,
-        resourceTexts[slot.path]!,
+    setTracking((prev) =>
+      checkNatives(
+        trackingFor(prev, store),
+        nativeSlotsNow,
+        storeTexts,
         textRef.current,
-        nativeContext(slot),
+        nativeContext,
       ),
     );
-    if (held.length)
-      setNativeHeld(
-        (prev) => new Set([...prev, ...held.map((slot) => slot.path)]),
-      );
-    setInSyncWith((prev) => ({
-      ...prev,
-      ...Object.fromEntries(
-        fresh
-          .filter((slot) => !held.includes(slot))
-          .map((slot) => [slot.path, textRef.current]),
-      ),
-    }));
-  }, [project, nativeSlotsNow, resourceTexts, nativeContext]);
+  }, [project, nativeSlotsNow, storeTexts, nativeContext]);
   const nativeStatesNow = useMemo(
     () =>
       nativeStates(
         nativeSlotsNow,
-        resourceTexts,
+        storeTexts,
         model.text,
-        nativeHeld,
-        inSyncWith,
+        trackingNow,
         nativeContext,
       ),
-    [
-      nativeSlotsNow,
-      resourceTexts,
-      model.text,
-      nativeHeld,
-      inSyncWith,
-      nativeContext,
-    ],
+    [nativeSlotsNow, storeTexts, model.text, trackingNow, nativeContext],
   );
-  // a file that follows the model: written as the model is edited
+  // a file that follows the model: written from it as the model is edited,
+  // kept with the model (exported, copied with the project), once per model text
   useEffect(() => {
-    for (const state of nativeStatesNow)
-      if (
-        state.following &&
-        state.write?.text != null &&
-        state.write.text !== resourceTextsRef.current[state.slot.path]
-      )
-        setResourceText(state.slot.path, state.write.text);
-  }, [nativeStatesNow, setResourceText]);
-  const regenerateNative = useCallback((path: string) => {
-    setNativeHeld((prev) => new Set([...prev].filter((p) => p !== path)));
-    setInSyncWith(({ [path]: _was, ...rest }) => rest);
-  }, []);
+    const { writes, tracking: next } = followed(
+      trackingNow,
+      nativeStatesNow,
+      textRef.current,
+    );
+    if (!writes.length) return;
+    setTracking(next);
+    setResourceTexts((prev) => ({
+      ...prev,
+      ...Object.fromEntries(writes.map(({ path, text }) => [path, text])),
+    }));
+  }, [nativeStatesNow, trackingNow]);
+  const regenerateNative = useCallback(
+    (path: string) =>
+      setTracking((prev) =>
+        inSyncNow(
+          trackingFor(prev, projectRef.current?.store ?? null),
+          path,
+          '',
+        ),
+      ),
+    [],
+  );
   const reimportModel = useCallback(
     (path: string) => {
       const slot = nativeSlotsNow.find((s) => s.path === path);
-      const text = resourceTextsRef.current[path];
+      const text = storeTexts[path];
       if (!slot || text === undefined) return;
       const read = slot.definition.read(text, nativeContext(slot));
       if (!read.model) return;
       const next = modelText(read.model);
       setText(next, 'convert');
-      setNativeHeld((prev) => new Set([...prev].filter((p) => p !== path)));
-      setInSyncWith((prev) => ({ ...prev, [path]: next }));
+      setTracking((prev) =>
+        inSyncNow(
+          trackingFor(prev, projectRef.current?.store ?? null),
+          path,
+          next,
+        ),
+      );
     },
-    [nativeSlotsNow, nativeContext, setText],
+    [nativeSlotsNow, storeTexts, nativeContext, setText],
   );
   const nativeProblemsNow = useMemo(
     () => nativeProblems(nativeStatesNow),

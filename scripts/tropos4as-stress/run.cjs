@@ -329,7 +329,7 @@ const markdown = (results, godaTwin) =>
             godaTwin.status === 'pass'
               ? `${ICON.pass} GODA engine: ${godaTwin.files} files equal ${GODA_TWIN.seed}'s`
               : describe(godaTwin),
-          )} |`,
+          )} | |`,
         ]
       : []),
     '',

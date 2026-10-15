@@ -314,8 +314,50 @@ export const ChoresGrammar = (): Grammar => loadedChoresGrammar ?? (loadedChores
         "name": "number"
       },
       "definition": {
-        "$type": "RegexToken",
-        "regex": "/[0-9]+(\\\\.[0-9]+)?/",
+        "$type": "TerminalGroup",
+        "elements": [
+          {
+            "$type": "CharacterRange",
+            "left": {
+              "$type": "Keyword",
+              "value": "0"
+            },
+            "right": {
+              "$type": "Keyword",
+              "value": "9"
+            },
+            "parenthesized": true,
+            "cardinality": "+"
+          },
+          {
+            "$type": "TerminalGroup",
+            "elements": [
+              {
+                "$type": "CharacterRange",
+                "left": {
+                  "$type": "Keyword",
+                  "value": "."
+                },
+                "parenthesized": false
+              },
+              {
+                "$type": "CharacterRange",
+                "left": {
+                  "$type": "Keyword",
+                  "value": "0"
+                },
+                "right": {
+                  "$type": "Keyword",
+                  "value": "9"
+                },
+                "parenthesized": true,
+                "cardinality": "+"
+              }
+            ],
+            "parenthesized": true,
+            "cardinality": "?"
+          }
+        ],
         "parenthesized": false
       },
       "fragment": false,

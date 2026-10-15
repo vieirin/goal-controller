@@ -29,10 +29,14 @@ import {
   type OpenProjectOptions,
 } from '../../../../ui/lib/project';
 import {
-  heldAtOpen,
+  checkNatives,
+  followed,
+  inSyncNow,
   nativeProblems,
   nativeStates,
   openAccept,
+  trackingFor,
+  type NativeTracking,
 } from '../../../../ui/lib/workbench/nativeFiles';
 import { choresDialect } from '../support/native/toy';
 import { fakeDirectory, type Tree } from './support';
@@ -291,46 +295,97 @@ describe('the workbench’s native files (#143)', () => {
     from: 'manifest' as const,
     missing: false,
   });
-  const states = (
-    modelNow: string,
-    {
-      held = new Set<string>(),
-      inSyncWith = { 'house.chores': model } as Record<string, string>,
-      definition = chores,
-      stored = text,
-    } = {},
-  ) =>
-    nativeStates(
+  const edited = (change: (model: any) => void) => {
+    const next = JSON.parse(model);
+    change(next);
+    return modelText(next);
+  };
+  const renamed = edited((m) => (m.actors[0].nodes[2].text = 'Sweep twice'));
+  const store = { name: 'house' };
+
+  /**
+   * The workbench's steps over one file: the file read, checked against the
+   * model when it is; each edit of the model, its states and writes.
+   */
+  const session = (stored: string, opened: string, definition = chores) => {
+    let texts: Record<string, string> = { 'house.chores': stored };
+    let tracking: NativeTracking = checkNatives(
+      trackingFor(null, store),
       [slot(definition)],
-      { 'house.chores': stored },
-      modelNow,
-      held,
-      inSyncWith,
+      texts,
+      opened,
       () => context,
     );
-  const renamed = (() => {
-    const edited = JSON.parse(model);
-    edited.actors[0].nodes[2].text = 'Sweep twice';
-    return modelText(edited);
-  })();
+    const states = (modelNow: string) =>
+      nativeStates(
+        [slot(definition)],
+        texts,
+        modelNow,
+        tracking,
+        () => context,
+      );
+    /** the model now this text: what the follow step writes */
+    const edit = (modelNow: string) => {
+      const step = followed(tracking, states(modelNow), modelNow);
+      tracking = step.tracking;
+      for (const { path, text: written } of step.writes) texts[path] = written;
+      return step.writes;
+    };
+    return {
+      states,
+      edit,
+      get tracking() {
+        return tracking;
+      },
+      set tracking(next) {
+        tracking = next;
+      },
+      get text() {
+        return texts['house.chores']!;
+      },
+    };
+  };
 
-  it('leaves a file that follows the model as it was written until the model is edited, then writes it', () => {
-    const [before] = states(model, { stored: `// mine\n${text}` });
-    expect(before).to.include({
-      following: true,
-      write: null,
-      text: `// mine\n${text}`,
-    });
-    const [after] = states(renamed);
-    expect(after!.following).to.equal(true);
-    expect(after!.text).to.contain('task T1 "Sweep twice" cost 2');
-    expect(nativeProblems([after!])).to.deep.equal([]);
+  it('never writes a file before it is checked, nor another project’s', () => {
+    const unchecked = nativeStates(
+      [slot()],
+      { 'house.chores': text },
+      renamed,
+      trackingFor(null, store),
+      () => context,
+    );
+    expect(unchecked[0]).to.include({ following: true, write: null, text });
+    expect(
+      followed(trackingFor(null, store), unchecked, renamed).writes,
+    ).to.deep.equal([]);
+    // another store's tracking is none of this one's
+    const known = inSyncNow(trackingFor(null, store), 'house.chores', model);
+    expect(trackingFor(known, store)).to.equal(known);
+    expect(trackingFor(known, { name: 'other' }).inSyncWith).to.deep.equal({});
   });
 
-  it('holds a file that was out of sync when the project opened, and says so, with both ways out', () => {
-    expect(heldAtOpen(slot(), text, renamed, context)).to.equal(true);
-    expect(heldAtOpen(slot(), text, model, context)).to.equal(false);
-    const [held] = states(renamed, { held: new Set(['house.chores']) });
+  it('leaves a file in sync as it was written until the model is edited, then writes it once per model text', () => {
+    const messy = fixture('messy.chores');
+    const run = session(messy, model);
+    expect(run.tracking.held).to.deep.equal([]);
+    expect(run.edit(model)).to.deep.equal([]);
+    expect(run.text).to.equal(messy);
+    const [write] = run.edit(renamed);
+    expect(write!.text).to.contain('task T1 "Sweep twice" cost 2');
+    expect(run.edit(renamed)).to.deep.equal([]);
+    // undone: the file follows the model back
+    expect(run.edit(model)).to.deep.equal([
+      { path: 'house.chores', text: fixture('house.chores') },
+    ]);
+    expect(nativeProblems(run.states(model))).to.deep.equal([]);
+  });
+
+  it('holds a file out of sync when the project opened, never writes it, and says so with both ways out', () => {
+    const run = session(text, renamed);
+    expect(run.tracking.held).to.deep.equal(['house.chores']);
+    expect(run.edit(renamed)).to.deep.equal([]);
+    expect(run.text).to.equal(text);
+    const [held] = run.states(renamed);
     expect(held).to.include({ following: false, text });
     expect(nativeProblems([held!])).to.deep.equal([
       {
@@ -341,31 +396,67 @@ describe('the workbench’s native files (#143)', () => {
         reveal: { document: 'house.chores', from: 0, to: 0 },
       },
     ]);
+    // regenerated: written from the model as it is, then followed
+    run.tracking = inSyncNow(run.tracking, 'house.chores', '');
+    expect(run.edit(renamed)[0]!.text).to.contain('"Sweep twice"');
+    expect(nativeProblems(run.states(renamed))).to.deep.equal([]);
+  });
+
+  it('re-imported, the model is in sync with the file: nothing written', () => {
+    const run = session(text, renamed);
+    run.tracking = inSyncNow(run.tracking, 'house.chores', model);
+    expect(run.tracking.held).to.deep.equal([]);
+    expect(run.edit(model)).to.deep.equal([]);
+    expect(run.text).to.equal(text);
   });
 
   it('compares a file its dialect only reads, and offers re-importing it', () => {
     const { write: _write, ...readOnly } = chores;
-    const [state] = states(renamed, { definition: readOnly });
+    const run = session(text, model, readOnly);
+    expect(run.edit(renamed)).to.deep.equal([]);
+    const [state] = run.states(renamed);
     expect(state!.following).to.equal(false);
     expect(nativeProblems([state!])[0]!.message).to.match(
       /: re-import the model from it$/,
     );
+    expect(nativeProblems(run.states(model))).to.deep.equal([]);
     expect(
-      nativeProblems(states(model, { definition: readOnly })),
-    ).to.deep.equal([]);
-    expect(
-      nativeProblems(states(model, { definition: readOnly, stored: 'x' }))[0],
+      nativeProblems(session('x', model, readOnly).states(model))[0],
     ).to.include({ severity: 'error' });
   });
 
-  it('says why a model can’t be written', () => {
-    const edited = JSON.parse(model);
-    edited.actors[0].nodes[0].text = 'say "hi"';
-    const [state] = states(modelText(edited));
-    expect(state!.text).to.equal(text);
-    expect(nativeProblems([state!])[0]!.message).to.equal(
+  it('says why a model can’t be written, and what writing it said', () => {
+    const run = session(text, model);
+    const quoted = edited((m) => (m.actors[0].nodes[0].text = 'say "hi"'));
+    expect(run.edit(quoted)).to.deep.equal([]);
+    expect(run.text).to.equal(text);
+    expect(nativeProblems(run.states(quoted))[0]!.message).to.equal(
       'house.chores can\'t be written from the model: say "hi": has a "',
     );
+    // a writer's warnings, kept after the write
+    const noted = {
+      ...chores,
+      write: (m: Record<string, unknown>, c: typeof context) => {
+        const written = chores.write!(m, c);
+        return {
+          ...written,
+          diagnostics: [
+            ...written.diagnostics,
+            { severity: 'info' as const, message: 'left out the colours' },
+          ],
+        };
+      },
+    };
+    const notes = session(text, model, noted);
+    expect(notes.edit(renamed)).to.have.length(1);
+    expect(nativeProblems(notes.states(renamed))).to.deep.equal([
+      {
+        severity: 'info',
+        source: 'Chore list',
+        message: 'house.chores: left out the colours',
+        reveal: { document: 'house.chores', from: 0, to: 0 },
+      },
+    ]);
   });
 
   it('opens the native files the dialects declare, by their extensions', () => {

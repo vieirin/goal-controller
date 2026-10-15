@@ -20,5 +20,5 @@ Task:
 hidden terminal WS: /\s+/;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
 terminal ID: /[A-Za-z_][A-Za-z0-9_]*/;
-terminal NUMBER returns number: /[0-9]+(\.[0-9]+)?/;
+terminal NUMBER returns number: ('0'..'9')+ ('.' ('0'..'9')+)?;
 terminal STRING: /"[^"]*"/;

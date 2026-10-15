@@ -4,7 +4,20 @@
  * compared, a native file's read and the project's `model.json`: what its
  * format can't carry (`lossy`) left out, keys and id'd lists in one order.
  */
-import type { AnyDialect, NativeFileDefinition, PistarJson } from './schema';
+import type {
+  AnyDialect,
+  NativeDiagnostic,
+  NativeFileDefinition,
+  PistarJson,
+} from './schema';
+
+/** Why a native file didn't read or wasn't written: its first error's message. */
+export const firstError = (diagnostics: readonly NativeDiagnostic[]): string =>
+  diagnostics.find((d) => d.severity === 'error')?.message ?? 'no reason given';
+
+/** A value as a JSON file's text (a piStar model's): two-space indents, a final line break. */
+export const jsonText = (value: unknown): string =>
+  `${JSON.stringify(value, null, 2)}\n`;
 
 /** A native file of a dialect, as a file's name finds it. */
 export type FoundNativeFile = {

@@ -15,6 +15,8 @@
  * regenerate it from the model, or re-import the model from it. No merge.
  */
 import {
+  firstError,
+  jsonText,
   modelDifference,
   type NativeDiagnostic,
   type NativeFileContext,
@@ -39,7 +41,7 @@ export type NativeSlot = {
   /** the dialect's native file id */
   id: string;
   definition: NativeFileDefinition;
-  /** where it is, or where it is written when missing */
+  /** where it is, or would be (a missing one isn't made: its project has none) */
   path: string;
   /** where it was found: the manifest's entry, the model's name with the extension, or nowhere */
   from: 'manifest' | 'default' | null;
@@ -97,9 +99,6 @@ export type NativeSync =
       diagnostics: NativeDiagnostic[];
     };
 
-const errorOf = (diagnostics: readonly NativeDiagnostic[]) =>
-  diagnostics.find((d) => d.severity === 'error')?.message ?? 'no reason given';
-
 /** What the workbench keeps in a model's file that is no model's (its embedded manifest). */
 const WORKBENCH_PATHS = [EMBEDDED_KEY];
 
@@ -129,7 +128,7 @@ export const nativeSync = (
   if (!read.model)
     return {
       state: 'unreadable',
-      why: errorOf(read.diagnostics),
+      why: firstError(read.diagnostics),
       diagnostics: read.diagnostics,
     };
   const model = modelOf(modelText);
@@ -180,7 +179,7 @@ export const writeNative = (
 
 /** A model as its piStar file's text. */
 export const modelText = (model: Record<string, unknown>): string =>
-  `${JSON.stringify(model, null, 2)}\n`;
+  jsonText(model);
 
 /**
  * A native file opened: the project it makes, as files (path → text). Its

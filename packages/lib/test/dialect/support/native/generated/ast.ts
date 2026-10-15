@@ -10,7 +10,7 @@ export const ChoresTerminals = {
     WS: /\s+/,
     SL_COMMENT: /\/\/[^\n\r]*/,
     ID: /[A-Za-z_][A-Za-z0-9_]*/,
-    NUMBER: /[0-9]+(\.[0-9]+)?/,
+    NUMBER: /([0-9])+(\.([0-9])+)?/,
     STRING: /"[^"]*"/,
 };
 
