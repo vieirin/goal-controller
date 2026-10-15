@@ -3,36 +3,23 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import type {
-  LangiumSharedCoreServices,
-  LangiumCoreServices,
-  LangiumGeneratedCoreServices,
-  LangiumGeneratedSharedCoreServices,
-  LanguageMetaData,
-  Module,
-} from 'langium';
+import type { LangiumSharedCoreServices, LangiumCoreServices, LangiumGeneratedCoreServices, LangiumGeneratedSharedCoreServices, LanguageMetaData, Module } from 'langium';
 import { HddlAstReflection } from './ast';
 import { HddlGrammar } from './grammar';
 
 export const HddlLanguageMetaData = {
-  languageId: 'hddl',
-  fileExtensions: ['.hddl'],
-  caseInsensitive: true,
-  mode: 'development',
+    languageId: 'hddl',
+    fileExtensions: ['.hddl'],
+    caseInsensitive: true,
+    mode: 'development'
 } as const satisfies LanguageMetaData;
 
-export const HddlGeneratedSharedModule: Module<
-  LangiumSharedCoreServices,
-  LangiumGeneratedSharedCoreServices
-> = {
-  AstReflection: () => new HddlAstReflection(),
+export const HddlGeneratedSharedModule: Module<LangiumSharedCoreServices, LangiumGeneratedSharedCoreServices> = {
+    AstReflection: () => new HddlAstReflection()
 };
 
-export const HddlGeneratedModule: Module<
-  LangiumCoreServices,
-  LangiumGeneratedCoreServices
-> = {
-  Grammar: () => HddlGrammar(),
-  LanguageMetaData: () => HddlLanguageMetaData,
-  parser: {},
+export const HddlGeneratedModule: Module<LangiumCoreServices, LangiumGeneratedCoreServices> = {
+    Grammar: () => HddlGrammar(),
+    LanguageMetaData: () => HddlLanguageMetaData,
+    parser: {}
 };

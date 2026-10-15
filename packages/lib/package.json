@@ -9,14 +9,13 @@
     "goal-controller-cli": "out/cli.js"
   },
   "scripts": {
-    "build": "rm -rf out tsconfig.tsbuildinfo && tsc && node build.mjs",
+    "build": "rm -rf out tsconfig.tsbuildinfo && node scripts/langium-generate.mjs && tsc && node build.mjs",
     "watch": "node build.mjs --watch & tsc --watch",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts",
-    "generate:mutrose": "langium generate --file src/engines/mutrose/language/langium-config.json",
-    "generate:hddl": "langium generate --file src/engines/mutrose/hddl/langium-config.json"
+    "generate": "node scripts/langium-generate.mjs src/engines test/dialect/support"
   },
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",

@@ -346,6 +346,12 @@ export type DialectDefinition<K extends string = ElementKind> = {
   /** the files beside a model it reads, by kind (goal-controller#25) */
   projectResources?: Readonly<Record<string, ProjectResourceDefinition>>;
   /**
+   * Its own file formats, by id (goal-controller#143): a model's file in
+   * another tool's format, kept 1:1 with the piStar model. Read, it is the
+   * model; the model written, it follows.
+   */
+  nativeFiles?: Readonly<Record<string, NativeFileDefinition>>;
+  /**
    * Where an id must be unique: in the whole model (`'model'`, the default),
    * or among the elements under the same goal (`'ancestorGoal'`: a task's id
    * is scoped by its nearest goal, GODA's `G3_T1_1` and `G4_T1_1`; goals stay
@@ -472,6 +478,155 @@ export type ProjectResourceDefinition = {
   accept?: readonly string[];
   help?: string;
 };
+
+// ---------------------------------------------------------------------------
+// native files: a dialect's own file formats, 1:1 with the model (goal-controller#143)
+// ---------------------------------------------------------------------------
+
+/** What a native file is written in: its tab's highlighting, and the helpers its reader starts from. */
+export type NativeFileFormat = 'xmi' | 'xml' | 'json' | 'text';
+
+export const NATIVE_FILE_FORMATS: readonly NativeFileFormat[] = [
+  'xmi',
+  'xml',
+  'json',
+  'text',
+];
+
+/** What a native format's schema is, and the formats each kind describes. */
+export const NATIVE_SCHEMA_KINDS = {
+  ecore: ['xmi'],
+  xsd: ['xml', 'xmi'],
+  'json-schema': ['json'],
+  langium: ['text'],
+} as const satisfies Record<string, readonly NativeFileFormat[]>;
+
+export type NativeSchemaKind = keyof typeof NATIVE_SCHEMA_KINDS;
+
+/** The extension a piStar model is opened by, which no native file takes. */
+export const PISTAR_EXTENSION = '.json';
+
+/** What reading or writing a native file found: what was read differently, left out, or can't be. */
+export type NativeDiagnostic = {
+  severity: Severity;
+  message: string;
+  /** where in the text, when it is one part's */
+  from?: number;
+  to?: number;
+};
+
+/** What a model's dialect needs beside the model: its engine, its resources' files and its options. */
+export type DialectRecord = {
+  /** the engine the model records (`diagram.customProperties.engine`) */
+  engine: string;
+  /** each project resource kind's files, by path in the project */
+  projectResources: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** the engine's options the source sets (a project's manifest keeps them) */
+  options?: Readonly<Record<string, boolean | number | string>>;
+};
+
+/** A piStar model, as JSON (its text: `JSON.stringify(model, null, 2)`). */
+export type PistarJson = Record<string, unknown>;
+
+/**
+ * A native file read (the shape importers had, packages/dialect/docs/importers.md):
+ * the piStar model, what its dialect needs beside it, and what was read
+ * differently or left out; no model, with errors, when the text isn't one.
+ */
+export type NativeReadResult =
+  | {
+      model: PistarJson;
+      dialectRecord: DialectRecord;
+      diagnostics: NativeDiagnostic[];
+    }
+  | { model: null; dialectRecord: null; diagnostics: NativeDiagnostic[] };
+
+/** A model written: its text; none, with the diagnostics saying why, when this model can't be. */
+export type NativeWriteResult =
+  | { text: string; diagnostics: NativeDiagnostic[] }
+  | { text: null; diagnostics: NativeDiagnostic[] };
+
+/** What a reader and a writer are given beside the text or the model. */
+export type NativeFileContext = {
+  /** the model's name: the file's, without its extension */
+  modelName: string;
+  /** the project's resources' files, by kind, then path in the project */
+  projectResources?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** the engine's options the project sets */
+  options?: Readonly<Record<string, boolean | number | string>>;
+};
+
+/** How a part of a textual native file is highlighted. */
+export type NativeHighlightKind =
+  | 'keyword'
+  | 'definition'
+  | 'reference'
+  | 'name'
+  | 'string'
+  | 'number'
+  | 'comment'
+  | 'punctuation';
+
+export type NativeHighlight = {
+  from: number;
+  to: number;
+  kind: NativeHighlightKind;
+};
+
+/** A word completion offers in a textual native file. */
+export type NativeCompletion = { label: string; kind: 'keyword' | 'name' };
+
+/**
+ * A textual format's language, for its tab (lib's `defineLanguage` makes
+ * one from a Langium grammar): its highlighting, and its completions.
+ */
+export type NativeLanguage = {
+  /** its id (the grammar's), unique among the languages a workbench loads */
+  id: string;
+  highlight: (text: string) => readonly NativeHighlight[];
+  complete?: (text: string, offset: number) => readonly NativeCompletion[];
+};
+
+/**
+ * One of a dialect's own file formats (another tool's EMF XMI, an
+ * XSD-described XML, a text with its grammar): a model's file kept 1:1 with its piStar
+ * model. Its reader is the model's importer; with a writer, the file
+ * follows the model as it is edited.
+ */
+export type NativeFileDefinition = {
+  /** shown to people: the format's name */
+  label: string;
+  /** the extensions it is opened by, lower case, with their dot (`.xmi`) */
+  extensions: readonly string[];
+  format: NativeFileFormat;
+  /**
+   * The format's own description, committed with the engine (its path from
+   * the engine's folder), which the metamodel export copies: an Ecore
+   * metamodel, an XSD, a JSON Schema, or the Langium grammar it is read with.
+   */
+  schema?: { kind: NativeSchemaKind; path: string };
+  /** its text as the model; no model, with errors, when it isn't one */
+  read: (text: string, context: NativeFileContext) => NativeReadResult;
+  /** the model as its text; none, with why, when this model can't be written */
+  write?: (model: PistarJson, context: NativeFileContext) => NativeWriteResult;
+  /**
+   * the form two texts are compared in, byte for byte (attribute order,
+   * whitespace, generated ids): a format without one compares as written
+   */
+  canonical?: (text: string) => string;
+  /**
+   * What the format can't carry, as piStar paths (`*` any key or index:
+   * `actors.*.nodes.*.x`, `display`): a model written and read back equals
+   * it but for these, and a native file is in sync with a model it reads to
+   * but for these.
+   */
+  lossy?: readonly string[];
+  /** a textual format's language: its tab's highlighting and completions */
+  language?: NativeLanguage;
+};
+
+/** A lossy path: keys, indices or `*`, dot-separated. */
+const LOSSY_PATH = /^(?:\*|[^.*\s]+)(?:\.(?:\*|[^.*\s]+))*$/;
 
 /**
  * A name a project resource defines, as its parser lists it (a world class
@@ -748,6 +903,70 @@ type KnownPropertyKinds<D extends { properties: object }> =
       };
 
 /**
+ * A dialect's native files, as the types can't check them: each id a name,
+ * its extensions its own, its schema one its format has (inside the
+ * engine's folder), its functions functions, its lossy paths paths.
+ */
+const checkNativeFiles = (
+  files: Readonly<Record<string, NativeFileDefinition>>,
+  fail: (why: string) => never,
+) => {
+  const taken = new Map<string, string>();
+  for (const [id, file] of Object.entries(files)) {
+    const where = `native file ${id}`;
+    if (!/^[A-Za-z][\w-]*$/.test(id)) fail(`${where}: its id is a name`);
+    if (!file.label) fail(`${where}: no label`);
+    if (!NATIVE_FILE_FORMATS.includes(file.format))
+      fail(`${where}: unknown format ${String(file.format)}`);
+    if (!file.extensions.length) fail(`${where}: no extension`);
+    for (const extension of file.extensions) {
+      if (!/^\.[a-z0-9][a-z0-9.+_-]*$/.test(extension))
+        fail(
+          `${where}: ${extension} is not an extension (lower case, with its dot)`,
+        );
+      if (extension === PISTAR_EXTENSION)
+        fail(`${where}: ${extension} opens a piStar model`);
+      const other = taken.get(extension);
+      if (other) fail(`${where}: ${extension} is native file ${other}’s too`);
+      taken.set(extension, id);
+    }
+    if (file.schema) {
+      const formats = NATIVE_SCHEMA_KINDS[file.schema.kind] as
+        | readonly NativeFileFormat[]
+        | undefined;
+      if (!formats) fail(`${where}: unknown schema kind ${file.schema.kind}`);
+      else if (!formats.includes(file.format))
+        fail(
+          `${where}: a ${file.schema.kind} schema describes ${formats.join(' or ')}, not ${file.format}`,
+        );
+      const { path } = file.schema;
+      if (
+        !path ||
+        path.startsWith('/') ||
+        path.endsWith('/') ||
+        path.split('/').includes('..')
+      )
+        fail(`${where}: its schema is a file in the engine’s folder`);
+    }
+    for (const name of ['read', 'write', 'canonical'] as const)
+      if (
+        (name === 'read' || file[name] !== undefined) &&
+        typeof file[name] !== 'function'
+      )
+        fail(`${where}: ${name} is a function`);
+    if (file.language && file.format !== 'text')
+      fail(`${where}: a language is a text format's, not ${file.format}'s`);
+    if (file.language && typeof file.language.highlight !== 'function')
+      fail(`${where}: its language highlights`);
+    const lossy = file.lossy ?? [];
+    for (const path of lossy)
+      if (!LOSSY_PATH.test(path))
+        fail(`${where}: lossy ${path} is not a piStar path`);
+    if (new Set(lossy).size !== lossy.length) fail(`${where}: lossy repeats`);
+  }
+};
+
+/**
  * Type-checks and freezes a definition, and checks what the types cannot:
  * every name it uses (constructs, languages, condition keys, the keys an
  * element line declares) is one it declares, and the property-line order lists
@@ -936,6 +1155,7 @@ export const defineDialect = <const D extends AnyDialect>(
       if (!extension.startsWith('.'))
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
+  checkNativeFiles(definition.nativeFiles ?? {}, fail);
   if (definition.model)
     for (const [part, count] of Object.entries(definition.model))
       if (count !== 'one' && count !== 'many')

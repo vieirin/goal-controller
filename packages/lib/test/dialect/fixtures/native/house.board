@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<board:Board xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:board="http://example.org/board" name="House">
+  <lanes xmi:id="ann" name="Ann">
+    <cards xsi:type="board:Goal" xmi:id="G1" name="Clean the house" parts="G2 T3"/>
+    <cards xsi:type="board:Goal" xmi:id="G2" name="Floors done" parts="T1 T2" decomposition="or"/>
+    <cards xsi:type="board:Task" xmi:id="T1" name="Sweep" cost="2"/>
+    <cards xsi:type="board:Task" xmi:id="T2" name="Mop &amp; rinse" cost="3.5"/>
+    <cards xsi:type="board:Task" xmi:id="T3" name="Dust"/>
+  </lanes>
+  <lanes xmi:id="bob" name="Bob">
+    <cards xsi:type="board:Goal" xmi:id="G3" name="Dinner&#xA;at seven" parts="T4"/>
+    <cards xsi:type="board:Task" xmi:id="T4" name="Cook"/>
+  </lanes>
+</board:Board>
