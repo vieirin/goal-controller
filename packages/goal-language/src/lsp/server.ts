@@ -59,6 +59,7 @@ import {
   GoalGeneratedModule,
   GoalGeneratedSharedModule,
 } from '../generated/module.js';
+import { idPrefixesOf } from '../catalog.js';
 import type { LexerStart } from '../lexer.js';
 import { GoalCoreModule, parseWith } from '../module.js';
 import { syntaxErrorsOf } from '../parse.js';
@@ -165,10 +166,14 @@ export const createGoalLspServices = (
       text: string,
       _options?: ParserOptions,
     ): ParseResult<T> {
+      const params = store.for(uri);
+      const start = startOf(uri, params);
       return parseWith<T>(
         this.serviceRegistry.getServices(uri),
-        startOf(uri, store.for(uri)),
+        start,
         text,
+        // a document's element lines: its dialect's own id prefixes too
+        start === 'document' && params ? idPrefixesOf(params.dialect) : [],
       );
     }
 

@@ -8,7 +8,12 @@ import type {
   AssertionPrefix,
   NotationDefinition,
 } from '@goal-controller/dialect';
-import { EXPRESSION, ID_PREFIXES, type ValueType } from './catalog.js';
+import {
+  EXPRESSION,
+  ID_PREFIXES,
+  idPrefixesOf,
+  type ValueType,
+} from './catalog.js';
 import type {
   AnnotatedName,
   Annotation,
@@ -213,8 +218,12 @@ export const syntaxErrorsOf = (
   }),
 ];
 
-const parse = <T>(start: LexerStart, text: string) => {
-  const result = parseWith(goalServices(), start, text);
+const parse = <T>(
+  start: LexerStart,
+  text: string,
+  prefixes: readonly string[] = [],
+) => {
+  const result = parseWith(goalServices(), start, text, prefixes);
   return {
     root: result.value as T,
     errors: syntaxErrorsOf(result, text.length),
@@ -339,13 +348,15 @@ const lineOf = (node: { $cstNode?: { range: { start: { line: number } } } }) =>
 /**
  * One element line with an id (`G1: Name [G2;G3]`), as an engine reads a
  * goal's text. A blank text has no element and no error (RTRegex.g4's `blank`).
+ * `prefixes`: its dialect's own id prefixes (`idPrefixesOf`), if any.
  */
 export const parseElementLine = (
   text: string,
+  prefixes: readonly string[] = [],
 ): Parsed<ElementLineData | null> => {
   // RTRegex.g4 skipped tabs only
   if (/^\t*$/.test(text)) return { value: null, errors: [] };
-  const { root, errors } = parse<ElementLine>('elementLine', text);
+  const { root, errors } = parse<ElementLine>('elementLine', text, prefixes);
   return { value: root ? toElementLine(root) : null, errors };
 };
 
@@ -375,12 +386,14 @@ export const withoutBracketSpaces = (
   };
 };
 
-/** An element line's id and colon (annotations and indentation before them). */
-const ELEMENT_ID = new RegExp(
-  `^\\s*(?:(?:<<[^>]*>>|\\{[^}]*\\})\\s*)*(?:${[...ID_PREFIXES]
-    .sort((a, b) => b.length - a.length)
-    .join('|')})(?:[0-9][0-9.]*X?|X|[0-9][a-z])\\s*:`,
-);
+/** An element line's id and colon (annotations and indentation before them), with these prefixes. */
+const elementIdOf = (prefixes: readonly string[]) =>
+  new RegExp(
+    `^\\s*(?:(?:<<[^>]*>>|\\{[^}]*\\})\\s*)*(?:${[...ID_PREFIXES, ...prefixes]
+      .sort((a, b) => b.length - a.length)
+      .join('|')})(?:[0-9][0-9.]*X?|X|[0-9][a-z])\\s*:`,
+  );
+const ELEMENT_ID = elementIdOf([]);
 /** What RTRegex.g4's WORD reads in a name. */
 const WORD_CHARACTER = /[A-Za-z\- ']/;
 
@@ -392,8 +405,9 @@ const WORD_CHARACTER = /[A-Za-z\- ']/;
  */
 export const withWordName = (
   text: string,
+  prefixes: readonly string[] = [],
 ): { text: string; name: { from: number; to: number } | null } => {
-  const id = ELEMENT_ID.exec(text);
+  const id = (prefixes.length ? elementIdOf(prefixes) : ELEMENT_ID).exec(text);
   if (!id) return { text, name: null };
   const from = id[0].length;
   const end = text.slice(from).search(/[[{]/);
@@ -415,17 +429,21 @@ export const withWordName = (
 export const parseElementLineIn = (
   dialect: {
     notation?: Pick<NotationDefinition, 'whitespace' | 'names'> | undefined;
+    /** its kinds' id prefixes: an extension's kinds' it lists are read too */
+    elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
   },
   text: string,
 ): Parsed<ElementLineData | null> => {
+  const prefixes = idPrefixesOf(dialect);
   const named =
     dialect.notation?.names === 'text'
-      ? withWordName(text)
+      ? withWordName(text, prefixes)
       : { text, name: null };
   const read = parseElementLine(
     dialect.notation?.whitespace === 'ignore'
       ? withoutBracketSpaces(named.text).text
       : named.text,
+    prefixes,
   );
   const { name } = named;
   return name && read.value
@@ -439,7 +457,14 @@ export const parseElementLineIn = (
 /** A document: element lines with ids and property lines, or (`ids: false`) lines without ids. */
 export const parseDocument = (
   text: string,
-  { ids = true }: { ids?: boolean } = {},
+  {
+    ids = true,
+    prefixes = [],
+  }: {
+    ids?: boolean;
+    /** its dialect's own id prefixes (`idPrefixesOf`) */
+    prefixes?: readonly string[];
+  } = {},
 ): Parsed<DocumentLine[]> => {
   if (!ids) {
     const { root, errors } = parse<PlainDocument>('plainDocument', text);
@@ -452,7 +477,7 @@ export const parseDocument = (
       errors,
     };
   }
-  const { root, errors } = parse<Document>('document', text);
+  const { root, errors } = parse<Document>('document', text, prefixes);
   return {
     value: root.lines.map((line): DocumentLine =>
       line.$type === 'PropertyLine'

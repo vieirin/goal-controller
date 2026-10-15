@@ -5,7 +5,7 @@
  */
 import type {
   DefinitionContext,
-  ElementKind,
+  DialectKind,
   FunctionDefinition,
   ValueConfig,
 } from '@goal-controller/dialect';
@@ -96,20 +96,36 @@ const callProblem = (
   return null;
 };
 
+/**
+ * The element an expression's operand names: an id (`G1`), or a name that is
+ * an element's key (an extension's kind's, `E1`, which the expression
+ * language reads as a name); null: a variable.
+ */
+export const elementOfOperand = (
+  node: ExpressionTree,
+  context: DefinitionContext | undefined,
+): string | null =>
+  node.kind === 'ref'
+    ? node.id
+    : node.kind === 'var' && kindOf(context, node.name)
+      ? node.name
+      : null;
+
 /** The first id of an expression that is not an element of the kinds it resolves. */
 const refProblem = (
   tree: ExpressionTree,
-  kinds: readonly ElementKind[],
+  kinds: readonly DialectKind[],
   context: DefinitionContext,
 ): string | null => {
   for (const node of expressionNodes(tree)) {
-    if (node.kind !== 'ref') continue;
-    const kind = kindOf(context, node.id);
-    if (!kind) return `${node.id} is not an element of this model`;
+    const id = elementOfOperand(node, context);
+    if (id === null) continue;
+    const kind = kindOf(context, id);
+    if (!kind) return `${id} is not an element of this model`;
     if (!(kinds as readonly string[]).includes(kind))
       return kinds.length
-        ? `${node.id} is a ${kind}, not a ${kinds.join(' or ')}`
-        : `${node.id} is a ${kind}: this value names no elements`;
+        ? `${id} is a ${kind}, not a ${kinds.join(' or ')}`
+        : `${id} is a ${kind}: this value names no elements`;
   }
   return null;
 };

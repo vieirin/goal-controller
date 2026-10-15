@@ -120,7 +120,7 @@ describe('defineEngine', () => {
   it('rejects file kinds without the extension that defines them', () =>
     assert.throws(
       define({ fileKinds: true }),
-      /^Error: toy: fileKinds without an extension \(its kinds\)$/,
+      /^Error: toy: fileKinds without an extension \(its dialect declares none\)$/,
     ));
 
   it('rejects checks or parsers without a dialect', () => {

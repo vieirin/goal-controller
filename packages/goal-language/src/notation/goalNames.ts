@@ -70,7 +70,14 @@ export type ReadingDialect = Pick<AnyDialect, 'name' | 'unlinkedResources'> & {
   notation?: NotationDefinition;
   /** how unique an id is (a view keys a repeated scoped id by its goal) */
   idScope?: AnyDialect['idScope'];
-};
+} & Partial<
+    /**
+     * the kinds it lists, with their prefixes (an extension's own are read
+     * too), and what says which of its extension's kinds a view holds
+     * (`extensionKindsRead`, goal-controller#132)
+     */
+    Pick<AnyDialect, 'elements' | 'properties' | 'links' | 'actors'>
+  >;
 
 /** The outermost enabled operator of a notation (groups and modifiers looked through). */
 const outermost = (

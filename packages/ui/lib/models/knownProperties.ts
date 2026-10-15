@@ -1,4 +1,8 @@
-import { propertyKeys } from '@goal-controller/dialect';
+import {
+  isExtensionKind,
+  propertyKeys,
+  type AnyDialect,
+} from '@goal-controller/dialect';
 import { grlEngineMapper, sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
@@ -19,13 +23,24 @@ const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
   quality: [...(m.allowedQualityKeys ?? [])],
 });
 
+type Definition = (typeof ENGINE_DIALECTS)[keyof typeof ENGINE_DIALECTS];
+
+/** The keys of the extension's kinds a definition gives properties (goal-controller#132). */
+const extensionKeys = (definition: Definition) =>
+  Object.fromEntries(
+    Object.keys(definition.properties)
+      .filter(isExtensionKind)
+      .map((kind) => [kind, [...propertyKeys(definition as AnyDialect, kind)]]),
+  );
+
 const definedKeys = (
-  definition: (typeof ENGINE_DIALECTS)[keyof typeof ENGINE_DIALECTS],
+  definition: Definition,
 ): AnalyzeResponse['knownProperties'] => ({
   goal: [...propertyKeys(definition, 'goal')],
   task: [...propertyKeys(definition, 'task')],
   resource: [...propertyKeys(definition, 'resource')],
   quality: [...propertyKeys(definition, 'quality')],
+  ...extensionKeys(definition),
 });
 
 /**
@@ -41,6 +56,7 @@ export const KNOWN_PROPERTIES: Record<
   sleec: keysOf(sleecEngineMapper),
   mutrose: definedKeys(ENGINE_DIALECTS.mutrose),
   goda: definedKeys(ENGINE_DIALECTS.goda),
-  // GRL's element properties are read but not declarable yet (#105): its mapper's
-  grl: keysOf(grlEngineMapper),
+  // GRL's element properties are read but not declarable yet (#105): its
+  // mapper's; an indicator's are declared (goal-controller#132)
+  grl: { ...keysOf(grlEngineMapper), ...extensionKeys(ENGINE_DIALECTS.grl) },
 };

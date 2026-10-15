@@ -10,6 +10,15 @@
 /** The iStar element kinds a model has (what an engine may read). */
 export type ElementKind = 'goal' | 'task' | 'resource' | 'quality';
 
+/** A kind an extension adds, by its id: namespaced (`<namespace>.<Kind>`). */
+export type ExtensionKind = `${string}.${string}`;
+
+/**
+ * A kind a dialect's properties, references and lines may name: iStar's, or
+ * one its extension adds (`DialectDefinition.extension`).
+ */
+export type DialectKind = ElementKind | ExtensionKind;
+
 /** iStar refinement links: AND or OR. */
 export type Relation = 'and' | 'or';
 
@@ -29,11 +38,13 @@ export const ANNOTATION_KEYS = ['stereotype', 'tag', 'tagValue'] as const;
 
 export type ElementDefinition = {
   /**
-   * the goal language's id prefix its lines start with (`G`: `G1: Name`);
-   * without one, a definition's lines name no element (they are their
-   * elements', in order)
+   * the id prefix its lines start with (`G`: `G1: Name`): one of the goal
+   * language's (`G`, `T`, `R`, `AT`) for iStar's kinds; for an extension's,
+   * one or two capitals of the dialect's own (`ExtensionIdPrefix`). Without
+   * one, a definition's lines name no element (they are their elements', in
+   * order).
    */
-  prefix?: 'G' | 'T' | 'R' | 'AT';
+  prefix?: string;
   /** whether its line carries annotations (`<<action>> {type = duty}`) before the id */
   annotated?: boolean;
   /** whether its line declares its DECLARATION_KEYS (`{int 0..100 = 80}`) after the name */
@@ -41,6 +52,27 @@ export type ElementDefinition = {
   /** the fill the diagram draws it with when no colour is saved */
   fill: string;
 };
+
+/** The goal language's id prefixes (its catalog's ID_PREFIXES; its tests pin them). */
+export type IstarIdPrefix = 'G' | 'T' | 'R' | 'AT';
+export const ISTAR_ID_PREFIXES = [
+  'G',
+  'T',
+  'R',
+  'AT',
+] as const satisfies readonly IstarIdPrefix[];
+
+/**
+ * An extension kind's id prefix (`E`: `E1: Wet soil`): one or two capitals,
+ * none of the goal language's, nor `X` (an unknown element, `GX`) or `W` (a
+ * cost, `[W = 0.1]`). The goal language reads it in the dialect that declares
+ * it only.
+ */
+export const isExtensionIdPrefix = (prefix: string): boolean =>
+  /^[A-Z]{1,2}$/.test(prefix) &&
+  !(ISTAR_ID_PREFIXES as readonly string[]).includes(prefix) &&
+  prefix !== 'X' &&
+  prefix !== 'W';
 
 /**
  * A property's value, or an operator's argument: one of the goal language's
@@ -57,7 +89,7 @@ export type ValueConfig =
   /** a condition; its identifiers name elements of these kinds, or variables */
   | {
       type: 'assertion';
-      resolves: readonly (ElementKind | 'variable')[];
+      resolves: readonly (DialectKind | 'variable')[];
       /**
        * the prefixes it starts with, one of them required (GODA's
        * `assertion trigger ctx = 1`); none: a prefix is an error. The goal
@@ -89,11 +121,11 @@ export type ValueConfig =
    */
   | {
       type: 'expression';
-      resolves?: readonly ElementKind[];
+      resolves?: readonly DialectKind[];
       functions?: readonly FunctionDefinition[];
     }
   /** ids of elements of a kind, comma-separated */
-  | { type: 'refList'; kind: ElementKind }
+  | { type: 'refList'; kind: DialectKind }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
   | { type: 'annotatedName' }
@@ -161,7 +193,7 @@ export type ConstructDefinition = {
 
 export type NotationDefinition = {
   /** what an operand is: an element of these kinds (by id), or `skip` if allowed */
-  operand: { kinds: readonly ElementKind[]; skip?: boolean };
+  operand: { kinds: readonly DialectKind[]; skip?: boolean };
   /**
    * The goal language's operators this dialect enables, by symbol: binary and
    * prefix ones name a construct, postfix ones a modifier. Any other is an
@@ -258,11 +290,26 @@ export type DialectDefinition<K extends string = ElementKind> = {
   id: string;
   /** shown to people */
   name: string;
+  /**
+   * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
+   * have properties (`properties`, by kind id), be named by references
+   * (`assertion.resolves`, `refList.kind`, …) and be listed (`elements`, by
+   * kind id, with a prefix of their own).
+   */
+  extension?: ExtensionDefinition;
+  /**
+   * The kinds the Notation view lists, each a line: iStar's, and those of
+   * its extension's it lists (`'toy.Sensor': element('S', { fill })`).
+   */
   elements: Readonly<Partial<Record<K, ElementDefinition>>>;
   /** the fill of a kind without its own */
   defaultFill: string;
   /** what its delimiters hold on an element's line (a dialect may have none) */
   notation?: NotationDefinition;
+  /**
+   * By kind: iStar's (`goal`), and its extension's node kinds
+   * (`'grl.Indicator'`), which have none without an entry
+   */
   properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
   /** the order property lines are written in, for every listed kind alike */
   propertyLineOrder: readonly string[];
@@ -573,9 +620,9 @@ export type DocumentLink = {
 
 /** The property keys a definition has for a kind (literal when declared const). */
 export type PropertyKeyOf<
-  D extends { properties: Record<ElementKind, readonly { key: string }[]> },
-  K extends ElementKind,
-> = D['properties'][K][number]['key'];
+  D extends { properties: object },
+  K extends keyof D['properties'],
+> = D['properties'][K] extends readonly { key: infer P }[] ? P : never;
 
 /** The property keys a definition has for a link kind (literal when declared const). */
 export type LinkPropertyKeyOf<
@@ -640,6 +687,42 @@ export const elementLineKeys = (
       ]
     : [];
 
+/** The actor kinds of iStar 2.0: an extension's kind that behaves like one is an actor. */
+type IstarActorKind = (typeof ISTAR_ACTOR_KINDS)[number];
+
+/** The node kinds an extension adds (an actor kind's properties are `actors`'). */
+export type ExtensionNodeKindOf<E> = E extends {
+  elements: readonly (infer X)[];
+}
+  ? X extends { category: 'actor' } | { behavesLike: IstarActorKind }
+    ? never
+    : X extends { kind: infer N extends string }
+      ? N
+      : never
+  : never;
+
+/** The kinds a definition may give properties: iStar's, those it lists, its extension's nodes. */
+export type PropertyKindOf<D> =
+  | ElementKind
+  | (D extends { elements: infer L } ? keyof L & string : never)
+  | (D extends { extension: infer E } ? ExtensionNodeKindOf<E> : never);
+
+/**
+ * A `properties` key that is none of its kinds, made `never` (it doesn't
+ * compile); keys that aren't literal (a derived definition's) are checked at
+ * run time only.
+ */
+type KnownPropertyKinds<D extends { properties: object }> =
+  string extends keyof D['properties']
+    ? unknown
+    : {
+        properties: {
+          readonly [
+            K in Exclude<keyof D['properties'], PropertyKindOf<D>>
+          ]: never;
+        };
+      };
+
 /**
  * Type-checks and freezes a definition, and checks what the types cannot:
  * every name it uses (constructs, languages, condition keys, the keys an
@@ -647,7 +730,7 @@ export const elementLineKeys = (
  * each operand kind's key once (but those its element line writes).
  */
 export const defineDialect = <const D extends AnyDialect>(
-  definition: D,
+  definition: D & KnownPropertyKinds<D>,
 ): DeepReadonly<D> => {
   const fail = (why: string) => {
     throw new Error(`${definition.id}: ${why}`);
@@ -677,6 +760,37 @@ export const defineDialect = <const D extends AnyDialect>(
   if (named.length && named.length !== Object.keys(elements).length)
     fail('either every element has an id prefix, or none has');
   const resources = definition.projectResources ?? {};
+  // the kinds it may name: iStar's, and its extension's nodes
+  const extensionKinds = extensionNodeKinds(definition.extension);
+  const isKind = (kind: string) =>
+    kind in ISTAR_KIND_OF || extensionKinds.includes(kind);
+  for (const [kind, element] of Object.entries(elements)) {
+    // a namespaced kind (not a modelling dialect's `istar.Goal`) is its extension's
+    if (isExtensionKind(kind) && !extensionKinds.includes(kind))
+      fail(`elements: ${kind} is not a node kind of its extension`);
+    const prefix = element?.prefix;
+    if (prefix === undefined) continue;
+    if (!isExtensionKind(kind)) {
+      if (!(ISTAR_ID_PREFIXES as readonly string[]).includes(prefix))
+        fail(`${kind}: ${prefix} is not one of the goal language's prefixes`);
+    } else if (!isExtensionIdPrefix(prefix))
+      fail(
+        `${kind}: its prefix is one or two capitals, none of G, T, R, AT, X, W (not ${prefix})`,
+      );
+    else if (
+      Object.entries(elements).some(
+        ([other, e]) => other !== kind && e?.prefix === prefix,
+      )
+    )
+      fail(`${kind}: prefix ${prefix} is another kind's`);
+  }
+  for (const kind of Object.keys(definition.properties))
+    if (!isKind(kind) && !(kind in elements))
+      fail(
+        `properties: ${kind} is neither an iStar kind nor a node kind of its extension`,
+      );
+  for (const kind of notation?.operand.kinds ?? [])
+    if (!isKind(kind)) fail(`notation: operand kind ${kind} is unknown`);
   // a list of properties (an element kind's, a link kind's, the actors'): its
   // keys once, its conditions on its own keys, its completions from known files
   const checkList = (owner: string, list: readonly PropertyDefinition[]) => {
@@ -700,6 +814,9 @@ export const defineDialect = <const D extends AnyDialect>(
         const names = functions.map((f) => f.name);
         if (new Set(names).size !== names.length)
           fail(`${owner}.${property.key}: a function is declared twice`);
+        for (const kind of referencedKinds(config))
+          if (!isKind(kind))
+            fail(`${owner}.${property.key} names unknown kind ${kind}`);
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))
@@ -788,7 +905,7 @@ export const defineDialect = <const D extends AnyDialect>(
     [...lineKeys].some((key) => !order.has(key))
   )
     fail('propertyLineOrder must list each listed kind key once');
-  return deepFreeze(definition) as DeepReadonly<D>;
+  return deepFreeze(definition) as unknown as DeepReadonly<D>;
 };
 
 // ---------------------------------------------------------------------------
@@ -819,8 +936,32 @@ export const ISTAR_LINK_KINDS = [
 ] as const;
 
 /** A kind an extension adds: namespaced, not iStar's own (`<namespace>.<Kind>`). */
-const isExtensionKind = (kind: string): boolean =>
+export const isExtensionKind = (kind: string): kind is ExtensionKind =>
   /^[A-Za-z][\w-]*\.[A-Za-z]\w*$/.test(kind) && !kind.startsWith('istar.');
+
+/** The node kinds an extension adds (not its actor kinds), in its order. */
+export const extensionNodeKinds = (
+  extension: Pick<ExtensionDefinition, 'elements'> | undefined,
+): string[] =>
+  (extension?.elements ?? [])
+    .filter(
+      (element) =>
+        element.category !== 'actor' &&
+        !(ISTAR_ACTOR_KINDS as readonly (string | undefined)[]).includes(
+          element.behavesLike,
+        ),
+    )
+    .map((element) => element.kind);
+
+/** The kinds a value names its elements by (an assertion's, an expression's, a refList's). */
+export const referencedKinds = (config: ValueConfig): readonly string[] =>
+  config.type === 'assertion'
+    ? config.resolves.filter((kind) => kind !== 'variable')
+    : config.type === 'expression'
+      ? (config.resolves ?? [])
+      : config.type === 'refList'
+        ? [config.kind]
+        : [];
 
 /**
  * A link kind a dialect may give properties: iStar's, or an extension's (a

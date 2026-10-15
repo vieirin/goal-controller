@@ -8,7 +8,6 @@
 import type {
   AnyDialect,
   CheckNameOf,
-  ExtensionDefinition,
   OptionDefinition,
   ProjectResourceKindOf,
 } from '@goal-controller/dialect';
@@ -68,9 +67,7 @@ export type EngineDefinition = {
   projectResources?: Readonly<Record<string, unknown>>;
   /** its project's files share one definition pool (goal-controller#59) */
   pool?: PoolRegistration;
-  /** the kinds it adds to iStar 2.0 */
-  extension?: ExtensionDefinition;
-  /** its models declare `extension`'s kinds in their file (the `"metamodel"` block) */
+  /** its models declare its dialect's extension's kinds in their file (the `"metamodel"` block) */
   fileKinds?: true;
 };
 
@@ -137,8 +134,8 @@ const engineProblems = (engine: EngineDefinition): string[] => {
     ...ids.flatMap((id, i) =>
       ids.indexOf(id) === i ? [] : [`output ${id} is declared twice`],
     ),
-    ...(engine.fileKinds && !engine.extension
-      ? ['fileKinds without an extension (its kinds)']
+    ...(engine.fileKinds && !dialect?.extension
+      ? ['fileKinds without an extension (its dialect declares none)']
       : []),
   ];
 };

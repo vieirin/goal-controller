@@ -3,7 +3,11 @@
 import { ArrowUpRight, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
-import { constructDefinition } from '@goal-controller/dialect';
+import {
+  constructDefinition,
+  isExtensionKind,
+  kindLabel,
+} from '@goal-controller/dialect';
 import {
   checkContextOf,
   elementLine,
@@ -206,15 +210,18 @@ const howToAccept = (
  */
 export const whereAccepted = (
   key: string,
-  kind: NodeKindKey,
+  kind: GoalViewNode['kind'],
   engine: TransformEngine,
   known: AnalyzeResponse['knownProperties'],
   allKnown: Partial<
     Record<TransformEngine, AnalyzeResponse['knownProperties']>
   >,
 ): string => {
-  const kinds = Object.keys(KIND_PLURAL) as NodeKindKey[];
   const here = ENGINE_LABEL[engine];
+  // an extension's kind reads what its dialect declares for it (goal-controller#132)
+  if (isExtensionKind(kind))
+    return `Not read by ${here} on a ${kindLabel(kind)}: kept in the file, no effect on the output. Its dialect declares what a ${kindLabel(kind)} has (its properties['${kind}']).`;
+  const kinds = Object.keys(KIND_PLURAL) as NodeKindKey[];
   const sameEngine = kinds.filter((k) => known[k].includes(key));
   if (sameEngine.length > 0) {
     return `${here} reads ${key} on ${listKinds(sameEngine)}, not on ${KIND_PLURAL[kind]}. ${howToAccept(key, kind, engine)}`;
@@ -281,7 +288,10 @@ const kindLabelOf = (node: GoalViewNode): string =>
       ? 'Task'
       : node.kind === 'resource'
         ? 'Resource'
-        : 'Quality';
+        : node.kind === 'quality'
+          ? 'Quality'
+          : // an extension's kind: `grl.Indicator` is an Indicator
+            kindLabel(node.kind);
 
 /** Chip, kind and construct, with a jump to the node's lines in the output. */
 export function NodeHeader({ node }: { node: GoalViewNode }) {

@@ -141,6 +141,20 @@ export const SKIP = 'skip';
 export const ID_PREFIXES = ['G', 'T', 'R', 'AT'] as const;
 export type IdPrefix = (typeof ID_PREFIXES)[number];
 
+/**
+ * The id prefixes a dialect declares besides the catalog's: its extension's
+ * kinds' it lists (`E` in `E1`), read in its element lines only.
+ */
+export const idPrefixesOf = (definition: {
+  elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
+}): string[] =>
+  Object.values(definition.elements ?? {}).flatMap((element) =>
+    element?.prefix !== undefined &&
+    !(ID_PREFIXES as readonly string[]).includes(element.prefix)
+      ? [element.prefix]
+      : [],
+  );
+
 /** The assertion language: `battery > 20 & !charging`. */
 export const ASSERTION = {
   /** tightest first */
