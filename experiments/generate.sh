@@ -9,8 +9,8 @@ cd "$(dirname "$0")/.."
 OUTPUT_DIR="output"
 # Experiments target the edge engine (packages/lib/out/index.js)
 EXAMPLES_DIR="examples/edge"
+# each experiment is a project, examples/edge/experiments/<model>/<model>.txt
 INPUT_DIR="$EXAMPLES_DIR/experiments"
-INPUT_DIR_ALT="$EXAMPLES_DIR"
 LOGS_DIR="logs/$EXAMPLES_DIR/experiments"
 
 # Build the library if not already built
@@ -41,14 +41,14 @@ mkdir -p "$LOGS_DIR"
 # Iterate over each model
 for model in "${models[@]}"; do
     # Check input file in default location first, then alternative location
-    if [ -f "$INPUT_DIR/${model}.txt" ]; then
+    if [ -f "$INPUT_DIR/${model}/${model}.txt" ]; then
+        input_file="$INPUT_DIR/${model}/${model}.txt"
+    elif [ -f "$INPUT_DIR/${model}.txt" ]; then
         input_file="$INPUT_DIR/${model}.txt"
-    elif [ -f "$INPUT_DIR_ALT/${model}.txt" ]; then
-        input_file="$INPUT_DIR_ALT/${model}.txt"
     else
         echo "ERROR: Input file not found for: $model"
+        echo "  Checked: $INPUT_DIR/${model}/${model}.txt"
         echo "  Checked: $INPUT_DIR/${model}.txt"
-        echo "  Checked: $INPUT_DIR_ALT/${model}.txt"
         continue
     fi
     

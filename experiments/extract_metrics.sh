@@ -12,7 +12,8 @@ fi
 
 LOGS_DIR="logs"
 EXAMPLES_DIR="examples/edge"
-RESULTS_DIR="$EXAMPLES_DIR/experiments/props/results"
+# each experiment is a project; its results are in examples/edge/experiments/<model>/reference
+results_dir_of() { echo "$EXAMPLES_DIR/experiments/$1/reference"; }
 OUTPUT_DIR="output"
 CSV_OUTPUT="metrics.csv"
 
@@ -148,6 +149,7 @@ echo "model_name,elapsed_time_ms,total_goals,total_tasks,total_resources,total_n
 # Iterate over each model
 for model in "${models[@]}"; do
     log_file=$(find_log_file "$model")
+    RESULTS_DIR=$(results_dir_of "$model")
     
     if [ "$USE_STORM" = true ]; then
         result_file="$RESULTS_DIR/${model}.result.storm"

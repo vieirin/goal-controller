@@ -35,7 +35,7 @@ import { EditorView } from '../../../../ui/node_modules/@codemirror/view';
 
 const PROJECT = join(
   __dirname,
-  '../../../../../examples/projects/medicine-delivery',
+  '../../../../../examples/mutrose/medicine-delivery',
 );
 const read = (path: string) => readFileSync(join(PROJECT, path), 'utf8');
 const MODEL = read('gm/MedicineDelivery.txt');

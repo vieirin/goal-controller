@@ -14,9 +14,11 @@ PRISM_BIN="$HOME/Downloads/prism-4.8.1-mac64-arm/bin/prism"
 STORM_BIN="storm"
 OUTPUT_DIR="output"
 EXAMPLES_DIR="examples/edge"
-PROPS_DIR="$EXAMPLES_DIR/experiments/props"
-PROPS_DIR_ALT="$EXAMPLES_DIR/props"
-RESULTS_DIR="$EXAMPLES_DIR/experiments/props/results"
+# each experiment is a project: examples/edge/experiments/<model>/ holds its
+# props/<model>.props and, in reference/, the results checked against them
+EXPERIMENTS_DIR="$EXAMPLES_DIR/experiments"
+props_file_of() { echo "$EXPERIMENTS_DIR/$1/props/$1.props"; }
+results_dir_of() { echo "$EXPERIMENTS_DIR/$1/reference"; }
 
 # Detect number of CPU cores and calculate cores-2
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -43,9 +45,6 @@ else
     export PRISM_THREADS=$THREADS
 fi
 
-# Create results directory if it doesn't exist
-mkdir -p "$RESULTS_DIR"
-
 # Array of model files (without extension)
 models=(
     "goalModel_TAS_3"
@@ -65,14 +64,9 @@ models=(
 for model in "${models[@]}"; do
     model_file="$OUTPUT_DIR/${model}.prism"
     
-    # Check props file in default location first, then alternative location
-    if [ -f "$PROPS_DIR/${model}.props" ]; then
-        props_file="$PROPS_DIR/${model}.props"
-    elif [ -f "$PROPS_DIR_ALT/${model}.props" ]; then
-        props_file="$PROPS_DIR_ALT/${model}.props"
-    else
-        props_file="$PROPS_DIR/${model}.props"
-    fi
+    props_file=$(props_file_of "$model")
+    RESULTS_DIR=$(results_dir_of "$model")
+    mkdir -p "$RESULTS_DIR"
     
     if [ "$USE_STORM" = true ]; then
         result_file="$RESULTS_DIR/${model}.result.storm"
@@ -121,7 +115,7 @@ if [ "$USE_STORM" = true ]; then
 else
     echo "All property checks completed using PRISM!"
 fi
-echo "Results saved in: $RESULTS_DIR"
+echo "Results saved in: $EXPERIMENTS_DIR/<model>/reference"
 echo "=========================================="
 echo ""
 
@@ -135,6 +129,7 @@ false_found=false
 
 # Iterate over each model to extract false properties
 for model in "${models[@]}"; do
+    RESULTS_DIR=$(results_dir_of "$model")
     if [ "$USE_STORM" = true ]; then
         result_file="$RESULTS_DIR/${model}.result.storm"
     else

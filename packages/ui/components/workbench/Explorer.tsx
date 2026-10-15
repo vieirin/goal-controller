@@ -5,18 +5,13 @@ import {
   ChevronRight,
   FileCode2,
   FileJson,
-  FolderOpen,
   History,
   Plus,
   SlidersHorizontal,
-  X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { isPrismEngine } from '@/lib/types';
 import {
-  hasUnsavedEdits,
-  recentAge,
-  recentId,
   sourceLabel,
   type ProjectIndexEntry,
   type ResourceSlot,
@@ -47,16 +42,21 @@ export const recentOrigin = (file: RecentFile): string | null =>
 export const useOpenExample = () => {
   const { openProject } = useWorkbench();
   const [error, setError] = useState<string | null>(null);
+  // the example being fetched (its index path), until it opens or fails
+  const [opening, setOpening] = useState<string | null>(null);
   const open = async (example: ProjectIndexEntry) => {
+    setOpening(example.path);
     try {
       const { project, settings } = await readExample(example);
       openProject(project, settings && { settings });
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOpening(null);
     }
   };
-  return { open, error };
+  return { open, error, opening };
 };
 
 function Section({
@@ -127,110 +127,15 @@ const Row = ({
   </div>
 );
 
+/**
+ * The side bar: the open project's files. It is there only while a model is
+ * open; examples and Recent are the start screen's (home/Home.tsx), where
+ * another project is opened.
+ */
 export default function Explorer() {
-  const wb = useWorkbench();
-  const examples = useExamples();
-  const { open: openExample, error: openExampleError } = useOpenExample();
-  // engine folder → subfolder ('' for files at the top) → files
-  const groups = new Map<string, Map<string, ProjectIndexEntry[]>>();
-  (examples.data ?? []).forEach((example) => {
-    const slash = example.name.lastIndexOf('/');
-    const folder = slash >= 0 ? example.name.slice(0, slash) : '';
-    const byFolder =
-      groups.get(example.group) ?? new Map<string, ProjectIndexEntry[]>();
-    byFolder.set(folder, [...(byFolder.get(folder) ?? []), example]);
-    groups.set(example.group, byFolder);
-  });
-  const fileRow = (example: ProjectIndexEntry) => {
-    const fileName = example.name.split('/').pop() ?? example.name;
-    return (
-      <Row
-        key={example.path}
-        icon={FileJson}
-        label={fileName}
-        onClick={() => void openExample(example)}
-        active={wb.fileName === fileName}
-      />
-    );
-  };
-  // an open project is its own tree: its files only (examples and Recent are the
-  // start screen's, where another project is opened)
-  if (wb.hasModel)
-    return (
-      <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
-        <ProjectSection />
-      </nav>
-    );
-
   return (
     <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
-      <Section title='Workspace'>
-        <p className='px-6 text-2xs text-ink-muted'>No model open.</p>
-        <OpenFolderRow />
-      </Section>
-
-      {groups.size > 0 && (
-        <Section title='Examples'>
-          {openExampleError && (
-            <p role='alert' className='px-6 py-1 text-2xs text-danger'>
-              {openExampleError}
-            </p>
-          )}
-          {[...groups.entries()].map(([group, folders]) => (
-            <Section key={group} title={group} defaultOpen={group === 'edgeV2'}>
-              {folders.get('')?.map(fileRow)}
-              {[...folders.entries()]
-                .filter(([folder]) => folder !== '')
-                .map(([folder, files]) => (
-                  <div key={folder} className='pl-3'>
-                    <Section title={folder} defaultOpen={false}>
-                      {files.map(fileRow)}
-                    </Section>
-                  </div>
-                ))}
-            </Section>
-          ))}
-        </Section>
-      )}
-
-      {wb.recent.length > 0 && (
-        <Section title='Recent'>
-          {wb.recent.map((file) => (
-            <Row
-              key={recentId(file)}
-              icon={History}
-              label={
-                recentOrigin(file)
-                  ? `${file.fileName} (${recentOrigin(file)})`
-                  : file.fileName
-              }
-              detail={
-                hasUnsavedEdits(file) ? (
-                  <span
-                    className='text-trace'
-                    title='Has edits that were not exported'
-                  >
-                    edited
-                  </span>
-                ) : (
-                  recentAge(file.at)
-                )
-              }
-              onClick={() => void wb.openRecent(file)}
-              trailing={
-                <button
-                  type='button'
-                  aria-label={`Remove ${file.fileName} from recent`}
-                  className='rounded p-0.5 text-ink-faint opacity-0 hover:text-ink group-hover:opacity-100'
-                  onClick={() => wb.forgetRecent(recentId(file))}
-                >
-                  <X className='h-3 w-3' aria-hidden />
-                </button>
-              }
-            />
-          ))}
-        </Section>
-      )}
+      <ProjectSection />
     </nav>
   );
 }
@@ -344,31 +249,23 @@ function ProjectSection() {
 }
 
 /** Open folder…: a folder on disk as a project, from the start (Chrome, Edge). */
-function OpenFolderRow() {
+/**
+ * Opening a folder as a project: none where this browser can't (no File
+ * System Access); the error of the last try, until one succeeds.
+ */
+export const useOpenFolder = () => {
   const wb = useWorkbench();
   const [error, setError] = useState<string | null>(null);
-  if (!canOpenFolders()) return null;
-  return (
-    <>
-      <Row
-        icon={FolderOpen}
-        label='Open folder…'
-        onClick={() =>
-          void wb.openFolder().then(
-            () => setError(null),
-            (err: unknown) =>
-              setError(err instanceof Error ? err.message : String(err)),
-          )
-        }
-      />
-      {error && (
-        <p role='alert' className='px-6 py-1 text-2xs text-danger'>
-          {error}
-        </p>
-      )}
-    </>
-  );
-}
+  const open = canOpenFolders()
+    ? () =>
+        void wb.openFolder().then(
+          () => setError(null),
+          (err: unknown) =>
+            setError(err instanceof Error ? err.message : String(err)),
+        )
+    : null;
+  return { open, error };
+};
 
 function ResourceSlotRows({
   slot,

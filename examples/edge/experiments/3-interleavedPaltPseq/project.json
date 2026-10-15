@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "3-interleavedPaltPseq.txt" }],
+  "projectResources": { "properties": ["props/3-interleavedPaltPseq.props"] },
+  "outputs": []
+}

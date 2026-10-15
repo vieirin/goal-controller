@@ -260,7 +260,16 @@ const tiny = (
 describe('ids scoped by their goal: what falls back to the id', () => {
   it('keeps every element of the other engines keyed by its id (key === id)', () => {
     const examples = (dir: string) =>
-      readdirSync(join(ROOT_DIR, dir))
+      // projects' models too (each in its folder); not the generated conformance runs
+      (
+        readdirSync(join(ROOT_DIR, dir), {
+          recursive: true,
+          encoding: 'utf8',
+        }) as string[]
+      )
+        .filter(
+          (f) => !f.startsWith('generated/') && !f.includes('/reference/'),
+        )
         .filter((f) => f.endsWith('.txt') && !f.endsWith('.expected.txt'))
         .map((f) => readFileSync(join(ROOT_DIR, dir, f), 'utf8'))
         // goal models only (some .txt are notes or snippets)

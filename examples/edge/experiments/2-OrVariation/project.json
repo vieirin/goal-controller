@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "2-OrVariation.txt" }],
+  "projectResources": { "properties": ["props/2-OrVariation.props"] },
+  "outputs": []
+}

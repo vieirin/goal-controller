@@ -207,16 +207,19 @@ export default function TopBar() {
     <header className='flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-line bg-white px-3 xl:gap-3'>
       {input}
       <div className='flex min-w-0 items-center gap-2'>
-        <IconButton
-          icon={shell.explorerOpen ? PanelLeftClose : PanelLeftOpen}
-          label={
-            shell.explorerOpen
-              ? 'Hide the side bar'
-              : 'Show the side bar (files and examples)'
-          }
-          shortcut='⌘B'
-          onClick={shell.toggleExplorer}
-        />
+        {/* the side bar is the open project's files: none on the start screen */}
+        {wb.hasModel && (
+          <IconButton
+            icon={shell.explorerOpen ? PanelLeftClose : PanelLeftOpen}
+            label={
+              shell.explorerOpen
+                ? 'Hide the side bar'
+                : "Show the side bar (the project's files)"
+            }
+            shortcut='⌘B'
+            onClick={shell.toggleExplorer}
+          />
+        )}
         <HomeLogo />
         <span className='h-5 w-px bg-line' aria-hidden />
         <Button onClick={open} title='Open a goal model (piStar .txt / .json)'>

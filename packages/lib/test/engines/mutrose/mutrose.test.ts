@@ -16,7 +16,8 @@ import {
   type MutroseGoalNode,
 } from '../../../src/engines/mutrose';
 
-const EXAMPLE = '../../examples/mutrose/MedicineDelivery.txt';
+const EXAMPLE =
+  '../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt';
 
 /** The example, with some elements' properties changed (by id, `undefined` removes one). */
 const edited = (
@@ -194,8 +195,23 @@ describe('mutroseRuntimeAnnotation', () => {
 
   it('reads the istar-ts editor’s LabSampleLogistics as the decomposer would: G2 is missing', () => {
     assert.strictEqual(
-      problem(Model.load('../../examples/mutrose/LabSampleLogistics.txt')),
+      problem(
+        Model.load(
+          'test/engines/mutrose/fixtures/LabSampleLogistics.upstream.txt',
+        ),
+      ),
       'Undeclared variable [deliveries_requested] of type [] in goal G3',
+    );
+  });
+
+  it('annotates the example project’s LabSampleLogistics, with G2 restored', () => {
+    assert.strictEqual(
+      annotation(
+        Model.load(
+          '../../examples/mutrose/lab-sample-logistics/gm/LabSampleLogistics.txt',
+        ),
+      ),
+      '(G2;((G5;G6;AT1;AT2);(G10;G11;AT3;AT4)))\n',
     );
   });
 });

@@ -332,6 +332,36 @@ describe('project stores', () => {
         ),
     );
   });
+
+  it('reads the working tree’s examples from another base (dev), and blames no push for a miss', async () => {
+    const requested: string[] = [];
+    const store = githubStore({
+      ref: 'local',
+      path: 'examples/edgeV2',
+      files: ['simpleChoice.txt'],
+      form: 'embedded',
+      baseUrl: '/base',
+      fetch: async (url) => {
+        requested.push(url);
+        const ok = !url.endsWith('gone.txt');
+        return {
+          ok,
+          status: ok ? 200 : 404,
+          statusText: ok ? 'OK' : 'Not Found',
+          text: async () => EDGE,
+        };
+      },
+    });
+    await openProject(store);
+    expect(requested).to.deep.equal(['/base/examples/edgeV2/simpleChoice.txt']);
+    await store.read('gone.txt').then(
+      () => expect.fail('read'),
+      (error) =>
+        expect(error.message).to.equal(
+          "Couldn't load examples/edgeV2/gone.txt: 404 Not Found",
+        ),
+    );
+  });
 });
 
 describe('project Recent', () => {

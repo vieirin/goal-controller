@@ -11,58 +11,103 @@
     "outputs": []
   },
   {
-    "path": "edge/experiments/1-minimal.txt",
+    "path": "edge/experiments/1-minimal",
     "group": "edge",
-    "name": "experiments/1-minimal.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["1-minimal.txt"],
+    "name": "experiments/1-minimal",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/1-minimal",
+    "files": [
+      "1-minimal.txt",
+      "project.json",
+      "props/1-minimal.props",
+      "reference/1-minimal.result",
+      "reference/1-minimal.result.storm"
+    ],
     "models": ["1-minimal.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/1-minimal.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/10-minimalMaintainResource.txt",
+    "path": "edge/experiments/10-minimalMaintainResource",
     "group": "edge",
-    "name": "experiments/10-minimalMaintainResource.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["10-minimalMaintainResource.txt"],
+    "name": "experiments/10-minimalMaintainResource",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/10-minimalMaintainResource",
+    "files": [
+      "10-minimalMaintainResource.txt",
+      "project.json",
+      "props/10-minimalMaintainResource.props",
+      "reference/10-minimalMaintainResource.result.storm"
+    ],
     "models": ["10-minimalMaintainResource.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/10-minimalMaintainResource.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/2-OrVariation.txt",
+    "path": "edge/experiments/2-OrVariation",
     "group": "edge",
-    "name": "experiments/2-OrVariation.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["2-OrVariation.txt"],
+    "name": "experiments/2-OrVariation",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/2-OrVariation",
+    "files": [
+      "2-OrVariation.txt",
+      "project.json",
+      "props/2-OrVariation.props",
+      "reference/2-OrVariation.result",
+      "reference/2-OrVariation.result.storm"
+    ],
     "models": ["2-OrVariation.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/2-OrVariation.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/3-interleavedPaltPseq.txt",
+    "path": "edge/experiments/3-interleavedPaltPseq",
     "group": "edge",
-    "name": "experiments/3-interleavedPaltPseq.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["3-interleavedPaltPseq.txt"],
+    "name": "experiments/3-interleavedPaltPseq",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/3-interleavedPaltPseq",
+    "files": [
+      "3-interleavedPaltPseq.txt",
+      "project.json",
+      "props/3-interleavedPaltPseq.props",
+      "reference/3-interleavedPaltPseq.result",
+      "reference/3-interleavedPaltPseq.result.storm"
+    ],
     "models": ["3-interleavedPaltPseq.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/3-interleavedPaltPseq.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/4-interleavedChoicePDegradation.txt",
+    "path": "edge/experiments/4-interleavedChoicePDegradation",
     "group": "edge",
-    "name": "experiments/4-interleavedChoicePDegradation.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["4-interleavedChoicePDegradation.txt"],
+    "name": "experiments/4-interleavedChoicePDegradation",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/4-interleavedChoicePDegradation",
+    "files": [
+      "4-interleavedChoicePDegradation.txt",
+      "project.json",
+      "props/4-interleavedChoicePDegradation.props",
+      "reference/4-interleavedChoicePDegradation.result",
+      "reference/4-interleavedChoicePDegradation.result.storm",
+      "reference/4-interleavedChoicePDegradation_individual.storm"
+    ],
     "models": ["4-interleavedChoicePDegradation.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/4-interleavedChoicePDegradation.props"]
+    },
     "outputs": []
   },
   {
@@ -77,91 +122,120 @@
     "outputs": []
   },
   {
-    "path": "edge/experiments/6-allnotationsReduced.txt",
+    "path": "edge/experiments/6-allnotationsReduced",
     "group": "edge",
-    "name": "experiments/6-allnotationsReduced.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["6-allnotationsReduced.txt"],
+    "name": "experiments/6-allnotationsReduced",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/6-allnotationsReduced",
+    "files": [
+      "6-allnotationsReduced.txt",
+      "project.json",
+      "props/6-allnotationsReduced.props",
+      "reference/6-allnotationsReduced.result",
+      "reference/6-allnotationsReduced.result.storm"
+    ],
     "models": ["6-allnotationsReduced.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/6-allnotationsReduced.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/7-minimalAll.txt",
+    "path": "edge/experiments/7-minimalAll",
     "group": "edge",
-    "name": "experiments/7-minimalAll.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["7-minimalAll.txt"],
+    "name": "experiments/7-minimalAll",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/7-minimalAll",
+    "files": [
+      "7-minimalAll.txt",
+      "project.json",
+      "props/7-minimalAll.props",
+      "reference/7-minimalAll.result",
+      "reference/7-minimalAll.result.storm"
+    ],
     "models": ["7-minimalAll.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/7-minimalAll.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/8-minimalMaintain.txt",
+    "path": "edge/experiments/8-minimalMaintain",
     "group": "edge",
-    "name": "experiments/8-minimalMaintain.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["8-minimalMaintain.txt"],
+    "name": "experiments/8-minimalMaintain",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/8-minimalMaintain",
+    "files": [
+      "8-minimalMaintain.txt",
+      "project.json",
+      "props/8-minimalMaintain.props",
+      "reference/8-minimalMaintain.result.storm"
+    ],
     "models": ["8-minimalMaintain.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/8-minimalMaintain.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/9-minimalMaintainContext.txt",
+    "path": "edge/experiments/9-minimalMaintainContext",
     "group": "edge",
-    "name": "experiments/9-minimalMaintainContext.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["9-minimalMaintainContext.txt"],
+    "name": "experiments/9-minimalMaintainContext",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/9-minimalMaintainContext",
+    "files": [
+      "9-minimalMaintainContext.txt",
+      "project.json",
+      "props/9-minimalMaintainContext.props",
+      "reference/9-minimalMaintainContext.result.storm"
+    ],
     "models": ["9-minimalMaintainContext.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/9-minimalMaintainContext.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/goalModel_TAS_3.txt",
+    "path": "edge/experiments/goalModel_TAS_3",
     "group": "edge",
-    "name": "experiments/goalModel_TAS_3.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["goalModel_TAS_3.txt"],
+    "name": "experiments/goalModel_TAS_3",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/goalModel_TAS_3",
+    "files": [
+      "goalModel_TAS_3.txt",
+      "project.json",
+      "props/goalModel_TAS_3.props",
+      "reference/goalModel_TAS_3.result",
+      "reference/goalModel_TAS_3.result.storm"
+    ],
     "models": ["goalModel_TAS_3.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/goalModel_TAS_3.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edge/experiments/labSamplesWithSideEffect.txt",
+    "path": "edge/experiments/labSamplesWithSideEffect",
     "group": "edge",
-    "name": "experiments/labSamplesWithSideEffect.txt",
-    "form": "embedded",
-    "root": "edge/experiments",
-    "files": ["labSamplesWithSideEffect.txt"],
+    "name": "experiments/labSamplesWithSideEffect",
+    "form": "file",
+    "dialect": "edge",
+    "root": "edge/experiments/labSamplesWithSideEffect",
+    "files": [
+      "labSamplesWithSideEffect.txt",
+      "project.json",
+      "props/labSamplesWithSideEffect.props",
+      "reference/labSamplesWithSideEffect.result.storm"
+    ],
     "models": ["labSamplesWithSideEffect.txt"],
-    "projectResources": {},
-    "outputs": []
-  },
-  {
-    "path": "edge/goalModel_TAS_3_.txt",
-    "group": "edge",
-    "name": "goalModel_TAS_3_.txt",
-    "form": "embedded",
-    "root": "edge",
-    "files": ["goalModel_TAS_3_.txt"],
-    "models": ["goalModel_TAS_3_.txt"],
-    "projectResources": {},
-    "outputs": []
-  },
-  {
-    "path": "edge/labSamplesWithSideEffect_.txt",
-    "group": "edge",
-    "name": "labSamplesWithSideEffect_.txt",
-    "form": "embedded",
-    "root": "edge",
-    "files": ["labSamplesWithSideEffect_.txt"],
-    "models": ["labSamplesWithSideEffect_.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/labSamplesWithSideEffect.props"]
+    },
     "outputs": []
   },
   {
@@ -231,25 +305,39 @@
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/10-minimalMaintainResource.txt",
+    "path": "edgeV2/experiments/10-minimalMaintainResource",
     "group": "edgeV2",
-    "name": "experiments/10-minimalMaintainResource.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["10-minimalMaintainResource.txt"],
+    "name": "experiments/10-minimalMaintainResource",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/10-minimalMaintainResource",
+    "files": [
+      "10-minimalMaintainResource.txt",
+      "project.json",
+      "props/10-minimalMaintainResource.props"
+    ],
     "models": ["10-minimalMaintainResource.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/10-minimalMaintainResource.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/4-interleavedChoicePDegradation.txt",
+    "path": "edgeV2/experiments/4-interleavedChoicePDegradation",
     "group": "edgeV2",
-    "name": "experiments/4-interleavedChoicePDegradation.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["4-interleavedChoicePDegradation.txt"],
+    "name": "experiments/4-interleavedChoicePDegradation",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/4-interleavedChoicePDegradation",
+    "files": [
+      "4-interleavedChoicePDegradation.txt",
+      "project.json",
+      "props/4-interleavedChoicePDegradation.props"
+    ],
     "models": ["4-interleavedChoicePDegradation.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/4-interleavedChoicePDegradation.props"]
+    },
     "outputs": []
   },
   {
@@ -264,58 +352,92 @@
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/6-allnotationsReduced.txt",
+    "path": "edgeV2/experiments/6-allnotationsReduced",
     "group": "edgeV2",
-    "name": "experiments/6-allnotationsReduced.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["6-allnotationsReduced.txt"],
+    "name": "experiments/6-allnotationsReduced",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/6-allnotationsReduced",
+    "files": [
+      "6-allnotationsReduced.txt",
+      "project.json",
+      "props/6-allnotationsReduced.props"
+    ],
     "models": ["6-allnotationsReduced.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/6-allnotationsReduced.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/7-minimalAll.txt",
+    "path": "edgeV2/experiments/7-minimalAll",
     "group": "edgeV2",
-    "name": "experiments/7-minimalAll.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["7-minimalAll.txt"],
+    "name": "experiments/7-minimalAll",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/7-minimalAll",
+    "files": ["7-minimalAll.txt", "project.json", "props/7-minimalAll.props"],
     "models": ["7-minimalAll.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/7-minimalAll.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/8-minimalMaintain.txt",
+    "path": "edgeV2/experiments/8-minimalMaintain",
     "group": "edgeV2",
-    "name": "experiments/8-minimalMaintain.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["8-minimalMaintain.txt"],
+    "name": "experiments/8-minimalMaintain",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/8-minimalMaintain",
+    "files": [
+      "8-minimalMaintain.txt",
+      "project.json",
+      "props/8-minimalMaintain.props"
+    ],
     "models": ["8-minimalMaintain.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/8-minimalMaintain.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/9-minimalMaintainContext.txt",
+    "path": "edgeV2/experiments/9-minimalMaintainContext",
     "group": "edgeV2",
-    "name": "experiments/9-minimalMaintainContext.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["9-minimalMaintainContext.txt"],
+    "name": "experiments/9-minimalMaintainContext",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/9-minimalMaintainContext",
+    "files": [
+      "9-minimalMaintainContext.txt",
+      "project.json",
+      "props/9-minimalMaintainContext.props"
+    ],
     "models": ["9-minimalMaintainContext.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "properties": ["props/9-minimalMaintainContext.props"]
+    },
     "outputs": []
   },
   {
-    "path": "edgeV2/experiments/goalModel_TAS_3.txt",
+    "path": "edgeV2/experiments/goalModel_TAS_3",
     "group": "edgeV2",
-    "name": "experiments/goalModel_TAS_3.txt",
-    "form": "embedded",
-    "root": "edgeV2/experiments",
-    "files": ["goalModel_TAS_3.txt"],
+    "name": "experiments/goalModel_TAS_3",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/experiments/goalModel_TAS_3",
+    "files": [
+      "goalModel_TAS_3.txt",
+      "project.json",
+      "props/goalModel_TAS_3.props",
+      "reference/goalModel_TAS_3.expected.txt",
+      "variables.json"
+    ],
     "models": ["goalModel_TAS_3.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "variables": "variables.json",
+      "properties": ["props/goalModel_TAS_3.props"]
+    },
     "outputs": []
   },
   {
@@ -326,28 +448,6 @@
     "root": "edgeV2/experiments",
     "files": ["labSamplesWithSideEffect.txt"],
     "models": ["labSamplesWithSideEffect.txt"],
-    "projectResources": {},
-    "outputs": []
-  },
-  {
-    "path": "edgeV2/goalModel_TAS_3_.txt",
-    "group": "edgeV2",
-    "name": "goalModel_TAS_3_.txt",
-    "form": "embedded",
-    "root": "edgeV2",
-    "files": ["goalModel_TAS_3_.txt"],
-    "models": ["goalModel_TAS_3_.txt"],
-    "projectResources": {},
-    "outputs": []
-  },
-  {
-    "path": "edgeV2/labSamplesWithSideEffect_.txt",
-    "group": "edgeV2",
-    "name": "labSamplesWithSideEffect_.txt",
-    "form": "embedded",
-    "root": "edgeV2",
-    "files": ["labSamplesWithSideEffect_.txt"],
-    "models": ["labSamplesWithSideEffect_.txt"],
     "projectResources": {},
     "outputs": []
   },
@@ -590,25 +690,47 @@
     "outputs": []
   },
   {
-    "path": "mutrose/LabSampleLogistics.txt",
+    "path": "mutrose/lab-sample-logistics",
     "group": "mutrose",
-    "name": "LabSampleLogistics.txt",
-    "form": "embedded",
-    "root": "mutrose",
-    "files": ["LabSampleLogistics.txt"],
-    "models": ["LabSampleLogistics.txt"],
-    "projectResources": {},
+    "name": "lab-sample-logistics",
+    "form": "file",
+    "dialect": "mutrose",
+    "root": "mutrose/lab-sample-logistics",
+    "files": [
+      "configuration/configuration.json",
+      "gm/LabSampleLogistics.txt",
+      "hddl/domain.hddl",
+      "knowledge/world_db.xml",
+      "project.json"
+    ],
+    "models": ["gm/LabSampleLogistics.txt"],
+    "projectResources": {
+      "world": "knowledge/world_db.xml",
+      "hddl": "hddl/domain.hddl",
+      "configuration": "configuration/configuration.json"
+    },
     "outputs": []
   },
   {
-    "path": "mutrose/MedicineDelivery.txt",
+    "path": "mutrose/medicine-delivery",
     "group": "mutrose",
-    "name": "MedicineDelivery.txt",
-    "form": "embedded",
-    "root": "mutrose",
-    "files": ["MedicineDelivery.txt"],
-    "models": ["MedicineDelivery.txt"],
-    "projectResources": {},
+    "name": "medicine-delivery",
+    "form": "file",
+    "dialect": "mutrose",
+    "root": "mutrose/medicine-delivery",
+    "files": [
+      "configuration/configuration.json",
+      "gm/MedicineDelivery.txt",
+      "hddl/domain.hddl",
+      "knowledge/world_db.xml",
+      "project.json"
+    ],
+    "models": ["gm/MedicineDelivery.txt"],
+    "projectResources": {
+      "world": "knowledge/world_db.xml",
+      "hddl": "hddl/domain.hddl",
+      "configuration": "configuration/configuration.json"
+    },
     "outputs": []
   },
   {
@@ -642,48 +764,6 @@
     "files": ["stereotypes-and-tags.txt"],
     "models": ["stereotypes-and-tags.txt"],
     "projectResources": {},
-    "outputs": []
-  },
-  {
-    "path": "projects/medicine-delivery",
-    "group": "projects",
-    "name": "medicine-delivery",
-    "form": "file",
-    "dialect": "mutrose",
-    "root": "projects/medicine-delivery",
-    "files": [
-      "configuration/configuration.json",
-      "gm/MedicineDelivery.txt",
-      "hddl/domain.hddl",
-      "knowledge/world_db.xml",
-      "project.json"
-    ],
-    "models": ["gm/MedicineDelivery.txt"],
-    "projectResources": {
-      "world": "knowledge/world_db.xml",
-      "hddl": "hddl/domain.hddl",
-      "configuration": "configuration/configuration.json"
-    },
-    "outputs": []
-  },
-  {
-    "path": "projects/tas3-edgev2",
-    "group": "projects",
-    "name": "tas3-edgev2",
-    "form": "file",
-    "dialect": "edgev2",
-    "root": "projects/tas3-edgev2",
-    "files": [
-      "goalModel_TAS_3_.txt",
-      "project.json",
-      "props/goalModel_TAS_3.props",
-      "variables.json"
-    ],
-    "models": ["goalModel_TAS_3_.txt"],
-    "projectResources": {
-      "variables": "variables.json",
-      "properties": ["props/goalModel_TAS_3.props"]
-    },
     "outputs": []
   },
   {

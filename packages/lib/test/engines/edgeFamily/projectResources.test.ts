@@ -86,7 +86,7 @@ describe('Edge property suites', () => {
     for (const engine of ['edge', 'edgeV2']) {
       const path = join(
         __dirname,
-        `../../../../../examples/${engine}/props/goalModel_TAS_3.props`,
+        `../../../../../examples/${engine}/experiments/goalModel_TAS_3/props/goalModel_TAS_3.props`,
       );
       const { data, diagnostics } = parseProperties([
         { path, text: readFileSync(path, 'utf8') },

@@ -1,7 +1,7 @@
 /**
  * The Edge engines' definition pool (#58, ported from goal-controller#63):
  * conditions type-checked against variables.json, resources typed by what
- * they declare, on examples/projects/tas3-edgev2.
+ * they declare, on examples/edgeV2/experiments/goalModel_TAS_3.
  */
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
@@ -17,8 +17,11 @@ import {
 import { edgeV2 } from '../../../src/engines/edgeV2/definition';
 import { edgeV2Pool } from '../../../src/engines/edgeFamily/pool';
 
-const PROJECT = join(__dirname, '../../../../../examples/projects/tas3-edgev2');
-const MODEL = readFileSync(join(PROJECT, 'goalModel_TAS_3_.txt'), 'utf8');
+const PROJECT = join(
+  __dirname,
+  '../../../../../examples/edgeV2/experiments/goalModel_TAS_3',
+);
+const MODEL = readFileSync(join(PROJECT, 'goalModel_TAS_3.txt'), 'utf8');
 const VARIABLES = readFileSync(join(PROJECT, 'variables.json'), 'utf8');
 
 const VIEW = goalView(parsePistar(MODEL), edgeV2);

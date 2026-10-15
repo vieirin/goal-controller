@@ -44,10 +44,12 @@ import {
 } from '../../src/engines/sleec';
 import { threeFileEngine } from '../support/threeFileEngine';
 
-const EDGE = '../../examples/edge/experiments/8-minimalMaintain.txt';
+const EDGE =
+  '../../examples/edge/experiments/8-minimalMaintain/8-minimalMaintain.txt';
 const EDGE_V2 = '../../examples/edgeV2/simpleChoiceRewards.txt';
 const SLEEC = '../../examples/sleec/goalModel-sleec.txt';
-const MUTROSE = '../../examples/mutrose/MedicineDelivery.txt';
+const MUTROSE =
+  '../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt';
 
 const edgeTree = () =>
   GoalTree.fromModel(Model.load(EDGE), edgeEngineMapper).nodes;

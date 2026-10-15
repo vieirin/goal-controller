@@ -6,7 +6,7 @@ import { edgeEngineMapper } from '../../../src/engines/edge';
 describe('edgeEngineMapper', () => {
   it('carries utility and cost on tasks, like edgeV2', () => {
     const original = Model.load(
-      '../../examples/edge/experiments/1-minimal.txt',
+      '../../examples/edge/experiments/1-minimal/1-minimal.txt',
     );
     const task = [...original.elements.values()].find((element) =>
       element.name.startsWith('T1:'),
@@ -30,7 +30,9 @@ describe('edgeEngineMapper', () => {
   });
 
   it('defaults utility and cost to empty strings when unset', () => {
-    const model = Model.load('../../examples/edge/experiments/1-minimal.txt');
+    const model = Model.load(
+      '../../examples/edge/experiments/1-minimal/1-minimal.txt',
+    );
     const tree = GoalTree.fromModel(model, edgeEngineMapper);
     const t1 = GoalTree.allByType(tree.nodes, 'task').find(
       (node) => node.id === 'T1',
@@ -43,7 +45,7 @@ describe('edgeEngineMapper', () => {
 
   it("throws edgeTaskChecks.maxRetries's message for an invalid maxRetries", () => {
     const original = Model.load(
-      '../../examples/edge/experiments/1-minimal.txt',
+      '../../examples/edge/experiments/1-minimal/1-minimal.txt',
     );
     const task = [...original.elements.values()].find((element) =>
       element.name.startsWith('T1:'),
@@ -64,7 +66,7 @@ describe('edgeEngineMapper', () => {
 
   it('does not carry goal keys (e.g. utility) from a Quality', () => {
     const original = Model.load(
-      '../../examples/edge/experiments/1-minimal.txt',
+      '../../examples/edge/experiments/1-minimal/1-minimal.txt',
     );
     const goal = [...original.elements.values()].find((element) =>
       element.name.startsWith('G2:'),

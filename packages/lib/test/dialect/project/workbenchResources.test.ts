@@ -1,6 +1,6 @@
 /** The workbench's project resources (packages/ui/lib/workbench/projectResources.ts): parsed, in the context, in Problems. */
 import { expect } from 'chai';
-import { readFileSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { goalView } from '@goal-controller/goal-tree';
 import { parsePistar } from '../../../../goal-tree/node_modules/@istar-ts/core';
@@ -24,7 +24,10 @@ import { SOURCE } from '../../../../ui/lib/workbench/types';
 
 const MODEL = withModelSettings(
   readFileSync(
-    join(__dirname, '../../../../../examples/mutrose/MedicineDelivery.txt'),
+    join(
+      __dirname,
+      '../../../../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt',
+    ),
     'utf8',
   ),
   { mode: 'mutrose' },
@@ -107,14 +110,30 @@ describe('ui project resources', () => {
   });
 
   it('reads the example projects’ resources without a problem, and their models check clean against them', () => {
-    const root = join(__dirname, '../../../../../examples/projects');
-    for (const [folder, engine] of [
-      ['medicine-delivery', 'mutrose'],
-      ['tas3-edgev2', 'edgev2'],
-    ] as const) {
-      const manifest = JSON.parse(
-        readFileSync(join(root, folder, 'project.json'), 'utf8'),
+    const root = join(__dirname, '../../../../../examples');
+    // every example project with resources: each a folder holding a project.json
+    const projects = (
+      readdirSync(root, { recursive: true, encoding: 'utf8' }) as string[]
+    )
+      .filter((path) => path.endsWith('/project.json'))
+      .map((path) => path.slice(0, -'/project.json'.length))
+      .map((folder) => ({
+        folder,
+        manifest: JSON.parse(
+          readFileSync(join(root, folder, 'project.json'), 'utf8'),
+        ),
+      }))
+      .filter(
+        ({ manifest }) => Object.keys(manifest.projectResources).length > 0,
       );
+    expect(projects.map(({ folder }) => folder)).to.include.members([
+      'mutrose/medicine-delivery',
+      'mutrose/lab-sample-logistics',
+      'edgeV2/experiments/goalModel_TAS_3',
+      'edge/experiments/1-minimal',
+    ]);
+    for (const { folder, manifest } of projects) {
+      const engine = manifest.dialect as 'mutrose' | 'edge' | 'edgev2';
       const paths = Object.values(
         manifest.projectResources as Record<string, string | string[]>,
       ).flat();
@@ -126,14 +145,17 @@ describe('ui project resources', () => {
       );
       const declarations = declarationsOf(engine)!;
       const slots = resourceSlots(manifest, paths, declarations);
+      // what the manifest names is there (a kind it leaves out is missing, not an error)
+      const named = Object.keys(manifest.projectResources).sort();
       expect(
-        slots.every((slot) => !slot.missing),
+        slots
+          .filter((slot) => !slot.missing)
+          .map((slot) => slot.kind)
+          .sort(),
         folder,
-      ).to.equal(true);
+      ).to.deep.equal(named);
       const parsed = parseResources(engine, slots, texts);
-      expect(Object.keys(parsed).sort(), folder).to.deep.equal(
-        Object.keys(declarations).sort(),
-      );
+      expect(Object.keys(parsed).sort(), folder).to.include.members(named);
       expect(
         resourceProblems(parsed, declarations, texts),
         folder,

@@ -18,7 +18,7 @@ import { declarationsOf } from '@/lib/workbench/projectResources';
 
 const PROJECT = join(
   __dirname,
-  '../../../../examples/projects/medicine-delivery',
+  '../../../../examples/mutrose/medicine-delivery',
 );
 const FILES = [
   'project.json',
