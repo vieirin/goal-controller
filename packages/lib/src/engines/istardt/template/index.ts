@@ -12,7 +12,6 @@ import { readAssertion, readExpression } from '@goal-controller/goal-language';
 import type { AnalysisModel } from '../../analysis';
 import { singleFileOutput, type EngineOutput } from '../../output';
 import {
-  listItems,
   pairItems,
   readIstardtModel,
   type IstardtElement,
@@ -236,7 +235,7 @@ export const istardtTemplate = (
   const turnsFalse = new Map<string, string[]>();
   for (const task of tasks)
     for (const effect of model.effectsOf(task))
-      for (const predicate of listItems(effect.properties.turnsFalse))
+      for (const predicate of model.turnsFalse(effect))
         turnsFalse.set(predicate, [
           ...(turnsFalse.get(predicate) ?? []),
           effect.identifier,
@@ -263,11 +262,11 @@ export const istardtTemplate = (
       stochasticActionList += `${effectID},`;
       stochasticActions += `stochasticAction(${effectID}).\n`;
       nonDetActions += `${effectID},`;
-      probabilities += `prob(${effectID},${javaFloat(Number(effect.properties.probability ?? '1'))},_).\n`;
+      probabilities += `prob(${effectID},${javaFloat(Number(model.probabilityOf(effect) ?? '1'))},_).\n`;
       let effectSatFormula = `${effectID}_Sat(S) :- `;
       const satisfying = effect.properties.satisfying?.trim() !== 'false';
 
-      for (const pred of listItems(effect.properties.turnsTrue)) {
+      for (const pred of model.turnsTrue(effect)) {
         const kept = falsified(pred);
         fluentList += `${fluent(pred)},`;
         successorStateAxioms += kept
@@ -484,9 +483,10 @@ const ancestorsOf = (model: IstardtModel, element: IstardtElement) => {
 };
 
 /**
- * A quality's formula as a term: its `formula`, or (unverified, #117 D3)
- * the weighted sum of the effects its utility links come from. Both is an
- * error: one source per quality.
+ * A quality's formula as a term: its `formula`, or the weighted sum its
+ * utility links are (#117 D3, mx2dtx's contribution links), in their order:
+ * `weight × q` for a quality, `weight × p` for an effect that turns the
+ * predicate `p` true (istardtProblems has checked it has one or the other).
  */
 const qualityFormula = (
   model: IstardtModel,
@@ -496,21 +496,12 @@ const qualityFormula = (
 ) => {
   const text = quality.properties.formula?.trim() ?? '';
   const utilities = model.utilities(quality);
-  if (text && utilities.length) {
-    fail(
-      `${quality.id ?? quality.identifier} has a formula and utility links: give it one or the other`,
-    );
-    return null;
-  }
-  const source = text
-    ? text
-    : utilities
-        .map(({ effect, weight }) => `${weight || '1'} * ${effect.identifier}`)
-        .join(' + ');
-  if (!source) {
-    fail(`${quality.id ?? quality.identifier} has no formula`);
-    return null;
-  }
+  // an effect weighs by the one predicate it turns true (checked)
+  const terms = utilities.map(
+    ({ source, weight }) =>
+      `${weight || '1'} * ${source.kind === 'effect' ? model.turnsTrue(source)[0] : source.identifier}`,
+  );
+  const source = text || terms.join(' + ');
   const tree = readExpression(source);
   if (!tree) {
     fail(

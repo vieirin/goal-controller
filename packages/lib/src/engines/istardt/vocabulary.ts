@@ -7,6 +7,8 @@
 /** The kinds the `istardt` extension adds (goal-controller#117 D1, D7). */
 export const ISTARDT_KINDS = {
   effect: 'istardt.Effect',
+  /** a task's effects, as one node (its hub) */
+  effectGroup: 'istardt.EffectGroup',
   condition: 'istardt.Condition',
   predicate: 'istardt.Predicate',
   variable: 'istardt.Variable',
@@ -14,14 +16,24 @@ export const ISTARDT_KINDS = {
 
 /** The link kinds the `istardt` extension adds. */
 export const ISTARDT_LINKS = {
-  /** a task to one of its effects (its effect group, in link order) */
+  /** a task to its effect group (`eff`) */
   effect: 'istardt.EffectLink',
+  /** an effect group to one of its effects, with its probability (in link order) */
+  effectGroup: 'istardt.EffectGroupLink',
   /** a condition, goal or task to the goal, task or effect it precedes */
   precedence: 'istardt.PrecedenceLink',
   /** a condition, goal or task to the goal, task or effect it must not precede */
   negativePrecedence: 'istardt.NegativePrecedenceLink',
-  /** an effect to a quality, with a weight (an extension of contribution) */
+  /**
+   * an effect or a quality to a quality, with a weight (an extension of
+   * contribution): a term of the quality's weighted sum (mx2dtx's
+   * `contributionLink`)
+   */
   utility: 'istardt.UtilityLink',
+  /** an effect to a predicate it makes true (in link order) */
+  turnsTrue: 'istardt.TurnsTrueLink',
+  /** an effect to a predicate it makes false */
+  turnsFalse: 'istardt.TurnsFalseLink',
 } as const;
 
 /** What an element is to the writer, by its piStar kind. */

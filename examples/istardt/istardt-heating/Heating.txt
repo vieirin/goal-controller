@@ -11,18 +11,18 @@
       },
       "nodes": [
         {
-          "id": "G1",
+          "id": "controlHeater",
           "text": "G1: Control Heater",
           "type": "istar.Goal",
           "customProperties": {
             "root": "true",
             "episodeLength": "10"
           },
-          "x": 400,
+          "x": 880,
           "y": 80
         },
         {
-          "id": "T1",
+          "id": "sendOnSignal",
           "text": "T1: Send On Signal",
           "type": "istar.Task",
           "customProperties": {},
@@ -30,98 +30,89 @@
           "y": 180
         },
         {
-          "id": "T2",
+          "id": "sendOffSignal",
           "text": "T2: Send Off Signal",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 560,
+          "x": 1040,
           "y": 180
         },
         {
-          "id": "E1",
+          "id": "signalOnS_Eff",
           "text": "E1: signalOnS",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "signalOnS_Eff",
-            "probability": "0.95",
-            "satisfying": "true",
-            "turnsTrue": "signalOnS"
-          },
-          "x": 240,
-          "y": 180
-        },
-        {
-          "id": "E2",
-          "text": "E2: signalOnF",
-          "type": "istardt.Effect",
-          "customProperties": {
-            "identifier": "signalOnF_Eff",
-            "probability": "0.05",
-            "satisfying": "false",
-            "turnsTrue": "signalOnF"
+            "satisfying": "true"
           },
           "x": 400,
           "y": 180
         },
         {
-          "id": "E3",
+          "id": "signalOnF_Eff",
+          "text": "E2: signalOnF",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "signalOnF_Eff",
+            "satisfying": "false"
+          },
+          "x": 560,
+          "y": 180
+        },
+        {
+          "id": "signalOffS_Eff",
           "text": "E3: signalOffS",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "signalOffS_Eff",
-            "probability": "0.95",
-            "satisfying": "true",
-            "turnsTrue": "signalOffS"
+            "satisfying": "true"
           },
-          "x": 720,
+          "x": 1360,
           "y": 180
         },
         {
-          "id": "E4",
+          "id": "signalOffF_Eff",
           "text": "E4: signalOffF",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "signalOffF_Eff",
-            "probability": "0.05",
-            "satisfying": "false",
-            "turnsTrue": "signalOffF"
+            "satisfying": "false"
           },
-          "x": 880,
+          "x": 1520,
           "y": 180
         },
         {
-          "id": "Q1",
+          "id": "cost",
           "text": "Q1: Cost",
           "type": "istar.Quality",
           "customProperties": {
             "formula": "0 - 0.06 * runningTime"
           },
-          "x": 1040,
+          "x": 2000,
           "y": 80
         },
         {
-          "id": "Q2",
+          "id": "comfort",
           "text": "Q2: Comfort",
           "type": "istar.Quality",
           "customProperties": {
             "formula": "(roomTemperature - 23) * (roomTemperature - 23) * -0.1"
           },
-          "x": 1200,
+          "x": 2160,
           "y": 80
         },
         {
-          "id": "Q3",
+          "id": "overallQuality",
           "text": "Q3: Overall Quality",
           "type": "istar.Quality",
           "customProperties": {
-            "formula": "0.3 * cost + 0.7 * comfort",
             "root": "true"
           },
-          "x": 1360,
+          "x": 2320,
           "y": 80
         },
         {
-          "id": "Q4",
+          "id": "roomTemperature",
           "text": "Q4: Room Temperature",
           "type": "istar.Quality",
           "customProperties": {
@@ -129,11 +120,11 @@
             "exportMin": "-10",
             "exportMax": "100"
           },
-          "x": 1520,
+          "x": 2480,
           "y": 80
         },
         {
-          "id": "Q5",
+          "id": "runningTime",
           "text": "Q5: Running Time",
           "type": "istar.Quality",
           "customProperties": {
@@ -141,51 +132,67 @@
             "exportMin": "0",
             "exportMax": "100"
           },
-          "x": 1680,
+          "x": 2640,
           "y": 80
         },
         {
-          "id": "C1",
+          "id": "hvacOn",
           "text": "C1: Condition Box",
           "type": "istardt.Condition",
           "customProperties": {
             "identifier": "hvacOn",
             "formula": "((previous(hvacOn) & (!(signalOffS))) | signalOnS)"
           },
-          "x": 1840,
+          "x": 2800,
           "y": 80
         },
         {
-          "id": "P1",
+          "id": "signalOnF",
           "text": "P1: signalOnF",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2000,
-          "y": 80
+          "x": 720,
+          "y": 180
         },
         {
-          "id": "P2",
+          "id": "signalOffF",
           "text": "P2: signalOffF",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2160,
-          "y": 80
+          "x": 1680,
+          "y": 180
         },
         {
-          "id": "P3",
+          "id": "signalOnS",
           "text": "P3: signalOnS",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2320,
-          "y": 80
+          "x": 880,
+          "y": 180
         },
         {
-          "id": "P4",
+          "id": "signalOffS",
           "text": "P4: signalOffS",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2480,
-          "y": 80
+          "x": 1840,
+          "y": 180
+        },
+        {
+          "id": "sendOnSignal/effectGroup",
+          "text": "",
+          "type": "istardt.EffectGroup",
+          "customProperties": {},
+          "x": 240,
+          "y": 180
+        },
+        {
+          "id": "sendOffSignal/effectGroup",
+          "text": "",
+          "type": "istardt.EffectGroup",
+          "customProperties": {},
+          "x": 1200,
+          "y": 180
         }
       ],
       "x": 40,
@@ -196,47 +203,113 @@
   "dependencies": [],
   "links": [
     {
-      "id": "T1-OrRefinementLink-G1",
+      "id": "sendOnSignal-OrRefinementLink-controlHeater",
       "type": "istar.OrRefinementLink",
-      "source": "T1",
-      "target": "G1"
+      "source": "sendOnSignal",
+      "target": "controlHeater"
     },
     {
-      "id": "T2-OrRefinementLink-G1",
+      "id": "sendOffSignal-OrRefinementLink-controlHeater",
       "type": "istar.OrRefinementLink",
-      "source": "T2",
-      "target": "G1"
+      "source": "sendOffSignal",
+      "target": "controlHeater"
     },
     {
-      "id": "T1-EffectLink-E1",
+      "id": "sendOnSignal-EffectLink-sendOnSignal/effectGroup",
       "type": "istardt.EffectLink",
-      "source": "T1",
-      "target": "E1"
+      "source": "sendOnSignal",
+      "target": "sendOnSignal/effectGroup"
     },
     {
-      "id": "T1-EffectLink-E2",
-      "type": "istardt.EffectLink",
-      "source": "T1",
-      "target": "E2"
+      "id": "sendOnSignal/effectGroup-EffectGroupLink-signalOnS_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "sendOnSignal/effectGroup",
+      "target": "signalOnS_Eff",
+      "customProperties": {
+        "probability": "0.95"
+      }
     },
     {
-      "id": "T2-EffectLink-E3",
-      "type": "istardt.EffectLink",
-      "source": "T2",
-      "target": "E3"
+      "id": "sendOnSignal/effectGroup-EffectGroupLink-signalOnF_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "sendOnSignal/effectGroup",
+      "target": "signalOnF_Eff",
+      "customProperties": {
+        "probability": "0.05"
+      }
     },
     {
-      "id": "T2-EffectLink-E4",
+      "id": "sendOffSignal-EffectLink-sendOffSignal/effectGroup",
       "type": "istardt.EffectLink",
-      "source": "T2",
-      "target": "E4"
+      "source": "sendOffSignal",
+      "target": "sendOffSignal/effectGroup"
+    },
+    {
+      "id": "sendOffSignal/effectGroup-EffectGroupLink-signalOffS_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "sendOffSignal/effectGroup",
+      "target": "signalOffS_Eff",
+      "customProperties": {
+        "probability": "0.95"
+      }
+    },
+    {
+      "id": "sendOffSignal/effectGroup-EffectGroupLink-signalOffF_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "sendOffSignal/effectGroup",
+      "target": "signalOffF_Eff",
+      "customProperties": {
+        "probability": "0.05"
+      }
+    },
+    {
+      "id": "signalOnS_Eff-TurnsTrueLink-signalOnS",
+      "type": "istardt.TurnsTrueLink",
+      "source": "signalOnS_Eff",
+      "target": "signalOnS"
+    },
+    {
+      "id": "signalOnF_Eff-TurnsTrueLink-signalOnF",
+      "type": "istardt.TurnsTrueLink",
+      "source": "signalOnF_Eff",
+      "target": "signalOnF"
+    },
+    {
+      "id": "signalOffS_Eff-TurnsTrueLink-signalOffS",
+      "type": "istardt.TurnsTrueLink",
+      "source": "signalOffS_Eff",
+      "target": "signalOffS"
+    },
+    {
+      "id": "signalOffF_Eff-TurnsTrueLink-signalOffF",
+      "type": "istardt.TurnsTrueLink",
+      "source": "signalOffF_Eff",
+      "target": "signalOffF"
+    },
+    {
+      "id": "cost-UtilityLink-overallQuality",
+      "type": "istardt.UtilityLink",
+      "source": "cost",
+      "target": "overallQuality",
+      "customProperties": {
+        "weight": "0.3"
+      }
+    },
+    {
+      "id": "comfort-UtilityLink-overallQuality",
+      "type": "istardt.UtilityLink",
+      "source": "comfort",
+      "target": "overallQuality",
+      "customProperties": {
+        "weight": "0.7"
+      }
     }
   ],
   "display": {},
   "tool": "pistar.2.1.0",
   "istar": "2.0",
   "diagram": {
-    "width": 2680,
+    "width": 3000,
     "height": 700,
     "name": "Heating",
     "customProperties": {
@@ -264,6 +337,25 @@
           "right": 0.08,
           "bottom": 0.1,
           "left": 0.08
+        }
+      },
+      {
+        "kind": "istardt.EffectGroup",
+        "label": "Effect group",
+        "category": "node",
+        "size": {
+          "width": 20,
+          "height": 20
+        },
+        "shape": {
+          "path": "M 2 10 A 8 8 0 1 0 18 10 A 8 8 0 1 0 2 10 Z",
+          "viewBox": "0 0 20 20"
+        },
+        "textBox": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
         }
       },
       {
@@ -327,10 +419,24 @@
     "links": [
       {
         "kind": "istardt.EffectLink",
-        "label": "Effect",
+        "label": "eff",
         "rules": {
           "sources": [
             "istar.Task"
+          ],
+          "targets": [
+            "istardt.EffectGroup"
+          ],
+          "unique": "any"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.EffectGroupLink",
+        "label": "Effect group",
+        "rules": {
+          "sources": [
+            "istardt.EffectGroup"
           ],
           "targets": [
             "istardt.Effect"
@@ -386,7 +492,8 @@
         "label": "Utility",
         "rules": {
           "sources": [
-            "istardt.Effect"
+            "istardt.Effect",
+            "istar.Quality"
           ],
           "targets": [
             "istar.Quality"
@@ -394,7 +501,37 @@
           "unique": "kind"
         },
         "line": {
-          "marker": false
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "istardt.TurnsTrueLink",
+        "label": "turns true",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istardt.Predicate"
+          ],
+          "unique": "any"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.TurnsFalseLink",
+        "label": "turns false",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istardt.Predicate"
+          ],
+          "unique": "any"
+        },
+        "line": {
+          "dash": "6 4"
         }
       }
     ]

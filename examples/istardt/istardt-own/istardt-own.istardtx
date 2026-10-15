@@ -8,7 +8,9 @@
     importer names), and a pre that names a goal (waterGarden's);
   - turnsFalse, set, a variable (moisture) read by a condition's
     comparison and a quality, exported continuous and carried across runs;
-  - a division and a negation in the qualities' formulas;
+  - qualities that are weighted sums, drawn as utility links (from effects:
+    plantHealth; from qualities: overall), beside ones that are formulas: a
+    division and a negation (waterCost), a previous value (ownerHappiness);
   - the gardener's goals and the owner's (reportToOwner) under the one
     actor iStar-DT has.
 -->
@@ -145,17 +147,17 @@
 <qualities>
    <quality name = "plantHealth" description = "Plant Health" root = "false">
       <add>
-         <multiply><numConst>1.0</numConst><predicateID>watered</predicateID></multiply>
+         <multiply><numConst>0.4</numConst><predicateID>plantsFine</predicateID></multiply>
          <multiply><numConst>-0.5</numConst><predicateID>plantsWilted</predicateID></multiply>
          <multiply><numConst>-1.0</numConst><predicateID>jammed</predicateID></multiply>
-         <multiply><numConst>0.2</numConst><conditionID>soilWet</conditionID></multiply>
+         <multiply><numConst>-0.3</numConst><predicateID>spilledWater</predicateID></multiply>
       </add>
    </quality>
    <quality name = "waterCost" description = "Water Cost" root = "false">
-      <divide>
+      <negate><divide>
          <left><variableID>moisture</variableID></left>
          <right><numConst>100</numConst></right>
-      </divide>
+      </divide></negate>
    </quality>
    <quality name = "ownerHappiness" description = "Owner Happiness" root = "false">
       <add>
@@ -167,7 +169,7 @@
       <add>
          <multiply><numConst>0.6</numConst><qualID>plantHealth</qualID></multiply>
          <multiply><numConst>0.3</numConst><qualID>ownerHappiness</qualID></multiply>
-         <negate><qualID>waterCost</qualID></negate>
+         <multiply><numConst>1.0</numConst><qualID>waterCost</qualID></multiply>
       </add>
    </quality>
 </qualities>

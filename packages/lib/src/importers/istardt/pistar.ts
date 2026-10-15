@@ -22,6 +22,7 @@ import { SET_KEYS } from '../../engines/istardt/model';
 import {
   camelCase,
   ID_PREFIX,
+  ISTARDT_KINDS,
   ISTARDT_LINKS,
   PISTAR_OF_KIND,
   type IstardtKind,
@@ -157,6 +158,48 @@ const atomsOf = (formula: Formula): { tag: string; name: string }[] => {
   }
 };
 
+/** The effects that turn a predicate true. */
+const effectsTurning = (document: IstardtDocument, predicate: string) =>
+  document.tasks
+    .flatMap((task) => task.effects)
+    .filter((effect) => effect.turnsTrue.includes(predicate));
+
+/**
+ * A quality's formula as a weighted sum (#117 D3, mx2dtx's contribution
+ * links), or null when it isn't one: every term `weight × q` for a declared
+ * quality, or `weight × p` for a predicate exactly one effect turns true (and
+ * nothing else), each source once. Its links write it back as it is.
+ */
+export const weightedSum = (
+  formula: Formula,
+  document: IstardtDocument,
+): { tag: string; name: string; weight: string }[] | null => {
+  const terms = formula.op === 'add' ? formula.args : [formula];
+  const sources = new Set<string>();
+  const out: { tag: string; name: string; weight: string }[] = [];
+  for (const term of terms) {
+    if (term.op !== 'multiply' || term.args.length !== 2) return null;
+    const weight = term.args[0]!;
+    const atom = term.args[1]!;
+    if (weight.op !== 'number' || atom.op !== 'atom') return null;
+    if (atom.tag === 'qualID') {
+      if (!document.qualities.some((q) => q.name === atom.name)) return null;
+    } else if (atom.tag === 'predicateID') {
+      const effects = effectsTurning(document, atom.name);
+      if (effects.length !== 1 || effects[0]!.turnsTrue.length !== 1)
+        return null;
+    } else return null;
+    const source =
+      atom.tag === 'qualID'
+        ? atom.name
+        : effectsTurning(document, atom.name)[0]!.name;
+    if (sources.has(source)) return null;
+    sources.add(source);
+    out.push({ tag: atom.tag, name: atom.name, weight: weight.value.trim() });
+  }
+  return out;
+};
+
 export const toPistar = (
   document: IstardtDocument,
   diagnostics: ImportDiagnostic[],
@@ -170,7 +213,10 @@ export const toPistar = (
   type Node = {
     kind: IstardtKind;
     file: string;
+    /** the id its text starts with (`G1`) */
     id: string;
+    /** its piStar id: the file's name, the source's id (importers.md) */
+    pistarId: string;
     text: string;
     properties: Record<string, string>;
   };
@@ -187,10 +233,15 @@ export const toPistar = (
     counters.set(kind, n);
     const id = `${ID_PREFIX[kind]}${n}`;
     const name = description.trim() || file;
+    // a name two elements share keeps the second apart (a warning below)
+    let pistarId = file || id;
+    for (let k = 2; nodes.some((other) => other.pistarId === pistarId); k++)
+      pistarId = `${file}#${k}`;
     const node: Node = {
       kind,
       file,
       id,
+      pistarId,
       text: `${id}: ${name}`,
       properties: {
         ...(camelCase(name) !== file && { identifier: file }),
@@ -211,34 +262,37 @@ export const toPistar = (
       }),
       ...(goal.terminal && { terminal: 'true' }),
     });
-  const effectsOf = new Map<Node, Node[]>();
-  for (const task of document.tasks) {
-    const node = add('task', task.name, task.description);
-    effectsOf.set(node, []);
-  }
+  for (const task of document.tasks) add('task', task.name, task.description);
+  // each task's effect group: the hub its effects hang from, each with its
+  // probability on its link (iStarDT-V's effectGroupLink)
+  const groups: {
+    pistarId: string;
+    task: Node;
+    effects: { node: Node; probability: string }[];
+  }[] = [];
   document.tasks.forEach((task, i) => {
     const node = nodes.filter((n) => n.kind === 'task')[i]!;
-    for (const effect of task.effects)
-      effectsOf.get(node)!.push(
-        add('effect', effect.name, effect.description, {
-          probability: effect.probability,
+    if (!task.effects.length) return;
+    groups.push({
+      pistarId: `${node.pistarId}/effectGroup`,
+      task: node,
+      effects: task.effects.map((effect) => ({
+        node: add('effect', effect.name, effect.description, {
           satisfying: String(effect.satisfying),
-          ...(effect.turnsTrue.length && {
-            turnsTrue: effect.turnsTrue.join(', '),
-          }),
-          ...(effect.turnsFalse.length && {
-            turnsFalse: effect.turnsFalse.join(', '),
-          }),
           ...(effect.set.length && {
             set: effect.set.map((s) => `${s.variable}:${s.value}`).join(', '),
           }),
         }),
-      );
+        probability: effect.probability,
+      })),
+    });
   });
   for (const quality of document.qualities) {
     if (!quality.formula) warn(`quality ${quality.name} has no formula`);
+    const terms = quality.formula && weightedSum(quality.formula, document);
     add('quality', quality.name, quality.description, {
-      ...(quality.formula && { formula: expressionText(quality.formula) }),
+      ...(quality.formula &&
+        !terms && { formula: expressionText(quality.formula) }),
       ...(quality.root && { root: 'true' }),
     });
   }
@@ -283,12 +337,17 @@ export const toPistar = (
 
   // links: refinements child to parent, effects, precedences
   const links: Json[] = [];
-  const link = (type: string, source: Node, target: Node, extra: Json = {}) =>
+  const link = (
+    type: string,
+    source: { pistarId: string },
+    target: { pistarId: string },
+    extra: Json = {},
+  ) =>
     links.push({
-      id: `${source.id}-${type.slice(type.indexOf('.') + 1)}-${target.id}`,
+      id: `${source.pistarId}-${type.slice(type.indexOf('.') + 1)}-${target.pistarId}`,
       type,
-      source: source.id,
-      target: target.id,
+      source: source.pistarId,
+      target: target.pistarId,
       ...extra,
     });
   document.goals.forEach((goal) => {
@@ -314,8 +373,36 @@ export const toPistar = (
       );
     }
   });
-  for (const [task, effects] of effectsOf)
-    for (const effect of effects) link(ISTARDT_LINKS.effect, task, effect);
+  for (const group of groups) {
+    link(ISTARDT_LINKS.effect, group.task, group);
+    for (const { node, probability } of group.effects)
+      link(ISTARDT_LINKS.effectGroup, group, node, {
+        customProperties: { probability },
+      });
+  }
+  // what each effect turns true and false: links to the predicates, in order
+  for (const effect of document.tasks.flatMap((t) => t.effects))
+    for (const [type, names] of [
+      [ISTARDT_LINKS.turnsTrue, effect.turnsTrue],
+      [ISTARDT_LINKS.turnsFalse, effect.turnsFalse],
+    ] as const)
+      for (const name of names)
+        if (byName.get(name)?.kind === 'predicate')
+          link(type, byName.get(effect.name)!, byName.get(name)!);
+  // a quality that is a weighted sum: a utility link per term (#117 D3), from
+  // the quality, or from the effect that turns the predicate true
+  for (const quality of document.qualities)
+    for (const { tag, name, weight } of (quality.formula &&
+      weightedSum(quality.formula, document)) ||
+      [])
+      link(
+        ISTARDT_LINKS.utility,
+        tag === 'qualID'
+          ? byName.get(name)!
+          : byName.get(effectsTurning(document, name)[0]!.name)!,
+        byName.get(quality.name)!,
+        { customProperties: { weight } },
+      );
 
   const precedence = (
     holder: Node,
@@ -396,12 +483,20 @@ export const toPistar = (
       }),
       ...actorProperties,
     },
-    nodes: nodes.map((node) => ({
-      id: node.id,
-      text: node.text,
-      type: PISTAR_OF_KIND[node.kind],
-      customProperties: node.properties,
-    })),
+    nodes: [
+      ...nodes.map((node) => ({
+        id: node.pistarId,
+        text: node.text,
+        type: PISTAR_OF_KIND[node.kind],
+        customProperties: node.properties,
+      })),
+      ...groups.map(({ pistarId }) => ({
+        id: pistarId,
+        text: '',
+        type: ISTARDT_KINDS.effectGroup,
+        customProperties: {},
+      })),
+    ],
   };
   const model: Json = {
     actors: [actor],

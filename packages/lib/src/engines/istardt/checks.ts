@@ -12,7 +12,6 @@ import type {
 } from '@goal-controller/goal-language';
 import { checks } from '../checks';
 import {
-  listItems,
   pairItems,
   type IstardtElement,
   type IstardtModel,
@@ -184,19 +183,17 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
           ? `${label(effect)} is an effect of ${tasks.length} tasks: an effect belongs to one task`
           : `${label(effect)} is no task's effect: link a task to it`,
       );
-    const probability = number(effect.properties.probability);
-    if (probability === undefined || !(probability >= 0 && probability <= 1))
+    const written = model.probabilityOf(effect);
+    const probability = number(written);
+    if (
+      tasks.length &&
+      (probability === undefined || !(probability >= 0 && probability <= 1))
+    )
       say(
         'error',
         effect,
-        `${label(effect)}'s probability is a number in 0..1, not ${effect.properties.probability ?? 'unset'}`,
+        `${label(effect)}'s probability (on its effect group link) is a number in 0..1, not ${written ?? 'unset'}`,
       );
-    names(effect, 'turnsTrue', listItems(effect.properties.turnsTrue), [
-      'predicate',
-    ]);
-    names(effect, 'turnsFalse', listItems(effect.properties.turnsFalse), [
-      'predicate',
-    ]);
     names(
       effect,
       'set',
@@ -211,7 +208,24 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
           `${label(effect)} sets ${name} to a number, not ${value || 'nothing'}`,
         );
   }
+  // effect groups: each of one task, one per task
+  for (const group of model.effectGroups)
+    if (group.tasks.length !== 1)
+      say(
+        'error',
+        { pistarId: group.id },
+        group.tasks.length
+          ? `an effect group is linked from ${group.tasks.map(label).join(', ')}: a group is one task's`
+          : 'an effect group no task links to: link its task to it',
+      );
   for (const task of model.ofKind('task')) {
+    const groups = model.effectGroups.filter((g) => g.tasks.includes(task));
+    if (groups.length > 1)
+      say(
+        'error',
+        task,
+        `${label(task)} has ${groups.length} effect groups: a task has one`,
+      );
     const effects = model.effectsOf(task);
     if (!effects.length) {
       say(
@@ -222,7 +236,7 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       continue;
     }
     const sum = effects.reduce(
-      (total, e) => total + (number(e.properties.probability) ?? 0),
+      (total, e) => total + (number(model.probabilityOf(e)) ?? 0),
       0,
     );
     if (Math.abs(sum - 1) > PROBABILITY_TOLERANCE)
@@ -235,7 +249,7 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       !effects.some(
         (e) =>
           e.properties.satisfying?.trim() !== 'false' &&
-          listItems(e.properties.turnsTrue).length,
+          model.turnsTrue(e).length,
       )
     )
       say(
@@ -243,6 +257,31 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
         task,
         `${label(task)} has no satisfying effect that turns a predicate true: nothing says it is satisfied`,
       );
+  }
+
+  // a quality is its formula or its utility links' weighted sum, not both;
+  // an effect weighs on it by the one predicate it turns true
+  for (const quality of model.ofKind('quality')) {
+    const utilities = model.utilities(quality);
+    if (utilities.length && quality.properties.formula?.trim())
+      say(
+        'error',
+        quality,
+        `${label(quality)} has a formula and utility links: give it one or the other`,
+      );
+    if (!utilities.length && !quality.properties.formula?.trim())
+      say(
+        'error',
+        quality,
+        `${label(quality)} has no formula and no utility links`,
+      );
+    for (const { source } of utilities)
+      if (source.kind === 'effect' && model.turnsTrue(source).length !== 1)
+        say(
+          'error',
+          source,
+          `${label(source)}'s utility link to ${label(quality)}: an effect weighs on a quality by the one predicate it turns true (it turns ${model.turnsTrue(source).length})`,
+        );
   }
 
   // formulas name elements of the kinds they read

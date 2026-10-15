@@ -16,6 +16,7 @@
 import type { AnalysisLink, AnalysisModel } from '../analysis';
 import {
   camelCase,
+  ISTARDT_KINDS,
   ISTARDT_LINKS,
   KIND_OF_PISTAR,
   type IstardtKind,
@@ -62,18 +63,28 @@ export type IstardtModel = {
   };
   /** the goal it refines (the last goal, in order, that lists it) */
   parentOf: (element: IstardtElement) => IstardtElement | undefined;
-  /** a task's effects, in its effect links' order */
+  /** a task's effects: its effect group's, in the group links' order */
   effectsOf: (task: IstardtElement) => IstardtElement[];
-  /** the task an effect is of */
-  taskOf: (effect: IstardtElement) => IstardtElement | undefined;
+  /** an effect's probability: its effect group link's */
+  probabilityOf: (effect: IstardtElement) => string | undefined;
+  /** the effect groups (their piStar ids), with the tasks linked to them and their effects */
+  effectGroups: readonly {
+    id: string;
+    tasks: IstardtElement[];
+    effects: IstardtElement[];
+  }[];
+  /** the predicates an effect turns true, in link order (their identifiers) */
+  turnsTrue: (effect: IstardtElement) => string[];
+  /** the predicates an effect turns false */
+  turnsFalse: (effect: IstardtElement) => string[];
   /** the sources of an element's precedence links, in link order */
   pre: (element: IstardtElement) => IstardtElement[];
   /** the sources of an element's negative precedence links */
   npr: (element: IstardtElement) => IstardtElement[];
-  /** a quality's utility links: the effect and the link's weight */
+  /** a quality's utility links, in order: the effect or quality and the link's weight */
   utilities: (
     quality: IstardtElement,
-  ) => { effect: IstardtElement; weight: string; link: AnalysisLink }[];
+  ) => { source: IstardtElement; weight: string; link: AnalysisLink }[];
   crossRun: readonly string[];
   exported: readonly string[];
   initializations: readonly (readonly [string, string])[];
@@ -189,16 +200,46 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
   for (const goal of ofKind('goal'))
     for (const child of refinement(goal).children) parent.set(child, goal);
 
-  const effectLinks = linksOf(ISTARDT_LINKS.effect);
+  // a task, its effect group (`eff`), the group's effects with their probabilities
+  const groupIds = model.elements
+    .filter((element) => element.kind === ISTARDT_KINDS.effectGroup)
+    .map((element) => element.id);
+  const isGroup = new Set(groupIds);
+  const taskLinks = model.links.filter(
+    (l) =>
+      l.kind === ISTARDT_LINKS.effect &&
+      byPistarId.get(l.source)?.kind === 'task' &&
+      isGroup.has(l.target),
+  );
+  const groupLinks = model.links.filter(
+    (l) =>
+      l.kind === ISTARDT_LINKS.effectGroup &&
+      isGroup.has(l.source) &&
+      byPistarId.get(l.target)?.kind === 'effect',
+  );
+  const effectGroups = groupIds.map((id) => ({
+    id,
+    tasks: taskLinks
+      .filter((l) => l.target === id)
+      .map((l) => byPistarId.get(l.source)!),
+    effects: groupLinks
+      .filter((l) => l.source === id)
+      .map((l) => byPistarId.get(l.target)!),
+  }));
   const effectsOf = (task: IstardtElement) =>
-    effectLinks
+    taskLinks
       .filter((l) => l.source === task.pistarId)
-      .map((l) => byPistarId.get(l.target)!)
-      .filter((e) => e.kind === 'effect');
-  const taskOf = (effect: IstardtElement) => {
-    const link = effectLinks.find((l) => l.target === effect.pistarId);
-    return link && byPistarId.get(link.source);
-  };
+      .flatMap(
+        (l) => effectGroups.find((group) => group.id === l.target)!.effects,
+      );
+  const probabilityOf = (effect: IstardtElement) =>
+    groupLinks
+      .find((l) => l.target === effect.pistarId)
+      ?.properties.probability?.trim();
+  const targetsOf = (kind: string) => (element: IstardtElement) =>
+    linksOf(kind)
+      .filter((l) => l.source === element.pistarId)
+      .map((l) => byPistarId.get(l.target)!.identifier);
   const sourcesOf = (kind: string) => (element: IstardtElement) =>
     linksOf(kind)
       .filter((l) => l.target === element.pistarId)
@@ -208,7 +249,7 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
     linksOf(ISTARDT_LINKS.utility)
       .filter((l) => l.target === quality.pistarId)
       .map((link) => ({
-        effect: byPistarId.get(link.source)!,
+        source: byPistarId.get(link.source)!,
         weight: link.properties.weight?.trim() ?? '',
         link,
       }));
@@ -231,7 +272,10 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
     refinement,
     parentOf: (element) => parent.get(element),
     effectsOf,
-    taskOf,
+    probabilityOf,
+    effectGroups,
+    turnsTrue: targetsOf(ISTARDT_LINKS.turnsTrue),
+    turnsFalse: targetsOf(ISTARDT_LINKS.turnsFalse),
     pre: sourcesOf(ISTARDT_LINKS.precedence),
     npr: sourcesOf(ISTARDT_LINKS.negativePrecedence),
     utilities,

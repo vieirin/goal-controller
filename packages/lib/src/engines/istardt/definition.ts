@@ -116,8 +116,7 @@ export const istardt = defineDialect({
       {
         key: 'formula',
         value: { type: 'expression', functions: previous },
-        help: 'its value: numbers, + - * /, the identifiers of qualities, predicates, variables, conditions, goals, tasks and effects, and previous(x) for x’s value in the previous state',
-        required: 'always',
+        help: 'its value, when it isn’t its utility links’ weighted sum: numbers, + - * /, the identifiers of qualities, predicates, variables, conditions, goals, tasks and effects, and previous(x) for x’s value in the previous state',
       },
       {
         key: 'root',
@@ -131,11 +130,19 @@ export const istardt = defineDialect({
   propertyLineOrder: ['root', 'episodeLength', 'terminal', 'identifier'],
   indent: '  ',
   links: {
+    [ISTARDT_LINKS.effectGroup]: [
+      {
+        key: 'probability',
+        value: { type: 'number' },
+        help: 'how likely this effect is when its task is performed, 0..1 (a group’s sum to 1)',
+        required: 'always',
+      },
+    ],
     [ISTARDT_LINKS.utility]: [
       {
         key: 'weight',
         value: { type: 'number' },
-        help: 'what the effect adds to the quality: weight × whether it happened (read when the quality has no formula)',
+        help: 'a term of the quality’s weighted sum: weight × the quality it comes from, or × the predicate its effect turns true (a quality has these or a formula)',
       },
     ],
   },
@@ -185,24 +192,9 @@ export const istardt = defineDialect({
 export const extensionProperties = {
   [ISTARDT_KINDS.effect]: [
     {
-      key: 'probability',
-      value: { type: 'number' },
-      help: 'how likely it is when its task is performed, 0..1 (its task’s effects sum to 1)',
-    },
-    {
       key: 'satisfying',
       value: { type: 'bool' },
       help: 'whether it satisfies its task (default: true)',
-    },
-    {
-      key: 'turnsTrue',
-      value: { type: 'text' },
-      help: 'the predicates it makes true: identifiers, comma-separated',
-    },
-    {
-      key: 'turnsFalse',
-      value: { type: 'text' },
-      help: 'the predicates it makes false: identifiers, comma-separated',
     },
     {
       key: 'set',

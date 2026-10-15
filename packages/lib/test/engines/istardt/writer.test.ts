@@ -173,7 +173,16 @@ describe('the DT-Golog writer: what dtx2dtg leaves as TODOs (our own model, unve
     has(
       'soilWet_fl(S) :- (soilWetRead_fl(S);(moisture(V_moisture,S),V_moisture > 50.0)).\n',
     );
-    has('(R_moisture) / (100.0).\n');
+    has('-((R_moisture) / (100.0)).\n');
+  });
+
+  it('a weighted sum from its utility links, in their order: effects by the predicate they turn true', () => {
+    has(
+      '((((0.4) * (R_plantsFine_fl)) + ((-0.5) * (R_plantsWilted_fl))) + ((-1.0) * (R_jammed_fl))) + ((-0.3) * (R_spilledWater_fl)).\n',
+    );
+    has(
+      '(((0.6) * (R_plantHealth)) + ((0.3) * (R_ownerHappiness))) + ((1.0) * (R_waterCost)).\n',
+    );
     has('init([moisture_fl(40),plantHealth(0),ownerHappiness(0)]).\n');
   });
 
@@ -242,7 +251,9 @@ describe('the DT-Golog writer’s conventions', () => {
 
   it('stops on the model’s errors, each said once', () => {
     const json = JSON.parse(read('istardt-order/Order.txt'));
-    const goal = json.actors[0].nodes.find((n: any) => n.id === 'G1');
+    const goal = json.actors[0].nodes.find((n: any) =>
+      n.text.startsWith('G1:'),
+    );
     delete goal.customProperties.root;
     const model = readIstardtModel(
       analysisModel(parsePistar(json, { fileMetamodel: true })),

@@ -11,8 +11,8 @@
   - `reference/utility.txt`: DT-Golog's run of our output (`docker/dtgolog/`): expected utility 0.9235, the optimum dtg2sim's `1Order_Trials.py` records, probability 1.0, and the policy.
 - **What was mapped** (#117 D1–D7):
   - 1 goal `G1` (the root, one run per episode), 2 tasks `T1`, `T2`, refined by 2 OR links;
-  - 6 effects `E1`–`E6` with their probabilities, linked from their tasks by `istardt.EffectLink`s, each with an `identifier` (`deliveredInTimeA_Eff`: its name isn't the camelCase of its description);
-  - 3 qualities `Q1`–`Q3` with their formulas (`0.5 * deliveredInTimeA + …`), `Q3` the root (the reward);
-  - 6 predicates `P1`–`P6`;
+  - each task's effect group (`eff`), and its 6 effects `E1`–`E6` hanging from it with their probabilities, each with an `identifier` (`deliveredInTimeA_Eff`: its name isn't the camelCase of its description);
+  - 6 predicates `P1`–`P6`, each linked from the effect that turns it true;
+  - 3 qualities `Q1`–`Q3`, `Q3` the root (the reward): each a weighted sum, drawn as 12 utility links as mx2dtx's `1.Order.drawio` draws them (10 from the effects to Cost and Happy Customer, 0.7 and 0.3 from those to Overall Quality), with no formula;
   - the actor's sets: `crossRun`, `exported`, `initializations`, in the file's order.
 - **Checked by:** `pnpm stress:istardt`: the import, the checks, the output byte for byte after the header against `reference/Order.pl`, and with `--oracle` DT-Golog's utility and policy against the golden file's.

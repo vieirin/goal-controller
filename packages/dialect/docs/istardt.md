@@ -35,21 +35,28 @@ DT-Golog names an element `identifier ?? camelCase(name)`, `Formatter.toCamelCas
 | --- | --- | --- | --- |
 | `goal` | `istar.Goal` | `G1` | `root`, `episodeLength` (the root's), `terminal`, `identifier` |
 | `task` | `istar.Task` | `T1` | `identifier` |
-| `quality` | `istar.Quality` | `Q1` (text) | `formula` (an expression), `root` (the reward), `exportMin`, `exportMax`, `identifier` |
-| `effect` | `istardt.Effect` | `E1` (text) | `probability`, `satisfying`, `turnsTrue`, `turnsFalse`, `set`, `identifier` |
+| `quality` | `istar.Quality` | `Q1` (text) | `formula` (an expression; none when its utility links are its sum), `root` (the reward), `exportMin`, `exportMax`, `identifier` |
+| `effectGroup` | `istardt.EffectGroup` | (none: a hub) | |
+| `effect` | `istardt.Effect` | `E1` (text) | `satisfying`, `set`, `identifier` |
 | `condBox` | `istardt.Condition` | `C1` (text) | `formula` (an assertion), `identifier` |
 | `predicate` | `istardt.Predicate` | `P1` (text) | `exportMin`, `exportMax`, `identifier` |
 | `variable` | `istardt.Variable` | `V1` (text) | `exportMin`, `exportMax`, `identifier` |
 
 `G` and `T` are the goal language's ids: goals and tasks have Notation
 lines. `Q`, `E`, `C`, `P` and `V` are text on kinds the Notation view doesn't
-list (the language's prefixes are `G`, `T`, `R` and `AT`).
+list (the language's prefixes are `G`, `T`, `R` and `AT`). An element's
+piStar id is the file's name for it (`orderMaterial`), the source's id as
+importers keep it; a task's effect group's is `<task>/effectGroup`. A piStar
+id equal to the text's id would read, in the workbench, as an element without
+one.
 
-**Links.**
+**Links**, drawn as iStarDT-V draws them (the legend of ER 2024's figures,
+mx2dtx's diagrams):
 - A refinement, AND or OR, child to parent: a goal's child goals first, then its child tasks, as the translator reads them. The writer follows the links' order.
-- `istardt.EffectLink`: a task to its effects, in their order (one effect group per task).
+- `istardt.EffectLink` (`eff`): a task to its effect group; `istardt.EffectGroupLink`: the group to each of its effects, in order, with the effect's `probability` (mx2dtx's `effectGroupLink`, labelled with it).
+- `istardt.TurnsTrueLink` and `istardt.TurnsFalseLink`: an effect to the predicates it makes true and false, in order.
 - `istardt.PrecedenceLink` and `istardt.NegativePrecedenceLink` (`pre`, `npr`): from the goal, task or condition the formula names to the goal, task or effect that holds it. A formula that isn't one element's name becomes a condition the importer names `<holder>Pre` (`<holder>Npr`), with an info (#117 D2).
-- `istardt.UtilityLink`: an effect to a quality, with a `weight` (an extension of contribution). The importer draws none: the files' qualities are formula trees, never over effects. A quality without a `formula` is written as Σ `weight × effect_Sat` (#117 D3).
+- `istardt.UtilityLink` (#117 D3, corrected): a term of a quality's weighted sum, from a quality (`weight × q`) or from an effect (`weight × p`, the one predicate the effect turns true), with its `weight`; mx2dtx's `contributionLink`. A quality whose formula is such a sum is drawn as its links and keeps no `formula` (Order: all three; Heating: Overall Quality); any other quality keeps its formula and has no links (Heating's Cost, Comfort, Room Temperature, Running Time, as mx2dtx's diagram).
 
 **Formulas (#117 D6).** A quality's formula is the goal language's
 `expression` (`0.5 + 0.9 * previous(roomTemperature) + hvacOn * (…)`); a
@@ -97,9 +104,11 @@ What the translator does, and the writer with it:
 - a `pre` reaches the effects of every descendant of the element that holds it.
 
 **Checks.** `istardtProblems` checks the model as a whole: one root goal and
-one root quality; each effect of one task; a task's probabilities summing to 1
-(tolerance 1e-9) and a satisfying effect that turns a predicate true; formulas,
-`turnsTrue`, `turnsFalse`, `set` and the sets naming elements of the kinds they
+one root quality; an effect group of one task, one per task, each effect in
+one group; a group's probabilities summing to 1 (tolerance 1e-9) and a
+satisfying effect that turns a predicate true; a quality with a formula or
+utility links, not both, and an effect weighing on it by the one predicate it
+turns true; formulas, `set` and the sets naming elements of the kinds they
 read; a continuous export's range; two elements with one identifier; an `npr`
 between OR siblings (info: they already exclude each other). The writer stops
 on its errors. The named checks are the declared properties' (one root goal,

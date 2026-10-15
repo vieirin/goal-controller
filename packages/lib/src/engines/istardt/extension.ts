@@ -1,7 +1,7 @@
 /**
  * The kinds iStar-DT has and iStar 2.0 doesn't (ER 2024 §3; mx2dtx's
- * `iStarDT-V.xml` shape library): the effect a task may have, the condition
- * box, the domain predicate and the variable, and the links between them
+ * `iStarDT-V.xml` shape library): the effect a task may have and the group
+ * of a task's effects, the condition box, the domain predicate and the variable, and the links between them
  * (goal-controller#117 D1–D3). A model carries them in its `"metamodel"`
  * block, which istar-ts reads, draws and writes back (the importer writes
  * it).
@@ -15,6 +15,8 @@ import { ISTARDT_KINDS, ISTARDT_LINKS } from './vocabulary';
 /** An effect: a small box with rounded corners. */
 const EFFECT_SHAPE =
   'M 10 2 L 80 2 A 8 8 0 0 1 88 10 L 88 30 A 8 8 0 0 1 80 38 L 10 38 A 8 8 0 0 1 2 30 L 2 10 A 8 8 0 0 1 10 2 Z';
+/** An effect group: the hub its effects hang from. */
+const EFFECT_GROUP_SHAPE = 'M 2 10 A 8 8 0 1 0 18 10 A 8 8 0 1 0 2 10 Z';
 /** A condition box: a note, its top right corner folded. */
 const CONDITION_SHAPE =
   'M 2 2 L 84 2 L 98 16 L 98 48 L 2 48 Z M 84 2 L 84 16 L 98 16';
@@ -35,6 +37,14 @@ export const istardtExtension = defineExtension({
       size: { width: 90, height: 40 },
       shape: EFFECT_SHAPE,
       textBox: { top: 0.1, right: 0.08, bottom: 0.1, left: 0.08 },
+    },
+    {
+      kind: ISTARDT_KINDS.effectGroup,
+      label: 'Effect group',
+      category: 'node',
+      size: { width: 20, height: 20 },
+      shape: EFFECT_GROUP_SHAPE,
+      textBox: { top: 0, right: 0, bottom: 0, left: 0 },
     },
     {
       kind: ISTARDT_KINDS.condition,
@@ -64,10 +74,21 @@ export const istardtExtension = defineExtension({
   links: [
     {
       kind: ISTARDT_LINKS.effect,
-      label: 'Effect',
-      // a task's effect group: one task per effect
+      label: 'eff',
+      // a task to its effect group (one each)
       rules: {
         sources: ['istar.Task'],
+        targets: [ISTARDT_KINDS.effectGroup],
+        unique: 'any',
+      },
+      line: { dash: 'continuous' },
+    },
+    {
+      kind: ISTARDT_LINKS.effectGroup,
+      label: 'Effect group',
+      // the group to each of its effects, labelled with its probability
+      rules: {
+        sources: [ISTARDT_KINDS.effectGroup],
         targets: [ISTARDT_KINDS.effect],
         unique: 'any',
       },
@@ -96,13 +117,33 @@ export const istardtExtension = defineExtension({
     {
       kind: ISTARDT_LINKS.utility,
       label: 'Utility',
-      // an effect's weight on a quality: a contribution with a number
+      // a term of a quality's weighted sum: an effect's or a quality's weight
       rules: {
-        sources: [ISTARDT_KINDS.effect],
+        sources: [ISTARDT_KINDS.effect, 'istar.Quality'],
         targets: ['istar.Quality'],
         unique: 'kind',
       },
+      line: { dash: 'dotted' },
+    },
+    {
+      kind: ISTARDT_LINKS.turnsTrue,
+      label: 'turns true',
+      rules: {
+        sources: [ISTARDT_KINDS.effect],
+        targets: [ISTARDT_KINDS.predicate],
+        unique: 'any',
+      },
       line: { dash: 'continuous' },
+    },
+    {
+      kind: ISTARDT_LINKS.turnsFalse,
+      label: 'turns false',
+      rules: {
+        sources: [ISTARDT_KINDS.effect],
+        targets: [ISTARDT_KINDS.predicate],
+        unique: 'any',
+      },
+      line: { dash: 'dashed' },
     },
   ],
   groupers: {},
@@ -135,11 +176,10 @@ export const istardtMetamodelBlock = () => ({
       kind,
       label,
       rules,
-      // an effect link and a utility link have no arrowhead, as iStarDT-V
+      // an effect group's links have no arrowhead, as iStarDT-V draws them
       line: {
         ...(dash && { dash }),
-        ...((kind === ISTARDT_LINKS.effect ||
-          kind === ISTARDT_LINKS.utility) && { marker: false }),
+        ...(kind === ISTARDT_LINKS.effectGroup && { marker: false }),
       },
     };
   }),

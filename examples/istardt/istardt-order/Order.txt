@@ -11,18 +11,18 @@
       },
       "nodes": [
         {
-          "id": "G1",
+          "id": "orderMaterial",
           "text": "G1: Order Material",
           "type": "istar.Goal",
           "customProperties": {
             "root": "true",
             "episodeLength": "1"
           },
-          "x": 560,
+          "x": 1520,
           "y": 80
         },
         {
-          "id": "T1",
+          "id": "orderFromSupplierA",
           "text": "T1: Order From Supplier A",
           "type": "istar.Task",
           "customProperties": {},
@@ -30,169 +30,168 @@
           "y": 180
         },
         {
-          "id": "T2",
+          "id": "orderFromSupplierB",
           "text": "T2: Order From Supplier B",
           "type": "istar.Task",
           "customProperties": {},
-          "x": 720,
+          "x": 1840,
           "y": 180
         },
         {
-          "id": "E1",
+          "id": "deliveredInTimeA_Eff",
           "text": "E1: deliveredInTimeA",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "deliveredInTimeA_Eff",
-            "probability": "0.75",
-            "satisfying": "true",
-            "turnsTrue": "deliveredInTimeA"
-          },
-          "x": 240,
-          "y": 180
-        },
-        {
-          "id": "E2",
-          "text": "E2: neverDeliveredA",
-          "type": "istardt.Effect",
-          "customProperties": {
-            "identifier": "neverDeliveredA_Eff",
-            "probability": "0.05",
-            "satisfying": "false",
-            "turnsTrue": "neverDeliveredA"
+            "satisfying": "true"
           },
           "x": 400,
           "y": 180
         },
         {
-          "id": "E3",
-          "text": "E3: deliveredLateA",
+          "id": "neverDeliveredA_Eff",
+          "text": "E2: neverDeliveredA",
           "type": "istardt.Effect",
           "customProperties": {
-            "identifier": "deliveredLateA_Eff",
-            "probability": "0.2",
-            "satisfying": "true",
-            "turnsTrue": "deliveredLateA"
+            "identifier": "neverDeliveredA_Eff",
+            "satisfying": "false"
           },
           "x": 560,
           "y": 180
         },
         {
-          "id": "E4",
+          "id": "deliveredLateA_Eff",
+          "text": "E3: deliveredLateA",
+          "type": "istardt.Effect",
+          "customProperties": {
+            "identifier": "deliveredLateA_Eff",
+            "satisfying": "true"
+          },
+          "x": 720,
+          "y": 180
+        },
+        {
+          "id": "deliveredInTimeB_Eff",
           "text": "E4: deliveredInTimeB",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "deliveredInTimeB_Eff",
-            "probability": "0.5",
-            "satisfying": "true",
-            "turnsTrue": "deliveredInTimeB"
+            "satisfying": "true"
           },
-          "x": 880,
+          "x": 2160,
           "y": 180
         },
         {
-          "id": "E5",
+          "id": "neverDeliveredB_Eff",
           "text": "E5: neverDeliveredB",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "neverDeliveredB_Eff",
-            "probability": "0.15",
-            "satisfying": "false",
-            "turnsTrue": "neverDeliveredB"
+            "satisfying": "false"
           },
-          "x": 1040,
+          "x": 2320,
           "y": 180
         },
         {
-          "id": "E6",
+          "id": "deliveredLateB_Eff",
           "text": "E6: deliveredLateB",
           "type": "istardt.Effect",
           "customProperties": {
             "identifier": "deliveredLateB_Eff",
-            "probability": "0.35",
-            "satisfying": "true",
-            "turnsTrue": "deliveredLateB"
+            "satisfying": "true"
+          },
+          "x": 2480,
+          "y": 180
+        },
+        {
+          "id": "cost",
+          "text": "Q1: Cost",
+          "type": "istar.Quality",
+          "customProperties": {},
+          "x": 880,
+          "y": 180
+        },
+        {
+          "id": "happyCustomer",
+          "text": "Q2: Happy Customer",
+          "type": "istar.Quality",
+          "customProperties": {},
+          "x": 1040,
+          "y": 180
+        },
+        {
+          "id": "overallQuality",
+          "text": "Q3: Overall Quality",
+          "type": "istar.Quality",
+          "customProperties": {
+            "root": "true"
           },
           "x": 1200,
           "y": 180
         },
         {
-          "id": "Q1",
-          "text": "Q1: Cost",
-          "type": "istar.Quality",
-          "customProperties": {
-            "formula": "0.5 * deliveredInTimeA + 0.5 * deliveredLateA + 0.5 * neverDeliveredA + 1.0 * deliveredInTimeB + 1.0 * deliveredLateB + 1.0 * neverDeliveredB"
-          },
-          "x": 1360,
-          "y": 80
-        },
-        {
-          "id": "Q2",
-          "text": "Q2: Happy Customer",
-          "type": "istar.Quality",
-          "customProperties": {
-            "formula": "1.0 * deliveredInTimeA + 0.7 * deliveredLateA + 1.0 * deliveredInTimeB + 0.7 * deliveredLateB"
-          },
-          "x": 1520,
-          "y": 80
-        },
-        {
-          "id": "Q3",
-          "text": "Q3: Overall Quality",
-          "type": "istar.Quality",
-          "customProperties": {
-            "formula": "0.7 * cost + 0.3 * happyCustomer",
-            "root": "true"
-          },
-          "x": 1680,
-          "y": 80
-        },
-        {
-          "id": "P1",
+          "id": "neverDeliveredB",
           "text": "P1: neverDeliveredB",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 1840,
-          "y": 80
+          "x": 2640,
+          "y": 180
         },
         {
-          "id": "P2",
+          "id": "deliveredInTimeB",
           "text": "P2: deliveredInTimeB",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2000,
-          "y": 80
+          "x": 2800,
+          "y": 180
         },
         {
-          "id": "P3",
+          "id": "deliveredLateB",
           "text": "P3: deliveredLateB",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2160,
-          "y": 80
+          "x": 2960,
+          "y": 180
         },
         {
-          "id": "P4",
+          "id": "neverDeliveredA",
           "text": "P4: neverDeliveredA",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2320,
-          "y": 80
+          "x": 1360,
+          "y": 180
         },
         {
-          "id": "P5",
+          "id": "deliveredInTimeA",
           "text": "P5: deliveredInTimeA",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2480,
-          "y": 80
+          "x": 1520,
+          "y": 180
         },
         {
-          "id": "P6",
+          "id": "deliveredLateA",
           "text": "P6: deliveredLateA",
           "type": "istardt.Predicate",
           "customProperties": {},
-          "x": 2640,
-          "y": 80
+          "x": 1680,
+          "y": 180
+        },
+        {
+          "id": "orderFromSupplierA/effectGroup",
+          "text": "",
+          "type": "istardt.EffectGroup",
+          "customProperties": {},
+          "x": 240,
+          "y": 180
+        },
+        {
+          "id": "orderFromSupplierB/effectGroup",
+          "text": "",
+          "type": "istardt.EffectGroup",
+          "customProperties": {},
+          "x": 2000,
+          "y": 180
         }
       ],
       "x": 40,
@@ -203,59 +202,233 @@
   "dependencies": [],
   "links": [
     {
-      "id": "T1-OrRefinementLink-G1",
+      "id": "orderFromSupplierA-OrRefinementLink-orderMaterial",
       "type": "istar.OrRefinementLink",
-      "source": "T1",
-      "target": "G1"
+      "source": "orderFromSupplierA",
+      "target": "orderMaterial"
     },
     {
-      "id": "T2-OrRefinementLink-G1",
+      "id": "orderFromSupplierB-OrRefinementLink-orderMaterial",
       "type": "istar.OrRefinementLink",
-      "source": "T2",
-      "target": "G1"
+      "source": "orderFromSupplierB",
+      "target": "orderMaterial"
     },
     {
-      "id": "T1-EffectLink-E1",
+      "id": "orderFromSupplierA-EffectLink-orderFromSupplierA/effectGroup",
       "type": "istardt.EffectLink",
-      "source": "T1",
-      "target": "E1"
+      "source": "orderFromSupplierA",
+      "target": "orderFromSupplierA/effectGroup"
     },
     {
-      "id": "T1-EffectLink-E2",
-      "type": "istardt.EffectLink",
-      "source": "T1",
-      "target": "E2"
+      "id": "orderFromSupplierA/effectGroup-EffectGroupLink-deliveredInTimeA_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierA/effectGroup",
+      "target": "deliveredInTimeA_Eff",
+      "customProperties": {
+        "probability": "0.75"
+      }
     },
     {
-      "id": "T1-EffectLink-E3",
-      "type": "istardt.EffectLink",
-      "source": "T1",
-      "target": "E3"
+      "id": "orderFromSupplierA/effectGroup-EffectGroupLink-neverDeliveredA_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierA/effectGroup",
+      "target": "neverDeliveredA_Eff",
+      "customProperties": {
+        "probability": "0.05"
+      }
     },
     {
-      "id": "T2-EffectLink-E4",
-      "type": "istardt.EffectLink",
-      "source": "T2",
-      "target": "E4"
+      "id": "orderFromSupplierA/effectGroup-EffectGroupLink-deliveredLateA_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierA/effectGroup",
+      "target": "deliveredLateA_Eff",
+      "customProperties": {
+        "probability": "0.2"
+      }
     },
     {
-      "id": "T2-EffectLink-E5",
+      "id": "orderFromSupplierB-EffectLink-orderFromSupplierB/effectGroup",
       "type": "istardt.EffectLink",
-      "source": "T2",
-      "target": "E5"
+      "source": "orderFromSupplierB",
+      "target": "orderFromSupplierB/effectGroup"
     },
     {
-      "id": "T2-EffectLink-E6",
-      "type": "istardt.EffectLink",
-      "source": "T2",
-      "target": "E6"
+      "id": "orderFromSupplierB/effectGroup-EffectGroupLink-deliveredInTimeB_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierB/effectGroup",
+      "target": "deliveredInTimeB_Eff",
+      "customProperties": {
+        "probability": "0.5"
+      }
+    },
+    {
+      "id": "orderFromSupplierB/effectGroup-EffectGroupLink-neverDeliveredB_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierB/effectGroup",
+      "target": "neverDeliveredB_Eff",
+      "customProperties": {
+        "probability": "0.15"
+      }
+    },
+    {
+      "id": "orderFromSupplierB/effectGroup-EffectGroupLink-deliveredLateB_Eff",
+      "type": "istardt.EffectGroupLink",
+      "source": "orderFromSupplierB/effectGroup",
+      "target": "deliveredLateB_Eff",
+      "customProperties": {
+        "probability": "0.35"
+      }
+    },
+    {
+      "id": "deliveredInTimeA_Eff-TurnsTrueLink-deliveredInTimeA",
+      "type": "istardt.TurnsTrueLink",
+      "source": "deliveredInTimeA_Eff",
+      "target": "deliveredInTimeA"
+    },
+    {
+      "id": "neverDeliveredA_Eff-TurnsTrueLink-neverDeliveredA",
+      "type": "istardt.TurnsTrueLink",
+      "source": "neverDeliveredA_Eff",
+      "target": "neverDeliveredA"
+    },
+    {
+      "id": "deliveredLateA_Eff-TurnsTrueLink-deliveredLateA",
+      "type": "istardt.TurnsTrueLink",
+      "source": "deliveredLateA_Eff",
+      "target": "deliveredLateA"
+    },
+    {
+      "id": "deliveredInTimeB_Eff-TurnsTrueLink-deliveredInTimeB",
+      "type": "istardt.TurnsTrueLink",
+      "source": "deliveredInTimeB_Eff",
+      "target": "deliveredInTimeB"
+    },
+    {
+      "id": "neverDeliveredB_Eff-TurnsTrueLink-neverDeliveredB",
+      "type": "istardt.TurnsTrueLink",
+      "source": "neverDeliveredB_Eff",
+      "target": "neverDeliveredB"
+    },
+    {
+      "id": "deliveredLateB_Eff-TurnsTrueLink-deliveredLateB",
+      "type": "istardt.TurnsTrueLink",
+      "source": "deliveredLateB_Eff",
+      "target": "deliveredLateB"
+    },
+    {
+      "id": "deliveredInTimeA_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredInTimeA_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "0.5"
+      }
+    },
+    {
+      "id": "deliveredLateA_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredLateA_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "0.5"
+      }
+    },
+    {
+      "id": "neverDeliveredA_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "neverDeliveredA_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "0.5"
+      }
+    },
+    {
+      "id": "deliveredInTimeB_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredInTimeB_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "1.0"
+      }
+    },
+    {
+      "id": "deliveredLateB_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredLateB_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "1.0"
+      }
+    },
+    {
+      "id": "neverDeliveredB_Eff-UtilityLink-cost",
+      "type": "istardt.UtilityLink",
+      "source": "neverDeliveredB_Eff",
+      "target": "cost",
+      "customProperties": {
+        "weight": "1.0"
+      }
+    },
+    {
+      "id": "deliveredInTimeA_Eff-UtilityLink-happyCustomer",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredInTimeA_Eff",
+      "target": "happyCustomer",
+      "customProperties": {
+        "weight": "1.0"
+      }
+    },
+    {
+      "id": "deliveredLateA_Eff-UtilityLink-happyCustomer",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredLateA_Eff",
+      "target": "happyCustomer",
+      "customProperties": {
+        "weight": "0.7"
+      }
+    },
+    {
+      "id": "deliveredInTimeB_Eff-UtilityLink-happyCustomer",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredInTimeB_Eff",
+      "target": "happyCustomer",
+      "customProperties": {
+        "weight": "1.0"
+      }
+    },
+    {
+      "id": "deliveredLateB_Eff-UtilityLink-happyCustomer",
+      "type": "istardt.UtilityLink",
+      "source": "deliveredLateB_Eff",
+      "target": "happyCustomer",
+      "customProperties": {
+        "weight": "0.7"
+      }
+    },
+    {
+      "id": "cost-UtilityLink-overallQuality",
+      "type": "istardt.UtilityLink",
+      "source": "cost",
+      "target": "overallQuality",
+      "customProperties": {
+        "weight": "0.7"
+      }
+    },
+    {
+      "id": "happyCustomer-UtilityLink-overallQuality",
+      "type": "istardt.UtilityLink",
+      "source": "happyCustomer",
+      "target": "overallQuality",
+      "customProperties": {
+        "weight": "0.3"
+      }
     }
   ],
   "display": {},
   "tool": "pistar.2.1.0",
   "istar": "2.0",
   "diagram": {
-    "width": 2840,
+    "width": 3160,
     "height": 700,
     "name": "Order",
     "customProperties": {
@@ -283,6 +456,25 @@
           "right": 0.08,
           "bottom": 0.1,
           "left": 0.08
+        }
+      },
+      {
+        "kind": "istardt.EffectGroup",
+        "label": "Effect group",
+        "category": "node",
+        "size": {
+          "width": 20,
+          "height": 20
+        },
+        "shape": {
+          "path": "M 2 10 A 8 8 0 1 0 18 10 A 8 8 0 1 0 2 10 Z",
+          "viewBox": "0 0 20 20"
+        },
+        "textBox": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
         }
       },
       {
@@ -346,10 +538,24 @@
     "links": [
       {
         "kind": "istardt.EffectLink",
-        "label": "Effect",
+        "label": "eff",
         "rules": {
           "sources": [
             "istar.Task"
+          ],
+          "targets": [
+            "istardt.EffectGroup"
+          ],
+          "unique": "any"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.EffectGroupLink",
+        "label": "Effect group",
+        "rules": {
+          "sources": [
+            "istardt.EffectGroup"
           ],
           "targets": [
             "istardt.Effect"
@@ -405,7 +611,8 @@
         "label": "Utility",
         "rules": {
           "sources": [
-            "istardt.Effect"
+            "istardt.Effect",
+            "istar.Quality"
           ],
           "targets": [
             "istar.Quality"
@@ -413,7 +620,37 @@
           "unique": "kind"
         },
         "line": {
-          "marker": false
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "istardt.TurnsTrueLink",
+        "label": "turns true",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istardt.Predicate"
+          ],
+          "unique": "any"
+        },
+        "line": {}
+      },
+      {
+        "kind": "istardt.TurnsFalseLink",
+        "label": "turns false",
+        "rules": {
+          "sources": [
+            "istardt.Effect"
+          ],
+          "targets": [
+            "istardt.Predicate"
+          ],
+          "unique": "any"
+        },
+        "line": {
+          "dash": "6 4"
         }
       }
     ]

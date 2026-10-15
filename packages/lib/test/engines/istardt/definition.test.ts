@@ -34,8 +34,16 @@ const problemsOf = (model: Record<string, any>) =>
       analysisModel(parsePistar(model, { fileMetamodel: true })),
     ),
   ).map((p) => `${p.severity}: ${p.message}`);
+/** a node by the id its text starts with (`G1`) */
 const node = (model: Record<string, any>, id: string) =>
-  model.actors[0].nodes.find((n: any) => n.id === id);
+  model.actors[0].nodes.find((n: any) => n.text.startsWith(`${id}:`));
+/** an effect's link from its group (its probability's) */
+const groupLinkTo = (model: Record<string, any>, effect: string) =>
+  model.links.find(
+    (l: any) =>
+      l.type === 'istardt.EffectGroupLink' &&
+      l.target === node(model, effect).id,
+  );
 
 describe('the iStar-DT definition', () => {
   it('has goals G and tasks T, qualities on no line, and no notation operator', () => {
@@ -105,8 +113,9 @@ describe('istardtProblems: the model as a whole', () => {
     const model = json('istardt-order/Order.txt');
     node(model, 'G1').customProperties.root = 'true';
     node(model, 'Q2').customProperties.root = 'true';
-    node(model, 'E1').customProperties.probability = '0.7';
-    model.links = model.links.filter((l: any) => l.target !== 'E6');
+    groupLinkTo(model, 'E1').customProperties.probability = '0.7';
+    const e6 = groupLinkTo(model, 'E6');
+    model.links = model.links.filter((l: any) => l !== e6);
     assert.deepStrictEqual(problemsOf(model), [
       'error: iStar-DT has one root quality: Q2 (happyCustomer), Q3 (overallQuality) are roots',
       "error: E6 (deliveredLateB_Eff) is no task's effect: link a task to it",
@@ -115,15 +124,27 @@ describe('istardtProblems: the model as a whole', () => {
     ]);
   });
 
-  it('a formula, a turnsTrue and a set naming what isn’t there, or isn’t of their kinds', () => {
+  it('a formula beside utility links, an effect weighing by two predicates, a name that isn’t there, a set of the wrong kind', () => {
     const model = json('istardt-order/Order.txt');
-    node(model, 'Q1').customProperties.formula =
+    // Happy Customer by a formula naming nothing; Cost by both
+    const happy = node(model, 'Q2').id;
+    model.links = model.links.filter(
+      (l: any) => !(l.type === 'istardt.UtilityLink' && l.target === happy),
+    );
+    node(model, 'Q2').customProperties.formula =
       '0.5 * nowhere + orderMaterial';
-    node(model, 'E1').customProperties.turnsTrue = 'cost';
+    node(model, 'Q1').customProperties.formula = '1';
+    model.links.push({
+      id: 'extra',
+      type: 'istardt.TurnsTrueLink',
+      source: node(model, 'E1').id,
+      target: node(model, 'P1').id,
+    });
     model.actors[0].customProperties.crossRun = 'cost, orderMaterial';
     assert.deepStrictEqual(problemsOf(model), [
-      "error: E1 (deliveredInTimeA_Eff)'s turnsTrue names cost, a quality: it reads predicate",
-      "error: Q1 (cost)'s formula names nowhere, which is no element",
+      'error: Q1 (cost) has a formula and utility links: give it one or the other',
+      "error: E1 (deliveredInTimeA_Eff)'s utility link to Q1 (cost): an effect weighs on a quality by the one predicate it turns true (it turns 2)",
+      "error: Q2 (happyCustomer)'s formula names nowhere, which is no element",
       'error: the cross-run set has predicate, condition, variable, quality: orderMaterial is a goal',
     ]);
   });
@@ -159,6 +180,10 @@ describe('iStar-DT in the Notation view', () => {
         parsePistar(json(file), { fileMetamodel: true }),
         istardt,
       );
+      // the view reads each goal's and task's id from its text, not its
+      // piStar id (the workbench takes the two being equal for "no id")
+      for (const n of view.nodes.values())
+        assert.notStrictEqual(n.id, n.iStarId, `${n.id} read from its text`);
       const { text } = notationDocument(istardt, view);
       const context = contextFromView(istardt, view, []);
       assert.deepStrictEqual(documentDiagnostics(istardt, text, context), []);

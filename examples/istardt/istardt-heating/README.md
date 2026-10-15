@@ -10,8 +10,8 @@
   - `reference/Heating.pl`: dtx2dtg's golden output, `3.2.Heating_10R_Mixed-Auth.pl`.
   - `reference/utility.txt`: DT-Golog's run of our output (`docker/dtgolog/`): expected utility −4.8475 over `bp`'s horizon of 10, probability 1.0. dtg2sim's `7HeatingContinuousMutiRun4_Trials.py` (−1.360857) is a hand-written four-run model, not this one.
 - **What was mapped** (#117 D1–D7):
-  - 1 goal, 2 tasks (OR), 4 effects;
-  - 5 qualities with their formulas, as the goal language's expressions: `roomTemperature`'s is `0.5 + 0.9 * previous(roomTemperature) + hvacOn * (0.05 * previous(roomTemperature) + 1.75)`;
+  - 1 goal, 2 tasks (OR), their effect groups and 4 effects, each linked to the predicate it turns true;
+  - Overall Quality as its 2 utility links (0.3 from Cost, 0.7 from Comfort), as mx2dtx's diagram draws it; the 4 other qualities with their formulas, as the goal language's expressions: `roomTemperature`'s is `0.5 + 0.9 * previous(roomTemperature) + hvacOn * (0.05 * previous(roomTemperature) + 1.75)`;
   - the condition `C1` (`hvacOn`), its formula as an assertion, fully parenthesised: `((previous(hvacOn) & (!(signalOffS))) | signalOnS)` (#126: a call is a condition on its own);
   - 4 predicates; `roomTemperature`'s and `runningTime`'s export bounds on the qualities;
   - the actor's sets, in the file's order.

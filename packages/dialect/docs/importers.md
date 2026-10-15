@@ -63,7 +63,8 @@ Nodes that have a position keep it. The others are laid out as a model of their 
 iStar-DT dialect ([istardt.md](istardt.md), #119):
 
 - The one actor's goals, tasks, effects, qualities, condition boxes, predicates and variables, numbered by kind in the file's order (`G1`, `T1`, `Q1`, `E1`, `C1`, `P1`, `V1`): the file has names, not ids. An element's name is its description; `identifier` keeps the file's name where it isn't the camelCase of that name (#117 D1). A second actor is left out, with a warning.
-- Refinements, effect links, and `pre`/`npr` as precedence links; a `pre` that is a formula becomes a condition the importer names, with an info.
+- The file's names as the piStar ids (G1 and the like are the texts' ids).
+- Refinements; each task's effect group, its effects linked from it with their probabilities; turns-true and turns-false links to the predicates; `pre`/`npr` as precedence links (a `pre` that is a formula becomes a condition the importer names, with an info); a quality that is a weighted sum as its utility links, as mx2dtx's diagrams draw them.
 - Formulas as the goal language's texts, in the operand order the translator's xmlparser (Jackson) reads them in.
 - The sets as the actor's ordered lists, a continuous export's bounds on its element.
 - The header in `diagram.customProperties`, the options in `dialectRecord.options`.
