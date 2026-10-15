@@ -4,7 +4,7 @@
  * resources at once (a rename across them) saves each; a read-only store
  * is written nothing.
  */
-import { act, render, waitFor } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -80,6 +80,9 @@ const opened = async (readOnly: boolean) => {
 describe('setResourceText', () => {
   afterEach(() => {
     vi.useRealTimers();
+    // unmounted before the environment is torn down: else React's
+    // scheduler runs a pending render without a window (seen on CI)
+    cleanup();
   });
 
   it('saves every file a rename-like action edits, after the pause', async () => {
