@@ -92,6 +92,8 @@ const STYLE: Record<string, HighlightStyle> = {
   A_NUMBER: 'number',
   FLOAT: 'number',
   A_ID: 'variableName',
+  // an element, where an expression names one (`G1`)
+  A_REF: 'labelName',
   IDENT: 'variableName',
   PAIR_VALUE: 'number',
   VALUE: 'string',
@@ -151,16 +153,20 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
         // `(` is highlighted itself: the type is the one before it
         (previous?.tokenType.name === '(' &&
           highlights.at(-2)?.style === 'typeName'));
+    // a function an expression calls: `previous` in `previous(t)`
+    const isCall = name === 'A_ID' && next?.tokenType.name === '(';
     const style: HighlightStyle | undefined = idPart
       ? 'labelName'
-      : isType
-        ? 'typeName'
-        : declaring && name === 'IDENT' && previous?.tokenType.name === '{'
+      : isCall
+        ? 'keyword'
+        : isType
           ? 'typeName'
-          : declaring && name === 'IDENT'
-            ? 'atom'
-            : (STYLE[name] ??
-              (/^[^A-Za-z0-9]+$/.test(name) ? 'operator' : undefined));
+          : declaring && name === 'IDENT' && previous?.tokenType.name === '{'
+            ? 'typeName'
+            : declaring && name === 'IDENT'
+              ? 'atom'
+              : (STYLE[name] ??
+                (/^[^A-Za-z0-9]+$/.test(name) ? 'operator' : undefined));
     if (!style) return;
     const last = highlights.at(-1);
     // an id is one highlight (`G` and `1` are two tokens)
@@ -173,6 +179,7 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
 
 const START: Record<ValueConfig['type'], LexerStart> = {
   assertion: 'assertion',
+  expression: 'expression',
   int: 'int',
   number: 'number',
   bool: 'bool',

@@ -258,6 +258,11 @@ first.
 | `A condition after assertion trigger` | error | a prefix alone |
 | `Not an integer: 0.5` | error | `assertion` without `decimals`, comparing with a decimal |
 | `A boolean is compared with =, not != (x != false)` | error | `assertion` without `booleanInequality`, comparing a boolean with `!=` |
+| `A name is compared with a number here, not 3 > x` | error | `assertion` without `functions`, comparing anything but a name and a number |
+| `Not an expression: …` | error | `expression` that doesn't parse |
+| `next is not a function here (previous)` | error | `expression`, or `assertion` with `functions`, calling a function it doesn't declare |
+| `previous takes 1 argument, not 2` | error | a call with another number of arguments than its function declares |
+| `R9 is not an element of this model`, `G2 is a goal, not a resource` | error | `expression` naming an id that is no element, or one of a kind it doesn't `resolve` |
 | `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable (with `declaresVariables`, any name that isn't an element is a variable) |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |

@@ -3,8 +3,21 @@
  * type (read with the type's rule), within its options or bounds, naming
  * elements of the model of the kind it refers to.
  */
-import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
-import { parseCondition, parseValue, type AssertionTree } from '../parse.js';
+import type {
+  DefinitionContext,
+  ElementKind,
+  FunctionDefinition,
+  ValueConfig,
+} from '@goal-controller/dialect';
+import {
+  assertionText,
+  comparisonsOf,
+  expressionNodes,
+  parseCondition,
+  parseValue,
+  type AssertionTree,
+  type ExpressionTree,
+} from '../parse.js';
 import { assertionVariables } from './goalNames.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
@@ -49,9 +62,54 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
       return decimalOf(tree.expr);
     case 'compare':
       return tree.value.includes('.') ? tree.value : null;
+    case 'comparison':
+      for (const node of [tree.left, tree.right].flatMap(expressionNodes))
+        if (node.kind === 'number' && node.value.includes('.'))
+          return node.value;
+      return null;
     default:
       return null;
   }
+};
+
+/** `1 argument`, `2 arguments`: what a function takes, in words. */
+export const argumentsText = (n: number) =>
+  `${n} argument${n === 1 ? '' : 's'}`;
+
+/** The first call of an expression to a function not declared, or with another number of arguments. */
+const callProblem = (
+  tree: ExpressionTree,
+  functions: readonly FunctionDefinition[],
+): string | null => {
+  for (const node of expressionNodes(tree)) {
+    if (node.kind !== 'call') continue;
+    const declared = functions.find((f) => f.name === node.name);
+    if (!declared)
+      return functions.length
+        ? `${node.name} is not a function here (${functions.map((f) => f.name).join(', ')})`
+        : `${node.name} is not a function here (there are none)`;
+    if (declared.arity !== node.args.length)
+      return `${node.name} takes ${argumentsText(declared.arity)}, not ${node.args.length}`;
+  }
+  return null;
+};
+
+/** The first id of an expression that is not an element of the kinds it resolves. */
+const refProblem = (
+  tree: ExpressionTree,
+  kinds: readonly ElementKind[],
+  context: DefinitionContext,
+): string | null => {
+  for (const node of expressionNodes(tree)) {
+    if (node.kind !== 'ref') continue;
+    const kind = kindOf(context, node.id);
+    if (!kind) return `${node.id} is not an element of this model`;
+    if (!(kinds as readonly string[]).includes(kind))
+      return kinds.length
+        ? `${node.id} is a ${kind}, not a ${kinds.join(' or ')}`
+        : `${node.id} is a ${kind}: this value names no elements`;
+  }
+  return null;
 };
 
 /**
@@ -91,12 +149,32 @@ export const valueProblem = (
         return `Starts with ${prefixes.join(' or ')}`;
       if (!prefixes.length && prefix) return `No prefix: ${prefix} is not read`;
       if (prefix && !tree) return `A condition after ${prefix}`;
+      // a comparison other than a name and a number, where the value declares functions
+      const [comparison] = comparisonsOf(tree);
+      if (comparison && !value.functions)
+        return `A name is compared with a number here, not ${assertionText(comparison)}`;
+      for (const { left, right } of comparisonsOf(tree)) {
+        const problem =
+          callProblem(left, value.functions ?? []) ??
+          callProblem(right, value.functions ?? []);
+        if (problem) return problem;
+      }
       const decimal = !value.decimals && decimalOf(tree);
       if (decimal) return `Not an integer: ${decimal}`;
       const inequality = !value.booleanInequality && negatedOf(tree);
       return inequality
         ? `A boolean is compared with =, not != (${inequality})`
         : null;
+    }
+    case 'expression': {
+      const read = parseValue('expression', text);
+      const [error] = read.errors;
+      if (error) return `Not an expression: ${error.message}`;
+      if (!read.value) return null;
+      return (
+        callProblem(read.value, value.functions ?? []) ??
+        (context ? refProblem(read.value, value.resolves ?? [], context) : null)
+      );
     }
     case 'refList': {
       const read = parseValue('refList', text);

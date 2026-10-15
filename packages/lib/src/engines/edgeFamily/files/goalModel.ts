@@ -34,7 +34,9 @@ const condition = z.optional(
         annotate: {
           AssertVar: { variable: [name] },
           AssertAssign: { variable: [name] },
-          AssertCompare: { variable: [name] },
+          // a comparison's sides: the names and ids it compares
+          ExprVar: { name: [name] },
+          ExprRef: { id: [name] },
         },
       }),
     ),

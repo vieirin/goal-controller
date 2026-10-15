@@ -26,6 +26,10 @@ bundles.
 | `parseCondition` | `(text) => Parsed<{ prefix, tree }>` | `parseCondition('assertion trigger x > 1').value.prefix` → `'assertion trigger'` |
 | `parseDocument` | `(text, { ids? = true }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false })` for a plain document |
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
+| `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
+| `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
+| `expressionNodes` | `(tree: ExpressionTree) => ExpressionTree[]` | every node, each before its operands (what a check walks) |
+| `expressionText`, `assertionText` | `(tree) => string` | a tree written back: `0.5 + 0.9 * previous(t)`, with the parentheses its shape needs |
 | `rtText` | `(tree: RtTree \| null) => string` | the notation with no spaces: `G2@2->G3` (an operand's text in `modifiers`) |
 | `errorText` | `(error: GoalSyntaxError) => string` | `` `1:10 Unexpected …` `` (1-based line, 0-based column) |
 | `toRtTree`, `toAssertionTree`, `toElementLine` | Langium AST → plain data | for a Langium service's own AST |
@@ -116,7 +120,8 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf`, and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `(properties, CheckContext) => string \| null` |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
 | `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
-| `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names (`assertion`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
+| `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names and declared functions (`assertion`, `expression`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
+| `fieldHover` | `(D, context, id, key, text, pos) => Hover \| null` | in an inspector field: the element an id or a name is (`**R1**: heater (a resource of this model)`), a variable, a declared function |
 | `constructHint` | `(D, construct) => string \| null` | `Sequence — does every child, one after another` |
 
 A `Diagnostic` is `{ from, to, severity, message }`, with offsets into the
@@ -158,6 +163,7 @@ These are also in `/light`.
 | `PREFIX_SYMBOLS`, `POSTFIX_SYMBOLS`, `STANDALONE_SYMBOLS` | the other forms' symbols |
 | `CALLS`, `CALL_NAMES` | constructs written as calls, with their number of operands (`FALLBACK`: 2, `DM`: `{ min: 2 }`) |
 | `takesOperands`, `arityText` | whether a call takes a number of operands, and its arity in words |
+| `EXPRESSION` | the expression language: `infix` levels tightest first (`*` `/`, then `+` `-`), `prefix` (`-`), `parens`, `separator` |
 | `ASSERTION_PREFIXES` | a condition's prefixes: `assertion condition`, `assertion trigger` |
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |

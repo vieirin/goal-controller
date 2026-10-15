@@ -10,9 +10,12 @@ import {
   linkLinesOf,
   linkPropertiesOf,
   propertyOf,
+  valueOf,
   type AnyDialect,
   type DefinitionContext,
+  type ValueConfig,
 } from '@goal-controller/dialect';
+import { highlightValue } from './highlight.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { ownerOf } from './completion.js';
 import {
@@ -22,6 +25,7 @@ import {
   targetKey,
 } from './linkLine.js';
 import { isEnabled } from './reading.js';
+import { argumentsText } from './values.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<
@@ -305,4 +309,81 @@ export const definitionAt = (
   if (!target) return null;
   const span = target.read.idSpan ?? target.read.textSpan;
   return { from: target.line.from + span.from, to: target.line.from + span.to };
+};
+
+/** An element a field names, by its id or its name (an assertion compares a resource by name). */
+const elementNamed = (context: DefinitionContext, name: string) => {
+  const found =
+    name in context.elements
+      ? ([name, context.elements[name]!] as const)
+      : Object.entries(context.elements).find(
+          ([, element]) => element.name === name,
+        );
+  return found && { key: found[0], ...found[1] };
+};
+
+/**
+ * The hover at a position of a field's value: an element it names (its id
+ * and name: `**G2**: Reach lab (a goal of this model)`), a variable, or a
+ * function its value type declares.
+ */
+export const fieldHoverAt = (
+  value: ValueConfig,
+  text: string,
+  pos: number,
+  context: DefinitionContext,
+): Hover | null => {
+  const span = highlightValue(value, text).find(
+    (h) =>
+      pos >= h.from &&
+      pos <= h.to &&
+      ['labelName', 'variableName', 'keyword'].includes(h.style),
+  );
+  if (!span) return null;
+  const name = text.slice(span.from, span.to);
+  const hover = (markdown: string): Hover => ({
+    from: span.from,
+    to: span.to,
+    markdown,
+  });
+  const functions =
+    value.type === 'expression' || value.type === 'assertion'
+      ? (value.functions ?? [])
+      : [];
+  if (span.style === 'keyword') {
+    const declared = functions.find((f) => f.name === name);
+    return declared
+      ? hover(`**${name}**: a function of ${argumentsText(declared.arity)}`)
+      : null;
+  }
+  const element = elementNamed(context, name);
+  if (element)
+    return hover(
+      `**${element.id ?? element.key}**${element.name ? `: ${element.name}` : ''} (a ${element.kind} of this model)`,
+    );
+  if (context.variables.includes(name))
+    return hover(`**${name}**: a workbench variable`);
+  return value.type === 'expression' && span.style === 'variableName'
+    ? hover(`**${name}**: a variable`)
+    : null;
+};
+
+/** An inspector field's hover: its element's property, read with its value type. */
+export const fieldHover = (
+  definition: Pick<AnyDialect, 'properties'>,
+  context: DefinitionContext,
+  elementId: string,
+  key: string,
+  text: string,
+  pos: number,
+): Hover | null => {
+  const element = context.elements[elementId];
+  const property = element && propertyOf(definition, element.kind, key);
+  if (!property || property.servedBy === 'engine') return null;
+  return fieldHoverAt(
+    valueOf(property, element.properties),
+    text,
+    pos,
+    context,
+  );
 };

@@ -12,6 +12,7 @@ import type {
 } from '@goal-controller/dialect';
 import {
   errorText,
+  expressionNodes,
   parseElementLineIn,
   parseValue,
   type AssertionTree,
@@ -217,6 +218,12 @@ export const assertionVariables = (text: string): AssertionVariable[] => {
       case 'compare':
       case 'var':
         named(node.variable);
+        return;
+      case 'comparison':
+        // the names its sides read (an element's id too), not the functions they call
+        for (const part of [node.left, node.right].flatMap(expressionNodes))
+          if (part.kind === 'var') named(part.name);
+          else if (part.kind === 'ref') named(part.id);
         return;
       default:
         return;

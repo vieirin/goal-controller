@@ -9,9 +9,11 @@ import * as assert from 'assert';
 import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { join } from 'path';
+import { propertyOf, valueOf } from '@goal-controller/dialect';
 import {
   assertionVariables,
   goalNameParserFor,
+  valueProblem,
 } from '@goal-controller/goal-language';
 import { edge } from '../../../src/engines/edge/definition';
 import { edgeV2 } from '../../../src/engines/edgeV2/definition';
@@ -76,6 +78,13 @@ export const DIVERGENT = {
    * the line was rejected; the goal language reads it.
    */
   xIds: ['G1X: Variant [GX|TX]', 'GX: name'],
+  /**
+   * A comparison's sides are expressions (goal-controller#120):
+   * AssertionRegex.g4 rejected `battery!=low` and read past it its own way;
+   * the goal language reads two names compared, and the Edge engines'
+   * conditions, which declare no functions, reject it.
+   */
+  comparisons: ['privacyEnabled | battery!=low'],
 } as const;
 
 const read = (grammar: 'edge' | 'edgeV2', goalText: string) => {
@@ -207,6 +216,19 @@ describe('parity with the ANTLR readers', () => {
 
   it('reads every recorded assertion as AssertionRegex.g4 did', () => {
     for (const [text, variables] of Object.entries(ORACLE.assertions))
-      assert.deepStrictEqual(assertionVariables(text), variables, text);
+      if (!(DIVERGENT.comparisons as readonly string[]).includes(text))
+        assert.deepStrictEqual(assertionVariables(text), variables, text);
+  });
+
+  it('rejects a comparison of two names, which AssertionRegex.g4 read past', () => {
+    const maintain = propertyOf(edge, 'goal', 'maintain')!;
+    for (const text of DIVERGENT.comparisons) {
+      assert.ok(text in ORACLE.assertions, text);
+      assert.match(
+        valueProblem(valueOf(maintain, {}), text) ?? '',
+        /^A name is compared with a number here/,
+        text,
+      );
+    }
   });
 });

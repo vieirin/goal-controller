@@ -67,7 +67,8 @@ value alone (`parseValue(type, text)`).
 
 | Type            | Rule             | Reads                              | A dialect adds                                            |
 | --------------- | ---------------- | ---------------------------------- | --------------------------------------------------------- |
-| `assertion`     | `AssertionValue` | `battery > 20 & !charging` (below) | `resolves`: the kinds identifiers may name, or `variable` |
+| `assertion`     | `AssertionValue` | `battery > 20 & !charging` (below) | `resolves`: the kinds identifiers may name, or `variable`; `functions` |
+| `expression`    | `ExpressionValue` | `0.5 + 0.9 * previous(t)` (below) | `resolves`: the kinds ids may name; `functions`: `{ name, arity }` |
 | `int`           | `IntValue`       | `-3`                               | `min`, `max`                                              |
 | `number`        | `NumberValue`    | `1.5`                              |                                                           |
 | `bool`          | `BoolValue`      | `true`, `false`                    |                                                           |
@@ -85,6 +86,27 @@ The **assertion language** works as follows:
 - Parentheses group.
 - An operand is an identifier, `x = true`/`false`, `x op n` (where `op` is
   one of `= != < <= > >=`), or `true`/`false`.
+- Where the property declares `functions`, a comparison is `e op e` between
+  two expressions (`previous(t) < 18`, `0.9 * x >= 1`); elsewhere any
+  comparison but `x op n` is an error.
+
+The **expression language** (the catalog's `EXPRESSION`) works as follows,
+tightest first:
+
+| Level | Operators | Associativity |
+| --- | --- | --- |
+| 1 | `-` before an operand (`-x`) | |
+| 2 | `*` `/` | left |
+| 3 | `+` `-` | left |
+
+- An operand is a number (`2`, `0.5`; no sign of its own), an element id
+  (`G1`, `T2.1`: a `ref`), a call (`previous(t)`, to a function the property
+  declares, with as many arguments as it declares), another name (a
+  variable, declared by its use), or an expression in parentheses.
+- `readExpression(text)` gives the tree (`number`, `ref`, `var`, `call`,
+  `binary`, `unary`), and `readAssertion(text)` an assertion with its
+  comparisons' sides as such trees: an engine walks them to write its own
+  syntax, and never reads the text. `expressionText` writes a tree back.
 
 ### Declarations and annotations
 

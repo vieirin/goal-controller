@@ -17,6 +17,7 @@ import {
   valueOf,
   type DefinitionContext,
   type AnyDialect,
+  type FunctionDefinition,
   type ResourceCandidates,
   type ResourceSymbol,
   type WithNotation,
@@ -24,6 +25,7 @@ import {
 } from '@goal-controller/dialect';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
+import { argumentsText } from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
@@ -455,33 +457,62 @@ export const fieldCompletionsAt = (
           detail: option.label,
         })),
     };
-  if (value.type === 'assertion') {
-    const elements = ids(value.resolves.filter((kind) => kind !== 'variable'));
+  /** the elements of some kinds, then the variables that aren't one of them */
+  const names = (kinds: readonly string[], variables: boolean) => {
+    const elements = ids(kinds);
     const named = new Set(elements.map((option) => option.label));
+    return [
+      ...elements,
+      ...(variables
+        ? context.variables
+            .filter((name) => !named.has(name))
+            .map((name) => ({
+              label: name,
+              type: 'variable' as const,
+              detail: 'variable',
+            }))
+        : []),
+    ];
+  };
+  if (value.type === 'assertion')
     return {
       from,
       options: [
-        ...elements,
-        ...(value.resolves.includes('variable')
-          ? context.variables
-              .filter((name) => !named.has(name))
-              .map((name) => ({
-                label: name,
-                type: 'variable' as const,
-                detail: 'variable',
-              }))
-          : []),
+        ...names(
+          value.resolves.filter((kind) => kind !== 'variable'),
+          value.resolves.includes('variable'),
+        ),
+        ...functionOptions(value.functions ?? []),
         ...ASSERTION.bool.map((keyword) => ({
           label: keyword,
           type: 'keyword' as const,
         })),
       ],
     };
-  }
+  // its variables are declared by their use: the workbench's are offered
+  if (value.type === 'expression')
+    return {
+      from,
+      options: [
+        ...names(value.resolves ?? [], true),
+        ...functionOptions(value.functions ?? []),
+      ],
+    };
   if (value.type === 'ocl')
     return oclCompletions(value, text, pos, context, elementId);
   return null;
 };
+
+/** A value's functions, each inserted with a placeholder per argument: `previous(${1})`. */
+const functionOptions = (
+  functions: readonly FunctionDefinition[],
+): Completion[] =>
+  functions.map((f) => ({
+    label: f.name,
+    type: 'function' as const,
+    detail: argumentsText(f.arity),
+    snippet: `${f.name}(${Array.from({ length: f.arity }, (_, i) => `\${${i + 1}}`).join(', ')})`,
+  }));
 
 const NAME = /[A-Za-z_][A-Za-z0-9_]*/;
 
