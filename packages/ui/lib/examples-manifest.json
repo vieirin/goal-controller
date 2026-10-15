@@ -690,6 +690,49 @@
     "outputs": []
   },
   {
+    "path": "grl/grl-own",
+    "group": "grl",
+    "name": "grl-own",
+    "form": "file",
+    "dialect": "grl",
+    "root": "grl/grl-own",
+    "files": [
+      "README.md",
+      "grl-own.jucm",
+      "grl-own.txt",
+      "project.json",
+      "reference/evaluations.csv",
+      "strategies/Heating.json"
+    ],
+    "models": ["grl-own.txt"],
+    "projectResources": {
+      "strategies": ["strategies/Heating.json"]
+    },
+    "outputs": []
+  },
+  {
+    "path": "grl/grl-smart-home",
+    "group": "grl",
+    "name": "grl-smart-home",
+    "form": "file",
+    "dialect": "grl",
+    "root": "grl/grl-smart-home",
+    "files": [
+      "LICENSE-EPL-1.0",
+      "README.md",
+      "SmartHome2.jucm",
+      "SmartHome2.txt",
+      "project.json",
+      "reference/evaluations.csv",
+      "strategies/StrategiesGroup5.json"
+    ],
+    "models": ["SmartHome2.txt"],
+    "projectResources": {
+      "strategies": ["strategies/StrategiesGroup5.json"]
+    },
+    "outputs": []
+  },
+  {
     "path": "mutrose/lab-sample-logistics",
     "group": "mutrose",
     "name": "lab-sample-logistics",

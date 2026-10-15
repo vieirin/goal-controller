@@ -41,6 +41,12 @@ export const nodeIdInMessage = (message: string): string | undefined => {
   return new RegExp(`\\b(${RT_ID})\\b`).exec(message)?.[1];
 };
 
+/** Whether an engine's elements have RT ids (its definition gives them prefixes). */
+const hasIds = (engine: TransformEngine): boolean =>
+  Object.values(notationDefinitionOf(engine).elements).some(
+    (element) => element?.prefix !== undefined,
+  );
+
 /** The id prefixes an engine's elements start with, as a hint: "G…, T… or R…". */
 const idPrefixes = (engine: TransformEngine): string => {
   const prefixes = Object.values(notationDefinitionOf(engine).elements).flatMap(
@@ -99,8 +105,10 @@ export const treeProblems = (
     // a Quality that only qualifies is not read by the engines (no RT id needed)
     if (node.kind === 'quality' && !node.parent && node.children.length === 0)
       continue;
-    // the view falls back to the piStar id when the text has no RT id
+    // the view falls back to the piStar id when the text has no RT id (a
+    // dialect without ids has none to ask for)
     if (node.id === node.iStarId) {
+      if (!hasIds(engine)) continue;
       problems.push({
         severity: 'error',
         source: SOURCE.workbench,

@@ -1,0 +1,355 @@
+{
+  "actors": [
+    {
+      "id": "1",
+      "text": "Home owner",
+      "type": "istar.Actor",
+      "x": 80,
+      "y": 20,
+      "customProperties": {
+        "importance": "High",
+        "importanceQuantitative": "80"
+      },
+      "nodes": [
+        {
+          "id": "2",
+          "text": "Low running cost",
+          "type": "istar.Quality",
+          "x": 120,
+          "y": 60,
+          "customProperties": {
+            "importance": "High",
+            "importanceQuantitative": "80"
+          }
+        },
+        {
+          "id": "3",
+          "text": "Keep the home warm",
+          "type": "istar.Goal",
+          "x": 420,
+          "y": 220,
+          "customProperties": {
+            "importance": "High",
+            "importanceQuantitative": "100",
+            "decompositionType": "Xor"
+          }
+        },
+        {
+          "id": "4",
+          "text": "Heat with the heat pump",
+          "type": "istar.Task",
+          "x": 300,
+          "y": 360,
+          "customProperties": {}
+        },
+        {
+          "id": "5",
+          "text": "Heat with the gas boiler",
+          "type": "istar.Task",
+          "x": 540,
+          "y": 360,
+          "customProperties": {}
+        },
+        {
+          "id": "6",
+          "text": "Comfort",
+          "type": "istar.Quality",
+          "x": 660,
+          "y": 60,
+          "customProperties": {
+            "importance": "Medium",
+            "importanceQuantitative": "50"
+          }
+        },
+        {
+          "id": "7",
+          "text": "Indoor temperature",
+          "type": "grl.Indicator",
+          "x": 780,
+          "y": 200,
+          "customProperties": {}
+        },
+        {
+          "id": "9",
+          "text": "Run the house",
+          "type": "istar.Goal",
+          "x": 420,
+          "y": 100,
+          "customProperties": {
+            "importance": "Low",
+            "importanceQuantitative": "20"
+          }
+        },
+        {
+          "id": "10",
+          "text": "Monitor consumption",
+          "type": "istar.Task",
+          "x": 160,
+          "y": 220,
+          "customProperties": {}
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "text": "Utility company",
+      "type": "istar.Actor",
+      "x": 1120,
+      "y": 300,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "12",
+          "text": "Supply electricity",
+          "type": "istar.Task",
+          "x": 1180,
+          "y": 380,
+          "customProperties": {
+            "importance": "High",
+            "importanceQuantitative": "50"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [
+    {
+      "id": "70",
+      "text": "Heat pumps stay efficient in this climate",
+      "type": "grl.Belief",
+      "x": 140,
+      "y": 460,
+      "customProperties": {
+        "Description": "Winters here rarely go below -5 degrees C"
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "8",
+      "text": "Electricity",
+      "type": "istar.Resource",
+      "x": 960,
+      "y": 380,
+      "customProperties": {},
+      "source": "3",
+      "target": "12"
+    }
+  ],
+  "links": [
+    {
+      "id": "20",
+      "type": "istar.OrRefinementLink",
+      "source": "4",
+      "target": "3"
+    },
+    {
+      "id": "21",
+      "type": "istar.OrRefinementLink",
+      "source": "5",
+      "target": "3"
+    },
+    {
+      "id": "22",
+      "type": "istar.AndRefinementLink",
+      "source": "3",
+      "target": "9"
+    },
+    {
+      "id": "23",
+      "type": "istar.AndRefinementLink",
+      "source": "10",
+      "target": "9"
+    },
+    {
+      "id": "24",
+      "type": "istar.ContributionLink",
+      "source": "4",
+      "target": "2",
+      "label": "make",
+      "customProperties": {
+        "contribution": "Make",
+        "quantitativeContribution": "100"
+      }
+    },
+    {
+      "id": "25",
+      "type": "istar.ContributionLink",
+      "source": "5",
+      "target": "2",
+      "label": "break",
+      "customProperties": {
+        "contribution": "Break",
+        "quantitativeContribution": "-100"
+      }
+    },
+    {
+      "id": "26",
+      "type": "istar.ContributionLink",
+      "source": "10",
+      "target": "2",
+      "label": "help",
+      "customProperties": {
+        "contribution": "Help",
+        "quantitativeContribution": "50"
+      }
+    },
+    {
+      "id": "27",
+      "type": "istar.ContributionLink",
+      "source": "5",
+      "target": "6",
+      "label": "hurt",
+      "customProperties": {
+        "contribution": "Hurt",
+        "quantitativeContribution": "-50"
+      }
+    },
+    {
+      "id": "28",
+      "type": "istar.ContributionLink",
+      "source": "7",
+      "target": "6",
+      "label": "help",
+      "customProperties": {
+        "contribution": "Help",
+        "quantitativeContribution": "70"
+      }
+    },
+    {
+      "id": "29",
+      "type": "istar.ContributionLink",
+      "source": "4",
+      "target": "6",
+      "label": "help",
+      "customProperties": {
+        "contribution": "Help",
+        "quantitativeContribution": "25"
+      }
+    },
+    {
+      "id": "30",
+      "type": "istar.DependencyLink",
+      "source": "3",
+      "target": "8"
+    },
+    {
+      "id": "31",
+      "type": "istar.DependencyLink",
+      "source": "8",
+      "target": "12"
+    },
+    {
+      "id": "32",
+      "type": "istar.ContributionLink",
+      "source": "9",
+      "target": "6",
+      "label": "help",
+      "customProperties": {
+        "contribution": "SomePositive",
+        "quantitativeContribution": "10",
+        "correlation": "true"
+      }
+    },
+    {
+      "id": "33",
+      "type": "istar.ContributionLink",
+      "source": "12",
+      "target": "2",
+      "label": "help",
+      "customProperties": {
+        "contribution": "Unknown",
+        "quantitativeContribution": "0"
+      }
+    },
+    {
+      "id": "70-4",
+      "type": "grl.BeliefLink",
+      "source": "70",
+      "target": "4"
+    }
+  ],
+  "display": {
+    "1": {
+      "width": 820,
+      "height": 520
+    },
+    "13": {
+      "width": 220,
+      "height": 200
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 1340,
+    "height": 730,
+    "name": "Home heating",
+    "customProperties": {
+      "engine": "grl"
+    }
+  },
+  "metamodel": {
+    "name": "grl",
+    "elements": [
+      {
+        "kind": "grl.Indicator",
+        "label": "Indicator",
+        "behavesLike": "istar.Task",
+        "size": {
+          "width": 100,
+          "height": 50
+        },
+        "shape": {
+          "path": "M 4 2 L 96 2 L 96 32 L 50 48 L 4 32 Z",
+          "viewBox": "0 0 100 50"
+        },
+        "textBox": {
+          "top": 0.08,
+          "right": 0.06,
+          "bottom": 0.3,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "grl.Belief",
+        "label": "Belief",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 50
+        },
+        "shape": {
+          "path": "M 2 25 A 48 23 0 1 0 98 25 A 48 23 0 1 0 2 25 Z M 8 25 A 42 18 0 1 0 92 25 A 42 18 0 1 0 8 25 Z",
+          "viewBox": "0 0 100 50"
+        },
+        "textBox": {
+          "top": 0.2,
+          "right": 0.15,
+          "bottom": 0.2,
+          "left": 0.15
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "grl.BeliefLink",
+        "label": "Belief",
+        "rules": {
+          "sources": [
+            "grl.Belief"
+          ],
+          "targets": [
+            "node"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3",
+          "marker": false
+        }
+      }
+    ]
+  }
+}

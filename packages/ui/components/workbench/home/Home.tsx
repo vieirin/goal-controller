@@ -39,6 +39,7 @@ const GROUP_ORDER = [
   'edge',
   'goda',
   'mutrose',
+  'grl',
   'sleec',
   'pistar-ext',
 ];

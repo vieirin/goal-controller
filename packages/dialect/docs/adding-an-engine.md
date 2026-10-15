@@ -183,10 +183,15 @@ links: {
 - **The Notation view** writes a link with properties as a `link` line under
   its source: `link G1 {weight = 50}` (the goal language's
   [link lines](../../goal-language/docs/goal-language.md#link-lines-properties-on-links)).
+  `linkLines` says whether it does: by default a dialect with ids does, and
+  one without doesn't. A dialect without ids that sets `linkLines: true`
+  names the target by its text, quoted: `link "Comfort" {weight = 50}`, and
+  `"Comfort"#2` for the second element with that text.
 - **Checks:** a link property's check gets the link's piStar id as
   `context.self`, and `context.readLink(id)`: its kind, its ends' keys,
   its `ends` as the model has them (piStar id and kind, an extension's kinds
-  too), its label and properties.
+  too), its label and properties. The Notation view runs it on a link
+  line's value.
 
 ### 2.5 Properties on actors
 

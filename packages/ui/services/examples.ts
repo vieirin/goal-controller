@@ -49,6 +49,7 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   sleec: 'sleec',
   mutrose: 'mutrose',
   goda: 'goda',
+  grl: 'grl',
   'pistar-ext': 'pistarext',
 };
 

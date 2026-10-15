@@ -18,6 +18,7 @@ import {
   linkLine,
   notationDocument,
   notationEdits,
+  readLine,
   readLinkLine,
 } from '../src/index.js';
 import { node, toy } from '../../dialect/test/support/toy.js';
@@ -273,5 +274,227 @@ describe('link lines (#107)', () => {
     const plain = checkContextOf(contextFromView(toy, WEIGHTED, []), 'T1');
     expect(plain).not.to.have.property('readLink');
     expect(plain).not.to.have.property('readActor');
+  });
+});
+
+/**
+ * A dialect without ids that writes link lines (`linkLines`): a target is
+ * named by its line's text, quoted, `#n` the n-th of several so named.
+ */
+const plainLinked = defineDialect({
+  id: 'plainLinked',
+  name: 'Plain',
+  elements: {
+    goal: { fill: '#00FF00' },
+    task: { fill: '#00FF00' },
+  },
+  defaultFill: '#FFFFFF',
+  properties: { goal: [], task: [] },
+  propertyLineOrder: [],
+  indent: '  ',
+  problems: toy.problems,
+  linkLines: true,
+  links: {
+    'istar.ContributionLink': [
+      { key: 'weight', value: { type: 'int', min: 0 }, help: 'how much' },
+      {
+        key: 'kind',
+        value: { type: 'text' },
+        help: 'checked',
+        check: 'plain.kind',
+      },
+    ],
+  },
+});
+
+/** Go, two tasks named Heat, and one whose name has quotes: no ids, keys are piStar's. */
+const plainTree = (links: DocumentLink[]): DocumentTree => ({
+  nodes: new Map([
+    [
+      'g',
+      node({
+        id: 'g',
+        kind: 'goal',
+        name: 'Go',
+        children: ['h1', 'h2', 'q'],
+      }),
+    ],
+    ['h1', node({ id: 'h1', kind: 'task', name: 'Heat' })],
+    ['h2', node({ id: 'h2', kind: 'task', name: 'Heat' })],
+    ['q', node({ id: 'q', kind: 'task', name: 'Say "hi"' })],
+  ]),
+  roots: ['g'],
+  links,
+});
+
+const PLAIN = plainTree([
+  link('l1', 'h1', 'g', { weight: '50' }),
+  link('l2', 'q', 'h2', { weight: '1', kind: 'soft' }),
+  link('l3', 'h2', 'q', {}),
+]);
+
+const PLAIN_TEXT = [
+  'Go',
+  '  Heat',
+  '    link "Go" {weight = 50}',
+  '  Heat',
+  '  Say "hi"',
+  '    link "Heat"#2 {weight = 1} {kind = soft}',
+].join('\n');
+
+describe('link lines without ids (linkLines)', () => {
+  it('writes the target by its text, quoted, #n among elements so named; the line takes no place in the order', () => {
+    expect(notationDocument(plainLinked, PLAIN)).to.deep.equal({
+      text: PLAIN_TEXT,
+      ids: ['g', 'h1', 'h2', 'q'],
+    });
+    expect(
+      notationDocument(
+        plainLinked,
+        plainTree([link('l', 'h1', 'q', { weight: '2' })]),
+      ).text,
+    ).to.include('link "Say \\"hi\\"" {weight = 2}');
+  });
+
+  it('writes none, and leaves the links be, where the dialect without ids doesn’t turn them on', () => {
+    const off = { ...plainLinked, linkLines: undefined };
+    const { text } = notationDocument(off, PLAIN);
+    expect(text).to.equal('Go\n  Heat\n  Heat\n  Say "hi"');
+    expect(notationEdits(off, text, PLAIN)).to.deep.equal([]);
+    // and a dialect with ids may turn them off
+    expect(
+      notationDocument({ ...linked, linkLines: false }, WEIGHTED).text,
+    ).not.to.include('link');
+  });
+
+  it('reads `link "…` as a link line, and anything else as an element line', () => {
+    expect(readLine(plainLinked, '    link "Go" {weight = 5}')).to.include({
+      kind: 'property',
+      key: 'link',
+      value: '"Go" {weight = 5}',
+    });
+    expect(readLine(plainLinked, '  link the accounts')).to.include({
+      kind: 'element',
+    });
+    const read = readLinkLine('"Say \\"hi\\""#2 {weight = 5}');
+    expect('value' in read && read.value.target).to.equal('"Say \\"hi\\""#2');
+    expect(readLinkLine('"Heat {weight = 5}')).to.have.property('error');
+  });
+
+  it('maps a link line’s edits back to the link it names', () => {
+    expect(notationEdits(plainLinked, PLAIN_TEXT, PLAIN)).to.deep.equal([]);
+    const tree = PLAIN;
+    const edited = PLAIN_TEXT.replace('{weight = 50}', '{weight = 60}').replace(
+      '{weight = 1} {kind = soft}',
+      '{weight = 1}',
+    );
+    expect(notationEdits(plainLinked, edited, tree)).to.deep.equal([
+      { link: 'l1', key: 'weight', value: '60' },
+      { link: 'l2', key: 'kind', value: null },
+    ]);
+    // a target that names no element, or two (being typed): nothing changes
+    for (const target of ['"Nope"', '"Heat"', '"Heat"#3'])
+      expect(
+        notationEdits(
+          plainLinked,
+          PLAIN_TEXT.replace('"Heat"#2 {weight = 1}', `${target} {weight = 9}`),
+          tree,
+        ),
+      ).to.deep.equal([]);
+  });
+
+  it('reads a link line removed or added: the elements keep their lines', () => {
+    // removed: its link's properties are
+    expect(
+      notationEdits(
+        plainLinked,
+        PLAIN_TEXT.replace('\n    link "Go" {weight = 50}', ''),
+        PLAIN,
+      ),
+    ).to.deep.equal([{ link: 'l1', key: 'weight', value: null }]);
+    // added under the second Heat: l3 takes the properties it writes
+    expect(
+      notationEdits(
+        plainLinked,
+        PLAIN_TEXT.replace(
+          '  Heat\n  Say',
+          '  Heat\n    link "Say \\"hi\\"" {weight = 3}\n  Say',
+        ),
+        PLAIN,
+      ),
+    ).to.deep.equal([{ link: 'l3', key: 'weight', value: '3' }]);
+  });
+
+  it('names no element `constructor` or `__proto__` would inherit', () => {
+    const tree = plainTree([]);
+    tree.nodes.get('h1')!.name = 'constructor';
+    tree.nodes.get('h2')!.name = '__proto__';
+    expect(contextFromView(plainLinked, tree, []).names).to.deep.include({
+      constructor: ['h1'],
+      ['__proto__']: ['h2'],
+    });
+  });
+
+  describe('diagnostics', () => {
+    const run = (
+      name: string,
+      properties: Readonly<Record<string, string>>,
+      self: string,
+    ) => {
+      // the check reads the link it is on
+      const read = checkContextOf(
+        contextFromView(plainLinked, PLAIN, []),
+        self,
+      ).readLink?.(self);
+      return name === 'plain.kind' && properties.kind === 'hard'
+        ? `hard from ${read?.source} to ${read?.target}`
+        : null;
+    };
+    const messages = (doc: string) =>
+      documentDiagnostics(
+        plainLinked,
+        doc,
+        contextFromView(plainLinked, PLAIN, []),
+        { runCheck: run },
+      ).map((d) => [doc.slice(d.from, d.to), d.message]);
+    const replace = (line: string) =>
+      PLAIN_TEXT.replace('link "Heat"#2 {weight = 1} {kind = soft}', line);
+
+    it('says nothing of the document as written', () => {
+      expect(messages(PLAIN_TEXT)).to.deep.equal([]);
+    });
+
+    it('counts no link line as an element’s', () => {
+      expect(
+        messages(PLAIN_TEXT.replace('\n    link "Go" {weight = 50}', '')),
+      ).to.deep.equal([]);
+    });
+
+    it('reports a target that names no element, or several', () => {
+      expect(messages(replace('link "Nope" {weight = 1}'))).to.deep.equal([
+        ['"Nope"', 'No element "Nope"'],
+      ]);
+      expect(messages(replace('link "Heat" {weight = 1}'))).to.deep.equal([
+        ['"Heat"', '2 elements are named "Heat": write "Heat"#1, "Heat"#2'],
+      ]);
+      expect(messages(replace('link "Heat"#3 {weight = 1}'))).to.deep.equal([
+        ['"Heat"#3', 'No element "Heat"#3: 2 are named so'],
+      ]);
+      expect(messages(replace('link "Heat"#1 {weight = 1}'))).to.deep.equal([
+        [
+          '"Heat"#1',
+          'No link from "Say \\"hi\\"" to "Heat"#1 has properties in Plain',
+        ],
+      ]);
+    });
+
+    it('checks a value against its config, and runs its named check with the link as self', () => {
+      expect(
+        messages(replace('link "Heat"#2 {weight = -1} {kind = hard}')),
+      ).to.deep.equal([
+        ['-1', 'At least 0'],
+        ['hard', 'hard from q to h2'],
+      ]);
+    });
   });
 });

@@ -4,7 +4,11 @@
  * it is) or a property line, one line at a time so that a line being typed
  * leaves the others readable.
  */
-import { hasIds, type AnyDialect } from '@goal-controller/dialect';
+import {
+  LINK_LINE_KEY,
+  hasIds,
+  type AnyDialect,
+} from '@goal-controller/dialect';
 import { AstUtils, GrammarUtils, type AstNode, type CstNode } from 'langium';
 import type {
   AnnotatedName,
@@ -26,6 +30,7 @@ import {
   type RtTree,
 } from '../parse.js';
 import type { DeclaredProperties } from '../print.js';
+import { isPlainLinkLine } from './linkLine.js';
 
 /** Where something is, in the text read (offsets). */
 export type Span = { from: number; to: number };
@@ -341,9 +346,24 @@ const writtenAs = (
  */
 export const readLine = (
   definition: Pick<AnyDialect, 'elements'> &
-    Partial<Pick<AnyDialect, 'notation'>>,
+    Partial<Pick<AnyDialect, 'notation' | 'links' | 'linkLines'>>,
   text: string,
 ): LineReading => {
+  // a document without ids has no property lines but its link lines
+  if (isPlainLinkLine(definition, text)) {
+    const from = text.length - text.trimStart().length;
+    const keySpan = { from, to: from + LINK_LINE_KEY.length };
+    const valueFrom = text.length - text.slice(keySpan.to).trimStart().length;
+    const value = text.slice(valueFrom).trimEnd();
+    return {
+      kind: 'property',
+      key: LINK_LINE_KEY,
+      keySpan,
+      value,
+      valueSpan: { from: valueFrom, to: valueFrom + value.length },
+      errors: [],
+    };
+  }
   if (definition.notation?.names === 'text') {
     // a free-text name, read as a WORD of the same length: then its text as written
     const named = withWordName(text);

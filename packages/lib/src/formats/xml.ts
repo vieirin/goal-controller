@@ -3,7 +3,8 @@
  * knowledge, first): elements, attributes and text, with their offsets (tag
  * names, closing tags, text and attribute values too), and what is wrong
  * with the text. No DOM: it runs in Node, the browser and the language
- * server's worker alike. No DTDs, namespaces or CDATA, which the resources
+ * server's worker alike. No DTDs or CDATA, and no namespaces (a prefixed
+ * name is read as written, `urn:URNspec`), which the resources
  * don't use.
  */
 
@@ -78,7 +79,11 @@ export const readXml = (
   }));
 
   const read = (element: AstElement): XmlElement => {
-    const name = element.name ?? '';
+    // a prefixed name as written (`urn:URNspec`): no namespaces, the prefix
+    // is part of the name, as the closing tag has it
+    const name = element.ns
+      ? `${element.ns}:${element.name ?? ''}`
+      : (element.name ?? '');
     const { openName, closeName, openBody, closeBody, isSelfClosing } =
       element.syntax;
     const from = element.position.startOffset;

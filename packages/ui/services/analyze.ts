@@ -10,7 +10,7 @@ import {
   type Problem,
   type VariableInfo,
 } from '../lib/workbench/types';
-import { ENGINE_LABEL } from '../lib/workbench/engineDialects';
+import { ENGINE_LABEL, generatesFiles } from '../lib/workbench/engineDialects';
 
 type WithCondition = {
   id: string;
@@ -42,7 +42,9 @@ export const analyze = (
           ? GoalModel.parseForMutrose(modelJson)
           : engine === 'goda'
             ? GoalModel.parseForGoda(modelJson)
-            : GoalModel.parseForEdge(modelJson);
+            : !generatesFiles(engine)
+              ? GoalModel.parseAsGraph(modelJson)
+              : GoalModel.parseForEdge(modelJson);
 
   const response: AnalyzeResponse = {
     success: true,

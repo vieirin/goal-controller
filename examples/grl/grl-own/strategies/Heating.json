@@ -1,0 +1,65 @@
+{
+  "group": "Heating",
+  "strategies": [
+    {
+      "id": "41",
+      "name": "Heat pump",
+      "author": "goal-controller",
+      "evaluations": {
+        "4": {
+          "value": 100,
+          "label": "Satisfied"
+        },
+        "5": {
+          "value": 0,
+          "label": "None"
+        },
+        "7": {
+          "value": 100,
+          "label": "Satisfied"
+        },
+        "8": {
+          "value": 60,
+          "label": "WeaklySatisfied"
+        },
+        "10": {
+          "value": 100,
+          "label": "Satisfied"
+        },
+        "12": {
+          "value": 100,
+          "label": "Satisfied"
+        }
+      }
+    },
+    {
+      "id": "42",
+      "name": "Gas boiler",
+      "author": "goal-controller",
+      "includes": [
+        "41"
+      ],
+      "evaluations": {
+        "4": {
+          "value": 0,
+          "label": "None"
+        },
+        "5": {
+          "value": 100,
+          "label": "Satisfied"
+        },
+        "7": {
+          "value": 0,
+          "label": "None",
+          "kpi": {
+            "targetValue": "21",
+            "thresholdValue": "18",
+            "worstValue": "15",
+            "evaluationValue": "19.5",
+            "unit": "degrees C"
+          }
+        }
+      }
+    }
+  ]
+}
