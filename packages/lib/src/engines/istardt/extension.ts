@@ -1,7 +1,8 @@
 /**
  * The kinds iStar-DT has and iStar 2.0 doesn't (ER 2024 §3; mx2dtx's
  * `iStarDT-V.xml` shape library): the effect a task may have and the group
- * of a task's effects, the condition box, the domain predicate and the variable, and the links between them
+ * of a task's effects, the condition box, the domain predicate and the
+ * variable, and the links between them
  * (goal-controller#117 D1–D3). A model carries them in its `"metamodel"`
  * block, which istar-ts reads, draws and writes back (the importer writes
  * it).
@@ -12,19 +13,41 @@ import {
 } from '@goal-controller/dialect';
 import { ISTARDT_KINDS, ISTARDT_LINKS } from './vocabulary';
 
-/** An effect: a small box with rounded corners. */
-const EFFECT_SHAPE =
-  'M 10 2 L 80 2 A 8 8 0 0 1 88 10 L 88 30 A 8 8 0 0 1 80 38 L 10 38 A 8 8 0 0 1 2 30 L 2 10 A 8 8 0 0 1 10 2 Z';
-/** An effect group: the hub its effects hang from. */
-const EFFECT_GROUP_SHAPE = 'M 2 10 A 8 8 0 1 0 18 10 A 8 8 0 1 0 2 10 Z';
-/** A condition box: a note, its top right corner folded. */
-const CONDITION_SHAPE =
-  'M 2 2 L 84 2 L 98 16 L 98 48 L 2 48 Z M 84 2 L 84 16 L 98 16';
-/** A predicate: a hexagon. */
-const PREDICATE_SHAPE = 'M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z';
-/** A variable: a hexagon with a bar across its top. */
-const VARIABLE_SHAPE =
-  'M 12 2 L 78 2 L 88 20 L 78 38 L 12 38 L 2 20 Z M 7 11 L 83 11';
+/**
+ * The shapes of iStarDT-V (mx2dtx's shape library, ER 2024's legend): an
+ * effect and a condition are ellipses, an effect group a small hub with a
+ * cross, a state variable a cloud in a box (a quality is iStar's cloud). A
+ * predicate, which iStarDT-V draws as its effect, is a small rounded label.
+ */
+const ellipse = (w: number, h: number) =>
+  `M 2 ${h / 2} A ${w / 2 - 2} ${h / 2 - 2} 0 1 0 ${w - 2} ${h / 2} A ${w / 2 - 2} ${h / 2 - 2} 0 1 0 2 ${h / 2} Z`;
+/** An effect: an ellipse. */
+const EFFECT_SHAPE = ellipse(90, 40);
+/** An effect group: a hub, a cross in it. */
+const EFFECT_GROUP_SHAPE =
+  'M 2 10 A 8 8 0 1 0 18 10 A 8 8 0 1 0 2 10 Z M 10 2 L 10 18 M 2 10 L 18 10';
+/** A condition (iStarDT-V's precondition): an ellipse. */
+const CONDITION_SHAPE = ellipse(100, 44);
+/** A predicate: a small label with rounded ends. */
+const PREDICATE_SHAPE =
+  'M 16 4 L 74 4 A 16 16 0 0 1 74 36 L 16 36 A 16 16 0 0 1 16 4 Z';
+/** A cloud, iStar's quality outline, inside `[x, y, w, h]`. */
+const cloud = (x: number, y: number, w: number, h: number) => {
+  const p = (px: number, py: number) =>
+    `${(x + px * w).toFixed(1)} ${(y + py * h).toFixed(1)}`;
+  const r = (k: number) => (k * Math.min(w, h)).toFixed(1);
+  return [
+    `M ${p(0.2, 0.85)}`,
+    `A ${r(0.2)} ${r(0.2)} 0 0 1 ${p(0.12, 0.45)}`,
+    `A ${r(0.28)} ${r(0.28)} 0 0 1 ${p(0.42, 0.15)}`,
+    `A ${r(0.28)} ${r(0.28)} 0 0 1 ${p(0.78, 0.2)}`,
+    `A ${r(0.22)} ${r(0.22)} 0 0 1 ${p(0.9, 0.62)}`,
+    `A ${r(0.2)} ${r(0.2)} 0 0 1 ${p(0.72, 0.9)}`,
+    `A ${r(0.3)} ${r(0.3)} 0 0 1 ${p(0.2, 0.85)} Z`,
+  ].join(' ');
+};
+/** A state variable: a cloud in a box. */
+const VARIABLE_SHAPE = `M 2 2 L 98 2 L 98 58 L 2 58 Z ${cloud(10, 8, 80, 44)}`;
 
 export const istardtExtension = defineExtension({
   name: 'istardt',
@@ -36,7 +59,7 @@ export const istardtExtension = defineExtension({
       category: 'node',
       size: { width: 90, height: 40 },
       shape: EFFECT_SHAPE,
-      textBox: { top: 0.1, right: 0.08, bottom: 0.1, left: 0.08 },
+      textBox: { top: 0.15, right: 0.14, bottom: 0.15, left: 0.14 },
     },
     {
       kind: ISTARDT_KINDS.effectGroup,
@@ -50,9 +73,9 @@ export const istardtExtension = defineExtension({
       kind: ISTARDT_KINDS.condition,
       label: 'Condition',
       category: 'node',
-      size: { width: 100, height: 50 },
+      size: { width: 100, height: 44 },
       shape: CONDITION_SHAPE,
-      textBox: { top: 0.3, right: 0.1, bottom: 0.1, left: 0.06 },
+      textBox: { top: 0.15, right: 0.14, bottom: 0.15, left: 0.14 },
     },
     {
       kind: ISTARDT_KINDS.predicate,
@@ -60,15 +83,15 @@ export const istardtExtension = defineExtension({
       category: 'node',
       size: { width: 90, height: 40 },
       shape: PREDICATE_SHAPE,
-      textBox: { top: 0.1, right: 0.14, bottom: 0.1, left: 0.14 },
+      textBox: { top: 0.12, right: 0.12, bottom: 0.12, left: 0.12 },
     },
     {
       kind: ISTARDT_KINDS.variable,
       label: 'Variable',
       category: 'node',
-      size: { width: 90, height: 40 },
+      size: { width: 100, height: 60 },
       shape: VARIABLE_SHAPE,
-      textBox: { top: 0.3, right: 0.14, bottom: 0.05, left: 0.14 },
+      textBox: { top: 0.25, right: 0.2, bottom: 0.2, left: 0.2 },
     },
   ],
   links: [
@@ -102,7 +125,7 @@ export const istardtExtension = defineExtension({
         targets: ['istar.Goal', 'istar.Task', ISTARDT_KINDS.effect],
         unique: 'kind',
       },
-      line: { dash: 'dashed' },
+      line: { dash: 'continuous' },
     },
     {
       kind: ISTARDT_LINKS.negativePrecedence,
@@ -153,7 +176,7 @@ export const istardtExtension = defineExtension({
         allowSelf: true,
         unique: 'kind',
       },
-      line: { dash: 'continuous' },
+      line: { dash: 'dotted' },
     },
     {
       kind: ISTARDT_LINKS.readsPrevious,
@@ -173,7 +196,7 @@ export const istardtExtension = defineExtension({
         allowSelf: true,
         unique: 'kind',
       },
-      line: { dash: 'dotted' },
+      line: { dash: 'dashed' },
     },
     {
       kind: ISTARDT_LINKS.turnsFalse,

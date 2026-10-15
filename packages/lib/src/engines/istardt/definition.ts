@@ -73,10 +73,12 @@ export const istardt = defineDialect({
   elements: {
     goal: { prefix: 'G', fill: DEFAULT_FILL },
     task: { prefix: 'T', fill: DEFAULT_FILL },
-    'istardt.Effect': { prefix: 'E', fill: DEFAULT_FILL },
-    'istardt.Condition': { prefix: 'C', fill: DEFAULT_FILL },
-    'istardt.Predicate': { prefix: 'P', fill: DEFAULT_FILL },
-    'istardt.Variable': { prefix: 'V', fill: DEFAULT_FILL },
+    // iStarDT-V's colours (ER 2024's legend): a green effect, a lavender
+    // condition, a brown state variable; a predicate, which it doesn't draw, white
+    'istardt.Effect': { prefix: 'E', fill: '#D9F2D0' },
+    'istardt.Condition': { prefix: 'C', fill: '#E3E0F8' },
+    'istardt.Predicate': { prefix: 'P', fill: '#FFFFFF' },
+    'istardt.Variable': { prefix: 'V', fill: '#EFD9D2' },
   },
   defaultFill: DEFAULT_FILL,
   notation: {

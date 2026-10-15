@@ -190,7 +190,7 @@ DT-Golog runs it (`reference/utility.txt`). Unverified otherwise.
 - **dtg2sim's `GMEnv`** as a back-end (#117 D1.3): the image has no Python; not run.
 - **A goal-controller-native RL environment** is P12's own work.
 - **A quality's line**: iStar's kind takes the catalog's prefixes only, so `Q1` has none; its properties are the inspector's, and a quality's utility links to another quality are written on no line.
-- **The paper's figure's shapes** (dtg2sim's `GoalModels.drawio`): ellipses for effects and conditions, clouds for qualities and variables, a satisfying effect's colour; PRE is a link here, not a node of its own.
+- **What the shapes can't say**: the root goal's episode badge, and PRE as a node of its own (here a dashed link). Drawn as iStarDT-V draws them: an effect and a condition as ellipses (an effect green when it satisfies its task, pink when it doesn't; a condition lavender), an effect group as a hub with a cross, a state variable as a cloud in a brown box, a quality as iStar's cloud, reads links dotted and `pre` solid. A predicate, which iStarDT-V draws as its effect, is a small white label.
 
 ## Examples
 
