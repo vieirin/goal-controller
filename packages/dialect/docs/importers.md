@@ -20,7 +20,7 @@ import(text) → {
 
 - **The result.** No model and an `error` diagnostic: the text is not one this importer reads. Warnings and infos say what was read differently, or left out.
 - **Ids.** An importer keeps the source's ids (piStar's ids are free text), so the source's rows (a reference tool's evaluations, say) join on them.
-- **Kinds.** Kinds iStar 2.0 doesn't have go in the model's own `"metamodel"` block (istar-ts), declared by the engine's extension. The engine object says so, so the workbench reads such a model with its block applied: `defineEngine({ id: 'grl', …, extension: grlExtension, fileKinds: true })` (`engines/grl/engine.ts`; `ENGINE_FILE_KINDS` is derived from it).
+- **Kinds.** Kinds iStar 2.0 doesn't have go in the model's own `"metamodel"` block (istar-ts), declared by the engine's extension, which its dialect names (`defineDialect({ …, extension: grlExtension })`, goal-controller#132). The engine object says its models carry them, so the workbench reads such a model with its block applied: `defineEngine({ id: 'grl', dialect: grl, …, fileKinds: true })` (`engines/grl/engine.ts`; `ENGINE_FILE_KINDS` is derived from it).
 - **Direction.** One way. An export back to the source format is a separate decision, per importer.
 - **Positions.** The source's, where it has them. A node it doesn't place is left without `x` and `y` and placed by the layout below.
 

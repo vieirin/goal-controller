@@ -26,7 +26,7 @@ export type ViewConstruct = GoalExecutionDetail['type'];
 
 /**
  * iStar's kinds, as an engine reads them, or one of its extension's it reads
- * (`grl.Indicator`, goal-controller#132), by its id.
+ * (`toy.Sensor`, goal-controller#132), by its id.
  */
 export type ViewKind =
   | 'goal'

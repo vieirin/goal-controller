@@ -51,6 +51,12 @@ A **document** is lines (`Document`). There are two kinds of line:
   name on a line with an id is letters, spaces, `-` and `'`, as RTRegex.g4
   read it.
 
+  A dialect that lists an extension's kind gives it a prefix of its own,
+  one or two capitals (`S1: Probe`, goal-controller#132). The language
+  reads that prefix in that dialect only: the parser is given the dialect's
+  own prefixes (`idPrefixesOf(definition)`, `ElementId`'s `ID_PREFIX`
+  token), so in any other dialect `S1: Probe` is still a property line.
+
 - **Property lines** go under their element: `maintain battery > 20`, or a
   key alone (`root`). The parser reads the value as text. The validator then
   reads it with its property's value type.
@@ -74,7 +80,7 @@ value alone (`parseValue(type, text)`).
 | `bool`          | `BoolValue`      | `true`, `false`                    |                                                           |
 | `text`          | `TextValue`      | anything on one line               |                                                           |
 | `enum`          | `EnumValue`      | words (`model-based reflex`)       | `options`, `open`                                         |
-| `refList`       | `RefListValue`   | `G2, G5`                           | `kind`: of the elements it refers to                      |
+| `refList`       | `RefListValue`   | `G2, G5`, `V1` (any prefix)        | `kind`: of the elements it refers to (an extension's too) |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
 | `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
@@ -103,7 +109,10 @@ tightest first:
 - An operand is a number (`2`, `0.5`; no sign of its own), an element id
   (`G1`, `T2.1`: a `ref`), a call (`previous(t)`, to a function the property
   declares, with as many arguments as it declares), another name (a
-  variable, declared by its use), or an expression in parentheses.
+  variable, declared by its use), or an expression in parentheses. A name
+  that is an element's key in the model (an extension's kind's, `S1`,
+  which the expression language reads as a name) is that element: the
+  validator checks it against `resolves` as an id (goal-controller#132).
 - `readExpression(text)` gives the tree (`number`, `ref`, `var`, `call`,
   `binary`, `unary`), and `readAssertion(text)` an assertion with its
   comparisons' sides as such trees: an engine walks them to write its own

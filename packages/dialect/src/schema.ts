@@ -308,7 +308,7 @@ export type DialectDefinition<K extends string = ElementKind> = {
   notation?: NotationDefinition;
   /**
    * By kind: iStar's (`goal`), and its extension's node kinds
-   * (`'grl.Indicator'`), which have none without an entry
+   * (`'toy.Sensor'`), which have none without an entry
    */
   properties: Readonly<Record<K, readonly PropertyDefinition[]>>;
   /** the order property lines are written in, for every listed kind alike */
