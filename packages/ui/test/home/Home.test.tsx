@@ -21,6 +21,7 @@ import { ExampleRoute } from '@/components/workbench/home/exampleRoute';
 import { WorkbenchProvider } from '@/components/workbench/WorkbenchContext';
 import manifest from '@/lib/examples-manifest.json';
 import { declarationsOf } from '@/lib/workbench/projectResources';
+import { SECTION_REFERENCES } from '@/components/workbench/home/references';
 import { previewOf } from '@/scripts/examplePreview.mjs';
 import { location, router } from './support/navigation';
 
@@ -79,14 +80,19 @@ describe('Home', () => {
       groups.set(entry.group, (groups.get(entry.group) ?? 0) + 1);
     expect(sections).toHaveLength(groups.size);
     expect(
-      within(within(sections[0]!).getByRole('heading')).getByText('edgeV2/'),
+      within(within(sections[0]!).getByRole('heading', { level: 2 })).getByText(
+        'edgeV2/',
+      ),
     ).toBeTruthy();
     for (const section of sections) {
-      const heading = within(section).getByRole('heading');
+      const heading = within(section).getByRole('heading', { level: 2 });
       const folder = within(heading).getByText(/\/$/).textContent!.slice(0, -1);
-      expect(within(section).getAllByRole('listitem'), folder).toHaveLength(
-        groups.get(folder)!,
-      );
+      expect(
+        within(section).getAllByRole('button', {
+          name: /^Open the .* example/,
+        }),
+        folder,
+      ).toHaveLength(groups.get(folder)!);
     }
   });
 
@@ -157,5 +163,23 @@ describe('Home', () => {
       ),
     );
     expect(button.getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('ends each engine’s section with its references, each example source one there is', async () => {
+    home();
+    const paths = new Set(manifest.map((entry) => entry.path));
+    for (const [group, references] of Object.entries(SECTION_REFERENCES)) {
+      for (const reference of references)
+        for (const path of reference.examples ?? [])
+          expect(paths.has(path), `${group}: ${path}`).toBe(true);
+      if (!manifest.some((entry) => entry.group === group)) continue;
+      const section = (await screen.findByText(`${group}/`)).closest(
+        'section',
+      )!;
+      const links = within(section).getAllByRole('link');
+      expect(links.map((link) => link.getAttribute('href'))).toEqual(
+        references.flatMap((reference) => reference.url ?? []),
+      );
+    }
   });
 });

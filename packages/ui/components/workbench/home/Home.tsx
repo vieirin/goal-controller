@@ -26,6 +26,7 @@ import { useOpenFile } from '../TopBar';
 import { useWorkbench } from '../WorkbenchContext';
 import { Button, Kbd, cx } from '../ui';
 import { useExampleRoute } from './exampleRoute';
+import { SECTION_REFERENCES, type Reference } from './references';
 import { modeLabel, modelKindLabel } from './labels';
 import ModelThumbnail from './ModelThumbnail';
 
@@ -181,6 +182,7 @@ export default function Home({ onNewModel }: { onNewModel: () => void }) {
             title={modeLabel(exampleMode(entries[0]!)) ?? group}
             detail={group}
             count={entries.length}
+            references={SECTION_REFERENCES[group]}
           >
             {entries.map((example) => (
               <ExampleCard
@@ -212,12 +214,15 @@ function CardSection({
   title,
   detail,
   count,
+  references,
   children,
 }: {
   title: string;
   /** beside the title: the examples' folder */
   detail?: string;
   count: number;
+  /** under the cards: what the engine and its examples rest on */
+  references?: readonly Reference[];
   children: ReactNode;
 }) {
   return (
@@ -232,7 +237,48 @@ function CardSection({
       <ul className='grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] gap-4'>
         {children}
       </ul>
+      {references && references.length > 0 && (
+        <References references={references} />
+      )}
     </section>
+  );
+}
+
+/** A section's references: the engine's, then the sources of its examples. */
+function References({ references }: { references: readonly Reference[] }) {
+  return (
+    <div className='border-t border-line pt-2'>
+      <h3 className='text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
+        References
+      </h3>
+      <ol className='mt-1 list-decimal space-y-0.5 pl-5 text-2xs text-ink-muted marker:text-ink-faint'>
+        {references.map((reference) => (
+          <li key={reference.text}>
+            {reference.url ? (
+              <a
+                href={reference.url}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='hover:text-ink hover:underline'
+              >
+                {reference.text}
+              </a>
+            ) : (
+              reference.text
+            )}
+            {reference.examples && (
+              <span className='text-ink-faint'>
+                {' '}
+                — source of{' '}
+                {reference.examples
+                  .map((path) => path.split('/').pop())
+                  .join(', ')}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
