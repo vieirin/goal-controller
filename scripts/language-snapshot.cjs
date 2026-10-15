@@ -128,10 +128,7 @@ const OUTPUT_ENGINES = {
     generate: (gm) => lib.sleecOutput(gm, { modelName: 'm' }),
   },
   mutrose: {
-    files: [
-      ...examples(path.join(EXAMPLES, 'mutrose')),
-      ...examples(path.join(EXAMPLES, 'projects', 'medicine-delivery')),
-    ],
+    files: examples(path.join(EXAMPLES, 'mutrose')),
     mapper: lib.mutroseEngineMapper,
     generate: (gm) => lib.mutroseOutput(gm, { modelName: 'm' }),
   },
