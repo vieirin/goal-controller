@@ -275,8 +275,8 @@ export const hoverAt = (
     // a member (`room.clean`): its declared type, in the value's config
     const dotted = /^(.+)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(name);
     const config =
-      property && kind && owner?.id
-        ? valueOf(property, context.elements[owner.id]?.properties ?? {})
+      property && kind && owner
+        ? valueOf(property, context.elements[owner]?.properties ?? {})
         : undefined;
     const member =
       dotted && config && !lineNamed(definition, lines, name)
