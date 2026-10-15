@@ -521,13 +521,14 @@ function ModelColumn() {
  * Opens the Inspector when a node is selected. A component of its own so that a
  * selection re-renders only this, not the model column around it.
  */
+/** Opens the inspector when a node, a link or an actor is selected. */
 function OpenInspectorOnSelect({ open }: { open: () => void }) {
-  const { selected, selectSeq } = useSelection();
+  const { selected, part, selectSeq } = useSelection();
   const latest = useRef(open);
   latest.current = open;
   useEffect(() => {
-    if (selected) latest.current();
-  }, [selectSeq, selected]);
+    if (selected || part) latest.current();
+  }, [selectSeq, selected, part]);
   return null;
 }
 

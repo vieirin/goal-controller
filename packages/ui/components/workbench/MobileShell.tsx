@@ -56,12 +56,13 @@ function SheetOnSelect({
 }: {
   onSelect: (to: 'sheet' | 'output' | 'none') => void;
 }) {
-  const { selected, selectOrigin, selectSeq } = useSelection();
+  const { selected, part, selectOrigin, selectSeq } = useSelection();
   useEffect(() => {
-    if (!selected) onSelect('none');
+    // a link or an actor (goal-controller#107) opens the sheet as a node does
+    if (!selected && !part) onSelect('none');
     else if (selectOrigin === 'inspector') onSelect('output');
     else if (selectOrigin !== 'output') onSelect('sheet');
-  }, [selectSeq, selected, selectOrigin, onSelect]);
+  }, [selectSeq, selected, part, selectOrigin, onSelect]);
   return null;
 }
 
@@ -78,7 +79,7 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
   );
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // selecting a node opens the Inspector sheet; the output's "lines" button goes to the output
+  // selecting a node, a link or an actor opens the Inspector sheet; the output's "lines" button goes to the output
   const onSelect = useCallback((to: 'sheet' | 'output' | 'none') => {
     setSheetOpen(to === 'sheet');
     if (to === 'output') setView('output');
