@@ -1,11 +1,11 @@
 /**
  * The native file check (goal-controller#144 item 1): each seed's model
- * written back as a `.jucm` by the GRL dialect's native file (`writeJucm`),
- * then
+ * through the GRL dialect's native file (`.jucm`, `writeJucm`), then
  *
- * - **round trip**: lib's `modelRoundTrip` (the written file reads to the
- *   seed's model but for the format's `lossy` paths), the same strategies
- *   read back, and the same bytes when it is written again;
+ * - **round trip**: the stress scripts' shared `nativeCheck`
+ *   (scripts/native-column.cjs: lib's `modelRoundTrip`, the model but for
+ *   the format's `lossy` paths), and GRL's own on what it wrote: the same
+ *   strategies read back, and the same bytes when it is written again;
  * - **oracle** (with `--oracle`): jUCMNav, in Docker, evaluates the written
  *   file exactly as it evaluates the seed: every row of the seed's reference
  *   equal in the written file's, for every strategy and run.
@@ -18,6 +18,7 @@ const path = require('path');
 const { isDeepStrictEqual } = require('util');
 const { CACHE } = require('./fetch.cjs');
 const { readReference } = require('./compare.cjs');
+const { nativeCheck } = require('../native-column.cjs');
 
 const NATIVE = path.join(CACHE, 'native');
 const NATIVE_REFERENCE = path.join(CACHE, 'native-reference');
@@ -25,16 +26,19 @@ const NATIVE_REFERENCE = path.join(CACHE, 'native-reference');
 /** GRL's native file, as its dialect declares it */
 const jucmOf = (lib) => lib.grl.nativeFiles.jucm;
 
-/** A seed's model written as a `.jucm`, or null when the seed doesn't import. */
+/**
+ * A seed's model through `nativeCheck`, with the `.jucm` it wrote (`text`,
+ * null when it wrote none); null when the seed doesn't import.
+ */
 const writeNative = (lib, text, modelName) => {
-  const file = jucmOf(lib);
-  const imported = file.read(text, { modelName });
+  const imported = jucmOf(lib).read(text, { modelName });
   if (!imported.model) return null;
   const context = {
     modelName,
     projectResources: imported.dialectRecord.projectResources,
   };
-  return { imported, context, ...file.write(imported.model, context) };
+  const check = nativeCheck(lib, lib.grl, imported.model, context);
+  return { imported, context, check, text: check.written?.jucm ?? null };
 };
 
 /** Writes each seed's native file into NATIVE, for the oracle to evaluate. */
@@ -48,7 +52,7 @@ const writeNativeSeeds = (lib, seeds) => {
       fs.readFileSync(seed.file, 'utf8'),
       seed.id,
     );
-    if (native)
+    if (native?.text)
       fs.writeFileSync(path.join(NATIVE, `${seed.id}.jucm`), native.text);
   }
   return NATIVE;
@@ -95,8 +99,9 @@ const checkNative = (lib, seedId, text, reference) => {
     return { status: 'fail', error: `writeJucm: ${error.message}` };
   }
   if (!native) return { status: 'skip', reason: 'the seed did not import' };
+  if (native.text === null)
+    return { status: 'fail', error: native.check.error ?? 'nothing written' };
   const file = jucmOf(lib);
-  const trip = lib.modelRoundTrip(file, native.imported.model, native.context);
   const back = file.read(native.text, native.context);
   const again =
     back.model &&
@@ -105,7 +110,7 @@ const checkNative = (lib, seedId, text, reference) => {
       projectResources: back.dialectRecord.projectResources,
     });
   const problems = [
-    ...(trip.ok ? [] : [trip.problem]),
+    ...(native.check.failures ?? []),
     ...(back.model &&
     !isDeepStrictEqual(back.dialectRecord, native.imported.dialectRecord)
       ? ['the written file imports to other strategies']
@@ -138,9 +143,6 @@ const checkNative = (lib, seedId, text, reference) => {
     status: statuses.includes('fail') ? 'fail' : 'pass',
     roundTrip,
     oracle,
-    ...(native.diagnostics.length && {
-      diagnostics: native.diagnostics.map((d) => d.message),
-    }),
   };
 };
 
