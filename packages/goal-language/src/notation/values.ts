@@ -73,8 +73,14 @@ export const membersOf = (
   );
 };
 
-/** What a member reads: its type, when the element declares it (null: unknown, or any). */
+/** A member read: its reference (an id or a name) and its name. */
 type MemberUse = { ref: string; member: string };
+
+/**
+ * A reference a member follows, as written: a name, or an id with its dots
+ * (`room`, `T1.1`). The editors find `ref.` before a position with it.
+ */
+export const MEMBER_REF = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[0-9]+)*';
 
 /**
  * What is wrong with a member a value reads (`room.dirty`): the value reads
@@ -112,6 +118,21 @@ const declaredType = (
   context: DefinitionContext | undefined,
 ): MemberType | undefined =>
   membersOf(context, ref, value.members)?.get(member);
+
+/** What is wrong with a member read as a number (in an expression, or compared). */
+const numberMemberProblem = (
+  value: { members?: MemberSource },
+  use: MemberUse,
+  context: DefinitionContext | undefined,
+  definition: Pick<AnyDialect, 'properties'> | undefined,
+): string | null => {
+  const problem = memberProblem(value, use, context, definition);
+  if (problem) return problem;
+  const type = declaredType(value, use, context);
+  return type && type.type !== 'number'
+    ? `${use.ref}.${use.member} is ${memberTypeText(type)}, not a number`
+    : null;
+};
 
 const intProblem = (
   text: string,
@@ -398,12 +419,10 @@ const expressionMemberProblem = (
   definition: Pick<AnyDialect, 'properties'> | undefined,
 ): string | null => {
   for (const node of expressionNodes(tree)) {
-    if (node.kind !== 'member') continue;
-    const problem = memberProblem(value, node, context, definition);
+    const problem =
+      node.kind === 'member' &&
+      numberMemberProblem(value, node, context, definition);
     if (problem) return problem;
-    const type = declaredType(value, node, context);
-    if (type && type.type !== 'number')
-      return `${node.ref}.${node.member} is ${memberTypeText(type)}, not a number`;
   }
   return null;
 };
@@ -467,12 +486,11 @@ const assertionMemberProblem = (
         }
         for (const side of [node.left, node.right])
           for (const part of expressionNodes(side)) {
-            if (part.kind !== 'member' || part === node.left) continue;
-            const problem = memberProblem(value, part, context, definition);
+            const problem =
+              part.kind === 'member' &&
+              part !== node.left &&
+              numberMemberProblem(value, part, context, definition);
             if (problem) return problem;
-            const type = declaredType(value, part, context);
-            if (type && type.type !== 'number')
-              return `${text(part)} is ${memberTypeText(type)}, not a number`;
           }
         return null;
       }

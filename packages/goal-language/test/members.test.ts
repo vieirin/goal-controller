@@ -114,7 +114,7 @@ describe('the member atom (#135)', () => {
       value: true,
     });
     // a member takes a name: `room.` and `room.1` are errors
-    expect(parseValue('assertion', 'room.').errors).to.not.be.empty;
-    expect(parseValue('expression', 'room.1').errors).to.not.be.empty;
+    expect(parseValue('assertion', 'room.').errors).to.have.length.above(0);
+    expect(parseValue('expression', 'room.1').errors).to.have.length.above(0);
   });
 });

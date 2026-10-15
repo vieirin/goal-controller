@@ -25,7 +25,12 @@ import {
   targetKey,
 } from './linkLine.js';
 import { isEnabled } from './reading.js';
-import { argumentsText, membersOf, memberTypeText } from './values.js';
+import {
+  argumentsText,
+  MEMBER_REF,
+  membersOf,
+  memberTypeText,
+} from './values.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<
@@ -386,7 +391,7 @@ export const fieldHoverAt = (
       : null;
   }
   // a member (`room.clean`, goal-controller#135): its declared type
-  const dotted = /([A-Za-z_][A-Za-z0-9_]*(?:\.[0-9]+)*)\s*\.\s*$/.exec(
+  const dotted = new RegExp(`(${MEMBER_REF})\\s*\\.\\s*$`).exec(
     text.slice(0, span.from),
   );
   const member =

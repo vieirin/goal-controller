@@ -25,7 +25,12 @@ import {
 } from '@goal-controller/dialect';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
-import { argumentsText, membersOf, memberTypeText } from './values.js';
+import {
+  argumentsText,
+  MEMBER_REF,
+  membersOf,
+  memberTypeText,
+} from './values.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
@@ -61,8 +66,9 @@ type Definition = Pick<
 const WORD = /[A-Za-z0-9_.]*$/;
 
 /** A reference and its dot, and the member being typed: `room.`, `room.cl`, `T1.1 . d` */
-const MEMBER_BEFORE =
-  /([A-Za-z_][A-Za-z0-9_]*(?:\.[0-9]+)*)\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)?$/;
+const MEMBER_BEFORE = new RegExp(
+  `(${MEMBER_REF})\\s*\\.\\s*([A-Za-z_][A-Za-z0-9_]*)?$`,
+);
 
 /** The operators a dialect enables, with the construct (or modifier) each one is. */
 const operatorOptions = ({ notation }: WithNotation): Completion[] => {
