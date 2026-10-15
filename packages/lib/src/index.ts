@@ -241,6 +241,14 @@ export {
   type EdgeVariables,
 } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
+// One object per engine (goal-controller#124): what the workbench registers
+export * from './engines/engine';
+export { edgeEngine } from './engines/edge/engine';
+export { edgeV2Engine } from './engines/edgeV2/engine';
+export { sleecEngine } from './engines/sleec/engine';
+export { mutroseEngine } from './engines/mutrose/engine';
+export { godaEngine } from './engines/goda/engine';
+export { grlEngine } from './engines/grl/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
@@ -285,3 +293,9 @@ if (require.main === module) {
     logger.close();
   }
 }
+
+// each engine's generation options, typed as properties are (#118); MutRoSe and GRL have none
+export { edgeOptions } from './engines/edge/options';
+export { edgeV2Options } from './engines/edgeV2/options';
+export { godaOptions } from './engines/goda/options';
+export { sleecOptions } from './engines/sleec/options';

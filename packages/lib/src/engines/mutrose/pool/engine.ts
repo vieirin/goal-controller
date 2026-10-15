@@ -3,7 +3,7 @@
  * (the goal model, the world, the HDDL domain, the configuration), the
  * kinds they define, the checks across them and their messages.
  */
-import { defineEngine } from '../../../pool';
+import { declarePool } from '../../../pool';
 import { configuration } from '../files/configuration';
 import { goalModel, otherModel } from '../files/goalModel';
 import { hddl } from '../files/hddl';
@@ -11,7 +11,7 @@ import { world } from '../files/world';
 import { noInstances, unboundParam, unusedHddlTask } from './checks';
 import { KINDS, LEADS, MESSAGES } from './vocabulary';
 
-export const mutrose = defineEngine({
+export const mutrosePoolDeclaration = declarePool({
   files: [goalModel, otherModel, world, hddl, configuration],
   kinds: KINDS,
   checks: [unboundParam, unusedHddlTask, noInstances],

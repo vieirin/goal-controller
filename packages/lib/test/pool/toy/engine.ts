@@ -5,7 +5,7 @@
  */
 import * as z from 'zod/mini';
 import {
-  defineEngine,
+  declarePool,
   defineFile,
   defines,
   json,
@@ -45,7 +45,7 @@ const things = defineFile({
   }),
 });
 
-export const toy = defineEngine({
+export const toy = declarePool({
   files: [shelves, things],
   kinds: {
     'toy.shelf': { label: 'shelf' },

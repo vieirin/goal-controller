@@ -10,6 +10,7 @@ import type {
   ValueConfig,
 } from '@goal-controller/dialect';
 import {
+  assertionExpressions,
   assertionText,
   comparisonsOf,
   expressionNodes,
@@ -63,7 +64,8 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
     case 'compare':
       return tree.value.includes('.') ? tree.value : null;
     case 'comparison':
-      for (const node of [tree.left, tree.right].flatMap(expressionNodes))
+    case 'call':
+      for (const node of assertionExpressions(tree).flatMap(expressionNodes))
         if (node.kind === 'number' && node.value.includes('.'))
           return node.value;
       return null;
@@ -150,13 +152,13 @@ export const valueProblem = (
       if (!prefixes.length && prefix) return `No prefix: ${prefix} is not read`;
       if (prefix && !tree) return `A condition after ${prefix}`;
       // a comparison other than a name and a number, where the value declares functions
-      const [comparison] = comparisonsOf(tree);
+      const comparison = comparisonsOf(tree).find(
+        (atom) => atom.kind === 'comparison',
+      );
       if (comparison && !value.functions)
         return `A name is compared with a number here, not ${assertionText(comparison)}`;
-      for (const { left, right } of comparisonsOf(tree)) {
-        const problem =
-          callProblem(left, value.functions ?? []) ??
-          callProblem(right, value.functions ?? []);
+      for (const expression of assertionExpressions(tree)) {
+        const problem = callProblem(expression, value.functions ?? []);
         if (problem) return problem;
       }
       const decimal = !value.decimals && decimalOf(tree);

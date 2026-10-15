@@ -1,4 +1,4 @@
-import { defineDialect } from '@goal-controller/dialect';
+import { defineDialect, notation } from '@goal-controller/dialect';
 import { edgeFamily, edgeNotation } from '../edgeFamily/definition';
 
 /**
@@ -10,7 +10,7 @@ export const edgeV2 = defineDialect({
   id: 'edgeV2',
   name: 'EdgeV2',
   ...edgeFamily,
-  notation: {
+  notation: notation({
     ...edgeNotation,
     operators: {
       '@': 'retry',
@@ -21,5 +21,5 @@ export const edgeV2 = defineDialect({
       ';': 'sequence',
       '->': 'degradation',
     },
-  },
+  }),
 });

@@ -22,9 +22,15 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import {
+  isOptionValue,
+  optionsSummary,
+  type OptionDefinition,
+} from '@goal-controller/dialect';
+import type { TransformEngine } from '@/lib/types';
 import {
   ENGINE_LABEL,
+  ENGINE_OPTIONS,
   generatesFiles,
   hasOptions,
   outputExtensionOf,
@@ -88,21 +94,6 @@ export const useOpenFile = (): { open: () => void; input: ReactElement } => {
 };
 
 export { readFile };
-
-const optionsSummary = (
-  engine: TransformEngine,
-  wb: ReturnType<typeof useWorkbench>,
-): string => {
-  const { options } = wb;
-  const reduced = options.reduce ? ' · reduced' : '';
-  if (engine === 'edgev2') {
-    return `N=${options.discretisation} · ${options.taskLayout === 'taskModules' ? 'task modules' : 'ChangeManager'}${reduced}`;
-  }
-  if (engine === 'edge') return `space ${options.achievabilitySpace}${reduced}`;
-  if (engine === 'goda')
-    return `generator ${options.variant}${options.runtimeFormulas ? ' · runtime formulas' : ''}`;
-  return `${options.generateFluents ? 'with fluents' : 'no fluents'}${reduced}`;
-};
 
 /** The logo goes home: it closes the open model, after asking. */
 function HomeLogo() {
@@ -550,7 +541,7 @@ export function EngineOptions() {
         <Button onClick={toggle} aria-expanded={open} title='Engine options'>
           <SlidersHorizontal className='h-4 w-4' aria-hidden />
           <span className='hidden font-mono text-xs text-ink-muted xl:inline'>
-            {optionsSummary(engine, wb)}
+            {optionsSummary(ENGINE_OPTIONS[engine], options)}
           </span>
           <ChevronDown className='h-3 w-3' aria-hidden />
         </Button>
@@ -581,7 +572,7 @@ export function EngineOptions() {
   );
 }
 
-/** The options of one engine (shared by the options menu and the model settings dialog). */
+/** The options of one engine, from its declarations (shared by the options menu and the model settings dialog). */
 export function EngineOptionFields({
   engine,
   options,
@@ -591,152 +582,107 @@ export function EngineOptionFields({
   options: GenerationOptions;
   onChange: (patch: Partial<GenerationOptions>) => void;
 }) {
+  const values = options as Readonly<Record<string, unknown>>;
   return (
     <div className='space-y-3 text-[13px]'>
-      {engine === 'edgev2' && (
-        <>
-          <label className='flex items-center justify-between gap-4'>
-            <span>
-              Discretisation <span className='font-mono'>N</span>
-              <span className='block text-2xs text-ink-muted'>
-                decisions compare achievability × N
-              </span>
-            </span>
-            <input
-              type='number'
-              min={1}
-              max={100}
-              value={options.discretisation}
-              onChange={(e) => {
-                const n = Number.parseInt(e.target.value, 10);
-                if (Number.isInteger(n) && n > 0)
-                  onChange({ discretisation: n });
-              }}
-              className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
-            />
-          </label>
-          <div className='space-y-1'>
-            <span className='block'>Task layout</span>
-            <Segmented
-              size='sm'
-              label='Task layout'
-              value={options.taskLayout}
-              onChange={(taskLayout) => onChange({ taskLayout })}
-              options={[
-                {
-                  id: 'taskModules',
-                  label: 'Module per task',
-                  title:
-                    'One module per task, next to its goal (EDGE reference)',
-                },
-                {
-                  id: 'changeManager',
-                  label: 'ChangeManager',
-                  title: 'All tasks in one ChangeManager module',
-                },
-              ]}
-            />
-          </div>
-        </>
-      )}
-      {engine === 'edge' && (
-        <label className='flex items-center justify-between gap-4'>
-          <span>
-            Achievability space
-            <span className='block text-2xs text-ink-muted'>
-              levels for decision variables
-            </span>
-          </span>
-          <input
-            type='number'
-            min={1}
-            max={100}
-            value={options.achievabilitySpace}
-            onChange={(e) => {
-              const n = Number.parseInt(e.target.value, 10);
-              if (Number.isInteger(n) && n > 0)
-                onChange({ achievabilitySpace: n });
-            }}
-            className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
-          />
-        </label>
-      )}
-      {isPrismEngine(engine) && (
-        <div className='flex flex-col items-start gap-2'>
-          <Switch
-            checked={options.generateDecisionVars}
-            onChange={(generateDecisionVars) =>
-              onChange({ generateDecisionVars })
-            }
-            label='Decision variables'
-          />
-          <Switch
-            checked={options.clean}
-            onChange={(clean) => onChange({ clean })}
-            label='Clean mode (no comments)'
-          />
-        </div>
-      )}
-      {engine === 'sleec' && (
-        <Switch
-          checked={options.generateFluents}
-          onChange={(generateFluents) => onChange({ generateFluents })}
-          label='Generate fluent definitions'
+      {ENGINE_OPTIONS[engine].map((option: OptionDefinition) => (
+        <OptionField
+          key={option.key}
+          option={option}
+          value={values[option.key] ?? option.default}
+          onChange={(value) =>
+            onChange({ [option.key]: value } as Partial<GenerationOptions>)
+          }
         />
-      )}
-      {engine === 'goda' && (
-        <div className='space-y-1'>
-          <span className='block'>
-            Generator version
-            <span className='block text-2xs text-ink-muted'>
-              the pistarGODA-MDP generator the output reproduces
-            </span>
-          </span>
-          <Segmented
-            size='sm'
-            label='Generator version'
-            value={options.variant}
-            onChange={(variant) => onChange({ variant })}
-            options={[
-              {
-                id: '5305bc1',
-                label: 'July 2019',
-                title:
-                  '5305bc1: no frequency parameter, guards after a sibling goal (TAS, Fragmented, BSN)',
-              },
-              {
-                id: 'cc808b6',
-                label: 'January 2019',
-                title:
-                  'cc808b6: a frequency parameter per task (AND, OR, DM, Incompleteness)',
-              },
-            ]}
-          />
-          <Switch
-            checked={options.runtimeFormulas}
-            onChange={(runtimeFormulas) => onChange({ runtimeFormulas })}
-            label='Runtime formulas (reliability.formula, cost.formula)'
-          />
-        </div>
-      )}
-      {/* GODA reads the model as written */}
-      {engine !== 'goda' && (
-        <ReduceOption
-          checked={options.reduce}
-          onChange={(reduce) => onChange({ reduce })}
-        />
-      )}
+      ))}
     </div>
   );
 }
 
-/** Reducing is asked for once, with what it does: turning it off is not. */
-function ReduceOption({
+/** An option's input, by its value type: a switch, a number, a segmented choice. */
+function OptionField({
+  option,
+  value,
+  onChange,
+}: {
+  option: OptionDefinition;
+  value: unknown;
+  onChange: (value: boolean | number | string) => void;
+}) {
+  const config = option.value;
+  if (config.type === 'bool')
+    return option.confirm ? (
+      <ConfirmedSwitch
+        option={option}
+        checked={value === true}
+        onChange={onChange}
+      />
+    ) : (
+      <Switch
+        checked={value === true}
+        onChange={onChange}
+        label={option.label}
+        description={option.help}
+      />
+    );
+  if (config.type === 'enum')
+    return (
+      <div className='space-y-1'>
+        <span className='block'>
+          {option.label}
+          {option.help && (
+            <span className='block text-2xs text-ink-muted'>{option.help}</span>
+          )}
+        </span>
+        <Segmented
+          size='sm'
+          label={option.label}
+          value={String(value)}
+          onChange={onChange}
+          options={config.options.map((o) => ({
+            id: o.value,
+            label: o.label,
+            title: o.help,
+          }))}
+        />
+      </div>
+    );
+  const integer = config.type === 'int';
+  return (
+    <label className='flex items-center justify-between gap-4'>
+      <span>
+        {option.label}
+        {option.help && (
+          <span className='block text-2xs text-ink-muted'>{option.help}</span>
+        )}
+      </span>
+      <input
+        type='number'
+        min={integer ? config.min : undefined}
+        max={integer ? config.max : undefined}
+        step={integer ? 1 : 'any'}
+        value={Number(value)}
+        onChange={(e) => {
+          const n = integer
+            ? Number.parseInt(e.target.value, 10)
+            : Number.parseFloat(e.target.value);
+          if (isOptionValue(option, n)) onChange(n);
+        }}
+        className='w-16 rounded-md border border-line-strong px-2 py-1 font-mono text-[13px]'
+      />
+    </label>
+  );
+}
+
+/** An option turned on once asked, with what it does (its `confirm`); turning it off is not. */
+function ConfirmedSwitch({
+  option,
   checked,
   onChange,
 }: {
+  option: OptionDefinition;
   checked: boolean;
-  onChange: (reduce: boolean) => void;
+  onChange: (on: boolean) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
   return (
@@ -750,26 +696,20 @@ function ReduceOption({
             onChange(false);
           }
         }}
-        label='Reduce single-child goals'
-        description='Generate without the goals that have a single child'
+        label={option.label}
+        description={option.help}
       />
       {confirming && (
         <div
           role='alertdialog'
-          aria-label='Reduce single-child goals'
+          aria-label={option.label}
           className='mt-2 rounded-lg border border-line bg-panel p-3 text-2xs text-ink-soft'
         >
-          <p>
-            Before generating, every goal with a single child is removed, and
-            its child is linked to the first parent with more than one child (or
-            to the root), with that parent&apos;s AND/OR refinement. The
-            parent&apos;s notation names the child in place of the removed goal.
-          </p>
-          <p className='mt-1.5'>
-            The properties of a removed goal (conditions, utility, cost, …) and
-            its other links are not generated. Only the generated output
-            changes: the model and the diagram stay as they are.
-          </p>
+          {option.confirm?.text.map((paragraph, i) => (
+            <p key={i} className={i > 0 ? 'mt-1.5' : undefined}>
+              {paragraph}
+            </p>
+          ))}
           <div className='mt-2.5 flex justify-end gap-2'>
             <Button variant='outline' onClick={() => setConfirming(false)}>
               Cancel
@@ -782,7 +722,7 @@ function ReduceOption({
                 onChange(true);
               }}
             >
-              Reduce
+              {option.confirm?.action}
             </Button>
           </div>
         </div>

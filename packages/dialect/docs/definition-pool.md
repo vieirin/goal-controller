@@ -87,6 +87,10 @@ An engine registers its providers, with the glue between them:
 definePool({ engine, providers, checks?, resolvers?, typeDefinition? })
 ```
 
+and gives the registration to the engine object the workbench registers:
+`defineEngine({ id: 'mutrose', …, pool: mutrosePool })` (see
+[adding-an-engine.md §3.9](adding-an-engine.md#39-the-engine-object-what-the-workbench-registers)).
+
 A document that no provider speaks is still in the pool, for checks to read.
 MutRoSe passes the project's other goal models so, as `otherModel`.
 
@@ -119,8 +123,10 @@ MutRoSe passes the project's other goal models so, as `otherModel`.
   when a definition by use is also its first reference;
 - **completion** asks the provider of the document the position is in.
 
-In the workbench, an engine with a pool (`ENGINE_POOLS`) gets a service in
-the language-service registry. It runs in the page and speaks the
+In the workbench, an engine with a pool gets a service in the
+language-service registry. The pool is given to the engine object
+(`defineEngine({ …, pool: mutrosePool })`, in `engines/mutrose/engine.ts`), and
+`ENGINE_POOLS` is derived from the registered engines. It runs in the page and speaks the
 `goal-notation`, `field` and `resource` documents, beside the shared
 language:
 

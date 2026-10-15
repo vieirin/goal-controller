@@ -121,6 +121,24 @@ export const analysisViewOf = (
 });
 
 /**
+ * What is wrong with an engine's analyses, as `defineAnalyses` and
+ * `defineEngine` reject them: one without an id or a label, or reading a
+ * project resource its dialect doesn't declare.
+ */
+export const analysesProblems = (
+  definition: Partial<Pick<AnyDialect, 'projectResources'>> | undefined,
+  analyses: Analyses,
+): string[] =>
+  Object.entries(analyses).flatMap(([id, analysis]) =>
+    !id || !analysis.label
+      ? [`analysis ${id}: needs an id and a label`]
+      : analysis.input !== undefined &&
+          !(analysis.input in (definition?.projectResources ?? {}))
+        ? [`analysis ${id} reads unknown project resource ${analysis.input}`]
+        : [],
+  );
+
+/**
  * Type-checks and freezes an engine's analyses, and checks what the types
  * cannot: each has a label, and reads only a project resource its dialect
  * declares.
@@ -129,19 +147,8 @@ export const defineAnalyses = <const A extends Analyses>(
   definition: Pick<AnyDialect, 'id' | 'projectResources'>,
   analyses: A,
 ): A => {
-  for (const [id, analysis] of Object.entries(analyses)) {
-    if (!id || !analysis.label)
-      throw new Error(
-        `${definition.id}: analysis ${id}: needs an id and a label`,
-      );
-    if (
-      analysis.input !== undefined &&
-      !(analysis.input in (definition.projectResources ?? {}))
-    )
-      throw new Error(
-        `${definition.id}: analysis ${id} reads unknown project resource ${analysis.input}`,
-      );
-  }
+  const [problem] = analysesProblems(definition, analyses);
+  if (problem) throw new Error(`${definition.id}: ${problem}`);
   return Object.freeze(analyses);
 };
 

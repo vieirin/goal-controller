@@ -1,0 +1,178 @@
+{
+  "id": "grl",
+  "name": "GRL",
+  "elements": {
+    "goal": {
+      "fill": "#CDFECD"
+    },
+    "task": {
+      "fill": "#CDFECD"
+    },
+    "resource": {
+      "fill": "#CDFECD"
+    },
+    "quality": {
+      "fill": "#CDFECD"
+    }
+  },
+  "defaultFill": "#CDFECD",
+  "notation": {
+    "operand": {
+      "kinds": ["goal", "task"]
+    },
+    "operators": {},
+    "constructs": {
+      "and": {
+        "label": "And",
+        "help": "satisfied by all its children",
+        "relation": "and"
+      },
+      "or": {
+        "label": "Or",
+        "help": "satisfied by any of its children",
+        "relation": "or"
+      }
+    },
+    "defaultConstruct": {
+      "and": "and",
+      "or": "or"
+    }
+  },
+  "properties": {
+    "goal": [],
+    "task": [],
+    "resource": [],
+    "quality": []
+  },
+  "propertyLineOrder": [],
+  "indent": "  ",
+  "linkLines": true,
+  "links": {
+    "istar.ContributionLink": [
+      {
+        "key": "contribution",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "Make",
+              "label": "Make"
+            },
+            {
+              "value": "Help",
+              "label": "Help"
+            },
+            {
+              "value": "SomePositive",
+              "label": "SomePositive"
+            },
+            {
+              "value": "Unknown",
+              "label": "Unknown"
+            },
+            {
+              "value": "SomeNegative",
+              "label": "SomeNegative"
+            },
+            {
+              "value": "Hurt",
+              "label": "Hurt"
+            },
+            {
+              "value": "Break",
+              "label": "Break"
+            }
+          ]
+        },
+        "help": "GRL’s contribution type (its iStar value is the link’s make, help, hurt or break)",
+        "check": "grl.link.contribution"
+      },
+      {
+        "key": "quantitativeContribution",
+        "value": {
+          "type": "int",
+          "min": -100,
+          "max": 100
+        },
+        "help": "its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)",
+        "check": "grl.link.quantitativeContribution"
+      },
+      {
+        "key": "correlation",
+        "value": {
+          "type": "bool"
+        },
+        "help": "a side effect rather than an intended contribution (drawn dotted in jUCMNav; evaluated the same)"
+      }
+    ]
+  },
+  "actors": [
+    {
+      "key": "importance",
+      "value": {
+        "type": "enum",
+        "options": [
+          {
+            "value": "High",
+            "label": "High"
+          },
+          {
+            "value": "Medium",
+            "label": "Medium"
+          },
+          {
+            "value": "Low",
+            "label": "Low"
+          },
+          {
+            "value": "None",
+            "label": "None"
+          }
+        ]
+      },
+      "help": "how much it matters to its actor, in words (the qualitative evaluation weighs it)"
+    },
+    {
+      "key": "importanceQuantitative",
+      "value": {
+        "type": "int",
+        "min": 0,
+        "max": 100
+      },
+      "help": "how much it matters to its actor, 0..100 (the quantitative evaluation weighs it; 0 leaves it out)"
+    }
+  ],
+  "model": {
+    "actors": "many",
+    "treesPerActor": "many"
+  },
+  "projectResources": {
+    "strategies": {
+      "label": "Strategies",
+      "format": "json",
+      "many": true,
+      "role": "strategies",
+      "path": "strategies/",
+      "accept": [".json"],
+      "help": "one file per strategies group: each strategy’s initial values, which the evaluation propagates"
+    }
+  },
+  "problems": {
+    "notAChild": {
+      "severity": "error",
+      "message": "Not a child of this element"
+    },
+    "missingFromNotation": {
+      "severity": "warning",
+      "message": "Missing from the decomposition"
+    },
+    "relationMismatch": {
+      "severity": "error",
+      "message": "{construct} needs {needs} refinement links, but this element is refined with {relation} links"
+    },
+    "notInDiagram": {
+      "severity": "error",
+      "message": "Add this element in the diagram"
+    }
+  }
+}

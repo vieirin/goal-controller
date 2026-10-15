@@ -7,6 +7,8 @@
  */
 import {
   defineExtension,
+  extensionKind,
+  extensionLink,
   type ExtensionElementDefinition,
 } from '@goal-controller/dialect';
 
@@ -20,27 +22,24 @@ export const grlExtension = defineExtension({
   name: 'grl',
   label: 'GRL',
   elements: [
-    {
-      kind: 'grl.Indicator',
+    extensionKind('grl.Indicator', {
       label: 'Indicator',
       // refined, contributing and contributed to as a task is
       behavesLike: 'istar.Task',
       size: { width: 100, height: 50 },
       shape: INDICATOR_SHAPE,
       textBox: { top: 0.08, right: 0.06, bottom: 0.3, left: 0.06 },
-    },
-    {
-      kind: 'grl.Belief',
+    }),
+    extensionKind('grl.Belief', {
       label: 'Belief',
       category: 'node',
       size: { width: 100, height: 50 },
       shape: BELIEF_SHAPE,
       textBox: { top: 0.2, right: 0.15, bottom: 0.2, left: 0.15 },
-    },
+    }),
   ],
   links: [
-    {
-      kind: 'grl.BeliefLink',
+    extensionLink('grl.BeliefLink', {
       label: 'Belief',
       // from a belief to any element, across actors
       rules: {
@@ -50,7 +49,7 @@ export const grlExtension = defineExtension({
         unique: 'kind',
       },
       line: { dash: 'dotted' },
-    },
+    }),
   ],
   groupers: {},
   stereotypes: [],

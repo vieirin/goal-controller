@@ -1,11 +1,8 @@
 import type { GoalDiagnostic } from '@istar-ts/core';
 import type { DialectMode } from './dialects';
-import type {
-  EdgeV2TaskLayout,
-  GodaVariant,
-  TransformEngine,
-} from '@/lib/types';
-import { GODA_DEFAULT_VARIANT } from '../types';
+import { optionDefaults, type OptionValues } from '@goal-controller/dialect';
+import type { TransformEngine } from '@/lib/types';
+import { ENGINE_OPTIONS } from './engineDialects';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -65,36 +62,15 @@ export type AnalyzeResponse = {
   };
 };
 
-export type GenerationOptions = {
-  clean: boolean;
-  generateDecisionVars: boolean;
-  /** Edge only */
-  achievabilitySpace: number;
-  /** EdgeV2 only: N */
-  discretisation: number;
-  /** EdgeV2 only */
-  taskLayout: EdgeV2TaskLayout;
-  /** SLEEC only */
-  generateFluents: boolean;
-  /** GODA only: the generator version it writes as (#34 D24: the July 2019 one) */
-  variant: GodaVariant;
-  /** GODA only: also write the formulas SA-BSN's runtime loads (goal-controller#94) */
-  runtimeFormulas: boolean;
-  /** generate from the model without its single-child goals (the model itself is kept) */
-  reduce: boolean;
-};
+/** The options of every engine, by key, typed by their declarations (ENGINE_OPTIONS). */
+export type GenerationOptions = OptionValues<
+  (typeof ENGINE_OPTIONS)[TransformEngine][number]
+>;
 
-export const DEFAULT_OPTIONS: GenerationOptions = {
-  clean: false,
-  generateDecisionVars: true,
-  achievabilitySpace: 4,
-  discretisation: 10,
-  taskLayout: 'taskModules',
-  generateFluents: false,
-  variant: GODA_DEFAULT_VARIANT,
-  runtimeFormulas: false,
-  reduce: false,
-};
+/** Each option's declared default (an option two engines share has one). */
+export const DEFAULT_OPTIONS: GenerationOptions = optionDefaults(
+  Object.values(ENGINE_OPTIONS).flat(),
+);
 
 /** Per-model generation settings, chosen when a model is first opened. */
 export type ModelSettings = {

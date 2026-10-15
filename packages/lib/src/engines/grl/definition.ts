@@ -11,8 +11,12 @@
  * prefixes.
  */
 import {
+  actors,
   defineDialect,
-  type PropertyDefinition,
+  element,
+  links,
+  notation,
+  property,
 } from '@goal-controller/dialect';
 import type { GrlCheckName } from './checks';
 import {
@@ -21,71 +25,61 @@ import {
   GRL_IMPORTANCES,
 } from './vocabulary';
 
-type GrlProperty = PropertyDefinition<GrlCheckName>;
+/** Its properties, their `check` one of GRL's checks (a misspelt one doesn't compile). */
+const { bool, enum: choice, int } = property.for<GrlCheckName>();
 
 /** the istar-ts canvas's fill, as piStar */
 const DEFAULT_FILL = '#CDFECD';
 
-const options = (values: readonly string[]) =>
-  values.map((value) => ({ value, label: value }));
-
 const IMPORTANCE = [
-  {
-    key: 'importance',
-    value: { type: 'enum', options: options(GRL_IMPORTANCES) },
+  choice('importance', GRL_IMPORTANCES, {
     help: 'how much it matters to its actor, in words (the qualitative evaluation weighs it)',
-  },
-  {
-    key: 'importanceQuantitative',
-    value: { type: 'int', min: 0, max: 100 },
+  }),
+  int('importanceQuantitative', {
+    min: 0,
+    max: 100,
     help: 'how much it matters to its actor, 0..100 (the quantitative evaluation weighs it; 0 leaves it out)',
-  },
-] as const satisfies readonly GrlProperty[];
+  }),
+];
 
 /** what GRL would declare on its elements (#105: not declarable yet) */
 export const elementProperties = [
   ...IMPORTANCE,
-  {
-    key: 'decompositionType',
-    value: { type: 'enum', options: options(GRL_DECOMPOSITIONS) },
+  choice('decompositionType', GRL_DECOMPOSITIONS, {
     help: 'how its children decompose it, when its refinement links can’t say: Xor (one of them), drawn as Or',
-  },
-] as const satisfies readonly GrlProperty[];
+  }),
+];
 
 /** a contribution's type and weight: what the evaluations read */
 const CONTRIBUTION = [
-  {
-    key: 'contribution',
-    value: { type: 'enum', options: options(GRL_CONTRIBUTIONS) },
+  choice('contribution', GRL_CONTRIBUTIONS, {
     help: 'GRL’s contribution type (its iStar value is the link’s make, help, hurt or break)',
     check: 'grl.link.contribution',
-  },
-  {
-    key: 'quantitativeContribution',
-    value: { type: 'int', min: -100, max: 100 },
+  }),
+  int('quantitativeContribution', {
+    min: -100,
+    max: 100,
     help: 'its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)',
     check: 'grl.link.quantitativeContribution',
-  },
-  {
-    key: 'correlation',
-    value: { type: 'bool' },
+  }),
+  bool('correlation', {
     help: 'a side effect rather than an intended contribution (drawn dotted in jUCMNav; evaluated the same)',
-  },
-] as const satisfies readonly GrlProperty[];
+  }),
+];
 
 export const grl = defineDialect({
   id: 'grl',
   name: 'GRL',
   elements: {
-    goal: { fill: DEFAULT_FILL },
-    task: { fill: DEFAULT_FILL },
-    resource: { fill: DEFAULT_FILL },
-    quality: { fill: DEFAULT_FILL },
+    goal: element({ fill: DEFAULT_FILL }),
+    task: element({ fill: DEFAULT_FILL }),
+    resource: element({ fill: DEFAULT_FILL }),
+    quality: element({ fill: DEFAULT_FILL }),
   },
   defaultFill: DEFAULT_FILL,
   // GRL writes no `[…]`: the notation names no operator, and a decomposition
   // is its refinement links' (an And or an Or; a Xor is read as an Or)
-  notation: {
+  notation: notation({
     operand: { kinds: ['goal', 'task'] },
     operators: {},
     constructs: {
@@ -101,7 +95,7 @@ export const grl = defineDialect({
       },
     },
     defaultConstruct: { and: 'and', or: 'or' },
-  },
+  }),
   // an element's importance and decomposition type are read from its
   // custom properties (the importer writes them; the evaluation reads them)
   // but not declared: a dialect without ids writes no property lines, and an
@@ -113,8 +107,8 @@ export const grl = defineDialect({
   // a contribution's type and weight are what the evaluations read: written
   // as link lines under its source, the target named by its text
   linkLines: true,
-  links: { 'istar.ContributionLink': CONTRIBUTION },
-  actors: IMPORTANCE,
+  links: links({ 'istar.ContributionLink': CONTRIBUTION }),
+  actors: actors(IMPORTANCE),
   // its analyses evaluate every actor and every tree (goal-controller#125)
   model: { actors: 'many', treesPerActor: 'many' },
   projectResources: {

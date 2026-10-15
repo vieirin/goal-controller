@@ -9,61 +9,58 @@
  */
 import {
   defineDialect,
-  type PropertyDefinition,
+  element,
+  notation,
+  property,
 } from '@goal-controller/dialect';
 import type { GodaCheckName } from './checks';
 
-/** A property whose `check` is one of GODA's checks (a misspelt one doesn't compile). */
-type GodaProperty = PropertyDefinition<GodaCheckName>;
+/** Its properties, their `check` one of GODA's checks (a misspelt one doesn't compile). */
+const { assertion, enum: choice } = property.for<GodaCheckName>();
 
 /** The default fill of an intentional element (the istar-ts canvas, as piStar). */
 const DEFAULT_FILL = '#CDFECD';
 
 /** CtxRegex.g4: `assertion condition` or `assertion trigger`, then the condition. */
-const CONTEXT = {
-  key: 'creationProperty',
-  value: {
-    type: 'assertion',
-    resolves: ['variable'],
-    prefixes: ['assertion condition', 'assertion trigger'],
-    decimals: true,
-    booleanInequality: true,
-    // CtxRegex.g4's VARs are the context's meta-variables, declared by use (#34 D17)
-    declaresVariables: true,
-  },
+const CONTEXT = assertion('creationProperty', {
+  resolves: ['variable'],
+  prefixes: ['assertion condition', 'assertion trigger'],
+  decimals: true,
+  booleanInequality: true,
+  // CtxRegex.g4's VARs are the context's meta-variables, declared by use (#34 D17)
+  declaresVariables: true,
   input: { placeholder: 'assertion trigger battery > 0.5' },
   help: 'the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables',
-} as const satisfies GodaProperty;
+});
 
 const goalProperties = [
-  {
-    key: 'selected',
-    value: {
-      type: 'enum',
-      options: [
-        { value: '', label: 'not selected' },
-        { value: 'true', label: 'true' },
-      ],
+  choice(
+    'selected',
+    [
+      ['', 'not selected'],
+      ['true', 'true'],
+    ],
+    {
+      help: 'the goal the model is generated from: exactly one goal is selected',
+      check: 'goda.goal.selected',
     },
-    help: 'the goal the model is generated from: exactly one goal is selected',
-    check: 'goda.goal.selected',
-  },
+  ),
   CONTEXT,
-] as const satisfies readonly GodaProperty[];
+];
 
-const taskProperties = [CONTEXT] as const satisfies readonly GodaProperty[];
+const taskProperties = [CONTEXT];
 
 export const goda = defineDialect({
   id: 'goda',
   name: 'GODA',
   elements: {
-    goal: { prefix: 'G', fill: DEFAULT_FILL },
-    task: { prefix: 'T', fill: DEFAULT_FILL },
+    goal: element('G', { fill: DEFAULT_FILL }),
+    task: element('T', { fill: DEFAULT_FILL }),
     // read and left out (TAS draws some)
-    resource: { prefix: 'R', fill: DEFAULT_FILL },
+    resource: element('R', { fill: DEFAULT_FILL }),
   },
   defaultFill: DEFAULT_FILL,
-  notation: {
+  notation: notation({
     operand: { kinds: ['goal', 'task'] },
     // RTRegex.g4 also has `;`, `@n`, `try(a)?b:c` and `skip`. The MDP
     // generator the references come from reads decision making only (its
@@ -93,7 +90,7 @@ export const goda = defineDialect({
     whitespace: 'ignore',
     // GODA's producer splits a line at its colon: a name may hold digits (TAS, BSN)
     names: 'text',
-  },
+  }),
   idScope: 'ancestorGoal',
   // TAS draws its Resources beside the goals, linked to nothing and without ids
   unlinkedResources: 'ignore',

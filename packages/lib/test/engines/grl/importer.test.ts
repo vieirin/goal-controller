@@ -209,7 +209,7 @@ describe('importJucm: jUCMNav’s 2014 SmartHome2.jucm', () => {
     );
   });
 
-  it('places the elements no diagram draws in a grid below the diagrams', () => {
+  it('lays out the elements no diagram draws below the diagrams', () => {
     const unplaced = new Set([
       '15',
       '19',
@@ -226,6 +226,43 @@ describe('importJucm: jUCMNav’s 2014 SmartHome2.jucm', () => {
         .filter((n: Json) => unplaced.has(n.id) === inGrid)
         .map((n: Json) => n.y as number);
     assert.ok(Math.min(...ys(true)) > Math.max(...ys(false)));
+  });
+});
+
+describe('importJucm: a file without diagrams', () => {
+  const { model, diagnostics } = imported(
+    `<urn:URNspec><grlspec>
+      <intElements name="Root" id="1" type="Goal" decompositionType="And"/>
+      <intElements name="Part" id="2" type="Goal"/>
+      <intElements name="Other part" id="3" type="Task"/>
+      <intElements name="Step" id="4" type="Task"/>
+      <intElements name="Cheap" id="5" type="Softgoal"/>
+      <links xsi:type="grl:Decomposition" id="10" dest="1" src="2"/>
+      <links xsi:type="grl:Decomposition" id="11" dest="1" src="3"/>
+      <links xsi:type="grl:Decomposition" id="12" dest="2" src="4"/>
+      <links xsi:type="grl:Contribution" id="13" dest="5" src="4" contribution="Help"/>
+      <actors name="Owner" id="20"/>
+    </grlspec></urn:URNspec>`,
+  );
+
+  it('lays the model out by its links, saying so', () => {
+    assert.match(
+      diagnostics[0]!.message,
+      /^5 element\(s\) are in no diagram \(1, 2, 3, 4, 5\): laid out below the diagrams, by their links$/,
+    );
+    const at = (n: Json) => [n.x, n.y];
+    assert.deepStrictEqual(at(model.actors[0]), [40, 40]);
+    // the root over its two parts, the step under the first, what it helps beside it
+    assert.deepStrictEqual(
+      Object.fromEntries(model.orphans.map((n: Json) => [n.id, at(n)])),
+      {
+        '1': [440, 80],
+        '2': [280, 180],
+        '3': [600, 180],
+        '4': [280, 280],
+        '5': [440, 280],
+      },
+    );
   });
 });
 

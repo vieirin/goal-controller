@@ -12,6 +12,7 @@ import { EXPRESSION, ID_PREFIXES, type ValueType } from './catalog.js';
 import type {
   AnnotatedName,
   Annotation,
+  AssertCall,
   AssertCompare,
   AssertExpr,
   AssertionValue,
@@ -22,6 +23,7 @@ import type {
   ElementLine,
   EnumValue,
   Expr,
+  ExprCall,
   ExpressionValue,
   IntValue,
   NumberValue,
@@ -99,6 +101,8 @@ export type AssertionNode<Comparison> =
   | { kind: 'assign'; variable: string; value: boolean; negated?: true }
   | { kind: 'var'; variable: string }
   | { kind: 'bool'; value: boolean }
+  /** `previous(on)`: a call to a function the value declares, as a condition */
+  | { kind: 'call'; name: string; args: ExpressionTree[] }
   | Comparison;
 
 /** `x > 3`: a name and a number, as AssertionRegex.g4 read every comparison. */
@@ -481,12 +485,8 @@ export const toExpressionTree = (
       const operand = toExpressionTree(expr.expr);
       return operand && { kind: 'unary', operator: '-', expr: operand };
     }
-    case 'ExprCall': {
-      const args = expr.args.map(toExpressionTree);
-      return expr.function && args.every((arg) => arg !== null)
-        ? { kind: 'call', name: expr.function, args: args as ExpressionTree[] }
-        : null;
-    }
+    case 'ExprCall':
+      return callOf(expr);
     case 'ExprBinary': {
       const left = toExpressionTree(expr.left);
       const right = toExpressionTree(expr.right);
@@ -497,6 +497,16 @@ export const toExpressionTree = (
     default:
       return null;
   }
+};
+
+/** A call (`previous(t)`), in an expression or as a condition; null while unfinished. */
+const callOf = (
+  expr: ExprCall | AssertCall,
+): { kind: 'call'; name: string; args: ExpressionTree[] } | null => {
+  const args = expr.args.map(toExpressionTree);
+  return expr.function && args.every((arg) => arg !== null)
+    ? { kind: 'call', name: expr.function, args: args as ExpressionTree[] }
+    : null;
 };
 
 /** A comparison's two sides as expressions. */
@@ -573,6 +583,8 @@ const assertionAtom = (
       return expr.variable ? { kind: 'var', variable: expr.variable } : null;
     case 'AssertConst':
       return expr.value ? { kind: 'bool', value: expr.value === 'true' } : null;
+    case 'AssertCall':
+      return callOf(expr);
     default:
       return null;
   }
@@ -648,6 +660,8 @@ export const assertionText = (tree: AssertionTree | null): string => {
       return `${tree.variable} ${tree.operator} ${tree.value}`;
     case 'comparison':
       return `${expressionText(tree.left)} ${tree.operator} ${expressionText(tree.right)}`;
+    case 'call':
+      return expressionText(tree);
     case 'var':
       return tree.variable;
     case 'bool':
@@ -749,10 +763,10 @@ export const expressionNodes = (tree: ExpressionTree): ExpressionTree[] => {
   }
 };
 
-/** An assertion's comparisons of expressions, in the order written. */
+/** An assertion's comparisons of expressions and its calls, in the order written. */
 export const comparisonsOf = (
   tree: AssertionTree | null,
-): ExpressionComparison[] => {
+): (ExpressionComparison | Extract<AssertionTree, { kind: 'call' }>)[] => {
   switch (tree?.kind) {
     case 'and':
     case 'or':
@@ -761,8 +775,17 @@ export const comparisonsOf = (
     case 'paren':
       return comparisonsOf(tree.expr);
     case 'comparison':
+    case 'call':
       return [tree];
     default:
       return [];
   }
 };
+
+/** The expressions an assertion's comparisons and calls hold (each side; a call whole). */
+export const assertionExpressions = (
+  tree: AssertionTree | null,
+): ExpressionTree[] =>
+  comparisonsOf(tree).flatMap((atom) =>
+    atom.kind === 'call' ? [atom] : [atom.left, atom.right],
+  );

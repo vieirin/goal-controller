@@ -4,6 +4,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, it } from 'mocha';
+import { NOTATION_SYMBOLS } from '@goal-controller/dialect';
 import { AstUtils, GrammarAST } from 'langium';
 import { GoalGrammar } from '../src/generated/grammar.js';
 import {
@@ -29,6 +30,17 @@ import {
 } from '../src/index.js';
 
 const PACKAGE = resolve(import.meta.dirname, '..');
+
+describe("the dialect package's copy of the operator catalog", () => {
+  it('lists the symbols the catalog has, by form (what `notation()` completes)', () =>
+    assert.deepEqual(NOTATION_SYMBOLS, {
+      infix: INFIX_SYMBOLS,
+      prefix: PREFIX_SYMBOLS,
+      postfix: POSTFIX_SYMBOLS,
+      calls: CALL_NAMES,
+      standalone: STANDALONE_SYMBOLS,
+    }));
+});
 
 const rule = (name: string) => {
   const found = GoalGrammar().rules.find((r) => r.name === name);
@@ -567,5 +579,28 @@ describe('assertions with expressions', () => {
       right: { kind: 'number', value: '2' },
     });
     assert.equal(readAssertion('x >'), null);
+  });
+
+  it('reads a call as a condition on its own, and a comparison of one as before', () => {
+    const text = 'previous(hvacOn) & !signalOffS | signalOnS';
+    assert.deepEqual(readAssertion(text), {
+      kind: 'and',
+      left: {
+        kind: 'call',
+        name: 'previous',
+        args: [{ kind: 'var', name: 'hvacOn' }],
+      },
+      right: {
+        kind: 'not',
+        expr: {
+          kind: 'or',
+          left: { kind: 'var', variable: 'signalOffS' },
+          right: { kind: 'var', variable: 'signalOnS' },
+        },
+      },
+    });
+    assert.equal(assertionText(parseValue('assertion', text).value), text);
+    assert.equal(readAssertion('(previous(on)) | f(G1, 2)')?.kind, 'or');
+    assert.equal(readAssertion('previous(t) < 18')?.kind, 'comparison');
   });
 });

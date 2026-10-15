@@ -1,4 +1,4 @@
-import { defineExtension } from '@goal-controller/dialect';
+import { defineExtension, extensionKind } from '@goal-controller/dialect';
 
 /**
  * iStar4RationalAgents, the dialect piStar-ext was demonstrated with
@@ -23,8 +23,7 @@ export const istar4RationalAgents = defineExtension({
   name: 'rationalAgents',
   label: 'iStar4RationalAgents',
   elements: [
-    {
-      kind: 'rationalAgents.Planning',
+    extensionKind('rationalAgents.Planning', {
       behavesLike: 'istar.Task',
       pistarType: 'istar.Planning',
       // piStar-ext's size for a new node
@@ -37,10 +36,10 @@ export const istar4RationalAgents = defineExtension({
         'M 9.1814481,1.0179789 H 65.503448 L 65.025854,14.532293 72.4491,14.819567 73.29006,4.9 85.2,19.8 73.29006,30.6 72.4491,22.6 65.025854,22.6 65.503448,38.6 H 9.1814481 L 1,19.8 Z',
       // its label in the body, between the pointed side and the arrow
       textBox: { top: 0.04, right: 0.25, bottom: 0.04, left: 0.11 },
-    },
+    }),
     // its symbol isn't shown in the paper: piStar-ext's default for a new node
     // without one (a dashed box), as istar-ts draws it
-    { kind: 'rationalAgents.Plan', category: 'node' },
+    extensionKind('rationalAgents.Plan', { category: 'node' }),
   ],
   links: [],
   groupers: { rational: ['istar.Actor', 'istar.Agent', 'istar.Role'] },
