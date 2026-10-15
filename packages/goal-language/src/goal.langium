@@ -111,11 +111,13 @@ AssertUnary infers AssertExpr:
 
 // a comparison's sides are expressions (`previous(t) < 18`); AssertionRegex.g4
 // read a name and a number (`x > 3`), and a dialect whose assertions declare
-// no functions still does (the validator says so)
+// no functions still does (the validator says so). A call is a condition on
+// its own too (`previous(on) & !off`), where a dialect declares its function.
 AssertPrimary infers AssertExpr:
     {infer AssertParen} '(' expr=AssertExpr ')'
     | {infer AssertAssign} variable=AName operator=('=' | '!=') value=AssertBool
     | {infer AssertCompare} left=Expr operator=Comparator right=Expr
+    | {infer AssertCall} function=A_ID '(' (args+=Expr (',' args+=Expr)*)? ')'
     | {infer AssertVar} variable=AName
     | {infer AssertConst} value=AssertBool;
 

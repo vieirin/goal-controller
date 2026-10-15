@@ -85,6 +85,9 @@ describe('a dialect with expressions', () => {
     expect(
       problems('reward', '0.5 + 0.9 * previous(roomTemperature) - R1'),
     ).to.deep.equal([]);
+    expect(problems('guard', '(previous(on) & !(off)) | x > 2')).to.deep.equal(
+      [],
+    );
     expect(problems('guard', 'previous(R1) < 18 & 0.9 * x >= 1')).to.deep.equal(
       [],
     );
@@ -105,6 +108,9 @@ describe('a dialect with expressions', () => {
     ]);
     expect(problems('guard', 'previous() < 18')).to.deep.equal([
       'previous takes 1 argument, not 0',
+    ]);
+    expect(problems('guard', 'on & next(on)')).to.deep.equal([
+      'next is not a function here (previous)',
     ]);
     expect(problems('reward', '2 *')[0]).to.match(/^Not an expression: /);
   });

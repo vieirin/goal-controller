@@ -178,6 +178,23 @@ export function isAssertBool(item: unknown): item is AssertBool {
     return item === 'true' || item === 'false';
 }
 
+export interface AssertCall extends langium.AstNode {
+    readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
+    readonly $type: 'AssertCall';
+    args: Array<Expr>;
+    function: string;
+}
+
+export const AssertCall = {
+    $type: 'AssertCall',
+    args: 'args',
+    function: 'function'
+} as const;
+
+export function isAssertCall(item: unknown): item is AssertCall {
+    return reflection.isInstance(item, AssertCall.$type);
+}
+
 export interface AssertCompare extends langium.AstNode {
     readonly $container: AssertBinary | AssertNot | AssertParen | AssertionValue;
     readonly $type: 'AssertCompare';
@@ -212,7 +229,7 @@ export function isAssertConst(item: unknown): item is AssertConst {
     return reflection.isInstance(item, AssertConst.$type);
 }
 
-export type AssertExpr = AssertAssign | AssertBinary | AssertCompare | AssertConst | AssertNot | AssertParen | AssertVar;
+export type AssertExpr = AssertAssign | AssertBinary | AssertCall | AssertCompare | AssertConst | AssertNot | AssertParen | AssertVar;
 
 export const AssertExpr = {
     $type: 'AssertExpr'
@@ -416,7 +433,7 @@ export function isExpr(item: unknown): item is Expr {
 }
 
 export interface ExprBinary extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprBinary';
     left: Expr;
     operator: '*' | '+' | '-' | '/';
@@ -435,7 +452,7 @@ export function isExprBinary(item: unknown): item is ExprBinary {
 }
 
 export interface ExprCall extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprCall';
     args: Array<Expr>;
     function: string;
@@ -467,7 +484,7 @@ export function isExpressionValue(item: unknown): item is ExpressionValue {
 }
 
 export interface ExprNegation extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprNegation';
     expr: Expr;
     operator: '-';
@@ -484,7 +501,7 @@ export function isExprNegation(item: unknown): item is ExprNegation {
 }
 
 export interface ExprNumber extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprNumber';
     value: string;
 }
@@ -499,7 +516,7 @@ export function isExprNumber(item: unknown): item is ExprNumber {
 }
 
 export interface ExprParen extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprParen';
     expr: Expr;
 }
@@ -514,7 +531,7 @@ export function isExprParen(item: unknown): item is ExprParen {
 }
 
 export interface ExprRef extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprRef';
     id: string;
 }
@@ -529,7 +546,7 @@ export function isExprRef(item: unknown): item is ExprRef {
 }
 
 export interface ExprVar extends langium.AstNode {
-    readonly $container: AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
+    readonly $container: AssertCall | AssertCompare | ExprBinary | ExprCall | ExprNegation | ExprParen | ExpressionValue;
     readonly $type: 'ExprVar';
     name: string;
 }
@@ -939,6 +956,7 @@ export type GoalAstType = {
     Annotation: Annotation
     AssertAssign: AssertAssign
     AssertBinary: AssertBinary
+    AssertCall: AssertCall
     AssertCompare: AssertCompare
     AssertConst: AssertConst
     AssertExpr: AssertExpr
@@ -1046,6 +1064,20 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 right: {
                     name: AssertBinary.right
+                }
+            },
+            superTypes: [AssertExpr.$type]
+        },
+        AssertCall: {
+            name: AssertCall.$type,
+            properties: {
+                args: {
+                    name: AssertCall.args,
+                    defaultValue: [],
+                    optional: true
+                },
+                function: {
+                    name: AssertCall.function
                 }
             },
             superTypes: [AssertExpr.$type]

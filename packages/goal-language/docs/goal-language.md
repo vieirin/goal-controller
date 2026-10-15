@@ -87,8 +87,9 @@ The **assertion language** works as follows:
 - An operand is an identifier, `x = true`/`false`, `x op n` (where `op` is
   one of `= != < <= > >=`), or `true`/`false`.
 - Where the property declares `functions`, a comparison is `e op e` between
-  two expressions (`previous(t) < 18`, `0.9 * x >= 1`); elsewhere any
-  comparison but `x op n` is an error.
+  two expressions (`previous(t) < 18`, `0.9 * x >= 1`), and a call to one
+  of them is an operand on its own (`previous(on) & !off`); elsewhere any
+  comparison but `x op n`, and any call, is an error.
 
 The **expression language** (the catalog's `EXPRESSION`) works as follows,
 tightest first:
