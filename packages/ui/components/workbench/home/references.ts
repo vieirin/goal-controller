@@ -105,6 +105,18 @@ export const SECTION_REFERENCES: Readonly<
       examples: ['grl/grl-smart-home'],
     },
   ],
+  tropos4as: [
+    {
+      text: 'M. Morandini, L. Penserini, A. Perini. Operational Semantics of Goal Models in Adaptive Agents. AAMAS 2009: the goal lifecycle the engine runs, and Fig. 1, the Cleaner Agent.',
+      url: 'https://www.ifaamas.org/Proceedings/aamas09/pdf/01_Full%20Papers/02_11_FP_0633.pdf',
+      examples: ['tropos4as/cleaner-agent'],
+    },
+    {
+      text: 'M. Morandini, A. Perini, A. Marchetto. Empirical Evaluation of Tropos4AS Modelling. iStar 2011: Fig. 1, patient monitoring, its failure model.',
+      url: 'https://ceur-ws.org/Vol-766/paper03.pdf',
+      examples: ['tropos4as/patient-monitoring'],
+    },
+  ],
   'pistar-ext': [
     {
       text: 'J. Pimentel, J. Castro. piStar Tool: A Pluggable Online Tool for Goal Modeling. RE 2018.',

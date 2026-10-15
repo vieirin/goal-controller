@@ -8,6 +8,7 @@ import GrlInspector from './grl/GrlInspector';
 import IstardtInspector from './istardt/IstardtInspector';
 import MutroseInspector from './mutrose/MutroseInspector';
 import SleecInspector from './sleec/SleecInspector';
+import Tropos4asInspector from './tropos4as/Tropos4asInspector';
 
 /**
  * The inspector for the mode the model is in. piStar mode and piStar-ext have none here:
@@ -33,5 +34,7 @@ export default function ModelInspector() {
       return <GrlInspector />;
     case 'istardt':
       return <IstardtInspector />;
+    case 'tropos4as':
+      return <Tropos4asInspector />;
   }
 }

@@ -1,0 +1,17 @@
+# Derived by hand from AAMAS 2009's rules, not from the paper (#134 D6):
+# both alternatives fail and the room stays dirty. RoomClean is A(s, f)
+# behaviour a): with f = false, only ⟨¬s, Reactivate⟩ holds in AF, so it
+# restarts and tries DryCleaning again; it is never dropped with failure.
+# MaintainBattLoaded is adopted and stays suspended (batteryLoaded holds).
+step | goal | rule | state | Γ
+1 | RC | adopt | Suspended | {}
+1 | MBL | adopt | Suspended | {}
+1 | RC | activateE | AD | {}
+1 | RC | deliberateE | AU | {DC, WC}
+1 | DC | outcome | failure | {}
+1 | RC | OR:subg-achieve | AU | {WC}
+2 | WC | outcome | failure | {}
+2 | RC | OR:subg-achieve | AU | {}
+2 | RC | OR:subg-fail | AF | {}
+2 | RC | reactivateE | AD | {}
+2 | RC | deliberateE | AU | {DC, WC}

@@ -682,6 +682,10 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/istardt/`, `lib/src/importers/istardt/` and `ui/components/workbench/engines/istardt/`: an engine whose kinds are mostly its extension's (effects, conditions, predicates, variables), whose source has no diagram, and whose output (DT-Golog) is proved byte for byte against upstream's nine golden files and run by DT-Golog itself in Docker. It reads its links and the actor's sets from piStar (#125 moves them to the IR), and checks what crosses its extension's kinds as the model's problems, since an extension's kinds can't declare properties yet. [istardt.md](istardt.md) lists what fit, what it worked around, the divergences from upstream, and what is still open.
 
+### 7.6 Tropos4AS (an analysis engine that runs a model over a scenario)
+
+`lib/src/engines/tropos4as/` and `ui/components/workbench/engines/tropos4as/`: an analysis engine with no file output. It runs AAMAS 2009's goal lifecycle over a scenario, a project resource, and draws each goal's state per step on the model. The transition rules and the goal types' condition–action sets are data (`lifecycle/architecture.ts`, `lifecycle/instantiations.ts`), each tested against its premises. The paper's hand-executed trace is the oracle. The seeds reproduce the papers' figures. The dialect has no ids, so element texts read as drawn. [tropos4as.md](tropos4as.md) lists what fit, what grew, how the rules are read, and what is still open.
+
 ## 8. Options summary
 
 | Decision                    | Options                                                                      | Pick when                                                                                                             |

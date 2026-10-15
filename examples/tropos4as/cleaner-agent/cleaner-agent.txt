@@ -1,0 +1,444 @@
+{
+  "actors": [
+    {
+      "id": "Stakeholder",
+      "text": "Stakehoder",
+      "type": "istar.Actor",
+      "x": 37,
+      "y": 59,
+      "customProperties": {},
+      "nodes": []
+    },
+    {
+      "id": "CleanerAgent",
+      "text": "Cleaner Agent",
+      "type": "istar.Actor",
+      "x": 324,
+      "y": 53,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "RC",
+          "text": "RoomClean",
+          "type": "istar.Goal",
+          "x": 393,
+          "y": 141,
+          "customProperties": {
+            "achievement": "roomClean"
+          }
+        },
+        {
+          "id": "MBL",
+          "text": "MaintainBattLoaded",
+          "type": "istar.Goal",
+          "x": 576,
+          "y": 168,
+          "customProperties": {
+            "type": "maintain",
+            "maintain": "batteryLoaded"
+          }
+        },
+        {
+          "id": "WC",
+          "text": "WetCleaning",
+          "type": "istar.Goal",
+          "x": 288,
+          "y": 263,
+          "customProperties": {
+            "type": "perform"
+          }
+        },
+        {
+          "id": "DC",
+          "text": "DryCleaning",
+          "type": "istar.Goal",
+          "x": 458,
+          "y": 258,
+          "customProperties": {
+            "type": "perform"
+          }
+        },
+        {
+          "id": "mop",
+          "text": "mop",
+          "type": "istar.Task",
+          "x": 302,
+          "y": 358,
+          "customProperties": {}
+        },
+        {
+          "id": "sweep",
+          "text": "sweep",
+          "type": "istar.Task",
+          "x": 498,
+          "y": 354,
+          "customProperties": {}
+        },
+        {
+          "id": "loadBattery",
+          "text": "load battery",
+          "type": "istar.Task",
+          "x": 580,
+          "y": 303,
+          "customProperties": {}
+        },
+        {
+          "id": "efficiency",
+          "text": "efficiency",
+          "type": "istar.Quality",
+          "x": 400,
+          "y": 422,
+          "customProperties": {}
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [
+    {
+      "id": "RoomCleanDependum",
+      "text": "RoomClean",
+      "type": "istar.Goal",
+      "x": 128,
+      "y": 24,
+      "customProperties": {},
+      "source": "Stakeholder",
+      "target": "CleanerAgent"
+    },
+    {
+      "id": "efficiencyDependum",
+      "text": "efficiency",
+      "type": "istar.Quality",
+      "x": 148,
+      "y": 110,
+      "customProperties": {},
+      "source": "Stakeholder",
+      "target": "CleanerAgent"
+    }
+  ],
+  "links": [
+    {
+      "id": "WC-OrRefinementLink-RC",
+      "type": "istar.OrRefinementLink",
+      "source": "WC",
+      "target": "RC"
+    },
+    {
+      "id": "DC-OrRefinementLink-RC",
+      "type": "istar.OrRefinementLink",
+      "source": "DC",
+      "target": "RC"
+    },
+    {
+      "id": "mop-OrRefinementLink-WC",
+      "type": "istar.OrRefinementLink",
+      "source": "mop",
+      "target": "WC"
+    },
+    {
+      "id": "sweep-OrRefinementLink-DC",
+      "type": "istar.OrRefinementLink",
+      "source": "sweep",
+      "target": "DC"
+    },
+    {
+      "id": "loadBattery-OrRefinementLink-MBL",
+      "type": "istar.OrRefinementLink",
+      "source": "loadBattery",
+      "target": "MBL"
+    },
+    {
+      "id": "mop-ContributionLink-efficiency",
+      "type": "istar.ContributionLink",
+      "source": "mop",
+      "target": "efficiency",
+      "label": "hurt"
+    },
+    {
+      "id": "sweep-ContributionLink-efficiency",
+      "type": "istar.ContributionLink",
+      "source": "sweep",
+      "target": "efficiency",
+      "label": "help"
+    },
+    {
+      "id": "Stakeholder-DependencyLink-RoomCleanDependum",
+      "type": "istar.DependencyLink",
+      "source": "Stakeholder",
+      "target": "RoomCleanDependum"
+    },
+    {
+      "id": "RoomCleanDependum-DependencyLink-CleanerAgent",
+      "type": "istar.DependencyLink",
+      "source": "RoomCleanDependum",
+      "target": "CleanerAgent"
+    },
+    {
+      "id": "Stakeholder-DependencyLink-efficiencyDependum",
+      "type": "istar.DependencyLink",
+      "source": "Stakeholder",
+      "target": "efficiencyDependum"
+    },
+    {
+      "id": "efficiencyDependum-DependencyLink-CleanerAgent",
+      "type": "istar.DependencyLink",
+      "source": "efficiencyDependum",
+      "target": "CleanerAgent"
+    }
+  ],
+  "display": {
+    "Stakeholder": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "RC": {
+      "backgroundColor": "#FFFFFF",
+      "width": 132,
+      "height": 42
+    },
+    "MBL": {
+      "backgroundColor": "#FFFFFF",
+      "width": 150,
+      "height": 66
+    },
+    "WC": {
+      "backgroundColor": "#FFFFFF",
+      "width": 144,
+      "height": 48
+    },
+    "DC": {
+      "backgroundColor": "#FFFFFF",
+      "width": 141,
+      "height": 48
+    },
+    "mop": {
+      "backgroundColor": "#FFFFFF",
+      "width": 81,
+      "height": 45
+    },
+    "sweep": {
+      "backgroundColor": "#FFFFFF",
+      "width": 108,
+      "height": 45
+    },
+    "loadBattery": {
+      "backgroundColor": "#FFFFFF",
+      "width": 183,
+      "height": 48
+    },
+    "efficiency": {
+      "backgroundColor": "#C8C49A",
+      "width": 117,
+      "height": 45
+    },
+    "CleanerAgent": {
+      "backgroundColor": "#FFAA00"
+    },
+    "RoomCleanDependum": {
+      "backgroundColor": "#FFFFFF",
+      "width": 135,
+      "height": 48
+    },
+    "efficiencyDependum": {
+      "backgroundColor": "#C8C49A",
+      "width": 117,
+      "height": 45
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 820,
+    "height": 540,
+    "name": "Cleaner Agent",
+    "customProperties": {
+      "engine": "tropos4as",
+      "title": "Cleaner Agent",
+      "author": "goal-controller",
+      "source": "AAMAS 2009, Morandini, Penserini, Perini, Fig. 1",
+      "lastUpdated": "2026-10-15"
+    }
+  },
+  "metamodel": {
+    "name": "tropos4as",
+    "elements": [
+      {
+        "kind": "tropos4as.Artifact",
+        "label": "Artifact",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 2 2 L 98 2 L 98 38 L 2 38 Z",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "tropos4as.Failure",
+        "label": "Failure",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 60
+        },
+        "shape": {
+          "path": "M 50.0 2.0 L 58.2 15.4 L 78.2 7.3 L 71.4 20.9 L 95.7 21.3 L 76.4 30.0 L 95.7 38.7 L 71.4 39.1 L 78.2 52.7 L 58.2 44.6 L 50.0 58.0 L 41.8 44.6 L 21.8 52.7 L 28.6 39.1 L 4.3 38.7 L 23.6 30.0 L 4.3 21.3 L 28.6 20.9 L 21.8 7.3 L 41.8 15.4 Z",
+          "viewBox": "0 0 100 60"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.25,
+          "bottom": 0.3,
+          "left": 0.25
+        }
+      },
+      {
+        "kind": "tropos4as.Error",
+        "label": "Error",
+        "behavesLike": "istar.Goal",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 2 22 A 48 20 0 1 0 98 22 A 48 20 0 1 0 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.15,
+          "right": 0.12,
+          "bottom": 0.15,
+          "left": 0.12
+        }
+      },
+      {
+        "kind": "tropos4as.Symptom",
+        "label": "Symptom",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 50 2 L 98 22 L 50 42 L 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.25,
+          "right": 0.22,
+          "bottom": 0.25,
+          "left": 0.22
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "tropos4as.InhibitsLink",
+        "label": "inhibits",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.SequenceLink",
+        "label": "seq",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.FailureLink",
+        "label": "failure",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "tropos4as.ErrorLink",
+        "label": "error",
+        "rules": {
+          "sources": [
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "tropos4as.ReadsLink",
+        "label": "reads",
+        "rules": {
+          "sources": [
+            "tropos4as.Artifact"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.SymptomLink",
+        "label": "symptom",
+        "rules": {
+          "sources": [
+            "tropos4as.Symptom"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      }
+    ]
+  }
+}

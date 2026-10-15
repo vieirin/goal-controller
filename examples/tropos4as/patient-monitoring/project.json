@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dialect": "tropos4as",
+  "models": [
+    {
+      "path": "patient-monitoring.txt"
+    }
+  ],
+  "projectResources": {
+    "scenarios": ["scenarios/a-day.json"]
+  },
+  "outputs": []
+}

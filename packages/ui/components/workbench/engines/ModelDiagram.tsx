@@ -10,6 +10,7 @@ import MutroseDiagram from './mutrose/MutroseDiagram';
 import PistarDiagram from './pistar/PistarDiagram';
 import PistarExtDiagram from './pistarExt/PistarExtDiagram';
 import SleecDiagram from './sleec/SleecDiagram';
+import Tropos4asDiagram from './tropos4as/Tropos4asDiagram';
 
 /** The goal model's diagram for the mode the model is in. */
 export default function ModelDiagram() {
@@ -33,5 +34,7 @@ export default function ModelDiagram() {
       return <GrlDiagram />;
     case 'istardt':
       return <IstardtDiagram />;
+    case 'tropos4as':
+      return <Tropos4asDiagram />;
   }
 }
