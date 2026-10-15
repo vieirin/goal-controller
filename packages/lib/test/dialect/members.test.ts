@@ -355,7 +355,7 @@ describe('a step series in analysis results (#135)', () => {
       {
         elementId: 'g',
         severity: 'info',
-        message: 'A day, hour 2: pending',
+        message: 'pending (A day, hour 2)',
         source: 'analysis',
       },
     ]);
@@ -365,5 +365,13 @@ describe('a step series in analysis results (#135)', () => {
       result: { cases: [{ id: 'c', label: 'C', values: {} }] },
     };
     expect(shownStep(plain)).to.equal(null);
+    // its message keeps the case first (GRL's strategies)
+    expect(
+      analysisDiagnostics({
+        id: 'c',
+        label: 'C',
+        values: { g: { value: 1, label: 'done' } },
+      })[0]!.message,
+    ).to.equal('C: done');
   });
 });

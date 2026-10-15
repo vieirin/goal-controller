@@ -496,7 +496,8 @@ export const missionAnalyses = defineAnalyses(mission, {
   in order, each step's values as a case's, and its outcome (its last
   step's) as `values`. The workbench shows a step control beside the
   Analyse menu (previous, next, `2/7: <the step's label>`) over the same
-  per-element values, each message `<case>, <step>: <value>`.
+  per-element values, each message the value first: `<value> (<case>, <step>)`
+  (a case without steps keeps `<case>: <value>`).
   `analysisText(result, nameOf?)` lists a result as text: each case, and
   each step of a case that has them, one `name: value` line per element.
 - `defineAnalyses` checks that each analysis has a label and reads only a

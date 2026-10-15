@@ -34,8 +34,9 @@ export type AnalysisRun = {
 
 /**
  * A case's values as the canvas's diagnostics: one per element or actor,
- * its value the message; a case run step by step, the values of its step
- * `step` (its label in the message).
+ * its value the message (`<case>: <value>`); a case run step by step, the
+ * values of its step `step`, the value first and where it is after
+ * (`<value> (<case>, <step>)`: the state is what a step shows).
  */
 export const analysisDiagnostics = (
   analysisCase: AnalysisCase | undefined,
@@ -45,16 +46,18 @@ export const analysisDiagnostics = (
   const shown = analysisCase.steps?.length
     ? analysisCase.steps[Math.min(step, analysisCase.steps.length - 1)]
     : undefined;
-  const label = shown
-    ? `${analysisCase.label}, ${shown.label}`
-    : analysisCase.label;
   return Object.entries(shown?.values ?? analysisCase.values).map(
-    ([elementId, value]) => ({
-      elementId,
-      severity: value.severity ?? 'info',
-      message: `${label}: ${value.label ?? String(value.value)}`,
-      source: ANALYSIS_SOURCE,
-    }),
+    ([elementId, value]) => {
+      const written = value.label ?? String(value.value);
+      return {
+        elementId,
+        severity: value.severity ?? 'info',
+        message: shown
+          ? `${written} (${analysisCase.label}, ${shown.label})`
+          : `${analysisCase.label}: ${written}`,
+        source: ANALYSIS_SOURCE,
+      };
+    },
   );
 };
 
