@@ -17,10 +17,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Home from '@/components/workbench/home/Home';
+import { ExampleRoute } from '@/components/workbench/home/exampleRoute';
 import { WorkbenchProvider } from '@/components/workbench/WorkbenchContext';
 import manifest from '@/lib/examples-manifest.json';
 import { declarationsOf } from '@/lib/workbench/projectResources';
 import { previewOf } from '@/scripts/examplePreview.mjs';
+import { location, router } from './support/navigation';
+
+vi.mock('next/navigation', () => import('./support/navigation'));
 
 const EXAMPLES = join(__dirname, '../../../../examples');
 const PREVIEWS = Object.fromEntries(
@@ -49,7 +53,9 @@ const home = () =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <WorkbenchProvider lockedEngine={null}>
-        <Home onNewModel={() => {}} />
+        <ExampleRoute>
+          <Home onNewModel={() => {}} />
+        </ExampleRoute>
       </WorkbenchProvider>
     </QueryClientProvider>,
   );
@@ -57,7 +63,10 @@ const home = () =>
 const card = async (name: RegExp) =>
   (await screen.findByRole('button', { name })).closest('li')!;
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  location.set('/');
+});
 
 describe('Home', () => {
   it('shows a section per engine, EDGEv2 first, each holding its folder’s examples', async () => {
@@ -133,12 +142,15 @@ describe('Home', () => {
     expect(screen.getByText(/Nothing matches/)).toBeTruthy();
   });
 
-  it('opens the example of a card clicked, showing it busy until it opens', async () => {
+  it('opens the example of a card clicked on a page of its own, showing it busy until it opens', async () => {
     home();
     const button = await screen.findByRole('button', {
       name: /medicine-delivery, a project/,
     });
     fireEvent.click(button);
+    expect(router.push).toHaveBeenCalledWith(
+      '/?example=mutrose/medicine-delivery',
+    );
     await waitFor(() =>
       expect(opened).toHaveBeenCalledWith(
         manifest.find((e) => e.path === 'mutrose/medicine-delivery'),

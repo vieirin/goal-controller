@@ -44,14 +44,17 @@ export const useOpenExample = () => {
   const [error, setError] = useState<string | null>(null);
   // the example being fetched (its index path), until it opens or fails
   const [opening, setOpening] = useState<string | null>(null);
-  const open = async (example: ProjectIndexEntry) => {
+  /** Opens it; the file it opened as, or null when it couldn't (the error says why). */
+  const open = async (example: ProjectIndexEntry): Promise<string | null> => {
     setOpening(example.path);
     try {
-      const { project, settings } = await readExample(example);
+      const { project, settings, fileName } = await readExample(example);
       openProject(project, settings && { settings });
       setError(null);
+      return fileName;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+      return null;
     } finally {
       setOpening(null);
     }

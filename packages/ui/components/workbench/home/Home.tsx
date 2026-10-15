@@ -21,15 +21,11 @@ import { declarationsOf } from '@/lib/workbench/projectResources';
 import type { RecentFile } from '@/lib/workbench/storage';
 import { thumbnailOfText, type Thumbnail } from '@/lib/workbench/thumbnail';
 import { exampleMode, listExamplePreviews } from '@/services/examples';
-import {
-  recentOrigin,
-  useExamples,
-  useOpenExample,
-  useOpenFolder,
-} from '../Explorer';
+import { recentOrigin, useExamples, useOpenFolder } from '../Explorer';
 import { useOpenFile } from '../TopBar';
 import { useWorkbench } from '../WorkbenchContext';
 import { Button, Kbd, cx } from '../ui';
+import { useExampleRoute } from './exampleRoute';
 import { modeLabel, modelKindLabel } from './labels';
 import ModelThumbnail from './ModelThumbnail';
 
@@ -82,11 +78,12 @@ export default function Home({ onNewModel }: { onNewModel: () => void }) {
   const { open, input } = useOpenFile();
   const examples = useExamples();
   const previews = useExamplePreviews();
+  // an example opens on a page of its own: back is this screen again
   const {
-    open: openExample,
+    show: openExample,
     error: openExampleError,
     opening,
-  } = useOpenExample();
+  } = useExampleRoute();
   const folder = useOpenFolder();
   const [query, setQuery] = useState('');
 
@@ -191,7 +188,7 @@ export default function Home({ onNewModel }: { onNewModel: () => void }) {
                 example={example}
                 preview={previews.data?.[example.path]}
                 opening={opening === example.path}
-                onOpen={() => void openExample(example)}
+                onOpen={() => openExample(example)}
               />
             ))}
           </CardSection>

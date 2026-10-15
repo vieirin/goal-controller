@@ -21,6 +21,7 @@ import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
 import BottomPanel from './BottomPanel';
 import Explorer from './Explorer';
 import Home from './home/Home';
+import { ExampleRoute } from './home/exampleRoute';
 import { modelKindLabel } from './home/labels';
 import ModelInspector from './engines/ModelInspector';
 import MobileShell from './MobileShell';
@@ -46,7 +47,9 @@ export default function Workbench() {
   return (
     <WorkbenchProvider lockedEngine={mode}>
       <LanguageServices>
-        <ShellLayout />
+        <ExampleRoute>
+          <ShellLayout />
+        </ExampleRoute>
       </LanguageServices>
     </WorkbenchProvider>
   );
