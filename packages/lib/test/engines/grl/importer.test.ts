@@ -11,7 +11,7 @@ import { describe, it } from 'mocha';
 import { importJucm } from '../../../src/importers/jucm';
 import { readStrategies } from '../../../src/engines/grl';
 
-const PROJECTS = path.join(__dirname, '../../../../../examples/projects');
+const PROJECTS = path.join(__dirname, '../../../../../examples/grl');
 const read = (file: string) =>
   fs.readFileSync(path.join(PROJECTS, file), 'utf8');
 

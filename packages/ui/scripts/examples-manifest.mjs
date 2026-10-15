@@ -8,18 +8,33 @@
  * project.json is one project with its files; any other goal model is a one-model
  * project whose manifest is embedded in it. openProject reads an entry the same way
  * (packages/lib/test/dialect/project/index.test.ts checks it).
+ *
+ * Beside it, public/example-previews.json: each entry's model without its text
+ * and properties (only what the home page's thumbnails draw), fetched once.
+ *
+ * --local (dev): public/examples links to examples/, so the workbench reads the
+ * examples as they are on disk rather than as pushed (services/examples.ts).
+ * --watch (dev): writes everything again whenever examples/ changes.
  */
-import { promises as fs } from 'fs';
+import { promises as fs, watch as watchFs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { previewOf } from './examplePreview.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // examples/ at the repository root (this script runs from packages/ui)
 const EXAMPLES_ROOT = path.resolve(__dirname, '..', '..', '..', 'examples');
 const LIB_FILE = path.resolve(__dirname, '..', 'lib', 'examples-manifest.json');
-const PUBLIC_FILE = path.resolve(__dirname, '..', 'public', 'examples.json');
-// generated conformance models are not hand-written examples
-const SKIP_DIRS = new Set(['generated', 'props', 'results']);
+const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
+const PUBLIC_FILE = path.join(PUBLIC_DIR, 'examples.json');
+const PREVIEWS_FILE = path.join(PUBLIC_DIR, 'example-previews.json');
+// the examples as they are on disk, served in dev (gitignored)
+const LOCAL_LINK = path.join(PUBLIC_DIR, 'examples');
+const LOCAL = process.argv.includes('--local');
+const WATCH = process.argv.includes('--watch');
+// generated conformance models are not hand-written examples; the rest are
+// a project's own folders, never walked into (a project is one entry)
+const SKIP_DIRS = new Set(['generated', 'props', 'reference', 'results']);
 const PROJECT_FILE = 'project.json';
 
 const posix = (p) => p.split(path.sep).join('/');
@@ -94,13 +109,66 @@ const listExamples = async (dir, group) => {
   return projects;
 };
 
-const examples = await listExamples(EXAMPLES_ROOT, '').catch(() => []);
-examples.sort((a, b) => a.path.localeCompare(b.path));
-const body = `${JSON.stringify(examples, null, 2)}\n`;
-await fs.mkdir(path.dirname(LIB_FILE), { recursive: true });
-await fs.mkdir(path.dirname(PUBLIC_FILE), { recursive: true });
-await fs.writeFile(LIB_FILE, body);
-await fs.writeFile(PUBLIC_FILE, body);
-console.log(
-  `${examples.length} example projects → ${path.relative(process.cwd(), LIB_FILE)}`,
-);
+/** Each entry's first model, as a preview, by the entry's path. */
+const previewsOf = async (examples) => {
+  const previews = {};
+  for (const entry of examples) {
+    const [model] = entry.models;
+    if (!model) continue;
+    try {
+      previews[entry.path] = previewOf(
+        await fs.readFile(path.join(EXAMPLES_ROOT, entry.root, model), 'utf8'),
+      );
+    } catch {
+      // no preview: its card shows a placeholder
+    }
+  }
+  return previews;
+};
+
+/** public/examples → examples/, in dev only: a build must not ship it twice. */
+const linkLocal = async () => {
+  const existing = await fs.lstat(LOCAL_LINK).catch(() => null);
+  if (existing && !existing.isSymbolicLink()) return;
+  if (!LOCAL) {
+    if (existing) await fs.unlink(LOCAL_LINK);
+    return;
+  }
+  if (!existing)
+    await fs.symlink(path.relative(PUBLIC_DIR, EXAMPLES_ROOT), LOCAL_LINK);
+};
+
+/** JSON the file has already, however formatted (oxfmt formats the committed one): not written. */
+const write = async (file, value, space) => {
+  const same = await fs
+    .readFile(file, 'utf8')
+    .then((text) => JSON.stringify(JSON.parse(text)) === JSON.stringify(value))
+    .catch(() => false);
+  if (!same)
+    await fs.writeFile(file, `${JSON.stringify(value, null, space)}\n`);
+};
+
+const generate = async () => {
+  const examples = await listExamples(EXAMPLES_ROOT, '').catch(() => []);
+  examples.sort((a, b) => a.path.localeCompare(b.path));
+  await fs.mkdir(path.dirname(LIB_FILE), { recursive: true });
+  await fs.mkdir(PUBLIC_DIR, { recursive: true });
+  await write(LIB_FILE, examples, 2);
+  await write(PUBLIC_FILE, examples, 2);
+  await write(PREVIEWS_FILE, await previewsOf(examples));
+  console.log(
+    `${examples.length} example projects → ${path.relative(process.cwd(), LIB_FILE)}`,
+  );
+};
+
+await linkLocal();
+await generate();
+
+if (WATCH) {
+  let timer;
+  watchFs(EXAMPLES_ROOT, { recursive: true }, () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => generate().catch(console.error), 200);
+  });
+  console.log(`watching ${path.relative(process.cwd(), EXAMPLES_ROOT)}`);
+}

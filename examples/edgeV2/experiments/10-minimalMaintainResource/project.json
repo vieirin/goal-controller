@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edgev2",
+  "models": [{ "path": "10-minimalMaintainResource.txt" }],
+  "projectResources": { "properties": ["props/10-minimalMaintainResource.props"] },
+  "outputs": []
+}

@@ -20,7 +20,7 @@ import { grl, grlCheckRegistry } from '../../../src/engines/grl';
 
 const MODEL = path.join(
   __dirname,
-  '../../../../../examples/projects/grl-own/grl-own.txt',
+  '../../../../../examples/grl/grl-own/grl-own.txt',
 );
 
 const view = () =>

@@ -1,0 +1,48 @@
+; The lab-sample-logistics domain: a robot approaches a nurse, takes the
+; sample, then approaches the pharmacy's arm and unloads it there.
+(define (domain lab-sample-logistics)
+  (:requirements :typing :hierarchy)
+  (:types location nurse arm robot - object)
+  (:predicates
+    (near-nurse ?b - robot ?n - nurse)
+    (near-arm ?b - robot ?a - arm)
+    (carrying ?b - robot ?n - nurse)
+    (unloaded ?a - arm))
+
+  (:task approachnurse :parameters (?n - nurse))
+  (:task picksample :parameters (?n - nurse))
+  (:task approacharm :parameters (?a - arm))
+  (:task unloadsample :parameters (?a - arm))
+
+  (:method m-approachnurse
+    :parameters (?b - robot ?n - nurse)
+    :task (approachnurse ?n)
+    :ordered-subtasks (go-to-nurse ?b ?n))
+  (:method m-picksample
+    :parameters (?b - robot ?n - nurse)
+    :task (picksample ?n)
+    :ordered-subtasks (take-sample ?b ?n))
+  (:method m-approacharm
+    :parameters (?b - robot ?a - arm)
+    :task (approacharm ?a)
+    :ordered-subtasks (go-to-arm ?b ?a))
+  (:method m-unloadsample
+    :parameters (?b - robot ?n - nurse ?a - arm)
+    :task (unloadsample ?a)
+    :ordered-subtasks (unload ?b ?n ?a))
+
+  (:action go-to-nurse
+    :parameters (?b - robot ?n - nurse)
+    :effect (near-nurse ?b ?n))
+  (:action take-sample
+    :parameters (?b - robot ?n - nurse)
+    :precondition (near-nurse ?b ?n)
+    :effect (carrying ?b ?n))
+  (:action go-to-arm
+    :parameters (?b - robot ?a - arm)
+    :effect (near-arm ?b ?a))
+  (:action unload
+    :parameters (?b - robot ?n - nurse ?a - arm)
+    :precondition (and (near-arm ?b ?a) (carrying ?b ?n))
+    :effect (and (unloaded ?a) (not (carrying ?b ?n))))
+)

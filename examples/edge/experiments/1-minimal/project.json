@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "1-minimal.txt" }],
+  "projectResources": { "properties": ["props/1-minimal.props"] },
+  "outputs": []
+}

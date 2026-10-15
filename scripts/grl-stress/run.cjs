@@ -6,7 +6,7 @@
  *   node scripts/grl-stress/run.cjs [--oracle] [--strict]
  *
  * 1. fetches the upstream seeds at their pinned commits (fetch.cjs) and
- *    takes the committed ones from examples/projects/ (references.cjs);
+ *    takes the committed ones from examples/grl/ (references.cjs);
  * 2. with `--oracle`, evaluates the fetched seeds with jUCMNav in Docker
  *    into .cache/grl/reference/ (never on the host);
  * 3. imports each seed, checks its counts and its contributions, and

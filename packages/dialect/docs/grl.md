@@ -145,6 +145,6 @@ Our evaluations equal jUCMNav's on every row of the seeds checked:
 
 ## Examples
 
-- `examples/projects/grl-smart-home/`: jUCMNav's SmartHome2 (EPL-1.0, committed with attribution).
-- `examples/projects/grl-own/`: our model of every construct.
+- `examples/grl/grl-smart-home/`: jUCMNav's SmartHome2 (EPL-1.0, committed with attribution).
+- `examples/grl/grl-own/`: our model of every construct.
 - GoalCat's RTFM models (no licence) and TURNtoURN's per-construct files are fetched by `scripts/grl-stress`, not committed (#105 D7).

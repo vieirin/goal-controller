@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "labSamplesWithSideEffect.txt" }],
+  "projectResources": { "properties": ["props/labSamplesWithSideEffect.props"] },
+  "outputs": []
+}

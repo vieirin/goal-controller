@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "4-interleavedChoicePDegradation.txt" }],
+  "projectResources": { "properties": ["props/4-interleavedChoicePDegradation.props"] },
+  "outputs": []
+}

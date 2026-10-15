@@ -1,5 +1,6 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import * as assert from 'assert';
+import { existsSync } from 'fs';
 import { describe, it } from 'mocha';
 import { initLogger } from '../../../../src/engines/edge/logger/logger';
 import {
@@ -22,11 +23,19 @@ const experimentExamples = [
   '10-minimalMaintainResource',
 ];
 
+/** An experiment's model: in its project folder, or loose when it has no fixtures. */
+const experimentFile = (name: string) => {
+  const project = `../../examples/edge/experiments/${name}/${name}.txt`;
+  return existsSync(project)
+    ? project
+    : `../../examples/edge/experiments/${name}.txt`;
+};
+
 describe('PRISM Validator - Experiment Examples', () => {
   experimentExamples.forEach((exampleName) => {
     describe(exampleName, () => {
       it('should validate generated PRISM model matches expected elements', () => {
-        const inputFile = `../../examples/edge/experiments/${exampleName}.txt`;
+        const inputFile = experimentFile(exampleName);
 
         // Load and convert model
         const model = Model.load(inputFile);
@@ -140,7 +149,7 @@ describe('PRISM Validator - Experiment Examples', () => {
       });
 
       it('should have emitted at least as many elements as expected', () => {
-        const inputFile = `../../examples/edge/experiments/${exampleName}.txt`;
+        const inputFile = experimentFile(exampleName);
 
         // Load and convert model
         const model = Model.load(inputFile);
@@ -170,7 +179,7 @@ describe('PRISM Validator - Experiment Examples', () => {
       });
 
       it('should have exactly one achievability formula per goal, plus one maintain formula for maintain goals', () => {
-        const inputFile = `../../examples/edge/experiments/${exampleName}.txt`;
+        const inputFile = experimentFile(exampleName);
 
         // Load and convert model
         const model = Model.load(inputFile);

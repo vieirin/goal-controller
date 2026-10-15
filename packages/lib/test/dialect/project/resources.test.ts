@@ -29,7 +29,10 @@ import { fakeDirectory, fakeStorage, type Tree } from './support';
 
 const MODEL = withModelSettings(
   readFileSync(
-    join(__dirname, '../../../../../examples/mutrose/MedicineDelivery.txt'),
+    join(
+      __dirname,
+      '../../../../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt',
+    ),
     'utf8',
   ),
   { mode: 'mutrose' },

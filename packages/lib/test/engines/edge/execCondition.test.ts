@@ -5,7 +5,9 @@ import { edgeEngineMapper } from '../../../src/engines/edge';
 
 describe('Exec Condition Assertions - goalModel_TAS_3', () => {
   // Load the model once for all tests
-  const model = Model.load('../../examples/edge/goalModel_TAS_3_.txt');
+  const model = Model.load(
+    '../../examples/edge/experiments/goalModel_TAS_3/goalModel_TAS_3.txt',
+  );
 
   const tree = GoalTree.fromModel(model, edgeEngineMapper);
   const allGoals = tree.query.allGoalsMap();

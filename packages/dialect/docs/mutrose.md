@@ -121,7 +121,7 @@ They also complete a type with the world's classes (after `:`, in
 `select(v:`, in `Sequence(`), and `name.` with the attributes of name's
 class, a forAll's variable being of its collection's class.
 
-`examples/projects/medicine-delivery/` is MedicineDelivery as a project,
+`examples/mutrose/medicine-delivery/` is MedicineDelivery as a project,
 with a small world, domain and configuration written for it.
 
 ## One definition pool across the four files (goal-controller#59)
@@ -228,14 +228,18 @@ resolves to nothing is the pool's `unresolved-reference` warning.
 
 ## Examples
 
-- `examples/mutrose/MedicineDelivery.txt` (written for the workbench)
+- `examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt` (written for the workbench)
   exercises:
   - a Query leaf and an Achieve forAll;
   - `FALLBACK`, `NC` from `Group`/`Divisible`;
   - `Params`, `Location` and `RobotNumber`.
-- `examples/mutrose/LabSampleLogistics.txt` is mutrose-vscode's test model,
-  as its istar-ts editor saved it. Compared with MutRoSe-Docs' original, its
-  `G2` (the Query that declares `deliveries_requested`) is gone, and `G3`'s
-  AchieveCondition and Group changed. The decomposer would reject it as the
-  workbench does: `Undeclared variable [deliveries_requested] of type [] in
-  goal G3`.
+- `packages/lib/test/engines/mutrose/fixtures/LabSampleLogistics.upstream.txt`
+  is mutrose-vscode's test model, as its istar-ts editor saved it. Compared
+  with MutRoSe-Docs' original, its `G2` (the Query that declares
+  `deliveries_requested`) is gone, and `G3`'s AchieveCondition and Group
+  changed. The decomposer would reject it as the workbench does: `Undeclared
+  variable [deliveries_requested] of type [] in goal G3`.
+- `examples/mutrose/lab-sample-logistics/` is that model completed (G2
+  restored, G3 achieving over the deliveries) as a project, with a world
+  (nurses, locations, the pharmacy's arm, deliveries), an HDDL domain for its
+  four tasks and a configuration written for it.

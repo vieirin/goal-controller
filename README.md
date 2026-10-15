@@ -652,26 +652,27 @@ This section describes how to run experiments to collect metrics and analyze the
 
 #### 1. Add the Goal Model
 
-Add your goal model file (`.txt` format) to the `examples/edge/experiments/` directory:
+Each experiment is a project: a folder `examples/edge/experiments/<name>/` holding the model, its properties and a `project.json` (copy one from another experiment and change the names). Add your goal model file (`.txt` format) to it:
 
 ```bash
-cp your-goal-model.txt examples/edge/experiments/your-goal-model.txt
+mkdir -p examples/edge/experiments/your-goal-model
+cp your-goal-model.txt examples/edge/experiments/your-goal-model/your-goal-model.txt
+cp examples/edge/experiments/1-minimal/project.json examples/edge/experiments/your-goal-model/
+# then replace 1-minimal with your-goal-model in the copied project.json
 ```
 
 The goal model should be in the PiStar format, as exported from the [PiStar tool](https://www.cin.ufpe.br/~jhcp/pistar/tool/#).
 
 #### 2. Add PCTL Properties
 
-Create a properties file (`.props` format) with PCTL formulas to verify against your model. Place it in `examples/edge/experiments/props/`:
+Create a properties file (`.props` format) with PCTL formulas to verify against your model. Place it in the project's `props/` folder:
 
 ```bash
-# Create the props directory if it doesn't exist
-mkdir -p examples/edge/experiments/props
+mkdir -p examples/edge/experiments/your-goal-model/props
 
-# Add your properties file
 # The filename should match your goal model name (e.g., if your model is "myModel.txt",
 # create "myModel.props")
-cp your-properties.props examples/edge/experiments/props/your-goal-model.props
+cp your-properties.props examples/edge/experiments/your-goal-model/props/your-goal-model.props
 ```
 
 **Example properties file format:**
@@ -720,7 +721,7 @@ This command executes the following steps:
 The results are saved to:
 
 - PRISM models: `output/*.prism`
-- Property check results: `examples/edge/experiments/props/results/*.result.storm`
+- Property check results: `examples/edge/experiments/<name>/reference/*.result.storm`
 - Metrics: `metrics.csv`
 
 #### 5. Collect the Data
@@ -788,8 +789,10 @@ You can modify `experiments/plot_metrics.py` to:
 
 ```bash
 # 1. Add your files
-cp my-model.txt examples/edge/experiments/
-cp my-properties.props examples/edge/experiments/props/my-model.props
+mkdir -p examples/edge/experiments/my-model/props
+cp my-model.txt examples/edge/experiments/my-model/
+cp my-properties.props examples/edge/experiments/my-model/props/my-model.props
+# plus a project.json, as in step 1
 
 # 2. Launch container
 make experiment

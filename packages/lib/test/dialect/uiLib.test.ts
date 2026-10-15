@@ -49,7 +49,10 @@ import {
 import { legacyRecordedMode as recordedModeOf, models } from './support/models';
 
 const MODEL = readFileSync(
-  join(__dirname, '../../../../examples/edgeV2/goalModel_TAS_3_.txt'),
+  join(
+    __dirname,
+    '../../../../examples/edgeV2/experiments/goalModel_TAS_3/goalModel_TAS_3.txt',
+  ),
   'utf8',
 );
 
@@ -497,7 +500,10 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
 
 describe('ui MutRoSe', () => {
   const MEDICINE = readFileSync(
-    join(__dirname, '../../../../examples/mutrose/MedicineDelivery.txt'),
+    join(
+      __dirname,
+      '../../../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt',
+    ),
     'utf8',
   );
 

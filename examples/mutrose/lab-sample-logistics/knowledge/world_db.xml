@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The hospital the lab-sample mission runs in: its nurses, where they hand
+     samples over, the pharmacy's arm, and the deliveries requested. -->
+<world_db>
+    <Location>
+        <name>Ward1</name>
+    </Location>
+    <Location>
+        <name>Ward2</name>
+    </Location>
+    <Location>
+        <name>Pharmacy</name>
+        <arm>Arm1</arm>
+    </Location>
+    <Nurse>
+        <name>Alice</name>
+    </Nurse>
+    <Nurse>
+        <name>Bob</name>
+    </Nurse>
+    <Arm>
+        <name>Arm1</name>
+    </Arm>
+    <Delivery>
+        <name>d1</name>
+        <nurse>Alice</nurse>
+        <pickup_location>Ward1</pickup_location>
+        <requested>True</requested>
+        <delivered>False</delivered>
+    </Delivery>
+    <Delivery>
+        <name>d2</name>
+        <nurse>Bob</nurse>
+        <pickup_location>Ward2</pickup_location>
+        <requested>True</requested>
+        <delivered>False</delivered>
+    </Delivery>
+</world_db>

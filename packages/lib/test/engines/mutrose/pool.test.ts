@@ -1,5 +1,5 @@
 /**
- * MutRoSe's definition pool (goal-controller#59) on examples/projects/
+ * MutRoSe's definition pool (goal-controller#59) on examples/mutrose/
  * medicine-delivery: nothing reported as it is, each cross-file check on a
  * copy broken for it (the cases goal-controller#61's oracle names), and
  * go-to-definition and rename across the four files.
@@ -24,7 +24,7 @@ import { modelField, mutrosePool } from '../../../src/engines/mutrose/pool';
 
 const PROJECT = join(
   __dirname,
-  '../../../../../examples/projects/medicine-delivery',
+  '../../../../../examples/mutrose/medicine-delivery',
 );
 const PATHS = {
   model: 'gm/MedicineDelivery.txt',
@@ -38,6 +38,15 @@ const EXAMPLE = Object.fromEntries(
     kind,
     readFileSync(join(PROJECT, path), 'utf8'),
   ]),
+) as Files;
+/** The other MutRoSe example project: its resources at the same paths. */
+const LAB_SAMPLE_LOGISTICS = Object.fromEntries(
+  Object.entries({ ...PATHS, model: 'gm/LabSampleLogistics.txt' }).map(
+    ([kind, path]) => [
+      kind,
+      readFileSync(join(PROJECT, '../lab-sample-logistics', path), 'utf8'),
+    ],
+  ),
 ) as Files;
 
 const indexOf = (files: Files) =>
@@ -160,6 +169,14 @@ const inModel = (element: string, field: string, word: string) => {
 describe('MutRoSe’s definition pool on medicine-delivery', () => {
   it('reports nothing on the example, and resolves every reference', () => {
     const index = indexOf(EXAMPLE);
+    expect(index.diagnostics).to.deep.equal([]);
+    expect(index.references().filter((r) => !index.target(r))).to.deep.equal(
+      [],
+    );
+  });
+
+  it('reports nothing on lab-sample-logistics, and resolves every reference', () => {
+    const index = indexOf(LAB_SAMPLE_LOGISTICS);
     expect(index.diagnostics).to.deep.equal([]);
     expect(index.references().filter((r) => !index.target(r))).to.deep.equal(
       [],

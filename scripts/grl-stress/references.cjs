@@ -2,7 +2,7 @@
  * The seeds and their reference evaluations (goal-controller#106).
  *
  * - **Committed seeds** (`COMMITTED`) are read from the repository, each
- *   with its reference at `examples/projects/<project>/reference/evaluations.csv`.
+ *   with its reference at `examples/grl/<project>/reference/evaluations.csv`.
  * - **Fetched seeds** (fetch.cjs) keep the oracle's CSV in
  *   `.cache/grl/reference/<id>.csv`, written by `runOracle` (`--oracle`).
  *
@@ -16,7 +16,7 @@ const { CACHE } = require('./fetch.cjs');
 const { readReference } = require('./compare.cjs');
 
 const ROOT = path.join(__dirname, '..', '..');
-const PROJECTS = path.join(ROOT, 'examples', 'projects');
+const PROJECTS = path.join(ROOT, 'examples', 'grl');
 const REFERENCE = path.join(CACHE, 'reference');
 const ORACLE_SEEDS = path.join(CACHE, 'oracle-seeds');
 
@@ -29,7 +29,7 @@ const COMMITTED = [
 const committedSeeds = () =>
   COMMITTED.map(({ id, file }) => ({
     id,
-    origin: `examples/projects/${id}`,
+    origin: `examples/grl/${id}`,
     committed: true,
     file: path.join(PROJECTS, id, file),
     reference: path.join(PROJECTS, id, 'reference', 'evaluations.csv'),

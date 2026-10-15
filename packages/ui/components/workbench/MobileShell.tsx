@@ -184,7 +184,7 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
       )}
 
       {/* files drawer */}
-      {shell.explorerOpen && (
+      {shell.explorerOpen && wb.hasModel && (
         <div
           className='fixed inset-0 z-40 flex'
           role='dialog'
@@ -349,11 +349,13 @@ function MobileTopBar() {
   return (
     <header className='flex h-12 shrink-0 items-center gap-1 border-b border-line bg-white px-2'>
       {input}
-      <IconButton
-        icon={MenuIcon}
-        label='Files and examples'
-        onClick={shell.toggleExplorer}
-      />
+      {wb.hasModel && (
+        <IconButton
+          icon={MenuIcon}
+          label="The project's files"
+          onClick={shell.toggleExplorer}
+        />
+      )}
       <div className='min-w-0 flex-1 px-1'>
         {wb.hasModel ? (
           <span className='flex items-center gap-1.5 text-[13px]'>

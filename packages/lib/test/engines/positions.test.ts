@@ -4,7 +4,8 @@ import { GoalTree, Model, goalView } from '@goal-controller/goal-tree';
 import { edgeEngineMapper } from '../../src/engines/edgeV2';
 import { edgeV2 } from '../../src/engines/edgeV2/definition';
 
-const EXAMPLE = '../../examples/edgeV2/goalModel_TAS_3_.txt';
+const EXAMPLE =
+  '../../examples/edgeV2/experiments/goalModel_TAS_3/goalModel_TAS_3.txt';
 
 describe('diagram positions', () => {
   it('carries each element’s x into the tree and the view', () => {

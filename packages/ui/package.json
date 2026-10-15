@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "bash -c 'pnpm --filter @goal-controller/lib run watch & trap \"kill 0\" EXIT; pnpm run dev:next'",
-    "dev:next": "node scripts/examples-manifest.mjs && next dev --turbopack",
+    "dev:next": "node scripts/examples-manifest.mjs --local && bash -c 'node scripts/examples-manifest.mjs --local --watch & trap \"kill 0\" EXIT; next dev --turbopack'",
     "build": "node scripts/examples-manifest.mjs && next build",
     "lint": "next lint",
     "test": "vitest run"

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edgev2",
+  "models": [{ "path": "6-allnotationsReduced.txt" }],
+  "projectResources": { "properties": ["props/6-allnotationsReduced.props"] },
+  "outputs": []
+}

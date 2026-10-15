@@ -1,7 +1,7 @@
 /**
  * A project as one archive (goal-controller#99): the tar writer and reader,
  * the examples' layout of an exported project, and export → import →
- * export giving the same bytes, on examples/projects/medicine-delivery and a
+ * export giving the same bytes, on examples/mutrose/medicine-delivery and a
  * one-model project.
  */
 import { expect } from 'chai';
@@ -43,7 +43,7 @@ import {
 } from '../../../../ui/lib/project';
 
 const ROOT = join(__dirname, '../../../../..');
-const MEDICINE = join(ROOT, 'examples/projects/medicine-delivery');
+const MEDICINE = join(ROOT, 'examples/mutrose/medicine-delivery');
 const EDGE = readFileSync(
   join(ROOT, 'examples/edgeV2/simpleChoice.txt'),
   'utf8',

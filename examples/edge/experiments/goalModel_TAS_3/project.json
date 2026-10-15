@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edge",
+  "models": [{ "path": "goalModel_TAS_3.txt" }],
+  "projectResources": { "properties": ["props/goalModel_TAS_3.props"] },
+  "outputs": []
+}

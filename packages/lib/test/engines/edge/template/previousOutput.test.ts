@@ -6,7 +6,8 @@ import { edgeEngineMapper } from '../../../../src/engines/edge';
 import { initLogger } from '../../../../src/engines/edge/logger/logger';
 import { generateValidatedPrismModel } from '../../../../src/engines/edge/template';
 
-const MODEL = '../../examples/edge/experiments/8-minimalMaintain.txt';
+const MODEL =
+  '../../examples/edge/experiments/8-minimalMaintain/8-minimalMaintain.txt';
 
 const generate = (
   options: {

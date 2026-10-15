@@ -35,7 +35,7 @@ const { parser } = inject(
 const MEDICINE = readFileSync(
   join(
     __dirname,
-    '../../../../../examples/projects/medicine-delivery/hddl/domain.hddl',
+    '../../../../../examples/mutrose/medicine-delivery/hddl/domain.hddl',
   ),
   'utf8',
 );

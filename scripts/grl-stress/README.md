@@ -12,8 +12,8 @@ node scripts/grl-stress/run.cjs --strict   # fail on a committed seed's failure
 
 ## Seeds
 
-- **Committed**: `examples/projects/grl-smart-home/SmartHome2.jucm` and
-  `examples/projects/grl-own/grl-own.jucm` (in **bold** in the summary),
+- **Committed**: `examples/grl/grl-smart-home/SmartHome2.jucm` and
+  `examples/grl/grl-own/grl-own.jucm` (in **bold** in the summary),
   each with its reference in `reference/evaluations.csv` beside it.
 - **Fetched** at pinned commits into `.cache/grl/<commit>/` (network needed
   once; single raw files, no clones):

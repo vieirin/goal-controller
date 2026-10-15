@@ -25,10 +25,16 @@ export const githubStore = ({
   path,
   files,
   form,
+  baseUrl = `https://raw.githubusercontent.com/${repo}/${ref}`,
   fetch: get = (url) => fetch(url),
 }: {
   repo?: string;
   ref: string;
+  /**
+   * where the repository's files are served from: GitHub's, at ref, by
+   * default (dev: the working tree's, as the dev server serves them)
+   */
+  baseUrl?: string;
   /** the project's folder in the repository */
   path: string;
   /** the project's files, from its folder */
@@ -46,16 +52,16 @@ export const githubStore = ({
     read: async (file) => {
       const full = [root, normalizePath(file)].filter(Boolean).join('/');
       const response = await get(
-        `https://raw.githubusercontent.com/${repo}/${ref}/${full
-          .split('/')
-          .map(encodeURIComponent)
-          .join('/')}`,
+        `${baseUrl}/${full.split('/').map(encodeURIComponent).join('/')}`,
       );
       if (!response.ok) {
         // the index lists local files; one added or renamed locally and not yet
         // pushed to ref isn't on GitHub yet
+        const why = baseUrl.startsWith('https://raw.githubusercontent.com/')
+          ? ` (not pushed to ${ref}?)`
+          : '';
         throw new Error(
-          `Couldn't load ${full}: ${response.status} ${response.statusText} (not pushed to ${ref}?)`,
+          `Couldn't load ${full}: ${response.status} ${response.statusText}${why}`,
         );
       }
       return response.text();
