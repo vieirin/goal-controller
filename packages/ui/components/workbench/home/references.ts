@@ -105,17 +105,6 @@ export const SECTION_REFERENCES: Readonly<
       examples: ['grl/grl-smart-home'],
     },
   ],
-  sleec: [
-    {
-      text: 'S. Getir Yaman et al. Specification and Validation of Normative Rules for Autonomous Agents. FASE 2023.',
-      url: 'https://link.springer.com/chapter/10.1007/978-3-031-30826-0_13',
-    },
-    {
-      text: 'Its extended version, JSS 2025.',
-      url: 'https://arxiv.org/abs/2307.03697',
-    },
-    { text: 'SLEEC: the project.', url: 'https://sleec.github.io/' },
-  ],
   'pistar-ext': [
     {
       text: 'J. Pimentel, J. Castro. piStar Tool: A Pluggable Online Tool for Goal Modeling. RE 2018.',
