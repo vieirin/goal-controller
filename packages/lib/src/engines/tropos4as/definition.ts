@@ -14,9 +14,9 @@
  *   abbreviates).
  * - No operators: a decomposition is its refinement links.
  * - Conditions are assertions in the goal language (#134 D3), over the
- *   artifacts' attributes and variables declared by their use. Until member
- *   references land (#135) they name bare variables (`roomClean`, not
- *   `room.clean`).
+ *   artifacts' attributes, as members (`mealSensor.meals`, #137), and
+ *   variables declared by their use (`hour`; the Cleaner Agent's
+ *   `roomClean`, whose figure draws no artifact).
  */
 import {
   defineDialect,
@@ -37,9 +37,10 @@ const {
 /** the istar-ts canvas's fill, as piStar */
 const DEFAULT_FILL = '#CDFECD';
 
-/** a condition: read in the belief base, over artifacts and variables */
+/** a condition: read in the belief base, over artifacts' attributes and variables */
 const CONDITION = {
   resolves: [TROPOS4AS_KINDS.artifact, 'variable'],
+  members: { from: 'attributes' },
   decimals: true,
   booleanInequality: true,
   declaresVariables: true,

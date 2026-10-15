@@ -167,3 +167,37 @@ iStar-DT dialect ([istardt.md](istardt.md), #119):
 **Not in scope:**
 - the round trip: there is no export to iStarDT-X;
 - mx2dtx's `.drawio` (positions, iStarDT-V's shapes), which is still open ([istardt.md](istardt.md)).
+
+## `.tropos` (TAOM4E, Tropos4AS or GODA): `engines/tropos4as/taom4e`
+
+`readTaom4e(text, { modelName, fileName })` reads TAOM4E's EMF XMI with the XMI reader above, in #143's `read` shape (`{ model, dialectRecord, diagnostics }`). It is written against TAOM4E's base Tropos metamodel, `TAOM4E-MM.ecore`, committed beside it (`taom4e/reference/`, its origin in the README there). The mapping is logged on #134 (item 4's D):
+
+- **Elements.** Actors, hard goals, softgoals, plans and resources → iStar's actor, goal, quality, task and resource, with the file's ids (`xmi:id`, else the path fragment) and names. An element is its actor's by `wanter`, `capableOf` or `use` (or the actor's `wanted`, `plans`, `resources`). A dependency's dependum is in no actor. An element in no actor and no dependency is an orphan, with an info.
+- **Links.**
+  - An AND/OR `BooleanDecomposition` → AND/OR refinements, child to root. It reads the links the decomposition lists and the links that name it.
+  - A means-end → an OR-refinement of its end: iStar 2.0 has no means-end link, as the Tropos4AS seeds write it. A resource as the means is left out, with a warning.
+  - A contribution → iStar's; `FContribution.metric` `++`, `+`, `-`, `--` → make, help, hurt, break. Any other metric → `unknown`, with a warning. A contribution to anything but a softgoal is left out, with a warning (iStar 2.0 contributes to qualities).
+  - A dependency → its dependum, linked from the depender and to the dependee. Its `why` and its formal attributes are not read (an info).
+  - Link ids are `<source>-<Kind>-<target>`, as the seeds name them.
+- **Positions.** From the `diagram` package: the first diagram node whose `core` names an element or an actor gives its `x`, `y` (read as written, not relative to the node's container), `width` and `height`. What no diagram places is laid out by the layout above, with an info.
+- **Formal Tropos's attributes** on a hard goal → Tropos4AS's:
+  - `creationProperty` → `creation`, `fulfillmentProperty` → `achievement`, `invariantProperty` → `maintain`;
+  - `mode`: `ACHIEVE` → the default type, `MAINTAIN` → `type: maintain`, `ACHIEVEMAINTAIN` → maintain (a warning: its achieve phase is lost), `AVOID` → kept as `mode` (a warning);
+  - `attribute`, and the formal attributes of plans, resources, softgoals and actors: kept as written, unread;
+  - Formal Tropos writes LTL: a text the goal language can't read is kept as written, and the checks report it.
+- **GODA-shaped.** When every hard goal's name follows CRGMToPRISM's `G1: …` and every plan's `T1.1: …`, and no Tropos4AS attribute is set (a fulfillment or invariant property, a mode other than ACHIEVE), the model is GODA's:
+  - `dialectRecord.engine` and the diagram's engine are `goda`;
+  - `creationProperty` stays `creationProperty` on goals and plans (CRGMToPRISM reads GODA's context there);
+  - the one root goal is `selected`, as CRGMToPRISM generates from the root goals. With several roots, none is, with a warning.
+  - Otherwise the model is Tropos4AS's, its `"metamodel"` block with it.
+- **What isn't read**, with an info: classes outside the mapping (`Capability`, …).
+- **In the workbench:** opening or dropping a `.tropos` file imports it (lib's `FILE_IMPORTERS`).
+
+**Unverified against TAOM4E.** No `.tropos` file TAOM4E wrote survives (#134), so the fixtures (`packages/lib/test/engines/tropos4as/taom4e/`) are written by hand against the ecore. They hold two roots in an `xmi:XMI` (the project and its business model) and reference by `xmi:id`. In a file that references by EMF's multi-root path fragments (`/1/@TroposClasses.0`), those references don't resolve (warnings): the XMI reader resolves single-root fragments only.
+- The seeds' twins (`cleaner-agent.tropos`, `patient-monitoring.tropos`) import to what the base metamodel carries of the seeds (`taom4eCarried`).
+- The GODA-shaped twin of `examples/goda/dm` (`dm-goda.tropos`) generates, through the GODA engine, what `dm2.txt` does, file for file (#134 D1.3).
+- `pnpm stress:tropos4as`'s importer column runs both.
+
+**Not in scope:**
+- the round trip: there is no export to `.tropos`;
+- the Tropos4AS extension's metamodel (artifacts, failures, errors), which TAOM4E's plug-ins wrote: it is in REJ 2017's figures only ([tropos4as.md](tropos4as.md)).

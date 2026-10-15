@@ -220,9 +220,12 @@ export {
   type IstardtWriteOptions,
 } from './engines/istardt';
 export { importIstardt } from './importers/istardt';
-// Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios
-// and the goal lifecycle of AAMAS 2009 as an analysis
+// Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios,
+// the goal lifecycle of AAMAS 2009 as an analysis, and TAOM4E's importer
 export {
+  carriedDifference,
+  readTaom4e,
+  taom4eCarried,
   tropos4as,
   tropos4asAnalyses,
   tropos4asAnalysisModel,
@@ -239,6 +242,7 @@ export {
   traceText,
   type LifecycleRun,
   type Scenario as Tropos4asScenario,
+  type Taom4eContext,
   type Tropos4asCheckName,
   type Tropos4asModel,
   type Tropos4asProblem,

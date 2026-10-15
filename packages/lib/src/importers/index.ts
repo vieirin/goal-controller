@@ -5,6 +5,7 @@
  * project resource beside the model (`.jucm`'s strategies) needs a project
  * to open into, so it isn't listed here yet.
  */
+import { readTaom4e } from '../engines/tropos4as/taom4e';
 import { importIstardt } from './istardt';
 import type { ImportResult } from './types';
 
@@ -24,6 +25,14 @@ export const FILE_IMPORTERS: readonly FileImporter[] = [
     extensions: ['.istardt', '.istardtx'],
     engine: 'istardt',
     import: importIstardt,
+  },
+  {
+    // a GODA-shaped file is GODA's: its model records that engine
+    label: 'TAOM4E',
+    extensions: ['.tropos'],
+    engine: 'tropos4as',
+    import: (text, { modelName }) =>
+      readTaom4e(text, { modelName, fileName: `${modelName}.tropos` }),
   },
 ];
 

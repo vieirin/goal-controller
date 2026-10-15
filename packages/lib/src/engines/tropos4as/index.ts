@@ -2,7 +2,7 @@
  * Tropos4AS (goal-controller#136): its definition (the dialect), its own
  * kinds (the `tropos4as` extension), its checks, its scenarios (a project
  * resource) and its analysis, the goal lifecycle of AAMAS 2009 run over a
- * scenario.
+ * scenario; and TAOM4E's `.tropos` importer (./taom4e).
  */
 import { defineAnalyses } from '../analysis';
 import { projectResourceParsers } from '../projectResources';
@@ -44,4 +44,10 @@ export {
   type ScenarioStep,
 } from './scenarios';
 export * from './lifecycle';
+export { readTaom4e, type Taom4eContext } from './taom4e';
+export {
+  carriedDifference,
+  taom4eCarried,
+  type CarriedModel,
+} from './taom4e/carried';
 export * from './vocabulary';
