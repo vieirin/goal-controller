@@ -9,7 +9,7 @@
  * caller maps node types to piStar; nothing here knows a metamodel.
  */
 import * as z from 'zod/mini';
-import { readXml, type XmlElement } from '../formats/xml';
+import { readXml, type XmlElement } from './xml.js';
 
 export type XmiDiagnostic = {
   severity: 'error' | 'warning' | 'info';

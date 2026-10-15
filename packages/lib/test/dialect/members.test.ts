@@ -22,7 +22,7 @@ import {
   defineAnalyses,
   runAnalysis,
 } from '../../src/engines/analysis';
-import { readXmi } from '../../src/importers/xmi';
+import { readXmi } from '@goal-controller/goal-language/formats';
 import {
   analysisDiagnostics,
   shownStep,

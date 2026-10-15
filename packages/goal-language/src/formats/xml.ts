@@ -1,10 +1,10 @@
 /**
- * A small XML reader for a project's XML resources (MutRoSe's world
- * knowledge, first): elements, attributes and text, with their offsets (tag
+ * A small XML reader for a project's XML files (an engine's resources, a
+ * native file): elements, attributes and text, with their offsets (tag
  * names, closing tags, text and attribute values too), and what is wrong
  * with the text. No DOM: it runs in Node, the browser and the language
  * server's worker alike. No DTDs or CDATA, and no namespaces (a prefixed
- * name is read as written, `urn:URNspec`), which the resources
+ * name is read as written, `urn:URNspec`), which the files read with it
  * don't use.
  */
 

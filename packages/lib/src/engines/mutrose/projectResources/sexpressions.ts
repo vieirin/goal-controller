@@ -1,7 +1,9 @@
 /**
- * HDDL's s-expressions, with where each atom and list is: what both an
- * engine's HDDL parser and the definition pool's HDDL provider read. HDDL
- * reads names in any case: an atom is lowercased, its range is as written.
+ * HDDL's s-expressions, with where each atom and list is: what MutRoSe's
+ * HDDL domain parser (./hddl.ts) and a definition pool's HDDL provider
+ * read. MutRoSe's own (goal-controller#143: engine code in its engine's
+ * folder). HDDL reads names in any case: an atom is lowercased, its range
+ * is as written.
  */
 
 /** An atom, lowercased (HDDL reads names in any case); its range is the text as written. */

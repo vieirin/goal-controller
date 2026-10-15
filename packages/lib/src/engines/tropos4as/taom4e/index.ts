@@ -41,7 +41,11 @@ import type {
   ImportResult,
 } from '../../../importers/types';
 import { layOut } from '../../../importers/layout';
-import { readXmi, type XmiNode, type XmiReader } from '../../../importers/xmi';
+import {
+  readXmi,
+  type XmiNode,
+  type XmiReader,
+} from '@goal-controller/goal-language/formats';
 import { tropos4asMetamodelBlock } from '../extension';
 
 type Json = Record<string, unknown>;

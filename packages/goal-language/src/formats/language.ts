@@ -7,9 +7,9 @@
  * the model), `highlight` for its tab, and `complete`. Each language has
  * services of its own, apart from the goal language's and every other's.
  *
- * Langium is ESM-only: this module is required only from an engine's
- * `language/index.ts`, which lib's build bundles (build.mjs), never from
- * lib's index.
+ * The goal language's Langium runs it (`@goal-controller/goal-language/formats`;
+ * its CommonJS bundle requires the package's one Langium copy), with
+ * services of the language's own: the goal language's grammar is untouched.
  */
 import {
   AstUtils,

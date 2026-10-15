@@ -19,7 +19,12 @@ Langium grammar under its engine's folder (`defineLanguage`,
 [adding-an-engine.md](../../dialect/docs/adding-an-engine.md)). That grammar
 is another language, with services of its own: it never changes
 `goal.langium`, its lexer or its generated parser, and the goal language
-never reads it.
+never reads it. What this package gives it is the formats area
+(`src/formats/`, exported as `@goal-controller/goal-language/formats`):
+`defineLanguage` on this package's Langium, and the XML, EMF XMI and JSON
+readers and writers a native file starts from. Nothing there knows a
+dialect, an engine or a metamodel, and the goal language's own parser
+doesn't use it.
 
 ## Before you change the language
 

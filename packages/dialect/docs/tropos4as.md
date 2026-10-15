@@ -136,7 +136,7 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 
 - **Members** (`mealSensor.meals`): blue's #137. A condition reads an artifact's attributes as members, the `assertion`'s `members: { from: 'attributes' }`; the validator says when an artifact has no such attribute. Patient monitoring's conditions read its sensors; the Cleaner Agent keeps `roomClean`, since its figure draws no artifact.
 - **A step series** for an analysis: blue's #137 (`AnalysisCase.steps`). A scenario is one case, its steps in order.
-- **An EMF XMI reader** shared by importers: blue's #137 (`importers/xmi.ts`). TAOM4E's importer reads `.tropos` with it, in #143's `read` shape.
+- **An EMF XMI reader** shared by importers: blue's #137 (now `@goal-controller/goal-language/formats`, #143). TAOM4E's importer reads `.tropos` with it, in #143's `read` shape.
 - **Property lines in a dialect without ids**: #138 (blue; merged as #141), option A: the declared keys read as tokens, a name that starts with one quoted. Tropos4AS lists its kinds with no prefix and writes its properties as lines.
 - **Shared by engines** (in lib, not the core):
   - an element's text read as its id and name, and `name:value` lists (`engines/elementText.ts`, from iStar-DT's model);

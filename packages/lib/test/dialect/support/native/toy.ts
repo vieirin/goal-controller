@@ -21,13 +21,13 @@ import {
   type NativeWriteResult,
   type PistarJson,
 } from '@goal-controller/dialect';
-import { defineLanguage } from '../../../../src/formats/language';
 import {
   canonicalXml,
+  defineLanguage,
   readXmi,
   writeXmi,
   type XmiWriteNode,
-} from '../../../../src/importers/xmi';
+} from '@goal-controller/goal-language/formats';
 import type { ChoreList, Item } from './generated/ast';
 import * as generated from './generated/module';
 

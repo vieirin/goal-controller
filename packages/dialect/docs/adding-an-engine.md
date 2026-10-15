@@ -471,8 +471,10 @@ nativeFiles: {
 },
 ```
 
-- `read` and `write` live in the engine's folder, on the core's helpers:
-  `readXmi`/`writeXmi`, `readXml`, `readJson`/`writeJson`. The workbench's
+- `read` and `write` live in the engine's folder, on the core's helpers
+  (`@goal-controller/goal-language/formats`): `readXmi`/`writeXmi`,
+  `readXml`, `readJson`/`writeJson`. A format only one engine reads (MutRoSe's
+  HDDL s-expressions) is that engine's, in its folder. The workbench's
   Open dialog takes the declared extensions; opening one makes the project
   of the file and its model.
 - Test it with `describeNativeRoundTrips(dialect, fixtures)`
@@ -485,7 +487,7 @@ nativeFiles: {
   makes the language:
 
   ```ts
-  import { defineLanguage } from '../../../formats/language';
+  import { defineLanguage } from '@goal-controller/goal-language/formats';
   import * as generated from './generated/module';
   export const boardLanguage = defineLanguage<Board>(generated);
   ```
@@ -493,7 +495,9 @@ nativeFiles: {
   `pnpm --filter @goal-controller/lib run build` runs `langium generate`
   for every `langium-config.json` under `src/engines` (commit
   `generated/` as the generator writes it: oxfmt leaves it alone), and
-  bundles each such folder with lib's one Langium (`out/engines/<engine>/language.js`;
+  bundles each such folder against the goal language's one Langium, the
+  runtime its parser is generated for (lib has no Langium of its own;
+  `out/engines/<engine>/language.js`;
   require it as `./language` from the engine's other files). The
   language's `parse` gives the AST the dialect's `read` maps; `highlight`
   and `complete` are the native file's tab's (`language: boardLanguage`).

@@ -249,24 +249,9 @@ export {
 } from './engines/tropos4as';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
-// native files (goal-controller#143): EMF XMI read and written, and the
-// round-trip contract; a Langium language is `formats/language`'s
-// `defineLanguage`, which an engine's bundled language/ imports
-export {
-  canonicalXml,
-  readXmi,
-  writeXmi,
-  writeXmlTree,
-  type XmiDiagnostic,
-  type XmiDocument,
-  type XmiNode,
-  type XmiOptions,
-  type XmiReader,
-  type XmiWriteNode,
-  type XmiWriteOptions,
-  type XmiWriteResult,
-  type XmlTree,
-} from './importers/xmi';
+// native files (goal-controller#143): the round-trip contract (the formats
+// they are read and written in are the goal language's:
+// `@goal-controller/goal-language/formats`)
 export {
   modelRoundTrip,
   textRoundTrip,
@@ -297,8 +282,6 @@ export {
 export * from './engines/definitionPool';
 // the pool's protocol (#82): what an engine declares, and poolOf
 export * as pool from './pool';
-// the readers of the formats project resources are written in, with ranges
-export * from './formats';
 export {
   modelDocument,
   modelField,

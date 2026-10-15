@@ -6,7 +6,10 @@ grammar (goal-controller#143). It is kept **1:1 with the piStar model**:
 open it and the piStar model is read from it; edit the model and the file is
 written from it again. An **importer** is a native file with a reader only.
 
-Readers and writers are the dialect's, on helpers the core provides (below).
+Readers and writers are the dialect's, on helpers the core provides (below):
+the formats are the goal language's (`@goal-controller/goal-language/formats`,
+`packages/goal-language/src/formats/`); what works on piStar models (the
+round trip, the layout) is lib's (`packages/lib/src/importers/`).
 Nothing in the core names a format or a dialect; the toy dialect in
 `packages/lib/test/dialect/support/native/` (an invented XMI format and a
 five-rule Langium grammar) shows the whole path.
@@ -40,9 +43,10 @@ defineDialect({
 
 ## The helpers
 
-- **EMF XMI**, `importers/xmi.ts`: `readXmi` (below) and its inverse, `writeXmi(root, { idAttribute, namespaces, order, xmiVersion, encoding, indent })`. A node to write is `{ feature, type?, id?, attributes?, references?, hrefs?, children?, text? }`; references into the document are written as the target's id, or its path fragment when it has none (`//@actors.0/@goals.2`), space-separated; references into another file as `<feature href="other.ecore#//X"/>`. The root gets `xmi:version` and its namespaces (`xmi`, `xsi` when a node has an `xsi:type`, then the given ones); attributes are written `xsi:type` first, then in `order`, then as given; values escaped as EMF does (`&#xA;` for a line break), what the encoding can't carry as character references. A reference to a node not in the document is an error, and left out. `canonicalXml(text, { order })` is a canonical form for any XML: attributes in `order`, then by name, EMF's indents, comments out.
+- **EMF XMI**, `formats/xmi.ts`: `readXmi` (below) and its inverse, `writeXmi(root, { idAttribute, namespaces, order, xmiVersion, encoding, indent })`. A node to write is `{ feature, type?, id?, attributes?, references?, hrefs?, children?, text? }`; references into the document are written as the target's id, or its path fragment when it has none (`//@actors.0/@goals.2`), space-separated; references into another file as `<feature href="other.ecore#//X"/>`. The root gets `xmi:version` and its namespaces (`xmi`, `xsi` when a node has an `xsi:type`, then the given ones); attributes are written `xsi:type` first, then in `order`, then as given; values escaped as EMF does (`&#xA;` for a line break), what the encoding can't carry as character references. A reference to a node not in the document is an error, and left out. `canonicalXml(text, { order })` is a canonical form for any XML: attributes in `order`, then by name, EMF's indents, comments out.
+- **XML**, `formats/xml.ts`: `readXml(text) → { root, problems }`, elements with the ranges of their names, attributes and text.
 - **JSON**, `formats/json.ts`: `readJson(text) → { value, diagnostics }` (where it stops being JSON), `writeJson(value)` (two spaces, a final line break), `canonicalJson(text)` (keys sorted).
-- **Langium**, `formats/language.ts`: `defineLanguage(generated, { language?, module?, terminals? })` turns a grammar's generated module into `{ id, services, parse, highlight, complete }`. `parse(text) → { ast, diagnostics }` gives Langium's AST (references unlinked: `$refText` names them), its syntax errors as diagnostics; `highlight` reads the grammar's keywords, terminals (a rule returning a number is `number`, one named like `STRING` is `string`) and assignments (a `name=` is a definition, a cross-reference a reference); `complete` offers the grammar's keywords and the names the text defines. Each language has its own services, apart from the goal language's. The dialect's `read` maps the AST to the model, its `write` prints it. Where it goes: [adding-an-engine.md](adding-an-engine.md).
+- **Langium**, `formats/language.ts`: `defineLanguage(generated, { language?, module?, terminals? })`, on the goal language's Langium, turns a grammar's generated module into `{ id, services, parse, highlight, complete }`. `parse(text) → { ast, diagnostics }` gives Langium's AST (references unlinked: `$refText` names them), its syntax errors as diagnostics; `highlight` reads the grammar's keywords, terminals (a rule returning a number is `number`, one named like `STRING` is `string`) and assignments (a `name=` is a definition, a cross-reference a reference); `complete` offers the grammar's keywords and the names the text defines. Each language has its own services, apart from the goal language's. The dialect's `read` maps the AST to the model, its `write` prints it. Where it goes: [adding-an-engine.md](adding-an-engine.md).
 - **The model compared**, `packages/dialect/src/native.ts`: `modelDifference(a, b, lossy)` (the first path where two piStar models differ, but for the lossy paths, keys sorted and id'd lists in id order), `canonicalModel`, `withoutLossy`.
 
 ## The round-trip contract
@@ -101,7 +105,7 @@ import(text) → {
 
 Nodes that have a position keep it. The others are laid out as a model of their own from `origin`: links to positioned nodes are not followed. It returns how far they reach (`{ right, bottom }`) to size the diagram, or `null` when there was nothing to place.
 
-## EMF XMI: `importers/xmi.ts`, the reader every XMI importer starts from
+## EMF XMI: `formats/xmi.ts` (`@goal-controller/goal-language/formats`), the reader every XMI importer starts from
 
 `readXmi(text, { idAttribute?, fileName? })` reads an EMF XMI document for
 any metamodel (goal-controller#135). It knows none: the importer maps its

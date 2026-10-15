@@ -20,7 +20,7 @@ import {
   type Atom,
   type Expr,
   type List,
-} from '../../../src/formats/hddl';
+} from '../../../src/engines/mutrose/projectResources/sexpressions';
 
 const PROVIDER = 'hddl';
 

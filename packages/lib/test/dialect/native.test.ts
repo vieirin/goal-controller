@@ -17,14 +17,16 @@ import {
   type PistarJson,
 } from '@goal-controller/dialect';
 import { goalServices, readAssertion } from '@goal-controller/goal-language';
-import { canonicalJson, readJson, writeJson } from '../../src/formats/json';
-import { modelRoundTrip, textRoundTrip } from '../../src/importers/native';
 import {
+  canonicalJson,
   canonicalXml,
+  readJson,
   readXmi,
+  writeJson,
   writeXmi,
   type XmiWriteNode,
-} from '../../src/importers/xmi';
+} from '@goal-controller/goal-language/formats';
+import { modelRoundTrip, textRoundTrip } from '../../src/importers/native';
 import { describeNativeRoundTrips } from '../support/nativeRoundTrip';
 import {
   choresDialect,

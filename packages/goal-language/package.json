@@ -22,6 +22,11 @@
       "import": "./out/esm/light.js",
       "require": "./out/cjs/light.cjs"
     },
+    "./formats": {
+      "types": "./out/esm/formats/index.d.ts",
+      "import": "./out/esm/formats/index.js",
+      "require": "./out/cjs/formats.cjs"
+    },
     "./lsp": {
       "types": "./out/esm/lsp/server.d.ts",
       "import": "./out/esm/lsp/server.js",
@@ -39,6 +44,9 @@
       ],
       "lsp": [
         "out/esm/lsp/server.d.ts"
+      ],
+      "formats": [
+        "out/esm/formats/index.d.ts"
       ]
     }
   },
@@ -51,9 +59,12 @@
   },
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",
+    "@xml-tools/ast": "^5.0.6",
+    "@xml-tools/parser": "1.0.12",
     "chevrotain": "~13.2.0",
     "langium": "4.4.0",
-    "vscode-languageserver": "~10.1.0"
+    "vscode-languageserver": "~10.1.0",
+    "zod": "^4.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
