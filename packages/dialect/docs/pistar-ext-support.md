@@ -455,6 +455,12 @@ the check to do by hand.
   It is engine-agnostic. `defineExtension` checks the namespace and every
   kind, grouper and link end it names.
 
+  An engine's dialect may name one (`DialectDefinition.extension`,
+  goal-controller#132): its node kinds then take properties, keyed by kind
+  id beside iStar's, are named by references, and may be listed in the
+  Notation view with a prefix of their own
+  ([adding-an-engine.md §2.6](adding-an-engine.md#26-properties-on-an-extensions-own-kinds)).
+
 - **`ISTAR_ACTOR_KINDS` / `ISTAR_NODE_KINDS` / `ISTAR_LINK_KINDS`.** The
   dialect package has no dependencies, so these repeat istar-ts's
   constants; a test pins them to istar-ts. `ISTAR_KIND_OF` maps engine kinds
@@ -467,7 +473,11 @@ the check to do by hand.
   keeps the kinds an engine reads; a dialect's kinds live in the dialect.
   Opening `ElementKind` would have rippled through lib's mappers and key types
   for kinds no engine reads. Nothing needed it, because goal-tree's view
-  leaves unknown kinds out.
+  leaves unknown kinds out. (goal-controller#132 added `DialectKind`,
+  `ElementKind` or an extension's kind id, where a definition names its
+  extension's kinds: properties, references, lines. `ElementKind` and the
+  mappers are unchanged; the view holds the extension's kinds a dialect
+  reads, and leaves out any other.)
 
 ### Findings in istar-ts 0.8.0 (reported, not changed)
 

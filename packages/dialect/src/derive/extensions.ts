@@ -258,6 +258,7 @@ export const dialectDefinition = (extension: ExtensionDefinition) => {
   const plain = {
     id: extension.name,
     name: extension.label,
+    extension,
     elements: Object.fromEntries(kinds.map((kind) => [kind, element])),
     defaultFill: NODE_FILL,
     properties: Object.fromEntries(kinds.map((kind) => [kind, []])),

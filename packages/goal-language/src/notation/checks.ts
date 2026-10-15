@@ -38,6 +38,14 @@ export type CheckContext = {
   readLink?: (
     linkId: string,
   ) => NonNullable<DefinitionContext['links']>[string] | undefined;
+  /**
+   * An element by its key, whatever its kind (an extension's too, its
+   * properties declared by its kind: goal-controller#132), when the caller
+   * has the model; a property's check gets its element's key as `self`.
+   */
+  readElement?: (
+    key: string,
+  ) => DefinitionContext['elements'][string] | undefined;
   /** An actor by its piStar id (goal-controller#107), in a dialect that gives actors properties. */
   readActor?: (
     actorId: string,
@@ -63,6 +71,7 @@ export const checkContextOf = (
       : undefined;
   },
   elements: model.elements,
+  readElement: (key) => model.elements[key],
   ...(model.projectResources && { projectResources: model.projectResources }),
   ...(model.links && { readLink: (id: string) => model.links?.[id] }),
   ...(model.actors && { readActor: (id: string) => model.actors?.[id] }),

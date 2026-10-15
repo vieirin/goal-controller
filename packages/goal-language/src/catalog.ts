@@ -10,7 +10,10 @@
  * cannot add an operator or change how tightly one binds. goal.langium is
  * written from this table (the tests check they agree).
  */
-import type { AssertionPrefix } from '@goal-controller/dialect';
+import {
+  ISTAR_ID_PREFIXES,
+  type AssertionPrefix,
+} from '@goal-controller/dialect';
 
 export type OperatorForm =
   | 'infix'
@@ -137,9 +140,36 @@ export const OPERATORS: readonly CatalogOperator[] = [
 /** The keyword an operand may be instead of an element id. */
 export const SKIP = 'skip';
 
-/** The id prefixes element lines may use (`G1`, `T2.1`, `R3`, MutRoSe's `AT1`). */
-export const ID_PREFIXES = ['G', 'T', 'R', 'AT'] as const;
+/**
+ * The id prefixes element lines may use (`G1`, `T2.1`, `R3`, MutRoSe's
+ * `AT1`): the ones the dialect schema gives iStar's kinds.
+ */
+export const ID_PREFIXES = ISTAR_ID_PREFIXES;
 export type IdPrefix = (typeof ID_PREFIXES)[number];
+
+/**
+ * The id prefixes, the catalog's and a dialect's own (`idPrefixesOf`), as
+ * a regular expression's alternatives, longest first (`AT` before `T`).
+ */
+export const idPrefixPattern = (own: readonly string[] = []): string =>
+  [...ID_PREFIXES, ...own]
+    .sort((a, b) => b.length - a.length)
+    .map((prefix) => prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+
+/**
+ * The id prefixes a dialect declares besides the catalog's: its extension's
+ * kinds' it lists (`E` in `E1`), read in its element lines only.
+ */
+export const idPrefixesOf = (definition: {
+  elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
+}): string[] =>
+  Object.values(definition.elements ?? {}).flatMap((element) =>
+    element?.prefix !== undefined &&
+    !(ID_PREFIXES as readonly string[]).includes(element.prefix)
+      ? [element.prefix]
+      : [],
+  );
 
 /** The assertion language: `battery > 20 & !charging`. */
 export const ASSERTION = {

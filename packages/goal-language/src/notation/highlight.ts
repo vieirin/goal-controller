@@ -13,7 +13,7 @@ import {
 } from '@goal-controller/dialect';
 import type { IToken } from 'chevrotain';
 import type { GoalLexer, LexerStart } from '../lexer.js';
-import { CALL_NAMES, ID_PREFIXES } from '../catalog.js';
+import { CALL_NAMES, ID_PREFIXES, idPrefixesOf } from '../catalog.js';
 import { goalServices } from '../parse.js';
 
 export type HighlightStyle =
@@ -99,12 +99,18 @@ const STYLE: Record<string, HighlightStyle> = {
   VALUE: 'string',
 };
 
-const ID_PREFIX = new Set<string>(ID_PREFIXES);
+// a dialect's own prefix (an extension's kind's) is an ID_PREFIX token
+const ID_PREFIX = new Set<string>([...ID_PREFIXES, 'ID_PREFIX']);
 const ID_REST = new Set(['FLOAT', 'X', 'DIGIT_SUBID']);
 
-const tokensOf = (start: LexerStart, text: string): IToken[] => {
+const tokensOf = (
+  start: LexerStart,
+  text: string,
+  prefixes: readonly string[] = [],
+): IToken[] => {
   const lexer = goalServices().parser.Lexer as GoalLexer;
   lexer.start = start;
+  lexer.prefixes = prefixes;
   return lexer.tokenize(text).tokens;
 };
 
@@ -227,6 +233,7 @@ export const highlightLine = (
   const tokens = tokensOf(
     hasIds(definition) ? 'document' : 'plainDocument',
     text,
+    idPrefixesOf(definition),
   );
   const value = tokens.find((token) => token.tokenType.name === 'VALUE');
   const key = tokens.find((token) => token.tokenType.name === 'KEY');

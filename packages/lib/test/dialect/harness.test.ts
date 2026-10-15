@@ -303,7 +303,9 @@ describe('harness 4: inspector specs', () => {
         const tree = view(model, grammar);
         const kindOf = (id: string) => {
           const kind = tree.nodes.get(id)?.kind;
-          return kind === 'quality' ? undefined : kind;
+          return kind === 'goal' || kind === 'task' || kind === 'resource'
+            ? kind
+            : undefined;
         };
         for (const node of tree.nodes.values()) {
           const kind = node.kind as ElementKind;

@@ -11,6 +11,7 @@ import {
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
+import { extensionKindsRead } from '@goal-controller/dialect';
 import {
   notationRefs,
   parseElementLineIn,
@@ -23,7 +24,16 @@ import type { GoalExecutionDetail } from './types/';
 /** The construct a notation expresses (`sequence` for `[G1;G2]`, …). */
 export type ViewConstruct = GoalExecutionDetail['type'];
 
-export type ViewKind = 'goal' | 'task' | 'resource' | 'quality';
+/**
+ * iStar's kinds, as an engine reads them, or one of its extension's it reads
+ * (`toy.Sensor`, goal-controller#132), by its id.
+ */
+export type ViewKind =
+  | 'goal'
+  | 'task'
+  | 'resource'
+  | 'quality'
+  | `${string}.${string}`;
 
 export type GoalViewNode = {
   /** piStar element id */
@@ -110,7 +120,7 @@ export type GoalView = {
 const TEXT =
   /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
 
-const KIND: Record<string, ViewKind> = {
+const KIND: Record<string, ViewKind | undefined> = {
   'istar.Goal': 'goal',
   'istar.Task': 'task',
   'istar.Resource': 'resource',
@@ -124,7 +134,12 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
   ),
 ];
 
-/** Reads a model of any dialect: kinds it doesn't know (an extension's) are left out. */
+/**
+ * Reads a model of any dialect: iStar's kinds, and its extension's it reads
+ * (lists, gives properties or names in a reference: `extensionKindsRead`),
+ * each keyed by the id its text starts with (`E1: …`) or its piStar id; any
+ * other kind is left out.
+ */
 export function goalView(
   model: IstarModel<string, string>,
   dialect: ReadingDialect,
@@ -132,9 +147,14 @@ export function goalView(
   const byIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
   const parents = new Map<string, string>();
+  const extensionKinds = new Set(extensionKindsRead(dialect));
 
   for (const element of model.elements.values()) {
-    const kind = KIND[element.kind];
+    const kind =
+      KIND[element.kind] ??
+      (extensionKinds.has(element.kind)
+        ? (element.kind as ViewKind)
+        : undefined);
     if (!kind || !isNode(element) || element.isDependum) continue;
     const text = element.name;
     const written = TEXT.exec(text);
@@ -259,6 +279,8 @@ export function goalView(
   const roots = [...model.elements.values()]
     .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id, dialect))
+    // an extension's element is no tree's root (goal-controller#132)
+    .filter((element) => !extensionKinds.has(element.kind))
     .map((element) => keyOf(element.id))
     .filter((id): id is string => !!id);
   const reachable = new Set<string>();
@@ -269,9 +291,15 @@ export function goalView(
   };
   roots.forEach(visit);
   for (const node of byId.values()) {
-    // a Quality outside the refinements only qualifies: it is not a tree of its own
+    // a Quality outside the refinements only qualifies: it is not a tree of
+    // its own; nor is an extension's element no refinement reaches
     const onlyQualifies = node.kind === 'quality' && node.children.length === 0;
-    if (!reachable.has(node.key) && !node.parent && !onlyQualifies) {
+    if (
+      !reachable.has(node.key) &&
+      !node.parent &&
+      !onlyQualifies &&
+      !extensionKinds.has(node.kind)
+    ) {
       roots.push(node.key);
       visit(node.key);
     }

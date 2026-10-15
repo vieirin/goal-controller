@@ -13,7 +13,7 @@ import {
   type ConditionalValue,
   type ConstructDefinition,
   type ElementDefinition,
-  type ElementKind,
+  type DialectKind,
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
   type FunctionDefinition,
@@ -103,7 +103,7 @@ const OCL_KEYS = ['declaredBy', 'candidates', 'memberCandidates'] as const;
 
 type IntOptions = { min?: number; max?: number };
 type AssertionOptions = {
-  resolves: readonly (ElementKind | 'variable')[];
+  resolves: readonly (DialectKind | 'variable')[];
   prefixes?: readonly AssertionPrefix[];
   decimals?: boolean;
   booleanInequality?: boolean;
@@ -111,7 +111,7 @@ type AssertionOptions = {
   functions?: readonly FunctionDefinition[];
 };
 type ExpressionOptions = {
-  resolves?: readonly ElementKind[];
+  resolves?: readonly DialectKind[];
   functions?: readonly FunctionDefinition[];
 };
 type OclOptions = {
@@ -182,10 +182,10 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C> & ExpressionOptions>,
   ): Built<K, 'expression', P, (typeof EXPRESSION_KEYS)[number]> =>
     build(key, 'expression', rest, EXPRESSION_KEYS) as never,
-  /** ids of elements of a kind, comma-separated */
+  /** ids of elements of a kind (iStar's, or an extension's), comma-separated */
   refList: <
     const K extends string,
-    const E extends ElementKind,
+    const E extends DialectKind,
     const P extends PropertyOptions<C>,
   >(
     key: K,

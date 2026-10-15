@@ -168,4 +168,5 @@ These are also in `/light`.
 | `ASSERTION` | the assertion language's operators, comparators and literals |
 | `VALUE_TYPES` | the predefined value types |
 | `ID_PREFIXES` | `G`, `T`, `R`, `AT` |
+| `idPrefixesOf(definition)` | the prefixes a dialect gives its extension's kinds besides these (`S` in `S1`), read in its element lines only (goal-controller#132) |
 | `SKIP` | `skip` |

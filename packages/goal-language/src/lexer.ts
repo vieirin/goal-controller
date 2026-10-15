@@ -10,42 +10,86 @@ import {
   EXPRESSION,
   ID_PREFIXES,
   OCL_OPERATIONS,
+  idPrefixPattern,
 } from './catalog.js';
-
-/** An id prefix, longest first (`AT` before `T`). */
-const PREFIX = [...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|');
 
 type Rules = ReadonlyArray<readonly [name: string, pattern: RegExp]>;
 
 const rules = (list: ReadonlyArray<readonly [string, RegExp]>): Rules =>
   list.map(([name, pattern]) => [name, new RegExp(pattern.source, 'y')]);
 
+const escaped = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /** The keywords of a list, each matching itself. */
 const literal = (...keywords: string[]): Array<[string, RegExp]> =>
-  keywords.map((k) => [
-    k,
-    new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-  ]);
+  keywords.map((k) => [k, new RegExp(escaped(k))]);
 
 /**
- * An element line from its id on, in RTRegex.g4's definition order (implicit
- * literals first, then the lexer rules). ANTLR picks the longest match and
- * breaks ties by this order; GoalLexer does the same, so lines read as the
- * ANTLR grammars read them: `Goal` is one WORD, `G1` is `G` + FLOAT, a space is
- * part of a WORD (so `[G2; G3]` is an error), `->` beats the `-` of a WORD.
- * The catalog's other symbols come after them. `{` opens the declaration.
+ * What reads ids, given a dialect's own prefixes (its extension's kinds',
+ * `E` in `E1`; none: the catalog's only, as every dialect without them
+ * reads). A dialect's own prefix is an ID_PREFIX token; the catalog's are
+ * their keywords.
  */
-const RT = rules([
-  ...literal(...ID_PREFIXES, '[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
-  ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
-  ['DIGIT_SUBID', /[0-9][a-z]/],
-  ['FLOAT', /[0-9]+\.?[0-9]*/],
-  ['skip', /skip/],
-  ['X', /X/],
-  ['WORD', /[A-Za-z\- ']+/],
-  ['WS', /\t+/],
-  ['{', /\{/],
-]);
+type IdRules = {
+  /** an element line from its id on (below) */
+  rt: Rules;
+  /** a prefix and `X` alone (`TX`), read as a WORD */
+  xId: RegExp;
+  /** an optional id before a plain line's name, with its colon */
+  plainId: RegExp;
+  /** a line that starts like an element line with an id (`G1`, `TX`) */
+  elementStart: RegExp;
+  /** a prefix's token: its keyword, or ID_PREFIX */
+  tokenOf: (prefix: string) => string;
+  /** an id's prefix and the rest (`T` and `1.2X`) */
+  split: RegExp;
+};
+
+const idRulesCache = new Map<string, IdRules>();
+
+const idRulesOf = (own: readonly string[]): IdRules => {
+  const key = own.join(',');
+  const cached = idRulesCache.get(key);
+  if (cached) return cached;
+  const prefix = idPrefixPattern(own);
+  /**
+   * An element line from its id on, in RTRegex.g4's definition order
+   * (implicit literals first, then the lexer rules). ANTLR picks the longest
+   * match and breaks ties by this order; GoalLexer does the same, so lines
+   * read as the ANTLR grammars read them: `Goal` is one WORD, `G1` is `G` +
+   * FLOAT, a space is part of a WORD (so `[G2; G3]` is an error), `->` beats
+   * the `-` of a WORD. The catalog's other symbols come after them. `{` opens
+   * the declaration.
+   */
+  const rt = rules([
+    ...literal(...ID_PREFIXES),
+    ...(own.length
+      ? [['ID_PREFIX', new RegExp(own.map(escaped).join('|'))] as const]
+      : []),
+    ...literal('[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
+    ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
+    ['DIGIT_SUBID', /[0-9][a-z]/],
+    ['FLOAT', /[0-9]+\.?[0-9]*/],
+    ['skip', /skip/],
+    ['X', /X/],
+    ['WORD', /[A-Za-z\- ']+/],
+    ['WS', /\t+/],
+    ['{', /\{/],
+  ]);
+  const rulesOf: IdRules = {
+    rt,
+    xId: new RegExp(`^(${prefix})X$`),
+    plainId: new RegExp(
+      `(?:${prefix})(?:[0-9]+\\.?[0-9]*X?|[0-9][a-z]|X)[ \\t]*:`,
+      'y',
+    ),
+    elementStart: new RegExp(`(?:${prefix})(?:[0-9]|X)`, 'y'),
+    tokenOf: (p) => (own.includes(p) ? 'ID_PREFIX' : p),
+    split: new RegExp(`^(${prefix})(\\S+?)\\s*:$`),
+  };
+  idRulesCache.set(key, rulesOf);
+  return rulesOf;
+};
 
 /**
  * A leaf's cost in its bracket (`[W = 0.1x]`, GODA's CostRegex.g4): `W`, `=`,
@@ -60,19 +104,6 @@ const COST = rules([
 
 /** A bracket that holds a cost: `W =` first (spaces aside). */
 const COST_START = /[ \t]*W[ \t]*=/y;
-
-/**
- * An id that is a prefix and `X` alone (`TX`, `GX`: an unknown element, in
- * GODA): WORD matches it for two letters, which beats the prefix's one, so it
- * is split back into the prefix and `X`.
- */
-const X_ID = new RegExp(`^(${PREFIX})X$`);
-
-/** An optional id before a plain line's name, with its colon: `G1:`, `T1.2X :`, `TX:`. */
-const PLAIN_ID = new RegExp(
-  `(?:${PREFIX})(?:[0-9]+\\.?[0-9]*X?|[0-9][a-z]|X)[ \\t]*:`,
-  'y',
-);
 
 /** A line without an id: its name, then (spaces aside) the RT tokens. */
 const PLAIN_NAME = /[^\s[\]{}<](?:[^\r\n[\]{}]*[^\s[\]{}])?/y;
@@ -104,7 +135,7 @@ const DECLARATION = rules([
  * of its length and wins (`R1`, `GX`), a longer name is a name (`Rate`, `G1a`).
  */
 const OPERANDS: Array<[string, RegExp]> = [
-  ['A_REF', new RegExp(`(?:${PREFIX})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`)],
+  ['A_REF', new RegExp(`(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`)],
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],
@@ -158,8 +189,12 @@ const VALUES = {
   bool: rules([...literal('true', 'false'), SPACE]),
   text: rules([['VALUE', VALUE], SPACE]),
   enum: rules([['VALUE', VALUE], SPACE]),
+  // any id, an extension kind's too (`S1`): whether it names an element of
+  // the model is the value's to say, not its syntax's
   refList: rules([
-    ...literal(...ID_PREFIXES, ','),
+    ...literal(...ID_PREFIXES),
+    ['ID_PREFIX', /[A-Z]{1,2}(?=[0-9])/],
+    ...literal(','),
     ['DIGIT_SUBID', /[0-9][a-z]/],
     ['FLOAT', /[0-9]+\.?[0-9]*/],
     ['X', /X/],
@@ -205,10 +240,9 @@ type LineState =
   /** before the id or name: annotations, and spaces after them */
   'lead' | 'stereotype' | 'tag' | 'name' | 'rt' | 'cost' | 'declaration';
 
-const LINE_RULES: Record<Exclude<LineState, 'lead' | 'name'>, Rules> = {
+const LINE_RULES: Record<Exclude<LineState, 'lead' | 'name' | 'rt'>, Rules> = {
   stereotype: STEREOTYPE,
   tag: TAG,
-  rt: RT,
   cost: COST,
   declaration: DECLARATION,
 };
@@ -217,8 +251,6 @@ const HIDDEN = new Set(['WS']);
 const LINE_BREAK = /[\r\n]+/y;
 const INDENT = /[ \t]+/y;
 const ANNOTATION = /<<|\{/y;
-/** a line that starts like an element line with an id (`G1`, `TX`) */
-const ELEMENT_START = new RegExp(`(?:${PREFIX})(?:[0-9]|X)`, 'y');
 const KEY = /[A-Za-z][A-Za-z0-9_]*/y;
 const AFTER_KEY = /[ \t]+/y;
 const PROPERTY_VALUE = /[^\s](?:[^\r\n]*[^\s])?/y;
@@ -231,6 +263,11 @@ const at = (pattern: RegExp, text: string, offset: number) => {
 export class GoalLexer extends DefaultLexer {
   /** Where the next `tokenize` starts (reset after each call). */
   start: LexerStart = 'document';
+  /**
+   * The id prefixes the next `tokenize` reads besides the catalog's: its
+   * dialect's own, an extension's kinds' (reset after each call).
+   */
+  prefixes: readonly string[] = [];
 
   override tokenize(text: string): LexerResult {
     const tokens: IToken[] = [];
@@ -238,6 +275,8 @@ export class GoalLexer extends DefaultLexer {
     const errors: ILexingError[] = [];
     const start = this.start;
     this.start = 'document';
+    const ids = idRulesOf(this.prefixes);
+    this.prefixes = [];
     let offset = 0;
     let line = 1;
     let column = 1;
@@ -370,7 +409,7 @@ export class GoalLexer extends DefaultLexer {
           document &&
           !plain &&
           !annotated &&
-          !at(ELEMENT_START, text, offset) &&
+          !at(ids.elementStart, text, offset) &&
           at(KEY, text, offset)
         ) {
           push('KEY', at(KEY, text, offset)!);
@@ -384,12 +423,10 @@ export class GoalLexer extends DefaultLexer {
       }
       if (state === 'name') {
         // an optional id first (`G1: Name`): its tokens as an element line's
-        const id = at(PLAIN_ID, text, offset);
+        const id = at(ids.plainId, text, offset);
         if (id) {
-          const [, prefix, rest] = new RegExp(`^(${PREFIX})(\\S+?)\\s*:$`).exec(
-            id,
-          )!;
-          push(prefix!, prefix!);
+          const [, prefix, rest] = ids.split.exec(id)!;
+          push(ids.tokenOf(prefix!), prefix!);
           if (/^[0-9][a-z]$/.test(rest!)) push('DIGIT_SUBID', rest!);
           else {
             const float = /^[0-9]+\.?[0-9]*/.exec(rest!)![0];
@@ -417,7 +454,7 @@ export class GoalLexer extends DefaultLexer {
           continue;
         }
       }
-      const best = longest(LINE_RULES[state]);
+      const best = longest(state === 'rt' ? ids.rt : LINE_RULES[state]);
       if (!best) {
         unrecognized();
         continue;
@@ -427,9 +464,9 @@ export class GoalLexer extends DefaultLexer {
         state === 'rt' &&
         best.name === 'WORD' &&
         tokens.at(-1)?.tokenType.name !== ':' &&
-        X_ID.exec(best.image);
+        ids.xId.exec(best.image);
       if (xId) {
-        push(xId[1]!, xId[1]!);
+        push(ids.tokenOf(xId[1]!), xId[1]!);
         push('X', 'X');
         continue;
       }

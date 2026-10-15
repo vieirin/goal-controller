@@ -17,6 +17,7 @@ import {
   type DocumentTree,
   linkLinesOf,
   actorPropertiesOf,
+  extensionKindsRead,
   linkPropertiesOf,
 } from '@goal-controller/dialect';
 import {
@@ -52,7 +53,12 @@ type Document = Pick<
   AnyDialect,
   'elements' | 'notation' | 'propertyLineOrder' | 'indent'
 > &
-  Partial<Pick<AnyDialect, 'idScope' | 'links' | 'linkLines' | 'actors'>>;
+  Partial<
+    Pick<
+      AnyDialect,
+      'idScope' | 'links' | 'linkLines' | 'actors' | 'properties'
+    >
+  >;
 
 /**
  * Whether a node has lines of its own, with property lines and its children
@@ -477,10 +483,16 @@ export const contextFromView = (
   variables: readonly string[],
 ): DefinitionContext => {
   const names = lineNames(definition, tree);
+  // the kinds it lists, and its extension's it reads (goal-controller#132:
+  // given properties, or named by a reference)
+  const read = new Set(extensionKindsRead(definition));
   return {
     elements: Object.fromEntries(
       [...tree.nodes]
-        .filter(([, node]) => definition.elements[node.kind] !== undefined)
+        .filter(
+          ([, node]) =>
+            definition.elements[node.kind] !== undefined || read.has(node.kind),
+        )
         .map(([key, node]) => [
           key,
           {

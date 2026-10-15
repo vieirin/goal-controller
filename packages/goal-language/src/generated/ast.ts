@@ -7,6 +7,7 @@
 import * as langium from 'langium';
 
 export const GoalTerminals = {
+    ID_PREFIX: /[A-Z]{1,2}/,
     DIGIT_SUBID: /[0-9][a-z]/,
     FLOAT: /[0-9]+\.?[0-9]*/,
     WORD: /[A-Za-z\- ']+/,

@@ -198,11 +198,14 @@ const elementHover = (
   context: DefinitionContext,
 ): string => {
   const line = lineNamed(definition, lines, id);
-  const kind = context.elements[id]?.kind;
+  const element = context.elements[id];
+  const kind = element?.kind;
   const declaration = line?.read.declaration
     ? ` \`${line.line.text.slice(line.read.declaration.span.from, line.read.declaration.span.to)}\``
     : '';
-  return `**${id}**${line ? `: ${line.read.name}` : ''}${declaration}${kind ? ` (a ${kind} of this model)` : ''}`;
+  // an element without a line (a kind the dialect doesn't list): its name in the model
+  const name = line ? line.read.name : element?.name;
+  return `**${id}**${name ? `: ${name}` : ''}${declaration}${kind ? ` (a ${kind} of this model)` : ''}`;
 };
 
 /** The hover at a position of a document, if anything there is explained. */
@@ -274,6 +277,9 @@ export const hoverAt = (
         word,
         elementHover(definition, lines, target.read.id ?? name, context),
       );
+    // an element no line lists (an extension's kind, goal-controller#132)
+    if (Object.hasOwn(context.elements, name))
+      return shift(word, elementHover(definition, lines, name, context));
     if (context.variables.includes(name))
       return shift(word, `**${name}**: a workbench variable`);
   }

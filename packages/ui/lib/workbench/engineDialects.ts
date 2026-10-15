@@ -208,4 +208,6 @@ export const ENGINE_ANALYSES: Readonly<
  */
 export const ENGINE_FILE_KINDS: Readonly<
   Partial<Record<TransformEngine, ExtensionDefinition>>
-> = byEngine((engine) => (engine.fileKinds ? engine.extension : undefined));
+> = byEngine((engine) =>
+  engine.fileKinds ? engine.dialect?.extension : undefined,
+);

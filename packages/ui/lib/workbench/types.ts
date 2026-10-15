@@ -1,6 +1,10 @@
 import type { GoalDiagnostic } from '@istar-ts/core';
 import type { DialectMode } from './dialects';
-import { optionDefaults, type OptionValues } from '@goal-controller/dialect';
+import {
+  optionDefaults,
+  type ExtensionKind,
+  type OptionValues,
+} from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 import { ENGINE_OPTIONS } from './engineDialects';
 
@@ -54,12 +58,13 @@ export type AnalyzeResponse = {
   variables: VariableInfo[];
   problems: Problem[];
   /** custom properties the engine reads, per node kind */
+  /** by kind: iStar's, and the extension's kinds its dialect declares properties for */
   knownProperties: {
     goal: string[];
     task: string[];
     resource: string[];
     quality: string[];
-  };
+  } & Partial<Record<ExtensionKind, string[]>>;
 };
 
 /** The options of every engine, by key, typed by their declarations (ENGINE_OPTIONS). */

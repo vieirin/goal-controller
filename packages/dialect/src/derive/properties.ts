@@ -1,10 +1,12 @@
-import type {
-  ActorPropertyDefinition,
-  AnyDialect,
-  Condition,
-  ConditionalValue,
-  PropertyDefinition,
-  ValueConfig,
+import {
+  isExtensionKind,
+  referencedKinds,
+  type ActorPropertyDefinition,
+  type AnyDialect,
+  type Condition,
+  type ConditionalValue,
+  type PropertyDefinition,
+  type ValueConfig,
 } from '../schema';
 
 export type Properties = Readonly<Record<string, string | undefined>>;
@@ -117,3 +119,41 @@ export const fillOf = (
 ): string =>
   (definition.elements as AnyDialect['elements'])[kind]?.fill ??
   definition.defaultFill;
+
+/** A property's value configs: its own, or both a conditional one's. */
+const configsOf = (
+  property: Pick<PropertyDefinition, 'value'>,
+): ValueConfig[] =>
+  isConditional(property.value)
+    ? [property.value.matching, property.value.otherwise]
+    : [property.value];
+
+/**
+ * The extension's kinds a definition reads (goal-controller#132): those it
+ * lists, gives properties, or names in a reference (an operand, an
+ * assertion's or expression's `resolves`, a refList's `kind`). What a view
+ * of a model holds besides iStar's kinds.
+ */
+export const extensionKindsRead = (
+  definition: Partial<
+    Pick<
+      AnyDialect,
+      'elements' | 'properties' | 'notation' | 'links' | 'actors'
+    >
+  >,
+): string[] => {
+  const lists = [
+    ...Object.values(definition.properties ?? {}),
+    ...Object.values(definition.links ?? {}),
+    definition.actors ?? [],
+  ];
+  const kinds = [
+    ...Object.keys(definition.elements ?? {}),
+    ...Object.keys(definition.properties ?? {}),
+    ...(definition.notation?.operand.kinds ?? []),
+    ...lists.flatMap((list) =>
+      list.flatMap((property) => configsOf(property).flatMap(referencedKinds)),
+    ),
+  ];
+  return [...new Set(kinds.filter(isExtensionKind))];
+};

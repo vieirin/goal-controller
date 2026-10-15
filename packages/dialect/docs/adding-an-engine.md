@@ -108,7 +108,7 @@ The helpers come from `@goal-controller/dialect`, and a definition needs no othe
 
 The line's syntax is the goal language's (`<<s>> {tag = v} G1: Name [G2;G3] {int 0..9 = 3}`); a kind only says which parts it has:
 
-- `prefix: 'G' | 'T' | 'R' | 'AT'` → lines name their element (`G1: Deliver sample`); every kind then needs one. **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
+- `prefix: 'G' | 'T' | 'R' | 'AT'` → lines name their element (`G1: Deliver sample`); every kind then needs one. An extension's kind you list takes a prefix of its own (§2.6). **Option:** no prefix on any kind → lines are annotated names matched _by position_ (used by dialects without ids); then no property lines are allowed.
 - `declares: true` → the line ends with a declaration setting `type`, `lowerBound`, `upperBound`, `initialValue` (Edge's resource `{int 0..100 = 80}`); the kind must have those properties.
 - `annotated: true` → the line starts with annotations setting `stereotype`, `tag`, `tagValue` (the piStar-ext mechanism, added by `withExtension`).
 - Names on lines with ids are letters, spaces, `-` and `'` (as RTRegex.g4 read them).
@@ -224,6 +224,55 @@ diagram selects the actor (`actorSpecsFromDefinition`), read by checks with
 [actor lines](../../goal-language/docs/goal-language.md#actor-lines-properties-on-actors),
 goal-controller#109). A dialect with `actors` may not key an element
 property `actor`, the key those lines are written with.
+
+### 2.6 Properties on an extension's own kinds
+
+An extension's kinds declare properties the same way (goal-controller#132).
+The dialect names its extension (`defineExtension`, what your engine adds
+to iStar 2.0), and `properties` keys its node kinds by id beside iStar's:
+
+```ts
+export const mission = defineDialect({
+  …,
+  extension: missionExtension, // its kinds: mission.Sensor, mission.Display
+  properties: {
+    goal: [ assertion('when', { resolves: ['mission.Sensor', 'variable'], help: '…' }) ],
+    task: [], resource: [], quality: [],
+    'mission.Sensor': [
+      number('rate', { help: 'readings per second', check: 'mission.sensor.rate' }),
+      refList('feeds', 'mission.Display', { help: 'the displays it feeds' }),
+    ],
+  },
+});
+```
+
+- **Typed from the extension.** A key that is neither one of iStar's four
+  kinds nor a node kind of the dialect's extension doesn't compile; its
+  actor kinds take `actors`' properties (§2.5). `defineDialect` rejects the
+  same at run time. A kind without an entry has no properties.
+- **References.** `assertion.resolves`, `expression.resolves`,
+  `refList.kind` and `notation.operand.kinds` take the extension's kind ids
+  too; `defineDialect` rejects one its extension doesn't have. The editors
+  resolve, complete and hover them as goals: an element is named by the id
+  its text starts with (`V1: Panel`), or by its piStar id. In an
+  expression, such a name is that element.
+- **Derived as an iStar kind's.** `propertyKeys(mission, 'mission.Sensor')`,
+  `CheckNameOf` (its checks are the engine's to implement, §3.3),
+  `specsFromDefinition` (the inspector shows a sensor's rows as a goal's),
+  and the checks: an element of the extension's kind is in
+  `context.elements` by its key, and `context.readElement(key)` reads any
+  element, whatever its kind.
+- **Lines (optional).** The Notation view lists the kinds in `elements`. To
+  list one of the extension's, key it there with a prefix of its own, one
+  or two capitals that are none of `G`, `T`, `R`, `AT`, `X`, `W` and no
+  other kind's: `'mission.Sensor': element('S', { fill })`. Its elements
+  get a line, `S1: Probe`, with their property lines under it (its keys go
+  in `propertyLineOrder` with the others). The goal language reads that
+  prefix in your dialect only. A kind you don't list has no line: its
+  properties are the inspector's, and its text stays as written. A
+  dialect without ids lists none (it writes no property lines).
+- **The engine's kinds** are its dialect's extension: `defineEngine` takes
+  them from `dialect.extension` (§3.9).
 
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
@@ -482,7 +531,7 @@ export const missionEngine = defineEngine({
   // analyses: missionAnalyses,           an analysis engine (§3.7): no file
   // analysisModel: missionAnalysisModel, how it reads a model for them (§3.7)
   // pool: missionPool,                   its files share one definition pool (definition-pool.md)
-  // extension, fileKinds: true,          its models declare kinds of their own (importers.md)
+  // fileKinds: true,                    its models declare its dialect's extension's kinds (importers.md)
 });
 ```
 
@@ -492,7 +541,7 @@ export const missionEngine = defineEngine({
 - an analysis that reads a resource the definition doesn't declare;
 - analyses without an `analysisModel`, or an `analysisModel` without analyses;
 - an output id declared twice;
-- `fileKinds` without the `extension` that defines the kinds;
+- `fileKinds` on an engine whose dialect names no `extension` (§2.6);
 - checks or parsers on an engine without a dialect (SLEEC's case).
 
 Each message starts with the engine's id. Check `outputs` against what the engine really writes in its tests (`test/engines/output.test.ts` does it for every engine).
@@ -643,7 +692,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 
 ## 9. Pitfalls seen so far
-- `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`.
+- `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`; an extension's kinds only where they have properties (§2.6).
 - Build the properties with the registry's names (`property.for<MissionCheckName>()`); without it, a misspelt `check:` is caught only by `defineEngine` and `specsFromDefinition`.
 - Mapper keys typed by hand drift from the definition; derive them with `propertyKeys()`.
 - Names on lines with ids can't have digits (`G1: Step 2` is an error), as with the ANTLR grammars.

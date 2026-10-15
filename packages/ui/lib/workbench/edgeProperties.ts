@@ -6,6 +6,7 @@
 import {
   specsFromDefinition,
   type ElementKind,
+  type ExtensionKind,
   type PropertySpec as DefinitionSpec,
 } from '@goal-controller/dialect';
 import { firstResourceIssue, type Check } from '@goal-controller/lib';
@@ -27,7 +28,9 @@ export type PropertySpec<K extends string = string> = DefinitionSpec<K, Check>;
 /** The node kinds an engine has properties for. */
 export type NodeKindKey = ElementKind;
 
-type Specs = Record<NodeKindKey, readonly PropertySpec[]>;
+/** By kind: iStar's, and the extension's kinds the definition gives properties (goal-controller#132). */
+type Specs = Record<NodeKindKey, readonly PropertySpec[]> &
+  Partial<Record<ExtensionKind, readonly PropertySpec[]>>;
 
 const specsOf = <E extends DialectEngine>(engine: E): Specs =>
   specsFromDefinition(ENGINE_DIALECTS[engine], ENGINE_CHECKS[engine]);

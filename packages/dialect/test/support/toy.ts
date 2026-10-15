@@ -191,3 +191,75 @@ export const node = (
   children: [],
   ...n,
 });
+
+/**
+ * An extension whose kinds a dialect declares (goal-controller#132): a
+ * sensor and a display (nodes), and an operator (an actor).
+ */
+export const sensing = defineExtension({
+  name: 'sensing',
+  label: 'Sensing',
+  elements: [
+    { kind: 'sensing.Sensor', category: 'node' },
+    { kind: 'sensing.Display', category: 'node' },
+    { kind: 'sensing.Operator', category: 'actor' },
+  ],
+  links: [],
+  groupers: {},
+  stereotypes: [],
+  taggedValues: [],
+  defaultTags: [],
+});
+
+/**
+ * The toy, with its extension's kinds (goal-controller#132): a sensor is
+ * listed (`S1: Probe`), its rate a number, the displays it feeds a refList,
+ * its level an expression over sensors; a display is not listed and has no
+ * properties; a goal's `when` is an assertion resolving sensors.
+ */
+export const sensed = defineDialect({
+  ...toy,
+  id: 'sensed',
+  name: 'Sensed',
+  extension: sensing,
+  elements: {
+    ...toy.elements,
+    'sensing.Sensor': { prefix: 'S', fill: '#0000FF' },
+  },
+  properties: {
+    ...toy.properties,
+    goal: [
+      ...toy.properties.goal,
+      {
+        key: 'when',
+        value: { type: 'assertion', resolves: ['sensing.Sensor', 'variable'] },
+        help: 'when a sensor reads enough',
+      },
+    ],
+    'sensing.Sensor': [
+      {
+        key: 'rate',
+        value: { type: 'number' },
+        help: 'readings per second',
+        check: 'toy.sensor.rate',
+      },
+      {
+        key: 'feeds',
+        value: { type: 'refList', kind: 'sensing.Display' },
+        help: 'the displays it feeds',
+      },
+      {
+        key: 'level',
+        value: { type: 'expression', resolves: ['sensing.Sensor'] },
+        help: 'what it reads, from other sensors',
+      },
+    ],
+  },
+  propertyLineOrder: [
+    ...toy.propertyLineOrder,
+    'when',
+    'rate',
+    'feeds',
+    'level',
+  ],
+});

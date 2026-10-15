@@ -44,8 +44,10 @@ AnnotatedName:
     annotations+=Annotation* (name=ElementId ':')? label=PLAIN_NAME
     ('[' notation=RtExpr ']')? declaration=Declaration?;
 
+// the catalog's prefixes, or one an extension's kind declares in its dialect
+// (`E1`: GoalLexer reads it as ID_PREFIX only where it is given the dialect's)
 ElementId returns string:
-    ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID);
+    ('G' | 'T' | 'R' | 'AT' | ID_PREFIX) (FLOAT 'X'? | 'X' | DIGIT_SUBID);
 
 Annotation:
     {infer Stereotype} '<<' stereotype=TEXT '>>'
@@ -211,6 +213,8 @@ Reach:
 // ---------------------------------------------------------------------------
 
 // element lines, as RTRegex.g4's lexer read them
+// an extension kind's id prefix, in the dialect that declares it (`E` in `E1`)
+terminal ID_PREFIX: /[A-Z]{1,2}/;
 terminal DIGIT_SUBID: /[0-9][a-z]/;
 terminal FLOAT: /[0-9]+\.?[0-9]*/;
 terminal WORD: /[A-Za-z\- ']+/;

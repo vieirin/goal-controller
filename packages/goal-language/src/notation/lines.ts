@@ -18,6 +18,7 @@ import type {
   PlainDocument,
   RtExpr,
 } from '../generated/ast.js';
+import { idPrefixesOf } from '../catalog.js';
 import { parseWith } from '../module.js';
 import {
   goalServices,
@@ -372,7 +373,7 @@ export const readLine = (
   }
   if (definition.notation?.names === 'text') {
     // a free-text name, read as a WORD of the same length: then its text as written
-    const named = withWordName(text);
+    const named = withWordName(text, idPrefixesOf(definition));
     if (named.name && named.text !== text) {
       const { names: _names, ...notation } = definition.notation;
       const read = readLine({ ...definition, notation }, named.text);
@@ -399,6 +400,7 @@ export const readLine = (
     goalServices(),
     ids ? 'document' : 'plainDocument',
     text,
+    idPrefixesOf(definition),
   );
   const errors = syntaxErrorsOf(result, text.length);
   const root = result.value as Document | PlainDocument;
@@ -460,7 +462,10 @@ export const isValidName = (
   const element = (definition.elements as AnyDialect['elements'])[kind];
   if (!element || name === '') return true;
   if (element.prefix !== undefined) {
-    const read = parseElementLine(`${element.prefix}1:${name}`);
+    const read = parseElementLine(
+      `${element.prefix}1:${name}`,
+      idPrefixesOf(definition),
+    );
     return !read.errors.length && read.value?.name === name;
   }
   // a name may start with an id (`G1: Deliver`), the element's own
