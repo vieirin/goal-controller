@@ -19,6 +19,7 @@ import {
   property,
 } from '@goal-controller/dialect';
 import type { GrlCheckName } from './checks';
+import { grlExtension } from './extension';
 import {
   GRL_CONTRIBUTIONS,
   GRL_DECOMPOSITIONS,
@@ -96,12 +97,23 @@ export const grl = defineDialect({
     },
     defaultConstruct: { and: 'and', or: 'or' },
   }),
+  // its indicator and belief (./extension): an indicator's properties are
+  // declared on its kind (goal-controller#132); GRL lists none of its kinds
+  extension: grlExtension,
   // an element's importance and decomposition type are read from its
   // custom properties (the importer writes them; the evaluation reads them)
   // but not declared: a dialect without ids writes no property lines, and an
   // element line holds annotations and declarations only (#105: a framework
-  // gap; `elementProperties` above is what GRL would declare)
-  properties: { goal: [], task: [], resource: [], quality: [] },
+  // gap; `elementProperties` above is what GRL would declare). An
+  // indicator's importance is declared: GRL lists no indicator, so it has no
+  // line, and the inspector edits it.
+  properties: {
+    goal: [],
+    task: [],
+    resource: [],
+    quality: [],
+    'grl.Indicator': IMPORTANCE,
+  },
   propertyLineOrder: [],
   indent: '  ',
   // a contribution's type and weight are what the evaluations read: written

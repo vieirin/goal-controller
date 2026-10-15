@@ -1,13 +1,13 @@
 import { defineEngine } from '../engine';
 import { grlCheckRegistry } from './checks';
 import { grl } from './definition';
-import { grlExtension } from './extension';
 import { grlAnalyses, grlProjectResourceParsers } from './index';
 import { grlAnalysisModel, grlEngineMapper } from './mapper';
 
 /**
  * GRL, as the workbench registers it: an analysis engine (its values are
- * drawn on the model, Analyse; no file), its models declaring GRL's kinds.
+ * drawn on the model, Analyse; no file), its models declaring GRL's kinds
+ * (its dialect's extension).
  */
 export const grlEngine = defineEngine({
   id: 'grl',
@@ -19,6 +19,6 @@ export const grlEngine = defineEngine({
   analyses: grlAnalyses,
   analysisModel: grlAnalysisModel,
   projectResources: grlProjectResourceParsers,
-  extension: grlExtension,
+  // its models declare its dialect's kinds (the indicator, the belief)
   fileKinds: true,
 });
