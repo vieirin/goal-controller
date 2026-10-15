@@ -37,6 +37,13 @@ import {
   mutroseProjectResources,
   sleecEngineMapper,
   sleecOptions,
+  tropos4as,
+  tropos4asAnalyses,
+  tropos4asAnalysisModel,
+  tropos4asCheckRegistry,
+  tropos4asEngineMapper,
+  tropos4asExtension,
+  tropos4asProjectResourceParsers,
 } from '@goal-controller/lib';
 import {
   dialectOf,
@@ -68,6 +75,7 @@ const ALL: TransformEngine[] = [
   'goda',
   'grl',
   'istardt',
+  'tropos4as',
 ];
 
 /** Same keys, and each value the same object (the engines' own, not copies). */
@@ -89,6 +97,7 @@ describe('the engine registry', () => {
       goda,
       grl,
       istardt,
+      tropos4as,
     }));
 
   it('derives ENGINE_CHECKS', () =>
@@ -99,6 +108,7 @@ describe('the engine registry', () => {
       goda: godaCheckRegistry,
       grl: grlCheckRegistry,
       istardt: istardtCheckRegistry,
+      tropos4as: tropos4asCheckRegistry,
     }));
 
   it('derives ENGINE_PROJECT_RESOURCES (GODA and iStar-DT read nothing beside the model)', () => {
@@ -114,6 +124,7 @@ describe('the engine registry', () => {
       edgev2: edgeProjectResources,
       mutrose: mutroseProjectResources,
       grl: grlProjectResourceParsers,
+      tropos4as: tropos4asProjectResourceParsers,
     });
   });
 
@@ -129,12 +140,19 @@ describe('the engine registry', () => {
       goda: godaEngineMapper,
       grl: grlEngineMapper,
       istardt: istardtEngineMapper,
+      tropos4as: tropos4asEngineMapper,
     }));
 
-  it('derives ENGINE_OPTIONS (MutRoSe and GRL declare none)', () => {
-    const { mutrose: none, grl: nothing, ...declared } = ENGINE_OPTIONS;
+  it('derives ENGINE_OPTIONS (MutRoSe, GRL and Tropos4AS declare none)', () => {
+    const {
+      mutrose: none,
+      grl: nothing,
+      tropos4as: neither,
+      ...declared
+    } = ENGINE_OPTIONS;
     expect(none).toEqual([]);
     expect(nothing).toEqual([]);
+    expect(neither).toEqual([]);
     expectSameEntries(declared, {
       edge: edgeOptions,
       edgev2: edgeV2Options,
@@ -153,6 +171,7 @@ describe('the engine registry', () => {
       goda: 'GODA',
       grl: 'GRL',
       istardt: 'iStar-DT',
+      tropos4as: 'Tropos4AS',
     }));
 
   it('derives ENGINES, in the order the UI offers them', () =>
@@ -214,16 +233,28 @@ describe('the engine registry', () => {
         language: 'text',
         help: "iStar-DT: the DT-Golog program (Prolog) dtx2dtg writes, for DT-Golog's solver and dtg2sim's RL environment",
       },
+      {
+        id: 'tropos4as',
+        label: 'Tropos4AS',
+        output: 'Lifecycle',
+        extension: 'txt',
+        language: 'text',
+        help: 'Tropos4AS: runs the goal lifecycle of AAMAS 2009 over a scenario, each goal’s state per step drawn on the model',
+        generates: false,
+      },
     ]));
 
   it('derives ENGINE_ANALYSES and ENGINE_FILE_KINDS', () => {
     // an analysis engine's analyses, with how it reads a model for them (#125)
-    expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl']);
+    expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl', 'tropos4as']);
     expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
     expect(ENGINE_ANALYSES.grl?.model).toBe(grlAnalysisModel);
+    expect(ENGINE_ANALYSES.tropos4as?.analyses).toBe(tropos4asAnalyses);
+    expect(ENGINE_ANALYSES.tropos4as?.model).toBe(tropos4asAnalysisModel);
     expectSameEntries(ENGINE_FILE_KINDS, {
       grl: grlExtension,
       istardt: istardtExtension,
+      tropos4as: tropos4asExtension,
     });
   });
 
@@ -236,6 +267,7 @@ describe('the engine registry', () => {
       goda: ['PRISM MDP', 'nm', 'prism', true, true, goda],
       grl: ['Evaluation', 'json', 'text', false, false, grl],
       istardt: ['DT-Golog', 'pl', 'text', true, true, istardt],
+      tropos4as: ['Lifecycle', 'txt', 'text', false, false, tropos4as],
     } as const;
     for (const engine of ALL) {
       const [output, extension, language, generates, options, dialect] =

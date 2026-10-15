@@ -11,6 +11,7 @@ import { GRL_PALETTE } from '../grl/GrlDiagram';
 import { ISTARDT_PALETTE } from '../istardt/IstardtDiagram';
 import { MUTROSE_PALETTE } from '../mutrose/MutroseDiagram';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
+import { TROPOS4AS_PALETTE } from '../tropos4as/Tropos4asDiagram';
 
 const NO_EXTENSIONS: readonly IstarExtension[] = [];
 
@@ -36,6 +37,8 @@ export const pistarPaletteFor = (
       return GRL_PALETTE;
     case 'istardt':
       return ISTARDT_PALETTE;
+    case 'tropos4as':
+      return TROPOS4AS_PALETTE;
   }
 };
 

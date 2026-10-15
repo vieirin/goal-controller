@@ -21,6 +21,7 @@ import {
   KIND_OF_PISTAR,
   type IstardtKind,
 } from './vocabulary';
+import { listItems, pairItems, splitText } from '../elementText';
 
 export type IstardtElement = {
   /** its piStar id */
@@ -95,33 +96,7 @@ export type IstardtModel = {
   problems: readonly IstardtProblem[];
 };
 
-const ID = /^([A-Z]+)(\d+)\s*:\s*/;
-
-/** An element's text, as its id and its name (`G1: Order Material`). */
-export const splitText = (
-  text: string,
-): { id: string | null; name: string } => {
-  const match = ID.exec(text);
-  return match
-    ? { id: `${match[1]}${match[2]}`, name: text.slice(match[0].length) }
-    : { id: null, name: text };
-};
-
-/** A comma-separated list's items, trimmed, without the empty ones. */
-export const listItems = (text: string | undefined): string[] =>
-  (text ?? '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-/** A `name:value` list's pairs, in order. */
-export const pairItems = (text: string | undefined): [string, string][] =>
-  listItems(text).map((item) => {
-    const colon = item.indexOf(':');
-    return colon < 0
-      ? [item, '']
-      : [item.slice(0, colon).trim(), item.slice(colon + 1).trim()];
-  });
+export { listItems, pairItems, splitText } from '../elementText';
 
 const numberOf = (id: string | null) =>
   id ? Number(/\d+$/.exec(id)?.[0] ?? Infinity) : Infinity;

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dialect": "tropos4as",
+  "models": [
+    {
+      "path": "cleaner-agent.txt"
+    }
+  ],
+  "projectResources": {
+    "scenarios": ["scenarios/all-fail.json", "scenarios/paper.json"]
+  },
+  "outputs": []
+}

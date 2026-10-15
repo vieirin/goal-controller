@@ -51,6 +51,7 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   goda: 'goda',
   grl: 'grl',
   istardt: 'istardt',
+  tropos4as: 'tropos4as',
   'pistar-ext': 'pistarext',
 };
 

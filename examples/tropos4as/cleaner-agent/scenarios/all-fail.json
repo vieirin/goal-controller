@@ -1,0 +1,22 @@
+{
+  "label": "All fail (derived)",
+  "steps": [
+    {
+      "label": "DryCleaning fails",
+      "beliefs": {
+        "roomClean": false,
+        "batteryLoaded": true
+      },
+      "outcomes": {
+        "DC": "failure"
+      }
+    },
+    {
+      "label": "WetCleaning fails",
+      "beliefs": {},
+      "outcomes": {
+        "WC": "failure"
+      }
+    }
+  ]
+}

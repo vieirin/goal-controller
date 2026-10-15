@@ -7,10 +7,8 @@
  * block, which istar-ts reads, draws and writes back (the importer writes
  * it).
  */
-import {
-  defineExtension,
-  type ExtensionElementDefinition,
-} from '@goal-controller/dialect';
+import { defineExtension } from '@goal-controller/dialect';
+import { DASH, metamodelBlock } from '../metamodelBlock';
 import { ISTARDT_KINDS, ISTARDT_LINKS } from './vocabulary';
 
 /**
@@ -215,35 +213,13 @@ export const istardtExtension = defineExtension({
   defaultTags: [],
 });
 
-const DASH = { continuous: undefined, dashed: '6 4', dotted: '2 3' } as const;
-
 /** The kinds' file block (istar-ts's `"metamodel"`), shapes included. */
-export const istardtMetamodelBlock = () => ({
-  name: istardtExtension.name,
-  elements: (
-    istardtExtension.elements as readonly ExtensionElementDefinition[]
-  ).map(({ kind, label, category, size, shape, textBox }) => ({
-    kind,
-    label,
-    ...(category && { category }),
-    ...(size && { size }),
-    ...(shape &&
-      size && {
-        shape: { path: shape, viewBox: `0 0 ${size.width} ${size.height}` },
-      }),
-    ...(textBox && { textBox }),
-  })),
-  links: istardtExtension.links.map(({ kind, label, rules, line }) => {
-    const dash = DASH[line.dash];
+export const istardtMetamodelBlock = () =>
+  metamodelBlock(istardtExtension, ({ kind, line }) => {
+    const dash = line && DASH[line.dash];
     return {
-      kind,
-      label,
-      rules,
+      ...(dash && { dash }),
       // an effect group's links have no arrowhead, as iStarDT-V draws them
-      line: {
-        ...(dash && { dash }),
-        ...(kind === ISTARDT_LINKS.effectGroup && { marker: false }),
-      },
+      ...(kind === ISTARDT_LINKS.effectGroup && { marker: false as const }),
     };
-  }),
-});
+  });

@@ -1,0 +1,37 @@
+{
+  "label": "A day (ours)",
+  "steps": [
+    {
+      "label": "6 AM",
+      "beliefs": {
+        "hour": 6,
+        "meals": 0,
+        "instructionsFollowed": false,
+        "ateAutonomously": true,
+        "medicineTakenAutonomously": true,
+        "medicineTaken": false
+      },
+      "outcomes": {}
+    },
+    {
+      "label": "noon",
+      "beliefs": {
+        "hour": 12,
+        "meals": 2
+      },
+      "outcomes": {
+        "eatMeals": "success"
+      }
+    },
+    {
+      "label": "8 PM",
+      "beliefs": {
+        "hour": 20,
+        "medicineTakenAutonomously": false
+      },
+      "outcomes": {
+        "rememberSpeakers": "failure"
+      }
+    }
+  ]
+}

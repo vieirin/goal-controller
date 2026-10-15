@@ -901,5 +901,47 @@
     "models": ["goalModel-sleec2.txt"],
     "projectResources": {},
     "outputs": []
+  },
+  {
+    "path": "tropos4as/cleaner-agent",
+    "group": "tropos4as",
+    "name": "cleaner-agent",
+    "form": "file",
+    "dialect": "tropos4as",
+    "root": "tropos4as/cleaner-agent",
+    "files": [
+      "README.md",
+      "cleaner-agent.txt",
+      "project.json",
+      "reference/trace-all-fail.txt",
+      "reference/trace-paper.txt",
+      "scenarios/all-fail.json",
+      "scenarios/paper.json"
+    ],
+    "models": ["cleaner-agent.txt"],
+    "projectResources": {
+      "scenarios": ["scenarios/all-fail.json", "scenarios/paper.json"]
+    },
+    "outputs": []
+  },
+  {
+    "path": "tropos4as/patient-monitoring",
+    "group": "tropos4as",
+    "name": "patient-monitoring",
+    "form": "file",
+    "dialect": "tropos4as",
+    "root": "tropos4as/patient-monitoring",
+    "files": [
+      "README.md",
+      "patient-monitoring.txt",
+      "project.json",
+      "reference/trace-a-day.txt",
+      "scenarios/a-day.json"
+    ],
+    "models": ["patient-monitoring.txt"],
+    "projectResources": {
+      "scenarios": ["scenarios/a-day.json"]
+    },
+    "outputs": []
   }
 ]

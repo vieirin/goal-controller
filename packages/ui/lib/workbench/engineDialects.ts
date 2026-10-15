@@ -11,6 +11,7 @@ import {
   godaEngine,
   grlEngine,
   istardtEngine,
+  tropos4asEngine,
   mutroseEngine,
   registerEngines,
   sleecEngine,
@@ -39,6 +40,7 @@ export const ENGINE_LIST = registerEngines(
   godaEngine,
   grlEngine,
   istardtEngine,
+  tropos4asEngine,
 );
 
 type Registered = (typeof ENGINE_LIST)[number];

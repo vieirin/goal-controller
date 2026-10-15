@@ -1,0 +1,612 @@
+{
+  "actors": [
+    {
+      "id": "CareAssistant",
+      "text": "Care Assistant",
+      "type": "istar.Actor",
+      "x": 3,
+      "y": 38,
+      "customProperties": {},
+      "nodes": []
+    },
+    {
+      "id": "Patient",
+      "text": "Patient",
+      "type": "istar.Actor",
+      "x": -11,
+      "y": 223,
+      "customProperties": {},
+      "nodes": []
+    },
+    {
+      "id": "PMA",
+      "text": "PMA",
+      "type": "istar.Actor",
+      "x": 322,
+      "y": 58,
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "followInstructions",
+          "text": "follow medical instructins",
+          "type": "istar.Goal",
+          "x": 464,
+          "y": 128,
+          "customProperties": {
+            "type": "maintain",
+            "maintain": "instructionsFollowed"
+          }
+        },
+        {
+          "id": "eatMeals",
+          "text": "eat meals",
+          "type": "istar.Goal",
+          "x": 434,
+          "y": 245,
+          "customProperties": {
+            "achievement": "meals >= 2"
+          }
+        },
+        {
+          "id": "takeMedicine",
+          "text": "take medicine before 8PM",
+          "type": "istar.Goal",
+          "x": 606,
+          "y": 313,
+          "customProperties": {
+            "creation": "hour >= 6",
+            "achievement": "medicineTaken",
+            "failure": "hour >= 20"
+          }
+        },
+        {
+          "id": "mealsNotEaten",
+          "text": "meals not eaten",
+          "type": "tropos4as.Failure",
+          "x": 249,
+          "y": 150,
+          "customProperties": {}
+        },
+        {
+          "id": "medicineNotTaken",
+          "text": "medicine not taken",
+          "type": "tropos4as.Failure",
+          "x": 765,
+          "y": 195,
+          "customProperties": {}
+        },
+        {
+          "id": "errorNotEat",
+          "text": "ERROR: patient did not eat autonomously",
+          "type": "tropos4as.Error",
+          "x": 165,
+          "y": 301,
+          "customProperties": {
+            "condition": "!ateAutonomously"
+          }
+        },
+        {
+          "id": "errorMedicine",
+          "text": "ERROR: medicine not taken autonomously",
+          "type": "tropos4as.Error",
+          "x": 879,
+          "y": 308,
+          "customProperties": {
+            "condition": "!medicineTakenAutonomously"
+          }
+        },
+        {
+          "id": "errorNoDinner",
+          "text": "ERROR: no dinner until 8PM",
+          "type": "tropos4as.Error",
+          "x": 778,
+          "y": 361,
+          "customProperties": {
+            "condition": "hour >= 20 & meals < 2"
+          }
+        },
+        {
+          "id": "takeMedicineNoDinner",
+          "text": "take medicine without dinner",
+          "type": "istar.Goal",
+          "x": 806,
+          "y": 468,
+          "customProperties": {
+            "precondition": "meals >= 2"
+          }
+        },
+        {
+          "id": "medicineSensor",
+          "text": "medicine sensor",
+          "type": "tropos4as.Artifact",
+          "x": 828,
+          "y": 68,
+          "customProperties": {
+            "attributes": "taken:bool"
+          }
+        },
+        {
+          "id": "mealSensor",
+          "text": "meal sensor",
+          "type": "tropos4as.Artifact",
+          "x": 1072,
+          "y": 430,
+          "customProperties": {
+            "attributes": "meals:int"
+          }
+        },
+        {
+          "id": "callAssistant",
+          "text": "call assistant",
+          "type": "istar.Task",
+          "x": 87,
+          "y": 396,
+          "customProperties": {}
+        },
+        {
+          "id": "rememberSpeakers",
+          "text": "remember through speakers",
+          "type": "istar.Task",
+          "x": 642,
+          "y": 506,
+          "customProperties": {}
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [
+    {
+      "id": "followInstructionsDependum",
+      "text": "follow medical instructins",
+      "type": "istar.Goal",
+      "x": 138,
+      "y": 15,
+      "customProperties": {},
+      "source": "CareAssistant",
+      "target": "PMA"
+    },
+    {
+      "id": "reduceNeed",
+      "text": "reduce need for assistance",
+      "type": "istar.Quality",
+      "x": 124,
+      "y": 72,
+      "customProperties": {},
+      "source": "CareAssistant",
+      "target": "PMA"
+    },
+    {
+      "id": "noAnnoyances",
+      "text": "don't bring annoyances",
+      "type": "istar.Quality",
+      "x": 32,
+      "y": 140,
+      "customProperties": {},
+      "source": "Patient",
+      "target": "PMA"
+    }
+  ],
+  "links": [
+    {
+      "id": "eatMeals-AndRefinementLink-followInstructions",
+      "type": "istar.AndRefinementLink",
+      "source": "eatMeals",
+      "target": "followInstructions"
+    },
+    {
+      "id": "takeMedicine-AndRefinementLink-followInstructions",
+      "type": "istar.AndRefinementLink",
+      "source": "takeMedicine",
+      "target": "followInstructions"
+    },
+    {
+      "id": "eatMeals-FailureLink-mealsNotEaten",
+      "type": "tropos4as.FailureLink",
+      "source": "eatMeals",
+      "target": "mealsNotEaten"
+    },
+    {
+      "id": "takeMedicine-FailureLink-medicineNotTaken",
+      "type": "tropos4as.FailureLink",
+      "source": "takeMedicine",
+      "target": "medicineNotTaken"
+    },
+    {
+      "id": "errorNotEat-ErrorLink-mealsNotEaten",
+      "type": "tropos4as.ErrorLink",
+      "source": "errorNotEat",
+      "target": "mealsNotEaten"
+    },
+    {
+      "id": "errorMedicine-ErrorLink-medicineNotTaken",
+      "type": "tropos4as.ErrorLink",
+      "source": "errorMedicine",
+      "target": "medicineNotTaken"
+    },
+    {
+      "id": "errorNoDinner-ErrorLink-medicineNotTaken",
+      "type": "tropos4as.ErrorLink",
+      "source": "errorNoDinner",
+      "target": "medicineNotTaken"
+    },
+    {
+      "id": "callAssistant-OrRefinementLink-errorNotEat",
+      "type": "istar.OrRefinementLink",
+      "source": "callAssistant",
+      "target": "errorNotEat"
+    },
+    {
+      "id": "takeMedicineNoDinner-OrRefinementLink-errorNoDinner",
+      "type": "istar.OrRefinementLink",
+      "source": "takeMedicineNoDinner",
+      "target": "errorNoDinner"
+    },
+    {
+      "id": "rememberSpeakers-OrRefinementLink-takeMedicine",
+      "type": "istar.OrRefinementLink",
+      "source": "rememberSpeakers",
+      "target": "takeMedicine"
+    },
+    {
+      "id": "eatMeals-SequenceLink-takeMedicine",
+      "type": "tropos4as.SequenceLink",
+      "source": "eatMeals",
+      "target": "takeMedicine"
+    },
+    {
+      "id": "mealSensor-ReadsLink-eatMeals",
+      "type": "tropos4as.ReadsLink",
+      "source": "mealSensor",
+      "target": "eatMeals"
+    },
+    {
+      "id": "medicineSensor-ReadsLink-takeMedicine",
+      "type": "tropos4as.ReadsLink",
+      "source": "medicineSensor",
+      "target": "takeMedicine"
+    },
+    {
+      "id": "medicineSensor-ReadsLink-errorMedicine",
+      "type": "tropos4as.ReadsLink",
+      "source": "medicineSensor",
+      "target": "errorMedicine"
+    },
+    {
+      "id": "mealSensor-ReadsLink-errorNoDinner",
+      "type": "tropos4as.ReadsLink",
+      "source": "mealSensor",
+      "target": "errorNoDinner"
+    },
+    {
+      "id": "mealSensor-ReadsLink-takeMedicineNoDinner",
+      "type": "tropos4as.ReadsLink",
+      "source": "mealSensor",
+      "target": "takeMedicineNoDinner"
+    },
+    {
+      "id": "CareAssistant-DependencyLink-followInstructionsDependum",
+      "type": "istar.DependencyLink",
+      "source": "CareAssistant",
+      "target": "followInstructionsDependum"
+    },
+    {
+      "id": "followInstructionsDependum-DependencyLink-PMA",
+      "type": "istar.DependencyLink",
+      "source": "followInstructionsDependum",
+      "target": "PMA"
+    },
+    {
+      "id": "CareAssistant-DependencyLink-reduceNeed",
+      "type": "istar.DependencyLink",
+      "source": "CareAssistant",
+      "target": "reduceNeed"
+    },
+    {
+      "id": "reduceNeed-DependencyLink-PMA",
+      "type": "istar.DependencyLink",
+      "source": "reduceNeed",
+      "target": "PMA"
+    },
+    {
+      "id": "Patient-DependencyLink-noAnnoyances",
+      "type": "istar.DependencyLink",
+      "source": "Patient",
+      "target": "noAnnoyances"
+    },
+    {
+      "id": "noAnnoyances-DependencyLink-PMA",
+      "type": "istar.DependencyLink",
+      "source": "noAnnoyances",
+      "target": "PMA"
+    }
+  ],
+  "display": {
+    "CareAssistant": {
+      "backgroundColor": "#E06666"
+    },
+    "Patient": {
+      "backgroundColor": "#E06666"
+    },
+    "followInstructions": {
+      "backgroundColor": "#6AA84F",
+      "width": 225,
+      "height": 37
+    },
+    "eatMeals": {
+      "backgroundColor": "#6AA84F",
+      "width": 87,
+      "height": 36
+    },
+    "takeMedicine": {
+      "backgroundColor": "#6AA84F",
+      "width": 126,
+      "height": 49
+    },
+    "mealsNotEaten": {
+      "backgroundColor": "#E06666",
+      "width": 150,
+      "height": 102
+    },
+    "medicineNotTaken": {
+      "backgroundColor": "#E06666",
+      "width": 150,
+      "height": 102
+    },
+    "errorNotEat": {
+      "backgroundColor": "#F4C2E0",
+      "width": 195,
+      "height": 47
+    },
+    "errorMedicine": {
+      "backgroundColor": "#F4C2E0",
+      "width": 198,
+      "height": 47
+    },
+    "errorNoDinner": {
+      "backgroundColor": "#F4C2E0",
+      "width": 147,
+      "height": 49
+    },
+    "takeMedicineNoDinner": {
+      "backgroundColor": "#6AA84F",
+      "width": 123,
+      "height": 51
+    },
+    "medicineSensor": {
+      "backgroundColor": "#FFFF66",
+      "width": 132,
+      "height": 33
+    },
+    "mealSensor": {
+      "backgroundColor": "#FFFF66",
+      "width": 111,
+      "height": 33
+    },
+    "callAssistant": {
+      "backgroundColor": "#A4B8E0",
+      "width": 156,
+      "height": 36
+    },
+    "rememberSpeakers": {
+      "backgroundColor": "#A4B8E0",
+      "width": 168,
+      "height": 45
+    },
+    "PMA": {
+      "backgroundColor": "#E06666"
+    },
+    "followInstructionsDependum": {
+      "backgroundColor": "#6AA84F",
+      "width": 225,
+      "height": 36
+    },
+    "reduceNeed": {
+      "backgroundColor": "#D9DFA0",
+      "width": 129,
+      "height": 57
+    },
+    "noAnnoyances": {
+      "backgroundColor": "#D9DFA0",
+      "width": 213,
+      "height": 31
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 1220,
+    "height": 580,
+    "name": "Patient monitoring",
+    "customProperties": {
+      "engine": "tropos4as",
+      "title": "Patient monitoring",
+      "author": "goal-controller",
+      "source": "iStar 2011, Morandini, Perini, Marchetto, Fig. 1",
+      "lastUpdated": "2026-10-15"
+    }
+  },
+  "metamodel": {
+    "name": "tropos4as",
+    "elements": [
+      {
+        "kind": "tropos4as.Artifact",
+        "label": "Artifact",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 2 2 L 98 2 L 98 38 L 2 38 Z",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "tropos4as.Failure",
+        "label": "Failure",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 60
+        },
+        "shape": {
+          "path": "M 50.0 2.0 L 58.2 15.4 L 78.2 7.3 L 71.4 20.9 L 95.7 21.3 L 76.4 30.0 L 95.7 38.7 L 71.4 39.1 L 78.2 52.7 L 58.2 44.6 L 50.0 58.0 L 41.8 44.6 L 21.8 52.7 L 28.6 39.1 L 4.3 38.7 L 23.6 30.0 L 4.3 21.3 L 28.6 20.9 L 21.8 7.3 L 41.8 15.4 Z",
+          "viewBox": "0 0 100 60"
+        },
+        "textBox": {
+          "top": 0.3,
+          "right": 0.25,
+          "bottom": 0.3,
+          "left": 0.25
+        }
+      },
+      {
+        "kind": "tropos4as.Error",
+        "label": "Error",
+        "behavesLike": "istar.Goal",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 2 22 A 48 20 0 1 0 98 22 A 48 20 0 1 0 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.15,
+          "right": 0.12,
+          "bottom": 0.15,
+          "left": 0.12
+        }
+      },
+      {
+        "kind": "tropos4as.Symptom",
+        "label": "Symptom",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 50 2 L 98 22 L 50 42 L 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.25,
+          "right": 0.22,
+          "bottom": 0.25,
+          "left": 0.22
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "tropos4as.InhibitsLink",
+        "label": "inhibits",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.SequenceLink",
+        "label": "seq",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.FailureLink",
+        "label": "failure",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "tropos4as.ErrorLink",
+        "label": "error",
+        "rules": {
+          "sources": [
+            "tropos4as.Error"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "tropos4as.ReadsLink",
+        "label": "reads",
+        "rules": {
+          "sources": [
+            "tropos4as.Artifact"
+          ],
+          "targets": [
+            "istar.Goal",
+            "tropos4as.Error"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "tropos4as.SymptomLink",
+        "label": "symptom",
+        "rules": {
+          "sources": [
+            "tropos4as.Symptom"
+          ],
+          "targets": [
+            "tropos4as.Failure"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      }
+    ]
+  }
+}

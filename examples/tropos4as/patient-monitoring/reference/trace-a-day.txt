@@ -1,0 +1,31 @@
+# Derived by hand from AAMAS 2009's rules, not from the paper: a day of the
+# patient monitoring agent (PMA), the scenario ours. follow medical
+# instructins is M(m, d) with m = instructionsFollowed; eat meals and take
+# medicine before 8PM are A(s, f) (eat meals' s from the figure's achieve-c:
+# 2 meals; take medicine's f = hour >= 20, ours). Take medicine's creation-c
+# (6 AM) is on a subgoal: warned, not read (fn. 1). At 8PM the reminder fails:
+# take medicine fails (f holds) and is dropped, medicine not taken occurs,
+# follow medical instructins fails its AND and restarts; the error "medicine
+# not taken autonomously" is adopted and, its recovery cut off in the figure,
+# succeeds at once (a perform-goal with no subgoals).
+step | goal | rule | state | Γ
+1 | followInstructions | adopt | Suspended | {}
+1 | followInstructions | activateE | AD | {}
+1 | followInstructions | deliberateE | AU | {eatMeals, takeMedicine}
+2 | eatMeals | outcome | success | {}
+2 | followInstructions | AND:subg-achieve | AU | {takeMedicine}
+2 | takeMedicine | adopt | Suspended | {}
+2 | takeMedicine | activateE | AD | {}
+2 | takeMedicine | deliberateE | AU | {rememberSpeakers}
+3 | errorMedicine | adopt | Suspended | {}
+3 | rememberSpeakers | outcome | failure | {}
+3 | takeMedicine | OR:subg-achieve | AU | {}
+3 | errorMedicine | activateE | AD | {}
+3 | takeMedicine | OR:subg-fail | AF | {}
+3 | errorMedicine | deliberateE | AU | {}
+3 | takeMedicine | drop-failureE | failed | {}
+3 | errorMedicine | AND:subg-succeed | AS | {}
+3 | followInstructions | AND:subg-fail | AF | {}
+3 | errorMedicine | drop-successE | success | {}
+3 | followInstructions | reactivateE | AD | {}
+3 | followInstructions | deliberateE | AU | {eatMeals, takeMedicine}

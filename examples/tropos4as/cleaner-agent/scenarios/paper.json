@@ -1,0 +1,24 @@
+{
+  "label": "AAMAS 2009 §5",
+  "steps": [
+    {
+      "label": "DryCleaning succeeds",
+      "beliefs": {
+        "roomClean": false,
+        "batteryLoaded": true
+      },
+      "outcomes": {
+        "DC": "success"
+      }
+    },
+    {
+      "label": "WetCleaning fails",
+      "beliefs": {
+        "roomClean": true
+      },
+      "outcomes": {
+        "WC": "failure"
+      }
+    }
+  ]
+}

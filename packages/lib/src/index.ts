@@ -220,6 +220,29 @@ export {
   type IstardtWriteOptions,
 } from './engines/istardt';
 export { importIstardt } from './importers/istardt';
+// Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios
+// and the goal lifecycle of AAMAS 2009 as an analysis
+export {
+  tropos4as,
+  tropos4asAnalyses,
+  tropos4asAnalysisModel,
+  tropos4asCheckRegistry,
+  tropos4asEngineMapper,
+  tropos4asExtension,
+  tropos4asMetamodelBlock,
+  tropos4asProblems,
+  tropos4asProjectResourceParsers,
+  readScenarios as readTropos4asScenarios,
+  readTropos4asModel,
+  runLifecycle,
+  stateChanges,
+  traceText,
+  type LifecycleRun,
+  type Scenario as Tropos4asScenario,
+  type Tropos4asCheckName,
+  type Tropos4asModel,
+  type Tropos4asProblem,
+} from './engines/tropos4as';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
 export { DEFAULT_ELEMENT_FILL } from './engines/edgeFamily';
@@ -273,6 +296,7 @@ export { mutroseEngine } from './engines/mutrose/engine';
 export { godaEngine } from './engines/goda/engine';
 export { grlEngine } from './engines/grl/engine';
 export { istardtEngine } from './engines/istardt/engine';
+export { tropos4asEngine } from './engines/tropos4as/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

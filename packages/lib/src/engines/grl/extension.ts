@@ -9,8 +9,8 @@ import {
   defineExtension,
   extensionKind,
   extensionLink,
-  type ExtensionElementDefinition,
 } from '@goal-controller/dialect';
+import { metamodelBlock } from '../metamodelBlock';
 
 /** jUCMNav's indicator: a box with a pointed bottom (its icon's outline). */
 const INDICATOR_SHAPE = 'M 4 2 L 96 2 L 96 32 L 50 48 L 4 32 Z';
@@ -58,27 +58,6 @@ export const grlExtension = defineExtension({
 });
 
 /** The kinds' file block (istar-ts's `"metamodel"`), shapes included. */
-export const grlMetamodelBlock = () => ({
-  name: grlExtension.name,
-  elements: (
-    grlExtension.elements as readonly ExtensionElementDefinition[]
-  ).map(({ kind, label, category, behavesLike, size, shape, textBox }) => ({
-    kind,
-    label,
-    ...(category && { category }),
-    ...(behavesLike && { behavesLike }),
-    ...(size && { size }),
-    ...(shape &&
-      size && {
-        shape: { path: shape, viewBox: `0 0 ${size.width} ${size.height}` },
-      }),
-    ...(textBox && { textBox }),
-  })),
-  // a dotted line with no marker, as jUCMNav draws a belief link
-  links: grlExtension.links.map(({ kind, label, rules }) => ({
-    kind,
-    label,
-    rules,
-    line: { dash: '2 3', marker: false },
-  })),
-});
+// a dotted line with no marker, as jUCMNav draws a belief link
+export const grlMetamodelBlock = () =>
+  metamodelBlock(grlExtension, () => ({ dash: '2 3', marker: false }));
