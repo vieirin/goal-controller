@@ -52,6 +52,27 @@ export const elementProperties = [
   },
 ] as const satisfies readonly GrlProperty[];
 
+/** a contribution's type and weight: what the evaluations read */
+const CONTRIBUTION = [
+  {
+    key: 'contribution',
+    value: { type: 'enum', options: options(GRL_CONTRIBUTIONS) },
+    help: 'GRL’s contribution type (its iStar value is the link’s make, help, hurt or break)',
+    check: 'grl.link.contribution',
+  },
+  {
+    key: 'quantitativeContribution',
+    value: { type: 'int', min: -100, max: 100 },
+    help: 'its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)',
+    check: 'grl.link.quantitativeContribution',
+  },
+  {
+    key: 'correlation',
+    value: { type: 'bool' },
+    help: 'a side effect rather than an intended contribution (drawn dotted in jUCMNav; evaluated the same)',
+  },
+] as const satisfies readonly GrlProperty[];
+
 export const grl = defineDialect({
   id: 'grl',
   name: 'GRL',
@@ -92,27 +113,7 @@ export const grl = defineDialect({
   // a contribution's type and weight are what the evaluations read: written
   // as link lines under its source, the target named by its text
   linkLines: true,
-  links: {
-    'istar.ContributionLink': [
-      {
-        key: 'contribution',
-        value: { type: 'enum', options: options(GRL_CONTRIBUTIONS) },
-        help: 'GRL’s contribution type (its iStar value is the link’s make, help, hurt or break)',
-        check: 'grl.link.contribution',
-      },
-      {
-        key: 'quantitativeContribution',
-        value: { type: 'int', min: -100, max: 100 },
-        help: 'its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)',
-        check: 'grl.link.quantitativeContribution',
-      },
-      {
-        key: 'correlation',
-        value: { type: 'bool' },
-        help: 'a side effect rather than an intended contribution (drawn dotted in jUCMNav; evaluated the same)',
-      },
-    ],
-  },
+  links: { 'istar.ContributionLink': CONTRIBUTION },
   actors: IMPORTANCE,
   projectResources: {
     strategies: {
