@@ -22,22 +22,22 @@ in the model.
 | dependum reduce need for assistance (softgoal) | `reduceNeed` | Care Assistant → … → PMA |
 | dependum don't bring annoyances (softgoal) | `noAnnoyances` | Patient → … → PMA |
 | (M) follow medical instructins | goal `followInstructions`, maintain | its maintain condition `instructionsFollowed` is ours |
-| (A) eat meals | goal `eatMeals` | AND child of follow medical instructins; achievement `meals >= 2`, the **achieve-c: 2 meals** note |
-| (A) take medicine before 8PM | goal `takeMedicine` | AND child; creation `hour >= 6`, the **creation-c: 6 AM** note (on a subgoal: warned, AAMAS 2009 fn. 1); achievement `medicineTaken` and failure `hour >= 20` ours |
+| (A) eat meals | goal `eatMeals` | AND child of follow medical instructins; achievement `mealSensor.meals >= 2`, the **achieve-c: 2 meals** note |
+| (A) take medicine before 8PM | goal `takeMedicine` | AND child; creation `hour >= 6`, the **creation-c: 6 AM** note (on a subgoal: warned, AAMAS 2009 fn. 1); achievement `medicineSensor.taken` and failure `hour >= 20` ours |
 | «seq» | sequence link `eatMeals` → `takeMedicine` | ✂ its source is cut off: read as eat meals, before taking the medicine (one of eat meals' cut-off OR subgoals is equally possible) |
 | failures meals not eaten, medicine not taken (stars) | `mealsNotEaten`, `medicineNotTaken` | dashed to eat meals, take medicine: failure links |
 | ERROR: patient did not eat autonomously | error `errorNotEat` | → meals not eaten; condition `!ateAutonomously` ours |
 | ERROR: medicine not taken autonomously | error `errorMedicine` | → medicine not taken: the figure draws this line dashed (the other error links solid); the model has an error link like the others; condition `!medicineTakenAutonomously` ours |
-| ERROR: no dinner until 8PM | error `errorNoDinner` | → medicine not taken; condition `hour >= 20 & meals < 2` ours |
-| take medicine without dinner (goal) | goal `takeMedicineNoDinner` | means-end to ERROR: no dinner until 8PM (its recovery; iStar 2.0 has no means-end link, so a means-end is written as an OR-refinement of its end); precondition `meals >= 2`, the **precond: 2 meals** note (not read: no rule for it) |
+| ERROR: no dinner until 8PM | error `errorNoDinner` | → medicine not taken; condition `hour >= 20 & mealSensor.meals < 2` ours |
+| take medicine without dinner (goal) | goal `takeMedicineNoDinner` | means-end to ERROR: no dinner until 8PM (its recovery; iStar 2.0 has no means-end link, so a means-end is written as an OR-refinement of its end); precondition `mealSensor.meals >= 2`, the **precond: 2 meals** note (not read: no rule for it) |
 | plan call assistant | task `callAssistant` | ✂ half hidden by the legend; means-end to ERROR: patient did not eat |
 | plan remember through speakers | task `rememberSpeakers` | ✂ at the bottom edge; means-end to take medicine before 8PM |
 | artifacts medicine sensor, meal sensor (yellow) | `medicineSensor` (`taken:bool`), `mealSensor` (`meals:int`) | attributes ours |
 | a condition note's dashed lines to its goal and to an artifact | `tropos4as.ReadsLink` artifact → goal or error | medicine sensor → take medicine, ERROR: medicine not taken; meal sensor → eat meals, ERROR: no dinner, take medicine without dinner (#134 D8) |
 
-When member references land (goal-controller#137), the conditions read the
-artifacts: `medicineTaken` becomes `medicineSensor.taken`, `meals`
-becomes `mealSensor.meals`. `hour` stays a variable: the figure draws no
+The conditions read the artifacts the figure draws as members
+(goal-controller#137): `medicineSensor.taken`, `mealSensor.meals`; the
+scenario's beliefs name them so. `hour` is a variable: the figure draws no
 artifact it would belong to (a clock).
 
 Not in the model, beyond the cut (✂): eat meals' three OR subgoals (their

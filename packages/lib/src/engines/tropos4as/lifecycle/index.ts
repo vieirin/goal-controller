@@ -1,12 +1,14 @@
 /**
- * The lifecycle as an analysis (goal-controller#107's shape): each
- * scenario run on the model, a case per step, each goal's state and the
- * rule that put it there drawn on it; a failure that occurred, too. A
- * model whose problems include an error is not run.
+ * The lifecycle as an analysis (goal-controller#107's shape): a case per
+ * scenario, run step by step (#137's step series), each step every goal's
+ * state and the rule that put it there drawn on it, and the failures that
+ * occurred; the case's values are its last step's. A model whose problems
+ * include an error is not run.
  */
 import type {
   AnalysisCase,
   AnalysisModel,
+  AnalysisStep,
   AnalysisResult,
   AnalysisValue,
 } from '../../analysis';
@@ -50,12 +52,11 @@ export const runLifecycleAnalysis = (
     Object.entries(resource).map(([path, text]) => ({ path, text })),
   );
   return {
-    cases: (scenarios.length ? scenarios : [NO_SCENARIO]).flatMap(
-      (scenario): AnalysisCase[] => {
+    cases: (scenarios.length ? scenarios : [NO_SCENARIO]).map(
+      (scenario): AnalysisCase => {
         const run = runLifecycle(tropos, scenario);
-        return run.steps.map((step, i) => ({
-          id: `${scenario.path}#${i + 1}`,
-          label: `${scenario.label}, step ${i + 1}: ${step.label}`,
+        const steps = run.steps.map((step): AnalysisStep => ({
+          label: step.label,
           values: Object.fromEntries([
             ...[...step.goals].map(([id, status]) => [
               tropos.find(id)!.pistarId,
@@ -71,6 +72,12 @@ export const runLifecycleAnalysis = (
             ]),
           ]),
         }));
+        return {
+          id: scenario.path || 'none',
+          label: scenario.label,
+          values: steps.at(-1)?.values ?? {},
+          steps,
+        };
       },
     ),
   };

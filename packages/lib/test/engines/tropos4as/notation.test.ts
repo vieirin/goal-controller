@@ -56,7 +56,7 @@ describe('Tropos4AS in the Notation view', () => {
   it("writes patient monitoring's errors, failures and artifacts with their properties", () => {
     const { text } = notationDocument(tropos4as, view('patient-monitoring'));
     for (const lines of [
-      'ERROR: no dinner until 8PM\n  condition hour >= 20 & meals < 2\n  take medicine without dinner\n    precondition meals >= 2',
+      'ERROR: no dinner until 8PM\n  condition hour >= 20 & mealSensor.meals < 2\n  take medicine without dinner\n    precondition mealSensor.meals >= 2',
       'meal sensor\n  attributes meals:int',
       'meals not eaten\nmedicine not taken',
     ])

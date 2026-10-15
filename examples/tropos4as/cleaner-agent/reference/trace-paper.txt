@@ -1,6 +1,6 @@
 # AAMAS 2009 §5 and Fig. 3: the life-cycle of RoomClean, transcribed.
-# RoomClean = A(s, f) with s = room.clean (here the variable roomClean, until
-# member references land, #135) and f = false; RC, DC, WC as §5 abbreviates.
+# RoomClean = A(s, f) with s = room.clean (here the variable roomClean: Fig. 1
+# draws no artifact, #134) and f = false; RC, DC, WC as §5 abbreviates.
 # Fig. 3 numbers the states 1 to 7; Γ as §5 gives it. Fig. 3 draws state
 # changes only: the engine's full trace also has [OR:subg-achieve], the
 # self-loop on AU when WC fails (between 5 and 6), which this omits.

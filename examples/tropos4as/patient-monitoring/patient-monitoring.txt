@@ -44,7 +44,7 @@
           "x": 434,
           "y": 245,
           "customProperties": {
-            "achievement": "meals >= 2"
+            "achievement": "mealSensor.meals >= 2"
           }
         },
         {
@@ -55,7 +55,7 @@
           "y": 313,
           "customProperties": {
             "creation": "hour >= 6",
-            "achievement": "medicineTaken",
+            "achievement": "medicineSensor.taken",
             "failure": "hour >= 20"
           }
         },
@@ -102,7 +102,7 @@
           "x": 778,
           "y": 361,
           "customProperties": {
-            "condition": "hour >= 20 & meals < 2"
+            "condition": "hour >= 20 & mealSensor.meals < 2"
           }
         },
         {
@@ -112,7 +112,7 @@
           "x": 806,
           "y": 468,
           "customProperties": {
-            "precondition": "meals >= 2"
+            "precondition": "mealSensor.meals >= 2"
           }
         },
         {
