@@ -1,0 +1,62 @@
+name: Stress tests
+
+# Each engine's stress test (scripts/<engine>-stress), strict: a failure of a
+# committed seed fails the job. Contextual goal models also run their oracle
+# (docker/dlv: DLV 2.1.2 and z3, built on the runner, never pushed). The
+# other engines' oracles (jUCMNav, DT-Golog) run locally with --oracle.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  stress:
+    name: stress:${{ matrix.engine }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - engine: goda
+            args: --strict
+          - engine: grl
+            args: --strict
+          - engine: istardt
+            args: --strict
+          - engine: tropos4as
+            args: --strict
+          - engine: cgm
+            args: --strict --oracle
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build lib
+        run: pnpm run build:lib
+
+      - name: Run the stress test
+        run: node scripts/${{ matrix.engine }}-stress/run.cjs ${{ matrix.args }}
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-${{ matrix.engine }}
+          path: .cache/${{ matrix.engine }}/results
+          if-no-files-found: ignore
