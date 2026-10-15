@@ -57,6 +57,9 @@
  *
  * // Model utilities (piStar files are parsed with @istar-ts/core)
  * const model = Model.load('file.json'); // validated; roots resolved from the link graph
+ *
+ * // The typed IR (goal-controller#125): actors holding a tree per root goal, every link
+ * const goalModel = GoalTree.goalModel(model, myMapper);
  * const checked = Model.validate(parsePistar(json));
  * ```
  */
@@ -72,7 +75,7 @@ export {
   type EngineMapper,
 } from './GoalTree';
 export { Model, type ModelNamespace } from './Model';
-export type { RootReading } from './internal/roots';
+export { modelShapeProblem, type RootReading } from './internal/roots';
 export { Node, type NodeNamespace } from './Node';
 export {
   goalView,
@@ -93,6 +96,10 @@ export type {
   // iStar types
   Actor,
   // Goal Tree types
+  GoalModel,
+  GoalModelActor,
+  GoalModelElement,
+  GoalModelLink,
   GoalNode,
   GoalTree as GoalTreeType,
   Model as IStarModel,
@@ -118,6 +125,11 @@ export type {
   RawPropertiesUnion,
   GoalExecutionDetail,
 } from './internal/creation';
+export type {
+  ActorPropsInput,
+  LinkPropsInput,
+  MapperDialect,
+} from './internal/engineMapper';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal utilities (exported for advanced use cases)

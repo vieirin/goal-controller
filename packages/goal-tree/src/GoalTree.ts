@@ -2,6 +2,7 @@
  * GoalTree SDK - Main class for working with goal trees
  */
 import {
+  buildGoalModel,
   convertToTree,
   createEngineMapper,
   type EngineMapper,
@@ -17,6 +18,7 @@ import {
 } from './internal/variables';
 import { Model } from './Model';
 import type {
+  GoalModel,
   GoalNode,
   GoalTree as GoalTreeArray,
   Model as IStarModel,
@@ -80,7 +82,9 @@ export class GoalTree<
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Create a GoalTree from an iStar model with a specific engine mapper
+   * Create a GoalTree from an iStar model with a specific engine mapper: the
+   * trees of its `GoalModel`, for an engine that reads one actor with one
+   * root goal (throws on a model outside its dialect's `model` shape)
    */
   static fromModel<
     TGoalEngine,
@@ -90,6 +94,10 @@ export class GoalTree<
     TTaskKeys extends string = string,
     TResourceKeys extends string = string,
     TQualityKeys extends string = never,
+    TActorEngine = {},
+    TLinkEngine = {},
+    TActorKeys extends string = never,
+    TLinkKeys extends string = never,
   >(
     model: IStarModel,
     mapper: EngineMapper<
@@ -99,11 +107,59 @@ export class GoalTree<
       TGoalKeys,
       TTaskKeys,
       TResourceKeys,
-      TQualityKeys
+      TQualityKeys,
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const nodes = convertToTree(model, mapper);
     return new GoalTree(nodes);
+  }
+
+  /**
+   * The typed IR of an iStar model (goal-controller#125), whatever its shape:
+   * its actors, each holding one tree per root goal, every link and the
+   * actors' and links' properties as the engine maps them, the dependums,
+   * and every element as written. `fromModel` gives the trees of an engine
+   * that reads one actor with one root (its dialect's `model`, the default).
+   */
+  static goalModel<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys extends string = string,
+    TTaskKeys extends string = string,
+    TResourceKeys extends string = string,
+    TQualityKeys extends string = never,
+    TActorEngine = {},
+    TLinkEngine = {},
+    TActorKeys extends string = never,
+    TLinkKeys extends string = never,
+  >(
+    model: IStarModel,
+    mapper: EngineMapper<
+      TGoalEngine,
+      TTaskEngine,
+      TResourceEngine,
+      TGoalKeys,
+      TTaskKeys,
+      TResourceKeys,
+      TQualityKeys,
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
+    >,
+  ): GoalModel<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TActorEngine,
+    TLinkEngine
+  > {
+    return buildGoalModel(model, mapper);
   }
 
   /**
@@ -117,6 +173,10 @@ export class GoalTree<
     TTaskKeys extends string = string,
     TResourceKeys extends string = string,
     TQualityKeys extends string = never,
+    TActorEngine = {},
+    TLinkEngine = {},
+    TActorKeys extends string = never,
+    TLinkKeys extends string = never,
   >(
     filename: string,
     mapper: EngineMapper<
@@ -126,7 +186,11 @@ export class GoalTree<
       TGoalKeys,
       TTaskKeys,
       TResourceKeys,
-      TQualityKeys
+      TQualityKeys,
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.load(filename);
@@ -144,6 +208,10 @@ export class GoalTree<
     TTaskKeys extends string = string,
     TResourceKeys extends string = string,
     TQualityKeys extends string = never,
+    TActorEngine = {},
+    TLinkEngine = {},
+    TActorKeys extends string = never,
+    TLinkKeys extends string = never,
   >(
     json: string,
     mapper: EngineMapper<
@@ -153,7 +221,11 @@ export class GoalTree<
       TGoalKeys,
       TTaskKeys,
       TResourceKeys,
-      TQualityKeys
+      TQualityKeys,
+      TActorEngine,
+      TLinkEngine,
+      TActorKeys,
+      TLinkKeys
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.parse(json);

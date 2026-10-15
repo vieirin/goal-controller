@@ -7,7 +7,11 @@ import { expect } from 'chai';
 import { parsePistar } from '@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
 import { checkContextOf } from '@goal-controller/goal-language';
-import { toyAnalyses, toyGraph } from '../engines/analysis/toy';
+import {
+  toyAnalyses,
+  toyAnalysisModel,
+  toyGraph,
+} from '../engines/analysis/toy';
 import { TOY_MODEL } from '../engines/analysis/toyModel';
 import {
   applyNotationEdits,
@@ -90,7 +94,12 @@ describe('links and actors in the view (#107)', () => {
 
 describe('the workbench’s analysis (#107)', () => {
   it('runs an analysis on the model text, and draws its case as info diagnostics', () => {
-    const run = analyse('weights', toyAnalyses.weights, TOY_MODEL);
+    const run = analyse(
+      'weights',
+      toyAnalyses.weights,
+      TOY_MODEL,
+      toyAnalysisModel,
+    );
     expect('result' in run).to.equal(true);
     expect(analysisDiagnostics(shownCase(run))).to.deep.equal([
       {
@@ -149,7 +158,12 @@ describe('the workbench’s analysis (#107)', () => {
   });
 
   it('says why an analysis didn’t run, with no values', () => {
-    const run = analyse('weights', toyAnalyses.weights, '{ not json');
+    const run = analyse(
+      'weights',
+      toyAnalyses.weights,
+      '{ not json',
+      toyAnalysisModel,
+    );
     expect('error' in run).to.equal(true);
     expect(analysisDiagnostics(shownCase(run))).to.deep.equal([]);
   });

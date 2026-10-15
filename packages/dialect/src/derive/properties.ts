@@ -69,6 +69,32 @@ export const propertyOf = (
 ): PropertyDefinition | undefined =>
   definition.properties[kind]?.find((p) => p.key === key);
 
+/** The keys a definition reads on actors (goal-controller#125: a mapper's `allowedActorKeys`), literal types kept. */
+export const actorPropertyKeys = <
+  D extends { actors?: readonly { key: string }[] },
+>(
+  definition: D,
+): readonly NonNullable<D['actors']>[number]['key'][] =>
+  [...new Set((definition.actors ?? []).map((p) => p.key))] as NonNullable<
+    D['actors']
+  >[number]['key'][];
+
+/** The keys a definition reads on links, every kind's (a mapper's `allowedLinkKeys`), literal types kept. */
+export const linkPropertyKeys = <
+  D extends { links?: Readonly<Record<string, readonly { key: string }[]>> },
+>(
+  definition: D,
+): readonly NonNullable<D['links']>[keyof NonNullable<
+  D['links']
+>][number]['key'][] =>
+  [
+    ...new Set(
+      Object.values(definition.links ?? {}).flatMap((list) =>
+        list.map((p) => p.key),
+      ),
+    ),
+  ] as NonNullable<D['links']>[keyof NonNullable<D['links']>][number]['key'][];
+
 /** The properties a link of this kind has (goal-controller#107; none: `[]`). */
 export const linkPropertiesOf = (
   definition: Pick<AnyDialect, 'links'>,

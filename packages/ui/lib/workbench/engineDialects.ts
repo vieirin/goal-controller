@@ -17,6 +17,7 @@ import {
   grlEngineMapper,
   grlExtension,
   grlAnalyses,
+  grlAnalysisModel,
   grlCheckRegistry,
   grlProjectResourceParsers,
   mutrose,
@@ -27,6 +28,7 @@ import {
   type PoolRegistration,
   sleecEngineMapper,
   type Analyses,
+  type AnalysisModel,
   type Check,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
@@ -35,6 +37,7 @@ import type {
   CheckNameOf,
   ExtensionDefinition,
 } from '@goal-controller/dialect';
+import type { IStarModel } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_DIALECTS = {
@@ -222,14 +225,20 @@ export const notationDefinitionOf = (engine: TransformEngine) =>
 export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
   isDialectEngine(engine) ? ENGINE_DIALECTS[engine] : null;
 
+/** An analysis engine's analyses, by id, and how it reads a model for them (the view of its `GoalModel`, goal-controller#125). */
+export type AnalysisEngine = {
+  analyses: Analyses;
+  model: (model: IStarModel) => AnalysisModel;
+};
+
 /**
  * An engine's analyses (goal-controller#107): its values drawn on the model,
  * not a file, by id. An engine without any has no Analyse control.
  */
 export const ENGINE_ANALYSES: Readonly<
-  Partial<Record<TransformEngine, Analyses>>
+  Partial<Record<TransformEngine, AnalysisEngine>>
 > = {
-  grl: grlAnalyses,
+  grl: { analyses: grlAnalyses, model: grlAnalysisModel },
 };
 
 /**

@@ -2,9 +2,12 @@
  * Internal tree creation logic
  */
 import { childrenOf, isActor, type ElementKind } from '@istar-ts/core';
+import { hasIds } from '@goal-controller/dialect';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
   GoalExecutionDetail,
+  GoalModel,
+  GoalModelLink,
   GoalNode,
   GoalTree,
   Link,
@@ -16,10 +19,17 @@ import type {
 import type { BaseNode, Task, TreeNode } from '../types/goalTree';
 import type {
   EngineMapper,
+  MapperDialect,
   RawPropertiesUnion,
   RawProps,
 } from './engineMapper';
-import { findActorRoot, linkEnds, linkRelation } from './roots';
+import {
+  actorRoots,
+  linkEnds,
+  linkRelation,
+  modelShapeProblem,
+  TREE_KINDS,
+} from './roots';
 import { allByType } from './traversal';
 
 // Re-export types from engineMapper for backwards compatibility
@@ -30,6 +40,37 @@ export type {
   RawProps,
 } from './engineMapper';
 export type { GoalExecutionDetail };
+
+/** Omit over each member of a union (EngineMapper is one, on `skipResource`). */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never;
+
+/** What building a node reads of a mapper: its node mappers, not the actor, link or after-creation ones. */
+type NodeMapper<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TGoalKeys extends string,
+  TTaskKeys extends string,
+  TResourceKeys extends string,
+  TQualityKeys extends string,
+> = DistributiveOmit<
+  EngineMapper<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys,
+    TTaskKeys,
+    TResourceKeys,
+    TQualityKeys
+  >,
+  | 'afterCreationMapper'
+  | 'allowedActorKeys'
+  | 'mapActorProps'
+  | 'allowedLinkKeys'
+  | 'mapLinkProps'
+>;
 
 const convertIstarType = ({ kind }: { kind: ElementKind }) => {
   switch (kind) {
@@ -45,6 +86,16 @@ const convertIstarType = ({ kind }: { kind: ElementKind }) => {
       throw new Error('[INVALID_MODEL]: Invalid node type: ' + kind);
   }
 };
+
+/**
+ * An element's text read in the engine's dialect. In a dialect without ids
+ * (no element kind has a prefix) it is not parsed: its id is its piStar
+ * id, its name its text (goal-controller#125).
+ */
+const readText = (node: Node, dialect: MapperDialect) =>
+  dialect.elements && !hasIds({ elements: dialect.elements })
+    ? { id: node.id, goalName: node.name, executionDetail: null }
+    : getGoalDetail({ goalText: node.name, dialect });
 
 /**
  * Extract raw properties from customProperties based on allowed keys
@@ -142,11 +193,12 @@ function createNode<
   mapper,
   context,
   isRoot = false,
+  actor,
 }: {
   node: Node;
   relation: Relation;
   children: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
-  mapper: EngineMapper<
+  mapper: NodeMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
@@ -158,11 +210,10 @@ function createNode<
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
   /** True for the actor's structurally resolved root goal. */
   isRoot?: boolean;
+  /** the actor it is in (none: a dependum) */
+  actor?: string;
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
-  const { id, goalName, executionDetail } = getGoalDetail({
-    goalText: node.name,
-    dialect: mapper.dialect,
-  });
+  const { id, goalName, executionDetail } = readText(node, mapper.dialect);
   // every element the engines read is named after its RT id ("G4: …")
   if (!id) {
     throw new Error(
@@ -195,6 +246,7 @@ function createNode<
     !tasks.length &&
     nodeType === 'goal' &&
     !isQualityNode &&
+    actor !== undefined &&
     !mapper.allowLeafGoals
   ) {
     throw new Error(
@@ -237,6 +289,7 @@ function createNode<
       name: goalName,
       iStarId: node.id,
       x: node.x,
+      ...(actor !== undefined && { actor }),
       relationToChildren: relation,
       type: 'resource',
       rawProps: rawResourceProps,
@@ -259,6 +312,7 @@ function createNode<
       name: goalName,
       iStarId: node.id,
       x: node.x,
+      ...(actor !== undefined && { actor }),
       relationToChildren: relation,
       type: 'task',
       tasks,
@@ -296,6 +350,7 @@ function createNode<
       name: goalName,
       iStarId: node.id,
       x: node.x,
+      ...(actor !== undefined && { actor }),
       relationToChildren: relation,
       type: 'goal',
       children: filteredChildren,
@@ -333,11 +388,13 @@ function nodeChildren<
   links,
   mapper,
   context,
+  actor,
 }: {
   nodes: readonly Node[];
   links: readonly Link[];
   id?: string;
-  mapper: EngineMapper<
+  actor?: string;
+  mapper: NodeMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
@@ -352,20 +409,14 @@ function nodeChildren<
     return [[], 'none'];
   }
 
-  // the refinements into it (a Qualification link into it attaches a Quality, no child)
+  // the refinements into it: its children (goal-controller#125: any other
+  // link into it, a qualification, a contribution, a dependency, an
+  // extension's, is one of the model's links, not a child)
   const nodeLinks = links.filter(
-    (link) => link.target === id && link.kind !== 'istar.QualificationLink',
+    (link) => link.target === id && linkRelation(link) !== null,
   );
 
-  const relations = nodeLinks.map((link) => {
-    const relation = linkRelation(link);
-    if (!relation) {
-      throw new Error(
-        `[UNSUPPORTED LINK]: Please implement ${link.kind} decoding`,
-      );
-    }
-    return relation;
-  });
+  const relations = nodeLinks.map((link) => linkRelation(link)!);
 
   const allEqual = relations.every((v) => v === relations[0]);
   if (!allEqual) {
@@ -382,7 +433,8 @@ function nodeChildren<
         const [, childNodeId] = linkEnds(link);
 
         const node = nodes.find((item) => item.id === childNodeId);
-        if (!node) {
+        // a kind no tree holds (an extension's) is in the model's elements only
+        if (!node || !TREE_KINDS.has(node.kind)) {
           return undefined;
         }
 
@@ -392,6 +444,7 @@ function nodeChildren<
           links,
           mapper,
           context,
+          actor,
         });
 
         // createNode returns null for skipped resources
@@ -401,6 +454,7 @@ function nodeChildren<
           children: granChildren,
           mapper,
           context,
+          actor,
         });
 
         return createdNode ?? undefined;
@@ -428,11 +482,12 @@ function nodeToTree<
   mapper,
   context,
   isRoot = false,
+  actor,
 }: {
   nodes: readonly Node[];
   iStarLinks: readonly Link[];
   node: Node;
-  mapper: EngineMapper<
+  mapper: NodeMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
@@ -443,6 +498,7 @@ function nodeToTree<
   >;
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
   isRoot?: boolean;
+  actor?: string;
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
   const [children, relation] = nodeChildren({
     nodes,
@@ -450,10 +506,45 @@ function nodeToTree<
     links: iStarLinks,
     mapper,
     context,
+    actor,
   });
 
-  return createNode({ node, children, relation, mapper, context, isRoot });
+  return createNode({
+    node,
+    children,
+    relation,
+    mapper,
+    context,
+    isRoot,
+    actor,
+  });
 }
+
+type FullMapper<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TGoalKeys extends string,
+  TTaskKeys extends string,
+  TResourceKeys extends string,
+  TQualityKeys extends string,
+  TActorEngine,
+  TLinkEngine,
+  TActorKeys extends string,
+  TLinkKeys extends string,
+> = EngineMapper<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TGoalKeys,
+  TTaskKeys,
+  TResourceKeys,
+  TQualityKeys,
+  TActorEngine,
+  TLinkEngine,
+  TActorKeys,
+  TLinkKeys
+>;
 
 function runAfterCreationMapper<
   TGoalEngine,
@@ -463,33 +554,58 @@ function runAfterCreationMapper<
   TTaskKeys extends string,
   TResourceKeys extends string,
   TQualityKeys extends string,
+  TActorEngine,
+  TLinkEngine,
+  TActorKeys extends string,
+  TLinkKeys extends string,
 >(
-  tree: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  mapper: EngineMapper<
+  model: GoalModel<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TActorEngine,
+    TLinkEngine
+  >,
+  mapper: FullMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
     TResourceKeys,
-    TQualityKeys
+    TQualityKeys,
+    TActorEngine,
+    TLinkEngine,
+    TActorKeys,
+    TLinkKeys
   >,
   context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>,
-): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
-  // If no afterCreationMapper is provided, return tree as-is
-  if (!('afterCreationMapper' in mapper) || !mapper.afterCreationMapper) {
-    return tree;
+): GoalModel<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TActorEngine,
+  TLinkEngine
+> {
+  const { afterCreationMapper } = mapper;
+  // If no afterCreationMapper is provided, return the model as-is
+  if (!afterCreationMapper) {
+    return model;
   }
 
-  const allGoals = allByType(tree, 'goal');
-  const allTasks = allByType(tree, 'task');
-  const allResources = allByType(tree, 'resource');
-
+  const everyTree = [
+    ...model.actors.flatMap((actor) => actor.trees),
+    ...model.dependums,
+  ];
   const nodeMap = new Map<
     string,
     TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
   >();
-  [...allGoals, ...allTasks, ...allResources].forEach((node) => {
+  [
+    ...allByType(everyTree, 'goal'),
+    ...allByType(everyTree, 'task'),
+    ...allByType(everyTree, 'resource'),
+  ].forEach((node) => {
     nodeMap.set(node.id, node);
   });
 
@@ -524,14 +640,12 @@ function runAfterCreationMapper<
       };
     }
 
-    const updatedEngine =
-      'afterCreationMapper' in mapper && mapper.afterCreationMapper
-        ? mapper.afterCreationMapper({
-            node: goal,
-            allNodes: nodeMap,
-            rawProperties,
-          })
-        : goal.properties.engine;
+    const updatedEngine = afterCreationMapper({
+      node: goal,
+      allNodes: nodeMap,
+      rawProperties,
+      model,
+    });
 
     // Runtime validation before type assertion
     if (typeof updatedEngine !== 'object' || updatedEngine === null) {
@@ -551,16 +665,165 @@ function runAfterCreationMapper<
   };
 
   // Process only goal nodes (top-level nodes in tree are goals)
-  return tree.map((node) => {
-    if (node.type === 'goal') {
-      return processGoal(node);
-    }
-    return node;
-  });
+  const processTrees = (
+    trees: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>,
+  ) => trees.map((node) => (node.type === 'goal' ? processGoal(node) : node));
+
+  return {
+    ...model,
+    actors: model.actors.map((actor) => ({
+      ...actor,
+      trees: processTrees(actor.trees),
+    })),
+    dependums: processTrees(model.dependums),
+  };
 }
 
 /**
- * Convert an iStar model to a GoalTree with engine-specific properties
+ * Build the typed IR of an iStar model (goal-controller#125): its actors, each
+ * holding one tree per root (`actorRoots`), every link with the engine's
+ * properties, the dependums, and every element as written. Any shape: the
+ * caller checks the engine's (`modelShapeProblem`). `dependums: false`
+ * maps none (`convertToTree`: an engine that reads the trees never maps one).
+ */
+export function buildGoalModel<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TGoalKeys extends string = string,
+  TTaskKeys extends string = string,
+  TResourceKeys extends string = string,
+  TQualityKeys extends string = never,
+  TActorEngine = {},
+  TLinkEngine = {},
+  TActorKeys extends string = never,
+  TLinkKeys extends string = never,
+>(
+  model: Model,
+  mapper: FullMapper<
+    TGoalEngine,
+    TTaskEngine,
+    TResourceEngine,
+    TGoalKeys,
+    TTaskKeys,
+    TResourceKeys,
+    TQualityKeys,
+    TActorEngine,
+    TLinkEngine,
+    TActorKeys,
+    TLinkKeys
+  >,
+  { dependums: withDependums = true }: { dependums?: boolean } = {},
+): GoalModel<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TActorEngine,
+  TLinkEngine
+> {
+  // Create per-call context to avoid race conditions with concurrent calls
+  const context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys> = {
+    rawPropertiesMap: new Map(),
+  };
+  const isTree = (
+    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null,
+  ): node is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
+    node !== null;
+
+  const iStarLinks = [...model.links.values()];
+  const elements = [...model.elements.values()];
+
+  const actors = elements.filter(isActor).map((actor) => {
+    const nodes = childrenOf(model, actor.id);
+    const trees = actorRoots(model, actor.id, mapper.dialect)
+      .map((root) =>
+        nodeToTree({
+          nodes,
+          node: root,
+          iStarLinks,
+          mapper,
+          context,
+          isRoot: true,
+          actor: actor.id,
+        }),
+      )
+      .filter(isTree);
+    const engine = mapper.mapActorProps?.({
+      raw: extractRawProps(
+        actor.customProperties ?? {},
+        mapper.allowedActorKeys ?? [],
+      ),
+      kind: actor.kind,
+      id: actor.id,
+      name: actor.name,
+    });
+    return {
+      id: actor.id,
+      name: actor.name,
+      kind: actor.kind,
+      properties: { engine: (engine ?? {}) as TActorEngine },
+      trees,
+      elements: nodes.map((node) => node.id),
+    };
+  });
+
+  const links = iStarLinks.map((link): GoalModelLink<TLinkEngine> => {
+    const engine = mapper.mapLinkProps?.({
+      raw: extractRawProps(
+        link.customProperties ?? {},
+        mapper.allowedLinkKeys ?? [],
+      ),
+      kind: link.kind,
+      id: link.id,
+    });
+    return {
+      id: link.id,
+      kind: link.kind,
+      source: link.source,
+      target: link.target,
+      relation: linkRelation(link),
+      ...(link.label !== undefined && { label: link.label }),
+      properties: { engine: (engine ?? {}) as TLinkEngine },
+    };
+  });
+
+  // a dependum is in no actor and refines nothing; one with no id (its name
+  // reads none) is in `elements` only
+  const dependums = elements
+    .filter(
+      (element): element is Node =>
+        withDependums &&
+        element.isDependum === true &&
+        TREE_KINDS.has(element.kind) &&
+        !!readText(element as Node, mapper.dialect).id,
+    )
+    .map((node) => nodeToTree({ nodes: [], node, iStarLinks, mapper, context }))
+    .filter(isTree);
+
+  return runAfterCreationMapper(
+    {
+      actors,
+      links,
+      dependums,
+      elements: elements
+        .filter((element) => !isActor(element))
+        .map((element) => ({
+          id: element.id,
+          kind: element.kind,
+          name: element.name,
+          ...(element.parent !== undefined && { actor: element.parent }),
+          properties: { ...element.customProperties },
+        })),
+    },
+    mapper,
+    context,
+  );
+}
+
+/**
+ * Convert an iStar model to a GoalTree with engine-specific properties: the
+ * trees of its `GoalModel`, flat. Throws when the model is outside the shape
+ * the engine reads (`model` on its dialect; default one actor, one root).
  */
 export function convertToTree<
   TGoalEngine,
@@ -570,44 +833,31 @@ export function convertToTree<
   TTaskKeys extends string = string,
   TResourceKeys extends string = string,
   TQualityKeys extends string = never,
+  TActorEngine = {},
+  TLinkEngine = {},
+  TActorKeys extends string = never,
+  TLinkKeys extends string = never,
 >(
   model: Model,
-  mapper: EngineMapper<
+  mapper: FullMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
     TGoalKeys,
     TTaskKeys,
     TResourceKeys,
-    TQualityKeys
+    TQualityKeys,
+    TActorEngine,
+    TLinkEngine,
+    TActorKeys,
+    TLinkKeys
   >,
 ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
-  // Create per-call context to avoid race conditions with concurrent calls
-  const context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys> = {
-    rawPropertiesMap: new Map(),
-  };
-
-  const links = [...model.links.values()];
-  const unidirectionalTree = [...model.elements.values()]
-    .filter(isActor)
-    .map((actor) => {
-      const nodes = childrenOf(model, actor.id);
-      const rootNode = findActorRoot(model, actor.id, mapper.dialect);
-
-      return nodeToTree({
-        nodes,
-        node: rootNode,
-        iStarLinks: links,
-        mapper,
-        context,
-        isRoot: true,
-      });
-    })
-    .filter(
-      (node): node is TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
-        node !== null,
-    );
-
-  // Run afterCreationMapper if provided (e.g., to resolve dependsOn)
-  return runAfterCreationMapper(unidirectionalTree, mapper, context);
+  const problem = modelShapeProblem(model, mapper.dialect);
+  if (problem) {
+    throw new Error(`[INVALID_MODEL]: ${problem}`);
+  }
+  return buildGoalModel(model, mapper, { dependums: false }).actors.flatMap(
+    (actor) => actor.trees,
+  );
 }

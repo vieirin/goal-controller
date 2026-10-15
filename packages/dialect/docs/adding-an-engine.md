@@ -262,6 +262,7 @@ Rules of thumb (from Edge's mapper):
 - `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines: the outermost construct and its operands. `text` is the goal's text as written; an engine that reads nested constructs or calls reads it with `parseElementLine` (MutRoSe does).
 - Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
 - A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
+- Actors and links have mappers too (`mapActorProps`, `mapLinkProps`), and `afterCreationMapper` sees the whole model: see 3.8.
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -326,7 +327,7 @@ type EngineOutput = { files: EngineOutputFile[] };
 - **Several files** (a PRISM model and its property files, a runtime artefact and a readable one): return them all, the primary one marked, in the order the workbench should show them. Their ids must stay the same from run to run: a project keeps one entry per id and a later run replaces it. `engineOutputProblems(output)` says what is wrong (not exactly one primary, an id or a file name used twice). Run it in your engine's tests, as `test/engines/output.test.ts` does for every engine. That file also has a fixture engine of three files (`test/support/threeFileEngine.ts`).
 - **Trace.** The primary file is traced to the model by the ids its identifiers embed (`g3_state`, `module G3`), as before. Any file can carry `owners` instead: for each line, the ids of the elements it belongs to. A file with neither is plain text.
 - Keep the string-returning function exported. The CLI and external callers may use it, and the output function is a wrapper around it.
-- **What an output function takes.** The tree (`missionOutput(tree, { modelName })`) is enough for most engines. An engine that needs what the tree doesn't keep, such as the actors (GODA names its MDP after the actor of the selected goal), takes goal-tree's validated model (`Model.parse(text)`) and builds its tree with its mapper itself: `godaOutput(model, { modelName })`. Its `services/transform.ts` branch passes `parseResult.model`.
+- **What an output function takes.** The tree (`missionOutput(tree, { modelName })`) is enough for most engines. An engine that needs more of the model, its actors or links (GODA names its MDP after the actor of the selected goal), takes the `GoalModel` (3.8): `godaOutput(godaGoalModel(model), { modelName })`, where `godaGoalModel` checks GODA's shape and builds the IR with its mapper.
 - **Versions of a target.** When the references an engine is proved against come from several versions of the original generator, make each version a strategy object (its templates and the rules that differ) and let the output function take a `variant`. A version not implemented yet throws an error that names its issue, so a harness reports it as an expected failure (GODA's `GODA_GENERATORS`, `GodaUnsupported`).
 
 ### 3.5 Exports
@@ -389,11 +390,17 @@ export const missionAnalyses = defineAnalyses(mission, {
 });
 ```
 
-- **Input:** `AnalysisModel` (`analysisModel(istarModel)`): every actor (kind,
-  name, properties, its elements), element (kind, name, properties, its
-  actor) and link (kind, ends, label, properties), as the piStar file has
-  them. `resource` is the `input` kind's files, path → text, as the tabs hold
-  them (a `many` kind: all its files).
+- **Input:** `AnalysisModel`, the view of the engine's `GoalModel` (3.8):
+  `analysisViewOf(GoalTree.goalModel(model, missionEngineMapper))`. It has
+  every actor (kind, name, properties, its elements), every element (kind,
+  name, properties, its actor) and every link (kind, ends, label,
+  properties). An element's properties are as the piStar file has them. An
+  actor's and a link's are what the mapper keeps: give it
+  `mapActorProps: ({ raw }) => raw` and `mapLinkProps: ({ raw }) => raw`
+  over the definition's keys, as GRL's does. An engine with analyses reads
+  every actor and tree, so declare `model: { actors: 'many', treesPerActor:
+  'many' }`. `resource` is the `input` kind's files, path → text, as the
+  tabs hold them (a `many` kind: all its files).
 - **Output:** `AnalysisResult = { cases: { id, label, values }[] }`, where
   `values` maps an element's or actor's piStar id to `{ value: number | string;
   label?; severity?: 'info' | 'warning' }`. A case is one evaluation (a
@@ -401,8 +408,10 @@ export const missionAnalyses = defineAnalyses(mission, {
 - `defineAnalyses` checks that each analysis has a label and reads only a
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).
-- **The workbench:** register `ENGINE_ANALYSES.mission = missionAnalyses`
-  (`lib/workbench/engineDialects.ts`). An "Analyse" menu appears beside
+- **The workbench:** register `ENGINE_ANALYSES.mission = { analyses:
+  missionAnalyses, model: missionAnalysisModel }`
+  (`lib/workbench/engineDialects.ts`), where `model` reads a model for them
+  (GRL's `grlAnalysisModel`). An "Analyse" menu appears beside
   Generate, with the engine's analyses; a click runs one on the model as it
   is. With several cases, a picker chooses the one drawn. The values go to
   the canvas as istar-ts host diagnostics, keyed by piStar id: `info`, or
@@ -410,6 +419,44 @@ export const missionAnalyses = defineAnalyses(mission, {
   istar-ts 0.12 badges elements, actors and links with them. Once the model
   changes the values are "out of date" and aren't drawn until the next run.
   Nothing runs without a click, and nothing is saved in the model file.
+
+### 3.8 The IR: actors, trees, links and the model shape
+
+goal-tree reads a model into a typed IR, the `GoalModel` (goal-controller#125):
+
+```ts
+type GoalModel = {
+  actors: { id; name; kind; properties: { engine: TActorEngine }; trees: TreeNode[]; elements: id[] }[];
+  links: { id; kind; source; target; relation: 'and' | 'or' | 'neededBy' | null; label?; properties: { engine: TLinkEngine } }[];
+  dependums: TreeNode[];   // outside every actor, each a node
+  elements: { id; kind; name; actor?; properties }[]; // every element as written, an extension's kinds too
+};
+```
+
+- **An actor holds one tree per root goal.** A root is an element of a tree
+  kind, but a Quality, that refines nothing: it has no outgoing refinement
+  link. A tree's children are its refinements only. A contribution, a
+  qualification or a dependency is one of the model's `links`, with its
+  `relation` `null`. Every node knows its actor (`node.actor`, a piStar id).
+- **The mappers.** `mapActorProps({ raw, kind, id, name })` and
+  `mapLinkProps({ raw, kind, id })`, typed by `allowedActorKeys` and
+  `allowedLinkKeys` as `mapGoalProps` is by its keys. Both are optional: an
+  engine without them gets `{}`. Take the keys from the definition:
+  `actorPropertyKeys(mission)`, `linkPropertyKeys(mission)`.
+  `afterCreationMapper` gets `model`, the whole `GoalModel`.
+- **The shape your engine reads.** Declare it on the definition: `model: {
+  actors: 'one' | 'many', treesPerActor: 'one' | 'many' }`. The default is
+  `one`/`one`. Edge, edgeV2, MutRoSe and SLEEC keep it. GODA reads
+  `many`/`one`: it generates from the actor holding the selected goal. GRL
+  reads `many`/`many`. `modelShapeProblem(model, definition)` says what
+  doesn't fit, for example `Mission reads one actor with one root goal; the
+  model has 2 actors` or `…; actor "Lab" has 2 root goals (G1, G4)`.
+  `Model.validate` and `GoalTree.fromModel` throw it before generation.
+- **Which to call.** `GoalTree.fromModel(model, mapper)` gives the trees
+  flat, which is all a one/one engine needs. `GoalTree.goalModel(model,
+  mapper)` gives the whole IR, for any shape, without checking it.
+- **A dialect without ids** (no element kind has a `prefix`, GRL) still has
+  an IR. A node's id is its piStar id and its name is its text, unparsed.
 
 ## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 

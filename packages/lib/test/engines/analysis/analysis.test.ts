@@ -4,13 +4,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import {
-  analysisModel,
-  defineAnalyses,
-  runAnalysis,
-  type AnalysisModel,
-} from '../../../src';
-import { toyAnalyses, toyGraph } from './toy';
+import { defineAnalyses, runAnalysis, type AnalysisModel } from '../../../src';
+import { toyAnalyses, toyAnalysisModel, toyGraph } from './toy';
 import { TOY_MODEL } from './toyModel';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
@@ -18,7 +13,8 @@ const {
   parsePistar,
 } = require('../../../../goal-tree/node_modules/@istar-ts/core');
 
-const model = (): AnalysisModel => analysisModel(parsePistar(TOY_MODEL));
+// the view of its GoalModel (goal-controller#125)
+const model = (): AnalysisModel => toyAnalysisModel(parsePistar(TOY_MODEL));
 
 describe('analysis engines (#107)', () => {
   it('reads actors, elements and links with their properties', () => {

@@ -161,11 +161,16 @@ for (const file of examples(path.join(EXAMPLES, 'goda'))) {
     ),
   );
   writeOutput('goda', name('goda', file), () =>
-    lib.godaOutput(goalTree.Model.validate(core.parsePistar(text), lib.goda), {
-      modelName: path.basename(file),
-      // the version the snapshot's baseline was written with (the default is 5305bc1)
-      variant: 'cc808b6',
-    }),
+    lib.godaOutput(
+      lib.godaGoalModel(
+        goalTree.Model.validate(core.parsePistar(text), lib.goda),
+      ),
+      {
+        modelName: path.basename(file),
+        // the version the snapshot's baseline was written with (the default is 5305bc1)
+        variant: 'cc808b6',
+      },
+    ),
   );
 }
 

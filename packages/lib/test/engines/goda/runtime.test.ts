@@ -13,6 +13,7 @@ import {
   compileFormula,
   engineOutputProblems,
   goda,
+  godaGoalModel,
   godaOutput,
   GodaUnsupported,
   type GodaVariant,
@@ -29,7 +30,7 @@ const generate = (
   text: string,
   options: { variant?: GodaVariant; runtimeFormulas?: boolean } = {},
 ) =>
-  godaOutput(Model.parse(text, goda), {
+  godaOutput(godaGoalModel(Model.parse(text, goda)), {
     modelName: 'goalModel.txt',
     variant: 'cc808b6',
     ...options,

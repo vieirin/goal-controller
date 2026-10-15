@@ -5,13 +5,19 @@
  * model's references come from writes them (`variant`, goal-controller#34
  * D10).
  */
-import { GoalTree, type IStarModel } from '@goal-controller/goal-tree';
+import {
+  GoalTree,
+  modelShapeProblem,
+  type GoalModel,
+  type IStarModel,
+} from '@goal-controller/goal-tree';
 import {
   outputBaseName,
   type EngineOutput,
   type EngineOutputFile,
 } from '../../output';
 import { godaEngineMapper, type GodaGoalNode } from '../mapper';
+import type { GodaGoalProps, GodaTaskProps } from '../types';
 import { adjustName, type Container } from './containers';
 import { sortRoots, writePrism } from './prism';
 import { composeRuntimeFormulas } from './runtime';
@@ -85,14 +91,27 @@ const runtimeFiles = (root: Container): EngineOutputFile[] => {
   ];
 };
 
+/** The typed IR GODA reads (goal-controller#125): its actors, each with one tree. */
+export type GodaGoalModel = GoalModel<GodaGoalProps, GodaTaskProps, never>;
+
 /**
- * What GODA generates of a model (goal-tree's validated model): the files of
- * the actor that holds the selected goal, as the generator version `variant`
- * writes them (#34 D10). Throws an Error for a model GODA rejects, or a
- * version it has no generator for.
+ * A model (goal-tree's validated model) as GODA reads it: its `GoalModel`.
+ * Throws an Error for a model outside GODA's shape (an actor with two roots).
+ */
+export const godaGoalModel = (model: IStarModel): GodaGoalModel => {
+  const problem = modelShapeProblem(model, godaEngineMapper.dialect);
+  if (problem) throw new Error(`[INVALID_MODEL]: ${problem}`);
+  return GoalTree.goalModel(model, godaEngineMapper);
+};
+
+/**
+ * What GODA generates of a model (`godaGoalModel`): the files of the actor
+ * that holds the selected goal, as the generator version `variant` writes
+ * them (#34 D10). Throws an Error for a model GODA rejects, or a version it
+ * has no generator for.
  */
 export const godaOutput = (
-  model: IStarModel,
+  goalModel: GodaGoalModel,
   {
     modelName,
     variant = GODA_DEFAULT_VARIANT,
@@ -104,9 +123,9 @@ export const godaOutput = (
     throw new Error(
       `GODA: no generator ${String(variant)} (the versions are ${GODA_VARIANTS.join(', ')})`,
     );
-  const roots = GoalTree.fromModel(model, godaEngineMapper).nodes.filter(
-    (node): node is GodaGoalNode => node.type === 'goal',
-  );
+  const roots = goalModel.actors
+    .flatMap((actor) => actor.trees)
+    .filter((node): node is GodaGoalNode => node.type === 'goal');
   const selected = roots
     .flatMap(goalsOf)
     .filter((goal) => goal.properties.engine.selected);
@@ -117,10 +136,9 @@ export const godaOutput = (
         : 'GODA generates from the selected goal: set selected to true on one goal',
     );
   const [goal] = selected;
-  // the actor that holds it: its root's
+  // the actor that holds it: its root's (#34 D16: the IR says which)
   const root = roots.find((r) => goalsOf(r).includes(goal!))!;
-  const actorId = model.elements.get(root.iStarId)?.parent;
-  const actor = actorId ? model.elements.get(actorId) : undefined;
+  const actor = goalModel.actors.find((a) => a.trees.includes(root));
   const containers = sortRoots(
     generator.containers({ roots: [root], selected: (g) => g === goal }),
   );

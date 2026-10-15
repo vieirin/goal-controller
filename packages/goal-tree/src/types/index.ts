@@ -28,4 +28,8 @@ export type {
   TreeNode,
   GoalTree,
   GoalExecutionDetail,
+  GoalModel,
+  GoalModelActor,
+  GoalModelElement,
+  GoalModelLink,
 } from './goalTree';

@@ -16,6 +16,7 @@ import {
   engineOutputProblems,
   evaluate,
   goda,
+  godaGoalModel,
   godaOutput,
   type EngineOutput,
 } from '../../../src';
@@ -71,7 +72,7 @@ const model = (
   });
 
 const july = (text: string) =>
-  godaOutput(Model.parse(text, goda), {
+  godaOutput(godaGoalModel(Model.parse(text, goda)), {
     modelName: 'robot.txt',
     variant: '5305bc1',
   });
@@ -105,7 +106,7 @@ describe('GODA 5305bc1: the TAS, Fragmented and BSN references (#38)', () => {
       // the upstream models are fetched, not committed (#34 D1)
       if (!existsSync(join(dir, file))) this.skip();
       const output = godaOutput(
-        Model.parse(readFileSync(join(dir, file), 'utf8'), goda),
+        godaGoalModel(Model.parse(readFileSync(join(dir, file), 'utf8'), goda)),
         { modelName: file, variant: '5305bc1' },
       );
       assert.deepStrictEqual(engineOutputProblems(output), []);

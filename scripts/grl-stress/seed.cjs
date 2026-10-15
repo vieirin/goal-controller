@@ -182,7 +182,7 @@ const checkSeed = (deps, text, references) => {
   let strategies;
   try {
     graph = lib.grlGraph(
-      lib.analysisModel(core.parsePistar(model, { fileMetamodel: true })),
+      lib.grlAnalysisModel(core.parsePistar(model, { fileMetamodel: true })),
     );
     const read = lib.readStrategies(files);
     strategies = read.strategies;
