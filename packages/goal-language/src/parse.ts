@@ -10,7 +10,7 @@ import type {
 } from '@goal-controller/dialect';
 import {
   EXPRESSION,
-  ID_PREFIXES,
+  idPrefixPattern,
   idPrefixesOf,
   type ValueType,
 } from './catalog.js';
@@ -389,9 +389,7 @@ export const withoutBracketSpaces = (
 /** An element line's id and colon (annotations and indentation before them), with these prefixes. */
 const elementIdOf = (prefixes: readonly string[]) =>
   new RegExp(
-    `^\\s*(?:(?:<<[^>]*>>|\\{[^}]*\\})\\s*)*(?:${[...ID_PREFIXES, ...prefixes]
-      .sort((a, b) => b.length - a.length)
-      .join('|')})(?:[0-9][0-9.]*X?|X|[0-9][a-z])\\s*:`,
+    `^\\s*(?:(?:<<[^>]*>>|\\{[^}]*\\})\\s*)*(?:${idPrefixPattern(prefixes)})(?:[0-9][0-9.]*X?|X|[0-9][a-z])\\s*:`,
   );
 const ELEMENT_ID = elementIdOf([]);
 /** What RTRegex.g4's WORD reads in a name. */

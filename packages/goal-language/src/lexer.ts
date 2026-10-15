@@ -10,6 +10,7 @@ import {
   EXPRESSION,
   ID_PREFIXES,
   OCL_OPERATIONS,
+  idPrefixPattern,
 } from './catalog.js';
 
 type Rules = ReadonlyArray<readonly [name: string, pattern: RegExp]>;
@@ -50,11 +51,7 @@ const idRulesOf = (own: readonly string[]): IdRules => {
   const key = own.join(',');
   const cached = idRulesCache.get(key);
   if (cached) return cached;
-  // longest first (`AT` before `T`)
-  const prefix = [...ID_PREFIXES, ...own]
-    .sort((a, b) => b.length - a.length)
-    .map(escaped)
-    .join('|');
+  const prefix = idPrefixPattern(own);
   /**
    * An element line from its id on, in RTRegex.g4's definition order
    * (implicit literals first, then the lexer rules). ANTLR picks the longest
@@ -138,12 +135,7 @@ const DECLARATION = rules([
  * of its length and wins (`R1`, `GX`), a longer name is a name (`Rate`, `G1a`).
  */
 const OPERANDS: Array<[string, RegExp]> = [
-  [
-    'A_REF',
-    new RegExp(
-      `(?:${[...ID_PREFIXES].sort((a, b) => b.length - a.length).join('|')})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`,
-    ),
-  ],
+  ['A_REF', new RegExp(`(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)`)],
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],

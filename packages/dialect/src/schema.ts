@@ -40,7 +40,7 @@ export type ElementDefinition = {
   /**
    * the id prefix its lines start with (`G`: `G1: Name`): one of the goal
    * language's (`G`, `T`, `R`, `AT`) for iStar's kinds; for an extension's,
-   * one or two capitals of the dialect's own (`ExtensionIdPrefix`). Without
+   * one or two capitals of the dialect's own (`isExtensionIdPrefix`). Without
    * one, a definition's lines name no element (they are their elements', in
    * order).
    */
@@ -53,7 +53,7 @@ export type ElementDefinition = {
   fill: string;
 };
 
-/** The goal language's id prefixes (its catalog's ID_PREFIXES; its tests pin them). */
+/** The id prefixes iStar's kinds take: the goal language's (its catalog's ID_PREFIXES is this list). */
 export type IstarIdPrefix = 'G' | 'T' | 'R' | 'AT';
 export const ISTAR_ID_PREFIXES = [
   'G',
