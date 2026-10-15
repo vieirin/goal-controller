@@ -1,0 +1,57 @@
+{
+  "name": "grl",
+  "label": "GRL",
+  "elements": [
+    {
+      "kind": "grl.Indicator",
+      "label": "Indicator",
+      "behavesLike": "istar.Task",
+      "size": {
+        "width": 100,
+        "height": 50
+      },
+      "shape": "M 4 2 L 96 2 L 96 32 L 50 48 L 4 32 Z",
+      "textBox": {
+        "top": 0.08,
+        "right": 0.06,
+        "bottom": 0.3,
+        "left": 0.06
+      }
+    },
+    {
+      "kind": "grl.Belief",
+      "label": "Belief",
+      "category": "node",
+      "size": {
+        "width": 100,
+        "height": 50
+      },
+      "shape": "M 2 25 A 48 23 0 1 0 98 25 A 48 23 0 1 0 2 25 Z M 8 25 A 42 18 0 1 0 92 25 A 42 18 0 1 0 8 25 Z",
+      "textBox": {
+        "top": 0.2,
+        "right": 0.15,
+        "bottom": 0.2,
+        "left": 0.15
+      }
+    }
+  ],
+  "links": [
+    {
+      "kind": "grl.BeliefLink",
+      "label": "Belief",
+      "rules": {
+        "sources": ["grl.Belief"],
+        "targets": ["node"],
+        "sameActor": false,
+        "unique": "kind"
+      },
+      "line": {
+        "dash": "dotted"
+      }
+    }
+  ],
+  "groupers": {},
+  "stereotypes": [],
+  "taggedValues": [],
+  "defaultTags": []
+}

@@ -1,33 +1,23 @@
 /**
- * The engines' definitions the workbench is built from (written with
- * @goal-controller/dialect, kept with their engines in @goal-controller/lib),
- * by workbench engine id: the one place an engine's definition is picked.
+ * The engines the workbench is built from (each one object, defined with
+ * `defineEngine` beside its engine in @goal-controller/lib), in the order
+ * the UI offers them: the one place an engine is registered. Every map
+ * below is derived from it.
  */
 import {
-  edge,
-  edgeCheckRegistry,
-  edgeEngineMapper,
-  edgeProjectResources,
-  edgeV2,
-  edgeV2EngineMapper,
-  goda,
-  godaCheckRegistry,
-  godaEngineMapper,
-  grl,
-  grlEngineMapper,
-  grlExtension,
-  grlAnalyses,
-  grlCheckRegistry,
-  grlProjectResourceParsers,
-  mutrose,
-  mutroseCheckRegistry,
-  mutroseEngineMapper,
-  mutroseProjectResources,
-  mutrosePool,
-  type PoolRegistration,
-  sleecEngineMapper,
+  edgeEngine,
+  edgeV2Engine,
+  engineLabel,
+  godaEngine,
+  grlEngine,
+  mutroseEngine,
+  registerEngines,
+  sleecEngine,
   type Analyses,
   type Check,
+  type Engine,
+  type OutputLanguage,
+  type PoolRegistration,
   type ProjectResourceParsers,
 } from '@goal-controller/lib';
 import type {
@@ -37,13 +27,35 @@ import type {
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 
-export const ENGINE_DIALECTS = {
-  edge,
-  edgev2: edgeV2,
-  mutrose,
-  goda,
-  grl,
-} as const;
+export const ENGINE_LIST = registerEngines(
+  edgeV2Engine,
+  edgeEngine,
+  sleecEngine,
+  mutroseEngine,
+  godaEngine,
+  grlEngine,
+);
+
+type Registered = (typeof ENGINE_LIST)[number];
+type WithDialect = Extract<Registered, { dialect: AnyDialect }>;
+
+/** Every registered id is a TransformEngine, and every TransformEngine is registered. */
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+const registersEveryEngine: Same<Registered['id'], TransformEngine> = true;
+void registersEveryEngine;
+
+/** `pick` of each registered engine that has one, by engine id. */
+const byEngine = <T>(pick: (engine: Engine) => T | undefined) =>
+  Object.fromEntries(
+    ENGINE_LIST.flatMap((engine) => {
+      const value = pick(engine);
+      return value === undefined ? [] : [[engine.id, value]];
+    }),
+  );
+
+export const ENGINE_DIALECTS = byEngine((engine) => engine.dialect) as {
+  readonly [E in WithDialect as E['id']]: E['dialect'];
+};
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
 
@@ -54,64 +66,46 @@ export type ChecksOf<E extends DialectEngine> = Readonly<
 
 /**
  * The engine library's checks each definition names, by name. Typed per
- * engine, so a registry that lacks a check its definition names doesn't
- * compile, and `ENGINE_CHECKS[engine]` goes with `ENGINE_DIALECTS[engine]`.
+ * engine (defineEngine doesn't compile an engine whose checks lack one its
+ * definition names), so `ENGINE_CHECKS[engine]` goes with
+ * `ENGINE_DIALECTS[engine]`.
  */
-export const ENGINE_CHECKS: { readonly [E in DialectEngine]: ChecksOf<E> } = {
-  edge: edgeCheckRegistry,
-  edgev2: edgeCheckRegistry,
-  mutrose: mutroseCheckRegistry,
-  goda: godaCheckRegistry,
-  grl: grlCheckRegistry,
-};
+export const ENGINE_CHECKS = byEngine((engine) =>
+  engine.dialect ? (engine.checks ?? {}) : undefined,
+) as { readonly [E in DialectEngine]: ChecksOf<E> };
 
 /**
  * The engine library's parsers for the project resources each definition
- * declares (goal-controller#25), typed like ENGINE_CHECKS: none missing.
+ * declares (goal-controller#25), typed like ENGINE_CHECKS: none missing (an
+ * engine that reads nothing beside the model has none).
  */
-export const ENGINE_PROJECT_RESOURCES: {
+export const ENGINE_PROJECT_RESOURCES = byEngine((engine) =>
+  engine.dialect ? (engine.projectResources ?? {}) : undefined,
+) as {
   readonly [E in DialectEngine]: ProjectResourceParsers<
     (typeof ENGINE_DIALECTS)[E]
   >;
-} = {
-  edge: edgeProjectResources,
-  edgev2: edgeProjectResources,
-  mutrose: mutroseProjectResources,
-  // it reads nothing beside the model
-  goda: {},
-  grl: grlProjectResourceParsers,
 };
 
 /**
  * The engines whose project's files share one definition pool
  * (goal-controller#59): its providers and the checks across them.
  */
-export const ENGINE_POOLS: Partial<Record<DialectEngine, PoolRegistration>> = {
-  mutrose: mutrosePool,
-};
+export const ENGINE_POOLS: Partial<Record<DialectEngine, PoolRegistration>> =
+  byEngine((engine) => engine.pool);
 
 /** Each engine's mapper: how goal-tree reads a model for it (what it rejects, too). */
-export const ENGINE_MAPPERS = {
-  edge: edgeEngineMapper,
-  edgev2: edgeV2EngineMapper,
-  sleec: sleecEngineMapper,
-  mutrose: mutroseEngineMapper,
-  goda: godaEngineMapper,
-  grl: grlEngineMapper,
-} as const satisfies Record<TransformEngine, { allowLeafGoals?: boolean }>;
-
-/** Each engine's name, as the UI shows it: a definition's own, or SLEEC's. */
-export const ENGINE_LABEL: Record<TransformEngine, string> = {
-  edge: edge.name,
-  edgev2: edgeV2.name,
-  sleec: 'SLEEC',
-  mutrose: mutrose.name,
-  goda: goda.name,
-  grl: grl.name,
+export const ENGINE_MAPPERS = byEngine((engine) => engine.mapper) as {
+  readonly [E in Registered as E['id']]: E['mapper'];
 };
 
+/** Each engine's name, as the UI shows it: its own label, or its definition's name. */
+export const ENGINE_LABEL: Record<TransformEngine, string> = byEngine(
+  engineLabel,
+) as Record<TransformEngine, string>;
+
 /** How an output is highlighted: PRISM, MutRoSe's runtime annotation, or plain. */
-export type OutputLanguage = 'prism' | 'rannot' | 'text';
+export type { OutputLanguage };
 
 type EngineInfo = {
   id: TransformEngine;
@@ -128,66 +122,18 @@ type EngineInfo = {
 };
 
 /** The engines a model can be for, in the order the UI offers them, with what each generates. */
-export const ENGINES: readonly EngineInfo[] = [
-  {
-    id: 'edgev2',
-    label: ENGINE_LABEL.edgev2,
-    output: 'PRISM',
-    extension: 'prism',
-    language: 'prism',
-    help: 'EDGE reference encoding, with cost and utility rewards',
-    hasOptions: true,
-  },
-  {
-    id: 'edge',
-    label: ENGINE_LABEL.edge,
-    output: 'PRISM',
-    extension: 'prism',
-    language: 'prism',
-    help: 'Legacy Edge encoding',
-    hasOptions: true,
-  },
-  {
-    id: 'sleec',
-    label: ENGINE_LABEL.sleec,
-    output: 'SLEEC',
-    extension: 'sleec',
-    language: 'text',
-    help: 'SLEEC rules from the goal conditions',
-    hasOptions: true,
-  },
-  {
-    id: 'mutrose',
-    label: ENGINE_LABEL.mutrose,
-    // the runtime annotation its decomposer prints with -v
-    output: 'Runtime annotation',
-    extension: 'rannot',
-    language: 'rannot',
-    help: "The runtime annotation MutRoSe's decomposer reads, after checking the model as it does",
-    hasOptions: false,
-  },
-  {
-    id: 'goda',
-    label: ENGINE_LABEL.goda,
-    // the actor's MDP; its PCTL properties and parametric formulas are its other files
-    output: 'PRISM MDP',
-    extension: 'nm',
-    language: 'prism',
-    help: 'GODA-MDP: the PRISM MDP, its properties and its parametric reliability and cost formulas',
-    hasOptions: true,
-  },
-  {
-    id: 'grl',
-    label: ENGINE_LABEL.grl,
-    // an analysis engine: its values are drawn on the model (Analyse), no file
-    output: 'Evaluation',
-    extension: 'json',
-    language: 'text',
-    help: "GRL (jUCMNav): evaluates the model under its strategies, jUCMNav's quantitative and qualitative propagation, the values drawn on the model",
-    hasOptions: false,
-    generates: false,
-  },
-];
+export const ENGINES: readonly EngineInfo[] = ENGINE_LIST.map(
+  (engine: Engine): EngineInfo => ({
+    id: engine.id as TransformEngine,
+    label: engineLabel(engine),
+    output: engine.output.label,
+    extension: engine.output.extension,
+    language: engine.output.language,
+    help: engine.help,
+    hasOptions: engine.options !== undefined,
+    ...(engine.analyses && { generates: false as const }),
+  }),
+);
 
 const infoOf = (engine: TransformEngine): EngineInfo =>
   ENGINES.find((info) => info.id === engine)!;
@@ -228,9 +174,7 @@ export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
  */
 export const ENGINE_ANALYSES: Readonly<
   Partial<Record<TransformEngine, Analyses>>
-> = {
-  grl: grlAnalyses,
-};
+> = byEngine((engine) => engine.analyses);
 
 /**
  * The engines whose models declare kinds of their own, in their file's
@@ -240,6 +184,4 @@ export const ENGINE_ANALYSES: Readonly<
  */
 export const ENGINE_FILE_KINDS: Readonly<
   Partial<Record<TransformEngine, ExtensionDefinition>>
-> = {
-  grl: grlExtension,
-};
+> = byEngine((engine) => (engine.fileKinds ? engine.extension : undefined));

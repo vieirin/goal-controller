@@ -1,0 +1,372 @@
+{
+  "id": "mutrose",
+  "name": "MutRoSe",
+  "elements": {
+    "goal": {
+      "prefix": "G",
+      "fill": "#CDFECD"
+    },
+    "task": {
+      "prefix": "AT",
+      "fill": "#CDFECD"
+    }
+  },
+  "defaultFill": "#CDFECD",
+  "notation": {
+    "operand": {
+      "kinds": ["goal", "task"]
+    },
+    "operators": {
+      ";": "sequential",
+      "#": "parallel",
+      "FALLBACK": "fallback"
+    },
+    "constructs": {
+      "sequential": {
+        "label": "Sequential",
+        "help": "does its operands one after another",
+        "relation": "and"
+      },
+      "parallel": {
+        "label": "Parallel",
+        "help": "does its operands at the same time"
+      },
+      "fallback": {
+        "label": "Fallback",
+        "help": "does the first operand; if it fails, the second",
+        "relation": "and"
+      }
+    },
+    "defaultConstruct": {
+      "and": "parallel",
+      "or": "parallel"
+    }
+  },
+  "properties": {
+    "goal": [
+      {
+        "key": "GoalType",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "",
+              "label": "Perform (default)"
+            },
+            {
+              "value": "Perform",
+              "label": "Perform"
+            },
+            {
+              "value": "Achieve",
+              "label": "Achieve"
+            },
+            {
+              "value": "Query",
+              "label": "Query"
+            }
+          ]
+        },
+        "required": "always",
+        "help": "Perform (default) does its children; Achieve holds its AchieveCondition; Query fetches its QueriedProperty"
+      },
+      {
+        "key": "Description",
+        "value": {
+          "type": "text"
+        },
+        "help": "what it is for (not read by the decomposer)"
+      },
+      {
+        "key": "Controls",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          }
+        },
+        "input": {
+          "placeholder": "current_room : Room, rooms : Sequence(Room)"
+        },
+        "help": "the variables it declares, `name : Type` comma-separated (`Sequence(T)` for a collection)",
+        "check": "mutrose.goal.controls"
+      },
+      {
+        "key": "Monitors",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "current_room, rooms"
+        },
+        "help": "the variables it reads, declared by an earlier goal’s Controls",
+        "check": "mutrose.goal.monitors"
+      },
+      {
+        "key": "AchieveCondition",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "rooms->forAll(r | r.is_clean)"
+        },
+        "applies": {
+          "when": {
+            "key": "GoalType",
+            "equals": "Achieve"
+          }
+        },
+        "required": {
+          "when": {
+            "key": "GoalType",
+            "equals": "Achieve"
+          }
+        },
+        "notApplying": "Only read when GoalType is Achieve (it is {GoalType})",
+        "help": "the condition it achieves: `coll->forAll(it | condition)`, or a condition",
+        "check": "mutrose.goal.achieveCondition"
+      },
+      {
+        "key": "QueriedProperty",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "world_db->select(r:Room | r.is_dirty)"
+        },
+        "applies": {
+          "when": {
+            "key": "GoalType",
+            "equals": "Query"
+          }
+        },
+        "required": {
+          "when": {
+            "key": "GoalType",
+            "equals": "Query"
+          }
+        },
+        "notApplying": "Only read when GoalType is Query (it is {GoalType})",
+        "help": "what it fetches: `source->select(v:Type | condition)`",
+        "check": "mutrose.goal.queriedProperty"
+      },
+      {
+        "key": "CreationCondition",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "assertion condition \"r.is_dirty\""
+        },
+        "help": "when it is created: `assertion condition \"expr\"` or `assertion trigger \"Event\"`",
+        "check": "mutrose.goal.creationCondition"
+      },
+      {
+        "key": "Group",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "",
+              "label": "true (default)"
+            },
+            {
+              "value": "true",
+              "label": "true"
+            },
+            {
+              "value": "false",
+              "label": "false"
+            }
+          ],
+          "open": true
+        },
+        "help": "whether a team of robots may pursue it (default true)"
+      },
+      {
+        "key": "Divisible",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "",
+              "label": "true (default)"
+            },
+            {
+              "value": "true",
+              "label": "true"
+            },
+            {
+              "value": "false",
+              "label": "false"
+            }
+          ],
+          "open": true
+        },
+        "help": "whether its tasks may be split between robots (default true)"
+      }
+    ],
+    "task": [
+      {
+        "key": "Description",
+        "value": {
+          "type": "text"
+        },
+        "help": "what it is for (not read by the decomposer)"
+      },
+      {
+        "key": "Location",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "current_room"
+        },
+        "help": "the variable naming where it is done",
+        "check": "mutrose.task.location"
+      },
+      {
+        "key": "Params",
+        "value": {
+          "type": "ocl",
+          "candidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "memberCandidates": {
+            "resource": "world",
+            "category": "classes"
+          },
+          "declaredBy": ["Controls", "Monitors"]
+        },
+        "input": {
+          "placeholder": "current_room, current_nurse"
+        },
+        "help": "the variables passed to its HDDL task, comma-separated",
+        "check": "mutrose.task.params"
+      },
+      {
+        "key": "RobotNumber",
+        "value": {
+          "type": "text"
+        },
+        "input": {
+          "placeholder": "2, or [1,3]"
+        },
+        "help": "how many robots: a number or a range `[lo,hi]` (default: from the HDDL task)",
+        "check": "mutrose.task.robotNumber"
+      }
+    ],
+    "resource": [],
+    "quality": []
+  },
+  "propertyLineOrder": [
+    "GoalType",
+    "Description",
+    "Controls",
+    "Monitors",
+    "AchieveCondition",
+    "QueriedProperty",
+    "CreationCondition",
+    "Group",
+    "Divisible",
+    "Location",
+    "Params",
+    "RobotNumber"
+  ],
+  "indent": "  ",
+  "projectResources": {
+    "world": {
+      "label": "World knowledge",
+      "format": "xml",
+      "role": "knowledge",
+      "path": "knowledge/world_db.xml",
+      "accept": [".xml"],
+      "help": "the entities the mission is about, one element per entity under the root; its tag is the class"
+    },
+    "hddl": {
+      "label": "HDDL domain",
+      "format": "hddl",
+      "role": "domain",
+      "path": "hddl/domain.hddl",
+      "accept": [".hddl"],
+      "help": "the domain the abstract tasks are decomposed in: its types, tasks, methods and actions"
+    },
+    "configuration": {
+      "label": "Configuration",
+      "format": "json",
+      "role": "configuration",
+      "path": "configuration/configuration.json",
+      "accept": [".json"],
+      "help": "where the world is, its location types, and how the model maps onto the domain"
+    }
+  },
+  "problems": {
+    "notAChild": {
+      "severity": "error",
+      "message": "Not a child of this goal"
+    },
+    "missingFromNotation": {
+      "severity": "warning",
+      "message": "Missing from the runtime annotation"
+    },
+    "relationMismatch": {
+      "severity": "error",
+      "message": "{construct} needs {needs} refinement links, but this goal is refined with {relation} links (MutRoSe rejects it)"
+    },
+    "notInDiagram": {
+      "severity": "error",
+      "message": "Add this element in the diagram"
+    }
+  }
+}

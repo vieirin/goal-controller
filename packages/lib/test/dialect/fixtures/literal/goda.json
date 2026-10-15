@@ -1,0 +1,134 @@
+{
+  "id": "goda",
+  "name": "GODA",
+  "elements": {
+    "goal": {
+      "prefix": "G",
+      "fill": "#CDFECD"
+    },
+    "task": {
+      "prefix": "T",
+      "fill": "#CDFECD"
+    },
+    "resource": {
+      "prefix": "R",
+      "fill": "#CDFECD"
+    }
+  },
+  "defaultFill": "#CDFECD",
+  "notation": {
+    "operand": {
+      "kinds": ["goal", "task"]
+    },
+    "operators": {
+      "DM": "decisionMaking",
+      "#": "parallel"
+    },
+    "constructs": {
+      "and": {
+        "label": "And",
+        "help": "pursues every child",
+        "relation": "and"
+      },
+      "or": {
+        "label": "Or",
+        "help": "pursues its children until one succeeds",
+        "relation": "or"
+      },
+      "decisionMaking": {
+        "label": "Decision making",
+        "help": "chooses which operands to pursue, by the context each one needs"
+      },
+      "parallel": {
+        "label": "Parallel",
+        "help": "pursues its operands at the same time"
+      }
+    },
+    "defaultConstruct": {
+      "and": "and",
+      "or": "or"
+    },
+    "leafBracket": "cost",
+    "whitespace": "ignore",
+    "names": "text"
+  },
+  "idScope": "ancestorGoal",
+  "unlinkedResources": "ignore",
+  "idlessElements": "unlisted",
+  "properties": {
+    "goal": [
+      {
+        "key": "selected",
+        "value": {
+          "type": "enum",
+          "options": [
+            {
+              "value": "",
+              "label": "not selected"
+            },
+            {
+              "value": "true",
+              "label": "true"
+            }
+          ]
+        },
+        "help": "the goal the model is generated from: exactly one goal is selected",
+        "check": "goda.goal.selected"
+      },
+      {
+        "key": "creationProperty",
+        "value": {
+          "type": "assertion",
+          "resolves": ["variable"],
+          "prefixes": ["assertion condition", "assertion trigger"],
+          "decimals": true,
+          "booleanInequality": true,
+          "declaresVariables": true
+        },
+        "input": {
+          "placeholder": "assertion trigger battery > 0.5"
+        },
+        "help": "the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables"
+      }
+    ],
+    "task": [
+      {
+        "key": "creationProperty",
+        "value": {
+          "type": "assertion",
+          "resolves": ["variable"],
+          "prefixes": ["assertion condition", "assertion trigger"],
+          "decimals": true,
+          "booleanInequality": true,
+          "declaresVariables": true
+        },
+        "input": {
+          "placeholder": "assertion trigger battery > 0.5"
+        },
+        "help": "the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables"
+      }
+    ],
+    "resource": [],
+    "quality": []
+  },
+  "propertyLineOrder": ["selected", "creationProperty"],
+  "indent": "  ",
+  "problems": {
+    "notAChild": {
+      "severity": "error",
+      "message": "Not a child of this element"
+    },
+    "missingFromNotation": {
+      "severity": "warning",
+      "message": "Missing from the decision"
+    },
+    "relationMismatch": {
+      "severity": "error",
+      "message": "{construct} needs {needs} refinement links, but this element is refined with {relation} links"
+    },
+    "notInDiagram": {
+      "severity": "error",
+      "message": "Add this element in the diagram"
+    }
+  }
+}

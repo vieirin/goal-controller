@@ -17,6 +17,7 @@ import {
   GodaUnsupported,
   type GodaVariant,
 } from '../../../src';
+import { godaEngine } from '../../../src/engines/goda/engine';
 import { model } from './support';
 
 const PROJECT = join(__dirname, '../../../../../examples/goda/sa-bsn');
@@ -42,6 +43,14 @@ const runtimeOf = (text: string) => {
 };
 
 describe('GODA: SA-BSN’s runtime formulas (#94)', () => {
+  it('writes the files its registration declares, the runtime formulas included', () => {
+    const { files } = generate(SA_BSN, { runtimeFormulas: true });
+    assert.deepStrictEqual(
+      files.map(({ id, language }) => ({ id, language })),
+      godaEngine.outputs,
+    );
+  });
+
   it('writes reliability.formula and cost.formula byte for byte, without a newline', () => {
     const output = generate(SA_BSN, { runtimeFormulas: true });
     assert.deepStrictEqual(engineOutputProblems(output), []);

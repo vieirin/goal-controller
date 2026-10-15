@@ -3,29 +3,24 @@
  * line syntax, the constructs, the resource declaration, the editors' problems.
  * Each engine's own file adds its operators.
  */
-import type {
-  ConstructDefinition,
-  ElementDefinition,
-  ModifierDefinition,
-  ProblemKind,
-  Severity,
+import {
+  constructs,
+  element,
+  modifier,
+  problems as problemsOf,
+  projectResources,
 } from '@goal-controller/dialect';
 import { edgeProperties, edgePropertyLineOrder } from './properties';
 
 /** The default fill of an intentional element (the istar-ts canvas, as piStar). */
 export const DEFAULT_ELEMENT_FILL = '#CDFECD';
 
-const element = (prefix: 'G' | 'T' | 'R', fill: string): ElementDefinition => ({
-  prefix,
-  fill,
-});
-
 export const edgeElements = {
-  goal: element('G', DEFAULT_ELEMENT_FILL),
-  task: element('T', DEFAULT_ELEMENT_FILL),
+  goal: element('G', { fill: DEFAULT_ELEMENT_FILL }),
+  task: element('T', { fill: DEFAULT_ELEMENT_FILL }),
   // piStar's resource yellow: Edge resources are drawn with it unless they have a colour
   // `R1: Battery {int 0..100 = 80}`: its type, bounds and initial value
-  resource: { ...element('R', '#FAF383'), declares: true },
+  resource: element('R', { fill: '#FAF383', declares: true }),
 };
 
 /**
@@ -33,7 +28,7 @@ export const edgeElements = {
  * what a goal's execution detail can say (`ExecutionDetailOf<typeof edgeV2>`'s
  * `type`): a misspelt one doesn't compile.
  */
-export const RT_CONSTRUCTS = {
+export const RT_CONSTRUCTS = constructs({
   sequence: {
     label: 'Sequence',
     help: 'does every child, one after another',
@@ -68,16 +63,16 @@ export const RT_CONSTRUCTS = {
     label: 'Decision making',
     help: 'the controller decides which children to pursue',
   },
-} as const satisfies Record<string, ConstructDefinition>;
+});
 
 /** `G1@3`: retries the goal on its left (`@`, the tightest of all operators). */
-export const RETRY = {
+export const RETRY = modifier({
   argument: { name: 'retries', value: { type: 'int', min: 1 }, default: '3' },
   label: 'Retry',
   help: 'retries the goal on its left up to N times (G1@3)',
   appliesTo: ['degradation'],
   action: 'Retry the first child up to {retries} times before falling back',
-} as const satisfies ModifierDefinition;
+});
 
 /**
  * How serious each notation/structure mismatch is, for every editor (Notation
@@ -85,7 +80,7 @@ export const RETRY = {
  * what it cannot use: a notation naming a non-child or contradicting the links
  * is not what the model says (error); an unlisted child is appended (warning).
  */
-const problems: Record<ProblemKind, { severity: Severity; message: string }> = {
+const problems = problemsOf({
   notAChild: { severity: 'error', message: 'Not a child of this goal' },
   relationMismatch: {
     severity: 'error',
@@ -100,7 +95,7 @@ const problems: Record<ProblemKind, { severity: Severity; message: string }> = {
     severity: 'error',
     message: 'Add this element in the diagram',
   },
-};
+});
 
 /** Everything an Edge definition has but its id, name and operators. */
 export const edgeFamily = {
@@ -111,7 +106,7 @@ export const edgeFamily = {
   indent: '  ',
   problems,
   // what a generation and its model checking read beside the model
-  projectResources: {
+  projectResources: projectResources({
     variables: {
       label: 'Variables',
       format: 'json',
@@ -127,7 +122,7 @@ export const edgeFamily = {
       accept: ['.pctl', '.props'],
       help: 'the PCTL property suites the generated model is checked against',
     },
-  },
+  }),
 } as const;
 
 export const edgeNotation = {

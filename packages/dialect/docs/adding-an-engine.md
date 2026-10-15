@@ -50,7 +50,11 @@ Running example below: engine id `mission`, goals get `priority` (enum) and `dea
 File: `packages/lib/src/engines/mission/definition.ts`, next to the engine that reads it. `packages/dialect` is only the framework (the schema and what is derived from a definition); it names no engine. Export the definition from `engines/mission/index.ts` and from `packages/lib/src/index.ts`, where the UI imports it.
 
 ```ts
-import { defineDialect } from '@goal-controller/dialect';
+import { defineDialect, element, property } from '@goal-controller/dialect';
+import type { MissionCheckName } from './checks';
+
+// `check:` takes only the names lib's registry has (step 3.3): a misspelt one doesn't compile
+const { enum: choice, int, text } = property.for<MissionCheckName>();
 
 const DEFAULT_FILL = '#CDFECD'; // istar-ts default green
 
@@ -58,27 +62,27 @@ export const mission = defineDialect({
   id: 'mission',
   name: 'Mission', // shown in the UI
   elements: {
-    goal: { prefix: 'G', fill: DEFAULT_FILL }, // lines `G1: Name`
-    task: { prefix: 'T', fill: DEFAULT_FILL },
+    goal: element('G', { fill: DEFAULT_FILL }), // lines `G1: Name`
+    task: element('T', { fill: DEFAULT_FILL }),
   },
   defaultFill: DEFAULT_FILL,
   properties: {
     goal: [
-      { key: 'priority',
-        value: { type: 'enum', options: [
-          { value: '', label: 'normal (default)' }, { value: 'high', label: 'high' }, { value: 'low', label: 'low' } ] },
+      choice('priority', [['', 'normal (default)'], 'high', 'low'], {
         required: 'always',
-        help: 'how urgent the goal is' },
-      { key: 'deadline',
-        value: { type: 'int', min: 1 },
+        help: 'how urgent the goal is',
+      }),
+      int('deadline', {
+        min: 1,
         applies: { when: { key: 'priority', equals: 'high' } },
         notApplying: 'Only read for high-priority goals (priority is {priority})',
         help: 'seconds until the goal must be achieved',
-        check: 'mission.goal.deadline' },        // implemented in lib (step 3.3)
+        check: 'mission.goal.deadline', // implemented in lib (step 3.3)
+      }),
     ],
     task: [
-      { key: 'robot', value: { type: 'text' }, input: { placeholder: 'robot id, e.g. r2' }, required: 'always', help: 'who executes it' },
-      { key: 'duration', value: { type: 'int', min: 0 }, help: 'expected seconds' },
+      text('robot', { input: { placeholder: 'robot id, e.g. r2' }, required: 'always', help: 'who executes it' }),
+      int('duration', { min: 0, help: 'expected seconds' }),
     ],
     resource: [],
     quality: [],
@@ -93,6 +97,10 @@ export const mission = defineDialect({
   },
 });
 ```
+
+The helpers come from `@goal-controller/dialect`, and a definition needs no other import: `property.<value type>(key, options)` for each property, `element(prefix?, { fill, declares?, annotated? })` for each kind, and `notation`, `links`, `actors`, `constructs`, `modifier`, `problems`, `projectResources`, `extensionKind` and `extensionLink` for the other parts (§2.3–2.5, §3.6). Each one keeps its literal types without `as const`, so `propertyKeys(mission, 'goal')` is `('priority' | 'deadline')[]`, and each one rejects a misspelt option where it is written.
+
+**What the helpers build.** Each returns the object you would otherwise write by hand: `int('deadline', { min: 1, help, check })` is `{ key: 'deadline', value: { type: 'int', min: 1 }, help, check }`, and `element('G', { fill })` is `{ prefix: 'G', fill }`. Options that belong to the value (`min`, `max`, `open`, `resolves`, `prefixes`, `functions`, `declaredBy`, `candidates`, …) go in `value`, and the rest go beside it, in the order written. An enum option is a value that is also its own label, or a `[value, label]` pair. A definition written as those literals still compiles; to keep the literal types and the check-name typing, write each list `as const satisfies readonly PropertyDefinition<MissionCheckName>[]`. lib's definitions are written with the helpers, and `packages/lib/test/dialect/helpers.test.ts` checks that they deep-equal the literals they replaced.
 
 `defineDialect` type-checks it, **freezes it**, and rejects: operators, standalone symbols or modifiers naming unknown constructs, a modifier no operator means, an id prefix on some kinds only, repeated keys, conditions on unknown keys, and a `propertyLineOrder` that doesn't list each property-line key exactly once.
 
@@ -123,6 +131,8 @@ Each value type is a rule of the goal language that reads a value on its own; th
 | `annotatedName`                                  | editor                          | a line without an id                                                                                                          |
 | `ConditionalValue` `{when, matching, otherwise}` | depends on another property     | e.g. a resource's `initialValue` is an int or a bool depending on `type`                                                      |
 
+Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
+
 Per property:
 - `applies` / `required`: `'always'`, `{ when: {key, equals} }`, or `{ not: {...} }`. `applies=false` greys the row and shows `notApplying` (with `{key}` placeholders). `required` shows the row even when unset.
 - `check`: a **name** (`'mission.goal.deadline'`). The library implements it (step 3.3). Use it for anything the value type can't express (cross-property rules, cross-element rules); its message is shown before the type's.
@@ -131,10 +141,10 @@ Per property:
 
 ### 2.3 Notation (only for engines with execution semantics among children)
 
-Add a `notation` block: enable operators from the goal language's catalog (`packages/goal-language/docs/operators.md`) and say what each one is. Copy `packages/lib/src/engines/edgeFamily/definition.ts`'s `edgeNotation` and `CONSTRUCTS` as a starting point:
+Add a `notation` block: enable operators from the goal language's catalog (`packages/goal-language/docs/operators.md`) and say what each one is. `notation({...})` completes the catalog's symbols in `operators` and `standalone` and rejects any other symbol. Copy `packages/lib/src/engines/edgeFamily/definition.ts`'s `edgeNotation` and `CONSTRUCTS` as a starting point:
 
 ```ts
-notation: {
+notation: notation({
   operand: { kinds: ['goal', 'task'], skip: true },
   operators: { '@': 'retry', ';': 'sequence', '|': 'fallback' },  // symbol → construct (or modifier)
   standalone: { '*': 'any' },                                     // optional: `[*]`
@@ -148,8 +158,10 @@ notation: {
     any:      { label: 'Any', help: 'whichever' },
   },
   defaultConstruct: { and: 'sequence', or: 'fallback' },
-}
+}),
 ```
+
+A part written outside `defineDialect` and shared by several definitions (Edge's constructs and its retry modifier) keeps its literal types with `constructs({...})` and `modifier({...})`.
 
 Any operator not listed is **disabled** for the dialect: the language parses it, the validator reports it (`` `?` is not an operator of Mission``), completion doesn't offer it. **Precedence and associativity are the language's**, not the definition's: `@` binds tightest, then `!`, then `^ | ? + & # ~ ; -> ,` (all left-associative). `relation` on a construct makes the editors flag a notation that contradicts the goal's AND/OR links.
 
@@ -166,11 +178,11 @@ link kind: iStar's (`istar.ContributionLink`, `istar.AndRefinementLink`, …) or
 one your extension adds (`<namespace>.<Kind>`):
 
 ```ts
-links: {
-  'istar.ContributionLink': [
-    { key: 'weight', value: { type: 'int', min: -100, max: 100 }, help: '…', check: 'mission.weight' },
+links: links({
+  'istar.ContributionLink': [ // iStar's link kinds are completed
+    int('weight', { min: -100, max: 100, help: '…', check: 'mission.weight' }),
   ],
-},
+}),
 ```
 
 - **Storage:** the link's `customProperties` in the piStar file, as an
@@ -200,7 +212,7 @@ One list for every actor kind; `kinds` narrows a property to some
 (`['istar.Agent', 'istar.Role']`, or an extension's actor kind):
 
 ```ts
-actors: [{ key: 'importance', value: { type: 'int', min: 0, max: 100 }, help: '…' }],
+actors: actors([int('importance', { min: 0, max: 100, help: '…' })]),
 ```
 
 Stored in the actor's `customProperties`, edited in the inspector when the
@@ -283,12 +295,14 @@ A check gets the element's properties and a context (the goal language's `CheckC
 - the whole model, `elements`, when the caller has it: every element's kind, properties, children and `x`.
 
 The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both (MutRoSe's `scope.ts`: the variables a goal monitors must be declared by an earlier goal).
-Type the definition's properties with these names
-(`satisfies readonly PropertyDefinition<MissionCheckName>[]`, as
+Build the definition's properties with these names
+(`property.for<MissionCheckName>()`, as in step 1 and as
 `edgeFamily/properties.ts` does with `EdgeCheckName`): a misspelt `check:`
-then doesn't compile where it is written. `specsFromDefinition(definition,
-registry)` needs a check for every name the definition gives, so a missing
-one doesn't compile either.
+then doesn't compile where it is written. `defineEngine` (§3.8) needs a
+check for every name the definition gives, so a missing one doesn't compile
+(and is reported at definition time); so does
+`specsFromDefinition(definition, registry)`. Keep `checks.ts` free of
+imports from `definition.ts`: the definition imports its names.
 
 ### 3.4 `template/`: query the tree, emit the output
 ```ts
@@ -401,8 +415,9 @@ export const missionAnalyses = defineAnalyses(mission, {
 - `defineAnalyses` checks that each analysis has a label and reads only a
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).
-- **The workbench:** register `ENGINE_ANALYSES.mission = missionAnalyses`
-  (`lib/workbench/engineDialects.ts`). An "Analyse" menu appears beside
+- **The workbench:** give them to the engine object as `analyses:
+  missionAnalyses` (§3.8). An analysis engine generates no file. `defineEngine`
+  repeats `defineAnalyses`' checks against its dialect. An "Analyse" menu appears beside
   Generate, with the engine's analyses; a click runs one on the model as it
   is. With several cases, a picker chooses the one drawn. The values go to
   the canvas as istar-ts host diagnostics, keyed by piStar id: `info`, or
@@ -411,12 +426,49 @@ export const missionAnalyses = defineAnalyses(mission, {
   changes the values are "out of date" and aren't drawn until the next run.
   Nothing runs without a click, and nothing is saved in the model file.
 
+### 3.8 The engine object: what the workbench registers
+
+Everything the workbench needs to know about an engine goes in one object, in `engines/mission/engine.ts`, exported from `packages/lib/src/index.ts` (goal-controller#124):
+
+```ts
+import { defineEngine } from '../engine';
+import { missionCheckRegistry } from './checks';
+import { mission } from './definition';
+import { missionEngineMapper } from './mapper';
+
+export const missionEngine = defineEngine({
+  id: 'mission', // the workbench's id (TransformEngine)
+  // label: defaults to the definition's name
+  help: 'A YAML mission plan for the robots',
+  dialect: mission,
+  checks: missionCheckRegistry, // every name the definition gives: one missing doesn't compile
+  mapper: missionEngineMapper,
+  output: { label: 'Mission plan', extension: 'yaml', language: 'text' },
+  outputs: [{ id: 'mission', language: 'text' }], // the files its output function writes, by id
+  // options: true,                        its template has knobs (the options menu, §4)
+  // projectResources: missionResources,  a parser per kind the definition declares (§3.6)
+  // analyses: missionAnalyses,           an analysis engine (§3.7): no file
+  // pool: missionPool,                   its files share one definition pool (definition-pool.md)
+  // extension, fileKinds: true,          its models declare kinds of their own (importers.md)
+});
+```
+
+`defineEngine` freezes the object and, at definition time, rejects:
+- a check that a property names but `checks` lacks;
+- a project resource without a parser, or a parser for a resource the definition doesn't declare;
+- an analysis that reads a resource the definition doesn't declare;
+- an output id declared twice;
+- `fileKinds` without the `extension` that defines the kinds;
+- checks or parsers on an engine without a dialect (SLEEC's case).
+
+Each message starts with the engine's id. Check `outputs` against what the engine really writes in its tests (`test/engines/output.test.ts` does it for every engine).
+
 ## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 
 | #   | File | Edit |
 | --- | --- | --- |
 | 1   | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is described: `ENGINE_DIALECTS.mission`, `ENGINE_CHECKS.mission` (typed by the definition's check names: a registry that lacks one doesn't compile), `ENGINE_MAPPERS.mission`, `ENGINE_PROJECT_RESOURCES.mission` (its parsers, if it declares project resources), `ENGINE_LABEL.mission` (the definition's `name`), and its `ENGINES` entry (label, what it generates, the output file's extension, help, whether it takes options) |
+| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is registered: import `missionEngine` and add it to `registerEngines(…)`, at the place the UI should offer it. `ENGINE_DIALECTS`, `ENGINE_CHECKS`, `ENGINE_PROJECT_RESOURCES`, `ENGINE_POOLS`, `ENGINE_MAPPERS`, `ENGINE_LABEL`, `ENGINES`, `ENGINE_ANALYSES` and `ENGINE_FILE_KINDS` are derived from the engine objects, typed per engine, and so are `dialectOf`, `hasOptions` and `outputExtensionOf` |
 | 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
@@ -428,7 +480,7 @@ export const missionAnalyses = defineAnalyses(mission, {
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
 | 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
 
-Adding `'mission'` to `TransformEngine` makes the type-checker flag #2, #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
+Adding `'mission'` to `TransformEngine` makes the type-checker flag #2 (the registry must register every `TransformEngine`, and only those), #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (#7's top bar menu, the settings modal) come from `EngineOptionFields` in `TopBar.tsx`: add yours there if your template has any (edgeV2's `taskLayout`, `discretisation` are the pattern, threaded through `TransformOptions`).
 
 The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
 
@@ -479,11 +531,11 @@ each element in Problems, and drawn as the canvas's badges.
 
 ## 6. Checklists
 
-**Definition (data):** elements (prefix, declares, annotated) · properties per kind with value types, conditions, help · `check` names · `propertyLineOrder` · `problems` · notation (enabled operators, modifiers, constructs, defaultConstruct) if semantics among children.
+**Definition (data), written with the helpers:** elements (prefix, declares, annotated) · properties per kind with value types, conditions, help · `check` names · `propertyLineOrder` · `problems` · notation (enabled operators, modifiers, constructs, defaultConstruct) if semantics among children.
 
-**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names · `template/` (reads `executionDetail.ids`, `.modifiers`) · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
+**Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names (`property.for<…>()`) · `template/` (reads `executionDetail.ids`, `.modifiers`) · `engine.ts`: `defineEngine` · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
-**UI (wiring):** the 12 edits in §4 · palette extension · engine options if any.
+**UI (wiring):** the 12 edits in §4 (the registry is one import and one entry) · palette extension · engine options if any.
 
 **Evidence:** examples · expected outputs · mapper/template tests · round-trip/differential tests.
 
@@ -491,7 +543,7 @@ each element in Problems, and drawn as the canvas's badges.
 
 ### 7.1 Reimplementing SLEEC with a definition (what it would look like)
 
-SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper; it reads goal texts with Edge's reader). A definition would be: no `notation`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then replace `SleecInspector` with `<DefinitionInspector engine='sleec' />` and write it in `packages/lib/src/engines/sleec/definition.ts` and add it to `ENGINE_DIALECTS`. Everything else (mapper, template) stays. Effort: a day.
+SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper; it reads goal texts with Edge's reader). A definition would be: no `notation`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then replace `SleecInspector` with `<DefinitionInspector engine='sleec' />`, write it in `packages/lib/src/engines/sleec/definition.ts`, and give it to `sleecEngine` as its `dialect` (`ENGINE_DIALECTS` derives from it). Everything else (mapper, template) stays. Effort: a day.
 
 ### 7.2 Reimplementing EDGE (the full case)
 
@@ -520,7 +572,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 ## 9. Pitfalls seen so far
 - `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`.
-- Type the properties with the registry's names (`PropertyDefinition<keyof typeof registry>`); without it, a misspelt `check:` is caught only where `specsFromDefinition` is called.
+- Build the properties with the registry's names (`property.for<MissionCheckName>()`); without it, a misspelt `check:` is caught only by `defineEngine` and `specsFromDefinition`.
 - Mapper keys typed by hand drift from the definition; derive them with `propertyKeys()`.
 - Names on lines with ids can't have digits (`G1: Step 2` is an error), as with the ANTLR grammars.
 - A notation needs its brackets: `G1: Name [+]`, not `G1: Name +`.
