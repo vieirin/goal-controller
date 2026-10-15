@@ -666,8 +666,8 @@ AName          : A_ID | A_REF ;
 ```
 
 - `&` binds tighter than `|`, and both are left-associative.
-- `!` negates **everything after it**: `!a & b` is `!(a & b)`. Use
-  parentheses to negate one operand (`(!a) & b`).
+- `!` negates **the operand it precedes**: `!a & b` is `(!a) & b`. Use
+  parentheses to negate more (`!(a & b)`).
 - **Comparators:** `= != < <= > >=`, between two
   [expressions](#the-expression-language). Where the property declares no
   `functions`, a comparison is an identifier first and an unsigned number

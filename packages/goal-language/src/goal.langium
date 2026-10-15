@@ -108,7 +108,8 @@ RtPrimary infers RtExpr:
 AssertionValue:
     {infer AssertionValue} prefix=A_PREFIX? expr=AssertExpr?;
 
-// '&' binds tighter than '|'; '!' negates everything after it
+// '!' binds tightest, to the operand it precedes (`!a & b` is `(!a) & b`);
+// '&' binds tighter than '|'
 AssertExpr:
     AssertBinary;
 
@@ -116,7 +117,7 @@ infix AssertBinary on AssertUnary:
     '&' > '|';
 
 AssertUnary infers AssertExpr:
-    {infer AssertNot} '!' expr=AssertExpr
+    {infer AssertNot} '!' expr=AssertUnary
     | AssertPrimary;
 
 // a comparison's sides are expressions (`previous(t) < 18`); AssertionRegex.g4
@@ -240,8 +241,9 @@ terminal KEY: /[A-Za-z][A-Za-z0-9_]*/;
 terminal VALUE: /[^\s](?:[^\r\n]*[^\s])?/;
 // the assertion language
 terminal A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
-// an element's id, where an expression names one (`G1`, `T2.1`, `GX`)
-terminal A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)/;
+// an element's id, where an expression names one (`G1`, `T2.1`, `GX`), or a
+// dotted id of any kind (`F7.1`; an undotted `F7` is a name of its length)
+terminal A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(\.[0-9]+)+/;
 terminal A_INT: /[0-9]+/;
 // a decimal (CtxRegex.g4's FLOAT), where a dialect allows them
 terminal A_NUMBER: /[0-9]+\.[0-9]*/;

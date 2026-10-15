@@ -1369,7 +1369,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@17"
+                    "$ref": "#/rules@19"
                   },
                   "arguments": []
                 }
@@ -3090,7 +3090,7 @@ export const GoalGrammar = (): Grammar => loadedGoalGrammar ?? (loadedGoalGramma
       "name": "A_REF",
       "definition": {
         "$type": "RegexToken",
-        "regex": "/(G|T|R|AT)([0-9]+(\\\\.[0-9]+)*X?|X)/",
+        "regex": "/(G|T|R|AT)([0-9]+(\\\\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(\\\\.[0-9]+)+/",
         "parenthesized": false
       },
       "fragment": false,

@@ -64,7 +64,7 @@ goal texts as they did before.
 Conditions such as `maintain` and `assertion` use the assertion language:
 
 - `&` binds tighter than `|`.
-- `!` negates everything after it: `!a & b` is `!(a & b)`.
+- `!` negates the operand it precedes: `!a & b` is `(!a) & b`; `!(a & b)` negates the group.
 - Parentheses group.
 - An operand is one of:
   - an identifier (`charging`);
