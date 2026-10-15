@@ -5,11 +5,11 @@
       "label": "6 AM",
       "beliefs": {
         "hour": 6,
-        "meals": 0,
+        "mealSensor.meals": 0,
         "instructionsFollowed": false,
         "ateAutonomously": true,
         "medicineTakenAutonomously": true,
-        "medicineTaken": false
+        "medicineSensor.taken": false
       },
       "outcomes": {}
     },
@@ -17,7 +17,7 @@
       "label": "noon",
       "beliefs": {
         "hour": 12,
-        "meals": 2
+        "mealSensor.meals": 2
       },
       "outcomes": {
         "eatMeals": "success"

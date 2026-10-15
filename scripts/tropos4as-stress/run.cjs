@@ -19,8 +19,12 @@
  *   (`#` lines aside). A reference whose header says `# compare: the state
  *   changes of <goal>` is compared with that goal's state changes (what
  *   AAMAS 2009's Fig. 3 draws).
- * - **importer**: TAOM4E's `.tropos` files, skipped until the XMI reader
- *   (goal-controller#137) is on main.
+ * - **importer**: the seed's TAOM4E twin (`<seed>.tropos` in
+ *   packages/lib/test/engines/tropos4as/taom4e/, written by hand, unverified
+ *   against TAOM4E) imported with `readTaom4e`, equal to the seed in what
+ *   TAOM4E's base metamodel carries (`taom4eCarried`); and the GODA-shaped
+ *   twin of examples/goda/dm, its GODA output equal to dm2.txt's, file for
+ *   file (#134 D1.3), a row of its own.
  *
  * Writes SUMMARY.md and a JSON per seed to .cache/tropos4as/results/. Exits
  * non-zero only with `--strict`, on a failure.
@@ -30,6 +34,11 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
 const SEEDS = path.join(ROOT, 'examples', 'tropos4as');
+const TWINS = path.join(ROOT, 'packages/lib/test/engines/tropos4as/taom4e');
+const GODA_TWIN = {
+  fixture: 'dm-goda.tropos',
+  seed: 'examples/goda/dm/dm2.txt',
+};
 const RESULTS = path.join(ROOT, '.cache', 'tropos4as', 'results');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
@@ -66,6 +75,80 @@ const compareTrace = (model, run, referenceText) => {
       },
     }),
   };
+};
+
+/** A seed's `.tropos` twin, imported: what the base metamodel carries, equal. */
+const checkTwin = (seed, seedFile) => {
+  const twin = path.join(TWINS, `${seed}.tropos`);
+  if (!fs.existsSync(twin))
+    return { status: 'skip', reason: `no taom4e/${seed}.tropos` };
+  try {
+    const { model, diagnostics } = lib.readTaom4e(
+      fs.readFileSync(twin, 'utf8'),
+      {
+        modelName: seed,
+      },
+    );
+    if (!model)
+      return {
+        status: 'fail',
+        error: diagnostics.map((d) => d.message).join('; '),
+      };
+    const expected = lib.taom4eCarried(
+      JSON.parse(fs.readFileSync(seedFile, 'utf8')),
+    );
+    const difference = lib.carriedDifference(
+      expected,
+      lib.taom4eCarried(model),
+    );
+    return difference
+      ? { status: 'fail', error: difference }
+      : {
+          status: 'pass',
+          elements: expected.elements.length,
+          links: expected.links.length,
+          warnings: diagnostics.filter((d) => d.severity !== 'info').length,
+        };
+  } catch (error) {
+    return { status: 'fail', error: errorText(error) };
+  }
+};
+
+/** The GODA-shaped twin: through the GODA engine, what its piStar twin generates. */
+const checkGodaTwin = () => {
+  try {
+    const { model, dialectRecord, diagnostics } = lib.readTaom4e(
+      fs.readFileSync(path.join(TWINS, GODA_TWIN.fixture), 'utf8'),
+      { modelName: 'dm2' },
+    );
+    if (!model || dialectRecord.engine !== 'goda')
+      return {
+        status: 'fail',
+        error: model
+          ? `read as ${dialectRecord.engine}'s, not GODA's`
+          : diagnostics.map((d) => d.message).join('; '),
+      };
+    const generate = (text) =>
+      lib.godaOutput(lib.godaGoalModel(goalTree.Model.parse(text, lib.goda)), {
+        modelName: 'dm2.txt',
+        variant: 'cc808b6',
+      }).files;
+    const ours = generate(JSON.stringify(model));
+    const theirs = generate(
+      fs.readFileSync(path.join(ROOT, GODA_TWIN.seed), 'utf8'),
+    );
+    const differs = theirs.find(
+      (f, i) => ours[i]?.fileName !== f.fileName || ours[i]?.text !== f.text,
+    );
+    return differs || ours.length !== theirs.length
+      ? {
+          status: 'fail',
+          error: `${differs?.fileName ?? 'the file list'} differs from ${GODA_TWIN.seed}'s`,
+        }
+      : { status: 'pass', files: theirs.length };
+  } catch (error) {
+    return { status: 'fail', error: errorText(error) };
+  }
 };
 
 const checkSeed = (dir) => {
@@ -137,10 +220,7 @@ const checkSeed = (dir) => {
     'error' in ran
       ? { status: 'fail', error: ran.error }
       : { status: 'pass', cases: ran.result.cases.length };
-  checks.importer = {
-    status: 'skip',
-    reason: 'the TAOM4E importer waits for the XMI reader (#137) on main',
-  };
+  checks.importer = checkTwin(path.basename(dir), file);
   const { scenarios, diagnostics } = lib.readTropos4asScenarios(files);
   if (diagnostics.length)
     checks.scenarios = {
@@ -182,7 +262,7 @@ const describe = (check) =>
         ? `${ICON.fail} ${check.error}`
         : ICON[check.status];
 
-const markdown = (results) =>
+const markdown = (results, godaTwin) =>
   [
     '# Tropos4AS stress test (goal-controller#136)',
     '',
@@ -209,7 +289,10 @@ const markdown = (results) =>
             : describe(checks.analysis)
           : '',
       ];
-      const importer = describe(checks.importer);
+      const importer =
+        checks.importer?.status === 'pass'
+          ? `${ICON.pass} unverified twin: ${checks.importer.elements} elements, ${checks.importer.links} links carried${checks.importer.warnings ? `, ${checks.importer.warnings} warning(s)` : ''}`
+          : describe(checks.importer);
       return (
         scenarios.length ? scenarios : [{ scenario: '', trace: null }]
       ).map(
@@ -231,6 +314,15 @@ const markdown = (results) =>
             .join(' | ')} |`,
       );
     }),
+    ...(godaTwin
+      ? [
+          `| taom4e/${GODA_TWIN.fixture} (GODA-shaped) | | | | | | | ${cell(
+            godaTwin.status === 'pass'
+              ? `${ICON.pass} GODA engine: ${godaTwin.files} files equal ${GODA_TWIN.seed}'s`
+              : describe(godaTwin),
+          )} |`,
+        ]
+      : []),
     '',
   ].join('\n');
 
@@ -261,11 +353,23 @@ const main = () => {
         .join(' ')}`,
     );
   }
-  fs.writeFileSync(path.join(RESULTS, 'SUMMARY.md'), markdown(results));
+  const godaTwin = checkGodaTwin();
+  fs.writeFileSync(
+    path.join(RESULTS, 'goda-twin.json'),
+    `${JSON.stringify(godaTwin, null, 2)}\n`,
+  );
+  console.log(`${'taom4e/dm-goda'.padEnd(24)} importer:${godaTwin.status}`);
+  fs.writeFileSync(
+    path.join(RESULTS, 'SUMMARY.md'),
+    markdown(results, godaTwin),
+  );
   console.log(
     `results in ${path.relative(ROOT, RESULTS)} (SUMMARY.md, one JSON per seed)`,
   );
-  const failures = results.filter(failed);
+  const failures = [
+    ...results.filter(failed),
+    ...(godaTwin.status === 'fail' ? [{ seed: 'taom4e/dm-goda' }] : []),
+  ];
   if (failures.length)
     console.log(`failing: ${failures.map((r) => r.seed).join(', ')}`);
   return strict && failures.length ? 1 : 0;

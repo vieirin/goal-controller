@@ -12,7 +12,11 @@ import {
   type ExpressionTree,
 } from '@goal-controller/goal-language';
 
-/** What the agent believes: a value per name (`roomClean`, `temperature`, `success(G2)`). */
+/**
+ * What the agent believes: a value per name (`roomClean`, `temperature`,
+ * `success(G2)`), an artifact's attribute by its member's name
+ * (`mealSensor.meals`).
+ */
 export type Beliefs = ReadonlyMap<string, boolean | number | string>;
 
 /** A condition c, as written, and whether B |= c. */
@@ -55,11 +59,15 @@ export const failedOf = (goal: string) => `failed(${goal})`;
 const belief = (name: string, beliefs: Beliefs, goals: ReadonlySet<string>) =>
   goals.has(name) ? beliefs.get(successOf(name)) : beliefs.get(name);
 
-/**
- * A member reference's belief (`room.clean`, goal-controller#135): the
- * belief named `ref.member`, as a scenario writes it.
- */
-const memberName = (ref: string, member: string) => `${ref}.${member}`;
+/** A member's belief: `mealSensor.meals`, as a scenario names it. */
+const memberOf = (ref: string, member: string) => `${ref}.${member}`;
+
+const asNumber = (value: boolean | number | string | undefined) =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'boolean'
+      ? Number(value)
+      : NaN;
 
 const number = (
   tree: ExpressionTree,
@@ -71,22 +79,11 @@ const number = (
       return Number(tree.value);
     case 'var':
     case 'ref':
-    case 'member': {
-      const value = belief(
-        tree.kind === 'var'
-          ? tree.name
-          : tree.kind === 'ref'
-            ? tree.id
-            : memberName(tree.ref, tree.member),
-        beliefs,
-        goals,
+      return asNumber(
+        belief(tree.kind === 'var' ? tree.name : tree.id, beliefs, goals),
       );
-      return typeof value === 'number'
-        ? value
-        : typeof value === 'boolean'
-          ? Number(value)
-          : NaN;
-    }
+    case 'member':
+      return asNumber(beliefs.get(memberOf(tree.ref, tree.member)));
     case 'unary':
       return -number(tree.expr, beliefs, goals);
     case 'binary': {
@@ -144,17 +141,28 @@ const evaluate = (
     case 'var':
       return belief(tree.variable, beliefs, goals) === true;
     case 'member':
-      return belief(memberName(tree.ref, tree.member), beliefs, goals) === true;
+      return beliefs.get(memberOf(tree.ref, tree.member)) === true;
     case 'assign': {
-      const name = tree.member
-        ? memberName(tree.variable, tree.member)
-        : tree.variable;
-      const is = (belief(name, beliefs, goals) ?? false) === tree.value;
+      const is =
+        ((tree.member
+          ? beliefs.get(memberOf(tree.variable, tree.member))
+          : belief(tree.variable, beliefs, goals)) ?? false) === tree.value;
       return tree.negated ? !is : is;
     }
     case 'comparison': {
       const compare = COMPARE[tree.operator];
       if (!compare) throw new Error(`unknown comparison ${tree.operator}`);
+      // an enum member and one of its options: `room.mode = wet`
+      if (
+        tree.left.kind === 'member' &&
+        tree.right.kind === 'var' &&
+        (tree.operator === '=' || tree.operator === '!=')
+      ) {
+        const is =
+          beliefs.get(memberOf(tree.left.ref, tree.left.member)) ===
+          tree.right.name;
+        return tree.operator === '=' ? is : !is;
+      }
       return compare(
         number(tree.left, beliefs, goals),
         number(tree.right, beliefs, goals),

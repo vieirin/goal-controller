@@ -20,7 +20,8 @@ This page records:
 - the oracle;
 - what fit as it was;
 - where the framework had to grow;
-- what is still open.
+- what is still open;
+- TAOM4E's `.tropos` importer.
 
 ## What Tropos4AS reads
 
@@ -36,7 +37,7 @@ Not read: SEAMS 2008 and REJ 2017 (paywalled), and the 2011 thesis (unreachable 
   - a means-end is an OR-refinement from the means to its end (iStar 2.0 has no means-end link);
   - contributions and dependencies are iStar's.
 - **Goal types** (AAMAS §3): `type` is `achieve` (the default), `maintain` or `perform`. Fig. 1 draws them as the A, M, P badges.
-- **Conditions**, assertions in the goal language over the belief base (#134 D3):
+- **Conditions**, assertions in the goal language over the belief base (#134 D3): an artifact's attribute is a member (`mealSensor.meals >= 2`, #137), checked against the artifact's `attributes`; any other name is a variable, declared by its use (`hour`). The Cleaner Agent keeps the variable `roomClean`: §5's belief predicate is `room.clean`, but Fig. 1 draws no artifact (#134, option 1).
   - `creation`: root goals only, fn. 1;
   - `achievement` (s) and `failure` (f): an achieve-goal's;
   - `maintain` (m), `target` (t) and `drop` (d): a maintain-goal's, §4.3.3;
@@ -101,13 +102,13 @@ Not read: SEAMS 2008 and REJ 2017 (paywalled), and the 2011 thesis (unreachable 
   - A rule that changes nothing doesn't fire.
   - adopt(G, γ) is atomic: the parent's conditions are evaluated again when γ returns.
 - **The run** (`run.ts`), over a scenario (`scenarios/`, a project resource):
-  - A step's beliefs and outcomes are B′, what pursuing the pending subgoal led to.
+  - A step's beliefs and outcomes are B′, what pursuing the pending subgoal led to. A member's belief is named as the condition writes it: `"mealSensor.meals": 2`.
   - A task, or a goal the scenario gives an outcome, is executed. Any other goal runs its own lifecycle.
   - Roots are adopted when their creation condition becomes true; an error when its condition does (D7).
   - deliberate(g, B) orders Γ by sequence links. An OR goal's alternatives come most-contributing first, by the contributions of the alternatives and their means to qualities (§3.1, which the paper leaves unformalised; ours, D8).
   - A goal an active goal inhibits is skipped in Γ.
   - A dropped goal adds success(g) or failed(g) to B. A failed goal's failures occur.
-- **The analysis** (`tropos4asLifecycle`): a case per scenario step, each goal's state and the rule that put it there drawn on it, failures that occurred too. A model with an error is not run. **The trace** (`traceText`): `step | goal | rule | state | Γ`, one row per rule; `stateChanges` gives a goal's rows that change its state, which is what Fig. 3 draws.
+- **The analysis** (`tropos4asLifecycle`): a case per scenario, run step by step (#137's step series: the workbench steps through it, each value read first, `active-undefined [retryC] (AAMAS 2009 §5, DryCleaning succeeds)`); each step every goal's state and the rule that put it there drawn on it, failures that occurred too; the case's values are its last step's. A model with an error is not run. **The trace** (`traceText`): `step | goal | rule | state | Γ`, one row per rule; `stateChanges` gives a goal's rows that change its state, which is what Fig. 3 draws.
 
 ## The oracle (#134 D1)
 
@@ -133,8 +134,9 @@ Not read: SEAMS 2008 and REJ 2017 (paywalled), and the 2011 thesis (unreachable 
 
 No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex\|t2x\|cleaner'` over dialect, goal-language, goal-tree, lib's pool, the XMI reader and the layout) finds this page and the docs beside it only.
 
-- **Members** (`room.clean`): blue's #137. Until it lands, conditions name bare variables (`roomClean`); then `medicineSensor.taken`, `mealSensor.meals` and `room.clean`.
-- **A step series** for an analysis: blue's #137. Until then, a case per step.
+- **Members** (`mealSensor.meals`): blue's #137. A condition reads an artifact's attributes as members, the `assertion`'s `members: { from: 'attributes' }`; the validator says when an artifact has no such attribute. Patient monitoring's conditions read its sensors; the Cleaner Agent keeps `roomClean`, since its figure draws no artifact.
+- **A step series** for an analysis: blue's #137 (`AnalysisCase.steps`). A scenario is one case, its steps in order.
+- **An EMF XMI reader** shared by importers: blue's #137 (`importers/xmi.ts`). TAOM4E's importer reads `.tropos` with it, in #143's `read` shape.
 - **Property lines in a dialect without ids**: #138 (blue; merged as #141), option A: the declared keys read as tokens, a name that starts with one quoted. Tropos4AS lists its kinds with no prefix and writes its properties as lines.
 - **Shared by engines** (in lib, not the core):
   - an element's text read as its id and name, and `name:value` lists (`engines/elementText.ts`, from iStar-DT's model);
@@ -142,9 +144,7 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 
 ## Still open
 
-- **The TAOM4E importer** (#136 item 4) waits for #137's XMI reader. Its mapping from `TAOM4E-MM.ecore` is logged on #134:
-  - `creationProperty`, `fulfillmentProperty` and `invariantProperty` → `creation`, `achievement` and `maintain`;
-  - `mode` → `type`.
+- **The TAOM4E importer against a real file**: none survives, so it is unverified (below).
 - **Proactive maintain-goals**: AAMAS 2009 formalises reactive ones only.
 - **Softgoal-driven choice** among OR alternatives: the paper cites TAAS 2007 and leaves it out. The contribution order above is ours.
 - **Symptoms' semantics, preconditions**: drawn, not run.
@@ -152,6 +152,19 @@ No engine names in the core packages: the gate (`grep -ri 'tropos\|taom4e\|jadex
 - **The Tropos4AS metamodel attributes TAOM4E wrote**: in REJ 2017's figures only.
 - **SEAMS 2008, REJ 2017 and the thesis**: unread. The failure model's kinds stand as D2 says until they are read.
 - **What the shapes can't say**: the goal-type badges, and conditions as notes (D8); actor boundaries are rectangles fitted to their elements, not the figures' ellipses.
+
+## TAOM4E's `.tropos`: `engines/tropos4as/taom4e/`
+
+`readTaom4e(text, { modelName, fileName })` reads TAOM4E's EMF XMI of its base Tropos metamodel with the shared XMI reader (#137), in #143's `read` shape (`{ model, dialectRecord, diagnostics }`); the workbench opens `.tropos` with it (`FILE_IMPORTERS`). `TAOM4E-MM.ecore` is committed beside it (`taom4e/reference/`, its origin in the README there). [importers.md](importers.md) has the mapping, logged on #134 (item 4's D):
+- iStar's kinds and links for Tropos's, a means-end as an OR-refinement of its end, positions from the `diagram` package;
+- `creationProperty`, `fulfillmentProperty` and `invariantProperty` → `creation`, `achievement` and `maintain`; `mode` → `type` where it maps;
+- **GODA-shaped** (CRGMToPRISM's `G1: …`/`T1.1: …` labels, no Tropos4AS attribute): a GODA model, `creationProperty` kept, its root goal selected.
+
+**Unverified against TAOM4E.** No `.tropos` file TAOM4E wrote survives. The fixtures (`packages/lib/test/engines/tropos4as/taom4e/`) are written by hand against the ecore:
+- each seed's twin imports to what the base metamodel carries of the seed (`taom4eCarried`): actors, iStar elements and links, three conditions, a maintain-goal's type. Not carried: Tropos4AS's kinds and links, `perform`, `failure`, `drop`, `target`, `onFailure`, `precondition`;
+- the GODA-shaped twin of `examples/goda/dm` generates, through the GODA engine, what `dm2.txt` does, file for file (#134 D1.3).
+
+`pnpm stress:tropos4as`'s importer column runs both.
 
 ## Examples
 

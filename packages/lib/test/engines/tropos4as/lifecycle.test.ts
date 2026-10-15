@@ -372,10 +372,33 @@ describe('Tropos4AS: runs derived by hand (not from the paper)', () => {
   });
 });
 
+describe('Tropos4AS: conditions over members (#137)', () => {
+  const holds = (
+    text: string,
+    beliefs: Record<string, boolean | number | string>,
+  ) => condition(text).holds(new Map(Object.entries(beliefs)));
+
+  it("reads an artifact's member as the belief of that name", () => {
+    assert.ok(holds('medicineSensor.taken', { 'medicineSensor.taken': true }));
+    assert.ok(!holds('medicineSensor.taken', {}));
+    assert.ok(holds('!medicineSensor.taken', {}));
+    assert.ok(holds('medicineSensor.taken = false', {}));
+    assert.ok(
+      holds('hour >= 20 & mealSensor.meals < 2', {
+        hour: 20,
+        'mealSensor.meals': 1,
+      }),
+    );
+    assert.ok(!holds('mealSensor.meals >= 2', { meals: 2 }));
+    assert.ok(holds('room.mode = wet', { 'room.mode': 'wet' }));
+    assert.ok(holds('room.mode != wet', { 'room.mode': 'dry' }));
+  });
+});
+
 describe('Tropos4AS: the lifecycle analysis', () => {
-  it("gives a case per scenario step, each goal's state and rule on its element", () => {
+  it("gives a case per scenario, run step by step, each goal's state and rule on its element", () => {
     const files = Object.fromEntries(
-      ['paper.json'].map((f) => [
+      ['paper.json', 'all-fail.json'].map((f) => [
         `scenarios/${f}`,
         read('cleaner-agent', 'scenarios', f),
       ]),
@@ -387,30 +410,74 @@ describe('Tropos4AS: the lifecycle analysis', () => {
     );
     const { cases } = runLifecycleAnalysis(model, files);
     assert.deepStrictEqual(
-      cases.map((c) => c.id),
-      ['scenarios/paper.json#1', 'scenarios/paper.json#2'],
+      cases.map((c) => [c.id, c.label]),
+      [
+        ['scenarios/all-fail.json', 'All fail (derived)'],
+        ['scenarios/paper.json', 'AAMAS 2009 §5'],
+      ],
     );
-    assert.deepStrictEqual(cases[0]!.values.RC, {
+    const paper = cases[1]!;
+    assert.deepStrictEqual(
+      paper.steps!.map((s) => s.label),
+      ['DryCleaning succeeds', 'WetCleaning fails'],
+    );
+    assert.deepStrictEqual(paper.steps![0]!.values.RC, {
       value: 'AU',
       label: 'active-undefined [retryC]',
     });
-    assert.strictEqual(
-      cases[0]!.label,
-      'AAMAS 2009 §5, step 1: DryCleaning succeeds',
-    );
-    assert.deepStrictEqual(cases[1]!.values.RC, {
+    assert.deepStrictEqual(paper.steps![1]!.values.RC, {
       value: 'success',
       label: 'dropped: success [drop-successE]',
     });
-    assert.deepStrictEqual(cases[1]!.values.MBL, {
+    assert.deepStrictEqual(paper.steps![1]!.values.MBL, {
       value: 'Suspended',
       label: 'suspended [adopt]',
+    });
+    // the case's outcome: its last step's values
+    assert.strictEqual(paper.values, paper.steps![1]!.values);
+  });
+
+  it("reads the artifacts' members a scenario believes (patient monitoring)", () => {
+    const model = tropos4asAnalysisModel(
+      parsePistar(read('patient-monitoring', 'patient-monitoring.txt'), {
+        fileMetamodel: true,
+      }),
+    );
+    const [day] = runLifecycleAnalysis(model, {
+      'scenarios/a-day.json': read(
+        'patient-monitoring',
+        'scenarios',
+        'a-day.json',
+      ),
+    }).cases;
+    assert.deepStrictEqual(
+      day!.steps!.map((s) => [
+        s.values.followInstructions?.label,
+        s.values.takeMedicine?.label,
+      ]),
+      [
+        ['active-undefined [deliberateE]', undefined],
+        [
+          'active-undefined [AND:subg-achieve]',
+          'active-undefined [deliberateE]',
+        ],
+        ['active-undefined [deliberateE]', 'dropped: failed [drop-failureE]'],
+      ],
+    );
+    assert.deepStrictEqual(day!.values.medicineNotTaken, {
+      value: 'occurred',
+      label: 'occurred',
+      severity: 'warning',
     });
   });
 
   it('runs no scenario as one empty step, and refuses a model with an error', () => {
     const ok = toy([['G', 'goal', { type: 'perform' }]]);
-    assert.strictEqual(runLifecycleAnalysis(ok).cases.length, 1);
+    const { cases } = runLifecycleAnalysis(ok);
+    assert.deepStrictEqual(
+      cases.map((c) => [c.label, c.steps?.length]),
+      [['No scenario', 1]],
+    );
     assert.throws(
       () => runLifecycleAnalysis(toy([['G', 'goal', { type: 'maintain' }]])),
       /G is a maintain-goal without its maintain condition/,
