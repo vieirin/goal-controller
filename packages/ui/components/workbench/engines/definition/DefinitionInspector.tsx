@@ -21,7 +21,8 @@ import {
 } from '@/lib/workbench/engineDialects';
 import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
 import { nodeTone, setNodeText } from '@/lib/workbench/pistar';
-import { useWorkbench } from '../../WorkbenchContext';
+import { useSelection, useWorkbench } from '../../WorkbenchContext';
+import PartInspector from './PartInspector';
 import { NodeChip, cx } from '../../ui';
 import {
   Field,
@@ -287,12 +288,14 @@ function DefinitionNode({
   );
 }
 
-/** The selected node's editor, built from the engine's definition. */
+/** The selected node's editor, built from the engine's definition; a link's or actor's, when one is selected. */
 export default function DefinitionInspector({
   engine,
 }: {
   engine: DialectEngine;
 }) {
+  const { part } = useSelection();
+  if (part) return <PartInspector key={part.id} engine={engine} part={part} />;
   return (
     <SelectedNode>
       {(node) => <DefinitionNode key={node.key} node={node} engine={engine} />}

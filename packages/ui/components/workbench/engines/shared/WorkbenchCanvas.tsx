@@ -20,7 +20,13 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { useSelection, useWorkbench } from '../../WorkbenchContext';
+import {
+  useSelectPart,
+  useSelection,
+  useWorkbench,
+} from '../../WorkbenchContext';
+import { dialectOf } from '@/lib/workbench/engineDialects';
+import { analysisDiagnostics, shownCase } from '@/lib/workbench/analysis';
 import { useShell } from '../../shell';
 
 /**
@@ -149,6 +155,7 @@ function SelectionSync({
   const sel = useSelection();
   const latestSel = useRef(sel);
   latestSel.current = sel;
+  const selectPart = useSelectPart();
 
   // workbench → diagram
   useEffect(() => {
@@ -176,13 +183,29 @@ function SelectionSync({
     const changed = previous.current !== selection;
     if (!changed && !unresolved.current) return;
     previous.current = selection;
-    if (selection?.type === 'link') return;
+    // a link or an actor, in a dialect that gives them properties (goal-controller#107)
+    const dialect = dialectOf(latest.current.engine);
+    if (selection?.type === 'link') {
+      if (changed && dialect?.links)
+        selectPart({ type: 'link', id: selection.id });
+      return;
+    }
     const iStarId = selection?.type === 'element' ? selection.id : null;
     const id = iStarId ? (tree?.byIStarId.get(iStarId)?.key ?? null) : null;
+    if (
+      iStarId &&
+      !id &&
+      dialect?.actors &&
+      tree?.actors.some((actor) => actor.iStarId === iStarId)
+    ) {
+      unresolved.current = null;
+      if (changed) selectPart({ type: 'actor', id: iStarId });
+      return;
+    }
     unresolved.current = iStarId && !id ? iStarId : null;
     if (!changed && !id) return;
     if (id !== latestSel.current.selected) latest.current.select(id, 'canvas');
-  }, [selection, tree]);
+  }, [selection, tree, selectPart]);
 
   return null;
 }
@@ -259,10 +282,12 @@ export default function WorkbenchCanvas({
     [store],
   );
 
-  // what the canvas badges: the elements' errors and warnings, by the diagram's ids
+  // what the canvas badges: the elements' errors and warnings, by the diagram's
+  // ids; and an analysis's values on its elements and actors, while the model is
+  // the one it ran on (goal-controller#107)
   const diagnostics = useMemo(
-    () =>
-      wb.problems.flatMap((problem) => {
+    () => [
+      ...wb.problems.flatMap((problem) => {
         if (problem.severity !== 'error' && problem.severity !== 'warning')
           return [];
         const iStarId = problem.elementId
@@ -270,7 +295,11 @@ export default function WorkbenchCanvas({
           : undefined;
         return iStarId ? [{ ...problem, elementId: iStarId }] : [];
       }),
-    [wb.problems, wb.tree],
+      ...(wb.analysisStale
+        ? []
+        : analysisDiagnostics(shownCase(wb.analysisRun))),
+    ],
+    [wb.problems, wb.tree, wb.analysisRun, wb.analysisStale],
   );
 
   // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram

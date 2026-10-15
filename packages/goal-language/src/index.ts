@@ -17,4 +17,5 @@ export * from './notation/values.js';
 export * from './notation/checks.js';
 export * from './notation/scope.js';
 export * from './notation/navigation.js';
+export * from './notation/linkLine.js';
 export * from './lsp/protocol.js';

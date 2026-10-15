@@ -1,8 +1,12 @@
 'use client';
 
 import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
-import { ENGINE_LABEL, isDialectEngine } from '@/lib/workbench/engineDialects';
-import type { LoggerReport } from '@goal-controller/lib';
+import {
+  ENGINE_ANALYSES,
+  ENGINE_LABEL,
+  isDialectEngine,
+} from '@/lib/workbench/engineDialects';
+import type { Analysis, LoggerReport } from '@goal-controller/lib';
 import {
   createContext,
   useCallback,
@@ -107,6 +111,11 @@ import {
 } from '@/lib/workbench/storage';
 import { mergeProblems } from '@/lib/workbench/diagnostics';
 import { saveQueue } from '@/lib/workbench/saveQueue';
+import {
+  analyse,
+  analysisResource,
+  type AnalysisRun,
+} from '@/lib/workbench/analysis';
 import { downloadBytes } from '@/lib/workbench/download';
 import type { TraceIndex } from '@/lib/workbench/trace';
 import {
@@ -342,6 +351,18 @@ export type Workbench = {
    */
   exportProject: () => Promise<void>;
 
+  // analysis engines (goal-controller#107): values on the model, not a file
+  /** the engine's analyses, by id (none: it has no Analyse control) */
+  analyses: Readonly<Record<string, Analysis>> | null;
+  /** the last analysis run, until the engine changes or it is cleared */
+  analysisRun: AnalysisRun | null;
+  /** whether the model changed since the run (its values are then not drawn) */
+  analysisStale: boolean;
+  runAnalysis: (id: string) => void;
+  /** the case whose values are drawn (a strategy) */
+  setAnalysisCase: (caseId: string) => void;
+  clearAnalysis: () => void;
+
   // problems
   problems: Problem[];
 
@@ -391,8 +412,13 @@ export const useWorkbench = (): Workbench => {
  * The selected node. Kept out of the workbench context so a click re-renders only
  * what shows the selection, not the whole workbench.
  */
+/** A link or an actor selected in the diagram (goal-controller#107): its piStar id. */
+export type SelectedPart = { type: 'link' | 'actor'; id: string };
+
 export type Selection = {
   selected: string | null;
+  /** a link or an actor, when one is selected instead of a node */
+  part: SelectedPart | null;
   selectOrigin: SelectOrigin | null;
   /** bumps on every select, also when the same node is selected again */
   selectSeq: number;
@@ -400,21 +426,31 @@ export type Selection = {
 
 type SelectionActions = {
   select: (id: string | null, origin: SelectOrigin) => void;
+  /** a link or an actor selected in the diagram (none: what select gives) */
+  selectPart: (part: SelectedPart) => void;
   clearSelection: () => void;
 };
 
 const SelectionContext = createContext<Selection>({
   selected: null,
+  part: null,
   selectOrigin: null,
   selectSeq: 0,
 });
 const SelectionActionsContext = createContext<SelectionActions | null>(null);
 
 export const useSelection = (): Selection => useContext(SelectionContext);
+/** Selects a link or an actor (the diagram does, goal-controller#107). */
+export const useSelectPart = (): SelectionActions['selectPart'] => {
+  const actions = useContext(SelectionActionsContext);
+  if (!actions) throw new Error('useSelectPart outside the workbench');
+  return actions.selectPart;
+};
 
 function SelectionProvider({ children }: { children: ReactNode }) {
   const [selection, setSelection] = useState<Selection>({
     selected: null,
+    part: null,
     selectOrigin: null,
     selectSeq: 0,
   });
@@ -423,12 +459,21 @@ function SelectionProvider({ children }: { children: ReactNode }) {
       select: (selected, selectOrigin) =>
         setSelection((prev) => ({
           selected,
+          part: null,
           selectOrigin,
+          selectSeq: prev.selectSeq + 1,
+        })),
+      selectPart: (part) =>
+        setSelection((prev) => ({
+          selected: null,
+          part,
+          selectOrigin: 'canvas',
           selectSeq: prev.selectSeq + 1,
         })),
       clearSelection: () =>
         setSelection((prev) => ({
           selected: null,
+          part: null,
           selectOrigin: null,
           selectSeq: prev.selectSeq + 1,
         })),
@@ -787,6 +832,8 @@ function WorkbenchState({
 
   // ---- generation state (declared early: openModel resets it) --------------
   const [runs, setRuns] = useState<Run[]>([]);
+  // the analysis run shown on the model (#107); null: none, or cleared
+  const [analysisRun, setAnalysisRun] = useState<AnalysisRun | null>(null);
 
   const modelRef = useRef(model);
   modelRef.current = model;
@@ -855,6 +902,7 @@ function WorkbenchState({
       undoStack.current = [];
       redoStack.current = [];
       setRuns([]);
+      setAnalysisRun(null);
       clearSelection();
       setConversion(null);
       forceHistory((n) => n + 1);
@@ -961,6 +1009,7 @@ function WorkbenchState({
     undoStack.current = [];
     redoStack.current = [];
     setRuns([]);
+    setAnalysisRun(null);
     clearSelection();
     setConversion(null);
     setProject(null);
@@ -1545,6 +1594,37 @@ function WorkbenchState({
     [shownFile, nodeIds, tree],
   );
 
+  // an analysis: run on a click, on the model as it is now and its input's
+  // files as the tabs hold them; never written to the model
+  const analyses = ENGINE_ANALYSES[engine] ?? null;
+  // (declared with the runs above; cleared with them when a model is opened or closed)
+  useEffect(() => setAnalysisRun(null), [engine]);
+  const runAnalysisNow = useCallback(
+    (id: string) => {
+      const analysis = analyses?.[id];
+      if (!analysis) return;
+      setAnalysisRun(
+        analyse(
+          id,
+          analysis,
+          textRef.current,
+          analysisResource(
+            analysis,
+            resourceSlotsNow,
+            resourceTextsRef.current,
+          ),
+        ),
+      );
+    },
+    [analyses, resourceSlotsNow],
+  );
+  const setAnalysisCase = useCallback(
+    (caseId: string) =>
+      setAnalysisRun((run) => (run ? { ...run, caseId } : run)),
+    [],
+  );
+  const clearAnalysis = useCallback(() => setAnalysisRun(null), []);
+
   /** the latest output of the engine as the project keeps it (none: no output yet) */
   const latestOutputs = useCallback((open: Project) => {
     const { lastGood: run } = engineRuns(
@@ -1787,6 +1867,12 @@ function WorkbenchState({
     setOutputFile,
     trace,
     saveOutputs,
+    analyses,
+    analysisRun,
+    analysisStale: !!analysisRun && analysisRun.text !== model.text,
+    runAnalysis: runAnalysisNow,
+    setAnalysisCase,
+    clearAnalysis,
     exportProject,
     problems,
     select,

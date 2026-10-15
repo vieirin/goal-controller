@@ -16,7 +16,7 @@ import {
   type NotationEdit,
 } from '@goal-controller/goal-language';
 import type { SavedLines } from './languageSupport';
-import { setNodeProperty, setNodeText } from './pistar';
+import { setLinkProperty, setNodeProperty, setNodeText } from './pistar';
 
 export {
   contextFromView,
@@ -32,9 +32,11 @@ export const applyNotationEdits = (
 ): string =>
   edits.reduce(
     (model, edit) =>
-      'key' in edit
-        ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
-        : setNodeText(model, edit.iStarId, edit.text),
+      'link' in edit
+        ? setLinkProperty(model, edit.link, edit.key, edit.value)
+        : 'key' in edit
+          ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
+          : setNodeText(model, edit.iStarId, edit.text),
     text,
   );
 

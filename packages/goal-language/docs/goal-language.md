@@ -97,6 +97,40 @@ kinds carry them (`declares`, `annotated`).
 - Annotations `<<stereotype>>` and `{tag = tagValue}` (or `{tag}`) set
   `ANNOTATION_KEYS`. Only the first of each kind is read.
 
+### Link lines: properties on links
+
+A dialect that gives links properties (`links` in its definition,
+goal-controller#107) writes a link with properties as a **property line with
+the key `link`**, under the link's **source** element:
+
+```
+G1: Deliver
+  T1: Drive
+    robot r2
+    link G1 {weight = 50} {note = cheap}
+```
+
+- The value is the target's id, then one `{key = value}` per property, in
+  annotation syntax. The keys are written in the link kind's order, and only
+  the ones it declares and the link has. A value with a brace can't be read
+  back, so it is not written: the link keeps it, the line shows the others
+  (`isWritableLinkValue`).
+- It is a `PropertyLine` as the grammar reads any (`KEY VALUE`): no token,
+  rule or lexer state of its own (#105 D2). `notation/linkLine.ts` reads and
+  writes the value; every document without links reads and prints as before.
+- **Editing:** a changed value sets the link's `customProperties`, and a
+  removed line removes them. While a line can't be read (being typed), the
+  link keeps its properties.
+- **Which link:** the link from the element to the target whose kind has
+  properties in the dialect. Two such links of different kinds between the
+  same elements make the line ambiguous: it is reported, and changes nothing.
+- **Diagnostics:** the target isn't an element; no link from the element to
+  it has properties; ambiguous; the link written twice; a key the link's
+  kind doesn't declare; a value its type rejects.
+- In a dialect without `links`, `link` is an unknown property key, as any.
+- Actors have no line in the Notation view; their properties are edited in
+  the inspector, and get a written form when actors get a line (#105 D3).
+
 ## The RT notation: operators and precedence
 
 The catalog is `src/catalog.ts`. Every operator, with its form, precedence,

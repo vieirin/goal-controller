@@ -10,6 +10,7 @@ import {
   isNode,
   toPistar,
   updateElement,
+  updateLink,
   withFileMetamodel,
   type IstarElement,
   type IstarLink,
@@ -183,6 +184,24 @@ export const setNodeProperty = (
       properties[key] = value;
     }
     return updateElement(model, node.id, { customProperties: properties });
+  });
+
+/** A link's custom property set (null: removed), by the link's piStar id (goal-controller#107). */
+export const setLinkProperty = (
+  text: string,
+  linkId: string,
+  key: string,
+  value: string | null,
+): string =>
+  rewrite(text, (model) => {
+    const link = model.links.get(linkId);
+    if (!link) throw new Error(`link ${linkId} not found`);
+    const properties = { ...link.customProperties };
+    if (value === null) delete properties[key];
+    else properties[key] = value;
+    return updateLink(model, linkId, {
+      customProperties: Object.keys(properties).length ? properties : null,
+    });
   });
 
 /** Change how a node refines its children: rewrites the type of its child links. */

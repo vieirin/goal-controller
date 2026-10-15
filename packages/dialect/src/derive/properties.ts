@@ -1,4 +1,5 @@
 import type {
+  ActorPropertyDefinition,
   AnyDialect,
   Condition,
   ConditionalValue,
@@ -67,6 +68,21 @@ export const propertyOf = (
   key: string,
 ): PropertyDefinition | undefined =>
   definition.properties[kind]?.find((p) => p.key === key);
+
+/** The properties a link of this kind has (goal-controller#107; none: `[]`). */
+export const linkPropertiesOf = (
+  definition: Pick<AnyDialect, 'links'>,
+  linkKind: string,
+): readonly PropertyDefinition[] => definition.links?.[linkKind] ?? [];
+
+/** The properties an actor of this kind has: those with no `kinds`, or naming it. */
+export const actorPropertiesOf = (
+  definition: Pick<AnyDialect, 'actors'>,
+  actorKind: string,
+): readonly ActorPropertyDefinition[] =>
+  (definition.actors ?? []).filter(
+    (property) => !property.kinds || property.kinds.includes(actorKind),
+  );
 
 /** The fill a kind is drawn with when no colour is saved. */
 export const fillOf = (
