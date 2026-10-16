@@ -1,5 +1,7 @@
 # ATM meteo information (IJSSE 2014, Fig. 1)
 
+**Verdict:** provisionally accepted by the orchestrator (owner away), [#160](https://github.com/vieirin/goal-controller/issues/160#issuecomment-6208981577); the owner confirms before merge.
+
 Meland, Paja, Gjære, Paul, Dalpiaz, Giorgini, *Threat Analysis in Goal-Oriented Security Requirements Modelling*, International Journal of Secure Software Engineering 5(2) (2014):
 
 - **Fig. 1**, an STS-ml model of the ATM scenario with events and threats;

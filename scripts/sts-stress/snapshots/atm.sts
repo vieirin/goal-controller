@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ststool:STSDiagram xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ststool="http://sts-tool.eu/ststool/model/2.0.0" name="ATM meteo information">
+  <graphicalConstraint viewID="it.unitn.disi.ststool.view.social"/>
+  <elements xsi:type="ststool:Role" id="pilot" name="Pilot" goals="//@elements.4 //@elements.5" outgoingDelegations="//@elements.60">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,340,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="40,40,340,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="40,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="aircraft" name="Aircraft system" goals="//@elements.6 //@elements.7 //@elements.8 //@elements.9 //@elements.10 //@elements.11 //@elements.12" documents="//@elements.21 //@elements.22 //@elements.23" incomingDelegations="//@elements.61" outgoingTransmissions="//@elements.63" incomingTransmissions="//@elements.67">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="600,40,980,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="600,40,980,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="600,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="swim" name="SWIM access point" goals="//@elements.13 //@elements.14 //@elements.15 //@elements.16" documents="//@elements.24 //@elements.25 //@elements.26" incomingTransmissions="//@elements.64 //@elements.73" outgoingTransmissions="//@elements.66 //@elements.69" threatedBy="//@elements.78">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1800,40,820,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1800,40,820,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="1800,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="meteo" name="Meteo service provider" goals="//@elements.17 //@elements.18 //@elements.19 //@elements.20" documents="//@elements.27 //@elements.28 //@elements.29" incomingTransmissions="//@elements.70" outgoingTransmissions="//@elements.72" threatedBy="//@elements.80">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="2840,40,980,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="2840,40,980,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="2840,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="pilot-fly-safe" name="Fly safe" actorOwner="//@elements.0" threatedBy="//@elements.74">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="pilot-met-accessed" name="MET conditions accessed" actorOwner="//@elements.0" references="//@elements.6" delegatedTo="//@elements.59">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="aircraft-met-accessed" name="MET conditions accessed" actorOwner="//@elements.1" reference="//@elements.5" outgoingDecompositions="//@elements.36 //@elements.37" delegatedFrom="//@elements.59">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-info-requested" name="MET info requested" actorOwner="//@elements.1" incomingDecompositions="//@elements.36" outgoingDecompositions="//@elements.38 //@elements.39" resourceReaded="//@elements.47" resourcesProduced="//@elements.55">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-info-received" name="MET info received" actorOwner="//@elements.1" incomingDecompositions="//@elements.37" outgoingDecompositions="//@elements.40 //@elements.41">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="680,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-req-signed" name="Req. message signed" actorOwner="//@elements.1" incomingDecompositions="//@elements.38">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-req-encrypted" name="Req. message encrypted" actorOwner="//@elements.1" incomingDecompositions="//@elements.39">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-integrity-verified" name="Info integrity verified" actorOwner="//@elements.1" incomingDecompositions="//@elements.40" resourceReaded="//@elements.48">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="aircraft-decrypted" name="Message decrypted" actorOwner="//@elements.1" incomingDecompositions="//@elements.41" resourceReaded="//@elements.49" threatedBy="//@elements.77">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="840,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="swim-brokered" name="MET info req. brokered" actorOwner="//@elements.2" outgoingDecompositions="//@elements.42 //@elements.43 //@elements.44" resourcesProduced="//@elements.56">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="swim-integrity-verified" name="Request integrity verified" actorOwner="//@elements.2" incomingDecompositions="//@elements.42" resourceReaded="//@elements.50">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="swim-signed" name="MET info signed" actorOwner="//@elements.2" incomingDecompositions="//@elements.43" resourceReaded="//@elements.51">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="swim-encrypted" name="MET info encrypted" actorOwner="//@elements.2" incomingDecompositions="//@elements.44" resourceReaded="//@elements.52" threatedBy="//@elements.76">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="680,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="meteo-processed" name="MET request processed" actorOwner="//@elements.3" outgoingDecompositions="//@elements.45 //@elements.46">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="meteo-customer-verified" name="Customer verified" actorOwner="//@elements.3" incomingDecompositions="//@elements.45" resourceReaded="//@elements.53">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="meteo-published" name="MET info published" actorOwner="//@elements.3" incomingDecompositions="//@elements.46" resourceReaded="//@elements.54" resourcesProduced="//@elements.57">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="meteo-observed" name="MET data observed" actorOwner="//@elements.3" resourcesProduced="//@elements.58">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="840,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="aircraft-id" name="Aircraft ID" actorOwner="//@elements.1" goalsReading="//@elements.47" threatedBy="//@elements.75">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="aircraft-secure-request" name="Secure MET request" actorOwner="//@elements.1" references="//@elements.25 //@elements.27" goalsProducing="//@elements.55" TransmittedTo="//@elements.62">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="aircraft-secure-info" name="Secure MET info object" actorOwner="//@elements.1" reference="//@elements.24" goalsReading="//@elements.48 //@elements.49" transmittedFrom="//@elements.65">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="680,240,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="680,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="swim-secure-info" name="Secure MET info object" actorOwner="//@elements.2" references="//@elements.23" goalsProducing="//@elements.56" TransmittedTo="//@elements.65">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="swim-secure-request" name="Secure MET request" actorOwner="//@elements.2" reference="//@elements.22" goalsReading="//@elements.50" transmittedFrom="//@elements.62" TransmittedTo="//@elements.68">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="swim-met-info" name="MET info object" actorOwner="//@elements.2" reference="//@elements.29" goalsReading="//@elements.51 //@elements.52" transmittedFrom="//@elements.71">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="meteo-secure-request" name="Secure MET request" actorOwner="//@elements.3" reference="//@elements.22" goalsReading="//@elements.53" transmittedFrom="//@elements.68">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="meteo-conditions-data" name="MET conditions data" actorOwner="//@elements.3" goalsReading="//@elements.54" goalsProducing="//@elements.58">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="meteo-met-info" name="MET info object" actorOwner="//@elements.3" references="//@elements.26" goalsProducing="//@elements.57" TransmittedTo="//@elements.71" threatedBy="//@elements.79">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="680,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="680,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="bad-weather" name="Bad weather" threatedElements="//@elements.74">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="440,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="consumer-spoofing" name="Consumer spoofing" threatedElements="//@elements.75">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1640,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="incompatible-encryption" name="Incompatible encryption" threatedElements="//@elements.76 //@elements.77">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="2680,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="publisher-spoofing" name="Publisher spoofing" threatedElements="//@elements.78">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="4040,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="erroneous-data" name="Erroneous data impact flight" threatedElements="//@elements.79">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3880,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="free-access" name="Free access to paid data" threatedElements="//@elements.80">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="4200,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-info-requested-aircraft-met-accessed" source="//@elements.6" target="//@elements.7"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-info-received-aircraft-met-accessed" source="//@elements.6" target="//@elements.8"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-req-signed-aircraft-info-requested" source="//@elements.7" target="//@elements.9"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-req-encrypted-aircraft-info-requested" source="//@elements.7" target="//@elements.10"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-integrity-verified-aircraft-info-received" source="//@elements.8" target="//@elements.11"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-aircraft-decrypted-aircraft-info-received" source="//@elements.8" target="//@elements.12"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-swim-integrity-verified-swim-brokered" source="//@elements.13" target="//@elements.14"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-swim-signed-swim-brokered" source="//@elements.13" target="//@elements.15"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-swim-encrypted-swim-brokered" source="//@elements.13" target="//@elements.16"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-meteo-customer-verified-meteo-processed" source="//@elements.17" target="//@elements.18"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-meteo-published-meteo-processed" source="//@elements.17" target="//@elements.19"/>
+  <elements xsi:type="ststool:Read" id="reads-aircraft-info-requested-aircraft-id" source="//@elements.7" target="//@elements.21"/>
+  <elements xsi:type="ststool:Read" id="reads-aircraft-integrity-verified-aircraft-secure-info" source="//@elements.11" target="//@elements.23"/>
+  <elements xsi:type="ststool:Read" id="reads-aircraft-decrypted-aircraft-secure-info" source="//@elements.12" target="//@elements.23"/>
+  <elements xsi:type="ststool:Read" id="reads-swim-integrity-verified-swim-secure-request" source="//@elements.14" target="//@elements.25"/>
+  <elements xsi:type="ststool:Read" id="reads-swim-signed-swim-met-info" source="//@elements.15" target="//@elements.26"/>
+  <elements xsi:type="ststool:Read" id="reads-swim-encrypted-swim-met-info" source="//@elements.16" target="//@elements.26"/>
+  <elements xsi:type="ststool:Read" id="reads-meteo-customer-verified-meteo-secure-request" source="//@elements.18" target="//@elements.27"/>
+  <elements xsi:type="ststool:Read" id="reads-meteo-published-meteo-conditions-data" source="//@elements.19" target="//@elements.28"/>
+  <elements xsi:type="ststool:Produce" id="produces-aircraft-info-requested-aircraft-secure-request" source="//@elements.7" target="//@elements.22"/>
+  <elements xsi:type="ststool:Produce" id="produces-swim-brokered-swim-secure-info" source="//@elements.13" target="//@elements.24"/>
+  <elements xsi:type="ststool:Produce" id="produces-meteo-published-meteo-met-info" source="//@elements.19" target="//@elements.29"/>
+  <elements xsi:type="ststool:Produce" id="produces-meteo-observed-meteo-conditions-data" source="//@elements.20" target="//@elements.28"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-pilot-met-accessed-aircraft-met-accessed" name="MET conditions accessed" sourceGoal="//@elements.5" targetGoal="//@elements.6" incomingDelegationLink="//@elements.60" outgoingDelegationLink="//@elements.61"/>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-pilot-met-accessed-aircraft-met-accessed-in" source="//@elements.0" target="//@elements.59"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-pilot-met-accessed-aircraft-met-accessed-out" source="//@elements.59" target="//@elements.1"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-aircraft-secure-request-swim-secure-request" name="Secure MET request" sourceDocument="//@elements.22" targetDocument="//@elements.25" incomingTransmissionLink="//@elements.63" outgoingTransmissionLink="//@elements.64">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-aircraft-secure-request-swim-secure-request-in" source="//@elements.1" target="//@elements.62"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-aircraft-secure-request-swim-secure-request-out" source="//@elements.62" target="//@elements.2"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-swim-secure-info-aircraft-secure-info" name="Secure MET info object" sourceDocument="//@elements.24" targetDocument="//@elements.23" incomingTransmissionLink="//@elements.66" outgoingTransmissionLink="//@elements.67">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-swim-secure-info-aircraft-secure-info-in" source="//@elements.2" target="//@elements.65"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-swim-secure-info-aircraft-secure-info-out" source="//@elements.65" target="//@elements.1"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-swim-secure-request-meteo-secure-request" name="Secure MET request" sourceDocument="//@elements.25" targetDocument="//@elements.27" incomingTransmissionLink="//@elements.69" outgoingTransmissionLink="//@elements.70">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-swim-secure-request-meteo-secure-request-in" source="//@elements.2" target="//@elements.68"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-swim-secure-request-meteo-secure-request-out" source="//@elements.68" target="//@elements.3"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-meteo-met-info-swim-met-info" name="MET info object" sourceDocument="//@elements.29" targetDocument="//@elements.26" incomingTransmissionLink="//@elements.72" outgoingTransmissionLink="//@elements.73">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-meteo-met-info-swim-met-info-in" source="//@elements.3" target="//@elements.71"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-meteo-met-info-swim-met-info-out" source="//@elements.71" target="//@elements.2"/>
+  <elements xsi:type="ststool:Threat" id="threatens-bad-weather-pilot-fly-safe" source="//@elements.30" target="//@elements.4"/>
+  <elements xsi:type="ststool:Threat" id="threatens-consumer-spoofing-aircraft-id" source="//@elements.31" target="//@elements.21"/>
+  <elements xsi:type="ststool:Threat" id="threatens-incompatible-encryption-swim-encrypted" source="//@elements.32" target="//@elements.16"/>
+  <elements xsi:type="ststool:Threat" id="threatens-incompatible-encryption-aircraft-decrypted" source="//@elements.32" target="//@elements.12"/>
+  <elements xsi:type="ststool:Threat" id="threatens-publisher-spoofing-swim" source="//@elements.33" target="//@elements.2"/>
+  <elements xsi:type="ststool:Threat" id="threatens-erroneous-data-meteo-met-info" source="//@elements.34" target="//@elements.29"/>
+  <elements xsi:type="ststool:Threat" id="threatens-free-access-meteo" source="//@elements.35" target="//@elements.3"/>
+</ststool:STSDiagram>

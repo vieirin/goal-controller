@@ -203,3 +203,17 @@ iStar-DT dialect ([istardt.md](istardt.md), #119):
 
 **Not in scope:**
 - the Tropos4AS extension's metamodel (artifacts, failures, errors), which TAOM4E's plug-ins wrote: it is in REJ 2017's figures only ([tropos4as.md](tropos4as.md)).
+
+## `.sts` (STS-Tool, STS-ml): `engines/sts/native`
+
+`readSts(text, { modelName })` reads STS-Tool's EMF XMI (`<ststool:STSDiagram>`, a flat list of `elements` referenced by `//@elements.N`) with the XMI reader above, keyed by its `id` attribute, into a model in the STS-ml dialect ([sts.md](sts.md), #163):
+
+- Roles and agents, each with its goals and documents (`actorOwner`). A GoalReference (a delegated goal) or a DocumentReference (a transmitted document) is the copy the delegation or transmission links the original to.
+- Information and events, outside actors.
+- Every relationship as its link kind. Security needs (`elementNeeds`) become the link's properties. An authorisation's operations are `AUTHORIZED`, `FORBIDDEN` or absent.
+- Texts are numbered by kind in the file's order (`G1`, `R1`, `I1`, `E1`), with names trimmed. The piStar ids are the file's.
+- Positions: an actor's, from its social view bound, and its elements' relative to it. Information is laid out by the layout above.
+- Left out: notes (an info), and a type or need the mapping doesn't know (a warning).
+- **In the workbench:** `.sts` is the STS-ml dialect's native file (`nativeFiles.sts`, with a writer, `writeSts`).
+
+**Unverified against STS-Tool** (#160 D-R2). The format is documented on #160 from UniTN's three published tutorial projects only. Those are not committed (#160 D-R8): `scripts/sts-stress` fetches them, pinned by sha256. The unit tests use a fixture written by hand from the format (`packages/lib/test/engines/sts/fixtures/tax-toy.sts`).

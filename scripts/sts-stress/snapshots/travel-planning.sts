@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ststool:STSDiagram xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ststool="http://sts-tool.eu/ststool/model/2.0.0" name="Travel planning">
+  <graphicalConstraint viewID="it.unitn.disi.ststool.view.social"/>
+  <elements xsi:type="ststool:Agent" id="bob" name="Bob" playedRoles="//@elements.82">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="40,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="40,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="tourist" name="Tourist" goals="//@elements.7 //@elements.8 //@elements.9" documents="//@elements.22 //@elements.23" outgoingDelegations="//@elements.56 //@elements.59" outgoingTransmissions="//@elements.74 //@elements.77" playedBy="//@elements.82" informations="//@elements.88 //@elements.89" outgoingAuthorizations="//@elements.98 //@elements.101">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="280,40,500,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="280,40,500,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="280,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="tas" name="TAS" goals="//@elements.10 //@elements.11 //@elements.12" documents="//@elements.24 //@elements.25 //@elements.26" incomingDelegations="//@elements.57" outgoingDelegations="//@elements.62" incomingTransmissions="//@elements.75" outgoingTransmissions="//@elements.80" incomingAuthorizations="//@elements.99" outgoingAuthorizations="//@elements.104">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="840,40,660,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="840,40,660,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="840,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Agent" id="amadeus" name="Amadeus Service" goals="//@elements.13 //@elements.14 //@elements.15" documents="//@elements.27 //@elements.28" incomingDelegations="//@elements.63" incomingTransmissions="//@elements.81" incomingAuthorizations="//@elements.105">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1720,40,660,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1720,40,660,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="1720,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="hotel" name="Hotel" goals="//@elements.16 //@elements.17" documents="//@elements.29" incomingDelegations="//@elements.60 //@elements.69" outgoingDelegations="//@elements.65" incomingTransmissions="//@elements.78" incomingAuthorizations="//@elements.102">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="2600,40,500,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="2600,40,500,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="2600,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Agent" id="hotel-service" name="Hotel Service" goals="//@elements.18 //@elements.19 //@elements.20" incomingDelegations="//@elements.66" outgoingDelegations="//@elements.68 //@elements.71">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3320,40,340,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="3320,40,340,230">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="3320,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Agent" id="payment-service" name="Payment Service" goals="//@elements.21" incomingDelegations="//@elements.72">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3720,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="3720,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="3720,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="tourist-trip-planned" name="Trip planned" actorOwner="//@elements.1" outgoingDecompositions="//@elements.36 //@elements.37" resourceReaded="//@elements.44" resourcesModified="//@elements.50" resourcesProduced="//@elements.52">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="tourist-tickets-booked" name="Tickets booked" actorOwner="//@elements.1" references="//@elements.10" incomingDecompositions="//@elements.36" delegatedTo="//@elements.55" outgoingDuties="//@elements.83">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="tourist-hotel-booked" name="Hotel booked" actorOwner="//@elements.1" references="//@elements.16 //@elements.18" incomingDecompositions="//@elements.37" resourceReaded="//@elements.45" delegatedTo="//@elements.58" incomingDuties="//@elements.83">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="tas-tickets-booked" name="Tickets booked" actorOwner="//@elements.2" reference="//@elements.8" outgoingDecompositions="//@elements.38 //@elements.39" resourceReaded="//@elements.46" delegatedFrom="//@elements.55" authorizations="//@elements.97">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="tas-flight-ticket-booked" name="Flight ticket booked" actorOwner="//@elements.2" references="//@elements.13" incomingDecompositions="//@elements.38" resourceReaded="//@elements.47" delegatedTo="//@elements.61">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="tas-train-ticket-booked" name="Train ticket booked" actorOwner="//@elements.2" incomingDecompositions="//@elements.39" resourcesProduced="//@elements.53" threatedBy="//@elements.87">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="amadeus-flight-ticket-booked" name="Flight ticket booked" actorOwner="//@elements.3" reference="//@elements.11" outgoingDecompositions="//@elements.40 //@elements.41" delegatedFrom="//@elements.61" authorizations="//@elements.103">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="amadeus-eticket-generated" name="eticket generated" actorOwner="//@elements.3" incomingDecompositions="//@elements.40" resourceReaded="//@elements.48" resourcesProduced="//@elements.54" outgoingDuties="//@elements.84">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="amadeus-credit-card-verified" name="credit card verified" actorOwner="//@elements.3" incomingDecompositions="//@elements.41" incomingDuties="//@elements.84">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="hotel-hotel-booked" name="Hotel booked" actorOwner="//@elements.4" reference="//@elements.9" resourceReaded="//@elements.49" resourcesModified="//@elements.51" delegatedFrom="//@elements.58" delegatedTo="//@elements.64" authorizations="//@elements.100">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="hotel-room-selected" name="Room selected" actorOwner="//@elements.4" reference="//@elements.19" delegatedFrom="//@elements.67">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="hotel-service-hotel-booked" name="Hotel booked" actorOwner="//@elements.5" reference="//@elements.9" outgoingDecompositions="//@elements.42 //@elements.43" delegatedFrom="//@elements.64">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="hotel-service-room-selected" name="Room selected" actorOwner="//@elements.5" references="//@elements.17" incomingDecompositions="//@elements.42" delegatedTo="//@elements.67" outgoingDuties="//@elements.85">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="hotel-service-prepayment-made" name="Prepayment made" actorOwner="//@elements.5" references="//@elements.21" incomingDecompositions="//@elements.43" delegatedTo="//@elements.70" incomingDuties="//@elements.85">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="payment-service-prepayment-made" name="Prepayment made" actorOwner="//@elements.6" reference="//@elements.20" delegatedFrom="//@elements.70">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="tourist-traveling-order" name="Traveling Order" actorOwner="//@elements.1" references="//@elements.24" goalsReading="//@elements.44" goalsModifing="//@elements.50" goalsProducing="//@elements.52" TransmittedTo="//@elements.73" intangibleElements="//@elements.93" subParts="//@elements.96">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="tourist-id-doc-copy" name="ID Doc Copy" actorOwner="//@elements.1" references="//@elements.29" goalsReading="//@elements.45" TransmittedTo="//@elements.76" intangibleElements="//@elements.91" partsOf="//@elements.96">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="tas-traveling-order" name="Traveling Order" actorOwner="//@elements.2" reference="//@elements.22" goalsReading="//@elements.46" transmittedFrom="//@elements.73">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="tas-itinerary-details" name="Itinerary details" actorOwner="//@elements.2" references="//@elements.27" goalsReading="//@elements.47" TransmittedTo="//@elements.79" intangibleElements="//@elements.92">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="tas-tickets" name="Tickets" actorOwner="//@elements.2" goalsProducing="//@elements.53">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="amadeus-itinerary-details" name="Itinerary details" actorOwner="//@elements.3" reference="//@elements.25" goalsReading="//@elements.48" transmittedFrom="//@elements.79">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="amadeus-flight-tickets" name="Flight tickets" actorOwner="//@elements.3" goalsProducing="//@elements.54" intangibleElements="//@elements.90">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="hotel-id-doc-copy" name="ID Doc Copy" actorOwner="//@elements.4" reference="//@elements.23" goalsReading="//@elements.49" goalsModifing="//@elements.51" transmittedFrom="//@elements.76" threatedBy="//@elements.86">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="id-doc-stolen" name="ID Doc stolen" threatedElements="//@elements.86">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3160,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="ticket-lost" name="Ticket lost" threatedElements="//@elements.87">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1560,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="personal-data" name="Personal data" owners="//@elements.88" tangibleElements="//@elements.90 //@elements.91" authorizations="//@elements.97 //@elements.100 //@elements.103">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="2440,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="itinerary" name="Itinerary" owners="//@elements.89" tangibleElements="//@elements.92 //@elements.93" subParts="//@elements.94 //@elements.95" authorizations="//@elements.97 //@elements.103">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1560,280,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="destination" name="Destination" partsOf="//@elements.94">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1560,380,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="schedule" name="Schedule" partsOf="//@elements.95">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1560,480,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-tourist-tickets-booked-tourist-trip-planned" source="//@elements.7" target="//@elements.8"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-tourist-hotel-booked-tourist-trip-planned" source="//@elements.7" target="//@elements.9"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="or-tas-flight-ticket-booked-tas-tickets-booked" type="OR" source="//@elements.10" target="//@elements.11"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="or-tas-train-ticket-booked-tas-tickets-booked" type="OR" source="//@elements.10" target="//@elements.12"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-amadeus-eticket-generated-amadeus-flight-ticket-booked" source="//@elements.13" target="//@elements.14"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-amadeus-credit-card-verified-amadeus-flight-ticket-booked" source="//@elements.13" target="//@elements.15"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-hotel-service-room-selected-hotel-service-hotel-booked" source="//@elements.18" target="//@elements.19"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-hotel-service-prepayment-made-hotel-service-hotel-booked" source="//@elements.18" target="//@elements.20"/>
+  <elements xsi:type="ststool:Read" id="reads-tourist-trip-planned-tourist-traveling-order" source="//@elements.7" target="//@elements.22"/>
+  <elements xsi:type="ststool:Read" id="reads-tourist-hotel-booked-tourist-id-doc-copy" source="//@elements.9" target="//@elements.23"/>
+  <elements xsi:type="ststool:Read" id="reads-tas-tickets-booked-tas-traveling-order" source="//@elements.10" target="//@elements.24"/>
+  <elements xsi:type="ststool:Read" id="reads-tas-flight-ticket-booked-tas-itinerary-details" source="//@elements.11" target="//@elements.25"/>
+  <elements xsi:type="ststool:Read" id="reads-amadeus-eticket-generated-amadeus-itinerary-details" source="//@elements.14" target="//@elements.27"/>
+  <elements xsi:type="ststool:Read" id="reads-hotel-hotel-booked-hotel-id-doc-copy" source="//@elements.16" target="//@elements.29"/>
+  <elements xsi:type="ststool:Modify" id="modifies-tourist-trip-planned-tourist-traveling-order" source="//@elements.7" target="//@elements.22"/>
+  <elements xsi:type="ststool:Modify" id="modifies-hotel-hotel-booked-hotel-id-doc-copy" source="//@elements.16" target="//@elements.29"/>
+  <elements xsi:type="ststool:Produce" id="produces-tourist-trip-planned-tourist-traveling-order" source="//@elements.7" target="//@elements.22"/>
+  <elements xsi:type="ststool:Produce" id="produces-tas-train-ticket-booked-tas-tickets" source="//@elements.12" target="//@elements.26"/>
+  <elements xsi:type="ststool:Produce" id="produces-amadeus-eticket-generated-amadeus-flight-tickets" source="//@elements.14" target="//@elements.28"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-tourist-tickets-booked-tas-tickets-booked" name="Tickets booked" sourceGoal="//@elements.8" targetGoal="//@elements.10" incomingDelegationLink="//@elements.56" outgoingDelegationLink="//@elements.57">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="acceptance"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.redundancy">
+      <properties name="type" value="true-multi-actor"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-tourist-tickets-booked-tas-tickets-booked-in" source="//@elements.1" target="//@elements.55"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-tourist-tickets-booked-tas-tickets-booked-out" source="//@elements.55" target="//@elements.2"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-tourist-hotel-booked-hotel-hotel-booked" name="Hotel booked" sourceGoal="//@elements.9" targetGoal="//@elements.16" incomingDelegationLink="//@elements.59" outgoingDelegationLink="//@elements.60">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nodelegation"/>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.trustworthiness"/>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-tourist-hotel-booked-hotel-hotel-booked-in" source="//@elements.1" target="//@elements.58"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-tourist-hotel-booked-hotel-hotel-booked-out" source="//@elements.58" target="//@elements.4"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked" name="Flight ticket booked" sourceGoal="//@elements.11" targetGoal="//@elements.13" incomingDelegationLink="//@elements.62" outgoingDelegationLink="//@elements.63">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="delegation"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.availability">
+      <properties name="value" value="85"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked-in" source="//@elements.2" target="//@elements.61"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked-out" source="//@elements.61" target="//@elements.3"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-hotel-hotel-booked-hotel-service-hotel-booked" name="Hotel booked" sourceGoal="//@elements.16" targetGoal="//@elements.18" incomingDelegationLink="//@elements.65" outgoingDelegationLink="//@elements.66"/>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-hotel-hotel-booked-hotel-service-hotel-booked-in" source="//@elements.4" target="//@elements.64"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-hotel-hotel-booked-hotel-service-hotel-booked-out" source="//@elements.64" target="//@elements.5"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-hotel-service-room-selected-hotel-room-selected" name="Room selected" sourceGoal="//@elements.19" targetGoal="//@elements.17" incomingDelegationLink="//@elements.68" outgoingDelegationLink="//@elements.69"/>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-hotel-service-room-selected-hotel-room-selected-in" source="//@elements.5" target="//@elements.67"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-hotel-service-room-selected-hotel-room-selected-out" source="//@elements.67" target="//@elements.4"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-hotel-service-prepayment-made-payment-service-prepayment-made" name="Prepayment made" sourceGoal="//@elements.20" targetGoal="//@elements.21" incomingDelegationLink="//@elements.71" outgoingDelegationLink="//@elements.72">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.trustworthiness"/>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-hotel-service-prepayment-made-payment-service-prepayment-made-in" source="//@elements.5" target="//@elements.70"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-hotel-service-prepayment-made-payment-service-prepayment-made-out" source="//@elements.70" target="//@elements.6"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-tourist-traveling-order-tas-traveling-order" name="Traveling Order" sourceDocument="//@elements.22" targetDocument="//@elements.24" incomingTransmissionLink="//@elements.74" outgoingTransmissionLink="//@elements.75"/>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-tourist-traveling-order-tas-traveling-order-in" source="//@elements.1" target="//@elements.73"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-tourist-traveling-order-tas-traveling-order-out" source="//@elements.73" target="//@elements.2"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-tourist-id-doc-copy-hotel-id-doc-copy" name="ID Doc Copy" sourceDocument="//@elements.23" targetDocument="//@elements.29" incomingTransmissionLink="//@elements.77" outgoingTransmissionLink="//@elements.78"/>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-tourist-id-doc-copy-hotel-id-doc-copy-in" source="//@elements.1" target="//@elements.76"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-tourist-id-doc-copy-hotel-id-doc-copy-out" source="//@elements.76" target="//@elements.4"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-tas-itinerary-details-amadeus-itinerary-details" name="Itinerary details" sourceDocument="//@elements.25" targetDocument="//@elements.27" incomingTransmissionLink="//@elements.80" outgoingTransmissionLink="//@elements.81">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.availability">
+      <properties name="value" value="98"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.confidentiality">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-tas-itinerary-details-amadeus-itinerary-details-in" source="//@elements.2" target="//@elements.79"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-tas-itinerary-details-amadeus-itinerary-details-out" source="//@elements.79" target="//@elements.3"/>
+  <elements xsi:type="ststool:Play" id="plays-bob-tourist" source="//@elements.0" target="//@elements.1"/>
+  <elements xsi:type="ststool:DutyLink" id="combines-tourist-tickets-booked-tourist-hotel-booked" type="COD" source="//@elements.8" target="//@elements.9"/>
+  <elements xsi:type="ststool:DutyLink" id="incompatible-amadeus-eticket-generated-amadeus-credit-card-verified" source="//@elements.14" target="//@elements.15"/>
+  <elements xsi:type="ststool:DutyLink" id="incompatible-hotel-service-room-selected-hotel-service-prepayment-made" source="//@elements.19" target="//@elements.20"/>
+  <elements xsi:type="ststool:Threat" id="threatens-id-doc-stolen-hotel-id-doc-copy" source="//@elements.30" target="//@elements.29"/>
+  <elements xsi:type="ststool:Threat" id="threatens-ticket-lost-tas-train-ticket-booked" source="//@elements.31" target="//@elements.12"/>
+  <elements xsi:type="ststool:Own" id="owns-tourist-personal-data" source="//@elements.1" target="//@elements.32"/>
+  <elements xsi:type="ststool:Own" id="owns-tourist-itinerary" source="//@elements.1" target="//@elements.33"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-personal-data-amadeus-flight-tickets" source="//@elements.32" target="//@elements.28"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-personal-data-tourist-id-doc-copy" source="//@elements.32" target="//@elements.23"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-itinerary-tas-itinerary-details" source="//@elements.33" target="//@elements.25"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-itinerary-tourist-traveling-order" source="//@elements.33" target="//@elements.22"/>
+  <elements xsi:type="ststool:PartOf" id="partOf-destination-itinerary" source="//@elements.34" target="//@elements.33"/>
+  <elements xsi:type="ststool:PartOf" id="partOf-schedule-itinerary" source="//@elements.35" target="//@elements.33"/>
+  <elements xsi:type="ststool:PartOf" id="partOf-tourist-id-doc-copy-tourist-traveling-order" source="//@elements.23" target="//@elements.22"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-tourist-tas" read="AUTHORIZED" modification="FORBIDDEN" produce="FORBIDDEN" transmit="FORBIDDEN" incomingAuthorizationLink="//@elements.98" outgoingAuthorizationLink="//@elements.99" informations="//@elements.32 //@elements.33" goals="//@elements.10"/>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-tourist-tas-in" source="//@elements.1" target="//@elements.97"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-tourist-tas-out" source="//@elements.97" target="//@elements.2"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-tourist-hotel" read="AUTHORIZED" modification="FORBIDDEN" produce="FORBIDDEN" transmit="FORBIDDEN" incomingAuthorizationLink="//@elements.101" outgoingAuthorizationLink="//@elements.102" informations="//@elements.32" goals="//@elements.16"/>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-tourist-hotel-in" source="//@elements.1" target="//@elements.100"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-tourist-hotel-out" source="//@elements.100" target="//@elements.4"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-tas-amadeus" read="AUTHORIZED" modification="FORBIDDEN" produce="AUTHORIZED" transmit="FORBIDDEN" incomingAuthorizationLink="//@elements.104" outgoingAuthorizationLink="//@elements.105" informations="//@elements.33 //@elements.32" goals="//@elements.13">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.notransferability"/>
+  </elements>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-tas-amadeus-in" source="//@elements.2" target="//@elements.103"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-tas-amadeus-out" source="//@elements.103" target="//@elements.3"/>
+</ststool:STSDiagram>

@@ -959,6 +959,10 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/cgm/` and `ui/components/workbench/engines/cgm/`: an analysis engine whose conditions sit on links (contexts at Table 1's variation points, link properties with link lines) and whose extension's kinds are formulas (contexts, statements, facts). Its four analyses enumerate variants with `variantsOf` (§3.7b). Each gives `guard`, `relation` and `follow`, and the analyses reason over the variants with the propositional solver. Each case is a variant or a set of them, drawn as a selection. The papers' numbers are the oracle, with DLV and z3 in Docker as independent checks. [cgm.md](cgm.md) lists what fit, what grew, the errata, and what is still open.
 
+### 7.8 STS-ml (a metamodel, its tool's file, findings)
+
+`lib/src/engines/sts/` and `ui/components/workbench/engines/sts/`: an analysis engine that is mostly a metamodel. Its extension's kinds are information and events, and its relationships are links: delegation and transmission join an original to its copy in another actor, and ownership and authorisations have actors at their ends (#162's actor-end link lines). Its link properties are security needs, one key each, and an authorisation's operation sets (`enumSet`). Three views filter its one diagram. `stsProblems` gives the dialect's rules as findings. STS-Tool's `.sts` (EMF XMI) is its native file, read and written. The analyses are #161's. [sts.md](sts.md) lists what fit, what grew, and what is still open (STS-Tool's EULA among it).
+
 ## 8. Options summary
 
 | Decision                    | Options                                                                      | Pick when                                                                                                             |

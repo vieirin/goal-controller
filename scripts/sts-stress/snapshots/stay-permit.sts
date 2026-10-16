@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ststool:STSDiagram xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ststool="http://sts-tool.eu/ststool/model/2.0.0" name="Stay permit">
+  <graphicalConstraint viewID="it.unitn.disi.ststool.view.social"/>
+  <elements xsi:type="ststool:Role" id="student" name="Student" goals="//@elements.4" outgoingDelegations="//@elements.49" informations="//@elements.72 //@elements.73" outgoingAuthorizations="//@elements.81 //@elements.87">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="40,40,200,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="40,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="coordinator" name="Program Coordinator" goals="//@elements.5 //@elements.6 //@elements.7 //@elements.8 //@elements.9 //@elements.10" documents="//@elements.19" incomingDelegations="//@elements.50" outgoingDelegations="//@elements.52 //@elements.55" outgoingDuties="//@elements.69" informations="//@elements.74" incomingAuthorizations="//@elements.88" outgoingAuthorizations="//@elements.90">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="280,40,660,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="280,40,660,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="280,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="secretary" name="Secretary" goals="//@elements.11 //@elements.12 //@elements.13 //@elements.14 //@elements.15 //@elements.16" documents="//@elements.20 //@elements.21 //@elements.22 //@elements.23" incomingDelegations="//@elements.53 //@elements.56" outgoingDelegations="//@elements.58 //@elements.61" incomingTransmissions="//@elements.65 //@elements.68" incomingDuties="//@elements.69" incomingAuthorizations="//@elements.85 //@elements.91">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1160,40,1140,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1160,40,1140,330">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="1160,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Role" id="is-manager" name="IS Manager" goals="//@elements.17 //@elements.18" documents="//@elements.24 //@elements.25" incomingDelegations="//@elements.59 //@elements.62" outgoingTransmissions="//@elements.64 //@elements.67" incomingAuthorizations="//@elements.82" outgoingAuthorizations="//@elements.84">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="2360,40,660,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="2360,40,660,150">
+      <properties name="compartment" value="true"/>
+      <properties name="compartment_switch" value="100,100"/>
+    </graphicalConstraints>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.authorization" bound="2360,40,100,100"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="student-write-doc" name="Write doc for I.O" actorOwner="//@elements.0" references="//@elements.5" delegatedTo="//@elements.48">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="coordinator-write-doc" name="Write doc for I.O" actorOwner="//@elements.1" reference="//@elements.4" outgoingDecompositions="//@elements.31 //@elements.32 //@elements.33" resourcesProduced="//@elements.45" delegatedFrom="//@elements.48" authorizations="//@elements.86">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="coordinator-get-record" name="Get Student Record" actorOwner="//@elements.1" references="//@elements.11" incomingDecompositions="//@elements.31" delegatedTo="//@elements.54">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="coordinator-write-official" name="Write Official Doc" actorOwner="//@elements.1" incomingDecompositions="//@elements.32" outgoingDecompositions="//@elements.34 //@elements.35">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="coordinator-sign" name="Sign doc" actorOwner="//@elements.1" incomingDecompositions="//@elements.33">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="coordinator-update-old" name="Update old doc" actorOwner="//@elements.1" incomingDecompositions="//@elements.34">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="coordinator-write-new" name="Write new doc" actorOwner="//@elements.1" references="//@elements.16" incomingDecompositions="//@elements.35" delegatedTo="//@elements.51">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="secretary-get-record" name="Get Student Record" actorOwner="//@elements.2" reference="//@elements.6" outgoingDecompositions="//@elements.36 //@elements.37" resourceReaded="//@elements.40" delegatedFrom="//@elements.54" authorizations="//@elements.83 //@elements.89">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="secretary-get-pers-data" name="Get Student Pers. Data" actorOwner="//@elements.2" references="//@elements.17" incomingDecompositions="//@elements.36" resourceReaded="//@elements.41" delegatedTo="//@elements.57">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="secretary-derive-financial" name="Derive Financial Stat." actorOwner="//@elements.2" incomingDecompositions="//@elements.37" outgoingDecompositions="//@elements.38 //@elements.39">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="secretary-obtain-utd" name="Obtain UTD Statement" actorOwner="//@elements.2" references="//@elements.18" incomingDecompositions="//@elements.38" resourceReaded="//@elements.42" delegatedTo="//@elements.60">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Goal" id="secretary-check-income" name="Check Income Adequacy" actorOwner="//@elements.2" incomingDecompositions="//@elements.39">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="680,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="secretary-write-new" name="Write new doc" actorOwner="//@elements.2" reference="//@elements.10" resourceReaded="//@elements.43" resourcesModified="//@elements.44" delegatedFrom="//@elements.51">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="840,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="is-manager-get-pers-data" name="Get Student Pers. Data" actorOwner="//@elements.3" reference="//@elements.12" resourcesProduced="//@elements.46" delegatedFrom="//@elements.57" threatedBy="//@elements.70" authorizations="//@elements.80">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalReference" id="is-manager-obtain-utd" name="Obtain UTD Statement" actorOwner="//@elements.3" reference="//@elements.14" resourcesProduced="//@elements.47" delegatedFrom="//@elements.60">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="coordinator-signed-doc" name="Signed Official Doc" actorOwner="//@elements.1" goalsProducing="//@elements.45" intangibleElements="//@elements.75">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="secretary-support-doc" name="Student support document" actorOwner="//@elements.2" goalsReading="//@elements.40" subParts="//@elements.78 //@elements.79">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="secretary-personal-file" name="Personal data file" actorOwner="//@elements.2" reference="//@elements.24" goalsReading="//@elements.41" transmittedFrom="//@elements.63">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,140,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="200,140,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:DocumentReference" id="secretary-income-statement" name="Income Statement" actorOwner="//@elements.2" reference="//@elements.25" goalsReading="//@elements.42" transmittedFrom="//@elements.66">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,240,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="520,240,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="secretary-template" name="Document Template" actorOwner="//@elements.2" goalsReading="//@elements.43" goalsModifing="//@elements.44">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="1000,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1000,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="is-manager-personal-file" name="Personal data file" actorOwner="//@elements.3" references="//@elements.21" goalsProducing="//@elements.46" TransmittedTo="//@elements.63" threatedBy="//@elements.71" intangibleElements="//@elements.76" partsOf="//@elements.79">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="360,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="360,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Document" id="is-manager-income-statement" name="Income Statement" actorOwner="//@elements.3" references="//@elements.22" goalsProducing="//@elements.47" TransmittedTo="//@elements.66" intangibleElements="//@elements.77" partsOf="//@elements.78">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="520,40,100,50"/>
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="520,40,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="ddos-attack" name="DDoS attack" threatedElements="//@elements.70">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3080,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Event" id="integrity-loss" name="Info Integrity loss" threatedElements="//@elements.71">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="3080,180,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="personal-data" name="PersonalData" owners="//@elements.72" tangibleElements="//@elements.76" authorizations="//@elements.80 //@elements.83 //@elements.86 //@elements.89">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="3080,280,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="financial-status" name="FinancialStatus" owners="//@elements.73" tangibleElements="//@elements.77" authorizations="//@elements.80 //@elements.83 //@elements.86 //@elements.89">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="3080,380,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:Information" id="signature" name="Signature" owners="//@elements.74" tangibleElements="//@elements.75">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.information" bound="1000,80,100,50"/>
+  </elements>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-coordinator-get-record-coordinator-write-doc" source="//@elements.5" target="//@elements.6"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-coordinator-write-official-coordinator-write-doc" source="//@elements.5" target="//@elements.7"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-coordinator-sign-coordinator-write-doc" source="//@elements.5" target="//@elements.8"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="or-coordinator-update-old-coordinator-write-official" type="OR" source="//@elements.7" target="//@elements.9"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="or-coordinator-write-new-coordinator-write-official" type="OR" source="//@elements.7" target="//@elements.10"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-secretary-get-pers-data-secretary-get-record" source="//@elements.11" target="//@elements.12"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-secretary-derive-financial-secretary-get-record" source="//@elements.11" target="//@elements.13"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-secretary-obtain-utd-secretary-derive-financial" source="//@elements.13" target="//@elements.14"/>
+  <elements xsi:type="ststool:GoalDecomposition" id="and-secretary-check-income-secretary-derive-financial" source="//@elements.13" target="//@elements.15"/>
+  <elements xsi:type="ststool:Read" id="reads-secretary-get-record-secretary-support-doc" source="//@elements.11" target="//@elements.20"/>
+  <elements xsi:type="ststool:Read" id="reads-secretary-get-pers-data-secretary-personal-file" source="//@elements.12" target="//@elements.21"/>
+  <elements xsi:type="ststool:Read" id="reads-secretary-obtain-utd-secretary-income-statement" source="//@elements.14" target="//@elements.22"/>
+  <elements xsi:type="ststool:Read" id="reads-secretary-write-new-secretary-template" source="//@elements.16" target="//@elements.23"/>
+  <elements xsi:type="ststool:Modify" id="modifies-secretary-write-new-secretary-template" source="//@elements.16" target="//@elements.23"/>
+  <elements xsi:type="ststool:Produce" id="produces-coordinator-write-doc-coordinator-signed-doc" source="//@elements.5" target="//@elements.19"/>
+  <elements xsi:type="ststool:Produce" id="produces-is-manager-get-pers-data-is-manager-personal-file" source="//@elements.17" target="//@elements.24"/>
+  <elements xsi:type="ststool:Produce" id="produces-is-manager-obtain-utd-is-manager-income-statement" source="//@elements.18" target="//@elements.25"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-student-write-doc-coordinator-write-doc" name="Write doc for I.O" sourceGoal="//@elements.4" targetGoal="//@elements.5" incomingDelegationLink="//@elements.49" outgoingDelegationLink="//@elements.50">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nodelegation"/>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="acceptance"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-student-write-doc-coordinator-write-doc-in" source="//@elements.0" target="//@elements.48"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-student-write-doc-coordinator-write-doc-out" source="//@elements.48" target="//@elements.1"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-coordinator-write-new-secretary-write-new" name="Write new doc" sourceGoal="//@elements.10" targetGoal="//@elements.16" incomingDelegationLink="//@elements.52" outgoingDelegationLink="//@elements.53">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nodelegation"/>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="delegation"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-coordinator-write-new-secretary-write-new-in" source="//@elements.1" target="//@elements.51"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-coordinator-write-new-secretary-write-new-out" source="//@elements.51" target="//@elements.2"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-coordinator-get-record-secretary-get-record" name="Get Student Record" sourceGoal="//@elements.6" targetGoal="//@elements.11" incomingDelegationLink="//@elements.55" outgoingDelegationLink="//@elements.56">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="acceptance"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.trustworthiness"/>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-coordinator-get-record-secretary-get-record-in" source="//@elements.1" target="//@elements.54"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-coordinator-get-record-secretary-get-record-out" source="//@elements.54" target="//@elements.2"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-secretary-get-pers-data-is-manager-get-pers-data" name="Get Student Pers. Data" sourceGoal="//@elements.12" targetGoal="//@elements.17" incomingDelegationLink="//@elements.58" outgoingDelegationLink="//@elements.59">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="acceptance"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.authentication.delegation">
+      <properties name="type" value="delegatee"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-secretary-get-pers-data-is-manager-get-pers-data-in" source="//@elements.2" target="//@elements.57"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-secretary-get-pers-data-is-manager-get-pers-data-out" source="//@elements.57" target="//@elements.3"/>
+  <elements xsi:type="ststool:Delegation" id="delegates-secretary-obtain-utd-is-manager-obtain-utd" name="Obtain UTD Statement" sourceGoal="//@elements.14" targetGoal="//@elements.18" incomingDelegationLink="//@elements.61" outgoingDelegationLink="//@elements.62">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.redundancy">
+      <properties name="type" value="true-single-actor"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegates-secretary-obtain-utd-is-manager-obtain-utd-in" source="//@elements.2" target="//@elements.60"/>
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegates-secretary-obtain-utd-is-manager-obtain-utd-out" source="//@elements.60" target="//@elements.3"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-is-manager-personal-file-secretary-personal-file" name="Personal data file" sourceDocument="//@elements.24" targetDocument="//@elements.21" incomingTransmissionLink="//@elements.64" outgoingTransmissionLink="//@elements.65">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.availability">
+      <properties name="value" value="86"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.confidentiality">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.authentication.transmission">
+      <properties name="type" value="receiver"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-is-manager-personal-file-secretary-personal-file-in" source="//@elements.3" target="//@elements.63"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-is-manager-personal-file-secretary-personal-file-out" source="//@elements.63" target="//@elements.2"/>
+  <elements xsi:type="ststool:Transmission" id="transmits-is-manager-income-statement-secretary-income-statement" name="Income Statement" sourceDocument="//@elements.25" targetDocument="//@elements.22" incomingTransmissionLink="//@elements.67" outgoingTransmissionLink="//@elements.68">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.confidentiality">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+  </elements>
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="transmits-is-manager-income-statement-secretary-income-statement-in" source="//@elements.3" target="//@elements.66"/>
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="transmits-is-manager-income-statement-secretary-income-statement-out" source="//@elements.66" target="//@elements.2"/>
+  <elements xsi:type="ststool:DutyLink" id="incompatible-coordinator-secretary" source="//@elements.1" target="//@elements.2"/>
+  <elements xsi:type="ststool:Threat" id="threatens-ddos-attack-is-manager-get-pers-data" source="//@elements.26" target="//@elements.17"/>
+  <elements xsi:type="ststool:Threat" id="threatens-integrity-loss-is-manager-personal-file" source="//@elements.27" target="//@elements.24"/>
+  <elements xsi:type="ststool:Own" id="owns-student-personal-data" source="//@elements.0" target="//@elements.28"/>
+  <elements xsi:type="ststool:Own" id="owns-student-financial-status" source="//@elements.0" target="//@elements.29"/>
+  <elements xsi:type="ststool:Own" id="owns-coordinator-signature" source="//@elements.1" target="//@elements.30"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-signature-coordinator-signed-doc" source="//@elements.30" target="//@elements.19"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-personal-data-is-manager-personal-file" source="//@elements.28" target="//@elements.24"/>
+  <elements xsi:type="ststool:TangibleBy" id="tangibleBy-financial-status-is-manager-income-statement" source="//@elements.29" target="//@elements.25"/>
+  <elements xsi:type="ststool:PartOf" id="partOf-is-manager-income-statement-secretary-support-doc" source="//@elements.25" target="//@elements.20"/>
+  <elements xsi:type="ststool:PartOf" id="partOf-is-manager-personal-file-secretary-support-doc" source="//@elements.24" target="//@elements.20"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-student-is-manager" read="AUTHORIZED" produce="AUTHORIZED" transmit="AUTHORIZED" incomingAuthorizationLink="//@elements.81" outgoingAuthorizationLink="//@elements.82" informations="//@elements.28 //@elements.29" goals="//@elements.17"/>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-student-is-manager-in" source="//@elements.0" target="//@elements.80"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-student-is-manager-out" source="//@elements.80" target="//@elements.3"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-is-manager-secretary" read="AUTHORIZED" modification="FORBIDDEN" transmit="FORBIDDEN" incomingAuthorizationLink="//@elements.84" outgoingAuthorizationLink="//@elements.85" informations="//@elements.29 //@elements.28" goals="//@elements.11"/>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-is-manager-secretary-in" source="//@elements.3" target="//@elements.83"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-is-manager-secretary-out" source="//@elements.83" target="//@elements.2"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-student-coordinator" read="AUTHORIZED" produce="FORBIDDEN" incomingAuthorizationLink="//@elements.87" outgoingAuthorizationLink="//@elements.88" informations="//@elements.29 //@elements.28" goals="//@elements.5"/>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-student-coordinator-in" source="//@elements.0" target="//@elements.86"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-student-coordinator-out" source="//@elements.86" target="//@elements.1"/>
+  <elements xsi:type="ststool:Authorization" id="authorises-coordinator-secretary" read="AUTHORIZED" modification="FORBIDDEN" incomingAuthorizationLink="//@elements.90" outgoingAuthorizationLink="//@elements.91" informations="//@elements.29 //@elements.28" goals="//@elements.11">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.notransferability"/>
+  </elements>
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorises-coordinator-secretary-in" source="//@elements.1" target="//@elements.89"/>
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorises-coordinator-secretary-out" source="//@elements.89" target="//@elements.2"/>
+</ststool:STSDiagram>

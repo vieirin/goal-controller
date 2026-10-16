@@ -1,5 +1,7 @@
 # Stay permit (the STS-ml manual's running example: Figs. 9, 14, 16, 18, 20)
 
+**Verdict:** provisionally accepted by the orchestrator (owner away), [#160](https://github.com/vieirin/goal-controller/issues/160#issuecomment-6208981577); the owner confirms before merge.
+
 *Socio-Technical Security Modeling Language*, for STS-Tool 2.0 & 2.1 (rev 1.0), UniTN; §1.2 the scenario:
 
 - **Fig. 9**, the social view; **Fig. 14**, separation of duties; **Fig. 16**, threats;

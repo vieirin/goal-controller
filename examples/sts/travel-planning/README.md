@@ -1,5 +1,7 @@
 # Travel planning (NESSoS chapter §2, Figs. 1, 10, 11, 12, 16; Table 1)
 
+**Verdict:** provisionally accepted by the orchestrator (owner away), [#160](https://github.com/vieirin/goal-controller/issues/160#issuecomment-6208981577); the owner confirms before merge.
+
 Paja, Dalpiaz, Giorgini, *STS-Tool: Security Requirements Engineering for Socio-Technical Systems*, Engineering Secure Future Internet Services and Systems, LNCS 8431 (2014) 65–96, §2 (STS-Tool v1.3):
 
 - **Fig. 1a**, the social view (a tool screenshot); **Fig. 1b**, the information view; **Fig. 1c**, the authorisation view;
