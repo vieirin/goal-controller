@@ -12,6 +12,8 @@ import {
   checkContextOf,
   elementLine,
   isValidName,
+  readEnumSet,
+  toggleEnumSet,
 } from '@goal-controller/goal-language';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
@@ -537,8 +539,12 @@ export function PropertyRow({
     ? input.kind === 'long'
     : name === 'Description' || name === 'assertion' || name === 'maintain';
   const note = notReadBy ?? notApplying ?? null;
+  // some of the options (goal-controller#162): one box each, while the value reads as a list
+  const chosen =
+    input?.kind === 'multiSelect' ? readEnumSet(value ?? '') : null;
   // checked as typed: a select's value, or the text being edited
-  const current = input?.kind === 'select' ? (value ?? '') : draft.draft;
+  const current =
+    input?.kind === 'select' || chosen ? (value ?? '') : draft.draft;
   const error =
     (invalid
       ? kind === 'integer'
@@ -598,6 +604,36 @@ export function PropertyRow({
             </option>
           ))}
         </select>
+      ) : input?.kind === 'multiSelect' && chosen ? (
+        <div
+          role='group'
+          aria-label={name}
+          aria-invalid={!!error}
+          className={cx(
+            'flex flex-wrap gap-x-3 gap-y-1 pt-1 font-mono text-xs',
+            error && 'text-danger',
+          )}
+        >
+          {input.options
+            .filter((o) => o.value !== '')
+            .map((o) => (
+              <label key={o.value} className='flex items-center gap-1'>
+                <input
+                  type='checkbox'
+                  checked={chosen.includes(o.value)}
+                  onChange={(e) => {
+                    const next = toggleEnumSet(
+                      value ?? '',
+                      o.value,
+                      e.target.checked,
+                    );
+                    if (next !== null) onChange(next === '' ? null : next);
+                  }}
+                />
+                {o.label}
+              </label>
+            ))}
+        </div>
       ) : editor ? (
         editor({
           value: draft.draft,

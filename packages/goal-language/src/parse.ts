@@ -793,6 +793,24 @@ export const enumSetText = (values: readonly string[]): string =>
   values.join(', ');
 
 /**
+ * An `enumSet` value with an option added (at its end, unless written) or
+ * removed, the others as written; `''` when none is left. Null when the value isn't a
+ * list (an editor then edits its text).
+ */
+export const toggleEnumSet = (
+  text: string,
+  option: string,
+  on: boolean,
+): string | null => {
+  const values = readEnumSet(text);
+  if (!values) return null;
+  const others = values.filter((value) => value !== option);
+  return enumSetText(
+    !on ? others : values.includes(option) ? values : [...values, option],
+  );
+};
+
+/**
  * The tree of an `expression` value, as checks and engines read it (they
  * never parse a formula's text themselves). Null when it is empty or isn't an
  * expression.

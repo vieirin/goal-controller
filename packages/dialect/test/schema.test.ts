@@ -179,6 +179,49 @@ describe('defineDialect', () => {
     same<Same<ProjectResourceKindOf<typeof toy>, never>>();
   });
 
+  it('declares its views by kinds, and checks every kind is iStar’s or its extension’s (#162)', () => {
+    const withViews = (views: Record<string, unknown>) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            extension: structuredClone(toyDialect),
+            views,
+          }) as AnyDialect,
+      );
+    const goals = {
+      label: 'Goals',
+      kinds: ['istar.Role', 'istar.Goal', 'toyish.Box'],
+      links: ['istar.AndRefinementLink', 'toyish.Feeds'],
+    };
+    expect(
+      withViews({ goals, all: { label: 'All', kinds: ['istar.Goal'] } }),
+    ).not.to.throw();
+    const failures: [Record<string, unknown>, RegExp][] = [
+      [{ 'a b': goals }, /view a b: its id is a name/],
+      [{ goals: { ...goals, label: '' } }, /view goals: no label/],
+      [{ goals: { ...goals, kinds: [] } }, /view goals: shows no kind/],
+      [
+        { goals: { ...goals, kinds: ['istar.Goal', 'istar.Goal'] } },
+        /view goals: a kind twice/,
+      ],
+      [
+        { goals: { ...goals, kinds: ['toyish.Nope'] } },
+        /view goals: unknown kind toyish\.Nope/,
+      ],
+      [
+        { goals: { ...goals, kinds: ['istar.AndRefinementLink'] } },
+        /unknown kind istar\.AndRefinementLink/,
+      ],
+      [
+        { goals: { ...goals, links: ['istar.Goal'] } },
+        /view goals: unknown link kind istar\.Goal/,
+      ],
+    ];
+    for (const [views, message] of failures)
+      expect(withViews(views)).to.throw(message);
+  });
+
   it('declares its native files, and checks their extensions, schema, functions and lossy paths (#143)', () => {
     const read = () => ({ model: null, dialectRecord: null, diagnostics: [] });
     const shelf = {

@@ -76,6 +76,21 @@ describe('property', () => {
       help: 'h',
     }));
 
+  it('writes an enumSet’s options as an enum’s (#162)', () =>
+    expect(
+      property.enumSet('days', ['mon', ['wed', 'Wednesday']], { help: 'h' }),
+    ).to.deep.equal({
+      key: 'days',
+      value: {
+        type: 'enumSet',
+        options: [
+          { value: 'mon', label: 'mon' },
+          { value: 'wed', label: 'Wednesday' },
+        ],
+      },
+      help: 'h',
+    }));
+
   it("puts an assertion's, an expression's and OCL's options in the value, the rest beside it", () => {
     const functions = [{ name: 'previous', arity: 1 }];
     expect(
