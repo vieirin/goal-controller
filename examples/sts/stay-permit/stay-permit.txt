@@ -1,0 +1,813 @@
+{
+  "actors": [
+    {
+      "id": "student",
+      "text": "Student",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "student-write-doc",
+          "text": "G1: Write doc for I.O",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 80,
+          "y": 80
+        }
+      ],
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "coordinator",
+      "text": "Program Coordinator",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "coordinator-write-doc",
+          "text": "G2: Write doc for I.O",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 480,
+          "y": 80
+        },
+        {
+          "id": "coordinator-get-record",
+          "text": "G3: Get Student Record",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 320,
+          "y": 180
+        },
+        {
+          "id": "coordinator-write-official",
+          "text": "G4: Write Official Doc",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 480,
+          "y": 180
+        },
+        {
+          "id": "coordinator-sign",
+          "text": "G5: Sign doc",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 800,
+          "y": 180
+        },
+        {
+          "id": "coordinator-update-old",
+          "text": "G6: Update old doc",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 480,
+          "y": 280
+        },
+        {
+          "id": "coordinator-write-new",
+          "text": "G7: Write new doc",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 640,
+          "y": 280
+        },
+        {
+          "id": "coordinator-signed-doc",
+          "text": "R1: Signed Official Doc",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 640,
+          "y": 80
+        }
+      ],
+      "x": 280,
+      "y": 40
+    },
+    {
+      "id": "secretary",
+      "text": "Secretary",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "secretary-get-record",
+          "text": "G8: Get Student Record",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1360,
+          "y": 80
+        },
+        {
+          "id": "secretary-get-pers-data",
+          "text": "G9: Get Student Pers. Data",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1200,
+          "y": 180
+        },
+        {
+          "id": "secretary-derive-financial",
+          "text": "G10: Derive Financial Stat.",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1680,
+          "y": 180
+        },
+        {
+          "id": "secretary-obtain-utd",
+          "text": "G11: Obtain UTD Statement",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1520,
+          "y": 280
+        },
+        {
+          "id": "secretary-check-income",
+          "text": "G12: Check Income Adequacy",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1840,
+          "y": 280
+        },
+        {
+          "id": "secretary-write-new",
+          "text": "G13: Write new doc",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2000,
+          "y": 80
+        },
+        {
+          "id": "secretary-support-doc",
+          "text": "R2: Student support document",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1520,
+          "y": 80
+        },
+        {
+          "id": "secretary-personal-file",
+          "text": "R3: Personal data file",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1360,
+          "y": 180
+        },
+        {
+          "id": "secretary-income-statement",
+          "text": "R4: Income Statement",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1680,
+          "y": 280
+        },
+        {
+          "id": "secretary-template",
+          "text": "R5: Document Template",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2160,
+          "y": 80
+        }
+      ],
+      "x": 1160,
+      "y": 40
+    },
+    {
+      "id": "is-manager",
+      "text": "IS Manager",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "is-manager-get-pers-data",
+          "text": "G14: Get Student Pers. Data",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2400,
+          "y": 80
+        },
+        {
+          "id": "is-manager-obtain-utd",
+          "text": "G15: Obtain UTD Statement",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2560,
+          "y": 80
+        },
+        {
+          "id": "is-manager-personal-file",
+          "text": "R6: Personal data file",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2720,
+          "y": 80
+        },
+        {
+          "id": "is-manager-income-statement",
+          "text": "R7: Income Statement",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2880,
+          "y": 80
+        }
+      ],
+      "x": 2360,
+      "y": 40
+    }
+  ],
+  "orphans": [
+    {
+      "id": "ddos-attack",
+      "text": "E1: DDoS attack",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 3080,
+      "y": 80
+    },
+    {
+      "id": "integrity-loss",
+      "text": "E2: Info Integrity loss",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 3080,
+      "y": 180
+    },
+    {
+      "id": "personal-data",
+      "text": "I1: PersonalData",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 3080,
+      "y": 280
+    },
+    {
+      "id": "financial-status",
+      "text": "I2: FinancialStatus",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 3080,
+      "y": 380
+    },
+    {
+      "id": "signature",
+      "text": "I3: Signature",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 1000,
+      "y": 80
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "delegates-student-write-doc-coordinator-write-doc",
+      "type": "sts.DelegatesLink",
+      "source": "student-write-doc",
+      "target": "coordinator-write-doc",
+      "customProperties": {
+        "nonRepudiation": "acceptance",
+        "noRedelegation": "true"
+      }
+    },
+    {
+      "id": "and-coordinator-get-record-coordinator-write-doc",
+      "type": "istar.AndRefinementLink",
+      "source": "coordinator-get-record",
+      "target": "coordinator-write-doc"
+    },
+    {
+      "id": "and-coordinator-write-official-coordinator-write-doc",
+      "type": "istar.AndRefinementLink",
+      "source": "coordinator-write-official",
+      "target": "coordinator-write-doc"
+    },
+    {
+      "id": "and-coordinator-sign-coordinator-write-doc",
+      "type": "istar.AndRefinementLink",
+      "source": "coordinator-sign",
+      "target": "coordinator-write-doc"
+    },
+    {
+      "id": "or-coordinator-update-old-coordinator-write-official",
+      "type": "istar.OrRefinementLink",
+      "source": "coordinator-update-old",
+      "target": "coordinator-write-official"
+    },
+    {
+      "id": "or-coordinator-write-new-coordinator-write-official",
+      "type": "istar.OrRefinementLink",
+      "source": "coordinator-write-new",
+      "target": "coordinator-write-official"
+    },
+    {
+      "id": "produces-coordinator-write-doc-coordinator-signed-doc",
+      "type": "sts.ProducesLink",
+      "source": "coordinator-write-doc",
+      "target": "coordinator-signed-doc"
+    },
+    {
+      "id": "delegates-coordinator-write-new-secretary-write-new",
+      "type": "sts.DelegatesLink",
+      "source": "coordinator-write-new",
+      "target": "secretary-write-new",
+      "customProperties": {
+        "nonRepudiation": "delegation",
+        "noRedelegation": "true"
+      }
+    },
+    {
+      "id": "delegates-coordinator-get-record-secretary-get-record",
+      "type": "sts.DelegatesLink",
+      "source": "coordinator-get-record",
+      "target": "secretary-get-record",
+      "customProperties": {
+        "nonRepudiation": "acceptance",
+        "trustworthiness": "true"
+      }
+    },
+    {
+      "id": "and-secretary-get-pers-data-secretary-get-record",
+      "type": "istar.AndRefinementLink",
+      "source": "secretary-get-pers-data",
+      "target": "secretary-get-record"
+    },
+    {
+      "id": "and-secretary-derive-financial-secretary-get-record",
+      "type": "istar.AndRefinementLink",
+      "source": "secretary-derive-financial",
+      "target": "secretary-get-record"
+    },
+    {
+      "id": "and-secretary-obtain-utd-secretary-derive-financial",
+      "type": "istar.AndRefinementLink",
+      "source": "secretary-obtain-utd",
+      "target": "secretary-derive-financial"
+    },
+    {
+      "id": "and-secretary-check-income-secretary-derive-financial",
+      "type": "istar.AndRefinementLink",
+      "source": "secretary-check-income",
+      "target": "secretary-derive-financial"
+    },
+    {
+      "id": "reads-secretary-get-record-secretary-support-doc",
+      "type": "sts.ReadsLink",
+      "source": "secretary-get-record",
+      "target": "secretary-support-doc"
+    },
+    {
+      "id": "reads-secretary-get-pers-data-secretary-personal-file",
+      "type": "sts.ReadsLink",
+      "source": "secretary-get-pers-data",
+      "target": "secretary-personal-file"
+    },
+    {
+      "id": "reads-secretary-obtain-utd-secretary-income-statement",
+      "type": "sts.ReadsLink",
+      "source": "secretary-obtain-utd",
+      "target": "secretary-income-statement"
+    },
+    {
+      "id": "reads-secretary-write-new-secretary-template",
+      "type": "sts.ReadsLink",
+      "source": "secretary-write-new",
+      "target": "secretary-template"
+    },
+    {
+      "id": "modifies-secretary-write-new-secretary-template",
+      "type": "sts.ModifiesLink",
+      "source": "secretary-write-new",
+      "target": "secretary-template"
+    },
+    {
+      "id": "delegates-secretary-get-pers-data-is-manager-get-pers-data",
+      "type": "sts.DelegatesLink",
+      "source": "secretary-get-pers-data",
+      "target": "is-manager-get-pers-data",
+      "customProperties": {
+        "nonRepudiation": "acceptance",
+        "authentication": "delegatee"
+      }
+    },
+    {
+      "id": "delegates-secretary-obtain-utd-is-manager-obtain-utd",
+      "type": "sts.DelegatesLink",
+      "source": "secretary-obtain-utd",
+      "target": "is-manager-obtain-utd",
+      "customProperties": {
+        "redundancy": "trueSingleActor"
+      }
+    },
+    {
+      "id": "produces-is-manager-get-pers-data-is-manager-personal-file",
+      "type": "sts.ProducesLink",
+      "source": "is-manager-get-pers-data",
+      "target": "is-manager-personal-file"
+    },
+    {
+      "id": "produces-is-manager-obtain-utd-is-manager-income-statement",
+      "type": "sts.ProducesLink",
+      "source": "is-manager-obtain-utd",
+      "target": "is-manager-income-statement"
+    },
+    {
+      "id": "transmits-is-manager-personal-file-secretary-personal-file",
+      "type": "sts.TransmitsLink",
+      "source": "is-manager-personal-file",
+      "target": "secretary-personal-file",
+      "customProperties": {
+        "authentication": "receiver",
+        "confidentiality": "sender",
+        "availability": "86"
+      }
+    },
+    {
+      "id": "transmits-is-manager-income-statement-secretary-income-statement",
+      "type": "sts.TransmitsLink",
+      "source": "is-manager-income-statement",
+      "target": "secretary-income-statement",
+      "customProperties": {
+        "integrity": "sender",
+        "confidentiality": "sender"
+      }
+    },
+    {
+      "id": "incompatible-coordinator-secretary",
+      "type": "sts.IncompatibleLink",
+      "source": "coordinator",
+      "target": "secretary"
+    },
+    {
+      "id": "threatens-ddos-attack-is-manager-get-pers-data",
+      "type": "sts.ThreatensLink",
+      "source": "ddos-attack",
+      "target": "is-manager-get-pers-data"
+    },
+    {
+      "id": "threatens-integrity-loss-is-manager-personal-file",
+      "type": "sts.ThreatensLink",
+      "source": "integrity-loss",
+      "target": "is-manager-personal-file"
+    },
+    {
+      "id": "owns-student-personal-data",
+      "type": "sts.OwnsLink",
+      "source": "student",
+      "target": "personal-data"
+    },
+    {
+      "id": "owns-student-financial-status",
+      "type": "sts.OwnsLink",
+      "source": "student",
+      "target": "financial-status"
+    },
+    {
+      "id": "owns-coordinator-signature",
+      "type": "sts.OwnsLink",
+      "source": "coordinator",
+      "target": "signature"
+    },
+    {
+      "id": "tangibleBy-signature-coordinator-signed-doc",
+      "type": "sts.TangibleByLink",
+      "source": "signature",
+      "target": "coordinator-signed-doc"
+    },
+    {
+      "id": "tangibleBy-personal-data-is-manager-personal-file",
+      "type": "sts.TangibleByLink",
+      "source": "personal-data",
+      "target": "is-manager-personal-file"
+    },
+    {
+      "id": "tangibleBy-financial-status-is-manager-income-statement",
+      "type": "sts.TangibleByLink",
+      "source": "financial-status",
+      "target": "is-manager-income-statement"
+    },
+    {
+      "id": "partOf-is-manager-income-statement-secretary-support-doc",
+      "type": "sts.PartOfLink",
+      "source": "is-manager-income-statement",
+      "target": "secretary-support-doc"
+    },
+    {
+      "id": "partOf-is-manager-personal-file-secretary-support-doc",
+      "type": "sts.PartOfLink",
+      "source": "is-manager-personal-file",
+      "target": "secretary-support-doc"
+    },
+    {
+      "id": "authorises-student-is-manager",
+      "type": "sts.AuthorisesLink",
+      "source": "student",
+      "target": "is-manager",
+      "customProperties": {
+        "granted": "read, produce, transmit",
+        "information": "I1, I2",
+        "scope": "G14"
+      }
+    },
+    {
+      "id": "authorises-is-manager-secretary",
+      "type": "sts.AuthorisesLink",
+      "source": "is-manager",
+      "target": "secretary",
+      "customProperties": {
+        "granted": "read",
+        "prohibited": "modify, transmit",
+        "information": "I2, I1",
+        "scope": "G8"
+      }
+    },
+    {
+      "id": "authorises-student-coordinator",
+      "type": "sts.AuthorisesLink",
+      "source": "student",
+      "target": "coordinator",
+      "customProperties": {
+        "granted": "read",
+        "prohibited": "produce",
+        "information": "I2, I1",
+        "scope": "G2"
+      }
+    },
+    {
+      "id": "authorises-coordinator-secretary",
+      "type": "sts.AuthorisesLink",
+      "source": "coordinator",
+      "target": "secretary",
+      "customProperties": {
+        "granted": "read",
+        "prohibited": "modify",
+        "information": "I2, I1",
+        "scope": "G8",
+        "transferable": "false"
+      }
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 3240,
+    "height": 700,
+    "name": "Stay permit",
+    "customProperties": {
+      "engine": "sts",
+      "source": "STS-ml modeling language manual v2.1 (rev 1.0), §1.2–2.3: Figs. 9, 14, 16, 18, 20"
+    }
+  },
+  "metamodel": {
+    "name": "sts",
+    "elements": [
+      {
+        "kind": "sts.Information",
+        "label": "Information",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 2 2 L 98 2 L 98 38 L 2 38 Z M 12 13 L 88 13 M 12 20 L 88 20 M 12 27 L 70 27",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "sts.Event",
+        "label": "Event",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 14 2 L 86 2 L 98 22 L 86 42 L 14 42 L 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.15,
+          "right": 0.14,
+          "bottom": 0.15,
+          "left": 0.14
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "sts.DelegatesLink",
+        "label": "delegates",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Goal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TransmitsLink",
+        "label": "transmits",
+        "rules": {
+          "sources": [
+            "istar.Resource"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.ReadsLink",
+        "label": "read",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ModifiesLink",
+        "label": "modify",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ProducesLink",
+        "label": "produce",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.OwnsLink",
+        "label": "own",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "sts.Information"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TangibleByLink",
+        "label": "tangible by",
+        "rules": {
+          "sources": [
+            "sts.Information"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.PartOfLink",
+        "label": "part of",
+        "rules": {
+          "sources": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "targets": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.ThreatensLink",
+        "label": "threaten",
+        "rules": {
+          "sources": [
+            "sts.Event"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Resource",
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.IncompatibleLink",
+        "label": "≠",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.CombinesLink",
+        "label": "=",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.AuthorisesLink",
+        "label": "authorises",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "line": {}
+      }
+    ]
+  }
+}

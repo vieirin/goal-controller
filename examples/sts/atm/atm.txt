@@ -1,0 +1,796 @@
+{
+  "actors": [
+    {
+      "id": "pilot",
+      "text": "Pilot",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "pilot-fly-safe",
+          "text": "G1: Fly safe",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 80,
+          "y": 80
+        },
+        {
+          "id": "pilot-met-accessed",
+          "text": "G2: MET conditions accessed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 240,
+          "y": 80
+        }
+      ],
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "aircraft",
+      "text": "Aircraft system",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "aircraft-met-accessed",
+          "text": "G3: MET conditions accessed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 960,
+          "y": 80
+        },
+        {
+          "id": "aircraft-info-requested",
+          "text": "G4: MET info requested",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 640,
+          "y": 180
+        },
+        {
+          "id": "aircraft-info-received",
+          "text": "G5: MET info received",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1280,
+          "y": 180
+        },
+        {
+          "id": "aircraft-req-signed",
+          "text": "G6: Req. message signed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 640,
+          "y": 280
+        },
+        {
+          "id": "aircraft-req-encrypted",
+          "text": "G7: Req. message encrypted",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 800,
+          "y": 280
+        },
+        {
+          "id": "aircraft-integrity-verified",
+          "text": "G8: Info integrity verified",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1120,
+          "y": 280
+        },
+        {
+          "id": "aircraft-decrypted",
+          "text": "G9: Message decrypted",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1440,
+          "y": 280
+        },
+        {
+          "id": "aircraft-id",
+          "text": "R1: Aircraft ID",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 800,
+          "y": 180
+        },
+        {
+          "id": "aircraft-secure-request",
+          "text": "R2: Secure MET request",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 960,
+          "y": 180
+        },
+        {
+          "id": "aircraft-secure-info",
+          "text": "R3: Secure MET info object",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1280,
+          "y": 280
+        }
+      ],
+      "x": 600,
+      "y": 40
+    },
+    {
+      "id": "swim",
+      "text": "SWIM access point",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "swim-brokered",
+          "text": "G10: MET info req. brokered",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2000,
+          "y": 80
+        },
+        {
+          "id": "swim-integrity-verified",
+          "text": "G11: Request integrity verified",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1840,
+          "y": 180
+        },
+        {
+          "id": "swim-signed",
+          "text": "G12: MET info signed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2160,
+          "y": 180
+        },
+        {
+          "id": "swim-encrypted",
+          "text": "G13: MET info encrypted",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2480,
+          "y": 180
+        },
+        {
+          "id": "swim-secure-info",
+          "text": "R4: Secure MET info object",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2160,
+          "y": 80
+        },
+        {
+          "id": "swim-secure-request",
+          "text": "R5: Secure MET request",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2000,
+          "y": 180
+        },
+        {
+          "id": "swim-met-info",
+          "text": "R6: MET info object",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2320,
+          "y": 180
+        }
+      ],
+      "x": 1800,
+      "y": 40
+    },
+    {
+      "id": "meteo",
+      "text": "Meteo service provider",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "meteo-processed",
+          "text": "G14: MET request processed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3200,
+          "y": 80
+        },
+        {
+          "id": "meteo-customer-verified",
+          "text": "G15: Customer verified",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2880,
+          "y": 180
+        },
+        {
+          "id": "meteo-published",
+          "text": "G16: MET info published",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3200,
+          "y": 180
+        },
+        {
+          "id": "meteo-observed",
+          "text": "G17: MET data observed",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3680,
+          "y": 180
+        },
+        {
+          "id": "meteo-secure-request",
+          "text": "R7: Secure MET request",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 3040,
+          "y": 180
+        },
+        {
+          "id": "meteo-conditions-data",
+          "text": "R8: MET conditions data",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 3360,
+          "y": 180
+        },
+        {
+          "id": "meteo-met-info",
+          "text": "R9: MET info object",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 3520,
+          "y": 180
+        }
+      ],
+      "x": 2840,
+      "y": 40
+    }
+  ],
+  "orphans": [
+    {
+      "id": "bad-weather",
+      "text": "E1: Bad weather",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 440,
+      "y": 80
+    },
+    {
+      "id": "consumer-spoofing",
+      "text": "E2: Consumer spoofing",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 1640,
+      "y": 180
+    },
+    {
+      "id": "incompatible-encryption",
+      "text": "E3: Incompatible encryption",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 2680,
+      "y": 180
+    },
+    {
+      "id": "publisher-spoofing",
+      "text": "E4: Publisher spoofing",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 4040,
+      "y": 80
+    },
+    {
+      "id": "erroneous-data",
+      "text": "E5: Erroneous data impact flight",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 3880,
+      "y": 180
+    },
+    {
+      "id": "free-access",
+      "text": "E6: Free access to paid data",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 4200,
+      "y": 80
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "help-pilot-met-accessed-pilot-fly-safe",
+      "type": "istar.ContributionLink",
+      "source": "pilot-met-accessed",
+      "target": "pilot-fly-safe",
+      "label": "help"
+    },
+    {
+      "id": "delegates-pilot-met-accessed-aircraft-met-accessed",
+      "type": "sts.DelegatesLink",
+      "source": "pilot-met-accessed",
+      "target": "aircraft-met-accessed"
+    },
+    {
+      "id": "and-aircraft-info-requested-aircraft-met-accessed",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-info-requested",
+      "target": "aircraft-met-accessed"
+    },
+    {
+      "id": "and-aircraft-info-received-aircraft-met-accessed",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-info-received",
+      "target": "aircraft-met-accessed"
+    },
+    {
+      "id": "and-aircraft-req-signed-aircraft-info-requested",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-req-signed",
+      "target": "aircraft-info-requested"
+    },
+    {
+      "id": "and-aircraft-req-encrypted-aircraft-info-requested",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-req-encrypted",
+      "target": "aircraft-info-requested"
+    },
+    {
+      "id": "and-aircraft-integrity-verified-aircraft-info-received",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-integrity-verified",
+      "target": "aircraft-info-received"
+    },
+    {
+      "id": "and-aircraft-decrypted-aircraft-info-received",
+      "type": "istar.AndRefinementLink",
+      "source": "aircraft-decrypted",
+      "target": "aircraft-info-received"
+    },
+    {
+      "id": "reads-aircraft-info-requested-aircraft-id",
+      "type": "sts.ReadsLink",
+      "source": "aircraft-info-requested",
+      "target": "aircraft-id"
+    },
+    {
+      "id": "produces-aircraft-info-requested-aircraft-secure-request",
+      "type": "sts.ProducesLink",
+      "source": "aircraft-info-requested",
+      "target": "aircraft-secure-request"
+    },
+    {
+      "id": "reads-aircraft-integrity-verified-aircraft-secure-info",
+      "type": "sts.ReadsLink",
+      "source": "aircraft-integrity-verified",
+      "target": "aircraft-secure-info"
+    },
+    {
+      "id": "reads-aircraft-decrypted-aircraft-secure-info",
+      "type": "sts.ReadsLink",
+      "source": "aircraft-decrypted",
+      "target": "aircraft-secure-info"
+    },
+    {
+      "id": "transmits-aircraft-secure-request-swim-secure-request",
+      "type": "sts.TransmitsLink",
+      "source": "aircraft-secure-request",
+      "target": "swim-secure-request",
+      "customProperties": {
+        "integrity": "sender"
+      }
+    },
+    {
+      "id": "transmits-swim-secure-info-aircraft-secure-info",
+      "type": "sts.TransmitsLink",
+      "source": "swim-secure-info",
+      "target": "aircraft-secure-info",
+      "customProperties": {
+        "integrity": "sender"
+      }
+    },
+    {
+      "id": "and-swim-integrity-verified-swim-brokered",
+      "type": "istar.AndRefinementLink",
+      "source": "swim-integrity-verified",
+      "target": "swim-brokered"
+    },
+    {
+      "id": "and-swim-signed-swim-brokered",
+      "type": "istar.AndRefinementLink",
+      "source": "swim-signed",
+      "target": "swim-brokered"
+    },
+    {
+      "id": "and-swim-encrypted-swim-brokered",
+      "type": "istar.AndRefinementLink",
+      "source": "swim-encrypted",
+      "target": "swim-brokered"
+    },
+    {
+      "id": "produces-swim-brokered-swim-secure-info",
+      "type": "sts.ProducesLink",
+      "source": "swim-brokered",
+      "target": "swim-secure-info"
+    },
+    {
+      "id": "reads-swim-integrity-verified-swim-secure-request",
+      "type": "sts.ReadsLink",
+      "source": "swim-integrity-verified",
+      "target": "swim-secure-request"
+    },
+    {
+      "id": "reads-swim-signed-swim-met-info",
+      "type": "sts.ReadsLink",
+      "source": "swim-signed",
+      "target": "swim-met-info"
+    },
+    {
+      "id": "reads-swim-encrypted-swim-met-info",
+      "type": "sts.ReadsLink",
+      "source": "swim-encrypted",
+      "target": "swim-met-info"
+    },
+    {
+      "id": "transmits-swim-secure-request-meteo-secure-request",
+      "type": "sts.TransmitsLink",
+      "source": "swim-secure-request",
+      "target": "meteo-secure-request",
+      "customProperties": {
+        "integrity": "sender"
+      }
+    },
+    {
+      "id": "transmits-meteo-met-info-swim-met-info",
+      "type": "sts.TransmitsLink",
+      "source": "meteo-met-info",
+      "target": "swim-met-info",
+      "customProperties": {
+        "integrity": "sender"
+      }
+    },
+    {
+      "id": "and-meteo-customer-verified-meteo-processed",
+      "type": "istar.AndRefinementLink",
+      "source": "meteo-customer-verified",
+      "target": "meteo-processed"
+    },
+    {
+      "id": "and-meteo-published-meteo-processed",
+      "type": "istar.AndRefinementLink",
+      "source": "meteo-published",
+      "target": "meteo-processed"
+    },
+    {
+      "id": "reads-meteo-customer-verified-meteo-secure-request",
+      "type": "sts.ReadsLink",
+      "source": "meteo-customer-verified",
+      "target": "meteo-secure-request"
+    },
+    {
+      "id": "reads-meteo-published-meteo-conditions-data",
+      "type": "sts.ReadsLink",
+      "source": "meteo-published",
+      "target": "meteo-conditions-data"
+    },
+    {
+      "id": "produces-meteo-published-meteo-met-info",
+      "type": "sts.ProducesLink",
+      "source": "meteo-published",
+      "target": "meteo-met-info"
+    },
+    {
+      "id": "produces-meteo-observed-meteo-conditions-data",
+      "type": "sts.ProducesLink",
+      "source": "meteo-observed",
+      "target": "meteo-conditions-data"
+    },
+    {
+      "id": "threatens-bad-weather-pilot-fly-safe",
+      "type": "sts.ThreatensLink",
+      "source": "bad-weather",
+      "target": "pilot-fly-safe"
+    },
+    {
+      "id": "threatens-consumer-spoofing-aircraft-id",
+      "type": "sts.ThreatensLink",
+      "source": "consumer-spoofing",
+      "target": "aircraft-id"
+    },
+    {
+      "id": "threatens-incompatible-encryption-swim-encrypted",
+      "type": "sts.ThreatensLink",
+      "source": "incompatible-encryption",
+      "target": "swim-encrypted"
+    },
+    {
+      "id": "threatens-incompatible-encryption-aircraft-decrypted",
+      "type": "sts.ThreatensLink",
+      "source": "incompatible-encryption",
+      "target": "aircraft-decrypted"
+    },
+    {
+      "id": "threatens-publisher-spoofing-swim",
+      "type": "sts.ThreatensLink",
+      "source": "publisher-spoofing",
+      "target": "swim"
+    },
+    {
+      "id": "threatens-erroneous-data-meteo-met-info",
+      "type": "sts.ThreatensLink",
+      "source": "erroneous-data",
+      "target": "meteo-met-info"
+    },
+    {
+      "id": "threatens-free-access-meteo",
+      "type": "sts.ThreatensLink",
+      "source": "free-access",
+      "target": "meteo"
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 4360,
+    "height": 700,
+    "name": "ATM meteo information",
+    "customProperties": {
+      "engine": "sts",
+      "source": "Meland, Paja, Gjære, Paul, Dalpiaz, Giorgini, Threat analysis in goal-oriented security requirements modelling, IJSSE 5(2) 2014: Fig. 1 (threat trace: Fig. 5)"
+    }
+  },
+  "metamodel": {
+    "name": "sts",
+    "elements": [
+      {
+        "kind": "sts.Information",
+        "label": "Information",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 2 2 L 98 2 L 98 38 L 2 38 Z M 12 13 L 88 13 M 12 20 L 88 20 M 12 27 L 70 27",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "sts.Event",
+        "label": "Event",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 14 2 L 86 2 L 98 22 L 86 42 L 14 42 L 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.15,
+          "right": 0.14,
+          "bottom": 0.15,
+          "left": 0.14
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "sts.DelegatesLink",
+        "label": "delegates",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Goal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TransmitsLink",
+        "label": "transmits",
+        "rules": {
+          "sources": [
+            "istar.Resource"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.ReadsLink",
+        "label": "read",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ModifiesLink",
+        "label": "modify",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ProducesLink",
+        "label": "produce",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.OwnsLink",
+        "label": "own",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "sts.Information"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TangibleByLink",
+        "label": "tangible by",
+        "rules": {
+          "sources": [
+            "sts.Information"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.PartOfLink",
+        "label": "part of",
+        "rules": {
+          "sources": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "targets": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.ThreatensLink",
+        "label": "threaten",
+        "rules": {
+          "sources": [
+            "sts.Event"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Resource",
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.IncompatibleLink",
+        "label": "≠",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.CombinesLink",
+        "label": "=",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.AuthorisesLink",
+        "label": "authorises",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "line": {}
+      }
+    ]
+  }
+}

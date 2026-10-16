@@ -974,6 +974,42 @@
     "outputs": []
   },
   {
+    "path": "sts/atm",
+    "group": "sts",
+    "name": "atm",
+    "form": "file",
+    "dialect": "sts",
+    "root": "sts/atm",
+    "files": ["README.md", "atm.txt", "project.json"],
+    "models": ["atm.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "sts/stay-permit",
+    "group": "sts",
+    "name": "stay-permit",
+    "form": "file",
+    "dialect": "sts",
+    "root": "sts/stay-permit",
+    "files": ["README.md", "project.json", "stay-permit.txt"],
+    "models": ["stay-permit.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "sts/travel-planning",
+    "group": "sts",
+    "name": "travel-planning",
+    "form": "file",
+    "dialect": "sts",
+    "root": "sts/travel-planning",
+    "files": ["README.md", "project.json", "travel-planning.txt"],
+    "models": ["travel-planning.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "tropos4as/cleaner-agent",
     "group": "tropos4as",
     "name": "cleaner-agent",

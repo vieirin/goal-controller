@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "dialect": "sts",
+  "models": [
+    {
+      "path": "travel-planning.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

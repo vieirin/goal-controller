@@ -1,0 +1,887 @@
+{
+  "actors": [
+    {
+      "id": "bob",
+      "text": "Bob",
+      "type": "istar.Agent",
+      "customProperties": {},
+      "nodes": [],
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "tourist",
+      "text": "Tourist",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "tourist-trip-planned",
+          "text": "G1: Trip planned",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 320,
+          "y": 80
+        },
+        {
+          "id": "tourist-tickets-booked",
+          "text": "G2: Tickets booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 320,
+          "y": 180
+        },
+        {
+          "id": "tourist-hotel-booked",
+          "text": "G3: Hotel booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 480,
+          "y": 180
+        },
+        {
+          "id": "tourist-traveling-order",
+          "text": "R1: Traveling Order",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 480,
+          "y": 80
+        },
+        {
+          "id": "tourist-id-doc-copy",
+          "text": "R2: ID Doc Copy",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 640,
+          "y": 180
+        }
+      ],
+      "x": 280,
+      "y": 40
+    },
+    {
+      "id": "tas",
+      "text": "TAS",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "tas-tickets-booked",
+          "text": "G4: Tickets booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1040,
+          "y": 80
+        },
+        {
+          "id": "tas-flight-ticket-booked",
+          "text": "G5: Flight ticket booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 880,
+          "y": 180
+        },
+        {
+          "id": "tas-train-ticket-booked",
+          "text": "G6: Train ticket booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1200,
+          "y": 180
+        },
+        {
+          "id": "tas-traveling-order",
+          "text": "R3: Traveling Order",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1200,
+          "y": 80
+        },
+        {
+          "id": "tas-itinerary-details",
+          "text": "R4: Itinerary details",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1040,
+          "y": 180
+        },
+        {
+          "id": "tas-tickets",
+          "text": "R5: Tickets",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1360,
+          "y": 180
+        }
+      ],
+      "x": 840,
+      "y": 40
+    },
+    {
+      "id": "amadeus",
+      "text": "Amadeus Service",
+      "type": "istar.Agent",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "amadeus-flight-ticket-booked",
+          "text": "G7: Flight ticket booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1920,
+          "y": 80
+        },
+        {
+          "id": "amadeus-eticket-generated",
+          "text": "G8: eticket generated",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 1760,
+          "y": 180
+        },
+        {
+          "id": "amadeus-credit-card-verified",
+          "text": "G9: credit card verified",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2240,
+          "y": 180
+        },
+        {
+          "id": "amadeus-itinerary-details",
+          "text": "R6: Itinerary details",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 1920,
+          "y": 180
+        },
+        {
+          "id": "amadeus-flight-tickets",
+          "text": "R7: Flight tickets",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2080,
+          "y": 180
+        }
+      ],
+      "x": 1720,
+      "y": 40
+    },
+    {
+      "id": "hotel",
+      "text": "Hotel",
+      "type": "istar.Role",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "hotel-hotel-booked",
+          "text": "G10: Hotel booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2640,
+          "y": 80
+        },
+        {
+          "id": "hotel-room-selected",
+          "text": "G11: Room selected",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 2800,
+          "y": 80
+        },
+        {
+          "id": "hotel-id-doc-copy",
+          "text": "R8: ID Doc Copy",
+          "type": "istar.Resource",
+          "customProperties": {},
+          "x": 2960,
+          "y": 80
+        }
+      ],
+      "x": 2600,
+      "y": 40
+    },
+    {
+      "id": "hotel-service",
+      "text": "Hotel Service",
+      "type": "istar.Agent",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "hotel-service-hotel-booked",
+          "text": "G12: Hotel booked",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3360,
+          "y": 80
+        },
+        {
+          "id": "hotel-service-room-selected",
+          "text": "G13: Room selected",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3360,
+          "y": 180
+        },
+        {
+          "id": "hotel-service-prepayment-made",
+          "text": "G14: Prepayment made",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3520,
+          "y": 180
+        }
+      ],
+      "x": 3320,
+      "y": 40
+    },
+    {
+      "id": "payment-service",
+      "text": "Payment Service",
+      "type": "istar.Agent",
+      "customProperties": {},
+      "nodes": [
+        {
+          "id": "payment-service-prepayment-made",
+          "text": "G15: Prepayment made",
+          "type": "istar.Goal",
+          "customProperties": {},
+          "x": 3760,
+          "y": 80
+        }
+      ],
+      "x": 3720,
+      "y": 40
+    }
+  ],
+  "orphans": [
+    {
+      "id": "id-doc-stolen",
+      "text": "E1: ID Doc stolen",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 3160,
+      "y": 80
+    },
+    {
+      "id": "ticket-lost",
+      "text": "E2: Ticket lost",
+      "type": "sts.Event",
+      "customProperties": {},
+      "x": 1560,
+      "y": 180
+    },
+    {
+      "id": "personal-data",
+      "text": "I1: Personal data",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 2440,
+      "y": 180
+    },
+    {
+      "id": "itinerary",
+      "text": "I2: Itinerary",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 1560,
+      "y": 280
+    },
+    {
+      "id": "destination",
+      "text": "I3: Destination",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 1560,
+      "y": 380
+    },
+    {
+      "id": "schedule",
+      "text": "I4: Schedule",
+      "type": "sts.Information",
+      "customProperties": {},
+      "x": 1560,
+      "y": 480
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "plays-bob-tourist",
+      "type": "istar.ParticipatesInLink",
+      "source": "bob",
+      "target": "tourist"
+    },
+    {
+      "id": "and-tourist-tickets-booked-tourist-trip-planned",
+      "type": "istar.AndRefinementLink",
+      "source": "tourist-tickets-booked",
+      "target": "tourist-trip-planned"
+    },
+    {
+      "id": "and-tourist-hotel-booked-tourist-trip-planned",
+      "type": "istar.AndRefinementLink",
+      "source": "tourist-hotel-booked",
+      "target": "tourist-trip-planned"
+    },
+    {
+      "id": "combines-tourist-tickets-booked-tourist-hotel-booked",
+      "type": "sts.CombinesLink",
+      "source": "tourist-tickets-booked",
+      "target": "tourist-hotel-booked"
+    },
+    {
+      "id": "reads-tourist-trip-planned-tourist-traveling-order",
+      "type": "sts.ReadsLink",
+      "source": "tourist-trip-planned",
+      "target": "tourist-traveling-order"
+    },
+    {
+      "id": "modifies-tourist-trip-planned-tourist-traveling-order",
+      "type": "sts.ModifiesLink",
+      "source": "tourist-trip-planned",
+      "target": "tourist-traveling-order"
+    },
+    {
+      "id": "produces-tourist-trip-planned-tourist-traveling-order",
+      "type": "sts.ProducesLink",
+      "source": "tourist-trip-planned",
+      "target": "tourist-traveling-order"
+    },
+    {
+      "id": "reads-tourist-hotel-booked-tourist-id-doc-copy",
+      "type": "sts.ReadsLink",
+      "source": "tourist-hotel-booked",
+      "target": "tourist-id-doc-copy"
+    },
+    {
+      "id": "delegates-tourist-tickets-booked-tas-tickets-booked",
+      "type": "sts.DelegatesLink",
+      "source": "tourist-tickets-booked",
+      "target": "tas-tickets-booked",
+      "customProperties": {
+        "nonRepudiation": "acceptance",
+        "redundancy": "trueMultiActor"
+      }
+    },
+    {
+      "id": "delegates-tourist-hotel-booked-hotel-hotel-booked",
+      "type": "sts.DelegatesLink",
+      "source": "tourist-hotel-booked",
+      "target": "hotel-hotel-booked",
+      "customProperties": {
+        "noRedelegation": "true",
+        "trustworthiness": "true"
+      }
+    },
+    {
+      "id": "transmits-tourist-traveling-order-tas-traveling-order",
+      "type": "sts.TransmitsLink",
+      "source": "tourist-traveling-order",
+      "target": "tas-traveling-order"
+    },
+    {
+      "id": "transmits-tourist-id-doc-copy-hotel-id-doc-copy",
+      "type": "sts.TransmitsLink",
+      "source": "tourist-id-doc-copy",
+      "target": "hotel-id-doc-copy"
+    },
+    {
+      "id": "or-tas-flight-ticket-booked-tas-tickets-booked",
+      "type": "istar.OrRefinementLink",
+      "source": "tas-flight-ticket-booked",
+      "target": "tas-tickets-booked"
+    },
+    {
+      "id": "or-tas-train-ticket-booked-tas-tickets-booked",
+      "type": "istar.OrRefinementLink",
+      "source": "tas-train-ticket-booked",
+      "target": "tas-tickets-booked"
+    },
+    {
+      "id": "reads-tas-tickets-booked-tas-traveling-order",
+      "type": "sts.ReadsLink",
+      "source": "tas-tickets-booked",
+      "target": "tas-traveling-order"
+    },
+    {
+      "id": "reads-tas-flight-ticket-booked-tas-itinerary-details",
+      "type": "sts.ReadsLink",
+      "source": "tas-flight-ticket-booked",
+      "target": "tas-itinerary-details"
+    },
+    {
+      "id": "produces-tas-train-ticket-booked-tas-tickets",
+      "type": "sts.ProducesLink",
+      "source": "tas-train-ticket-booked",
+      "target": "tas-tickets"
+    },
+    {
+      "id": "delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked",
+      "type": "sts.DelegatesLink",
+      "source": "tas-flight-ticket-booked",
+      "target": "amadeus-flight-ticket-booked",
+      "customProperties": {
+        "nonRepudiation": "delegation",
+        "availability": "85"
+      }
+    },
+    {
+      "id": "transmits-tas-itinerary-details-amadeus-itinerary-details",
+      "type": "sts.TransmitsLink",
+      "source": "tas-itinerary-details",
+      "target": "amadeus-itinerary-details",
+      "customProperties": {
+        "integrity": "sender",
+        "confidentiality": "sender",
+        "availability": "98"
+      }
+    },
+    {
+      "id": "and-amadeus-eticket-generated-amadeus-flight-ticket-booked",
+      "type": "istar.AndRefinementLink",
+      "source": "amadeus-eticket-generated",
+      "target": "amadeus-flight-ticket-booked"
+    },
+    {
+      "id": "and-amadeus-credit-card-verified-amadeus-flight-ticket-booked",
+      "type": "istar.AndRefinementLink",
+      "source": "amadeus-credit-card-verified",
+      "target": "amadeus-flight-ticket-booked"
+    },
+    {
+      "id": "incompatible-amadeus-eticket-generated-amadeus-credit-card-verified",
+      "type": "sts.IncompatibleLink",
+      "source": "amadeus-eticket-generated",
+      "target": "amadeus-credit-card-verified"
+    },
+    {
+      "id": "produces-amadeus-eticket-generated-amadeus-flight-tickets",
+      "type": "sts.ProducesLink",
+      "source": "amadeus-eticket-generated",
+      "target": "amadeus-flight-tickets"
+    },
+    {
+      "id": "reads-amadeus-eticket-generated-amadeus-itinerary-details",
+      "type": "sts.ReadsLink",
+      "source": "amadeus-eticket-generated",
+      "target": "amadeus-itinerary-details"
+    },
+    {
+      "id": "reads-hotel-hotel-booked-hotel-id-doc-copy",
+      "type": "sts.ReadsLink",
+      "source": "hotel-hotel-booked",
+      "target": "hotel-id-doc-copy"
+    },
+    {
+      "id": "modifies-hotel-hotel-booked-hotel-id-doc-copy",
+      "type": "sts.ModifiesLink",
+      "source": "hotel-hotel-booked",
+      "target": "hotel-id-doc-copy"
+    },
+    {
+      "id": "delegates-hotel-hotel-booked-hotel-service-hotel-booked",
+      "type": "sts.DelegatesLink",
+      "source": "hotel-hotel-booked",
+      "target": "hotel-service-hotel-booked"
+    },
+    {
+      "id": "and-hotel-service-room-selected-hotel-service-hotel-booked",
+      "type": "istar.AndRefinementLink",
+      "source": "hotel-service-room-selected",
+      "target": "hotel-service-hotel-booked"
+    },
+    {
+      "id": "and-hotel-service-prepayment-made-hotel-service-hotel-booked",
+      "type": "istar.AndRefinementLink",
+      "source": "hotel-service-prepayment-made",
+      "target": "hotel-service-hotel-booked"
+    },
+    {
+      "id": "incompatible-hotel-service-room-selected-hotel-service-prepayment-made",
+      "type": "sts.IncompatibleLink",
+      "source": "hotel-service-room-selected",
+      "target": "hotel-service-prepayment-made"
+    },
+    {
+      "id": "delegates-hotel-service-room-selected-hotel-room-selected",
+      "type": "sts.DelegatesLink",
+      "source": "hotel-service-room-selected",
+      "target": "hotel-room-selected"
+    },
+    {
+      "id": "delegates-hotel-service-prepayment-made-payment-service-prepayment-made",
+      "type": "sts.DelegatesLink",
+      "source": "hotel-service-prepayment-made",
+      "target": "payment-service-prepayment-made",
+      "customProperties": {
+        "trustworthiness": "true"
+      }
+    },
+    {
+      "id": "threatens-id-doc-stolen-hotel-id-doc-copy",
+      "type": "sts.ThreatensLink",
+      "source": "id-doc-stolen",
+      "target": "hotel-id-doc-copy"
+    },
+    {
+      "id": "threatens-ticket-lost-tas-train-ticket-booked",
+      "type": "sts.ThreatensLink",
+      "source": "ticket-lost",
+      "target": "tas-train-ticket-booked"
+    },
+    {
+      "id": "owns-tourist-personal-data",
+      "type": "sts.OwnsLink",
+      "source": "tourist",
+      "target": "personal-data"
+    },
+    {
+      "id": "owns-tourist-itinerary",
+      "type": "sts.OwnsLink",
+      "source": "tourist",
+      "target": "itinerary"
+    },
+    {
+      "id": "partOf-destination-itinerary",
+      "type": "sts.PartOfLink",
+      "source": "destination",
+      "target": "itinerary"
+    },
+    {
+      "id": "partOf-schedule-itinerary",
+      "type": "sts.PartOfLink",
+      "source": "schedule",
+      "target": "itinerary"
+    },
+    {
+      "id": "partOf-tourist-id-doc-copy-tourist-traveling-order",
+      "type": "sts.PartOfLink",
+      "source": "tourist-id-doc-copy",
+      "target": "tourist-traveling-order"
+    },
+    {
+      "id": "tangibleBy-personal-data-amadeus-flight-tickets",
+      "type": "sts.TangibleByLink",
+      "source": "personal-data",
+      "target": "amadeus-flight-tickets"
+    },
+    {
+      "id": "tangibleBy-personal-data-tourist-id-doc-copy",
+      "type": "sts.TangibleByLink",
+      "source": "personal-data",
+      "target": "tourist-id-doc-copy"
+    },
+    {
+      "id": "tangibleBy-itinerary-tas-itinerary-details",
+      "type": "sts.TangibleByLink",
+      "source": "itinerary",
+      "target": "tas-itinerary-details"
+    },
+    {
+      "id": "tangibleBy-itinerary-tourist-traveling-order",
+      "type": "sts.TangibleByLink",
+      "source": "itinerary",
+      "target": "tourist-traveling-order"
+    },
+    {
+      "id": "authorises-tourist-tas",
+      "type": "sts.AuthorisesLink",
+      "source": "tourist",
+      "target": "tas",
+      "customProperties": {
+        "granted": "read",
+        "prohibited": "modify, produce, transmit",
+        "information": "I1, I2",
+        "scope": "G4"
+      }
+    },
+    {
+      "id": "authorises-tourist-hotel",
+      "type": "sts.AuthorisesLink",
+      "source": "tourist",
+      "target": "hotel",
+      "customProperties": {
+        "granted": "read",
+        "prohibited": "modify, produce, transmit",
+        "information": "I1",
+        "scope": "G10"
+      }
+    },
+    {
+      "id": "authorises-tas-amadeus",
+      "type": "sts.AuthorisesLink",
+      "source": "tas",
+      "target": "amadeus",
+      "customProperties": {
+        "granted": "read, produce",
+        "prohibited": "modify, transmit",
+        "information": "I2, I1",
+        "scope": "G7",
+        "transferable": "false"
+      }
+    }
+  ],
+  "display": {},
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "diagram": {
+    "width": 3960,
+    "height": 700,
+    "name": "Travel planning",
+    "customProperties": {
+      "engine": "sts",
+      "source": "Paja, Dalpiaz, Giorgini, STS-Tool, LNCS 8431 (2014), §2: Figs. 1, 10, 11, 12, 16, Table 1"
+    }
+  },
+  "metamodel": {
+    "name": "sts",
+    "elements": [
+      {
+        "kind": "sts.Information",
+        "label": "Information",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 40
+        },
+        "shape": {
+          "path": "M 2 2 L 98 2 L 98 38 L 2 38 Z M 12 13 L 88 13 M 12 20 L 88 20 M 12 27 L 70 27",
+          "viewBox": "0 0 100 40"
+        },
+        "textBox": {
+          "top": 0.1,
+          "right": 0.06,
+          "bottom": 0.1,
+          "left": 0.06
+        }
+      },
+      {
+        "kind": "sts.Event",
+        "label": "Event",
+        "category": "node",
+        "size": {
+          "width": 100,
+          "height": 44
+        },
+        "shape": {
+          "path": "M 14 2 L 86 2 L 98 22 L 86 42 L 14 42 L 2 22 Z",
+          "viewBox": "0 0 100 44"
+        },
+        "textBox": {
+          "top": 0.15,
+          "right": 0.14,
+          "bottom": 0.15,
+          "left": 0.14
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "sts.DelegatesLink",
+        "label": "delegates",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Goal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TransmitsLink",
+        "label": "transmits",
+        "rules": {
+          "sources": [
+            "istar.Resource"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.ReadsLink",
+        "label": "read",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ModifiesLink",
+        "label": "modify",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.ProducesLink",
+        "label": "produce",
+        "rules": {
+          "sources": [
+            "istar.Goal"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.OwnsLink",
+        "label": "own",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "sts.Information"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {}
+      },
+      {
+        "kind": "sts.TangibleByLink",
+        "label": "tangible by",
+        "rules": {
+          "sources": [
+            "sts.Information"
+          ],
+          "targets": [
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.PartOfLink",
+        "label": "part of",
+        "rules": {
+          "sources": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "targets": [
+            "sts.Information",
+            "istar.Resource"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.ThreatensLink",
+        "label": "threaten",
+        "rules": {
+          "sources": [
+            "sts.Event"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Resource",
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "line": {
+          "dash": "6 4"
+        }
+      },
+      {
+        "kind": "sts.IncompatibleLink",
+        "label": "≠",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.CombinesLink",
+        "label": "=",
+        "rules": {
+          "sources": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "targets": [
+            "istar.Goal",
+            "istar.Role"
+          ],
+          "sameActor": false,
+          "unique": "any"
+        },
+        "line": {
+          "dash": "2 3"
+        }
+      },
+      {
+        "kind": "sts.AuthorisesLink",
+        "label": "authorises",
+        "rules": {
+          "sources": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "targets": [
+            "istar.Role",
+            "istar.Agent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "line": {}
+      }
+    ]
+  }
+}

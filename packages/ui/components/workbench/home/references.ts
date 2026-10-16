@@ -129,6 +129,27 @@ export const SECTION_REFERENCES: Readonly<
       examples: ['cgm/smart-home'],
     },
   ],
+  sts: [
+    {
+      text: 'E. Paja, F. Dalpiaz, P. Giorgini. Modelling and reasoning about security requirements in socio-technical systems. Data & Knowledge Engineering 98 (2015): STS-ml, its three views and its security analysis.',
+      url: 'https://doi.org/10.1016/j.datak.2015.07.007',
+    },
+    {
+      text: 'E. Paja, F. Dalpiaz, P. Giorgini. STS-Tool: Security Requirements Engineering for Socio-Technical Systems. LNCS 8431 (2014): Fig. 1, travel planning, its security needs (Figs. 10–16) and requirements (Table 1).',
+      url: 'https://doi.org/10.1007/978-3-319-07452-8_3',
+      examples: ['sts/travel-planning'],
+    },
+    {
+      text: 'The socio-technical security modeling language, manual for STS-Tool 2.0 & 2.1 (UniTN): the stay permit running example, Figs. 9, 14, 16, 18 and 20.',
+      url: 'https://www.sts-tool.eu/assets/documents/manuals/Manual_ModelingLanguage_v.2.1.0.pdf',
+      examples: ['sts/stay-permit'],
+    },
+    {
+      text: 'P. H. Meland, E. Paja, E. A. Gjære, S. Paul, F. Dalpiaz, P. Giorgini. Threat Analysis in Goal-Oriented Security Requirements Modelling. IJSSE 5(2) (2014): Fig. 1, the ATM meteo scenario.',
+      url: 'https://doi.org/10.4018/ijsse.2014040101',
+      examples: ['sts/atm'],
+    },
+  ],
   'pistar-ext': [
     {
       text: 'J. Pimentel, J. Castro. piStar Tool: A Pluggable Online Tool for Goal Modeling. RE 2018.',
