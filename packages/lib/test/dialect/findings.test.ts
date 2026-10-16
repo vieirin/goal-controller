@@ -124,5 +124,21 @@ describe('findings (#162)', () => {
     expect(style).not.to.include('[data-id="g1"]');
     // none picked, and the case is no selection: nothing dimmed
     expect(selectionStyle(shownCase(picked), null)).to.equal(null);
+    // a finding that involves nothing (the model's as a whole): nothing dimmed
+    const whole = {
+      id: 'model',
+      label: 'Model',
+      values: {},
+      findings: [
+        {
+          kind: 'noAgent',
+          severity: 'warning' as const,
+          message: 'no agent plays a role',
+          elements: [],
+          links: [],
+        },
+      ],
+    };
+    expect(selectionStyle(whole, 0)).to.equal(null);
   });
 });

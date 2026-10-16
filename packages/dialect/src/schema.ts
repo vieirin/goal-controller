@@ -425,7 +425,11 @@ export type DialectDefinition<K extends string = ElementKind> = {
 export type ViewDefinition = {
   /** shown to people: `Social`, `Information` */
   label: string;
-  /** the element and actor kinds it shows */
+  /**
+   * the element and actor kinds it shows; an element shows without its
+   * actor when the actor's kind isn't listed (information without its
+   * owners), so list the actor kinds a view draws boundaries for
+   */
   kinds: readonly string[];
   /** the link kinds it shows (default: every link whose ends it shows) */
   links?: readonly string[];

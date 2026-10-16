@@ -109,7 +109,8 @@ export const SELECTION_ATTRIBUTE = 'data-analysis-selection';
  * stylesheet, under the container's SELECTION_ATTRIBUTE, that dims every
  * element and link the case doesn't select (its actors stay); null for a
  * case without one. A finding picked (`finding`, its index,
- * goal-controller#162) is drawn so instead: what it involves is kept. The
+ * goal-controller#162) is drawn so instead: what it involves is kept; one
+ * that involves nothing (the model's as a whole) dims nothing. The
  * diagram's nodes and edges carry their piStar ids (React Flow's
  * `data-id`).
  */
@@ -122,7 +123,8 @@ export const selectionStyle = (
   const selection = picked
     ? [...picked.elements, ...picked.links]
     : analysisCase?.selection;
-  if (!selection) return null;
+  // a finding that involves nothing (the model's as a whole) selects nothing
+  if (!selection || (picked && !selection.length)) return null;
   const scope = `[${SELECTION_ATTRIBUTE}]`;
   const all = `${scope} .react-flow__node.istar-node-element, ${scope} .react-flow__edge`;
   const kept = partSelectors(SELECTION_ATTRIBUTE, selection);

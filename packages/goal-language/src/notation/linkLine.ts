@@ -63,13 +63,12 @@ export type LinkLineReading = {
 };
 
 const TARGET = /^\S+?(?=\s|\{|$)/;
-/** an actor target: `actor` and its name, quoted, as an actor line names it (goal-controller#162) */
-const ACTOR_TARGET = new RegExp(
-  `^${ACTOR_LINE_KEY}[ \\t]+"(?:[^"\\\\]|\\\\.)*"(?:#\\d+)?(?=\\s|\\{|$)`,
-);
-const ACTOR_PREFIX = new RegExp(`^${ACTOR_LINE_KEY}[ \\t]+(?=")`);
 /** a quoted target, `\"` and `\\` escaped in it, and its ordinal: `"Heat"#2` */
 const QUOTED = /^"((?:[^"\\]|\\.)*)"(?:#(\d+))?(?=\s|\{|$)/;
+/** an actor target: `actor` and its name, quoted, as an actor line names it (goal-controller#162) */
+const ACTOR_LEAD = `^${ACTOR_LINE_KEY}[ \\t]+`;
+const ACTOR_PREFIX = new RegExp(`${ACTOR_LEAD}(?=")`);
+const ACTOR_TARGET = new RegExp(`${ACTOR_LEAD}${QUOTED.source.slice(1)}`);
 const PROPERTY = /\{(\s*)([A-Za-z][A-Za-z0-9_]*)(\s*=\s*)([^{}]*?)\s*\}/y;
 const BLANKS = /\s*/y;
 
