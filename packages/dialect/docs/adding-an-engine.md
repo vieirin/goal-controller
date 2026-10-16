@@ -126,6 +126,7 @@ Each value type is a rule of the goal language that reads a value on its own; th
 | `bool`                                           | true/false select               | `true` or `false`                                                                                                             |
 | `assertion` `{resolves, functions?, members?}`   | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`), and a call is a condition on its own (`previous(on) & !off`); a call to another function, or with another number of arguments, is an error. With `members` (below), a reference may be followed by `.member` (`room.clean`, `tank.level < 10`) |
 | `expression` `{resolves?, functions?, members?}` | one-line editor with completion | a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`, a negation, parentheses, ids of elements of the `resolves` kinds, variables (declared by their use), members (`tank.level`, with `members`) and calls to the `functions`, each with its arity; completion offers those, hover shows the element an id names. Read it with `readExpression(value)`: a tree (`number`, `ref`, `var`, `member`, `call`, `binary`, `unary`) the engine walks, never the text |
+| `enumSet` `{options}`                            | a checkbox per option           | some of the options, comma-separated, each once (`read, modify`; `''` = unset); see below                                     |
 | `refList` `{kind}`                               | editor with id completion       | ids, comma-separated, of elements of that kind (Edge's `dependsOn: G2, G5`)                                                   |
 | `pairList` `{value}`                             | editor                          | `name:value` pairs, comma-separated, values of that type (Edge's `variables: speed:3, mode:2`)                                |
 | `annotatedName`                                  | editor                          | a line without an id                                                                                                          |
@@ -154,7 +155,21 @@ checked. Read a condition with `readAssertion` (`{ kind: 'member', ref,
 member }`, and an `assign` with a `member`) and its members with
 `assertionMembers(tree)`; never split the text.
 
-Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
+**Sets of options** (goal-controller#162). An `enumSet` holds some of a
+fixed list of options, each at most once, in the order written: the
+operations an authorisation grants, the days a task runs. It is written
+comma-separated on a property line or in a link line's braces
+(`{terms = cash, time}`), and stored in `customProperties` as that text.
+The validator reports a value that is no option and one written twice;
+completion offers the options not written yet (after the last comma, and
+leaving out those after the cursor); the inspector shows a checkbox per
+option while the value reads as a list, and the text otherwise. An engine
+reads it with `readEnumSet(text)` (`[]` unset, `null` not a list), writes
+one with `enumSetText(values)`, and never splits the text itself.
+`toggleEnumSet(text, option, on)` adds an option at the end (one already
+written stays where it is) or removes it.
+
+Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.enumSet(key, options)`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
 
 Per property:
 - `applies` / `required`: `'always'`, `{ when: {key, equals} }`, or `{ not: {...} }`. `applies=false` greys the row and shows `notApplying` (with `{key}` placeholders). `required` shows the row even when unset.
@@ -228,6 +243,26 @@ links: links({
   its `ends` as the model has them (piStar id and kind, an extension's kinds
   too), its label and properties. The Notation view runs it on a link
   line's value.
+- **An actor at an end** (goal-controller#162): a link kind whose rules
+  join actors (`sources: ['actor']`, `targets: ['istar.Role']`) has lines
+  too. A link from an actor is written under that actor's `actor` line,
+  and a link to one names it after `actor`, as an actor line does:
+
+  ```
+  actor "Ann"
+    link actor "Bank" {terms = cash, goods} {covers = G1}
+  G1: Borrow
+    link actor "Bank" {amount = 5}
+    link G2 {note = due}
+  ```
+
+  An `actor` line is written for every actor with properties (§2.5) or
+  with link lines from it, so a dialect with `links` reserves the `actor`
+  key as one with `actors` does. A link between elements of two actors
+  (`sameActor: false`) is an element's link like any other (`link G2`
+  above, G2 in the other actor). Lines under an actor line are its links'
+  only. Checks read the actor ends with `readLink(id).ends` (their piStar
+  ids), analyses with `AnalysisLink.source` and `target`, as before.
 - **A condition on a link** (goal-controller#152): an `assertion` whose
   `resolves` names your extension's kinds, such as `assertion('context', {
   resolves: ['ctx.Context'] })` on refinement, contribution and dependency
@@ -310,6 +345,38 @@ export const mission = defineDialect({
   them from `dialect.extension` (§3.9).
 
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
+
+### 2.7 Views: parts of one diagram
+
+A dialect whose models are read in parts (STS-ml's social, information
+and authorisation views, goal-controller#162) declares them by kinds:
+
+```ts
+views: views({
+  goals: { label: 'Goals', kinds: ['istar.Role', 'istar.Goal', 'istar.Task'] },
+  lending: {
+    label: 'Lending',
+    kinds: ['istar.Role', 'istar.Agent', 'lend.Account'],
+    links: ['lend.Trusts', 'lend.Owns'],
+    help: 'who trusts whom with what',
+  },
+}),
+```
+
+- `kinds` are piStar kinds (iStar's `istar.Goal`, `istar.Role`, …, and
+  the extension's), actors included: a view shows the elements and actors
+  of those kinds. A link is shown when both its ends are and, if the view
+  lists `links`, its kind is one of them. `defineDialect` rejects a kind
+  that is neither iStar's nor the extension's, a link kind given as a
+  kind, a kind twice, a view without kinds or a label.
+- **One model, one file, one Notation text.** The workbench offers a
+  View picker in the top bar (`All` by default), and the canvas hides
+  what the view doesn't show, each in its place: switching views moves
+  nothing, and nothing is written to the model. References (`refList`,
+  assertions) still resolve against the whole model, so an authorisation's
+  scope may name goals its view doesn't draw.
+- `viewHides(view, elements, links)` gives the piStar ids a view hides,
+  and `viewsOf(definition)` a dialect's views in order.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
 
@@ -546,7 +613,7 @@ export const missionAnalyses = defineAnalyses(mission, {
   every actor and tree, so declare `model: { actors: 'many', treesPerActor:
   'many' }`. `resource` is the `input` kind's files, path → text, as the
   tabs hold them (a `many` kind: all its files).
-- **Output:** `AnalysisResult = { cases: { id, label, values, steps? }[] }`, where
+- **Output:** `AnalysisResult = { cases: { id, label, values, steps?, selection?, summary?, findings? }[] }`, where
   `values` maps an element's or actor's piStar id to `{ value: number | string;
   label?; severity?: 'info' | 'warning' }`. A case is one evaluation (a
   strategy); a single-case analysis has one.
@@ -577,6 +644,29 @@ export const missionAnalyses = defineAnalyses(mission, {
   still be too big to compute: cap what you return (`variantsOf`'s
   `limit`). `analysisText` prints a `summary:` and a `selection:` line under
   the case's label. A case without them prints as before.
+- **Findings** (goal-controller#162): a design-time analysis (a
+  well-formedness check, a violated security need, a threat reaching a
+  goal) reports a list, not a value per element. A case's `findings` are
+  `AnalysisFinding`s:
+
+  ```ts
+  { kind: 'violatedNeed', severity: 'error', message: 'B redelegates G1',
+    elements: ['b', 'g1'],          // piStar ids of elements and actors, the one it is about first
+    links: ['d1', 'd2'],            // piStar ids of links
+    details: { need: 'noRedelegation' } }   // its own facts, by name
+  ```
+
+  `kind` is the analysis's own name for what it found; `details` are
+  shown after the message and are what an oracle compares, opaque to the
+  workbench. A case with findings may have no values (`values: {}`). The
+  workbench badges every element, actor and link a finding involves with
+  its severity and `<kind>: <message>`, and lists the case's findings in a
+  picker beside the case's (`3 findings (1 error)`); one picked is drawn
+  as a selection, what it involves kept and the rest dimmed. Picking
+  another case clears it. `findingText(finding, nameOf?)` writes one on a
+  line (`error violatedNeed: … · need=noRedelegation · elements B, G1 ·
+  links D1, D2`), and `analysisText` prints a `finding:` line per finding
+  under its case.
 - `defineAnalyses` checks that each analysis has a label and reads only a
   project resource the definition declares. `runAnalysis` gives `{ result }`
   or `{ error }` (what the analysis threw).
@@ -881,6 +971,8 @@ Already done on this branch; use it as the worked example. An engine author touc
 | Resources                   | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps`            | skip unless the output models state/variables                                                                         |
 | Engine options              | none · `defineOptions` (§3.8) + `TransformOptions`                           | only if the template has knobs                                                                                        |
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
+| Views                       | none · `views` by kinds (§2.7)                                               | when the papers draw one model as several diagrams (social, information, …)                                           |
+| Analysis result             | values per element · steps · a selection · findings (§3.7)                    | findings for design-time checks that report violations, not a value per element                                       |
 
 ## 9. Pitfalls seen so far
 - `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`; an extension's kinds only where they have properties (§2.6).

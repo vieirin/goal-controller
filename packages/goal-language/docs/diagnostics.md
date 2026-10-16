@@ -264,6 +264,9 @@ first.
 | `previous takes 1 argument, not 2` | error | a call with another number of arguments than its function declares |
 | `R9 is not an element of this model`, `G2 is a goal, not a resource` | error | `expression` naming an id that is no element, or one of a kind it doesn't `resolve` |
 | `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable (with `declaresVariables`, any name that isn't an element is a variable) |
+| `Some of read, modify, comma-separated` | error | `enumSet` that doesn't parse (goal-controller#162) |
+| `One of read, modify, not delete` | error | `enumSet` naming another option |
+| `read is written twice` | error | `enumSet` repeating an option |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
 | `T1 is a task, not a goal` | error | `refList` naming another kind |
