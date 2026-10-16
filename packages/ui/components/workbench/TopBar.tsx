@@ -53,12 +53,18 @@ import {
 import type { GenerationOptions } from '@/lib/workbench/types';
 import {
   caseText,
+  findingLabel,
   PICKED_CASES,
   pickableCases,
   shownCase,
+  shownFinding,
   shownStep,
 } from '@/lib/workbench/analysis';
-import type { AnalysisCase } from '@goal-controller/lib';
+import {
+  findingText,
+  type AnalysisCase,
+  type AnalysisFinding,
+} from '@goal-controller/lib';
 import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
@@ -567,6 +573,43 @@ function CasePicker({
 }
 
 /**
+ * A case's findings (goal-controller#162), listed: all of them badged, or
+ * one picked, what it involves highlighted and the rest dimmed.
+ */
+function FindingPicker({
+  findings,
+  picked,
+  onPick,
+}: {
+  findings: readonly AnalysisFinding[];
+  picked: number | null;
+  onPick: (finding: number | null) => void;
+}) {
+  const errors = findings.filter((f) => f.severity === 'error').length;
+  return (
+    <select
+      aria-label='Finding'
+      className='h-8 max-w-[28rem] rounded-md border border-line bg-white px-2 text-xs text-ink'
+      value={picked ?? ''}
+      title={picked === null ? undefined : findingText(findings[picked]!)}
+      onChange={(event) =>
+        onPick(event.target.value === '' ? null : Number(event.target.value))
+      }
+    >
+      <option value=''>
+        {findings.length} finding{findings.length === 1 ? '' : 's'}
+        {errors ? ` (${errors} error${errors === 1 ? '' : 's'})` : ''}
+      </option>
+      {findings.map((finding, i) => (
+        <option key={i} value={i}>
+          {finding.severity}: {findingLabel(finding)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
  * An analysis engine's control (goal-controller#107): its analyses, run on a
  * click, and the case (a strategy, a variant) whose values the canvas draws.
  * None for an engine without analyses.
@@ -628,6 +671,13 @@ export function AnalyseControl() {
           cases={cases}
           shown={shown}
           onPick={(id) => wb.setAnalysisCase(id)}
+        />
+      )}
+      {!!shown?.findings?.length && (
+        <FindingPicker
+          findings={shown.findings}
+          picked={shownFinding(run)}
+          onPick={(finding) => wb.setAnalysisFinding(finding)}
         />
       )}
       {step && (

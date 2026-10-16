@@ -5,7 +5,9 @@
  * piStar id, `info` (or the value's own severity) with the value as the
  * message: istar-ts 0.12 badges elements, actors and links with them. A
  * case that is a selection (a variant, goal-controller#152) dims the rest
- * of the diagram, and the case picker searches a run's many cases. Nothing
+ * of the diagram, and the case picker searches a run's many cases. A case's
+ * findings (goal-controller#162) badge the elements and links they
+ * involve, and a finding picked is drawn as a selection. Nothing
  * runs without a click, and results are never written to the model file.
  */
 import type { GoalDiagnostic } from '@istar-ts/core';
@@ -13,6 +15,7 @@ import {
   runAnalysis,
   type Analysis,
   type AnalysisCase,
+  type AnalysisFinding,
   type AnalysisModel,
   type AnalysisResult,
 } from '@goal-controller/lib';
@@ -32,19 +35,53 @@ export type AnalysisRun = {
   caseId: string | null;
   /** the step shown, of a case run step by step (goal-controller#135): its index */
   step: number;
+  /** the finding picked, of the case shown (goal-controller#162): its index; none, null */
+  finding?: number | null;
 } & ({ result: AnalysisResult } | { error: string });
+
+/** A finding as the picker and a badge show it: `<kind>: <message>`. */
+export const findingLabel = (finding: AnalysisFinding): string =>
+  `${finding.kind}: ${finding.message}`;
+
+/**
+ * A case's findings as the canvas's diagnostics (goal-controller#162): one
+ * per finding and element, actor or link it involves, the finding's
+ * severity, its kind and message the diagnostic's message.
+ */
+const findingDiagnostics = (
+  findings: readonly AnalysisFinding[],
+): GoalDiagnostic[] =>
+  findings.flatMap((finding) =>
+    [...new Set([...finding.elements, ...finding.links])].map((elementId) => ({
+      elementId,
+      severity: finding.severity,
+      message: findingLabel(finding),
+      source: ANALYSIS_SOURCE,
+    })),
+  );
 
 /**
  * A case's values as the canvas's diagnostics: one per element or actor,
  * its value the message (`<case>: <value>`); a case run step by step, the
  * values of its step `step`, the value first and where it is after
- * (`<value> (<case>, <step>)`: the state is what a step shows).
+ * (`<value> (<case>, <step>)`: the state is what a step shows). Its
+ * findings follow (goal-controller#162).
  */
 export const analysisDiagnostics = (
   analysisCase: AnalysisCase | undefined,
   step = 0,
 ): GoalDiagnostic[] => {
   if (!analysisCase) return [];
+  return [
+    ...valueDiagnostics(analysisCase, step),
+    ...findingDiagnostics(analysisCase.findings ?? []),
+  ];
+};
+
+const valueDiagnostics = (
+  analysisCase: AnalysisCase,
+  step: number,
+): GoalDiagnostic[] => {
   const shown = analysisCase.steps?.length
     ? analysisCase.steps[Math.min(step, analysisCase.steps.length - 1)]
     : undefined;
@@ -73,16 +110,24 @@ const cssString = (id: string) => `"${id.replace(/["\\]/g, '\\$&')}"`;
  * How the canvas draws a case that is a selection (goal-controller#152): a
  * stylesheet, under the container's SELECTION_ATTRIBUTE, that dims every
  * element and link the case doesn't select (its actors stay); null for a
- * case without one. The diagram's nodes and edges carry their piStar ids
- * (React Flow's `data-id`).
+ * case without one. A finding picked (`finding`, its index,
+ * goal-controller#162) is drawn so instead: what it involves is kept. The
+ * diagram's nodes and edges carry their piStar ids (React Flow's
+ * `data-id`).
  */
 export const selectionStyle = (
   analysisCase: AnalysisCase | undefined,
+  finding: number | null = null,
 ): string | null => {
-  if (!analysisCase?.selection) return null;
+  const picked =
+    finding === null ? undefined : analysisCase?.findings?.[finding];
+  const selection = picked
+    ? [...picked.elements, ...picked.links]
+    : analysisCase?.selection;
+  if (!selection) return null;
   const scope = `[${SELECTION_ATTRIBUTE}]`;
   const all = `${scope} .react-flow__node.istar-node-element, ${scope} .react-flow__edge`;
-  const kept = analysisCase.selection
+  const kept = selection
     .flatMap((id) => [
       `${scope} .react-flow__node[data-id=${cssString(id)}]`,
       `${scope} .react-flow__edge[data-id=${cssString(id)}]`,
@@ -144,6 +189,14 @@ export const stepped = (run: AnalysisRun, delta: number): AnalysisRun => {
     : run;
 };
 
+/** The finding a run picks, of the case it shows (goal-controller#162): its index, or null. */
+export const shownFinding = (run: AnalysisRun | null): number | null => {
+  const findings = shownCase(run)?.findings ?? [];
+  return run?.finding != null && run.finding < findings.length
+    ? run.finding
+    : null;
+};
+
 /** The case a run shows: the one picked, or its first. */
 export const shownCase = (run: AnalysisRun | null): AnalysisCase | undefined =>
   run && 'result' in run
@@ -179,6 +232,7 @@ export const analyse = (
     text,
     caseId: null,
     step: 0,
+    finding: null,
   };
   let model;
   try {

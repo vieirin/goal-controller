@@ -394,6 +394,8 @@ export type Workbench = {
   runAnalysis: (id: string) => void;
   /** the case whose values are drawn (a strategy) */
   setAnalysisCase: (caseId: string) => void;
+  /** the finding drawn as a selection, of the case shown (goal-controller#162): its index; null, none */
+  setAnalysisFinding: (finding: number | null) => void;
   /** a case run step by step: the step drawn, `delta` steps on (back when negative) */
   stepAnalysis: (delta: number) => void;
   clearAnalysis: () => void;
@@ -1881,7 +1883,14 @@ function WorkbenchState({
   );
   const setAnalysisCase = useCallback(
     (caseId: string) =>
-      setAnalysisRun((run) => (run ? { ...run, caseId, step: 0 } : run)),
+      setAnalysisRun((run) =>
+        run ? { ...run, caseId, step: 0, finding: null } : run,
+      ),
+    [],
+  );
+  const setAnalysisFinding = useCallback(
+    (finding: number | null) =>
+      setAnalysisRun((run) => (run ? { ...run, finding } : run)),
     [],
   );
   const stepAnalysis = useCallback(
@@ -2146,6 +2155,7 @@ function WorkbenchState({
     analysisStale: !!analysisRun && analysisRun.text !== model.text,
     runAnalysis: runAnalysisNow,
     setAnalysisCase,
+    setAnalysisFinding,
     stepAnalysis,
     clearAnalysis,
     exportProject,

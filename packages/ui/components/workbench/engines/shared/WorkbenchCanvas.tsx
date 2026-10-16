@@ -31,6 +31,7 @@ import {
   SELECTION_ATTRIBUTE,
   selectionStyle,
   shownCase,
+  shownFinding,
   shownStep,
 } from '@/lib/workbench/analysis';
 import { useShell } from '../../shell';
@@ -310,9 +311,16 @@ export default function WorkbenchCanvas({
     ],
     [wb.problems, wb.tree, wb.analysisRun, wb.analysisStale],
   );
-  // a case that is a selection (a variant, goal-controller#152): the rest dimmed
+  // a case that is a selection (a variant, goal-controller#152), or a finding
+  // picked (goal-controller#162): the rest dimmed
   const selection = useMemo(
-    () => (wb.analysisStale ? null : selectionStyle(shownCase(wb.analysisRun))),
+    () =>
+      wb.analysisStale
+        ? null
+        : selectionStyle(
+            shownCase(wb.analysisRun),
+            shownFinding(wb.analysisRun),
+          ),
     [wb.analysisRun, wb.analysisStale],
   );
 
