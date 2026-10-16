@@ -1,0 +1,297 @@
+{
+  "seed": "stay-permit",
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I1: PersonalData\" conflict on the authority to transfer authorisations"
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I2: FinancialStatus\" conflict on the authority to transfer authorisations"
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G3: Get Student Record\" to \"Secretary\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G7: Write new doc\" to \"Secretary\""
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Secretary\" requires \"IS Manager\" single-actor redundancy for \"G15: Obtain UTD Statement\", but \"IS Manager\" doesn't decompose \"G15: Obtain UTD Statement\" into alternatives"
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Student\" authorises \"IS Manager\" on \"I2: FinancialStatus\" only for \"G14: Get Student Pers. Data\", but \"IS Manager\" produces \"R7: Income Statement\", which makes \"I2: FinancialStatus\" tangible, for \"G15: Obtain UTD Statement\""
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: DDoS attack\" threatening \"G14: Get Student Pers. Data\" threatens also \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\", \"R6: Personal data file\", \"R3: Personal data file\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: Info Integrity loss\" threatening \"R6: Personal data file\" threatens also \"R3: Personal data file\", \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\""
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Program Coordinator",
+      "requester": "Student",
+      "over": {
+        "goal": "G1: Write doc for I.O"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Program Coordinator",
+      "requester": "Student",
+      "over": {
+        "goal": "G1: Write doc for I.O"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "Program Coordinator",
+      "requester": "Secretary",
+      "over": {
+        "goal": "G7: Write new doc"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "goal": "G7: Write new doc"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "goal": "G3: Get Student Record"
+      }
+    },
+    {
+      "requirement": "trustworthiness",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "goal": "G3: Get Student Record"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "goal": "G9: Get Student Pers. Data"
+      }
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "goal": "G9: Get Student Pers. Data"
+      }
+    },
+    {
+      "requirement": "true-redundancy-single",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "goal": "G11: Obtain UTD Statement"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Secretary",
+      "requester": "IS Manager",
+      "over": {
+        "document": "R6: Personal data file"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "document": "R6: Personal data file"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "document": "R6: Personal data file",
+        "level": "86"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "document": "R7: Income Statement"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "IS Manager",
+      "requester": "Secretary",
+      "over": {
+        "document": "R7: Income Statement"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "IS Manager",
+      "requester": "Student",
+      "over": {
+        "information": "I1: PersonalData, I2: FinancialStatus",
+        "goals": "G14: Get Student Pers. Data"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Secretary",
+      "requester": "IS Manager",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData",
+        "goals": "G8: Get Student Record"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Secretary",
+      "requester": "IS Manager",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData"
+      }
+    },
+    {
+      "requirement": "non-disclosure",
+      "responsible": "Secretary",
+      "requester": "IS Manager",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Program Coordinator",
+      "requester": "Student",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData",
+        "goals": "G2: Write doc for I.O"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "Program Coordinator",
+      "requester": "Student",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData",
+        "goals": "G8: Get Student Record"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "Secretary",
+      "requester": "Program Coordinator",
+      "over": {
+        "information": "I2: FinancialStatus, I1: PersonalData"
+      }
+    },
+    {
+      "requirement": "role-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "Program Coordinator",
+        "second": "Secretary"
+      }
+    }
+  ],
+  "references": [
+    {
+      "ref": "SP-WF",
+      "source": "manual Fig. 23",
+      "printed": "no errors",
+      "verdict": "reproduced (no findings)"
+    },
+    {
+      "ref": "SP-conflict",
+      "source": "manual §Phase 4 and Fig. 24",
+      "printed": "an authorisation conflict on authority to transmit for the Secretary (IS Manager prohibits T, Program Coordinator grants it)",
+      "verdict": "not reproducible: the screenshot’s authorisation view (Fig. 24) has Program Coordinator → Secretary granting T, while Fig. 20 (the seed) doesn’t. On the seed green finds the transferability conflict between the same two authorisations (§2.3: Program Coordinator’s is non-transferable)"
+    },
+    {
+      "ref": "SP-24",
+      "source": "manual Fig. 24, the Analysis tab",
+      "printed": "Program Coordinator: non-reauthorisation (transmit); Program Coordinator: no-delegation on Get Student Record; IS Manager: NTK",
+      "verdict": "no-delegation and NTK reproduced. The transmit row is Fig. 24’s model (above). Green also finds Write new doc redelegated, a subgoal of the same delegatum (as E8)"
+    },
+    {
+      "ref": "SP-25",
+      "source": "manual Fig. 25",
+      "printed": "IS Manager: non-disclosure of FinancialStatus and of PersonalData",
+      "verdict": "not reproducible: Fig. 20 grants IS Manager T (Student → IS Manager: R, P, T). Fig. 25’s model differs from Fig. 20"
+    },
+    {
+      "ref": "SP-26",
+      "source": "manual §Phase 4 and Fig. 26",
+      "printed": "the event threatening IS Manager’s Personal data file threatens the Secretary’s copy, Get Student Pers. Data and its AND-parent Get Student Record, and onwards",
+      "verdict": "reproduced"
+    },
+    {
+      "ref": "SP-T2",
+      "source": "manual Table 2 (C1–C27), \"an excerpt\"",
+      "printed": "27 commitments",
+      "verdict": [
+        "reproduced: C1, C6, C9, C11–C14, C17, C19, C21, C23–C26 (C1, C13, C17: v1.3’s operation letters, #160 D-R3)",
+        "C2, C3: Fig. 20 grants IS Manager P and T (table vs figure)",
+        "C4: Write doc for I.O is Program Coordinator’s goal, and green derives that need-to-know with Program Coordinator responsible (the table’s debtor is wrong)",
+        "C5, C7, C8, C15, C16, C18: derived from operations no one grants (the closure). DKE §4.1: \"security requirements are generated over explicit prohibitions\" (D-G22)",
+        "C10: Table 2 makes the delegatee (Secretary) the debtor of non-repudiation-of-delegation. The manual’s own (h), \"requires the delegator not do deny\", and DKE R1 make it Program Coordinator",
+        "C20, C22: Table 2 puts no-redelegation and true_rm on Get Student Pers. Data, while Fig. 9 has Red on Obtain UTD Statement (red’s reading 2): a manual erratum, figure vs table",
+        "C27: Fill tax returns is in no figure (red’s reading 4)",
+        "§2.1’s 90% (Obtain UTD Statement) and 70% (Income Statement; also (q), \"C24\") are in no figure: a manual erratum, text vs figure and Table 2’s own C24 (86%, Personal Data File)"
+      ]
+    }
+  ]
+}
