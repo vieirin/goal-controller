@@ -13,6 +13,7 @@ import {
   istardtEngine,
   tropos4asEngine,
   cgmEngine,
+  stsEngine,
   mutroseEngine,
   registerEngines,
   sleecEngine,
@@ -43,6 +44,7 @@ export const ENGINE_LIST = registerEngines(
   istardtEngine,
   tropos4asEngine,
   cgmEngine,
+  stsEngine,
 );
 
 type Registered = (typeof ENGINE_LIST)[number];

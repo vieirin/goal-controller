@@ -5,8 +5,9 @@ import type { GodaVariant } from '@goal-controller/lib';
  * 'edge' (legacy Edge), 'edgev2' (EdgeV2), 'sleec', 'mutrose', 'goda' and
  * 'grl' (an analysis engine: it evaluates, it generates no file),
  * 'istardt' (iStar-DT: DT-Golog), 'tropos4as' (an analysis engine: the
- * goal lifecycle of AAMAS 2009 over a scenario) and 'cgm' (contextual goal
- * models, REJ 2010: contexts at the variation points).
+ * goal lifecycle of AAMAS 2009 over a scenario), 'cgm' (contextual goal
+ * models, REJ 2010: contexts at the variation points) and 'sts' (STS-ml,
+ * DKE 2015: security requirements over three views of one model).
  */
 export type TransformEngine =
   | 'edge'
@@ -17,7 +18,8 @@ export type TransformEngine =
   | 'grl'
   | 'istardt'
   | 'tropos4as'
-  | 'cgm';
+  | 'cgm'
+  | 'sts';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
 export type EdgeV2TaskLayout = 'taskModules' | 'changeManager';
@@ -35,6 +37,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'istardt',
   'tropos4as',
   'cgm',
+  'sts',
 ];
 
 export const isTransformEngine = (

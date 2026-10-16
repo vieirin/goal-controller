@@ -39,6 +39,7 @@ const GROUP_ORDER = [
   'grl',
   'tropos4as',
   'cgm',
+  'sts',
   'sleec',
   'pistar-ext',
 ];

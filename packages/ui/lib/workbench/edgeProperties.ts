@@ -44,4 +44,5 @@ export const PROPERTY_SPECS: Record<DialectEngine, Specs> = {
   istardt: specsOf('istardt'),
   tropos4as: specsOf('tropos4as'),
   cgm: specsOf('cgm'),
+  sts: specsOf('sts'),
 };

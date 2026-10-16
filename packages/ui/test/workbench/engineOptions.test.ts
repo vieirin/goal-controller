@@ -9,7 +9,7 @@ import { checkedOptions, optionKeysOf } from '@/lib/workbench/projectSettings';
 import { DEFAULT_OPTIONS } from '@/lib/workbench/types';
 
 describe('engine options', () => {
-  it('gives each engine the options it reads, MutRoSe, GRL, Tropos4AS and contextual goal models none', () => {
+  it('gives each engine the options it reads, MutRoSe, GRL, Tropos4AS, contextual goal models and STS-ml none', () => {
     expect({
       edge: optionKeysOf('edge'),
       edgev2: optionKeysOf('edgev2'),
@@ -19,6 +19,7 @@ describe('engine options', () => {
       grl: optionKeysOf('grl'),
       tropos4as: optionKeysOf('tropos4as'),
       cgm: optionKeysOf('cgm'),
+      sts: optionKeysOf('sts'),
       pistar: optionKeysOf(null),
     }).toEqual({
       edge: ['achievabilitySpace', 'generateDecisionVars', 'clean', 'reduce'],
@@ -35,13 +36,15 @@ describe('engine options', () => {
       grl: [],
       tropos4as: [],
       cgm: [],
+      sts: [],
       pistar: [],
     });
     expect(
       hasOptions('mutrose') ||
         hasOptions('grl') ||
         hasOptions('tropos4as') ||
-        hasOptions('cgm'),
+        hasOptions('cgm') ||
+        hasOptions('sts'),
     ).toBe(false);
   });
 

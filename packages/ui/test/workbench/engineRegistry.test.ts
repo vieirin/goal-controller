@@ -13,6 +13,12 @@ import {
   cgmEngineMapper,
   cgmExtension,
   cgmProjectResourceParsers,
+  sts,
+  stsAnalyses,
+  stsAnalysisModel,
+  stsCheckRegistry,
+  stsEngineMapper,
+  stsExtension,
   edge,
   edgeCheckRegistry,
   edgeEngineMapper,
@@ -84,6 +90,7 @@ const ALL: TransformEngine[] = [
   'istardt',
   'tropos4as',
   'cgm',
+  'sts',
 ];
 
 /** Same keys, and each value the same object (the engines' own, not copies). */
@@ -107,6 +114,7 @@ describe('the engine registry', () => {
       istardt,
       tropos4as,
       cgm,
+      sts,
     }));
 
   it('derives ENGINE_CHECKS', () =>
@@ -119,16 +127,19 @@ describe('the engine registry', () => {
       istardt: istardtCheckRegistry,
       tropos4as: tropos4asCheckRegistry,
       cgm: cgmCheckRegistry,
+      sts: stsCheckRegistry,
     }));
 
-  it('derives ENGINE_PROJECT_RESOURCES (GODA and iStar-DT read nothing beside the model)', () => {
+  it('derives ENGINE_PROJECT_RESOURCES (GODA, iStar-DT and STS-ml read nothing beside the model)', () => {
     const {
       goda: none,
       istardt: nothing,
+      sts: neither,
       ...parsers
     } = ENGINE_PROJECT_RESOURCES;
     expect(none).toEqual({});
     expect(nothing).toEqual({});
+    expect(neither).toEqual({});
     expectSameEntries(parsers, {
       edge: edgeProjectResources,
       edgev2: edgeProjectResources,
@@ -153,20 +164,23 @@ describe('the engine registry', () => {
       istardt: istardtEngineMapper,
       tropos4as: tropos4asEngineMapper,
       cgm: cgmEngineMapper,
+      sts: stsEngineMapper,
     }));
 
-  it('derives ENGINE_OPTIONS (MutRoSe, GRL, Tropos4AS and contextual goal models declare none)', () => {
+  it('derives ENGINE_OPTIONS (MutRoSe, GRL, Tropos4AS, contextual goal models and STS-ml declare none)', () => {
     const {
       mutrose: none,
       grl: nothing,
       tropos4as: neither,
       cgm: nor,
+      sts: nought,
       ...declared
     } = ENGINE_OPTIONS;
     expect(none).toEqual([]);
     expect(nothing).toEqual([]);
     expect(neither).toEqual([]);
     expect(nor).toEqual([]);
+    expect(nought).toEqual([]);
     expectSameEntries(declared, {
       edge: edgeOptions,
       edgev2: edgeV2Options,
@@ -187,6 +201,7 @@ describe('the engine registry', () => {
       istardt: 'iStar-DT',
       tropos4as: 'Tropos4AS',
       cgm: 'Contextual goal model',
+      sts: 'STS-ml',
     }));
 
   it('derives ENGINES, in the order the UI offers them', () =>
@@ -266,22 +281,39 @@ describe('the engine registry', () => {
         help: 'Contextual goal models (REJ 2010, IST 2013): contexts at the variation points of a Tropos model, with context analysis',
         generates: false,
       },
+      {
+        id: 'sts',
+        label: 'STS-ml',
+        output: 'Findings',
+        extension: 'txt',
+        language: 'text',
+        help: 'STS-ml (DKE 2015): security requirements over the social, information and authorisation views of a socio-technical system',
+        generates: false,
+      },
     ]));
 
   it('derives ENGINE_ANALYSES and ENGINE_FILE_KINDS', () => {
     // an analysis engine's analyses, with how it reads a model for them (#125)
-    expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl', 'tropos4as', 'cgm']);
+    expect(Object.keys(ENGINE_ANALYSES)).toEqual([
+      'grl',
+      'tropos4as',
+      'cgm',
+      'sts',
+    ]);
     expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
     expect(ENGINE_ANALYSES.grl?.model).toBe(grlAnalysisModel);
     expect(ENGINE_ANALYSES.tropos4as?.analyses).toBe(tropos4asAnalyses);
     expect(ENGINE_ANALYSES.tropos4as?.model).toBe(tropos4asAnalysisModel);
     expect(ENGINE_ANALYSES.cgm?.analyses).toBe(cgmAnalyses);
     expect(ENGINE_ANALYSES.cgm?.model).toBe(cgmAnalysisModel);
+    expect(ENGINE_ANALYSES.sts?.analyses).toBe(stsAnalyses);
+    expect(ENGINE_ANALYSES.sts?.model).toBe(stsAnalysisModel);
     expectSameEntries(ENGINE_FILE_KINDS, {
       grl: grlExtension,
       istardt: istardtExtension,
       tropos4as: tropos4asExtension,
       cgm: cgmExtension,
+      sts: stsExtension,
     });
   });
 
@@ -296,6 +328,7 @@ describe('the engine registry', () => {
       istardt: ['DT-Golog', 'pl', 'text', true, true, istardt],
       tropos4as: ['Lifecycle', 'txt', 'text', false, false, tropos4as],
       cgm: ['Variants', 'txt', 'text', false, false, cgm],
+      sts: ['Findings', 'txt', 'text', false, false, sts],
     } as const;
     for (const engine of ALL) {
       const [output, extension, language, generates, options, dialect] =

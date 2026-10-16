@@ -208,6 +208,17 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'mapGoalProps',
     },
   },
+  sts: {
+    file: 'packages/lib/src/engines/sts/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/sts/mapper.ts',
+    map: {
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
+      resource: 'skipResource',
+      quality: 'mapGoalProps',
+    },
+  },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
     lists: {
