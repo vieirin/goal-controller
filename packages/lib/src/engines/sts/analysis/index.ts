@@ -22,7 +22,7 @@ import { wellFormednessAnalysis } from './wellformedness';
 export type { StsFinding } from './findings';
 export type { StsModel } from './model';
 export type { StsRequirement } from './requirements';
-export { readStsModel, STS_KINDS } from './read';
+export { readStsModel, STS_ANALYSIS_KINDS } from './read';
 export { indexStsModel } from './graph';
 export {
   securityRequirements,

@@ -319,6 +319,8 @@ export {
   canonicalSts,
   authorisationOperations,
   refListItems,
+  runStsAnalyses,
+  type StsAnalyses,
   type StsCheckName,
   type StsContext,
   type StsProject,

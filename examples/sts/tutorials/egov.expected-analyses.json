@@ -1,0 +1,977 @@
+{
+  "sample": "egov",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/egov/eGov.exp",
+  "sha256": {
+    "exp": "02630a33ebc5a662267410e0c373fb814b67203073bcfdf529940fe39226e701",
+    "sts": "bee08d4d5c3bbd48fbc712ae80533b2e26d6cdc67b954fbe0fa048853ff0e576"
+  },
+  "report": {
+    "file": "Scenario_egov_Report.pdf",
+    "rows": {
+      "wellFormedness": 0,
+      "security": 12
+    }
+  },
+  "differences": [
+    {
+      "key": "goalCod|lot candidate...+lot ranked",
+      "ours": 0,
+      "report": 1,
+      "why": "E17"
+    }
+  ],
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Lot Owner\" requires \"Real Estate Agency\" not to redelegate \"G4: lot record created\", and yet \"Real Estate Agency\" delegates \"G10: location map added\" to \"Map Service Provider\"",
+        "elements": [
+          "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+          "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff",
+          "ge67a902b-00e3-4407-b06f-734ef5795d60",
+          "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+          "rd0db527e-683b-451b-ace1-dad474841c3c"
+        ],
+        "links": [
+          "da79d7cb6-1e24-4b4d-b41a-8b1a0a917f30",
+          "d29174e80-d559-4de3-ada7-85e6e07607b9"
+        ],
+        "details": {
+          "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+          "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+          "goal": "ge67a902b-00e3-4407-b06f-734ef5795d60",
+          "redelegated": "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff",
+          "to": "rd0db527e-683b-451b-ace1-dad474841c3c"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Interested Party\" requires \"DoUP Application\" not to redelegate \"G17: trusted REA selected\", and yet \"DoUP Application\" delegates \"G22: trusted REA selected\" to \"Aggregated REA\"",
+        "elements": [
+          "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "g0fc97f4c-d0a6-46e1-ba51-9b575bb53942",
+          "r84d0e763-a188-4f10-b71a-2b01d689854a",
+          "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4"
+        ],
+        "links": [
+          "d1917ba62-32cc-4950-91d0-73c0fa5c82bc",
+          "d8bad18bf-08a9-472a-9861-cbe5127a1026"
+        ],
+        "details": {
+          "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+          "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "goal": "g0fc97f4c-d0a6-46e1-ba51-9b575bb53942",
+          "redelegated": "g0fc97f4c-d0a6-46e1-ba51-9b575bb53942",
+          "to": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4"
+        }
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Ministry of Law\" authorises \"Solicitor\" on \"I5: legal info\" only for \"G37: legal framew provided\", but \"Solicitor\" reads \"R16: legal framework\", which makes \"I5: legal info\" tangible, for \"G38: lot info assessed\"",
+        "elements": [
+          "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "i5859335b-97c1-4321-8395-cbac83289067",
+          "g727be0a4-a793-40ea-8803-0bfa9ab3b1a4",
+          "d7a7eaa04-35ca-4ae9-b572-899ce8fa8593",
+          "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d"
+        ],
+        "links": [
+          "rf10cefb3-6ad8-4d59-ab46-78f5f5456155",
+          "a36070e94-043f-4ef1-9ef3-6bd743c0ed12"
+        ],
+        "details": {
+          "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+          "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "information": "i5859335b-97c1-4321-8395-cbac83289067",
+          "goal": "g727be0a4-a793-40ea-8803-0bfa9ab3b1a4",
+          "operation": "read"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Map Service Provider\" the production of \"I1: lot geo location\", but \"Map Service Provider\" produces \"R4: map\", which makes \"I1: lot geo location\" tangible, for \"G12: location map added\"",
+        "elements": [
+          "rd0db527e-683b-451b-ace1-dad474841c3c",
+          "ibf1c8e7a-5136-4b64-876a-ffdda0972860",
+          "g51a96808-3af0-46b0-a72f-e450b6e1ca64",
+          "d275f07f9-35f6-4c4a-b9f2-e5aabe00559d",
+          "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d"
+        ],
+        "links": [
+          "pafc9693c-48d2-4bed-9b8f-3ea08ccf3f08"
+        ],
+        "details": {
+          "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+          "responsible": "rd0db527e-683b-451b-ace1-dad474841c3c",
+          "information": "ibf1c8e7a-5136-4b64-876a-ffdda0972860",
+          "goal": "g51a96808-3af0-46b0-a72f-e450b6e1ca64",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Map Service Provider\" the production of \"I2: lot info details\", but \"Map Service Provider\" produces \"R4: map\", which makes its part \"I1: lot geo location\" tangible, for \"G12: location map added\"",
+        "elements": [
+          "rd0db527e-683b-451b-ace1-dad474841c3c",
+          "i98936afc-bdb8-4330-b98d-06de410ebb44",
+          "g51a96808-3af0-46b0-a72f-e450b6e1ca64",
+          "d275f07f9-35f6-4c4a-b9f2-e5aabe00559d",
+          "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d"
+        ],
+        "links": [
+          "pafc9693c-48d2-4bed-9b8f-3ea08ccf3f08"
+        ],
+        "details": {
+          "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+          "responsible": "rd0db527e-683b-451b-ace1-dad474841c3c",
+          "information": "i98936afc-bdb8-4330-b98d-06de410ebb44",
+          "goal": "g51a96808-3af0-46b0-a72f-e450b6e1ca64",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Ministry of Law\" prohibits \"Solicitor\" the transmission of \"I5: legal info\", but \"Solicitor\" transmits \"R16: legal framework\", which makes \"I5: legal info\" tangible, to \"DoUP Application\"",
+        "elements": [
+          "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "i5859335b-97c1-4321-8395-cbac83289067",
+          "d7a7eaa04-35ca-4ae9-b572-899ce8fa8593",
+          "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d"
+        ],
+        "links": [
+          "t6ceef19f-5aaa-40e9-94e5-69d1aa5a37bc",
+          "a36070e94-043f-4ef1-9ef3-6bd743c0ed12"
+        ],
+        "details": {
+          "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+          "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "information": "i5859335b-97c1-4321-8395-cbac83289067",
+          "to": "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonReauthorisation",
+        "severity": "error",
+        "message": "\"Ministry of Law\" authorises \"Real Estate Agency\" on \"I5: legal info\" without the right to transfer it, but \"Real Estate Agency\" authorises \"Aggregated REA\" on it",
+        "elements": [
+          "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+          "i5859335b-97c1-4321-8395-cbac83289067",
+          "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+          "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d"
+        ],
+        "links": [
+          "a855c24f2-28e5-4e07-ace7-7908f87acc60",
+          "a423a8b09-a996-4292-a875-91651e0362d8"
+        ],
+        "details": {
+          "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+          "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+          "information": "i5859335b-97c1-4321-8395-cbac83289067",
+          "to": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Solicitor\" has no right to the transmission of \"I5: legal info\", but authorises \"DoUP Application\" to it",
+        "elements": [
+          "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "i5859335b-97c1-4321-8395-cbac83289067",
+          "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d"
+        ],
+        "links": [
+          "a8200541e-51d1-4652-ae31-d5e7bcd7c9ca",
+          "a36070e94-043f-4ef1-9ef3-6bd743c0ed12"
+        ],
+        "details": {
+          "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+          "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+          "information": "i5859335b-97c1-4321-8395-cbac83289067",
+          "to": "a9d4da178-f85f-49f2-8810-cdb624962940",
+          "operation": "transmit"
+        }
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G9: lot record published\" and \"G10: location map added\", but \"Real Estate Agency\" may pursue both",
+        "elements": [
+          "g9d6970a6-5048-41aa-8084-2e008f38a0eb",
+          "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff",
+          "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2"
+        ],
+        "links": [
+          "d774cd0f9-2274-4756-9db4-61674449e5ec"
+        ],
+        "details": {
+          "first": "g9d6970a6-5048-41aa-8084-2e008f38a0eb",
+          "second": "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff",
+          "witnesses": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2"
+        }
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G6: lot price approved\" and \"G7: lot location defined\", which \"Lot Owner\" performs, but no agent is known to play it: agents playing it may split them",
+        "elements": [
+          "g161a97ce-c971-4b9e-89f1-0c30a1919ad2",
+          "g072bcb51-bb7d-4e0e-865e-d9ee7d349d70",
+          "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d"
+        ],
+        "links": [
+          "d550211c3-0198-45da-85c3-4b84af8d6ab1"
+        ],
+        "details": {
+          "first": "g161a97ce-c971-4b9e-89f1-0c30a1919ad2",
+          "second": "g072bcb51-bb7d-4e0e-865e-d9ee7d349d70",
+          "witnesses": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d"
+        }
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G16: solicitor selected\" and \"G18: CE selected\", which \"Interested Party\" performs, but no agent is known to play it: agents playing it may split them",
+        "elements": [
+          "g456493cd-897d-41ad-a9a6-8d2b4d891a0e",
+          "g0d26d14a-8903-4499-afe5-058f125de758",
+          "r84d0e763-a188-4f10-b71a-2b01d689854a"
+        ],
+        "links": [
+          "dfbb8099a-6abb-499b-b068-4432ed7d7462"
+        ],
+        "details": {
+          "first": "g456493cd-897d-41ad-a9a6-8d2b4d891a0e",
+          "second": "g0d26d14a-8903-4499-afe5-058f125de758",
+          "witnesses": "r84d0e763-a188-4f10-b71a-2b01d689854a"
+        }
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: not approved\" threatening \"G36: legal framew issued\" threatens also \"R14: legal framework\", \"R15: legal framework\", \"G11: legal info added\", \"G8: lot record created\", \"G4: lot record created\", \"G3: lot sold via agency\", \"R16: legal framework\", \"G37: legal framew provided\", \"G38: lot info assessed\", \"G20: lot info assessed\", \"G15: lot status assessed\", \"G13: lot acquired\", \"R21: legal framework\", \"G23: citizens helped\"",
+        "elements": [
+          "e11d06ee1-2af3-43bf-9a4e-edf6b12f89c8",
+          "gcbf87dae-f30f-43dd-a423-62e59797077c",
+          "d79a11b18-b679-47f5-b8bd-77d2e4200dd0",
+          "d7d0cc9ff-5b18-4af1-a339-c8fd61740ada",
+          "gb227e5f0-dac9-4e98-bf52-c8f6864f4f2c",
+          "ge67a902b-00e3-4407-b06f-734ef5795d60",
+          "gbe038bb8-9feb-4071-a163-b7d9df708b0f",
+          "gd7faff55-e06f-4f32-90c8-fe8637e9e0a1",
+          "d7a7eaa04-35ca-4ae9-b572-899ce8fa8593",
+          "gacc5b20d-6aee-4f19-92cd-6a065b13dc43",
+          "g727be0a4-a793-40ea-8803-0bfa9ab3b1a4",
+          "g42634d8d-3381-425d-aa72-a8888d693705",
+          "g0c460871-fe97-4e8b-bbfc-e1d5d7aa3e88",
+          "gd93108b2-f946-465e-bfb5-4c2fe51b5c9e",
+          "d1a86187e-5309-41a6-ab52-cd5f83bf302d",
+          "g06727831-df48-477a-88f3-585bd03498e7"
+        ],
+        "links": [
+          "tdb2e9f33-0889-453d-839a-276fc22fbbd8",
+          "t4db913e2-7b1b-4119-b2ab-5b7361f414cb",
+          "t205bdf30-853c-4287-a1e1-2fd1489e9795",
+          "t6ceef19f-5aaa-40e9-94e5-69d1aa5a37bc"
+        ],
+        "details": {
+          "event": "e11d06ee1-2af3-43bf-9a4e-edf6b12f89c8",
+          "threatened": "gcbf87dae-f30f-43dd-a423-62e59797077c,d79a11b18-b679-47f5-b8bd-77d2e4200dd0,d7d0cc9ff-5b18-4af1-a339-c8fd61740ada,gb227e5f0-dac9-4e98-bf52-c8f6864f4f2c,ge67a902b-00e3-4407-b06f-734ef5795d60,gbe038bb8-9feb-4071-a163-b7d9df708b0f,gd7faff55-e06f-4f32-90c8-fe8637e9e0a1,d7a7eaa04-35ca-4ae9-b572-899ce8fa8593,gacc5b20d-6aee-4f19-92cd-6a065b13dc43,g727be0a4-a793-40ea-8803-0bfa9ab3b1a4,g42634d8d-3381-425d-aa72-a8888d693705,g0c460871-fe97-4e8b-bbfc-e1d5d7aa3e88,gd93108b2-f946-465e-bfb5-4c2fe51b5c9e,d1a86187e-5309-41a6-ab52-cd5f83bf302d,g06727831-df48-477a-88f3-585bd03498e7"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: list not found\" threatening \"G29: cred. solitor provided\" threatens also \"G25: cred. solitor provided\", \"G23: citizens helped\", \"R6: credible solicitor\", \"R8: credible solicitor\", \"R19: credible solicitor\", \"G16: solicitor selected\", \"G13: lot acquired\"",
+        "elements": [
+          "e4d2f0db4-6126-4ab5-8a8b-0d914b76884c",
+          "gfda4d93e-5d6d-42da-a492-2f1fb24a1daa",
+          "gf2f12be3-e0fe-4066-933b-65410ddcd11c",
+          "g06727831-df48-477a-88f3-585bd03498e7",
+          "d58904b10-27e0-4fd8-a5e0-e9b7a2cda620",
+          "d3a88ebaf-ae21-42fb-a66f-b7e8a061c309",
+          "db4ed7d26-9c72-4179-bdb9-73b8574cacdd",
+          "g456493cd-897d-41ad-a9a6-8d2b4d891a0e",
+          "gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        ],
+        "links": [
+          "td50ba32b-9874-4547-b611-45b1f76834aa",
+          "t361e880d-654c-4f31-8c5d-9c4fc3d21c0b",
+          "t79e28005-2a25-460b-ad63-21c3f9fe8d50"
+        ],
+        "details": {
+          "event": "e4d2f0db4-6126-4ab5-8a8b-0d914b76884c",
+          "threatened": "gfda4d93e-5d6d-42da-a492-2f1fb24a1daa,gf2f12be3-e0fe-4066-933b-65410ddcd11c,g06727831-df48-477a-88f3-585bd03498e7,d58904b10-27e0-4fd8-a5e0-e9b7a2cda620,d3a88ebaf-ae21-42fb-a66f-b7e8a061c309,db4ed7d26-9c72-4179-bdb9-73b8574cacdd,g456493cd-897d-41ad-a9a6-8d2b4d891a0e,gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E3: file stolen\" threatening \"R5: credible CEng\" threatens also \"R7: credible CEng\", \"G24: credible CE provided\", \"G23: citizens helped\", \"R18: credible CEng\", \"G18: CE selected\", \"G13: lot acquired\"",
+        "elements": [
+          "e7e517543-7da1-4725-9b3f-0291d6b499d0",
+          "d52e7cda5-bb58-426c-9dd1-ceb96a33cbab",
+          "d0f51ed62-c565-4da1-a3c8-9156bb1ba02d",
+          "g684364e0-4047-4af8-8654-eeeef53a92b4",
+          "g06727831-df48-477a-88f3-585bd03498e7",
+          "db0d34f78-130d-466b-8d0f-6d7a81b31fd6",
+          "g0d26d14a-8903-4499-afe5-058f125de758",
+          "gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        ],
+        "links": [
+          "t194519dd-c4c6-4cd0-88c8-37d1e4f2354c",
+          "td1b3c0ec-44f8-4829-83ac-7718c53c281b",
+          "t4d6ec6e4-4e31-4b4d-89a1-3aeb08a7f2da"
+        ],
+        "details": {
+          "event": "e7e517543-7da1-4725-9b3f-0291d6b499d0",
+          "threatened": "d52e7cda5-bb58-426c-9dd1-ceb96a33cbab,d0f51ed62-c565-4da1-a3c8-9156bb1ba02d,g684364e0-4047-4af8-8654-eeeef53a92b4,g06727831-df48-477a-88f3-585bd03498e7,db0d34f78-130d-466b-8d0f-6d7a81b31fd6,g0d26d14a-8903-4499-afe5-058f125de758,gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E4: list unavail.\" threatening \"R18: credible CEng\" threatens also \"G18: CE selected\", \"G13: lot acquired\"",
+        "elements": [
+          "e106b13ad-94c0-4137-9200-47c621e5d70c",
+          "db0d34f78-130d-466b-8d0f-6d7a81b31fd6",
+          "g0d26d14a-8903-4499-afe5-058f125de758",
+          "gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        ],
+        "links": [
+          "t7b347206-2a28-443e-bd5e-677773040fe4"
+        ],
+        "details": {
+          "event": "e106b13ad-94c0-4137-9200-47c621e5d70c",
+          "threatened": "db0d34f78-130d-466b-8d0f-6d7a81b31fd6,g0d26d14a-8903-4499-afe5-058f125de758,gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+        }
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "goal": "gbe038bb8-9feb-4071-a163-b7d9df708b0f"
+      },
+      "link": "da79d7cb6-1e24-4b4d-b41a-8b1a0a917f30"
+    },
+    {
+      "requirement": "goal-availability",
+      "number": 9,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "goal": "gbe038bb8-9feb-4071-a163-b7d9df708b0f",
+        "level": "90"
+      },
+      "link": "da79d7cb6-1e24-4b4d-b41a-8b1a0a917f30"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "rd0db527e-683b-451b-ace1-dad474841c3c",
+      "requester": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "over": {
+        "goal": "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff"
+      },
+      "link": "d29174e80-d559-4de3-ada7-85e6e07607b9"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "goal": "g857ca4cd-cf25-44b0-ba9c-4ede99733bc0"
+      },
+      "link": "d1917ba62-32cc-4950-91d0-73c0fa5c82bc"
+    },
+    {
+      "requirement": "trustworthiness",
+      "number": 8,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "goal": "g857ca4cd-cf25-44b0-ba9c-4ede99733bc0"
+      },
+      "link": "d1917ba62-32cc-4950-91d0-73c0fa5c82bc"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "over": {
+        "goal": "g684364e0-4047-4af8-8654-eeeef53a92b4"
+      },
+      "link": "da0294a7d-ae5c-4d36-a5aa-3330826543c6"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "goal": "g684364e0-4047-4af8-8654-eeeef53a92b4"
+      },
+      "link": "da0294a7d-ae5c-4d36-a5aa-3330826543c6"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "over": {
+        "goal": "gf2f12be3-e0fe-4066-933b-65410ddcd11c"
+      },
+      "link": "d7c4bb879-52da-4d40-b53a-b1e9d0e882f1"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "goal": "gf2f12be3-e0fe-4066-933b-65410ddcd11c"
+      },
+      "link": "d7c4bb879-52da-4d40-b53a-b1e9d0e882f1"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "over": {
+        "goal": "g61b87c38-cd16-443a-8c29-5fa4f97f0982"
+      },
+      "link": "d05cd7405-90c2-4fb1-afbc-02f594ff49a6"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "goal": "g61b87c38-cd16-443a-8c29-5fa4f97f0982"
+      },
+      "link": "d05cd7405-90c2-4fb1-afbc-02f594ff49a6"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "over": {
+        "goal": "g0fc97f4c-d0a6-46e1-ba51-9b575bb53942"
+      },
+      "link": "d8bad18bf-08a9-472a-9861-cbe5127a1026"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "goal": "g0fc97f4c-d0a6-46e1-ba51-9b575bb53942"
+      },
+      "link": "d8bad18bf-08a9-472a-9861-cbe5127a1026"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "goal": "g42634d8d-3381-425d-aa72-a8888d693705"
+      },
+      "link": "db2ee45c9-3c48-4d95-95e4-c4fd78770022"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "requester": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "over": {
+        "document": "db692fd47-6d60-4fe5-b179-4f02a24821b3",
+        "level": "90"
+      },
+      "link": "t7b9cb40a-892c-431e-b38e-c7ce221ede77"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "document": "db692fd47-6d60-4fe5-b179-4f02a24821b3"
+      },
+      "link": "t7b9cb40a-892c-431e-b38e-c7ce221ede77"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "document": "db692fd47-6d60-4fe5-b179-4f02a24821b3"
+      },
+      "link": "t7b9cb40a-892c-431e-b38e-c7ce221ede77"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "over": {
+        "document": "d52e7cda5-bb58-426c-9dd1-ceb96a33cbab"
+      },
+      "link": "td1b3c0ec-44f8-4829-83ac-7718c53c281b"
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "number": 21,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "over": {
+        "document": "d52e7cda5-bb58-426c-9dd1-ceb96a33cbab"
+      },
+      "link": "td1b3c0ec-44f8-4829-83ac-7718c53c281b"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "over": {
+        "document": "d58904b10-27e0-4fd8-a5e0-e9b7a2cda620"
+      },
+      "link": "t361e880d-654c-4f31-8c5d-9c4fc3d21c0b"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "d58904b10-27e0-4fd8-a5e0-e9b7a2cda620"
+      },
+      "link": "t361e880d-654c-4f31-8c5d-9c4fc3d21c0b"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "d605b65e2-b8a8-49c0-a200-368931880d44",
+        "level": "95"
+      },
+      "link": "t8d621feb-081c-42b9-a127-d9378571e1f5"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "d64bf272b-4371-41de-89c2-491a7ec558f2",
+        "level": "95"
+      },
+      "link": "t29e6b03d-7cf3-47c9-ac11-f23ea00dfc90"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "document": "dba7a1144-cfaf-40bf-8ba1-5b6af054d323"
+      },
+      "link": "tbd9226d1-62c2-4128-bb92-450b240a2482"
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "number": 21,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "document": "dba7a1144-cfaf-40bf-8ba1-5b6af054d323"
+      },
+      "link": "tbd9226d1-62c2-4128-bb92-450b240a2482"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "d0f51ed62-c565-4da1-a3c8-9156bb1ba02d",
+        "level": "90"
+      },
+      "link": "t4d6ec6e4-4e31-4b4d-89a1-3aeb08a7f2da"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "d0f51ed62-c565-4da1-a3c8-9156bb1ba02d"
+      },
+      "link": "t4d6ec6e4-4e31-4b4d-89a1-3aeb08a7f2da"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "d3a88ebaf-ae21-42fb-a66f-b7e8a061c309",
+        "level": "87"
+      },
+      "link": "t79e28005-2a25-460b-ad63-21c3f9fe8d50"
+    },
+    {
+      "requirement": "sender-authentication",
+      "number": 18,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "d3a88ebaf-ae21-42fb-a66f-b7e8a061c309"
+      },
+      "link": "t79e28005-2a25-460b-ad63-21c3f9fe8d50"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "d3a88ebaf-ae21-42fb-a66f-b7e8a061c309"
+      },
+      "link": "t79e28005-2a25-460b-ad63-21c3f9fe8d50"
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "number": 21,
+      "responsible": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "d3a88ebaf-ae21-42fb-a66f-b7e8a061c309"
+      },
+      "link": "t79e28005-2a25-460b-ad63-21c3f9fe8d50"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "dcd4edb0b-bf7d-4a68-b05d-aaa166e05f86",
+        "level": "90"
+      },
+      "link": "t1b185a5f-2bf5-45f7-b26e-bb90a39adb60"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "document": "dcd4edb0b-bf7d-4a68-b05d-aaa166e05f86"
+      },
+      "link": "t1b185a5f-2bf5-45f7-b26e-bb90a39adb60"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "over": {
+        "document": "dcd4edb0b-bf7d-4a68-b05d-aaa166e05f86"
+      },
+      "link": "t1b185a5f-2bf5-45f7-b26e-bb90a39adb60"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "information": "i98936afc-bdb8-4330-b98d-06de410ebb44,ibf1c8e7a-5136-4b64-876a-ffdda0972860",
+        "goals": "ge67a902b-00e3-4407-b06f-734ef5795d60"
+      },
+      "link": "a663d8d7d-bccf-4ec4-a59d-bd791d5bf1db"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067",
+        "goals": "gb227e5f0-dac9-4e98-bf52-c8f6864f4f2c"
+      },
+      "link": "a423a8b09-a996-4292-a875-91651e0362d8"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067"
+      },
+      "link": "a423a8b09-a996-4292-a875-91651e0362d8"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067"
+      },
+      "link": "a423a8b09-a996-4292-a875-91651e0362d8"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+      "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067",
+        "goals": "gacc5b20d-6aee-4f19-92cd-6a065b13dc43"
+      },
+      "link": "a36070e94-043f-4ef1-9ef3-6bd743c0ed12"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+      "requester": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067"
+      },
+      "link": "a36070e94-043f-4ef1-9ef3-6bd743c0ed12"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "requester": "rc0643e7c-2acc-47d7-9b1d-6088daa6bfb2",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067"
+      },
+      "link": "a855c24f2-28e5-4e07-ace7-7908f87acc60"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "over": {
+        "information": "if86344c4-1ba8-4cd9-9b9f-f84b23ec2fd7,if451ecac-2d1a-449a-8a31-20888dbc8c60",
+        "goals": "g06727831-df48-477a-88f3-585bd03498e7"
+      },
+      "link": "aa2ae9699-896d-4f06-b022-493f89482ffd"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "a5dbce1a6-425a-480a-b1b8-c08b90a90ce4",
+      "over": {
+        "information": "if86344c4-1ba8-4cd9-9b9f-f84b23ec2fd7,if451ecac-2d1a-449a-8a31-20888dbc8c60"
+      },
+      "link": "aa2ae9699-896d-4f06-b022-493f89482ffd"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714",
+      "over": {
+        "information": "i5859335b-97c1-4321-8395-cbac83289067",
+        "goals": "g06727831-df48-477a-88f3-585bd03498e7"
+      },
+      "link": "a8200541e-51d1-4652-ae31-d5e7bcd7c9ca"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "information": "i02b04026-ab20-4620-ad02-a3f997d2205a,i688193eb-44be-4482-babd-a269b14c831d",
+        "goals": "g508b6c10-be41-44bf-a431-c40f28cfe7f7"
+      },
+      "link": "a440d66fb-e93a-4797-a135-119ef1a79e43"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rbcf93a8b-4114-4fa6-8d42-5c9809d3f42d",
+      "over": {
+        "information": "i02b04026-ab20-4620-ad02-a3f997d2205a,i688193eb-44be-4482-babd-a269b14c831d"
+      },
+      "link": "a440d66fb-e93a-4797-a135-119ef1a79e43"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "information": "ibbf5fe06-a073-41b5-a8c0-af5351e09aa9,if86344c4-1ba8-4cd9-9b9f-f84b23ec2fd7,i2d3da102-2cb6-4164-95ed-8e5bd8ed275b,if451ecac-2d1a-449a-8a31-20888dbc8c60",
+        "goals": "gd93108b2-f946-465e-bfb5-4c2fe51b5c9e"
+      },
+      "link": "a146ff973-5c70-4334-baf4-b82d7744f733"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "r84d0e763-a188-4f10-b71a-2b01d689854a",
+      "requester": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "over": {
+        "information": "ibbf5fe06-a073-41b5-a8c0-af5351e09aa9,if86344c4-1ba8-4cd9-9b9f-f84b23ec2fd7,i2d3da102-2cb6-4164-95ed-8e5bd8ed275b,if451ecac-2d1a-449a-8a31-20888dbc8c60"
+      },
+      "link": "a146ff973-5c70-4334-baf4-b82d7744f733"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "over": {
+        "information": "i2d3da102-2cb6-4164-95ed-8e5bd8ed275b",
+        "goals": "gf2f12be3-e0fe-4066-933b-65410ddcd11c"
+      },
+      "link": "a69c77b02-4e9f-4bc9-b544-d2e32b3be418"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1",
+      "over": {
+        "information": "i2d3da102-2cb6-4164-95ed-8e5bd8ed275b"
+      },
+      "link": "a69c77b02-4e9f-4bc9-b544-d2e32b3be418"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "over": {
+        "information": "ibbf5fe06-a073-41b5-a8c0-af5351e09aa9",
+        "goals": "g684364e0-4047-4af8-8654-eeeef53a92b4"
+      },
+      "link": "aae3aacd2-d5ec-40e3-9833-82c574c826e1"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "a9d4da178-f85f-49f2-8810-cdb624962940",
+      "requester": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+      "over": {
+        "information": "ibbf5fe06-a073-41b5-a8c0-af5351e09aa9"
+      },
+      "link": "aae3aacd2-d5ec-40e3-9833-82c574c826e1"
+    },
+    {
+      "requirement": "role-sod",
+      "number": 23,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "rd9ebb8a3-5dd6-4249-9499-de28872edadf",
+        "second": "rdbfd90e4-426c-4467-b9c3-ddac0ace52f1"
+      },
+      "link": "d19ea691b-af4e-4683-a713-02951079fc23"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g072bcb51-bb7d-4e0e-865e-d9ee7d349d70",
+        "second": "g9d6970a6-5048-41aa-8084-2e008f38a0eb"
+      },
+      "link": "dfe7f1a75-82e5-4c4b-98c9-8a966162f76e"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g9d6970a6-5048-41aa-8084-2e008f38a0eb",
+        "second": "g3d05ca1c-ed0c-4d4a-9da5-e2e9deae14ff"
+      },
+      "link": "d774cd0f9-2274-4756-9db4-61674449e5ec"
+    },
+    {
+      "requirement": "role-sod",
+      "number": 23,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "raeb3a3ac-c062-4b15-9276-5bfe9a6e0c0d",
+        "second": "r9642796a-a8ed-458f-b90a-3bfe2c2a1714"
+      },
+      "link": "d4fb37d76-8e84-48fb-a10b-011893695a44"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g161a97ce-c971-4b9e-89f1-0c30a1919ad2",
+        "second": "g072bcb51-bb7d-4e0e-865e-d9ee7d349d70"
+      },
+      "link": "d550211c3-0198-45da-85c3-4b84af8d6ab1"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g456493cd-897d-41ad-a9a6-8d2b4d891a0e",
+        "second": "g0d26d14a-8903-4499-afe5-058f125de758"
+      },
+      "link": "dfbb8099a-6abb-499b-b068-4432ed7d7462"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g43ea0f2d-57b7-49ba-bda6-00a19cd6c0fc",
+        "second": "gd2535aec-8240-4da2-8410-302de95b5db1"
+      },
+      "link": "d8cd9c82f-90d9-4300-985b-de406f262786"
+    }
+  ]
+}

@@ -1,0 +1,1523 @@
+{
+  "sample": "taslab",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/taslab/taslab.exp",
+  "sha256": {
+    "exp": "ecd24a691c53c966765a84409c868d3237834b8cf90579741a732ba7fc89a578",
+    "sts": "f899f46ed3cf26bf900e528ab1b99388f0c063cdbdaaf9e6f1c0bbf35294a8a2"
+  },
+  "report": {
+    "file": "Scenario_Taslab_Report.pdf",
+    "rows": {
+      "wellFormedness": 0,
+      "security": 41
+    }
+  },
+  "differences": [
+    {
+      "key": "goalCod|enterprise search built+semantic search built",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    },
+    {
+      "key": "goalSod|citizen's records created+corporate records created",
+      "ours": 0,
+      "report": 1,
+      "why": "E9"
+    },
+    {
+      "key": "noRedelegation|InfoTN|cadstre data verified|PAT",
+      "ours": 1,
+      "report": 0,
+      "why": "E8"
+    },
+    {
+      "key": "noRedelegation|InfoTN|corporate data verified|PAT",
+      "ours": 1,
+      "report": 0,
+      "why": "E8"
+    },
+    {
+      "key": "nonProduction|InfoTN|location|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|personal info|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|residential address|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|tax contributions|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    }
+  ],
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I1: tax contributions\" conflict on production of \"I1: tax contributions\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "actor": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "on": "produce"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I2: residential address\" conflict on production of \"I2: residential address\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "actor": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "on": "produce"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I3: location\" conflict on production of \"I3: location\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "actor": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "on": "produce"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I5: personal info\" conflict on production of \"I5: personal info\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "actor": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "on": "produce"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"InfoTN\" and \"TN Company Selector\" to \"Okkam Srl\" over \"I5: personal info\" conflict on modification of \"I5: personal info\"",
+        "elements": [
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r698618ce-82f0-49ef-9032-3980df6a5990"
+        ],
+        "links": [
+          "a69f9d309-769d-4160-a7db-06e3aea11f31",
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "actor": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "on": "modify"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G20: data refined\" to \"TN Company Selector\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "g2f48b959-ee92-4e9d-9d38-225c30077364",
+          "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "r698618ce-82f0-49ef-9032-3980df6a5990"
+        ],
+        "links": [
+          "d87c74781-9623-4412-ae14-036eaa7739dd",
+          "dbfebfd9e-d34a-4535-9847-47851469952a"
+        ],
+        "details": {
+          "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "goal": "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "redelegated": "g2f48b959-ee92-4e9d-9d38-225c30077364",
+          "to": "r698618ce-82f0-49ef-9032-3980df6a5990"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G33: cadstre data verified\" to \"PAT\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "g35235923-2ec3-47e1-8d0f-ee0568262e6e",
+          "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "d87c74781-9623-4412-ae14-036eaa7739dd",
+          "d0ee76d3d-6df4-402d-aa55-3ddff765fb63"
+        ],
+        "details": {
+          "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "goal": "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "redelegated": "g35235923-2ec3-47e1-8d0f-ee0568262e6e",
+          "to": "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G34: corporate data verified\" to \"PAT\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "g30c8e198-eb17-483d-98c2-f5178cf74986",
+          "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "d87c74781-9623-4412-ae14-036eaa7739dd",
+          "d87f045c8-2e0f-439d-8659-f79658116153"
+        ],
+        "details": {
+          "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "goal": "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "redelegated": "g30c8e198-eb17-483d-98c2-f5178cf74986",
+          "to": "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" not to redelegate \"G15: search module built\", and yet \"TN Company Selector\" delegates \"G43: semantic search built\" to \"Okkam Srl\"",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd",
+          "g6b97bbd7-36e8-48c0-9661-c21c78b069bb",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30"
+        ],
+        "links": [
+          "dff70c93b-18bb-480a-bc2c-8dbc7649a5ea",
+          "dd2239fb7-8fc4-42eb-bcd5-98d5c11118cc"
+        ],
+        "details": {
+          "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "goal": "g6b97bbd7-36e8-48c0-9661-c21c78b069bb",
+          "redelegated": "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" not to redelegate \"G16: navigation module built\", and yet \"TN Company Selector\" delegates \"G45: navigation module built\" to \"BP Engineering Srl\"",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ac506c3f4-9a00-4293-90ee-160de9fdf522"
+        ],
+        "links": [
+          "dfc1daee1-6299-4193-aa60-53b3c9b85177",
+          "dbbdca753-bac2-4a6f-894b-637cadf5b25a"
+        ],
+        "details": {
+          "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "goal": "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c",
+          "redelegated": "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c",
+          "to": "ac506c3f4-9a00-4293-90ee-160de9fdf522"
+        }
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" multi-actor redundancy for \"G22: data refined\", but \"TN Company Selector\" doesn't decompose \"G22: data refined\" into alternatives",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "g0bc195cb-8d1b-4de2-8c1c-c4058e0695b6",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16"
+        ],
+        "links": [
+          "dbfebfd9e-d34a-4535-9847-47851469952a"
+        ],
+        "details": {
+          "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "goal": "g0bc195cb-8d1b-4de2-8c1c-c4058e0695b6"
+        }
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" multi-actor redundancy for \"G45: navigation module built\", but \"TN Company Selector\" doesn't decompose \"G45: navigation module built\" into alternatives",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16"
+        ],
+        "links": [
+          "dfc1daee1-6299-4193-aa60-53b3c9b85177"
+        ],
+        "details": {
+          "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "goal": "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c"
+        }
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Engineering Tributi\" the modification of \"I5: personal info\", but \"Engineering Tributi\" modifies \"R27: personal records\", which makes \"I5: personal info\" tangible, for \"G24: missing data found\"",
+        "elements": [
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "gd0a255b5-484c-4e03-bc86-93ad02549990",
+          "d3c740068-ed82-4980-8255-11da160e62d8",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "m606fd4d4-723b-4e7b-a7bc-0dfadb9253fe"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "goal": "gd0a255b5-484c-4e03-bc86-93ad02549990",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the production of \"I2: residential address\", but \"Citizen\" produces \"R6: personal address\", which makes \"I2: residential address\" tangible, for \"G25: citizen registered\"",
+        "elements": [
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "ge05d6b69-18d6-4c28-94e0-0907f92e3d33",
+          "d0b7caafc-7d30-48bd-aac6-30f6761f048f",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p618b1185-827f-4f74-8de6-2419906ce10d"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "goal": "ge05d6b69-18d6-4c28-94e0-0907f92e3d33",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the production of \"I3: location\", but \"Citizen\" produces \"R6: personal address\", which makes \"I3: location\" tangible, for \"G25: citizen registered\"",
+        "elements": [
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "ge05d6b69-18d6-4c28-94e0-0907f92e3d33",
+          "d0b7caafc-7d30-48bd-aac6-30f6761f048f",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p618b1185-827f-4f74-8de6-2419906ce10d"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "goal": "ge05d6b69-18d6-4c28-94e0-0907f92e3d33",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I2: residential address\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I2: residential address\" tangible, for \"G17: data files stored\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "d6d055353-bbaa-4af4-957b-fe986f368d62",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p292d4303-583c-45e5-b091-0bf4aa668e12",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "goal": "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I3: location\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I3: location\" tangible, for \"G17: data files stored\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "d6d055353-bbaa-4af4-957b-fe986f368d62",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p292d4303-583c-45e5-b091-0bf4aa668e12",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "goal": "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I5: personal info\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I5: personal info\" tangible, for \"G17: data files stored\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "d6d055353-bbaa-4af4-957b-fe986f368d62",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p292d4303-583c-45e5-b091-0bf4aa668e12",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "goal": "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I1: tax contributions\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I1: tax contributions\" tangible, for \"G17: data files stored\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "d6d055353-bbaa-4af4-957b-fe986f368d62",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "p292d4303-583c-45e5-b091-0bf4aa668e12",
+          "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "goal": "g97a308d6-56d9-4993-b9d2-b097bfc6b519",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"PAT\" the production of \"I1: tax contributions\", but \"PAT\" produces \"R16: corporate registry\", which makes \"I1: tax contributions\" tangible, for \"G36: corporate details registered\"",
+        "elements": [
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "gf87e7f66-b58d-42a6-a498-e85e03a256e7",
+          "d0700afa2-1dd0-43ab-b4f9-c9e39643357e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "pdedbe9e8-3d64-4462-8576-448f66a47945",
+          "a61382872-3027-4777-a245-4cd7628b8e8e"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "goal": "gf87e7f66-b58d-42a6-a498-e85e03a256e7",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the transmission of \"I2: residential address\", but \"Citizen\" transmits \"R6: personal address\", which makes \"I2: residential address\" tangible, to \"Municipality\"",
+        "elements": [
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "d0b7caafc-7d30-48bd-aac6-30f6761f048f",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "t615f9220-0417-4f8a-b076-4c723b50894a"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "to": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the transmission of \"I3: location\", but \"Citizen\" transmits \"R6: personal address\", which makes \"I3: location\" tangible, to \"Municipality\"",
+        "elements": [
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "d0b7caafc-7d30-48bd-aac6-30f6761f048f",
+          "r30c807e9-f210-4419-b074-b716c2c33907",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "t615f9220-0417-4f8a-b076-4c723b50894a"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "to": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Municipality\" the transmission of \"I5: personal info\", but \"Municipality\" transmits \"R8: personal records\", which makes \"I5: personal info\" tangible, to \"InfoTN\"",
+        "elements": [
+          "r30c807e9-f210-4419-b074-b716c2c33907",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "dfefbe883-23c7-4051-abf6-2aa98134bb05",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "t00c2252f-4679-4bec-b6ec-961548f1278d"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"PAT\" the transmission of \"I1: tax contributions\", but \"PAT\" transmits \"R16: corporate registry\", which makes \"I1: tax contributions\" tangible, to \"InfoTN\"",
+        "elements": [
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "d0700afa2-1dd0-43ab-b4f9-c9e39643357e",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "tdb2940cb-85b0-4071-8d79-c74a67faccb2"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I5: personal info\", but \"InfoTN\" transmits \"R13: personal records\", which makes \"I5: personal info\" tangible, to \"Engineering Tributi\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "d648f81b5-e26b-4b1d-8e49-56dcef9b0776",
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "t0bee06a6-9d0b-471d-8486-1b384edde784"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "to": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I2: residential address\", but \"InfoTN\" transmits \"R14: civil map addresses\", which makes \"I2: residential address\" tangible, to \"Engineering Tributi\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "d7d292af3-0efb-428c-bdc7-b7521028b169",
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "tc631f91a-4186-43b2-804a-52b728f10dac"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "to": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I3: location\", but \"InfoTN\" transmits \"R14: civil map addresses\", which makes \"I3: location\" tangible, to \"Engineering Tributi\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "d7d292af3-0efb-428c-bdc7-b7521028b169",
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "tc631f91a-4186-43b2-804a-52b728f10dac"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "to": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I1: tax contributions\", but \"InfoTN\" transmits \"R15: tax contributions file\", which makes \"I1: tax contributions\" tangible, to \"Engineering Tributi\"",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "dbfb3b012-8d7c-454e-a88a-4c6550b47684",
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "t0da38f5e-7b11-4c2c-a5b4-1dbe4a18ee8e"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Municipality\" has no right to the reading of \"I4: fiscal code\", but authorises \"Tax Agency\" to it",
+        "elements": [
+          "r30c807e9-f210-4419-b074-b716c2c33907",
+          "ibc31de6a-5869-470d-b002-09195b82c148",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "a9d4d2cb5-2513-4245-9d96-0d528c8af0d1"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "information": "ibc31de6a-5869-470d-b002-09195b82c148",
+          "to": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "operation": "read"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Municipality\" has no right to the production of \"I4: fiscal code\", but authorises \"Tax Agency\" to it",
+        "elements": [
+          "r30c807e9-f210-4419-b074-b716c2c33907",
+          "ibc31de6a-5869-470d-b002-09195b82c148",
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "a9d4d2cb5-2513-4245-9d96-0d528c8af0d1"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "information": "ibc31de6a-5869-470d-b002-09195b82c148",
+          "to": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I1: tax contributions\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "modify"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I2: residential address\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "modify"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I2: residential address\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I3: location\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "modify"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I3: location\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I5: personal info\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "modify"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I5: personal info\", but authorises \"InfoTN\" to it",
+        "elements": [
+          "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "a94c3813c-0c05-447c-9e78-5272e182c607"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "to": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"InfoTN\" has no right to the modification of \"I4: fiscal code\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "ibc31de6a-5869-470d-b002-09195b82c148",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e"
+        ],
+        "links": [
+          "a69f9d309-769d-4160-a7db-06e3aea11f31"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+          "information": "ibc31de6a-5869-470d-b002-09195b82c148",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "modify"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the reading of \"I1: tax contributions\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "read"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I1: tax contributions\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I2: residential address\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "i669567cc-0c2c-41bc-9977-d50704544164",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "i669567cc-0c2c-41bc-9977-d50704544164",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I3: location\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e,r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "i126a5730-fc47-4f26-8b51-7578a579d07c",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I5: personal info\", but authorises \"Okkam Srl\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "r20673f28-9031-436f-a607-d0b4b2edfbb4"
+        ],
+        "links": [
+          "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+        ],
+        "details": {
+          "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+          "to": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the reading of \"I1: tax contributions\", but authorises \"Engineering Tributi\" to it",
+        "elements": [
+          "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "r30c807e9-f210-4419-b074-b716c2c33907"
+        ],
+        "links": [
+          "ac6a2d6bd-c570-45e7-9e50-3b53f35f9b9e"
+        ],
+        "details": {
+          "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+          "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+          "information": "ided96ed0-96bd-4ac2-98f1-03b687354eda",
+          "to": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+          "operation": "read"
+        }
+      },
+      {
+        "kind": "goalCod",
+        "severity": "error",
+        "message": "A combination of duties is required between \"G43: semantic search built\" and \"G44: enterprise search built\", but \"Okkam Srl\" and \"TN Company Selector\" may perform one without the other",
+        "elements": [
+          "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd",
+          "g8c9cc82f-f2ac-4374-863f-7987e1f23198",
+          "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+          "r698618ce-82f0-49ef-9032-3980df6a5990"
+        ],
+        "links": [
+          "d2fc62787-40b8-4316-84cf-5fe28cd0c609"
+        ],
+        "details": {
+          "first": "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd",
+          "second": "g8c9cc82f-f2ac-4374-863f-7987e1f23198",
+          "witnesses": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30,r698618ce-82f0-49ef-9032-3980df6a5990"
+        }
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: auditor sick\" threatening \"G41: corporate data verified\" threatens also \"G36: corporate details registered\", \"G35: registries maintained\", \"R16: corporate registry\", \"R20: corporate registry\", \"G34: corporate data verified\", \"G21: data integrated\", \"G19: data completeness ensured\", \"G14: system maintained\", \"G13: online system built\", \"G9: data completeness ensured\", \"G2: tax verification performed\", \"G1: revenue system maintained\"",
+        "elements": [
+          "ef17e5dec-eb5c-4b6c-a1cc-a8ff8342872b",
+          "g1d29e8ae-4e2e-4ccb-94ec-ed7c16bad69b",
+          "gf87e7f66-b58d-42a6-a498-e85e03a256e7",
+          "g904b81b7-e839-4bcc-91ee-668f001e89f5",
+          "d0700afa2-1dd0-43ab-b4f9-c9e39643357e",
+          "d518cbbf2-1ed4-4e51-8f16-b08556dc6a9a",
+          "g30c8e198-eb17-483d-98c2-f5178cf74986",
+          "g497f8e0b-36b6-4e07-9f29-7f07904930ea",
+          "g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b",
+          "gc6bda020-5aea-4aba-90b9-b564bcec490b",
+          "gd621b643-0a4b-4e05-b2b6-e2fe254d35ab",
+          "g70483b21-ccbe-459e-803f-f427fe658b1e",
+          "g9080a30f-a7a5-4e05-aacd-999d289f4602",
+          "g3b00564e-5303-4c9b-a526-5dfbe07c6feb"
+        ],
+        "links": [
+          "ta09ae4ae-0023-40fa-831a-ca1223ed976d",
+          "tdb2940cb-85b0-4071-8d79-c74a67faccb2"
+        ],
+        "details": {
+          "event": "ef17e5dec-eb5c-4b6c-a1cc-a8ff8342872b",
+          "threatened": "g1d29e8ae-4e2e-4ccb-94ec-ed7c16bad69b,gf87e7f66-b58d-42a6-a498-e85e03a256e7,g904b81b7-e839-4bcc-91ee-668f001e89f5,d0700afa2-1dd0-43ab-b4f9-c9e39643357e,d518cbbf2-1ed4-4e51-8f16-b08556dc6a9a,g30c8e198-eb17-483d-98c2-f5178cf74986,g497f8e0b-36b6-4e07-9f29-7f07904930ea,g9a0c060e-d6c5-46ac-9e63-488e3f3a2e5b,gc6bda020-5aea-4aba-90b9-b564bcec490b,gd621b643-0a4b-4e05-b2b6-e2fe254d35ab,g70483b21-ccbe-459e-803f-f427fe658b1e,g9080a30f-a7a5-4e05-aacd-999d289f4602,g3b00564e-5303-4c9b-a526-5dfbe07c6feb"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: data lost\" threatening \"R23: high quality data\" threatens also \"G49: data interconnected\", \"G46: semantic search built\", \"G43: semantic search built\"",
+        "elements": [
+          "eea010f77-dddf-4866-b7f7-4fa21f01ba5f",
+          "d7804c77f-45ad-47dd-8f3a-2ef450e02571",
+          "gb130731d-6ee6-453e-8142-0fb3e77677bc",
+          "g62b8292c-4e2e-436a-825e-16792f810d01",
+          "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd"
+        ],
+        "links": [
+          "t26696c0d-1c5e-4afe-84f1-6cc22d9fee24"
+        ],
+        "details": {
+          "event": "eea010f77-dddf-4866-b7f7-4fa21f01ba5f",
+          "threatened": "d7804c77f-45ad-47dd-8f3a-2ef450e02571,gb130731d-6ee6-453e-8142-0fb3e77677bc,g62b8292c-4e2e-436a-825e-16792f810d01,g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd"
+        }
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "over": {
+        "goal": "g70483b21-ccbe-459e-803f-f427fe658b1e"
+      },
+      "link": "d87c74781-9623-4412-ae14-036eaa7739dd"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "over": {
+        "goal": "g70483b21-ccbe-459e-803f-f427fe658b1e"
+      },
+      "link": "d87c74781-9623-4412-ae14-036eaa7739dd"
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "number": 5,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "g2f48b959-ee92-4e9d-9d38-225c30077364"
+      },
+      "link": "dbfebfd9e-d34a-4535-9847-47851469952a"
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "number": 11,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "g2f48b959-ee92-4e9d-9d38-225c30077364"
+      },
+      "link": "dbfebfd9e-d34a-4535-9847-47851469952a"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "gd25054d0-ccd9-43ea-8b67-4cda20401958"
+      },
+      "link": "d05bc9349-0a80-4760-a6dc-7f4439820440"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "goal": "gd25054d0-ccd9-43ea-8b67-4cda20401958"
+      },
+      "link": "d05bc9349-0a80-4760-a6dc-7f4439820440"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "gd25054d0-ccd9-43ea-8b67-4cda20401958"
+      },
+      "link": "d05bc9349-0a80-4760-a6dc-7f4439820440"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "gaba900be-6ea4-43a2-be50-d45f88fc9e78"
+      },
+      "link": "dd2d67dda-de24-4375-a3e0-8cd5a2ddf02c"
+    },
+    {
+      "requirement": "goal-availability",
+      "number": 9,
+      "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "gaba900be-6ea4-43a2-be50-d45f88fc9e78",
+        "level": "95"
+      },
+      "link": "dd2d67dda-de24-4375-a3e0-8cd5a2ddf02c"
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "number": 11,
+      "responsible": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "g35235923-2ec3-47e1-8d0f-ee0568262e6e"
+      },
+      "link": "d0ee76d3d-6df4-402d-aa55-3ddff765fb63"
+    },
+    {
+      "requirement": "delegator-authentication",
+      "number": 10,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+      "over": {
+        "goal": "g30c8e198-eb17-483d-98c2-f5178cf74986"
+      },
+      "link": "d87f045c8-2e0f-439d-8659-f79658116153"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "gef5e1acc-e13a-4499-98b6-7e1876d66d02"
+      },
+      "link": "dff70c93b-18bb-480a-bc2c-8dbc7649a5ea"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "g697996dd-0b95-4038-8b4a-fdccadacc3ee"
+      },
+      "link": "dfc1daee1-6299-4193-aa60-53b3c9b85177"
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "number": 5,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "goal": "g697996dd-0b95-4038-8b4a-fdccadacc3ee"
+      },
+      "link": "dfc1daee1-6299-4193-aa60-53b3c9b85177"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+      "requester": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "over": {
+        "goal": "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd"
+      },
+      "link": "dd2239fb7-8fc4-42eb-bcd5-98d5c11118cc"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "ac506c3f4-9a00-4293-90ee-160de9fdf522",
+      "requester": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "over": {
+        "goal": "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c"
+      },
+      "link": "dbbdca753-bac2-4a6f-894b-637cadf5b25a"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "document": "d312c3dd1-30f9-4118-b73f-449f28699855",
+        "level": "98"
+      },
+      "link": "t93aaa40a-a47e-428d-8753-bf66d509de5c"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "document": "d4217619d-bef9-4397-bd06-cb493e322dcd"
+      },
+      "link": "tc808d92a-83f1-42cb-89bc-5f7c4e690209"
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "number": 21,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "document": "d4217619d-bef9-4397-bd06-cb493e322dcd"
+      },
+      "link": "tc808d92a-83f1-42cb-89bc-5f7c4e690209"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "document": "dc3f554fa-7142-47aa-8670-84d1b49cb0c7"
+      },
+      "link": "t548ba470-b093-4f7d-979d-29d4deef5457"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "over": {
+        "document": "dc3f554fa-7142-47aa-8670-84d1b49cb0c7"
+      },
+      "link": "t548ba470-b093-4f7d-979d-29d4deef5457"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "requester": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+      "over": {
+        "document": "ddc78c2b1-53c5-43ef-aee5-c3e4829b8089"
+      },
+      "link": "td635c19b-48ba-4014-8fa3-659bcad1355d"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "over": {
+        "document": "d648f81b5-e26b-4b1d-8e49-56dcef9b0776"
+      },
+      "link": "t0bee06a6-9d0b-471d-8486-1b384edde784"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "over": {
+        "document": "d7d292af3-0efb-428c-bdc7-b7521028b169"
+      },
+      "link": "tc631f91a-4186-43b2-804a-52b728f10dac"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "over": {
+        "document": "dbfb3b012-8d7c-454e-a88a-4c6550b47684",
+        "level": "90"
+      },
+      "link": "t0da38f5e-7b11-4c2c-a5b4-1dbe4a18ee8e"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "document": "dbfb3b012-8d7c-454e-a88a-4c6550b47684"
+      },
+      "link": "t0da38f5e-7b11-4c2c-a5b4-1dbe4a18ee8e"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "over": {
+        "document": "dbfb3b012-8d7c-454e-a88a-4c6550b47684"
+      },
+      "link": "t0da38f5e-7b11-4c2c-a5b4-1dbe4a18ee8e"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "requester": "r20673f28-9031-436f-a607-d0b4b2edfbb4",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+        "goals": "g9c9f9292-4e5b-4857-b527-7f3603343f11"
+      },
+      "link": "aa7e83c34-568c-464f-847a-45f0fc90b6b5"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda",
+        "goals": "g904b81b7-e839-4bcc-91ee-668f001e89f5"
+      },
+      "link": "a61382872-3027-4777-a245-4cd7628b8e8e"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda"
+      },
+      "link": "a61382872-3027-4777-a245-4cd7628b8e8e"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "information": "ibc31de6a-5869-470d-b002-09195b82c148,ided96ed0-96bd-4ac2-98f1-03b687354eda",
+        "goals": "g9080a30f-a7a5-4e05-aacd-999d289f4602"
+      },
+      "link": "a9d4d2cb5-2513-4245-9d96-0d528c8af0d1"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r2990485b-fb7d-44e5-b16b-52eb13291ae2",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda",
+        "goals": "g2f48b959-ee92-4e9d-9d38-225c30077364"
+      },
+      "link": "a94c3813c-0c05-447c-9e78-5272e182c607"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "information": "i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda,ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+        "goals": "gc6bda020-5aea-4aba-90b9-b564bcec490b"
+      },
+      "link": "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "r30c807e9-f210-4419-b074-b716c2c33907",
+      "over": {
+        "information": "i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda,ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b"
+      },
+      "link": "aac6d1409-4a9d-409b-89c7-ef989479e7b3"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "requester": "aab82ef31-fc24-4562-9505-3936c55c7c4e",
+      "over": {
+        "information": "ibc31de6a-5869-470d-b002-09195b82c148",
+        "goals": "g497f8e0b-36b6-4e07-9f29-7f07904930ea"
+      },
+      "link": "a704f0552-8804-43ad-b681-7134713dacf6"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "information": "ibc31de6a-5869-470d-b002-09195b82c148,ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b",
+        "goals": "gb130731d-6ee6-453e-8142-0fb3e77677bc"
+      },
+      "link": "a69f9d309-769d-4160-a7db-06e3aea11f31"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+      "requester": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda",
+        "goals": "g62b8292c-4e2e-436a-825e-16792f810d01"
+      },
+      "link": "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "afb533f78-bb7c-4a78-858a-5f3bfcb81e30",
+      "requester": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda"
+      },
+      "link": "aeec2b19b-e079-463e-91f1-bf9b44b91123"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "requester": "r258ab70d-f3c8-455b-9a39-23119f64ea16",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164",
+        "goals": "g6aa1f0f1-5f99-43d0-8d59-ddbb4c928c2c,g6b97bbd7-36e8-48c0-9661-c21c78b069bb"
+      },
+      "link": "abf393c81-b532-4d1c-909b-71fc7f326fbc"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r9654013a-aa7b-471b-9a70-d1dec01aee84",
+      "requester": "r698618ce-82f0-49ef-9032-3980df6a5990",
+      "over": {
+        "information": "ib0a7c7dd-58a9-45ff-bc4e-ed97e53ed48b,i669567cc-0c2c-41bc-9977-d50704544164,ided96ed0-96bd-4ac2-98f1-03b687354eda",
+        "goals": "g4d4b7450-5959-4f39-93ce-4fb97861911b"
+      },
+      "link": "ac6a2d6bd-c570-45e7-9e50-3b53f35f9b9e"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "gcea35449-e76c-4b44-a476-96b9ef3271e5",
+        "second": "gc34fb8ad-de5d-4d9c-b955-137bcf8cffa4"
+      },
+      "link": "dffe11c35-5411-4312-b68b-a93defdee3b9"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g9a3d6f57-22d6-4f42-809d-ffe062b8fdcd",
+        "second": "g8c9cc82f-f2ac-4374-863f-7987e1f23198"
+      },
+      "link": "d2fc62787-40b8-4316-84cf-5fe28cd0c609"
+    }
+  ]
+}

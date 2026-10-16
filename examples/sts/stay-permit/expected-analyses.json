@@ -1,252 +1,5 @@
 {
   "seed": "stay-permit",
-  "findings": {
-    "wellFormedness": [],
-    "security": [
-      {
-        "kind": "authorisationConflict",
-        "severity": "error",
-        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I1: PersonalData\" conflict on the authority to transfer authorisations"
-      },
-      {
-        "kind": "authorisationConflict",
-        "severity": "error",
-        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I2: FinancialStatus\" conflict on the authority to transfer authorisations"
-      },
-      {
-        "kind": "noRedelegation",
-        "severity": "error",
-        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G3: Get Student Record\" to \"Secretary\""
-      },
-      {
-        "kind": "noRedelegation",
-        "severity": "error",
-        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G7: Write new doc\" to \"Secretary\""
-      },
-      {
-        "kind": "singleRedundancy",
-        "severity": "error",
-        "message": "\"Secretary\" requires \"IS Manager\" single-actor redundancy for \"G15: Obtain UTD Statement\", but \"IS Manager\" doesn't decompose \"G15: Obtain UTD Statement\" into alternatives"
-      },
-      {
-        "kind": "needToKnow",
-        "severity": "error",
-        "message": "\"Student\" authorises \"IS Manager\" on \"I2: FinancialStatus\" only for \"G14: Get Student Pers. Data\", but \"IS Manager\" produces \"R7: Income Statement\", which makes \"I2: FinancialStatus\" tangible, for \"G15: Obtain UTD Statement\""
-      }
-    ],
-    "threats": [
-      {
-        "kind": "threatPropagation",
-        "severity": "info",
-        "message": "The event \"E1: DDoS attack\" threatening \"G14: Get Student Pers. Data\" threatens also \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\", \"R6: Personal data file\", \"R3: Personal data file\""
-      },
-      {
-        "kind": "threatPropagation",
-        "severity": "info",
-        "message": "The event \"E2: Info Integrity loss\" threatening \"R6: Personal data file\" threatens also \"R3: Personal data file\", \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\""
-      }
-    ]
-  },
-  "requirements": [
-    {
-      "requirement": "non-repudiation-of-acceptance",
-      "responsible": "Program Coordinator",
-      "requester": "Student",
-      "over": {
-        "goal": "G1: Write doc for I.O"
-      }
-    },
-    {
-      "requirement": "no-redelegation",
-      "responsible": "Program Coordinator",
-      "requester": "Student",
-      "over": {
-        "goal": "G1: Write doc for I.O"
-      }
-    },
-    {
-      "requirement": "non-repudiation-of-delegation",
-      "responsible": "Program Coordinator",
-      "requester": "Secretary",
-      "over": {
-        "goal": "G7: Write new doc"
-      }
-    },
-    {
-      "requirement": "no-redelegation",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "goal": "G7: Write new doc"
-      }
-    },
-    {
-      "requirement": "non-repudiation-of-acceptance",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "goal": "G3: Get Student Record"
-      }
-    },
-    {
-      "requirement": "trustworthiness",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "goal": "G3: Get Student Record"
-      }
-    },
-    {
-      "requirement": "non-repudiation-of-acceptance",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "goal": "G9: Get Student Pers. Data"
-      }
-    },
-    {
-      "requirement": "delegatee-authentication",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "goal": "G9: Get Student Pers. Data"
-      }
-    },
-    {
-      "requirement": "true-redundancy-single",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "goal": "G11: Obtain UTD Statement"
-      }
-    },
-    {
-      "requirement": "receiver-authentication",
-      "responsible": "Secretary",
-      "requester": "IS Manager",
-      "over": {
-        "document": "R6: Personal data file"
-      }
-    },
-    {
-      "requirement": "sender-confidentiality",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "document": "R6: Personal data file"
-      }
-    },
-    {
-      "requirement": "document-availability",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "document": "R6: Personal data file",
-        "level": "86"
-      }
-    },
-    {
-      "requirement": "sender-integrity",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "document": "R7: Income Statement"
-      }
-    },
-    {
-      "requirement": "sender-confidentiality",
-      "responsible": "IS Manager",
-      "requester": "Secretary",
-      "over": {
-        "document": "R7: Income Statement"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "IS Manager",
-      "requester": "Student",
-      "over": {
-        "information": "I1: PersonalData, I2: FinancialStatus",
-        "goals": "G14: Get Student Pers. Data"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "Secretary",
-      "requester": "IS Manager",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData",
-        "goals": "G8: Get Student Record"
-      }
-    },
-    {
-      "requirement": "non-modification",
-      "responsible": "Secretary",
-      "requester": "IS Manager",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData"
-      }
-    },
-    {
-      "requirement": "non-disclosure",
-      "responsible": "Secretary",
-      "requester": "IS Manager",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "Program Coordinator",
-      "requester": "Student",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData",
-        "goals": "G2: Write doc for I.O"
-      }
-    },
-    {
-      "requirement": "non-production",
-      "responsible": "Program Coordinator",
-      "requester": "Student",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData",
-        "goals": "G8: Get Student Record"
-      }
-    },
-    {
-      "requirement": "non-modification",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData"
-      }
-    },
-    {
-      "requirement": "non-reauthorisation",
-      "responsible": "Secretary",
-      "requester": "Program Coordinator",
-      "over": {
-        "information": "I2: FinancialStatus, I1: PersonalData"
-      }
-    },
-    {
-      "requirement": "role-sod",
-      "responsible": "(all agents)",
-      "requester": "(organisation)",
-      "over": {
-        "first": "Program Coordinator",
-        "second": "Secretary"
-      }
-    }
-  ],
   "references": [
     {
       "ref": "SP-WF",
@@ -292,6 +45,437 @@
         "C27: Fill tax returns is in no figure (red’s reading 4)",
         "§2.1’s 90% (Obtain UTD Statement) and 70% (Income Statement; also (q), \"C24\") are in no figure: a manual erratum, text vs figure and Table 2’s own C24 (86%, Personal Data File)"
       ]
+    }
+  ],
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I1: PersonalData\" conflict on the authority to transfer authorisations",
+        "elements": [
+          "secretary",
+          "personal-data",
+          "is-manager",
+          "coordinator"
+        ],
+        "links": [
+          "authorises-is-manager-secretary",
+          "authorises-coordinator-secretary"
+        ],
+        "details": {
+          "actor": "secretary",
+          "information": "personal-data",
+          "on": "transferability"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"IS Manager\" and \"Program Coordinator\" to \"Secretary\" over \"I2: FinancialStatus\" conflict on the authority to transfer authorisations",
+        "elements": [
+          "secretary",
+          "financial-status",
+          "is-manager",
+          "coordinator"
+        ],
+        "links": [
+          "authorises-is-manager-secretary",
+          "authorises-coordinator-secretary"
+        ],
+        "details": {
+          "actor": "secretary",
+          "information": "financial-status",
+          "on": "transferability"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G3: Get Student Record\" to \"Secretary\"",
+        "elements": [
+          "coordinator",
+          "coordinator-get-record",
+          "coordinator-write-doc",
+          "student",
+          "secretary"
+        ],
+        "links": [
+          "delegates-student-write-doc-coordinator-write-doc",
+          "delegates-coordinator-get-record-secretary-get-record"
+        ],
+        "details": {
+          "requester": "student",
+          "responsible": "coordinator",
+          "goal": "coordinator-write-doc",
+          "redelegated": "coordinator-get-record",
+          "to": "secretary"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Student\" requires \"Program Coordinator\" not to redelegate \"G1: Write doc for I.O\", and yet \"Program Coordinator\" delegates \"G7: Write new doc\" to \"Secretary\"",
+        "elements": [
+          "coordinator",
+          "coordinator-write-new",
+          "coordinator-write-doc",
+          "student",
+          "secretary"
+        ],
+        "links": [
+          "delegates-student-write-doc-coordinator-write-doc",
+          "delegates-coordinator-write-new-secretary-write-new"
+        ],
+        "details": {
+          "requester": "student",
+          "responsible": "coordinator",
+          "goal": "coordinator-write-doc",
+          "redelegated": "coordinator-write-new",
+          "to": "secretary"
+        }
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Secretary\" requires \"IS Manager\" single-actor redundancy for \"G15: Obtain UTD Statement\", but \"IS Manager\" doesn't decompose \"G15: Obtain UTD Statement\" into alternatives",
+        "elements": [
+          "is-manager",
+          "is-manager-obtain-utd",
+          "secretary"
+        ],
+        "links": [
+          "delegates-secretary-obtain-utd-is-manager-obtain-utd"
+        ],
+        "details": {
+          "requester": "secretary",
+          "responsible": "is-manager",
+          "goal": "is-manager-obtain-utd"
+        }
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Student\" authorises \"IS Manager\" on \"I2: FinancialStatus\" only for \"G14: Get Student Pers. Data\", but \"IS Manager\" produces \"R7: Income Statement\", which makes \"I2: FinancialStatus\" tangible, for \"G15: Obtain UTD Statement\"",
+        "elements": [
+          "is-manager",
+          "financial-status",
+          "is-manager-obtain-utd",
+          "is-manager-income-statement",
+          "student"
+        ],
+        "links": [
+          "produces-is-manager-obtain-utd-is-manager-income-statement",
+          "authorises-student-is-manager"
+        ],
+        "details": {
+          "requester": "student",
+          "responsible": "is-manager",
+          "information": "financial-status",
+          "goal": "is-manager-obtain-utd",
+          "operation": "produce"
+        }
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: DDoS attack\" threatening \"G14: Get Student Pers. Data\" threatens also \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\", \"R6: Personal data file\", \"R3: Personal data file\"",
+        "elements": [
+          "ddos-attack",
+          "is-manager-get-pers-data",
+          "secretary-get-pers-data",
+          "secretary-get-record",
+          "coordinator-get-record",
+          "coordinator-write-doc",
+          "student-write-doc",
+          "coordinator-signed-doc",
+          "is-manager-personal-file",
+          "secretary-personal-file"
+        ],
+        "links": [
+          "threatens-ddos-attack-is-manager-get-pers-data",
+          "transmits-is-manager-personal-file-secretary-personal-file"
+        ],
+        "details": {
+          "event": "ddos-attack",
+          "threatened": "is-manager-get-pers-data,secretary-get-pers-data,secretary-get-record,coordinator-get-record,coordinator-write-doc,student-write-doc,coordinator-signed-doc,is-manager-personal-file,secretary-personal-file"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: Info Integrity loss\" threatening \"R6: Personal data file\" threatens also \"R3: Personal data file\", \"G9: Get Student Pers. Data\", \"G8: Get Student Record\", \"G3: Get Student Record\", \"G2: Write doc for I.O\", \"G1: Write doc for I.O\", \"R1: Signed Official Doc\"",
+        "elements": [
+          "integrity-loss",
+          "is-manager-personal-file",
+          "secretary-personal-file",
+          "secretary-get-pers-data",
+          "secretary-get-record",
+          "coordinator-get-record",
+          "coordinator-write-doc",
+          "student-write-doc",
+          "coordinator-signed-doc"
+        ],
+        "links": [
+          "threatens-integrity-loss-is-manager-personal-file",
+          "transmits-is-manager-personal-file-secretary-personal-file"
+        ],
+        "details": {
+          "event": "integrity-loss",
+          "threatened": "is-manager-personal-file,secretary-personal-file,secretary-get-pers-data,secretary-get-record,coordinator-get-record,coordinator-write-doc,student-write-doc,coordinator-signed-doc"
+        }
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "coordinator",
+      "requester": "student",
+      "over": {
+        "goal": "student-write-doc"
+      },
+      "link": "delegates-student-write-doc-coordinator-write-doc"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "coordinator",
+      "requester": "student",
+      "over": {
+        "goal": "student-write-doc"
+      },
+      "link": "delegates-student-write-doc-coordinator-write-doc"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "goal": "coordinator-write-new"
+      },
+      "link": "delegates-coordinator-write-new-secretary-write-new"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "coordinator",
+      "requester": "secretary",
+      "over": {
+        "goal": "coordinator-write-new"
+      },
+      "link": "delegates-coordinator-write-new-secretary-write-new"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "goal": "coordinator-get-record"
+      },
+      "link": "delegates-coordinator-get-record-secretary-get-record"
+    },
+    {
+      "requirement": "trustworthiness",
+      "number": 8,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "goal": "coordinator-get-record"
+      },
+      "link": "delegates-coordinator-get-record-secretary-get-record"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "goal": "secretary-get-pers-data"
+      },
+      "link": "delegates-secretary-get-pers-data-is-manager-get-pers-data"
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "number": 11,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "goal": "secretary-get-pers-data"
+      },
+      "link": "delegates-secretary-get-pers-data-is-manager-get-pers-data"
+    },
+    {
+      "requirement": "true-redundancy-single",
+      "number": 3,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "goal": "secretary-obtain-utd"
+      },
+      "link": "delegates-secretary-obtain-utd-is-manager-obtain-utd"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "document": "is-manager-personal-file",
+        "level": "86"
+      },
+      "link": "transmits-is-manager-personal-file-secretary-personal-file"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "secretary",
+      "requester": "is-manager",
+      "over": {
+        "document": "is-manager-personal-file"
+      },
+      "link": "transmits-is-manager-personal-file-secretary-personal-file"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "document": "is-manager-personal-file"
+      },
+      "link": "transmits-is-manager-personal-file-secretary-personal-file"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "document": "is-manager-income-statement"
+      },
+      "link": "transmits-is-manager-income-statement-secretary-income-statement"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "is-manager",
+      "requester": "secretary",
+      "over": {
+        "document": "is-manager-income-statement"
+      },
+      "link": "transmits-is-manager-income-statement-secretary-income-statement"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "is-manager",
+      "requester": "student",
+      "over": {
+        "information": "personal-data,financial-status",
+        "goals": "is-manager-get-pers-data"
+      },
+      "link": "authorises-student-is-manager"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "secretary",
+      "requester": "is-manager",
+      "over": {
+        "information": "financial-status,personal-data",
+        "goals": "secretary-get-record"
+      },
+      "link": "authorises-is-manager-secretary"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "secretary",
+      "requester": "is-manager",
+      "over": {
+        "information": "financial-status,personal-data"
+      },
+      "link": "authorises-is-manager-secretary"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "secretary",
+      "requester": "is-manager",
+      "over": {
+        "information": "financial-status,personal-data"
+      },
+      "link": "authorises-is-manager-secretary"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "coordinator",
+      "requester": "student",
+      "over": {
+        "information": "financial-status,personal-data",
+        "goals": "coordinator-write-doc"
+      },
+      "link": "authorises-student-coordinator"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "coordinator",
+      "requester": "student",
+      "over": {
+        "information": "financial-status,personal-data"
+      },
+      "link": "authorises-student-coordinator"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "information": "financial-status,personal-data",
+        "goals": "secretary-get-record"
+      },
+      "link": "authorises-coordinator-secretary"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "information": "financial-status,personal-data"
+      },
+      "link": "authorises-coordinator-secretary"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "secretary",
+      "requester": "coordinator",
+      "over": {
+        "information": "financial-status,personal-data"
+      },
+      "link": "authorises-coordinator-secretary"
+    },
+    {
+      "requirement": "role-sod",
+      "number": 23,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "coordinator",
+        "second": "secretary"
+      },
+      "link": "incompatible-coordinator-secretary"
     }
   ]
 }

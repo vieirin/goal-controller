@@ -22,7 +22,11 @@ import {
 import type { StsDecomposition, StsModel } from './model';
 
 /** The dialect's kinds the analyses read (red's `../vocabulary`, #163). */
-export const STS_KINDS = { ...ISTAR, ...KINDS, ...STS_LINKS } as const;
+export const STS_ANALYSIS_KINDS = {
+  ...ISTAR,
+  ...KINDS,
+  ...STS_LINKS,
+} as const;
 
 /**
  * The security needs a delegation's or a transmission's properties
@@ -75,7 +79,7 @@ const operations = (names: readonly string[]): Operation[] =>
 
 /** Reads the analyses' model from the dialect's. */
 export const readStsModel = (model: AnalysisModel): StsModel => {
-  const K = STS_KINDS;
+  const K = STS_ANALYSIS_KINDS;
   const elementActor = new Map(
     model.elements.flatMap((e) =>
       e.actor !== undefined ? [[e.id, e.actor] as const] : [],

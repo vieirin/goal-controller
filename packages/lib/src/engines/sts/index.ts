@@ -9,6 +9,9 @@
 import { defineAnalyses } from '../analysis';
 import { sts } from './definition';
 import { stsSecurityAnalyses } from './analysis';
+
+// the design-time analyses' runner, for the stress script (#160 D-R7)
+export { runStsAnalyses, type StsAnalyses } from './analysis';
 import { stsProblems } from './problems';
 
 /** The dialect's findings as an analysis: one case, no values (#160 D-R6). */

@@ -1,298 +1,5 @@
 {
   "seed": "travel-planning",
-  "findings": {
-    "wellFormedness": [
-      {
-        "kind": "delegationChildCycle",
-        "severity": "warning",
-        "message": "There is a delegation cycle: \"G13: Room selected\", a subgoal of \"G12: Hotel booked\", delegated to \"Hotel Service\", is delegated back to \"Hotel\""
-      }
-    ],
-    "security": [
-      {
-        "kind": "noRedelegation",
-        "severity": "error",
-        "message": "\"Tourist\" requires \"Hotel\" not to redelegate \"G3: Hotel booked\", and yet \"Hotel\" delegates \"G10: Hotel booked\" to \"Hotel Service\""
-      },
-      {
-        "kind": "nonModification",
-        "severity": "error",
-        "message": "\"Tourist\" prohibits \"Hotel\" the modification of \"I1: Personal data\", but \"Hotel\" modifies \"R8: ID Doc Copy\", which makes \"I1: Personal data\" tangible, for \"G10: Hotel booked\""
-      },
-      {
-        "kind": "nonDisclosure",
-        "severity": "error",
-        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I2: Itinerary\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I2: Itinerary\" tangible, to \"Amadeus Service\""
-      },
-      {
-        "kind": "nonDisclosure",
-        "severity": "error",
-        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I3: Destination\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I3: Destination\" tangible, to \"Amadeus Service\""
-      },
-      {
-        "kind": "nonDisclosure",
-        "severity": "error",
-        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I4: Schedule\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I4: Schedule\" tangible, to \"Amadeus Service\""
-      },
-      {
-        "kind": "nonReauthorisationOperation",
-        "severity": "error",
-        "message": "\"TAS\" has no right to the production of \"I1: Personal data\", but authorises \"Amadeus Service\" to it"
-      },
-      {
-        "kind": "nonReauthorisationOperation",
-        "severity": "error",
-        "message": "\"TAS\" has no right to the production of \"I2: Itinerary\", but authorises \"Amadeus Service\" to it"
-      },
-      {
-        "kind": "nonReauthorisationOperation",
-        "severity": "error",
-        "message": "\"TAS\" has no right to the production of \"I3: Destination\", but authorises \"Amadeus Service\" to it"
-      },
-      {
-        "kind": "nonReauthorisationOperation",
-        "severity": "error",
-        "message": "\"TAS\" has no right to the production of \"I4: Schedule\", but authorises \"Amadeus Service\" to it"
-      },
-      {
-        "kind": "goalSod",
-        "severity": "error",
-        "message": "A separation of duties is required between \"G8: eticket generated\" and \"G9: credit card verified\", but \"Amadeus Service\" may pursue both"
-      },
-      {
-        "kind": "goalSod",
-        "severity": "error",
-        "message": "A separation of duties is required between \"G13: Room selected\" and \"G14: Prepayment made\", but \"Hotel Service\" may pursue both"
-      },
-      {
-        "kind": "goalCod",
-        "severity": "error",
-        "message": "A combination of duties is required between \"G2: Tickets booked\" and \"G3: Hotel booked\", but \"Amadeus Service\", \"Hotel Service\", \"Payment Service\", \"TAS\" and \"Hotel\" may perform one without the other"
-      }
-    ],
-    "threats": [
-      {
-        "kind": "threatPropagation",
-        "severity": "info",
-        "message": "The event \"E1: ID Doc stolen\" threatening \"R8: ID Doc Copy\" threatens also \"G10: Hotel booked\", \"G3: Hotel booked\", \"G1: Trip planned\", \"R1: Traveling Order\", \"R3: Traveling Order\", \"G4: Tickets booked\", \"G2: Tickets booked\", \"R2: ID Doc Copy\""
-      },
-      {
-        "kind": "threatPropagation",
-        "severity": "info",
-        "message": "The event \"E2: Ticket lost\" threatening \"G6: Train ticket booked\" threatens also \"R5: Tickets\""
-      }
-    ]
-  },
-  "requirements": [
-    {
-      "requirement": "non-repudiation-of-acceptance",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "goal": "G2: Tickets booked"
-      }
-    },
-    {
-      "requirement": "true-redundancy-multi",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "goal": "G2: Tickets booked"
-      }
-    },
-    {
-      "requirement": "no-redelegation",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "goal": "G3: Hotel booked"
-      }
-    },
-    {
-      "requirement": "trustworthiness",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "goal": "G3: Hotel booked"
-      }
-    },
-    {
-      "requirement": "non-repudiation-of-delegation",
-      "responsible": "TAS",
-      "requester": "Amadeus Service",
-      "over": {
-        "goal": "G5: Flight ticket booked"
-      }
-    },
-    {
-      "requirement": "goal-availability",
-      "responsible": "Amadeus Service",
-      "requester": "TAS",
-      "over": {
-        "goal": "G5: Flight ticket booked",
-        "level": "85"
-      }
-    },
-    {
-      "requirement": "trustworthiness",
-      "responsible": "Payment Service",
-      "requester": "Hotel Service",
-      "over": {
-        "goal": "G14: Prepayment made"
-      }
-    },
-    {
-      "requirement": "sender-integrity",
-      "responsible": "TAS",
-      "requester": "Amadeus Service",
-      "over": {
-        "document": "R4: Itinerary details"
-      }
-    },
-    {
-      "requirement": "sender-confidentiality",
-      "responsible": "TAS",
-      "requester": "Amadeus Service",
-      "over": {
-        "document": "R4: Itinerary details"
-      }
-    },
-    {
-      "requirement": "document-availability",
-      "responsible": "TAS",
-      "requester": "Amadeus Service",
-      "over": {
-        "document": "R4: Itinerary details",
-        "level": "98"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data, I2: Itinerary",
-        "goals": "G4: Tickets booked"
-      }
-    },
-    {
-      "requirement": "non-modification",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data, I2: Itinerary"
-      }
-    },
-    {
-      "requirement": "non-production",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data, I2: Itinerary"
-      }
-    },
-    {
-      "requirement": "non-disclosure",
-      "responsible": "TAS",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data, I2: Itinerary"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data",
-        "goals": "G10: Hotel booked"
-      }
-    },
-    {
-      "requirement": "non-modification",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data"
-      }
-    },
-    {
-      "requirement": "non-production",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data"
-      }
-    },
-    {
-      "requirement": "non-disclosure",
-      "responsible": "Hotel",
-      "requester": "Tourist",
-      "over": {
-        "information": "I1: Personal data"
-      }
-    },
-    {
-      "requirement": "need-to-know",
-      "responsible": "Amadeus Service",
-      "requester": "TAS",
-      "over": {
-        "information": "I2: Itinerary, I1: Personal data",
-        "goals": "G7: Flight ticket booked"
-      }
-    },
-    {
-      "requirement": "non-modification",
-      "responsible": "Amadeus Service",
-      "requester": "TAS",
-      "over": {
-        "information": "I2: Itinerary, I1: Personal data"
-      }
-    },
-    {
-      "requirement": "non-disclosure",
-      "responsible": "Amadeus Service",
-      "requester": "TAS",
-      "over": {
-        "information": "I2: Itinerary, I1: Personal data"
-      }
-    },
-    {
-      "requirement": "non-reauthorisation",
-      "responsible": "Amadeus Service",
-      "requester": "TAS",
-      "over": {
-        "information": "I2: Itinerary, I1: Personal data"
-      }
-    },
-    {
-      "requirement": "goal-sod",
-      "responsible": "(all agents)",
-      "requester": "(organisation)",
-      "over": {
-        "first": "G8: eticket generated",
-        "second": "G9: credit card verified"
-      }
-    },
-    {
-      "requirement": "goal-sod",
-      "responsible": "(all agents)",
-      "requester": "(organisation)",
-      "over": {
-        "first": "G13: Room selected",
-        "second": "G14: Prepayment made"
-      }
-    },
-    {
-      "requirement": "goal-cod",
-      "responsible": "(all agents)",
-      "requester": "(organisation)",
-      "over": {
-        "first": "G2: Tickets booked",
-        "second": "G3: Hotel booked"
-      }
-    }
-  ],
   "references": [
     {
       "ref": "R3",
@@ -317,6 +24,596 @@
       "source": "NESSoS Table 1",
       "printed": "12 requirements",
       "verdict": "rows 1, 3, 4, 6, 7, 9–12 reproduced. Row 2 (Tourist non-repudiation-of-delegation on Tickets booked) has no need in Figs. 10–11 (red’s reading 1). Row 5: integrity is the sender TAS’s by Fig. 11’s text, while Table 1 names Amadeus Service (red’s reading 5). Row 8 (Tourist | delegatedTo(trustworthy(Hotel)) | Tourist) names the delegator responsible, against DKE R8 (\"the delegatee actor shall be trustworthy\"). Green derives 25, since Table 1 lists only some"
+    }
+  ],
+  "findings": {
+    "wellFormedness": [
+      {
+        "kind": "delegationChildCycle",
+        "severity": "warning",
+        "message": "There is a delegation cycle: \"G13: Room selected\", a subgoal of \"G12: Hotel booked\", delegated to \"Hotel Service\", is delegated back to \"Hotel\"",
+        "elements": [
+          "hotel-service-room-selected",
+          "hotel-service-hotel-booked",
+          "hotel-service",
+          "hotel"
+        ],
+        "links": [
+          "delegates-hotel-hotel-booked-hotel-service-hotel-booked",
+          "delegates-hotel-service-room-selected-hotel-room-selected"
+        ],
+        "details": {
+          "goal": "hotel-service-room-selected",
+          "to": "hotel"
+        }
+      }
+    ],
+    "security": [
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tourist\" requires \"Hotel\" not to redelegate \"G3: Hotel booked\", and yet \"Hotel\" delegates \"G10: Hotel booked\" to \"Hotel Service\"",
+        "elements": [
+          "hotel",
+          "hotel-hotel-booked",
+          "tourist",
+          "hotel-service"
+        ],
+        "links": [
+          "delegates-tourist-hotel-booked-hotel-hotel-booked",
+          "delegates-hotel-hotel-booked-hotel-service-hotel-booked"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "hotel",
+          "goal": "hotel-hotel-booked",
+          "redelegated": "hotel-hotel-booked",
+          "to": "hotel-service"
+        }
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "\"Tourist\" prohibits \"Hotel\" the modification of \"I1: Personal data\", but \"Hotel\" modifies \"R8: ID Doc Copy\", which makes \"I1: Personal data\" tangible, for \"G10: Hotel booked\"",
+        "elements": [
+          "hotel",
+          "personal-data",
+          "hotel-hotel-booked",
+          "hotel-id-doc-copy",
+          "tourist"
+        ],
+        "links": [
+          "modifies-hotel-hotel-booked-hotel-id-doc-copy",
+          "authorises-tourist-hotel"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "hotel",
+          "information": "personal-data",
+          "goal": "hotel-hotel-booked",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I2: Itinerary\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I2: Itinerary\" tangible, to \"Amadeus Service\"",
+        "elements": [
+          "tas",
+          "itinerary",
+          "tas-itinerary-details",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "transmits-tas-itinerary-details-amadeus-itinerary-details",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "itinerary",
+          "to": "amadeus",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I3: Destination\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I3: Destination\" tangible, to \"Amadeus Service\"",
+        "elements": [
+          "tas",
+          "destination",
+          "tas-itinerary-details",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "transmits-tas-itinerary-details-amadeus-itinerary-details",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "destination",
+          "to": "amadeus",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Tourist\" prohibits \"TAS\" the transmission of \"I4: Schedule\", but \"TAS\" transmits \"R4: Itinerary details\", which makes \"I4: Schedule\" tangible, to \"Amadeus Service\"",
+        "elements": [
+          "tas",
+          "schedule",
+          "tas-itinerary-details",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "transmits-tas-itinerary-details-amadeus-itinerary-details",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "schedule",
+          "to": "amadeus",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TAS\" has no right to the production of \"I1: Personal data\", but authorises \"Amadeus Service\" to it",
+        "elements": [
+          "tas",
+          "personal-data",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "authorises-tas-amadeus",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "personal-data",
+          "to": "amadeus",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TAS\" has no right to the production of \"I2: Itinerary\", but authorises \"Amadeus Service\" to it",
+        "elements": [
+          "tas",
+          "itinerary",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "authorises-tas-amadeus",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "itinerary",
+          "to": "amadeus",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TAS\" has no right to the production of \"I3: Destination\", but authorises \"Amadeus Service\" to it",
+        "elements": [
+          "tas",
+          "destination",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "authorises-tas-amadeus",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "destination",
+          "to": "amadeus",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TAS\" has no right to the production of \"I4: Schedule\", but authorises \"Amadeus Service\" to it",
+        "elements": [
+          "tas",
+          "schedule",
+          "amadeus",
+          "tourist"
+        ],
+        "links": [
+          "authorises-tas-amadeus",
+          "authorises-tourist-tas"
+        ],
+        "details": {
+          "requester": "tourist",
+          "responsible": "tas",
+          "information": "schedule",
+          "to": "amadeus",
+          "operation": "produce"
+        }
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G8: eticket generated\" and \"G9: credit card verified\", but \"Amadeus Service\" may pursue both",
+        "elements": [
+          "amadeus-eticket-generated",
+          "amadeus-credit-card-verified",
+          "amadeus"
+        ],
+        "links": [
+          "incompatible-amadeus-eticket-generated-amadeus-credit-card-verified"
+        ],
+        "details": {
+          "first": "amadeus-eticket-generated",
+          "second": "amadeus-credit-card-verified",
+          "witnesses": "amadeus"
+        }
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G13: Room selected\" and \"G14: Prepayment made\", but \"Hotel Service\" may pursue both",
+        "elements": [
+          "hotel-service-room-selected",
+          "hotel-service-prepayment-made",
+          "hotel-service"
+        ],
+        "links": [
+          "incompatible-hotel-service-room-selected-hotel-service-prepayment-made"
+        ],
+        "details": {
+          "first": "hotel-service-room-selected",
+          "second": "hotel-service-prepayment-made",
+          "witnesses": "hotel-service"
+        }
+      },
+      {
+        "kind": "goalCod",
+        "severity": "error",
+        "message": "A combination of duties is required between \"G2: Tickets booked\" and \"G3: Hotel booked\", but \"Amadeus Service\", \"Hotel Service\", \"Payment Service\", \"TAS\" and \"Hotel\" may perform one without the other",
+        "elements": [
+          "tourist-tickets-booked",
+          "tourist-hotel-booked",
+          "amadeus",
+          "hotel-service",
+          "payment-service",
+          "tas",
+          "hotel"
+        ],
+        "links": [
+          "combines-tourist-tickets-booked-tourist-hotel-booked"
+        ],
+        "details": {
+          "first": "tourist-tickets-booked",
+          "second": "tourist-hotel-booked",
+          "witnesses": "amadeus,hotel-service,payment-service,tas,hotel"
+        }
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: ID Doc stolen\" threatening \"R8: ID Doc Copy\" threatens also \"G10: Hotel booked\", \"G3: Hotel booked\", \"G1: Trip planned\", \"R1: Traveling Order\", \"R3: Traveling Order\", \"G4: Tickets booked\", \"G2: Tickets booked\", \"R2: ID Doc Copy\"",
+        "elements": [
+          "id-doc-stolen",
+          "hotel-id-doc-copy",
+          "hotel-hotel-booked",
+          "tourist-hotel-booked",
+          "tourist-trip-planned",
+          "tourist-traveling-order",
+          "tas-traveling-order",
+          "tas-tickets-booked",
+          "tourist-tickets-booked",
+          "tourist-id-doc-copy"
+        ],
+        "links": [
+          "threatens-id-doc-stolen-hotel-id-doc-copy",
+          "transmits-tourist-traveling-order-tas-traveling-order",
+          "transmits-tourist-id-doc-copy-hotel-id-doc-copy"
+        ],
+        "details": {
+          "event": "id-doc-stolen",
+          "threatened": "hotel-id-doc-copy,hotel-hotel-booked,tourist-hotel-booked,tourist-trip-planned,tourist-traveling-order,tas-traveling-order,tas-tickets-booked,tourist-tickets-booked,tourist-id-doc-copy"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: Ticket lost\" threatening \"G6: Train ticket booked\" threatens also \"R5: Tickets\"",
+        "elements": [
+          "ticket-lost",
+          "tas-train-ticket-booked",
+          "tas-tickets"
+        ],
+        "links": [
+          "threatens-ticket-lost-tas-train-ticket-booked"
+        ],
+        "details": {
+          "event": "ticket-lost",
+          "threatened": "tas-train-ticket-booked,tas-tickets"
+        }
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "goal": "tourist-tickets-booked"
+      },
+      "link": "delegates-tourist-tickets-booked-tas-tickets-booked"
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "number": 5,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "goal": "tourist-tickets-booked"
+      },
+      "link": "delegates-tourist-tickets-booked-tas-tickets-booked"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "goal": "tourist-hotel-booked"
+      },
+      "link": "delegates-tourist-hotel-booked-hotel-hotel-booked"
+    },
+    {
+      "requirement": "trustworthiness",
+      "number": 8,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "goal": "tourist-hotel-booked"
+      },
+      "link": "delegates-tourist-hotel-booked-hotel-hotel-booked"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "tas",
+      "requester": "amadeus",
+      "over": {
+        "goal": "tas-flight-ticket-booked"
+      },
+      "link": "delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked"
+    },
+    {
+      "requirement": "goal-availability",
+      "number": 9,
+      "responsible": "amadeus",
+      "requester": "tas",
+      "over": {
+        "goal": "tas-flight-ticket-booked",
+        "level": "85"
+      },
+      "link": "delegates-tas-flight-ticket-booked-amadeus-flight-ticket-booked"
+    },
+    {
+      "requirement": "trustworthiness",
+      "number": 8,
+      "responsible": "payment-service",
+      "requester": "hotel-service",
+      "over": {
+        "goal": "hotel-service-prepayment-made"
+      },
+      "link": "delegates-hotel-service-prepayment-made-payment-service-prepayment-made"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "tas",
+      "requester": "amadeus",
+      "over": {
+        "document": "tas-itinerary-details",
+        "level": "98"
+      },
+      "link": "transmits-tas-itinerary-details-amadeus-itinerary-details"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "tas",
+      "requester": "amadeus",
+      "over": {
+        "document": "tas-itinerary-details"
+      },
+      "link": "transmits-tas-itinerary-details-amadeus-itinerary-details"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "tas",
+      "requester": "amadeus",
+      "over": {
+        "document": "tas-itinerary-details"
+      },
+      "link": "transmits-tas-itinerary-details-amadeus-itinerary-details"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data,itinerary",
+        "goals": "tas-tickets-booked"
+      },
+      "link": "authorises-tourist-tas"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data,itinerary"
+      },
+      "link": "authorises-tourist-tas"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data,itinerary"
+      },
+      "link": "authorises-tourist-tas"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "tas",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data,itinerary"
+      },
+      "link": "authorises-tourist-tas"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data",
+        "goals": "hotel-hotel-booked"
+      },
+      "link": "authorises-tourist-hotel"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data"
+      },
+      "link": "authorises-tourist-hotel"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data"
+      },
+      "link": "authorises-tourist-hotel"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "hotel",
+      "requester": "tourist",
+      "over": {
+        "information": "personal-data"
+      },
+      "link": "authorises-tourist-hotel"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "amadeus",
+      "requester": "tas",
+      "over": {
+        "information": "itinerary,personal-data",
+        "goals": "amadeus-flight-ticket-booked"
+      },
+      "link": "authorises-tas-amadeus"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "amadeus",
+      "requester": "tas",
+      "over": {
+        "information": "itinerary,personal-data"
+      },
+      "link": "authorises-tas-amadeus"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "amadeus",
+      "requester": "tas",
+      "over": {
+        "information": "itinerary,personal-data"
+      },
+      "link": "authorises-tas-amadeus"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "amadeus",
+      "requester": "tas",
+      "over": {
+        "information": "itinerary,personal-data"
+      },
+      "link": "authorises-tas-amadeus"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "amadeus-eticket-generated",
+        "second": "amadeus-credit-card-verified"
+      },
+      "link": "incompatible-amadeus-eticket-generated-amadeus-credit-card-verified"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "hotel-service-room-selected",
+        "second": "hotel-service-prepayment-made"
+      },
+      "link": "incompatible-hotel-service-room-selected-hotel-service-prepayment-made"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "tourist-tickets-booked",
+        "second": "tourist-hotel-booked"
+      },
+      "link": "combines-tourist-tickets-booked-tourist-hotel-booked"
     }
   ]
 }

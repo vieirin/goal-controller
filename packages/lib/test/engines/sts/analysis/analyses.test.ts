@@ -726,3 +726,22 @@ describe('STS-ml worked examples (#160 R1)', () => {
     );
   });
 });
+
+describe('STS-ml analyses from the lib entry point (#160 D-R7)', () => {
+  it('exports runStsAnalyses, as scripts/sts-stress calls it', async () => {
+    const lib = await import('../../../../src/index');
+    assert.strictEqual(typeof lib.runStsAnalyses, 'function');
+    const { m } = delegation({ noRedelegation: 'true' });
+    m.role('C');
+    m.delegate('G@B', 'C');
+    const result = lib.runStsAnalyses(m.model());
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      'findings',
+      'requirements',
+    ]);
+    assert.deepStrictEqual(
+      result.findings.security.map((f) => f.kind),
+      ['noRedelegation'],
+    );
+  });
+});

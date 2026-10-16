@@ -1,0 +1,1684 @@
+{
+  "sample": "healthcare",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/healtcare/healthcare.exp",
+  "sha256": {
+    "exp": "6ca17c447fd8e678bbdb149dce481570e785fd367839d7a01b92a1db0275b7fd",
+    "sts": "a7d7b77a91200a8a26eab42d4b5ba0957b856e14e7309a79e8c0f0e38eed69a2"
+  },
+  "report": {
+    "file": "Scenario_Healthcare_Report.pdf",
+    "rows": {
+      "wellFormedness": 1,
+      "security": 53
+    }
+  },
+  "differences": [
+    {
+      "key": "conflict|Red Cross BTC|health status",
+      "ours": 1,
+      "report": 0,
+      "why": "D-G20: transferability conflict (DKE Def. 5(2)(ii)), not printed (E21)"
+    },
+    {
+      "key": "goalCod|medical advice given+transfusion performed via specialist",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    },
+    {
+      "key": "goalSod|on blood type eval+on donors",
+      "ours": 0,
+      "report": 2,
+      "why": "E16"
+    },
+    {
+      "key": "needToKnow|Red Cross BTC|health status|blood examined",
+      "ours": 1,
+      "report": 0,
+      "why": "D-G20: need-to-know here, non-reading in the report"
+    },
+    {
+      "key": "nonDisclosure|Red Cross BTC|health status|Donor",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonProduction|Red Cross BTC|health status|donor approved",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonReading|Donor|health status|blood donat regularly",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonReading|Red Cross BTC|health status|blood examined",
+      "ours": 0,
+      "report": 1,
+      "why": "D-G20: need-to-know here, non-reading in the report"
+    },
+    {
+      "key": "nonReading|Red Cross BTC|health status|donor approved",
+      "ours": 0,
+      "report": 1,
+      "why": "E18"
+    },
+    {
+      "key": "redundancy|blood transported",
+      "ours": 1,
+      "report": 0,
+      "why": "E20"
+    },
+    {
+      "key": "redundancy|tests taken",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    }
+  ],
+  "findings": {
+    "wellFormedness": [
+      {
+        "kind": "informationNoOwner",
+        "severity": "warning",
+        "message": "Information \"I7: medical history info\" has no owner",
+        "elements": [
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee"
+        ],
+        "links": [],
+        "details": {
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee"
+        }
+      }
+    ],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Alice\" and \"Physician\" to \"Red Cross BTC\" over \"I1: health status\" conflict on the authority to transfer authorisations",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb"
+        ],
+        "links": [
+          "a4d3cd326-1e02-46f7-a7e4-c1d4e55d75fe",
+          "a9fd11e17-a9cb-4a6e-8d1a-a430942801de"
+        ],
+        "details": {
+          "actor": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "on": "transferability"
+        }
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Patient\" and \"Hospital\" to \"Physician\" over \"I3: personal data\" conflict on the goal scope (one is limited to goals, the other is not)",
+        "elements": [
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2"
+        ],
+        "links": [
+          "a5360b41f-ce04-43c9-9043-eee8c30fd94f",
+          "a282a5d9e-d364-4a5f-86c7-44ba3b1f526b"
+        ],
+        "details": {
+          "actor": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "on": "scope"
+        }
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Alice\" requires \"ModernLabs\" not to redelegate \"G2: tests taken\", and yet \"ModernLabs\" delegates \"G31: drug test performed\" to \"Drug Tests Inc\"",
+        "elements": [
+          "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9",
+          "g2484f182-2290-4afa-8528-86b79916c674",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "ab2785da1-33c8-4fdd-98fe-1e81b7c34691"
+        ],
+        "links": [
+          "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d",
+          "d82f80160-afee-408a-9a55-ad6aa5acb57a"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "goal": "g2484f182-2290-4afa-8528-86b79916c674",
+          "redelegated": "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9",
+          "to": "ab2785da1-33c8-4fdd-98fe-1e81b7c34691"
+        }
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Alice\" requires \"ModernLabs\" single-actor redundancy for \"G24: tests taken\", but \"ModernLabs\" doesn't decompose \"G24: tests taken\" into alternatives",
+        "elements": [
+          "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "g2484f182-2290-4afa-8528-86b79916c674",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9"
+        ],
+        "links": [
+          "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d",
+          "d82f80160-afee-408a-9a55-ad6aa5acb57a"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "goal": "g2484f182-2290-4afa-8528-86b79916c674"
+        }
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"ModernLabs\" requires \"Drug Tests Inc\" multi-actor redundancy for \"G32: drug test performed\", but \"Drug Tests Inc\" doesn't decompose \"G32: drug test performed\" into alternatives",
+        "elements": [
+          "ab2785da1-33c8-4fdd-98fe-1e81b7c34691",
+          "g9de17cf5-f339-49d6-9c2d-654f9741fbaf",
+          "a55094aed-9f99-4181-a145-81ddd4cc2228"
+        ],
+        "links": [
+          "d82f80160-afee-408a-9a55-ad6aa5acb57a"
+        ],
+        "details": {
+          "requester": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "responsible": "ab2785da1-33c8-4fdd-98fe-1e81b7c34691",
+          "goal": "g9de17cf5-f339-49d6-9c2d-654f9741fbaf"
+        }
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"Hospital\" requires \"Surgery Unit\" multi-actor redundancy for \"G35: transfusion performed in surgery\", but \"Surgery Unit\" doesn't decompose \"G35: transfusion performed in surgery\" into alternatives",
+        "elements": [
+          "r9d9f4083-cd29-4e79-9561-56ba37849a50",
+          "ga96e3d4f-1a17-4cd5-83e6-9c2a6c8d5e1d",
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2"
+        ],
+        "links": [
+          "da1f3ebaf-3c07-4eec-a263-059e9f6e3beb"
+        ],
+        "details": {
+          "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "responsible": "r9d9f4083-cd29-4e79-9561-56ba37849a50",
+          "goal": "ga96e3d4f-1a17-4cd5-83e6-9c2a6c8d5e1d"
+        }
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Red Cross BTC\" requires \"Express medical courier\" single-actor redundancy for \"G41: blood transported\", but \"Express medical courier\" doesn't decompose \"G41: blood transported\" into alternatives",
+        "elements": [
+          "rfd8d7a2b-7f62-492a-86c3-51fc5e40c45d",
+          "gcf76c6ac-8481-4660-b9f8-e67c58c8fb4d",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "d629978a4-237f-4708-8476-fff329592021"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "rfd8d7a2b-7f62-492a-86c3-51fc5e40c45d",
+          "goal": "gcf76c6ac-8481-4660-b9f8-e67c58c8fb4d"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I4: personal information\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I4: personal information\" tangible, for \"G16: donor approved\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "nee21b9a8-6c33-4af8-a43c-2535ab0139e2"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "goal": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I7: medical history info\", but \"Red Cross BTC\" reads \"R9: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, for \"G16: donor approved\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9"
+        ],
+        "links": [
+          "nee21b9a8-6c33-4af8-a43c-2535ab0139e2"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "goal": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Donor\" the reading of \"I4: personal information\", but \"Donor\" reads \"R13: donor certificate\", which makes \"I4: personal information\" tangible, for \"G4: blood donat regularly\"",
+        "elements": [
+          "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "g4924471e-9c3d-4c77-9073-fa49797c5f2f",
+          "df4cf1e7e-79b4-4250-a3ae-37f82210483d",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "nf2d35776-4bc3-44a3-ab3a-31b51729f34d"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "goal": "g4924471e-9c3d-4c77-9073-fa49797c5f2f",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Donor\" the reading of \"I7: medical history info\", but \"Donor\" reads \"R13: donor certificate\", which makes its part \"I4: personal information\" tangible, for \"G4: blood donat regularly\"",
+        "elements": [
+          "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "g4924471e-9c3d-4c77-9073-fa49797c5f2f",
+          "df4cf1e7e-79b4-4250-a3ae-37f82210483d"
+        ],
+        "links": [
+          "nf2d35776-4bc3-44a3-ab3a-31b51729f34d"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "goal": "g4924471e-9c3d-4c77-9073-fa49797c5f2f",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the reading of \"I9: blood info\", but \"Hospital\" reads \"R10: blood bank\", which makes \"I9: blood info\" tangible, for \"G14: blood transfused\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "ga2ef74c5-9e78-4c3d-8007-a0ce691ce5f1",
+          "d1c4dbebe-9153-4ea5-a213-ccac708fa56a",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "n973f4237-4048-4ce8-887e-019162f15b85"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "goal": "ga2ef74c5-9e78-4c3d-8007-a0ce691ce5f1",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the reading of \"I8: blood types\", but \"Hospital\" reads \"R10: blood bank\", which makes \"I8: blood types\" tangible, for \"G14: blood transfused\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "ga2ef74c5-9e78-4c3d-8007-a0ce691ce5f1",
+          "d1c4dbebe-9153-4ea5-a213-ccac708fa56a",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "n973f4237-4048-4ce8-887e-019162f15b85"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "goal": "ga2ef74c5-9e78-4c3d-8007-a0ce691ce5f1",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I8: blood types\", but \"Research Center\" reads \"R14: report\", which makes \"I8: blood types\" tangible, for \"G43: on blood type eval\"",
+        "elements": [
+          "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "gd126620b-92bf-43a5-b99c-05debcc3675f",
+          "d6b35dc0e-8f17-429c-b866-4911271896e4",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "na802b0c1-85bf-43d9-9537-62a5554d9634"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "goal": "gd126620b-92bf-43a5-b99c-05debcc3675f",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I9: blood info\", but \"Research Center\" reads \"R14: report\", which makes its part \"I8: blood types\" tangible, for \"G43: on blood type eval\"",
+        "elements": [
+          "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "gd126620b-92bf-43a5-b99c-05debcc3675f",
+          "d6b35dc0e-8f17-429c-b866-4911271896e4",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "na802b0c1-85bf-43d9-9537-62a5554d9634"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "goal": "gd126620b-92bf-43a5-b99c-05debcc3675f",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I8: blood types\", but \"Research Center\" reads \"R14: report\", which makes \"I8: blood types\" tangible, for \"G42: on donors\"",
+        "elements": [
+          "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+          "d6b35dc0e-8f17-429c-b866-4911271896e4",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "ne71b2fdf-1b87-40f3-9ac4-97440db888f5"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "goal": "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I9: blood info\", but \"Research Center\" reads \"R14: report\", which makes its part \"I8: blood types\" tangible, for \"G42: on donors\"",
+        "elements": [
+          "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+          "d6b35dc0e-8f17-429c-b866-4911271896e4",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "ne71b2fdf-1b87-40f3-9ac4-97440db888f5"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "goal": "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I2: medical history\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I2: medical history\" tangible, for \"G44: verify patients' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "i65161e8e-5959-454c-b719-608869ab764b",
+          "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "dd8ad9e37-3f96-4bd6-824b-f978c33164d4",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "n4c3ca1c8-ba8f-4643-90b5-b9a4e7499a1c"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "i65161e8e-5959-454c-b719-608869ab764b",
+          "goal": "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I3: personal data\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I3: personal data\" tangible, for \"G44: verify patients' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "dd8ad9e37-3f96-4bd6-824b-f978c33164d4",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "n4c3ca1c8-ba8f-4643-90b5-b9a4e7499a1c"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "goal": "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I5: allergies\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I5: allergies\" tangible, for \"G44: verify patients' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "dd8ad9e37-3f96-4bd6-824b-f978c33164d4",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "n4c3ca1c8-ba8f-4643-90b5-b9a4e7499a1c"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "goal": "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I6: present illness\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I6: present illness\" tangible, for \"G44: verify patients' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "dd8ad9e37-3f96-4bd6-824b-f978c33164d4",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "n4c3ca1c8-ba8f-4643-90b5-b9a4e7499a1c"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "goal": "gbeb341b8-4de7-4c0a-9a28-713981a8bac3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I8: blood types\", but \"Hospital Authority\" reads \"R17: report\", which makes \"I8: blood types\" tangible, for \"G45: verify donors' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "g2740df96-f435-48e9-aa95-7bfd011e0fe3",
+          "dbde8b395-9ddc-497b-a522-59cb56557877",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "nf72b658a-4b24-41bb-a592-9410199f3a7c"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "goal": "g2740df96-f435-48e9-aa95-7bfd011e0fe3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I9: blood info\", but \"Hospital Authority\" reads \"R17: report\", which makes its part \"I8: blood types\" tangible, for \"G45: verify donors' privacy\"",
+        "elements": [
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "g2740df96-f435-48e9-aa95-7bfd011e0fe3",
+          "dbde8b395-9ddc-497b-a522-59cb56557877",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "nf72b658a-4b24-41bb-a592-9410199f3a7c"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "goal": "g2740df96-f435-48e9-aa95-7bfd011e0fe3",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Alice\" authorises \"Red Cross BTC\" on \"I1: health status\" only for \"G16: donor approved\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I1: health status\" tangible, for \"G9: blood examined\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "n50fa1807-03b4-487b-b2fd-610574766e61",
+          "a4d3cd326-1e02-46f7-a7e4-c1d4e55d75fe"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "goal": "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "operation": "read"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I4: personal information\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I4: personal information\" tangible, for \"G9: blood examined\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "n50fa1807-03b4-487b-b2fd-610574766e61"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "goal": "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I7: medical history info\", but \"Red Cross BTC\" reads \"R9: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, for \"G9: blood examined\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9"
+        ],
+        "links": [
+          "n50fa1807-03b4-487b-b2fd-610574766e61"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "goal": "g7d1114ce-0d5d-4d88-ac00-890557abdda5",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Physician\" the modification of \"I9: blood info\", but \"Physician\" modifies \"R11: blood bank\", which makes \"I9: blood info\" tangible, for \"G26: transfusion needed\"",
+        "elements": [
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "g51efbcfd-f819-4671-86fd-ff9c024bdf71",
+          "d1e0d47cc-f5d8-4db7-9477-6147fbcdde80",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "m29d41ea1-6237-40a8-863a-770d1a05206b"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "goal": "g51efbcfd-f819-4671-86fd-ff9c024bdf71",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Physician\" the modification of \"I8: blood types\", but \"Physician\" modifies \"R11: blood bank\", which makes \"I8: blood types\" tangible, for \"G26: transfusion needed\"",
+        "elements": [
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "g51efbcfd-f819-4671-86fd-ff9c024bdf71",
+          "d1e0d47cc-f5d8-4db7-9477-6147fbcdde80",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "m29d41ea1-6237-40a8-863a-770d1a05206b"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "goal": "g51efbcfd-f819-4671-86fd-ff9c024bdf71",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I2: medical history\", but \"Hospital\" produces \"R6: registration record\", which makes \"I2: medical history\" tangible, for \"G23: patient registered\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i65161e8e-5959-454c-b719-608869ab764b",
+          "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p75ae8b14-7cc6-4e5f-8764-f0962e80ff4f"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i65161e8e-5959-454c-b719-608869ab764b",
+          "goal": "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I3: personal data\", but \"Hospital\" produces \"R6: registration record\", which makes \"I3: personal data\" tangible, for \"G23: patient registered\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p75ae8b14-7cc6-4e5f-8764-f0962e80ff4f"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "goal": "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I5: allergies\", but \"Hospital\" produces \"R6: registration record\", which makes \"I5: allergies\" tangible, for \"G23: patient registered\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p75ae8b14-7cc6-4e5f-8764-f0962e80ff4f"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "goal": "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I6: present illness\", but \"Hospital\" produces \"R6: registration record\", which makes \"I6: present illness\" tangible, for \"G23: patient registered\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p75ae8b14-7cc6-4e5f-8764-f0962e80ff4f"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "goal": "g6b2d3151-6dfd-47b9-bea9-24149b08e0aa",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the production of \"I4: personal information\", but \"Red Cross BTC\" produces \"R3: donor certificate\", which makes \"I4: personal information\" tangible, for \"G16: donor approved\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "d1ab65b82-a16a-4962-a379-fee390520cd3",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "p485e5f90-2b34-4e44-a24c-e0463f951437"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "goal": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the production of \"I7: medical history info\", but \"Red Cross BTC\" produces \"R3: donor certificate\", which makes its part \"I4: personal information\" tangible, for \"G16: donor approved\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "d1ab65b82-a16a-4962-a379-fee390520cd3"
+        ],
+        "links": [
+          "p485e5f90-2b34-4e44-a24c-e0463f951437"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "goal": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I2: medical history\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I2: medical history\" tangible, to \"Hospital Authority\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i65161e8e-5959-454c-b719-608869ab764b",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p0daf7669-f204-44d6-8ed6-dbfd3f645876",
+          "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i65161e8e-5959-454c-b719-608869ab764b",
+          "to": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I3: personal data\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I3: personal data\" tangible, to \"Hospital Authority\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p0daf7669-f204-44d6-8ed6-dbfd3f645876",
+          "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377",
+          "to": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I5: allergies\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I5: allergies\" tangible, to \"Hospital Authority\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p0daf7669-f204-44d6-8ed6-dbfd3f645876",
+          "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "iafb50b66-655a-40c8-9c0e-5643b0938e27",
+          "to": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I6: present illness\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I6: present illness\" tangible, to \"Hospital Authority\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+          "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "rf1442403-6b18-4922-b851-4c46d25bdc59"
+        ],
+        "links": [
+          "p0daf7669-f204-44d6-8ed6-dbfd3f645876",
+          "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+        ],
+        "details": {
+          "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+          "to": "a646b99d5-1429-40f9-a65d-f120f9537199",
+          "explicit": "true"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I1: health status\", but \"ModernLabs\" transmits \"R4: test results\", which makes \"I1: health status\" tangible, to \"Alice\"",
+        "elements": [
+          "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "df50cffe8-623f-4c40-ac14-c08851774594",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "t62c16f1b-6d77-4b34-95d7-15a244457f6b"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+          "to": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I4: personal information\", but \"ModernLabs\" transmits \"R4: test results\", which makes \"I4: personal information\" tangible, to \"Alice\"",
+        "elements": [
+          "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "df50cffe8-623f-4c40-ac14-c08851774594",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "t62c16f1b-6d77-4b34-95d7-15a244457f6b"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "to": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I7: medical history info\", but \"ModernLabs\" transmits \"R4: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, to \"Alice\"",
+        "elements": [
+          "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "df50cffe8-623f-4c40-ac14-c08851774594",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "t62c16f1b-6d77-4b34-95d7-15a244457f6b"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "to": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the transmission of \"I9: blood info\", but \"Hospital\" transmits \"R10: blood bank\", which makes \"I9: blood info\" tangible, to \"Physician\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "d1c4dbebe-9153-4ea5-a213-ccac708fa56a",
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "td5b5e36d-99cd-4e3b-a4c9-4942605c0d28"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "idc2c13f4-54f0-4b92-92e9-566e5641c497",
+          "to": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the transmission of \"I8: blood types\", but \"Hospital\" transmits \"R10: blood bank\", which makes \"I8: blood types\" tangible, to \"Physician\"",
+        "elements": [
+          "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "d1c4dbebe-9153-4ea5-a213-ccac708fa56a",
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "a41843b8f-af60-432c-9266-28d9763b4c01"
+        ],
+        "links": [
+          "td5b5e36d-99cd-4e3b-a4c9-4942605c0d28"
+        ],
+        "details": {
+          "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+          "information": "i4ec8c908-922f-4e5c-9821-2792fb03fe7d",
+          "to": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the transmission of \"I4: personal information\", but \"Red Cross BTC\" transmits \"R3: donor certificate\", which makes \"I4: personal information\" tangible, to \"Donor\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "d1ab65b82-a16a-4962-a379-fee390520cd3",
+          "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941"
+        ],
+        "links": [
+          "t1a461311-9817-45ff-bd68-378ee32d04b2"
+        ],
+        "details": {
+          "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+          "to": "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the transmission of \"I7: medical history info\", but \"Red Cross BTC\" transmits \"R3: donor certificate\", which makes its part \"I4: personal information\" tangible, to \"Donor\"",
+        "elements": [
+          "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "d1ab65b82-a16a-4962-a379-fee390520cd3",
+          "re8ad6e28-35c4-48b7-af53-724b7f366993"
+        ],
+        "links": [
+          "t1a461311-9817-45ff-bd68-378ee32d04b2"
+        ],
+        "details": {
+          "requester": "",
+          "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+          "information": "i1a4937d2-afbe-4502-9014-c38442f9b7ee",
+          "to": "re8ad6e28-35c4-48b7-af53-724b7f366993",
+          "explicit": "false"
+        }
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G5: infect disease tested\" and \"G31: drug test performed\", but \"ModernLabs\" may pursue both",
+        "elements": [
+          "g16710539-45f4-4fba-86d9-c62374b8e79f",
+          "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9",
+          "a55094aed-9f99-4181-a145-81ddd4cc2228"
+        ],
+        "links": [
+          "d5eb6cca8-43c2-428e-97fa-43d80a2f9af3"
+        ],
+        "details": {
+          "first": "g16710539-45f4-4fba-86d9-c62374b8e79f",
+          "second": "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9",
+          "witnesses": "a55094aed-9f99-4181-a145-81ddd4cc2228"
+        }
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G28: medical advice given\" and \"G36: transfusion performed via specialist\", which \"Physician\" performs, but no agent is known to play it: agents playing it may split them",
+        "elements": [
+          "ge4ffac0f-9fe4-4578-a9b0-375565c52ef2",
+          "g724d621c-fa5a-420a-b6f8-b4be479e96b3",
+          "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb"
+        ],
+        "links": [
+          "d41b51523-7fb2-43b8-b986-4810278a8a94"
+        ],
+        "details": {
+          "first": "ge4ffac0f-9fe4-4578-a9b0-375565c52ef2",
+          "second": "g724d621c-fa5a-420a-b6f8-b4be479e96b3",
+          "witnesses": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb"
+        }
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: specialised physician sick\" threatening \"G36: transfusion performed via specialist\" threatens also \"G33: transfusion performed via specialist\"",
+        "elements": [
+          "e64126635-18b2-4678-b256-d98605e0262f",
+          "g724d621c-fa5a-420a-b6f8-b4be479e96b3",
+          "g7b0256ea-9c80-40e0-baa6-5658b50bac90"
+        ],
+        "links": [
+          "t10584895-71a3-4be3-9947-264460e9b545"
+        ],
+        "details": {
+          "event": "e64126635-18b2-4678-b256-d98605e0262f",
+          "threatened": "g724d621c-fa5a-420a-b6f8-b4be479e96b3,g7b0256ea-9c80-40e0-baa6-5658b50bac90"
+        }
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: test results lost\" threatening \"R4: test results\" threatens also \"R8: test results\", \"G3: neg results received\", \"G1: blood donated\", \"R9: test results\", \"G16: donor approved\", \"G8: blood collected\", \"G7: blood distributed\", \"R1: report\", \"R14: report\", \"G43: on blood type eval\", \"G19: on blood type eval\", \"G42: on donors\", \"G21: on donors\", \"R17: report\", \"G45: verify donors' privacy\", \"G15: verify privacy ensured\", \"R3: donor certificate\", \"R13: donor certificate\", \"G4: blood donat regularly\", \"G9: blood examined\"",
+        "elements": [
+          "e2e47daa9-e1d1-4a7e-91a8-852c2b028871",
+          "df50cffe8-623f-4c40-ac14-c08851774594",
+          "dc50af1c1-8ac0-4ad6-8e09-d6382c845d50",
+          "g02154c58-da50-4375-b016-15820a6e2af6",
+          "g8801b1c2-7dd1-4e99-8424-59cc26b85d2b",
+          "dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9",
+          "ga3480551-bcd3-400f-9730-d89ffcc1f2f7",
+          "g8ae78894-9f73-4340-9bfd-02e377359a0e",
+          "g8aa7a010-a35d-49e9-b0de-bd86d816cc35",
+          "d1682d962-904d-463e-b566-92350d349b98",
+          "d6b35dc0e-8f17-429c-b866-4911271896e4",
+          "gd126620b-92bf-43a5-b99c-05debcc3675f",
+          "g8b9d5f95-f56c-4fa7-beea-ca98d89d72d6",
+          "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+          "g80e206be-d91c-4854-ab79-4ffa1763ff3c",
+          "dbde8b395-9ddc-497b-a522-59cb56557877",
+          "g2740df96-f435-48e9-aa95-7bfd011e0fe3",
+          "gebc55408-66ff-445a-8bc8-3508d1e52509",
+          "d1ab65b82-a16a-4962-a379-fee390520cd3",
+          "df4cf1e7e-79b4-4250-a3ae-37f82210483d",
+          "g4924471e-9c3d-4c77-9073-fa49797c5f2f",
+          "g7d1114ce-0d5d-4d88-ac00-890557abdda5"
+        ],
+        "links": [
+          "t57fe55b3-442b-4d82-b758-f0346cadc4fd",
+          "t62c16f1b-6d77-4b34-95d7-15a244457f6b",
+          "tc3ba3bfc-0dcc-4a34-a07b-c5dabcdb2c9e",
+          "tacd041c3-dfd8-4635-b48d-292347da239e",
+          "t18c32e93-1c57-4cf4-8987-ff3a543a3490",
+          "t1a461311-9817-45ff-bd68-378ee32d04b2"
+        ],
+        "details": {
+          "event": "e2e47daa9-e1d1-4a7e-91a8-852c2b028871",
+          "threatened": "df50cffe8-623f-4c40-ac14-c08851774594,dc50af1c1-8ac0-4ad6-8e09-d6382c845d50,g02154c58-da50-4375-b016-15820a6e2af6,g8801b1c2-7dd1-4e99-8424-59cc26b85d2b,dbf6d0800-4c39-4aab-9922-7b47b8ecbdf9,ga3480551-bcd3-400f-9730-d89ffcc1f2f7,g8ae78894-9f73-4340-9bfd-02e377359a0e,g8aa7a010-a35d-49e9-b0de-bd86d816cc35,d1682d962-904d-463e-b566-92350d349b98,d6b35dc0e-8f17-429c-b866-4911271896e4,gd126620b-92bf-43a5-b99c-05debcc3675f,g8b9d5f95-f56c-4fa7-beea-ca98d89d72d6,g404a1afa-4a37-473a-bf5c-737ab18c7a84,g80e206be-d91c-4854-ab79-4ffa1763ff3c,dbde8b395-9ddc-497b-a522-59cb56557877,g2740df96-f435-48e9-aa95-7bfd011e0fe3,gebc55408-66ff-445a-8bc8-3508d1e52509,d1ab65b82-a16a-4962-a379-fee390520cd3,df4cf1e7e-79b4-4250-a3ae-37f82210483d,g4924471e-9c3d-4c77-9073-fa49797c5f2f,g7d1114ce-0d5d-4d88-ac00-890557abdda5"
+        }
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "goal": "g06404503-c423-445e-a9f8-7a501df940d6"
+      },
+      "link": "df3627a53-1cb4-4efb-b482-5cd7f7d90d4f"
+    },
+    {
+      "requirement": "goal-availability",
+      "number": 9,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "goal": "g06404503-c423-445e-a9f8-7a501df940d6",
+        "level": "99"
+      },
+      "link": "df3627a53-1cb4-4efb-b482-5cd7f7d90d4f"
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "number": 11,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "goal": "g06404503-c423-445e-a9f8-7a501df940d6"
+      },
+      "link": "df3627a53-1cb4-4efb-b482-5cd7f7d90d4f"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "goal": "g52c7f4cb-0fc9-4ea5-a694-7a1cb5d21cde"
+      },
+      "link": "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d"
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "number": 1,
+      "responsible": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "requester": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "over": {
+        "goal": "g52c7f4cb-0fc9-4ea5-a694-7a1cb5d21cde"
+      },
+      "link": "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d"
+    },
+    {
+      "requirement": "true-redundancy-single",
+      "number": 3,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "goal": "g52c7f4cb-0fc9-4ea5-a694-7a1cb5d21cde"
+      },
+      "link": "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d"
+    },
+    {
+      "requirement": "delegator-authentication",
+      "number": 10,
+      "responsible": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "requester": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "over": {
+        "goal": "g52c7f4cb-0fc9-4ea5-a694-7a1cb5d21cde"
+      },
+      "link": "d5fe9568e-5985-4a81-b5ee-39a7cdd50f9d"
+    },
+    {
+      "requirement": "trustworthiness",
+      "number": 8,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "goal": "g9f32a001-dd70-4970-b87c-558a9fc1bcdf"
+      },
+      "link": "d3514a67a-165a-4f44-b729-1c64f5d9e6d6"
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "number": 5,
+      "responsible": "ab2785da1-33c8-4fdd-98fe-1e81b7c34691",
+      "requester": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "over": {
+        "goal": "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9"
+      },
+      "link": "d82f80160-afee-408a-9a55-ad6aa5acb57a"
+    },
+    {
+      "requirement": "fallback-redundancy-multi",
+      "number": 6,
+      "responsible": "r9d9f4083-cd29-4e79-9561-56ba37849a50",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "goal": "gae6081b4-e9d4-411b-b8dd-6f538d86ddf5"
+      },
+      "link": "da1f3ebaf-3c07-4eec-a263-059e9f6e3beb"
+    },
+    {
+      "requirement": "fallback-redundancy-single",
+      "number": 4,
+      "responsible": "rfd8d7a2b-7f62-492a-86c3-51fc5e40c45d",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "goal": "g524aeed5-bb0e-4a9d-b500-e9f05566c432"
+      },
+      "link": "d629978a4-237f-4708-8476-fff329592021"
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "number": 2,
+      "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "goal": "g80e206be-d91c-4854-ab79-4ffa1763ff3c"
+      },
+      "link": "dabd36db9-5c1d-4a1c-8bb5-d4aed68dd8ce"
+    },
+    {
+      "requirement": "no-redelegation",
+      "number": 7,
+      "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "goal": "g8b9d5f95-f56c-4fa7-beea-ca98d89d72d6"
+      },
+      "link": "dd0fc9659-49d5-4ce0-9476-188ccf185631"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "a646b99d5-1429-40f9-a65d-f120f9537199",
+      "over": {
+        "document": "dc8ea0ebb-6153-472d-a65d-fcae750b6d87",
+        "level": "99"
+      },
+      "link": "p0daf7669-f204-44d6-8ed6-dbfd3f645876"
+    },
+    {
+      "requirement": "sender-authentication",
+      "number": 18,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "a646b99d5-1429-40f9-a65d-f120f9537199",
+      "over": {
+        "document": "dc8ea0ebb-6153-472d-a65d-fcae750b6d87"
+      },
+      "link": "p0daf7669-f204-44d6-8ed6-dbfd3f645876"
+    },
+    {
+      "requirement": "sender-integrity",
+      "number": 14,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "document": "df50cffe8-623f-4c40-ac14-c08851774594"
+      },
+      "link": "t62c16f1b-6d77-4b34-95d7-15a244457f6b"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "document": "df50cffe8-623f-4c40-ac14-c08851774594"
+      },
+      "link": "t62c16f1b-6d77-4b34-95d7-15a244457f6b"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "dc50af1c1-8ac0-4ad6-8e09-d6382c845d50",
+        "level": "95"
+      },
+      "link": "tc3ba3bfc-0dcc-4a34-a07b-c5dabcdb2c9e"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "document": "dc50af1c1-8ac0-4ad6-8e09-d6382c845d50"
+      },
+      "link": "tc3ba3bfc-0dcc-4a34-a07b-c5dabcdb2c9e"
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "number": 21,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "document": "dc50af1c1-8ac0-4ad6-8e09-d6382c845d50"
+      },
+      "link": "tc3ba3bfc-0dcc-4a34-a07b-c5dabcdb2c9e"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "document": "d603159f0-84c2-4eb5-84d5-4dd0ac3b9fa7",
+        "level": "99"
+      },
+      "link": "tc62f6a08-e70d-4666-8151-d2db21fb901f"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d603159f0-84c2-4eb5-84d5-4dd0ac3b9fa7"
+      },
+      "link": "tc62f6a08-e70d-4666-8151-d2db21fb901f"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "re8ad6e28-35c4-48b7-af53-724b7f366993",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d1ab65b82-a16a-4962-a379-fee390520cd3"
+      },
+      "link": "t1a461311-9817-45ff-bd68-378ee32d04b2"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d1682d962-904d-463e-b566-92350d349b98"
+      },
+      "link": "tacd041c3-dfd8-4635-b48d-292347da239e"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d1682d962-904d-463e-b566-92350d349b98"
+      },
+      "link": "tacd041c3-dfd8-4635-b48d-292347da239e"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "r9dff4b6c-bc8d-4f92-a40e-36e42f7672ed",
+      "over": {
+        "document": "d1682d962-904d-463e-b566-92350d349b98"
+      },
+      "link": "tacd041c3-dfd8-4635-b48d-292347da239e"
+    },
+    {
+      "requirement": "document-availability",
+      "number": 17,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d42498601-ceaa-486f-9aac-038afec9b01e",
+        "level": "90"
+      },
+      "link": "tee923df2-673e-45d9-930e-85908f5980f7"
+    },
+    {
+      "requirement": "receiver-integrity",
+      "number": 15,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "document": "d42498601-ceaa-486f-9aac-038afec9b01e"
+      },
+      "link": "tee923df2-673e-45d9-930e-85908f5980f7"
+    },
+    {
+      "requirement": "receiver-authentication",
+      "number": 19,
+      "responsible": "a646b99d5-1429-40f9-a65d-f120f9537199",
+      "requester": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "over": {
+        "document": "d1682d962-904d-463e-b566-92350d349b98"
+      },
+      "link": "t18c32e93-1c57-4cf4-8987-ff3a543a3490"
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "number": 20,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "a646b99d5-1429-40f9-a65d-f120f9537199",
+      "over": {
+        "document": "d1682d962-904d-463e-b566-92350d349b98"
+      },
+      "link": "t18c32e93-1c57-4cf4-8987-ff3a543a3490"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+        "goals": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7"
+      },
+      "link": "a4d3cd326-1e02-46f7-a7e4-c1d4e55d75fe"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20"
+      },
+      "link": "a4d3cd326-1e02-46f7-a7e4-c1d4e55d75fe"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20,iedb3b178-0590-41c3-b3c2-9a473ea1f461",
+        "goals": "ge349ed78-c02d-4431-95d6-e1410347d4e9"
+      },
+      "link": "a9f77c58e-94f5-4a8a-bb69-275a42baa9c5"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "a55094aed-9f99-4181-a145-81ddd4cc2228",
+      "requester": "a434ac2f0-ccd6-4c02-bc91-5f79e34b8941",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20,iedb3b178-0590-41c3-b3c2-9a473ea1f461"
+      },
+      "link": "a9f77c58e-94f5-4a8a-bb69-275a42baa9c5"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20",
+        "goals": "ga3480551-bcd3-400f-9730-d89ffcc1f2f7"
+      },
+      "link": "a9fd11e17-a9cb-4a6e-8d1a-a430942801de"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "over": {
+        "information": "i6d6d6ca2-ee8a-46be-bda2-3fba7d89ad20"
+      },
+      "link": "a9fd11e17-a9cb-4a6e-8d1a-a430942801de"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377,i65161e8e-5959-454c-b719-608869ab764b,i5d7269a9-66d0-4cdc-a640-9fdaed5d7798",
+        "goals": "ga2ef74c5-9e78-4c3d-8007-a0ce691ce5f1"
+      },
+      "link": "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377,i65161e8e-5959-454c-b719-608869ab764b,i5d7269a9-66d0-4cdc-a640-9fdaed5d7798"
+      },
+      "link": "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377,i65161e8e-5959-454c-b719-608869ab764b,i5d7269a9-66d0-4cdc-a640-9fdaed5d7798"
+      },
+      "link": "adba87b41-49ba-4236-ba5e-7c56ba35bde5"
+    },
+    {
+      "requirement": "non-reading",
+      "number": 28,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377"
+      },
+      "link": "a5360b41f-ce04-43c9-9043-eee8c30fd94f"
+    },
+    {
+      "requirement": "non-modification",
+      "number": 29,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377"
+      },
+      "link": "a5360b41f-ce04-43c9-9043-eee8c30fd94f"
+    },
+    {
+      "requirement": "non-production",
+      "number": 30,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377"
+      },
+      "link": "a5360b41f-ce04-43c9-9043-eee8c30fd94f"
+    },
+    {
+      "requirement": "non-disclosure",
+      "number": 31,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "rf1442403-6b18-4922-b851-4c46d25bdc59",
+      "over": {
+        "information": "i1fce8187-db9d-4504-a2a2-3d70628b6377"
+      },
+      "link": "a5360b41f-ce04-43c9-9043-eee8c30fd94f"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "information": "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798,i65161e8e-5959-454c-b719-608869ab764b",
+        "goals": "ge4ffac0f-9fe4-4578-a9b0-375565c52ef2"
+      },
+      "link": "a282a5d9e-d364-4a5f-86c7-44ba3b1f526b"
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "number": 32,
+      "responsible": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "information": "i5d7269a9-66d0-4cdc-a640-9fdaed5d7798,i65161e8e-5959-454c-b719-608869ab764b"
+      },
+      "link": "a282a5d9e-d364-4a5f-86c7-44ba3b1f526b"
+    },
+    {
+      "requirement": "need-to-know",
+      "number": 27,
+      "responsible": "a41843b8f-af60-432c-9266-28d9763b4c01",
+      "requester": "r8afd23b4-8c5b-4337-9308-99db283f69f2",
+      "over": {
+        "information": "ib77212b1-02af-4737-8d4a-e17ff7edfca2",
+        "goals": "gb9c4d268-fc9d-4381-ba8d-ad63f578bef8"
+      },
+      "link": "ad9db2819-1fde-494c-addc-7c8db42c741c"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g16710539-45f4-4fba-86d9-c62374b8e79f",
+        "second": "g584cc369-53ef-4c97-8c90-7a51c3d3a8a9"
+      },
+      "link": "d5eb6cca8-43c2-428e-97fa-43d80a2f9af3"
+    },
+    {
+      "requirement": "goal-sod",
+      "number": 24,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "g404a1afa-4a37-473a-bf5c-737ab18c7a84",
+        "second": "gd126620b-92bf-43a5-b99c-05debcc3675f"
+      },
+      "link": "d6f2ab9fa-59b5-4ac9-95f8-fa37a3e08f1a"
+    },
+    {
+      "requirement": "role-cod",
+      "number": 25,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "rc2fcd5d3-3cbf-427a-b3ba-e7875a30d5bb",
+        "second": "rfb681201-72d9-40ba-a080-75ee873cb860"
+      },
+      "link": "d2382be34-7373-4b2e-83a9-25fb5035eaf6"
+    },
+    {
+      "requirement": "goal-cod",
+      "number": 26,
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "ge4ffac0f-9fe4-4578-a9b0-375565c52ef2",
+        "second": "g724d621c-fa5a-420a-b6f8-b4be479e96b3"
+      },
+      "link": "d41b51523-7fb2-43b8-b986-4810278a8a94"
+    }
+  ]
+}

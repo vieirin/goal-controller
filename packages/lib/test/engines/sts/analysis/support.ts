@@ -10,7 +10,7 @@ import type {
   AnalysisLink,
   AnalysisModel,
 } from '../../../../src/engines/analysis';
-import { STS_KINDS as K } from '../../../../src/engines/sts/analysis';
+import { STS_ANALYSIS_KINDS as K } from '../../../../src/engines/sts/analysis';
 
 export const stsModel = () => {
   const actors: AnalysisActor[] = [];

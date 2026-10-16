@@ -1,5 +1,13 @@
 {
   "seed": "atm",
+  "references": [
+    {
+      "ref": "R7",
+      "source": "IJSSE 2014 §5.1, Fig. 5",
+      "printed": "Erroneous data impact flight → MET info object → the SWIM access point’s goals needing it (MET info signed, MET info encrypted) → MET info req. brokered (AND) → Secure MET info object → the Aircraft system’s MET conditions accessed → the Pilot’s (delegator)",
+      "verdict": "reproduced: every element printed is in the trace"
+    }
+  ],
   "findings": {
     "wellFormedness": [],
     "security": [],
@@ -7,75 +15,223 @@
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E1: Bad weather\" threatening \"G1: Fly safe\" threatens also nothing else"
+        "message": "The event \"E1: Bad weather\" threatening \"G1: Fly safe\" threatens also nothing else",
+        "elements": [
+          "bad-weather",
+          "pilot-fly-safe"
+        ],
+        "links": [
+          "threatens-bad-weather-pilot-fly-safe"
+        ],
+        "details": {
+          "event": "bad-weather",
+          "threatened": "pilot-fly-safe"
+        }
       },
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E2: Consumer spoofing\" threatening \"R1: Aircraft ID\" threatens also \"G4: MET info requested\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"R2: Secure MET request\", \"R5: Secure MET request\", \"G11: Request integrity verified\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G9: Message decrypted\", \"R7: Secure MET request\", \"G15: Customer verified\", \"G14: MET request processed\""
+        "message": "The event \"E2: Consumer spoofing\" threatening \"R1: Aircraft ID\" threatens also \"G4: MET info requested\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"R2: Secure MET request\", \"R5: Secure MET request\", \"G11: Request integrity verified\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G9: Message decrypted\", \"R7: Secure MET request\", \"G15: Customer verified\", \"G14: MET request processed\"",
+        "elements": [
+          "consumer-spoofing",
+          "aircraft-id",
+          "aircraft-info-requested",
+          "aircraft-met-accessed",
+          "pilot-met-accessed",
+          "aircraft-secure-request",
+          "swim-secure-request",
+          "swim-integrity-verified",
+          "swim-brokered",
+          "swim-secure-info",
+          "aircraft-secure-info",
+          "aircraft-integrity-verified",
+          "aircraft-info-received",
+          "aircraft-decrypted",
+          "meteo-secure-request",
+          "meteo-customer-verified",
+          "meteo-processed"
+        ],
+        "links": [
+          "threatens-consumer-spoofing-aircraft-id",
+          "transmits-aircraft-secure-request-swim-secure-request",
+          "transmits-swim-secure-info-aircraft-secure-info",
+          "transmits-swim-secure-request-meteo-secure-request"
+        ],
+        "details": {
+          "event": "consumer-spoofing",
+          "threatened": "aircraft-id,aircraft-info-requested,aircraft-met-accessed,pilot-met-accessed,aircraft-secure-request,swim-secure-request,swim-integrity-verified,swim-brokered,swim-secure-info,aircraft-secure-info,aircraft-integrity-verified,aircraft-info-received,aircraft-decrypted,meteo-secure-request,meteo-customer-verified,meteo-processed"
+        }
       },
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E3: Incompatible encryption\" threatening \"G13: MET info encrypted\", \"G9: Message decrypted\" threatens also \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\""
+        "message": "The event \"E3: Incompatible encryption\" threatening \"G13: MET info encrypted\", \"G9: Message decrypted\" threatens also \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\"",
+        "elements": [
+          "incompatible-encryption",
+          "swim-encrypted",
+          "swim-brokered",
+          "swim-secure-info",
+          "aircraft-secure-info",
+          "aircraft-integrity-verified",
+          "aircraft-info-received",
+          "aircraft-met-accessed",
+          "pilot-met-accessed",
+          "aircraft-decrypted"
+        ],
+        "links": [
+          "threatens-incompatible-encryption-swim-encrypted",
+          "threatens-incompatible-encryption-aircraft-decrypted",
+          "transmits-swim-secure-info-aircraft-secure-info"
+        ],
+        "details": {
+          "event": "incompatible-encryption",
+          "threatened": "swim-encrypted,swim-brokered,swim-secure-info,aircraft-secure-info,aircraft-integrity-verified,aircraft-info-received,aircraft-met-accessed,pilot-met-accessed,aircraft-decrypted"
+        }
       },
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E4: Publisher spoofing\" threatening \"SWIM access point\" threatens also \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G11: Request integrity verified\", \"G12: MET info signed\", \"G13: MET info encrypted\", \"R5: Secure MET request\", \"R7: Secure MET request\", \"G15: Customer verified\", \"G14: MET request processed\", \"R6: MET info object\""
+        "message": "The event \"E4: Publisher spoofing\" threatening \"SWIM access point\" threatens also \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G11: Request integrity verified\", \"G12: MET info signed\", \"G13: MET info encrypted\", \"R5: Secure MET request\", \"R7: Secure MET request\", \"G15: Customer verified\", \"G14: MET request processed\", \"R6: MET info object\"",
+        "elements": [
+          "publisher-spoofing",
+          "swim",
+          "swim-brokered",
+          "swim-secure-info",
+          "aircraft-secure-info",
+          "aircraft-integrity-verified",
+          "aircraft-info-received",
+          "aircraft-met-accessed",
+          "pilot-met-accessed",
+          "aircraft-decrypted",
+          "swim-integrity-verified",
+          "swim-signed",
+          "swim-encrypted",
+          "swim-secure-request",
+          "meteo-secure-request",
+          "meteo-customer-verified",
+          "meteo-processed",
+          "swim-met-info"
+        ],
+        "links": [
+          "threatens-publisher-spoofing-swim",
+          "transmits-swim-secure-info-aircraft-secure-info",
+          "transmits-swim-secure-request-meteo-secure-request",
+          "transmits-aircraft-secure-request-swim-secure-request",
+          "transmits-meteo-met-info-swim-met-info"
+        ],
+        "details": {
+          "event": "publisher-spoofing",
+          "threatened": "swim,swim-brokered,swim-secure-info,aircraft-secure-info,aircraft-integrity-verified,aircraft-info-received,aircraft-met-accessed,pilot-met-accessed,aircraft-decrypted,swim-integrity-verified,swim-signed,swim-encrypted,swim-secure-request,meteo-secure-request,meteo-customer-verified,meteo-processed,swim-met-info"
+        }
       },
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E5: Erroneous data impact flight\" threatening \"R9: MET info object\" threatens also \"R6: MET info object\", \"G12: MET info signed\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G13: MET info encrypted\""
+        "message": "The event \"E5: Erroneous data impact flight\" threatening \"R9: MET info object\" threatens also \"R6: MET info object\", \"G12: MET info signed\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G13: MET info encrypted\"",
+        "elements": [
+          "erroneous-data",
+          "meteo-met-info",
+          "swim-met-info",
+          "swim-signed",
+          "swim-brokered",
+          "swim-secure-info",
+          "aircraft-secure-info",
+          "aircraft-integrity-verified",
+          "aircraft-info-received",
+          "aircraft-met-accessed",
+          "pilot-met-accessed",
+          "aircraft-decrypted",
+          "swim-encrypted"
+        ],
+        "links": [
+          "threatens-erroneous-data-meteo-met-info",
+          "transmits-meteo-met-info-swim-met-info",
+          "transmits-swim-secure-info-aircraft-secure-info"
+        ],
+        "details": {
+          "event": "erroneous-data",
+          "threatened": "meteo-met-info,swim-met-info,swim-signed,swim-brokered,swim-secure-info,aircraft-secure-info,aircraft-integrity-verified,aircraft-info-received,aircraft-met-accessed,pilot-met-accessed,aircraft-decrypted,swim-encrypted"
+        }
       },
       {
         "kind": "threatPropagation",
         "severity": "info",
-        "message": "The event \"E6: Free access to paid data\" threatening \"Meteo service provider\" threatens also \"G14: MET request processed\", \"G15: Customer verified\", \"G16: MET info published\", \"R9: MET info object\", \"R6: MET info object\", \"G12: MET info signed\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G13: MET info encrypted\", \"G17: MET data observed\", \"R8: MET conditions data\", \"R7: Secure MET request\""
+        "message": "The event \"E6: Free access to paid data\" threatening \"Meteo service provider\" threatens also \"G14: MET request processed\", \"G15: Customer verified\", \"G16: MET info published\", \"R9: MET info object\", \"R6: MET info object\", \"G12: MET info signed\", \"G10: MET info req. brokered\", \"R4: Secure MET info object\", \"R3: Secure MET info object\", \"G8: Info integrity verified\", \"G5: MET info received\", \"G3: MET conditions accessed\", \"G2: MET conditions accessed\", \"G9: Message decrypted\", \"G13: MET info encrypted\", \"G17: MET data observed\", \"R8: MET conditions data\", \"R7: Secure MET request\"",
+        "elements": [
+          "free-access",
+          "meteo",
+          "meteo-processed",
+          "meteo-customer-verified",
+          "meteo-published",
+          "meteo-met-info",
+          "swim-met-info",
+          "swim-signed",
+          "swim-brokered",
+          "swim-secure-info",
+          "aircraft-secure-info",
+          "aircraft-integrity-verified",
+          "aircraft-info-received",
+          "aircraft-met-accessed",
+          "pilot-met-accessed",
+          "aircraft-decrypted",
+          "swim-encrypted",
+          "meteo-observed",
+          "meteo-conditions-data",
+          "meteo-secure-request"
+        ],
+        "links": [
+          "threatens-free-access-meteo",
+          "transmits-meteo-met-info-swim-met-info",
+          "transmits-swim-secure-info-aircraft-secure-info",
+          "transmits-swim-secure-request-meteo-secure-request"
+        ],
+        "details": {
+          "event": "free-access",
+          "threatened": "meteo,meteo-processed,meteo-customer-verified,meteo-published,meteo-met-info,swim-met-info,swim-signed,swim-brokered,swim-secure-info,aircraft-secure-info,aircraft-integrity-verified,aircraft-info-received,aircraft-met-accessed,pilot-met-accessed,aircraft-decrypted,swim-encrypted,meteo-observed,meteo-conditions-data,meteo-secure-request"
+        }
       }
     ]
   },
   "requirements": [
     {
       "requirement": "sender-integrity",
-      "responsible": "Aircraft system",
-      "requester": "SWIM access point",
+      "number": 14,
+      "responsible": "aircraft",
+      "requester": "swim",
       "over": {
-        "document": "R2: Secure MET request"
-      }
+        "document": "aircraft-secure-request"
+      },
+      "link": "transmits-aircraft-secure-request-swim-secure-request"
     },
     {
       "requirement": "sender-integrity",
-      "responsible": "SWIM access point",
-      "requester": "Aircraft system",
+      "number": 14,
+      "responsible": "swim",
+      "requester": "aircraft",
       "over": {
-        "document": "R4: Secure MET info object"
-      }
+        "document": "swim-secure-info"
+      },
+      "link": "transmits-swim-secure-info-aircraft-secure-info"
     },
     {
       "requirement": "sender-integrity",
-      "responsible": "SWIM access point",
-      "requester": "Meteo service provider",
+      "number": 14,
+      "responsible": "swim",
+      "requester": "meteo",
       "over": {
-        "document": "R5: Secure MET request"
-      }
+        "document": "swim-secure-request"
+      },
+      "link": "transmits-swim-secure-request-meteo-secure-request"
     },
     {
       "requirement": "sender-integrity",
-      "responsible": "Meteo service provider",
-      "requester": "SWIM access point",
+      "number": 14,
+      "responsible": "meteo",
+      "requester": "swim",
       "over": {
-        "document": "R9: MET info object"
-      }
-    }
-  ],
-  "references": [
-    {
-      "ref": "R7",
-      "source": "IJSSE 2014 §5.1, Fig. 5",
-      "printed": "Erroneous data impact flight → MET info object → the SWIM access point’s goals needing it (MET info signed, MET info encrypted) → MET info req. brokered (AND) → Secure MET info object → the Aircraft system’s MET conditions accessed → the Pilot’s (delegator)",
-      "verdict": "reproduced: every element printed is in the trace"
+        "document": "meteo-met-info"
+      },
+      "link": "transmits-meteo-met-info-swim-met-info"
     }
   ]
 }
