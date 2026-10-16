@@ -123,7 +123,7 @@ The writer writes both ends of every reference, as EMF does, each kind in its id
 
 Notes are left out on read, with an info.
 
-**`.exp` is not a native file.** It is a project export: gzip of a Java-serialised file list. `readStsProject(bytes)` (`native/project.ts`) reads it to the project's files and its `.sts`. It decompresses with the platform's `DecompressionStream`, reads the stream by its tags, and deserialises no class. A truncated export is an error, not a partial project.
+**`.exp` is not a native file.** It is a project export: gzip of a Java-serialised file list. `readStsProject(bytes)` (`native/project.ts`) reads it to the project's files and its `.sts`. It decompresses with the platform's `DecompressionStream`, reads the stream by its tags, and deserialises no class. A stream that holds no project file, a file without its content before the next one, and a file whose content runs past the stream's end are errors. A stream cut cleanly between two files is not detected: it reads as the files before the cut.
 
 **Unverified against STS-Tool.** Whether the tool may be run at all is the owner's open question (#160 D-R2, the EULA). The tutorial files round-trip through the reader and writer, but nothing has re-opened what the writer writes.
 

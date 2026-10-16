@@ -219,7 +219,8 @@ const fetchTutorial = async (name, { url, sha256 }) => {
   const file = path.join(SAMPLES, `${name}.exp`);
   if (!fs.existsSync(file)) {
     fs.mkdirSync(SAMPLES, { recursive: true });
-    const response = await fetch(url);
+    // a deadline of its own: a slow server skips the tutorial within a minute
+    const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
     if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
     fs.writeFileSync(file, Buffer.from(await response.arrayBuffer()));
   }

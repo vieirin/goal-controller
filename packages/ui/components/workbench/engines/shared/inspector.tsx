@@ -210,7 +210,8 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
   },
   sts: {
     file: 'packages/lib/src/engines/sts/definition.ts',
-    lists: {},
+    // a goal's keys are its definition's `properties.goal`
+    lists: { goal: 'properties.goal' },
     mapper: 'packages/lib/src/engines/sts/mapper.ts',
     // every kind is keyed (the type requires it): STS-ml has no tasks or
     // qualities, and its mapper maps them as goal-tree asks it to

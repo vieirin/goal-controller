@@ -40,8 +40,10 @@ const BYTE_ARRAY_CLASS = [0x00, 0x02, 0x5b, 0x42];
 
 /**
  * A Java-serialised file list (an `.exp`, gunzipped) as the project's
- * files; an error when it isn't one, or a file's content runs past the
- * stream's end (a truncated export).
+ * files; an error when it isn't one, when it holds no project file, when
+ * a file's content is missing before the next file, or runs past the
+ * stream's end. Only what these show is caught: a stream cut between two
+ * files reads as the files before the cut.
  */
 export const readSerializedProject = (
   data: Uint8Array,
@@ -52,16 +54,34 @@ export const readSerializedProject = (
   const files: Record<string, Uint8Array> = {};
   const at = (i: number, bytes: readonly number[]) =>
     bytes.every((byte, k) => data[i + k] === byte);
+  /** a TC_STRING at `i` holding a project file's name */
+  const startsFileName = (i: number) => {
+    if (data[i] !== TC_STRING || i + 3 > data.length) return false;
+    const length = view.getUint16(i + 1);
+    return (
+      length >= 5 &&
+      length <= 300 &&
+      i + 3 + length <= data.length &&
+      FILE_NAME.test(latin1.decode(data.subarray(i + 3, i + 3 + length)))
+    );
+  };
   for (let i = 4; i < data.length - 3; i++) {
     if (data[i] !== TC_STRING) continue;
     const length = view.getUint16(i + 1);
     if (length < 5 || length > 300 || i + 3 + length > data.length) continue;
     const name = latin1.decode(data.subarray(i + 3, i + 3 + length));
     if (!FILE_NAME.test(name)) continue;
-    // the next byte array: a fresh `[B` descriptor or a back-reference to it
+    // its byte array, a fresh `[B` descriptor or a back-reference to it:
+    // after its name (the file's properties come between them, as the
+    // tutorial exports have it), and before the next file's name. An entry
+    // whose array is missing would otherwise take the next file's.
     let p = i + 3 + length;
     let content = -1;
     for (; p < data.length - 1; p++) {
+      if (startsFileName(p))
+        return {
+          error: `${name}: no content before the next file (a malformed export)`,
+        };
       if (data[p] !== TC_ARRAY) continue;
       if (data[p + 1] === TC_CLASSDESC && at(p + 2, BYTE_ARRAY_CLASS)) {
         // `[B`, its serialVersionUID (8), flags (1), field count (2),
@@ -84,6 +104,11 @@ export const readSerializedProject = (
     files[name] = data.subarray(content + 4, content + 4 + size);
     i = content + 4 + size - 1;
   }
+  if (!Object.keys(files).length)
+    return {
+      error:
+        'No project file in the stream: not an STS-Tool export, or a truncated one',
+    };
   const sts = Object.keys(files).find(
     (path) => path.startsWith('Models/') && path.endsWith('.sts'),
   );

@@ -102,6 +102,36 @@ describe('STS-ml: .exp, STS-Tool’s project export', () => {
     );
   });
 
+  it('is an error when a file has no content before the next one (it would take the next file’s)', () => {
+    const result = readSerializedProject(
+      new Uint8Array(
+        Buffer.from([
+          0xac,
+          0xed,
+          0x00,
+          0x05,
+          ...string('.project'),
+          ...string('Models/STS/tax-toy.sts'),
+          ...sharedBytes(Buffer.from(sts, 'utf8')),
+        ]),
+      ),
+    );
+    assert.deepStrictEqual(result, {
+      error: '.project: no content before the next file (a malformed export)',
+    });
+  });
+
+  it('is an error when the stream holds no project file', () => {
+    assert.match(
+      (
+        readSerializedProject(new Uint8Array([0xac, 0xed, 0x00, 0x05])) as {
+          error: string;
+        }
+      ).error,
+      /No project file/,
+    );
+  });
+
   it('is an error when it isn’t gzip, or isn’t a serialisation stream', async () => {
     assert.match(
       (
