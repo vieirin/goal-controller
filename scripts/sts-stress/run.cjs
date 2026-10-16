@@ -85,16 +85,58 @@ const check = (run) => {
 };
 const skip = (why) => ({ status: 'skip', detail: why });
 
-/** The analyses' results as compared: each finding its kind, severity and elements, sorted. */
-const comparable = (value) =>
-  JSON.stringify(value, (key, v) =>
-    Array.isArray(v) && v.every((x) => typeof x === 'object' && x)
-      ? [...v].map((x) => JSON.stringify(x)).sort()
-      : v,
-  );
+/** The result keys an expectation is compared on (#160 D-G12): its metadata isn't. */
+const RESULT_KEYS = ['findings', 'requirements'];
 
-/** The analyses: every one runs; with an expectation and #161's runner, the result is it. */
-const analysesCheck = (model, expectedPath) =>
+/**
+ * What differs between `runStsAnalyses`' result and an expectation, or
+ * null: per result key the expectation has, each list compared as a set of
+ * its items, each item read on the fields the expectation's items have. The
+ * first item missing, or extra, is what it says.
+ */
+const analysesDifference = (actual, expected) => {
+  const lists = (value, at) =>
+    Array.isArray(value)
+      ? [[at, value]]
+      : value && typeof value === 'object'
+        ? Object.entries(value).flatMap(([k, v]) =>
+            lists(v, at ? `${at}.${k}` : k),
+          )
+        : [];
+  for (const key of RESULT_KEYS.filter((k) => k in expected)) {
+    const want = new Map(lists(expected[key], key));
+    const got = new Map(lists(actual?.[key], key));
+    for (const at of new Set([...want.keys(), ...got.keys()])) {
+      const fields = [
+        ...new Set(
+          (want.get(at) ?? []).flatMap((item) => Object.keys(item ?? {})),
+        ),
+      ];
+      const text = (item) =>
+        JSON.stringify(
+          fields.length && item && typeof item === 'object'
+            ? Object.fromEntries(
+                fields.filter((f) => f in item).map((f) => [f, item[f]]),
+              )
+            : item,
+        );
+      const w = (want.get(at) ?? []).map(text);
+      const g = (got.get(at) ?? []).map(text);
+      const missing = w.find((item) => !g.includes(item));
+      if (missing)
+        return `${at}: expected ${missing}, not in the result (${g.length} items, ${w.length} expected)`;
+      const extra = g.find((item) => !w.includes(item));
+      if (extra)
+        return `${at}: ${extra}, not expected (${g.length} items, ${w.length} expected)`;
+      if (w.length !== g.length)
+        return `${at}: ${g.length} items, ${w.length} expected`;
+    }
+  }
+  return null;
+};
+
+/** The analyses: every one runs; with an expectation, `runStsAnalyses` gives it. */
+const analysesCheck = (model, expectedPath, pins) =>
   check(() => {
     const ran = Object.entries(lib.stsAnalyses).map(([id, analysis]) => {
       const run = lib.runAnalysis(analysis, model);
@@ -107,17 +149,29 @@ const analysesCheck = (model, expectedPath) =>
     });
     let compared = 'no expectation';
     if (expectedPath && fs.existsSync(expectedPath)) {
+      const where = path.relative(ROOT, expectedPath);
       if (typeof lib.runStsAnalyses !== 'function')
         throw new Error(
-          `${path.relative(ROOT, expectedPath)} exists, but lib has no runStsAnalyses (#161)`,
+          `${where} exists, but lib has no runStsAnalyses (#161)`,
         );
       const expected = JSON.parse(fs.readFileSync(expectedPath, 'utf8'));
-      const actual = lib.runStsAnalyses(model);
-      if (comparable(actual) !== comparable(expected))
-        throw new Error(
-          `runStsAnalyses differs from ${path.relative(ROOT, expectedPath)}`,
-        );
-      compared = `equal to ${path.relative(ROOT, expectedPath)}`;
+      // a tutorial's expectation is of the pinned export, and of its model
+      for (const [key, pin] of Object.entries(pins ?? {}))
+        if (
+          expected.sha256?.[key] !== undefined &&
+          expected.sha256[key] !== pin
+        )
+          throw new Error(
+            `${where}: sha256.${key} ${expected.sha256[key]}, the pin is ${pin}`,
+          );
+      if (pins && expected.sha256?.exp === undefined)
+        throw new Error(`${where}: no sha256.exp to check against the pin`);
+      const difference = analysesDifference(
+        lib.runStsAnalyses(model),
+        expected,
+      );
+      if (difference) throw new Error(`${where}: ${difference}`);
+      compared = `equal to ${where}`;
     }
     return `findings: ${ran.join(', ')}; ${compared}`;
   });
@@ -292,6 +346,14 @@ const tutorialRows = async () => {
                 'tutorials',
                 `${name}.expected-analyses.json`,
               ),
+              // its expectation is of this export and its model
+              {
+                exp: pin.sha256,
+                sts: crypto
+                  .createHash('sha256')
+                  .update(project.sts)
+                  .digest('hex'),
+              },
             )
           : skip('no model'),
       },
