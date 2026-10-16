@@ -26,6 +26,7 @@ import {
   type PropertyDefinition,
   type ResourceCandidates,
   type Severity,
+  type ViewDefinition,
 } from './schema';
 
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
@@ -74,6 +75,11 @@ type EnumOptionsOf<O extends readonly EnumOptionInput[]> = {
       ? { value: O[I]; label: O[I] }
       : never;
 };
+
+const enumOption = (option: EnumOptionInput) =>
+  typeof option === 'string'
+    ? { value: option, label: option }
+    : { value: option[0], label: option[1] };
 
 /** `{ key, value: { type, ...the value's options }, ...the rest }`, in the order written. */
 const build = (
@@ -137,11 +143,20 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C> & { open?: boolean }>,
   ): Built<K, 'enum', P, 'open', { options: EnumOptionsOf<O> }> =>
     build(key, 'enum', rest, ['open'], {
-      options: options.map((option) =>
-        typeof option === 'string'
-          ? { value: option, label: option }
-          : { value: option[0], label: option[1] },
-      ),
+      options: options.map(enumOption),
+    }) as never,
+  /** some of the options, each at most once, comma-separated (goal-controller#162) */
+  enumSet: <
+    const K extends string,
+    const O extends readonly EnumOptionInput[],
+    const P extends PropertyOptions<C>,
+  >(
+    key: K,
+    options: O,
+    rest: Exact<P, PropertyOptions<C>>,
+  ): Built<K, 'enumSet', P, never, { options: EnumOptionsOf<O> }> =>
+    build(key, 'enumSet', rest, [], {
+      options: options.map(enumOption),
     }) as never,
   int: <
     const K extends string,
@@ -336,6 +351,11 @@ export const links = <
 >(
   definitions: L,
 ): L => definitions;
+
+/** A dialect's views, by id (goal-controller#162). */
+export const views = <const V extends Readonly<Record<string, ViewDefinition>>>(
+  definitions: V,
+): V => definitions;
 
 /** Properties on actors. */
 export const actors = <const A extends readonly ActorPropertyDefinition[]>(

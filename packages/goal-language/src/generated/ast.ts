@@ -427,6 +427,21 @@ export function isElementLine(item: unknown): item is ElementLine {
     return reflection.isInstance(item, ElementLine.$type);
 }
 
+export interface EnumSetValue extends langium.AstNode {
+    readonly $container: Reach;
+    readonly $type: 'EnumSetValue';
+    values: Array<string>;
+}
+
+export const EnumSetValue = {
+    $type: 'EnumSetValue',
+    values: 'values'
+} as const;
+
+export function isEnumSetValue(item: unknown): item is EnumSetValue {
+    return reflection.isInstance(item, EnumSetValue.$type);
+}
+
 export interface EnumValue extends langium.AstNode {
     readonly $container: Reach;
     readonly $type: 'EnumValue';
@@ -744,6 +759,7 @@ export interface Reach extends langium.AstNode {
     assertion: AssertionValue;
     bool: BoolValue;
     enum: EnumValue;
+    enumSet: EnumSetValue;
     expression: ExpressionValue;
     int: IntValue;
     number: NumberValue;
@@ -759,6 +775,7 @@ export const Reach = {
     assertion: 'assertion',
     bool: 'bool',
     enum: 'enum',
+    enumSet: 'enumSet',
     expression: 'expression',
     int: 'int',
     number: 'number',
@@ -1017,6 +1034,7 @@ export type GoalAstType = {
     Declaration: Declaration
     Document: Document
     ElementLine: ElementLine
+    EnumSetValue: EnumSetValue
     EnumValue: EnumValue
     Expr: Expr
     ExprBinary: ExprBinary
@@ -1309,6 +1327,17 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: [Line.$type]
         },
+        EnumSetValue: {
+            name: EnumSetValue.$type,
+            properties: {
+                values: {
+                    name: EnumSetValue.values,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         EnumValue: {
             name: EnumValue.$type,
             properties: {
@@ -1525,6 +1554,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 enum: {
                     name: Reach.enum
+                },
+                enumSet: {
+                    name: Reach.enumSet
                 },
                 expression: {
                     name: Reach.expression

@@ -82,6 +82,11 @@ export type ValueConfig =
   /** `''` stands for "not set" (the property is removed) */
   /** `open`: values besides the options may be written (free text) */
   | { type: 'enum'; options: readonly EnumOption[]; open?: boolean }
+  /**
+   * some of the options, each at most once, comma-separated (`read,
+   * modify`); `''` stands for "not set". Read it with `readEnumSet`.
+   */
+  | { type: 'enumSet'; options: readonly EnumOption[] }
   | { type: 'int'; min?: number; max?: number }
   | { type: 'number' }
   | { type: 'text' }
@@ -402,6 +407,30 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * problem, reported before generation.
    */
   model?: ModelShape;
+  /**
+   * The views of its model (goal-controller#162), by id, in the order the
+   * workbench offers them: each shows the elements, actors and links of
+   * some kinds, and hides the rest. One model, one file, one Notation text:
+   * a view is the diagram's only.
+   */
+  views?: Readonly<Record<string, ViewDefinition>>;
+};
+
+/**
+ * A view of a model (goal-controller#162): the kinds it shows, as the
+ * piStar file writes them (`istar.Goal`, `istar.Role`, an extension's
+ * `<namespace>.<Kind>`). A link is shown when both its ends are and, if the
+ * view lists `links`, its kind is one of them.
+ */
+export type ViewDefinition = {
+  /** shown to people: `Social`, `Authorisation` */
+  label: string;
+  /** the element and actor kinds it shows */
+  kinds: readonly string[];
+  /** the link kinds it shows (default: every link whose ends it shows) */
+  links?: readonly string[];
+  /** what it is for, where it is offered */
+  help?: string;
 };
 
 /** How many: exactly one, or any number. */
@@ -977,6 +1006,41 @@ const checkNativeFiles = (
 };
 
 /**
+ * A dialect's views (goal-controller#162), as the types can't check them:
+ * each id a name, with a label and some kinds, every kind iStar's or its
+ * extension's (an element's or an actor's), every link kind iStar's or its
+ * extension's, none twice.
+ */
+const checkViews = (
+  definition: Pick<AnyDialect, 'views' | 'extension'>,
+  fail: (why: string) => never,
+) => {
+  const kinds: readonly string[] = [
+    ...ISTAR_ACTOR_KINDS,
+    ...ISTAR_NODE_KINDS,
+    ...(definition.extension?.elements ?? []).map((e) => e.kind),
+  ];
+  const linkKinds: readonly string[] = [
+    ...ISTAR_LINK_KINDS,
+    ...(definition.extension?.links ?? []).map((l) => l.kind),
+  ];
+  for (const [id, view] of Object.entries(definition.views ?? {})) {
+    const where = `view ${id}`;
+    if (!/^[A-Za-z][\w-]*$/.test(id)) fail(`${where}: its id is a name`);
+    if (!view.label) fail(`${where}: no label`);
+    if (!view.kinds.length) fail(`${where}: shows no kind`);
+    for (const [list, known, what] of [
+      [view.kinds, kinds, 'kind'],
+      [view.links ?? [], linkKinds, 'link kind'],
+    ] as const) {
+      if (new Set(list).size !== list.length) fail(`${where}: a ${what} twice`);
+      for (const kind of list)
+        if (!known.includes(kind)) fail(`${where}: unknown ${what} ${kind}`);
+    }
+  }
+};
+
+/**
  * Type-checks and freezes a definition, and checks what the types cannot:
  * every name it uses (constructs, languages, condition keys, the keys an
  * element line declares) is one it declares, and the property-line order lists
@@ -1166,6 +1230,7 @@ export const defineDialect = <const D extends AnyDialect>(
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
   checkNativeFiles(definition.nativeFiles ?? {}, fail);
+  checkViews(definition, fail);
   if (definition.model)
     for (const [part, count] of Object.entries(definition.model))
       if (count !== 'one' && count !== 'many')

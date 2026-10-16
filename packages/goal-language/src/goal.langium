@@ -189,6 +189,10 @@ EnumValue:
 RefListValue:
     {infer RefListValue} (ids+=ElementId (',' ids+=ElementId)*)?;
 
+// some of an enum's options, comma-separated (`read, modify`, goal-controller#162)
+EnumSetValue:
+    {infer EnumSetValue} (values+=VALUE (',' values+=VALUE)*)?;
+
 PairListValue:
     {infer PairListValue} (pairs+=Pair (',' pairs+=Pair)*)?;
 
@@ -217,7 +221,7 @@ Pair:
 Reach:
     REACH plain=PlainDocument REACH assertion=AssertionValue REACH int=IntValue
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
-    REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
+    REACH enum=EnumValue REACH enumSet=EnumSetValue REACH refList=RefListValue REACH pairList=PairListValue
     REACH ocl=OclValue REACH expression=ExpressionValue;
 
 // ---------------------------------------------------------------------------

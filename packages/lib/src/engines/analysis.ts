@@ -8,12 +8,15 @@
  * strategy, a scenario; a single-case analysis has one), each a value per
  * element or actor id; a case may be a selection (goal-controller#152: a
  * variant, the elements and links it consists of, with a one-line summary),
- * which the workbench draws by dimming the rest. An analysis that derives
+ * which the workbench draws by dimming the rest; a case may have findings
+ * (goal-controller#162: what a design-time analysis reports, each with its
+ * kind, severity, message and the elements and links involved), which the
+ * workbench lists and badges. An analysis that derives
  * variants or reasons over conditions has `variantsOf` (./variants) and
  * `satisfiable`, `implies`, `equivalent` (./propositional). Nothing here
  * names an engine.
  */
-import type { AnyDialect } from '@goal-controller/dialect';
+import type { AnyDialect, Severity } from '@goal-controller/dialect';
 import type { GoalModel } from '@goal-controller/goal-tree';
 
 /** A value on an element or actor: a number or a word, its label, how to show it. */
@@ -34,12 +37,31 @@ export type AnalysisValues = Readonly<Record<string, AnalysisValue>>;
 export type AnalysisStep = { label: string; values: AnalysisValues };
 
 /**
+ * What an analysis found (goal-controller#162): a violation, a conflict, a
+ * threat reaching an element. Its `kind` is the analysis's own name for
+ * what it is (`violatedNeed`, `conflict`); `elements` (elements and actors)
+ * and `links` are the piStar ids of what it involves, the first the one it
+ * is about; `details` are its own facts by name (the violated need), shown
+ * after its message and compared by an oracle, opaque to the workbench.
+ */
+export type AnalysisFinding = {
+  kind: string;
+  severity: Severity;
+  message: string;
+  elements: readonly string[];
+  links: readonly string[];
+  details?: Readonly<Record<string, string>>;
+};
+
+/**
  * One evaluation: its values by element or actor id (the piStar ids). A
  * case run step by step has `steps` too, in order (the workbench steps
  * through them); its `values` are then its outcome (its last step's). A
  * case that is a selection (goal-controller#152: a variant) has the piStar
  * ids of the elements and links it consists of (the workbench dims the
- * rest), and a one-line `summary` (its context, score, cost).
+ * rest), and a one-line `summary` (its context, score, cost). A case that
+ * reports findings (goal-controller#162) has them in `findings`, in the
+ * order it found them; its `values` may be empty.
  */
 export type AnalysisCase = {
   id: string;
@@ -48,6 +70,7 @@ export type AnalysisCase = {
   steps?: readonly AnalysisStep[];
   selection?: readonly string[];
   summary?: string;
+  findings?: readonly AnalysisFinding[];
 };
 
 export type AnalysisResult = { cases: readonly AnalysisCase[] };
@@ -258,10 +281,33 @@ const valueText = (value: AnalysisValue): string =>
   value.label ?? String(value.value);
 
 /**
+ * A finding as text (goal-controller#162): `<severity> <kind>: <message>`,
+ * then its details (`key=value`), the elements and the links it involves,
+ * named by `nameOf`.
+ */
+export const findingText = (
+  finding: AnalysisFinding,
+  nameOf: (id: string) => string = (id) => id,
+): string =>
+  [
+    `${finding.severity} ${finding.kind}: ${finding.message}`,
+    ...Object.entries(finding.details ?? {}).map(
+      ([key, value]) => `${key}=${value}`,
+    ),
+    ...(finding.elements.length
+      ? [`elements ${finding.elements.map(nameOf).join(', ')}`]
+      : []),
+    ...(finding.links.length
+      ? [`links ${finding.links.map(nameOf).join(', ')}`]
+      : []),
+  ].join(' · ');
+
+/**
  * A result as text (goal-controller#135): each case, its summary and
- * selection when it has them (goal-controller#152), its values (or, for a
- * case run step by step, each step and its values), one `id: value` line
- * per element or actor, named by `nameOf` (default: its id).
+ * selection when it has them (goal-controller#152), its findings
+ * (goal-controller#162), its values (or, for a case run step by step, each
+ * step and its values), one `id: value` line per element or actor, named
+ * by `nameOf` (default: its id).
  */
 export const analysisText = (
   result: AnalysisResult,
@@ -280,6 +326,9 @@ export const analysisText = (
       ...(analysisCase.selection
         ? [`  selection: ${analysisCase.selection.map(nameOf).join(', ')}`]
         : []),
+      ...(analysisCase.findings ?? []).map(
+        (finding) => `  finding: ${findingText(finding, nameOf)}`,
+      ),
       ...(analysisCase.steps?.length
         ? analysisCase.steps.flatMap((step, i) => [
             `  step ${i + 1}: ${step.label}`,

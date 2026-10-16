@@ -307,6 +307,7 @@ export const OCL_OPERATIONS = [
  * - `int`, `number`, `bool`: `-3`, `-1.5`, `true`
  * - `text`: anything on one line
  * - `enum`: one or more words (`maintain`, `goal-based`)
+ * - `enumSet`: some of an enum's options, comma-separated (`read, modify`)
  * - `refList`: element ids, comma-separated (`G2, G5`)
  * - `pairList`: `name:value` pairs, comma-separated (`x:3, y:2`)
  * - `annotatedName`: `<<stereotype>> {tag = value} Name [RT]`, a line
@@ -322,6 +323,7 @@ export const VALUE_TYPES = [
   'bool',
   'text',
   'enum',
+  'enumSet',
   'refList',
   'pairList',
   'annotatedName',

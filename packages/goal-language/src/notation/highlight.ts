@@ -198,6 +198,7 @@ const START: Record<ValueConfig['type'], LexerStart> = {
   bool: 'bool',
   text: 'text',
   enum: 'enum',
+  enumSet: 'enumSet',
   refList: 'refList',
   pairList: 'pairList',
   annotatedName: 'annotatedName',
@@ -212,7 +213,7 @@ export const highlightValue = (
 ): Highlight[] => {
   const highlights = styled(tokensOf(START[value.type], text), offset);
   // an enum's value is one of a fixed few: an atom, as true and false are
-  return value.type === 'enum'
+  return value.type === 'enum' || value.type === 'enumSet'
     ? highlights.map((h) =>
         h.style === 'string' ? { ...h, style: 'atom' } : h,
       )

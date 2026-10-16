@@ -27,6 +27,7 @@ import type {
   Document,
   ElementLine,
   EnumValue,
+  EnumSetValue,
   Expr,
   ExprCall,
   ExpressionValue,
@@ -730,6 +731,7 @@ export type ValueData = {
   bool: boolean | null;
   text: string | null;
   enum: string | null;
+  enumSet: string[];
   refList: string[];
   pairList: { name: string; value: string }[];
   annotatedName: ElementLineData | null;
@@ -745,6 +747,7 @@ const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
   bool: (root: BoolValue) => (root.value ? root.value === 'true' : null),
   text: (root: TextValue) => root.value ?? null,
   enum: (root: EnumValue) => root.value ?? null,
+  enumSet: (root: EnumSetValue) => [...root.values],
   refList: (root: RefListValue) => [...root.ids],
   pairList: (root: PairListValue) =>
     root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
@@ -774,6 +777,20 @@ export const parseValue = <T extends ValueType>(
   const { root, errors } = parse<never>(type, text);
   return { value: READ[type](root), errors };
 };
+
+/**
+ * An `enumSet` value's options, in the order written (goal-controller#162):
+ * empty when it is unset, null when it isn't a list. An engine reads a set
+ * with it, never splitting the text itself.
+ */
+export const readEnumSet = (text: string): string[] | null => {
+  const read = parseValue('enumSet', text);
+  return read.errors.length ? null : read.value;
+};
+
+/** Options as an `enumSet` value writes them: comma-separated. */
+export const enumSetText = (values: readonly string[]): string =>
+  values.join(', ');
 
 /**
  * The tree of an `expression` value, as checks and engines read it (they

@@ -365,6 +365,20 @@ export const valueProblem = (
         expressionMemberProblem(value, read.value, context, definition)
       );
     }
+    case 'enumSet': {
+      const read = parseValue('enumSet', text);
+      const options = value.options.map((o) => o.value).filter(Boolean);
+      if (read.errors.length)
+        return `Some of ${options.join(', ')}, comma-separated`;
+      const seen = new Set<string>();
+      for (const written of read.value) {
+        if (!options.includes(written))
+          return `One of ${options.join(', ')}, not ${written}`;
+        if (seen.has(written)) return `${written} is written twice`;
+        seen.add(written);
+      }
+      return null;
+    }
     case 'refList': {
       const read = parseValue('refList', text);
       if (read.errors.length) return 'Element ids, comma-separated (G2, G5)';

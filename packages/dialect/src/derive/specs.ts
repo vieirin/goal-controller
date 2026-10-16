@@ -28,6 +28,11 @@ export type PropertyInput =
   | {
       kind: 'select';
       options: ReadonlyArray<{ value: string; label: string }>;
+    }
+  /** some of the options, written comma-separated (`''`: none, the property removed) */
+  | {
+      kind: 'multiSelect';
+      options: ReadonlyArray<{ value: string; label: string }>;
     };
 
 /** `C`: the engine library's check function type (the definition only names checks). */
@@ -60,6 +65,8 @@ export const inputFor = (
   switch (value.type) {
     case 'enum':
       return { kind: 'select', options: value.options };
+    case 'enumSet':
+      return { kind: 'multiSelect', options: value.options };
     case 'bool':
       return { kind: 'select', options: BOOL_OPTIONS };
     case 'int':

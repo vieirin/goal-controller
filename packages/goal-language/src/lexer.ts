@@ -200,6 +200,12 @@ const VALUES = {
   bool: rules([...literal('true', 'false'), SPACE]),
   text: rules([['VALUE', VALUE], SPACE]),
   enum: rules([['VALUE', VALUE], SPACE]),
+  // an option: anything but a comma, trimmed (goal-controller#162)
+  enumSet: rules([
+    ...literal(','),
+    ['VALUE', /[^\s,](?:[^\r\n,]*[^\s,])?/],
+    SPACE,
+  ]),
   // any id, an extension kind's too (`S1`): whether it names an element of
   // the model is the value's to say, not its syntax's
   refList: rules([

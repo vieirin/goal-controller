@@ -515,6 +515,29 @@ export const fieldCompletionsAt = (
         detail: element.kind,
       }));
   if (value.type === 'refList') return { from, options: ids([value.kind]) };
+  // the options not written yet, after the last comma (goal-controller#162)
+  if (value.type === 'enumSet') {
+    const before = text.slice(0, pos);
+    const comma = before.lastIndexOf(',');
+    // every option but the one being typed (its rest, after `pos`, too)
+    const written = new Set(
+      [
+        ...before.split(',').slice(0, -1),
+        ...text.slice(pos).split(',').slice(1),
+      ].map((part) => part.trim()),
+    );
+    const typed = before.slice(comma + 1);
+    return {
+      from: comma + 1 + (typed.length - typed.trimStart().length),
+      options: value.options
+        .filter((option) => option.value && !written.has(option.value))
+        .map((option) => ({
+          label: option.value,
+          type: 'keyword' as const,
+          detail: option.label,
+        })),
+    };
+  }
   if (value.type === 'enum')
     return {
       from: text.length - text.trimStart().length,
