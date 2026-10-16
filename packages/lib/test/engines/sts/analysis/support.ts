@@ -1,7 +1,8 @@
 /**
  * Small STS-ml models for the analyses' tests (goal-controller#161 item
  * 5), built as the dialect's model (#160 D-R4/D-R5): actors, goals and
- * resources with their links, each by a short id the test names.
+ * resources with their links, each by a short id the test names. Each
+ * element's text gives it a text id (`G3: G`), which a `refList` names.
  */
 import type {
   AnalysisActor,
@@ -16,6 +17,16 @@ export const stsModel = () => {
   const elements: AnalysisElement[] = [];
   const links: AnalysisLink[] = [];
   let next = 0;
+  const textIds = new Map<string, string>();
+  const PREFIX: Record<string, string> = {
+    [K.goal]: 'G',
+    [K.document]: 'R',
+    [K.information]: 'I',
+    [K.event]: 'E',
+  };
+  /** The text id a `refList` names an element by. */
+  const ref = (id: string) => textIds.get(id) ?? id;
+  const refs = (ids: readonly string[]) => ids.map(ref).join(', ');
   const link = (
     kind: string,
     source: string,
@@ -35,10 +46,12 @@ export const stsModel = () => {
     return id;
   };
   const element = (kind: string, id: string, actor?: string) => {
+    const textId = `${PREFIX[kind] ?? 'X'}${textIds.size + 1}`;
+    textIds.set(id, textId);
     elements.push({
       id,
       kind,
-      name: id,
+      name: `${textId}: ${id}`,
       properties: {},
       ...(actor !== undefined && { actor }),
     });
@@ -109,8 +122,8 @@ export const stsModel = () => {
       },
     ) =>
       link(K.authorises, from, to, {
-        information: a.information.join(', '),
-        scope: (a.scope ?? []).join(', '),
+        information: refs(a.information),
+        scope: refs(a.scope ?? []),
         granted: (a.granted ?? []).join(', '),
         prohibited: (a.prohibited ?? []).join(', '),
         transferable: String(a.transferable ?? true),
@@ -122,7 +135,8 @@ export const stsModel = () => {
       link(K.threatens, event, target),
     contributes: (from: string, to: string, label: 'help' | 'hurt') =>
       link(K.contribution, from, to, {}, label),
-    /** Sets a property of a link (`threatenedBy` on a delegation). */
+    ref,
+    /** Sets a property of a link (`threatenedBy` on a delegation, by `ref`). */
     set: (id: string, key: string, value: string) => {
       const l = links.find((x) => x.id === id)!;
       (l.properties as Record<string, string>)[key] = value;

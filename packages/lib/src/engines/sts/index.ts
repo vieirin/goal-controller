@@ -8,6 +8,7 @@
  */
 import { defineAnalyses } from '../analysis';
 import { sts } from './definition';
+import { stsSecurityAnalyses } from './analysis';
 import { stsProblems } from './problems';
 
 /** The dialect's findings as an analysis: one case, no values (#160 D-R6). */
@@ -25,6 +26,7 @@ export const stsAnalyses = defineAnalyses(sts, {
       ],
     }),
   },
+  ...stsSecurityAnalyses,
 });
 
 export { sts } from './definition';

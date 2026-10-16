@@ -14,6 +14,7 @@ import { textOf } from '../problems';
 import {
   ISTAR,
   OPERATIONS,
+  refListItems,
   STS_KINDS as KINDS,
   STS_LINKS,
   type Operation,
@@ -22,13 +23,6 @@ import type { StsDecomposition, StsModel } from './model';
 
 /** The dialect's kinds the analyses read (red's `../vocabulary`, #163). */
 export const STS_KINDS = { ...ISTAR, ...KINDS, ...STS_LINKS } as const;
-
-/** A `refList`'s items, trimmed, as the engines read one (`edgeFamily`'s `dependsOn`). */
-const items = (text: string | undefined): string[] =>
-  (text ?? '')
-    .split(',')
-    .map((x) => x.trim())
-    .filter(Boolean);
 
 /**
  * The security needs a delegation's or a transmission's properties
@@ -64,8 +58,7 @@ const needsOf = (properties: Readonly<Record<string, string>>): string[] => {
       case 'authentication':
       case 'integrity':
       case 'confidentiality':
-        for (const who of [value])
-          needs.push(`${who}${key[0]!.toUpperCase()}${key.slice(1)}`);
+        needs.push(`${value}${key[0]!.toUpperCase()}${key.slice(1)}`);
         break;
       case 'availability':
         needs.push('availability');
@@ -99,7 +92,12 @@ export const readStsModel = (model: AnalysisModel): StsModel => {
     if (textId && !byText.has(textId)) byText.set(textId, e.id);
   }
   const resolve = (ref: string) => byText.get(ref) ?? ref;
-  const refs = (text: string | undefined) => items(text).map(resolve);
+  /**
+   * A `refList`'s piStar ids, by `refListItems`; null when the text isn't
+   * a list, which the dialect's own value checks report.
+   */
+  const refs = (text: string | undefined) =>
+    refListItems(text)?.map(resolve) ?? null;
   const linksOf = (kind: string): AnalysisLink[] =>
     model.links.filter((l) => l.kind === kind);
 
@@ -176,16 +174,26 @@ export const readStsModel = (model: AnalysisModel): StsModel => {
         availability: l.properties.availability,
       }),
     })),
-    authorisations: linksOf(K.authorises).map((l) => ({
-      id: l.id,
-      from: l.source,
-      to: l.target,
-      information: refs(l.properties.information),
-      scope: refs(l.properties.scope),
-      granted: operations(authorisationOperations(l.properties).granted),
-      prohibited: operations(authorisationOperations(l.properties).prohibited),
-      transferable: l.properties.transferable !== 'false',
-    })),
+    // An authorisation whose information or scope can't be read is left
+    // out: an unreadable scope must not read as "every goal".
+    authorisations: linksOf(K.authorises).flatMap((l) => {
+      const information = refs(l.properties.information);
+      const scope = refs(l.properties.scope);
+      if (!information || !scope) return [];
+      const { granted, prohibited } = authorisationOperations(l.properties);
+      return [
+        {
+          id: l.id,
+          from: l.source,
+          to: l.target,
+          information,
+          scope,
+          granted: operations(granted),
+          prohibited: operations(prohibited),
+          transferable: l.properties.transferable !== 'false',
+        },
+      ];
+    }),
     ownerships: linksOf(K.owns).map((l) => ({
       id: l.id,
       actor: l.source,
@@ -236,7 +244,7 @@ export const readStsModel = (model: AnalysisModel): StsModel => {
         link: l.id,
       })),
       ...[...delegates, ...transmits].flatMap((l) =>
-        refs(l.properties.threatenedBy).map((event) => ({
+        (refs(l.properties.threatenedBy) ?? []).map((event) => ({
           event,
           target: l.id,
         })),

@@ -567,7 +567,7 @@ describe('STS-ml threat analysis (IJSSE 2014 Table 2; manual App. C)', () => {
     m.goal('B', 'G');
     m.reads('G', t.copy);
     m.event('X');
-    m.set(t.link, 'threatenedBy', 'X');
+    m.set(t.link, 'threatenedBy', m.ref('X'));
     const [f] = findingsOf(m.model(), 'threats', 'threatPropagation');
     assert.deepStrictEqual(f?.elements, ['X', 'D@B', 'G']);
     assert.deepStrictEqual(f?.links, [t.link]);
@@ -634,6 +634,26 @@ describe('STS-ml derived security requirements (DKE §3.2)', () => {
   });
 });
 
+describe('STS-ml analyses: reading the dialect’s model', () => {
+  it('leaves out an authorisation whose scope is not a list, rather than read it as every goal', () => {
+    const m = stsModel();
+    ['O', 'A'].forEach((x) => m.role(x));
+    m.goal('A', 'G');
+    m.document('A', 'D');
+    m.information('I');
+    m.owns('O', 'I');
+    m.tangible('I', 'D');
+    m.reads('G', 'D');
+    const auth = m.authorise('O', 'A', {
+      information: ['I'],
+      granted: ['read'],
+    });
+    assert.ok(!has(m.model(), 'security', 'nonReading'));
+    m.set(auth, 'scope', `${m.ref('G')} H`);
+    assert.ok(has(m.model(), 'security', 'nonReading'));
+  });
+});
+
 describe('STS-ml analyses for the workbench', () => {
   it('each gives one case of findings', () => {
     const { m } = delegation({ noRedelegation: 'true' });
@@ -651,30 +671,31 @@ describe('STS-ml analyses for the workbench', () => {
 describe('STS-ml worked examples (#160 R1)', () => {
   it('DKE §4.2.1, Fig. 3: Municipality and Tax Agency conflict on InfoTN’s production', () => {
     const m = stsModel();
-    ['Municipality', 'Tax Agency', 'InfoTN', 'Citizen'].forEach((x) =>
+    ['Municipality', 'TaxAgency', 'InfoTN', 'Citizen'].forEach((x) =>
       m.role(x),
     );
-    ['system maintained', 'data completeness ensured', 'data refined'].forEach(
+    ['systemMaintained', 'dataCompletenessEnsured', 'dataRefined'].forEach(
       (g) => m.goal('InfoTN', g),
     );
-    m.and('system maintained', ['data completeness ensured']);
-    m.and('data completeness ensured', ['data refined']);
-    const infos = ['personal info', 'residential address', 'tax contributions'];
+    m.and('systemMaintained', ['dataCompletenessEnsured']);
+    m.and('dataCompletenessEnsured', ['dataRefined']);
+    const infos = ['personalInfo', 'residentialAddress', 'taxContributions'];
     infos.forEach((i) => m.information(i));
-    m.owns('Citizen', 'personal info');
-    m.owns('Municipality', 'residential address');
-    m.owns('Municipality', 'tax contributions');
+    m.owns('Citizen', 'personalInfo');
+    m.owns('Municipality', 'residentialAddress');
+    m.owns('Municipality', 'taxContributions');
     m.authorise('Municipality', 'InfoTN', {
       information: infos,
-      scope: ['system maintained'],
+      scope: ['systemMaintained'],
       granted: ['read'],
       prohibited: ['produce'],
     });
-    m.authorise('Tax Agency', 'InfoTN', {
+    m.authorise('TaxAgency', 'InfoTN', {
       information: infos,
-      scope: ['data refined'],
+      scope: ['dataRefined'],
       granted: ['modify', 'produce'],
     });
+    // ids as text ids: a refList reads only ids (refListItems)
     assert.deepStrictEqual(
       findingsOf(m.model(), 'security', 'authorisationConflict').map((f) => [
         f.details?.information,
