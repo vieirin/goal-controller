@@ -117,6 +117,9 @@ describe('findings (#162)', () => {
     expect(shownFinding(run())).to.equal(null);
     // a finding the case shown doesn't have is none
     expect(shownFinding({ ...picked, finding: 3 })).to.equal(null);
+    // nor one that is no index
+    expect(shownFinding({ ...picked, finding: -1 })).to.equal(null);
+    expect(shownFinding({ ...picked, finding: 0.5 })).to.equal(null);
     const style = selectionStyle(shownCase(picked), shownFinding(picked));
     expect(style).to.include('{ opacity: 0.25; }');
     for (const id of ['a1', 't1', 't2', 'l1', 'l2'])
@@ -124,5 +127,21 @@ describe('findings (#162)', () => {
     expect(style).not.to.include('[data-id="g1"]');
     // none picked, and the case is no selection: nothing dimmed
     expect(selectionStyle(shownCase(picked), null)).to.equal(null);
+    // a finding that involves nothing (the model's as a whole): nothing dimmed
+    const whole = {
+      id: 'model',
+      label: 'Model',
+      values: {},
+      findings: [
+        {
+          kind: 'noAgent',
+          severity: 'warning' as const,
+          message: 'no agent plays a role',
+          elements: [],
+          links: [],
+        },
+      ],
+    };
+    expect(selectionStyle(whole, 0)).to.equal(null);
   });
 });

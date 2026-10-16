@@ -423,9 +423,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
  * view lists `links`, its kind is one of them.
  */
 export type ViewDefinition = {
-  /** shown to people: `Social`, `Authorisation` */
+  /** shown to people: `Social`, `Information` */
   label: string;
-  /** the element and actor kinds it shows */
+  /**
+   * the element and actor kinds it shows; an element shows without its
+   * actor when the actor's kind isn't listed (information without its
+   * owners), so list the actor kinds a view draws boundaries for
+   */
   kinds: readonly string[];
   /** the link kinds it shows (default: every link whose ends it shows) */
   links?: readonly string[];
@@ -1157,6 +1161,17 @@ export const defineDialect = <const D extends AnyDialect>(
           fail(
             `${owner}.${property.key}: its members are from ${members.from}, a pairList none of the kinds it resolves declares`,
           );
+        // an enumSet's options, written comma-separated, read back as such
+        if (config.type === 'enumSet') {
+          const values = config.options.map((o) => o.value);
+          for (const value of values)
+            if (!value || value !== value.trim() || value.includes(','))
+              fail(
+                `${owner}.${property.key}: option "${value}" can't be written in a set (none empty, untrimmed, or with a comma)`,
+              );
+          if (new Set(values).size !== values.length)
+            fail(`${owner}.${property.key}: an option twice`);
+        }
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))

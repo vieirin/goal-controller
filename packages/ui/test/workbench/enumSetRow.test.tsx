@@ -51,9 +51,12 @@ describe('an enumSet row (#162)', () => {
     expect(onChange).toHaveBeenLastCalledWith('mon');
   });
 
-  it('edits a value that isn’t a list as text', () => {
-    const { queryByLabelText, getByDisplayValue } = row('mon,');
-    expect(queryByLabelText('Monday')).toBeNull();
-    expect(getByDisplayValue('mon,')).toBeTruthy();
+  it('edits a value that isn’t a list of the options, each once, as text', () => {
+    for (const value of ['mon,', 'mon, sun', 'mon, mon']) {
+      const { queryByLabelText, getByDisplayValue, unmount } = row(value);
+      expect(queryByLabelText('Monday')).toBeNull();
+      expect(getByDisplayValue(value)).toBeTruthy();
+      unmount();
+    }
   });
 });

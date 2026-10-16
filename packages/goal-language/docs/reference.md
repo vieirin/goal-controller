@@ -465,6 +465,25 @@ maintain
 model-based reflex
 ```
 
+### `enumSet`
+
+Some of an enum's options, separated by commas (goal-controller#162). An
+option is anything but a comma, trimmed. A dialect adds the `options`; the
+validator checks that each is one of them and that none is written twice.
+Engines read it with `readEnumSet` (`[]` when empty, null when it isn't a
+list).
+
+```goal-value enumSet accept
+read
+read, modify
+two words,x
+```
+
+```goal-value enumSet reject
+read,
+read,, modify
+```
+
 ### `refList`
 
 Element ids, separated by commas, with optional spaces. A dialect adds the

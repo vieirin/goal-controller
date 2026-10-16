@@ -27,6 +27,8 @@ bundles.
 | `parseDocument` | `(text, { ids? = true, prefixes?, keys? }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false, keys: propertyKeysOf(d) })` for a plain document, its property lines read by its keys |
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
 | `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
+| `readEnumSet` | `(text) => string[] \| null` | an `enumSet`'s options in the order written (goal-controller#162): `readEnumSet('read, modify')` → `['read', 'modify']`; `[]` when empty, null when not a list |
+| `enumSetText`, `toggleEnumSet` | `(values) => string`, `(text, option, on) => string \| null` | write a set (`'read, modify'`); add an option at the end (one written stays) or remove it, null when the text isn't a list |
 | `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
 | `assertionMembers` | `(tree) => { ref, member }[]` | the members a condition reads (`room.clean`, `tank.level < 3`, `room.clean = true`), in order (goal-controller#135); an `ExpressionTree`'s member is `{ kind: 'member', ref, member }` |
 | `expressionNodes` | `(tree: ExpressionTree) => ExpressionTree[]` | every node, each before its operands (what a check walks) |

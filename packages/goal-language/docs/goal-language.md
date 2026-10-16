@@ -127,10 +127,18 @@ value alone (`parseValue(type, text)`).
 | `bool`          | `BoolValue`      | `true`, `false`                    |                                                           |
 | `text`          | `TextValue`      | anything on one line               |                                                           |
 | `enum`          | `EnumValue`      | words (`model-based reflex`)       | `options`, `open`                                         |
+| `enumSet`       | `EnumSetValue`   | `read, modify` (each a word or words) | `options`: the options, each written at most once      |
 | `refList`       | `RefListValue`   | `G2, G5`, `V1` (any prefix)        | `kind`: of the elements it refers to (an extension's too) |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
 | `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
+
+An **`enumSet`** (goal-controller#162) is options separated by commas; an
+option is anything but a comma, trimmed. `readEnumSet(text)` gives them in
+the order written (`[]` when empty, `null` when it isn't a list, as `a,,
+b` or `a,`), `enumSetText` writes a list, and `toggleEnumSet` adds or
+removes one, the others as written. The validator reports an option the
+property doesn't list and one written twice. See the [reference](reference.md#enumset).
 
 The **assertion language** works as follows:
 
@@ -289,6 +297,34 @@ Heat with the heat pump
   names them (an id, or a quoted text); inside `{ }`, the keys the link's
   kind declares that the line hasn't written; on a key, its `help`.
 
+**An actor at an end** (goal-controller#162). A link whose source or
+target is an actor (a link kind whose rules join actors) has a line too.
+An actor target is named after `actor`, as an actor line names it (its
+name, quoted, `#n` the n-th of several so named); a link from an actor is
+written under that actor's `actor` line (below):
+
+```
+actor "Ann"
+  link actor "Bank" {terms = cash, goods} {covers = G1}
+G1: Borrow
+  link actor "Bank" {amount = 5}
+```
+
+- Every actor that is the source of a link with a line gets an actor line,
+  even one without properties, in any dialect that writes link lines. Such
+  a dialect reads actor lines as one with `actors` does.
+- The lines under an actor line, up to the next element line, are its
+  links'. Any other line there is an error (`Only link lines go under an
+  actor line`). While the actor line names no actor, or one another line
+  names too, its link lines change nothing.
+- A target `actor "Bob"` that names no actor is reported as an actor line's
+  is (`No actor "Bob"`); the others are as above (`No link from G1 to actor
+  "Ann" has properties in Lend`).
+- In a dialect without ids, a line starting `link actor "` is a link line:
+  it takes no element's position.
+- Completion after `link ` under an actor line offers its links' targets,
+  `actor "…"` ones too, and inside `{ }` their kinds' keys.
+
 ### Actor lines: properties on actors
 
 A dialect that gives actors properties (`actors` in its definition,
@@ -326,7 +362,9 @@ G1: Deliver the medicine
 - **Completion and hover:** after `actor `, the names of the actors whose
   kinds have properties; inside `{ }`, the keys the actor's kind declares;
   on a key, its `help`.
-- In a dialect without `actors`, `actor` is an unknown property key, as any.
+- A dialect that writes link lines has actor lines too, for the links
+  from its actors (above), even without `actors`. In a dialect with
+  neither, `actor` is an unknown property key, as any.
 
 ## The RT notation: operators and precedence
 

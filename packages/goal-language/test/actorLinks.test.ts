@@ -1,6 +1,6 @@
 /**
  * Links with an actor at an end (goal-controller#162): a toy lending
- * dialect (not STS) whose extension adds an actor-to-actor `trusts` link
+ * dialect (no engine's) whose extension adds an actor-to-actor `trusts` link
  * (a set of terms, the goals it covers, whether it may be passed on), a
  * goal-to-actor `asks` link, and a goal-to-goal `hands` link between
  * elements of different actors. A link from an actor is written under its

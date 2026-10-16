@@ -580,8 +580,11 @@ export const fieldCompletionsAt = (
       ].map((part) => part.trim()),
     );
     const typed = before.slice(comma + 1);
+    // the rest of the option being typed, after the cursor, is replaced too
+    const rest = text.slice(pos).split(',')[0]!.trimEnd();
     return {
       from: comma + 1 + (typed.length - typed.trimStart().length),
+      ...(rest && { to: pos + rest.length }),
       options: value.options
         .filter((option) => option.value && !written.has(option.value))
         .map((option) => ({

@@ -550,9 +550,16 @@ export function PropertyRow({
     ? input.kind === 'long'
     : name === 'Description' || name === 'assertion' || name === 'maintain';
   const note = notReadBy ?? notApplying ?? null;
-  // some of the options (goal-controller#162): one box each, while the value reads as a list
+  // some of the options (goal-controller#162): one box each, while the value
+  // reads as a list of them, each once (otherwise its text is edited)
+  const read = input?.kind === 'multiSelect' ? readEnumSet(value ?? '') : null;
   const chosen =
-    input?.kind === 'multiSelect' ? readEnumSet(value ?? '') : null;
+    read &&
+    input?.kind === 'multiSelect' &&
+    new Set(read).size === read.length &&
+    read.every((v) => input.options.some((o) => o.value === v))
+      ? read
+      : null;
   // checked as typed: a select's value, or the text being edited
   const current =
     input?.kind === 'select' || chosen ? (value ?? '') : draft.draft;
