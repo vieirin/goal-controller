@@ -455,7 +455,9 @@ export const LINK_LINE_KEY = 'link';
 /**
  * The property-line key an actor's properties are written with in the goal
  * language, at the top of the document: `actor "Ann" {importance = 50}`
- * (goal-controller#109). Reserved in a dialect that declares `actors`.
+ * (goal-controller#109), and the links from it under it, a link to one
+ * naming it so (`link actor "Ann" {…}`, goal-controller#162). Reserved in a
+ * dialect that declares `actors` or `links`.
  */
 export const ACTOR_LINE_KEY = 'actor';
 
@@ -1174,9 +1176,9 @@ export const defineDialect = <const D extends AnyDialect>(
       `a link's properties are written with (it declares links)`,
     ],
     [
-      definition.actors,
+      definition.actors ?? definition.links,
       ACTOR_LINE_KEY,
-      `an actor's properties are written with (it declares actors)`,
+      `an actor's properties and links are written with (it declares actors or links)`,
     ],
   ] as const)
     if (declared)

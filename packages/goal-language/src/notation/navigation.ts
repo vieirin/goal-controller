@@ -19,6 +19,8 @@ import { highlightValue } from './highlight.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { ownerOf } from './completion.js';
 import {
+  actorLinesOf,
+  lineTargetKey,
   LINK_LINE_KEY,
   linkOfLine,
   readLinkLine,
@@ -56,7 +58,7 @@ const ownLineHover = (
   context: DefinitionContext,
 ): { span: Span; markdown: string } | { value: ValueConfig } | null => {
   const isLink = linkLinesOf(definition) && read.key === LINK_LINE_KEY;
-  const isActor = !!definition.actors && read.key === ACTOR_LINE_KEY;
+  const isActor = actorLinesOf(definition) && read.key === ACTOR_LINE_KEY;
   if (!isLink && !isActor) return null;
   if (within(read.keySpan, at))
     return {
@@ -73,17 +75,14 @@ const ownLineHover = (
   );
   if (!property) return null;
   let kind: string | undefined;
+  const byName = actorNames(
+    Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+      iStarId,
+      name,
+    })),
+  );
   if (isActor) {
-    const named = targetKey(
-      actorNames(
-        Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
-          iStarId,
-          name,
-        })),
-      ),
-      reading.value.target,
-      'actor',
-    );
+    const named = targetKey(byName, reading.value.target, 'actor');
     kind = 'key' in named ? context.actors?.[named.key]?.kind : undefined;
   } else {
     const source = ownerOf(
@@ -92,7 +91,7 @@ const ownLineHover = (
       lines.indexOf(line),
       context,
     );
-    const named = targetKey(context.names, reading.value.target);
+    const named = lineTargetKey(context.names, byName, reading.value.target);
     const found =
       source && 'key' in named
         ? linkOfLine(
@@ -100,6 +99,7 @@ const ownLineHover = (
             Object.values(context.links ?? {}),
             source,
             named.key,
+            new Set(Object.keys(context.actors ?? {})),
           )
         : [];
     kind = found.length === 1 ? found[0]!.kind : undefined;
@@ -261,7 +261,7 @@ export const hoverAt = (
     if (own && 'markdown' in own) return shift(own.span, own.markdown);
     const ownLine =
       (linkLinesOf(definition) && read.key === LINK_LINE_KEY) ||
-      (definition.actors && read.key === ACTOR_LINE_KEY);
+      (actorLinesOf(definition) && read.key === ACTOR_LINE_KEY);
     if (ownLine && !own) return null;
     // its element: by id, or (without ids) by position
     const owner = ownerOf(

@@ -36,10 +36,15 @@ import {
   valueProblem,
 } from './values.js';
 import {
+  actorEndKey,
+  actorLinesOf,
+  actorOfEndKey,
   LINK_LINE_KEY,
+  lineTargetKey,
   linkOfLine,
   takesPosition,
   targetKey,
+  writtenLineTarget,
   writtenTarget,
   readLinkLine,
   writtenPropertyProblems,
@@ -438,6 +443,14 @@ export const documentDiagnostics = (
     linkTargets: Map<string, number>;
   };
   let block: Block | null = null;
+  // the actor line above, while its link lines follow (goal-controller#162):
+  // its end key (null: it names no actor), the targets its lines name
+  let actorBlock: {
+    key: string | null;
+    linkTargets: Map<string, number>;
+  } | null = null;
+  const actorsByName = actorNamesOf(context);
+  const actorIds = new Set(Object.keys(context.actors ?? {}));
   // the indentation of the open block's element line
   let blockIndent = -1;
   let started = false;
@@ -476,6 +489,97 @@ export const documentDiagnostics = (
   const scope = lineScope(definition);
   /** an element's id as written, by its key (a repeated scoped id's is `G3/T1.1`) */
   const idOf = (key: string) => context.elements[key]?.id ?? key;
+  /**
+   * A `link` line's diagnostics, under its source: an element's key, or an
+   * actor's end key (goal-controller#162). Its target names an element, or
+   * an actor after `actor`; one link of a kind with properties joins them,
+   * written once.
+   */
+  const linkLineDiagnostics = (
+    read: Extract<ReturnType<typeof readLine>, { kind: 'property' }>,
+    at: (span: { from: number; to: number }) => { from: number; to: number },
+    sourceKey: string,
+    linkTargets: Map<string, number>,
+  ) => {
+    const valueAt = (span: { from: number; to: number }) =>
+      at({
+        from: read.valueSpan.from + span.from,
+        to: read.valueSpan.from + span.to,
+      });
+    const link = readLinkLine(read.value);
+    if ('error' in link) {
+      push({
+        ...valueAt(link.error),
+        severity: 'error',
+        message: link.error.message,
+      });
+      return;
+    }
+    const { target, targetSpan } = link.value;
+    const links = Object.entries(context.links ?? {}).map(([iStarId, l]) => ({
+      ...l,
+      iStarId,
+    }));
+    // its target's key: the id written, (without ids) the element its text
+    // names, or the actor after `actor`
+    const named = lineTargetKey(context.names, actorsByName, target);
+    const key = 'key' in named ? named.key : null;
+    // the source as its line names it: its id, (without ids) its quoted text, or its actor
+    const source =
+      actorOfEndKey(sourceKey) !== null
+        ? writtenLineTarget(context.names, actorsByName, sourceKey)
+        : context.names
+          ? writtenTarget(context.names, sourceKey)
+          : idOf(sourceKey);
+    const found = key
+      ? linkOfLine(definition, links, sourceKey, key, actorIds)
+      : [];
+    const linesTo = key ? (linkTargets.get(key) ?? 0) : 0;
+    if (key) linkTargets.set(key, linesTo + 1);
+    const actor = key === null ? null : actorOfEndKey(key);
+    const known =
+      key !== null &&
+      (actor !== null ? actorIds.has(actor) : key in context.elements);
+    if (!known)
+      push({
+        ...valueAt(targetSpan),
+        severity: 'error',
+        message: 'error' in named ? named.error : `No element ${target}`,
+      });
+    else if (found.length === 0)
+      push({
+        ...valueAt(targetSpan),
+        severity: 'error',
+        message: `No link from ${source} to ${target} has properties in ${definition.name}`,
+      });
+    else if (found.length > 1)
+      push({
+        ...valueAt(targetSpan),
+        severity: 'error',
+        message: `Links of ${found.length} kinds join ${source} to ${target}: which one this line is can't be told`,
+      });
+    else if (linesTo > 0)
+      push({
+        ...valueAt(targetSpan),
+        severity: 'error',
+        message: `The link to ${target} is written twice`,
+      });
+    else {
+      const [{ kind, iStarId }] = found as [(typeof found)[number]];
+      push(
+        ...writtenPropertyDiagnostics(
+          linkPropertiesOf(definition, kind),
+          kind,
+          link.value,
+          iStarId,
+          runCheck,
+          valueAt,
+          context,
+          definition,
+        ),
+      );
+    }
+  };
   let offset = 0;
   for (const written of lines) {
     const lineFrom = offset;
@@ -508,6 +612,7 @@ export const documentDiagnostics = (
     owner = ownerId && context.elements[ownerId] ? ownerId : undefined;
     if (id && read.kind === 'element') {
       closeBlock();
+      actorBlock = null;
       started = true;
       const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
       // a goal is unique in the model; under `ancestorGoal`, another element under its goal
@@ -675,12 +780,14 @@ export const documentDiagnostics = (
     };
     // an actor's properties (goal-controller#109), wherever the line is: no element's
     if (
-      definition.actors &&
+      actorLinesOf(definition) &&
       read.kind === 'property' &&
       !read.errors.length &&
       read.key === ACTOR_LINE_KEY
     ) {
       owner = undefined;
+      closeBlock();
+      actorBlock = { key: null, linkTargets: new Map() };
       const valueAt = (at_: { from: number; to: number }) =>
         at({
           from: read.valueSpan.from + at_.from,
@@ -716,6 +823,7 @@ export const documentDiagnostics = (
         });
       else {
         actorsWritten.add(named.key);
+        actorBlock.key = actorEndKey(named.key);
         push(
           ...writtenPropertyDiagnostics(
             actorPropertiesOf(definition, found.kind),
@@ -729,6 +837,25 @@ export const documentDiagnostics = (
           ),
         );
       }
+      continue;
+    }
+    // a line under an actor line (goal-controller#162): its links' only
+    if (actorBlock) {
+      owner = undefined;
+      if (
+        linkLinesOf(definition) &&
+        read.kind === 'property' &&
+        !read.errors.length &&
+        read.key === LINK_LINE_KEY
+      ) {
+        if (actorBlock.key !== null)
+          linkLineDiagnostics(read, at, actorBlock.key, actorBlock.linkTargets);
+      } else
+        push({
+          ...span,
+          severity: 'error',
+          message: 'Only link lines go under an actor line',
+        });
       continue;
     }
     // a line that reads as nothing, where an element line would be (not
@@ -763,74 +890,7 @@ export const documentDiagnostics = (
     const keySpan = at(read.keySpan);
     // a link's properties, under its source (goal-controller#107)
     if (linkLinesOf(definition) && read.key === LINK_LINE_KEY) {
-      const valueAt = (span: { from: number; to: number }) =>
-        at({
-          from: read.valueSpan.from + span.from,
-          to: read.valueSpan.from + span.to,
-        });
-      const link = readLinkLine(read.value);
-      if ('error' in link) {
-        push({
-          ...valueAt(link.error),
-          severity: 'error',
-          message: link.error.message,
-        });
-        continue;
-      }
-      const { target, targetSpan } = link.value;
-      const links = Object.entries(context.links ?? {}).map(([iStarId, l]) => ({
-        ...l,
-        iStarId,
-      }));
-      // its target's key: the id written, or (without ids) the element its text names
-      const named = targetKey(context.names, target);
-      const key = 'key' in named ? named.key : null;
-      // the source as its line names it: its id, or (without ids) its quoted text
-      const source = context.names
-        ? writtenTarget(context.names, block.id)
-        : idOf(block.id);
-      const found = key ? linkOfLine(definition, links, block.id, key) : [];
-      const linesTo = key ? (block.linkTargets.get(key) ?? 0) : 0;
-      if (key) block.linkTargets.set(key, linesTo + 1);
-      if (!key || !(key in context.elements))
-        push({
-          ...valueAt(targetSpan),
-          severity: 'error',
-          message: 'error' in named ? named.error : `No element ${target}`,
-        });
-      else if (found.length === 0)
-        push({
-          ...valueAt(targetSpan),
-          severity: 'error',
-          message: `No link from ${source} to ${target} has properties in ${definition.name}`,
-        });
-      else if (found.length > 1)
-        push({
-          ...valueAt(targetSpan),
-          severity: 'error',
-          message: `Links of ${found.length} kinds join ${source} to ${target}: which one this line is can't be told`,
-        });
-      else if (linesTo > 0)
-        push({
-          ...valueAt(targetSpan),
-          severity: 'error',
-          message: `The link to ${target} is written twice`,
-        });
-      else {
-        const [{ kind, iStarId }] = found as [(typeof found)[number]];
-        push(
-          ...writtenPropertyDiagnostics(
-            linkPropertiesOf(definition, kind),
-            kind,
-            link.value,
-            iStarId,
-            runCheck,
-            valueAt,
-            context,
-            definition,
-          ),
-        );
-      }
+      linkLineDiagnostics(read, at, block.id, block.linkTargets);
       continue;
     }
     if (!propertyOf(definition, block.element.kind, read.key)) {

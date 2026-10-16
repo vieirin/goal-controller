@@ -38,15 +38,19 @@ import {
   type ActorLineReading,
 } from './actorLine.js';
 import {
+  actorEndKey,
+  actorLinesOf,
   isWritableLinkValue,
   LINK_LINE_KEY,
   hasLinkLine,
+  lineEnds,
+  lineTargetKey,
   linkLine,
   linkOfLine,
   readLinkLine,
   takesPosition,
   targetKey,
-  writtenTarget,
+  writtenLineTarget,
   type LinkLineReading,
 } from './linkLine.js';
 
@@ -144,15 +148,35 @@ export const notationDocument = (
   const lines: string[] = [];
   const ids: string[] = [];
   const names = lineNames(definition, tree);
-  // its actors with properties (goal-controller#109), at the top: each an
-  // `actor` line, which is no element's
-  if (definition.actors) {
-    const actors = tree.actors ?? [];
-    const byName = actorNames(actors);
-    for (const actor of actors)
-      if (hasActorLine(definition, actor))
-        lines.push(actorLine(definition, actor, byName));
-  }
+  const actors = tree.actors ?? [];
+  const byName = actorNames(actors);
+  const actorIds = new Set(actors.map((actor) => actor.iStarId));
+  /** the link lines from an end (an element's key, an actor's end key), at a depth */
+  const linkLinesFrom = (source: string, depth: number) =>
+    (tree.links ?? []).flatMap((link) => {
+      const ends = lineEnds(link, actorIds);
+      return ends.source === source &&
+        ends.target &&
+        hasLinkLine(definition, link)
+        ? [
+            definition.indent.repeat(depth) +
+              linkLine(
+                definition,
+                link,
+                writtenLineTarget(names, byName, ends.target),
+              ),
+          ]
+        : [];
+    });
+  // its actors with properties (goal-controller#109), and those links with
+  // properties are from (goal-controller#162), at the top: each an `actor`
+  // line, which is no element's, its link lines under it
+  if (actorLinesOf(definition))
+    for (const actor of actors) {
+      const links = linkLinesFrom(actorEndKey(actor.iStarId), 1);
+      if (hasActorLine(definition, actor) || links.length)
+        lines.push(actorLine(definition, actor, byName), ...links);
+    }
   for (const { id, node: listed, depth } of lineOrder(definition, tree)) {
     // a name that would read as a property line is quoted (goal-controller#138)
     const node = { ...listed, name: writtenName(definition, listed.name) };
@@ -189,14 +213,10 @@ export const notationDocument = (
       }
     }
     // its links with properties (goal-controller#107), each a `link` line
-    for (const link of tree.links ?? [])
-      if (link.source === id && link.target && hasLinkLine(definition, link)) {
-        lines.push(
-          definition.indent.repeat(depth + 1) +
-            linkLine(definition, link, writtenTarget(names, link.target)),
-        );
-        if (hasIds(definition)) ids.push(id);
-      }
+    for (const line of linkLinesFrom(id, depth + 1)) {
+      lines.push(line);
+      if (hasIds(definition)) ids.push(id);
+    }
   }
   return { text: lines.join('\n'), ids };
 };
@@ -248,6 +268,17 @@ export const notationEdits = (
   // the actor lines, wherever they are (goal-controller#109)
   const actorLines: ActorLineReading[] = [];
   let actorsUnreadable = false;
+  // the link lines under each actor line (goal-controller#162), by the actor
+  // it names; null: its line names none (being typed)
+  type ActorBlock = {
+    key: string | null;
+    links: LinkLineReading[];
+    linksUnreadable: boolean;
+  };
+  const actorBlocks: ActorBlock[] = [];
+  let actorBlock: ActorBlock | null = null;
+  const actors = tree.actors ?? [];
+  const byName = actorNames(actors);
   // lines that name no element are their elements' in order: while lines are
   // added or removed (elements are, in the diagram), nothing changes; link
   // lines take no position (adding or removing one sets its link's properties)
@@ -283,6 +314,7 @@ export const notationEdits = (
     if (id && read.kind === 'element') {
       const node = tree.nodes.get(id);
       current = null;
+      actorBlock = null;
       if (!node) continue;
       const element = definition.elements[node.kind];
       const errorBefore = (to: number) =>
@@ -319,7 +351,7 @@ export const notationEdits = (
       continue;
     }
     if (
-      definition.actors &&
+      actorLinesOf(definition) &&
       read.kind === 'property' &&
       !read.errors.length &&
       read.key === ACTOR_LINE_KEY
@@ -327,9 +359,19 @@ export const notationEdits = (
       const actor = readActorLine(read.value);
       if ('value' in actor) actorLines.push(actor.value);
       else actorsUnreadable = true;
+      const named =
+        'value' in actor && targetKey(byName, actor.value.target, 'actor');
+      current = null;
+      actorBlock = {
+        key: named && 'key' in named ? actorEndKey(named.key) : null,
+        links: [],
+        linksUnreadable: false,
+      };
+      actorBlocks.push(actorBlock);
       continue;
     }
-    if (!current || !written.trim()) continue;
+    const owner = current ?? actorBlock;
+    if (!owner || !written.trim()) continue;
     if (
       linkLinesOf(definition) &&
       read.kind === 'property' &&
@@ -337,10 +379,11 @@ export const notationEdits = (
       read.key === LINK_LINE_KEY
     ) {
       const link = readLinkLine(read.value);
-      if ('value' in link) current.links.push(link.value);
-      else current.linksUnreadable = true;
+      if ('value' in link) owner.links.push(link.value);
+      else owner.linksUnreadable = true;
       continue;
     }
+    if (!current) continue;
     if (
       read.kind === 'property' &&
       !read.errors.length &&
@@ -349,7 +392,7 @@ export const notationEdits = (
       current.properties.set(read.key, read.value);
     else current.unreadable = true;
   }
-  if (definition.actors)
+  if (actorLinesOf(definition))
     edits.push(
       ...actorEdits(
         definition,
@@ -361,8 +404,17 @@ export const notationEdits = (
   // a dialect that doesn't write link lines leaves its links' properties be
   if (linkLinesOf(definition)) {
     const names = lineNames(definition, tree);
-    for (const block of blocks)
-      edits.push(...linkEdits(definition, tree, names, block));
+    const lineSources = [
+      ...blocks,
+      // an actor named twice, or not yet, changes none of its links
+      ...actorBlocks.filter(
+        (block): block is ActorBlock & { key: string } =>
+          block.key !== null &&
+          actorBlocks.filter((other) => other.key === block.key).length === 1,
+      ),
+    ];
+    for (const block of lineSources)
+      edits.push(...linkEdits(definition, tree, names, byName, block));
   }
   for (const { node, properties, unreadable } of blocks) {
     for (const key of definition.propertyLineOrder) {
@@ -379,33 +431,42 @@ export const notationEdits = (
 };
 
 /**
- * What a block's `link` lines change in its element's links: each link
+ * What a block's `link` lines change in its element's or actor's links
+ * (goal-controller#162: an actor's block is keyed by its end key): each link
  * from it whose kind has properties takes the properties its line writes
  * (none written: removed). A target two such links share (ambiguous), or two
  * lines name, changes nothing; while a line can't be read, or names no
  * element (being typed), a link without one keeps its properties. `names`:
- * a dialect without ids' targets, by their text (`lineNames`).
+ * a dialect without ids' targets, by their text (`lineNames`); `actors`:
+ * the actors' piStar ids by name, which `actor "Name"` targets name.
  */
 const linkEdits = (
   definition: Pick<AnyDialect, 'links'>,
   tree: DocumentTree,
   names: Readonly<Record<string, readonly string[]>> | undefined,
+  actors: Readonly<Record<string, readonly string[]>>,
   block: { key: string; links: LinkLineReading[]; linksUnreadable: boolean },
 ): NotationEdit[] => {
   const edits: NotationEdit[] = [];
   const links = tree.links ?? [];
-  const targets = block.links.map((line) => targetKey(names, line.target));
+  const actorIds = new Set(Object.values(actors).flat());
+  const targets = block.links.map((line) =>
+    lineTargetKey(names, actors, line.target),
+  );
   const unreadable =
     block.linksUnreadable || targets.some((target) => 'error' in target);
   for (const link of links) {
-    if (link.source !== block.key || !link.target) continue;
+    const ends = lineEnds(link, actorIds);
+    if (ends.source !== block.key || !ends.target) continue;
     const declared = linkPropertiesOf(definition, link.kind);
     if (!declared.length) continue;
-    if (linkOfLine(definition, links, block.key, link.target).length > 1)
+    if (
+      linkOfLine(definition, links, block.key, ends.target, actorIds).length > 1
+    )
       continue;
     const lines = block.links.filter((_, i) => {
       const target = targets[i]!;
-      return 'key' in target && target.key === link.target;
+      return 'key' in target && target.key === ends.target;
     });
     if (lines.length > 1 || (!lines.length && unreadable)) continue;
     const written = new Map(
@@ -559,7 +620,7 @@ export const contextFromView = (
         ]),
       ),
     }),
-    ...(definition.actors && {
+    ...(actorLinesOf(definition) && {
       actors: Object.fromEntries(
         (tree.actors ?? []).map((actor) => [
           actor.iStarId,

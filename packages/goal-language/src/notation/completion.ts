@@ -33,11 +33,16 @@ import {
   memberTypeText,
 } from './values.js';
 import {
+  actorEndKey,
+  actorLinesOf,
+  lineEnds,
+  lineTargetKey,
   LINK_LINE_KEY,
   linkOfLine,
   readLinkLine,
   takesPosition,
   targetKey,
+  writtenLineTarget,
   writtenTarget,
 } from './linkLine.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
@@ -173,10 +178,40 @@ const annotationCompletions = (
   return null;
 };
 
+/** The actors' piStar ids by name, from a context (what `actor "Name"` names). */
+const actorNamesIn = (context: DefinitionContext) =>
+  actorNames(
+    Object.entries(context.actors ?? {}).map(([iStarId, { name }]) => ({
+      iStarId,
+      name,
+    })),
+  );
+
+/**
+ * The actor an actor line names, as a link line's source under it
+ * (goal-controller#162): its end key; null, not an actor line, or one that
+ * names no actor.
+ */
+const actorLineOwner = (
+  definition: Definition,
+  text: string,
+  context: DefinitionContext,
+): string | null | undefined => {
+  if (!actorLinesOf(definition)) return undefined;
+  const read = readLine(definition, text);
+  if (read.kind !== 'property' || read.key !== ACTOR_LINE_KEY) return undefined;
+  const reading = readActorLine(read.value);
+  const named =
+    'value' in reading &&
+    targetKey(actorNamesIn(context), reading.value.target, 'actor');
+  return named && 'key' in named ? actorEndKey(named.key) : null;
+};
+
 /**
  * The element a line belongs to (a link line's source): with ids, the id of
  * the element line above; without, the element of the nearest line above
- * that takes a position (`context.order`).
+ * that takes a position (`context.order`). Under an actor line, its actor's
+ * end key (goal-controller#162).
  */
 export const ownerOf = (
   definition: Definition,
@@ -184,20 +219,21 @@ export const ownerOf = (
   index: number,
   context: DefinitionContext,
 ): string | null => {
-  if (hasIds(definition)) {
-    for (let i = index - 1; i >= 0; i--) {
+  for (let i = index - 1; i >= 0; i--) {
+    const actor = actorLineOwner(definition, lines[i]!, context);
+    if (actor !== undefined) return actor;
+    if (hasIds(definition)) {
       const id = lineId(definition, lines[i]!);
       if (id) return id;
+      continue;
     }
-    return null;
-  }
-  for (let i = index - 1; i >= 0; i--)
     if (takesPosition(definition, lines[i]!))
       return (
         context.order?.[
           lines.slice(0, i).filter((l) => takesPosition(definition, l)).length
         ] ?? null
       );
+  }
   return null;
 };
 
@@ -235,7 +271,7 @@ const ownLineCompletions = (
     read.kind === 'property' &&
     read.key === LINK_LINE_KEY;
   const isActor =
-    !!definition.actors &&
+    actorLinesOf(definition) &&
     read.kind === 'property' &&
     read.key === ACTOR_LINE_KEY;
   if (!isLink && !isActor) return null;
@@ -272,11 +308,22 @@ const ownLineCompletions = (
       const source = ownerOf(definition, lines, index, context);
       const reading = readLinkLine(whole.replace(/\{[^}]*$/, '').trimEnd());
       const named =
-        'value' in reading && targetKey(context.names, reading.value.target);
+        'value' in reading &&
+        lineTargetKey(
+          context.names,
+          actorNamesIn(context),
+          reading.value.target,
+        );
       const links = Object.values(context.links ?? {});
       const found =
         source && named && 'key' in named
-          ? linkOfLine(definition, links, source, named.key)
+          ? linkOfLine(
+              definition,
+              links,
+              source,
+              named.key,
+              new Set(Object.keys(context.actors ?? {})),
+            )
           : [];
       if (found.length === 1)
         declared = linkPropertiesOf(definition, found[0]!.kind);
@@ -329,8 +376,11 @@ const ownLineCompletions = (
     return {
       from: start + valueFrom,
       options: Object.entries(context.actors ?? {})
+        // an actor's line has its properties, or its links' (goal-controller#162)
         .filter(
-          ([, actor]) => actorPropertiesOf(definition, actor.kind).length > 0,
+          ([, actor]) =>
+            actorPropertiesOf(definition, actor.kind).length > 0 ||
+            linkLinesOf(definition),
         )
         .map(([iStarId, actor]) => ({
           label: writtenTarget(names, iStarId),
@@ -340,21 +390,24 @@ const ownLineCompletions = (
     };
   }
   const source = ownerOf(definition, lines, index, context);
-  const links = Object.values(context.links ?? {});
+  const actorIds = new Set(Object.keys(context.actors ?? {}));
+  const byName = actorNamesIn(context);
   return {
     from: start + valueFrom,
-    options: links
-      .filter(
-        (link) =>
-          link.source === source &&
-          link.target !== null &&
-          linkPropertiesOf(definition, link.kind).length > 0,
-      )
-      .map((link) => ({
-        label: writtenTarget(context.names, link.target!),
-        type: 'variable' as const,
-        detail: link.kind.replace(/^[^.]+\./, ''),
-      })),
+    options: Object.values(context.links ?? {}).flatMap((link) => {
+      const ends = lineEnds(link, actorIds);
+      return ends.source === source &&
+        ends.target !== null &&
+        linkPropertiesOf(definition, link.kind).length > 0
+        ? [
+            {
+              label: writtenLineTarget(context.names, byName, ends.target),
+              type: 'variable' as const,
+              detail: link.kind.replace(/^[^.]+\./, ''),
+            },
+          ]
+        : [];
+    }),
   };
 };
 

@@ -21,6 +21,16 @@
  *
  * Its document reads a line starting `link "` as this one
  * (`isPlainLinkLine`): `link` is never a declared key.
+ *
+ * A link with an actor at an end (goal-controller#162) names that actor as
+ * an actor line does, after `actor`: a link to one is written under its
+ * source element, a link from one under that actor's `actor` line, in any
+ * dialect that writes link lines:
+ *
+ *     actor "Citizen"
+ *       link actor "Tax agency" {operations = read}
+ *     G1: Pay taxes
+ *       link actor "Tax agency" {needs = nonRepudiation}
  */
 import {
   ACTOR_LINE_KEY,
@@ -53,6 +63,11 @@ export type LinkLineReading = {
 };
 
 const TARGET = /^\S+?(?=\s|\{|$)/;
+/** an actor target: `actor` and its name, quoted, as an actor line names it (goal-controller#162) */
+const ACTOR_TARGET = new RegExp(
+  `^${ACTOR_LINE_KEY}[ \\t]+"(?:[^"\\\\]|\\\\.)*"(?:#\\d+)?(?=\\s|\\{|$)`,
+);
+const ACTOR_PREFIX = new RegExp(`^${ACTOR_LINE_KEY}[ \\t]+(?=")`);
 /** a quoted target, `\"` and `\\` escaped in it, and its ordinal: `"Heat"#2` */
 const QUOTED = /^"((?:[^"\\]|\\.)*)"(?:#(\d+))?(?=\s|\{|$)/;
 const PROPERTY = /\{(\s*)([A-Za-z][A-Za-z0-9_]*)(\s*=\s*)([^{}]*?)\s*\}/y;
@@ -66,7 +81,18 @@ export const readLinkLine = (
   | { error: { message: string; from: number; to: number } } => {
   const target = value.startsWith('"')
     ? QUOTED.exec(value)?.[0]
-    : TARGET.exec(value)?.[0];
+    : ACTOR_PREFIX.test(value)
+      ? ACTOR_TARGET.exec(value)?.[0]
+      : TARGET.exec(value)?.[0];
+  if (!target && ACTOR_PREFIX.test(value))
+    return {
+      error: {
+        message:
+          'A link line names an actor by its name, in quotes: link actor "Name" {key = value}',
+        from: 0,
+        to: value.length,
+      },
+    };
   if (value.startsWith('"') && !target)
     return {
       error: {
@@ -117,30 +143,73 @@ export const readLinkLine = (
   };
 };
 
+/**
+ * The key a link line names an actor end by (goal-controller#162): the
+ * actor's piStar id after `actor ` (no element's key has a space after
+ * `actor`).
+ */
+export const actorEndKey = (iStarId: string): string =>
+  `${ACTOR_LINE_KEY} ${iStarId}`;
+
+/** The actor an end key names (its piStar id), or null for an element's key. */
+export const actorOfEndKey = (key: string): string | null =>
+  key.startsWith(`${ACTOR_LINE_KEY} `)
+    ? key.slice(ACTOR_LINE_KEY.length + 1)
+    : null;
+
+/**
+ * A link's ends as its line names them (goal-controller#162): an element's
+ * key, or an actor's end key (`actorEndKey`) when that end is one of
+ * `actors` (their piStar ids); null, an end no line names.
+ */
+export const lineEnds = (
+  link: Pick<DocumentLink, 'source' | 'target' | 'ends'>,
+  actors: ReadonlySet<string>,
+): { source: string | null; target: string | null } => {
+  const end = (key: string | null, iStarId: string | undefined) =>
+    key ??
+    (iStarId !== undefined && actors.has(iStarId)
+      ? actorEndKey(iStarId)
+      : null);
+  return {
+    source: end(link.source, link.ends?.source.iStarId),
+    target: end(link.target, link.ends?.target.iStarId),
+  };
+};
+
 /** A target as a dialect without ids writes it: its text, quoted, and `#n` when other elements share it. */
 export const quotedTarget = (name: string, ordinal?: number): string =>
   `${quotedName(name)}${ordinal === undefined ? '' : `#${ordinal}`}`;
 
-/** Whether a line of a document without ids is a link line (`link "…`). */
+/** Whether a line of a document without ids is a link line (`link "…`, `link actor "…`). */
 export const isPlainLinkLine = (
   definition: Parameters<typeof linkLinesOf>[0],
   text: string,
 ): boolean =>
   !hasIds(definition) &&
   linkLinesOf(definition) &&
-  new RegExp(`^\\s*${LINK_LINE_KEY}\\s+"`).test(text);
+  new RegExp(`^\\s*${LINK_LINE_KEY}\\s+(?:${ACTOR_LINE_KEY}\\s+)?"`).test(text);
+
+/**
+ * Whether a dialect reads actor lines: it gives actors properties
+ * (goal-controller#109), or writes link lines, whose links may be an
+ * actor's (goal-controller#162).
+ */
+export const actorLinesOf = (
+  definition: Parameters<typeof linkLinesOf>[0] &
+    Partial<Pick<AnyDialect, 'actors'>>,
+): boolean => !!definition.actors || linkLinesOf(definition);
 
 /**
  * Whether a line of a document without ids is an actor line (`actor "…`,
- * goal-controller#109): in a dialect that gives actors properties.
+ * goal-controller#109): in a dialect that reads them (`actorLinesOf`).
  */
 export const isPlainActorLine = (
-  definition: Pick<AnyDialect, 'elements'> &
-    Partial<Pick<AnyDialect, 'actors'>>,
+  definition: Parameters<typeof actorLinesOf>[0],
   text: string,
 ): boolean =>
   !hasIds(definition) &&
-  !!definition.actors &&
+  actorLinesOf(definition) &&
   new RegExp(`^\\s*${ACTOR_LINE_KEY}\\s+"`).test(text);
 
 /**
@@ -203,6 +272,42 @@ export const targetKey = (
       };
 };
 
+/**
+ * The end a link line's target names (goal-controller#162): an actor, after
+ * `actor`, by its name among `actors` (their piStar ids by name,
+ * `actorNames`), as its end key; else an element, as `targetKey` reads it.
+ */
+export const lineTargetKey = (
+  names: Readonly<Record<string, readonly string[]>> | undefined,
+  actors: Readonly<Record<string, readonly string[]>>,
+  target: string,
+): { key: string } | { error: string } => {
+  const prefix = ACTOR_PREFIX.exec(target);
+  if (!prefix) return targetKey(names, target);
+  const named = targetKey(actors, target.slice(prefix[0].length), 'actor');
+  return 'key' in named ? { key: actorEndKey(named.key) } : named;
+};
+
+/**
+ * How a line names an end whose key is `key`: an actor's (`actorEndKey`)
+ * as `actor "Name"`, `#n` when others share its name (goal-controller#162);
+ * an element's as `writtenTarget` does.
+ */
+export const writtenLineTarget = (
+  names: Readonly<Record<string, readonly string[]>> | undefined,
+  actors: Readonly<Record<string, readonly string[]>>,
+  key: string,
+): string => {
+  const actor = actorOfEndKey(key);
+  if (actor === null) return writtenTarget(names, key);
+  for (const [name, ids] of Object.entries(actors)) {
+    const index = ids.indexOf(actor);
+    if (index >= 0)
+      return `${ACTOR_LINE_KEY} ${quotedTarget(name, ids.length > 1 ? index + 1 : undefined)}`;
+  }
+  return key;
+};
+
 /** How a line names an element whose key is `key`: its id, or its quoted text (`names` given). */
 export const writtenTarget = (
   names: Readonly<Record<string, readonly string[]>> | undefined,
@@ -262,22 +367,26 @@ export const hasLinkLine = (
 /**
  * The link a line under `source` names by its `target`: among the links from
  * it to the target whose kinds have properties in the dialect. None, or more
- * than one (two kinds, ambiguous), is what the line's diagnostics say.
+ * than one (two kinds, ambiguous), is what the line's diagnostics say. An
+ * end may be an actor's (`actorEndKey`, among `actors`, goal-controller#162).
  */
 export const linkOfLine = <
-  L extends Pick<DocumentLink, 'kind' | 'source' | 'target'>,
+  L extends Pick<DocumentLink, 'kind' | 'source' | 'target' | 'ends'>,
 >(
   definition: Pick<AnyDialect, 'links'>,
   links: readonly L[],
   source: string,
   target: string,
+  actors: ReadonlySet<string> = new Set(),
 ): L[] =>
-  links.filter(
-    (link) =>
-      link.source === source &&
-      link.target === target &&
-      linkPropertiesOf(definition, link.kind).length > 0,
-  );
+  links.filter((link) => {
+    const ends = lineEnds(link, actors);
+    return (
+      ends.source === source &&
+      ends.target === target &&
+      linkPropertiesOf(definition, link.kind).length > 0
+    );
+  });
 
 /** What is wrong with a link line's properties, for a link of this kind: the written property (its index), and where. */
 export const linkPropertyProblems = (

@@ -421,8 +421,22 @@ describe('defineDialect', () => {
       );
     expect(actorKey(undefined)).not.to.throw();
     expect(actorKey([importance])).to.throw(
-      /quality.actor: the key an actor's properties are written with/,
+      /quality.actor: the key an actor's properties and links are written with/,
     );
+    // and its links' (#162): a dialect with links reserves it too
+    expect(
+      bad(
+        (d) =>
+          ({
+            ...d,
+            links: { 'istar.ContributionLink': [importance] },
+            properties: {
+              ...d.properties,
+              quality: [{ key: 'actor', value: { type: 'text' }, help: '' }],
+            },
+          }) as AnyDialect,
+      ),
+    ).to.throw(/quality.actor: the key an actor's properties and links/);
   });
 
   it('has ids on every line or on none', () => {
