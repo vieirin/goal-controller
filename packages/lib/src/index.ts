@@ -296,6 +296,29 @@ export {
   type RelationSet as CgmRelationSet,
   type Situation as CgmSituation,
 } from './engines/cgm';
+// STS-ml (goal-controller#163): the dialect, its kinds, checks and
+// problems, and STS-Tool's .sts read and written
+export {
+  sts,
+  stsAnalyses,
+  stsAnalysisModel,
+  stsCheckRegistry,
+  stsEngineMapper,
+  stsExtension,
+  stsMetamodelBlock,
+  stsNativeFile,
+  stsProblems,
+  STS_PROBLEM_KINDS,
+  STS_KINDS,
+  STS_LINKS,
+  STS_KEYS,
+  readSts,
+  writeSts,
+  canonicalSts,
+  authorisationOperations,
+  type StsCheckName,
+  type StsContext,
+} from './engines/sts';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';
 // native files (goal-controller#143): the round-trip contract (the formats
@@ -357,6 +380,7 @@ export { grlEngine } from './engines/grl/engine';
 export { istardtEngine } from './engines/istardt/engine';
 export { tropos4asEngine } from './engines/tropos4as/engine';
 export { cgmEngine } from './engines/cgm/engine';
+export { stsEngine } from './engines/sts/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

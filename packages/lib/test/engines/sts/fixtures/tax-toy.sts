@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="ASCII"?>
+<!-- written by hand for goal-controller#163 from the format documented on #160: every construct the importer maps, in STS-Tool's shape (forward references only; a tab in a name; a note) -->
+<ststool:STSDiagram xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ststool="http://sts-tool.eu/ststool/model/2.0.0" name="tax toy" author="goal-controller" revision="1" version="1" company="none">
+  <graphicalConstraint viewID="it.unitn.disi.ststool.view.social"/>
+  <!-- 0 -->
+  <elements xsi:type="ststool:Role" id="citizen" name="Citizen" description="pays taxes">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="40,40,500,300"/>
+  </elements>
+  <!-- 1 -->
+  <elements xsi:type="ststool:Role" id="agency" name="Agency">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="700,40,500,300"/>
+  </elements>
+  <!-- 2 -->
+  <elements xsi:type="ststool:Goal" id="g-paid" name="taxes paid" actorOwner="//@elements.0">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,20,100,50"/>
+  </elements>
+  <!-- 3 -->
+  <elements xsi:type="ststool:Goal" id="g-form" name="form filled" actorOwner="//@elements.0">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="100,120,100,50"/>
+  </elements>
+  <!-- 4 -->
+  <elements xsi:type="ststool:Goal" id="g-payment" name="payment made" actorOwner="//@elements.0">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="300,120,100,50"/>
+  </elements>
+  <!-- 5 -->
+  <elements xsi:type="ststool:GoalDecomposition" id="dec-form" source="//@elements.2" target="//@elements.3"/>
+  <!-- 6 -->
+  <elements xsi:type="ststool:GoalDecomposition" id="dec-payment" source="//@elements.2" target="//@elements.4"/>
+  <!-- 7 -->
+  <elements xsi:type="ststool:Document" id="d-form" name="tax form" actorOwner="//@elements.0">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="100,220,100,50"/>
+  </elements>
+  <!-- 8 -->
+  <elements xsi:type="ststool:Produce" id="produce-form" source="//@elements.3" target="//@elements.7"/>
+  <!-- 9 -->
+  <elements xsi:type="ststool:Document" id="d-card" name="id card" actorOwner="//@elements.0">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="250,220,100,50"/>
+  </elements>
+  <!-- 10 -->
+  <elements xsi:type="ststool:Read" id="read-card" source="//@elements.3" target="//@elements.9"/>
+  <!-- 11 -->
+  <elements xsi:type="ststool:GoalReference" id="g-payment-agency" name="payment made&#x9;" actorOwner="//@elements.1" reference="//@elements.4">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,20,100,50"/>
+  </elements>
+  <!-- 12 -->
+  <elements xsi:type="ststool:Delegation" id="delegate-payment" name="payment made" incomingDelegationLink="//@elements.13" outgoingDelegationLink="//@elements.14" sourceGoal="//@elements.4" targetGoal="//@elements.11">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nodelegation"/>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.availability">
+      <properties name="value" value="90"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.nonrepudiation">
+      <properties name="type" value="delegation-acceptance"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.redundancy">
+      <properties name="type" value="true-multi-actor"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.authentication.delegation">
+      <properties name="type" value="delegatee"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.trustworthiness"/>
+  </elements>
+  <!-- 13 -->
+  <elements xsi:type="ststool:DelegationIncomingLink" id="delegate-payment-in" source="//@elements.0" target="//@elements.12"/>
+  <!-- 14 -->
+  <elements xsi:type="ststool:DelegationOutgoingLink" id="delegate-payment-out" source="//@elements.12" target="//@elements.1"/>
+  <!-- 15 -->
+  <elements xsi:type="ststool:DocumentReference" id="d-card-agency" name="id card" actorOwner="//@elements.1" reference="//@elements.9">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="200,220,100,50"/>
+  </elements>
+  <!-- 16 -->
+  <elements xsi:type="ststool:Transmission" id="send-card" name="id card" incomingTransmissionLink="//@elements.17" outgoingTransmissionLink="//@elements.18" sourceDocument="//@elements.9" targetDocument="//@elements.15">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.integrity">
+      <properties name="type" value="sender"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.confidentiality">
+      <properties name="type" value="receiver"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.availability">
+      <properties name="value" value="70"/>
+    </elementNeeds>
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.authentication.transmission">
+      <properties name="type" value="receiver"/>
+    </elementNeeds>
+  </elements>
+  <!-- 17 -->
+  <elements xsi:type="ststool:TransmissionIncomingLink" id="send-card-in" source="//@elements.0" target="//@elements.16"/>
+  <!-- 18 -->
+  <elements xsi:type="ststool:TransmissionOutgoingLink" id="send-card-out" source="//@elements.16" target="//@elements.1"/>
+  <!-- 19 -->
+  <elements xsi:type="ststool:Modify" id="modify-card" source="//@elements.11" target="//@elements.15"/>
+  <!-- 20 -->
+  <elements xsi:type="ststool:Information" id="i-personal" name="personal data"/>
+  <!-- 21 -->
+  <elements xsi:type="ststool:Information" id="i-name" name="name"/>
+  <!-- 22 -->
+  <elements xsi:type="ststool:PartOf" id="name-part" source="//@elements.21" target="//@elements.20"/>
+  <!-- 23 -->
+  <elements xsi:type="ststool:Own" id="own-personal" source="//@elements.0" target="//@elements.20"/>
+  <!-- 24 -->
+  <elements xsi:type="ststool:TangibleBy" id="personal-on-card" source="//@elements.20" target="//@elements.9"/>
+  <!-- 25 -->
+  <elements xsi:type="ststool:Authorization" id="authorise-agency" read="AUTHORIZED" produce="FORBIDDEN" transmit="FORBIDDEN" incomingAuthorizationLink="//@elements.26" outgoingAuthorizationLink="//@elements.27" informations="//@elements.20" goals="//@elements.11">
+    <elementNeeds elementNeedID="it.unitn.disi.ststool.securityrequirements.notransferability"/>
+  </elements>
+  <!-- 26 -->
+  <elements xsi:type="ststool:AuthorizationIncomingLink" id="authorise-agency-in" source="//@elements.0" target="//@elements.25"/>
+  <!-- 27 -->
+  <elements xsi:type="ststool:AuthorizationOutgoingLink" id="authorise-agency-out" source="//@elements.25" target="//@elements.1"/>
+  <!-- 28 -->
+  <elements xsi:type="ststool:Event" id="e-lost" name="card lost">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="300,400,100,50"/>
+  </elements>
+  <!-- 29 -->
+  <elements xsi:type="ststool:Threat" id="lost-card" source="//@elements.28" target="//@elements.9"/>
+  <!-- 30 -->
+  <elements xsi:type="ststool:Goal" id="g-online" name="paid online" actorOwner="//@elements.1">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="100,120,100,50"/>
+  </elements>
+  <!-- 31 -->
+  <elements xsi:type="ststool:Goal" id="g-desk" name="paid at desk" actorOwner="//@elements.1">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="300,120,100,50"/>
+  </elements>
+  <!-- 32 -->
+  <elements xsi:type="ststool:GoalDecomposition" id="dec-online" type="OR" source="//@elements.11" target="//@elements.30"/>
+  <!-- 33 -->
+  <elements xsi:type="ststool:GoalDecomposition" id="dec-desk" type="OR" source="//@elements.11" target="//@elements.31"/>
+  <!-- 34 -->
+  <elements xsi:type="ststool:DutyLink" id="sod-form-payment" source="//@elements.3" target="//@elements.4"/>
+  <!-- 35 -->
+  <elements xsi:type="ststool:Agent" id="ann" name="Ann">
+    <graphicalConstraints viewID="it.unitn.disi.ststool.view.social" bound="700,500,200,150"/>
+  </elements>
+  <!-- 36 -->
+  <elements xsi:type="ststool:Play" id="ann-plays-agency" source="//@elements.35" target="//@elements.1"/>
+  <!-- 37 -->
+  <elements xsi:type="ststool:DutyLink" id="cod-roles" type="COD" source="//@elements.0" target="//@elements.1"/>
+  <!-- 38 -->
+  <elements xsi:type="ststool:Note" id="note" name="99%"/>
+</ststool:STSDiagram>
