@@ -316,6 +316,7 @@ export {
   writeSts,
   canonicalSts,
   authorisationOperations,
+  refListItems,
   type StsCheckName,
   type StsContext,
 } from './engines/sts';

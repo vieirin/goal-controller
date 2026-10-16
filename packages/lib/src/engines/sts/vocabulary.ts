@@ -4,6 +4,7 @@
  * extension adds to iStar 2.0, the property keys the dialect writes and the
  * analyses read, and the values each key takes.
  */
+import { parseValue } from '@goal-controller/goal-language';
 
 /** The kinds it adds: the information view's information and the social view's events. */
 export const STS_KINDS = {
@@ -112,3 +113,14 @@ export const DELEGATION_AUTHENTICATION = ['delegator', 'delegatee'] as const;
 export const TRANSMISSION_AUTHENTICATION = ['sender', 'receiver'] as const;
 /** Who ensures a transmission's integrity (R14–R16) or confidentiality (R20–R22). */
 export const TRANSMISSION_PARTY = ['sender', 'receiver', 'system'] as const;
+
+/**
+ * A `refList` value's ids (`information`, `scope`, `threatenedBy`), as the
+ * goal language reads it: empty when unset, null when it isn't a list of
+ * ids. Every reader of the dialect's refLists reads them with it, never
+ * splitting the text itself.
+ */
+export const refListItems = (text: string | undefined): string[] | null => {
+  const read = parseValue('refList', text ?? '');
+  return read.errors.length ? null : read.value;
+};

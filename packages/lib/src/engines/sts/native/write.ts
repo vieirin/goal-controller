@@ -22,7 +22,13 @@ import {
   type XmiWriteNode,
 } from '@goal-controller/goal-language/formats';
 import { readEnumSet } from '@goal-controller/goal-language';
-import { ISTAR, STS_KEYS, STS_KINDS, STS_LINKS } from '../vocabulary';
+import {
+  ISTAR,
+  refListItems,
+  STS_KEYS,
+  STS_KINDS,
+  STS_LINKS,
+} from '../vocabulary';
 import {
   AUTHORIZED,
   COD,
@@ -289,16 +295,15 @@ export const writeSts = (
     if (node && prefix) byTextId.set(`${prefix}${number}`, node);
     if (node) byTextId.set(n.id, node);
   }
-  const listed = (text: string | undefined, where: string) =>
-    (text ?? '')
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean)
-      .flatMap((id) => {
-        const node = byTextId.get(id);
-        if (!node) warn(`${where}: ${id} names nothing in the model; left out`);
-        return node ? [node] : [];
-      });
+  const listed = (text: string | undefined, where: string) => {
+    const ids = refListItems(text);
+    if (!ids) warn(`${where}: "${text}" is not a list of ids; left out`);
+    return (ids ?? []).flatMap((id) => {
+      const node = byTextId.get(id);
+      if (!node) warn(`${where}: ${id} names nothing in the model; left out`);
+      return node ? [node] : [];
+    });
+  };
 
   const relation = (
     link: PistarLink,

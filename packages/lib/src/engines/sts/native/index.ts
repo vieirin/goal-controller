@@ -15,7 +15,8 @@ import { writeSts } from './write';
  * What a `.sts` can't carry, as piStar paths: the display, the diagram's
  * extent (the reader computes it), and the positions of what is outside
  * actors (information is drawn in the information view, another layout:
- * the reader lays it out).
+ * the reader lays it out), and a seed's `source` (the figure it is drawn
+ * from), which the file's header has no place for.
  */
 export const STS_LOSSY = [
   'display',
@@ -23,6 +24,7 @@ export const STS_LOSSY = [
   'diagram.height',
   'orphans.*.x',
   'orphans.*.y',
+  'diagram.customProperties.source',
 ];
 
 /** A `.sts` as two are compared: EMF's indents, attributes in the tool's order, then by name. */

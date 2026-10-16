@@ -8,13 +8,9 @@
  */
 import { readEnumSet } from '@goal-controller/goal-language';
 import { checks, type CheckContext } from '../checks';
-import { STS_KEYS } from './vocabulary';
+import { refListItems, STS_KEYS } from './vocabulary';
 
-const listOf = (text: string | undefined): string[] =>
-  (text ?? '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
+const listOf = (text: string | undefined): string[] => refListItems(text) ?? [];
 
 /** An authorisation's operations, granted and prohibited, as written. */
 export const authorisationOperations = (
