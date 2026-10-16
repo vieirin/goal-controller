@@ -187,8 +187,12 @@ export const stepped = (run: AnalysisRun, delta: number): AnalysisRun => {
 /** The finding a run picks, of the case it shows (goal-controller#162): its index, or null. */
 export const shownFinding = (run: AnalysisRun | null): number | null => {
   const findings = shownCase(run)?.findings ?? [];
-  return run?.finding != null && run.finding < findings.length
-    ? run.finding
+  const index = run?.finding;
+  return typeof index === 'number' &&
+    Number.isInteger(index) &&
+    index >= 0 &&
+    index < findings.length
+    ? index
     : null;
 };
 

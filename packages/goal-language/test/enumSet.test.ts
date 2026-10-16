@@ -141,6 +141,17 @@ describe('enumSet: some of an enum’s options (#162)', () => {
     const result = fieldCompletions(rota, context, 'T1', 'days', 'tue, w', 6);
     expect(result?.from).to.equal(5);
     expect(result?.options.map((o) => o.label)).to.deep.equal(['mon', 'wed']);
+    // inside an option: the rest of it is replaced too
+    const inside = fieldCompletions(
+      rota,
+      context,
+      'T1',
+      'days',
+      'mon, w ed, tue',
+      6,
+    );
+    expect([inside?.from, inside?.to]).to.deep.equal([5, 9]);
+    expect(inside?.options.map((o) => o.label)).to.deep.equal(['wed']);
     // in the middle: the options after the cursor are written too
     expect(
       fieldCompletions(rota, context, 'T1', 'days', ', wed', 0)?.options.map(

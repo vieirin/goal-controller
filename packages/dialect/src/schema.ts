@@ -1161,6 +1161,17 @@ export const defineDialect = <const D extends AnyDialect>(
           fail(
             `${owner}.${property.key}: its members are from ${members.from}, a pairList none of the kinds it resolves declares`,
           );
+        // an enumSet's options, written comma-separated, read back as such
+        if (config.type === 'enumSet') {
+          const values = config.options.map((o) => o.value);
+          for (const value of values)
+            if (!value || value !== value.trim() || value.includes(','))
+              fail(
+                `${owner}.${property.key}: option "${value}" can't be written in a set (none empty, untrimmed, or with a comma)`,
+              );
+          if (new Set(values).size !== values.length)
+            fail(`${owner}.${property.key}: an option twice`);
+        }
         if (config.type === 'ocl')
           for (const candidates of [config.candidates, config.memberCandidates])
             if (candidates && !(candidates.resource in resources))

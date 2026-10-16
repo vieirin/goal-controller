@@ -179,6 +179,37 @@ describe('defineDialect', () => {
     same<Same<ProjectResourceKindOf<typeof toy>, never>>();
   });
 
+  it('rejects an enumSet option that can’t be written in a set (#162)', () => {
+    const withOptions = (values: string[]) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            properties: {
+              ...d.properties,
+              quality: [
+                {
+                  key: 'days',
+                  value: {
+                    type: 'enumSet',
+                    options: values.map((value) => ({ value, label: value })),
+                  },
+                  help: '',
+                },
+              ],
+            },
+          }) as AnyDialect,
+      );
+    expect(withOptions(['mon', 'two words'])).not.to.throw();
+    for (const value of ['', ' mon', 'mon,tue'])
+      expect(withOptions(['wed', value])).to.throw(
+        `quality.days: option "${value}" can't be written in a set`,
+      );
+    expect(withOptions(['mon', 'mon'])).to.throw(
+      /quality.days: an option twice/,
+    );
+  });
+
   it('declares its views by kinds, and checks every kind is iStar’s or its extension’s (#162)', () => {
     const withViews = (views: Record<string, unknown>) =>
       bad(
