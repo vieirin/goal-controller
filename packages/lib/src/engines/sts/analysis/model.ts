@@ -9,14 +9,10 @@
  * (./read) builds this from the dialect's model.
  */
 
+import type { Operation } from '../vocabulary';
+
 /** An operation an authorisation grants or prohibits (DKE §3.1.3: R, M, P, T). */
-export type Operation = 'read' | 'modify' | 'produce' | 'transmit';
-export const OPERATIONS: readonly Operation[] = [
-  'read',
-  'modify',
-  'produce',
-  'transmit',
-];
+export { OPERATIONS, type Operation } from '../vocabulary';
 
 export type StsActor = { id: string; name: string; kind: 'role' | 'agent' };
 export type StsGoal = { id: string; name: string; actor: string };

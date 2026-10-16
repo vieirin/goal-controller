@@ -1,0 +1,602 @@
+{
+  "sample": "egov",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/egov/eGov.exp",
+  "sha256": {
+    "exp": "02630a33ebc5a662267410e0c373fb814b67203073bcfdf529940fe39226e701",
+    "sts": "bee08d4d5c3bbd48fbc712ae80533b2e26d6cdc67b954fbe0fa048853ff0e576"
+  },
+  "report": {
+    "file": "Scenario_egov_Report.pdf",
+    "rows": {
+      "wellFormedness": 0,
+      "security": 12
+    }
+  },
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Lot Owner\" requires \"Real Estate Agency\" not to redelegate \"G4: lot record created\", and yet \"Real Estate Agency\" delegates \"G10: location map added\" to \"Map Service Provider\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Interested Party\" requires \"DoUP Application\" not to redelegate \"G17: trusted REA selected\", and yet \"DoUP Application\" delegates \"G22: trusted REA selected\" to \"Aggregated REA\""
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Ministry of Law\" authorises \"Solicitor\" on \"I5: legal info\" only for \"G37: legal framew provided\", but \"Solicitor\" reads \"R16: legal framework\", which makes \"I5: legal info\" tangible, for \"G38: lot info assessed\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Map Service Provider\" the production of \"I1: lot geo location\", but \"Map Service Provider\" produces \"R4: map\", which makes \"I1: lot geo location\" tangible, for \"G12: location map added\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Map Service Provider\" the production of \"I2: lot info details\", but \"Map Service Provider\" produces \"R4: map\", which makes its part \"I1: lot geo location\" tangible, for \"G12: location map added\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Ministry of Law\" prohibits \"Solicitor\" the transmission of \"I5: legal info\", but \"Solicitor\" transmits \"R16: legal framework\", which makes \"I5: legal info\" tangible, to \"DoUP Application\""
+      },
+      {
+        "kind": "nonReauthorisation",
+        "severity": "error",
+        "message": "\"Ministry of Law\" authorises \"Real Estate Agency\" on \"I5: legal info\" without the right to transfer it, but \"Real Estate Agency\" authorises \"Aggregated REA\" on it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Solicitor\" has no right to the transmission of \"I5: legal info\", but authorises \"DoUP Application\" to it"
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G9: lot record published\" and \"G10: location map added\", but \"Real Estate Agency\" may pursue both"
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G6: lot price approved\" and \"G7: lot location defined\", which \"Lot Owner\" performs, but no agent is known to play it: agents playing it may split them"
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G16: solicitor selected\" and \"G18: CE selected\", which \"Interested Party\" performs, but no agent is known to play it: agents playing it may split them"
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: not approved\" threatening \"G36: legal framew issued\" threatens also \"R14: legal framework\", \"R15: legal framework\", \"G11: legal info added\", \"G8: lot record created\", \"G4: lot record created\", \"G3: lot sold via agency\", \"R16: legal framework\", \"G37: legal framew provided\", \"G38: lot info assessed\", \"G20: lot info assessed\", \"G15: lot status assessed\", \"G13: lot acquired\", \"R21: legal framework\", \"G23: citizens helped\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: list not found\" threatening \"G29: cred. solitor provided\" threatens also \"G25: cred. solitor provided\", \"G23: citizens helped\", \"R6: credible solicitor\", \"R8: credible solicitor\", \"R19: credible solicitor\", \"G16: solicitor selected\", \"G13: lot acquired\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E3: file stolen\" threatening \"R5: credible CEng\" threatens also \"R7: credible CEng\", \"G24: credible CE provided\", \"G23: citizens helped\", \"R18: credible CEng\", \"G18: CE selected\", \"G13: lot acquired\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E4: list unavail.\" threatening \"R18: credible CEng\" threatens also \"G18: CE selected\", \"G13: lot acquired\""
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Real Estate Agency",
+      "requester": "Lot Owner",
+      "over": {
+        "goal": "lot record created"
+      }
+    },
+    {
+      "requirement": "goal-availability",
+      "responsible": "Real Estate Agency",
+      "requester": "Lot Owner",
+      "over": {
+        "goal": "lot record created",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Map Service Provider",
+      "requester": "Real Estate Agency",
+      "over": {
+        "goal": "location map added"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "goal": "trusted REA selected"
+      }
+    },
+    {
+      "requirement": "trustworthiness",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "goal": "trusted REA selected"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "DoUP Application",
+      "requester": "CE Chambers",
+      "over": {
+        "goal": "credible CE provided"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "CE Chambers",
+      "requester": "DoUP Application",
+      "over": {
+        "goal": "credible CE provided"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "DoUP Application",
+      "requester": "Solicitor Chambers",
+      "over": {
+        "goal": "cred. solitor provided"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Solicitor Chambers",
+      "requester": "DoUP Application",
+      "over": {
+        "goal": "cred. solitor provided"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "DoUP Application",
+      "requester": "Aggregated REA",
+      "over": {
+        "goal": "lot searched"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Aggregated REA",
+      "requester": "DoUP Application",
+      "over": {
+        "goal": "lot searched"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "DoUP Application",
+      "requester": "Aggregated REA",
+      "over": {
+        "goal": "trusted REA selected"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Aggregated REA",
+      "requester": "DoUP Application",
+      "over": {
+        "goal": "trusted REA selected"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Solicitor",
+      "requester": "Interested Party",
+      "over": {
+        "goal": "lot info assessed"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Lot Owner",
+      "requester": "Real Estate Agency",
+      "over": {
+        "document": "lot info",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "Real Estate Agency",
+      "requester": "Lot Owner",
+      "over": {
+        "document": "lot info"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Real Estate Agency",
+      "requester": "Lot Owner",
+      "over": {
+        "document": "lot info"
+      }
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "responsible": "DoUP Application",
+      "requester": "CE Chambers",
+      "over": {
+        "document": "credible CEng"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "DoUP Application",
+      "requester": "CE Chambers",
+      "over": {
+        "document": "credible CEng"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "Solicitor Chambers",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "credible solicitor"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "DoUP Application",
+      "requester": "Solicitor Chambers",
+      "over": {
+        "document": "credible solicitor"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Aggregated REA",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "trusted REA",
+        "level": "95"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Aggregated REA",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "best lots",
+        "level": "95"
+      }
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "responsible": "DoUP Application",
+      "requester": "Lot Owner",
+      "over": {
+        "document": "owner personal info"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "DoUP Application",
+      "requester": "Lot Owner",
+      "over": {
+        "document": "owner personal info"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Interested Party",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "credible CEng"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "credible CEng",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "sender-authentication",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "credible solicitor"
+      }
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "responsible": "Interested Party",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "credible solicitor"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "credible solicitor"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "credible solicitor",
+        "level": "87"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "best lots"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Interested Party",
+      "requester": "DoUP Application",
+      "over": {
+        "document": "best lots"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "DoUP Application",
+      "requester": "Interested Party",
+      "over": {
+        "document": "best lots",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Real Estate Agency",
+      "requester": "Lot Owner",
+      "over": {
+        "information": "lot info details, lot geo location",
+        "goals": "lot record created"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Real Estate Agency",
+      "requester": "Ministry of Law",
+      "over": {
+        "information": "legal info",
+        "goals": "legal info added"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Real Estate Agency",
+      "requester": "Ministry of Law",
+      "over": {
+        "information": "legal info"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "Real Estate Agency",
+      "requester": "Ministry of Law",
+      "over": {
+        "information": "legal info"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Solicitor",
+      "requester": "Ministry of Law",
+      "over": {
+        "information": "legal info",
+        "goals": "legal framew provided"
+      }
+    },
+    {
+      "requirement": "non-disclosure",
+      "responsible": "Solicitor",
+      "requester": "Ministry of Law",
+      "over": {
+        "information": "legal info"
+      }
+    },
+    {
+      "requirement": "non-disclosure",
+      "responsible": "Aggregated REA",
+      "requester": "Real Estate Agency",
+      "over": {
+        "information": "legal info"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "DoUP Application",
+      "requester": "Aggregated REA",
+      "over": {
+        "information": "list of credible REA, list of lots",
+        "goals": "citizens helped"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "DoUP Application",
+      "requester": "Aggregated REA",
+      "over": {
+        "information": "list of credible REA, list of lots"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "DoUP Application",
+      "requester": "Solicitor",
+      "over": {
+        "information": "legal info",
+        "goals": "citizens helped"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "DoUP Application",
+      "requester": "Lot Owner",
+      "over": {
+        "information": "VAT number, ID Card number",
+        "goals": "lot owner registered"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "DoUP Application",
+      "requester": "Lot Owner",
+      "over": {
+        "information": "VAT number, ID Card number"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Interested Party",
+      "requester": "DoUP Application",
+      "over": {
+        "information": "list of credible CE, list of credible REA, list of credible sol, list of lots",
+        "goals": "lot acquired"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "Interested Party",
+      "requester": "DoUP Application",
+      "over": {
+        "information": "list of credible CE, list of credible REA, list of credible sol, list of lots"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "DoUP Application",
+      "requester": "Solicitor Chambers",
+      "over": {
+        "information": "list of credible sol",
+        "goals": "cred. solitor provided"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "DoUP Application",
+      "requester": "Solicitor Chambers",
+      "over": {
+        "information": "list of credible sol"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "DoUP Application",
+      "requester": "CE Chambers",
+      "over": {
+        "information": "list of credible CE",
+        "goals": "credible CE provided"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "DoUP Application",
+      "requester": "CE Chambers",
+      "over": {
+        "information": "list of credible CE"
+      }
+    },
+    {
+      "requirement": "role-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "CE Chambers",
+        "second": "Solicitor Chambers"
+      }
+    },
+    {
+      "requirement": "goal-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "lot location defined",
+        "second": "lot record published"
+      }
+    },
+    {
+      "requirement": "goal-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "lot record published",
+        "second": "location map added"
+      }
+    },
+    {
+      "requirement": "role-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "Ministry of Law",
+        "second": "Solicitor"
+      }
+    },
+    {
+      "requirement": "goal-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "lot price approved",
+        "second": "lot location defined"
+      }
+    },
+    {
+      "requirement": "goal-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "solicitor selected",
+        "second": "CE selected"
+      }
+    },
+    {
+      "requirement": "goal-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "lot ranked",
+        "second": "lot candidate..."
+      }
+    }
+  ],
+  "differences": [
+    {
+      "key": "goalCod|lot candidate...+lot ranked",
+      "ours": 0,
+      "report": 1,
+      "why": "E17"
+    }
+  ]
+}

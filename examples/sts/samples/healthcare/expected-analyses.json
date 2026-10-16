@@ -1,0 +1,758 @@
+{
+  "sample": "healthcare",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/healtcare/healthcare.exp",
+  "sha256": {
+    "exp": "6ca17c447fd8e678bbdb149dce481570e785fd367839d7a01b92a1db0275b7fd",
+    "sts": "a7d7b77a91200a8a26eab42d4b5ba0957b856e14e7309a79e8c0f0e38eed69a2"
+  },
+  "report": {
+    "file": "Scenario_Healthcare_Report.pdf",
+    "rows": {
+      "wellFormedness": 1,
+      "security": 53
+    }
+  },
+  "findings": {
+    "wellFormedness": [
+      {
+        "kind": "informationNoOwner",
+        "severity": "warning",
+        "message": "Information \"I7: medical history info\" has no owner"
+      }
+    ],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Alice\" and \"Physician\" to \"Red Cross BTC\" over \"I1: health status\" conflict on the authority to transfer authorisations"
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Patient\" and \"Hospital\" to \"Physician\" over \"I3: personal data\" conflict on the goal scope (one is limited to goals, the other is not)"
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Alice\" requires \"ModernLabs\" not to redelegate \"G2: tests taken\", and yet \"ModernLabs\" delegates \"G31: drug test performed\" to \"Drug Tests Inc\""
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Alice\" requires \"ModernLabs\" single-actor redundancy for \"G24: tests taken\", but \"ModernLabs\" doesn't decompose \"G24: tests taken\" into alternatives"
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"ModernLabs\" requires \"Drug Tests Inc\" multi-actor redundancy for \"G32: drug test performed\", but \"Drug Tests Inc\" doesn't decompose \"G32: drug test performed\" into alternatives"
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"Hospital\" requires \"Surgery Unit\" multi-actor redundancy for \"G35: transfusion performed in surgery\", but \"Surgery Unit\" doesn't decompose \"G35: transfusion performed in surgery\" into alternatives"
+      },
+      {
+        "kind": "singleRedundancy",
+        "severity": "error",
+        "message": "\"Red Cross BTC\" requires \"Express medical courier\" single-actor redundancy for \"G41: blood transported\", but \"Express medical courier\" doesn't decompose \"G41: blood transported\" into alternatives"
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I4: personal information\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I4: personal information\" tangible, for \"G16: donor approved\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I7: medical history info\", but \"Red Cross BTC\" reads \"R9: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, for \"G16: donor approved\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Donor\" the reading of \"I4: personal information\", but \"Donor\" reads \"R13: donor certificate\", which makes \"I4: personal information\" tangible, for \"G4: blood donat regularly\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Donor\" the reading of \"I7: medical history info\", but \"Donor\" reads \"R13: donor certificate\", which makes its part \"I4: personal information\" tangible, for \"G4: blood donat regularly\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the reading of \"I9: blood info\", but \"Hospital\" reads \"R10: blood bank\", which makes \"I9: blood info\" tangible, for \"G14: blood transfused\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the reading of \"I8: blood types\", but \"Hospital\" reads \"R10: blood bank\", which makes \"I8: blood types\" tangible, for \"G14: blood transfused\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I8: blood types\", but \"Research Center\" reads \"R14: report\", which makes \"I8: blood types\" tangible, for \"G43: on blood type eval\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I9: blood info\", but \"Research Center\" reads \"R14: report\", which makes its part \"I8: blood types\" tangible, for \"G43: on blood type eval\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I8: blood types\", but \"Research Center\" reads \"R14: report\", which makes \"I8: blood types\" tangible, for \"G42: on donors\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Research Center\" the reading of \"I9: blood info\", but \"Research Center\" reads \"R14: report\", which makes its part \"I8: blood types\" tangible, for \"G42: on donors\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I2: medical history\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I2: medical history\" tangible, for \"G44: verify patients' privacy\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I3: personal data\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I3: personal data\" tangible, for \"G44: verify patients' privacy\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I5: allergies\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I5: allergies\" tangible, for \"G44: verify patients' privacy\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I6: present illness\", but \"Hospital Authority\" reads \"R7: registration record\", which makes \"I6: present illness\" tangible, for \"G44: verify patients' privacy\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I8: blood types\", but \"Hospital Authority\" reads \"R17: report\", which makes \"I8: blood types\" tangible, for \"G45: verify donors' privacy\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital Authority\" the reading of \"I9: blood info\", but \"Hospital Authority\" reads \"R17: report\", which makes its part \"I8: blood types\" tangible, for \"G45: verify donors' privacy\""
+      },
+      {
+        "kind": "needToKnow",
+        "severity": "error",
+        "message": "\"Alice\" authorises \"Red Cross BTC\" on \"I1: health status\" only for \"G16: donor approved\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I1: health status\" tangible, for \"G9: blood examined\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I4: personal information\", but \"Red Cross BTC\" reads \"R9: test results\", which makes \"I4: personal information\" tangible, for \"G9: blood examined\""
+      },
+      {
+        "kind": "nonReading",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the reading of \"I7: medical history info\", but \"Red Cross BTC\" reads \"R9: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, for \"G9: blood examined\""
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Physician\" the modification of \"I9: blood info\", but \"Physician\" modifies \"R11: blood bank\", which makes \"I9: blood info\" tangible, for \"G26: transfusion needed\""
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Physician\" the modification of \"I8: blood types\", but \"Physician\" modifies \"R11: blood bank\", which makes \"I8: blood types\" tangible, for \"G26: transfusion needed\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I2: medical history\", but \"Hospital\" produces \"R6: registration record\", which makes \"I2: medical history\" tangible, for \"G23: patient registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I3: personal data\", but \"Hospital\" produces \"R6: registration record\", which makes \"I3: personal data\" tangible, for \"G23: patient registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I5: allergies\", but \"Hospital\" produces \"R6: registration record\", which makes \"I5: allergies\" tangible, for \"G23: patient registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the production of \"I6: present illness\", but \"Hospital\" produces \"R6: registration record\", which makes \"I6: present illness\" tangible, for \"G23: patient registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the production of \"I4: personal information\", but \"Red Cross BTC\" produces \"R3: donor certificate\", which makes \"I4: personal information\" tangible, for \"G16: donor approved\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the production of \"I7: medical history info\", but \"Red Cross BTC\" produces \"R3: donor certificate\", which makes its part \"I4: personal information\" tangible, for \"G16: donor approved\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I2: medical history\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I2: medical history\" tangible, to \"Hospital Authority\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I3: personal data\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I3: personal data\" tangible, to \"Hospital Authority\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I5: allergies\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I5: allergies\" tangible, to \"Hospital Authority\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "\"Patient\" prohibits \"Hospital\" the transmission of \"I6: present illness\", but \"Hospital\" transmits \"R6: registration record\", which makes \"I6: present illness\" tangible, to \"Hospital Authority\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I1: health status\", but \"ModernLabs\" transmits \"R4: test results\", which makes \"I1: health status\" tangible, to \"Alice\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I4: personal information\", but \"ModernLabs\" transmits \"R4: test results\", which makes \"I4: personal information\" tangible, to \"Alice\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"ModernLabs\" the transmission of \"I7: medical history info\", but \"ModernLabs\" transmits \"R4: test results\", which makes its parts \"I1: health status\" and \"I4: personal information\" tangible, to \"Alice\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the transmission of \"I9: blood info\", but \"Hospital\" transmits \"R10: blood bank\", which makes \"I9: blood info\" tangible, to \"Physician\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Hospital\" the transmission of \"I8: blood types\", but \"Hospital\" transmits \"R10: blood bank\", which makes \"I8: blood types\" tangible, to \"Physician\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the transmission of \"I4: personal information\", but \"Red Cross BTC\" transmits \"R3: donor certificate\", which makes \"I4: personal information\" tangible, to \"Donor\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Red Cross BTC\" the transmission of \"I7: medical history info\", but \"Red Cross BTC\" transmits \"R3: donor certificate\", which makes its part \"I4: personal information\" tangible, to \"Donor\""
+      },
+      {
+        "kind": "goalSod",
+        "severity": "error",
+        "message": "A separation of duties is required between \"G5: infect disease tested\" and \"G31: drug test performed\", but \"ModernLabs\" may pursue both"
+      },
+      {
+        "kind": "goalCod",
+        "severity": "warning",
+        "message": "A combination of duties is required between \"G28: medical advice given\" and \"G36: transfusion performed via specialist\", which \"Physician\" performs, but no agent is known to play it: agents playing it may split them"
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: specialised physician sick\" threatening \"G36: transfusion performed via specialist\" threatens also \"G33: transfusion performed via specialist\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: test results lost\" threatening \"R4: test results\" threatens also \"R8: test results\", \"G3: neg results received\", \"G1: blood donated\", \"R9: test results\", \"G16: donor approved\", \"G8: blood collected\", \"G7: blood distributed\", \"R1: report\", \"R14: report\", \"G43: on blood type eval\", \"G19: on blood type eval\", \"G42: on donors\", \"G21: on donors\", \"R17: report\", \"G45: verify donors' privacy\", \"G15: verify privacy ensured\", \"R3: donor certificate\", \"R13: donor certificate\", \"G4: blood donat regularly\", \"G9: blood examined\""
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "goal": "patient registered"
+      }
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "goal": "patient registered"
+      }
+    },
+    {
+      "requirement": "goal-availability",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "goal": "patient registered",
+        "level": "99"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "Alice",
+      "requester": "ModernLabs",
+      "over": {
+        "goal": "tests taken"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "goal": "tests taken"
+      }
+    },
+    {
+      "requirement": "true-redundancy-single",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "goal": "tests taken"
+      }
+    },
+    {
+      "requirement": "delegator-authentication",
+      "responsible": "Alice",
+      "requester": "ModernLabs",
+      "over": {
+        "goal": "tests taken"
+      }
+    },
+    {
+      "requirement": "trustworthiness",
+      "responsible": "Physician",
+      "requester": "Patient",
+      "over": {
+        "goal": "transfusion needed"
+      }
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "responsible": "Drug Tests Inc",
+      "requester": "ModernLabs",
+      "over": {
+        "goal": "drug test performed"
+      }
+    },
+    {
+      "requirement": "fallback-redundancy-multi",
+      "responsible": "Surgery Unit",
+      "requester": "Hospital",
+      "over": {
+        "goal": "transfusion performed in surgery"
+      }
+    },
+    {
+      "requirement": "fallback-redundancy-single",
+      "responsible": "Express medical courier",
+      "requester": "Red Cross BTC",
+      "over": {
+        "goal": "blood transported"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Research Center",
+      "requester": "Red Cross BTC",
+      "over": {
+        "goal": "on donors"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Research Center",
+      "requester": "Red Cross BTC",
+      "over": {
+        "goal": "on blood type eval"
+      }
+    },
+    {
+      "requirement": "sender-authentication",
+      "responsible": "Hospital",
+      "requester": "Hospital Authority",
+      "over": {
+        "document": "registration record"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Hospital",
+      "requester": "Hospital Authority",
+      "over": {
+        "document": "registration record",
+        "level": "99"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "document": "test results"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "document": "test results"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "Red Cross BTC",
+      "requester": "Alice",
+      "over": {
+        "document": "test results"
+      }
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "responsible": "Red Cross BTC",
+      "requester": "Alice",
+      "over": {
+        "document": "test results"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Alice",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "test results",
+        "level": "95"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Hospital",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "blood bank"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Red Cross BTC",
+      "requester": "Hospital",
+      "over": {
+        "document": "blood bank",
+        "level": "99"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Donor",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "donor certificate"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Research Center",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "report"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "Red Cross BTC",
+      "requester": "Research Center",
+      "over": {
+        "document": "report"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "Research Center",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "report"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "Red Cross BTC",
+      "requester": "Hospital",
+      "over": {
+        "document": "blood usage listings"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "Hospital",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "blood usage listings",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Hospital Authority",
+      "requester": "Red Cross BTC",
+      "over": {
+        "document": "report"
+      }
+    },
+    {
+      "requirement": "sender-confidentiality",
+      "responsible": "Red Cross BTC",
+      "requester": "Hospital Authority",
+      "over": {
+        "document": "report"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Red Cross BTC",
+      "requester": "Alice",
+      "over": {
+        "information": "health status",
+        "goals": "donor approved"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Red Cross BTC",
+      "requester": "Alice",
+      "over": {
+        "information": "health status"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "information": "health status, personal information",
+        "goals": "results provided"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "ModernLabs",
+      "requester": "Alice",
+      "over": {
+        "information": "health status, personal information"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Red Cross BTC",
+      "requester": "Physician",
+      "over": {
+        "information": "health status",
+        "goals": "donor approved"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "Red Cross BTC",
+      "requester": "Physician",
+      "over": {
+        "information": "health status"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data, medical history, present illness",
+        "goals": "blood transfused"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data, medical history, present illness"
+      }
+    },
+    {
+      "requirement": "non-disclosure",
+      "responsible": "Hospital",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data, medical history, present illness"
+      }
+    },
+    {
+      "requirement": "non-reading",
+      "responsible": "Physician",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Physician",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "Physician",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data"
+      }
+    },
+    {
+      "requirement": "non-disclosure",
+      "responsible": "Physician",
+      "requester": "Patient",
+      "over": {
+        "information": "personal data"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Physician",
+      "requester": "Hospital",
+      "over": {
+        "information": "present illness, medical history",
+        "goals": "medical advice given"
+      }
+    },
+    {
+      "requirement": "non-reauthorisation",
+      "responsible": "Physician",
+      "requester": "Hospital",
+      "over": {
+        "information": "present illness, medical history"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Red Cross BTC",
+      "requester": "Hospital",
+      "over": {
+        "information": "blood needs",
+        "goals": "on hospital requests"
+      }
+    },
+    {
+      "requirement": "goal-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "infect disease tested",
+        "second": "drug test performed"
+      }
+    },
+    {
+      "requirement": "goal-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "on donors",
+        "second": "on blood type eval"
+      }
+    },
+    {
+      "requirement": "role-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "Physician",
+        "second": "Supervisor"
+      }
+    },
+    {
+      "requirement": "goal-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "medical advice given",
+        "second": "transfusion performed via specialist"
+      }
+    }
+  ],
+  "differences": [
+    {
+      "key": "conflict|Red Cross BTC|health status",
+      "ours": 1,
+      "report": 0,
+      "why": "D-G20: transferability conflict (DKE Def. 5(2)(ii)), not printed (E21)"
+    },
+    {
+      "key": "goalCod|medical advice given+transfusion performed via specialist",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    },
+    {
+      "key": "goalSod|on blood type eval+on donors",
+      "ours": 0,
+      "report": 2,
+      "why": "E16"
+    },
+    {
+      "key": "needToKnow|Red Cross BTC|health status|blood examined",
+      "ours": 1,
+      "report": 0,
+      "why": "D-G20: need-to-know here, non-reading in the report"
+    },
+    {
+      "key": "nonDisclosure|Red Cross BTC|health status|Donor",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonProduction|Red Cross BTC|health status|donor approved",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonReading|Donor|health status|blood donat regularly",
+      "ours": 0,
+      "report": 1,
+      "why": "E19"
+    },
+    {
+      "key": "nonReading|Red Cross BTC|health status|blood examined",
+      "ours": 0,
+      "report": 1,
+      "why": "D-G20: need-to-know here, non-reading in the report"
+    },
+    {
+      "key": "nonReading|Red Cross BTC|health status|donor approved",
+      "ours": 0,
+      "report": 1,
+      "why": "E18"
+    },
+    {
+      "key": "redundancy|blood transported",
+      "ours": 1,
+      "report": 0,
+      "why": "E20"
+    },
+    {
+      "key": "redundancy|tests taken",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    }
+  ]
+}

@@ -8,46 +8,20 @@
  * threatened through its `threatenedBy` events, since a link can't target
  * a link.
  */
-import { readEnumSet } from '@goal-controller/goal-language';
 import type { AnalysisLink, AnalysisModel } from '../../analysis';
+import { authorisationOperations } from '../checks';
+import { textOf } from '../problems';
 import {
+  ISTAR,
   OPERATIONS,
+  STS_KINDS as KINDS,
+  STS_LINKS,
   type Operation,
-  type StsDecomposition,
-  type StsModel,
-} from './model';
+} from '../vocabulary';
+import type { StsDecomposition, StsModel } from './model';
 
-/**
- * The dialect's kinds the analyses read. Restated from red's
- * `../vocabulary` (#163) until it is on main; then imported from there.
- */
-export const STS_KINDS = {
-  role: 'istar.Role',
-  agent: 'istar.Agent',
-  goal: 'istar.Goal',
-  document: 'istar.Resource',
-  information: 'sts.Information',
-  event: 'sts.Event',
-  and: 'istar.AndRefinementLink',
-  or: 'istar.OrRefinementLink',
-  contribution: 'istar.ContributionLink',
-  plays: 'istar.ParticipatesInLink',
-  delegates: 'sts.DelegatesLink',
-  transmits: 'sts.TransmitsLink',
-  reads: 'sts.ReadsLink',
-  modifies: 'sts.ModifiesLink',
-  produces: 'sts.ProducesLink',
-  owns: 'sts.OwnsLink',
-  tangibleBy: 'sts.TangibleByLink',
-  partOf: 'sts.PartOfLink',
-  authorises: 'sts.AuthorisesLink',
-  incompatible: 'sts.IncompatibleLink',
-  combines: 'sts.CombinesLink',
-  threatens: 'sts.ThreatensLink',
-} as const;
-
-/** An element's text id, as cgm's model reads one (`G3` of `G3: data refined`). */
-const TEXT_ID = /^\s*([A-Za-z]+\d+(?:\.\d+)*)\s*:/;
+/** The dialect's kinds the analyses read (red's `../vocabulary`, #163). */
+export const STS_KINDS = { ...ISTAR, ...KINDS, ...STS_LINKS } as const;
 
 /** A `refList`'s items, trimmed, as the engines read one (`edgeFamily`'s `dependsOn`). */
 const items = (text: string | undefined): string[] =>
@@ -101,9 +75,8 @@ const needsOf = (properties: Readonly<Record<string, string>>): string[] => {
   return needs;
 };
 
-/** An `enumSet` of operations (`granted`, `prohibited`), by `readEnumSet`. */
-const operations = (text: string | undefined): Operation[] =>
-  (readEnumSet(text ?? '') ?? []).filter((x): x is Operation =>
+const operations = (names: readonly string[]): Operation[] =>
+  names.filter((x): x is Operation =>
     (OPERATIONS as readonly string[]).includes(x),
   );
 
@@ -117,12 +90,12 @@ export const readStsModel = (model: AnalysisModel): StsModel => {
   );
   /**
    * A reference in a `refList`, to a piStar id: the element whose text id
-   * it is (`I2` of `I2: personal info`), or else the piStar id itself, as
-   * cgm's `byId` reads one.
+   * it is (`I2` of `I2: personal info`, red's `textOf`), or else the
+   * piStar id itself.
    */
   const byText = new Map<string, string>();
   for (const e of model.elements) {
-    const textId = TEXT_ID.exec(e.name)?.[1];
+    const textId = textOf(e.name).id;
     if (textId && !byText.has(textId)) byText.set(textId, e.id);
   }
   const resolve = (ref: string) => byText.get(ref) ?? ref;
@@ -209,8 +182,8 @@ export const readStsModel = (model: AnalysisModel): StsModel => {
       to: l.target,
       information: refs(l.properties.information),
       scope: refs(l.properties.scope),
-      granted: operations(l.properties.granted),
-      prohibited: operations(l.properties.prohibited),
+      granted: operations(authorisationOperations(l.properties).granted),
+      prohibited: operations(authorisationOperations(l.properties).prohibited),
       transferable: l.properties.transferable !== 'false',
     })),
     ownerships: linksOf(K.owns).map((l) => ({

@@ -1,0 +1,660 @@
+{
+  "sample": "taslab",
+  "source": "https://www.sts-tool.eu/assets/documents/tutorials/taslab/taslab.exp",
+  "sha256": {
+    "exp": "ecd24a691c53c966765a84409c868d3237834b8cf90579741a732ba7fc89a578",
+    "sts": "f899f46ed3cf26bf900e528ab1b99388f0c063cdbdaaf9e6f1c0bbf35294a8a2"
+  },
+  "report": {
+    "file": "Scenario_Taslab_Report.pdf",
+    "rows": {
+      "wellFormedness": 0,
+      "security": 41
+    }
+  },
+  "findings": {
+    "wellFormedness": [],
+    "security": [
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I1: tax contributions\" conflict on production of \"I1: tax contributions\""
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I2: residential address\" conflict on production of \"I2: residential address\""
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I3: location\" conflict on production of \"I3: location\""
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"Tax Agency\" and \"Municipality\" to \"InfoTN\" over \"I5: personal info\" conflict on production of \"I5: personal info\""
+      },
+      {
+        "kind": "authorisationConflict",
+        "severity": "error",
+        "message": "The authorisations from \"InfoTN\" and \"TN Company Selector\" to \"Okkam Srl\" over \"I5: personal info\" conflict on modification of \"I5: personal info\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G20: data refined\" to \"TN Company Selector\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G33: cadstre data verified\" to \"PAT\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"Tax Agency\" requires \"InfoTN\" not to redelegate \"G9: data completeness ensured\", and yet \"InfoTN\" delegates \"G34: corporate data verified\" to \"PAT\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" not to redelegate \"G15: search module built\", and yet \"TN Company Selector\" delegates \"G43: semantic search built\" to \"Okkam Srl\""
+      },
+      {
+        "kind": "noRedelegation",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" not to redelegate \"G16: navigation module built\", and yet \"TN Company Selector\" delegates \"G45: navigation module built\" to \"BP Engineering Srl\""
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" multi-actor redundancy for \"G22: data refined\", but \"TN Company Selector\" doesn't decompose \"G22: data refined\" into alternatives"
+      },
+      {
+        "kind": "multiRedundancy",
+        "severity": "error",
+        "message": "\"InfoTN\" requires \"TN Company Selector\" multi-actor redundancy for \"G45: navigation module built\", but \"TN Company Selector\" doesn't decompose \"G45: navigation module built\" into alternatives"
+      },
+      {
+        "kind": "nonModification",
+        "severity": "error",
+        "message": "No authorisation grants \"Engineering Tributi\" the modification of \"I5: personal info\", but \"Engineering Tributi\" modifies \"R27: personal records\", which makes \"I5: personal info\" tangible, for \"G24: missing data found\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the production of \"I2: residential address\", but \"Citizen\" produces \"R6: personal address\", which makes \"I2: residential address\" tangible, for \"G25: citizen registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the production of \"I3: location\", but \"Citizen\" produces \"R6: personal address\", which makes \"I3: location\" tangible, for \"G25: citizen registered\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I2: residential address\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I2: residential address\" tangible, for \"G17: data files stored\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I3: location\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I3: location\" tangible, for \"G17: data files stored\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I5: personal info\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I5: personal info\" tangible, for \"G17: data files stored\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"InfoTN\" the production of \"I1: tax contributions\", but \"InfoTN\" produces \"R7: local copy of data\", which makes \"I1: tax contributions\" tangible, for \"G17: data files stored\""
+      },
+      {
+        "kind": "nonProduction",
+        "severity": "error",
+        "message": "\"Municipality\" prohibits \"PAT\" the production of \"I1: tax contributions\", but \"PAT\" produces \"R16: corporate registry\", which makes \"I1: tax contributions\" tangible, for \"G36: corporate details registered\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the transmission of \"I2: residential address\", but \"Citizen\" transmits \"R6: personal address\", which makes \"I2: residential address\" tangible, to \"Municipality\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Citizen\" the transmission of \"I3: location\", but \"Citizen\" transmits \"R6: personal address\", which makes \"I3: location\" tangible, to \"Municipality\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"Municipality\" the transmission of \"I5: personal info\", but \"Municipality\" transmits \"R8: personal records\", which makes \"I5: personal info\" tangible, to \"InfoTN\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"PAT\" the transmission of \"I1: tax contributions\", but \"PAT\" transmits \"R16: corporate registry\", which makes \"I1: tax contributions\" tangible, to \"InfoTN\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I5: personal info\", but \"InfoTN\" transmits \"R13: personal records\", which makes \"I5: personal info\" tangible, to \"Engineering Tributi\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I2: residential address\", but \"InfoTN\" transmits \"R14: civil map addresses\", which makes \"I2: residential address\" tangible, to \"Engineering Tributi\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I3: location\", but \"InfoTN\" transmits \"R14: civil map addresses\", which makes \"I3: location\" tangible, to \"Engineering Tributi\""
+      },
+      {
+        "kind": "nonDisclosure",
+        "severity": "error",
+        "message": "No authorisation grants \"InfoTN\" the transmission of \"I1: tax contributions\", but \"InfoTN\" transmits \"R15: tax contributions file\", which makes \"I1: tax contributions\" tangible, to \"Engineering Tributi\""
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Municipality\" has no right to the reading of \"I4: fiscal code\", but authorises \"Tax Agency\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Municipality\" has no right to the production of \"I4: fiscal code\", but authorises \"Tax Agency\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I1: tax contributions\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I2: residential address\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I2: residential address\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I3: location\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I3: location\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the modification of \"I5: personal info\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"Tax Agency\" has no right to the production of \"I5: personal info\", but authorises \"InfoTN\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"InfoTN\" has no right to the modification of \"I4: fiscal code\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the reading of \"I1: tax contributions\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I1: tax contributions\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I2: residential address\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I3: location\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the production of \"I5: personal info\", but authorises \"Okkam Srl\" to it"
+      },
+      {
+        "kind": "nonReauthorisationOperation",
+        "severity": "error",
+        "message": "\"TN Company Selector\" has no right to the reading of \"I1: tax contributions\", but authorises \"Engineering Tributi\" to it"
+      },
+      {
+        "kind": "goalCod",
+        "severity": "error",
+        "message": "A combination of duties is required between \"G43: semantic search built\" and \"G44: enterprise search built\", but \"Okkam Srl\" and \"TN Company Selector\" may perform one without the other"
+      }
+    ],
+    "threats": [
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E1: auditor sick\" threatening \"G41: corporate data verified\" threatens also \"G36: corporate details registered\", \"G35: registries maintained\", \"R16: corporate registry\", \"R20: corporate registry\", \"G34: corporate data verified\", \"G21: data integrated\", \"G19: data completeness ensured\", \"G14: system maintained\", \"G13: online system built\", \"G9: data completeness ensured\", \"G2: tax verification performed\", \"G1: revenue system maintained\""
+      },
+      {
+        "kind": "threatPropagation",
+        "severity": "info",
+        "message": "The event \"E2: data lost\" threatening \"R23: high quality data\" threatens also \"G49: data interconnected\", \"G46: semantic search built\", \"G43: semantic search built\""
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "requirement": "no-redelegation",
+      "responsible": "InfoTN",
+      "requester": "Tax Agency",
+      "over": {
+        "goal": "data completeness ensured"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "InfoTN",
+      "requester": "Tax Agency",
+      "over": {
+        "goal": "data completeness ensured"
+      }
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "data refined"
+      }
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "data refined"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Municipality",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "citizens personal records obtained"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-delegation",
+      "responsible": "InfoTN",
+      "requester": "Municipality",
+      "over": {
+        "goal": "citizens personal records obtained"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Municipality",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "citizens personal records obtained"
+      }
+    },
+    {
+      "requirement": "non-repudiation-of-acceptance",
+      "responsible": "Municipality",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "tax payments obtained"
+      }
+    },
+    {
+      "requirement": "goal-availability",
+      "responsible": "Municipality",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "tax payments obtained",
+        "level": "95"
+      }
+    },
+    {
+      "requirement": "delegatee-authentication",
+      "responsible": "PAT",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "cadstre data verified"
+      }
+    },
+    {
+      "requirement": "delegator-authentication",
+      "responsible": "InfoTN",
+      "requester": "PAT",
+      "over": {
+        "goal": "corporate data verified"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "search module built"
+      }
+    },
+    {
+      "requirement": "true-redundancy-multi",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "navigation module built"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "goal": "navigation module built"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "Okkam Srl",
+      "requester": "TN Company Selector",
+      "over": {
+        "goal": "semantic search built"
+      }
+    },
+    {
+      "requirement": "no-redelegation",
+      "responsible": "BP Engineering Srl",
+      "requester": "TN Company Selector",
+      "over": {
+        "goal": "navigation module built"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "document": "high quality data",
+        "level": "98"
+      }
+    },
+    {
+      "requirement": "receiver-integrity",
+      "responsible": "InfoTN",
+      "requester": "Municipality",
+      "over": {
+        "document": "tax contributions file"
+      }
+    },
+    {
+      "requirement": "receiver-confidentiality",
+      "responsible": "InfoTN",
+      "requester": "Municipality",
+      "over": {
+        "document": "tax contributions file"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "InfoTN",
+      "requester": "Tax Agency",
+      "over": {
+        "document": "high quality data"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Tax Agency",
+      "requester": "InfoTN",
+      "over": {
+        "document": "high quality data"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Tax Agency",
+      "requester": "Okkam Srl",
+      "over": {
+        "document": "tax payers' knowledge base"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "InfoTN",
+      "requester": "Engineering Tributi",
+      "over": {
+        "document": "personal records"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "InfoTN",
+      "requester": "Engineering Tributi",
+      "over": {
+        "document": "civil map addresses"
+      }
+    },
+    {
+      "requirement": "sender-integrity",
+      "responsible": "InfoTN",
+      "requester": "Engineering Tributi",
+      "over": {
+        "document": "tax contributions file"
+      }
+    },
+    {
+      "requirement": "document-availability",
+      "responsible": "InfoTN",
+      "requester": "Engineering Tributi",
+      "over": {
+        "document": "tax contributions file",
+        "level": "90"
+      }
+    },
+    {
+      "requirement": "receiver-authentication",
+      "responsible": "Engineering Tributi",
+      "requester": "InfoTN",
+      "over": {
+        "document": "tax contributions file"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Municipality",
+      "requester": "Citizen",
+      "over": {
+        "information": "personal info",
+        "goals": "citizen registered"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "PAT",
+      "requester": "Municipality",
+      "over": {
+        "information": "personal info, residential address, tax contributions",
+        "goals": "registries maintained"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "PAT",
+      "requester": "Municipality",
+      "over": {
+        "information": "personal info, residential address, tax contributions"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Tax Agency",
+      "requester": "Municipality",
+      "over": {
+        "information": "fiscal code, tax contributions",
+        "goals": "tax verification performed"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "InfoTN",
+      "requester": "Tax Agency",
+      "over": {
+        "information": "personal info, residential address, tax contributions",
+        "goals": "data refined"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "InfoTN",
+      "requester": "Municipality",
+      "over": {
+        "information": "residential address, tax contributions, personal info",
+        "goals": "system maintained"
+      }
+    },
+    {
+      "requirement": "non-production",
+      "responsible": "InfoTN",
+      "requester": "Municipality",
+      "over": {
+        "information": "residential address, tax contributions, personal info"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "InfoTN",
+      "requester": "PAT",
+      "over": {
+        "information": "fiscal code",
+        "goals": "data integrated"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Okkam Srl",
+      "requester": "InfoTN",
+      "over": {
+        "information": "fiscal code, personal info",
+        "goals": "data interconnected"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Okkam Srl",
+      "requester": "TN Company Selector",
+      "over": {
+        "information": "personal info, residential address, tax contributions",
+        "goals": "semantic search built"
+      }
+    },
+    {
+      "requirement": "non-modification",
+      "responsible": "Okkam Srl",
+      "requester": "TN Company Selector",
+      "over": {
+        "information": "personal info, residential address, tax contributions"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "TN Company Selector",
+      "requester": "InfoTN",
+      "over": {
+        "information": "personal info, residential address",
+        "goals": "navigation module built, search module built"
+      }
+    },
+    {
+      "requirement": "need-to-know",
+      "responsible": "Engineering Tributi",
+      "requester": "TN Company Selector",
+      "over": {
+        "information": "personal info, residential address, tax contributions",
+        "goals": "data refined"
+      }
+    },
+    {
+      "requirement": "goal-sod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "corporate records created",
+        "second": "citizen's records created"
+      }
+    },
+    {
+      "requirement": "goal-cod",
+      "responsible": "(all agents)",
+      "requester": "(organisation)",
+      "over": {
+        "first": "semantic search built",
+        "second": "enterprise search built"
+      }
+    }
+  ],
+  "differences": [
+    {
+      "key": "goalCod|enterprise search built+semantic search built",
+      "ours": 1,
+      "report": 2,
+      "why": "D-G20: one finding, printed as two rows"
+    },
+    {
+      "key": "goalSod|citizen's records created+corporate records created",
+      "ours": 0,
+      "report": 1,
+      "why": "E9"
+    },
+    {
+      "key": "noRedelegation|InfoTN|cadstre data verified|PAT",
+      "ours": 1,
+      "report": 0,
+      "why": "E8"
+    },
+    {
+      "key": "noRedelegation|InfoTN|corporate data verified|PAT",
+      "ours": 1,
+      "report": 0,
+      "why": "E8"
+    },
+    {
+      "key": "nonProduction|InfoTN|location|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|personal info|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|residential address|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    },
+    {
+      "key": "nonProduction|InfoTN|tax contributions|data files stored",
+      "ours": 1,
+      "report": 0,
+      "why": "E15"
+    }
+  ]
+}

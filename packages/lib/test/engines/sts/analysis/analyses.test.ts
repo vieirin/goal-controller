@@ -647,3 +647,40 @@ describe('STS-ml analyses for the workbench', () => {
     );
   });
 });
+
+describe('STS-ml worked examples (#160 R1)', () => {
+  it('DKE §4.2.1, Fig. 3: Municipality and Tax Agency conflict on InfoTN’s production', () => {
+    const m = stsModel();
+    ['Municipality', 'Tax Agency', 'InfoTN', 'Citizen'].forEach((x) =>
+      m.role(x),
+    );
+    ['system maintained', 'data completeness ensured', 'data refined'].forEach(
+      (g) => m.goal('InfoTN', g),
+    );
+    m.and('system maintained', ['data completeness ensured']);
+    m.and('data completeness ensured', ['data refined']);
+    const infos = ['personal info', 'residential address', 'tax contributions'];
+    infos.forEach((i) => m.information(i));
+    m.owns('Citizen', 'personal info');
+    m.owns('Municipality', 'residential address');
+    m.owns('Municipality', 'tax contributions');
+    m.authorise('Municipality', 'InfoTN', {
+      information: infos,
+      scope: ['system maintained'],
+      granted: ['read'],
+      prohibited: ['produce'],
+    });
+    m.authorise('Tax Agency', 'InfoTN', {
+      information: infos,
+      scope: ['data refined'],
+      granted: ['modify', 'produce'],
+    });
+    assert.deepStrictEqual(
+      findingsOf(m.model(), 'security', 'authorisationConflict').map((f) => [
+        f.details?.information,
+        f.details?.on,
+      ]),
+      infos.map((i) => [i, 'produce']),
+    );
+  });
+});

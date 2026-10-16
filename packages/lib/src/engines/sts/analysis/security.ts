@@ -22,6 +22,17 @@ const list = (names: readonly string[]) =>
   names.length <= 1
     ? (names[0] ?? '')
     : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+/** A verb for one subject or several (`prohibits`, `prohibit`). */
+const verb = (subjects: readonly unknown[], stem: string) =>
+  subjects.length > 1 ? stem : `${stem}s`;
+/** How a document shows information: itself, or one of its parts. */
+const shows = (
+  index: StsIndex,
+  { information, through }: { information: string; through: readonly string[] },
+) =>
+  through.length
+    ? `its part${through.length > 1 ? 's' : ''} ${list(through.map((p) => quote(index.name(p))))}`
+    : quote(index.name(information));
 const OPERATION_NOUN: Record<Operation, string> = {
   read: 'reading',
   modify: 'modification',
@@ -246,7 +257,7 @@ const uses = (
       const forGoal = authority.rightTo(actor, conveyed, use.kind, use.goal);
       if (forGoal.holds) return [];
       const anyGoal = authority.rightTo(actor, conveyed, use.kind);
-      const subject = `${quote(index.name(actor))} ${VERB[use.kind]} ${quote(index.name(use.document))}, which makes ${quote(index.name(information))} tangible, for ${quote(index.name(use.goal))}`;
+      const subject = `${quote(index.name(actor))} ${VERB[use.kind]} ${quote(index.name(use.document))}, which makes ${shows(index, conveyed)} tangible, for ${quote(index.name(use.goal))}`;
       if (anyGoal.holds) {
         const scoped = authority
           .incoming(actor, information, use.kind)
@@ -256,7 +267,7 @@ const uses = (
           finding(
             'needToKnow',
             'error',
-            `${list(requesters.map((x) => quote(index.name(x))))} authorise ${quote(index.name(actor))} on ${quote(index.name(information))} only for ${list([...new Set(scoped.flatMap((a) => a.scope))].map((g) => quote(index.name(g))))}, but ${subject}`,
+            `${list(requesters.map((x) => quote(index.name(x))))} ${verb(requesters, 'authorise')} ${quote(index.name(actor))} on ${quote(index.name(information))} only for ${list([...new Set(scoped.flatMap((a) => a.scope))].map((g) => quote(index.name(g))))}, but ${subject}`,
             [actor, information, use.goal, use.document, ...requesters],
             [use.id, ...scoped.map((a) => a.id)],
             {
@@ -274,7 +285,7 @@ const uses = (
         finding(
           kind,
           'error',
-          `${forGoal.explicit ? `${list(forGoal.requesters.map((x) => quote(index.name(x))))} prohibit` : `No authorisation grants`} ${quote(index.name(actor))} the ${OPERATION_NOUN[use.kind]} of ${quote(index.name(information))}, but ${subject}`,
+          `${forGoal.explicit ? `${list(forGoal.requesters.map((x) => quote(index.name(x))))} ${verb(forGoal.requesters, 'prohibit')}` : `No authorisation grants`} ${quote(index.name(actor))} the ${OPERATION_NOUN[use.kind]} of ${quote(index.name(information))}, but ${subject}`,
           [actor, information, use.goal, use.document, ...forGoal.requesters],
           [use.id, ...forGoal.authorisations],
           {
@@ -335,7 +346,7 @@ const disclosures = (
             finding(
               'nonDisclosure',
               'error',
-              `${right.explicit ? `${list(right.requesters.map((x) => quote(index.name(x))))} prohibit` : 'No authorisation grants'} ${quote(index.name(t.from))} the transmission of ${quote(index.name(information))}, but ${quote(index.name(t.from))} transmits ${quote(index.name(t.document))}, which makes it tangible, to ${quote(index.name(t.to))}`,
+              `${right.explicit ? `${list(right.requesters.map((x) => quote(index.name(x))))} ${verb(right.requesters, 'prohibit')}` : 'No authorisation grants'} ${quote(index.name(t.from))} the transmission of ${quote(index.name(information))}, but ${quote(index.name(t.from))} transmits ${quote(index.name(t.document))}, which makes ${shows(index, conveyed)} tangible, to ${quote(index.name(t.to))}`,
               [t.from, information, t.document, t.to, ...right.requesters],
               [t.id, ...right.authorisations],
               {
@@ -380,7 +391,7 @@ const reauthorisations = (
               finding(
                 'nonReauthorisation',
                 'error',
-                `${list([...new Set(nonTransferable.map((a) => quote(index.name(a.from))))])} authorise ${quote(index.name(b.from))} on ${quote(index.name(information))} without the right to transfer it, but ${quote(index.name(b.from))} authorises ${quote(index.name(b.to))} on it`,
+                `${list([...new Set(nonTransferable.map((a) => quote(index.name(a.from))))])} ${verb([...new Set(nonTransferable.map((a) => a.from))], 'authorise')} ${quote(index.name(b.from))} on ${quote(index.name(information))} without the right to transfer it, but ${quote(index.name(b.from))} authorises ${quote(index.name(b.to))} on it`,
                 [
                   b.from,
                   information,
