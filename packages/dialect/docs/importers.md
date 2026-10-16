@@ -215,5 +215,6 @@ iStar-DT dialect ([istardt.md](istardt.md), #119):
 - Positions: an actor's, from its social view bound, and its elements' relative to it. Information is laid out by the layout above.
 - Left out: notes (an info), and a type or need the mapping doesn't know (a warning).
 - **In the workbench:** `.sts` is the STS-ml dialect's native file (`nativeFiles.sts`, with a writer, `writeSts`).
+- **`.exp`**, a project export (gzip of a Java-serialised file list), isn't a native file: `readStsProject(bytes)` reads it to the project's files and its `.sts`, without deserialising any class.
 
 **Unverified against STS-Tool** (#160 D-R2). The format is documented on #160 from UniTN's three published tutorial projects only. Those are not committed (#160 D-R8): `scripts/sts-stress` fetches them, pinned by sha256. The unit tests use a fixture written by hand from the format (`packages/lib/test/engines/sts/fixtures/tax-toy.sts`).

@@ -24,8 +24,9 @@
  *      result compared with it, when lib has it.
  * 2. **The tutorial projects** UniTN publishes (#160 D-R8: fetched, not
  *    committed): each `.exp` downloaded into `.cache/sts/samples/`, its
- *    sha256 checked, unpacked (gzip, then the Java-serialised file list,
- *    read without deserialising any class), its `.sts` imported. The same
+ *    sha256 checked (the pins: `tutorials.json`), unpacked by lib's `readStsProject` (gzip, then the
+ *    Java-serialised file list, read without deserialising any class), its
+ *    `.sts` imported. The same
  *    checks but notation and snapshot (a known import warning, Healthcare's
  *    goal in no actor, is expected), and the analyses against
  *    `examples/sts/tutorials/<name>.expected-analyses.json` (#161's), when
@@ -40,7 +41,6 @@
  */
 const fs = require('fs');
 const path = require('path');
-const zlib = require('zlib');
 const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -66,23 +66,13 @@ const errorText = (error) =>
   error instanceof Error ? error.message : String(error);
 
 /**
- * The tutorial projects (sts-tool.eu/tutorials), pinned: what #160's format
- * notes were read from. Their reports' printed results are #161's.
+ * The tutorial projects (sts-tool.eu/tutorials), pinned by sha256: what
+ * #160's format notes were read from. Their reports' printed results are
+ * #161's. CI caches `.cache/sts/samples` keyed on this file.
  */
-const TUTORIALS = {
-  egov: {
-    url: 'https://www.sts-tool.eu/assets/documents/tutorials/egov/eGov.exp',
-    sha256: '02630a33ebc5a662267410e0c373fb814b67203073bcfdf529940fe39226e701',
-  },
-  healthcare: {
-    url: 'https://www.sts-tool.eu/assets/documents/tutorials/healtcare/healthcare.exp',
-    sha256: '6ca17c447fd8e678bbdb149dce481570e785fd367839d7a01b92a1db0275b7fd',
-  },
-  taslab: {
-    url: 'https://www.sts-tool.eu/assets/documents/tutorials/taslab/taslab.exp',
-    sha256: 'ecd24a691c53c966765a84409c868d3237834b8cf90579741a732ba7fc89a578',
-  },
-};
+const TUTORIALS = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'tutorials.json'), 'utf8'),
+);
 
 /** A check's result: pass when `run` returns without throwing, its value the detail. */
 const check = (run) => {
@@ -224,41 +214,6 @@ const seedRows = () =>
       return { name: seed, checks };
     });
 
-/**
- * The files in an `.exp`: gzip of a Java-serialised list of
- * `SerializedFile`s, each a name (a string) followed by its content (a
- * byte array). Read as bytes, by the stream's tags (TC_STRING 0x74, a
- * 2-byte length; TC_ARRAY 0x75 of `[B`, or of a back-referenced class
- * descriptor, then a 4-byte length): no class is deserialised.
- */
-const unpackExp = (gzipped) => {
-  const data = zlib.gunzipSync(gzipped);
-  const files = {};
-  const NAME = /^(?:Models|Images|Documents)\/.+\.(?:sts|png|pdf)$|^\.project$/;
-  for (let i = 0; i < data.length - 3; i++) {
-    if (data[i] !== 0x74) continue;
-    const length = data.readUInt16BE(i + 1);
-    if (length < 5 || length > 300 || i + 3 + length > data.length) continue;
-    const name = data.toString('latin1', i + 3, i + 3 + length);
-    if (!NAME.test(name)) continue;
-    let p = i + 3 + length;
-    // the next byte array: `ur` + `[B` class descriptor, or `uq` + handle
-    const fresh = data.indexOf(Buffer.from('[B'), p);
-    const shared = data.indexOf(Buffer.from([0x75, 0x71]), p);
-    let at;
-    if (fresh !== -1 && (shared === -1 || fresh < shared))
-      // '[B', its serialVersionUID (8), flags (1), field count (2), TC_ENDBLOCKDATA, TC_NULL
-      at = fresh + 2 + 8 + 1 + 2 + 2;
-    else if (shared !== -1) at = shared + 2 + 4;
-    else continue;
-    const size = data.readInt32BE(at);
-    if (size < 0 || at + 4 + size > data.length) continue;
-    files[name] = data.subarray(at + 4, at + 4 + size);
-    i = at + 4 + size - 1;
-  }
-  return files;
-};
-
 /** A tutorial's `.exp`, from the cache or downloaded, its sha256 checked. */
 const fetchTutorial = async (name, { url, sha256 }) => {
   const file = path.join(SAMPLES, `${name}.exp`);
@@ -290,11 +245,13 @@ const tutorialRows = async () => {
       });
       continue;
     }
-    const files = unpackExp(bytes);
+    const project = await lib.readStsProject(new Uint8Array(bytes));
+    const files = 'error' in project ? {} : project.files;
     const stsName = Object.keys(files).find((f) => f.endsWith('.sts'));
     const read =
-      stsName &&
-      lib.readSts(files[stsName].toString('utf8'), { modelName: name });
+      !('error' in project) &&
+      project.sts !== null &&
+      lib.readSts(project.sts, { modelName: name });
     const json = read?.model;
     const model =
       json &&
@@ -302,7 +259,10 @@ const tutorialRows = async () => {
     rows.push({
       name,
       checks: {
-        fetch: check(() => `${stsName} (${Object.keys(files).length} files)`),
+        fetch: check(() => {
+          if ('error' in project) throw new Error(project.error);
+          return `${stsName} (${Object.keys(files).length} files)`;
+        }),
         import: check(() => {
           if (!json)
             throw new Error(

@@ -28,9 +28,9 @@ Checks per seed:
 
 ## Tutorial projects (not committed, #160 D-R8)
 
-`eGov.exp`, `healthcare.exp` and `taslab.exp` come from [sts-tool.eu/tutorials](https://www.sts-tool.eu/tutorials). The script downloads them into `.cache/sts/samples/` and checks each against its pinned sha256.
+`eGov.exp`, `healthcare.exp` and `taslab.exp` come from [sts-tool.eu/tutorials](https://www.sts-tool.eu/tutorials). The script downloads them into `.cache/sts/samples/` and checks each against its sha256, pinned in `tutorials.json`. CI caches that folder, keyed on the file, so sts-tool.eu is only asked when a pin changes.
 
-An `.exp` is gzip of a Java-serialised list of the project's files. The script reads the file names and byte arrays from the stream's tags, with no Java and no class deserialised, and imports the `.sts`. A tutorial that can't be fetched is skipped with a message, and `--strict` fails.
+An `.exp` is gzip of a Java-serialised list of the project's files. lib's `readStsProject` reads the file names and byte arrays from the stream's tags, with no Java and no class deserialised, and the script imports the `.sts`. A tutorial that can't be fetched is skipped with a message, and `--strict` fails.
 
 Checks per tutorial:
 

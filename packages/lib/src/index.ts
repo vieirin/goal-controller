@@ -313,12 +313,15 @@ export {
   STS_LINKS,
   STS_KEYS,
   readSts,
+  readStsProject,
+  readSerializedProject,
   writeSts,
   canonicalSts,
   authorisationOperations,
   refListItems,
   type StsCheckName,
   type StsContext,
+  type StsProject,
 } from './engines/sts';
 // the importers the workbench opens a file with, by its extension
 export { FILE_IMPORTERS, importerFor, type FileImporter } from './importers';

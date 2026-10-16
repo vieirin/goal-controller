@@ -1,0 +1,14 @@
+{
+  "egov": {
+    "url": "https://www.sts-tool.eu/assets/documents/tutorials/egov/eGov.exp",
+    "sha256": "02630a33ebc5a662267410e0c373fb814b67203073bcfdf529940fe39226e701"
+  },
+  "healthcare": {
+    "url": "https://www.sts-tool.eu/assets/documents/tutorials/healtcare/healthcare.exp",
+    "sha256": "6ca17c447fd8e678bbdb149dce481570e785fd367839d7a01b92a1db0275b7fd"
+  },
+  "taslab": {
+    "url": "https://www.sts-tool.eu/assets/documents/tutorials/taslab/taslab.exp",
+    "sha256": "ecd24a691c53c966765a84409c868d3237834b8cf90579741a732ba7fc89a578"
+  }
+}

@@ -2,8 +2,8 @@
  * STS-Tool's `.sts` as the `sts` dialect's native file (goal-controller
  * #163 item 4, #160 D-R9): read by ./read, written by ./write, compared in
  * EMF's canonical form. An `.exp` (a project export: gzip of a
- * Java-serialised list of files) isn't one: a native file is text, and
- * the stress script unpacks the tutorial projects' (#160 D-R8).
+ * Java-serialised list of files) isn't one, a native file being text:
+ * ./project reads it to its files and its `.sts` (#160 D-R8).
  * Unverified against STS-Tool (#160 D-R2).
  */
 import type { NativeFileDefinition } from '@goal-controller/dialect';
@@ -44,3 +44,8 @@ export const stsNativeFile: NativeFileDefinition = {
 
 export { readSts, type StsContext } from './read';
 export { writeSts } from './write';
+export {
+  readSerializedProject,
+  readStsProject,
+  type StsProject,
+} from './project';

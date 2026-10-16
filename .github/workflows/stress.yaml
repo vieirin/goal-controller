@@ -52,6 +52,13 @@ jobs:
       - name: Build lib
         run: pnpm run build:lib
 
+      - name: Cache STS-ml's tutorial projects (fetched from sts-tool.eu, pinned)
+        if: matrix.engine == 'sts'
+        uses: actions/cache@v4
+        with:
+          path: .cache/sts/samples
+          key: sts-tutorials-${{ hashFiles('scripts/sts-stress/tutorials.json') }}
+
       - name: Run the stress test
         run: node scripts/${{ matrix.engine }}-stress/run.cjs ${{ matrix.args }}
 

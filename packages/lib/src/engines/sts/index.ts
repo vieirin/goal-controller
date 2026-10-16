@@ -41,10 +41,13 @@ export { stsExtension, stsMetamodelBlock } from './extension';
 export { STS_PROBLEM_KINDS, stsProblems, textOf } from './problems';
 export {
   canonicalSts,
+  readSerializedProject,
   readSts,
+  readStsProject,
   STS_LOSSY,
   stsNativeFile,
   writeSts,
   type StsContext,
+  type StsProject,
 } from './native';
 export * from './vocabulary';
