@@ -24,7 +24,7 @@ Checks per seed:
 - **notation**: the Notation view document reads back to the same model, with no edit and no diagnostic.
 - **native**: written as `.sts` and read back, the model is itself but for `STS_LOSSY`. ATM's contribution is a known loss: no published `.sts` shows the type a contribution is written with.
 - **snapshot**: the `.sts` the writer gives equals `snapshots/<seed>.sts`.
-- **analyses**: each of the engine's analyses runs. Where `expected-analyses.json` exists (#161's), `runStsAnalyses` must give it.
+- **analyses**: each of the engine's analyses runs. Where `expected-analyses.json` exists (#161's), `runStsAnalyses` must give it. Only its result keys are compared, `findings` and `requirements`, each list as a set, each item on the fields the expectation's items have; its metadata (`seed`, `source`, `report`, …) isn't. A mismatch names the first missing or extra item.
 
 ## Tutorial projects (not committed, #160 D-R8)
 
@@ -37,7 +37,7 @@ Checks per tutorial:
 - **import**: no warning but the known ones. Healthcare draws *blood examinedd* in no actor.
 - **checks**: as for the seeds.
 - **native**: as for the seeds.
-- **analyses**: against `examples/sts/tutorials/<name>.expected-analyses.json` (#161's), when present. Those files are green's; their numbers are the reports' printed results.
+- **analyses**: against `examples/sts/tutorials/<name>.expected-analyses.json` (#161's), when present, compared as the seeds' are. Its `sha256.exp` must be the pin in `tutorials.json`, and its `sha256.sts`, when given, the extracted model's. Those files are green's; their numbers are the reports' printed results.
 
 ## Oracle
 
