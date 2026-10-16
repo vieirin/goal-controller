@@ -157,7 +157,7 @@ member }`, and an `assign` with a `member`) and its members with
 
 **Sets of options** (goal-controller#162). An `enumSet` holds some of a
 fixed list of options, each at most once, in the order written: the
-operations an authorisation grants, the days a task runs. It is written
+permissions a link grants, the days a task runs. It is written
 comma-separated on a property line or in a link line's braces
 (`{terms = cash, time}`), and stored in `customProperties` as that text.
 The validator reports a value that is no option and one written twice;
@@ -348,8 +348,8 @@ export const mission = defineDialect({
 
 ### 2.7 Views: parts of one diagram
 
-A dialect whose models are read in parts (STS-ml's social, information
-and authorisation views, goal-controller#162) declares them by kinds:
+A dialect whose models are read in parts (a social view, an information
+view, …, goal-controller#162) declares them by kinds:
 
 ```ts
 views: views({
@@ -373,8 +373,8 @@ views: views({
   View picker in the top bar (`All` by default), and the canvas hides
   what the view doesn't show, each in its place: switching views moves
   nothing, and nothing is written to the model. References (`refList`,
-  assertions) still resolve against the whole model, so an authorisation's
-  scope may name goals its view doesn't draw.
+  assertions) still resolve against the whole model, so a link's
+  `refList` may name goals its view doesn't draw.
 - `viewHides(view, elements, links)` gives the piStar ids a view hides,
   and `viewsOf(definition)` a dialect's views in order.
 

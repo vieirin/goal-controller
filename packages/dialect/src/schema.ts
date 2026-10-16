@@ -423,7 +423,7 @@ export type DialectDefinition<K extends string = ElementKind> = {
  * view lists `links`, its kind is one of them.
  */
 export type ViewDefinition = {
-  /** shown to people: `Social`, `Authorisation` */
+  /** shown to people: `Social`, `Information` */
   label: string;
   /** the element and actor kinds it shows */
   kinds: readonly string[];

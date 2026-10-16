@@ -1,6 +1,6 @@
 /**
  * A dialect's views (goal-controller#162): what each hides of one model, a
- * toy dialect's (not STS) with a box kind of its extension and its feeds
+ * toy dialect's (no engine's) with a box kind of its extension and its feeds
  * links beside iStar's goals and refinements.
  */
 import { expect } from 'chai';

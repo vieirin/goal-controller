@@ -1,7 +1,7 @@
 /**
  * Links with an actor at an end, end to end (goal-controller#162): a piStar
  * file whose metamodel block adds an actor-to-actor link and a goal-to-goal
- * link between two actors (a toy lending dialect, not STS) is read by
+ * link between two actors (a toy lending dialect, no engine's) is read by
  * istar-ts, viewed by goal-tree, written as the Notation text with the
  * actor's link line under its actor line, and edited back; checks and
  * analyses read the actor ends by their piStar ids.
