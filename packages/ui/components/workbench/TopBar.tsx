@@ -27,12 +27,14 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import {
   isOptionValue,
   optionsSummary,
+  viewsOf,
   type OptionDefinition,
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
 import {
   ENGINE_LABEL,
   ENGINE_OPTIONS,
+  dialectOf,
   generatesFiles,
   hasOptions,
   outputExtensionOf,
@@ -426,6 +428,7 @@ export default function TopBar() {
               description='Regenerate automatically after each change'
             />
           )}
+          <ViewPicker />
           {!shell.pistarMode && <AnalyseControl />}
           {!shell.pistarMode && generatesFiles(wb.engine) && (
             <Button
@@ -569,6 +572,37 @@ function CasePicker({
         </span>
       )}
     </span>
+  );
+}
+
+/**
+ * The dialect's views of the diagram (goal-controller#162): all of the
+ * model, or one view, what it doesn't show hidden. None for a dialect
+ * without views.
+ */
+function ViewPicker() {
+  const wb = useWorkbench();
+  const views = viewsOf(dialectOf(wb.engine));
+  if (!views.length) return null;
+  const shown = views.find(([id]) => id === wb.view)?.[1];
+  return (
+    <>
+      <select
+        aria-label='View'
+        className='h-8 rounded-md border border-line bg-white px-2 text-xs text-ink'
+        value={wb.view ?? ''}
+        title={shown?.help ?? 'Which part of the model the diagram shows'}
+        onChange={(event) => wb.setView(event.target.value || null)}
+      >
+        <option value=''>All</option>
+        {views.map(([id, view]) => (
+          <option key={id} value={id} title={view.help}>
+            {view.label}
+          </option>
+        ))}
+      </select>
+      <span className='h-5 w-px bg-line' aria-hidden />
+    </>
   );
 }
 

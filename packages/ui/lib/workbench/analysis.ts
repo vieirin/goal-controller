@@ -20,6 +20,7 @@ import {
   type AnalysisResult,
 } from '@goal-controller/lib';
 import type { ResourceSlot } from '@/lib/project';
+import { partSelectors } from './canvasStyle';
 import { parseModel } from './dialects';
 import type { IStarModel } from '@goal-controller/goal-tree';
 
@@ -103,9 +104,6 @@ const valueDiagnostics = (
 /** The attribute the canvas's container has while a selection is drawn (goal-controller#152). */
 export const SELECTION_ATTRIBUTE = 'data-analysis-selection';
 
-/** An id as a CSS string, for an attribute selector. */
-const cssString = (id: string) => `"${id.replace(/["\\]/g, '\\$&')}"`;
-
 /**
  * How the canvas draws a case that is a selection (goal-controller#152): a
  * stylesheet, under the container's SELECTION_ATTRIBUTE, that dims every
@@ -127,12 +125,7 @@ export const selectionStyle = (
   if (!selection) return null;
   const scope = `[${SELECTION_ATTRIBUTE}]`;
   const all = `${scope} .react-flow__node.istar-node-element, ${scope} .react-flow__edge`;
-  const kept = selection
-    .flatMap((id) => [
-      `${scope} .react-flow__node[data-id=${cssString(id)}]`,
-      `${scope} .react-flow__edge[data-id=${cssString(id)}]`,
-    ])
-    .join(', ');
+  const kept = partSelectors(SELECTION_ATTRIBUTE, selection);
   return `${all} { opacity: 0.25; }${kept ? `\n${kept} { opacity: 1; }` : ''}`;
 };
 

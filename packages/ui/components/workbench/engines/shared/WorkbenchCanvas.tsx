@@ -35,6 +35,11 @@ import {
   shownStep,
 } from '@/lib/workbench/analysis';
 import { useShell } from '../../shell';
+import {
+  modelViewHides,
+  VIEW_ATTRIBUTE,
+  viewStyle,
+} from '@/lib/workbench/views';
 
 /**
  * The goal model as an editable iStar diagram (@istar-ts/react), kept in sync
@@ -324,6 +329,12 @@ export default function WorkbenchCanvas({
     [wb.analysisRun, wb.analysisStale],
   );
 
+  // a dialect's view (goal-controller#162): what it doesn't show hidden in place
+  const viewed = useMemo(() => {
+    const view = wb.view ? dialectOf(wb.engine)?.views?.[wb.view] : undefined;
+    return view && parsed ? viewStyle(modelViewHides(view, parsed)) : null;
+  }, [wb.view, wb.engine, parsed]);
+
   // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
   const onKeyDownCapture = (event: KeyboardEvent) => {
     if (modelReadOnly || !(event.metaKey || event.ctrlKey)) return;
@@ -350,8 +361,10 @@ export default function WorkbenchCanvas({
       className='relative h-full'
       onKeyDownCapture={onKeyDownCapture}
       {...(selection && { [SELECTION_ATTRIBUTE]: '' })}
+      {...(viewed && { [VIEW_ATTRIBUTE]: '' })}
     >
       {selection && <style>{selection}</style>}
+      {viewed && <style>{viewed}</style>}
       <IstarProvider
         store={store}
         diagnostics={diagnostics}

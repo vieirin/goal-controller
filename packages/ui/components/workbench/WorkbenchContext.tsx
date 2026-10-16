@@ -400,6 +400,11 @@ export type Workbench = {
   stepAnalysis: (delta: number) => void;
   clearAnalysis: () => void;
 
+  // a dialect's views of the diagram (goal-controller#162)
+  /** the view the diagram shows, by id (null: all of the model) */
+  view: string | null;
+  setView: (view: string | null) => void;
+
   // problems
   problems: Problem[];
 
@@ -1899,6 +1904,9 @@ function WorkbenchState({
     [],
   );
   const clearAnalysis = useCallback(() => setAnalysisRun(null), []);
+  // a view is the dialect's: another engine shows all of its model
+  const [view, setView] = useState<string | null>(null);
+  useEffect(() => setView(null), [engine]);
 
   /** the latest output of the engine as the project keeps it (none: no output yet) */
   const latestOutputs = useCallback((open: Project) => {
@@ -2156,6 +2164,8 @@ function WorkbenchState({
     runAnalysis: runAnalysisNow,
     setAnalysisCase,
     setAnalysisFinding,
+    view,
+    setView,
     stepAnalysis,
     clearAnalysis,
     exportProject,

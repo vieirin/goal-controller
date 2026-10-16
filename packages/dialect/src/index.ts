@@ -7,3 +7,4 @@ export * from './derive/extensions';
 export * from './derive/modelExtension';
 export * from './helpers';
 export * from './native';
+export * from './derive/views';
