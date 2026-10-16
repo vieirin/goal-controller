@@ -259,9 +259,19 @@ const uses = (
       const anyGoal = authority.rightTo(actor, conveyed, use.kind);
       const subject = `${quote(index.name(actor))} ${VERB[use.kind]} ${quote(index.name(use.document))}, which makes ${shows(index, conveyed)} tangible, for ${quote(index.name(use.goal))}`;
       if (anyGoal.holds) {
-        const scoped = authority
-          .incoming(actor, information, use.kind)
-          .granting.filter((a) => a.scope.length);
+        // a whole conveyed through its parts is authorised through them (#160 D-G4)
+        const sources = conveyed.through.length
+          ? conveyed.through
+          : [information];
+        const scoped = [
+          ...new Set(
+            sources.flatMap((i) =>
+              authority
+                .incoming(actor, i, use.kind)
+                .granting.filter((a) => a.scope.length),
+            ),
+          ),
+        ];
         const requesters = [...new Set(scoped.map((a) => a.from))];
         return [
           finding(

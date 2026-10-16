@@ -377,6 +377,27 @@ describe('STS-ml security analysis: information (DKE Table 7, Def. 4)', () => {
     assert.ok(!has(n.model(), 'security', 'needToKnow'));
   });
 
+  it('needToKnow on a whole conveyed through a part names the part’s scoped authorisation (#165 review)', () => {
+    const m = using('reads');
+    m.information('W');
+    m.partOf('I', 'W');
+    m.owns('O', 'W');
+    m.authorise('O', 'A', {
+      information: ['I'],
+      scope: ['H'],
+      granted: ['read'],
+    });
+    const found = findingsOf(m.model(), 'security', 'needToKnow');
+    assert.deepStrictEqual(
+      found.map((f) => [f.details?.information, f.details?.requester]),
+      [
+        ['I', 'O'],
+        ['W', 'O'],
+      ],
+    );
+    assert.ok(found.every((f) => !f.message.includes('only for ,')));
+  });
+
   it('a use in either OR-alternative is possible: some variant takes it (#160 D-G10)', () => {
     const m = stsModel();
     m.role('O');
