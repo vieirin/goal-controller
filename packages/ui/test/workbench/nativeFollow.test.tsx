@@ -6,7 +6,7 @@
  * from it and saved where the project can be written; a read-only project
  * keeps it with the model, in memory.
  */
-import { act, render, waitFor } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -113,6 +113,9 @@ const moved = (text: string) => {
 describe('a native file that follows the model', () => {
   afterEach(() => {
     vi.useRealTimers();
+    // unmounted before the environment is torn down: else React's
+    // scheduler runs a pending render without a window (seen on CI)
+    cleanup();
   });
 
   it('is saved to the project once the model is edited, and not before', async () => {

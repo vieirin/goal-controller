@@ -6,7 +6,7 @@
  * opens, listed under the model, given its tab and saved where the project
  * can be written; without one, nothing is made and nothing is said.
  */
-import { act, render, waitFor } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -110,6 +110,9 @@ describe('a native file a project ships without', () => {
   afterEach(() => {
     vi.useRealTimers();
     declared.writes = true;
+    // unmounted before the environment is torn down: else React's
+    // scheduler runs a pending render without a window (seen on CI)
+    cleanup();
   });
 
   it('is written from the model as the project opens, listed under it, given its tab and saved', async () => {
