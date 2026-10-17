@@ -338,7 +338,11 @@ describe('property lines without ids (goal-controller#138)', () => {
       properties: {
         ...plain.properties,
         'sensing.Sensor': [
-          { key: 'attributes', value: { type: 'pairList' }, help: 'what' },
+          {
+            key: 'attributes',
+            value: { type: 'pairList', value: 'text' },
+            help: 'what',
+          },
         ],
       },
       propertyLineOrder: ['type', 'achievement', 'attributes'],
@@ -372,9 +376,15 @@ describe('property lines without ids (goal-controller#138)', () => {
       ...plain,
       properties: {
         ...plain.properties,
-        task: [{ key: 'type', value: { type: 'text' }, help: 'what it does' }],
+        task: [
+          {
+            key: 'type',
+            value: { type: 'text' as const },
+            help: 'what it does',
+          },
+        ],
       },
-    } as typeof plain;
+    };
     const doc = `${TEXT}\n    type sweeping`;
     const context = contextFromView(typed, TREE, []);
     const hover = (pos: number) => hoverAt(typed, doc, pos, context)?.markdown;

@@ -184,7 +184,10 @@ export const idPrefixesOf = (definition: {
  * A document with ids reads any key so, and gets none here.
  */
 export const propertyKeysOf = (definition: {
-  elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
+  // an element of a dialect without ids has a fill and no prefix
+  elements?: Readonly<
+    Record<string, { prefix?: string; fill?: string } | undefined>
+  >;
   propertyLineOrder?: readonly string[];
 }): string[] =>
   Object.values(definition.elements ?? {}).some(
