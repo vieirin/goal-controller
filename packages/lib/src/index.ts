@@ -370,6 +370,18 @@ export {
   readKaosModel,
   type KaosdocGoalModel,
 } from './engines/kaosdoc';
+// and the NFR Framework's label propagation
+export {
+  nfrprop,
+  nfrpropAnalyses,
+  nfrpropAnalysisModel,
+  nfrpropEngineMapper,
+  propagateLabels,
+  readNfrModel,
+  NFR_LABELS,
+  type NfrLabel,
+} from './engines/nfrprop';
+export { nfrpropEngine } from './engines/nfrprop/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
