@@ -28,6 +28,7 @@ export default function ModelDiagram() {
       return <FrameworkDiagram mode={wb.mode} />;
     // the frameworks' engines draw their framework's model (goal-controller#171)
     case 'kaosdoc':
+    case 'kaosprop':
     case 'nfrprop':
       return <FrameworkDiagram mode={frameworkEditorOf(wb.mode)!.mode} />;
     case 'edge':

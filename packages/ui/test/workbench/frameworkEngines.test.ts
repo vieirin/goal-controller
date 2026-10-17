@@ -1,6 +1,7 @@
 /**
  * The frameworks' engines in the workbench (goal-controller#171): kaosdoc
- * (KAOS's requirements document) and nfrprop (NFR's label propagation),
+ * (KAOS's requirements document), kaosprop (KAOS's probabilistic obstacle
+ * analysis, goal-controller#181) and nfrprop (NFR's label propagation),
  * each in its framework's editor, read in its framework, generating or
  * analysing as lib's tests say, across the workbench's ESM core and
  * goal-tree's CommonJS one.
@@ -10,7 +11,7 @@ import { join } from 'node:path';
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useEngineConformity } from '@/components/workbench/engineConformity';
-import { kaos, nfrprop } from '@goal-controller/lib';
+import { kaos, kaosprop, nfrprop } from '@goal-controller/lib';
 import { recordedFramework, recordedMode } from '@/lib/project';
 import { parseModel } from '@/lib/workbench/dialects';
 import { ENGINE_ANALYSES } from '@/lib/workbench/engineDialects';
@@ -38,6 +39,10 @@ describe("the frameworks' engines (#171)", () => {
     expect(frameworkEditorOf('nfrprop')).toEqual({
       mode: 'nfr',
       definition: nfrprop,
+    });
+    expect(frameworkEditorOf('kaosprop')).toEqual({
+      mode: 'kaos',
+      definition: kaosprop,
     });
     expect(frameworkEditorOf('edgev2')).toBe(null);
     expect(frameworkOfMode('kaosdoc')).toBe('kaos');
@@ -121,5 +126,28 @@ describe("the frameworks' engines (#171)", () => {
     expect(rows).toHaveLength(9);
     for (const { id, label } of rows)
       expect(result.cases[0]!.values[id]?.value, id).toBe(label);
+  });
+
+  it('kaosprop analyses a KAOS model read in the workbench: RE’12’s EPS and its warning (#181)', () => {
+    const engine = ENGINE_ANALYSES.kaosprop!;
+    const las = read(
+      'packages/lib/test/engines/kaosprop/fixtures/re12-las.txt',
+    );
+    const model = engine.model(parseModel(las) as never);
+    const top =
+      engine.analyses.probabilities!.run(model).cases[0]!.values[
+        'achieve_ambulance_on_scene_when_incident_reported'
+      ]!;
+    expect(top.label).toBe('EPS 92.77% · SV 2.23%');
+    expect(top.severity).toBe('warning');
+    expect(
+      engine.analyses
+        .criticalCombinations!.run(model)
+        .cases.map((c) => c.label),
+    ).toEqual([
+      'Ambulance Stuck In Traffic Jam + Ambulance Broken Down: SV 0.45%',
+    ]);
+    // DSM3's welcome model has no quantities: every goal satisfied, no problem
+    expect(analyze(KAOS_WELCOME, 'kaosprop').problems).toEqual([]);
   });
 });

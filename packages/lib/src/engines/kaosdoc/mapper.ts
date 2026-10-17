@@ -2,11 +2,13 @@
  * kaosdoc's mapper (goal-controller#171): how goal-tree reads a KAOS model
  * for it. Goals and domain properties are the IR's goal nodes, each with its
  * kind and the properties its kind declares in the `kaos` dialect (trimmed,
- * empty ones left out); conflicts keep their boundary condition. A
- * refinement's properties are its hub's, an element of the model.
+ * empty ones left out); conflicts keep their boundary condition, and
+ * resolutions their type and anchor. Obstacles are goal nodes too, in their
+ * own trees. A refinement's properties are its hub's, an element of the
+ * model.
  */
 import { parsePistar } from '@istar-ts/core';
-import { KAOS } from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { linkPropertyKeys, propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
@@ -47,7 +49,10 @@ export const kaosdocEngineMapper = createEngineMapper<
   dialect: kaos,
   allowedGoalKeys: KAOSDOC_GOAL_KEYS,
   allowedTaskKeys: [],
-  kindKeys: { 'kaos.DomainProperty': KAOSDOC_DOMAIN_PROPERTY_KEYS },
+  kindKeys: {
+    'kaos.DomainProperty': KAOSDOC_DOMAIN_PROPERTY_KEYS,
+    'kaosObstacles.Obstacle': propertyKeys(kaos, 'kaosObstacles.Obstacle'),
+  },
   // a KAOS goal may be a leaf: a requirement, an expectation
   allowLeafGoals: true,
   skipResource: true,
@@ -72,6 +77,6 @@ export type KaosdocGoalModel = GoalModel<
 export const kaosdocGoalModel = (model: IStarModel): KaosdocGoalModel =>
   GoalTree.goalModel(model, kaosdocEngineMapper);
 
-/** A KAOS model's piStar text (DSM3's), read with the KAOS root. */
+/** A KAOS model's piStar text (DSM3's), read with KAOS and its obstacle analysis. */
 export const readKaosModel = (text: string): IStarModel =>
-  parsePistar(text, { metamodel: KAOS }) as unknown as IStarModel;
+  parsePistar(text, { metamodel: KAOS_OBSTACLES }) as unknown as IStarModel;

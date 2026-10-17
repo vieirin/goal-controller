@@ -39,6 +39,10 @@ import {
   istardtOptions,
   kaos,
   kaosdocEngineMapper,
+  kaosprop,
+  kaospropAnalyses,
+  kaospropAnalysisModel,
+  kaospropEngineMapper,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
@@ -93,6 +97,7 @@ const ALL: TransformEngine[] = [
   'tropos4as',
   'cgm',
   'kaosdoc',
+  'kaosprop',
   'nfrprop',
 ];
 
@@ -120,8 +125,16 @@ describe('the engine registry', () => {
     }));
 
   it("keeps the other frameworks' engines apart, their dialects their frameworks' (#171)", () => {
-    expectSameEntries(FRAMEWORK_ENGINE_DIALECTS, { kaosdoc: kaos, nfrprop });
-    expect(ALL.filter(isFrameworkEngine)).toEqual(['kaosdoc', 'nfrprop']);
+    expectSameEntries(FRAMEWORK_ENGINE_DIALECTS, {
+      kaosdoc: kaos,
+      kaosprop,
+      nfrprop,
+    });
+    expect(ALL.filter(isFrameworkEngine)).toEqual([
+      'kaosdoc',
+      'kaosprop',
+      'nfrprop',
+    ]);
   });
 
   it('derives ENGINE_CHECKS', () =>
@@ -169,6 +182,7 @@ describe('the engine registry', () => {
       tropos4as: tropos4asEngineMapper,
       cgm: cgmEngineMapper,
       kaosdoc: kaosdocEngineMapper,
+      kaosprop: kaospropEngineMapper,
       nfrprop: nfrpropEngineMapper,
     }));
 
@@ -179,10 +193,12 @@ describe('the engine registry', () => {
       tropos4as: neither,
       cgm: nor,
       kaosdoc: noKaos,
+      kaosprop: noKaosprop,
       nfrprop: noNfr,
       ...declared
     } = ENGINE_OPTIONS;
     expect(noKaos).toEqual([]);
+    expect(noKaosprop).toEqual([]);
     expect(noNfr).toEqual([]);
     expect(none).toEqual([]);
     expect(nothing).toEqual([]);
@@ -209,6 +225,7 @@ describe('the engine registry', () => {
       tropos4as: 'Tropos4AS',
       cgm: 'Contextual goal model',
       kaosdoc: 'KAOS document',
+      kaosprop: 'KAOS obstacle probabilities',
       nfrprop: 'NFR propagation',
     }));
 
@@ -298,6 +315,15 @@ describe('the engine registry', () => {
         help: 'A requirements document from the KAOS model: goals with their fit criteria, refinements, requirements and expectations, agents, conflicts',
       },
       {
+        id: 'kaosprop',
+        label: 'KAOS obstacle probabilities',
+        output: 'Probabilities',
+        extension: 'json',
+        language: 'text',
+        help: "Cailliau and van Lamsweerde's probabilistic obstacle analysis (RE'12): each obstacle's probability and each goal's estimated probability of satisfaction against its required rate, step by step, and the critical obstacle combinations",
+        generates: false,
+      },
+      {
         id: 'nfrprop',
         label: 'NFR propagation',
         output: 'Labels',
@@ -314,8 +340,11 @@ describe('the engine registry', () => {
       'grl',
       'tropos4as',
       'cgm',
+      'kaosprop',
       'nfrprop',
     ]);
+    expect(ENGINE_ANALYSES.kaosprop?.analyses).toBe(kaospropAnalyses);
+    expect(ENGINE_ANALYSES.kaosprop?.model).toBe(kaospropAnalysisModel);
     expect(ENGINE_ANALYSES.nfrprop?.analyses).toBe(nfrpropAnalyses);
     expect(ENGINE_ANALYSES.nfrprop?.model).toBe(nfrpropAnalysisModel);
     expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
@@ -344,6 +373,7 @@ describe('the engine registry', () => {
       tropos4as: ['Lifecycle', 'txt', 'text', false, false, tropos4as],
       cgm: ['Variants', 'txt', 'text', false, false, cgm],
       kaosdoc: ['Requirements document', 'md', 'text', true, false, kaos],
+      kaosprop: ['Probabilities', 'json', 'text', false, false, kaosprop],
       nfrprop: ['Labels', 'json', 'text', false, false, nfrprop],
     } as const;
     for (const engine of ALL) {

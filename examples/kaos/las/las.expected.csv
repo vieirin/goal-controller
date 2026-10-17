@@ -1,0 +1,17 @@
+id,element,probability,paper,derivation
+ambulance_not_in_familiar_area,Ambulance Not In Familiar Area,0.200000,20%,its estimate (RE'12 §IV.A)
+gps_not_working,GPS Not Working,0.100000,10%,its estimate
+ambulance_lost,Ambulance Lost,0.019000,0.019,"AND of Not In Familiar Area (0.2) and GPS Not Working (0.1), the domain property 1, × P(O|SO) 0.95: 0.2 × 0.1 × 0.95"
+ambulance_stuck_in_traffic_jam,Ambulance Stuck In Traffic Jam,0.020000,2%,its estimate
+ambulance_broken_down,Ambulance Broken Down,0.005000,0.5%,its estimate
+mobilized_ambulance_not_on_scene_in_time,Mobilized Ambulance Not On Scene in Time,0.042851,0.0429,OR of three refinements: 1 − (1 − 0.019 × 0.99)(1 − 0.02 × 0.98)(1 − 0.005 × 1)
+achieve_ambulance_on_scene_when_ambulance_mobilized,Achieve [Ambulance On Scene When Ambulance Mobilized],0.957149,0.957,"leaf, obstructed (P(¬G|O) 1): 1 − 0.0429"
+achieve_ambulance_allocated_when_incident_reported,Achieve [Ambulance Allocated When Incident Reported],0.980000,0.98,"leaf, its ESR (RE'12 §IV.C gives it, from obstacles not shown)"
+achieve_ambulance_mobilized_when_ambulance_allocated_on_road,Achieve [Ambulance Mobilized When Ambulance Allocated On Road],0.980000,0.98,"leaf, its ESR (as given)"
+achieve_ambulance_mobilized_by_fax,Achieve [Ambulance Mobilized By Fax When Ambulance Allocated At Station],0.900000,0.90,"leaf, its ESR (as given)"
+achieve_ambulance_mobilized_by_phone,Achieve [Ambulance Mobilized By Phone When Ambulance Allocated At Station],0.950000,0.95,"leaf, its ESR (as given)"
+achieve_ambulance_mobilized_when_ambulance_allocated_at_station,Achieve [Ambulance Mobilized When Ambulance Allocated At Station],0.995000,0.995,"two alternatives, either suffices (RE'12: P(G | SGi, ¬SGj) = 1): 0.9 × 0.95 + 0.10 × 0.95 + 0.05 × 0.9 = 1 − (1 − 0.9)(1 − 0.95)"
+achieve_ambulance_mobilized_when_ambulance_allocated,Achieve [Ambulance Mobilized When Ambulance Allocated],0.989000,0.984,"case-driven, P(AtStation) 0.6: 0.6 × 0.995 + 0.4 × 0.98 = 0.989 (the paper prints 0.984; its next steps use 0.989)"
+achieve_ambulance_on_scene_when_ambulance_allocated,Achieve [Ambulance On Scene When Ambulance Allocated],0.946620,0.9466,milestone-driven: 0.989 × 0.957
+achieve_ambulance_on_scene_when_incident_reported,Achieve [Ambulance On Scene When Incident Reported],0.927688,0.9277,milestone-driven: 0.98 × 0.9466; EPS 92.77% vs RSR 95%: SV 2.23%
+avoid_ambulance_not_in_familiar_area,Avoid [Ambulance Not In Familiar Area],1.000000,,"leaf, nothing obstructs it (a resolution: not propagated, the model as it is)"

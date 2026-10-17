@@ -124,3 +124,31 @@ describe('kaosdoc: a requirements document from a KAOS model', () => {
     assert.match(document, /\| G2: Backup \| Softgoal \|/);
   });
 });
+
+describe('kaosdoc: obstacles (#181)', () => {
+  /** istar-ts's LAS: KAOSTools' London Ambulance, with obstacle analysis */
+  const las = readFileSync('test/dialect/fixtures/kaos-las.txt', 'utf8');
+  const sectionOf = (doc: string, heading: string) =>
+    doc.split(`\n## ${heading}\n\n`)[1]?.split('\n\n## ')[0];
+
+  it('lists each obstacle in its tree’s order: what it obstructs, what resolves it and how', () => {
+    assert.strictEqual(
+      sectionOf(documentOf(las), 'Obstacles'),
+      [
+        '| Obstacle | Category | Obstructs | Resolved by | Resolution |',
+        '| --- | --- | --- | --- | --- |',
+        '| Mobilized Ambulance Not On Scene in Time |  | Achieve [Ambulance On Scene When Ambulance Mobilized] |  |  |',
+        '| Ambulance Stuck In Traffic Jam |  |  |  |  |',
+        '| Ambulance Lost |  |  |  |  |',
+        '| Ambulance Not In Familiar Area |  |  | Avoid [Ambulance Not In Familiar Area] | mitigation, anchored on Achieve [Ambulance On Scene When Ambulance Mobilized] |',
+        '| GPS Not Working |  |  |  |  |',
+        '| Ambulance Broken Down |  |  |  |  |',
+        '',
+      ].join('\n'),
+    );
+  });
+
+  it('has no Obstacles section without obstacles (DSM3’s KAOS has none)', () => {
+    assert.strictEqual(sectionOf(documentOf(seed), 'Obstacles'), undefined);
+  });
+});

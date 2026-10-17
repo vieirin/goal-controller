@@ -4,7 +4,9 @@
  * Lamsweerde's goal-oriented requirements documents follow: the goals
  * (each with its fit criterion), their refinements, the domain properties
  * they rely on, the leaf goals as requirements and expectations, the agents
- * responsible for them, and the conflicts with their boundary conditions.
+ * responsible for them, and the conflicts with their boundary conditions;
+ * then, in a model with obstacle analysis (goal-controller#181), the
+ * obstacles: what each obstructs and the goals resolving it, with how.
  *
  * Goals are in the order of their refinement trees (depth first, a goal
  * refining several parents once); every element is named by its text as
@@ -29,6 +31,7 @@ const KIND_LABEL: Readonly<Record<string, string>> = {
   'kaos.EnvironmentAgent': 'Environment agent',
   'kaos.DomainProperty': 'Domain property',
 };
+const OBSTACLE = 'kaosObstacles.Obstacle';
 /** an n-ary refinement's legs (sub-goal to hub) and end (hub to goal), as core generates them */
 const LEG = 'kaos.RefinementLinkStart';
 const END = 'kaos.RefinementLinkEnd';
@@ -108,6 +111,21 @@ export const kaosdocDocument = (
     (e) => e.kind === 'kaos.DomainProperty',
   );
   const agents = model.elements.filter((e) => AGENT_KINDS.has(e.kind));
+  // obstacles in their trees' order, then any no tree holds
+  const obstacles = [
+    ...nodes
+      .filter((node) => node.properties.engine.kind === OBSTACLE)
+      .map((node) => node.iStarId),
+    ...model.elements
+      .filter((e) => e.kind === OBSTACLE && !rank.has(e.id))
+      .map((e) => e.id),
+  ];
+  /** an anchor, by piStar id or the id its text starts with, by its name */
+  const anchorName = (anchor: string) =>
+    elements.has(anchor)
+      ? nameOf(anchor)
+      : (model.elements.find((e) => e.name.startsWith(`${anchor}: `))?.name ??
+        anchor);
 
   const sections: Array<[string, string]> = [
     [
@@ -220,6 +238,37 @@ export const kaosdocDocument = (
       ),
     ],
   ];
+  // only a model with obstacles has the section (DSM3's KAOS has none)
+  if (obstacles.length)
+    sections.push([
+      'Obstacles',
+      table(
+        ['Obstacle', 'Category', 'Obstructs', 'Resolved by', 'Resolution'],
+        obstacles.map((id) => {
+          const resolutions = linksOf('kaosObstacles.ResolutionLink').filter(
+            (link) => link.target === id,
+          );
+          return [
+            nameOf(id),
+            prop(elements.get(id)?.properties ?? {}, 'Category'),
+            linksOf('kaosObstacles.ObstructionLink')
+              .filter((link) => link.source === id)
+              .map((link) => nameOf(link.target))
+              .join(', '),
+            resolutions.map((link) => nameOf(link.source)).join(', '),
+            resolutions
+              .map(({ properties: { engine } }) => {
+                const type = prop(engine, 'ResolutionType');
+                const anchor = prop(engine, 'Anchor');
+                return anchor
+                  ? `${type || 'unspecified'}, anchored on ${anchorName(anchor)}`
+                  : type;
+              })
+              .join('; '),
+          ];
+        }),
+      ),
+    ]);
   return [
     `# Requirements document: ${title}`,
     '',

@@ -510,3 +510,87 @@ log are in #182.
   installs a second core (#177). dsm3-nfr 0.14.0 reached the registry
   after the other three, and the bump waited for it rather than using an
   override (#182).
+
+### PR G: kaosprop, probabilistic obstacle analysis
+
+- **An analysis engine with its own dialect.** kaosprop's dialect is `kaos`
+  plus the quantities of Cailliau and van Lamsweerde's RE'12 and REJ'13,
+  each a `probability` written as read:
+  - a goal's `RSR` and `ESR`;
+  - a leaf obstacle's `Probability`;
+  - an obstacle refinement's hub's `Probability`, `P(O|SO1..n)`;
+  - an obstruction's `Probability`, `P(¬G|O)`;
+  - a case leg's `Probability`, `P(CS)`.
+
+  This mirrors nfrprop's `initialLabel`. The plain `kaos` dialect keeps
+  these as unknown keys. Defaults: a hub's and an obstruction's
+  probability is 1, a domain property holds (1), and a leaf obstacle with
+  no estimate is 0, which its step says.
+- **The rules** (RE'12 §IV, Table I):
+  - An obstacle refinement is the AND of its children times its
+    `P(O|SO…)`. Several refinements of one obstacle are an OR,
+    `1 − Π(1 − P(hub))`. One rule gives both of the paper's formulas.
+  - A leaf goal is `Π(1 − P(O)·P(¬G|O))` over its obstructions.
+  - A goal refinement's `Tactic` decides its rule: case-driven (or
+    KAOSTools' `case`) is `Σ P(CS)·P(SG)`. With two legs and one case
+    given, the other is its complement. Every other tactic, an unknown
+    one and none is the product, which is Table I's for all five other
+    patterns.
+- **Two choices beyond Table I, both from the paper's own example:**
+  - A leaf goal that nothing obstructs takes its `ESR` as its estimate
+    (default 1). RE'12 gives such leaves' values (0.98, 0.90, 0.95)
+    without the obstacles behind them, and REJ'13 gives three sibling
+    subtrees as results only. On a refined or obstructed goal, `ESR` is
+    not read: its EPS is computed.
+  - Several refinements of one goal are alternatives, either of which
+    suffices: `1 − Π(1 − P(hub))`. This is RE'12's general and-propag with
+    `P(G|SGi,¬SGj) = 1`, which the paper uses for
+    `MobilizedWhenAtStation` (fax or phone).
+- **The report and the values.** There is one case, run as steps, one per
+  goal and obstacle computed, each saying how (`AND of …`, `OR of …`,
+  `case-driven: 0.4 × … + 0.6 × …`). A goal shows `EPS 92.77%`, and with
+  an `RSR` also `· SV 2.23%`, a warning when `SV > 0`. An obstacle shows
+  `P 1.90%`. Resolutions are not propagated: the analysis is of the model
+  as it is, which is RE'12's use, before countermeasures.
+- **Critical combinations** (RE'12 §V, REJ'13 §6.4). A combination is a
+  singleton or a pair of leaf obstacles at their estimates, with every
+  other leaf at 0. It is critical when a goal with an `RSR` gets
+  `SV > 0`. Each critical combination is a case: a selection of its
+  obstacles and the goal, ranked by SV. The issue's "whose removal makes
+  SV ≤ 0" is read as the papers define it.
+- **Oracles.**
+  - RE'12's LAS is a hand-drawn model
+    (`lib/test/engines/kaosprop/fixtures/re12-las.txt`) with the paper's
+    estimates, each value derived in `examples/kaos/las/las.expected.csv`.
+    The top EPS is 92.77 % against an RSR of 95 %.
+  - Table II's eight rows are within 0.04 points: the paper rounds, and
+    its 110 row is 0.035 points under the arithmetic. They are critical
+    exactly where the paper's are.
+  - RE'12 prints `0.6 × 0.995 + 0.4 × 0.98 = 0.984`, but the arithmetic
+    is 0.989, and only 0.989 gives the paper's next steps (0.9466,
+    0.9277) and Table II's 96.92 %. The oracle keeps the arithmetic and
+    logs the typo.
+  - KAOSTools' `las.kaos` is not RE'12's figure: it has `[.8]`/`[.2]`
+    legs and one tactic-less fax/phone hub. A seed imported from it
+    (PR F) gives its own numbers.
+  - REJ'13's carpooling chain (`rej13-carpooling.txt`: Fig. 6's obstacle
+    tree, Table 3's estimates, Fig. 4's goals) reproduces 0.015 → 0.08 →
+    0.12 → 0.19 → 0.81 → 0.526 → 0.425 → 0.28. The paper's critical pairs
+    (RE'12: 904 of 1722; REJ'13: 470 of 1953) need the full 63-leaf model,
+    which neither paper contains, so they are not checked.
+- **The IR holds obstacles.** `FRAMEWORK_NODE_TYPES` makes
+  `kaosObstacles.Obstacle` a goal node, so obstacle trees lie on the paper
+  beside the goal trees. `refinementsOf` reads obstacle hubs through the
+  dialect's `refinements`.
+- **kaosdoc reads `KAOS_OBSTACLES`** and gains an "Obstacles" section:
+  each obstacle in its tree's order, with its category, what it
+  obstructs, the goals resolving it, and how (`mitigation, anchored on
+  …`). Only a model with obstacles has the section, so DSM3's document
+  stays byte-identical.
+- **In the workbench** kaosprop is offered under KAOS beside kaosdoc, in
+  KAOS's editor (§4.1 of the engine guide). kaosprop has no file output,
+  as nfrprop has none, so `output.test.ts` has no entry for it. Its report
+  is checked through `analysisText`'s steps. The ui test of Analyse on the
+  LAS seed waits for PR F's seeds. A ui test runs both analyses on the
+  RE'12 model, read by the workbench's own parser.
+
