@@ -55,9 +55,9 @@ const messageOn = (
     : (issues.find((i) => i.key === key)?.message ?? null);
 
 /**
- * goal/task issues, in mapGoalProps/mapTaskProps's own order (the maintain condition,
- * then maxRetries): the first entry is the one the mapper throws. The decision
- * variables have none of their own: a pair the dialect can't read is its value check's.
+ * goal/task issues, the maintain condition's: the first entry is the one the mapper
+ * throws. The decision variables and maxRetries have none of their own: a pair, or an
+ * int below its min, that the dialect can't read is its value check's.
  */
 const goalOrTaskIssues = (
   kind: 'goal' | 'task',
@@ -81,13 +81,6 @@ const goalOrTaskIssues = (
         message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${raw.maintain}, assertion: 'empty condition'`,
       });
     }
-  }
-
-  if (values.maxRetries != null && values.maxRetries < 0) {
-    issues.push({
-      key: 'maxRetries',
-      message: `[INVALID ${kind.toUpperCase()}]: maxRetries must be a non-negative integer: got "${raw.maxRetries}"`,
-    });
   }
 
   return issues;
@@ -219,16 +212,14 @@ const resourceCheck =
 export const edgeGoalChecks = checks({
   maintain: goalOrTaskCheck('goal', 'maintain'),
   assertion: goalOrTaskCheck('goal', 'assertion'),
-  maxRetries: goalOrTaskCheck('goal', 'maxRetries'),
   dependsOn: dependsOnCheck,
 });
 
 // 'maintain' isn't a task key (EDGE_TASK_KEYS), so a task can never satisfy the
 // maintain condition once its type is 'maintain': mapTaskProps always throws it,
-// through firstGoalOrTaskIssue, with no key to attach it to in the UI.
-export const edgeTaskChecks = checks({
-  maxRetries: goalOrTaskCheck('task', 'maxRetries'),
-});
+// through firstGoalOrTaskIssue, with no key to attach it to in the UI. A task's
+// keys have no engine check: the dialect's value checks say what is wrong (#251).
+export const edgeTaskChecks = checks({});
 
 export const edgeResourceChecks = checks({
   type: resourceCheck('type'),
@@ -245,9 +236,7 @@ export const edgeResourceChecks = checks({
 export const edgeCheckRegistry = checks({
   'edge.goal.maintain': edgeGoalChecks.maintain,
   'edge.goal.assertion': edgeGoalChecks.assertion,
-  'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
   'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
-  'edge.task.maxRetries': edgeTaskChecks.maxRetries,
   'edge.resource.type': edgeResourceChecks.type,
   'edge.resource.initialValue': edgeResourceChecks.initialValue,
   'edge.resource.lowerBound': edgeResourceChecks.lowerBound,

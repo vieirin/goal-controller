@@ -86,8 +86,7 @@
           "type": "int",
           "min": 0
         },
-        "help": "how many times it may be retried (a non-negative integer)",
-        "check": "edge.goal.maxRetries"
+        "help": "how many times it may be retried (a non-negative integer)"
       },
       {
         "key": "utility",
@@ -160,8 +159,7 @@
           "type": "int",
           "min": 0
         },
-        "help": "how many times it may be retried (a non-negative integer)",
-        "check": "edge.task.maxRetries"
+        "help": "how many times it may be retried (a non-negative integer)"
       },
       {
         "key": "utility",

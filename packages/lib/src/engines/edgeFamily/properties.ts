@@ -75,7 +75,6 @@ export const edgeProperties = {
     int('maxRetries', {
       min: 0,
       help: HELP.maxRetries,
-      check: 'edge.goal.maxRetries',
     }),
     ...REWARDS,
     refList('dependsOn', 'goal', {
@@ -101,7 +100,6 @@ export const edgeProperties = {
     int('maxRetries', {
       min: 0,
       help: HELP.maxRetries,
-      check: 'edge.task.maxRetries',
     }),
     ...REWARDS,
   ],

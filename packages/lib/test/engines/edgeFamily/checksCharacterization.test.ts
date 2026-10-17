@@ -22,52 +22,37 @@ import {
 const noDeps = { self: '', kindOf: () => undefined };
 
 describe('edgeChecks characterization (#187)', () => {
-  describe('maxRetries', () => {
-    it('is fine when empty, zero or a non-negative integer', () => {
-      for (const maxRetries of ['', '0', '007', ' 3 ', '-0']) {
-        assert.strictEqual(
-          edgeGoalChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
-        );
-        assert.strictEqual(
-          edgeTaskChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
-        );
-      }
+  describe('maxRetries: no check of its own, the dialect’s value check says it', () => {
+    // #251: changed: the engine's maxRetries checks (null for every value
+    // since #249) are gone; an int with a min is the dialect's
+    const maxRetries = (kind: 'goal' | 'task') =>
+      edge.properties[kind].find((p) => p.key === 'maxRetries')!;
+    const problem = (kind: 'goal' | 'task', value: string) =>
+      valueProblem(maxRetries(kind).value, value);
+
+    it('has no check, on goals or tasks', () => {
+      assert.ok(!('maxRetries' in edgeGoalChecks));
+      assert.ok(!('maxRetries' in edgeTaskChecks));
+      assert.ok(!('check' in maxRetries('goal')));
+      assert.ok(!('check' in maxRetries('task')));
     });
 
-    it('is fine with what parseInt reads leading digits of', () => {
-      for (const maxRetries of ['1.5', '3abc', '1e3', '+2', '0x10'])
-        // #187: invalid value
+    it('is fine when empty, blank, zero or a non-negative integer', () => {
+      for (const kind of ['goal', 'task'] as const)
+        for (const value of ['', ' ', '0', '007', ' 3 ', '-0'])
+          assert.strictEqual(problem(kind, value), null, `${kind} ${value}`);
+    });
+
+    it('flags what is no integer, and a negative one', () => {
+      // #187: invalid value (the engine's check said nothing of them)
+      for (const value of ['1.5', '3abc', '1e3', '+2', '0x10', 'abc'])
         assert.strictEqual(
-          edgeGoalChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
+          problem('goal', value),
+          `Not an integer: ${value}`,
+          value,
         );
-    });
-
-    it('says nothing of a negative value on a task, nor of a non-numeric one', () => {
-      // #249: invalid value, changed (was its own message): below the
-      // dialect's min, which reports it ("At least 0")
-      assert.strictEqual(
-        edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        null,
-      );
-      // #187: invalid value, #187: changed (was the maxRetries message)
-      assert.strictEqual(
-        edgeGoalChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
-        null,
-      );
-    });
-
-    it('is fine with a blank value, which the dialect reads as unset', () => {
-      // #187: changed (was the maxRetries message)
-      assert.strictEqual(
-        edgeGoalChecks.maxRetries?.({ maxRetries: ' ' }, noDeps),
-        null,
-      );
+      // #249: invalid value, changed (was the engine's own message)
+      assert.strictEqual(problem('task', '-1'), 'At least 0');
     });
   });
 
@@ -431,9 +416,7 @@ describe('edgeChecks characterization (#187)', () => {
       assert.deepStrictEqual(edgeCheckRegistry, {
         'edge.goal.maintain': edgeGoalChecks.maintain,
         'edge.goal.assertion': edgeGoalChecks.assertion,
-        'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
         'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
-        'edge.task.maxRetries': edgeTaskChecks.maxRetries,
         'edge.resource.type': edgeResourceChecks.type,
         'edge.resource.initialValue': edgeResourceChecks.initialValue,
         'edge.resource.lowerBound': edgeResourceChecks.lowerBound,

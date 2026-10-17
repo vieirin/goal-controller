@@ -632,7 +632,8 @@ describe('ui language services', () => {
       end: { line, character: 2 },
     });
     const service = { id: 'goal language', anchoring: 'data' as const };
-    const doc = 'G1: Go [G2;G3]\n  maxRetries x\nG2: A\nG3: B';
+    const doc = 'G1: Go [G2;G3]\n  dependsOn G9\nG2: A\nG3: B';
+    const missing = '[INVALID MODEL]: Dependency G9 not found for node G1';
     const found = serverProblems(
       {
         uri: 'file:///notation.goal',
@@ -640,11 +641,11 @@ describe('ui language services', () => {
           {
             range: at(1),
             severity: 1,
-            message: 'At least 0',
+            message: missing,
             data: {
               elementId: 'G1',
-              key: 'maxRetries',
-              check: 'edge.goal.maxRetries',
+              key: 'dependsOn',
+              check: 'edge.goal.dependsOn',
             },
           },
           {
@@ -664,7 +665,7 @@ describe('ui language services', () => {
     expect(
       found.map((p) => [p.elementId, p.key, p.severity, p.source, p.message]),
     ).to.deep.equal([
-      ['G1', 'maxRetries', 'error', 'EdgeV2', 'At least 0'],
+      ['G1', 'dependsOn', 'error', 'EdgeV2', missing],
       ['G2', undefined, 'warning', 'goal language', 'by node'],
       ['G3', undefined, 'info', 'goal language', 'by range'],
     ]);
