@@ -494,8 +494,9 @@ log are in #182.
   - A `reference` value naming no element, or one of another kind, is an
     error (`dangling-reference`) on the link or element that holds it.
   - LAS has none.
-- **istar-ts 0.14.0.** `@istar-ts/core`, `react` and `dsm3-kaos` are bumped
-  to `^0.14.0` (dependencies, not our versions). `@istar-ts/dsm3-nfr`
-  0.14.0 was logged as published by the release run but isn't on the
-  registry. Its 0.13.7 pins core `<0.14`, which would install a second
-  core, so the bump waits for it rather than using an override (#182).
+- **istar-ts 0.14.0.** `@istar-ts/core`, `react`, `dsm3-kaos` and
+  `dsm3-nfr` are bumped to `^0.14.0` (dependencies, not our versions), all
+  four at once. `dsm3-nfr` 0.13.7 pins core `<0.14`, so a partial bump
+  installs a second core (#177). dsm3-nfr 0.14.0 reached the registry
+  after the other three, and the bump waited for it rather than using an
+  override (#182).
