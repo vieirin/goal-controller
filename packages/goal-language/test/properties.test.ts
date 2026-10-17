@@ -10,6 +10,7 @@ import {
   readProperties,
   valueProblem,
   type Assertion,
+  type PairList,
   type AssertionTree,
   type PropertyValues,
   type RefList,
@@ -81,8 +82,8 @@ describe('readProperties (#187)', () => {
       mode: 'slow',
       dependsOn: ['G2', 'G3'],
       variables: [
-        { name: 'x', value: '3' },
-        { name: 'y', value: '2' },
+        { name: 'x', value: 3 },
+        { name: 'y', value: 2 },
       ],
       note: 'a note',
       chance: 0.8,
@@ -223,12 +224,13 @@ describe('readProperties (#187)', () => {
     expect(valueProblem({ type: 'int' }, '3\n4')).to.equal(
       'Not an integer: 3\n4',
     );
-    const [type, mode] = [
-      dialect.properties.goal[3],
-      dialect.properties.goal[4],
-    ];
-    expect(valueProblem(type.value, 'achieve\nmaintain')).to.match(/^One of /);
-    expect(valueProblem(mode.value, 'fast\nslow')).to.equal(
+    const type = {
+      type: 'enum',
+      options: [{ value: 'achieve', label: '' }],
+    } as const;
+    const mode = { ...type, open: true } as const;
+    expect(valueProblem(type, 'achieve\nmaintain')).to.match(/^One of /);
+    expect(valueProblem(mode, 'fast\nslow')).to.equal(
       'One line, not "fast\\nslow"',
     );
   });
@@ -274,6 +276,52 @@ describe('readProperties (#187)', () => {
     );
   });
 
+  it("reads a pairList's members as its value type, or leaves it unset (#235)", () => {
+    const lists = {
+      properties: {
+        goal: [
+          property.pairList('ints', 'int', { help: '' }),
+          property.pairList('numbers', 'number', { help: '' }),
+          property.pairList('texts', 'text', { help: '' }),
+        ],
+      },
+    };
+    const read = (stored: Record<string, string>) =>
+      readProperties(lists, { element: 'goal' }, stored);
+    const { values } = read({
+      ints: 'x:3, y:-2',
+      numbers: 'p:0.5, q:2',
+      texts: 'a:on, b:3',
+    });
+    expect(values.ints).to.deep.equal([
+      { name: 'x', value: 3 },
+      { name: 'y', value: -2 },
+    ]);
+    expect(values.ints?.get('y')).to.equal(-2);
+    expect(values.ints?.text()).to.equal('x:3, y:-2');
+    expect(values.numbers?.get('p')).to.equal(0.5);
+    expect(values.texts?.get('b')).to.equal('3');
+    same<Same<NonNullable<typeof values.ints>, PairList<number>>>();
+    same<Same<NonNullable<typeof values.numbers>, PairList<number>>>();
+    same<Same<NonNullable<typeof values.texts>, PairList<string>>>();
+    // a member not of its type: the whole value is unset, and reported
+    for (const ints of ['x:abc', 'x:1.5', 'x:3abc', 'x:3, y:abc']) {
+      const record = read({ ints });
+      expect(record.values, ints).to.deep.equal({});
+      expect(record.text, ints).to.deep.equal({ ints });
+      expect(
+        valueProblem({ type: 'pairList', value: 'int' }, ints),
+        ints,
+      ).to.match(/: Not an integer: /);
+    }
+    expect(read({ numbers: 'p:high' }).values).to.deep.equal({});
+    expect(
+      valueProblem({ type: 'pairList', value: 'number' }, 'p:high'),
+    ).to.equal('p: Not a number: high');
+    // empty: an empty list, as before
+    expect([...read({ ints: '' }).values.ints!]).to.deep.equal([]);
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();
@@ -281,6 +329,7 @@ describe('readProperties (#187)', () => {
     same<Same<Goal['type'], 'achieve' | 'maintain' | null | undefined>>();
     same<Same<Goal['mode'], string | null | undefined>>();
     same<Same<Goal['dependsOn'], RefList | undefined>>();
+    same<Same<Goal['variables'], PairList<number> | undefined>>();
     same<Same<Goal['chance'], number | null | undefined>>();
     same<Same<Goal['bound'], Assertion | number | null | undefined>>();
     const { values } = readProperties(

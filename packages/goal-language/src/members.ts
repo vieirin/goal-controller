@@ -529,7 +529,7 @@ const unique = (ids: string[]): string[] => [...new Set(ids)];
 
 /** A pairList's text: `x:3, y:2`. */
 export const pairListText = (
-  pairs: readonly { name: string; value: string }[],
+  pairs: readonly { name: string; value: string | number }[],
 ): string => pairs.map((pair) => `${pair.name}:${pair.value}`).join(', ');
 
 // ---------------------------------------------------------------------------
@@ -585,21 +585,29 @@ export type RefListMembers = Written &
 /** A refList (`G2, G5`): its ids, with their operations. */
 export type RefList = string[] & RefListMembers;
 
-/** A pair of a pairList (`x:3`). */
-export type Pair = { name: string; value: string };
+/**
+ * A pair of a pairList (`x:3`): its name, and its value as the list's value
+ * type reads it (goal-controller#235: an `int` or a `number` list's a
+ * number, a `text` list's, and one read without its config, a string).
+ */
+export type Pair<V extends PairValue = string> = { name: string; value: V };
+
+/** What a pair's value is: a number, or a string. */
+export type PairValue = string | number;
 
 /** A pairList's members. */
-export type PairListMembers = Written & {
+export type PairListMembers<V extends PairValue = string> = Written & {
   /** the data: the pairs themselves */
-  readonly pairs: readonly Pair[];
+  readonly pairs: readonly Pair<V>[];
   /** the value of the first pair of that name */
-  get(name: string): string | undefined;
+  get(name: string): V | undefined;
   /** its pairs' names, in order */
   names(): string[];
 };
 
 /** A pairList (`x:3, y:2`): its pairs, with their operations. */
-export type PairList = Pair[] & PairListMembers;
+export type PairList<V extends PairValue = string> = Pair<V>[] &
+  PairListMembers<V>;
 
 /** A notation's members. */
 export type NotationMembers = Written &
@@ -673,7 +681,9 @@ export const asRefList = (ids: string[]): RefList =>
   }));
 
 /** A pairList's pairs with their operations. */
-export const asPairList = (pairs: Pair[]): PairList =>
+export const asPairList = <V extends PairValue = string>(
+  pairs: Pair<V>[],
+): PairList<V> =>
   withMembers(pairs, (data) => ({
     pairs: data,
     text: () => pairListText(data),
