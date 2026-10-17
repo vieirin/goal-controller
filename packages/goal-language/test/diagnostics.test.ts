@@ -200,7 +200,7 @@ describe('fieldDiagnostics', () => {
             : p,
         ),
       },
-    } as typeof toy;
+    };
     expect(
       fieldDiagnostics(
         declaring,
@@ -227,7 +227,7 @@ describe('a property an engine-owned server serves', () => {
         p.key === 'guard' ? { ...p, servedBy: 'engine' as const } : p,
       ),
     },
-  } as typeof toy;
+  };
 
   it('gets no value diagnostics, completion or hover from the shared path', () => {
     // the value doesn't parse as an assertion, and names an unknown variable
@@ -342,7 +342,7 @@ describe('what the dialect allows', () => {
         ...toy.notation,
         operators: { ...toy.notation.operators, FALLBACK: 'fallback' },
       },
-    } as typeof toy;
+    };
     const found = (doc: string) =>
       documentDiagnostics(calling, doc, context).map((d) => [
         doc.slice(d.from, d.to),
@@ -370,8 +370,11 @@ describe('what the dialect allows', () => {
   it('flags skip where the dialect has no skip', () => {
     const strict = {
       ...toy,
-      notation: { ...toy.notation, operand: { kinds: ['goal', 'task'] } },
-    } as typeof toy;
+      notation: {
+        ...toy.notation,
+        operand: { kinds: ['goal', 'task'] as const },
+      },
+    };
     expect(
       documentDiagnostics(strict, 'G1: Go [G2;T1;skip]', context).map(
         (d) => d.message,

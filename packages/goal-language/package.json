@@ -54,7 +54,8 @@
     "generate": "langium generate",
     "build": "rm -rf out && tsc && node build.mjs",
     "watch": "tsc --watch",
-    "test": "mocha",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "pnpm run typecheck && mocha",
     "clean": "rm -rf out"
   },
   "dependencies": {

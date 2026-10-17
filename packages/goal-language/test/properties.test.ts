@@ -261,19 +261,41 @@ describe('readProperties (#187)', () => {
     expect(read({ closed: 'no', open: 'No' }).values).to.deep.equal({
       open: 'No',
     });
-    const [closed, open] = flags.properties.goal;
-    expect(valueProblem(closed.value, 'TRUE')).to.equal(null);
-    expect(valueProblem(closed.value, 'no')).to.equal(
-      'One of true, false, not no',
-    );
-    expect(valueProblem(open.value, 'whatever')).to.equal(null);
+    const [closed, open] = [
+      {
+        type: 'enum',
+        options: [
+          { value: 'true', label: '' },
+          { value: 'false', label: '' },
+        ],
+        caseInsensitive: true,
+      },
+      {
+        type: 'enum',
+        options: [{ value: 'false', label: '' }],
+        open: true,
+        caseInsensitive: true,
+      },
+    ] as const;
+    expect(valueProblem(closed, 'TRUE')).to.equal(null);
+    expect(valueProblem(closed, 'no')).to.equal('One of true, false, not no');
+    expect(valueProblem(open, 'whatever')).to.equal(null);
     // without the flag, case still matters
     expect(
       readProperties(dialect, { element: 'goal' }, { type: 'Achieve' }).values,
     ).to.deep.equal({});
-    expect(valueProblem(dialect.properties.goal[3].value, 'Achieve')).to.equal(
-      'One of achieve, maintain, not Achieve',
-    );
+    expect(
+      valueProblem(
+        {
+          type: 'enum',
+          options: [
+            { value: 'achieve', label: '' },
+            { value: 'maintain', label: '' },
+          ],
+        },
+        'Achieve',
+      ),
+    ).to.equal('One of achieve, maintain, not Achieve');
   });
 
   it("reads a pairList's members as its value type, or leaves it unset (#235)", () => {

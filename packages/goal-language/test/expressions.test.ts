@@ -4,6 +4,7 @@ import {
   type DefinitionContext,
 } from '@goal-controller/dialect';
 import { expect } from 'chai';
+import { toy } from '../../dialect/test/support/toy.js';
 import {
   fieldCompletions,
   fieldDiagnostics,
@@ -23,6 +24,8 @@ const formulas = defineDialect({
     resource: { prefix: 'R', fill: '#FFFF00' },
   },
   defaultFill: '#FFFFFF',
+  indent: '  ',
+  problems: toy.problems,
   propertyLineOrder: ['reward', 'guard'],
   properties: {
     goal: [
