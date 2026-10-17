@@ -277,11 +277,11 @@ export default function ModelSettingsModal() {
                         }
                         className='sr-only'
                       />
-                      <span className='flex items-baseline justify-between gap-2'>
+                      <span className='flex flex-wrap items-baseline justify-between gap-x-2'>
                         <span className='text-[13px] font-semibold text-ink'>
                           {engine.label}
                         </span>
-                        <span className='font-mono text-2xs text-ink-muted'>
+                        <span className='min-w-0 break-words font-mono text-2xs text-ink-muted'>
                           {engine.output}
                         </span>
                       </span>
@@ -325,11 +325,11 @@ export default function ModelSettingsModal() {
                         }
                         className='sr-only'
                       />
-                      <span className='flex items-baseline justify-between gap-2'>
+                      <span className='flex flex-wrap items-baseline justify-between gap-x-2'>
                         <span className='text-[13px] font-semibold text-ink'>
                           {MODELLING_LABEL[dialect.id]}
                         </span>
-                        <span className='font-mono text-2xs text-ink-muted'>
+                        <span className='min-w-0 break-words font-mono text-2xs text-ink-muted'>
                           {dialect.output}
                         </span>
                       </span>
@@ -369,11 +369,11 @@ export default function ModelSettingsModal() {
                       }
                       className='sr-only'
                     />
-                    <span className='flex items-baseline justify-between gap-2'>
+                    <span className='flex flex-wrap items-baseline justify-between gap-x-2'>
                       <span className='text-[13px] font-semibold text-ink'>
                         {PISTAR.label}
                       </span>
-                      <span className='font-mono text-2xs text-ink-muted'>
+                      <span className='min-w-0 break-words font-mono text-2xs text-ink-muted'>
                         {PISTAR.output}
                       </span>
                     </span>
