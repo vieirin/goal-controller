@@ -8,6 +8,16 @@
 export const previewOf = (text) => {
   const model = JSON.parse(text);
   const node = ({ id, type, x, y }) => ({ id, text: '', type, x, y });
+  const end = ({ id, type, source, target }) => ({ id, type, source, target });
+  // an n-ary link (KAOS's refinement, goal-controller#171): its hub, legs and end
+  const link = (entry) =>
+    entry.hub
+      ? {
+          hub: { ...node(entry.hub), customProperties: {} },
+          starts: (entry.starts ?? []).map(end),
+          ...(entry.end && { end: end(entry.end) }),
+        }
+      : end(entry);
   return {
     actors: (model.actors ?? []).map((actor) => ({
       ...node(actor),
@@ -15,12 +25,7 @@ export const previewOf = (text) => {
     })),
     orphans: (model.orphans ?? []).map(node),
     dependencies: (model.dependencies ?? []).map(node),
-    links: (model.links ?? []).map(({ id, type, source, target }) => ({
-      id,
-      type,
-      source,
-      target,
-    })),
+    links: (model.links ?? []).map(link),
     display: model.display ?? {},
     tool: model.tool,
     istar: model.istar,

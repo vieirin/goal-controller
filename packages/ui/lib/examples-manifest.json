@@ -864,6 +864,17 @@
     "outputs": []
   },
   {
+    "path": "kaos/kaos-welcome.txt",
+    "group": "kaos",
+    "name": "kaos-welcome.txt",
+    "form": "embedded",
+    "root": "kaos",
+    "files": ["kaos-welcome.txt"],
+    "models": ["kaos-welcome.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "mutrose/lab-sample-logistics",
     "group": "mutrose",
     "name": "lab-sample-logistics",
@@ -905,6 +916,17 @@
       "hddl": "hddl/domain.hddl",
       "configuration": "configuration/configuration.json"
     },
+    "outputs": []
+  },
+  {
+    "path": "nfr/nfr-welcome.txt",
+    "group": "nfr",
+    "name": "nfr-welcome.txt",
+    "form": "embedded",
+    "root": "nfr",
+    "files": ["nfr-welcome.txt"],
+    "models": ["nfr-welcome.txt"],
+    "projectResources": {},
     "outputs": []
   },
   {

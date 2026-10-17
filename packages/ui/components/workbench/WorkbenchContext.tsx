@@ -26,11 +26,14 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
+import { parseModel } from '@/lib/workbench/dialects';
+import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
 import {
-  isDialectMode,
-  parseModel,
-  type DialectMode,
-} from '@/lib/workbench/dialects';
+  FRAMEWORK_DIALECTS,
+  isFrameworkMode,
+  isModellingMode,
+  type ModellingMode,
+} from '@/lib/workbench/frameworkModes';
 import {
   isEngineMode,
   readModelMode,
@@ -120,7 +123,7 @@ let handleStorage: HandleStorage | null = null;
 const handles = (): HandleStorage => (handleStorage ??= indexedDbHandles());
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
-export type ConversionTarget = TransformEngine | DialectMode;
+export type ConversionTarget = TransformEngine | ModellingMode;
 import { modelSignature } from '@/lib/workbench/signature';
 import { analyze, transform, treeView } from '@/services';
 import {
@@ -633,7 +636,7 @@ function WorkbenchState({
   const [live, setLive] = useState<boolean>(initial.current?.live ?? true);
   const [pistar, setPistar] = useState(false);
   // with pistar: the dialect the model is for (no engine either)
-  const [dialect, setDialect] = useState<DialectMode | undefined>();
+  const [dialect, setDialect] = useState<ModellingMode | undefined>();
   const settings = useMemo<ModelSettings>(
     () => ({ engine, options, live, pistar, dialect }),
     [engine, options, live, pistar, dialect],
@@ -771,7 +774,7 @@ function WorkbenchState({
       setDialect(undefined);
     } else {
       setPistar(true);
-      setDialect(isDialectMode(target) ? target : undefined);
+      setDialect(isModellingMode(target) ? target : undefined);
     }
   }, []);
   const requestMode = useCallback(
@@ -1112,11 +1115,13 @@ function WorkbenchState({
 
   // ---- structure -------------------------------------------------------------
   // whether the file parses: immediate, in the browser
-  const parsed = useMemo(() => {
+  const parsed = useMemo((): {
+    error: Problem | null;
+    istar?: ReturnType<typeof parseModel>;
+  } => {
     if (!model.text.trim()) return { error: null };
     try {
-      parseModel(model.text);
-      return { error: null };
+      return { error: null, istar: parseModel(model.text) };
     } catch (error) {
       return { error: jsonProblem(model.text, error as Error) };
     }
@@ -1970,6 +1975,11 @@ function WorkbenchState({
     list.push(...resourceProblemsNow);
     // the model's native files: out of sync, unreadable, or not written (goal-controller#143)
     list.push(...nativeProblemsNow);
+    // a framework's model (goal-controller#171): what its dialect says of it
+    if (pistar && isFrameworkMode(dialect) && parsed.istar)
+      list.push(
+        ...frameworkProblems(parsed.istar, FRAMEWORK_DIALECTS[dialect]),
+      );
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     if (tree && !parsed.error) {
@@ -2012,11 +2022,13 @@ function WorkbenchState({
     return mergeProblems(list, serviceProblems);
   }, [
     parsed.error,
+    parsed.istar,
     modelOptions,
     resourceProblemsNow,
     nativeProblemsNow,
     projectResources,
     pistar,
+    dialect,
     tree,
     engine,
     variables,

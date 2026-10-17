@@ -4,6 +4,7 @@ import type { TransformEngine } from '@/lib/types';
 import type { NativeSlot, ResourceSlot } from '@/lib/project';
 import { isDialectEngine } from '@/lib/workbench/engineDialects';
 import { isDialectMode } from '@/lib/workbench/dialects';
+import { isFrameworkMode } from '@/lib/workbench/frameworkModes';
 import { resourceTabId } from '@/lib/workbench/projectResources';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import PistarExtNotationView from './engines/pistarExt/PistarExtNotationView';
@@ -29,7 +30,8 @@ export const modelTabsFor = (
   natives: readonly NativeSlot[] = [],
 ): Array<{ id: ModelTab; label: string }> => [
   { id: 'diagram', label: 'Goal Model' },
-  ...(isDialectMode(mode) || isDialectEngine(engine)
+  // a framework's model has no engine's notation (its own view is PR B's, #171)
+  ...(!isFrameworkMode(mode) && (isDialectMode(mode) || isDialectEngine(engine))
     ? [{ id: 'notation' as const, label: 'Notation' }]
     : []),
   { id: 'source', label: 'Source' },

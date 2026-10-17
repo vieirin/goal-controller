@@ -12,6 +12,7 @@ import PistarExtDiagram from './pistarExt/PistarExtDiagram';
 import SleecDiagram from './sleec/SleecDiagram';
 import Tropos4asDiagram from './tropos4as/Tropos4asDiagram';
 import CgmDiagram from './cgm/CgmDiagram';
+import FrameworkDiagram from './framework/FrameworkDiagram';
 
 /** The goal model's diagram for the mode the model is in. */
 export default function ModelDiagram() {
@@ -21,6 +22,9 @@ export default function ModelDiagram() {
       return <PistarDiagram />;
     case 'pistarext':
       return <PistarExtDiagram />;
+    case 'kaos':
+    case 'nfr':
+      return <FrameworkDiagram mode={wb.mode} />;
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':

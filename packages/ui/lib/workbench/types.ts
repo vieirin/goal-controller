@@ -1,5 +1,5 @@
 import type { GoalDiagnostic } from '@istar-ts/core';
-import type { DialectMode } from './dialects';
+import type { ModellingMode } from './frameworkModes';
 import {
   optionDefaults,
   type ExtensionKind,
@@ -88,8 +88,11 @@ export type ModelSettings = {
    * generation or engine problems). Missing in settings saved before it existed.
    */
   pistar?: boolean;
-  /** with `pistar`: the modelling dialect the model is for (lib/workbench/dialects.ts) */
-  dialect?: DialectMode;
+  /**
+   * with `pistar`: the modelling dialect the model is for (an extension's,
+   * lib/workbench/dialects.ts, or a framework's, lib/workbench/frameworkModes.ts)
+   */
+  dialect?: ModellingMode;
 };
 
 export type EngineName = TransformEngine;
