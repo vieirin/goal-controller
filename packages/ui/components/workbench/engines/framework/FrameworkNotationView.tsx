@@ -9,7 +9,9 @@ import {
   FRAMEWORK_DIALECTS,
   type FrameworkMode,
 } from '@/lib/workbench/frameworkModes';
+import { withFrameworkIds } from '@/lib/workbench/frameworkOpen';
 import { useWorkbench } from '../../WorkbenchContext';
+import { Button } from '../../ui';
 import NotationEditor from '../definition/NotationEditor';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
 
@@ -19,14 +21,16 @@ import { LanguageSupportContext } from '../definition/useLanguageSupport';
  * name to the line's end, its properties under it, a refinement's children
  * under what they refine (a KAOS hub is an AND). Names and properties are
  * edited here, elements and links in the diagram; the shared goal language
- * checks the text (no engine: no named checks).
+ * checks the text (no engine: no named checks). A model whose elements have
+ * no ids (DSM3's own files) is offered them, one undoable edit.
  */
 export default function FrameworkNotationView({
   mode,
 }: {
   mode: FrameworkMode;
 }) {
-  const { text } = useWorkbench();
+  const wb = useWorkbench();
+  const { text } = wb;
   const definition: AnyDialect = FRAMEWORK_DIALECTS[mode];
   // the last view read stays while the model is being fixed
   const last = useRef<GoalView | null>(null);
@@ -42,12 +46,44 @@ export default function FrameworkNotationView({
   useEffect(() => {
     if (tree) support.setContext(contextFromView(definition, tree, []));
   }, [tree, support, definition]);
+  // DSM3's own files name no element with an id: one click gives them theirs
+  const withIds = useMemo(
+    () => withFrameworkIds(text, definition),
+    [text, definition],
+  );
+  const prefixes = [
+    ...new Set(
+      Object.values(definition.elements).flatMap((e) =>
+        e?.prefix ? [`${e.prefix}…`] : [],
+      ),
+    ),
+  ].join(', ');
   return (
-    <NotationEditor
-      definition={definition}
-      tree={tree}
-      support={support}
-      selectable={false}
-    />
+    <div className='flex h-full flex-col'>
+      {withIds && (
+        <div
+          role='status'
+          className='flex flex-wrap items-center gap-2 border-b border-line bg-panel px-3 py-1.5 text-[13px] text-ink-soft'
+        >
+          <span className='mr-auto'>
+            Some elements have no id, so no line can name them.
+          </span>
+          <Button
+            variant='outline'
+            onClick={() => wb.setText(withIds, 'convert')}
+          >
+            Give every element an id ({prefixes})
+          </Button>
+        </div>
+      )}
+      <div className='min-h-0 flex-1'>
+        <NotationEditor
+          definition={definition}
+          tree={tree}
+          support={support}
+          selectable={false}
+        />
+      </div>
+    </div>
   );
 }

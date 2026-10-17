@@ -17,7 +17,11 @@ import {
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
 import { modelSettingsOf } from '@/lib/project';
-import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
+import {
+  inItsFramework,
+  openingMismatch,
+  withFrameworkIds,
+} from '@/lib/workbench/frameworkOpen';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
 import { parseModel } from '@/lib/workbench/dialects';
@@ -226,5 +230,32 @@ describe('a framework model’s Notation tab (#171)', () => {
     );
     expect(lines).toContain('  G3: Achieve [Problem Notified if Problem]');
     expect(lines).toContain('      DP1: Internet connection available');
+  });
+});
+
+describe('giving a framework model’s elements ids (#171)', () => {
+  it('names DSM3’s id-less elements by their kind’s prefix, numbered on, once', () => {
+    const named = withFrameworkIds(KAOS_WELCOME, FRAMEWORK_DIALECTS.kaos)!;
+    const names = JSON.parse(named).orphans.map(
+      (o: { text: string }) => o.text,
+    );
+    expect(names).toEqual([
+      'G1: Reliability',
+      'G2: Maintain [Minimal Interval Between Automatic Backups]',
+      'DP1: Internet connection available',
+      'G3: Achieve [Problem Notified if Problem]',
+      'G4: Save Bandwidth',
+      'G5: Achieve [Manual Backup]',
+      'A1: User',
+      'G6: Backup',
+    ]);
+    // nothing else changes: the names only
+    const before = JSON.parse(KAOS_WELCOME);
+    const after = JSON.parse(named);
+    for (const element of after.orphans) delete element.text;
+    for (const element of before.orphans) delete element.text;
+    expect(after).toEqual(before);
+    expect(withFrameworkIds(named, FRAMEWORK_DIALECTS.kaos)).toBeNull();
+    expect(withFrameworkIds('not json', FRAMEWORK_DIALECTS.kaos)).toBeNull();
   });
 });

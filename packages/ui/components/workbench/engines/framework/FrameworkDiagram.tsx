@@ -11,6 +11,7 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
+import { nextFrameworkId } from '@/lib/workbench/frameworkOpen';
 import {
   FRAMEWORK_DIALECTS,
   type FrameworkMode,
@@ -27,16 +28,6 @@ import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 const forCanvas = <EK extends string, LK extends string>(
   extension: IstarExtension<EK, LK>,
 ): IstarExtension => extension as unknown as IstarExtension;
-
-/** The next id of a prefix in a model (`G4`), from 1: ids its elements' names start with. */
-const nextId = (model: IstarModel, prefix: string): string => {
-  let max = 0;
-  for (const element of model.elements.values()) {
-    const match = /^\s*([A-Z]+)(\d+)\s*:/.exec(element.name);
-    if (match?.[1] === prefix) max = Math.max(max, Number(match[2]));
-  }
-  return `${prefix}${max + 1}`;
-};
 
 /** A kind's name as people read it: `kaos.BehavioralGoal` is "Behavioral Goal". */
 const labelOf = (kind: string): string =>
@@ -72,7 +63,7 @@ export const dialectParts = (definition: AnyDialect): IstarExtension => {
           component: FilledElement,
           ...(element?.prefix && {
             defaultName: ({ model }: { model: IstarModel }) =>
-              `${nextId(model, element.prefix!)}: ${labelOf(kind)}`,
+              `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
           }),
         },
       ]),

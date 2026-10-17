@@ -6,7 +6,9 @@
  * an example's folder mode is), and a model of another framework than the
  * open project's is refused unless the project is switched.
  */
-import type { Framework } from '@goal-controller/dialect';
+import type { AnyDialect, Framework } from '@goal-controller/dialect';
+import { updateElement, type IstarModel } from '@istar-ts/core';
+import { parseModel } from './dialects';
 import {
   FRAMEWORK_DIALECTS,
   isFrameworkMode,
@@ -17,6 +19,7 @@ import {
   frameworkMismatch,
   frameworkOfMode,
   readModelMode,
+  serializeModel,
   writeModelMode,
 } from './pistar';
 
@@ -65,4 +68,49 @@ export const openingMismatch = (
   return framework === project
     ? null
     : frameworkMismatch(text, frameworkModeOf(framework) ?? 'pistar', project);
+};
+
+/** An element name's id, when it starts with one (`G4: …`): its prefix and number. */
+const ID_OF_NAME = /^\s*([A-Z]+)(\d+)\s*:/;
+
+/** The next id of a prefix in a model (`G4`), from 1: ids its elements' names start with. */
+export const nextFrameworkId = (
+  model: Pick<IstarModel, 'elements'>,
+  prefix: string,
+): string => {
+  let max = 0;
+  for (const element of model.elements.values()) {
+    const match = ID_OF_NAME.exec(element.name);
+    if (match?.[1] === prefix) max = Math.max(max, Number(match[2]));
+  }
+  return `${prefix}${max + 1}`;
+};
+
+/**
+ * A framework model whose elements' names start with their kind's id
+ * (DSM3's files have none, `G1: Reliability`), in the model's order, each
+ * prefix numbered on from its highest; null when every listed element has
+ * one already (or the text isn't a model). Its Notation lines then name
+ * their elements.
+ */
+export const withFrameworkIds = (
+  text: string,
+  definition: Pick<AnyDialect, 'elements'>,
+): string | null => {
+  let model: IstarModel;
+  try {
+    model = parseModel(text);
+  } catch {
+    return null;
+  }
+  let changed = false;
+  for (const element of model.elements.values()) {
+    const prefix = definition.elements[element.kind]?.prefix;
+    if (!prefix || ID_OF_NAME.test(element.name)) continue;
+    model = updateElement(model, element.id, {
+      name: `${nextFrameworkId(model, prefix)}: ${element.name.trim()}`,
+    });
+    changed = true;
+  }
+  return changed ? serializeModel(model, text) : null;
 };
