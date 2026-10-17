@@ -438,27 +438,20 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
       ],
       "IstardtWriteError: E1 (readDry)'s set names nowhere, which is no element",
     ]);
-    // #187: invalid value: istardtProblems says nothing; the writer stops
-    // (the dialect's pairList reads these values though its value check
-    // says "Not a number": they reach the writer)
-    for (const [value, text] of [
-      ['moisture:1e2', '1e2'],
-      ['moisture:.5', '.5'],
-      ['moisture:1+1', '1+1'],
-    ] as const)
-      assert.deepStrictEqual(read(value), [
-        [OWN_INFO],
-        `IstardtWriteError: an effect sets moisture to a number, not ${text}`,
-      ]);
+    // #187: invalid value: a member that is no number unsets the whole set
+    // (#246); the dialect's value check reports it. Was: the writer stopped
+    // (IstardtWriteError "an effect sets moisture to a number, not 1e2", and
+    // for a word a bare "FormulaError: abc names no element")
+    for (const value of [
+      'moisture:1e2',
+      'moisture:.5',
+      'moisture:1+1',
+      'moisture:abc',
+    ])
+      assert.deepStrictEqual(read(value), [[OWN_INFO], []]);
     // #187: invalid value: a pair without its value is no pairList, unset
     // (pairItems read it as moisture set to '', and the writer stopped)
     assert.deepStrictEqual(read('moisture'), [[OWN_INFO], []]);
-    // #187: invalid value: a word as the value escapes as the formula's own
-    // error, not an IstardtWriteError
-    assert.deepStrictEqual(read('moisture:abc'), [
-      [OWN_INFO],
-      'FormulaError: abc names no element',
-    ]);
   });
 });
 

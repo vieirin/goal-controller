@@ -320,15 +320,9 @@ export const istardtTemplate = (
     );
     // the initializations write a variable as `<id>_fl(value)`, as dtx2dtg
     successorStateAxioms += `${id}(V,s0) :- getInitValue(${id}_fl,V),!.\n`;
-    for (const { effect, value } of setters) {
-      const term = readExpression(value);
-      const constant = term && termOf(term, resolve);
-      if (constant?.kind !== 'number') {
-        fail(variable, `an effect sets ${id} to a number, not ${value}`);
-        continue;
-      }
-      successorStateAxioms += `${id}(V,do(A,S)) :- A=${effect},!,V is ${constant.value}.\n`;
-    }
+    // a set's values are numbers (the dialect's pairList of number)
+    for (const { effect, value } of setters)
+      successorStateAxioms += `${id}(V,do(A,S)) :- A=${effect},!,V is ${javaFloat(value)}.\n`;
     successorStateAxioms += `${id}(V,do(_,S)) :- ${id}(V,S).\n`;
     restoreSitArg += `restoreSitArg(${id}(X),S,${id}(X,S)).\n`;
   }
