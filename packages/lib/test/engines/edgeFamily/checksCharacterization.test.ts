@@ -46,11 +46,12 @@ describe('edgeChecks characterization (#187)', () => {
         );
     });
 
-    it('flags a negative value on a task; says nothing of a non-numeric one', () => {
-      // #187: invalid value
+    it('says nothing of a negative value on a task, nor of a non-numeric one', () => {
+      // #249: invalid value, changed (was its own message): below the
+      // dialect's min, which reports it ("At least 0")
       assert.strictEqual(
         edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1"',
+        null,
       );
       // #187: invalid value, #187: changed (was the maxRetries message)
       assert.strictEqual(
