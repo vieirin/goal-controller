@@ -15,6 +15,7 @@ import {
 import type { AnyDialect } from '@goal-controller/dialect';
 import { kaos, nfr } from '../../src';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
+import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 import { serializeModel } from '../../../ui/lib/workbench/pistar';
 import { models } from './support/models';
 
@@ -263,6 +264,99 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
     // one of its own, of an element the diagram doesn't have
     expect(added('DP9: Power is on')).to.deep.equal([
       'Add this element in the diagram',
+    ]);
+  });
+});
+
+describe('frameworks: Problems (#171)', () => {
+  /** A seed changed as JSON, then read with its framework's root. */
+  const changed = (mode: Mode, change: (json: any) => void) => {
+    const json = JSON.parse(seed(mode));
+    change(json);
+    return read(mode)(JSON.stringify(json, null, 2));
+  };
+  const codes = (mode: Mode, model: ReturnType<ReturnType<typeof read>>) =>
+    frameworkProblems(model, DIALECTS[mode]).map((p) => [
+      p.code,
+      p.elementId,
+      p.source,
+    ]);
+  const idOf = (mode: Mode, text: string) =>
+    JSON.parse(seed(mode)).orphans.find((o: any) => o.text === text).id;
+
+  it('finds none in the seeds', () => {
+    expect(frameworkProblems(read('kaos')(seed('kaos')), kaos)).to.deep.equal(
+      [],
+    );
+    expect(frameworkProblems(read('nfr')(seed('nfr')), nfr)).to.deep.equal([]);
+  });
+
+  it('kaos: a refinement without its end is incomplete, on its hub', () => {
+    let hub = '';
+    const model = changed('kaos', (json) => {
+      const entry = json.links.find((l: any) => l.hub);
+      hub = entry.hub.id;
+      delete entry.end;
+    });
+    expect(codes('kaos', model)).to.deep.equal([
+      ['incomplete-hub', hub, 'KAOS'],
+    ]);
+  });
+
+  it('kaos: a link onto a refinement’s hub is a hub-target', () => {
+    let hub = '';
+    const model = changed('kaos', (json) => {
+      hub = json.links.find((l: any) => l.hub).hub.id;
+      json.links.push({
+        id: 'conflict-onto-hub',
+        type: 'kaos.Conflict',
+        source: idOf('kaos', 'Save Bandwidth'),
+        target: hub,
+        customProperties: { BoundaryCondition: '' },
+      });
+    });
+    expect(codes('kaos', model)).to.deep.equal([
+      ['hub-target', 'conflict-onto-hub', 'KAOS'],
+    ]);
+  });
+
+  it('nfr: DSM3’s rules (a softgoal never contributes to an operationalization)', () => {
+    const model = changed('nfr', (json) => {
+      json.links.push({
+        id: 'onto-operationalization',
+        type: 'nfr.ContributionLink',
+        source: idOf('nfr', 'Usability'),
+        target: idOf('nfr', 'Login with Username and Password'),
+        label: '+',
+      });
+    });
+    const [problem, ...rest] = frameworkProblems(model, nfr);
+    expect(rest).to.deep.equal([]);
+    expect(problem).to.include({
+      code: 'invalid-target',
+      elementId: 'onto-operationalization',
+      message: 'you cannot have a NFR contributing to an Operationalization',
+    });
+  });
+
+  it('nfr: a contribution’s label is one of NFR’s', () => {
+    const model = changed('nfr', (json) => {
+      json.links.find((l: any) => l.type === 'nfr.ContributionLink').label =
+        'help';
+      delete json.links.find((l: any) => l.type === 'nfr.CorrelationLink')
+        .label;
+    });
+    expect(
+      frameworkProblems(model, nfr).map((p) => [p.code, p.message]),
+    ).to.deep.equal([
+      [
+        'unknown-label',
+        'A contribution link\'s label is one of ++, +, some+, some-, –, – –, unknown, not "help"',
+      ],
+      [
+        'unknown-label',
+        "A correlation link's label is one of ++, +, some+, some-, –, – –, unknown, not none",
+      ],
     ]);
   });
 });
