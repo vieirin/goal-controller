@@ -10,7 +10,7 @@
  * not expanded into one instance per item (each is printed once). The
  * scoping rules are `../scope.ts`'s, which the editors' checks run too.
  */
-import { notationRefs, type RtTree } from '@goal-controller/goal-language';
+import type { RtTree } from '@goal-controller/goal-language';
 import {
   depthFirst,
   forAllProblem,
@@ -34,7 +34,7 @@ const childrenOf = (goal: MutroseGoalNode): Child[] => [
  */
 const ordered = (goal: MutroseGoalNode): readonly Child[] => {
   const children = childrenOf(goal);
-  const named = notationRefs(goal.properties.engine.annotation).flatMap(
+  const named = (goal.properties.engine.annotation?.refs() ?? []).flatMap(
     (id) => {
       const child = children.find((c) => c.id === id);
       return child ? [child] : [];

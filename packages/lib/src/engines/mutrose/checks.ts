@@ -4,7 +4,9 @@
  * MutRoSe's language (./language), whose shapes accept what the decomposer's
  * regexes do; the mapper reads the values with the same functions.
  */
+import { readProperties } from '@goal-controller/goal-language';
 import { checks, type Check, type CheckContext } from '../checks';
+import { mutrose } from './definition';
 import {
   readCreationCondition,
   readForAll,
@@ -15,6 +17,7 @@ import {
   classOfType,
 } from './language';
 import type { MutroseConfiguration } from './projectResources/configuration';
+import type { MutroseGoalType } from './types';
 import type { WorldKnowledge } from './projectResources/world';
 import {
   depthFirst,
@@ -211,6 +214,18 @@ export const parseCreationCondition = (
 };
 
 /**
+ * A goal's GoalType as MutRoSe's dialect reads it (the mapper's
+ * `props.GoalType`): one of its options, or unset.
+ */
+const goalTypeOf = (
+  raw: Partial<Record<string, string>>,
+): MutroseGoalType | null | undefined =>
+  raw.GoalType === undefined
+    ? undefined
+    : readProperties(mutrose, { element: 'goal' }, { GoalType: raw.GoalType })
+        .values.GoalType;
+
+/**
  * The checks the MutRoSe definition names, by name: the one place the names
  * are written.
  */
@@ -223,7 +238,7 @@ export const mutroseCheckRegistry = checks({
     if (!text.includes('forAll')) return null;
     const forAll = parseForAll(text);
     if (!forAll) return `Invalid forAll statement ${text} in GM.`;
-    return raw.GoalType?.trim() === 'Achieve'
+    return goalTypeOf(raw) === 'Achieve'
       ? forAllProblem(self, forAll, vars(raw.Monitors), vars(raw.Controls))
       : null;
   },
@@ -234,7 +249,7 @@ export const mutroseCheckRegistry = checks({
     const query = parseSelect(text);
     if (!query) return `Invalid select statement ${text} in GM.`;
     return (
-      (raw.GoalType?.trim() === 'Query'
+      (goalTypeOf(raw) === 'Query'
         ? queryProblem(self, query, vars(raw.Controls))
         : null) ?? typeProblem(query.type, context)
     );
