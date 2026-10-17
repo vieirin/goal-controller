@@ -8,6 +8,7 @@ import {
   ASSERTION_PREFIXES,
   CALL_NAMES,
   EXPRESSION,
+  EXPRESSION_REF,
   ID_PREFIXES,
   OCL_OPERATIONS,
   idPrefixPattern,
@@ -138,12 +139,7 @@ const DECLARATION = rules([
 const OPERANDS: Array<[string, RegExp]> = [
   // the catalog's ids (`G3.1`, `TX`), and a dotted id of any kind (`F7.1`; an
   // undotted `F7` ties with a name and reads as one, resolved by the value)
-  [
-    'A_REF',
-    new RegExp(
-      `(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(?:\\.[0-9]+)+`,
-    ),
-  ],
+  ['A_REF', new RegExp(EXPRESSION_REF)],
   ['A_ID', /[a-zA-Z_][a-zA-Z0-9_]*/],
   // AssertionRegex.g4's INT had no zero (`x > 0` did not parse): dropped
   ['A_INT', /[0-9]+/],

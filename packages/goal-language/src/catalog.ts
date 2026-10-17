@@ -158,6 +158,13 @@ export const idPrefixPattern = (own: readonly string[] = []): string =>
     .join('|');
 
 /**
+ * An element id as an expression's or an assertion's lexer reads one: the
+ * catalog's ids (`G3.1`, `TX`) and a dotted id of any kind (`F7.1`). It ties
+ * with a name of its length and wins (`R1`, `GX`); a longer name is a name.
+ */
+export const EXPRESSION_REF = `(?:${idPrefixPattern()})(?:[0-9]+(?:\\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(?:\\.[0-9]+)+`;
+
+/**
  * The id prefixes a dialect declares besides the catalog's: its extension's
  * kinds' it lists (`E` in `E1`), read in its element lines only.
  */

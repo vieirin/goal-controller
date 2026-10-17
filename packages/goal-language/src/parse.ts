@@ -41,6 +41,25 @@ import type {
 } from './generated/ast.js';
 import type { LexerStart } from './lexer.js';
 import {
+  asAssertion,
+  asExpression,
+  asNotation,
+  asPairList,
+  asRefList,
+  assertionComparisons,
+  assertionExpressionsOf,
+  assertionTextOf,
+  expressionNodesOf,
+  expressionTextOf,
+  notationText,
+  type Assertion,
+  type Comparison,
+  type Expression,
+  type Notation,
+  type PairList,
+  type RefList,
+} from './members.js';
+import {
   createGoalCoreServices,
   parseWith,
   type GoalCoreServices,
@@ -178,7 +197,8 @@ export type ElementLineData = {
   /** the name as written, untrimmed (`' Name '` in `G1: Name [G2]`) */
   name: string;
   annotations: AnnotationData[];
-  notation: RtTree | null;
+  /** its notation, with its operations (`text()`, `refs()`, `execution(dialect)`, …) */
+  notation: Notation | null;
   /** what its bracket holds when it is a cost (`[W = 0.1]`), not a notation */
   cost: CostData | null;
   declaration: DeclarationData | null;
@@ -290,32 +310,6 @@ export const toRtTree = (expr: RtExpr | undefined): RtTree | null => {
   }
 };
 
-const CLOSE: Record<string, string> = { '[': ']', '(': ')' };
-
-/** A notation's text without whitespace, as ANTLR's `getText()` (edgeV2 keys retries by it). */
-export const rtText = (tree: RtTree | null): string => {
-  switch (tree?.kind) {
-    case 'ref':
-      return tree.id;
-    case 'skip':
-      return 'skip';
-    case 'standalone':
-      return tree.symbol;
-    case 'group':
-      return `${tree.open}${rtText(tree.expr)}${CLOSE[tree.open] ?? ''}`;
-    case 'prefix':
-      return `${tree.operator}${rtText(tree.expr)}`;
-    case 'postfix':
-      return `${rtText(tree.expr)}${tree.operator}${tree.argument}`;
-    case 'binary':
-      return `${rtText(tree.left)}${tree.operator}${rtText(tree.right)}`;
-    case 'call':
-      return `${tree.name}(${tree.args.map(rtText).join(',')})`;
-    default:
-      return '';
-  }
-};
-
 const toAnnotation = (annotation: Annotation): AnnotationData =>
   annotation.$type === 'Stereotype'
     ? { kind: 'stereotype', stereotype: annotation.stereotype ?? '' }
@@ -354,7 +348,7 @@ export const toElementLine = (
   id: line.name ?? '',
   name: line.label ?? '',
   annotations: line.annotations.map(toAnnotation),
-  notation: toRtTree(line.notation),
+  notation: orNull(toRtTree(line.notation), asNotation),
   cost: line.$type === 'ElementLine' ? toCost(line.cost) : null,
   declaration: toDeclaration(line.declaration),
 });
@@ -666,113 +660,44 @@ const toAssertionReading: (
   expr: AssertExpr | undefined,
 ) => AssertionReading | null = assertionOf(expressionComparison);
 
-/** How tightly each binary operator binds: 0 tightest (the catalog's levels). */
-const LEVEL = new Map<string, number>(
-  EXPRESSION.infix.flatMap((level, i) =>
-    level.map((operator) => [operator, i] as const),
-  ),
-);
-
-/**
- * An expression's text: `0.5 + 0.9 * previous(t)`, with the parentheses its
- * shape needs and no others. It reads back as the same tree.
- */
-export const expressionText = (tree: ExpressionTree): string => {
-  switch (tree.kind) {
-    case 'number':
-      return tree.value;
-    case 'ref':
-      return tree.id;
-    case 'var':
-      return tree.name;
-    case 'member':
-      return `${tree.ref}.${tree.member}`;
-    case 'call':
-      return `${tree.name}(${tree.args.map(expressionText).join(', ')})`;
-    case 'unary': {
-      const operand = expressionText(tree.expr);
-      return tree.expr.kind === 'binary'
-        ? `${tree.operator}(${operand})`
-        : `${tree.operator}${operand}`;
-    }
-    case 'binary': {
-      const level = LEVEL.get(tree.operator)!;
-      // an operand that binds looser is grouped; on the right, one that binds
-      // as tightly too (every operator is left-associative)
-      const side = (
-        operand: ExpressionTree,
-        grouped: (l: number) => boolean,
-      ) =>
-        operand.kind === 'binary' && grouped(LEVEL.get(operand.operator)!)
-          ? `(${expressionText(operand)})`
-          : expressionText(operand);
-      return `${side(tree.left, (l) => l > level)} ${tree.operator} ${side(tree.right, (l) => l >= level)}`;
-    }
-  }
-};
-
-/**
- * An assertion's text, as read (its groups are its `paren` nodes):
- * `previous(t) < 18 & !on`. It reads back as the same tree.
- */
-export const assertionText = (tree: AssertionTree | null): string => {
-  switch (tree?.kind) {
-    case 'and':
-    case 'or':
-      return `${assertionText(tree.left)} ${tree.kind === 'and' ? '&' : '|'} ${assertionText(tree.right)}`;
-    case 'not':
-      return `!${assertionText(tree.expr)}`;
-    case 'paren':
-      return `(${assertionText(tree.expr)})`;
-    case 'assign':
-      return `${tree.variable}${tree.member ? `.${tree.member}` : ''} ${tree.negated ? '!=' : '='} ${tree.value}`;
-    case 'member':
-      return `${tree.ref}.${tree.member}`;
-    case 'compare':
-      return `${tree.variable} ${tree.operator} ${tree.value}`;
-    case 'comparison':
-      return `${expressionText(tree.left)} ${tree.operator} ${expressionText(tree.right)}`;
-    case 'call':
-      return expressionText(tree);
-    case 'var':
-      return tree.variable;
-    case 'bool':
-      return String(tree.value);
-    default:
-      return '';
-  }
-};
-
 /**
  * What each value type reads into (null: empty). An enum is any word here;
  * `ValueDataOf` narrows it to a config's options.
  */
 export type ValueData = {
-  assertion: AssertionTree | null;
-  expression: ExpressionTree | null;
+  assertion: Assertion | null;
+  expression: Expression | null;
   int: number | null;
   number: number | null;
   bool: boolean | null;
   text: string | null;
   enum: string | null;
-  refList: string[];
-  pairList: { name: string; value: string }[];
+  refList: RefList;
+  pairList: PairList;
   annotatedName: ElementLineData | null;
   /** its tokens, as written */
   ocl: string[];
 };
 
+/** A value with its members, or null. */
+const orNull = <T, V>(data: T | null, build: (data: T) => V): V | null =>
+  data === null ? null : build(data);
+
 const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
-  assertion: (root: AssertionValue) => toAssertionTree(root.expr),
-  expression: (root: ExpressionValue) => toExpressionTree(root.expr),
+  assertion: (root: AssertionValue) =>
+    orNull(toAssertionTree(root.expr), asAssertion),
+  expression: (root: ExpressionValue) =>
+    orNull(toExpressionTree(root.expr), asExpression),
   int: (root: IntValue) => (root.value ? Number(root.value) : null),
   number: (root: NumberValue) => (root.value ? Number(root.value) : null),
   bool: (root: BoolValue) => (root.value ? root.value === 'true' : null),
   text: (root: TextValue) => root.value ?? null,
   enum: (root: EnumValue) => root.value ?? null,
-  refList: (root: RefListValue) => [...root.ids],
+  refList: (root: RefListValue) => asRefList([...root.ids]),
   pairList: (root: PairListValue) =>
-    root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
+    asPairList(
+      root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
+    ),
   annotatedName: (root: AnnotatedName) => (root ? toElementLine(root) : null),
   ocl: (root: OclValue) => [...root.parts],
 };
@@ -805,7 +730,7 @@ export const parseValue = <T extends ValueType>(
  * never parse a formula's text themselves). Null when it is empty or isn't an
  * expression.
  */
-export const readExpression = (text: string): ExpressionTree | null => {
+export const readExpression = (text: string): Expression | null => {
   const read = parseValue('expression', text);
   return read.errors.length ? null : read.value;
 };
@@ -815,55 +740,13 @@ export const readExpression = (text: string): ExpressionTree | null => {
  * sides as expressions (`x > 3` too: a `var` and a `number`). Null when it is
  * empty or isn't an assertion.
  */
-export const readAssertion = (text: string): AssertionReading | null => {
+export const readAssertion = (
+  text: string,
+): Assertion<AssertionReading> | null => {
   const { root, errors } = parse<AssertionValue>('assertion', text);
-  return errors.length ? null : toAssertionReading(root.expr);
+  const reading = errors.length ? null : toAssertionReading(root.expr);
+  return reading && asAssertion(reading);
 };
-
-/** An expression's nodes, each before its operands (a check or an engine walks them). */
-export const expressionNodes = (tree: ExpressionTree): ExpressionTree[] => {
-  switch (tree.kind) {
-    case 'call':
-      return [tree, ...tree.args.flatMap(expressionNodes)];
-    case 'binary':
-      return [
-        tree,
-        ...expressionNodes(tree.left),
-        ...expressionNodes(tree.right),
-      ];
-    case 'unary':
-      return [tree, ...expressionNodes(tree.expr)];
-    default:
-      return [tree];
-  }
-};
-
-/** An assertion's comparisons of expressions and its calls, in the order written. */
-export const comparisonsOf = (
-  tree: AssertionTree | null,
-): (ExpressionComparison | Extract<AssertionTree, { kind: 'call' }>)[] => {
-  switch (tree?.kind) {
-    case 'and':
-    case 'or':
-      return [...comparisonsOf(tree.left), ...comparisonsOf(tree.right)];
-    case 'not':
-    case 'paren':
-      return comparisonsOf(tree.expr);
-    case 'comparison':
-    case 'call':
-      return [tree];
-    default:
-      return [];
-  }
-};
-
-/** The expressions an assertion's comparisons and calls hold (each side; a call whole). */
-export const assertionExpressions = (
-  tree: AssertionTree | null,
-): ExpressionTree[] =>
-  comparisonsOf(tree).flatMap((atom) =>
-    atom.kind === 'call' ? [atom] : [atom.left, atom.right],
-  );
 
 /**
  * Every member an assertion reads (`room.clean`, `tank.level < 3`,
@@ -886,8 +769,8 @@ export const assertionMembers = (
       return tree.member ? [{ ref: tree.variable, member: tree.member }] : [];
     case 'comparison':
     case 'call':
-      return assertionExpressions(tree)
-        .flatMap(expressionNodes)
+      return assertionExpressionsOf(tree)
+        .flatMap(expressionNodesOf)
         .flatMap((node) =>
           node.kind === 'member'
             ? [{ ref: node.ref, member: node.member }]
@@ -897,3 +780,31 @@ export const assertionMembers = (
       return [];
   }
 };
+
+// ---------------------------------------------------------------------------
+// the operations as free functions: the values' members (goal-controller#188)
+// ---------------------------------------------------------------------------
+
+/** @deprecated a notation's `text()` (goal-controller#188) */
+export const rtText = (tree: RtTree | null): string => notationText(tree);
+
+/** @deprecated an expression's `text()` (goal-controller#188) */
+export const expressionText = (tree: ExpressionTree): string =>
+  expressionTextOf(tree);
+
+/** @deprecated an assertion's `text()` (goal-controller#188) */
+export const assertionText = (tree: AssertionTree | null): string =>
+  assertionTextOf(tree);
+
+/** @deprecated an expression's `nodes()` (goal-controller#188) */
+export const expressionNodes = (tree: ExpressionTree): ExpressionTree[] =>
+  expressionNodesOf(tree);
+
+/** @deprecated an assertion's `comparisons()` (goal-controller#188) */
+export const comparisonsOf = (tree: AssertionTree | null): Comparison[] =>
+  assertionComparisons(tree);
+
+/** @deprecated an assertion's `expressions()` (goal-controller#188) */
+export const assertionExpressions = (
+  tree: AssertionTree | null,
+): ExpressionTree[] => assertionExpressionsOf(tree);
