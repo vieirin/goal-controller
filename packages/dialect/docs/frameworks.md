@@ -223,3 +223,65 @@ Each PR of #171 appends its decisions here.
   no licence stated). An example opens in its folder's mode and framework,
   written in memory, the file untouched. Previews keep an n-ary link's hub,
   legs and end, so the cards draw.
+
+### PR B: mode sets per framework, Open detection, workbench UI
+
+- **Opening a file goes by its content.** A `.txt`/`.json` model opened or
+  dropped goes through `openModelFile`. Its framework is
+  `frameworkOfModel`'s (content first). A KAOS or NFR file that records no
+  mode of its framework (DSM3's own) opens in the framework's mode, recorded
+  in the opened text as an example's folder mode is. Native files and
+  importers keep their extension routing.
+- **A switch of framework is confirmed, never implied.** The open project's
+  framework is its open model's, by content. A model of another framework
+  waits in `frameworkSwitch` with conformity's message (`frameworkMismatch`).
+  `FrameworkSwitchDialog` offers "Switch to …" (open it, closing the open
+  model, which stays in Recent) or "Keep the project" (nothing opens). With
+  no model open there is nothing to switch.
+- **New per framework, in the setup dialog.** The settings dialog shows one
+  group per framework: a framework selector above the cards. A new, empty
+  model's framework may be chosen there, which replaces its empty model with
+  that framework's (`emptyModelText`) in the framework's mode. Any other
+  model's framework is shown, not chosen. Cards of another framework show no
+  conformity (it would judge the empty model about to be replaced). iStar's
+  cards are as they were. A KAOS or NFR model gets its framework's mode
+  only: no engine, no piStar card.
+- **Convert and piStar are iStar's.** The Convert dialog lists the model's
+  framework's targets only. A KAOS or NFR model has no piStar toggle and no
+  "Convert to…" (desktop and mobile): its framework's canvas is its editor,
+  and nothing converts between frameworks.
+- **The canvas: istar-ts's parts, then the dialect's.** `FrameworkDiagram`
+  applies `kaosExtension`/`nfrExtension`, then `dialectParts(definition)`:
+  each listed kind in its dialect fill (DSM3's grey for KAOS, white for NFR)
+  unless a colour is saved, and a new element named with its prefix's next
+  id from 1 (`G3: Behavioral Goal`). KAOS's two goal kinds share `G`'s
+  numbering. This answers PR A's question of which kind a new `G` line
+  creates: the palette entry chosen, numbered in the shared sequence.
+- **Why the extensions are widened, in one place.** The workbench types
+  every model, and so its store and `IstarProvider`, as an iStar 2.0 model.
+  That is deliberate: a dialect's model keeps its own metamodel, which
+  istar-ts reads at run time. An `IstarExtension<KaosElementKind, …>` is
+  therefore not assignable to the provider's `IstarExtension<ElementKind,
+  …>`. There is one `@istar-ts/react` copy; it isn't a duplicate-types
+  problem. `forCanvas` widens it, as piStar-ext's extension is widened.
+  Typing the store per framework would mean making the workbench generic
+  in its kinds, which is out of scope here.
+- **The framework Notation tab.** `FrameworkNotationView` writes goalView's
+  view of the model with the framework's dialect, checked by the shared
+  goal language. The worker reads the dialect from the context, so there
+  are no worker changes and no named checks. DSM3's id-less files show a
+  banner: "Give every element an id (G…, A…, DP…)". `withFrameworkIds` is
+  one undoable edit that renames each listed element with its kind's next
+  id, in model order, changing nothing else. This supersedes PR C's "the
+  seeds' lines ask for ids": the files stay byte-identical, and the user
+  chooses.
+- **goalView doesn't ask core which elements are hubs.** Core keeps
+  model→metamodel in a module-level `WeakMap`. goal-tree's CommonJS build
+  loads core's `index.cjs`, while the workbench parses with core's ESM
+  `index.js`, so in ui vitest, and likely in the bundle, `metamodelOf` sees
+  iStar 2.0 and `hubOfLink` finds no hubs. goalView reads an n-ary kind's
+  hub, legs and end by the names core generates (`<Kind>Hub`, `<Kind>Start`,
+  `<Kind>End`) from the dialect's `refinements`. PR D moves this into a
+  shared `refinementsOf` in roots.ts. The remaining `metamodelOf` uses in
+  goal-tree are reported for a separate fix.
+- **Home.** iStar-DT joins `GROUP_ORDER`, before the frameworks' sections.

@@ -2,10 +2,18 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { FRAMEWORKS, type Framework } from '@goal-controller/dialect';
 import {
   MODELLING_LABEL,
   type ModellingMode,
 } from '@/lib/workbench/frameworkModes';
+import { frameworkModeOf } from '@/lib/workbench/frameworkOpen';
+import {
+  emptyModelText,
+  FRAMEWORK_LABEL,
+  frameworkOfModel,
+} from '@/lib/workbench/frameworks';
+import { frameworkOfMode, writeModelMode } from '@/lib/workbench/pistar';
 import { ENGINES, hasOptions } from '@/lib/workbench/engineDialects';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
@@ -15,7 +23,7 @@ import {
   useEngineConformity,
 } from './engineConformity';
 import { useWorkbench, type ConversionTarget } from './WorkbenchContext';
-import { Button, IconButton, Switch, cx } from './ui';
+import { Button, IconButton, Segmented, Switch, cx } from './ui';
 
 const PISTAR = {
   label: 'piStar',
@@ -43,6 +51,21 @@ const DIALECTS: Array<{ id: ModellingMode; output: string; help: string }> = [
   },
 ];
 
+/**
+ * Whether a model text has nothing in it yet (a new model): its framework may
+ * still be chosen, its empty model swapped for the framework's.
+ */
+const isEmptyModel = (text: string): boolean => {
+  try {
+    const model = JSON.parse(text);
+    return ['actors', 'orphans', 'dependencies', 'links'].every(
+      (key) => !Array.isArray(model[key]) || model[key].length === 0,
+    );
+  } catch {
+    return false;
+  }
+};
+
 const TARGET_IDS: readonly ConversionTarget[] = [
   ...ENGINES.map((e) => e.id),
   ...DIALECTS.map((d) => d.id),
@@ -63,6 +86,25 @@ export default function ModelSettingsModal() {
     projectFrameworkOf(wb.project),
   );
   const [draft, setDraft] = useState<ModelSettings>(wb.settings);
+  // the model's framework (goal-controller#171): a new, empty model's may be chosen
+  const modelFramework = frameworkOfModel(wb.text);
+  const [framework, setFramework] = useState<Framework>(modelFramework);
+  const canChooseFramework = setup && isEmptyModel(wb.text);
+  const istar = framework === 'istar-2.0';
+  // how the model suits each card: not for another framework's (a new
+  // model's empty one, about to be that framework's)
+  const showConformity = !!wb.text.trim() && framework === modelFramework;
+  const chooseFramework = (next: Framework) => {
+    setFramework(next);
+    const mode = frameworkModeOf(next);
+    setDraft((d) =>
+      mode
+        ? { ...d, pistar: true, dialect: mode }
+        : next === modelFramework
+          ? { ...d, ...wb.settings }
+          : { ...d, pistar: false, dialect: undefined },
+    );
+  };
   const [fileName, setFileName] = useState(wb.fileName || 'untitled.txt');
   const nameInput = useRef<HTMLInputElement>(null);
 
@@ -94,6 +136,15 @@ export default function ModelSettingsModal() {
     });
     wb.closeSettings();
     const target = draft.pistar ? (draft.dialect ?? 'pistar') : draft.engine;
+    if (framework !== modelFramework) {
+      // a new model in another framework: that framework's empty model
+      const empty = emptyModelText(framework);
+      if (target === 'pistar') {
+        wb.setText(empty, 'convert');
+        wb.requestMode('pistar');
+      } else wb.applyConversion(target, writeModelMode(empty, target));
+      return;
+    }
     const plan = target === 'pistar' ? null : conformity.plans[target];
     if (setup && target !== 'pistar' && plan && !('error' in plan)) {
       // opening a model: its engine is chosen here, with the conformity shown on the cards,
@@ -165,6 +216,28 @@ export default function ModelSettingsModal() {
             <legend className='mb-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-muted'>
               Target engine
             </legend>
+            {!wb.engineLocked && (
+              // one group per framework (goal-controller#171): a new model's chosen here
+              <div className='mb-2 flex items-center gap-2 text-[13px] text-ink-soft'>
+                <span>Framework</span>
+                {canChooseFramework ? (
+                  <Segmented
+                    label='Framework'
+                    size='sm'
+                    options={FRAMEWORKS.map((id) => ({
+                      id,
+                      label: FRAMEWORK_LABEL[id],
+                    }))}
+                    value={framework}
+                    onChange={chooseFramework}
+                  />
+                ) : (
+                  <span className='font-medium text-ink'>
+                    {FRAMEWORK_LABEL[framework]}
+                  </span>
+                )}
+              </div>
+            )}
             {wb.engineLocked ? (
               <p className='text-[13px] text-ink-soft'>
                 Fixed to{' '}
@@ -175,7 +248,7 @@ export default function ModelSettingsModal() {
               </p>
             ) : (
               <div className='grid gap-1.5 sm:grid-cols-2'>
-                {ENGINES.map((engine) => {
+                {(istar ? ENGINES : []).map((engine) => {
                   const active = !draft.pistar && draft.engine === engine.id;
                   return (
                     <label
@@ -212,7 +285,7 @@ export default function ModelSettingsModal() {
                       <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>
                         {engine.help}
                       </span>
-                      {wb.text.trim() && (
+                      {showConformity && (
                         <ConformityStatus
                           status={conformity.statusOf(engine.id)}
                           warnings={conformity.warningsOf(engine.id)}
@@ -221,7 +294,9 @@ export default function ModelSettingsModal() {
                     </label>
                   );
                 })}
-                {DIALECTS.map((dialect) => {
+                {DIALECTS.filter(
+                  (dialect) => frameworkOfMode(dialect.id) === framework,
+                ).map((dialect) => {
                   const active = !!draft.pistar && draft.dialect === dialect.id;
                   return (
                     <label
@@ -258,7 +333,7 @@ export default function ModelSettingsModal() {
                       <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>
                         {dialect.help}
                       </span>
-                      {wb.text.trim() && (
+                      {showConformity && (
                         <ConformityStatus
                           status={conformity.statusOf(dialect.id)}
                           warnings={conformity.warningsOf(dialect.id)}
@@ -267,40 +342,43 @@ export default function ModelSettingsModal() {
                     </label>
                   );
                 })}
-                <label
-                  className={cx(
-                    'flex cursor-pointer flex-col rounded-lg border px-3 py-2 text-left transition-colors',
-                    draft.pistar && !draft.dialect
-                      ? 'border-ink bg-panel ring-1 ring-ink'
-                      : 'border-line hover:border-line-strong',
-                  )}
-                >
-                  <input
-                    type='radio'
-                    name='engine'
-                    value='pistar'
-                    checked={!!draft.pistar && !draft.dialect}
-                    onChange={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        pistar: true,
-                        dialect: undefined,
-                      }))
-                    }
-                    className='sr-only'
-                  />
-                  <span className='flex items-baseline justify-between gap-2'>
-                    <span className='text-[13px] font-semibold text-ink'>
-                      {PISTAR.label}
+                {/* piStar: free iStar 2.0 modelling, iStar's only */}
+                {istar && (
+                  <label
+                    className={cx(
+                      'flex cursor-pointer flex-col rounded-lg border px-3 py-2 text-left transition-colors',
+                      draft.pistar && !draft.dialect
+                        ? 'border-ink bg-panel ring-1 ring-ink'
+                        : 'border-line hover:border-line-strong',
+                    )}
+                  >
+                    <input
+                      type='radio'
+                      name='engine'
+                      value='pistar'
+                      checked={!!draft.pistar && !draft.dialect}
+                      onChange={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          pistar: true,
+                          dialect: undefined,
+                        }))
+                      }
+                      className='sr-only'
+                    />
+                    <span className='flex items-baseline justify-between gap-2'>
+                      <span className='text-[13px] font-semibold text-ink'>
+                        {PISTAR.label}
+                      </span>
+                      <span className='font-mono text-2xs text-ink-muted'>
+                        {PISTAR.output}
+                      </span>
                     </span>
-                    <span className='font-mono text-2xs text-ink-muted'>
-                      {PISTAR.output}
+                    <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>
+                      {PISTAR.help}
                     </span>
-                  </span>
-                  <span className='mt-0.5 text-2xs leading-snug text-ink-muted'>
-                    {PISTAR.help}
-                  </span>
-                </label>
+                  </label>
+                )}
               </div>
             )}
           </fieldset>

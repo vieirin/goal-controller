@@ -7,6 +7,7 @@
  * the first service that speaks its document; every service's diagnostics
  * go to one store (`diagnosticsStore`), merged with the workbench's own.
  */
+import type { FrameworkMode } from './frameworkModes';
 import type { Extension } from '@codemirror/state';
 import { ViewPlugin } from '@codemirror/view';
 import type { LSPClient } from '@codemirror/lsp-client';
@@ -54,8 +55,8 @@ export type LanguageService = {
   languageId?: string;
 };
 
-/** A mode a model is served in: a dialect engine's, or piStar-ext's. */
-export type ServiceMode = DialectEngine | 'pistarext';
+/** A mode a model is served in: a dialect engine's, piStar-ext's, or a framework's (#171). */
+export type ServiceMode = DialectEngine | 'pistarext' | FrameworkMode;
 
 // one local support per definition, for every view on the page
 const local = new WeakMap<AnyDialect, LanguageSupport>();

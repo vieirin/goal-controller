@@ -1,6 +1,8 @@
 'use client';
 
 import { parseModel } from '@/lib/workbench/dialects';
+import { frameworkOfModel } from '@/lib/workbench/frameworks';
+import { frameworkOfMode } from '@/lib/workbench/pistar';
 import {
   AlertCircle,
   AlertTriangle,
@@ -33,7 +35,12 @@ export default function ConvertDialog({
   const wb = useWorkbench();
   const candidates = useMemo(
     () =>
-      TARGETS.filter((engine) => wb.mode === 'pistar' || engine.id !== wb.mode),
+      // the model's framework's only: nothing converts between frameworks (#171)
+      TARGETS.filter(
+        (engine) =>
+          (wb.mode === 'pistar' || engine.id !== wb.mode) &&
+          frameworkOfMode(engine.id) === frameworkOfModel(wb.text),
+      ),
     // the choices are for the model as it was when the dialog opened
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],

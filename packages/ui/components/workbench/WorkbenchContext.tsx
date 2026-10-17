@@ -28,6 +28,9 @@ import {
 import type { GoalView } from '@goal-controller/goal-tree';
 import { parseModel } from '@/lib/workbench/dialects';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
+import { frameworkOfModel } from '@/lib/workbench/frameworks';
+import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
+import type { Framework } from '@goal-controller/dialect';
 import {
   FRAMEWORK_DIALECTS,
   isFrameworkMode,
@@ -121,6 +124,18 @@ const PROJECT_OPTIONS: OpenProjectOptions = {
 /** Where the folders a user opened are kept (IndexedDB), opened when first used. */
 let handleStorage: HandleStorage | null = null;
 const handles = (): HandleStorage => (handleStorage ??= indexedDbHandles());
+
+/**
+ * A model file of another framework than the open project's (goal-controller#171):
+ * the file, its framework, the project's, and why it can't open as it is.
+ */
+export type FrameworkSwitch = {
+  fileName: string;
+  text: string;
+  framework: Framework;
+  project: Framework;
+  message: string;
+};
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | ModellingMode;
@@ -262,6 +277,18 @@ export type Workbench = {
     text: string,
     how?: ProjectOpenOptions,
   ) => Promise<void>;
+  /**
+   * a model file opened or dropped (`.txt`, `.json`), in its framework by its
+   * content (goal-controller#171): a model of another framework than the open
+   * project's waits in `frameworkSwitch` for an explicit confirmation
+   */
+  openModelFile: (fileName: string, text: string) => Promise<void>;
+  /** a model file of another framework, waiting for the switch to be confirmed */
+  frameworkSwitch: FrameworkSwitch | null;
+  /** open it, the project now in its framework */
+  confirmFrameworkSwitch: () => Promise<void>;
+  /** keep the open project; the file isn't opened */
+  cancelFrameworkSwitch: () => void;
   /** a project archive (.tar.gz, .zip), copied into a new browser project (#99) */
   openArchive: (fileName: string, bytes: Uint8Array) => Promise<void>;
   /** a Recent entry, with its edits and the settings kept with it */
@@ -969,6 +996,37 @@ function WorkbenchState({
       ),
     [openProject],
   );
+  // a model file in its framework, or the switch to it waiting for a yes (#171)
+  const [frameworkSwitch, setFrameworkSwitch] =
+    useState<FrameworkSwitch | null>(null);
+  const openModelFile = useCallback(
+    async (fileName: string, text: string) => {
+      const current = textRef.current;
+      const project = current.trim() ? frameworkOfModel(current) : undefined;
+      const message = openingMismatch(text, project);
+      if (message) {
+        setFrameworkSwitch({
+          fileName,
+          text,
+          framework: frameworkOfModel(text),
+          project: project!,
+          message,
+        });
+        return;
+      }
+      await openFile(fileName, inItsFramework(text), { setup: true });
+    },
+    [openFile],
+  );
+  const confirmFrameworkSwitch = useCallback(async () => {
+    const pending = frameworkSwitch;
+    setFrameworkSwitch(null);
+    if (pending)
+      await openFile(pending.fileName, inItsFramework(pending.text), {
+        setup: true,
+      });
+  }, [frameworkSwitch, openFile]);
+  const cancelFrameworkSwitch = useCallback(() => setFrameworkSwitch(null), []);
   const openArchive = useCallback(
     async (fileName: string, bytes: Uint8Array) => {
       const name = freeName(
@@ -2126,6 +2184,10 @@ function WorkbenchState({
     openConversion,
     applyConversion,
     cancelConversion,
+    openModelFile,
+    frameworkSwitch,
+    confirmFrameworkSwitch,
+    cancelFrameworkSwitch,
     setEngine,
     options,
     setOptions,

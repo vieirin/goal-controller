@@ -26,6 +26,7 @@ const workbench = () => ({
   openFile: vi.fn(async () => {}),
   openArchive: vi.fn(async () => {}),
   openNativeFile: vi.fn(async () => {}),
+  openModelFile: vi.fn(async () => {}),
 });
 
 describe('opening a native file', () => {
@@ -35,9 +36,9 @@ describe('opening a native file', () => {
     await openUpload(wb, new File(['hello'], 'Home.TOY'), dialects);
     expect(wb.openNativeFile).toHaveBeenCalledWith('Home.TOY', 'hello');
     await openUpload(wb, new File(['{}'], 'Home.txt'), dialects);
-    expect(wb.openFile).toHaveBeenCalledWith('Home.txt', '{}', {
-      setup: true,
-    });
+    // a model: in its framework, by its content (#171)
+    expect(wb.openModelFile).toHaveBeenCalledWith('Home.txt', '{}');
+    expect(wb.openFile).not.toHaveBeenCalled();
     expect(wb.openNativeFile).toHaveBeenCalledTimes(1);
   });
 
