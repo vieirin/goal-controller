@@ -4,25 +4,10 @@ import { renameTaskId, taskFluentName } from './shared';
 
 type SleecTask = Task<SleecTaskProps>;
 
-/**
- * Validates that a task has all required SLEEC properties for rule generation
- */
-const hasRequiredSleecProps = (task: SleecTask): boolean => {
-  const engine = task.properties.engine;
-  return !!(
-    engine?.TriggeringEvent &&
-    engine?.PreCond &&
-    engine?.TemporalConstraint &&
-    engine?.PostCond
-  );
-};
-
+/** Every task's rules: the mapper gives each task its four required properties (or throws). */
 export const generateTaskRules = (tasks: SleecTask[]): string => {
-  // Filter tasks that have all required SLEEC properties
-  const validTasks = tasks.filter(hasRequiredSleecProps);
-
   return `rule_start
-      ${validTasks
+      ${tasks
         .map((task) => {
           const engine = task.properties.engine;
           return `

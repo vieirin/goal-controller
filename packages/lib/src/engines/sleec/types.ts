@@ -15,10 +15,11 @@ export type SleecGoalProps = {
   ContextEvent?: string;
 };
 
+/** A task's properties: the mapper throws for a task missing one of the four required. */
 export type SleecTaskProps = {
-  PreCond?: string;
-  TriggeringEvent?: string;
-  TemporalConstraint?: string;
-  PostCond?: string;
+  PreCond: string;
+  TriggeringEvent: string;
+  TemporalConstraint: string;
+  PostCond: string;
   Obstacle?: string;
 };
