@@ -255,19 +255,21 @@ describe('sleecEngineMapper: characterization (#187)', () => {
       );
     });
 
-    // #225: a blank Obstacle is kept (and writes rule _5), pinned until it is decided
-    it('leaves out an empty Obstacle, but keeps a blank one (truthy, not trimmed)', () => {
+    // #225: changed (a blank Obstacle was kept: truthy, not trimmed)
+    it('leaves out an empty or a blank Obstacle, as every other key', () => {
       const obstacle = (Obstacle: string) =>
         taskEngine(
           seedWith({ 'T1:': { customProperties: { ...REQUIRED, Obstacle } } }),
           'T1',
         );
       assert.deepStrictEqual(obstacle(''), REQUIRED);
-      assert.deepStrictEqual(obstacle('   '), { ...REQUIRED, Obstacle: '   ' });
+      assert.deepStrictEqual(obstacle('   '), REQUIRED);
     });
 
-    // #225
-    it('a blank Obstacle still writes rule _5', () => {
+    // #225: changed (a blank Obstacle wrote 'RuleT1_5 when
+    // PursuingInformSystemPurposeandProtocol and     then
+    // StopInformSystemPurposeandProtocol')
+    it('a blank Obstacle writes no rule _5', () => {
       const rules = sleecTemplateEngine(
         treeOf(
           seedWith({
@@ -275,11 +277,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
           }),
         ),
       );
-      assert.ok(
-        rules.includes(
-          'RuleT1_5 when PursuingInformSystemPurposeandProtocol and     then StopInformSystemPurposeandProtocol',
-        ),
-      );
+      assert.ok(!rules.includes('RuleT1_5'));
     });
 
     it('reads Obstacle, not the ObstacleEvent or FluentName the seed writes', () => {
