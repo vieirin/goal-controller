@@ -113,12 +113,13 @@ export const importedModel = (
 /**
  * A file opened or dropped: a project archive (.tar.gz, .zip, #99), a
  * dialect's native file (the project of it and its model, #143), another
- * tool's model (imported), else a model.
+ * tool's model (imported), else a model, in its framework (#171: KAOS's
+ * or NFR's by its content, a switch of framework confirmed first).
  */
 export const openUpload = async (
   wb: Pick<
     ReturnType<typeof useWorkbench>,
-    'openFile' | 'openArchive' | 'openNativeFile'
+    'openFile' | 'openArchive' | 'openNativeFile' | 'openModelFile'
   >,
   file: File,
   /** the dialects whose native files it opens (the registered engines') */
@@ -130,9 +131,10 @@ export const openUpload = async (
   if (nativeFileFor(dialects, file.name))
     return wb.openNativeFile(file.name, text);
   const imported = importedModel(file.name, text);
+  // a piStar model: in its framework, by its content (goal-controller#171)
   return imported
     ? wb.openFile(imported.fileName, imported.text, { setup: true })
-    : wb.openFile(file.name, text, { setup: true });
+    : wb.openModelFile(file.name, text);
 };
 
 /** What the open dialog takes (piStar models, archives, the declared native files, the importers'). */

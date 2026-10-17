@@ -27,6 +27,7 @@ import ModelInspector from './engines/ModelInspector';
 import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
+import FrameworkSwitchDialog from './FrameworkSwitchDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { openUpload } from './TopBar';
@@ -276,6 +277,7 @@ function ShellLayout() {
         {wb.conversion && wb.hasModel && (
           <ConvertDialog target={wb.conversion.target} />
         )}
+        {wb.frameworkSwitch && <FrameworkSwitchDialog />}
       </ShellContext.Provider>
     );
   }
@@ -401,6 +403,7 @@ function ShellLayout() {
         {wb.conversion && wb.hasModel && (
           <ConvertDialog target={wb.conversion.target} />
         )}
+        {wb.frameworkSwitch && <FrameworkSwitchDialog />}
       </div>
     </ShellContext.Provider>
   );
