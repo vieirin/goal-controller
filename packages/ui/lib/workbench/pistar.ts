@@ -20,8 +20,10 @@ import {
 // types only: the view is computed in services/tree.ts
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import {
+  DEFAULT_FRAMEWORK,
   isEmptyModelExtension,
   withModelEntries,
+  type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
 import type { TransformEngine } from '@/lib/types';
@@ -33,11 +35,13 @@ import {
 } from '../project';
 import { optionKeysOf } from './projectSettings';
 import {
+  dialectOf,
   ENGINE_DIALECTS,
   ENGINE_LABEL,
   isDialectEngine,
 } from './engineDialects';
 import {
+  DIALECT_DEFINITIONS,
   DIALECT_LABEL,
   DIALECTS,
   isDialectMode,
@@ -45,7 +49,11 @@ import {
   parseModel,
   type DialectMode,
 } from './dialects';
-import { emptyModelText } from './frameworks';
+import {
+  emptyModelText,
+  FRAMEWORK_LABEL,
+  frameworkOfModel,
+} from './frameworks';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
@@ -448,6 +456,37 @@ const MODE_LABEL = (mode: ModelMode): string =>
       : mode === 'edge' || mode === 'edgev2'
         ? 'the Edge engines'
         : ENGINE_LABEL[mode];
+/** The framework a mode's models are in (goal-controller#171): its dialect's; piStar's is iStar 2.0. */
+export const frameworkOfMode = (mode: ModelMode): Framework =>
+  (isDialectMode(mode)
+    ? DIALECT_DEFINITIONS[mode]
+    : isEngineMode(mode)
+      ? dialectOf(mode)
+      : null
+  )?.framework ?? DEFAULT_FRAMEWORK;
+
+/**
+ * Why a model can't be for a mode in a project, by framework
+ * (goal-controller#171), before any engine reads it: the model is in another
+ * framework than the project's, or the mode's dialect is. Without a project
+ * framework, the model's own is the project's. Nothing converts a model
+ * between frameworks. Null when the frameworks agree.
+ */
+export const frameworkMismatch = (
+  text: string,
+  target: ModelMode,
+  project?: Framework,
+): string | null => {
+  const model = frameworkOfModel(text);
+  const expected = project ?? model;
+  const mode = frameworkOfMode(target);
+  if (model !== expected)
+    return `The model is in ${FRAMEWORK_LABEL[model]}, and the project in ${FRAMEWORK_LABEL[expected]}: nothing converts a model between frameworks`;
+  if (mode !== expected)
+    return `${engineSays(target).reads} ${FRAMEWORK_LABEL[mode]} models, and the ${project ? 'project' : 'model'} is in ${FRAMEWORK_LABEL[expected]}: nothing converts a model between frameworks`;
+  return null;
+};
+
 /** What a target engine reads, as its messages say it ("the Edge engines read …"). */
 const engineSays = (target: ModelMode) => {
   const many = target === 'edge' || target === 'edgev2';
@@ -464,9 +503,13 @@ const plural = (label: string): string =>
  * Converts a model to a mode: fixes what can be fixed safely (RT ids on unnamed elements;
  * a type for Edge resources that have none) and lists what cannot (element and link kinds
  * the engine does not read, a second actor). Whether the result is valid for the engine
- * is for the engine to say.
+ * is for the engine to say. Throws for a mode of another framework than the model's
+ * (frameworkMismatch): no conversion crosses frameworks.
  */
 export const planConversion = (text: string, target: ModelMode): Conversion => {
+  // another framework's model or mode: refused, as nothing converts between them
+  const mismatch = frameworkMismatch(text, target);
+  if (mismatch) throw new Error(mismatch);
   let model = (() => {
     try {
       return parseModel(text);

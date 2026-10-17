@@ -7,6 +7,7 @@
 import {
   createEmptyModel,
   defineMetamodelExtension,
+  detectFramework,
   extendMetamodel,
   ISTAR_2_0,
   toPistar,
@@ -16,11 +17,13 @@ import {
 import { KAOS } from '@istar-ts/dsm3-kaos';
 import { NFR } from '@istar-ts/dsm3-nfr';
 import {
+  DEFAULT_FRAMEWORK,
+  FRAMEWORKS,
   metamodelExtensionOf,
   type ExtensionDefinition,
   type Framework,
 } from '@goal-controller/dialect';
-import { withModelSettings } from '../project';
+import { recordedFramework, withModelSettings } from '../project';
 
 /** The root metamodel of each framework. */
 export const FRAMEWORK_ROOTS: Readonly<Record<Framework, AnyMetamodel>> = {
@@ -34,6 +37,28 @@ export const FRAMEWORK_LABEL: Readonly<Record<Framework, string>> = {
   'istar-2.0': 'iStar 2.0',
   kaos: 'KAOS',
   nfr: 'NFR Framework',
+};
+
+/**
+ * The framework a model text is in: the one its content is written in
+ * (istar-ts's detectFramework: its kinds' prefix, or its tool), else the one
+ * it records, else iStar 2.0. Content wins over the record.
+ */
+export const frameworkOfModel = (text: string): Framework => {
+  let detected: string | undefined;
+  try {
+    detected = detectFramework(
+      text,
+      FRAMEWORKS.map((framework) => FRAMEWORK_ROOTS[framework]),
+    )?.framework;
+  } catch {
+    // not a model: what it records, if anything
+  }
+  return (
+    FRAMEWORKS.find((framework) => framework === detected) ??
+    recordedFramework(text) ??
+    DEFAULT_FRAMEWORK
+  );
 };
 
 /**

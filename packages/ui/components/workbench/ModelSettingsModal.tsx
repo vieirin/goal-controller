@@ -6,7 +6,11 @@ import { DIALECT_LABEL, type DialectMode } from '@/lib/workbench/dialects';
 import { ENGINES, hasOptions } from '@/lib/workbench/engineDialects';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
-import { ConformityStatus, useEngineConformity } from './engineConformity';
+import {
+  ConformityStatus,
+  projectFrameworkOf,
+  useEngineConformity,
+} from './engineConformity';
 import { useWorkbench, type ConversionTarget } from './WorkbenchContext';
 import { Button, IconButton, Switch, cx } from './ui';
 
@@ -38,7 +42,12 @@ export default function ModelSettingsModal() {
   const wb = useWorkbench();
   const setup = wb.settingsDialog === 'setup';
   // how well the model suits each engine (as in the Convert dialog)
-  const conformity = useEngineConformity(wb.text, TARGET_IDS, !wb.text.trim());
+  const conformity = useEngineConformity(
+    wb.text,
+    TARGET_IDS,
+    !wb.text.trim(),
+    projectFrameworkOf(wb.project),
+  );
   const [draft, setDraft] = useState<ModelSettings>(wb.settings);
   const [fileName, setFileName] = useState(wb.fileName || 'untitled.txt');
   const nameInput = useRef<HTMLInputElement>(null);

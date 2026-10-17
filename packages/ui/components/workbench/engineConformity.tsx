@@ -7,12 +7,18 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import type { Framework } from '@goal-controller/dialect';
+import { settingsInManifest, type Project } from '@/lib/project';
 import type { TransformEngine } from '@/lib/types';
 import {
   modelLanguageProblems,
   treeProblems,
 } from '@/lib/workbench/localProblems';
-import { planConversion, type Conversion } from '@/lib/workbench/pistar';
+import {
+  frameworkMismatch,
+  planConversion,
+  type Conversion,
+} from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
 import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
@@ -65,19 +71,36 @@ const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   }
 };
 
+/** The framework of the open project's model (goal-controller#171); none without a project. */
+export const projectFrameworkOf = (
+  project: Project | null,
+): Framework | undefined =>
+  project
+    ? settingsInManifest(project.manifest, project.models[0]?.path).framework
+    : undefined;
+
 /**
- * How well a model conforms to each engine: the conversion each would need (automatic
- * fixes, what it cannot read) and whether the engine accepts the converted model. The
- * model text is read once (when the hook mounts); `skip` holds the engine checks back.
+ * How well a model conforms to each engine, on two axes: first its framework
+ * (goal-controller#171: the model's and the engine's dialect's are the
+ * project's, `framework`, or else the model's own), then the conversion each
+ * would need (automatic fixes, what it cannot read) and whether the engine
+ * accepts the converted model. The model text is read once (when the hook
+ * mounts); `skip` holds the engine checks back.
  */
 export function useEngineConformity(
   text: string,
   engines: readonly ConversionTarget[],
   skip = false,
+  framework?: Framework,
 ) {
   const plans = useMemo(() => {
     const result = {} as Record<ConversionTarget, Plan>;
     for (const id of engines) {
+      const mismatch = frameworkMismatch(text, id, framework);
+      if (mismatch) {
+        result[id] = { error: mismatch };
+        continue;
+      }
       try {
         result[id] = planConversion(text, id);
       } catch (error) {
@@ -89,7 +112,7 @@ export function useEngineConformity(
     return result;
     // the plans are for the model as it was when the dialog opened
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engines.join()]);
+  }, [engines.join(), framework]);
   const [checks, setChecks] = useState<
     Partial<Record<ConversionTarget, Check>>
   >({});
