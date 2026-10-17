@@ -127,7 +127,6 @@ const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
   {
     key: 'variables',
     input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
-    validate: edgeGoalChecks.variables,
   },
 ];
 

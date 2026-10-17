@@ -64,11 +64,14 @@ TS
 } > "$OUT/pistar.ts"
 
 # edgeProperties.ts read a mapper's keys from its allowed*Keys, which mappers
-# no longer have (goal-controller#187): its KeysOf reads them from its dialect
+# no longer have (goal-controller#187): its KeysOf reads them from its dialect.
+# Its variables check (edgeGoalChecks.variables) is gone too (#187): a pairList
+# of int is the dialect's, and its value check says what it can't read
 {
   header packages/ui/lib/workbench/edgeProperties.ts
   show packages/ui/lib/workbench/edgeProperties.ts | sed \
-    -e "s#from '@goal-controller/lib'#from '../../../src'#" | perl -0pe '
+    -e "s#from '@goal-controller/lib'#from '../../../src'#" \
+    -e "/validate: edgeGoalChecks.variables,/d" | perl -0pe '
     s{/\*\* The keys an engine mapper reads, per node kind\. \*/\ntype KeysOf<M> = .*?\n  : never;\n}{/** The keys an engine mapper reads, per node kind: its dialect\x27s. */
 type KeysOf<M> = M extends {
   dialect: {
@@ -117,7 +120,9 @@ against) by:
 Imports are rewritten to these copies, or to lib's own source
 (\`packages/lib/src\`); \`@goal-controller/goal-tree\` resolves from lib.
 edgeProperties.ts's \`KeysOf\` reads a mapper's keys from its dialect (its
-mapper's \`allowed*Keys\` are gone, goal-controller#187). Do not
+mapper's \`allowed*Keys\` are gone, goal-controller#187), and its
+\`variables\` has no \`validate\` (the engine's variables check is gone, #187:
+the dialect's value check reads a pairList of int). Do not
 edit them: a mismatch is fixed in the definition, not here.
 \`test/dialect/harness.test.ts\` checks that re-running the script gives these
 files unchanged.

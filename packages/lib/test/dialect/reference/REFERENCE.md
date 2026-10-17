@@ -17,7 +17,9 @@ against) by:
 Imports are rewritten to these copies, or to lib's own source
 (`packages/lib/src`); `@goal-controller/goal-tree` resolves from lib.
 edgeProperties.ts's `KeysOf` reads a mapper's keys from its dialect (its
-mapper's `allowed*Keys` are gone, goal-controller#187). Do not
+mapper's `allowed*Keys` are gone, goal-controller#187), and its
+`variables` has no `validate` (the engine's variables check is gone, #187:
+the dialect's value check reads a pairList of int). Do not
 edit them: a mismatch is fixed in the definition, not here.
 `test/dialect/harness.test.ts` checks that re-running the script gives these
 files unchanged.
