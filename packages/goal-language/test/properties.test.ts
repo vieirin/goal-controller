@@ -382,6 +382,17 @@ describe('readProperties (#187)', () => {
     });
   });
 
+  it('reads a conditional value by its property trimmed, as the enum reads it (#234)', () => {
+    // `bound` is an assertion when type is maintain, an int otherwise
+    const { values } = readProperties(
+      dialect,
+      { element: 'goal' },
+      { type: ' maintain', bound: 'x > 3' },
+    );
+    expect(values.type).to.equal('maintain');
+    expect(values.bound).to.have.property('kind', 'compare');
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();
