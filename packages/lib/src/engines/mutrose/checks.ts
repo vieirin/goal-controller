@@ -226,10 +226,25 @@ const goalTypeOf = (
         .values.GoalType;
 
 /**
- * The checks the MutRoSe definition names, by name: the one place the names
- * are written.
+ * The names of MutRoSe's checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
  */
-export const mutroseCheckRegistry = checks({
+export type MutroseCheckName =
+  | 'mutrose.goal.controls'
+  | 'mutrose.goal.monitors'
+  | 'mutrose.goal.achieveCondition'
+  | 'mutrose.goal.queriedProperty'
+  | 'mutrose.goal.creationCondition'
+  | 'mutrose.task.location'
+  | 'mutrose.task.params'
+  | 'mutrose.task.robotNumber';
+
+/**
+ * The checks the MutRoSe definition names, by name: one for each name (a
+ * missing or an unknown one doesn't compile).
+ */
+export const mutroseCheckRegistry = checks<MutroseCheckName>({
   'mutrose.goal.controls': varsCheck('Controls'),
   'mutrose.goal.monitors': varsCheck('Monitors'),
   'mutrose.goal.achieveCondition': ({ raw }, { self }) => {
@@ -290,6 +305,3 @@ export const mutroseCheckRegistry = checks({
       : null;
   },
 });
-
-/** The names of MutRoSe's checks: what a property's `check` may be. */
-export type MutroseCheckName = keyof typeof mutroseCheckRegistry;

@@ -7,13 +7,17 @@
  */
 import { checks } from '../checks';
 
-export const grlCheckRegistry = checks({
+/**
+ * The names of GRL's checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
+ */
+export type GrlCheckName = 'grl.link.contribution';
+
+export const grlCheckRegistry = checks<GrlCheckName>({
   /** a belief is a rationale: an intentional element takes contributions, a belief doesn't */
   'grl.link.contribution': (_input, context) =>
     context.readLink?.(context.self)?.ends?.target.kind === 'grl.Belief'
       ? 'A contribution goes to an intentional element, not to a belief'
       : null,
 });
-
-/** The names of GRL's checks: what a property's `check` may be. */
-export type GrlCheckName = keyof typeof grlCheckRegistry;

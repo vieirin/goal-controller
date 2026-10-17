@@ -234,11 +234,26 @@ export const edgeResourceChecks = checks({
 });
 
 /**
- * The checks the Edge definitions name, by name: the one place the names are
- * written. A property's `check` is typed with them (`EdgeCheckName`), and
- * `specsFromDefinition` needs one for every name a definition gives.
+ * The names of the Edge engines' checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
  */
-export const edgeCheckRegistry = checks({
+export type EdgeCheckName =
+  | 'edge.goal.maintain'
+  | 'edge.goal.assertion'
+  | 'edge.goal.dependsOn'
+  | 'edge.resource.type'
+  | 'edge.resource.initialValue'
+  | 'edge.resource.lowerBound'
+  | 'edge.resource.upperBound';
+
+/**
+ * The checks the Edge definitions name, by name: one for each name (a
+ * missing or an unknown one doesn't compile). A property's `check` is typed
+ * with them (`EdgeCheckName`), and `specsFromDefinition` needs one for every
+ * name a definition gives.
+ */
+export const edgeCheckRegistry = checks<EdgeCheckName>({
   'edge.goal.maintain': edgeGoalChecks.maintain,
   'edge.goal.assertion': edgeGoalChecks.assertion,
   'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
@@ -247,6 +262,3 @@ export const edgeCheckRegistry = checks({
   'edge.resource.lowerBound': edgeResourceChecks.lowerBound,
   'edge.resource.upperBound': edgeResourceChecks.upperBound,
 });
-
-/** The names of the Edge engines' checks: what a property's `check` may be. */
-export type EdgeCheckName = keyof typeof edgeCheckRegistry;

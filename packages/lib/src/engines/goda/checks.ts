@@ -15,7 +15,14 @@ const isSelected = (selected: string | undefined): boolean =>
   readProperties(goda, { element: 'goal' }, { selected }).values.selected ===
     'true';
 
-export const godaCheckRegistry = checks({
+/**
+ * The names of GODA's checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
+ */
+export type GodaCheckName = 'goda.goal.selected';
+
+export const godaCheckRegistry = checks<GodaCheckName>({
   /**
    * One goal is selected: GODA generates from the actor that has it. A second
    * one is reported on itself; none, by the engine (no element to mark).
@@ -33,6 +40,3 @@ export const godaCheckRegistry = checks({
       : null;
   },
 });
-
-/** The names of GODA's checks: what a property's `check` may be. */
-export type GodaCheckName = keyof typeof godaCheckRegistry;
