@@ -10,17 +10,19 @@ const noDeps = { self: '', kindOf: () => undefined };
 
 describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('maxRetries', () => {
-    it('flags a negative value on a goal', () => {
+    // #249: changed (was its own message): a negative value is below the
+    // dialect's min, which reports it ("At least 0")
+    it('leaves a negative value on a goal to the dialect', () => {
       assert.strictEqual(
         edgeGoalChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got "-1"',
+        null,
       );
     });
 
-    it('flags a negative value on a task', () => {
+    it('leaves a negative value on a task to the dialect', () => {
       assert.strictEqual(
         edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1"',
+        null,
       );
     });
 

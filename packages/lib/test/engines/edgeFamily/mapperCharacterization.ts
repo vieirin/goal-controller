@@ -124,12 +124,10 @@ export const characterizeEdgeMapper = (
         );
     });
 
-    it('throws for a negative value, naming the node', () => {
-      // #187: invalid value
-      throws(
-        { G12: { maxRetries: '-1' } },
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got "-1" (node G12)',
-      );
+    it('reads a negative value as unset: 0', () => {
+      // #249: invalid value, changed (was a throw): below its min, which
+      // the dialect reports ("At least 0")
+      assert.strictEqual(goal('G12', { maxRetries: '-1' }).maxRetries, 0);
     });
 
     it('reads a blank value as unset: 0', () => {
@@ -161,12 +159,10 @@ export const characterizeEdgeMapper = (
       assert.strictEqual(task('T8', { maxRetries: ' ' }).maxRetries, 0);
     });
 
-    it('throws for a negative value, naming the node', () => {
-      // #187: invalid value
-      throws(
-        { T8: { maxRetries: '-1' } },
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1" (node T8)',
-      );
+    it('reads a negative value as unset: 0', () => {
+      // #249: invalid value, changed (was a throw): below its min, which
+      // the dialect reports ("At least 0")
+      assert.strictEqual(task('T8', { maxRetries: '-1' }).maxRetries, 0);
     });
   });
 

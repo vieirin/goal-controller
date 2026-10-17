@@ -121,6 +121,17 @@ const readValue = (config: ValueConfig, text: string): unknown => {
       if (!text.trim()) return null;
       return probabilityOf(text) ?? undefined;
     }
+    case 'int': {
+      const read = parseValue('int', text);
+      if (read.errors.length) return undefined;
+      // outside its bounds it isn't its type, as valueProblem reports
+      // (goal-controller#249)
+      const n = read.value;
+      if (n === null) return null;
+      if (config.min !== undefined && n < config.min) return undefined;
+      if (config.max !== undefined && n > config.max) return undefined;
+      return n;
+    }
     case 'pairList': {
       const read = parseValue('pairList', text);
       if (read.errors.length) return undefined;

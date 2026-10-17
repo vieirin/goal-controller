@@ -344,6 +344,44 @@ describe('readProperties (#187)', () => {
     expect([...read({ ints: '' }).values.ints!]).to.deep.equal([]);
   });
 
+  it('leaves an int outside its bounds unset, as valueProblem reports it (#249)', () => {
+    const bounded = {
+      properties: {
+        goal: [
+          property.int('episodeLength', { min: 1, help: '' }),
+          property.int('weight', { min: -100, max: 100, help: '' }),
+        ],
+      },
+    };
+    const read = (stored: Record<string, string>) =>
+      readProperties(bounded, { element: 'goal' }, stored);
+    expect(read({ episodeLength: '1', weight: '-100' }).values).to.deep.equal({
+      episodeLength: 1,
+      weight: -100,
+    });
+    expect(read({ weight: '100' }).values).to.deep.equal({ weight: 100 });
+    for (const [key, text, problem] of [
+      ['episodeLength', '-3', 'At least 1'],
+      ['episodeLength', '0', 'At least 1'],
+      ['weight', '101', 'At most 100'],
+      ['weight', '-101', 'At least -100'],
+    ] as const) {
+      const record = read({ [key]: text });
+      expect(record.values, text).to.deep.equal({});
+      expect(record.text, text).to.deep.equal({ [key]: text });
+      const config = {
+        type: 'int',
+        min: key === 'weight' ? -100 : 1,
+        ...(key === 'weight' && { max: 100 }),
+      } as const;
+      expect(valueProblem(config, text), text).to.equal(problem);
+    }
+    // unset and empty, as before
+    expect(read({ episodeLength: '' }).values).to.deep.equal({
+      episodeLength: null,
+    });
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();

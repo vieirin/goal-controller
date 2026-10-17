@@ -43,7 +43,7 @@ describe('edgeEngineMapper', () => {
     assert.strictEqual(t1.properties.engine.cost, '');
   });
 
-  it("throws edgeTaskChecks.maxRetries's message for an invalid maxRetries", () => {
+  it('reads a negative maxRetries as unset: 0, the dialect reporting it', () => {
     const original = Model.load(
       '../../examples/edge/experiments/1-minimal/1-minimal.txt',
     );
@@ -58,10 +58,12 @@ describe('edgeEngineMapper', () => {
     });
     const model = { ...original, elements };
 
-    assert.throws(
-      () => GoalTree.fromModel(model, edgeEngineMapper),
-      /\[INVALID TASK\]: maxRetries must be a non-negative integer: got "-1"/,
-    );
+    // #249: invalid value, changed (was edgeTaskChecks.maxRetries's throw):
+    // below its min it is unset, and valueProblem says "At least 0"
+    const t1 = GoalTree.fromModel(model, edgeEngineMapper)
+      .query.allByType('task')
+      .find((node) => node.id === 'T1');
+    assert.strictEqual(t1?.properties.engine.maxRetries, 0);
   });
 
   it('does not carry goal keys (e.g. utility) from a Quality', () => {
