@@ -798,13 +798,13 @@ export const characterizeEdgeMapper = (
         { type: 'string', initialValue: 'a' },
         'Unsupported resource type: string',
       );
-      // the dialect reads ' int' as int (its choices are trimmed), but its
-      // initialValue's condition (type equals int) reads the type untrimmed, so
-      // reads '3' as a bool's: unset (the dialect says "true or false, not 3")
-      // #187: changed (was "Unsupported resource type:  int")
-      throwsFor(
-        { ...valid, type: ' int' },
-        'Integer resource must have an initial value, lower bound, and upper bound',
+      // #234: changed (was "Integer resource must have an initial value, …":
+      // initialValue's condition read the type untrimmed, so '3' as a bool's):
+      // the dialect reads ' int' as int, its conditions too, so it is an int
+      // resource like 'int'
+      assert.deepStrictEqual(
+        resource({ ...valid, type: ' int' }),
+        resource({ ...valid, type: 'int' }),
       );
       throwsFor(
         { type: '', initialValue: 'true' },

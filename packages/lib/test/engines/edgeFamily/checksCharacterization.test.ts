@@ -401,13 +401,19 @@ describe('edgeChecks characterization (#187)', () => {
     it("int: reads ' int' as int, as the dialect does (its choices are trimmed)", () => {
       const missing =
         '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound';
-      // #187: changed (was unsupported(' int'))
+      // #187: changed (was unsupported(' int')); #234: changed (initialValue
+      // was the missing message: its condition read the type untrimmed, so
+      // 'true' as a bool's): ' int' reads as 'int' does, 'true' not an int,
+      // which the dialect reports
       assert.deepStrictEqual(all({ type: ' int', initialValue: 'true' }), {
         ...fine,
-        initialValue: missing,
         lowerBound: missing,
         upperBound: missing,
       });
+      assert.deepStrictEqual(
+        all({ type: ' int', initialValue: 'true' }),
+        all({ type: 'int', initialValue: 'true' }),
+      );
     });
   });
 

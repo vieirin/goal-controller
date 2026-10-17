@@ -5,6 +5,7 @@ import {
   constructOf,
   constructsWith,
   evaluateCondition,
+  valueOf,
   fillOf,
   inputOf,
   propertyKeys,
@@ -49,6 +50,28 @@ describe('properties', () => {
     expect(evaluateCondition({ not: when }, {}, false)).to.equal(true);
     expect(evaluateCondition('always', {}, false)).to.equal(true);
     expect(evaluateCondition(undefined, {}, true)).to.equal(true);
+  });
+
+  it("reads a condition's property trimmed, as an enum reads it (#234)", () => {
+    const when = { when: { key: 'type', equals: 'int' } } as const;
+    expect(evaluateCondition(when, { type: ' int ' }, false)).to.equal(true);
+    expect(evaluateCondition({ not: when }, { type: 'int\n' }, false)).to.equal(
+      false,
+    );
+    expect(evaluateCondition(when, { type: 'Int' }, false)).to.equal(false);
+    const initialValue = {
+      value: {
+        when: { key: 'type', equals: 'int' },
+        matching: { type: 'int' },
+        otherwise: { type: 'bool' },
+      },
+    } as const;
+    expect(valueOf(initialValue, { type: ' int' })).to.deep.equal({
+      type: 'int',
+    });
+    expect(valueOf(initialValue, { type: 'bool' })).to.deep.equal({
+      type: 'bool',
+    });
   });
 
   it('falls back to the default fill', () => {

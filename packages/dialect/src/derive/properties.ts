@@ -27,6 +27,15 @@ export const propertyKeys = <
     (p) => p.key,
   ) as D['properties'][K][number]['key'][];
 
+/**
+ * Whether a property reads as a value (a condition's `when`): its text
+ * trimmed, as an enum reads it (goal-controller#234: `' int'` is `int`).
+ */
+const reads = (
+  properties: Properties,
+  when: { key: string; equals: string },
+): boolean => properties[when.key]?.trim() === when.equals;
+
 export const evaluateCondition = (
   condition: Condition | undefined,
   properties: Properties,
@@ -34,9 +43,8 @@ export const evaluateCondition = (
 ): boolean => {
   if (condition === undefined) return fallback;
   if (condition === 'always') return true;
-  if ('not' in condition)
-    return properties[condition.not.when.key] !== condition.not.when.equals;
-  return properties[condition.when.key] === condition.when.equals;
+  if ('not' in condition) return !reads(properties, condition.not.when);
+  return reads(properties, condition.when);
 };
 
 const isConditional = (
@@ -49,7 +57,7 @@ export const valueOf = (
   properties: Properties,
 ): ValueConfig =>
   isConditional(property.value)
-    ? properties[property.value.when.key] === property.value.when.equals
+    ? reads(properties, property.value.when)
       ? property.value.matching
       : property.value.otherwise
     : property.value;
