@@ -46,6 +46,13 @@ import { edgeEngine } from '../../src/engines/edge/engine';
 import { edgeV2Engine } from '../../src/engines/edgeV2/engine';
 import { mutroseEngine } from '../../src/engines/mutrose/engine';
 import { sleecEngine } from '../../src/engines/sleec/engine';
+import {
+  kaosdocDocument,
+  kaosdocEngine,
+  kaosdocGoalModel,
+  kaosdocOutput,
+  readKaosModel,
+} from '../../src/engines/kaosdoc';
 import type { Engine } from '../../src/engines/engine';
 import { threeFileEngine } from '../support/threeFileEngine';
 
@@ -55,6 +62,9 @@ const EDGE_V2 = '../../examples/edgeV2/simpleChoiceRewards.txt';
 const SLEEC = '../../examples/sleec/goalModel-sleec.txt';
 const MUTROSE =
   '../../examples/mutrose/medicine-delivery/gm/MedicineDelivery.txt';
+const KAOS = '../../examples/kaos/kaos-welcome.txt';
+const kaosModel = () =>
+  kaosdocGoalModel(readKaosModel(readFileSync(KAOS, 'utf8')));
 
 const edgeTree = () =>
   GoalTree.fromModel(Model.load(EDGE), edgeEngineMapper).nodes;
@@ -131,6 +141,13 @@ const ENGINES: Array<{
         GoalTree.fromModel(Model.load(MUTROSE), mutroseEngineMapper).nodes,
       ),
     fileName: 'lab.rannot',
+  },
+  {
+    engine: 'kaosdoc',
+    registered: kaosdocEngine,
+    output: () => kaosdocOutput(kaosModel(), { modelName: 'lab.txt' }),
+    text: () => kaosdocDocument(kaosModel(), { title: 'lab' }),
+    fileName: 'lab.md',
   },
 ];
 

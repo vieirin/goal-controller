@@ -360,6 +360,16 @@ export { grlEngine } from './engines/grl/engine';
 export { istardtEngine } from './engines/istardt/engine';
 export { tropos4asEngine } from './engines/tropos4as/engine';
 export { cgmEngine } from './engines/cgm/engine';
+// the frameworks' engines (goal-controller#171): KAOS's document
+export {
+  kaosdocDocument,
+  kaosdocEngine,
+  kaosdocEngineMapper,
+  kaosdocGoalModel,
+  kaosdocOutput,
+  readKaosModel,
+  type KaosdocGoalModel,
+} from './engines/kaosdoc';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';
