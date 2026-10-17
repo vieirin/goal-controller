@@ -131,11 +131,16 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
     });
 
   it('reads a valid int, trimmed; 0 when unset', () => {
-    for (const read of [costOf, amount])
-      assert.deepStrictEqual(
-        ['50', ' 50 ', '0', '-0', '150', '', '  '].map(read),
-        [50, 50, 0, -0, 150, 0, 0],
-      );
+    assert.deepStrictEqual(
+      ['50', ' 50 ', '0', '-0', '150', '', '  '].map(costOf),
+      [50, 50, 0, -0, 150, 0, 0],
+    );
+    // #249: changed (was 0 and -0 as written): amount is min 1, so 0 and -0
+    // are below it, unset, 0
+    assert.deepStrictEqual(
+      ['50', ' 50 ', '0', '-0', '150', '', '  '].map(amount),
+      [50, 50, 0, 0, 150, 0, 0],
+    );
     assert.strictEqual(
       readCgmModel(
         viewOf((json) => {
@@ -152,10 +157,11 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
     );
   });
 
-  it('reads a value below its minimum as written', () => {
-    // #187: invalid value (cost is min 0, amount min 1)
-    assert.deepStrictEqual(['-150', '-5'].map(costOf), [-150, -5]);
-    assert.deepStrictEqual(['0', '-150'].map(amount), [0, -150]);
+  it('reads a value below its minimum as unset: 0', () => {
+    // #187: invalid value, #249: changed (was read as written): cost is
+    // min 0, amount min 1; the dialect's int check reports it ("At least …")
+    assert.deepStrictEqual(['-150', '-5'].map(costOf), [0, 0]);
+    assert.deepStrictEqual(['0', '-150'].map(amount), [0, 0]);
   });
 
   it("reads 0 for what isn't an int, though parseInt read its prefix", () => {
@@ -205,7 +211,10 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
       reContextDlv(model(value))
         .split('\n')
         .filter((line) => line.startsWith('cost(r_t3,'));
-    assert.deepStrictEqual(costLines('-5'), ['cost(r_t3,-5) :- needed(r_t3).']);
+    assert.deepStrictEqual(costLines('5'), ['cost(r_t3,5) :- needed(r_t3).']);
+    // #249: changed (was `cost(r_t3,-5)`): below cost's min 0 it is unset,
+    // as a blank one
+    assert.deepStrictEqual(costLines('-5'), []);
     // a blank cost: no Code 4 at all, and no resource for T3
     assert.ok(!reContextDlv(model('  ')).includes('% Code 4'));
     assert.ok(

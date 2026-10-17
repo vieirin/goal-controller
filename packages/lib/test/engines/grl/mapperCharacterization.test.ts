@@ -121,10 +121,22 @@ describe('GRL (#187 characterization): what the mapper keeps', () => {
 describe('GRL (#187 characterization): importanceQuantitative and quantitativeContribution, `integer`', () => {
   const quantitative = (read: (value: string) => number, fallback: number) => {
     // valid ints (and the empty value, unset)
-    assert.deepStrictEqual(
-      ['50', ' 50 ', '-0', '0', '-150', '150', '', '  '].map(read),
-      [50, 50, -0, 0, -150, 150, fallback, fallback],
-    );
+    assert.deepStrictEqual(['50', ' 50 ', '-0', '0', '', '  '].map(read), [
+      50,
+      50,
+      -0,
+      0,
+      fallback,
+      fallback,
+    ]);
+    // #249: changed (was read unclamped): outside its bounds (an
+    // importance's 0..100, a contribution's -100..100) it is unset, the
+    // default; the dialect's int check reports it
+    assert.deepStrictEqual(['-150', '150', '101'].map(read), [
+      fallback,
+      fallback,
+      fallback,
+    ]);
     // #187: invalid value (not an integer to the dialect): unset, the
     // default (Number read them as 1, 100, 16, 5)
     assert.deepStrictEqual(['1.0', '1e2', '0x10', '+5'].map(read), [
@@ -140,7 +152,7 @@ describe('GRL (#187 characterization): importanceQuantitative and quantitativeCo
     );
   };
 
-  it("an element's: its integer, 0 when unset or no integer, unclamped", () => {
+  it("an element's: its integer, 0 when unset, no integer or out of bounds", () => {
     quantitative(
       (value) =>
         element(

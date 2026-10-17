@@ -170,12 +170,12 @@ describe("iStar-DT (#187 characterization): a goal's root and episodeLength", ()
       ['getNumRuns(1)'],
     ]);
     // #187: invalid value (min 1; not an int): what isn't an int is unset,
-    // 1 (parseInt read '2.5' as 2, '10x' as 10); 0 is 1 (`|| 1`); -3 the
-    // int reads (its value check says "At least 1"); istardtProblems says
-    // nothing of any of them
+    // 1 (parseInt read '2.5' as 2, '10x' as 10); 0 and -3 are below min 1,
+    // unset, 1 (#249: changed, -3 was read as written; its value check says
+    // "At least 1"); istardtProblems says nothing of any of them
     assert.deepStrictEqual(['0', '-3', '2.5', '1e2', '10x', 'abc'].map(read), [
       ['getNumRuns(1)'],
-      ['getNumRuns(-3)'],
+      ['getNumRuns(1)'],
       ['getNumRuns(1)'],
       ['getNumRuns(1)'],
       ['getNumRuns(1)'],
