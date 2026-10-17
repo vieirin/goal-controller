@@ -22,7 +22,7 @@ const DEFAULT_FILL = '#CDFECD';
 const isAchieve = { when: { key: 'GoalType', equals: 'Achieve' } } as const;
 const isQuery = { when: { key: 'GoalType', equals: 'Query' } } as const;
 
-/** Group, Divisible: `true` by default; any other text than `false` reads as true. */
+/** Group, Divisible: `true` by default; any other text than `false` (in any case) reads as true. */
 const FLAG = [
   ['', 'true (default)'],
   ['true', 'true'],
@@ -97,13 +97,15 @@ const goalProperties = [
     help: 'when it is created: `assertion condition "expr"` or `assertion trigger "Event"`',
     check: 'mutrose.goal.creationCondition',
   }),
-  // the decomposer reads `False`, `TRUE`: any case
+  // the decomposer reads `False`, `TRUE`: any case, read as the option
   choice('Group', FLAG, {
     open: true,
+    caseInsensitive: true,
     help: 'whether a team of robots may pursue it (default true)',
   }),
   choice('Divisible', FLAG, {
     open: true,
+    caseInsensitive: true,
     help: 'whether its tasks may be split between robots (default true)',
   }),
 ];

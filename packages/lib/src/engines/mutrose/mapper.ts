@@ -51,13 +51,6 @@ const firstIssue = (
 const vars = (text: string | undefined) =>
   text?.trim() ? parseVars(text) : [];
 
-/**
- * Group, Divisible (an open enum: the word written): anything but `false`
- * is true, `false` in any case, as the decomposer reads it.
- */
-const flag = (word: string | null | undefined) =>
-  word?.toLowerCase() !== 'false';
-
 export const mutroseEngineMapper = createEngineMapper<
   MutroseGoalProps,
   MutroseTaskProps,
@@ -86,8 +79,10 @@ export const mutroseEngineMapper = createEngineMapper<
       }),
       ...(query && { queriedProperty: parseSelect(query)! }),
       ...(creation && { creationCondition: parseCreationCondition(creation)! }),
-      group: flag(props.Group),
-      divisible: flag(props.Divisible),
+      // an open, case-insensitive enum: `False` reads as `false`, and
+      // anything but `false` is true, as the decomposer reads it
+      group: props.Group !== 'false',
+      divisible: props.Divisible !== 'false',
       annotation: parseElementLine(text).value?.notation ?? null,
     };
   },

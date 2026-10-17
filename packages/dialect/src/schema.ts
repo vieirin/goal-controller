@@ -136,7 +136,16 @@ export const isExtensionIdPrefix = (prefix: string): boolean =>
 export type ValueConfig =
   /** `''` stands for "not set" (the property is removed) */
   /** `open`: values besides the options may be written (free text) */
-  | { type: 'enum'; options: readonly EnumOption[]; open?: boolean }
+  /**
+   * `caseInsensitive`: an option is matched in any case (`FALSE` is
+   * `false`) and read as the option's value, as written in `options`
+   */
+  | {
+      type: 'enum';
+      options: readonly EnumOption[];
+      open?: boolean;
+      caseInsensitive?: true;
+    }
   | { type: 'int'; min?: number; max?: number }
   | { type: 'number' }
   | { type: 'text' }
@@ -277,6 +286,24 @@ export type EnumOption = {
   label: string;
   /** what it means, where it is offered (an option menu's title) */
   help?: string;
+};
+
+/**
+ * The option a text is of an enum (trimmed; in any case where it is
+ * `caseInsensitive`): its value as `options` writes it, or undefined.
+ */
+export const enumOptionOf = (
+  config: Pick<
+    Extract<ValueConfig, { type: 'enum' }>,
+    'options' | 'caseInsensitive'
+  >,
+  text: string,
+): string | undefined => {
+  const written = text.trim();
+  const same = config.caseInsensitive
+    ? (value: string) => value.toLowerCase() === written.toLowerCase()
+    : (value: string) => value === written;
+  return config.options.find((option) => same(option.value))?.value;
 };
 
 /** What a postfix operator means: it modifies its operand, with an argument. */

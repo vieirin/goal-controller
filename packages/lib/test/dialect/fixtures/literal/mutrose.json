@@ -220,7 +220,8 @@
               "label": "false"
             }
           ],
-          "open": true
+          "open": true,
+          "caseInsensitive": true
         },
         "help": "whether a team of robots may pursue it (default true)"
       },
@@ -242,7 +243,8 @@
               "label": "false"
             }
           ],
-          "open": true
+          "open": true,
+          "caseInsensitive": true
         },
         "help": "whether its tasks may be split between robots (default true)"
       }

@@ -233,6 +233,47 @@ describe('readProperties (#187)', () => {
     );
   });
 
+  it('reads a caseInsensitive enum in any case, as its option (#227)', () => {
+    const flags = {
+      properties: {
+        goal: [
+          property.enum('closed', ['', 'true', 'false'], {
+            caseInsensitive: true,
+            help: '',
+          }),
+          property.enum('open', ['', 'false'], {
+            open: true,
+            caseInsensitive: true,
+            help: '',
+          }),
+        ],
+      },
+    };
+    const read = (stored: Record<string, string>) =>
+      readProperties(flags, { element: 'goal' }, stored);
+    expect(read({ closed: ' FALSE ', open: 'False' })).to.deep.equal({
+      values: { closed: 'false', open: 'false' },
+      text: { closed: ' FALSE ', open: 'False' },
+    });
+    // an open one keeps a word that is no option as written
+    expect(read({ closed: 'no', open: 'No' }).values).to.deep.equal({
+      open: 'No',
+    });
+    const [closed, open] = flags.properties.goal;
+    expect(valueProblem(closed.value, 'TRUE')).to.equal(null);
+    expect(valueProblem(closed.value, 'no')).to.equal(
+      'One of true, false, not no',
+    );
+    expect(valueProblem(open.value, 'whatever')).to.equal(null);
+    // without the flag, case still matters
+    expect(
+      readProperties(dialect, { element: 'goal' }, { type: 'Achieve' }).values,
+    ).to.deep.equal({});
+    expect(valueProblem(dialect.properties.goal[3].value, 'Achieve')).to.equal(
+      'One of achieve, maintain, not Achieve',
+    );
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();
