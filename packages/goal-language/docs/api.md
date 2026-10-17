@@ -25,14 +25,11 @@ bundles.
 | `withoutBracketSpaces` | `(text) => { text, origin(offset) }` | GODA's `removeBlankSpaceInBrackets`, and where each offset was written |
 | `parseCondition` | `(text) => Parsed<{ prefix, tree }>` | `parseCondition('assertion trigger x > 1').value.prefix` → `'assertion trigger'` |
 | `parseDocument` | `(text, { ids? = true, prefixes?, keys? }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false, keys: propertyKeysOf(d) })` for a plain document, its property lines read by its keys |
-| `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
+| `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']`, a [`RefList`](#value-types) |
 | `readProperties` | `(D, { element \| actor \| link: kind }, stored) => { values, text }` | a whole record read against a dialect (goal-controller#187): `readProperties(edgeV2, { element: 'task' }, { maxRetries: '3' })` → `{ values: { maxRetries: 3 }, text: { maxRetries: '3' } }`; only the keys the dialect gives the kind, a value with an error unset in `values` |
-| `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
-| `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
+| `readExpression` | `(text) => Expression \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
+| `readAssertion` | `(text) => Assertion<AssertionReading> \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
 | `assertionMembers` | `(tree) => { ref, member }[]` | the members a condition reads (`room.clean`, `tank.level < 3`, `room.clean = true`), in order (goal-controller#135); an `ExpressionTree`'s member is `{ kind: 'member', ref, member }` |
-| `expressionNodes` | `(tree: ExpressionTree) => ExpressionTree[]` | every node, each before its operands (what a check walks) |
-| `expressionText`, `assertionText` | `(tree) => string` | a tree written back: `0.5 + 0.9 * previous(t)`, with the parentheses its shape needs |
-| `rtText` | `(tree: RtTree \| null) => string` | the notation with no spaces: `G2@2->G3` (an operand's text in `modifiers`) |
 | `errorText` | `(error: GoalSyntaxError) => string` | `` `1:10 Unexpected …` `` (1-based line, 0-based column) |
 | `toRtTree`, `toAssertionTree`, `toElementLine` | Langium AST → plain data | for a Langium service's own AST |
 | `goalServices` | `() => GoalCoreServices` | the shared Langium services, created on first use |
@@ -47,9 +44,10 @@ functions return plain data, with no Langium types:
 - `AssertionTree` is one of `and`, `or`, `not`, `paren`, `assign`,
   `compare`, `var` or `bool`;
 - `ValueData[type]` is what a value type reads into: `int` and `number` a
-  `number`, `bool` a `boolean`, `text` and `enum` a string, `refList` its
-  ids, `pairList` its `{ name, value }` pairs, `assertion` an
-  `AssertionTree`, `expression` an `ExpressionTree`, `annotatedName` an
+  `number`, `bool` a `boolean`, `text` and `enum` a string, `refList` a
+  `RefList` (its ids), `pairList` a `PairList` (its `{ name, value }`
+  pairs), `assertion` an `Assertion`, `expression` an `Expression` (each its
+  tree, with its [members](#value-types)), `annotatedName` an
   `ElementLineData`, `ocl` its tokens; `null` (`[]` for a list) when empty.
   `ValueDataOf<config>` is the same for a dialect's value config: an enum is
   its options' values (when the definition keeps their literal types, as
@@ -72,17 +70,89 @@ G1: Deliver sample [G2;G3@2]
 <<goal-based>> G1: Deliver sample
 ```
 
+## Value types
+
+What the language reads (`parseValue`, `readAssertion`, `readExpression`,
+`readProperties`, an element line's `notation`) is its plain data (a
+`kind`-discriminated tree, an array) with its operations on it as members
+(goal-controller#188): `props.assertion.variables()`. The members aren't
+enumerable, so JSON, a structured clone and a deep comparison see the data
+only, and the snapshot script snapshots it. An operation takes the value,
+never its text; one that needs the dialect takes it as an argument. Every
+type has `text()`, its value as the language writes it (it reads back as the
+same value), and `refs()` where it can name elements. `asAssertion(tree)`,
+`asExpression`, `asNotation`, `asRefList` and `asPairList` give stored data its
+members (once: a value that has them is returned as it is).
+
+### `Assertion` (`AssertionTree` and its members)
+
+| Member | Gives |
+| --- | --- |
+| `tree` | the data: the tree itself |
+| `text()` | `previous(t) < 18 & !on`, its groups its `paren` nodes |
+| `variables()` | `{ name, value }[]`: the names it reads, in order; `x = true` sets a value each time, any other use names it once |
+| `comparisons()` | its comparisons of expressions and its calls, in order |
+| `expressions()` | the expressions those hold: each side, a call whole |
+| `asReading()` | every comparison's sides as expressions (`x > 3`: a `var` and a `number`), as `readAssertion` reads it |
+| `refs()` | the element ids it names (`G1 > 2`, `T1.1.done`), each once |
+
+### `Expression` (`ExpressionTree` and its members)
+
+| Member | Gives |
+| --- | --- |
+| `tree` | the data: the tree itself |
+| `text()` | `0.5 + 0.9 * previous(t)`, with the parentheses its shape needs |
+| `nodes()` | every node, each before its operands (what a check walks) |
+| `calls()` | its calls, outermost first |
+| `refs()` | the element ids it names (a member's reference too), each once |
+
+### `RefList` (`string[]` and its members)
+
+| Member | Gives |
+| --- | --- |
+| `ids` | the data: the ids themselves |
+| `text()` | `G2, G5` |
+| `refs()` | its ids |
+
+### `PairList` (`{ name, value }[]` and its members)
+
+| Member | Gives |
+| --- | --- |
+| `pairs` | the data: the pairs themselves |
+| `text()` | `x:3, y:2` |
+| `get(name)` | the first pair of that name's value, or `undefined` |
+| `names()` | its pairs' names, in order |
+
+### `Notation` (`RtTree` and its members)
+
+An element line's notation (`ElementLineData.notation`).
+
+| Member | Gives |
+| --- | --- |
+| `tree` | the data: the tree itself |
+| `text()` | the notation with no spaces: `G2@2->G3` (an operand's text in `modifiers`) |
+| `operandIds()` | its operand's ids through operators (a group's and a call's own aren't its parent's) |
+| `refs()` | every element id it names, in the order written, through groups and calls |
+| `execution(dialect)` | `{ type, ids, modifiers }` in that dialect (`executionOf`), or null |
+| `reading(dialect)` | what it says in that dialect (`readNotation`) |
+
+`isElementId(name)` says whether a name, as an assertion writes it, is an
+element's id (the lexer reads `G1`, `T1.1`, `GX` as ids; `E1`, `x` are names).
+
+**Deprecated free functions** (one release, then removed): `assertionText`,
+`comparisonsOf`, `assertionExpressions`, `expressionText`, `expressionNodes`,
+`rtText`, `operandIds`, `notationRefs`, `executionOf` (the members above) and
+`assertionVariables(text)`, which parses the text again (an assertion's
+`variables()` reads the value).
+
 ## Reading a notation in a dialect
 
 | Export | Signature | What it gives |
 | --- | --- | --- |
 | `goalNameParserFor` | `(dialect: ReadingDialect) => GoalNameParser` | every engine's goal-text reader: `({ goalText, onSyntaxError? }) => { id, goalName, executionDetail }`; reports syntax errors and disabled operators |
-| `executionOf` | `(dialect, tree) => ExecutionDetail \| null` | `{ type, ids, modifiers }`: a standalone construct, or the outermost enabled operator's construct with its operands and the modifiers that apply |
+| `executionOf` (deprecated: `notation.execution(dialect)`) | `(dialect, tree) => ExecutionDetail \| null` | `{ type, ids, modifiers }`: a standalone construct, or the outermost enabled operator's construct with its operands and the modifiers that apply |
 | `readNotation` | `(dialect, tree) => NotationReading` | `{ constructs, standalone, modifiers, disabled }`: each construct's outermost operands, standalone constructs, modifier arguments by operand text, disabled operators |
-| `operandIds` | `(tree) => string[]` | an operand's ids through operators (a group's and a call's own aren't its parent's) |
-| `notationRefs` | `(tree) => string[]` | every element id a notation names, in the order written, through groups and calls |
 | `isEnabled` | `(dialect, symbol, form) => boolean` | the one rule for whether a dialect enables an operator |
-| `assertionVariables` | `(text) => { name, value }[]` | the variables a condition names, in order (`x = true` gives a value) |
 
 The execution detail is typed by the dialect: `goalNameParserFor(edgeV2)`
 gives `ExecutionDetailOf<typeof edgeV2>`, whose `type` is one of edgeV2's
