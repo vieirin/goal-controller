@@ -1,0 +1,10 @@
+id,element,label,derivation
+67e5a5df-ff16-4fae-bbfa-235881aa03e1,Encrypt with RSA 128 bits,satisficed,an operationalization nothing contributes to: chosen
+1f16044e-7b7a-49c3-b8ac-8b3bb2410b3c,Encrypt with RSA 260 bits,satisficed,an operationalization nothing contributes to: chosen
+77371218-ae0f-4043-b500-9c75894788ee,Can be broken quickly,satisficed,a claim nothing contributes to: held
+457b4872-538b-458d-8bd2-71564f69f1ee,Login with Username and Password,satisficed,an operationalization nothing contributes to: chosen
+cdfac142-9e92-403f-a3c9-b1858a5e6e77,Confidenciality,conflict,"HELP (+) from ✓ RSA 260 is W+; HURT (–) from ✓ RSA 128, its claim held, is W−; W+ with W− is ⚡"
+c578c382-617b-4f83-9454-5f0019d759c1,Authentication,weakly-satisficed,"HELP (+) from ✓ Login is W+"
+b79575b1-2b32-466b-bd0f-2f2f41cbcf41,Security,conflict,"AND of Confidenciality (⚡) and Authentication (W+): the least, ⚡"
+ba10f8ed-95c2-4b35-b7da-9d31c4750a0e,Usability,weakly-satisficed,"SOME+ correlation from W+ Authentication is W+"
+8d514b0b-be68-418b-bb80-3d119509c939,"Example of a big, colored NFR",undecided,a softgoal nothing contributes to

@@ -8,9 +8,12 @@ import {
   edgeEngineMapper,
   edgeV2EngineMapper,
   godaEngineMapper,
+  kaosdocEngineMapper,
+  kaosdocGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
   type EngineMapper,
+  type KaosdocGoalModel,
   type GoalTreeType,
   type IStarModel,
 } from '@goal-controller/lib';
@@ -134,8 +137,39 @@ export const GoalModel = {
   },
 
   /**
+   * A KAOS model as kaosdoc reads it (goal-controller#171): parsed in its
+   * framework, its IR (trees on the paper, links, elements) built.
+   */
+  parseForKaosdoc(modelJson: string):
+    | {
+        success: true;
+        model: IStarModel;
+        tree: null;
+        goalModel: KaosdocGoalModel;
+      }
+    | ParseError {
+    const parseResult = this.parseModel(
+      modelJson,
+      {},
+      kaosdocEngineMapper.dialect,
+    );
+    if (!parseResult.success) return parseResult;
+    try {
+      const goalModel = kaosdocGoalModel(parseResult.model);
+      return { ...parseResult, tree: null, goalModel };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
+  },
+
+  /**
    * A model read as a graph (an analysis engine's, GRL's; iStar-DT's writer):
-   * parsed with the kinds its block declares, without a root or a tree.
+   * parsed in its framework (goal-controller#171) with the kinds its block
+   * declares, without a root or a tree.
    */
   parseAsGraph(
     modelJson: string,
@@ -143,7 +177,10 @@ export const GoalModel = {
     | { success: true; tree: null; model: IstarModel<string, string> }
     | ParseError {
     try {
-      const model = parsePistar(modelJson, { fileMetamodel: true });
+      const model = parsePistar(modelJson, {
+        metamodel: FRAMEWORK_ROOTS[frameworkOfModel(modelJson)],
+        fileMetamodel: true,
+      });
       return { success: true, tree: null, model };
     } catch (error) {
       return {

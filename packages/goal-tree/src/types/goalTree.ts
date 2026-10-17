@@ -27,6 +27,11 @@ export type BaseNode = {
   x?: number;
   id: string;
   type: Type;
+  /**
+   * its kind, in a framework besides iStar 2.0 (goal-controller#171: KAOS's
+   * `kaos.DomainProperty`), where `type` says only how a tree holds it
+   */
+  kind?: string;
   relationToChildren: Relation | null;
   name: string | null;
   /** the piStar id of the actor it is in (goal-controller#125; none: a dependum, outside every actor) */
@@ -148,5 +153,11 @@ export type GoalModel<
   >;
   links: Array<GoalModelLink<TLinkEngine>>;
   dependums: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  /**
+   * the trees on the paper, outside every actor (goal-controller#171): a
+   * framework without actors (KAOS, NFR) has all its trees here, one per
+   * element no refinement makes a child; an iStar model none
+   */
+  paper: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
   elements: GoalModelElement[];
 };

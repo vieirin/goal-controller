@@ -15,7 +15,10 @@ import type { GoalExecutionDetail, GoalModel, TreeNode } from '../types/';
 export type MapperDialect = ReadingDialect & {
   model?: ModelShape;
   elements?: AnyDialect['elements'];
-};
+} & Partial<
+    /** its framework and the link kinds that refine in it (goal-controller#171) */
+    Pick<AnyDialect, 'framework' | 'refinements'>
+  >;
 
 /** What `mapActorProps` is given for an actor (goal-controller#125). */
 export type ActorPropsInput<TKeys extends string> = {
@@ -71,7 +74,31 @@ export type GoalPropsInput<TKeys extends string, TExecution> = {
   executionDetail: TExecution | null;
   id: string;
   text: string;
+  /** its element kind: `istar.Goal`, `istar.Quality`, a framework's (`kaos.Softgoal`, goal-controller#171) */
+  kind: string;
 };
+
+/** What `mapTaskProps` is given for a task. */
+export type TaskPropsInput<TKeys extends string> = {
+  raw: RawProps<TKeys>;
+  name: string;
+  id: string;
+  /** its text as written (`T1.1: Name [W = 0.1]`), for an engine that reads its bracket */
+  text: string;
+  /** its element kind (`istar.Task`) */
+  kind: string;
+};
+
+/**
+ * The keys a kind's nodes read, by kind name (goal-controller#171): over
+ * `allowedGoalKeys`, `allowedTaskKeys`, `allowedResourceKeys` and
+ * `allowedQualityKeys` for the nodes of that kind (a framework's kinds, held
+ * as one node type, each with keys of its own: KAOS's goals and domain
+ * properties). A kind without an entry reads its type's keys.
+ */
+export type KindKeys<TKeys extends string> = Readonly<
+  Record<string, readonly TKeys[]>
+>;
 
 /**
  * Discriminated union for raw properties in afterCreationMapper
@@ -160,16 +187,13 @@ export type EngineMapper<
     props: GoalPropsInput<TGoalKeys | TQualityKeys, GoalExecutionDetail>,
   ) => TGoalEngine;
 
+  /** the keys a kind's nodes read, by kind name, over their type's (`KindKeys`) */
+  kindKeys?: KindKeys<TGoalKeys | TTaskKeys | TResourceKeys | TQualityKeys>;
+
   /**
    * Map raw task properties to engine-specific task properties
    */
-  mapTaskProps: (props: {
-    raw: RawProps<TTaskKeys>;
-    name: string;
-    id: string;
-    /** its text as written (`T1.1: Name [W = 0.1]`), for an engine that reads its bracket */
-    text: string;
-  }) => TTaskEngine;
+  mapTaskProps: (props: TaskPropsInput<TTaskKeys>) => TTaskEngine;
 
   /**
    * Optional: Transform props after tree is created (e.g., resolve dependsOn)
@@ -244,18 +268,14 @@ export function createEngineMapper<
       allowedTaskKeys: readonly TTaskKeys[];
       allowedQualityKeys?: readonly TQualityKeys[];
       allowLeafGoals?: boolean;
+      kindKeys?: KindKeys<TGoalKeys | TTaskKeys | TResourceKeys | TQualityKeys>;
       mapGoalProps: (
         props: GoalPropsInput<
           TGoalKeys | TQualityKeys,
           ExecutionDetailOf<TDialect>
         >,
       ) => TGoalEngine;
-      mapTaskProps: (props: {
-        raw: RawProps<TTaskKeys>;
-        name: string;
-        id: string;
-        text: string;
-      }) => TTaskEngine;
+      mapTaskProps: (props: TaskPropsInput<TTaskKeys>) => TTaskEngine;
       afterCreationMapper?: (props: {
         node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>;
         allNodes: Map<
@@ -327,6 +347,7 @@ export function createEngineMapper<
         allowedTaskKeys: config.allowedTaskKeys,
         allowedQualityKeys: config.allowedQualityKeys,
         allowLeafGoals: config.allowLeafGoals,
+        ...(config.kindKeys && { kindKeys: config.kindKeys }),
         mapGoalProps,
         mapTaskProps: config.mapTaskProps,
         afterCreationMapper: config.afterCreationMapper,
@@ -364,6 +385,7 @@ export function createEngineMapper<
       allowedTaskKeys: config.allowedTaskKeys,
       allowedQualityKeys: config.allowedQualityKeys,
       allowLeafGoals: config.allowLeafGoals,
+      ...(config.kindKeys && { kindKeys: config.kindKeys }),
       allowedResourceKeys: config.allowedResourceKeys,
       mapGoalProps,
       mapTaskProps: config.mapTaskProps,

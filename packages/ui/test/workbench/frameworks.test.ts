@@ -164,3 +164,35 @@ describe('frameworks', () => {
     expect(read.success === false && read.stage).not.toBe('parse');
   });
 });
+
+describe('the IR of a framework model, read by the workbench (#171)', () => {
+  // the workbench parses with core's ESM build, goal-tree reads with its
+  // CommonJS one: hubs are found by their kinds, not core's registry
+  it("reads DSM3's KAOS model with its hubs as AND refinements", async () => {
+    const { GoalTree, createEngineMapper } =
+      await import('@goal-controller/goal-tree');
+    const { kaos } = await import('@goal-controller/lib');
+    const model = GoalTree.goalModel(
+      parseModel(KAOS_WELCOME) as never,
+      createEngineMapper<unknown, never>()({
+        dialect: kaos,
+        allowedGoalKeys: [],
+        allowedTaskKeys: [],
+        skipResource: true,
+        mapGoalProps: () => ({}),
+        mapTaskProps: () => {
+          throw new Error('no task');
+        },
+      }),
+    );
+    expect(model.paper.map((tree) => tree.name)).toEqual([
+      'Reliability',
+      'Save Bandwidth',
+    ]);
+    expect(model.paper[0]!.relationToChildren).toBe('and');
+    expect(
+      GoalTree.allByType(model.paper, 'goal').map((node) => node.name),
+    ).not.toContain('');
+    expect(GoalTree.allByType(model.paper, 'goal')).toHaveLength(7);
+  });
+});

@@ -75,7 +75,14 @@ export {
   type EngineMapper,
 } from './GoalTree';
 export { Model, type ModelNamespace } from './Model';
-export { modelShapeProblem, type RootReading } from './internal/roots';
+export {
+  FRAMEWORK_NODE_TYPES,
+  modelShapeProblem,
+  nodeTypeOf,
+  refinementsOf,
+  type Refinement,
+  type RootReading,
+} from './internal/roots';
 export { Node, type NodeNamespace } from './Node';
 export {
   goalView,
@@ -127,8 +134,11 @@ export type {
 } from './internal/creation';
 export type {
   ActorPropsInput,
+  GoalPropsInput,
+  KindKeys,
   LinkPropsInput,
   MapperDialect,
+  TaskPropsInput,
 } from './internal/engineMapper';
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import type { TransformEngine } from '@/lib/types';
 import type { NativeSlot, ResourceSlot } from '@/lib/project';
 import { isDialectEngine } from '@/lib/workbench/engineDialects';
 import { isDialectMode } from '@/lib/workbench/dialects';
-import { isFrameworkMode } from '@/lib/workbench/frameworkModes';
+import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
 import { resourceTabId } from '@/lib/workbench/projectResources';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import FrameworkNotationView from './engines/framework/FrameworkNotationView';
@@ -32,7 +32,7 @@ export const modelTabsFor = (
 ): Array<{ id: ModelTab; label: string }> => [
   { id: 'diagram', label: 'Goal Model' },
   // a framework's model: its framework's lines, no engine's (#171)
-  ...(isFrameworkMode(mode) || isDialectMode(mode) || isDialectEngine(engine)
+  ...(frameworkEditorOf(mode) || isDialectMode(mode) || isDialectEngine(engine)
     ? [{ id: 'notation' as const, label: 'Notation' }]
     : []),
   { id: 'source', label: 'Source' },
@@ -69,8 +69,15 @@ export function ModelTabView() {
     );
   }
   if (tab === 'source') return <SourceView />;
-  if (tab === 'notation' && isFrameworkMode(wb.mode))
-    return <FrameworkNotationView key={wb.mode} mode={wb.mode} />;
+  const framework = frameworkEditorOf(wb.mode);
+  if (tab === 'notation' && framework)
+    return (
+      <FrameworkNotationView
+        key={wb.mode}
+        mode={framework.mode}
+        definition={framework.definition}
+      />
+    );
   if (tab === 'notation' && isDialectMode(wb.mode))
     return <PistarExtNotationView />;
   if (tab === 'notation' && isDialectEngine(wb.engine))

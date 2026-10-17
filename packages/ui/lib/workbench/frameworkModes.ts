@@ -8,6 +8,7 @@
 import { kaos, nfr } from '@goal-controller/lib';
 import type { AnyDialect, Framework } from '@goal-controller/dialect';
 import { DIALECT_LABEL, isDialectMode, type DialectMode } from './dialects';
+import { FRAMEWORK_ENGINE_DIALECTS, isFrameworkEngine } from './engineDialects';
 import { FRAMEWORK_LABEL } from './frameworks';
 
 /** Each framework's dialect, by the mode a model records for it. */
@@ -41,4 +42,24 @@ export const isModellingMode = (mode: unknown): mode is ModellingMode =>
 export const MODELLING_LABEL: Readonly<Record<ModellingMode, string>> = {
   ...DIALECT_LABEL,
   ...FRAMEWORK_MODE_LABEL,
+};
+
+/**
+ * The editor a mode of a framework besides iStar 2.0 has (goal-controller#171):
+ * its framework's mode (its canvas, palette and language services) and the
+ * dialect its lines are read in. A framework's modelling mode is its own; a
+ * framework engine's (kaosdoc, nfrprop) is its framework's, its lines its
+ * engine's dialect's. Null for an iStar mode.
+ */
+export const frameworkEditorOf = (
+  mode: unknown,
+): { mode: FrameworkMode; definition: AnyDialect } | null => {
+  if (isFrameworkMode(mode))
+    return { mode, definition: FRAMEWORK_DIALECTS[mode] };
+  if (!isFrameworkEngine(mode)) return null;
+  const definition: AnyDialect = FRAMEWORK_ENGINE_DIALECTS[mode];
+  const framework = (Object.keys(FRAMEWORK_DIALECTS) as FrameworkMode[]).find(
+    (m) => FRAMEWORK_DIALECTS[m].framework === definition.framework,
+  );
+  return framework ? { mode: framework, definition } : null;
 };

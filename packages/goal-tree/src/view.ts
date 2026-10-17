@@ -23,7 +23,12 @@ import {
   scopedKey,
 } from '@goal-controller/goal-language';
 import { getGoalDetail, type ReadingDialect } from './parsers/goalNameParser';
-import { actorRootCandidates, linkEnds, linkRelation } from './internal/roots';
+import {
+  actorRootCandidates,
+  linkEnds,
+  linkRelation,
+  refinementsOf,
+} from './internal/roots';
 import type { GoalExecutionDetail } from './types/';
 
 /** The construct a notation expresses (`sequence` for `[G1;G2]`, …). */
@@ -156,69 +161,6 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
 ];
 
 /**
- * The kinds core generates for an n-ary link kind (`kaos.RefinementLink`):
- * its hub element, legs (from a child to the hub) and end (from the hub to
- * what it refines), named as DSM3 names them. Read by name, not through
- * core's `metamodelOf`, whose registry is one module instance's: a model
- * parsed by another copy of core (the workbench's ESM build beside this
- * package's CommonJS one) is iStar 2.0's to it.
- */
-const hubKindsOf = (kind: string) => ({
-  hub: `${kind}Hub`,
-  leg: `${kind}Start`,
-  end: `${kind}End`,
-});
-
-/**
- * How a framework's links refine (goal-controller#171), by its dialect's
- * `refinements`: a refining kind's link as iStar's (child to parent); a leg
- * of an n-ary one refines its hub's end's target. By link id; the hubs'
- * ids apart (no element of the view).
- */
-const frameworkRefinements = (
-  model: IstarModel<string, string>,
-  refinements: Readonly<Record<string, 'and' | 'or'>>,
-): {
-  byLink: Map<
-    string,
-    { relation: 'and' | 'or'; parent: string; child: string }
-  >;
-  hubs: Set<string>;
-} => {
-  const byLink = new Map<
-    string,
-    { relation: 'and' | 'or'; parent: string; child: string }
-  >();
-  const hubs = new Set<string>();
-  const links = [...model.links.values()];
-  for (const [kind, relation] of Object.entries(refinements)) {
-    const generated = hubKindsOf(kind);
-    for (const element of model.elements.values())
-      if (element.kind === generated.hub) hubs.add(element.id);
-    // each hub's end: what its legs refine
-    const ends = new Map(
-      links
-        .filter((link) => link.kind === generated.end)
-        .map((link) => [link.source, link.target]),
-    );
-    for (const link of links)
-      if (link.kind === kind)
-        byLink.set(link.id, {
-          relation,
-          parent: link.target,
-          child: link.source,
-        });
-      else if (link.kind === generated.leg && ends.has(link.target))
-        byLink.set(link.id, {
-          relation,
-          parent: ends.get(link.target)!,
-          child: link.source,
-        });
-  }
-  return { byLink, hubs };
-};
-
-/**
  * Reads a model of any dialect: iStar's kinds, and its extension's it reads
  * (lists, gives properties or names in a reference: `extensionKindsRead`),
  * each keyed by the id its text starts with (`E1: …`) or its piStar id; any
@@ -232,7 +174,8 @@ export function goalView(
   dialect: ReadingDialect &
     Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
 ): GoalView {
-  const refined = frameworkRefinements(model, dialect.refinements ?? {});
+  // a framework's refinements and hubs, by kind (not through core's registry)
+  const refined = refinementsOf(model, dialect);
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
   const byIStarId = new Map<string, GoalViewNode>();
   const dependumsByIStarId = new Map<string, GoalViewNode>();

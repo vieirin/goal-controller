@@ -1,8 +1,9 @@
 /**
  * The mode lists by framework (goal-controller#171): a new model's framework
  * is chosen in its setup, which gives it the framework's empty model in the
- * framework's mode; a KAOS model is offered KAOS's mode only, and no piStar
- * or engine; the Convert dialog lists the model's framework's targets only.
+ * framework's mode; a KAOS model is offered KAOS's engine and mode only, and
+ * no piStar or iStar engine; the Convert dialog lists the model's
+ * framework's targets only.
  * iStar's lists are as they were.
  */
 import {
@@ -24,7 +25,7 @@ import {
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
-import { ENGINES } from '@/lib/workbench/engineDialects';
+import { ENGINES, isFrameworkEngine } from '@/lib/workbench/engineDialects';
 import { emptyModelText, frameworkOfModel } from '@/lib/workbench/frameworks';
 import { EMPTY_PISTAR_MODEL, writeModelMode } from '@/lib/workbench/pistar';
 
@@ -87,12 +88,15 @@ describe('the mode lists by framework (#171)', () => {
     await screen.findByRole('dialog');
     // iStar 2.0 first: its engines, its dialects and piStar, as before
     expect(cards()).toEqual([
-      ...ENGINES.map((engine) => engine.id),
+      ...ENGINES.filter((engine) => !isFrameworkEngine(engine.id)).map(
+        (engine) => engine.id,
+      ),
       'pistarext',
       'pistar',
     ]);
+    // KAOS: its engine (PR D), then its modelling mode
     fireEvent.click(screen.getByRole('radio', { name: 'KAOS' }));
-    expect(cards()).toEqual(['kaos']);
+    expect(cards()).toEqual(['kaosdoc', 'kaos']);
     // no conformity for the empty iStar model the KAOS one replaces
     expect(screen.queryByText(/has problems|accepts the model/)).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Start working' }));
@@ -101,7 +105,7 @@ describe('the mode lists by framework (#171)', () => {
     expect(frameworkOfModel(wb().text)).toBe('kaos');
   });
 
-  it('offers a KAOS model KAOS’s mode only, its framework fixed', async () => {
+  it('offers a KAOS model KAOS’s engine and mode only, its framework fixed', async () => {
     const wb = workbench();
     await act(() =>
       wb().openFile('kaos-welcome.txt', writeModelMode(KAOS_WELCOME, 'kaos'), {
@@ -109,7 +113,7 @@ describe('the mode lists by framework (#171)', () => {
       }),
     );
     await screen.findByRole('dialog');
-    expect(cards()).toEqual(['kaos']);
+    expect(cards()).toEqual(['kaosdoc', 'kaos']);
     // not a choice: the model has elements
     expect(screen.queryByRole('radiogroup', { name: 'Framework' })).toBeNull();
     expect(
@@ -132,5 +136,7 @@ describe('the mode lists by framework (#171)', () => {
     expect(targets).toContain('pistarext');
     expect(targets).not.toContain('kaos');
     expect(targets).not.toContain('nfr');
+    expect(targets).not.toContain('kaosdoc');
+    expect(targets).not.toContain('nfrprop');
   });
 });

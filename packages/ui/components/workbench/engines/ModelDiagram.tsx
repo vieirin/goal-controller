@@ -13,6 +13,7 @@ import SleecDiagram from './sleec/SleecDiagram';
 import Tropos4asDiagram from './tropos4as/Tropos4asDiagram';
 import CgmDiagram from './cgm/CgmDiagram';
 import FrameworkDiagram from './framework/FrameworkDiagram';
+import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
 
 /** The goal model's diagram for the mode the model is in. */
 export default function ModelDiagram() {
@@ -25,6 +26,10 @@ export default function ModelDiagram() {
     case 'kaos':
     case 'nfr':
       return <FrameworkDiagram mode={wb.mode} />;
+    // the frameworks' engines draw their framework's model (goal-controller#171)
+    case 'kaosdoc':
+    case 'nfrprop':
+      return <FrameworkDiagram mode={frameworkEditorOf(wb.mode)!.mode} />;
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':

@@ -11,7 +11,14 @@ import {
   type IstarLink,
   type IstarModel,
 } from '@istar-ts/core';
-import { DEFAULT_MODEL_SHAPE, type ModelShape } from '@goal-controller/dialect';
+import {
+  DEFAULT_FRAMEWORK,
+  DEFAULT_MODEL_SHAPE,
+  type AnyDialect,
+  type Framework,
+  type ModelShape,
+} from '@goal-controller/dialect';
+import type { Type } from '../types/goalTree';
 
 /**
  * How a link refines its parent, or null for a kind that is not a refinement. A
@@ -41,13 +48,144 @@ export function linkEnds(
 
 /**
  * How a dialect reads its roots (a DialectDefinition's `unlinkedResources`)
- * and the model shape its engine reads (`model`, goal-controller#125).
+ * and the model shape its engine reads (`model`, goal-controller#125); a
+ * dialect of a framework besides iStar 2.0 (goal-controller#171), its
+ * framework and the link kinds that refine in it.
  */
 export type RootReading = {
   name: string;
   unlinkedResources?: 'ignore';
   model?: ModelShape;
+} & Partial<Pick<AnyDialect, 'framework' | 'refinements'>>;
+
+/** A framework besides iStar 2.0, the one a dialect is of; null for iStar's. */
+export const otherFrameworkOf = (
+  dialect?: Partial<Pick<AnyDialect, 'framework'>>,
+): Exclude<Framework, 'istar-2.0'> | null => {
+  const framework = dialect?.framework ?? DEFAULT_FRAMEWORK;
+  return framework === 'istar-2.0' ? null : framework;
 };
+
+/**
+ * How the IR holds a framework's kinds (goal-controller#171): the node type of
+ * each kind its refinements build trees of. `type` says only how a tree holds
+ * it (a node's `kind` says what it is): KAOS's goals and domain properties,
+ * NFR's softgoals and operationalizations are goal nodes, which may be leaves.
+ * A kind not listed (KAOS's agents, NFR's claims, a hub) is in no tree: it is
+ * in the model's elements, and its links in the model's links.
+ */
+export const FRAMEWORK_NODE_TYPES: Readonly<
+  Record<Exclude<Framework, 'istar-2.0'>, Readonly<Record<string, Type>>>
+> = {
+  kaos: {
+    'kaos.BehavioralGoal': 'goal',
+    'kaos.Softgoal': 'goal',
+    'kaos.DomainProperty': 'goal',
+  },
+  nfr: { 'nfr.NFR': 'goal', 'nfr.Operationalization': 'goal' },
+};
+
+/** The node type a kind is held as in a tree, in a dialect's framework; null: in no tree. */
+export const nodeTypeOf = (
+  kind: string,
+  dialect?: Partial<Pick<AnyDialect, 'framework'>>,
+): Type | null => {
+  const framework = otherFrameworkOf(dialect);
+  if (framework) return FRAMEWORK_NODE_TYPES[framework][kind] ?? null;
+  switch (kind) {
+    case 'istar.Goal':
+    case 'istar.Quality':
+      return 'goal';
+    case 'istar.Task':
+      return 'task';
+    case 'istar.Resource':
+      return 'resource';
+    default:
+      return null;
+  }
+};
+
+/** A refinement: the relation it makes, its parent and its child (piStar ids). */
+export type Refinement = {
+  relation: 'and' | 'or' | 'neededBy';
+  parent: string;
+  child: string;
+};
+
+/**
+ * The kinds core generates for an n-ary link kind (`kaos.RefinementLink`):
+ * its hub element, legs (from a child to the hub) and end (from the hub to
+ * what it refines), as DSM3 names them. Read by name, not through core's
+ * `metamodelOf`, whose registry is one module instance's: a model parsed by
+ * another copy of core (the workbench's ESM build beside goal-tree's
+ * CommonJS one) is iStar 2.0's to it.
+ */
+const hubKindsOf = (kind: string) => ({
+  hub: `${kind}Hub`,
+  leg: `${kind}Start`,
+  end: `${kind}End`,
+});
+
+/**
+ * How a model's links refine, in a dialect's framework, by link id, and the
+ * hubs (elements of no tree). iStar's: `linkRelation`, from the child to the
+ * parent. Another framework's (goal-controller#171), by the dialect's
+ * `refinements`: a refining kind's link as iStar's, and a leg of an n-ary
+ * one refines its hub's end's target, so KAOS's hub is an AND with n
+ * children. A link without an entry refines nothing.
+ */
+export function refinementsOf(
+  model: IstarModel<string, string>,
+  dialect?: Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
+): { byLink: Map<string, Refinement>; hubs: Set<string> } {
+  const byLink = new Map<string, Refinement>();
+  const hubs = new Set<string>();
+  const links = [...model.links.values()];
+  if (!otherFrameworkOf(dialect)) {
+    for (const link of links) {
+      const relation = linkRelation(link);
+      if (relation)
+        byLink.set(link.id, {
+          relation,
+          parent: link.target,
+          child: link.source,
+        });
+    }
+    return { byLink, hubs };
+  }
+  const refinements = dialect?.refinements ?? {};
+  // each hub's end: what its legs refine
+  const ends = new Map<string, string>();
+  for (const [kind] of Object.entries(refinements)) {
+    const generated = hubKindsOf(kind);
+    for (const element of model.elements.values())
+      if (element.kind === generated.hub) hubs.add(element.id);
+    for (const link of links)
+      if (link.kind === generated.end) ends.set(link.source, link.target);
+  }
+  for (const link of links) {
+    const relation = refinements[link.kind];
+    if (relation) {
+      byLink.set(link.id, {
+        relation,
+        parent: link.target,
+        child: link.source,
+      });
+      continue;
+    }
+    const leg = Object.entries(refinements).find(
+      ([kind]) => link.kind === hubKindsOf(kind).leg,
+    );
+    const end = ends.get(link.target);
+    if (leg && end !== undefined)
+      byLink.set(link.id, {
+        relation: leg[1],
+        parent: end,
+        child: link.source,
+      });
+  }
+  return { byLink, hubs };
+}
 
 /** The kinds a tree holds (a Quality as a goal node). */
 export const TREE_KINDS: ReadonlySet<string> = new Set([

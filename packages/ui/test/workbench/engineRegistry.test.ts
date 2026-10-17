@@ -37,11 +37,17 @@ import {
   istardtEngineMapper,
   istardtExtension,
   istardtOptions,
+  kaos,
+  kaosdocEngineMapper,
   mutrose,
   mutroseCheckRegistry,
   mutroseEngineMapper,
   mutrosePool,
   mutroseProjectResources,
+  nfrprop,
+  nfrpropAnalyses,
+  nfrpropAnalysisModel,
+  nfrpropEngineMapper,
   sleecEngineMapper,
   sleecOptions,
   tropos4as,
@@ -64,9 +70,11 @@ import {
   ENGINE_POOLS,
   ENGINE_PROJECT_RESOURCES,
   ENGINES,
+  FRAMEWORK_ENGINE_DIALECTS,
   generatesFiles,
   hasOptions,
   isDialectEngine,
+  isFrameworkEngine,
   notationDefinitionOf,
   outputExtensionOf,
   outputLabelOf,
@@ -84,6 +92,8 @@ const ALL: TransformEngine[] = [
   'istardt',
   'tropos4as',
   'cgm',
+  'kaosdoc',
+  'nfrprop',
 ];
 
 /** Same keys, and each value the same object (the engines' own, not copies). */
@@ -108,6 +118,11 @@ describe('the engine registry', () => {
       tropos4as,
       cgm,
     }));
+
+  it("keeps the other frameworks' engines apart, their dialects their frameworks' (#171)", () => {
+    expectSameEntries(FRAMEWORK_ENGINE_DIALECTS, { kaosdoc: kaos, nfrprop });
+    expect(ALL.filter(isFrameworkEngine)).toEqual(['kaosdoc', 'nfrprop']);
+  });
 
   it('derives ENGINE_CHECKS', () =>
     expectSameEntries(ENGINE_CHECKS, {
@@ -153,6 +168,8 @@ describe('the engine registry', () => {
       istardt: istardtEngineMapper,
       tropos4as: tropos4asEngineMapper,
       cgm: cgmEngineMapper,
+      kaosdoc: kaosdocEngineMapper,
+      nfrprop: nfrpropEngineMapper,
     }));
 
   it('derives ENGINE_OPTIONS (MutRoSe, GRL, Tropos4AS and contextual goal models declare none)', () => {
@@ -161,8 +178,12 @@ describe('the engine registry', () => {
       grl: nothing,
       tropos4as: neither,
       cgm: nor,
+      kaosdoc: noKaos,
+      nfrprop: noNfr,
       ...declared
     } = ENGINE_OPTIONS;
+    expect(noKaos).toEqual([]);
+    expect(noNfr).toEqual([]);
     expect(none).toEqual([]);
     expect(nothing).toEqual([]);
     expect(neither).toEqual([]);
@@ -187,6 +208,8 @@ describe('the engine registry', () => {
       istardt: 'iStar-DT',
       tropos4as: 'Tropos4AS',
       cgm: 'Contextual goal model',
+      kaosdoc: 'KAOS document',
+      nfrprop: 'NFR propagation',
     }));
 
   it('derives ENGINES, in the order the UI offers them', () =>
@@ -266,11 +289,35 @@ describe('the engine registry', () => {
         help: 'Contextual goal models (REJ 2010, IST 2013): contexts at the variation points of a Tropos model, with context analysis',
         generates: false,
       },
+      {
+        id: 'kaosdoc',
+        label: 'KAOS document',
+        output: 'Requirements document',
+        extension: 'md',
+        language: 'text',
+        help: 'A requirements document from the KAOS model: goals with their fit criteria, refinements, requirements and expectations, agents, conflicts',
+      },
+      {
+        id: 'nfrprop',
+        label: 'NFR propagation',
+        output: 'Labels',
+        extension: 'json',
+        language: 'text',
+        help: "The NFR Framework's label propagation (Chung et al.): each softgoal satisficed, denied, in conflict or undecided, step by step, drawn on the model",
+        generates: false,
+      },
     ]));
 
   it('derives ENGINE_ANALYSES and ENGINE_FILE_KINDS', () => {
     // an analysis engine's analyses, with how it reads a model for them (#125)
-    expect(Object.keys(ENGINE_ANALYSES)).toEqual(['grl', 'tropos4as', 'cgm']);
+    expect(Object.keys(ENGINE_ANALYSES)).toEqual([
+      'grl',
+      'tropos4as',
+      'cgm',
+      'nfrprop',
+    ]);
+    expect(ENGINE_ANALYSES.nfrprop?.analyses).toBe(nfrpropAnalyses);
+    expect(ENGINE_ANALYSES.nfrprop?.model).toBe(nfrpropAnalysisModel);
     expect(ENGINE_ANALYSES.grl?.analyses).toBe(grlAnalyses);
     expect(ENGINE_ANALYSES.grl?.model).toBe(grlAnalysisModel);
     expect(ENGINE_ANALYSES.tropos4as?.analyses).toBe(tropos4asAnalyses);
@@ -296,6 +343,8 @@ describe('the engine registry', () => {
       istardt: ['DT-Golog', 'pl', 'text', true, true, istardt],
       tropos4as: ['Lifecycle', 'txt', 'text', false, false, tropos4as],
       cgm: ['Variants', 'txt', 'text', false, false, cgm],
+      kaosdoc: ['Requirements document', 'md', 'text', true, false, kaos],
+      nfrprop: ['Labels', 'json', 'text', false, false, nfrprop],
     } as const;
     for (const engine of ALL) {
       const [output, extension, language, generates, options, dialect] =
@@ -306,8 +355,10 @@ describe('the engine registry', () => {
       expect(generatesFiles(engine), engine).toBe(generates);
       expect(hasOptions(engine), engine).toBe(options);
       expect(dialectOf(engine), engine).toBe(dialect);
-      expect(isDialectEngine(engine), engine).toBe(dialect !== null);
-      expect(notationDefinitionOf(engine), engine).toBe(dialect ?? edge);
+      // a framework's engine has no iStar notation: the editors' default
+      const istar = dialect !== null && !isFrameworkEngine(engine);
+      expect(isDialectEngine(engine), engine).toBe(istar);
+      expect(notationDefinitionOf(engine), engine).toBe(istar ? dialect : edge);
     }
   });
 });

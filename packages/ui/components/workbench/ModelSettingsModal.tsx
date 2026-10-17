@@ -248,7 +248,10 @@ export default function ModelSettingsModal() {
               </p>
             ) : (
               <div className='grid gap-1.5 sm:grid-cols-2'>
-                {(istar ? ENGINES : []).map((engine) => {
+                {ENGINES.filter(
+                  // each framework's engines (goal-controller#171): iStar's, KAOS's, NFR's
+                  (engine) => frameworkOfMode(engine.id) === framework,
+                ).map((engine) => {
                   const active = !draft.pistar && draft.engine === engine.id;
                   return (
                     <label

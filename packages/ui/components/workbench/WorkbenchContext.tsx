@@ -33,6 +33,7 @@ import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
 import type { Framework } from '@goal-controller/dialect';
 import {
   FRAMEWORK_DIALECTS,
+  frameworkEditorOf,
   isFrameworkMode,
   isModellingMode,
   type ModellingMode,
@@ -2033,14 +2034,19 @@ function WorkbenchState({
     list.push(...resourceProblemsNow);
     // the model's native files: out of sync, unreadable, or not written (goal-controller#143)
     list.push(...nativeProblemsNow);
-    // a framework's model (goal-controller#171): what its dialect says of it
-    if (pistar && isFrameworkMode(dialect) && parsed.istar)
-      list.push(
-        ...frameworkProblems(parsed.istar, FRAMEWORK_DIALECTS[dialect]),
-      );
+    // a framework's model (goal-controller#171): what its dialect says of it,
+    // in its modelling mode or its engine's
+    const framework = pistar
+      ? isFrameworkMode(dialect)
+        ? FRAMEWORK_DIALECTS[dialect]
+        : null
+      : (frameworkEditorOf(engine)?.definition ?? null);
+    if (framework && parsed.istar)
+      list.push(...frameworkProblems(parsed.istar, framework));
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
-    if (tree && !parsed.error) {
+    // the checks of iStar's notations: none in another framework
+    if (tree && !parsed.error && !framework) {
       list.push(...treeProblems(tree, engine));
       // the shared language on the model's own document, editors open or not
       if (isDialectEngine(engine))
