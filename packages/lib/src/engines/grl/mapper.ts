@@ -2,7 +2,9 @@
  * GRL's engine mapper: how goal-tree reads a GRL model for the workbench.
  * GRL generates nothing (its analyses evaluate the model, ./evaluation), so
  * the mapper keeps an element's, an actor's and a link's GRL properties as
- * written; a goal may be a leaf (a strategy evaluates it).
+ * written, and the evaluation graph reads them as the dialect does
+ * (`viewValues`, goal-controller#187); a goal may be a leaf (a strategy
+ * evaluates it).
  */
 import {
   createEngineMapper,

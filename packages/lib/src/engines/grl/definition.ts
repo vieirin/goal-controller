@@ -63,7 +63,6 @@ const CONTRIBUTION = [
     min: -100,
     max: 100,
     help: 'its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)',
-    check: 'grl.link.quantitativeContribution',
   }),
   bool('correlation', {
     help: 'a side effect rather than an intended contribution (drawn dotted in jUCMNav; evaluated the same)',

@@ -187,8 +187,7 @@
           "min": -100,
           "max": 100
         },
-        "help": "its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)",
-        "check": "grl.link.quantitativeContribution"
+        "help": "its weight, −100..100: the quantitative evaluation adds weight × source / 100 (25 when it has none, as jUCMNav)"
       },
       {
         "key": "correlation",

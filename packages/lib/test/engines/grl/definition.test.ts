@@ -3,7 +3,12 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { linkPropertiesOf, actorPropertiesOf } from '@goal-controller/dialect';
+import {
+  linkPropertiesOf,
+  actorPropertiesOf,
+  type ValueConfig,
+} from '@goal-controller/dialect';
+import { valueProblem } from '@goal-controller/goal-language';
 import type { CheckContext } from '../../../src/engines/checks';
 import {
   grl,
@@ -43,17 +48,17 @@ describe('the GRL definition', () => {
     assert.strictEqual(grl.projectResources.strategies.many, true);
   });
 
-  it('rejects a quantitative contribution outside −100..100', () => {
-    const check = grlCheckRegistry['grl.link.quantitativeContribution'];
-    assert.strictEqual(
-      check({ quantitativeContribution: '-100' }, context()),
-      null,
-    );
-    assert.strictEqual(
-      check({ quantitativeContribution: '150' }, context()),
-      'A quantitative contribution is an integer, −100..100, not 150',
-    );
-    assert.ok(check({ quantitativeContribution: '2.5' }, context()));
+  it('rejects a quantitative contribution outside −100..100 (its int’s bounds, #187)', () => {
+    const problem = (text: string) =>
+      valueProblem(
+        linkPropertiesOf(grl, 'istar.ContributionLink').find(
+          (p) => p.key === 'quantitativeContribution',
+        )!.value as ValueConfig,
+        text,
+      );
+    assert.strictEqual(problem('-100'), null);
+    assert.strictEqual(problem('150'), 'At most 100');
+    assert.ok(problem('2.5'));
   });
 
   it('rejects a contribution to a belief', () => {
