@@ -382,6 +382,17 @@ export {
   type NfrLabel,
 } from './engines/nfrprop';
 export { nfrpropEngine } from './engines/nfrprop/engine';
+export {
+  criticalCombinations,
+  kaosprop,
+  kaospropAnalyses,
+  kaospropAnalysisModel,
+  kaospropEngineMapper,
+  propagateProbabilities,
+  readKaosObstacleModel,
+  type CriticalCombination,
+} from './engines/kaosprop';
+export { kaospropEngine } from './engines/kaosprop/engine';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

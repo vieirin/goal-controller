@@ -69,8 +69,9 @@ export const otherFrameworkOf = (
 /**
  * How the IR holds a framework's kinds (goal-controller#171): the node type of
  * each kind its refinements build trees of. `type` says only how a tree holds
- * it (a node's `kind` says what it is): KAOS's goals and domain properties,
- * NFR's softgoals and operationalizations are goal nodes, which may be leaves.
+ * it (a node's `kind` says what it is): KAOS's goals, domain properties and
+ * obstacles, NFR's softgoals and operationalizations are goal nodes, which
+ * may be leaves.
  * A kind not listed (KAOS's agents, NFR's claims, a hub) is in no tree: it is
  * in the model's elements, and its links in the model's links.
  */
@@ -81,6 +82,8 @@ export const FRAMEWORK_NODE_TYPES: Readonly<
     'kaos.BehavioralGoal': 'goal',
     'kaos.Softgoal': 'goal',
     'kaos.DomainProperty': 'goal',
+    // its obstacle analysis (goal-controller#181): obstacle trees
+    'kaosObstacles.Obstacle': 'goal',
   },
   nfr: { 'nfr.NFR': 'goal', 'nfr.Operationalization': 'goal' },
 };

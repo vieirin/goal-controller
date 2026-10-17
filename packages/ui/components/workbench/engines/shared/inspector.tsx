@@ -218,6 +218,17 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'kindKeys',
     },
   },
+  kaosprop: {
+    file: 'packages/lib/src/engines/kaosprop/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaosprop/mapper.ts',
+    map: {
+      goal: 'kindKeys',
+      task: 'kindKeys',
+      resource: 'skipResource',
+      quality: 'kindKeys',
+    },
+  },
   nfrprop: {
     file: 'packages/lib/src/engines/nfrprop/definition.ts',
     lists: {},

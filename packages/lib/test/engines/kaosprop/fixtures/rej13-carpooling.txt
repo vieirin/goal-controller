@@ -1,0 +1,773 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "ride_request_served",
+      "text": "Achieve [RideRequestServed]",
+      "type": "kaos.BehavioralGoal",
+      "x": 600,
+      "y": 20,
+      "customProperties": {
+        "RSR": "95%"
+      }
+    },
+    {
+      "id": "ride_planned_when_request_encoded",
+      "text": "Achieve [RidePlannedWhenRequestEncoded]",
+      "type": "kaos.BehavioralGoal",
+      "x": 400,
+      "y": 100,
+      "customProperties": {
+        "ESR": "0.66"
+      }
+    },
+    {
+      "id": "passenger_at_destination_when_ride_planned",
+      "text": "Achieve [PassengerAtDestinationWhenRidePlanned]",
+      "type": "kaos.BehavioralGoal",
+      "x": 800,
+      "y": 100,
+      "customProperties": {}
+    },
+    {
+      "id": "ride_instructions_known_by_riders_when_ride_planned",
+      "text": "Achieve [RideInstructionsKnownByRidersWhenRidePlanned]",
+      "type": "kaos.BehavioralGoal",
+      "x": 600,
+      "y": 180,
+      "customProperties": {
+        "ESR": "0.808"
+      }
+    },
+    {
+      "id": "passenger_at_destination_when_instructions_known",
+      "text": "Achieve [PassengerAtDestinationWhenInstructionsKnown]",
+      "type": "kaos.BehavioralGoal",
+      "x": 1000,
+      "y": 180,
+      "customProperties": {}
+    },
+    {
+      "id": "passenger_in_drivers_car_when_instructions_known",
+      "text": "Achieve [PassengerInDriver'sCarWhenInstructionsKnown]",
+      "type": "kaos.BehavioralGoal",
+      "x": 800,
+      "y": 260,
+      "customProperties": {
+        "ESR": "0.65"
+      }
+    },
+    {
+      "id": "passenger_at_destination_when_in_car",
+      "text": "Achieve [PassengerAtDestinationWhenInCar]",
+      "type": "kaos.BehavioralGoal",
+      "x": 1200,
+      "y": 260,
+      "customProperties": {}
+    },
+    {
+      "id": "drop_point_reached_when_passenger_in_car",
+      "text": "Achieve [DropPointReachedWhenPassengerInCar]",
+      "type": "kaos.BehavioralGoal",
+      "x": 1000,
+      "y": 340,
+      "customProperties": {}
+    },
+    {
+      "id": "passenger_at_destination_when_drop_point_reached",
+      "text": "Achieve [PassengerAtDestinationWhenDropPointReached]",
+      "type": "kaos.BehavioralGoal",
+      "x": 1400,
+      "y": 340,
+      "customProperties": {}
+    },
+    {
+      "id": "drop_point_from_instructions_reached_when_passenger_in_car",
+      "text": "Achieve [DropPointFromInstructionsReachedWhenPassengerInCar]",
+      "type": "kaos.BehavioralGoal",
+      "x": 900,
+      "y": 420,
+      "customProperties": {}
+    },
+    {
+      "id": "instructions_known_when_passenger_in_car",
+      "text": "Maintain [InstructionsKnownWhenPassengerInCar]",
+      "type": "kaos.BehavioralGoal",
+      "x": 1200,
+      "y": 420,
+      "customProperties": {
+        "Type": "Maintain"
+      }
+    },
+    {
+      "id": "drop_point_not_reached_when_passenger_in_car",
+      "text": "Drop Point Not Reached When Passenger In Car",
+      "type": "kaos.Obstacle",
+      "x": 900,
+      "y": 520,
+      "customProperties": {}
+    },
+    {
+      "id": "drop_point_never_reached",
+      "text": "Drop Point Never Reached",
+      "type": "kaos.Obstacle",
+      "x": 700,
+      "y": 600,
+      "customProperties": {}
+    },
+    {
+      "id": "drop_point_not_reached_in_time",
+      "text": "Drop Point Not Reached In Time",
+      "type": "kaos.Obstacle",
+      "x": 1100,
+      "y": 600,
+      "customProperties": {}
+    },
+    {
+      "id": "driver_got_lost",
+      "text": "Driver Got Lost",
+      "type": "kaos.Obstacle",
+      "x": 500,
+      "y": 760,
+      "customProperties": {
+        "Probability": "6%"
+      }
+    },
+    {
+      "id": "car_broken_down",
+      "text": "Car Broken Down",
+      "type": "kaos.Obstacle",
+      "x": 610,
+      "y": 760,
+      "customProperties": {
+        "Probability": "0.5%"
+      }
+    },
+    {
+      "id": "wrong_instructions_sent",
+      "text": "Wrong Instructions Sent",
+      "type": "kaos.Obstacle",
+      "x": 720,
+      "y": 760,
+      "customProperties": {
+        "Probability": "0.1%"
+      }
+    },
+    {
+      "id": "drop_point_inaccessible",
+      "text": "Drop Point Inaccessible",
+      "type": "kaos.Obstacle",
+      "x": 830,
+      "y": 760,
+      "customProperties": {
+        "Probability": "0.1%"
+      }
+    },
+    {
+      "id": "drop_point_confused",
+      "text": "Drop Point Confused",
+      "type": "kaos.Obstacle",
+      "x": 940,
+      "y": 760,
+      "customProperties": {
+        "Probability": "1%"
+      }
+    },
+    {
+      "id": "unclear_instructions",
+      "text": "Unclear Instructions",
+      "type": "kaos.Obstacle",
+      "x": 1050,
+      "y": 760,
+      "customProperties": {
+        "Probability": "0.5%"
+      }
+    },
+    {
+      "id": "stuck_in_traffic_jam",
+      "text": "Stuck In Traffic Jam",
+      "type": "kaos.Obstacle",
+      "x": 1160,
+      "y": 760,
+      "customProperties": {
+        "Probability": "10%"
+      }
+    },
+    {
+      "id": "detour_on_planned_road",
+      "text": "Detour On Planned Road",
+      "type": "kaos.Obstacle",
+      "x": 1270,
+      "y": 760,
+      "customProperties": {
+        "Probability": "1.5%"
+      }
+    },
+    {
+      "id": "other_passenger_late",
+      "text": "Other Passenger Late",
+      "type": "kaos.Obstacle",
+      "x": 1380,
+      "y": 760,
+      "customProperties": {
+        "Probability": "0.5%"
+      }
+    },
+    {
+      "id": "driver_at_other_drop_point",
+      "text": "Driver At Other Drop Point",
+      "type": "kaos.Obstacle",
+      "x": 800,
+      "y": 680,
+      "customProperties": {}
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "h-served",
+        "type": "kaos.RefinementLinkHub",
+        "x": 600,
+        "y": 60,
+        "customProperties": {
+          "Tactic": "milestone-driven"
+        }
+      },
+      "starts": [
+        {
+          "id": "h-served-leg-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ride_planned_when_request_encoded",
+          "target": "h-served"
+        },
+        {
+          "id": "h-served-leg-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "passenger_at_destination_when_ride_planned",
+          "target": "h-served"
+        }
+      ],
+      "end": {
+        "id": "h-served-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "h-served",
+        "target": "ride_request_served"
+      }
+    },
+    {
+      "hub": {
+        "id": "h-ride-planned",
+        "type": "kaos.RefinementLinkHub",
+        "x": 800,
+        "y": 140,
+        "customProperties": {
+          "Tactic": "milestone-driven"
+        }
+      },
+      "starts": [
+        {
+          "id": "h-ride-planned-leg-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ride_instructions_known_by_riders_when_ride_planned",
+          "target": "h-ride-planned"
+        },
+        {
+          "id": "h-ride-planned-leg-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "passenger_at_destination_when_instructions_known",
+          "target": "h-ride-planned"
+        }
+      ],
+      "end": {
+        "id": "h-ride-planned-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "h-ride-planned",
+        "target": "passenger_at_destination_when_ride_planned"
+      }
+    },
+    {
+      "hub": {
+        "id": "h-instructions",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1000,
+        "y": 220,
+        "customProperties": {
+          "Tactic": "milestone-driven"
+        }
+      },
+      "starts": [
+        {
+          "id": "h-instructions-leg-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "passenger_in_drivers_car_when_instructions_known",
+          "target": "h-instructions"
+        },
+        {
+          "id": "h-instructions-leg-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "passenger_at_destination_when_in_car",
+          "target": "h-instructions"
+        }
+      ],
+      "end": {
+        "id": "h-instructions-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "h-instructions",
+        "target": "passenger_at_destination_when_instructions_known"
+      }
+    },
+    {
+      "hub": {
+        "id": "h-in-car",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1200,
+        "y": 300,
+        "customProperties": {
+          "Tactic": "milestone-driven"
+        }
+      },
+      "starts": [
+        {
+          "id": "h-in-car-leg-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "drop_point_reached_when_passenger_in_car",
+          "target": "h-in-car"
+        },
+        {
+          "id": "h-in-car-leg-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "passenger_at_destination_when_drop_point_reached",
+          "target": "h-in-car"
+        }
+      ],
+      "end": {
+        "id": "h-in-car-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "h-in-car",
+        "target": "passenger_at_destination_when_in_car"
+      }
+    },
+    {
+      "hub": {
+        "id": "h-drop-point",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1000,
+        "y": 380,
+        "customProperties": {
+          "Tactic": "unmonitorability"
+        }
+      },
+      "starts": [
+        {
+          "id": "h-drop-point-leg-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "drop_point_from_instructions_reached_when_passenger_in_car",
+          "target": "h-drop-point"
+        },
+        {
+          "id": "h-drop-point-leg-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "instructions_known_when_passenger_in_car",
+          "target": "h-drop-point"
+        }
+      ],
+      "end": {
+        "id": "h-drop-point-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "h-drop-point",
+        "target": "drop_point_reached_when_passenger_in_car"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 900,
+        "y": 560,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "drop_point_never_reached",
+          "target": "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached",
+        "target": "drop_point_not_reached_when_passenger_in_car"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 900,
+        "y": 560,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "drop_point_not_reached_in_time",
+          "target": "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time",
+        "target": "drop_point_not_reached_when_passenger_in_car"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_never_reached-driver_got_lost",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 700,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_never_reached-driver_got_lost-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "driver_got_lost",
+          "target": "or-drop_point_never_reached-driver_got_lost"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_never_reached-driver_got_lost-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_never_reached-driver_got_lost",
+        "target": "drop_point_never_reached"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_never_reached-car_broken_down",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 700,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_never_reached-car_broken_down-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "car_broken_down",
+          "target": "or-drop_point_never_reached-car_broken_down"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_never_reached-car_broken_down-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_never_reached-car_broken_down",
+        "target": "drop_point_never_reached"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_never_reached-wrong_instructions_sent",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 700,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_never_reached-wrong_instructions_sent-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_instructions_sent",
+          "target": "or-drop_point_never_reached-wrong_instructions_sent"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_never_reached-wrong_instructions_sent-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_never_reached-wrong_instructions_sent",
+        "target": "drop_point_never_reached"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_never_reached-driver_at_other_drop_point",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 700,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_never_reached-driver_at_other_drop_point-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "driver_at_other_drop_point",
+          "target": "or-drop_point_never_reached-driver_at_other_drop_point"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_never_reached-driver_at_other_drop_point-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_never_reached-driver_at_other_drop_point",
+        "target": "drop_point_never_reached"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_never_reached-drop_point_inaccessible",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 700,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_never_reached-drop_point_inaccessible-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "drop_point_inaccessible",
+          "target": "or-drop_point_never_reached-drop_point_inaccessible"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_never_reached-drop_point_inaccessible-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_never_reached-drop_point_inaccessible",
+        "target": "drop_point_never_reached"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_in_time-wrong_instructions_sent",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1100,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_in_time-wrong_instructions_sent-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_instructions_sent",
+          "target": "or-drop_point_not_reached_in_time-wrong_instructions_sent"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_in_time-wrong_instructions_sent-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_in_time-wrong_instructions_sent",
+        "target": "drop_point_not_reached_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_in_time-stuck_in_traffic_jam",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1100,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_in_time-stuck_in_traffic_jam-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "stuck_in_traffic_jam",
+          "target": "or-drop_point_not_reached_in_time-stuck_in_traffic_jam"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_in_time-stuck_in_traffic_jam-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_in_time-stuck_in_traffic_jam",
+        "target": "drop_point_not_reached_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_in_time-detour_on_planned_road",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1100,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_in_time-detour_on_planned_road-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "detour_on_planned_road",
+          "target": "or-drop_point_not_reached_in_time-detour_on_planned_road"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_in_time-detour_on_planned_road-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_in_time-detour_on_planned_road",
+        "target": "drop_point_not_reached_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-drop_point_not_reached_in_time-other_passenger_late",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1100,
+        "y": 640,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-drop_point_not_reached_in_time-other_passenger_late-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "other_passenger_late",
+          "target": "or-drop_point_not_reached_in_time-other_passenger_late"
+        }
+      ],
+      "end": {
+        "id": "or-drop_point_not_reached_in_time-other_passenger_late-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-drop_point_not_reached_in_time-other_passenger_late",
+        "target": "drop_point_not_reached_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-driver_at_other_drop_point-drop_point_confused",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 800,
+        "y": 720,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-driver_at_other_drop_point-drop_point_confused-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "drop_point_confused",
+          "target": "or-driver_at_other_drop_point-drop_point_confused"
+        }
+      ],
+      "end": {
+        "id": "or-driver_at_other_drop_point-drop_point_confused-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-driver_at_other_drop_point-drop_point_confused",
+        "target": "driver_at_other_drop_point"
+      }
+    },
+    {
+      "hub": {
+        "id": "or-driver_at_other_drop_point-unclear_instructions",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 800,
+        "y": 720,
+        "customProperties": {}
+      },
+      "starts": [
+        {
+          "id": "or-driver_at_other_drop_point-unclear_instructions-leg-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unclear_instructions",
+          "target": "or-driver_at_other_drop_point-unclear_instructions"
+        }
+      ],
+      "end": {
+        "id": "or-driver_at_other_drop_point-unclear_instructions-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "or-driver_at_other_drop_point-unclear_instructions",
+        "target": "driver_at_other_drop_point"
+      }
+    },
+    {
+      "id": "obstruction-drop-point",
+      "type": "kaos.ObstructionLink",
+      "source": "drop_point_not_reached_when_passenger_in_car",
+      "target": "drop_point_from_instructions_reached_when_passenger_in_car"
+    }
+  ],
+  "display": {
+    "h-served": {
+      "width": 20,
+      "height": 20
+    },
+    "h-ride-planned": {
+      "width": 20,
+      "height": 20
+    },
+    "h-instructions": {
+      "width": 20,
+      "height": 20
+    },
+    "h-in-car": {
+      "width": 20,
+      "height": 20
+    },
+    "h-drop-point": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_when_passenger_in_car-drop_point_never_reached": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_when_passenger_in_car-drop_point_not_reached_in_time": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_never_reached-driver_got_lost": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_never_reached-car_broken_down": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_never_reached-wrong_instructions_sent": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_never_reached-driver_at_other_drop_point": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_never_reached-drop_point_inaccessible": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_in_time-wrong_instructions_sent": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_in_time-stuck_in_traffic_jam": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_in_time-detour_on_planned_road": {
+      "width": 20,
+      "height": 20
+    },
+    "or-drop_point_not_reached_in_time-other_passenger_late": {
+      "width": 20,
+      "height": 20
+    },
+    "or-driver_at_other_drop_point-drop_point_confused": {
+      "width": 20,
+      "height": 20
+    },
+    "or-driver_at_other_drop_point-unclear_instructions": {
+      "width": 20,
+      "height": 20
+    }
+  },
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "saveDate": "",
+  "diagram": {
+    "width": 1800,
+    "height": 900,
+    "name": "COOL carpooling (REJ'13, §6.3)",
+    "customProperties": {
+      "Description": "Cailliau and van Lamsweerde, Assessing requirements-related risks through probabilistic goals and obstacles, Requirements Engineering 18(2):129–146, 2013: Fig. 4's chain to Achieve [RideRequestServed] and Fig. 6's obstacle tree with Table 3's estimates. The three sibling subtrees the paper gives as results only (0.65, 0.808, 0.66) are their goals' ESR."
+    }
+  }
+}

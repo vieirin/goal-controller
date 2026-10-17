@@ -8,8 +8,9 @@ import type { GodaVariant } from '@goal-controller/lib';
  * goal lifecycle of AAMAS 2009 over a scenario), 'cgm' (contextual goal
  * models, REJ 2010: contexts at the variation points), and the engines of
  * the frameworks besides iStar 2.0 (goal-controller#171): 'kaosdoc' (KAOS:
- * a requirements document) and 'nfrprop' (NFR: an analysis engine, label
- * propagation).
+ * a requirements document; 'kaosprop', goal-controller#181: an analysis
+ * engine, probabilistic obstacle analysis) and 'nfrprop' (NFR: an analysis
+ * engine, label propagation).
  */
 export type TransformEngine =
   | 'edge'
@@ -22,6 +23,7 @@ export type TransformEngine =
   | 'tropos4as'
   | 'cgm'
   | 'kaosdoc'
+  | 'kaosprop'
   | 'nfrprop';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
@@ -41,6 +43,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'tropos4as',
   'cgm',
   'kaosdoc',
+  'kaosprop',
   'nfrprop',
 ];
 

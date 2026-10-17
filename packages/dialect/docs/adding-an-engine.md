@@ -945,6 +945,10 @@ byte for byte against the document committed next to DSM3's seed. nfrprop
 is the NFR Framework's label propagation, Chung et al.'s rules as data
 (`labels.ts`). Its case runs as steps, its report. The oracle is DSM3's NFR
 example labelled by hand (`examples/nfr/nfr-welcome.labels.csv`).
+`lib/src/engines/kaosprop/` (goal-controller#181) is KAOS's analysis engine,
+Cailliau and van Lamsweerde's probabilistic obstacle analysis: its dialect is
+`kaos` with the analysis's quantities, its oracles RE'12's and REJ'13's own
+numbers (`examples/kaos/las/las.expected.csv`).
 [frameworks.md](frameworks.md) lists the decisions.
 
 ## 8. Options summary
