@@ -2,19 +2,18 @@
  * The modelling dialects a model may be for (@goal-controller/dialect'
  * extensions), like an engine: chosen explicitly and recorded in the file.
  * Only a model recorded for a dialect is read with its kinds; any other is
- * plain iStar 2.0, so a dialect's kinds fail to load in the engines' modes.
- * No engine reads a dialect: it has no generation.
+ * its framework's root (iStar 2.0 unless it records another,
+ * goal-controller#171), so a dialect's kinds fail to load in the engines'
+ * modes. No engine reads a dialect: it has no generation.
  */
 import {
   childrenOf,
   createEmptyModel,
-  defineMetamodelExtension,
   extendMetamodel,
   fileMetamodelExtension,
   fileMetamodelOf,
   FILE_METAMODEL_KEY,
   isActorIn,
-  ISTAR_2_0,
   metamodelOf,
   parsePistar,
   validateFileMetamodel,
@@ -22,20 +21,26 @@ import {
   type IstarModel,
 } from '@istar-ts/core';
 import {
+  DEFAULT_FRAMEWORK,
   dialectDefinition,
-  metamodelExtensionOf,
   MODEL_NAMESPACE,
   withModelEntries,
   type AnyDialect,
   type DocumentNode,
   type DocumentTree,
   type ExtensionDefinition,
+  type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
-// the mode a model records: read by the project module, the one place that knows where
-import { recordedMode } from '../project';
+// the mode and framework a model records: read by the project module, the one place that knows where
+import { recordedFramework, recordedMode } from '../project';
 import { ENGINE_FILE_KINDS } from './engineDialects';
+import { FRAMEWORK_ROOTS, hostFor } from './frameworks';
+
+/** The framework a model text records; iStar 2.0 when it records none. */
+const frameworkOf = (text: string): Framework =>
+  recordedFramework(text) ?? DEFAULT_FRAMEWORK;
 
 /** The dialects, by the mode a model records for them. */
 export const DIALECTS = {
@@ -55,10 +60,7 @@ export const isDialectMode = (mode: unknown): mode is DialectMode =>
 const HOSTS = Object.fromEntries(
   Object.entries(DIALECTS).map(([mode, dialect]) => [
     mode,
-    extendMetamodel(
-      ISTAR_2_0,
-      defineMetamodelExtension(metamodelExtensionOf(dialect)),
-    ),
+    hostFor('istar-2.0', dialect),
   ]),
 ) as Record<DialectMode, AnyMetamodel>;
 
@@ -110,14 +112,15 @@ export const DIALECT_DEFINITIONS = {
 
 /**
  * The metamodel a mode reads a model with: its dialect's with what the model
- * adds, or iStar 2.0. Throws as istar-ts does when the model's kinds collide
- * with the dialect's.
+ * adds, or its framework's root (by default, the one the text records).
+ * Throws as istar-ts does when the model's kinds collide with the dialect's.
  */
 export const metamodelOfMode = (
   mode: string | null,
   text = '',
+  framework: Framework = frameworkOf(text),
 ): AnyMetamodel => {
-  if (!isDialectMode(mode)) return ISTAR_2_0;
+  if (!isDialectMode(mode)) return FRAMEWORK_ROOTS[framework];
   const block = JSON.parse(text || '{}')?.[FILE_METAMODEL_KEY];
   return block
     ? extendMetamodel(
@@ -137,16 +140,18 @@ export const metamodelOfMode = (
 /**
  * Parses a piStar file with the metamodel of `mode` (by default, of the mode
  * the file records): a dialect's with the file's own block applied (istar-ts
- * remembers it, and writes it back); throws as `parsePistar` does, or why the
+ * remembers it, and writes it back), or the root of `framework` (by default,
+ * the one the file records); throws as `parsePistar` does, or why the
  * block's groupers, stereotypes or tagged values cannot be read.
  */
 export const parseModel = (
   text: string,
   mode: string | null = recordedMode(text),
+  framework: Framework = frameworkOf(text),
 ): IstarModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, {
-      metamodel: ISTAR_2_0,
+      metamodel: FRAMEWORK_ROOTS[framework],
       // an engine whose models declare kinds of their own: their block applied
       fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
     }) as unknown as IstarModel;
@@ -159,10 +164,13 @@ export const parseModel = (
   return model as unknown as IstarModel;
 };
 
-/** An empty model for a mode (a dialect's may use its kinds). */
-export const emptyModel = (mode: string | null = null): IstarModel =>
+/** An empty model for a mode (a dialect's may use its kinds), in a framework. */
+export const emptyModel = (
+  mode: string | null = null,
+  framework: Framework = DEFAULT_FRAMEWORK,
+): IstarModel =>
   createEmptyModel(undefined, {
-    metamodel: isDialectMode(mode) ? HOSTS[mode] : ISTAR_2_0,
+    metamodel: isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework],
   }) as unknown as IstarModel;
 
 /** The dialect that reads a model its recorded mode cannot (its kinds are the dialect's), if any. */

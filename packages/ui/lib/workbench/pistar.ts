@@ -4,7 +4,6 @@
  * diagram layout, so an edited model can be exported and opened again in piStar.
  */
 import {
-  createEmptyModel,
   inheritSourceLayout,
   isActor,
   isNode,
@@ -46,12 +45,13 @@ import {
   parseModel,
   type DialectMode,
 } from './dialects';
+import { emptyModelText } from './frameworks';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
 
 /** A new, empty piStar model. */
-export const EMPTY_PISTAR_MODEL = `${toPistar(createEmptyModel(), { saveDate: '' })}\n`;
+export const EMPTY_PISTAR_MODEL = emptyModelText('istar-2.0');
 
 // ---------------------------------------------------------------------------
 // View tree

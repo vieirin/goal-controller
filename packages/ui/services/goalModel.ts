@@ -1,7 +1,9 @@
 import { GoalTree, Model, type RootReading } from '@goal-controller/goal-tree';
 import { parsePistar, type IstarModel } from '@istar-ts/core';
-import { recordedMode } from '../lib/project';
+import { DEFAULT_FRAMEWORK, type Framework } from '@goal-controller/dialect';
+import { recordedFramework, recordedMode } from '../lib/project';
 import { ENGINE_FILE_KINDS } from '../lib/workbench/engineDialects';
+import { FRAMEWORK_ROOTS } from '../lib/workbench/frameworks';
 import {
   edgeEngineMapper,
   edgeV2EngineMapper,
@@ -22,6 +24,8 @@ export interface ParseError {
 export interface ParseOptions {
   /** remove the single-child goals before validating (see goal-tree's `Model.reduce`) */
   reduce?: boolean;
+  /** the framework it is read in (goal-controller#171); by default, the one it records */
+  framework?: Framework;
 }
 
 /** A model parsed, validated and read by an engine's mapper into its tree. */
@@ -47,9 +51,13 @@ export const GoalModel = {
     try {
       // an engine whose models declare kinds of their own reads its block
       const mode = recordedMode(modelJson);
+      const framework =
+        options.framework ?? recordedFramework(modelJson) ?? DEFAULT_FRAMEWORK;
+      // another framework's kinds are the IR's to read (#171, PR D)
       model = parsePistar(modelJson, {
+        metamodel: FRAMEWORK_ROOTS[framework],
         fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
-      });
+      }) as unknown as IStarModel;
     } catch (error) {
       return {
         success: false,
