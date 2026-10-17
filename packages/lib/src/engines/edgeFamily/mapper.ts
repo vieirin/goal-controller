@@ -78,7 +78,7 @@ export const edgeGoalProps = <TExecution, TGoalNode>({
   executionDetail,
 }: Input<'goal'> & { executionDetail: TExecution | null }) => {
   // dependsOn needs the whole tree: checked later, in afterCreationMapper
-  const issue = firstGoalOrTaskIssue('goal', raw, props);
+  const issue = firstGoalOrTaskIssue('goal', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 
   return {
@@ -105,7 +105,7 @@ export const edgeTaskProps = ({
   id,
 }: Input<'task'>): EdgeTaskProps => {
   // a task of type maintain is one of these (maintain is no task key)
-  const issue = firstGoalOrTaskIssue('task', raw, props);
+  const issue = firstGoalOrTaskIssue('task', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 
   return {
