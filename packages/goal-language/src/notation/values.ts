@@ -400,13 +400,19 @@ export const valueProblem = (
     }
     case 'reference': {
       const id = text.trim();
-      if (!/^[A-Za-z0-9_.:-]+$/.test(id)) return `An element's id, not ${id}`;
+      // an imported model names an element by its piStar id, which no
+      // grammar reads; any other reference is one id, as the grammar reads
+      // a refList's
+      let key = context?.iStarIds?.[id];
+      if (key === undefined) {
+        const read = parseValue('refList', id);
+        if (read.errors.length || read.value.length !== 1)
+          return `An element's id (G1), not ${id}`;
+        key = read.value[0]!;
+      }
       if (!context) return null;
-      // its key, the id its text gives it, or its piStar id
       const kind =
-        kindOf(context, id) ??
-        kindOf(context, context.named?.[id] ?? '') ??
-        kindOf(context, context.iStarIds?.[id] ?? '');
+        kindOf(context, key) ?? kindOf(context, context.named?.[key] ?? '');
       if (!kind) return `${id} is not an element of this model`;
       return (value.kinds as readonly string[]).includes(kind)
         ? null

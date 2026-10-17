@@ -35,7 +35,20 @@ describe('value types: reference, formula, probability (#181)', () => {
       'A1 is a kaos.Agent, not a kaos.BehavioralGoal or kaos.Softgoal',
     );
     expect(valueProblem(anchor, 'G1, G2', context)).to.equal(
-      "An element's id, not G1, G2",
+      "An element's id (G1), not G1, G2",
+    );
+    // the grammar's ids; a piStar id only where the model has it
+    expect(valueProblem(anchor, 'G1:', context)).to.equal(
+      "An element's id (G1), not G1:",
+    );
+    expect(
+      valueProblem(anchor, 'achieve_on_scene', {
+        ...context,
+        iStarIds: { achieve_on_scene: 'G1' },
+      }),
+    ).to.equal(null);
+    expect(valueProblem(anchor, 'achieve_on_scene', context)).to.equal(
+      "An element's id (G1), not achieve_on_scene",
     );
     // without a model, only its form is checked
     expect(valueProblem(anchor, 'G2')).to.equal(null);
