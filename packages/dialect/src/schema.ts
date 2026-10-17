@@ -19,6 +19,65 @@ export type ExtensionKind = `${string}.${string}`;
  */
 export type DialectKind = ElementKind | ExtensionKind;
 
+/**
+ * The goal-modelling framework a dialect, a model and a project are in
+ * (goal-controller#171): iStar 2.0, KAOS or the NFR Framework, each the
+ * framework of one of istar-ts's root metamodels (`Metamodel.framework`).
+ * A project's models are all of one; nothing converts between them.
+ */
+export type Framework = 'istar-2.0' | 'kaos' | 'nfr';
+export const FRAMEWORKS = [
+  'istar-2.0',
+  'kaos',
+  'nfr',
+] as const satisfies readonly Framework[];
+/** The framework of a dialect, model or project that names none. */
+export const DEFAULT_FRAMEWORK: Framework = 'istar-2.0';
+
+/**
+ * The kinds of the frameworks besides iStar 2.0, as their istar-ts root
+ * metamodels have them (`@istar-ts/dsm3-kaos`'s KAOS, `@istar-ts/dsm3-nfr`'s
+ * NFR; the UI's tests pin this table to them): the element kinds, with the
+ * hub an n-ary link generates, and the link kinds, with its legs. A dialect
+ * of one names these kinds, and no iStar kind.
+ */
+export const FRAMEWORK_KINDS = {
+  kaos: {
+    elements: [
+      'kaos.BehavioralGoal',
+      'kaos.Softgoal',
+      'kaos.Agent',
+      'kaos.EnvironmentAgent',
+      'kaos.DomainProperty',
+      'kaos.RefinementLinkHub',
+    ],
+    links: [
+      'kaos.RefinementLink',
+      'kaos.ResponsibilityAssignment',
+      'kaos.Conflict',
+      'kaos.RefinementLinkStart',
+      'kaos.RefinementLinkEnd',
+    ],
+  },
+  nfr: {
+    elements: ['nfr.NFR', 'nfr.Operationalization', 'nfr.Claim'],
+    links: [
+      'nfr.AndRefinementLink',
+      'nfr.OrRefinementLink',
+      'nfr.ContributionLink',
+      'nfr.CorrelationLink',
+      'nfr.ArgumentLink',
+    ],
+  },
+} as const satisfies Record<
+  Exclude<Framework, 'istar-2.0'>,
+  { elements: readonly string[]; links: readonly string[] }
+>;
+
+/** An element kind of a framework besides iStar 2.0 (`kaos.Agent`). */
+export type FrameworkElementKind<F extends keyof typeof FRAMEWORK_KINDS> =
+  (typeof FRAMEWORK_KINDS)[F]['elements'][number];
+
 /** iStar refinement links: AND or OR. */
 export type Relation = 'and' | 'or';
 
@@ -314,6 +373,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
   id: string;
   /** shown to people */
   name: string;
+  /**
+   * The framework whose models it reads (default `istar-2.0`): its kinds are
+   * that framework's root metamodel's, and iStar's rules (the `G`/`T`/`R`/`AT`
+   * prefixes, the goal/task/resource/quality kinds, actors) hold in iStar's
+   * only (goal-controller#171).
+   */
+  framework?: Framework;
   /**
    * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
    * have properties (`properties`, by kind id), be named by references
@@ -894,7 +960,10 @@ export type ExtensionNodeKindOf<E> = E extends {
 export type PropertyKindOf<D> =
   | ElementKind
   | (D extends { elements: infer L } ? keyof L & string : never)
-  | (D extends { extension: infer E } ? ExtensionNodeKindOf<E> : never);
+  | (D extends { extension: infer E } ? ExtensionNodeKindOf<E> : never)
+  | (D extends { framework: infer F extends keyof typeof FRAMEWORK_KINDS }
+      ? FrameworkElementKind<F>
+      : never);
 
 /**
  * A `properties` key that is none of its kinds, made `never` (it doesn't
@@ -977,6 +1046,39 @@ const checkNativeFiles = (
 };
 
 /**
+ * A dialect of a framework besides iStar 2.0 (goal-controller#171), as
+ * iStar's rules don't check it: its elements are its root's node kinds, each
+ * prefix one or two capitals (not `X` nor `W`; kinds may share one, as KAOS's
+ * goals share `G`); it has no extension, actors or bracket notation, which
+ * are iStar's.
+ */
+const checkFrameworkDialect = (
+  definition: AnyDialect,
+  framework: string,
+  own: (typeof FRAMEWORK_KINDS)[keyof typeof FRAMEWORK_KINDS],
+  fail: (why: string) => never,
+) => {
+  for (const [field, given] of [
+    ['extension', definition.extension],
+    ['actors', definition.actors],
+    ['notation', definition.notation],
+  ] as const)
+    if (given) fail(`${field}: a ${framework} dialect has none (iStar's only)`);
+  for (const [kind, element] of Object.entries(definition.elements)) {
+    if (!(own.elements as readonly string[]).includes(kind))
+      fail(`elements: ${kind} is not a node kind of ${framework}`);
+    const prefix = element?.prefix;
+    if (
+      prefix !== undefined &&
+      (!/^[A-Z]{1,2}$/.test(prefix) || prefix === 'X' || prefix === 'W')
+    )
+      fail(
+        `${kind}: its prefix is one or two capitals, neither X nor W (not ${prefix})`,
+      );
+  }
+};
+
+/**
  * Type-checks and freezes a definition, and checks what the types cannot:
  * every name it uses (constructs, languages, condition keys, the keys an
  * element line declares) is one it declares, and the property-line order lists
@@ -1013,11 +1115,19 @@ export const defineDialect = <const D extends AnyDialect>(
   if (named.length && named.length !== Object.keys(elements).length)
     fail('either every element has an id prefix, or none has');
   const resources = definition.projectResources ?? {};
+  // another framework's dialect: its root's kinds, none of iStar's rules
+  const framework = definition.framework ?? DEFAULT_FRAMEWORK;
+  if (!(FRAMEWORKS as readonly string[]).includes(framework))
+    fail(`unknown framework ${String(framework)}`);
+  const own = framework === 'istar-2.0' ? null : FRAMEWORK_KINDS[framework];
+  if (own) checkFrameworkDialect(definition, framework, own, fail);
   // the kinds it may name: iStar's, and its extension's nodes
   const extensionKinds = extensionNodeKinds(definition.extension);
   const isKind = (kind: string) =>
-    kind in ISTAR_KIND_OF || extensionKinds.includes(kind);
-  for (const [kind, element] of Object.entries(elements)) {
+    own
+      ? (own.elements as readonly string[]).includes(kind)
+      : kind in ISTAR_KIND_OF || extensionKinds.includes(kind);
+  for (const [kind, element] of Object.entries(own ? {} : elements)) {
     // a namespaced kind (not a modelling dialect's `istar.Goal`) is its extension's
     if (isExtensionKind(kind) && !extensionKinds.includes(kind))
       fail(`elements: ${kind} is not a node kind of its extension`);
@@ -1040,7 +1150,9 @@ export const defineDialect = <const D extends AnyDialect>(
   for (const kind of Object.keys(definition.properties))
     if (!isKind(kind) && !(kind in elements))
       fail(
-        `properties: ${kind} is neither an iStar kind nor a node kind of its extension`,
+        own
+          ? `properties: ${kind} is not a node kind of ${framework}`
+          : `properties: ${kind} is neither an iStar kind nor a node kind of its extension`,
       );
   for (const kind of notation?.operand.kinds ?? [])
     if (!isKind(kind)) fail(`notation: operand kind ${kind} is unknown`);
@@ -1120,7 +1232,12 @@ export const defineDialect = <const D extends AnyDialect>(
         if (list.some((p) => p.key === key))
           fail(`${kind}.${key}: the key ${what}`);
   for (const [kind, list] of Object.entries(definition.links ?? {})) {
-    if (!isLinkKind(kind)) fail(`links: unknown link kind ${kind}`);
+    if (
+      own ? !(own.links as readonly string[]).includes(kind) : !isLinkKind(kind)
+    )
+      fail(
+        `links: unknown link kind ${kind}${own ? ` (not one of ${framework}'s)` : ''}`,
+      );
     checkList(kind, list);
   }
   if (definition.actors) {

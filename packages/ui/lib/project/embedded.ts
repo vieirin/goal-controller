@@ -6,17 +6,22 @@
  * - its dialect is the model's mode record, `diagram.customProperties.engine`
  *   (piStar keeps custom properties, so the record survives the piStar tool);
  *   it is not duplicated into the `project` key;
+ * - its framework is the record beside it, `diagram.customProperties.framework`
+ *   (goal-controller#171), written only when it isn't iStar 2.0 (an iStar
+ *   model stays as it was);
  * - its options are the top-level `project` key, `{ version, options }`,
  *   written only when there are options (a bare model stays bare).
  *
- * This file is the one place that knows those two paths. Edits are made on
+ * This file is the one place that knows those paths. Edits are made on
  * the JSON value, in the file's own indentation, key order and trailing
  * newline; a write that changes nothing returns the text as it was.
  */
+import { DEFAULT_FRAMEWORK, type Framework } from '@goal-controller/dialect';
 import {
   ManifestError,
   MANIFEST_VERSION,
   needsProjectFile,
+  optionalFramework,
   parseOptions,
   setSettingsInManifest,
   settingsInManifest,
@@ -43,33 +48,45 @@ const parseObject = (text: string): Json => {
   return value;
 };
 
-/** The model's mode record: read and written here only. */
-const modeRecord = {
-  property: 'engine',
+/** A record in the model's `diagram.customProperties`: read and written here only. */
+const diagramRecord = (property: string) => ({
+  property,
   read(model: Json): string | null {
     const diagram = model.diagram;
     const value =
       isRecord(diagram) && isRecord(diagram.customProperties)
-        ? diagram.customProperties[this.property]
+        ? diagram.customProperties[property]
         : undefined;
     return typeof value === 'string' && value ? value : null;
   },
   /** whether it changed */
-  write(model: Json, mode: string | null): boolean {
-    if (this.read(model) === mode) return false;
-    if (mode === null) {
+  write(model: Json, value: string | null): boolean {
+    if (this.read(model) === value) return false;
+    if (value === null) {
       // there is a record (read differs): remove it, keep the rest
       const properties = (model.diagram as Json).customProperties as Json;
-      delete properties[this.property];
+      delete properties[property];
       return true;
     }
     if (!isRecord(model.diagram)) model.diagram = {};
     const diagram = model.diagram as Json;
     if (!isRecord(diagram.customProperties)) diagram.customProperties = {};
-    (diagram.customProperties as Json)[this.property] = mode;
+    (diagram.customProperties as Json)[property] = value;
     return true;
   },
-};
+});
+
+/** The model's mode record. */
+const modeRecord = diagramRecord('engine');
+
+/** The model's framework record, beside the mode's; none: iStar 2.0. */
+const frameworkRecord = diagramRecord('framework');
+
+const readFramework = (model: Json): Framework | undefined =>
+  optionalFramework(
+    frameworkRecord.read(model) ?? undefined,
+    `diagram.customProperties.${frameworkRecord.property}`,
+  );
 
 const readOptions = (model: Json): EngineOptions | undefined => {
   const embedded = model[EMBEDDED_KEY];
@@ -94,6 +111,18 @@ export const recordedMode = (text: string): string | null => {
 };
 
 /**
+ * The framework a model records (goal-controller#171); null for an iStar 2.0
+ * model (no record), one recording another value, or text that isn't a model.
+ */
+export const recordedFramework = (text: string): Framework | null => {
+  try {
+    return readFramework(parseObject(text)) ?? null;
+  } catch {
+    return null;
+  }
+};
+
+/**
  * The manifest a model carries: a one-model project whose dialect is the
  * model's mode record and options its `project` key. Throws on JSON that
  * isn't an object, or a `project` key that isn't a manifest.
@@ -104,9 +133,11 @@ export const manifestOfModel = (
 ): Manifest => {
   const model = parseObject(text);
   const mode = modeRecord.read(model);
+  const framework = readFramework(model);
   const options = readOptions(model);
   return singleModelManifest(path, {
     ...(mode !== null && { dialect: mode }),
+    ...(framework !== undefined && { framework }),
     ...(options !== undefined && { options }),
   });
 };
@@ -114,8 +145,8 @@ export const manifestOfModel = (
 /**
  * The manifest a model carries, for opening it: never throws. A model that
  * isn't JSON (being written, or broken) is `unreadable`, a one-model project
- * with no settings; one whose `project` key isn't a manifest keeps its mode
- * record only. Why is the workbench's to say (it reads the model).
+ * with no settings; one whose `project` key or framework record isn't one
+ * keeps its mode record only. Why is the workbench's to say (it reads the model).
  */
 export const readEmbeddedManifest = (
   text: string,
@@ -131,11 +162,17 @@ export const readEmbeddedManifest = (
     return { manifest: manifestOfModel(text, path), unreadable: false };
   } catch {
     const mode = modeRecord.read(model);
+    let framework: Framework | undefined;
+    try {
+      framework = readFramework(model);
+    } catch {
+      // not one: iStar 2.0
+    }
     return {
-      manifest: singleModelManifest(
-        path,
-        mode === null ? {} : { dialect: mode },
-      ),
+      manifest: singleModelManifest(path, {
+        ...(mode !== null && { dialect: mode }),
+        ...(framework !== undefined && { framework }),
+      }),
       unreadable: false,
     };
   }
@@ -166,8 +203,15 @@ export const withEmbeddedManifest = (
       'this project has more than one file: its manifest is project.json',
     );
   const model = parseObject(text);
-  const { mode, options } = settingsInManifest(manifest);
+  const { mode, framework, options } = settingsInManifest(manifest);
   let changed = modeRecord.write(model, mode);
+  if (
+    frameworkRecord.write(
+      model,
+      framework === DEFAULT_FRAMEWORK ? null : framework,
+    )
+  )
+    changed = true;
   const kept = readOptions(model);
   const next = Object.keys(options).length > 0 ? options : undefined;
   if (!sameOptions(kept, next)) {
@@ -189,12 +233,17 @@ export const modelSettingsOf = (text: string): ManifestSettings =>
 
 /**
  * The model text with its settings written: `mode` null records plain piStar
- * (no record), undefined keeps the record; `options` replace the kept ones
- * (empty: the `project` key goes). Only what changes is rewritten.
+ * (no record), undefined keeps the record; `framework` undefined keeps it
+ * (iStar 2.0: no record); `options` replace the kept ones (empty: the
+ * `project` key goes). Only what changes is rewritten.
  */
 export const withModelSettings = (
   text: string,
-  settings: { mode?: string | null; options?: EngineOptions },
+  settings: {
+    mode?: string | null;
+    framework?: Framework;
+    options?: EngineOptions;
+  },
 ): string =>
   withEmbeddedManifest(
     text,

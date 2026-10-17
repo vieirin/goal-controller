@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import {
   ConformityStatus,
+  projectFrameworkOf,
   TARGET_LABEL as LABEL,
   TARGETS,
   useEngineConformity,
@@ -43,6 +44,7 @@ export default function ConvertDialog({
     wb.text,
     engineIds,
     skipChecks,
+    projectFrameworkOf(wb.project),
   );
   const [selected, setSelected] = useState<ConversionTarget>(
     candidates.some((c) => c.id === target)

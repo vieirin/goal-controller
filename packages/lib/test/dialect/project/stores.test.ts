@@ -50,6 +50,7 @@ describe('project stores', () => {
     expect(project.models[0]!.text).to.equal(EDGE);
     expect(project.models[0]!.settings).to.deep.equal({
       mode: JSON.parse(EDGE).diagram?.customProperties?.engine ?? null,
+      framework: 'istar-2.0',
       options: {},
     });
     expect(project.projectResources).to.deep.equal({});
@@ -83,7 +84,7 @@ describe('project stores', () => {
       {
         path: 'broken.txt',
         text: broken,
-        settings: { mode: null, options: {} },
+        settings: { mode: null, framework: 'istar-2.0', options: {} },
         unreadable: true,
       },
     ]);
@@ -95,6 +96,7 @@ describe('project stores', () => {
     const read = await openProject(fileStore('m.txt', badKey));
     expect(read.models[0]!.settings).to.deep.equal({
       mode: 'edgev2',
+      framework: 'istar-2.0',
       options: {},
     });
     expect(read.models[0]!.unreadable).to.equal(undefined);
@@ -173,11 +175,19 @@ describe('project stores', () => {
     expect(project.form).to.equal('file');
     expect(project.name).to.equal('twins');
     expect(project.models.map((m) => [m.path, m.settings])).to.deep.equal([
-      ['models/a.txt', { mode: 'edgev2', options: { discretisation: 10 } }],
+      [
+        'models/a.txt',
+        {
+          mode: 'edgev2',
+          framework: 'istar-2.0',
+          options: { discretisation: 10 },
+        },
+      ],
       [
         'models/a-sleec.txt',
         {
           mode: 'sleec',
+          framework: 'istar-2.0',
           options: { discretisation: 10, generateFluents: true },
         },
       ],
@@ -206,6 +216,32 @@ describe('project stores', () => {
     );
     await fails({ 'project.json': '{' }, /^project\.json:/);
     await fails({ 'notes.txt': 'hello' }, /no goal model in p/);
+  });
+
+  it("reads a model's framework: the manifest's, else the model's record (#171)", async () => {
+    const kaos = withModelSettings(EDGE, { framework: 'kaos' });
+    const single = await openProject(fileStore('m.txt', kaos));
+    expect(single.models[0]!.settings.framework).to.equal('kaos');
+    const project = (framework?: 'nfr') =>
+      openProject(
+        directoryStore(
+          fakeDirectory('p', {
+            'project.json': JSON.stringify({
+              version: 1,
+              ...(framework && { framework }),
+              models: [{ path: 'm.txt' }, { path: 'n.txt' }],
+            }),
+            'm.txt': kaos,
+            'n.txt': EDGE,
+          }),
+        ),
+      );
+    expect(
+      (await project()).models.map((m) => m.settings.framework),
+    ).to.deep.equal(['kaos', 'istar-2.0']);
+    expect(
+      (await project('nfr')).models.map((m) => m.settings.framework),
+    ).to.deep.equal(['nfr', 'nfr']);
   });
 
   it('promotes a one-model project to project.json when a second file comes', async () => {
@@ -252,6 +288,7 @@ describe('project stores', () => {
     );
     expect(reopened.models[0]!.settings).to.deep.equal({
       mode: 'edgev2',
+      framework: 'istar-2.0',
       options: { discretisation: 4 },
     });
     // a one-model project that needs project.json is promoted first

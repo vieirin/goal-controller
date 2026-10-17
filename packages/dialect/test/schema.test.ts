@@ -11,7 +11,7 @@ import {
   type ProjectResourceKindOf,
   type PropertyKeyOf,
 } from '../src';
-import { toy, toyDialect } from './support/toy';
+import { sensing, toy, toyDialect } from './support/toy';
 
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const same = <T extends true>(): T => true as T;
@@ -425,6 +425,129 @@ describe('defineDialect', () => {
         }),
       ),
     ).to.equal(false);
+  });
+});
+
+describe('defineDialect: frameworks besides iStar 2.0 (#171)', () => {
+  const kaos = {
+    id: 'kaos-test',
+    name: 'KAOS',
+    framework: 'kaos',
+    elements: {
+      'kaos.BehavioralGoal': { prefix: 'G', fill: '#fff' },
+      'kaos.Softgoal': { prefix: 'G', fill: '#fff' },
+      'kaos.Agent': { prefix: 'A', fill: '#fff' },
+      'kaos.DomainProperty': { prefix: 'DP', fill: '#fff' },
+    },
+    defaultFill: '#fff',
+    properties: {
+      'kaos.BehavioralGoal': [
+        { key: 'FitCriterion', value: { type: 'text' }, help: 'how to tell' },
+      ],
+      // the hub its n-ary refinement generates: no line, but properties
+      'kaos.RefinementLinkHub': [
+        { key: 'Tactic', value: { type: 'text' }, help: 'which tactic' },
+      ],
+    },
+    links: {
+      'kaos.Conflict': [
+        {
+          key: 'BoundaryCondition',
+          value: { type: 'text' },
+          help: 'when they conflict',
+        },
+      ],
+    },
+    propertyLineOrder: ['FitCriterion'],
+    indent: '  ',
+    problems: {
+      notAChild: { severity: 'error', message: '' },
+      missingFromNotation: { severity: 'error', message: '' },
+      relationMismatch: { severity: 'error', message: '' },
+      notInDiagram: { severity: 'error', message: '' },
+    },
+  } as const satisfies AnyDialect;
+  const bad = (change: (d: AnyDialect) => AnyDialect) => () =>
+    defineDialect(change(structuredClone(kaos) as unknown as AnyDialect));
+
+  it('reads its root kinds, shared prefixes and the generated hub', () => {
+    const defined = defineDialect(kaos);
+    expect(defined.framework).to.equal('kaos');
+    expect(Object.isFrozen(defined.elements)).to.equal(true);
+    same<
+      Same<PropertyKeyOf<typeof kaos, 'kaos.RefinementLinkHub'>, 'Tactic'>
+    >();
+  });
+
+  it('defaults to iStar 2.0, whose rules still hold', () => {
+    expect((toy as AnyDialect).framework).to.equal(undefined);
+    expect(
+      defineDialect({
+        ...(structuredClone(toy) as AnyDialect),
+        framework: 'istar-2.0',
+      }).framework,
+    ).to.equal('istar-2.0');
+    expect(bad((d) => ({ ...d, framework: 'istar-2.0' }))).to.throw(
+      /kaos\.BehavioralGoal is not a node kind of its extension/,
+    );
+  });
+
+  it('rejects another framework, iStar kinds, and kinds its root does not have', () => {
+    expect(bad((d) => ({ ...d, framework: 'tropos' as 'kaos' }))).to.throw(
+      /unknown framework tropos/,
+    );
+    expect(
+      bad((d) => ({
+        ...d,
+        elements: { ...d.elements, goal: { prefix: 'G', fill: '#fff' } },
+      })),
+    ).to.throw(/elements: goal is not a node kind of kaos/);
+    expect(
+      bad((d) => ({
+        ...d,
+        elements: { ...d.elements, 'nfr.Claim': { prefix: 'C', fill: '#fff' } },
+      })),
+    ).to.throw(/elements: nfr\.Claim is not a node kind of kaos/);
+    expect(
+      bad((d) => ({ ...d, properties: { ...d.properties, task: [] } })),
+    ).to.throw(/properties: task is not a node kind of kaos/);
+    expect(
+      bad((d) => ({ ...d, links: { 'istar.ContributionLink': [] } })),
+    ).to.throw(
+      /links: unknown link kind istar\.ContributionLink \(not one of kaos's\)/,
+    );
+    expect(bad((d) => ({ ...d, framework: 'nfr' }))).to.throw(
+      /elements: kaos\.BehavioralGoal is not a node kind of nfr/,
+    );
+  });
+
+  it("rejects iStar's extension, actors and notation, and prefixes no line can start with", () => {
+    expect(bad((d) => ({ ...d, extension: sensing }) as AnyDialect)).to.throw(
+      /extension: a kaos dialect has none/,
+    );
+    expect(bad((d) => ({ ...d, actors: [] }))).to.throw(
+      /actors: a kaos dialect has none/,
+    );
+    expect(
+      bad((d) => ({ ...d, notation: toy.notation }) as AnyDialect),
+    ).to.throw(/notation: a kaos dialect has none/);
+    for (const prefix of ['X', 'W', 'ABC', 'g'])
+      expect(
+        bad((d) => ({
+          ...d,
+          elements: {
+            ...d.elements,
+            'kaos.Agent': { prefix, fill: '#fff' },
+          },
+        })),
+        prefix,
+      ).to.throw(/kaos\.Agent: its prefix is one or two capitals/);
+    expect(
+      bad((d) => ({
+        ...d,
+        elements: { ...d.elements, 'kaos.Agent': { fill: '#fff' } },
+      })),
+    ).to.throw(/either every element has an id prefix, or none has/);
   });
 });
 

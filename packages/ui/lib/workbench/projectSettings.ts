@@ -83,7 +83,9 @@ export const readModelOptions = (text: string): ModelOptions => {
  * A manifest's options for a mode, checked: the keys the mode's engine
  * reads, of their type; the others are reported and not used.
  */
-export const checkedOptions = (read: ManifestSettings): ModelOptions => {
+export const checkedOptions = (
+  read: Pick<ManifestSettings, 'mode' | 'options'>,
+): ModelOptions => {
   const declared = declaredOptions(read.mode);
   const options: Partial<GenerationOptions> = {};
   const problems: Problem[] = [];
