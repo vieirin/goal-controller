@@ -1,12 +1,13 @@
 /**
  * kaosdocEngineMapper, characterized (goal-controller#187 phase 2 pre-work):
- * what its IR holds today for every property a KAOS element or link
- * carries, so the migration to typed values can show nothing changed.
- * Goal nodes and links keep the properties their kind reads, trimmed, empty
- * ones left out; the model's elements (a refinement's hub, an obstacle's
- * Category in the document) keep theirs as written. A value outside a
- * vocabulary is kept as text today: after the migration the mapper is
- * given `undefined` for it (`#187: invalid value`).
+ * what its IR holds for every property a KAOS element or link carries, so
+ * the migration to typed values can show nothing changed. Goal nodes and
+ * links keep the properties their kind has, as the dialect reads them
+ * (trimmed, empty ones left out); the model's elements (a refinement's hub,
+ * an obstacle's Category in the document) keep theirs as written. A value
+ * outside a vocabulary was kept as text before #187: now the mapper is
+ * given `undefined` for it and leaves it out, and the dialect's checks
+ * report it (`#187: invalid value`); a link keeps its own kind's keys only.
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
@@ -200,8 +201,8 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('keeps a value outside its vocabulary, trimmed', () => {
-      // #187: invalid value
+    it('leaves out a value outside its vocabulary', () => {
+      // #187: invalid value (was kept, trimmed)
       assert.deepStrictEqual(
         nodeEngine(
           withProperties(SEED, {
@@ -213,12 +214,12 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           }),
           GOAL,
         ).properties,
-        { Type: 'achieve', Category: 'Hazard', Priority: 'HIGH' },
+        {},
       );
     });
 
-    it('writes a value outside its vocabulary in the Goals table', () => {
-      // #187: invalid value
+    it('leaves a value outside its vocabulary out of the Goals table', () => {
+      // #187: invalid value (was written)
       const goals = sectionOf(
         withProperties(SEED, {
           [GOAL]: { Type: 'Bogus', Category: 'nope', Priority: 'urgent' },
@@ -227,7 +228,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
       assert.ok(
         goals!.includes(
-          '| Achieve [Manual Backup] | Behavioral goal | Bogus | nope | urgent |  |',
+          '| Achieve [Manual Backup] | Behavioral goal |  |  |  |  |',
         ),
       );
     });
@@ -254,14 +255,14 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('keeps a Kind outside its vocabulary', () => {
-      // #187: invalid value
+    it('leaves out a Kind outside its vocabulary', () => {
+      // #187: invalid value (was kept)
       assert.deepStrictEqual(
         nodeEngine(
           withProperties(SEED, { [DOMAIN_PROPERTY]: { Kind: 'Axiom' } }),
           DOMAIN_PROPERTY,
         ).properties,
-        { Kind: 'Axiom' },
+        {},
       );
     });
 
@@ -307,14 +308,14 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('keeps a Category outside the obstacles’ vocabulary (a goal’s)', () => {
-      // #187: invalid value
+    it('leaves out a Category outside the obstacles’ vocabulary (a goal’s)', () => {
+      // #187: invalid value (was kept)
       assert.deepStrictEqual(
         nodeEngine(
           withProperties(LAS, { [OBSTACLE]: { Category: 'Satisfaction' } }),
           OBSTACLE,
         ).properties,
-        { Category: 'Satisfaction' },
+        {},
       );
     });
 
@@ -350,9 +351,13 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       });
       assert.deepStrictEqual(conflict(''), {});
       assert.deepStrictEqual(conflict('   '), {});
+      assert.deepStrictEqual(conflict(' offline\nat night '), {
+        BoundaryCondition: 'offline\nat night',
+      });
     });
 
-    it('every link kind reads every link key, not only its own kind’s', () => {
+    it('a link reads its own kind’s keys only', () => {
+      // #187: link keys on the wrong kind (every link kind read every link key)
       assert.deepStrictEqual(
         linkEngine(
           withProperties(SEED, {
@@ -365,8 +370,9 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           }),
           CONFLICT,
         ),
-        { BoundaryCondition: 'b', ResolutionType: 'mitigation', Anchor: GOAL },
+        { BoundaryCondition: 'b' },
       );
+      // #187: link keys on the wrong kind
       assert.deepStrictEqual(
         linkEngine(
           withProperties(SEED, {
@@ -374,7 +380,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           }),
           ASSIGNMENT,
         ),
-        { BoundaryCondition: 'x' },
+        {},
       );
     });
 
@@ -397,8 +403,10 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('keeps a ResolutionType outside its vocabulary, and an Anchor naming no goal', () => {
-      // #187: invalid value
+    it('leaves out a ResolutionType outside its vocabulary; keeps an Anchor naming no goal', () => {
+      // #187: invalid value (the ResolutionType was kept). A reference is
+      // read as the id written, not resolved against the model: the dialect
+      // reports `nowhere`, but the mapper is given it.
       assert.deepStrictEqual(
         linkEngine(
           withProperties(LAS, {
@@ -406,7 +414,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           }),
           RESOLUTION,
         ),
-        { ResolutionType: 'Mitigation', Anchor: 'nowhere' },
+        { Anchor: 'nowhere' },
       );
     });
 
@@ -433,10 +441,10 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
         'unspecified, anchored on Achieve [Ambulance On Scene When Ambulance Mobilized]',
       );
       assert.strictEqual(resolution({}), '');
-      // #187: invalid value
+      // #187: invalid value (was 'bogus, anchored on nowhere')
       assert.strictEqual(
         resolution({ ResolutionType: 'bogus', Anchor: 'nowhere' }),
-        'bogus, anchored on nowhere',
+        'unspecified, anchored on nowhere',
       );
       // #187: invalid value (an anchor on an obstacle, not a goal)
       assert.strictEqual(

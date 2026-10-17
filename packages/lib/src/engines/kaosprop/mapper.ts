@@ -2,8 +2,10 @@
  * kaosprop's mapper (goal-controller#181): how goal-tree reads a KAOS model
  * for its analyses. It generates nothing, so the IR keeps every element's
  * properties as written (the analyses read the quantities there), and a
- * link's quantity (an obstruction's, a leg's `Probability`); goals and
- * obstacles may be leaves.
+ * link's its kind has (an obstruction's, a leg's `Probability`), each as
+ * written when the dialect reads it as set (goal-controller#187: a value
+ * that is no probability is unset, and the dialect's checks report it);
+ * goals and obstacles may be leaves.
  */
 import { parsePistar } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
@@ -25,7 +27,16 @@ export const kaospropEngineMapper = createEngineMapper<
   dialect: kaosprop,
   allowLeafGoals: true,
   skipResource: true,
-  mapLinkProps: ({ raw }) => raw,
+  // the analyses read a link's properties as text: its kind's the dialect
+  // reads as set (a probability, not blank), each as written
+  mapLinkProps: ({ props, raw }): Readonly<Record<string, string>> =>
+    Object.fromEntries(
+      Object.entries(raw).flatMap(([key, written]) =>
+        written !== undefined && props[key as keyof typeof props] != null
+          ? [[key, written]]
+          : [],
+      ),
+    ),
   mapGoalProps: ({ text }) => ({ text }),
   mapTaskProps: ({ id }) => {
     throw new Error(`[INVALID_MODEL]: ${id}: a KAOS model has no tasks`);

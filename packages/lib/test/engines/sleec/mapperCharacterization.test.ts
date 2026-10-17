@@ -244,6 +244,18 @@ describe('sleecEngineMapper: characterization (#187)', () => {
         );
     });
 
+    it('keeps a multi-line value as written', () => {
+      const PreCond = '(not {a})\n  and {b}';
+      assert.deepStrictEqual(
+        taskEngine(
+          seedWith({ 'T1:': { customProperties: { ...REQUIRED, PreCond } } }),
+          'T1',
+        ),
+        { ...REQUIRED, PreCond },
+      );
+    });
+
+    // #225: a blank Obstacle is kept (and writes rule _5), pinned until it is decided
     it('leaves out an empty Obstacle, but keeps a blank one (truthy, not trimmed)', () => {
       const obstacle = (Obstacle: string) =>
         taskEngine(
@@ -254,6 +266,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
       assert.deepStrictEqual(obstacle('   '), { ...REQUIRED, Obstacle: '   ' });
     });
 
+    // #225
     it('a blank Obstacle still writes rule _5', () => {
       const rules = sleecTemplateEngine(
         treeOf(

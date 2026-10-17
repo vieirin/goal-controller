@@ -55,19 +55,27 @@ export type SleecGoalKey = (typeof SLEEC_GOAL_KEYS)[number];
 export type SleecTaskKey = (typeof SLEEC_TASK_KEYS)[number];
 export type SleecQualityKey = (typeof SLEEC_QUALITY_KEYS)[number];
 
-const extractSleecGoalProps = (
-  raw: Partial<Record<SleecGoalKey, string>>,
-): SleecGoalProps => {
-  const sleecProps: SleecGoalProps = {};
+/** A SLEEC element's properties as the mapper is given them: each `text`. */
+type SleecRecord<K extends string> = {
+  props: Partial<Record<K, string | null>>;
+  raw: Partial<Record<K, string>>;
+};
 
-  for (const key of SLEEC_GOAL_KEYS) {
-    const value = raw[key];
-    if (typeof value === 'string' && value.trim() !== '') {
-      sleecProps[key] = value;
-    }
+/**
+ * The keys set, each as written: a key whose `text` reads as unset (empty
+ * or blank) is left out, and the others keep their text untrimmed, as the
+ * specification has always been given them.
+ */
+const written = <K extends string>(
+  { props, raw }: SleecRecord<K>,
+  keys: readonly K[],
+): Partial<Record<K, string>> => {
+  const values: Partial<Record<K, string>> = {};
+  for (const key of keys) {
+    const value = props[key] == null ? undefined : raw[key];
+    if (value !== undefined) values[key] = value;
   }
-
-  return sleecProps;
+  return values;
 };
 
 const REQUIRED_TASK_KEYS = [
@@ -78,36 +86,33 @@ const REQUIRED_TASK_KEYS = [
 ] as const;
 
 const extractSleecTaskProps = (
-  raw: Partial<Record<SleecTaskKey, string>>,
+  record: SleecRecord<SleecTaskKey>,
   taskName: string,
 ): SleecTaskProps => {
-  const missing = REQUIRED_TASK_KEYS.filter((key) => {
-    const value = raw[key];
-    return !value || value.trim() === '';
-  });
-
-  if (missing.length > 0) {
+  const values = written(record, REQUIRED_TASK_KEYS);
+  const { PreCond, TriggeringEvent, PostCond, TemporalConstraint } = values;
+  if (
+    PreCond === undefined ||
+    TriggeringEvent === undefined ||
+    PostCond === undefined ||
+    TemporalConstraint === undefined
+  ) {
+    const missing = REQUIRED_TASK_KEYS.filter((key) => !(key in values));
     throw new Error(
       `Task "${taskName}" is missing required SLEEC properties: ${missing.join(', ')}. ` +
         `All tasks must define: ${REQUIRED_TASK_KEYS.join(', ')}.`,
     );
   }
 
-  const preCond = raw.PreCond as string;
-  const triggeringEvent = raw.TriggeringEvent as string;
-  const postCond = raw.PostCond as string;
-  const temporalConstraint = raw.TemporalConstraint as string;
-
-  const sleecProps: SleecTaskProps = {
-    PreCond: preCond,
-    TriggeringEvent: triggeringEvent,
-    PostCond: postCond,
-    TemporalConstraint: temporalConstraint,
+  // any Obstacle written is kept, a blank one too (it writes rule _5, #225)
+  const { Obstacle } = record.raw;
+  return {
+    PreCond,
+    TriggeringEvent,
+    PostCond,
+    TemporalConstraint,
+    ...(Obstacle && { Obstacle }),
   };
-
-  if (raw.Obstacle) sleecProps.Obstacle = raw.Obstacle;
-
-  return sleecProps;
 };
 
 /**
@@ -132,8 +137,10 @@ export const sleecEngineMapper = createEngineMapper<
     },
   },
   skipResource: true,
-  mapGoalProps: ({ raw }) => extractSleecGoalProps(raw),
-  mapTaskProps: ({ raw, name }) => extractSleecTaskProps(raw, name),
+  // a quality is given its kind's keys only (NormPrinciple, Proxy)
+  mapGoalProps: ({ props, raw }) => written({ props, raw }, SLEEC_GOAL_KEYS),
+  mapTaskProps: ({ props, raw, name }) =>
+    extractSleecTaskProps({ props, raw }, name),
 });
 
 /**

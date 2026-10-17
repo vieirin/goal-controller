@@ -1,8 +1,9 @@
 /**
  * kaosdoc's mapper (goal-controller#171): how goal-tree reads a KAOS model
  * for it. Goals and domain properties are the IR's goal nodes, each with its
- * kind and the properties its kind declares in the `kaos` dialect (trimmed,
- * empty ones left out); conflicts keep their boundary condition, and
+ * kind and the properties its kind declares in the `kaos` dialect, as it
+ * reads them (goal-controller#187: trimmed; empty ones, and a value outside
+ * its vocabulary, left out); conflicts keep their boundary condition, and
  * resolutions their type and anchor. Obstacles are goal nodes too, in their
  * own trees. A refinement's properties are its hub's, an element of the
  * model.
@@ -28,16 +29,23 @@ export const KAOSDOC_DOMAIN_PROPERTY_KEYS = propertyKeys(
 /** A conflict's: its boundary condition. */
 export const KAOSDOC_LINK_KEYS = linkPropertyKeys(kaos);
 
-/** Properties as the document reads them: the ones set, trimmed. */
+/** Properties as the document reads them: the ones set, as the dialect reads them (trimmed). */
 export type KaosdocProperties = Readonly<Record<string, string>>;
 
 /** A goal node's: its kind (`kaos.BehavioralGoal`, `kaos.DomainProperty`, …) and properties. */
 export type KaosdocNodeProps = { kind: string; properties: KaosdocProperties };
 
-const set = (raw: Partial<Record<string, string>>): KaosdocProperties =>
+/**
+ * The properties set, in the dialect's order: every KAOS value reads as a
+ * string (text, a vocabulary's word, a formula, an anchor's id); unset,
+ * blank or outside its vocabulary, it is absent (the dialect's checks
+ * report the last). (The dialect lists its properties as `PropertyDefinition`s,
+ * so their values aren't narrowed to string here.)
+ */
+const set = (props: Readonly<Record<string, unknown>>): KaosdocProperties =>
   Object.fromEntries(
-    Object.entries(raw).flatMap(([key, value]) =>
-      value?.trim() ? [[key, value.trim()]] : [],
+    Object.entries(props).flatMap(([key, value]) =>
+      typeof value === 'string' ? [[key, value]] : [],
     ),
   );
 
@@ -49,8 +57,9 @@ export const kaosdocEngineMapper = createEngineMapper<
   // a KAOS goal may be a leaf: a requirement, an expectation
   allowLeafGoals: true,
   skipResource: true,
-  mapLinkProps: ({ raw }) => set(raw),
-  mapGoalProps: ({ raw, kind }) => ({ kind, properties: set(raw) }),
+  // a link's, its kind's (`links[kind]`): a conflict's, a resolution's
+  mapLinkProps: ({ props }) => set(props),
+  mapGoalProps: ({ props, kind }) => ({ kind, properties: set(props) }),
   mapTaskProps: ({ id }) => {
     throw new Error(`[INVALID_MODEL]: ${id}: a KAOS model has no tasks`);
   },
