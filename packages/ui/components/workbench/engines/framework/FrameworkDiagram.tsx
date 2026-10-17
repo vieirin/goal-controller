@@ -2,8 +2,19 @@
 
 import { kaosExtension } from '@istar-ts/dsm3-kaos';
 import { nfrExtension } from '@istar-ts/dsm3-nfr';
-import { IstarInspector, type IstarExtension } from '@istar-ts/react';
-import type { FrameworkMode } from '@/lib/workbench/frameworkModes';
+import { fillOf, type AnyDialect } from '@goal-controller/dialect';
+import type { IstarModel } from '@istar-ts/core';
+import {
+  DefaultElementComponent,
+  IstarInspector,
+  type ElementComponentProps,
+  type IstarExtension,
+} from '@istar-ts/react';
+import type { ReactElement } from 'react';
+import {
+  FRAMEWORK_DIALECTS,
+  type FrameworkMode,
+} from '@/lib/workbench/frameworkModes';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 /**
@@ -17,10 +28,62 @@ const forCanvas = <EK extends string, LK extends string>(
   extension: IstarExtension<EK, LK>,
 ): IstarExtension => extension as unknown as IstarExtension;
 
-/** Each framework's look and palette: istar-ts's registry parts for it. */
+/** The next id of a prefix in a model (`G4`), from 1: ids its elements' names start with. */
+const nextId = (model: IstarModel, prefix: string): string => {
+  let max = 0;
+  for (const element of model.elements.values()) {
+    const match = /^\s*([A-Z]+)(\d+)\s*:/.exec(element.name);
+    if (match?.[1] === prefix) max = Math.max(max, Number(match[2]));
+  }
+  return `${prefix}${max + 1}`;
+};
+
+/** A kind's name as people read it: `kaos.BehavioralGoal` is "Behavioral Goal". */
+const labelOf = (kind: string): string =>
+  kind.replace(/^[^.]+\./, '').replace(/([a-z])([A-Z])/g, '$1 $2');
+
+/**
+ * What the workbench adds to a framework's registry parts, from its dialect
+ * (goal-controller#171): each listed kind drawn in the dialect's fill unless
+ * a colour is saved, and a new one named with its next id (`G3: Behavioral
+ * Goal`), so its Notation line names it; kinds sharing a prefix (KAOS's two
+ * goals) share its numbering.
+ */
+export const dialectParts = (definition: AnyDialect): IstarExtension => {
+  function FilledElement(props: ElementComponentProps): ReactElement {
+    const { element } = props;
+    const drawn = element.display?.backgroundColor
+      ? element
+      : {
+          ...element,
+          display: {
+            ...element.display,
+            backgroundColor: fillOf(definition, element.kind),
+          },
+        };
+    return <DefaultElementComponent {...props} element={drawn} />;
+  }
+  return {
+    name: `${definition.id}-dialect`,
+    elements: Object.fromEntries(
+      Object.entries(definition.elements).map(([kind, element]) => [
+        kind,
+        {
+          component: FilledElement,
+          ...(element?.prefix && {
+            defaultName: ({ model }: { model: IstarModel }) =>
+              `${nextId(model, element.prefix!)}: ${labelOf(kind)}`,
+          }),
+        },
+      ]),
+    ),
+  } as IstarExtension;
+};
+
+/** Each framework's look and palette: istar-ts's registry parts for it, then its dialect's. */
 const EXTENSIONS: Readonly<Record<FrameworkMode, readonly IstarExtension[]>> = {
-  kaos: [forCanvas(kaosExtension)],
-  nfr: [forCanvas(nfrExtension)],
+  kaos: [forCanvas(kaosExtension), dialectParts(FRAMEWORK_DIALECTS.kaos)],
+  nfr: [forCanvas(nfrExtension), dialectParts(FRAMEWORK_DIALECTS.nfr)],
 };
 
 /**

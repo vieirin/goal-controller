@@ -19,6 +19,9 @@ import {
 import { modelSettingsOf } from '@/lib/project';
 import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
+import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
+import { parseModel } from '@/lib/workbench/dialects';
+import { dialectParts } from '@/components/workbench/engines/framework/FrameworkDiagram';
 
 const ROOT = join(__dirname, '../../../..');
 const KAOS_WELCOME = readFileSync(
@@ -122,6 +125,29 @@ describe('a model file in its framework (#171)', () => {
     await waitFor(() =>
       expect(container.querySelectorAll('.istar-hub')).toHaveLength(4),
     );
+    // its nodes in the dialect's fill, DSM3's grey (none saves a colour)
+    expect(container.innerHTML.toUpperCase()).toContain('#CDCDCD');
+  });
+
+  it('names a new element with its prefix’s next id, KAOS’s two goal kinds numbered together', () => {
+    const parts = dialectParts(FRAMEWORK_DIALECTS.kaos);
+    const nameOf = (kind: string, text: string) => {
+      const elements = parts.elements as Record<
+        string,
+        { defaultName?: string | ((ctx: { model: never }) => string) }
+      >;
+      const defaultName = elements[kind]?.defaultName;
+      return typeof defaultName === 'function'
+        ? defaultName({ model: parseModel(text) as never })
+        : defaultName;
+    };
+    expect(nameOf('kaos.Softgoal', KAOS_WELCOME)).toBe('G1: Softgoal');
+    const json = JSON.parse(KAOS_WELCOME);
+    json.orphans[0].text = 'G4: Reliability';
+    json.orphans[1].text = 'G7: Maintain it';
+    const withIds = JSON.stringify(json);
+    expect(nameOf('kaos.BehavioralGoal', withIds)).toBe('G8: Behavioral Goal');
+    expect(nameOf('kaos.DomainProperty', withIds)).toBe('DP1: Domain Property');
   });
 
   it('refuses an iStar file in a KAOS project with conformity’s message, until the switch is confirmed', async () => {

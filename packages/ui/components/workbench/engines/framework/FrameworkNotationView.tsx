@@ -27,7 +27,7 @@ export default function FrameworkNotationView({
   mode: FrameworkMode;
 }) {
   const { text } = useWorkbench();
-  const definition = FRAMEWORK_DIALECTS[mode] as unknown as AnyDialect;
+  const definition: AnyDialect = FRAMEWORK_DIALECTS[mode];
   // the last view read stays while the model is being fixed
   const last = useRef<GoalView | null>(null);
   const tree = useMemo(() => {
