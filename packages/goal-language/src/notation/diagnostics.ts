@@ -28,7 +28,7 @@ import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
-import { lineScope, scopedKey } from './scope.js';
+import { kindOfId, lineScope, scopedKey } from './scope.js';
 import {
   fieldPropertyOf,
   unknownNameMessage,
@@ -185,7 +185,27 @@ type Definition = Pick<
   | 'problems'
   | 'idScope'
 > &
-  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>;
+  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors' | 'framework'>>;
+
+/**
+ * Why a framework's line (KAOS, NFR: goal-controller#171) names no element
+ * of its kinds: its id's prefix (`T1`, read as iStar's catalog reads it) is
+ * none of theirs. Null: one of its kinds takes it, or an iStar dialect's
+ * line (its other prefixes are the diagram's to say, `notInDiagram`).
+ */
+const foreignPrefix = (definition: Definition, id: string): string | null => {
+  if ((definition.framework ?? 'istar-2.0') === 'istar-2.0') return null;
+  if (kindOfId(definition, id) !== undefined) return null;
+  const prefixes = [
+    ...new Set(
+      Object.values(definition.elements).flatMap((e) =>
+        e?.prefix ? [e.prefix] : [],
+      ),
+    ),
+  ];
+  const prefix = /^[A-Z]+/.exec(id)?.[0] ?? id;
+  return `${prefix} is no prefix of ${definition.name}'s: its elements are ${prefixes.map((p) => `${p}…`).join(', ')}`;
+};
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -525,6 +545,12 @@ export const documentDiagnostics = (
       }
       seen.add(unique);
       const element = context.elements[id];
+      const foreign =
+        !element && written_id && foreignPrefix(definition, written_id);
+      if (foreign) {
+        push({ ...idSpan, severity: 'error', message: foreign });
+        continue;
+      }
       if (!element) {
         push(problem(definition, 'notInDiagram', idSpan.from, idSpan.to));
         continue;

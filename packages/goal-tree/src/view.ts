@@ -6,13 +6,21 @@
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
 import {
+  hubLinkOf,
+  hubOfLink,
   isActorIn,
+  isHubElement,
   isNode,
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
-import { extensionKindsRead } from '@goal-controller/dialect';
 import {
+  DEFAULT_FRAMEWORK,
+  extensionKindsRead,
+  type AnyDialect,
+} from '@goal-controller/dialect';
+import {
+  nameReading,
   notationRefs,
   parseElementLineIn,
   scopedKey,
@@ -133,6 +141,8 @@ export type GoalView = {
 /** `ID: name [notation]` as written (the fallback when the grammar cannot read it); `TX` is an id too. */
 const TEXT =
   /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
+/** `ID: name` in a framework's dialect: its brackets are its name's (`nameReading`). */
+const FRAMEWORK_TEXT = /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*$/s;
 
 const KIND: Record<string, ViewKind | undefined> = {
   'istar.Goal': 'goal',
@@ -149,20 +159,53 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
 ];
 
 /**
+ * How a framework's link refines (goal-controller#171), by its dialect's
+ * `refinements`: a refining kind's link as iStar's (child to parent); a leg
+ * of an n-ary one (core's `<Kind>Start`, from a child to the hub) refines
+ * the hub's end's target. Null: no refinement, or a leg of a hub without
+ * an end.
+ */
+const frameworkRefinement = (
+  model: IstarModel<string, string>,
+  refinements: Readonly<Record<string, 'and' | 'or'>>,
+  link: { id: string; kind: string; source: string; target: string },
+): { relation: 'and' | 'or'; parent: string; child: string } | null => {
+  const relation = refinements[link.kind];
+  if (relation) return { relation, parent: link.target, child: link.source };
+  const hub = hubOfLink(model, link.id);
+  const end = hub && hubLinkOf(model, hub.id)?.end;
+  if (!end || link.target !== hub.id) return null;
+  const leg = Object.entries(refinements).find(
+    ([kind]) => link.kind === `${kind}Start`,
+  );
+  return leg
+    ? { relation: leg[1], parent: end.target, child: link.source }
+    : null;
+};
+
+/**
  * Reads a model of any dialect: iStar's kinds, and its extension's it reads
  * (lists, gives properties or names in a reference: `extensionKindsRead`),
  * each keyed by the id its text starts with (`E1: …`) or its piStar id; any
- * other kind is left out.
+ * other kind is left out. A dialect of another framework (KAOS, NFR) reads
+ * its root's kinds so, but an n-ary link's hub (no element of its own: its
+ * legs refine the end's target, `refinements`), and every element no
+ * refinement reaches is a tree's root (they lie on the paper, in no actor).
  */
 export function goalView(
   model: IstarModel<string, string>,
-  dialect: ReadingDialect,
+  dialect: ReadingDialect &
+    Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
 ): GoalView {
+  const metamodel = metamodelOf(model);
+  const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
   const byIStarId = new Map<string, GoalViewNode>();
   const dependumsByIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();
   const parents = new Map<string, string>();
   const extensionKinds = new Set(extensionKindsRead(dialect));
+  // the kinds that are in no tree: an iStar extension's (a framework's are its own)
+  const outsideTrees = framework ? new Set<string>() : extensionKinds;
 
   for (const element of model.elements.values()) {
     const kind =
@@ -170,9 +213,11 @@ export function goalView(
       (extensionKinds.has(element.kind)
         ? (element.kind as ViewKind)
         : undefined);
-    if (!kind || !isNode(element)) continue;
+    if (!kind || !isNode(element) || isHubElement(metamodel, element)) continue;
     const text = element.name;
-    const written = TEXT.exec(text);
+    const written = (
+      nameReading(dialect) === 'line' ? FRAMEWORK_TEXT : TEXT
+    ).exec(text);
     const notation = written?.[3] !== undefined ? written[3].trim() : null;
     const errors: string[] = [];
     let detail: ReturnType<typeof getGoalDetail> | null = null;
@@ -229,8 +274,15 @@ export function goalView(
       qualifications.push([link.source, link.target]);
       continue;
     }
-    const relation = linkRelation(link);
-    const [parentId, childId] = linkEnds(link);
+    const refinement = framework
+      ? frameworkRefinement(model, dialect.refinements ?? {}, link)
+      : null;
+    const relation = framework
+      ? (refinement?.relation ?? null)
+      : linkRelation(link);
+    const [parentId, childId] = refinement
+      ? [refinement.parent, refinement.child]
+      : linkEnds(link);
     const parent = byIStarId.get(parentId);
     if (!relation || !parent || !byIStarId.has(childId)) continue;
     if (!parent.relation && relation !== 'neededBy') parent.relation = relation;
@@ -304,7 +356,7 @@ export function goalView(
     .filter(isActorIn(metamodelOf(model)))
     .flatMap((actor) => actorRootCandidates(model, actor.id, dialect))
     // an extension's element is no tree's root (goal-controller#132)
-    .filter((element) => !extensionKinds.has(element.kind))
+    .filter((element) => !outsideTrees.has(element.kind))
     .map((element) => keyOf(element.id))
     .filter((id): id is string => !!id);
   const reachable = new Set<string>();
@@ -322,7 +374,7 @@ export function goalView(
       !reachable.has(node.key) &&
       !node.parent &&
       !onlyQualifies &&
-      !extensionKinds.has(node.kind)
+      !outsideTrees.has(node.kind)
     ) {
       roots.push(node.key);
       visit(node.key);

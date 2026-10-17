@@ -27,6 +27,7 @@ import {
   syntaxErrorsOf,
   toRtTree,
   withoutBracketSpaces,
+  nameReading,
   withWordName,
   type GoalSyntaxError,
   type RtTree,
@@ -344,17 +345,24 @@ const writtenAs = (
  * One line of a Notation view document, as the goal language reads it (a
  * definition whose lines have no ids reads annotated names; one that ignores
  * the spaces in brackets reads the line without them, its spans in the line
- * as written).
+ * as written; one whose names are free text, `nameReading`, reads them so).
+ * `wordNames`: its names read as RTRegex.g4's WORD, whatever its dialect's.
  */
 export const readLine = (
   definition: Pick<AnyDialect, 'elements'> &
     Partial<
       Pick<
         AnyDialect,
-        'notation' | 'links' | 'linkLines' | 'actors' | 'propertyLineOrder'
+        | 'framework'
+        | 'notation'
+        | 'links'
+        | 'linkLines'
+        | 'actors'
+        | 'propertyLineOrder'
       >
     >,
   text: string,
+  wordNames = false,
 ): LineReading => {
   // a document without ids: its link and actor lines (quoted), read here;
   // its property lines start with a declared key, which GoalLexer reads
@@ -377,14 +385,15 @@ export const readLine = (
       errors: [],
     };
   }
-  if (definition.notation?.names === 'text') {
+  const reading = wordNames ? null : nameReading(definition);
+  if (reading) {
     // a free-text name, read as a WORD of the same length: then its text as written
-    const named = withWordName(text, idPrefixesOf(definition));
+    const named = withWordName(text, idPrefixesOf(definition), {
+      brackets: reading === 'text',
+    });
     if (named.name && named.text !== text) {
-      const { names: _names, ...notation } = definition.notation;
-      const read = readLine({ ...definition, notation }, named.text);
-      if (read.kind !== 'element')
-        return readLine({ ...definition, notation }, text);
+      const read = readLine(definition, named.text, true);
+      if (read.kind !== 'element') return readLine(definition, text, true);
       return {
         ...read,
         name: text.slice(named.name.from, named.name.to).trim(),
