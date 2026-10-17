@@ -551,6 +551,66 @@ describe('defineDialect: frameworks besides iStar 2.0 (#171)', () => {
   });
 });
 
+describe('defineDialect: a framework’s refinements and link labels (#171)', () => {
+  const nfr = {
+    id: 'nfr-test',
+    name: 'NFR',
+    framework: 'nfr',
+    elements: { 'nfr.NFR': { prefix: 'S', fill: '#fff' } },
+    defaultFill: '#fff',
+    properties: {},
+    propertyLineOrder: [],
+    indent: '  ',
+    refinements: {
+      'nfr.AndRefinementLink': 'and',
+      'nfr.OrRefinementLink': 'or',
+    },
+    linkLabels: { 'nfr.ContributionLink': ['+', '-'] },
+    problems: {
+      notAChild: { severity: 'error', message: '' },
+      missingFromNotation: { severity: 'error', message: '' },
+      relationMismatch: { severity: 'error', message: '' },
+      notInDiagram: { severity: 'error', message: '' },
+    },
+  } as const satisfies AnyDialect;
+  const bad = (change: (d: AnyDialect) => AnyDialect) => () =>
+    defineDialect(change(structuredClone(nfr) as unknown as AnyDialect));
+
+  it('reads the link kinds that refine, and the labels a link kind takes', () => {
+    const defined = defineDialect(nfr);
+    expect(defined.refinements).to.deep.equal(nfr.refinements);
+    expect(defined.linkLabels).to.deep.equal(nfr.linkLabels);
+  });
+
+  it('rejects them in iStar, on link kinds its root does not have, and bad values', () => {
+    expect(
+      defineDialect.bind(null, {
+        ...(structuredClone(toy) as AnyDialect),
+        refinements: { 'nfr.AndRefinementLink': 'and' },
+      }),
+    ).to.throw(/refinements: iStar's links are its own/);
+    expect(
+      bad((d) => ({ ...d, refinements: { 'kaos.RefinementLink': 'and' } })),
+    ).to.throw(/refinements: kaos\.RefinementLink is not a link kind of nfr/);
+    expect(bad((d) => ({ ...d, linkLabels: { 'nfr.Claim': ['+'] } }))).to.throw(
+      /linkLabels: nfr\.Claim is not a link kind of nfr/,
+    );
+    expect(
+      bad(
+        (d) =>
+          ({
+            ...d,
+            refinements: { 'nfr.AndRefinementLink': 'xor' },
+          }) as unknown as AnyDialect,
+      ),
+    ).to.throw(/is an and or an or, not xor/);
+    for (const labels of [[], ['+', '+']])
+      expect(
+        bad((d) => ({ ...d, linkLabels: { 'nfr.ContributionLink': labels } })),
+      ).to.throw(/labels are some, each once/);
+  });
+});
+
 describe('defineExtension', () => {
   const bad = (change: Partial<ExtensionDefinition>) => () =>
     defineExtension({
