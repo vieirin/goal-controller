@@ -12,7 +12,6 @@ import {
   edgeEngineMapper,
   edgeV2EngineMapper,
   edgeGoalChecks,
-  edgeTaskChecks,
   edgeResourceChecks,
   firstResourceIssue,
   type Check,
@@ -116,7 +115,6 @@ const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
   {
     key: 'maxRetries',
     input: { kind: 'integer', min: 0 },
-    validate: edgeGoalChecks.maxRetries,
   },
   ...SHARED,
   {
@@ -127,7 +125,6 @@ const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [
   {
     key: 'variables',
     input: { kind: 'text', placeholder: 'decision variables, name:space, …' },
-    validate: edgeGoalChecks.variables,
   },
 ];
 
@@ -141,7 +138,6 @@ const TASK_SPECS: readonly PropertySpec<EdgeKeys['task']>[] = [
   {
     key: 'maxRetries',
     input: { kind: 'integer', min: 0 },
-    validate: edgeTaskChecks.maxRetries,
   },
   ...SHARED,
 ];

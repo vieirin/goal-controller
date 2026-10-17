@@ -1,5 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { valueProblem } from '@goal-controller/goal-language';
+import { edge } from '../../src/engines/edge/definition';
 import {
   edgeGoalChecks,
   edgeTaskChecks,
@@ -9,55 +11,64 @@ import {
 const noDeps = { self: '', kindOf: () => undefined };
 
 describe('edgeChecks (shared by edge and edgeV2)', () => {
-  describe('maxRetries', () => {
-    // #249: changed (was its own message): a negative value is below the
-    // dialect's min, which reports it ("At least 0")
-    it('leaves a negative value on a goal to the dialect', () => {
+  describe('maxRetries: the dialect’s int with a min, no check of its own (#251)', () => {
+    const maxRetries = (kind: 'goal' | 'task') =>
+      edge.properties[kind].find((p) => p.key === 'maxRetries')!;
+
+    it('has no engine check, on goals or tasks', () => {
+      for (const kind of ['goal', 'task'] as const)
+        assert.strictEqual('check' in maxRetries(kind), false, kind);
+      assert.strictEqual('maxRetries' in edgeGoalChecks, false);
+      assert.strictEqual('maxRetries' in edgeTaskChecks, false);
+    });
+
+    // #249: changed (was the engine's own message): a negative value is below
+    // the dialect's min, and its value check reports it
+    it('flags a negative value on a goal or a task', () => {
+      for (const kind of ['goal', 'task'] as const)
+        assert.strictEqual(
+          valueProblem(maxRetries(kind).value, '-1'),
+          'At least 0',
+          kind,
+        );
+    });
+
+    it('flags a non-numeric value', () => {
       assert.strictEqual(
-        edgeGoalChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        null,
+        valueProblem(maxRetries('task').value, 'abc'),
+        'Not an integer: abc',
       );
     });
 
-    it('leaves a negative value on a task to the dialect', () => {
-      assert.strictEqual(
-        edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        null,
-      );
-    });
-
-    it("says nothing of a non-numeric value: the dialect's value check does (#187)", () => {
-      assert.strictEqual(
-        edgeTaskChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
-        null,
-      );
-    });
-
-    it('is fine when unset', () => {
-      assert.strictEqual(edgeGoalChecks.maxRetries?.({}, noDeps), null);
+    it('is fine when a non-negative integer', () => {
+      assert.strictEqual(valueProblem(maxRetries('goal').value, '3'), null);
     });
   });
 
-  describe('variables (decision)', () => {
+  describe('variables (decision): the dialect’s pairList of int, no check of its own (#187)', () => {
+    const variables = edge.properties.goal.find((p) => p.key === 'variables')!;
+
+    it('has no engine check', () => {
+      assert.strictEqual('check' in variables, false);
+      assert.strictEqual('variables' in edgeGoalChecks, false);
+    });
+
     it('flags a pair with no space', () => {
       assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x' }, noDeps),
-        '[INVALID DECISION]: decision must be a variable and space: got x, expected format variable:space',
+        valueProblem(variables.value, 'x'),
+        'name:value pairs, comma-separated (x:3, y:2)',
       );
     });
 
     it('flags a non-numeric space', () => {
       assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x:abc' }, noDeps),
-        '[INVALID DECISION]: space must be a number: got abc',
+        valueProblem(variables.value, 'x:abc'),
+        'x: Not an integer: abc',
       );
     });
 
     it('is fine when valid', () => {
-      assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x:3' }, noDeps),
-        null,
-      );
+      assert.strictEqual(valueProblem(variables.value, 'x:3'), null);
     });
   });
 

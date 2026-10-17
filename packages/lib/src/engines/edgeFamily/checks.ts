@@ -55,45 +55,16 @@ const messageOn = (
     : (issues.find((i) => i.key === key)?.message ?? null);
 
 /**
- * The decision variables' issues, in mapGoalProps's parseDecision order: the
- * first bad pair. Still the mapper's own parser (goal-controller#187): the
- * dialect reads `x:abc` as a pair (its value as written) where its value
- * check says `Not an integer`, so the reading cannot replace it yet.
- */
-const variablesIssues = (raw: Partial<Record<string, string>>): Issue[] => {
-  if (!raw.variables) return [];
-  const decision = raw.variables;
-  for (const part of decision.split(',').map((d) => d.split(':'))) {
-    if (part.length !== 2) {
-      return [
-        {
-          key: 'variables',
-          message: `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
-        },
-      ];
-    }
-    if (isNaN(parseInt(part[1] ?? ''))) {
-      return [
-        {
-          key: 'variables',
-          message: `[INVALID DECISION]: space must be a number: got ${part[1]}`,
-        },
-      ];
-    }
-  }
-  return [];
-};
-
-/**
- * goal/task issues, in mapGoalProps/mapTaskProps's own order (the decision, then the
- * maintain condition, then maxRetries): the first entry is the one the mapper throws.
+ * goal/task issues, the maintain condition's: the first entry is the one the mapper
+ * throws. The decision variables and maxRetries have none of their own: a pair, or an
+ * int below its min, that the dialect can't read is its value check's.
  */
 const goalOrTaskIssues = (
   kind: 'goal' | 'task',
   values: EdgeValues<'goal'> | EdgeValues<'task'>,
   raw: Partial<Record<string, string>>,
 ): Issue[] => {
-  const issues: Issue[] = kind === 'goal' ? variablesIssues(raw) : [];
+  const issues: Issue[] = [];
 
   if (values.type === 'maintain') {
     // not a task key: a task can never have one
@@ -110,13 +81,6 @@ const goalOrTaskIssues = (
         message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${raw.maintain}, assertion: 'empty condition'`,
       });
     }
-  }
-
-  if (values.maxRetries != null && values.maxRetries < 0) {
-    issues.push({
-      key: 'maxRetries',
-      message: `[INVALID ${kind.toUpperCase()}]: maxRetries must be a non-negative integer: got "${raw.maxRetries}"`,
-    });
   }
 
   return issues;
@@ -246,19 +210,16 @@ const resourceCheck =
   };
 
 export const edgeGoalChecks = checks({
-  variables: (raw) => variablesIssues(raw)[0]?.message ?? null,
   maintain: goalOrTaskCheck('goal', 'maintain'),
   assertion: goalOrTaskCheck('goal', 'assertion'),
-  maxRetries: goalOrTaskCheck('goal', 'maxRetries'),
   dependsOn: dependsOnCheck,
 });
 
 // 'maintain' isn't a task key (EDGE_TASK_KEYS), so a task can never satisfy the
 // maintain condition once its type is 'maintain': mapTaskProps always throws it,
-// through firstGoalOrTaskIssue, with no key to attach it to in the UI.
-export const edgeTaskChecks = checks({
-  maxRetries: goalOrTaskCheck('task', 'maxRetries'),
-});
+// through firstGoalOrTaskIssue, with no key to attach it to in the UI. A task's
+// keys have no engine check: the dialect's value checks say what is wrong (#251).
+export const edgeTaskChecks = checks({});
 
 export const edgeResourceChecks = checks({
   type: resourceCheck('type'),
@@ -273,12 +234,9 @@ export const edgeResourceChecks = checks({
  * `specsFromDefinition` needs one for every name a definition gives.
  */
 export const edgeCheckRegistry = checks({
-  'edge.goal.variables': edgeGoalChecks.variables,
   'edge.goal.maintain': edgeGoalChecks.maintain,
   'edge.goal.assertion': edgeGoalChecks.assertion,
-  'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
   'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
-  'edge.task.maxRetries': edgeTaskChecks.maxRetries,
   'edge.resource.type': edgeResourceChecks.type,
   'edge.resource.initialValue': edgeResourceChecks.initialValue,
   'edge.resource.lowerBound': edgeResourceChecks.lowerBound,

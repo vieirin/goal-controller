@@ -82,12 +82,12 @@ describe('documentDiagnostics', () => {
         : null;
     };
     const doc =
-      'G1: Go [G2;T1]\n  maxRetries 2\n  maintain x\nR1: R {int 0..10 = 99}';
+      'G1: Go [G2;T1]\n  dependsOn G2\n  maintain x\nR1: R {int 0..10 = 99}';
     expect(messages(doc, { runCheck })).to.deep.equal([
       ['maintain x', 'warning', 'Only read when type is maintain'],
       ['{int 0..10 = 99}', 'error', 'out of bounds'],
     ]);
-    expect(calls).to.include('edge.goal.maxRetries');
+    expect(calls).to.include('edge.goal.dependsOn');
   });
 
   it('flags lines it cannot read', () => {

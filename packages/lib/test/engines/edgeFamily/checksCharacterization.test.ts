@@ -10,6 +10,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { valueProblem } from '@goal-controller/goal-language';
+import { edge } from '../../../src/engines/edge/definition';
 import {
   edgeCheckRegistry,
   edgeGoalChecks,
@@ -20,113 +22,83 @@ import {
 const noDeps = { self: '', kindOf: () => undefined };
 
 describe('edgeChecks characterization (#187)', () => {
-  describe('maxRetries', () => {
-    it('is fine when empty, zero or a non-negative integer', () => {
-      for (const maxRetries of ['', '0', '007', ' 3 ', '-0']) {
-        assert.strictEqual(
-          edgeGoalChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
-        );
-        assert.strictEqual(
-          edgeTaskChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
-        );
-      }
+  describe('maxRetries: no check of its own, the dialect’s value check says it', () => {
+    // #251: changed: the engine's maxRetries checks (null for every value
+    // since #249) are gone; an int with a min is the dialect's
+    const maxRetries = (kind: 'goal' | 'task') =>
+      edge.properties[kind].find((p) => p.key === 'maxRetries')!;
+    const problem = (kind: 'goal' | 'task', value: string) =>
+      valueProblem(maxRetries(kind).value, value);
+
+    it('has no check, on goals or tasks', () => {
+      assert.ok(!('maxRetries' in edgeGoalChecks));
+      assert.ok(!('maxRetries' in edgeTaskChecks));
+      assert.ok(!('check' in maxRetries('goal')));
+      assert.ok(!('check' in maxRetries('task')));
     });
 
-    it('is fine with what parseInt reads leading digits of', () => {
-      for (const maxRetries of ['1.5', '3abc', '1e3', '+2', '0x10'])
-        // #187: invalid value
+    it('is fine when empty, blank, zero or a non-negative integer', () => {
+      for (const kind of ['goal', 'task'] as const)
+        for (const value of ['', ' ', '0', '007', ' 3 ', '-0'])
+          assert.strictEqual(problem(kind, value), null, `${kind} ${value}`);
+    });
+
+    it('flags what is no integer, and a negative one', () => {
+      // #187: invalid value (the engine's check said nothing of them)
+      for (const value of ['1.5', '3abc', '1e3', '+2', '0x10', 'abc'])
         assert.strictEqual(
-          edgeGoalChecks.maxRetries?.({ maxRetries }, noDeps),
-          null,
-          maxRetries,
+          problem('goal', value),
+          `Not an integer: ${value}`,
+          value,
         );
-    });
-
-    it('says nothing of a negative value on a task, nor of a non-numeric one', () => {
-      // #249: invalid value, changed (was its own message): below the
-      // dialect's min, which reports it ("At least 0")
-      assert.strictEqual(
-        edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
-        null,
-      );
-      // #187: invalid value, #187: changed (was the maxRetries message)
-      assert.strictEqual(
-        edgeGoalChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
-        null,
-      );
-    });
-
-    it('is fine with a blank value, which the dialect reads as unset', () => {
-      // #187: changed (was the maxRetries message)
-      assert.strictEqual(
-        edgeGoalChecks.maxRetries?.({ maxRetries: ' ' }, noDeps),
-        null,
-      );
+      // #249: invalid value, changed (was the engine's own message)
+      assert.strictEqual(problem('task', '-1'), 'At least 0');
     });
   });
 
-  describe('variables (decision)', () => {
-    const variables = (value: string) =>
-      edgeGoalChecks.variables?.({ variables: value }, noDeps);
-    const shape = (got: string) =>
-      `[INVALID DECISION]: decision must be a variable and space: got ${got}, expected format variable:space`;
+  describe('variables (decision): no check of its own, the dialect’s value check says it', () => {
+    // #187: changed: the engine's variables check (its own split(',') /
+    // split(':') / parseInt, '[INVALID DECISION]: …') is gone; a pairList of
+    // int is the dialect's, and its value check reports what it can't read
+    const variables = edge.properties.goal.find((p) => p.key === 'variables')!;
+    const problem = (value: string) => valueProblem(variables.value, value);
+    const SHAPE = 'name:value pairs, comma-separated (x:3, y:2)';
 
-    it('is fine when absent, empty, or pairs (padded, negative)', () => {
-      assert.strictEqual(edgeGoalChecks.variables?.({}, noDeps), null);
-      for (const value of ['', 'x:3,y:2', ' x : 3 , y: 2 ', 'x:-1'])
-        assert.strictEqual(variables(value), null, value);
-    });
-
-    it('is fine with an empty name, or a space parseInt reads leading digits of', () => {
-      for (const value of [':3', 'x:1.5', 'x:3abc'])
-        // #187: invalid value
-        assert.strictEqual(variables(value), null, value);
-    });
-
-    it('flags a pair without exactly one colon, quoting the whole value', () => {
-      for (const value of ['x:3:4', 'x:3,', ',x:3', 'x:3, y'])
-        // #187: invalid value
-        assert.strictEqual(variables(value), shape(value), value);
-    });
-
-    it('flags a blank value, which the dialect reads as unset', () => {
-      assert.strictEqual(variables(' '), shape(' '));
-    });
-
-    it('flags an empty or non-numeric space, quoting it', () => {
-      // #187: invalid value
-      assert.strictEqual(
-        variables('x:'),
-        '[INVALID DECISION]: space must be a number: got ',
-      );
-      // #187: invalid value
-      assert.strictEqual(
-        variables('x:3,y:b'),
-        '[INVALID DECISION]: space must be a number: got b',
-      );
-    });
-
-    it('says only the first bad pair, pair by pair (shape, then space)', () => {
-      // #187: invalid value
-      assert.strictEqual(
-        variables('x:a,y:b'),
-        '[INVALID DECISION]: space must be a number: got a',
-      );
-      // #187: invalid value
-      assert.strictEqual(
-        variables('x:a,y'),
-        '[INVALID DECISION]: space must be a number: got a',
-      );
-      // #187: invalid value
-      assert.strictEqual(variables('y,x:a'), shape('y,x:a'));
-    });
-
-    it('is a goal check only: the task checks have no variables', () => {
+    it('has no check, on goals or tasks', () => {
+      assert.ok(!('variables' in edgeGoalChecks));
       assert.ok(!('variables' in edgeTaskChecks));
+      assert.ok(!('check' in variables));
+    });
+
+    it('is fine when empty, blank, or pairs (padded, negative)', () => {
+      // #187: changed: blank (' ') is unset (was the shape message)
+      for (const value of ['', ' ', 'x:3,y:2', ' x : 3 , y: 2 ', 'x:-1'])
+        assert.strictEqual(problem(value), null, value);
+    });
+
+    it('flags a pair that is no name:int pair', () => {
+      // #187: invalid value; #187: changed: an empty name (':3') is flagged
+      // (was fine), and 'x:' is the shape (was "space must be a number")
+      for (const value of [
+        ':3',
+        'x:3:4',
+        'x:3,',
+        ',x:3',
+        'x:3, y',
+        'x:',
+        'x:a,y',
+        'y,x:a',
+      ])
+        assert.strictEqual(problem(value), SHAPE, value);
+    });
+
+    it('flags a space that is no int, naming its pair', () => {
+      // #187: invalid value; #187: changed: '1.5' and '3abc' are flagged (were
+      // fine: parseInt's leading digits)
+      assert.strictEqual(problem('x:1.5'), 'x: Not an integer: 1.5');
+      assert.strictEqual(problem('x:3abc'), 'x: Not an integer: 3abc');
+      assert.strictEqual(problem('x:3,y:b'), 'y: Not an integer: b');
+      assert.strictEqual(problem('x:a,y:b'), 'x: Not an integer: a');
     });
   });
 
@@ -442,12 +414,9 @@ describe('edgeChecks characterization (#187)', () => {
   describe('edgeCheckRegistry', () => {
     it('names each check of the goal, task and resource checks', () => {
       assert.deepStrictEqual(edgeCheckRegistry, {
-        'edge.goal.variables': edgeGoalChecks.variables,
         'edge.goal.maintain': edgeGoalChecks.maintain,
         'edge.goal.assertion': edgeGoalChecks.assertion,
-        'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
         'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
-        'edge.task.maxRetries': edgeTaskChecks.maxRetries,
         'edge.resource.type': edgeResourceChecks.type,
         'edge.resource.initialValue': edgeResourceChecks.initialValue,
         'edge.resource.lowerBound': edgeResourceChecks.lowerBound,

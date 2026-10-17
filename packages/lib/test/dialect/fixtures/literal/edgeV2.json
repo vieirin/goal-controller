@@ -86,8 +86,7 @@
           "type": "int",
           "min": 0
         },
-        "help": "how many times it may be retried (a non-negative integer)",
-        "check": "edge.goal.maxRetries"
+        "help": "how many times it may be retried (a non-negative integer)"
       },
       {
         "key": "utility",
@@ -124,8 +123,7 @@
         "input": {
           "placeholder": "decision variables, name:space, …"
         },
-        "help": "decision variables, `name:space` pairs separated by commas",
-        "check": "edge.goal.variables"
+        "help": "decision variables, `name:space` pairs separated by commas"
       },
       {
         "key": "root",
@@ -161,8 +159,7 @@
           "type": "int",
           "min": 0
         },
-        "help": "how many times it may be retried (a non-negative integer)",
-        "check": "edge.task.maxRetries"
+        "help": "how many times it may be retried (a non-negative integer)"
       },
       {
         "key": "utility",

@@ -75,7 +75,6 @@ export const edgeProperties = {
     int('maxRetries', {
       min: 0,
       help: HELP.maxRetries,
-      check: 'edge.goal.maxRetries',
     }),
     ...REWARDS,
     refList('dependsOn', 'goal', {
@@ -86,7 +85,6 @@ export const edgeProperties = {
     pairList('variables', 'int', {
       input: { placeholder: 'decision variables, name:space, …' },
       help: HELP.variables,
-      check: 'edge.goal.variables',
     }),
     // set by the diagram's root, not edited as a field
     text('root', { help: HELP.root, inspector: false }),
@@ -102,7 +100,6 @@ export const edgeProperties = {
     int('maxRetries', {
       min: 0,
       help: HELP.maxRetries,
-      check: 'edge.task.maxRetries',
     }),
     ...REWARDS,
   ],
