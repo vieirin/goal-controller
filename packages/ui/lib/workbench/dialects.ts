@@ -33,14 +33,10 @@ import {
   type ModelExtension,
 } from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
-// the mode and framework a model records: read by the project module, the one place that knows where
-import { recordedFramework, recordedMode } from '../project';
+// the mode a model records: read by the project module, the one place that knows where
+import { recordedMode } from '../project';
 import { ENGINE_FILE_KINDS } from './engineDialects';
-import { FRAMEWORK_ROOTS, hostFor } from './frameworks';
-
-/** The framework a model text records; iStar 2.0 when it records none. */
-const frameworkOf = (text: string): Framework =>
-  recordedFramework(text) ?? DEFAULT_FRAMEWORK;
+import { FRAMEWORK_ROOTS, frameworkOfModel, hostFor } from './frameworks';
 
 /** The dialects, by the mode a model records for them. */
 export const DIALECTS = {
@@ -112,13 +108,13 @@ export const DIALECT_DEFINITIONS = {
 
 /**
  * The metamodel a mode reads a model with: its dialect's with what the model
- * adds, or its framework's root (by default, the one the text records).
+ * adds, or its framework's root (by default, the text's: frameworkOfModel).
  * Throws as istar-ts does when the model's kinds collide with the dialect's.
  */
 export const metamodelOfMode = (
   mode: string | null,
   text = '',
-  framework: Framework = frameworkOf(text),
+  framework: Framework = frameworkOfModel(text),
 ): AnyMetamodel => {
   if (!isDialectMode(mode)) return FRAMEWORK_ROOTS[framework];
   const block = JSON.parse(text || '{}')?.[FILE_METAMODEL_KEY];
@@ -141,13 +137,13 @@ export const metamodelOfMode = (
  * Parses a piStar file with the metamodel of `mode` (by default, of the mode
  * the file records): a dialect's with the file's own block applied (istar-ts
  * remembers it, and writes it back), or the root of `framework` (by default,
- * the one the file records); throws as `parsePistar` does, or why the
+ * the file's: what its content is written in, else what it records); throws as `parsePistar` does, or why the
  * block's groupers, stereotypes or tagged values cannot be read.
  */
 export const parseModel = (
   text: string,
   mode: string | null = recordedMode(text),
-  framework: Framework = frameworkOf(text),
+  framework: Framework = frameworkOfModel(text),
 ): IstarModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, {

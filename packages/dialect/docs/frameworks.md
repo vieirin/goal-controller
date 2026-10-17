@@ -86,8 +86,10 @@ The metamodel a model is read with is a function of its framework:
 `hostFor(framework, extension?)` returns the framework's root, extended with
 a dialect's extension when the dialect has one. `parseModel(text, mode,
 framework)` reads with the mode's dialect host, or with the root of
-`framework` (by default, the framework the text records).
-`GoalModel.parseModel` takes `ParseOptions.framework` the same way. A new
+`framework`. By default that is the text's own framework
+(`frameworkOfModel`: its content, else its record), so DSM3's files, which
+record none, read as KAOS or NFR. `metamodelOfMode` and
+`GoalModel.parseModel` (`ParseOptions.framework`) default the same way. A new
 model is `emptyModelText(framework)`: the root's empty model
 (`createEmptyModel(undefined, { metamodel: root })`), which records the
 framework when it isn't iStar 2.0.
@@ -140,6 +142,13 @@ Each PR of #171 appends its decisions here.
 - **Kinds may share prefixes outside iStar.** The issue asks for KAOS `G`
   (both goal kinds), `A` (both agent kinds) and `DP`. Which kind a new `G`
   line creates is the goal language's decision (PR C).
+- **Opening a file is detected by content in the workbench, not in the
+  project module.** `lib/project` (`open.ts`'s settings) knows no istar-ts,
+  so a project's model settings take the framework from the manifest or the
+  model's record only. PR B's Open dialog runs `frameworkOfModel` before
+  `openFile` and passes the framework in, so a DSM3 file without a record
+  opens as KAOS or NFR. The workbench's readers (`parseModel`,
+  `metamodelOfMode`, `GoalModel.parseModel`) already default to the content.
 - **The project's framework in the workbench.** The Convert and model
   settings dialogs read it from the open project's manifest
   (`projectFrameworkOf`). Switching a project's framework belongs to PR B's

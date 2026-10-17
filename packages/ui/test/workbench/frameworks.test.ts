@@ -3,6 +3,8 @@
  * istar-ts root, iStar 2.0's, KAOS's or NFR's; the dialect package's kind
  * table pinned to those roots.
  */
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { describe, expect, it } from 'vitest';
 import {
   createEmptyModel,
@@ -31,6 +33,13 @@ import {
 } from '@/lib/workbench/frameworks';
 import { metamodelOfMode, parseModel } from '@/lib/workbench/dialects';
 import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
+import { GoalModel } from '@/services/goalModel';
+
+/** DSM3-goals' own KAOS example (istar-ts fixtures/dsm3), as DSM3 saves it. */
+const KAOS_WELCOME = readFileSync(
+  join(__dirname, 'fixtures/kaos-welcome.txt'),
+  'utf8',
+);
 
 /** A KAOS model as DSM3 writes it: a goal AND-refined by another, through its hub. */
 const KAOS_MODEL = JSON.stringify({
@@ -122,11 +131,12 @@ describe('frameworks', () => {
     }
   });
 
-  it('reads a model with the root of the framework it records, or is given', () => {
+  it('reads a model with the root of its framework: its content, its record, or the one given', () => {
     // iStar 2.0 has no kaos kinds
-    expect(() => parseModel(KAOS_MODEL)).toThrow();
+    expect(() => parseModel(KAOS_MODEL, null, 'istar-2.0')).toThrow();
     const recorded = withModelSettings(KAOS_MODEL, { framework: 'kaos' });
     for (const model of [
+      parseModel(KAOS_MODEL),
       parseModel(recorded),
       parseModel(KAOS_MODEL, null, 'kaos'),
     ]) {
@@ -135,7 +145,22 @@ describe('frameworks', () => {
       expect(model.elements.get('h')?.kind).toBe(KAOS_REFINEMENT_HUB);
     }
     expect(metamodelOfMode(null, recorded)).toBe(KAOS);
-    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(ISTAR_2_0);
+    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(KAOS);
     expect(metamodelOfMode(null, KAOS_MODEL, 'nfr')).toBe(NFR);
+    expect(metamodelOfMode(null, EMPTY_PISTAR_MODEL)).toBe(ISTAR_2_0);
+  });
+
+  it("opens DSM3's KAOS welcome model, which records no framework, as KAOS", () => {
+    expect(recordedFramework(KAOS_WELCOME)).toBe(null);
+    const model = parseModel(KAOS_WELCOME);
+    expect(metamodelOf(model).framework).toBe('kaos');
+    expect(
+      [...model.elements.values()].filter(
+        (e) => (e.kind as string) === KAOS_REFINEMENT_HUB,
+      ),
+    ).toHaveLength(4);
+    // the goal model service reads it in KAOS too: what fails is the IR's (PR D)
+    const read = GoalModel.parseModel(KAOS_WELCOME);
+    expect(read.success === false && read.stage).not.toBe('parse');
   });
 });
