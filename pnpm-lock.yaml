@@ -310,6 +310,12 @@ importers:
       '@istar-ts/core':
         specifier: ^0.13.1
         version: 0.13.1
+      '@istar-ts/dsm3-kaos':
+        specifier: ^0.13.1
+        version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr':
+        specifier: ^0.13.1
+        version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/react':
         specifier: ^0.13.1
         version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
@@ -1726,6 +1732,38 @@ packages:
 
   /@istar-ts/core@0.13.1:
     resolution: {integrity: sha512-qVEWr7ewvOo3VmiekEx0p+DjpROtDDLecIUqRydYp5hVhOB7chtGBc1T0rpIM1dSXmCo4L1fBFfIogMIRMaURg==}
+
+  /@istar-ts/dsm3-kaos@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-YWRJbaS6n4YSnUe1jb3L1kCA5bnKV6cDeU7/X5MgtGDggRH4SwU0heETcwXORP2wTqnSeuIZnORkjbasqnXe3g==}
+    peerDependencies:
+      react: ^18.2.0 || ^19.0.0
+      react-dom: ^18.2.0 || ^19.0.0
+    dependencies:
+      '@istar-ts/core': 0.13.1
+      '@istar-ts/react': 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - immer
+    dev: false
+
+  /@istar-ts/dsm3-nfr@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-pe8Lx/064zkfxGTFdFlihsY6vKh+fm/S8nqZTWCWwaztwlPi/UMVeg4oBi4pFHNUR3ApyN9Oa/4lJF4sKXspBQ==}
+    peerDependencies:
+      react: ^18.2.0 || ^19.0.0
+      react-dom: ^18.2.0 || ^19.0.0
+    dependencies:
+      '@istar-ts/core': 0.13.1
+      '@istar-ts/react': 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - immer
+    dev: false
 
   /@istar-ts/react@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-kdVehAP21v65ZF9LVzwIiOAYSRAKIQRA9wJMTf0tuq4vlYCa2ii5zeh6ts84fhnO5VwbjVJx1BtAyg8/A5FH5g==}
