@@ -220,13 +220,16 @@ export type LinkEntryFn<D> = <const K extends LinkKindsOf<D>, O>(
   entry: EntryKinds<K> & { mapProps: (input: LinkInput<D, K>) => O },
 ) => LinkEntry<K, O>;
 
-/** the link kinds the entries cover (`links` left out: `never`, none) */
-type CoveredLinks<LE> = LE extends readonly LinkEntry<infer K, unknown>[]
-  ? unknown extends K
-    ? never
-    : K
+/** the link kinds the entries cover (none for `[]`, #259) */
+type CoveredLinks<LE extends readonly unknown[]> = LE[number] extends infer X
+  ? X extends LinkEntry<infer K, unknown>
+    ? K
+    : never
   : never;
-type LinkMissing<D, LE> = Exclude<LinkKindsOf<D>, CoveredLinks<LE>>;
+type LinkMissing<D, LE> = Exclude<
+  LinkKindsOf<D>,
+  LE extends readonly unknown[] ? CoveredLinks<LE> : never
+>;
 
 /** The compile error of a set of link entries: the link kinds with properties none covers. */
 export type LinkEntriesFor<D, LE> = [LinkMissing<D, LE>] extends [never]
