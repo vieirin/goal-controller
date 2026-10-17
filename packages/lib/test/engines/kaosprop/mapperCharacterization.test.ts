@@ -2,13 +2,14 @@
  * kaospropEngineMapper, characterized (goal-controller#187 phase 2): what
  * its IR holds of a KAOS model's links, and what the propagation makes of
  * it, so the migration to typed values can show nothing changed. The mapper
- * keeps each goal node's text and, of a link, its link keys as written;
- * the propagation reads a link's `Probability` (an obstruction's P(¬G|O), a
- * case-driven leg's P(CS)), a value that is no probability as unset.
- * Elements' quantities (`ESR`, an obstacle's `Probability`, a hub's) are read
- * off the model's elements, outside the mapper. Where the IR changes with
- * the dialect's reading of a link: `#187: invalid value` (no probability)
- * and `#187: link keys on the wrong kind`.
+ * keeps each goal node's text and, of a link, the keys its kind has that
+ * the dialect reads as set, as written; the propagation reads a link's
+ * `Probability` (an obstruction's P(¬G|O), a case-driven leg's P(CS)), a
+ * value that is no probability as unset. Elements' quantities (`ESR`, an
+ * obstacle's `Probability`, a hub's) are read off the model's elements,
+ * outside the mapper. Where the IR changed with the dialect's reading of a
+ * link (until #187 a link kept every link key as written): `#187: invalid
+ * value` (no probability, blank) and `#187: link keys on the wrong kind`.
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
@@ -130,29 +131,29 @@ describe('kaospropEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('a blank one is kept as written', () => {
-      // #187: invalid value (blank: unset)
+    it('a blank one is unset', () => {
+      // #187: invalid value (blank: unset; was kept as written)
       assert.deepStrictEqual(
         linkProperties(withLinks({ [LEG]: { Probability: '  ' } }), LEG),
-        { Probability: '  ' },
+        {},
       );
     });
 
-    it('one that is no probability is kept as written', () => {
-      // #187: invalid value
+    it('one that is no probability is unset (the dialect reports it)', () => {
+      // #187: invalid value (was kept as written)
       assert.deepStrictEqual(
         linkProperties(
           withLinks({ [OBSTRUCTION]: { Probability: 'often' } }),
           OBSTRUCTION,
         ),
-        { Probability: 'often' },
+        {},
       );
     });
   });
 
   describe('link keys', () => {
-    it('every link kind keeps every link key, as written, and no other', () => {
-      // #187: link keys on the wrong kind
+    it('a link keeps its kind’s keys only', () => {
+      // #187: link keys on the wrong kind (every link kind kept every link key)
       assert.deepStrictEqual(
         linkProperties(
           withLinks({
@@ -165,7 +166,7 @@ describe('kaospropEngineMapper: characterization (#187)', () => {
           }),
           ASSIGNMENT,
         ),
-        { BoundaryCondition: ' x ', Probability: '0.5' },
+        {},
       );
       // #187: link keys on the wrong kind
       assert.deepStrictEqual(
@@ -178,7 +179,7 @@ describe('kaospropEngineMapper: characterization (#187)', () => {
           }),
           OBSTRUCTION,
         ),
-        { Probability: '0.5', ResolutionType: 'mitigation' },
+        { Probability: '0.5' },
       );
     });
 
