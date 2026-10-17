@@ -18,6 +18,7 @@ import { normalizeEngineMode } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
+import { isFrameworkMode } from '@/lib/workbench/frameworkModes';
 import BottomPanel from './BottomPanel';
 import Explorer from './Explorer';
 import Home from './home/Home';
@@ -165,7 +166,8 @@ function ShellLayout() {
   useEffect(() => setEnginePalette(false), [wb.fileName]);
   // leaving piStar mode converts the model back to its engine (a checked step)
   const togglePistarMode = useCallback(() => {
-    if (wb.hasModel)
+    // a KAOS or NFR model has no piStar mode: its framework's is its editor (#171)
+    if (wb.hasModel && !isFrameworkMode(wb.mode))
       wb.requestMode(wb.settings.pistar ? wb.settings.engine : 'pistar');
   }, [wb]);
   const layoutFor = useRef<{ pistar: boolean; file: string } | null>(null);

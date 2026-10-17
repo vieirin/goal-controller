@@ -40,6 +40,7 @@ const GROUP_ORDER = [
   'tropos4as',
   'cgm',
   'sleec',
+  'istardt',
   'pistar-ext',
   // the frameworks besides iStar 2.0 (goal-controller#171)
   'kaos',

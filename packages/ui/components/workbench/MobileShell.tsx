@@ -1,6 +1,7 @@
 'use client';
 
 import { isEngineMode } from '@/lib/workbench/pistar';
+import { isFrameworkMode } from '@/lib/workbench/frameworkModes';
 import {
   AlertTriangle,
   Download,
@@ -377,7 +378,8 @@ function MobileTopBar() {
           </span>
         )}
       </div>
-      {wb.hasModel && (
+      {/* a KAOS or NFR model has its framework's editor, no iStar one (#171) */}
+      {wb.hasModel && !isFrameworkMode(wb.mode) && (
         <IconButton
           icon={Shapes}
           label={
@@ -390,7 +392,7 @@ function MobileTopBar() {
           className={shell.pistarMode ? 'bg-trace-soft text-trace' : undefined}
         />
       )}
-      {wb.hasModel && shell.pistarMode && (
+      {wb.hasModel && shell.pistarMode && !isFrameworkMode(wb.mode) && (
         <Button
           variant='primary'
           onClick={() =>
