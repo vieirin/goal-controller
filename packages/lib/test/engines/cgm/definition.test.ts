@@ -10,6 +10,7 @@ import {
   checkContextOf,
   contextFromView,
   documentDiagnostics,
+  fieldDiagnostics,
   notationDocument,
   notationEdits,
   type RunCheck,
@@ -223,6 +224,39 @@ describe('Contextual goal models: the checks', () => {
       opposite({ context: 'C14', opposite: 'C14 ' }, context('l')) ?? '',
       /is the contribution’s own/,
     );
+  });
+
+  it("checks a contribution's opposite field against its context, as its link line does (#257)", () => {
+    const model = {
+      elements: elements({
+        G1: { kind: 'goal' },
+        G2: { kind: 'goal' },
+        C14: { kind: 'cgm.Context' },
+      }),
+      variables: [],
+      links: {
+        l1: {
+          kind: 'istar.ContributionLink',
+          source: 'G1',
+          target: 'G2',
+          properties: { context: 'C14' },
+        },
+      },
+    };
+    const run: RunCheck = (name, input, self) =>
+      cgmCheckRegistry[name as keyof typeof cgmCheckRegistry](
+        input,
+        checkContextOf(model, self),
+      );
+    const field = (value: string) =>
+      fieldDiagnostics(cgm, model, 'l1', 'opposite', value, run).map(
+        (d) => d.message,
+      );
+    // the field's link has its context: the same as its own is said
+    assert.deepStrictEqual(field('C14'), [
+      'The opposite context is the contribution’s own: the two labels would apply together',
+    ]);
+    assert.deepStrictEqual(field('!C14'), []);
   });
 });
 
