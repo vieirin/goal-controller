@@ -6,7 +6,6 @@ import {
   createEngineMapper,
   type GoalNode,
   type GoalTreeType,
-  type RawProps,
   type Task,
 } from '@goal-controller/goal-tree';
 import type { SleecGoalProps, SleecTaskProps } from './types';
@@ -43,12 +42,22 @@ export const SLEEC_TASK_KEYS = [
  */
 export const SLEEC_QUALITY_KEYS = ['NormPrinciple', 'Proxy'] as const;
 
+/** SLEEC's properties, as goal-tree reads them: each key's value is text. */
+const texts = <K extends string>(keys: readonly K[]) =>
+  keys.map((key) => ({
+    key,
+    value: { type: 'text' as const },
+    help: `its SLEEC ${key}`,
+  }));
+
 // Type aliases for the allowed keys
 export type SleecGoalKey = (typeof SLEEC_GOAL_KEYS)[number];
 export type SleecTaskKey = (typeof SLEEC_TASK_KEYS)[number];
 export type SleecQualityKey = (typeof SLEEC_QUALITY_KEYS)[number];
 
-const extractSleecGoalProps = (raw: RawProps<SleecGoalKey>): SleecGoalProps => {
+const extractSleecGoalProps = (
+  raw: Partial<Record<SleecGoalKey, string>>,
+): SleecGoalProps => {
   const sleecProps: SleecGoalProps = {};
 
   for (const key of SLEEC_GOAL_KEYS) {
@@ -69,7 +78,7 @@ const REQUIRED_TASK_KEYS = [
 ] as const;
 
 const extractSleecTaskProps = (
-  raw: RawProps<SleecTaskKey>,
+  raw: Partial<Record<SleecTaskKey, string>>,
   taskName: string,
 ): SleecTaskProps => {
   const missing = REQUIRED_TASK_KEYS.filter((key) => {
@@ -105,18 +114,23 @@ const extractSleecTaskProps = (
  * SLEEC Engine Mapper for creating SLEEC-compatible goal trees
  * Note: SLEEC doesn't use dependsOn, so no afterCreationMapper is needed
  * Note: SLEEC doesn't use resources, so skipResource is set to true
- * Engine types are explicit, key types are inferred from the allowedKeys arrays
+ * Engine types are explicit, property types are inferred from the dialect
  */
 export const sleecEngineMapper = createEngineMapper<
   SleecGoalProps,
   SleecTaskProps,
   never
 >()({
-  // no definition, no notation: goal texts give their ids and names only
-  dialect: { name: 'SLEEC' },
-  allowedGoalKeys: SLEEC_GOAL_KEYS,
-  allowedTaskKeys: SLEEC_TASK_KEYS,
-  allowedQualityKeys: SLEEC_QUALITY_KEYS,
+  // no definition, no notation: goal texts give their ids and names only;
+  // its properties are its keys, as text
+  dialect: {
+    name: 'SLEEC',
+    properties: {
+      goal: texts(SLEEC_GOAL_KEYS),
+      task: texts(SLEEC_TASK_KEYS),
+      quality: texts(SLEEC_QUALITY_KEYS),
+    },
+  },
   skipResource: true,
   mapGoalProps: ({ raw }) => extractSleecGoalProps(raw),
   mapTaskProps: ({ raw, name }) => extractSleecTaskProps(raw, name),

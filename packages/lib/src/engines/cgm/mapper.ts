@@ -5,7 +5,6 @@
  * of that `GoalModel`, so the mapper keeps a link's properties as written
  * (its `context`, `opposite`, `amount`).
  */
-import { linkPropertyKeys, propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -19,14 +18,11 @@ type CgmProps = { text: string };
 
 export const cgmEngineMapper = createEngineMapper<CgmProps, CgmProps, never>()({
   dialect: cgm,
-  allowedGoalKeys: propertyKeys(cgm, 'goal'),
-  allowedTaskKeys: propertyKeys(cgm, 'task'),
   skipResource: true,
   // a dependum, or a goal a model leaves unrefined, ends its variant
   allowLeafGoals: true,
   mapGoalProps: ({ text }) => ({ text }),
   mapTaskProps: ({ text }) => ({ text }),
-  allowedLinkKeys: linkPropertyKeys(cgm),
   mapLinkProps: ({ raw }) => raw,
 });
 

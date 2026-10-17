@@ -206,16 +206,16 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'mapGoalProps',
     },
   },
-  // the frameworks' engines read their kinds' keys, by kind (goal-controller#171)
+  // the frameworks' engines read their kinds' keys, by kind (goal-controller#171, #187)
   kaosdoc: {
     file: 'packages/lib/src/dialects/kaos/index.ts',
     lists: {},
     mapper: 'packages/lib/src/engines/kaosdoc/mapper.ts',
     map: {
-      goal: 'kindKeys',
-      task: 'kindKeys',
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
       resource: 'skipResource',
-      quality: 'kindKeys',
+      quality: 'mapGoalProps',
     },
   },
   kaosprop: {
@@ -223,10 +223,10 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     lists: {},
     mapper: 'packages/lib/src/engines/kaosprop/mapper.ts',
     map: {
-      goal: 'kindKeys',
-      task: 'kindKeys',
+      goal: 'mapGoalProps',
+      task: 'mapTaskProps',
       resource: 'skipResource',
-      quality: 'kindKeys',
+      quality: 'mapGoalProps',
     },
   },
   nfrprop: {

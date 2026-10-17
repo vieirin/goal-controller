@@ -7,7 +7,6 @@ import {
   defineDialect,
   defineExtension,
   extensionKind,
-  linkPropertyKeys,
   links,
   property,
 } from '@goal-controller/dialect';
@@ -67,13 +66,10 @@ export const situated = defineDialect({
 
 const mapper = createEngineMapper<object, object, never>()({
   dialect: situated,
-  allowedGoalKeys: [],
-  allowedTaskKeys: [],
   skipResource: true,
   allowLeafGoals: true,
   mapGoalProps: () => ({}),
   mapTaskProps: () => ({}),
-  allowedLinkKeys: linkPropertyKeys(situated),
   mapLinkProps: ({ raw }) => raw,
 });
 

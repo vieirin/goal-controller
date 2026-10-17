@@ -1,10 +1,5 @@
 /** #107's toy: a link property, an actor property, an analysis summing one over the other. */
-import {
-  actorPropertyKeys,
-  defineDialect,
-  linkPropertyKeys,
-  type ProblemKind,
-} from '@goal-controller/dialect';
+import { defineDialect, type ProblemKind } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -47,15 +42,11 @@ export const toyGraph = defineDialect({
 /** The toy's mapper: its actors' and links' properties kept as written (goal-controller#125). */
 export const toyMapper = createEngineMapper<object, object, never>()({
   dialect: toyGraph,
-  allowedGoalKeys: [],
-  allowedTaskKeys: [],
   skipResource: true,
   allowLeafGoals: true,
   mapGoalProps: () => ({}),
   mapTaskProps: () => ({}),
-  allowedActorKeys: actorPropertyKeys(toyGraph),
   mapActorProps: ({ raw }) => raw,
-  allowedLinkKeys: linkPropertyKeys(toyGraph),
   mapLinkProps: ({ raw }) => raw,
 });
 

@@ -30,20 +30,17 @@ const KAOS_MODEL = read(seed('kaos/kaos-welcome.txt'), KAOS);
 const NFR_MODEL = read(seed('nfr/nfr-welcome.txt'), NFR);
 
 type Props = { kind: string; raw: Record<string, string | undefined> };
-const mapperOf = (dialect: typeof kaos | typeof nfr, keys: readonly string[]) =>
+const mapperOf = (dialect: typeof kaos | typeof nfr) =>
   createEngineMapper<Props, never>()({
     dialect,
-    allowedGoalKeys: keys,
-    allowedTaskKeys: [],
-    kindKeys: { 'kaos.DomainProperty': ['Description'] },
     skipResource: true,
     mapGoalProps: ({ raw, kind }) => ({ kind, raw }),
     mapTaskProps: () => {
       throw new Error('no task');
     },
   });
-const KAOS_MAPPER = mapperOf(kaos, propertyKeys(kaos, 'kaos.BehavioralGoal'));
-const NFR_MAPPER = mapperOf(nfr, ['Description']);
+const KAOS_MAPPER = mapperOf(kaos);
+const NFR_MAPPER = mapperOf(nfr);
 
 /** A tree as `name (kind) [relation]: children`, for comparison. */
 const shape = (node: TreeNode<Props>): unknown => {
@@ -105,7 +102,7 @@ describe('the IR of a framework besides iStar 2.0 (#171)', () => {
     expect(named).to.include({ id: 'G1', name: 'Reliability' });
   });
 
-  it("reads each kind's keys, and gives the mapper the kind", () => {
+  it("reads each kind's keys in the dialect, and gives the mapper the kind", () => {
     const model = GoalTree.goalModel(KAOS_MODEL, KAOS_MAPPER);
     const nodes = GoalTree.allByType(model.paper, 'goal');
     const property = nodes.find((n) => n.kind === 'kaos.DomainProperty')!
@@ -171,8 +168,6 @@ describe('the IR of a framework besides iStar 2.0 (#171)', () => {
       istar,
       createEngineMapper<unknown, unknown>()({
         dialect: { name: 'plain' },
-        allowedGoalKeys: [],
-        allowedTaskKeys: [],
         skipResource: true,
         mapGoalProps: () => ({}),
         mapTaskProps: () => ({}),

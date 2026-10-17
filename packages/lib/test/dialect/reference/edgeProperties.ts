@@ -52,20 +52,18 @@ export type PropertySpec<K extends string = string> = {
   validate?: Check;
 };
 
-/** The keys an engine mapper reads, per node kind. */
+/** The keys an engine mapper reads, per node kind: its dialect's. */
 type KeysOf<M> = M extends {
-  allowedGoalKeys: readonly (infer G)[];
-  allowedTaskKeys: readonly (infer T)[];
-  allowedResourceKeys: readonly (infer R)[];
+  dialect: {
+    properties: {
+      goal: readonly { key: infer G }[];
+      task: readonly { key: infer T }[];
+      resource: readonly { key: infer R }[];
+      quality: readonly { key: infer Q }[];
+    };
+  };
 }
-  ? {
-      goal: G;
-      task: T;
-      resource: R;
-      quality: M extends { allowedQualityKeys: readonly (infer Q)[] }
-        ? Q
-        : never;
-    }
+  ? { goal: G; task: T; resource: R; quality: Q }
   : never;
 
 /** A spec list per node kind, each entry's key checked against the engine's keys. */

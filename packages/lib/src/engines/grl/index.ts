@@ -28,7 +28,7 @@ export const grlProjectResourceParsers = projectResourceParsers(grl)({
 });
 
 export { grl } from './definition';
-export { grlAnalysisModel, grlEngineMapper } from './mapper';
+export { GRL_ELEMENT_KEYS, grlAnalysisModel, grlEngineMapper } from './mapper';
 export { grlCheckRegistry, type GrlCheckName } from './checks';
 export { grlExtension, grlMetamodelBlock } from './extension';
 export * from './vocabulary';

@@ -26,7 +26,6 @@ export type {
   GoalNode,
   GoalTreeType,
   IStarModel,
-  RawProps,
   Relation,
   Type,
 } from '@goal-controller/goal-tree';
@@ -185,6 +184,7 @@ export {
   grlAnalysisModel,
   grlCheckRegistry,
   grlEngineMapper,
+  GRL_ELEMENT_KEYS,
   grlExtension,
   grlMetamodelBlock,
   grlProjectResourceParsers,

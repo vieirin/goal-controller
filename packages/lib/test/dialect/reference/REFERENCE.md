@@ -15,7 +15,9 @@ against) by:
 | RTRegex.edge.g4, RTRegex.edgeV2.g4, AssertionRegex.g4 | packages/lib/grammar/ @ `44947643c925880d74deab1d39f2a08c9fd54a43` (the ANTLR grammars, removed) |
 
 Imports are rewritten to these copies, or to lib's own source
-(`packages/lib/src`); `@goal-controller/goal-tree` resolves from lib. Do not
+(`packages/lib/src`); `@goal-controller/goal-tree` resolves from lib.
+edgeProperties.ts's `KeysOf` reads a mapper's keys from its dialect (its
+mapper's `allowed*Keys` are gone, goal-controller#187). Do not
 edit them: a mismatch is fixed in the definition, not here.
 `test/dialect/harness.test.ts` checks that re-running the script gives these
 files unchanged.
