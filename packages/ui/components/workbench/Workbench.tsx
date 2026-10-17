@@ -17,14 +17,14 @@ import { Group, Panel, Separator, usePanelRef } from 'react-resizable-panels';
 import { normalizeEngineMode } from '@/lib/types';
 import { useIsMobile } from '@/lib/workbench/useMediaQuery';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { EMPTY_PISTAR_MODEL, isEngineMode } from '@/lib/workbench/pistar';
+import { EMPTY_PISTAR_MODEL } from '@/lib/workbench/pistar';
 import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
 import BottomPanel from './BottomPanel';
 import Explorer from './Explorer';
 import Home from './home/Home';
 import { ExampleRoute } from './home/exampleRoute';
 import { modelKindLabel } from './home/labels';
-import ModelInspector from './engines/ModelInspector';
+import ModelInspector, { hasModelInspector } from './engines/ModelInspector';
 import MobileShell from './MobileShell';
 import ModelSettingsModal from './ModelSettingsModal';
 import ConvertDialog from './ConvertDialog';
@@ -420,9 +420,9 @@ function ModelColumn() {
     modelReadOnly,
     toggleModelReadOnly,
   } = useShell();
-  // piStar mode shows the editor's own inspector beside the diagram instead
-  // piStar mode and the dialects carry their inspector in the diagram
-  const showInspector = isEngineMode(wb.mode);
+  // piStar mode, the dialects and the frameworks (their engines too) carry
+  // their inspector in the diagram
+  const showInspector = hasModelInspector(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const tabs = modelTabsFor(

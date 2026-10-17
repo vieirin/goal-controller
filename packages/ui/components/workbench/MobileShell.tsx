@@ -1,6 +1,5 @@
 'use client';
 
-import { isEngineMode } from '@/lib/workbench/pistar';
 import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
 import {
   AlertTriangle,
@@ -41,7 +40,7 @@ import {
   VariablesView,
 } from './BottomPanel';
 import Explorer from './Explorer';
-import ModelInspector from './engines/ModelInspector';
+import ModelInspector, { hasModelInspector } from './engines/ModelInspector';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
 import { EngineOptions, useOpenFile } from './TopBar';
@@ -215,8 +214,8 @@ export default function MobileShell({ empty }: { empty: ReactNode }) {
         </div>
       )}
 
-      {/* piStar mode: the editor's own inspector is beside the diagram */}
-      {isEngineMode(wb.mode) && <SheetOnSelect onSelect={onSelect} />}
+      {/* piStar mode and the frameworks: the editor's own inspector is beside the diagram */}
+      {hasModelInspector(wb.mode) && <SheetOnSelect onSelect={onSelect} />}
       {/* Inspector sheet */}
       {sheetOpen && (
         <div

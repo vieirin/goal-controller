@@ -157,11 +157,11 @@ export default function ConvertDialog({
                       onChange={() => setSelected(engine.id)}
                       className='sr-only'
                     />
-                    <span className='flex items-baseline justify-between gap-2'>
+                    <span className='flex flex-wrap items-baseline justify-between gap-x-2'>
                       <span className='text-[13px] font-semibold text-ink'>
                         {engine.label}
                       </span>
-                      <span className='font-mono text-2xs text-ink-muted'>
+                      <span className='min-w-0 break-words font-mono text-2xs text-ink-muted'>
                         {engine.output ?? 'no output'}
                       </span>
                     </span>
