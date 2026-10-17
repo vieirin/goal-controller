@@ -368,7 +368,17 @@ export const parseElementLine = (
   // RTRegex.g4 skipped tabs only
   if (/^\t*$/.test(text)) return { value: null, errors: [] };
   const { root, errors } = parse<ElementLine>('elementLine', text, prefixes);
-  return { value: root ? toElementLine(root) : null, errors };
+  const value = root ? toElementLine(root) : null;
+  // a cost its bracket can't read whole is none, never what was read of it
+  // (`[W = -1]` isn't 1, `[W = ]` no cost): the error says why
+  // (goal-controller#231)
+  const open = text.indexOf('[');
+  const close = text.indexOf(']', open);
+  const inBracket = (offset: number) =>
+    open >= 0 && offset >= open && (close < 0 || offset <= close);
+  return value?.cost && errors.some((error) => inBracket(error.offset))
+    ? { value: { ...value, cost: null }, errors }
+    : { value, errors };
 };
 
 /**

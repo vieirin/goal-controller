@@ -278,6 +278,34 @@ describe('element lines', () => {
   });
 });
 
+describe('a leaf cost bracket (#231)', () => {
+  const costOf = (bracket: string) => parseElementLine(`T1: Do ${bracket}`);
+  it('reads a constant, a constant times a variable, a variable', () => {
+    assert.deepEqual(costOf('[W = 0.1x]').value?.cost, {
+      value: '0.1',
+      variable: 'x',
+    });
+    assert.deepEqual(costOf('[W = 2]').value?.cost, {
+      value: '2',
+      variable: null,
+    });
+    assert.deepEqual(costOf('[W = x]').value?.cost, {
+      value: null,
+      variable: 'x',
+    });
+  });
+
+  it('reads no cost from a bracket it cannot read whole, the error saying why', () => {
+    for (const bracket of ['[W = -1]', '[W = .5]', '[W = 1e3]', '[W = ]']) {
+      const { value, errors } = costOf(bracket);
+      assert.equal(value?.cost, null, bracket);
+      assert.ok(errors.length > 0, bracket);
+      // the rest of the line is read
+      assert.equal(value?.id, 'T1', bracket);
+    }
+  });
+});
+
 describe('documents', () => {
   it('reads element lines and the property lines under them', () => {
     const read = parseDocument(

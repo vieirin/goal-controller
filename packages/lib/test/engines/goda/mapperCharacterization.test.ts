@@ -404,29 +404,29 @@ describe('godaEngineMapper today (#187): a task', () => {
       assert.strictEqual(taskOf({}, 'T1: Do').cost, null);
     });
 
-    it('reads what it can of a bracket with errors, the parser saying so on the console', () => {
+    it('reads no cost from a bracket with errors, the parser saying so on the console', () => {
       const costRead = (bracket: string) => {
         const { engine, said } = taskRead({}, `T1: Do ${bracket}`);
         assert.strictEqual(engine.annotation, null, bracket);
         return { cost: engine.cost, said };
       };
-      // an exponent: a number, then a variable `e`, the rest dropped
+      // #231: changed (each was what the parser read of it: an exponent a
+      // number and a variable `e`, a sign or a leading point dropped, no value
+      // a cost of nothing): a bracket with errors gives no cost
       assert.deepStrictEqual(costRead('[W = 1e3]'), {
-        cost: { value: '1', variable: 'e' },
+        cost: null,
         said: ["error: line 1:12 Expecting token of type ']' but found `3`."],
       });
-      // a sign, a leading point: dropped, the number read without them
       assert.deepStrictEqual(costRead('[W = -1]'), {
-        cost: { value: '1', variable: null },
+        cost: null,
         said: ["error: line 1:10 token recognition error at: '-'"],
       });
       assert.deepStrictEqual(costRead('[W = .5]'), {
-        cost: { value: '5', variable: null },
+        cost: null,
         said: ["error: line 1:10 token recognition error at: '.'"],
       });
-      // no value: a cost of nothing
       assert.deepStrictEqual(costRead('[W = ]'), {
-        cost: { value: null, variable: null },
+        cost: null,
         said: [
           "error: line 1:10 Expecting: one of these possible Token sequences: … but found: ']'",
         ],
