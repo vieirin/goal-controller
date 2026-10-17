@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import ModelDiagram from '@/components/workbench/engines/ModelDiagram';
+import FrameworkNotationView from '@/components/workbench/engines/framework/FrameworkNotationView';
 import {
   useWorkbench,
   WorkbenchProvider,
@@ -61,6 +62,11 @@ beforeAll(() => {
   (
     globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
   ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
+  // what CodeMirror measures text with (the Notation tab)
+  Object.assign(Range.prototype, {
+    getClientRects: () => [],
+    getBoundingClientRect: () => ({ x: 0, y: 0, width: 0, height: 0 }),
+  });
 });
 
 afterEach(() => cleanup());
@@ -154,5 +160,45 @@ describe('a model file in its framework (#171)', () => {
     await act(() => wb().openModelFile('again.txt', ISTAR));
     await waitFor(() => expect(wb().fileName).toBe('again.txt'));
     expect(wb().frameworkSwitch).toBeNull();
+  });
+});
+
+describe('a framework model’s Notation tab (#171)', () => {
+  it('shows a KAOS model as KAOS’s lines: a hub an AND, brackets the name’s', async () => {
+    const json = JSON.parse(KAOS_WELCOME);
+    const count = new Map<string, number>();
+    const prefix: Record<string, string> = {
+      'kaos.BehavioralGoal': 'G',
+      'kaos.Softgoal': 'G',
+      'kaos.Agent': 'A',
+      'kaos.EnvironmentAgent': 'A',
+      'kaos.DomainProperty': 'DP',
+    };
+    for (const element of json.orphans) {
+      const p = prefix[element.type]!;
+      count.set(p, (count.get(p) ?? 0) + 1);
+      element.text = `${p}${count.get(p)}: ${element.text}`;
+    }
+    const withIds = `${JSON.stringify(json, null, 2)}\n`;
+    let wb: Workbench | null = null;
+    const Probe = () => {
+      wb = useWorkbench();
+      return null;
+    };
+    const { container } = render(
+      <WorkbenchProvider lockedEngine={null}>
+        <Probe />
+        <FrameworkNotationView mode='kaos' />
+      </WorkbenchProvider>,
+    );
+    await act(() => wb!.openModelFile('kaos-ids.txt', withIds));
+    await waitFor(() =>
+      expect(container.textContent).toContain('G5: Achieve [Manual Backup]'),
+    );
+    const lines = [...container.querySelectorAll('.cm-line')].map(
+      (line) => line.textContent,
+    );
+    expect(lines).toContain('  G3: Achieve [Problem Notified if Problem]');
+    expect(lines).toContain('      DP1: Internet connection available');
   });
 });

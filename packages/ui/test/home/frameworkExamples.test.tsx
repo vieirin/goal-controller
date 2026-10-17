@@ -158,9 +158,10 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
     );
     await waitFor(() => expect(wb().fileName).toBe('kaos-welcome.txt'));
     expect(wb().mode).toBe('kaos');
-    // no engine's Notation over a KAOS model
+    // its framework's Notation, no engine's
     expect(modelTabsFor(wb().mode, wb().engine).map((t) => t.id)).toEqual([
       'diagram',
+      'notation',
       'source',
     ]);
     expect(modelSettingsOf(wb().text)).toMatchObject({

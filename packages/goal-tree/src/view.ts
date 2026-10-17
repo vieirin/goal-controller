@@ -6,10 +6,7 @@
  * the grammar cannot read keeps its plain `ID: name [notation]` split and reports why.
  */
 import {
-  hubLinkOf,
-  hubOfLink,
   isActorIn,
-  isHubElement,
   isNode,
   metamodelOf,
   type IstarModel,
@@ -159,28 +156,66 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
 ];
 
 /**
- * How a framework's link refines (goal-controller#171), by its dialect's
- * `refinements`: a refining kind's link as iStar's (child to parent); a leg
- * of an n-ary one (core's `<Kind>Start`, from a child to the hub) refines
- * the hub's end's target. Null: no refinement, or a leg of a hub without
- * an end.
+ * The kinds core generates for an n-ary link kind (`kaos.RefinementLink`):
+ * its hub element, legs (from a child to the hub) and end (from the hub to
+ * what it refines), named as DSM3 names them. Read by name, not through
+ * core's `metamodelOf`, whose registry is one module instance's: a model
+ * parsed by another copy of core (the workbench's ESM build beside this
+ * package's CommonJS one) is iStar 2.0's to it.
  */
-const frameworkRefinement = (
+const hubKindsOf = (kind: string) => ({
+  hub: `${kind}Hub`,
+  leg: `${kind}Start`,
+  end: `${kind}End`,
+});
+
+/**
+ * How a framework's links refine (goal-controller#171), by its dialect's
+ * `refinements`: a refining kind's link as iStar's (child to parent); a leg
+ * of an n-ary one refines its hub's end's target. By link id; the hubs'
+ * ids apart (no element of the view).
+ */
+const frameworkRefinements = (
   model: IstarModel<string, string>,
   refinements: Readonly<Record<string, 'and' | 'or'>>,
-  link: { id: string; kind: string; source: string; target: string },
-): { relation: 'and' | 'or'; parent: string; child: string } | null => {
-  const relation = refinements[link.kind];
-  if (relation) return { relation, parent: link.target, child: link.source };
-  const hub = hubOfLink(model, link.id);
-  const end = hub && hubLinkOf(model, hub.id)?.end;
-  if (!end || link.target !== hub.id) return null;
-  const leg = Object.entries(refinements).find(
-    ([kind]) => link.kind === `${kind}Start`,
-  );
-  return leg
-    ? { relation: leg[1], parent: end.target, child: link.source }
-    : null;
+): {
+  byLink: Map<
+    string,
+    { relation: 'and' | 'or'; parent: string; child: string }
+  >;
+  hubs: Set<string>;
+} => {
+  const byLink = new Map<
+    string,
+    { relation: 'and' | 'or'; parent: string; child: string }
+  >();
+  const hubs = new Set<string>();
+  const links = [...model.links.values()];
+  for (const [kind, relation] of Object.entries(refinements)) {
+    const generated = hubKindsOf(kind);
+    for (const element of model.elements.values())
+      if (element.kind === generated.hub) hubs.add(element.id);
+    // each hub's end: what its legs refine
+    const ends = new Map(
+      links
+        .filter((link) => link.kind === generated.end)
+        .map((link) => [link.source, link.target]),
+    );
+    for (const link of links)
+      if (link.kind === kind)
+        byLink.set(link.id, {
+          relation,
+          parent: link.target,
+          child: link.source,
+        });
+      else if (link.kind === generated.leg && ends.has(link.target))
+        byLink.set(link.id, {
+          relation,
+          parent: ends.get(link.target)!,
+          child: link.source,
+        });
+  }
+  return { byLink, hubs };
 };
 
 /**
@@ -197,7 +232,7 @@ export function goalView(
   dialect: ReadingDialect &
     Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
 ): GoalView {
-  const metamodel = metamodelOf(model);
+  const refined = frameworkRefinements(model, dialect.refinements ?? {});
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
   const byIStarId = new Map<string, GoalViewNode>();
   const dependumsByIStarId = new Map<string, GoalViewNode>();
@@ -213,7 +248,7 @@ export function goalView(
       (extensionKinds.has(element.kind)
         ? (element.kind as ViewKind)
         : undefined);
-    if (!kind || !isNode(element) || isHubElement(metamodel, element)) continue;
+    if (!kind || !isNode(element) || refined.hubs.has(element.id)) continue;
     const text = element.name;
     const written = (
       nameReading(dialect) === 'line' ? FRAMEWORK_TEXT : TEXT
@@ -274,9 +309,7 @@ export function goalView(
       qualifications.push([link.source, link.target]);
       continue;
     }
-    const refinement = framework
-      ? frameworkRefinement(model, dialect.refinements ?? {}, link)
-      : null;
+    const refinement = framework ? (refined.byLink.get(link.id) ?? null) : null;
     const relation = framework
       ? (refinement?.relation ?? null)
       : linkRelation(link);
