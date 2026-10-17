@@ -1,25 +1,19 @@
 import type { ExecutionDetailOf } from '@goal-controller/goal-language';
+import type { Decision, ExecCondition } from '../edgeFamily/types';
 import type { edgeV2 } from './definition';
 /**
  * Edge Engine Types
  * Types for EDGE/PRISM template engine properties
  */
 
-export type ExecCondition = {
-  maintain?: {
-    sentence: string;
-    variables: Array<{ name: string; value: boolean | null }>;
-  };
-  assertion: {
-    sentence: string;
-    variables: Array<{ name: string; value: boolean | null }>;
-  };
-};
-
-export type Decision = {
-  decisionVars: Array<{ variable: string; space: number }>;
-  hasDecision: boolean;
-};
+export type {
+  Condition,
+  Decision,
+  EdgeResourceProps,
+  EdgeResourceVariable,
+  EdgeTaskProps,
+  ExecCondition,
+} from '../edgeFamily/types';
 
 /**
  * What a goal's notation makes it do, as edgeV2's definition names it: `type` is
@@ -27,15 +21,6 @@ export type Decision = {
  * misspelt name doesn't compile.
  */
 export type GoalExecutionDetail = ExecutionDetailOf<typeof edgeV2>;
-
-export type EdgeTaskProps = {
-  execCondition?: ExecCondition;
-  maxRetries: number;
-  /** reward on completion ("utility" reward structure), as written in the model */
-  utility: string;
-  /** reward on pursuit ("cost" reward structure), as written in the model */
-  cost: string;
-};
 
 // Forward reference type - will be resolved when GoalNode is generic
 export type EdgeGoalProps<TGoalNode = unknown> = {
@@ -46,24 +31,6 @@ export type EdgeGoalProps<TGoalNode = unknown> = {
   execCondition?: ExecCondition;
   decision: Decision;
   maxRetries: number;
-};
-
-// Resource variable types for Edge engine
-export type EdgeResourceVariable =
-  | {
-      type: 'boolean';
-      initialValue: boolean;
-    }
-  | {
-      type: 'int';
-      initialValue: number;
-      lowerBound: number;
-      upperBound: number;
-    };
-
-// Resource properties for Edge engine
-export type EdgeResourceProps = {
-  variable: EdgeResourceVariable;
 };
 
 // Re-export mapper types for convenience

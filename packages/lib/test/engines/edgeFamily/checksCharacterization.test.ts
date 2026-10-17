@@ -3,7 +3,10 @@
  * of its hand parsers (parseInt, split(','), trim), which key a message is attached
  * to, and which issue wins (goal-controller#187's migration must keep them).
  *
- * `// #187: invalid value` marks a value the dialect flags (valueProblem).
+ * `// #187: invalid value` marks a value the dialect flags (valueProblem): since the
+ * migration a check says nothing of a value the dialect cannot read (its value check
+ * does). `// #187: changed` marks what the migration changed on purpose: the
+ * dialect's reading is the source of truth (a blank value is unset, a choice trimmed).
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
@@ -43,23 +46,24 @@ describe('edgeChecks characterization (#187)', () => {
         );
     });
 
-    it('flags a negative value on a task, a non-numeric one on a goal', () => {
+    it('flags a negative value on a task; says nothing of a non-numeric one', () => {
       // #187: invalid value
       assert.strictEqual(
         edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
         '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1"',
       );
-      // #187: invalid value
+      // #187: invalid value, #187: changed (was the maxRetries message)
       assert.strictEqual(
         edgeGoalChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got "abc"',
+        null,
       );
     });
 
-    it('flags a blank value, which the dialect reads as unset', () => {
+    it('is fine with a blank value, which the dialect reads as unset', () => {
+      // #187: changed (was the maxRetries message)
       assert.strictEqual(
         edgeGoalChecks.maxRetries?.({ maxRetries: ' ' }, noDeps),
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got " "',
+        null,
       );
     });
   });
@@ -129,13 +133,24 @@ describe('edgeChecks characterization (#187)', () => {
     const message = (got: string) =>
       `[INVALID MODEL]: Maintain condition for goal must have 'maintain' and 'assertion'; ${got}`;
 
-    it('are fine for any type but exactly maintain', () => {
-      for (const type of ['', 'Maintain', ' maintain', 'achieve']) {
+    it('are fine for any type but maintain', () => {
+      for (const type of ['', 'Maintain', 'achieve']) {
         const raw = { type, maintain: '', assertion: '' };
         assert.strictEqual(edgeGoalChecks.maintain?.(raw, noDeps), null, type);
         assert.strictEqual(edgeGoalChecks.assertion?.(raw, noDeps), null, type);
       }
       assert.strictEqual(edgeGoalChecks.maintain?.({}, noDeps), null);
+    });
+
+    it("read ' maintain' as maintain, as the dialect does (its choices are trimmed)", () => {
+      // #187: changed (was fine: not exactly maintain)
+      assert.strictEqual(
+        edgeGoalChecks.maintain?.(
+          { type: ' maintain', maintain: '', assertion: '' },
+          noDeps,
+        ),
+        message("got maintain: none, assertion: 'empty condition'"),
+      );
     });
 
     it('maintain: quotes the assertion trimmed, or as empty', () => {
@@ -233,11 +248,11 @@ describe('edgeChecks characterization (#187)', () => {
         dependsOn('R1'),
         '[INVALID MODEL]: Dependency R1 for node G1 must be a goal, got resource',
       );
-      // #187: invalid value
-      assert.strictEqual(
-        dependsOn('G2 G3'),
-        '[INVALID MODEL]: Dependency G2 G3 not found for node G1',
-      );
+    });
+
+    it('says nothing of ids without commas (the dialect does)', () => {
+      // #187: invalid value, #187: changed (was "Dependency G2 G3 not found")
+      assert.strictEqual(dependsOn('G2 G3'), null);
     });
   });
 
@@ -274,15 +289,16 @@ describe('edgeChecks characterization (#187)', () => {
         all({ type: 'bool', initialValue: '' }),
         bool('""'),
       );
+    });
+
+    it('bool: reads a padded initial value, says nothing of an unreadable one', () => {
+      // #187: changed (was the bool message: the dialect reads it trimmed)
       assert.deepStrictEqual(
         all({ type: 'bool', initialValue: ' true' }),
-        bool('" true"'),
+        fine,
       );
-      // #187: invalid value
-      assert.deepStrictEqual(
-        all({ type: 'bool', initialValue: 'True' }),
-        bool('"True"'),
-      );
+      // #187: invalid value, #187: changed (was the bool message)
+      assert.deepStrictEqual(all({ type: 'bool', initialValue: 'True' }), fine);
     });
 
     it('int: flags only the missing (or empty) keys', () => {
@@ -304,10 +320,8 @@ describe('edgeChecks characterization (#187)', () => {
       );
     });
 
-    it('int: flags both bad bounds, before the initial value', () => {
-      const bounds =
-        '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds';
-      // #187: invalid value
+    it('int: says nothing of unreadable values, which are missing (before the order)', () => {
+      // #187: invalid value, #187: changed (was the bounds message on both)
       assert.deepStrictEqual(
         all({
           type: 'int',
@@ -315,11 +329,9 @@ describe('edgeChecks characterization (#187)', () => {
           lowerBound: 'a',
           upperBound: 'b',
         }),
-        { ...fine, lowerBound: bounds, upperBound: bounds },
+        fine,
       );
-      // #187: invalid value
-      const order =
-        '[INVALID RESOURCE]: Resource lower bound (5) must be less than or equal to upper bound (2)';
+      // #187: invalid value, #187: changed (was the order message on both bounds)
       assert.deepStrictEqual(
         all({
           type: 'int',
@@ -327,11 +339,25 @@ describe('edgeChecks characterization (#187)', () => {
           lowerBound: '5',
           upperBound: '2',
         }),
+        fine,
+      );
+    });
+
+    it('int: flags lower above upper on both bounds', () => {
+      const order =
+        '[INVALID RESOURCE]: Resource lower bound (5) must be less than or equal to upper bound (2)';
+      assert.deepStrictEqual(
+        all({
+          type: 'int',
+          initialValue: '3',
+          lowerBound: '5',
+          upperBound: '2',
+        }),
         { ...fine, lowerBound: order, upperBound: order },
       );
     });
 
-    it('int: reads the values with parseInt', () => {
+    it('int: reads the values as integers', () => {
       // #187: invalid value
       assert.deepStrictEqual(
         all({
@@ -364,7 +390,8 @@ describe('edgeChecks characterization (#187)', () => {
       );
     });
 
-    it('int: flags a blank initial value, which the dialect reads as unset', () => {
+    it('int: flags a blank initial value, which the dialect reads as unset, as missing', () => {
+      // #187: changed (was "a valid numeric initial value")
       assert.deepStrictEqual(
         all({
           type: 'int',
@@ -375,7 +402,7 @@ describe('edgeChecks characterization (#187)', () => {
         {
           ...fine,
           initialValue:
-            '[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "  "',
+            '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound',
         },
       );
     });
@@ -390,15 +417,24 @@ describe('edgeChecks characterization (#187)', () => {
         all({ type: '', initialValue: 'true' }),
         unsupported(''),
       );
-      assert.deepStrictEqual(
-        all({ type: ' int', initialValue: 'true' }),
-        unsupported(' int'),
-      );
-      // #187: invalid value
+      // #187: invalid value, #187: changed (was unsupported('Int'): the mapper
+      // still throws it)
       assert.deepStrictEqual(
         all({ type: 'Int', initialValue: '3', lowerBound: 'a' }),
-        unsupported('Int'),
+        fine,
       );
+    });
+
+    it("int: reads ' int' as int, as the dialect does (its choices are trimmed)", () => {
+      const missing =
+        '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound';
+      // #187: changed (was unsupported(' int'))
+      assert.deepStrictEqual(all({ type: ' int', initialValue: 'true' }), {
+        ...fine,
+        initialValue: missing,
+        lowerBound: missing,
+        upperBound: missing,
+      });
     });
   });
 

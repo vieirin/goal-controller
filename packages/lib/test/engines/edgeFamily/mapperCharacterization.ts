@@ -4,8 +4,10 @@
  * GoalTree.fromModel: the characterization goal-controller#187's migration to typed
  * values must leave unchanged. Each engine's mapperCharacterization.test.ts runs it.
  *
- * `// #187: invalid value` marks a value the dialect flags (valueProblem): after the
- * migration the mapper gets `undefined` for it, so the test says what it does today.
+ * `// #187: invalid value` marks a value the dialect flags (valueProblem): since the
+ * migration the mapper gets it unset. `// #187: changed` marks what the migration
+ * changed on purpose: the dialect's reading is the source of truth (a blank value is
+ * unset, a choice is trimmed).
  */
 import * as assert from 'assert';
 import { afterEach, beforeEach, describe, it } from 'mocha';
@@ -112,37 +114,27 @@ export const characterizeEdgeMapper = (
       assert.strictEqual(goal('G12', { maxRetries: '-0' }).maxRetries, -0);
     });
 
-    it("keeps parseInt's leading digits of a non-integer", () => {
-      // #187: invalid value
-      assert.strictEqual(goal('G12', { maxRetries: '1.5' }).maxRetries, 1);
-      // #187: invalid value
-      assert.strictEqual(goal('G12', { maxRetries: '3abc' }).maxRetries, 3);
-      // #187: invalid value
-      assert.strictEqual(goal('G12', { maxRetries: '1e3' }).maxRetries, 1);
-      // #187: invalid value
-      assert.strictEqual(goal('G12', { maxRetries: '+2' }).maxRetries, 2);
-      // #187: invalid value
-      assert.strictEqual(goal('G12', { maxRetries: '0x10' }).maxRetries, 0);
+    it('reads a non-integer as unset: 0', () => {
+      for (const maxRetries of ['1.5', '3abc', '1e3', '+2', '0x10', 'abc'])
+        // #187: invalid value, #187: changed (was parseInt's leading digits, or a throw)
+        assert.strictEqual(
+          goal('G12', { maxRetries }).maxRetries,
+          0,
+          maxRetries,
+        );
     });
 
-    it('throws for a negative or non-numeric value, naming the node', () => {
+    it('throws for a negative value, naming the node', () => {
       // #187: invalid value
       throws(
         { G12: { maxRetries: '-1' } },
         '[INVALID GOAL]: maxRetries must be a non-negative integer: got "-1" (node G12)',
       );
-      // #187: invalid value
-      throws(
-        { G12: { maxRetries: 'abc' } },
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got "abc" (node G12)',
-      );
     });
 
-    it('throws for a blank value, which the dialect reads as unset', () => {
-      throws(
-        { G12: { maxRetries: ' ' } },
-        '[INVALID GOAL]: maxRetries must be a non-negative integer: got " " (node G12)',
-      );
+    it('reads a blank value as unset: 0', () => {
+      // #187: changed (was a throw)
+      assert.strictEqual(goal('G12', { maxRetries: ' ' }).maxRetries, 0);
     });
   });
 
@@ -152,25 +144,28 @@ export const characterizeEdgeMapper = (
       assert.strictEqual(task('T8', { maxRetries: '' }).maxRetries, 0);
     });
 
-    it('reads an integer with parseInt', () => {
+    it('reads an integer: leading zeros, padding', () => {
       assert.strictEqual(task('T8', { maxRetries: '0' }).maxRetries, 0);
       assert.strictEqual(task('T8', { maxRetries: '007' }).maxRetries, 7);
       assert.strictEqual(task('T8', { maxRetries: ' 3 ' }).maxRetries, 3);
-      // #187: invalid value
-      assert.strictEqual(task('T8', { maxRetries: '1.5' }).maxRetries, 1);
-      // #187: invalid value
-      assert.strictEqual(task('T8', { maxRetries: '3abc' }).maxRetries, 3);
+      // #187: invalid value, #187: changed (was parseInt's leading digits)
+      assert.strictEqual(task('T8', { maxRetries: '1.5' }).maxRetries, 0);
+      // #187: invalid value, #187: changed (was parseInt's leading digits)
+      assert.strictEqual(task('T8', { maxRetries: '3abc' }).maxRetries, 0);
     });
 
-    it('throws for a non-numeric or blank value, naming the node', () => {
+    it('reads a non-numeric or blank value as unset: 0', () => {
+      // #187: invalid value, #187: changed (was a throw)
+      assert.strictEqual(task('T8', { maxRetries: 'abc' }).maxRetries, 0);
+      // #187: changed (was a throw)
+      assert.strictEqual(task('T8', { maxRetries: ' ' }).maxRetries, 0);
+    });
+
+    it('throws for a negative value, naming the node', () => {
       // #187: invalid value
       throws(
-        { T8: { maxRetries: 'abc' } },
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got "abc" (node T8)',
-      );
-      throws(
-        { T8: { maxRetries: ' ' } },
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got " " (node T8)',
+        { T8: { maxRetries: '-1' } },
+        '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1" (node T8)',
       );
     });
   });
@@ -363,10 +358,26 @@ export const characterizeEdgeMapper = (
         goal('G7', { ...both, type: 'achieve' }).execCondition,
         assertionOnly,
       );
-      // the dialect reads ' maintain' as maintain (its choices are trimmed); the mapper doesn't
+    });
+
+    it("reads ' maintain' as maintain, as the dialect does (its choices are trimmed)", () => {
+      // #187: changed (was achieve: the assertion alone)
       assert.deepStrictEqual(
-        goal('G7', { ...both, type: ' maintain' }).execCondition,
-        assertionOnly,
+        goal('G7', {
+          type: ' maintain',
+          maintain: 'commLink',
+          assertion: 'inFlight',
+        }).execCondition,
+        {
+          maintain: {
+            sentence: 'commLink',
+            variables: [{ name: 'commLink', value: null }],
+          },
+          assertion: {
+            sentence: 'inFlight',
+            variables: [{ name: 'inFlight', value: null }],
+          },
+        },
       );
     });
 
@@ -418,7 +429,8 @@ export const characterizeEdgeMapper = (
     describe('an assertion the dialect rejects', () => {
       const errors = stubbed('error');
 
-      it('is kept, its variables read past the error', () => {
+      it("reads battery!=low as written, its variables the reading's", () => {
+        // it reads (its value check flags the != on a non-boolean)
         // #187: invalid value
         assert.deepStrictEqual(
           goal('G7', { assertion: 'battery!=low' }).execCondition,
@@ -433,33 +445,16 @@ export const characterizeEdgeMapper = (
           },
         );
         assert.deepStrictEqual(errors, []);
+      });
 
-        // #187: invalid value
-        assert.deepStrictEqual(
+      it('is unset when it does not read, and logs nothing', () => {
+        // #187: invalid value, #187: changed (was kept, its variables read past the
+        // error, the syntax error logged)
+        assert.strictEqual(
           goal('G7', { assertion: 'inFlight &' }).execCondition,
-          {
-            assertion: {
-              sentence: 'inFlight &',
-              variables: [{ name: 'inFlight', value: null }],
-            },
-          },
+          undefined,
         );
-        // assertionVariables logs the syntax error (console.error), the mapper goes on
-        assert.deepStrictEqual(errors, [
-          [
-            'line 1:0 Expecting: one of these possible Token sequences:',
-            '  1. [!]',
-            '  2. [(]',
-            '  3. [A_ID]',
-            '  4. [A_REF]',
-            '  5. [-]',
-            '  6. [A_INT]',
-            '  7. [A_NUMBER]',
-            '  8. [true]',
-            '  9. [false]',
-            "but found: ''",
-          ].join('\n'),
-        ]);
+        assert.deepStrictEqual(errors, []);
       });
     });
   });
@@ -479,6 +474,18 @@ export const characterizeEdgeMapper = (
         { T4: { type: 'maintain', assertion: '  ' } },
         message("'empty condition'"),
       );
+      // the dialect reads the task's type (text) trimmed
+      // #187: changed (was achieve: the assertion alone)
+      throws(
+        {
+          T4: {
+            type: ' maintain',
+            maintain: 'commLink',
+            assertion: 'inFlight',
+          },
+        },
+        message('inFlight'),
+      );
     });
 
     it('reads any other type as achieve: the assertion alone', () => {
@@ -488,7 +495,7 @@ export const characterizeEdgeMapper = (
           variables: [{ name: 'inFlight', value: null }],
         },
       };
-      for (const type of ['', 'achieve', 'Maintain', ' maintain', 'whatever'])
+      for (const type of ['', 'achieve', 'Maintain', 'whatever'])
         assert.deepStrictEqual(
           task('T4', { type, maintain: 'commLink', assertion: 'inFlight' })
             .execCondition,
@@ -532,14 +539,14 @@ export const characterizeEdgeMapper = (
       }
     });
 
-    it('pass a non-number through', () => {
+    it("read a non-number as unset: ''", () => {
       for (const value of ['abc', '1e3']) {
-        // #187: invalid value
+        // #187: invalid value, #187: changed (was passed through)
         const g = goal('G12', { utility: value, cost: value });
-        assert.deepStrictEqual([g.utility, g.cost], [value, value]);
-        // #187: invalid value
+        assert.deepStrictEqual([g.utility, g.cost], ['', '']);
+        // #187: invalid value, #187: changed (was passed through)
         const t = task('T8', { utility: value, cost: value });
-        assert.deepStrictEqual([t.utility, t.cost], [value, value]);
+        assert.deepStrictEqual([t.utility, t.cost], ['', '']);
       }
     });
   });
@@ -583,9 +590,10 @@ export const characterizeEdgeMapper = (
       );
     });
 
-    it('drops empty entries and trims ids', () => {
-      // #187: invalid value
-      assert.deepStrictEqual(dependsOn(' G13 ,, G6, '), ['G13', 'G6']);
+    it('trims ids; reads empty entries as unset: []', () => {
+      assert.deepStrictEqual(dependsOn('  G13 , G6 '), ['G13', 'G6']);
+      // #187: invalid value, #187: changed (was resolved, the empty entries dropped)
+      assert.deepStrictEqual(dependsOn(' G13 ,, G6, '), []);
     });
 
     it('accepts the goal itself', () => {
@@ -609,11 +617,11 @@ export const characterizeEdgeMapper = (
         { G12: { dependsOn: 'R0' } },
         '[INVALID MODEL]: Dependency R0 for node G12 must be a goal, got resource',
       );
-      // #187: invalid value
-      throws(
-        { G12: { dependsOn: 'G13 G6' } },
-        '[INVALID MODEL]: Dependency G13 G6 not found for node G12',
-      );
+    });
+
+    it('reads ids without commas as unset: []', () => {
+      // #187: invalid value, #187: changed (was a throw for the id "G13 G6")
+      assert.deepStrictEqual(dependsOn('G13 G6'), []);
     });
   });
 
@@ -641,19 +649,26 @@ export const characterizeEdgeMapper = (
       );
     });
 
-    it('bool: throws for any other initialValue, case and padding included', () => {
+    it('bool: throws for any other initialValue, case included', () => {
       const message = (got: string) =>
         `Boolean resource must have initialValue of 'true' or 'false', got: ${got}`;
       // #187: invalid value
       throwsFor({ type: 'bool', initialValue: 'True' }, message('"True"'));
       // #187: invalid value
       throwsFor({ type: 'bool', initialValue: '1' }, message('"1"'));
-      throwsFor({ type: 'bool', initialValue: ' true' }, message('" true"'));
       throwsFor({ type: 'bool', initialValue: '' }, message('""'));
       throwsFor({ type: 'bool' }, message('undefined'));
     });
 
-    it('int: the three values with parseInt', () => {
+    it('bool: reads a padded initialValue, as the dialect does', () => {
+      // #187: changed (was a throw)
+      assert.deepStrictEqual(
+        resource({ type: 'bool', initialValue: ' true' }),
+        { variable: { type: 'boolean', initialValue: true } },
+      );
+    });
+
+    it('int: the three values, as integers', () => {
       const int = (
         initialValue: number,
         lowerBound: number,
@@ -706,35 +721,35 @@ export const characterizeEdgeMapper = (
         }),
         int(3, 0, 5),
       );
-      // #187: invalid value
-      assert.deepStrictEqual(
-        resource({
+    });
+
+    it('int: reads a non-integer as unset, so throws for a missing value', () => {
+      const missing =
+        'Integer resource must have an initial value, lower bound, and upper bound';
+      // #187: invalid value, #187: changed (were parseInt's leading digits)
+      throwsFor(
+        {
           type: 'int',
           initialValue: '2.9',
           lowerBound: '0.5',
           upperBound: '5.7',
-        }),
-        int(2, 0, 5),
+        },
+        missing,
       );
-      // #187: invalid value
-      assert.deepStrictEqual(
-        resource({
+      // #187: invalid value, #187: changed (were parseInt's leading digits)
+      throwsFor(
+        {
           type: 'int',
           initialValue: '3abc',
           lowerBound: '0x',
           upperBound: '5y',
-        }),
-        int(3, 0, 5),
+        },
+        missing,
       );
-      // #187: invalid value
-      assert.deepStrictEqual(
-        resource({
-          type: 'int',
-          initialValue: '1e3',
-          lowerBound: '0',
-          upperBound: '5',
-        }),
-        int(1, 0, 5),
+      // #187: invalid value, #187: changed (was parseInt's leading digits)
+      throwsFor(
+        { type: 'int', initialValue: '1e3', lowerBound: '0', upperBound: '5' },
+        missing,
       );
     });
 
@@ -753,46 +768,46 @@ export const characterizeEdgeMapper = (
       throwsFor({ type: 'int', initialValue: '3', lowerBound: '0' }, missing);
     });
 
-    it('int: then for non-numeric bounds, then lower above upper', () => {
-      const bounds = 'Resource must have valid numeric lower and upper bounds';
-      // #187: invalid value
+    it('int: a non-numeric or blank value is missing, before lower above upper', () => {
+      const missing =
+        'Integer resource must have an initial value, lower bound, and upper bound';
+      // #187: invalid value, #187: changed (was "valid numeric lower and upper bounds")
       throwsFor(
         { type: 'int', initialValue: '3', lowerBound: 'a', upperBound: 'b' },
-        bounds,
+        missing,
       );
-      // #187: invalid value
+      // #187: invalid value, #187: changed (was "valid numeric lower and upper bounds")
       throwsFor(
         { type: 'int', initialValue: '3', lowerBound: '0', upperBound: 'b' },
-        bounds,
+        missing,
       );
-      const order =
-        'Resource lower bound (5) must be less than or equal to upper bound (2)';
-      throwsFor(
-        { type: 'int', initialValue: '3', lowerBound: '5', upperBound: '2' },
-        order,
-      );
-      // #187: invalid value
+      // #187: invalid value, #187: changed (was lower above upper)
       throwsFor(
         { type: 'int', initialValue: 'x', lowerBound: '5', upperBound: '2' },
-        order,
+        missing,
+      );
+      // #187: invalid value, #187: changed (was "a valid numeric initial value")
+      throwsFor(
+        { type: 'int', initialValue: 'x', lowerBound: '0', upperBound: '5' },
+        missing,
+      );
+      // #187: invalid value, #187: changed (was "a valid numeric initial value")
+      throwsFor(
+        { type: 'int', initialValue: 'true', lowerBound: '0', upperBound: '5' },
+        missing,
+      );
+      // blank: the dialect reads it as unset
+      // #187: changed (was "a valid numeric initial value")
+      throwsFor(
+        { type: 'int', initialValue: '  ', lowerBound: '0', upperBound: '5' },
+        missing,
       );
     });
 
-    it('int: then for a non-numeric initial value, then one out of bounds', () => {
-      // #187: invalid value
+    it('int: then for lower above upper, then an initial value out of bounds', () => {
       throwsFor(
-        { type: 'int', initialValue: 'x', lowerBound: '0', upperBound: '5' },
-        'Resource must have a valid numeric initial value, got: "x"',
-      );
-      // #187: invalid value
-      throwsFor(
-        { type: 'int', initialValue: 'true', lowerBound: '0', upperBound: '5' },
-        'Resource must have a valid numeric initial value, got: "true"',
-      );
-      // blank: the dialect reads it as unset
-      throwsFor(
-        { type: 'int', initialValue: '  ', lowerBound: '0', upperBound: '5' },
-        'Resource must have a valid numeric initial value, got: "  "',
+        { type: 'int', initialValue: '3', lowerBound: '5', upperBound: '2' },
+        'Resource lower bound (5) must be less than or equal to upper bound (2)',
       );
       throwsFor(
         { type: 'int', initialValue: '6', lowerBound: '0', upperBound: '5' },
@@ -818,8 +833,14 @@ export const characterizeEdgeMapper = (
         { type: 'string', initialValue: 'a' },
         'Unsupported resource type: string',
       );
-      // the dialect reads ' int' as int (its choices are trimmed); the mapper doesn't
-      throwsFor({ ...valid, type: ' int' }, 'Unsupported resource type:  int');
+      // the dialect reads ' int' as int (its choices are trimmed), but its
+      // initialValue's condition (type equals int) reads the type untrimmed, so
+      // reads '3' as a bool's: unset (the dialect says "true or false, not 3")
+      // #187: changed (was "Unsupported resource type:  int")
+      throwsFor(
+        { ...valid, type: ' int' },
+        'Integer resource must have an initial value, lower bound, and upper bound',
+      );
       throwsFor(
         { type: '', initialValue: 'true' },
         'Unsupported resource type: ',

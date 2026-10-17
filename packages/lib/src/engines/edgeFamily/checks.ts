@@ -2,55 +2,109 @@
  * The property checks edge/mapper.ts and edgeV2/mapper.ts both make (they're near-copies
  * of each other): a shared module, since the checks are identical today. Split it if the
  * two engines' rules ever diverge.
+ *
+ * They read the values as the dialect does (goal-controller#187): a value the dialect
+ * cannot read is its own diagnostic (the dialect's value check says it), so a check says
+ * nothing of it, and the mapper reads it as unset.
  */
 import type { DECLARATION_KEYS } from '@goal-controller/dialect';
+import {
+  readProperties,
+  type PropertyRecord,
+} from '@goal-controller/goal-language';
 import { checks, type Check } from '../checks';
+import { edgeProperties } from './properties';
+import type { EdgeResourceVariable } from './types';
 
 /** A key a resource's declaration sets (`{int 0..100 = 80}`). */
 type DeclaredKey = (typeof DECLARATION_KEYS)[number];
 
 type Issue = { key: string; message: string };
 
+type EdgeKind = 'goal' | 'task' | 'resource';
+
+/** An element's properties as the Edge dialects read them: its values, and their texts. */
+export type EdgeRecord<K extends EdgeKind> = PropertyRecord<
+  (typeof edgeProperties)[K]
+>;
+
+/** An element's values as the Edge dialects read them (unset: absent). */
+export type EdgeValues<K extends EdgeKind> = EdgeRecord<K>['values'];
+
+/** An element's properties (the strings stored), read as the Edge dialects read them. */
+const read = <K extends EdgeKind>(
+  kind: K,
+  raw: Partial<Record<string, string>>,
+): EdgeRecord<K> =>
+  readProperties({ properties: edgeProperties }, { element: kind }, raw);
+
+/** Written, but not as its type: the dialect's value check reports it. */
+const unreadable = (
+  { values, text }: { values: object; text: object },
+  key: string,
+): boolean => key in text && !(key in values);
+
+/** The message of the first issue on this key, unless its value is unreadable. */
+const messageOn = (
+  issues: Issue[],
+  record: { values: object; text: object },
+  key: string,
+): string | null =>
+  unreadable(record, key)
+    ? null
+    : (issues.find((i) => i.key === key)?.message ?? null);
+
 /**
- * goal/task issues, in mapGoalProps/mapTaskProps's own evaluation order (parseDecision,
- * then getMaintainCondition, then parseMaxRetries): the first entry is the one the mapper
- * throws first.
+ * The decision variables' issues, in mapGoalProps's parseDecision order: the
+ * first bad pair. Still the mapper's own parser (goal-controller#187): the
+ * dialect reads `x:abc` as a pair (its value as written) where its value
+ * check says `Not an integer`, so the reading cannot replace it yet.
+ */
+const variablesIssues = (raw: Partial<Record<string, string>>): Issue[] => {
+  if (!raw.variables) return [];
+  const decision = raw.variables;
+  for (const part of decision.split(',').map((d) => d.split(':'))) {
+    if (part.length !== 2) {
+      return [
+        {
+          key: 'variables',
+          message: `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
+        },
+      ];
+    }
+    if (isNaN(parseInt(part[1] ?? ''))) {
+      return [
+        {
+          key: 'variables',
+          message: `[INVALID DECISION]: space must be a number: got ${part[1]}`,
+        },
+      ];
+    }
+  }
+  return [];
+};
+
+/**
+ * goal/task issues, in mapGoalProps/mapTaskProps's own order (the decision, then the
+ * maintain condition, then maxRetries): the first entry is the one the mapper throws.
  */
 const goalOrTaskIssues = (
   kind: 'goal' | 'task',
+  values: EdgeValues<'goal'> | EdgeValues<'task'>,
   raw: Partial<Record<string, string>>,
 ): Issue[] => {
-  const issues: Issue[] = [];
+  const issues: Issue[] = kind === 'goal' ? variablesIssues(raw) : [];
 
-  if (kind === 'goal' && raw.variables) {
-    const decision = raw.variables;
-    for (const part of decision.split(',').map((d) => d.split(':'))) {
-      if (part.length !== 2) {
-        issues.push({
-          key: 'variables',
-          message: `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
-        });
-        break; // the mapper's forEach throws on the first bad pair
-      }
-      if (isNaN(parseInt(part[1] ?? ''))) {
-        issues.push({
-          key: 'variables',
-          message: `[INVALID DECISION]: space must be a number: got ${part[1]}`,
-        });
-        break;
-      }
-    }
-  }
-
-  if (raw.type === 'maintain') {
-    // absent or blank: the Inspector validates with maintain:'' while typing, and the
-    // mapper used to only throw when the key was missing
-    if (!raw.maintain?.trim()) {
+  if (values.type === 'maintain') {
+    // not a task key: a task can never have one
+    const maintain = 'maintain' in values ? values.maintain : undefined;
+    // absent or blank: the Inspector validates with maintain:'' while typing
+    if (!maintain) {
       issues.push({
         key: 'maintain',
-        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: none, assertion: ${raw.assertion?.trim() || "'empty condition'"}`,
+        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: none, assertion: ${values.assertion?.text() || "'empty condition'"}`,
       });
-    } else if (!raw.assertion?.trim()) {
+    } else if (!values.assertion) {
       issues.push({
         key: 'assertion',
         message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${raw.maintain}, assertion: 'empty condition'`,
@@ -58,14 +112,11 @@ const goalOrTaskIssues = (
     }
   }
 
-  if (raw.maxRetries) {
-    const parsed = parseInt(raw.maxRetries, 10);
-    if (isNaN(parsed) || parsed < 0) {
-      issues.push({
-        key: 'maxRetries',
-        message: `[INVALID ${kind.toUpperCase()}]: maxRetries must be a non-negative integer: got "${raw.maxRetries}"`,
-      });
-    }
+  if (values.maxRetries != null && values.maxRetries < 0) {
+    issues.push({
+      key: 'maxRetries',
+      message: `[INVALID ${kind.toUpperCase()}]: maxRetries must be a non-negative integer: got "${raw.maxRetries}"`,
+    });
   }
 
   return issues;
@@ -73,11 +124,7 @@ const goalOrTaskIssues = (
 
 /** afterCreationMapper's dependsOn resolution, word for word (existence, then goal-ness). */
 const dependsOnCheck: Check = (raw, { self, kindOf }) => {
-  const ids = (raw.dependsOn ?? '')
-    .split(',')
-    .map((d) => d.trim())
-    .filter(Boolean);
-  for (const id of ids) {
+  for (const id of read('goal', raw).values.dependsOn ?? []) {
     const kind = kindOf(id);
     if (!kind) {
       return `[INVALID MODEL]: Dependency ${id} not found for node ${self}`;
@@ -89,129 +136,135 @@ const dependsOnCheck: Check = (raw, { self, kindOf }) => {
   return null;
 };
 
-/** mapResourceProps issues, in its own evaluation order (one branch per resource type). */
-const resourceIssues = (raw: Partial<Record<string, string>>): Issue[] => {
-  const { type, initialValue, lowerBound, upperBound } = raw;
+/**
+ * A resource's variable, or its issues (in mapResourceProps's order, one branch per
+ * resource type): the first is the one the mapper throws.
+ */
+export const resourceReading = (
+  values: EdgeValues<'resource'>,
+  raw: Partial<Record<string, string>>,
+): { issues: Issue[]; variable: EdgeResourceVariable | null } => {
+  const { initialValue, lowerBound, upperBound } = values;
+  const issues = (keys: DeclaredKey[], message: string) => ({
+    issues: keys.map((key) => ({ key, message })),
+    variable: null,
+  });
 
-  switch (type) {
+  switch (values.type) {
     case 'bool': {
-      if (initialValue !== 'true' && initialValue !== 'false') {
-        return [
-          {
-            key: 'initialValue',
-            message: `[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: ${initialValue === undefined ? 'undefined' : `"${initialValue}"`}`,
-          },
-        ];
+      if (typeof initialValue !== 'boolean') {
+        return issues(
+          ['initialValue'],
+          `[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: ${raw.initialValue === undefined ? 'undefined' : `"${raw.initialValue}"`}`,
+        );
       }
-      return [];
+      return {
+        issues: [],
+        variable: { type: 'boolean', initialValue },
+      };
     }
     case 'int': {
-      const missingKeys: DeclaredKey[] = [];
-      if (initialValue == null || initialValue === '')
-        missingKeys.push('initialValue');
-      if (lowerBound == null || lowerBound === '')
-        missingKeys.push('lowerBound');
-      if (upperBound == null || upperBound === '')
-        missingKeys.push('upperBound');
-      if (missingKeys.length > 0) {
-        const message =
-          '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound';
-        return missingKeys.map((key) => ({ key, message }));
+      // unset, blank or unreadable (an int resource's initial value reads as an int)
+      if (
+        typeof initialValue !== 'number' ||
+        lowerBound == null ||
+        upperBound == null
+      ) {
+        const missing = [
+          typeof initialValue !== 'number' && 'initialValue',
+          lowerBound == null && 'lowerBound',
+          upperBound == null && 'upperBound',
+        ].filter((key): key is DeclaredKey => key !== false);
+        return issues(
+          missing,
+          '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound',
+        );
       }
 
-      const lowerBoundInt = parseInt(lowerBound as string, 10);
-      const upperBoundInt = parseInt(upperBound as string, 10);
-      const badBoundKeys: DeclaredKey[] = [];
-      if (isNaN(lowerBoundInt)) badBoundKeys.push('lowerBound');
-      if (isNaN(upperBoundInt)) badBoundKeys.push('upperBound');
-      if (badBoundKeys.length > 0) {
-        const message =
-          '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds';
-        return badBoundKeys.map((key) => ({ key, message }));
+      if (lowerBound > upperBound) {
+        return issues(
+          ['lowerBound', 'upperBound'],
+          `[INVALID RESOURCE]: Resource lower bound (${lowerBound}) must be less than or equal to upper bound (${upperBound})`,
+        );
       }
 
-      if (lowerBoundInt > upperBoundInt) {
-        const message = `[INVALID RESOURCE]: Resource lower bound (${lowerBoundInt}) must be less than or equal to upper bound (${upperBoundInt})`;
-        return [
-          { key: 'lowerBound', message },
-          { key: 'upperBound', message },
-        ];
+      if (initialValue < lowerBound || initialValue > upperBound) {
+        return issues(
+          ['initialValue'],
+          `[INVALID RESOURCE]: Initial value (${initialValue}) must be within bounds [${lowerBound}, ${upperBound}]`,
+        );
       }
 
-      const initialValueInt = parseInt(initialValue as string, 10);
-      if (isNaN(initialValueInt)) {
-        return [
-          {
-            key: 'initialValue',
-            message: `[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "${initialValue}"`,
-          },
-        ];
-      }
-
-      if (initialValueInt < lowerBoundInt || initialValueInt > upperBoundInt) {
-        return [
-          {
-            key: 'initialValue',
-            message: `[INVALID RESOURCE]: Initial value (${initialValueInt}) must be within bounds [${lowerBoundInt}, ${upperBoundInt}]`,
-          },
-        ];
-      }
-
-      return [];
+      return {
+        issues: [],
+        variable: { type: 'int', initialValue, lowerBound, upperBound },
+      };
     }
     default:
-      return [
-        {
-          key: 'type',
-          message: `[INVALID RESOURCE]: Unsupported resource type: ${type}`,
-        },
-      ];
+      return {
+        issues: [
+          {
+            key: 'type',
+            message: `[INVALID RESOURCE]: Unsupported resource type: ${raw.type}`,
+          },
+        ],
+        variable: null,
+      };
   }
 };
 
-/** The first issue mapGoalProps/mapTaskProps/mapResourceProps would throw today, if any. */
+/**
+ * The first issue mapGoalProps/mapTaskProps throws, if any: of the values the mapper
+ * is given (by default, the strings read as the dialect reads them).
+ */
 export const firstGoalOrTaskIssue = (
   kind: 'goal' | 'task',
   raw: Partial<Record<string, string>>,
-): string | null => goalOrTaskIssues(kind, raw)[0]?.message ?? null;
+  values: EdgeValues<'goal'> | EdgeValues<'task'> = read(kind, raw).values,
+): string | null => goalOrTaskIssues(kind, values, raw)[0]?.message ?? null;
+
+/** The first issue mapResourceProps throws, if any. */
 export const firstResourceIssue = (
   raw: Partial<Record<string, string>>,
-): string | null => resourceIssues(raw)[0]?.message ?? null;
+): string | null =>
+  resourceReading(read('resource', raw).values, raw).issues[0]?.message ?? null;
+
+/** The check of a goal's or a task's key: its first issue, unless the dialect can't read it. */
+const goalOrTaskCheck =
+  (kind: 'goal' | 'task', key: string): Check =>
+  (raw) => {
+    const record = read(kind, raw);
+    return messageOn(goalOrTaskIssues(kind, record.values, raw), record, key);
+  };
+
+/** The check of a resource's key: its first issue, unless the dialect can't read it. */
+const resourceCheck =
+  (key: string): Check =>
+  (raw) => {
+    const record = read('resource', raw);
+    return messageOn(resourceReading(record.values, raw).issues, record, key);
+  };
 
 export const edgeGoalChecks = checks({
-  variables: (raw) =>
-    goalOrTaskIssues('goal', raw).find((i) => i.key === 'variables')?.message ??
-    null,
-  maintain: (raw) =>
-    goalOrTaskIssues('goal', raw).find((i) => i.key === 'maintain')?.message ??
-    null,
-  assertion: (raw) =>
-    goalOrTaskIssues('goal', raw).find((i) => i.key === 'assertion')?.message ??
-    null,
-  maxRetries: (raw) =>
-    goalOrTaskIssues('goal', raw).find((i) => i.key === 'maxRetries')
-      ?.message ?? null,
+  variables: (raw) => variablesIssues(raw)[0]?.message ?? null,
+  maintain: goalOrTaskCheck('goal', 'maintain'),
+  assertion: goalOrTaskCheck('goal', 'assertion'),
+  maxRetries: goalOrTaskCheck('goal', 'maxRetries'),
   dependsOn: dependsOnCheck,
 });
 
-// 'maintain' isn't an allowed task key (EDGE_TASK_KEYS), so a task can never satisfy
-// getMaintainCondition's 'maintain' in raw check once type is 'maintain': mapTaskProps
-// always throws it, through firstGoalOrTaskIssue, with no key to attach it to in the UI.
+// 'maintain' isn't a task key (EDGE_TASK_KEYS), so a task can never satisfy the
+// maintain condition once its type is 'maintain': mapTaskProps always throws it,
+// through firstGoalOrTaskIssue, with no key to attach it to in the UI.
 export const edgeTaskChecks = checks({
-  maxRetries: (raw) =>
-    goalOrTaskIssues('task', raw).find((i) => i.key === 'maxRetries')
-      ?.message ?? null,
+  maxRetries: goalOrTaskCheck('task', 'maxRetries'),
 });
 
 export const edgeResourceChecks = checks({
-  type: (raw) =>
-    resourceIssues(raw).find((i) => i.key === 'type')?.message ?? null,
-  initialValue: (raw) =>
-    resourceIssues(raw).find((i) => i.key === 'initialValue')?.message ?? null,
-  lowerBound: (raw) =>
-    resourceIssues(raw).find((i) => i.key === 'lowerBound')?.message ?? null,
-  upperBound: (raw) =>
-    resourceIssues(raw).find((i) => i.key === 'upperBound')?.message ?? null,
+  type: resourceCheck('type'),
+  initialValue: resourceCheck('initialValue'),
+  lowerBound: resourceCheck('lowerBound'),
+  upperBound: resourceCheck('upperBound'),
 });
 
 /**
