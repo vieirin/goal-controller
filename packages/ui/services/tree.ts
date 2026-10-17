@@ -1,6 +1,10 @@
 import { goalView, type GoalView } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
-import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
+import {
+  FRAMEWORK_ENGINE_DIALECTS,
+  isFrameworkEngine,
+  notationDefinitionOf,
+} from '@/lib/workbench/engineDialects';
 import { parseModel } from '@/lib/workbench/dialects';
 
 /**
@@ -14,6 +18,12 @@ export const treeView = (
 ): GoalView => {
   // read with the dialect it records, if any (the view leaves its kinds out)
   const model = parseModel(modelJson);
-  // goal-tree reads goal texts in the engine's dialect (SLEEC's view: Edge's)
-  return goalView(model, notationDefinitionOf(engine));
+  // goal-tree reads goal texts in the engine's dialect (SLEEC's view: Edge's;
+  // a framework's engine's, its framework's lines, goal-controller#171)
+  return goalView(
+    model,
+    isFrameworkEngine(engine)
+      ? FRAMEWORK_ENGINE_DIALECTS[engine]
+      : notationDefinitionOf(engine),
+  );
 };

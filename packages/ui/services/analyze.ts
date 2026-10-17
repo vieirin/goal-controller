@@ -45,6 +45,7 @@ const parseFor = (modelJson: string, engine: TransformEngine) => {
   if (engine === 'sleec') return GoalModel.parseForSleec(modelJson);
   if (engine === 'mutrose') return GoalModel.parseForMutrose(modelJson);
   if (engine === 'goda') return GoalModel.parseForGoda(modelJson);
+  if (engine === 'kaosdoc') return GoalModel.parseForKaosdoc(modelJson);
   if (!generatesFiles(engine) || engine === 'istardt')
     return GoalModel.parseAsGraph(modelJson);
   return GoalModel.parseForEdge(modelJson);

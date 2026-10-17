@@ -13,7 +13,9 @@ import {
   istardtEngine,
   tropos4asEngine,
   cgmEngine,
+  kaosdocEngine,
   mutroseEngine,
+  nfrpropEngine,
   registerEngines,
   sleecEngine,
   type Analyses,
@@ -43,10 +45,28 @@ export const ENGINE_LIST = registerEngines(
   istardtEngine,
   tropos4asEngine,
   cgmEngine,
+  // the frameworks' (goal-controller#171): offered under KAOS and NFR
+  kaosdocEngine,
+  nfrpropEngine,
 );
 
 type Registered = (typeof ENGINE_LIST)[number];
-type WithDialect = Extract<Registered, { dialect: AnyDialect }>;
+/**
+ * An engine of a framework besides iStar 2.0 (goal-controller#171: KAOS's
+ * kaosdoc, NFR's nfrprop): its dialect is its framework's, which has no
+ * iStar kinds and no notation, so none of the iStar dialects' editors
+ * (their Notation view, inspector and lines) read it.
+ */
+type OfFramework = Extract<
+  Registered,
+  { dialect: { framework: 'kaos' | 'nfr' } }
+>;
+type WithDialect = Exclude<
+  Extract<Registered, { dialect: AnyDialect }>,
+  OfFramework
+>;
+const ofFramework = (dialect?: AnyDialect): boolean =>
+  (dialect?.framework ?? 'istar-2.0') !== 'istar-2.0';
 
 /** Every registered id is a TransformEngine, and every TransformEngine is registered. */
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
@@ -62,11 +82,26 @@ const byEngine = <T>(pick: (engine: Engine) => T | undefined) =>
     }),
   );
 
-export const ENGINE_DIALECTS = byEngine((engine) => engine.dialect) as {
+/** The iStar engines' dialects, by engine. */
+export const ENGINE_DIALECTS = byEngine((engine) =>
+  ofFramework(engine.dialect) ? undefined : engine.dialect,
+) as {
   readonly [E in WithDialect as E['id']]: E['dialect'];
 };
 
 export type DialectEngine = keyof typeof ENGINE_DIALECTS;
+
+/** The dialects of the other frameworks' engines (goal-controller#171), by engine. */
+export const FRAMEWORK_ENGINE_DIALECTS = byEngine((engine) =>
+  ofFramework(engine.dialect) ? engine.dialect : undefined,
+) as {
+  readonly [E in OfFramework as E['id']]: E['dialect'];
+};
+
+export type FrameworkEngine = keyof typeof FRAMEWORK_ENGINE_DIALECTS;
+
+export const isFrameworkEngine = (engine: unknown): engine is FrameworkEngine =>
+  typeof engine === 'string' && engine in FRAMEWORK_ENGINE_DIALECTS;
 
 /** An engine's checks, by the names its definition gives them (none missing). */
 export type ChecksOf<E extends DialectEngine> = Readonly<
@@ -80,7 +115,9 @@ export type ChecksOf<E extends DialectEngine> = Readonly<
  * `ENGINE_DIALECTS[engine]`.
  */
 export const ENGINE_CHECKS = byEngine((engine) =>
-  engine.dialect ? (engine.checks ?? {}) : undefined,
+  engine.dialect && !ofFramework(engine.dialect)
+    ? (engine.checks ?? {})
+    : undefined,
 ) as { readonly [E in DialectEngine]: ChecksOf<E> };
 
 /**
@@ -89,7 +126,9 @@ export const ENGINE_CHECKS = byEngine((engine) =>
  * engine that reads nothing beside the model has none).
  */
 export const ENGINE_PROJECT_RESOURCES = byEngine((engine) =>
-  engine.dialect ? (engine.projectResources ?? {}) : undefined,
+  engine.dialect && !ofFramework(engine.dialect)
+    ? (engine.projectResources ?? {})
+    : undefined,
 ) as {
   readonly [E in DialectEngine]: ProjectResourceParsers<
     (typeof ENGINE_DIALECTS)[E]
@@ -186,9 +225,13 @@ export const isDialectEngine = (
 export const notationDefinitionOf = (engine: TransformEngine) =>
   ENGINE_DIALECTS[isDialectEngine(engine) ? engine : 'edge'];
 
-/** An engine's own dialect, when it has one (none: SLEEC). */
+/** An engine's own dialect, when it has one (none: SLEEC), a framework engine's too. */
 export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
-  isDialectEngine(engine) ? ENGINE_DIALECTS[engine] : null;
+  isDialectEngine(engine)
+    ? ENGINE_DIALECTS[engine]
+    : isFrameworkEngine(engine)
+      ? FRAMEWORK_ENGINE_DIALECTS[engine]
+      : null;
 
 /** An analysis engine's analyses, by id, and how it reads a model for them (the view of its `GoalModel`, goal-controller#125). */
 export type AnalysisEngine = {

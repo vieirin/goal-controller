@@ -26,12 +26,14 @@ import { LanguageSupportContext } from '../definition/useLanguageSupport';
  */
 export default function FrameworkNotationView({
   mode,
+  definition = FRAMEWORK_DIALECTS[mode],
 }: {
   mode: FrameworkMode;
+  /** the dialect its lines are read in: its framework's, or its engine's (nfrprop's labels) */
+  definition?: AnyDialect;
 }) {
   const wb = useWorkbench();
   const { text } = wb;
-  const definition: AnyDialect = FRAMEWORK_DIALECTS[mode];
   // the last view read stays while the model is being fixed
   const last = useRef<GoalView | null>(null);
   const tree = useMemo(() => {

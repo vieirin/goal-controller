@@ -6,7 +6,10 @@ import {
 import { grlEngineMapper, sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
-import { ENGINE_DIALECTS } from '../workbench/engineDialects';
+import {
+  ENGINE_DIALECTS,
+  FRAMEWORK_ENGINE_DIALECTS,
+} from '../workbench/engineDialects';
 
 type Mapper = {
   allowedGoalKeys: readonly string[];
@@ -25,8 +28,8 @@ const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
 
 type Definition = (typeof ENGINE_DIALECTS)[keyof typeof ENGINE_DIALECTS];
 
-/** The keys of the extension's kinds a definition gives properties (goal-controller#132). */
-const extensionKeys = (definition: Definition) =>
+/** The keys of the extension's kinds a definition gives properties (goal-controller#132), a framework's kinds too. */
+const extensionKeys = (definition: AnyDialect) =>
   Object.fromEntries(
     Object.keys(definition.properties)
       .filter(isExtensionKind)
@@ -40,6 +43,17 @@ const definedKeys = (
   task: [...propertyKeys(definition, 'task')],
   resource: [...propertyKeys(definition, 'resource')],
   quality: [...propertyKeys(definition, 'quality')],
+  ...extensionKeys(definition),
+});
+
+/** A framework's engine (goal-controller#171): no iStar kind, its root's kinds' keys. */
+const frameworkKeys = (
+  definition: AnyDialect,
+): AnalyzeResponse['knownProperties'] => ({
+  goal: [],
+  task: [],
+  resource: [],
+  quality: [],
   ...extensionKeys(definition),
 });
 
@@ -65,4 +79,6 @@ export const KNOWN_PROPERTIES: Record<
   },
   tropos4as: definedKeys(ENGINE_DIALECTS.tropos4as),
   cgm: definedKeys(ENGINE_DIALECTS.cgm),
+  kaosdoc: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosdoc),
+  nfrprop: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.nfrprop),
 };

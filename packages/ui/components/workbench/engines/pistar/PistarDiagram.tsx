@@ -42,6 +42,10 @@ export const pistarPaletteFor = (
       return TROPOS4AS_PALETTE;
     case 'cgm':
       return CGM_PALETTE;
+    // a framework's engine has no iStar palette (goal-controller#171)
+    case 'kaosdoc':
+    case 'nfrprop':
+      return null;
   }
 };
 

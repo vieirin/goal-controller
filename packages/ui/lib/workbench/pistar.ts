@@ -342,6 +342,8 @@ const MODES: readonly ModelMode[] = [
   'pistarext',
   'kaos',
   'nfr',
+  'kaosdoc',
+  'nfrprop',
   'pistar',
 ];
 
@@ -369,16 +371,18 @@ export const readModelMode = (text: string): ModelMode | null => {
 
 /**
  * Record the mode in the model text; piStar mode is the absence of a record.
- * A framework's mode records its framework beside it (another mode leaves
- * the framework recorded as it is). The rest of the file stays as it was.
+ * A mode of a framework besides iStar 2.0 (a framework's modelling mode, or
+ * its engine's: kaosdoc, nfrprop) records its framework beside it; an iStar
+ * mode leaves the framework recorded as it is. The rest of the file stays as
+ * it was.
  */
-export const writeModelMode = (text: string, mode: ModelMode): string =>
-  withModelSettings(text, {
+export const writeModelMode = (text: string, mode: ModelMode): string => {
+  const framework = frameworkOfMode(mode);
+  return withModelSettings(text, {
     mode: mode === 'pistar' ? null : mode,
-    ...(isFrameworkMode(mode) && {
-      framework: FRAMEWORK_DIALECTS[mode].framework,
-    }),
+    ...(framework !== DEFAULT_FRAMEWORK && { framework }),
   });
+};
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {

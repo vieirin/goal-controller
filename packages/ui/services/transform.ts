@@ -4,6 +4,7 @@ import {
   GODA_DEFAULT_VARIANT,
   godaGoalModel,
   godaOutput,
+  kaosdocOutput,
   istardtAnalysisModel,
   istardtOutput,
   initLogger,
@@ -120,6 +121,11 @@ export const transform = (
         variant,
         runtimeFormulas,
       }));
+    } else if (engine === 'kaosdoc') {
+      // KAOS's document reads the model's IR: its hubs, agents and conflicts too
+      const parseResult = GoalModel.parseForKaosdoc(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      ({ files } = kaosdocOutput(parseResult.goalModel, { modelName }));
     } else if (engine === 'istardt') {
       // iStar-DT reads the model as a graph: its effects, conditions and
       // precedences are links and kinds goal-tree's tree doesn't keep (#125)

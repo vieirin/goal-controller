@@ -2,7 +2,7 @@
 
 import {
   MODELLING_LABEL,
-  isFrameworkMode,
+  frameworkEditorOf,
   isModellingMode,
 } from '@/lib/workbench/frameworkModes';
 import {
@@ -372,7 +372,7 @@ export default function TopBar() {
       {wb.hasModel && (
         <div className='ml-auto flex shrink-0 items-center gap-2'>
           {/* a KAOS or NFR model has its framework's editor, no iStar one (#171) */}
-          {wb.hasModel && !isFrameworkMode(wb.mode) && (
+          {wb.hasModel && !frameworkEditorOf(wb.mode) && (
             <Button
               variant='outline'
               onClick={shell.togglePistarMode}
@@ -401,7 +401,7 @@ export default function TopBar() {
                 description={`Use the ${ENGINE_LABEL[wb.recordedEngine]} palette (only the elements it reads)`}
               />
             )}
-          {wb.hasModel && shell.pistarMode && !isFrameworkMode(wb.mode) && (
+          {wb.hasModel && shell.pistarMode && !frameworkEditorOf(wb.mode) && (
             <Button
               variant={wb.recordedEngine ? 'outline' : 'primary'}
               onClick={() =>
