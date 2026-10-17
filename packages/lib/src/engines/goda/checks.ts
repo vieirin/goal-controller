@@ -20,7 +20,7 @@ export const godaCheckRegistry = checks({
    * One goal is selected: GODA generates from the actor that has it. A second
    * one is reported on itself; none, by the engine (no element to mark).
    */
-  'goda.goal.selected': (raw, context) => {
+  'goda.goal.selected': ({ raw }, context) => {
     if (!isSelected(raw.selected) || !context.elements) return null;
     const other = Object.entries(context.elements).find(
       ([id, element]) =>

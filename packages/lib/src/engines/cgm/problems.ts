@@ -6,7 +6,8 @@
  * is the dialect's reading (./values): one written with an error is unset,
  * the dialect's value check reports it.
  */
-import type { CheckContext } from '../checks';
+import { parses } from '@goal-controller/goal-language';
+import type { CheckContext, CheckInput } from '../checks';
 import type { AnalysisModel } from '../analysis';
 import { cgmCheckRegistry } from './checks';
 import { cgm as cgmDialect } from './definition';
@@ -77,14 +78,21 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   };
   for (const element of model.elements) {
     const id = cgm.idOf(element.id);
-    formulas(element.id, id, elementValues(element));
+    const values = elementValues(element);
+    formulas(element.id, id, values);
+    // what its checks are given, as the editors give it
+    const input: CheckInput = {
+      props: values,
+      raw: element.properties,
+      kind: element.kind,
+    };
     for (const [key, check] of [
       [CGM_KEYS.activation, 'cgm.goal.activation'],
       [CGM_KEYS.formula, 'cgm.context.monitorable'],
       [CGM_KEYS.supportedBy, 'cgm.statement.supported'],
     ] as const) {
-      if (!(key in element.properties)) continue;
-      const message = cgmCheckRegistry[check](element.properties, context(id));
+      if (!(key in element.properties) || !parses(input, key)) continue;
+      const message = cgmCheckRegistry[check](input, context(id));
       if (message)
         problems.push({
           severity: 'error',
@@ -104,7 +112,8 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   }
   for (const link of model.links) {
     const name = `${cgm.idOf(link.source)} → ${cgm.idOf(link.target)}`;
-    formulas(link.id, name, linkValues(link));
+    const values = linkValues(link);
+    formulas(link.id, name, values);
     for (const key of [CGM_KEYS.context, CGM_KEYS.opposite])
       if (
         link.properties[key]?.trim() &&
@@ -115,10 +124,14 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
           at: link.id,
           message: `${name}: a ${link.kind.split('.')[1]} has no ${key} (REJ 2010 Table 1: contexts sit on AND and OR refinements, means-end, dependencies and contributions)`,
         });
-    const message = cgmCheckRegistry['cgm.contribution.opposite'](
-      link.properties,
-      context(link.id),
-    );
+    const input: CheckInput = {
+      props: values,
+      raw: link.properties,
+      kind: link.kind,
+    };
+    const message = parses(input, CGM_KEYS.opposite)
+      ? cgmCheckRegistry['cgm.contribution.opposite'](input, context(link.id))
+      : null;
     if (message)
       problems.push({
         severity: 'error',

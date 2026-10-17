@@ -11,7 +11,8 @@ import {
   fieldHover,
   expressionNodes,
   readAssertion,
-  readExpression,
+  type Expression,
+  type RunCheck,
 } from '../src/index.js';
 
 // the toy: a goal's reward is a formula over resources, its guard compares one
@@ -54,10 +55,10 @@ const formulas = defineDialect({
   },
 });
 
-const runCheck = (check: string, properties: Record<string, string>) =>
+const runCheck: RunCheck = (check, { props }) =>
   check === 'formulas.goal.reward' &&
-  // an engine's check reads the tree, never the text
-  [readExpression(properties.reward ?? '')]
+  // an engine's check reads the tree the dialect read, never the text
+  [props.reward as Expression | null | undefined]
     .flatMap((tree) => (tree ? expressionNodes(tree) : []))
     .some(
       (node) =>
@@ -79,9 +80,9 @@ const context: DefinitionContext = {
 };
 
 const problems = (key: string, value: string) =>
-  fieldDiagnostics(formulas, context, 'G1', key, value, (check, properties) =>
-    runCheck(check, { ...properties, [key]: value }),
-  ).map((d) => d.message);
+  fieldDiagnostics(formulas, context, 'G1', key, value, runCheck).map(
+    (d) => d.message,
+  );
 
 describe('a dialect with expressions', () => {
   it('accepts a formula over its resources, variables and functions', () => {

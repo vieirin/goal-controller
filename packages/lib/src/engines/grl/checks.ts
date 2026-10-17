@@ -9,7 +9,7 @@ import { checks } from '../checks';
 
 export const grlCheckRegistry = checks({
   /** a belief is a rationale: an intentional element takes contributions, a belief doesn't */
-  'grl.link.contribution': (_raw, context) =>
+  'grl.link.contribution': (_input, context) =>
     context.readLink?.(context.self)?.ends?.target.kind === 'grl.Belief'
       ? 'A contribution goes to an intentional element, not to a belief'
       : null,

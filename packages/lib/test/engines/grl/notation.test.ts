@@ -14,6 +14,7 @@ import {
   documentDiagnostics,
   notationDocument,
   notationEdits,
+  type RunCheck,
 } from '@goal-controller/goal-language';
 import { parsePistar } from '../../../../goal-tree/node_modules/@istar-ts/core';
 import { grl, grlCheckRegistry } from '../../../src/engines/grl';
@@ -85,13 +86,9 @@ describe('GRL in the Notation view', () => {
     const tree = view();
     const { text } = notationDocument(grl, tree);
     const context = contextFromView(grl, tree, []);
-    const runCheck = (
-      name: string,
-      properties: Readonly<Record<string, string>>,
-      self: string,
-    ) =>
+    const runCheck: RunCheck = (name, input, self) =>
       grlCheckRegistry[name as keyof typeof grlCheckRegistry]?.(
-        properties,
+        input,
         checkContextOf(context, self),
       ) ?? null;
     const edited = text

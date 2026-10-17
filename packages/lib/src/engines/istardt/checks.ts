@@ -7,6 +7,7 @@
  * does (goal-controller#187): a value written with an error is unset, the
  * dialect's value check reports it.
  */
+import { istarKindOf } from '@goal-controller/dialect';
 import {
   readProperties,
   type AssertionReading,
@@ -14,7 +15,12 @@ import {
 } from '@goal-controller/goal-language';
 import type { Check } from '../checks';
 import { istardt } from './definition';
-import type { IstardtElement, IstardtModel, IstardtProblem } from './model';
+import {
+  ISTARDT_DIALECT_KIND,
+  type IstardtElement,
+  type IstardtModel,
+  type IstardtProblem,
+} from './model';
 import type { IstardtKind } from './vocabulary';
 
 /** How far an effect group's probabilities may be from 1. */
@@ -36,7 +42,7 @@ export type IstardtCheckName = 'istardt.goal.root' | 'istardt.export.bounds';
 
 export const istardtCheckRegistry: Readonly<Record<IstardtCheckName, Check>> = {
   /** one root goal: the episode's (ER 2024 §3.2) */
-  'istardt.goal.root': (raw, context) => {
+  'istardt.goal.root': ({ raw }, context) => {
     if (!isRoot(raw) || !context.elements) return null;
     const others = Object.entries(context.elements).filter(
       ([id, element]) =>
@@ -49,7 +55,7 @@ export const istardtCheckRegistry: Readonly<Record<IstardtCheckName, Check>> = {
       : null;
   },
   /** a continuous export's range (a quality's, a predicate's, a variable's: the same bounds) */
-  'istardt.export.bounds': (raw) => {
+  'istardt.export.bounds': ({ raw }) => {
     const { exportMin: min, exportMax: max } = readProperties(
       istardt,
       { element: 'quality' },
@@ -384,7 +390,11 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
         );
       else {
         const empty = istardtCheckRegistry['istardt.export.bounds'](
-          element.properties,
+          {
+            props: element.values,
+            raw: element.properties,
+            kind: istarKindOf(ISTARDT_DIALECT_KIND[element.kind]),
+          },
           { self: element.id ?? element.pistarId, kindOf: () => undefined },
         );
         if (empty) say('error', element, `${label(element)}: ${empty}`);

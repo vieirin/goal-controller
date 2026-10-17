@@ -7,7 +7,7 @@
  * formula written with an error is unset here, the dialect's value check
  * reports it.
  */
-import type { Check, CheckContext } from '../checks';
+import type { Check, CheckContext, CheckInput } from '../checks';
 import { monitorabilityProblem, type FormulaLookup } from './formulas';
 import { elementValues, linkValues } from './values';
 import { CGM_KINDS } from './vocabulary';
@@ -21,7 +21,7 @@ const lookupIn =
 /** Why a context's formula, or a statement's support, isn't monitorable (Defs. 6–7). */
 const monitorable =
   (kind: string, key: 'formula' | 'supportedBy') =>
-  (raw: Partial<Record<string, string>>, context: CheckContext) =>
+  ({ raw }: CheckInput, context: CheckContext) =>
     context.elements || context.readElement
       ? monitorabilityProblem(
           elementValues({ kind, properties: raw })[key],
@@ -46,7 +46,7 @@ export const cgmCheckRegistry: Readonly<Record<CgmCheckName, Check>> = {
   /** Defs. 5–6: a statement is supported, by statements supported in turn, down to facts */
   'cgm.statement.supported': monitorable(CGM_KINDS.statement, 'supportedBy'),
   /** Table 1, kind 1: activation is a root goal's */
-  'cgm.goal.activation': (raw, context) => {
+  'cgm.goal.activation': ({ raw }, context) => {
     if (!elementValues({ kind: 'goal', properties: raw }).activation)
       return null;
     if (!context.elements) return null;
@@ -58,7 +58,7 @@ export const cgmCheckRegistry: Readonly<Record<CgmCheckName, Check>> = {
       : null;
   },
   /** #151 D10: the opposite label applies under its own context */
-  'cgm.contribution.opposite': (raw) => {
+  'cgm.contribution.opposite': ({ raw }) => {
     const { context, opposite } = linkValues({
       kind: 'istar.ContributionLink',
       properties: raw,

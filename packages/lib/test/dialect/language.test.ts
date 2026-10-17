@@ -5,6 +5,7 @@ import {
   fieldCompletions,
   fieldCompletionsAt,
   fieldDiagnostics,
+  type RunCheck,
 } from '@goal-controller/goal-language';
 import type { DefinitionContext } from '@goal-controller/dialect';
 import { edge, edgeV2, mutrose, parseWorld } from '../../src';
@@ -71,13 +72,9 @@ describe('documentDiagnostics', () => {
 
   it('runs the named checks on property lines and declarations', () => {
     const calls: string[] = [];
-    const runCheck = (
-      check: string,
-      properties: Readonly<Record<string, string>>,
-    ) => {
+    const runCheck: RunCheck = (check, { props }) => {
       calls.push(check);
-      return check === 'edge.resource.initialValue' &&
-        properties.initialValue === '99'
+      return check === 'edge.resource.initialValue' && props.initialValue === 99
         ? 'out of bounds'
         : null;
     };
@@ -120,8 +117,8 @@ describe('fieldDiagnostics', () => {
       'R1',
       'initialValue',
       '42',
-      (check, p) =>
-        check === 'edge.resource.initialValue' && p.initialValue === '42'
+      (check, { props }) =>
+        check === 'edge.resource.initialValue' && props.initialValue === 42
           ? 'nope'
           : null,
     );

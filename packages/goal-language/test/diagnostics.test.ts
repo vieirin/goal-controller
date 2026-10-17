@@ -11,6 +11,8 @@ import {
   notationRefs,
   parseElementLine,
   readNotation,
+  type AnyCheckInput,
+  type RunCheck,
 } from '../src/index.js';
 import { toy } from '../../dialect/test/support/toy.js';
 
@@ -76,12 +78,9 @@ describe('documentDiagnostics', () => {
 
   it('runs the named checks on property lines and declarations', () => {
     const calls: string[] = [];
-    const runCheck = (
-      check: string,
-      properties: Readonly<Record<string, string>>,
-    ) => {
+    const runCheck: RunCheck = (check, { props }) => {
       calls.push(check);
-      return check === 'toy.resource.bounds' && properties.lowerBound === '7'
+      return check === 'toy.resource.bounds' && props.lowerBound === 7
         ? 'out of bounds'
         : null;
     };
@@ -91,6 +90,56 @@ describe('documentDiagnostics', () => {
       ['{int 7..9 = 8}', 'error', 'out of bounds'],
     ]);
     expect(calls).to.include('toy.goal.deadline');
+  });
+
+  it('gives every check on an element one record: its props, raw and kind (#222)', () => {
+    // the bounds check on both bounds
+    const bounded = {
+      ...toy,
+      properties: {
+        ...toy.properties,
+        resource: toy.properties.resource.map((p) =>
+          p.key === 'upperBound' ? { ...p, check: 'toy.resource.bounds' } : p,
+        ),
+      },
+    };
+    const seen: AnyCheckInput[] = [];
+    const runCheck: RunCheck = (_check, input) => {
+      seen.push(input);
+      return null;
+    };
+    documentDiagnostics(bounded, 'R1: R {int 7..9 = 8}', context, {
+      runCheck,
+    });
+    expect(seen).to.have.length(2);
+    expect(seen[0]).to.equal(seen[1]);
+    expect(seen[0]).to.deep.equal({
+      props: { type: 'int', lowerBound: 7, upperBound: 9, initialValue: 8 },
+      raw: { type: 'int', lowerBound: '7', upperBound: '9', initialValue: '8' },
+      kind: 'istar.Resource',
+    });
+  });
+
+  it('runs no check on a value that does not read as its type: the type says what is wrong (#222)', () => {
+    const calls: string[] = [];
+    const runCheck: RunCheck = (check) => {
+      calls.push(check);
+      return 'the engine says no';
+    };
+    const doc = (deadline: string) =>
+      `G1: Go [G2;T1]\n  priority high\n  deadline ${deadline}`;
+    // an int, and one below its min (#249): neither is one
+    for (const deadline of ['soon', '0']) {
+      const found = messages(doc(deadline), { runCheck });
+      expect(found, deadline).to.have.length(1);
+      expect(found[0]![2], deadline).to.not.equal('the engine says no');
+    }
+    expect(calls).to.deep.equal([]);
+    // one that reads: the engine's message
+    expect(messages(doc('3'), { runCheck })).to.deep.equal([
+      ['deadline 3', 'error', 'the engine says no'],
+    ]);
+    expect(calls).to.deep.equal(['toy.goal.deadline']);
   });
 
   it('flags properties that do not apply, and lines it cannot read', () => {
@@ -145,8 +194,8 @@ describe('fieldDiagnostics', () => {
       'R1',
       'lowerBound',
       '42',
-      (check, p) =>
-        check === 'toy.resource.bounds' && p.lowerBound === '42'
+      (check, { props }) =>
+        check === 'toy.resource.bounds' && props.lowerBound === 42
           ? 'nope'
           : null,
     );

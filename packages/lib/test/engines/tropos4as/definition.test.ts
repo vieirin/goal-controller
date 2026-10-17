@@ -4,6 +4,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { tropos4as as TROPOS4AS } from '../../../src/engines/tropos4as/definition';
 import { propertyKeys } from '@goal-controller/dialect';
 import {
   readTropos4asModel,
@@ -81,7 +83,12 @@ describe('Tropos4AS: the definition', () => {
   });
 
   it('a perform-goal evaluates no condition (§4.3.1, an error)', () => {
-    const check = tropos4asCheckRegistry['tropos4as.goal.perform'];
+    const check = checkOnKey(
+      TROPOS4AS,
+      { element: 'goal' },
+      'achievement',
+      tropos4asCheckRegistry['tropos4as.goal.perform'],
+    );
     assert.match(
       check({ type: 'perform', achievement: 'x', creation: 'y' }, context) ??
         '',
@@ -95,7 +102,12 @@ describe('Tropos4AS: the definition', () => {
   });
 
   it('a target needs its maintain condition (M(m, t, d), §4.3.3)', () => {
-    const check = tropos4asCheckRegistry['tropos4as.goal.target'];
+    const check = checkOnKey(
+      TROPOS4AS,
+      { element: 'goal' },
+      'target',
+      tropos4asCheckRegistry['tropos4as.goal.target'],
+    );
     assert.ok(check({ type: 'maintain', target: 't > 2' }, context));
     assert.strictEqual(
       check({ type: 'maintain', maintain: 't > 1', target: 't > 2' }, context),
@@ -104,7 +116,12 @@ describe('Tropos4AS: the definition', () => {
   });
 
   it("an artifact's attributes are name:type, a bool, a number or options", () => {
-    const check = tropos4asCheckRegistry['tropos4as.artifact.attributes'];
+    const check = checkOnKey(
+      TROPOS4AS,
+      { element: 'tropos4as.Artifact' },
+      'attributes',
+      tropos4asCheckRegistry['tropos4as.artifact.attributes'],
+    );
     assert.strictEqual(
       check(
         { attributes: 'clean:bool, level:number, n:int, mode:wet|dry' },

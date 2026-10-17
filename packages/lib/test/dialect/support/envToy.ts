@@ -64,7 +64,7 @@ export const envy = defineDialect({
 
 /** a goal's condition reads some artifact's member (read from its member nodes) */
 export const envChecks = checks({
-  'env.goal.when': ({ when }) =>
+  'env.goal.when': ({ raw: { when } }) =>
     when && !assertionMembers(readAssertion(when)).length
       ? 'Reads no artifact’s member'
       : null,

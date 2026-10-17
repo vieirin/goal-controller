@@ -4,6 +4,7 @@
  * with its own dialect and goal type. They read the values as the dialect reads them
  * (goal-controller#187); the texts as written are what the templates write.
  */
+import { ISTAR_KIND_OF } from '@goal-controller/dialect';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
@@ -137,10 +138,16 @@ export const edgeDependsOn = <
   { props, raw }: Omit<Input<'goal'>, 'id'>,
   allNodes: Map<string, TNode>,
 ): TNode[] => {
-  const message = edgeGoalChecks.dependsOn?.(raw, {
-    self,
-    kindOf: (id) => allNodes.get(id)?.type,
-  });
+  const message = edgeGoalChecks.dependsOn?.(
+    { props, raw, kind: ISTAR_KIND_OF.goal },
+    {
+      self,
+      kindOf: (id) => {
+        const type = allNodes.get(id)?.type;
+        return type && ISTAR_KIND_OF[type];
+      },
+    },
+  );
   if (message) throw new Error(message);
   return (props.dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
 };

@@ -13,6 +13,7 @@ import {
   elementLine,
   isValidName,
 } from '@goal-controller/goal-language';
+import { runCheck } from '@goal-controller/lib';
 import { KNOWN_PROPERTIES } from '@/lib/models/knownProperties';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -1000,8 +1001,12 @@ export function PropertiesField({
             validate={
               applies(key) && specOf(key)?.validate
                 ? (value) =>
-                    specOf(key)!.validate!(
+                    runCheck(
+                      notationDefinitionOf(engine),
+                      { element: node.kind },
+                      key,
                       { ...node.properties, [key]: value },
+                      specOf(key)!.validate,
                       checkContext,
                     )
                 : undefined

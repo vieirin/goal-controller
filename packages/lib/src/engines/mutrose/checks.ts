@@ -135,7 +135,7 @@ const declaredType = (
  */
 const varsCheck =
   (key: 'Controls' | 'Monitors'): Check =>
-  (raw, context) => {
+  ({ raw }, context) => {
     const text = raw[key] ?? '';
     if (!text.trim()) return null;
     // the decomposer quotes the item as written, between its commas
@@ -232,7 +232,7 @@ const goalTypeOf = (
 export const mutroseCheckRegistry = checks({
   'mutrose.goal.controls': varsCheck('Controls'),
   'mutrose.goal.monitors': varsCheck('Monitors'),
-  'mutrose.goal.achieveCondition': (raw, { self }) => {
+  'mutrose.goal.achieveCondition': ({ raw }, { self }) => {
     const text = raw.AchieveCondition ?? '';
     // the decomposer reads a forAll by the word, then requires its shape
     if (!text.includes('forAll')) return null;
@@ -242,7 +242,7 @@ export const mutroseCheckRegistry = checks({
       ? forAllProblem(self, forAll, vars(raw.Monitors), vars(raw.Controls))
       : null;
   },
-  'mutrose.goal.queriedProperty': (raw, context) => {
+  'mutrose.goal.queriedProperty': ({ raw }, context) => {
     const { self } = context;
     const text = raw.QueriedProperty ?? '';
     if (!text) return null;
@@ -255,13 +255,13 @@ export const mutroseCheckRegistry = checks({
     );
   },
   // the decomposer ignores any other text; the editors say what it reads
-  'mutrose.goal.creationCondition': (raw) => {
+  'mutrose.goal.creationCondition': ({ raw }) => {
     const text = raw.CreationCondition ?? '';
     return text.trim() && !parseCreationCondition(text)
       ? 'A CreationCondition is assertion condition "expr" or assertion trigger "Event"'
       : null;
   },
-  'mutrose.task.location': (raw, context) => {
+  'mutrose.task.location': ({ raw }, context) => {
     const text = raw.Location ?? '';
     if (!text.trim()) return null;
     const [location, ...more] = readNames(text).value;
@@ -275,7 +275,7 @@ export const mutroseCheckRegistry = checks({
       ? `${name} is a ${typeClass}: a Location is one of the configuration's location types (${locations.join(', ')})`
       : null;
   },
-  'mutrose.task.params': (raw, context) => {
+  'mutrose.task.params': ({ raw }, context) => {
     const text = raw.Params ?? '';
     if (!text.trim()) return null;
     const bad = readNames(text).value.find(({ name }) => !name);
@@ -283,7 +283,7 @@ export const mutroseCheckRegistry = checks({
       ? `Params are variable names, comma-separated: not ${bad.item.text || 'an empty name'}`
       : scopeProblem(context, 'Params');
   },
-  'mutrose.task.robotNumber': (raw) => {
+  'mutrose.task.robotNumber': ({ raw }) => {
     const text = raw.RobotNumber ?? '';
     return text && parseRobotNumber(text) === null
       ? `Invalid declaration of robot number: ${text}`

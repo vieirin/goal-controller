@@ -14,12 +14,15 @@ import {
   checkContextOf,
   contextFromView,
   documentDiagnostics,
+  fieldDiagnostics,
   hasLinkLine,
   linkLine,
   notationDocument,
   notationEdits,
   readLine,
   readLinkLine,
+  type AnyCheckInput,
+  type RunCheck,
 } from '../src/index.js';
 import { node, toy } from '../../dialect/test/support/toy.js';
 
@@ -437,17 +440,13 @@ describe('link lines without ids (linkLines)', () => {
   });
 
   describe('diagnostics', () => {
-    const run = (
-      name: string,
-      properties: Readonly<Record<string, string>>,
-      self: string,
-    ) => {
+    const run: RunCheck = (name, { props }, self) => {
       // the check reads the link it is on
       const read = checkContextOf(
         contextFromView(plainLinked, PLAIN, []),
         self,
       ).readLink?.(self);
-      return name === 'plain.kind' && properties.kind === 'hard'
+      return name === 'plain.kind' && props.kind === 'hard'
         ? `hard from ${read?.source} to ${read?.target}`
         : null;
     };
@@ -495,6 +494,27 @@ describe('link lines without ids (linkLines)', () => {
       ).to.deep.equal([
         ['-1', 'At least 0'],
         ['hard', 'hard from q to h2'],
+      ]);
+    });
+
+    it("gives a link field's check the link's other properties, as its line does (#257)", () => {
+      const seen: AnyCheckInput[] = [];
+      const check: RunCheck = (_name, input) => {
+        seen.push(input);
+        return input.props.weight === 1 ? 'hard at weight 1' : null;
+      };
+      const model = contextFromView(plainLinked, PLAIN, []);
+      expect(
+        fieldDiagnostics(plainLinked, model, 'l2', 'kind', 'hard', check).map(
+          (d) => d.message,
+        ),
+      ).to.deep.equal(['hard at weight 1']);
+      expect(seen).to.deep.equal([
+        {
+          props: { weight: 1, kind: 'hard' },
+          raw: { weight: '1', kind: 'hard' },
+          kind: 'istar.ContributionLink',
+        },
       ]);
     });
   });

@@ -1,20 +1,31 @@
 /**
- * What an engine's named check is given: the element's properties, and a
- * context with the element, the kinds of the others, and the model itself
- * when the caller has it. The definition names checks; the engine library
- * implements them; the editors, the language server and the engine's mapper
- * run them with this.
+ * What an engine's named check is given (goal-controller#222): what a
+ * mapper is given, the record of the element (or actor, or link) the
+ * checked property is on, read against the dialect once (`props`, typed;
+ * `raw`, as written; `kind`, what it is), and a context with the element,
+ * the kinds of the others, and the model itself when the caller has it. The
+ * definition names checks; the engine library implements them; the editors,
+ * the language server and the engine's mapper run them with this.
  */
-import type { DefinitionContext } from '@goal-controller/dialect';
-
-/** The kinds a check tells apart (a quality is a goal to no check). */
-export type CheckKind = 'goal' | 'task' | 'resource';
+import { istarKindOf, type DefinitionContext } from '@goal-controller/dialect';
+import {
+  readProperties,
+  type PropertyDialect,
+  type PropertyList,
+  type PropertyOwner,
+  type PropertyTexts,
+  type PropertyValues,
+} from './properties.js';
 
 export type CheckContext = {
   /** the element's RT id */
   self: string;
-  /** another element's kind, if the model has it */
-  kindOf: (id: string) => CheckKind | undefined;
+  /**
+   * Another element's kind, if the model has it: the dialect's, as an iStar
+   * kind (`istar.Goal`, `istar.Quality`) or a framework's or an extension's
+   * own (`kaos.Agent`).
+   */
+  kindOf: (id: string) => string | undefined;
   /**
    * The whole model, when the caller has it (an editor, the language
    * server): every element by RT id, with its kind, properties, children
@@ -52,11 +63,64 @@ export type CheckContext = {
   ) => NonNullable<DefinitionContext['actors']>[string] | undefined;
 };
 
-/** An engine's named check: what is wrong with the element's value, or null. */
-export type NamedCheck = (
-  properties: Readonly<Record<string, string>>,
-  context: CheckContext,
-) => string | null;
+/**
+ * What a check is given of the element (or actor, or link) its property is
+ * on: its properties as the dialect reads them (`readProperties`: a value
+ * unset, or written with an error, is absent), as written, and its kind (an
+ * element's as `kindOf` answers it, `istar.Goal`; an actor's or a link's).
+ */
+export type CheckInput<L extends PropertyList = PropertyList> = {
+  props: PropertyValues<L>;
+  raw: PropertyTexts<L>;
+  kind: string;
+};
+
+/** A check's input, whatever the properties: what the checker builds. */
+export type AnyCheckInput = {
+  props: Readonly<Record<string, unknown>>;
+  raw: Readonly<Record<string, string | undefined>>;
+  kind: string;
+};
+
+/**
+ * An engine's named check: what is wrong with the element's value, or null.
+ * (A method's parameter, so that a check typed by its dialect's properties,
+ * `CheckInput<L>`, is one.)
+ */
+export type NamedCheck = {
+  check(input: AnyCheckInput, context: CheckContext): string | null;
+}['check'];
+
+/**
+ * The input of the checks on an element's (`{ element: 'goal' }`), an
+ * actor's or a link's properties: its stored strings read against the
+ * dialect once, for every check on it.
+ */
+export const checkInputOf = (
+  definition: PropertyDialect,
+  owner: PropertyOwner,
+  stored: Readonly<Record<string, string | undefined>>,
+): AnyCheckInput => {
+  const { values, text } = readProperties(definition, owner, stored);
+  return {
+    props: values,
+    raw: text,
+    kind:
+      'element' in owner
+        ? istarKindOf(owner.element)
+        : 'actor' in owner
+          ? owner.actor
+          : owner.link,
+  };
+};
+
+/**
+ * Whether a key's value reads as its type (unset reads): a check is run on a
+ * key only then, so it never sees its own key unset for a value written; the
+ * dialect's value check says what is wrong with one that doesn't.
+ */
+export const parses = (input: AnyCheckInput, key: string): boolean =>
+  !(key in input.raw) || key in input.props;
 
 /** A check's context in a model (the editors' and the language server's). */
 export const checkContextOf = (
@@ -66,9 +130,7 @@ export const checkContextOf = (
   self,
   kindOf: (id) => {
     const kind = model.elements[id]?.kind;
-    return kind === 'goal' || kind === 'task' || kind === 'resource'
-      ? kind
-      : undefined;
+    return kind === undefined ? undefined : istarKindOf(kind);
   },
   elements: model.elements,
   readElement: (key) => model.elements[key],

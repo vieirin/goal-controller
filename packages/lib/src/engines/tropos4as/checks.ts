@@ -30,7 +30,7 @@ export const tropos4asCheckRegistry: Readonly<
   Record<Tropos4asCheckName, Check>
 > = {
   /** AAMAS 2009 §4.3.1, #134 D4: a perform-goal evaluates no condition */
-  'tropos4as.goal.perform': (raw) => {
+  'tropos4as.goal.perform': ({ raw }) => {
     const values = goal(raw);
     if (values.type !== 'perform') return null;
     const written = CONDITION_KEYS.filter(
@@ -41,14 +41,14 @@ export const tropos4asCheckRegistry: Readonly<
       : null;
   },
   /** §4.3.3: M(m, t, d) has a target only with its maintain condition */
-  'tropos4as.goal.target': (raw) => {
+  'tropos4as.goal.target': ({ raw }) => {
     const { target, maintain } = goal(raw);
     return target && !maintain
       ? 'A target condition needs a maintain condition (M(m, t, d), AAMAS 2009 §4.3.3)'
       : null;
   },
   /** an artifact's attributes: each `name:type`, a type the conditions can read */
-  'tropos4as.artifact.attributes': (raw) => {
+  'tropos4as.artifact.attributes': ({ raw }) => {
     const wrong = (
       readProperties(tropos4as, { element: 'tropos4as.Artifact' }, raw).values
         .attributes ?? []

@@ -7,7 +7,7 @@
  * cannot read is its own diagnostic (the dialect's value check says it), so a check says
  * nothing of it, and the mapper reads it as unset.
  */
-import type { DECLARATION_KEYS } from '@goal-controller/dialect';
+import { ISTAR_KIND_OF, type DECLARATION_KEYS } from '@goal-controller/dialect';
 import {
   readProperties,
   type PropertyRecord,
@@ -86,15 +86,20 @@ const goalOrTaskIssues = (
   return issues;
 };
 
+/** An iStar kind by the name the Edge dialects give it (`istar.Task`: `task`). */
+const EDGE_KIND_NAME: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(ISTAR_KIND_OF).map(([name, kind]) => [kind, name]),
+);
+
 /** afterCreationMapper's dependsOn resolution, word for word (existence, then goal-ness). */
-const dependsOnCheck: Check = (raw, { self, kindOf }) => {
+const dependsOnCheck: Check = ({ raw }, { self, kindOf }) => {
   for (const id of read('goal', raw).values.dependsOn ?? []) {
     const kind = kindOf(id);
     if (!kind) {
       return `[INVALID MODEL]: Dependency ${id} not found for node ${self}`;
     }
-    if (kind !== 'goal') {
-      return `[INVALID MODEL]: Dependency ${id} for node ${self} must be a goal, got ${kind}`;
+    if (kind !== ISTAR_KIND_OF.goal) {
+      return `[INVALID MODEL]: Dependency ${id} for node ${self} must be a goal, got ${EDGE_KIND_NAME[kind] ?? kind}`;
     }
   }
   return null;
@@ -196,7 +201,7 @@ export const firstResourceIssue = (
 /** The check of a goal's or a task's key: its first issue, unless the dialect can't read it. */
 const goalOrTaskCheck =
   (kind: 'goal' | 'task', key: string): Check =>
-  (raw) => {
+  ({ raw }) => {
     const record = read(kind, raw);
     return messageOn(goalOrTaskIssues(kind, record.values, raw), record, key);
   };
@@ -204,7 +209,7 @@ const goalOrTaskCheck =
 /** The check of a resource's key: its first issue, unless the dialect can't read it. */
 const resourceCheck =
   (key: string): Check =>
-  (raw) => {
+  ({ raw }) => {
     const record = read('resource', raw);
     return messageOn(resourceReading(record.values, raw).issues, record, key);
   };

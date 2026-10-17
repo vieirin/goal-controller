@@ -111,7 +111,8 @@ export * from './engines/propositional';
 
 // Validation
 export { validate };
-export type { Check, CheckContext } from './engines/checks';
+export type { Check, CheckContext, CheckInput } from './engines/checks';
+export { checkOn, runCheck } from './engines/checks';
 export {
   edgeGoalChecks,
   edgeTaskChecks,

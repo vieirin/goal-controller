@@ -380,7 +380,10 @@ describe('piStar-ext annotations', () => {
         withCheck,
         doc,
         contextFromView(withCheck, tree, []),
-        { runCheck: (_, p) => (p.tagValue === 'bad' ? 'Bad value' : null) },
+        {
+          runCheck: (_, { props }) =>
+            props.tagValue === 'bad' ? 'Bad value' : null,
+        },
       );
       expect(found).to.deep.equal([
         {

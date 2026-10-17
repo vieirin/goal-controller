@@ -9,6 +9,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { goda as GODA } from '../../../src/engines/goda/definition';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import {
   goda,
@@ -175,7 +177,12 @@ describe('godaEngineMapper today (#187): a goal', () => {
     });
 
     it('its check reads it as the mapper does: a padded `true` is a second, `True` none', () => {
-      const check = godaCheckRegistry['goda.goal.selected'];
+      const check = checkOnKey(
+        GODA,
+        { element: 'goal' },
+        'selected',
+        godaCheckRegistry['goda.goal.selected'],
+      );
       const across = (other: string) =>
         check(
           { selected: 'true' },

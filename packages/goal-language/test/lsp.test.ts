@@ -93,7 +93,10 @@ describe('the language server', () => {
     expect(seen.length).to.be.greaterThan(0);
     const [check] = seen;
     expect(check!.self).to.equal('R1');
-    expect(check!.kindOf('G2')).to.equal('goal');
+    // the dialect's kind, as iStar's (goal-controller#222)
+    expect(check!.kindOf('G2')).to.equal('istar.Goal');
+    expect(check!.kindOf('R1')).to.equal('istar.Resource');
+    expect(check!.kindOf('nowhere')).to.equal(undefined);
     expect(check!.elements?.R1?.x).to.equal(120);
     expect(Object.keys(check!.elements ?? {})).to.deep.equal([
       'G1',

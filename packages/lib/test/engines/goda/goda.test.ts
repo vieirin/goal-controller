@@ -8,6 +8,8 @@
 import * as assert from 'assert';
 import { existsSync, readFileSync } from 'fs';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { goda as GODA } from '../../../src/engines/goda/definition';
 import { join } from 'path';
 import { Model } from '@goal-controller/goal-tree';
 import {
@@ -304,7 +306,12 @@ describe('GODA: models', () => {
   });
 
   it('checks that one goal is selected, across the model', () => {
-    const check = godaCheckRegistry['goda.goal.selected'];
+    const check = checkOnKey(
+      GODA,
+      { element: 'goal' },
+      'selected',
+      godaCheckRegistry['goda.goal.selected'],
+    );
     const elements = {
       G1: { kind: 'goal', children: [], properties: { selected: 'true' } },
       G2: { kind: 'goal', children: [], properties: { selected: 'true' } },

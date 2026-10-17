@@ -14,10 +14,11 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView, type GoalView } from '@goal-controller/goal-tree';
-import { edgeCheckRegistry } from '../../src';
+import { edgeCheckRegistry, runCheck, type Check } from '../../src';
 import {
   DECLARATION_KEYS,
   inputOf,
+  istarKindOf,
   propertyKeys,
   relationMismatch,
   specsFromDefinition,
@@ -301,11 +302,10 @@ describe('harness 4: inspector specs', () => {
       let compared = 0;
       for (const { file, model } of list) {
         const tree = view(model, grammar);
+        // the dialect's kinds, as a check's context answers them (#222)
         const kindOf = (id: string) => {
           const kind = tree.nodes.get(id)?.kind;
-          return kind === 'goal' || kind === 'task' || kind === 'resource'
-            ? kind
-            : undefined;
+          return kind === undefined ? undefined : istarKindOf(kind);
         };
         for (const node of tree.nodes.values()) {
           const kind = node.kind as ElementKind;
@@ -333,10 +333,19 @@ describe('harness 4: inspector specs', () => {
                 spec.notApplying?.(properties),
               );
               expect(!!mine.validate, at).to.equal(!!spec.validate);
+              // both run as the editors run them: on the record read by
+              // the dialect, and only when the key's value reads
               const context = { self: node.id, kindOf };
-              expect(mine.validate?.(properties, context), at).to.equal(
-                spec.validate?.(properties, context),
-              );
+              const run = (validate: Check | undefined) =>
+                runCheck(
+                  definition,
+                  { element: kind },
+                  spec.key,
+                  properties,
+                  validate,
+                  context,
+                );
+              expect(run(mine.validate), at).to.equal(run(spec.validate));
               compared++;
             }
           }

@@ -10,7 +10,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { valueProblem } from '@goal-controller/goal-language';
+import { runCheck, type CheckContext } from '../../../src/engines/checks';
+import { checkContextOf, valueProblem } from '@goal-controller/goal-language';
 import { edge } from '../../../src/engines/edge/definition';
 import {
   edgeCheckRegistry,
@@ -20,6 +21,30 @@ import {
 } from '../../../src/engines/edgeFamily/checks';
 
 const noDeps = { self: '', kindOf: () => undefined };
+
+/**
+ * A check run as the editors run it (#222): given the record the dialect reads, and
+ * only when its key's value reads as its type.
+ */
+const goalCheck = (
+  key: keyof typeof edgeGoalChecks,
+  raw: Record<string, string>,
+  context: CheckContext,
+) =>
+  runCheck(edge, { element: 'goal' }, key, raw, edgeGoalChecks[key], context);
+const resourceCheck = (
+  key: keyof typeof edgeResourceChecks,
+  raw: Record<string, string>,
+  context: CheckContext,
+) =>
+  runCheck(
+    edge,
+    { element: 'resource' },
+    key,
+    raw,
+    edgeResourceChecks[key],
+    context,
+  );
 
 describe('edgeChecks characterization (#187)', () => {
   describe('maxRetries: no check of its own, the dialect’s value check says it', () => {
@@ -109,16 +134,17 @@ describe('edgeChecks characterization (#187)', () => {
     it('are fine for any type but maintain', () => {
       for (const type of ['', 'Maintain', 'achieve']) {
         const raw = { type, maintain: '', assertion: '' };
-        assert.strictEqual(edgeGoalChecks.maintain?.(raw, noDeps), null, type);
-        assert.strictEqual(edgeGoalChecks.assertion?.(raw, noDeps), null, type);
+        assert.strictEqual(goalCheck('maintain', raw, noDeps), null, type);
+        assert.strictEqual(goalCheck('assertion', raw, noDeps), null, type);
       }
-      assert.strictEqual(edgeGoalChecks.maintain?.({}, noDeps), null);
+      assert.strictEqual(goalCheck('maintain', {}, noDeps), null);
     });
 
     it("read ' maintain' as maintain, as the dialect does (its choices are trimmed)", () => {
       // #187: changed (was fine: not exactly maintain)
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
+        goalCheck(
+          'maintain',
           { type: ' maintain', maintain: '', assertion: '' },
           noDeps,
         ),
@@ -128,30 +154,28 @@ describe('edgeChecks characterization (#187)', () => {
 
     it('maintain: quotes the assertion trimmed, or as empty', () => {
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
+        goalCheck(
+          'maintain',
           { type: 'maintain', assertion: ' inFlight ' },
           noDeps,
         ),
         message('got maintain: none, assertion: inFlight'),
       );
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
-          { type: 'maintain', assertion: '  ' },
-          noDeps,
-        ),
+        goalCheck('maintain', { type: 'maintain', assertion: '  ' }, noDeps),
         message("got maintain: none, assertion: 'empty condition'"),
       );
       assert.strictEqual(
-        edgeGoalChecks.maintain?.({ type: 'maintain' }, noDeps),
+        goalCheck('maintain', { type: 'maintain' }, noDeps),
         message("got maintain: none, assertion: 'empty condition'"),
       );
     });
 
     it('assertion: says nothing while maintain is missing (maintain says it)', () => {
       const raw = { type: 'maintain', maintain: ' ', assertion: '' };
-      assert.strictEqual(edgeGoalChecks.assertion?.(raw, noDeps), null);
+      assert.strictEqual(goalCheck('assertion', raw, noDeps), null);
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(raw, noDeps),
+        goalCheck('maintain', raw, noDeps),
         message("got maintain: none, assertion: 'empty condition'"),
       );
     });
@@ -159,12 +183,13 @@ describe('edgeChecks characterization (#187)', () => {
     it('assertion: quotes maintain as written, flags a blank assertion', () => {
       const raw = { type: 'maintain', maintain: ' commLink ', assertion: '  ' };
       assert.strictEqual(
-        edgeGoalChecks.assertion?.(raw, noDeps),
+        goalCheck('assertion', raw, noDeps),
         message("got maintain:  commLink , assertion: 'empty condition'"),
       );
-      assert.strictEqual(edgeGoalChecks.maintain?.(raw, noDeps), null);
+      assert.strictEqual(goalCheck('maintain', raw, noDeps), null);
       assert.strictEqual(
-        edgeGoalChecks.assertion?.(
+        goalCheck(
+          'assertion',
           { type: 'maintain', maintain: 'commLink' },
           noDeps,
         ),
@@ -179,24 +204,32 @@ describe('edgeChecks characterization (#187)', () => {
         maintain: 'inFlight &',
         assertion: 'battery!=low',
       };
-      assert.strictEqual(edgeGoalChecks.maintain?.(raw, noDeps), null);
-      assert.strictEqual(edgeGoalChecks.assertion?.(raw, noDeps), null);
+      assert.strictEqual(goalCheck('maintain', raw, noDeps), null);
+      assert.strictEqual(goalCheck('assertion', raw, noDeps), null);
     });
   });
 
   describe('dependsOn', () => {
-    const kinds: Record<string, 'goal' | 'task' | 'resource'> = {
-      G1: 'goal',
-      G2: 'goal',
-      T1: 'task',
-      R1: 'resource',
-    };
-    const context = { self: 'G1', kindOf: (id: string) => kinds[id] };
+    // the editors' context: kindOf answers the dialect's kinds (#222)
+    const element = (kind: string) => ({ kind, children: [], properties: {} });
+    const context = checkContextOf(
+      {
+        elements: {
+          G1: element('goal'),
+          G2: element('goal'),
+          T1: element('task'),
+          R1: element('resource'),
+          Q1: element('quality'),
+        },
+        variables: [],
+      },
+      'G1',
+    );
     const dependsOn = (value: string) =>
-      edgeGoalChecks.dependsOn?.({ dependsOn: value }, context);
+      goalCheck('dependsOn', { dependsOn: value }, context);
 
     it('is fine when absent, empty, blank, or only separators', () => {
-      assert.strictEqual(edgeGoalChecks.dependsOn?.({}, context), null);
+      assert.strictEqual(goalCheck('dependsOn', {}, context), null);
       assert.strictEqual(dependsOn(''), null);
       assert.strictEqual(dependsOn(' '), null);
       // #187: invalid value
@@ -223,6 +256,15 @@ describe('edgeChecks characterization (#187)', () => {
       );
     });
 
+    it('says a quality is no goal', () => {
+      // #222: changed: a quality has its kind now (was "Dependency Q1 not
+      // found for node G1": the context gave a quality no kind)
+      assert.strictEqual(
+        dependsOn('Q1'),
+        '[INVALID MODEL]: Dependency Q1 for node G1 must be a goal, got quality',
+      );
+    });
+
     it('says nothing of ids without commas (the dialect does)', () => {
       // #187: invalid value, #187: changed (was "Dependency G2 G3 not found")
       assert.strictEqual(dependsOn('G2 G3'), null);
@@ -231,10 +273,10 @@ describe('edgeChecks characterization (#187)', () => {
 
   describe('resource', () => {
     const all = (raw: Record<string, string>) => ({
-      type: edgeResourceChecks.type?.(raw, noDeps),
-      initialValue: edgeResourceChecks.initialValue?.(raw, noDeps),
-      lowerBound: edgeResourceChecks.lowerBound?.(raw, noDeps),
-      upperBound: edgeResourceChecks.upperBound?.(raw, noDeps),
+      type: resourceCheck('type', raw, noDeps),
+      initialValue: resourceCheck('initialValue', raw, noDeps),
+      lowerBound: resourceCheck('lowerBound', raw, noDeps),
+      upperBound: resourceCheck('upperBound', raw, noDeps),
     });
     const fine = {
       type: null,
