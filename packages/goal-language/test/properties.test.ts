@@ -7,8 +7,10 @@ import { actors, links, property } from '@goal-controller/dialect';
 import { expect } from 'chai';
 import {
   readProperties,
+  type Assertion,
   type AssertionTree,
   type PropertyValues,
+  type RefList,
 } from '../src/index.js';
 
 const dialect = {
@@ -188,9 +190,9 @@ describe('readProperties (#187)', () => {
     same<Same<Goal['maintain'], boolean | null | undefined>>();
     same<Same<Goal['type'], 'achieve' | 'maintain' | null | undefined>>();
     same<Same<Goal['mode'], string | null | undefined>>();
-    same<Same<Goal['dependsOn'], string[] | undefined>>();
+    same<Same<Goal['dependsOn'], RefList | undefined>>();
     same<Same<Goal['chance'], number | null | undefined>>();
-    same<Same<Goal['bound'], AssertionTree | number | null | undefined>>();
+    same<Same<Goal['bound'], Assertion | number | null | undefined>>();
     const { values } = readProperties(
       dialect,
       { link: 'istar.ContributionLink' },

@@ -11,20 +11,16 @@ import type {
   WithNotation,
 } from '@goal-controller/dialect';
 import {
-  assertionExpressions,
+  notationExecution,
+  readNotation,
+  type AssertionVariable,
+} from '../members.js';
+import {
   errorText,
-  expressionNodes,
   parseElementLineIn,
   parseValue,
-  type AssertionTree,
   type RtTree,
 } from '../parse.js';
-import {
-  callOperands,
-  isEnabled,
-  operandIds,
-  readNotation,
-} from './reading.js';
 
 /**
  * What a notation makes a goal do: its construct, the ids of its operands
@@ -79,71 +75,11 @@ export type ReadingDialect = Pick<AnyDialect, 'name' | 'unlinkedResources'> & {
     Pick<AnyDialect, 'elements' | 'properties' | 'links' | 'actors'>
   >;
 
-/** The outermost enabled operator of a notation (groups and modifiers looked through). */
-const outermost = (
-  dialect: WithNotation,
-  tree: RtTree | null,
-): { construct: string; ids: string[] } | null => {
-  switch (tree?.kind) {
-    case 'group':
-    case 'postfix':
-      return outermost(dialect, tree.expr);
-    case 'call':
-      return isEnabled(dialect, tree.name, 'call')
-        ? {
-            construct: dialect.notation.operators[tree.name]!,
-            ids: callOperands(tree).filter(Boolean),
-          }
-        : null;
-    case 'prefix':
-    case 'binary': {
-      const form = tree.kind === 'binary' ? 'infix' : 'prefix';
-      if (isEnabled(dialect, tree.operator, form))
-        return {
-          construct: dialect.notation.operators[tree.operator]!,
-          ids: operandIds(tree).filter(Boolean),
-        };
-      // a disabled operator: what is under it
-      return tree.kind === 'binary'
-        ? (outermost(dialect, tree.left) ?? outermost(dialect, tree.right))
-        : outermost(dialect, tree.expr);
-    }
-    default:
-      return null;
-  }
-};
-
-/**
- * A notation's execution detail in a dialect: a standalone construct when
- * one is written, else the outermost enabled operator's construct with its
- * operands (none: no detail).
- */
+/** @deprecated a notation's `execution(dialect)` (goal-controller#188) */
 export const executionOf = <D extends WithNotation>(
   dialect: D,
   tree: RtTree | null,
-): ExecutionDetailOf<D> | null => {
-  const said = readNotation(dialect, tree);
-  const [standalone] = said.standalone;
-  const outer = standalone
-    ? { construct: standalone, ids: [] }
-    : outermost(dialect, tree);
-  if (!outer || (!standalone && !outer.ids.length)) return null;
-  const modifiers = Object.fromEntries(
-    Object.entries(dialect.notation.modifiers ?? {})
-      .filter(
-        ([name, modifier]) =>
-          modifier.appliesTo.includes(outer.construct) &&
-          said.modifiers.has(name),
-      )
-      .map(([name]) => [name, said.modifiers.get(name)!]),
-  );
-  // the names are the dialect's: its type says which (ExecutionDetailOf)
-  return {
-    type: outer.construct,
-    ids: outer.ids,
-    modifiers,
-  } as ExecutionDetailOf<D>;
-};
+): ExecutionDetailOf<D> | null => notationExecution(dialect, tree);
 
 /** A syntax error, as ANTLR's default listener reported it. */
 const report = (
@@ -186,63 +122,21 @@ export const goalNameParserFor =
       id: read.value?.id ?? '',
       goalName: (read.value?.name ?? '').trim(),
       executionDetail: notated
-        ? (executionOf(notated, notation) as ExecutionDetailOf<D>)
+        ? (notationExecution(notated, notation) as ExecutionDetailOf<D>)
         : null,
     };
   };
 
-export type AssertionVariable = { name: string; value: boolean | null };
+export type { AssertionVariable } from '../members.js';
 
 /**
- * The variables an assertion names (`battery > 20 & !charging`), in the
- * order written: `x = true` sets a value (each time), a name or an integer
- * comparison adds the name once, without one.
+ * @deprecated an assertion's `variables()` (goal-controller#188), which reads
+ * the parsed value: this one parses the text again (a syntax error goes to
+ * the console)
  */
 export const assertionVariables = (text: string): AssertionVariable[] => {
   if (!text) return [];
   const read = parseValue('assertion', text);
   for (const error of read.errors) report(errorText(error), undefined);
-  const variables: AssertionVariable[] = [];
-  const named = (name: string) => {
-    if (!variables.some((v) => v.name === name))
-      variables.push({ name, value: null });
-  };
-  const walk = (node: AssertionTree | null): void => {
-    switch (node?.kind) {
-      case 'and':
-      case 'or':
-        walk(node.left);
-        walk(node.right);
-        return;
-      case 'not':
-      case 'paren':
-        walk(node.expr);
-        return;
-      case 'assign':
-        // `x != true` names x, without setting it; `room.clean = true`
-        // names room (it sets a member, not the name)
-        if (node.negated || node.member) named(node.variable);
-        else variables.push({ name: node.variable, value: node.value });
-        return;
-      case 'compare':
-      case 'var':
-        named(node.variable);
-        return;
-      case 'member':
-        named(node.ref);
-        return;
-      case 'comparison':
-      case 'call':
-        // the names its expressions read (an element's id too), not the functions they call
-        for (const part of assertionExpressions(node).flatMap(expressionNodes))
-          if (part.kind === 'var') named(part.name);
-          else if (part.kind === 'ref') named(part.id);
-          else if (part.kind === 'member') named(part.ref);
-        return;
-      default:
-        return;
-    }
-  };
-  walk(read.value);
-  return variables;
+  return read.value?.variables() ?? [];
 };

@@ -2,6 +2,28 @@
 // catalog is also `@goal-controller/goal-language/catalog`, without the parser.
 export * from './catalog.js';
 export * from './parse.js';
+// the value types and their members (goal-controller#188)
+export {
+  asAssertion,
+  asExpression,
+  asNotation,
+  asPairList,
+  asRefList,
+  isElementId,
+  type Assertion,
+  type AssertionMembers,
+  type Comparison,
+  type Expression,
+  type ExpressionCall,
+  type ExpressionMembers,
+  type Notation,
+  type NotationMembers,
+  type Pair,
+  type PairList,
+  type PairListMembers,
+  type RefList,
+  type RefListMembers,
+} from './members.js';
 export { GoalLexer, type LexerStart } from './lexer.js';
 export { createGoalCoreServices, parseWith, START_RULE } from './module.js';
 export * from './print.js';
