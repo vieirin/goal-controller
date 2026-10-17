@@ -387,22 +387,29 @@ Rules of thumb (from Edge's mapper):
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
-import type { Check } from '../checks';   // (raw, { self, kindOf, elements? }) => string | null
+import { checkOn, checks } from '../checks';   // ({ props, raw, kind }, { self, kindOf, elements? }) => string | null
+import { mission } from './definition';
 
-const deadline: Check = (raw) =>
-  raw.priority === 'high' && !raw.deadline?.trim() ? 'High-priority goals need a deadline' : null;
+// listed: the checks read the definition's values, and the definition names them
+export type MissionCheckName = 'mission.goal.deadline';
 
-// the one place the names are written
-export const missionCheckRegistry: Record<'mission.goal.deadline', Check> = {
-  'mission.goal.deadline': deadline,
-};
-export type MissionCheckName = keyof typeof missionCheckRegistry;
+export const missionCheckRegistry = checks<MissionCheckName>({
+  // props typed by the goal's properties: priority an option, deadline a number
+  'mission.goal.deadline': checkOn(mission, { element: 'goal' })(({ props }) =>
+    props.priority === 'high' && props.deadline == null
+      ? 'High-priority goals need a deadline'
+      : null,
+  ),
+});
 ```
-A check gets the element's properties and a context (the goal language's `CheckContext`):
+A check gets what a mapper gets (goal-controller#222): the record of the element (or actor, or link) its property is on, read by the definition once and given to every check on it, and a context (the goal language's `CheckContext`):
 
+- `props`, the values as the goal language reads them (`checkOn(definition, owner)` types them by that owner's properties), `raw`, the strings as written, and `kind`, the element's iStar kind (`istar.Goal`) or a framework's, an extension's, an actor's or a link's;
 - its id, `self`;
-- the other elements' kinds, `kindOf`;
+- the other elements' kinds, `kindOf`: the definition's, as iStar's (`istar.Goal`, `istar.Quality`) or a framework's (`kaos.Agent`);
 - the whole model, `elements`, when the caller has it: every element's kind, properties, children and `x`.
+
+A check is run on a key only when that key's value reads as its type: a value the goal language can't read is the value check's to say (`Not an integer: abc`), so a check never sees its own key unset for a value written, and checks meaning (a bound order, a referenced element's kind, a variable declared earlier), never syntax. The editors run it so (`runCheck(definition, owner, key, stored, check, context)` from the engine library); a mapper calling its own checks gives them its `{ props, raw, kind }`.
 
 The editors, the inspector and the language server always have the model (`checkContextOf(model, self)` builds the context); the mapper doesn't. So a rule across elements (a name declared by an earlier element, say) says nothing in the mapper, and the template checks the model as a whole. Write such a rule once, over parsed values, and call it from both (MutRoSe's `scope.ts`: the variables a goal monitors must be declared by an earlier goal).
 Build the definition's properties with these names
@@ -411,8 +418,11 @@ Build the definition's properties with these names
 then doesn't compile where it is written. `defineEngine` (§3.9) needs a
 check for every name the definition gives, so a missing one doesn't compile
 (and is reported at definition time); so does
-`specsFromDefinition(definition, registry)`. Keep `checks.ts` free of
-imports from `definition.ts`: the definition imports its names.
+`specsFromDefinition(definition, registry)`, and `checks<MissionCheckName>`
+fails on a missing or an unknown name. The definition imports only the
+names' type from `checks.ts`; list them rather than deriving them from the
+registry (`keyof typeof`), whose checks are typed by the definition: that
+would make the types circular.
 
 ### 3.4 `template/`: query the tree, emit the output
 ```ts

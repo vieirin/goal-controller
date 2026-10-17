@@ -228,7 +228,7 @@ G1: Deliver [G2;AT1]
 | --- | --- | --- |
 | `Not read for a goal` | warning | a key the kind doesn't read |
 | the property's `notApplying` (`Only read when type is maintain`), else `Not read with these properties` | warning | a property set where it doesn't apply (`applies`) |
-| the engine check's message | error | the named `check` rejects the value (`runCheck`) |
+| the engine check's message | error | the named `check` rejects the value (`runCheck`); it is run only on a value that reads as its type, and its message comes before the value check's |
 
 ```goal-check edgeV2
 G1: Deliver

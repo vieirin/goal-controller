@@ -208,7 +208,9 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | --- | --- | --- |
 | `documentDiagnostics` | `(D, text, context, { runCheck?, saved? }) => Diagnostic[]` | checks a whole document; see [diagnostics.md](diagnostics.md) |
 | `fieldDiagnostics` | `(D, context, id, key, value, runCheck) => Diagnostic[]` | checks one inspector field |
-| `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf`, and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `(properties, CheckContext) => string \| null` |
+| `checkContextOf` | `(context, self) => CheckContext` | what a named check is given in a model: `self`, `kindOf` (the dialect's kinds, as iStar's: `istar.Goal`), and `elements` (every element's kind, properties, children and `x`); `NamedCheck` is `({ props, raw, kind }, CheckContext) => string \| null` |
+| `checkInputOf` | `(D, owner, stored) => AnyCheckInput` | what every check on an element (`{ element: 'goal' }`), an actor or a link is given: `readProperties`'s `props` and `raw`, and its `kind` (goal-controller#222) |
+| `parses` | `(input, key) => boolean` | whether a key's value reads as its type (unset reads): a check is run on a key only then |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
 | `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
 | `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names and declared functions (`assertion`, `expression`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
@@ -218,7 +220,10 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 A `Diagnostic` is `{ from, to, severity, message }`, with offsets into the
 text. A completion is `{ label, type, detail?, snippet? }`: `snippet` is
 what to insert instead of the label, in LSP snippet syntax (the server sends
-it as a snippet; CodeMirror's `snippetCompletion` reads it as it is). `runCheck(check, properties, self)` runs an engine's named checks.
+it as a snippet; CodeMirror's `snippetCompletion` reads it as it is). `runCheck(check, input, self)` runs an engine's named checks, given the
+record `checkInputOf` reads once for every check on an element (or actor, or
+link); a check on a key whose value doesn't read as its type is not run (the
+value check says what is wrong).
 
 ## Highlighting
 
