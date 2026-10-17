@@ -285,3 +285,78 @@ Each PR of #171 appends its decisions here.
   shared `refinementsOf` in roots.ts. The remaining `metamodelOf` uses in
   goal-tree are reported for a separate fix.
 - **Home.** iStar-DT joins `GROUP_ORDER`, before the frameworks' sections.
+
+### PR D: a framework-neutral IR, kaosdoc and nfrprop
+
+- **The IR keeps iStar's three node types.** A framework's kinds map onto
+  them (`FRAMEWORK_NODE_TYPES`): KAOS's goals and domain properties, and
+  NFR's softgoals and operationalizations, are goal nodes, and each node
+  keeps its `kind`. There is no new node type, so every engine's switch over
+  `type` stays as it is. `kind` is set only in another framework's IR, so
+  iStar's IR is the same as before. Agents, claims and hubs are in no tree:
+  their links say what they do.
+- **Trees on the paper.** A framework without actors has its trees in a new
+  `GoalModel.paper`, one tree per element of a tree kind that no refinement
+  makes a child. `fromModel` returns the actors' trees and then the paper's.
+- **Refinements by kind name, in one place.** `refinementsOf(model,
+  dialect)` (goal-tree's `roots.ts`) reads iStar's refinement links, or a
+  framework dialect's `refinements`, and an n-ary link's legs as children of
+  the hub's end's target. Hubs, legs and ends are found by the kinds core
+  generates (`<Kind>Hub/Start/End`), not by core's `metamodelOf`, whose
+  registry belongs to one module instance (agent-red's finding in PR B). The
+  IR and `goalView` both use this function. A goal with several hubs has
+  those alternatives merged into one AND in the tree. kaosdoc reads the hubs
+  themselves to tell the alternatives apart.
+- **Ids.** A framework text without an id (DSM3's files) keeps its piStar id
+  in the IR, its whole text as its name, and reports no syntax error. The
+  Notation view still offers it an id.
+- **Keys by kind.** `createEngineMapper`'s `kindKeys` gives a kind its own
+  keys, overriding its type's (`allowedGoalKeys`, …), and the mappers get
+  the element's `kind`. The G/T/R triple stays as it is for iStar's engines.
+- **kaosdoc is properties-only, over the IR.** It reads lib's `kaos` dialect
+  as it is and writes Markdown tables:
+  - goals with their fit criteria, then the other details of the goals that
+    have any;
+  - refinements by hub, numbered as alternatives where a goal has several;
+  - domain properties;
+  - leaf behavioural goals as requirements (a system agent's), expectations
+    (an environment agent's), shared, or unassigned, as van Lamsweerde
+    classifies them;
+  - agents;
+  - conflicts with their boundary conditions.
+
+  `FormalSpec` is text: typing it as LTL is later work, following #58's
+  pattern. The document for DSM3's example is committed next to the seed and
+  checked byte for byte.
+- **nfrprop's rules.** These are Chung et al.'s (2000, ch. 3):
+  - the individual impact of each contribution type on its offspring's label;
+  - AND takes its least offspring and OR its greatest, in the order
+    ✗ < W− < ⚡ < U < W+ < ✓;
+  - the impacts on a softgoal combine: positive and negative together are a
+    conflict, and undecided ones decide nothing.
+
+  Two choices go beyond the book, where Chung et al. leave the step to the
+  developer:
+  - weak labels propagate weakly, as in Horkoff and Yu's automated forward
+    propagation;
+  - a claim gates the contribution it argues: a held claim lets it stand, a
+    denied one sets it aside, an undecided one decides nothing.
+- **nfrprop's initial labels.** They are an element property,
+  `initialLabel`, in nfrprop's dialect. When it is unset, an
+  operationalization or claim that nothing contributes to is satisficed
+  (chosen, held), and every other element's label is propagated, so DSM3's
+  seed, which has no labels, evaluates as it is. The one case runs as steps,
+  one per element labelled, each giving its reason: that is the propagation
+  report, shown in the workbench's step control and in `analysisText`. The
+  oracle is DSM3's example labelled by hand with these rules, committed as
+  `examples/nfr/nfr-welcome.labels.csv`, each row with its derivation.
+- **Framework engines in the workbench.** `FRAMEWORK_ENGINE_DIALECTS` keeps
+  their dialects out of `ENGINE_DIALECTS`, so the iStar notation editors never
+  read them. `frameworkEditorOf(mode)` gives them their framework's editor:
+  its canvas, its Notation tab in the engine's dialect, `frameworkProblems`,
+  and no piStar mode. Settings offer each framework's engines under it, and
+  recording an engine's mode records its framework beside it.
+- **Deferred.** Typed inspector fields for a framework engine's own
+  properties: the diagram's inspector is istar-ts's, so nfrprop's
+  `initialLabel` is a property line in its Notation view, typed there by its
+  dialect. More than one strategy per NFR model. KAOS's FormalSpec as LTL.

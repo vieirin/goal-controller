@@ -41,6 +41,8 @@ Three things you write, one you get. **You do not write a parser:** goal texts (
 | New element kinds / symbols / stereotypes (an iStar dialect, no engine)                       | **dialect**                | piStar-ext (`packages/lib/src/dialects/pistarExt/istar4RationalAgents.ts`) | none                         | none                                    |
 | A value per element and actor, drawn on the model, not a file (an evaluation, a strategy)     | **analysis engine**        | lib's toy (`packages/lib/test/engines/analysis/toy.ts`)                     | optional                     | none                                    |
 
+**An engine of another framework** (goal-controller#171: KAOS, the NFR Framework; [frameworks.md](frameworks.md)) follows the same rows. Its definition names the framework (`framework: 'kaos'`) and its root's kinds, and has no iStar kinds, extension, actors or notation. The two existing ones are its templates: **kaosdoc** (KAOS, properties-only, a Markdown document) and **nfrprop** (NFR, an analysis engine). §2.7 and §4.1 say what differs from iStar's.
+
 If your engine reads something the goal language can't write (an id prefix, a construct, a value syntax), the language grows for every dialect: see `packages/goal-language/docs/extending-the-grammar.md`. Most new engines are the first row. If you are "reimplementing SLEEC", that's exactly it. Reimplementing EDGE is the second row. This guide does the first row fully and marks the extra steps for the second.
 
 Running example below: engine id `mission`, goals get `priority` (enum) and `deadline` (int seconds); tasks get `robot` (text) and `duration` (int); output is a YAML mission plan.
@@ -311,6 +313,25 @@ export const mission = defineDialect({
 
 **Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
+### 2.7 An engine of another framework (goal-controller#171)
+
+The definition is the framework's dialect, or one built on it. kaosdoc reads
+lib's `kaos` dialect as it is, and nfrprop's is `nfr` with one property
+more (`{ ...nfr, id: 'nfrprop', properties: { …, initialLabel } }`).
+`defineDialect` checks it against the framework, not iStar
+([frameworks.md](frameworks.md#dialects)):
+
+- `elements`, `properties` and `links` are keyed by the root's kinds
+  (`FRAMEWORK_KINDS`), the hub of an n-ary link included
+  (`kaos.RefinementLinkHub` has properties but no line);
+- `properties` lists only the kinds that have properties; there is no
+  goal/task/resource/quality quartet to fill with `[]`;
+- prefixes are one or two capitals other than `X` and `W`, and kinds may share
+  one;
+- `refinements` names the link kinds that refine, with their relation: the
+  IR (§3.10) and the views read refinements from it;
+- there is no `extension`, `actors` or `notation`.
+
 ## 3. Step 2: write the engine library (`packages/lib`)
 
 Directory: `packages/lib/src/engines/mission/`. Copy `sleec/` for the layout.
@@ -359,6 +380,7 @@ Rules of thumb (from Edge's mapper):
 - Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
 - A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
 - Actors and links have mappers too (`mapActorProps`, `mapLinkProps`), and `afterCreationMapper` sees the whole model: see 3.8.
+- `mapGoalProps` and `mapTaskProps` are given the element's `kind`. `kindKeys` gives a kind keys of its own, over its type's (`{ 'kaos.DomainProperty': ['Description'] }`), where one node type holds several kinds (a framework's, §3.10).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -762,6 +784,18 @@ type GoalModel = {
   mapper)` gives the whole IR, for any shape, without checking it.
 - **A dialect without ids** (no element kind has a `prefix`, GRL) still has
   an IR. A node's id is its piStar id and its name is its text, unparsed.
+- **Another framework** (goal-controller#171). Its models have no actors, so
+  their trees are the IR's `paper`: one tree per element that no refinement
+  makes a child (`fromModel` returns them too). `FRAMEWORK_NODE_TYPES` says
+  how a tree holds the framework's kinds. KAOS's goals and domain properties,
+  and NFR's softgoals and operationalizations, are goal nodes that may be
+  leaves, and each keeps its `kind`. Agents, claims and hubs belong to no
+  tree: they are in `elements`, and their links in `links`. A refinement is
+  whatever the dialect's `refinements` says (`refinementsOf`). An n-ary
+  link's legs refine the hub's end's target, so a KAOS hub is an AND with n
+  children. A text without an id (DSM3's files) keeps its piStar id. Parse
+  the model with its framework's root (`parsePistar(text, { metamodel: KAOS
+  })`), as kaosdoc's `readKaosModel` does.
 
 ## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
 
@@ -779,6 +813,32 @@ type GoalModel = {
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
 | 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
+
+### 4.1 An engine of another framework
+
+Most of the twelve edits are the same. These differ:
+
+- **#2**: nothing more to do. The registry puts the engine in
+  `FRAMEWORK_ENGINE_DIALECTS` (`isFrameworkEngine`), not in `ENGINE_DIALECTS`,
+  so the iStar notation editors never read its dialect. `dialectOf` reads
+  both, so `frameworkOfMode` places the engine in its framework, and the
+  settings dialog shows its card under that framework.
+- **#3**: `frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.<id>)`, the root's kinds' keys.
+- **#7, #8**: the diagram is the framework's (`<FrameworkDiagram mode=…>`,
+  with istar-ts's inspector beside it), and `ModelInspector` returns null.
+  `frameworkEditorOf(mode)` gives the engine its framework's editor: the
+  canvas, the Notation tab in the engine's dialect (`FrameworkNotationView`),
+  `frameworkProblems` instead of the iStar notation checks, and no piStar
+  mode.
+- **#9**: the piStar palette is null.
+- **#10**: no `ENGINE_READS` entry. Conversion stays within the framework
+  (`frameworkMismatch`), so a model that reaches the engine already has the
+  root's kinds.
+- **#4–#6**: an engine that reads more than the trees takes the IR, as
+  kaosdoc does (`GoalModel.parseForKaosdoc`). An analysis engine's model is
+  read in its framework (`parseAsGraph`, `parseModel`).
+- **#12**: a framework's seeds open in its modelling mode (`examples/kaos/`,
+  `examples/nfr/`); from there, Convert offers the framework's engines.
 
 Adding `'mission'` to `TransformEngine` makes the type-checker flag #2 (the registry must register every `TransformEngine`, and only those), #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (the top bar's menu, the settings modal) are rendered from `ENGINE_OPTIONS` (#2): nothing to add in the UI but #5's arguments.
 
@@ -869,6 +929,17 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/cgm/` and `ui/components/workbench/engines/cgm/`: an analysis engine whose conditions sit on links (contexts at Table 1's variation points, link properties with link lines) and whose extension's kinds are formulas (contexts, statements, facts). Its four analyses enumerate variants with `variantsOf` (§3.7b). Each gives `guard`, `relation` and `follow`, and the analyses reason over the variants with the propositional solver. Each case is a variant or a set of them, drawn as a selection. The papers' numbers are the oracle, with DLV and z3 in Docker as independent checks. [cgm.md](cgm.md) lists what fit, what grew, the errata, and what is still open.
 
+### 7.8 kaosdoc and nfrprop (engines of other frameworks)
+
+`lib/src/engines/kaosdoc/` and `lib/src/engines/nfrprop/` (goal-controller#171).
+kaosdoc writes a requirements document from a KAOS model: a template over
+the IR's `GoalModel` (its paper trees, hubs, agents and conflicts), proved
+byte for byte against the document committed next to DSM3's seed. nfrprop
+is the NFR Framework's label propagation, Chung et al.'s rules as data
+(`labels.ts`). Its case runs as steps, its report. The oracle is DSM3's NFR
+example labelled by hand (`examples/nfr/nfr-welcome.labels.csv`).
+[frameworks.md](frameworks.md) lists the decisions.
+
 ## 8. Options summary
 
 | Decision                    | Options                                                                      | Pick when                                                                                                             |
@@ -883,7 +954,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 
 ## 9. Pitfalls seen so far
-- `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`; an extension's kinds only where they have properties (§2.6).
+- In an iStar dialect, `properties` must list **every kind** (`goal`, `task`, `resource`, `quality`), even as `[]`; an extension's kinds only where they have properties (§2.6). A framework's dialect lists only its kinds that have properties (§2.7).
 - Build the properties with the registry's names (`property.for<MissionCheckName>()`); without it, a misspelt `check:` is caught only by `defineEngine` and `specsFromDefinition`.
 - Mapper keys typed by hand drift from the definition; derive them with `propertyKeys()`.
 - Names on lines with ids can't have digits (`G1: Step 2` is an error), as with the ANTLR grammars.
