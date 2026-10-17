@@ -318,9 +318,14 @@ export const valueProblem = (
         : null;
     case 'enum': {
       const options = value.options.map((o) => o.value).filter(Boolean);
-      return value.open || options.includes(text.trim())
-        ? null
-        : `One of ${options.join(', ')}, not ${text.trim()}`;
+      if (!value.open)
+        return options.includes(text.trim())
+          ? null
+          : `One of ${options.join(', ')}, not ${text.trim()}`;
+      // an open enum takes any value on one line
+      return parseValue('enum', text).errors.length
+        ? `One line, not ${JSON.stringify(text.trim())}`
+        : null;
     }
     case 'assertion': {
       const read = parseCondition(text);

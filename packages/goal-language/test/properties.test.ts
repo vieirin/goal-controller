@@ -6,7 +6,9 @@
 import { actors, links, property } from '@goal-controller/dialect';
 import { expect } from 'chai';
 import {
+  parseValue,
   readProperties,
+  valueProblem,
   type Assertion,
   type AssertionTree,
   type PropertyValues,
@@ -182,6 +184,53 @@ describe('readProperties (#187)', () => {
     expect(
       readProperties(dialect, { link: 'istar.AndRefinementLink' }, { w: '1' }),
     ).to.deep.equal({ values: {}, text: {} });
+  });
+
+  it('reads a text across line breaks, as written', () => {
+    const note = ' line one\n  line two\r\nline three \n';
+    const { values, text } = readProperties(
+      dialect,
+      { element: 'goal' },
+      { note, formula: 'x' },
+    );
+    expect(values.note).to.equal('line one\n  line two\r\nline three');
+    expect(text.note).to.equal(note);
+    expect(parseValue('text', note).errors).to.deep.equal([]);
+    expect(valueProblem({ type: 'text' }, note)).to.equal(null);
+    expect(
+      readProperties(
+        {
+          properties: { goal: [property.formula('spec', 'ltl', { help: '' })] },
+        },
+        { element: 'goal' },
+        { spec: 'G p\n-> F q' },
+      ).values,
+    ).to.deep.equal({ spec: 'G p\n-> F q' });
+  });
+
+  it('reports a typed value across line breaks, not swallowing it', () => {
+    const { values, text } = readProperties(
+      dialect,
+      { element: 'goal' },
+      { maxRetries: '3\n4', type: 'achieve\nmaintain', mode: 'fast\nslow' },
+    );
+    expect(values).to.deep.equal({});
+    expect(text).to.deep.equal({
+      maxRetries: '3\n4',
+      type: 'achieve\nmaintain',
+      mode: 'fast\nslow',
+    });
+    expect(valueProblem({ type: 'int' }, '3\n4')).to.equal(
+      'Not an integer: 3\n4',
+    );
+    const [type, mode] = [
+      dialect.properties.goal[3],
+      dialect.properties.goal[4],
+    ];
+    expect(valueProblem(type.value, 'achieve\nmaintain')).to.match(/^One of /);
+    expect(valueProblem(mode.value, 'fast\nslow')).to.equal(
+      'One line, not "fast\\nslow"',
+    );
   });
 
   it('types the values by the dialect', () => {

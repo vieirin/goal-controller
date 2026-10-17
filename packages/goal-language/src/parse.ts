@@ -716,11 +716,17 @@ export const parseCondition = (
   return { value: { prefix, tree: toAssertionTree(root.expr) }, errors };
 };
 
-/** One value of a predefined type on its own (an inspector field). Empty is valid. */
+/**
+ * One value of a predefined type on its own (an inspector field). Empty is
+ * valid. A `text` is any string, read as written (trimmed), line breaks and
+ * all: the grammar's VALUE is one line, and a text has nothing to check.
+ */
 export const parseValue = <T extends ValueType>(
   type: T,
   text: string,
 ): Parsed<ValueData[T]> => {
+  if (type === 'text')
+    return { value: (text.trim() || null) as ValueData[T], errors: [] };
   const { root, errors } = parse<never>(type, text);
   return { value: READ[type](root), errors };
 };
