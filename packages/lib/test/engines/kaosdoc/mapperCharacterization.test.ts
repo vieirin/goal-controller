@@ -403,10 +403,10 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('leaves out a ResolutionType outside its vocabulary; keeps an Anchor naming no goal', () => {
-      // #187: invalid value (the ResolutionType was kept). A reference is
-      // read as the id written, not resolved against the model: the dialect
-      // reports `nowhere`, but the mapper is given it.
+    it('leaves out a ResolutionType outside its vocabulary, and an Anchor naming no goal', () => {
+      // #187: invalid value (the ResolutionType was kept). #243: changed (the
+      // Anchor was kept): a reference resolves against the model, and one
+      // naming no element is unset, as the dialect reports it
       assert.deepStrictEqual(
         linkEngine(
           withProperties(LAS, {
@@ -414,7 +414,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           }),
           RESOLUTION,
         ),
-        { Anchor: 'nowhere' },
+        {},
       );
     });
 
@@ -441,15 +441,18 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
         'unspecified, anchored on Achieve [Ambulance On Scene When Ambulance Mobilized]',
       );
       assert.strictEqual(resolution({}), '');
-      // #187: invalid value (was 'bogus, anchored on nowhere')
+      // #187: invalid value (was 'bogus, anchored on nowhere'); #243: changed
+      // (was 'unspecified, anchored on nowhere'): an anchor naming no element
+      // is unset, so is the type: nothing to write
       assert.strictEqual(
         resolution({ ResolutionType: 'bogus', Anchor: 'nowhere' }),
-        'unspecified, anchored on nowhere',
+        '',
       );
-      // #187: invalid value (an anchor on an obstacle, not a goal)
+      // #243: changed (was 'mitigation, anchored on GPS Not Working'): an
+      // anchor on an obstacle, not a goal, is unset
       assert.strictEqual(
         resolution({ ResolutionType: 'mitigation', Anchor: 'gps_not_working' }),
-        'mitigation, anchored on GPS Not Working',
+        'mitigation',
       );
     });
 

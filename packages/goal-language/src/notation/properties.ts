@@ -112,9 +112,30 @@ export type PropertyRecord<L extends PropertyList> = {
 };
 
 /** One value's data, or undefined when its text doesn't read as its config. */
-const readValue = (config: ValueConfig, text: string): unknown => {
+/**
+ * What a record's references resolve against (goal-controller#243): the
+ * kind of the element an id names (its RT id, or its piStar id), as the
+ * dialect names kinds (`goal`, `kaos.Softgoal`); undefined for no element.
+ */
+export type ReadingContext = { kindOf(id: string): string | undefined };
+
+const readValue = (
+  config: ValueConfig,
+  text: string,
+  context?: ReadingContext,
+): unknown => {
   switch (config.type) {
-    case 'reference':
+    case 'reference': {
+      const id = text.trim();
+      if (!id || !context) return id || null;
+      // an id of no element, or of a kind it doesn't name, isn't its type,
+      // as valueProblem reports
+      const kind = context.kindOf(id);
+      return kind !== undefined &&
+        (config.kinds as readonly string[]).includes(kind)
+        ? id
+        : undefined;
+    }
     case 'formula':
       return text.trim() || null;
     case 'probability': {
@@ -168,7 +189,9 @@ const readValue = (config: ValueConfig, text: string): unknown => {
  * `{ link: 'istar.ContributionLink' }`): only the keys the dialect gives it,
  * each value read as its config (a conditional one's, as the record's other
  * properties make it). A value written with an error is unset in `values`
- * (the dialect's checks report it) and kept in `text`.
+ * (the dialect's checks report it) and kept in `text`. With a `context`, a
+ * `reference` naming no element, or one of a kind it doesn't name, is such
+ * a value (goal-controller#243); without, it is the id as written.
  */
 export const readProperties = <
   const D extends {
@@ -183,6 +206,7 @@ export const readProperties = <
   definition: D,
   owner: O,
   stored: Readonly<Record<string, string | undefined>>,
+  context?: ReadingContext,
 ): PropertyRecord<OwnerPropertiesOf<D, O>> => {
   const list: PropertyList =
     'element' in owner
@@ -196,7 +220,7 @@ export const readProperties = <
     const written = stored[property.key];
     if (written === undefined || property.key in text) continue;
     text[property.key] = written;
-    const value = readValue(valueOf(property, stored), written);
+    const value = readValue(valueOf(property, stored), written, context);
     if (value !== undefined) values[property.key] = value;
   }
   return { values, text } as PropertyRecord<OwnerPropertiesOf<D, O>>;
