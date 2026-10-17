@@ -2,7 +2,7 @@
  * MutRoSe's typed properties: what its mapper reads of a goal model, for the
  * template (the runtime annotation, the variables' scope).
  */
-import type { RtTree } from '@goal-controller/goal-language';
+import type { Notation } from '@goal-controller/goal-language';
 import type { ForAll, MutroseVar, Select } from './checks';
 
 export type MutroseGoalType = 'Perform' | 'Achieve' | 'Query';
@@ -22,7 +22,7 @@ export type MutroseGoalProps = {
   group: boolean;
   divisible: boolean;
   /** its runtime annotation as written (`[G2;FALLBACK(G3,AT1)]`), if any */
-  annotation: RtTree | null;
+  annotation: Notation | null;
 };
 
 export type MutroseTaskProps = {

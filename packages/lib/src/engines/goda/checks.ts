@@ -2,11 +2,18 @@
  * GODA's named checks: what its goal model reader (`Controller.java`,
  * `GoalImpl.java`) requires of a model that a value type can't say.
  */
+import { readProperties } from '@goal-controller/goal-language';
 import { checks } from '../checks';
+import { goda } from './definition';
 
-/** Whether a goal is the one generated from (`selected: true`, read only when exactly `true`). */
-export const isSelected = (value: string | undefined): boolean =>
-  value?.trim() === 'true';
+/**
+ * Whether a goal is the one generated from: its `selected` as GODA's dialect
+ * reads it (the mapper's `props.selected`), `true`.
+ */
+const isSelected = (selected: string | undefined): boolean =>
+  selected !== undefined &&
+  readProperties(goda, { element: 'goal' }, { selected }).values.selected ===
+    'true';
 
 export const godaCheckRegistry = checks({
   /**
