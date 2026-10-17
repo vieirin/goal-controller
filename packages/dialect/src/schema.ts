@@ -19,6 +19,21 @@ export type ExtensionKind = `${string}.${string}`;
  */
 export type DialectKind = ElementKind | ExtensionKind;
 
+/**
+ * The goal-modelling framework a dialect, a model and a project are in
+ * (goal-controller#171): iStar 2.0, KAOS or the NFR Framework, each the
+ * framework of one of istar-ts's root metamodels (`Metamodel.framework`).
+ * A project's models are all of one; nothing converts between them.
+ */
+export type Framework = 'istar-2.0' | 'kaos' | 'nfr';
+export const FRAMEWORKS = [
+  'istar-2.0',
+  'kaos',
+  'nfr',
+] as const satisfies readonly Framework[];
+/** The framework of a dialect, model or project that names none. */
+export const DEFAULT_FRAMEWORK: Framework = 'istar-2.0';
+
 /** iStar refinement links: AND or OR. */
 export type Relation = 'and' | 'or';
 
@@ -314,6 +329,13 @@ export type DialectDefinition<K extends string = ElementKind> = {
   id: string;
   /** shown to people */
   name: string;
+  /**
+   * The framework whose models it reads (default `istar-2.0`): its kinds are
+   * that framework's root metamodel's, and iStar's rules (the `G`/`T`/`R`/`AT`
+   * prefixes, the goal/task/resource/quality kinds, actors) hold in iStar's
+   * only (goal-controller#171).
+   */
+  framework?: Framework;
   /**
    * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
    * have properties (`properties`, by kind id), be named by references

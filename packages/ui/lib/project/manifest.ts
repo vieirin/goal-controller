@@ -2,6 +2,7 @@
  * The project manifest: what a project holds and how its models are read.
  * Data only; the package never interprets a dialect or its options.
  */
+import type { Framework } from '@goal-controller/dialect';
 
 /** An engine's options, opaque here: the workbench merges and validates them. */
 export type EngineOptions = Readonly<Record<string, string | number | boolean>>;
@@ -11,6 +12,8 @@ export type ModelEntry = {
   path: string;
   /** overrides the project's dialect for this model */
   dialect?: string;
+  /** overrides the project's framework for this model (goal-controller#171) */
+  framework?: Framework;
   /** overrides the project's options for this model, key by key */
   options?: EngineOptions;
   /**
@@ -38,6 +41,8 @@ export type Manifest = {
   version: 1;
   /** the project's default dialect (engine or modelling dialect); none: plain piStar */
   dialect?: string;
+  /** the project's framework (goal-controller#171); none: iStar 2.0 */
+  framework?: Framework;
   /** the project's default engine options */
   options?: EngineOptions;
   models: ModelEntry[];
