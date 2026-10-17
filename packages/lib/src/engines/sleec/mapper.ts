@@ -104,8 +104,9 @@ const extractSleecTaskProps = (
     );
   }
 
-  // any Obstacle written is kept, a blank one too (it writes rule _5, #225)
-  const { Obstacle } = record.raw;
+  // an Obstacle is set as every other key is: a blank one is unset, and no
+  // rule _5 is written for it (#225)
+  const { Obstacle } = written(record, ['Obstacle'] as const);
   return {
     PreCond,
     TriggeringEvent,
