@@ -346,6 +346,9 @@ export {
   type EdgeVariables,
 } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
+// the frameworks' dialects (goal-controller#171)
+export { kaos } from './dialects/kaos';
+export { nfr } from './dialects/nfr';
 // One object per engine (goal-controller#124): what the workbench registers
 export * from './engines/engine';
 export { edgeEngine } from './engines/edge/engine';
