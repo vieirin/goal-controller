@@ -7,7 +7,6 @@
  */
 import { parsePistar } from '@istar-ts/core';
 import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
-import { propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -21,8 +20,6 @@ export const nfrpropEngineMapper = createEngineMapper<
   never
 >()({
   dialect: nfrprop,
-  allowedGoalKeys: propertyKeys(nfrprop, 'nfr.NFR'),
-  allowedTaskKeys: [],
   allowLeafGoals: true,
   skipResource: true,
   mapGoalProps: ({ text }) => ({ text }),

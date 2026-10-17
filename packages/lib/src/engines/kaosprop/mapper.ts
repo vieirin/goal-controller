@@ -7,7 +7,7 @@
  */
 import { parsePistar } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
-import { linkPropertyKeys, propertyKeys } from '@goal-controller/dialect';
+import { linkPropertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -23,15 +23,8 @@ export const kaospropEngineMapper = createEngineMapper<
   never
 >()({
   dialect: kaosprop,
-  allowedGoalKeys: propertyKeys(kaosprop, 'kaos.BehavioralGoal'),
-  allowedTaskKeys: [],
-  kindKeys: {
-    'kaos.DomainProperty': propertyKeys(kaosprop, 'kaos.DomainProperty'),
-    'kaosObstacles.Obstacle': propertyKeys(kaosprop, 'kaosObstacles.Obstacle'),
-  },
   allowLeafGoals: true,
   skipResource: true,
-  allowedLinkKeys: kaospropLinkKeys,
   mapLinkProps: ({ raw }) => raw,
   mapGoalProps: ({ text }) => ({ text }),
   mapTaskProps: ({ id }) => {

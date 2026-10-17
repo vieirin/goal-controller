@@ -46,7 +46,7 @@ const base = {
   help: 'a toy',
   dialect: toy,
   checks: { 'toy.weight': () => null },
-  mapper: { allowedGoalKeys: ['weight'], allowedTaskKeys: [] },
+  mapper: {},
   output: { label: 'Toy', extension: 'toy', language: 'text' },
   projectResources: {
     scenarios: () => ({ symbols: {}, data: null, diagnostics: [] }),

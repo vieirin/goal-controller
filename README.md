@@ -93,18 +93,18 @@ flowchart LR
     iStar --> Parser --> Mapper --> Tree --> Template --> Target
 ```
 
-**Phase 1 - Creation (Mapper):** Transforms raw iStar properties into typed, engine-specific properties during tree construction.
+**Phase 1 - Creation (Mapper):** Maps an element's properties, as the goal language reads them against the engine's dialect, into typed, engine-specific properties during tree construction.
 
 **Phase 2 - Transformation (Template):** Generates output by querying the typed tree and combining generated sections.
 
 ```mermaid
 flowchart TB
     subgraph phase1 [Phase 1: Creation - Mapper]
-        RawProps[Raw iStar Properties]
-        AllowedKeys[Allowed Keys Filter]
+        RawProps[iStar Properties]
+        Dialect[Read Against the Dialect]
         MapFn[Map Functions]
         TypedProps[Typed Engine Properties]
-        RawProps --> AllowedKeys --> MapFn --> TypedProps
+        RawProps --> Dialect --> MapFn --> TypedProps
     end
     subgraph phase2 [Phase 2: Transformation - Template]
         Query[Query GoalTree]
@@ -121,7 +121,7 @@ Follow these steps to create a new transformation engine. We'll use SLEEC as a r
 
 ```mermaid
 flowchart LR
-    Keys[Define Allowed Keys] --> Factory[createEngineMapper]
+    Keys[Define the Dialect's Properties] --> Factory[createEngineMapper]
     Factory --> MapFns[Provide Map Functions]
     MapFns --> Mapper[Engine Mapper]
     Mapper --> GoalTree[Use with GoalTree.fromModel]
@@ -129,7 +129,7 @@ flowchart LR
 
 #### Step 1: Define Engine-Specific Types
 
-The mapper transforms **raw string properties** from iStar into **rich typed structures**. Define types that represent your engine's domain model. See [`packages/lib/src/engines/sleec/types.ts`](packages/lib/src/engines/sleec/types.ts) and [`packages/lib/src/engines/edge/types.ts`](packages/lib/src/engines/edge/types.ts):
+The mapper transforms the **values the goal language reads** from iStar's properties into **rich typed structures**. Define types that represent your engine's domain model. See [`packages/lib/src/engines/sleec/types.ts`](packages/lib/src/engines/sleec/types.ts) and [`packages/lib/src/engines/edge/types.ts`](packages/lib/src/engines/edge/types.ts):
 
 ```typescript
 // types.ts - Complex types transformed FROM raw iStar strings
@@ -162,73 +162,60 @@ export type MyEngineTaskProps = {
 };
 ```
 
-#### Step 2: Define Allowed Keys
+#### Step 2: Define the Properties in the Dialect
 
-Specify which iStar `customProperties` string keys your engine extracts. The mapper will receive these as `raw` strings:
+The engine's dialect (its definition, `packages/dialect/docs/adding-an-engine.md`) declares each property and its value type. Those are the keys the mapper is given, per element kind:
 
 ```typescript
-// mapper.ts
-// These are the RAW string keys from iStar customProperties
-export const MY_ENGINE_GOAL_KEYS = [
-  'priority',      // Raw: "high" → Typed: 'high' (enum)
-  'deadline',      // Raw: "300"  → Typed: 300 (number)
-  'variables',     // Raw: "var:3,other:5" → Typed: Decision object
-  'assertion',     // Raw: "x > 0 & y < 10" → Typed: ExecCondition
-  'dependsOn',     // Raw: "G2,G3" → Typed: GoalNode[] (resolved in afterCreationMapper)
-] as const;
-
-export const MY_ENGINE_TASK_KEYS = [
-  'maxRetries',    // Raw: "3" → Typed: 3 (number)
-  'optional',      // Raw: "true" → Typed: true (boolean)
-  'tags',          // Raw: "critical,async" → Typed: ["critical", "async"]
-  'assertion',
-] as const;
+// definition.ts
+properties: {
+  goal: [
+    property.enum('priority', ['low', 'normal', 'high'], { help }),   // "high" → 'high'
+    property.int('deadline', { min: 0, help }),                      // "300"  → 300
+    property.pairList('variables', 'int', { help }),                 // "var:3,other:5" → [{ name, value }]
+    property.assertion('assertion', { resolves: ['variable'], help }), // "x > 0 & y < 10" → its tree
+    property.refList('dependsOn', 'goal', { help }),                 // "G2,G3" → ['G2', 'G3']
+  ],
+  task: [
+    property.int('maxRetries', { min: 0, help }),                    // "3"    → 3
+    property.bool('optional', { help }),                             // "true" → true
+    property.text('tags', { help }),                                 // as written
+  ],
+  resource: [],
+  quality: [],
+},
 ```
 
 #### Step 3: Create the Engine Mapper
 
-Transform raw strings into typed structures using parsing functions:
+Each mapper is given `props`, the values as the goal language reads their types (a value written with an error is unset: the dialect's checks report it), and `raw`, the strings as written:
 
 ```typescript
 import { createEngineMapper } from '@goal-controller/goal-tree';
-
-// Parser: "var:3,other:5" → { hasDecision: true, decisionVars: [...] }
-const parseDecision = (raw: string | undefined): Decision => {
-  if (!raw) return { hasDecision: false, decisionVars: [] };
-  
-  const vars = raw.split(',').map(pair => {
-    const [variable, space] = pair.split(':');
-    return { variable: variable.trim(), space: parseInt(space, 10) };
-  });
-  
-  return { hasDecision: vars.length > 0, decisionVars: vars };
-};
-
-// Parser: "low" | "normal" | "high" with validation
-const parsePriority = (raw: string | undefined): 'low' | 'normal' | 'high' => {
-  const valid = ['low', 'normal', 'high'] as const;
-  return valid.includes(raw as any) ? (raw as 'low' | 'normal' | 'high') : 'normal';
-};
 
 export const myEngineMapper = createEngineMapper<
   MyEngineGoalProps,
   MyEngineTaskProps,
   never  // No resources
 >()({
-  dialect: myEngine,  // its definition: goal texts are read in it (you write no parser)
-  allowedGoalKeys: MY_ENGINE_GOAL_KEYS,
-  allowedTaskKeys: MY_ENGINE_TASK_KEYS,
+  dialect: myEngine,  // its definition: goal texts and properties are read in it (you write no parser)
   skipResource: true,
-  mapGoalProps: ({ raw }) => ({
-    priority: parsePriority(raw.priority),           // "high" → 'high'
-    deadline: raw.deadline ? parseInt(raw.deadline, 10) : null,  // "300" → 300
-    decision: parseDecision(raw.variables),          // "var:3" → { hasDecision: true, ... }
+  mapGoalProps: ({ props }) => ({
+    priority: props.priority ?? 'normal',          // 'low' | 'normal' | 'high'
+    deadline: props.deadline ?? null,              // number
+    decision: {
+      hasDecision: (props.variables ?? []).length > 0,
+      decisionVars: (props.variables ?? []).map(({ name, value }) => ({
+        variable: name,
+        space: Number(value),
+      })),
+    },
     dependsOn: [],  // Resolved later in afterCreationMapper
   }),
-  mapTaskProps: ({ raw }) => ({
-    maxRetries: raw.maxRetries ? parseInt(raw.maxRetries, 10) : 0,  // "3" → 3
-    isOptional: raw.optional === 'true',             // "true" → true
-    tags: raw.tags ? raw.tags.split(',').map(t => t.trim()) : [],  // "a,b" → ["a","b"]
+  mapTaskProps: ({ props, raw }) => ({
+    maxRetries: props.maxRetries ?? 0,             // number
+    isOptional: props.optional === true,           // boolean
+    tags: (raw.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
   }),
 });
 ```
@@ -241,7 +228,7 @@ For engines that need to resolve references between nodes (like Edge's `dependsO
 afterCreationMapper: ({ node, allNodes, rawProperties }) => {
   if (rawProperties.nodeType !== 'goal') return node.properties.engine;
   
-  const depIds = parseDependsOn(rawProperties.raw.dependsOn);
+  const depIds = rawProperties.props.dependsOn ?? [];
   const resolvedDeps = depIds.map(id => allNodes.get(id));
   
   return { ...node.properties.engine, dependsOn: resolvedDeps };

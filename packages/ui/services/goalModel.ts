@@ -1,4 +1,9 @@
-import { GoalTree, Model, type RootReading } from '@goal-controller/goal-tree';
+import {
+  GoalTree,
+  Model,
+  type MapperDialect,
+  type RootReading,
+} from '@goal-controller/goal-tree';
 import { parsePistar, type IstarModel } from '@istar-ts/core';
 import type { Framework } from '@goal-controller/dialect';
 import { recordedMode } from '../lib/project';
@@ -85,25 +90,9 @@ export const GoalModel = {
   },
 
   /** Parse model JSON, validate it, and read it into an engine's tree. */
-  parseWith<
-    TGoal,
-    TTask,
-    TResource,
-    TGoalKeys extends string,
-    TTaskKeys extends string,
-    TResourceKeys extends string,
-    TQualityKeys extends string,
-  >(
+  parseWith<TGoal, TTask, TResource, TDialect extends MapperDialect>(
     modelJson: string,
-    mapper: EngineMapper<
-      TGoal,
-      TTask,
-      TResource,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys,
-      TQualityKeys
-    >,
+    mapper: EngineMapper<TGoal, TTask, TResource, TDialect>,
     options: ParseOptions = {},
   ): ParseModelResult<GoalTreeType<TGoal, TTask, TResource>> {
     const parseResult = this.parseModel(modelJson, options, mapper.dialect);

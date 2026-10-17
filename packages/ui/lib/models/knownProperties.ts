@@ -3,7 +3,7 @@ import {
   propertyKeys,
   type AnyDialect,
 } from '@goal-controller/dialect';
-import { grlEngineMapper, sleecEngineMapper } from '@goal-controller/lib';
+import { GRL_ELEMENT_KEYS, sleecEngineMapper } from '@goal-controller/lib';
 import type { TransformEngine } from '../types';
 import type { AnalyzeResponse } from '../workbench/types';
 import {
@@ -11,20 +11,21 @@ import {
   FRAMEWORK_ENGINE_DIALECTS,
 } from '../workbench/engineDialects';
 
-type Mapper = {
-  allowedGoalKeys: readonly string[];
-  allowedTaskKeys: readonly string[];
-  allowedResourceKeys?: readonly string[];
-  allowedQualityKeys?: readonly string[];
-  skipResource?: boolean;
+/** GRL's element keys (#105: read, not yet declarable): on its goals, tasks and qualities. */
+const GRL_KEYS: AnalyzeResponse['knownProperties'] = {
+  goal: [...GRL_ELEMENT_KEYS],
+  task: [...GRL_ELEMENT_KEYS],
+  resource: [],
+  quality: [...GRL_ELEMENT_KEYS],
 };
 
-const keysOf = (m: Mapper): AnalyzeResponse['knownProperties'] => ({
-  goal: [...m.allowedGoalKeys],
-  task: [...m.allowedTaskKeys],
-  resource: m.skipResource ? [] : [...(m.allowedResourceKeys ?? [])],
-  quality: [...(m.allowedQualityKeys ?? [])],
-});
+/** SLEEC's keys: its mapper's dialect gives them (it has no definition), no resource's. */
+const SLEEC_KEYS: AnalyzeResponse['knownProperties'] = {
+  goal: [...propertyKeys(sleecEngineMapper.dialect, 'goal')],
+  task: [...propertyKeys(sleecEngineMapper.dialect, 'task')],
+  resource: [],
+  quality: [...propertyKeys(sleecEngineMapper.dialect, 'quality')],
+};
 
 type Definition = (typeof ENGINE_DIALECTS)[keyof typeof ENGINE_DIALECTS];
 
@@ -59,7 +60,7 @@ const frameworkKeys = (
 
 /**
  * The custom properties each engine reads, per node kind: from its definition (the Edge
- * engines), or from its mapper (SLEEC has no definition).
+ * engines), or from its mapper's dialect (SLEEC has no definition).
  */
 export const KNOWN_PROPERTIES: Record<
   TransformEngine,
@@ -67,12 +68,12 @@ export const KNOWN_PROPERTIES: Record<
 > = {
   edge: definedKeys(ENGINE_DIALECTS.edge),
   edgev2: definedKeys(ENGINE_DIALECTS.edgev2),
-  sleec: keysOf(sleecEngineMapper),
+  sleec: SLEEC_KEYS,
   mutrose: definedKeys(ENGINE_DIALECTS.mutrose),
   goda: definedKeys(ENGINE_DIALECTS.goda),
-  // GRL's element properties are read but not declarable yet (#105): its
-  // mapper's; an indicator's are declared (goal-controller#132)
-  grl: { ...keysOf(grlEngineMapper), ...extensionKeys(ENGINE_DIALECTS.grl) },
+  // GRL's element properties are read but not declarable yet (#105); an
+  // indicator's are declared (goal-controller#132)
+  grl: { ...GRL_KEYS, ...extensionKeys(ENGINE_DIALECTS.grl) },
   istardt: {
     ...definedKeys(ENGINE_DIALECTS.istardt),
     ...extensionKeys(ENGINE_DIALECTS.istardt),

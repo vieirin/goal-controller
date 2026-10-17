@@ -35,10 +35,7 @@ export type EngineOutputInfo = {
 export type EngineOutputDeclaration = { id: string; language?: string };
 
 /** What the workbench reads of an engine's mapper. */
-type MapperOf = Pick<
-  EngineMapper<never, never>,
-  'allowLeafGoals' | 'allowedGoalKeys' | 'allowedTaskKeys'
->;
+type MapperOf = Pick<EngineMapper<never, never>, 'allowLeafGoals'>;
 
 /** An engine, as `defineEngine` takes it. */
 export type EngineDefinition = {

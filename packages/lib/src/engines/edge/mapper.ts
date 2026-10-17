@@ -6,7 +6,6 @@ import {
   createEngineMapper,
   type GoalNode,
   type GoalTreeType,
-  type RawProps,
   type Resource,
   type Task,
 } from '@goal-controller/goal-tree';
@@ -83,7 +82,9 @@ const parseMaxRetries = (
 };
 
 const getMaintainCondition = (
-  customProperties: RawProps<EdgeGoalKey> | RawProps<EdgeTaskKey>,
+  customProperties:
+    | Partial<Record<EdgeGoalKey, string>>
+    | Partial<Record<EdgeTaskKey, string>>,
   nodeType: 'goal' | 'task',
 ): ExecCondition | undefined => {
   if (customProperties.type === 'maintain') {
@@ -154,7 +155,7 @@ const parseDependsOn = (dependsOn: string | undefined): string[] => {
 
 /**
  * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
- * Engine types are explicit, key types are inferred from the allowedKeys arrays
+ * Engine types are explicit, property types are inferred from the dialect
  */
 export const edgeEngineMapper = createEngineMapper<
   EdgeGoalPropsResolved,
@@ -163,9 +164,6 @@ export const edgeEngineMapper = createEngineMapper<
 >()({
   // goal texts are read in the definition's dialect (goal-tree derives the reader)
   dialect: edge,
-  allowedGoalKeys: EDGE_GOAL_KEYS,
-  allowedTaskKeys: EDGE_TASK_KEYS,
-  allowedResourceKeys: EDGE_RESOURCE_KEYS,
   mapGoalProps: ({ raw, executionDetail, id }) => {
     // dependsOn needs the whole tree: checked later, in afterCreationMapper
     const issue = firstGoalOrTaskIssue('goal', raw);

@@ -5,7 +5,6 @@
  * over that `GoalModel`'s view, so the mapper keeps the properties as
  * written.
  */
-import { propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -23,8 +22,6 @@ export const tropos4asEngineMapper = createEngineMapper<
   never
 >()({
   dialect: tropos4as,
-  allowedGoalKeys: propertyKeys(tropos4as, 'goal'),
-  allowedTaskKeys: propertyKeys(tropos4as, 'task'),
   skipResource: true,
   // a goal without children is pursued as executed: the scenario gives its outcome
   allowLeafGoals: true,

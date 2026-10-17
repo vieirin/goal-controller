@@ -6,11 +6,6 @@
  * links' probabilities and weights as written.
  */
 import {
-  actorPropertyKeys,
-  linkPropertyKeys,
-  propertyKeys,
-} from '@goal-controller/dialect';
-import {
   createEngineMapper,
   GoalTree,
   type IStarModel,
@@ -27,15 +22,10 @@ export const istardtEngineMapper = createEngineMapper<
   never
 >()({
   dialect: istardt,
-  allowedGoalKeys: propertyKeys(istardt, 'goal'),
-  allowedTaskKeys: propertyKeys(istardt, 'task'),
   skipResource: true,
-  allowedQualityKeys: propertyKeys(istardt, 'quality'),
   mapGoalProps: ({ text }) => ({ text }),
   mapTaskProps: ({ text }) => ({ text }),
-  allowedActorKeys: actorPropertyKeys(istardt),
   mapActorProps: ({ raw }) => raw,
-  allowedLinkKeys: linkPropertyKeys(istardt),
   mapLinkProps: ({ raw }) => raw,
 });
 

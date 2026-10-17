@@ -12,7 +12,6 @@ import {
   type GoalTreeType,
   type Task,
 } from '@goal-controller/goal-tree';
-import { isSelected } from './checks';
 import { goda } from './definition';
 import type { GodaGoalProps, GodaTaskProps } from './types';
 
@@ -33,12 +32,10 @@ export const godaEngineMapper = createEngineMapper<
 >()({
   // goal texts are read in the definition's dialect (goal-tree derives the reader)
   dialect: goda,
-  allowedGoalKeys: GODA_GOAL_KEYS,
-  allowedTaskKeys: GODA_TASK_KEYS,
   skipResource: true,
-  mapGoalProps: ({ raw, text }) => ({
+  mapGoalProps: ({ props, raw, text }) => ({
     text,
-    selected: isSelected(raw.selected),
+    selected: props.selected === 'true',
     contexts: contextsOf(raw.creationProperty),
     annotation: readText(text)?.notation ?? null,
   }),

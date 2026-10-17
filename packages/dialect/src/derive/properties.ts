@@ -71,7 +71,7 @@ export const propertyOf = (
 ): PropertyDefinition | undefined =>
   definition.properties[kind]?.find((p) => p.key === key);
 
-/** The keys a definition reads on actors (goal-controller#125: a mapper's `allowedActorKeys`), literal types kept. */
+/** The keys a definition reads on actors (goal-controller#125), literal types kept. */
 export const actorPropertyKeys = <
   D extends { actors?: readonly { key: string }[] },
 >(
@@ -81,7 +81,7 @@ export const actorPropertyKeys = <
     D['actors']
   >[number]['key'][];
 
-/** The keys a definition reads on links, every kind's (a mapper's `allowedLinkKeys`), literal types kept. */
+/** The keys a definition reads on links, every kind's, literal types kept. */
 export const linkPropertyKeys = <
   D extends { links?: Readonly<Record<string, readonly { key: string }[]>> },
 >(

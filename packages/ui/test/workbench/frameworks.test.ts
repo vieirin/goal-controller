@@ -202,8 +202,6 @@ describe('the IR of a framework model, read by the workbench (#171)', () => {
       parseModel(KAOS_WELCOME) as never,
       createEngineMapper<unknown, never>()({
         dialect: kaos,
-        allowedGoalKeys: [],
-        allowedTaskKeys: [],
         skipResource: true,
         mapGoalProps: () => ({}),
         mapTaskProps: () => {

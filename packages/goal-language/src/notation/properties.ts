@@ -1,0 +1,175 @@
+/**
+ * A whole property record read against a dialect (goal-controller#187): an
+ * element's, an actor's or a link's stored strings, each read as its
+ * property's value type into the goal language's data for it, typed by the
+ * dialect. What an engine maps from: it never parses a value's text itself.
+ */
+import {
+  actorPropertiesOf,
+  linkPropertiesOf,
+  probabilityOf,
+  valueOf,
+  type ConditionalValue,
+  type PropertyDefinition,
+  type ValueConfig,
+} from '@goal-controller/dialect';
+import { parseValue, type ValueData } from '../parse.js';
+
+/**
+ * What a value config reads into: `ValueData` for its type, an enum narrowed
+ * to its options' values (when the config keeps their literal types; any
+ * word when it is `open`). A dialect's types the goal language has no rule
+ * for: a `reference` is the id written, a `formula` its text, a
+ * `probability` its number in [0, 1]. Null: empty.
+ */
+export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
+  ? string | null
+  : C extends { type: 'enum'; options: readonly (infer O)[] }
+    ?
+        | (O extends { value: infer V extends string } ? Exclude<V, ''> : never)
+        | null
+    : C extends { type: 'reference' | 'formula' }
+      ? string | null
+      : C extends { type: 'probability' }
+        ? number | null
+        : C extends { type: infer T extends keyof ValueData }
+          ? ValueData[T]
+          : never;
+
+/** What a property reads into: a conditional one's, either of its configs'. */
+export type PropertyDataOf<V> = V extends ConditionalValue
+  ? ValueDataOf<V['matching']> | ValueDataOf<V['otherwise']>
+  : ValueDataOf<V>;
+
+/** Properties as a dialect lists them (only their keys and values are read here). */
+export type PropertyList = readonly Pick<PropertyDefinition, 'key' | 'value'>[];
+
+/**
+ * A record's values, typed by its properties: each key's data
+ * (`PropertyDataOf`). Unset, or written with a parse error: absent.
+ */
+export type PropertyValues<L extends PropertyList> = {
+  [K in L[number]['key']]?: PropertyDataOf<
+    Extract<L[number], { key: K }>['value']
+  >;
+};
+
+/** A record's values as written, by its properties' keys. */
+export type PropertyTexts<L extends PropertyList> = {
+  [K in L[number]['key']]?: string;
+};
+
+/** The properties a dialect gives an element kind (none: `[]`). */
+export type ElementPropertiesOf<D, K> = D extends {
+  properties: infer P;
+}
+  ? K extends keyof P
+    ? P[K] extends PropertyList
+      ? P[K]
+      : []
+    : []
+  : [];
+
+/** The properties a dialect gives actors (every actor kind's). */
+export type ActorPropertiesOf<D> = D extends { actors?: infer A }
+  ? NonNullable<A> extends PropertyList
+    ? NonNullable<A>
+    : []
+  : [];
+
+/** The properties a dialect gives a link kind (none: `[]`). */
+export type LinkPropertiesOf<D, K> = D extends { links?: infer L }
+  ? K extends keyof NonNullable<L>
+    ? NonNullable<L>[K] extends PropertyList
+      ? NonNullable<L>[K]
+      : []
+    : []
+  : [];
+
+/** What `readProperties` reads: an element's, an actor's or a link's record, by its kind. */
+export type PropertyOwner =
+  | { element: string }
+  | { actor: string }
+  | { link: string };
+
+/** The properties of what `readProperties` reads, by its owner. */
+export type OwnerPropertiesOf<D, O> = O extends { element: infer K }
+  ? ElementPropertiesOf<D, K>
+  : O extends { actor: string }
+    ? ActorPropertiesOf<D>
+    : O extends { link: infer K }
+      ? LinkPropertiesOf<D, K>
+      : [];
+
+/** A record read: its typed values, and its texts as written. */
+export type PropertyRecord<L extends PropertyList> = {
+  values: PropertyValues<L>;
+  text: PropertyTexts<L>;
+};
+
+/** One value's data, or undefined when its text doesn't read as its config. */
+const readValue = (config: ValueConfig, text: string): unknown => {
+  switch (config.type) {
+    case 'reference':
+    case 'formula':
+      return text.trim() || null;
+    case 'probability': {
+      if (!text.trim()) return null;
+      return probabilityOf(text) ?? undefined;
+    }
+    case 'enum': {
+      const read = parseValue('enum', text);
+      if (read.errors.length) return undefined;
+      // a closed enum's value is one of its options, or isn't its type
+      return read.value === null ||
+        config.open ||
+        config.options.some((option) => option.value === read.value)
+        ? read.value
+        : undefined;
+    }
+    default: {
+      const read = parseValue(config.type, text);
+      return read.errors.length ? undefined : read.value;
+    }
+  }
+};
+
+/**
+ * An element's, an actor's or a link's stored properties read against a
+ * dialect, for its kind (`{ element: 'goal' }`, `{ actor: 'istar.Agent' }`,
+ * `{ link: 'istar.ContributionLink' }`): only the keys the dialect gives it,
+ * each value read as its config (a conditional one's, as the record's other
+ * properties make it). A value written with an error is unset in `values`
+ * (the dialect's checks report it) and kept in `text`.
+ */
+export const readProperties = <
+  const D extends {
+    properties?: Readonly<Record<string, PropertyList>>;
+    actors?: readonly (PropertyList[number] & {
+      kinds?: readonly string[];
+    })[];
+    links?: Readonly<Record<string, PropertyList>>;
+  },
+  const O extends PropertyOwner,
+>(
+  definition: D,
+  owner: O,
+  stored: Readonly<Record<string, string | undefined>>,
+): PropertyRecord<OwnerPropertiesOf<D, O>> => {
+  const list: PropertyList =
+    'element' in owner
+      ? (definition.properties?.[owner.element] ?? [])
+      : 'actor' in owner
+        ? actorPropertiesOf({ actors: definition.actors as never }, owner.actor)
+        : linkPropertiesOf({ links: definition.links as never }, owner.link);
+  const values: Record<string, unknown> = {};
+  const text: Record<string, string> = {};
+  for (const property of list) {
+    const written = stored[property.key];
+    if (written === undefined || property.key in text) continue;
+    text[property.key] = written;
+    const value = readValue(valueOf(property, stored), written);
+    if (value !== undefined) values[property.key] = value;
+  }
+  return { values, text } as PropertyRecord<OwnerPropertiesOf<D, O>>;
+};

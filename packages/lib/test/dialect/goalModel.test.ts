@@ -7,11 +7,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
-import {
-  actorPropertyKeys,
-  defineDialect,
-  linkPropertyKeys,
-} from '@goal-controller/dialect';
+import { defineDialect } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
@@ -167,20 +163,16 @@ describe('the typed IR (#125)', () => {
     const seen: string[] = [];
     const mapper = createEngineMapper<object, object, never>()({
       dialect: toyGraph,
-      allowedGoalKeys: [],
-      allowedTaskKeys: [],
       skipResource: true,
       allowLeafGoals: true,
       mapGoalProps: () => ({}),
       mapTaskProps: () => ({}),
-      allowedActorKeys: actorPropertyKeys(toyGraph),
       mapActorProps: ({ raw, kind, id, name }) => {
         seen.push(`${kind} ${id} ${name}`);
         // @ts-expect-error: the toy's actors have a budget only
         void raw.note;
         return { budget: raw.budget === undefined ? null : Number(raw.budget) };
       },
-      allowedLinkKeys: linkPropertyKeys(toyGraph),
       mapLinkProps: ({ raw }) => ({
         // @ts-expect-error: the toy's links have a weight only
         other: raw.budget,
@@ -202,8 +194,6 @@ describe('the typed IR (#125)', () => {
   it('without the mappers an actor and a link map to {}', () => {
     const mapper = createEngineMapper<object, object, never>()({
       dialect: toyGraph,
-      allowedGoalKeys: [],
-      allowedTaskKeys: [],
       skipResource: true,
       allowLeafGoals: true,
       mapGoalProps: () => ({}),
@@ -226,8 +216,6 @@ describe('the typed IR (#125)', () => {
     const actorsSeen: number[] = [];
     const mapper = createEngineMapper<object, object, never>()({
       dialect: toyGraph,
-      allowedGoalKeys: [],
-      allowedTaskKeys: [],
       skipResource: true,
       allowLeafGoals: true,
       mapGoalProps: () => ({}),

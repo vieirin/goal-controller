@@ -15,7 +15,6 @@ import {
   GoalTree,
   type GoalModel,
   type IStarModel,
-  type RawProps,
 } from '@goal-controller/goal-tree';
 import { kaos } from '../../dialects/kaos';
 
@@ -35,7 +34,7 @@ export type KaosdocProperties = Readonly<Record<string, string>>;
 /** A goal node's: its kind (`kaos.BehavioralGoal`, `kaos.DomainProperty`, …) and properties. */
 export type KaosdocNodeProps = { kind: string; properties: KaosdocProperties };
 
-const set = (raw: RawProps<string>): KaosdocProperties =>
+const set = (raw: Partial<Record<string, string>>): KaosdocProperties =>
   Object.fromEntries(
     Object.entries(raw).flatMap(([key, value]) =>
       value?.trim() ? [[key, value.trim()]] : [],
@@ -47,16 +46,9 @@ export const kaosdocEngineMapper = createEngineMapper<
   never
 >()({
   dialect: kaos,
-  allowedGoalKeys: KAOSDOC_GOAL_KEYS,
-  allowedTaskKeys: [],
-  kindKeys: {
-    'kaos.DomainProperty': KAOSDOC_DOMAIN_PROPERTY_KEYS,
-    'kaosObstacles.Obstacle': propertyKeys(kaos, 'kaosObstacles.Obstacle'),
-  },
   // a KAOS goal may be a leaf: a requirement, an expectation
   allowLeafGoals: true,
   skipResource: true,
-  allowedLinkKeys: KAOSDOC_LINK_KEYS,
   mapLinkProps: ({ raw }) => set(raw),
   mapGoalProps: ({ raw, kind }) => ({ kind, properties: set(raw) }),
   mapTaskProps: ({ id }) => {

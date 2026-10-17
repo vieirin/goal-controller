@@ -66,8 +66,6 @@ export const mutroseEngineMapper = createEngineMapper<
 >()({
   // goal texts are read in the definition's dialect (goal-tree derives the reader)
   dialect: mutrose,
-  allowedGoalKeys: MUTROSE_GOAL_KEYS,
-  allowedTaskKeys: MUTROSE_TASK_KEYS,
   skipResource: true,
   // a Query goal fetches; it needs no children
   allowLeafGoals: true,

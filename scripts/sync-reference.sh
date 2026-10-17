@@ -63,10 +63,26 @@ TS
     on && /^};$/ { exit }'
 } > "$OUT/pistar.ts"
 
+# edgeProperties.ts read a mapper's keys from its allowed*Keys, which mappers
+# no longer have (goal-controller#187): its KeysOf reads them from its dialect
 {
   header packages/ui/lib/workbench/edgeProperties.ts
   show packages/ui/lib/workbench/edgeProperties.ts | sed \
-    -e "s#from '@goal-controller/lib'#from '../../../src'#"
+    -e "s#from '@goal-controller/lib'#from '../../../src'#" | perl -0pe '
+    s{/\*\* The keys an engine mapper reads, per node kind\. \*/\ntype KeysOf<M> = .*?\n  : never;\n}{/** The keys an engine mapper reads, per node kind: its dialect\x27s. */
+type KeysOf<M> = M extends {
+  dialect: {
+    properties: {
+      goal: readonly { key: infer G }[];
+      task: readonly { key: infer T }[];
+      resource: readonly { key: infer R }[];
+      quality: readonly { key: infer Q }[];
+    };
+  };
+}
+  ? { goal: G; task: T; resource: R; quality: Q }
+  : never;
+}s'
 } > "$OUT/edgeProperties.ts"
 
 # the ANTLR grammars: the operators' order and forms the definitions keep
@@ -99,7 +115,9 @@ against) by:
 | RTRegex.edge.g4, RTRegex.edgeV2.g4, AssertionRegex.g4 | packages/lib/grammar/ @ \`$ANTLR_COMMIT\` (the ANTLR grammars, removed) |
 
 Imports are rewritten to these copies, or to lib's own source
-(\`packages/lib/src\`); \`@goal-controller/goal-tree\` resolves from lib. Do not
+(\`packages/lib/src\`); \`@goal-controller/goal-tree\` resolves from lib.
+edgeProperties.ts's \`KeysOf\` reads a mapper's keys from its dialect (its
+mapper's \`allowed*Keys\` are gone, goal-controller#187). Do not
 edit them: a mismatch is fixed in the definition, not here.
 \`test/dialect/harness.test.ts\` checks that re-running the script gives these
 files unchanged.
