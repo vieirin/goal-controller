@@ -393,6 +393,25 @@ describe('readProperties (#187)', () => {
     expect(values.bound).to.have.property('kind', 'compare');
   });
 
+  it('resolves a reference against a context: no element, or a wrong kind, unset (#243)', () => {
+    const kinds: Record<string, string> = { G1: 'goal', T1: 'task' };
+    const context = { kindOf: (id: string) => kinds[id] };
+    const read = (anchor: string, withContext = true) =>
+      readProperties(
+        dialect,
+        { element: 'goal' },
+        { anchor },
+        withContext ? context : undefined,
+      );
+    expect(read(' G1 ').values).to.deep.equal({ anchor: 'G1' });
+    // no such element, a task where a goal is named: unset, kept as written
+    expect(read('G9').values).to.deep.equal({});
+    expect(read('T1')).to.deep.equal({ values: {}, text: { anchor: 'T1' } });
+    expect(read('').values).to.deep.equal({ anchor: null });
+    // without a context, the id as written, as before
+    expect(read('G9', false).values).to.deep.equal({ anchor: 'G9' });
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();

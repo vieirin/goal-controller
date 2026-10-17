@@ -7,6 +7,7 @@ import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
 import {
   readProperties,
   type PropertyOwner,
+  type ReadingContext,
 } from '@goal-controller/goal-language';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
@@ -118,8 +119,14 @@ function propsOf(
   dialect: MapperDialect,
   owner: PropertyOwner,
   customProperties: Readonly<Record<string, string | undefined>>,
+  reading: ReadingContext,
 ): PropsOf<never> {
-  const { values, text } = readProperties(dialect, owner, customProperties);
+  const { values, text } = readProperties(
+    dialect,
+    owner,
+    customProperties,
+    reading,
+  );
   if ('element' in owner) return { props: values, raw: text } as PropsOf<never>;
   const raw: Record<string, string> = {};
   for (const key of ownerKeys(dialect, owner)) {
@@ -141,6 +148,7 @@ const inputOf = (
   node: Node,
   mapper: RunMapper,
   read: ReturnType<typeof readText>,
+  reading: ReadingContext,
 ): ElementInput => {
   const { root, uniqueChoice, ...customProperties } =
     node.customProperties || {};
@@ -150,6 +158,7 @@ const inputOf = (
       mapper.dialect,
       { element: dialectKindOf(node.kind, mapper.dialect) },
       stored,
+      reading,
     ) as unknown as Pick<ElementInput, 'props' | 'raw'>),
     executionDetail: read.executionDetail,
     id: read.id,
@@ -159,8 +168,41 @@ const inputOf = (
   };
 };
 
-/** Per call: each node's input, for its entry's afterCreation. */
-type CreationContext = { inputs: Map<string, ElementInput> };
+/**
+ * Per call: each node's input, for its entry's afterCreation, and what the
+ * properties' references resolve against (goal-controller#243).
+ */
+type CreationContext = {
+  inputs: Map<string, ElementInput>;
+  reading: ReadingContext;
+};
+
+/**
+ * The kind of the element an id names, its RT id (as its text reads in the
+ * dialect) or its piStar id, as the dialect names kinds (`goal`): what a
+ * `reference` resolves against (goal-controller#243). Read once per model,
+ * on first use.
+ */
+const readingOf = (model: Model, mapper: RunMapper): ReadingContext => {
+  let kinds: Map<string, string> | undefined;
+  return {
+    kindOf: (id) => {
+      if (!kinds) {
+        kinds = new Map();
+        for (const element of model.elements.values()) {
+          if (isActor(element)) continue;
+          const kind = dialectKindOf(element.kind, mapper.dialect);
+          kinds.set(element.id, kind);
+          const { id: written } = readText(element as Node, mapper.dialect, {
+            lenient: true,
+          });
+          if (written && !kinds.has(written)) kinds.set(written, kind);
+        }
+      }
+      return kinds.get(id);
+    },
+  };
+};
 
 /** Where a node is: its parent's relation to it, its children, whether it is a root, its actor. */
 type Placement = {
@@ -238,7 +280,7 @@ function istarNode(
   // a skipped kind (a mapper's skipResource) is checked, then left out
   if (entry.skip) return null;
 
-  const input = inputOf(node, mapper, read);
+  const input = inputOf(node, mapper, read, context.reading);
   context.inputs.set(id, input);
   const base = {
     id,
@@ -294,7 +336,7 @@ function kindNode(
       `[INVALID MODEL]: "${node.name.trim()}" has no id: start its name with one, like G4: ${node.name.trim() || 'name'}`,
     );
   }
-  const input = inputOf(node, mapper, read);
+  const input = inputOf(node, mapper, read, context.reading);
   context.inputs.set(read.id, input);
   return {
     id: read.id,
@@ -445,7 +487,10 @@ function build(
   mapper: RunMapper,
   { dependums: withDependums = true }: { dependums?: boolean } = {},
 ): KindModel<KindProps, Naming, unknown, unknown, Shape> {
-  const context: CreationContext = { inputs: new Map() };
+  const context: CreationContext = {
+    inputs: new Map(),
+    reading: readingOf(model, mapper),
+  };
   const isTree = (node: BuiltNode | null): node is BuiltNode => node !== null;
 
   const iStarLinks = [...model.links.values()];
@@ -481,6 +526,7 @@ function build(
         mapper.dialect,
         { actor: actor.kind },
         actor.customProperties ?? {},
+        context.reading,
       ),
       kind: actor.kind,
       id: actor.id,
@@ -503,6 +549,7 @@ function build(
         mapper.dialect,
         { link: link.kind },
         link.customProperties ?? {},
+        context.reading,
       ),
       kind: link.kind,
       id: link.id,
@@ -582,7 +629,9 @@ function build(
       return {
         ...written,
         as: entry.as,
-        engine: entry.mapProps(inputOf(element as Node, mapper, read)),
+        engine: entry.mapProps(
+          inputOf(element as Node, mapper, read, context.reading),
+        ),
       } as ModelElement;
     });
 
