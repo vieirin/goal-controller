@@ -330,7 +330,14 @@ more (`{ ...nfr, id: 'nfrprop', properties: { …, initialLabel } }`).
   one;
 - `refinements` names the link kinds that refine, with their relation: the
   IR (§3.10) and the views read refinements from it;
-- there is no `extension`, `actors` or `notation`.
+- `leafTargets` names the link kinds whose target must be a leaf (a KAOS
+  obstruction): `frameworkProblems` reports one onto a refined element;
+- an `extension` extends the root (goal-controller#181): its kinds are in a
+  namespace of its own, its links join the root's kinds, and an n-ary one
+  (`arity: 'n'`) gets a hub that `properties` and legs that `links` may name;
+- the value types `reference`, `formula` and `probability` type a
+  framework's keys (an anchor goal, a formal spec, an engine's quantities);
+- there is no `actors` or `notation`.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
 
