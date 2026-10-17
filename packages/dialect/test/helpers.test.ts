@@ -16,6 +16,7 @@ import {
   property,
   type CheckNameOf,
   type PropertyKeyOf,
+  valueParts,
 } from '../src';
 
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
@@ -94,6 +95,28 @@ describe('property', () => {
     expect(enumOptionOf(exact.value, 'Achieve')).to.equal(undefined);
     // @ts-expect-error caseInsensitive is true or unset
     property.enum('x', ['a'], { caseInsensitive: false, help: 'h' });
+  });
+
+  it("puts an assertion's separator in its value; splits a value into its parts (#232)", () => {
+    const contexts = property.assertion('ctx', {
+      resolves: ['variable'],
+      separator: '%',
+      help: 'h',
+    });
+    expect(contexts.value).to.deep.equal({
+      type: 'assertion',
+      resolves: ['variable'],
+      separator: '%',
+    });
+    expect(valueParts(contexts.value, 'a = 1 % b = 2 %  ')).to.deep.equal([
+      { text: 'a = 1 ', offset: 0 },
+      { text: ' b = 2 ', offset: 7 },
+    ]);
+    expect(valueParts(contexts.value, '')).to.deep.equal([]);
+    // without a separator, or another type: the whole text
+    expect(valueParts({ type: 'int' }, '3 % 4')).to.deep.equal([
+      { text: '3 % 4', offset: 0 },
+    ]);
   });
 
   it("puts an assertion's, an expression's and OCL's options in the value, the rest beside it", () => {

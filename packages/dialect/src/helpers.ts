@@ -98,6 +98,7 @@ const ASSERTION_KEYS = [
   'decimals',
   'booleanInequality',
   'declaresVariables',
+  'separator',
   'functions',
   'members',
 ] as const;
@@ -111,6 +112,7 @@ type AssertionOptions = {
   decimals?: boolean;
   booleanInequality?: boolean;
   declaresVariables?: boolean;
+  separator?: string;
   functions?: readonly FunctionDefinition[];
   members?: MemberSource;
 };

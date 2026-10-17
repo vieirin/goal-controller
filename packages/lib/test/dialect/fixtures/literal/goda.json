@@ -73,6 +73,10 @@
             {
               "value": "true",
               "label": "true"
+            },
+            {
+              "value": "false",
+              "label": "not selected"
             }
           ]
         },
@@ -87,7 +91,8 @@
           "prefixes": ["assertion condition", "assertion trigger"],
           "decimals": true,
           "booleanInequality": true,
-          "declaresVariables": true
+          "declaresVariables": true,
+          "separator": "%"
         },
         "input": {
           "placeholder": "assertion trigger battery > 0.5"
@@ -104,7 +109,8 @@
           "prefixes": ["assertion condition", "assertion trigger"],
           "decimals": true,
           "booleanInequality": true,
-          "declaresVariables": true
+          "declaresVariables": true,
+          "separator": "%"
         },
         "input": {
           "placeholder": "assertion trigger battery > 0.5"

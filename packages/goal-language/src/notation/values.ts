@@ -4,6 +4,7 @@
  * elements of the model of the kind it refers to.
  */
 import {
+  valueParts,
   actorPropertiesOf,
   enumOptionOf,
   linkPropertiesOf,
@@ -306,6 +307,15 @@ export const valueProblem = (
   definition?: Pick<AnyDialect, 'properties'>,
 ): string | null => {
   if (!text.trim()) return null;
+  // a list of conditions (goal-controller#232): the first part's problem
+  if (value.type === 'assertion' && value.separator) {
+    const one = { ...value, separator: undefined };
+    for (const part of valueParts(value, text)) {
+      const problem = valueProblem(one, part.text, context, definition);
+      if (problem) return problem;
+    }
+    return null;
+  }
   switch (value.type) {
     case 'int':
       return intProblem(text, value);
@@ -451,6 +461,16 @@ export const unknownNames = (
   text: string,
   context: DefinitionContext,
 ): string[] => {
+  if (value.type === 'assertion' && value.separator) {
+    const one = { ...value, separator: undefined };
+    return [
+      ...new Set(
+        valueParts(value, text).flatMap((part) =>
+          unknownNames(one, part.text, context),
+        ),
+      ),
+    ];
+  }
   if (value.type !== 'assertion' || parseValue('assertion', text).errors.length)
     return [];
   const resolves: readonly string[] = value.resolves;

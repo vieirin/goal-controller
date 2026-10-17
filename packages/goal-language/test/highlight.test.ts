@@ -69,4 +69,15 @@ describe('highlightValue', () => {
       ],
     );
   });
+
+  it('highlights a list of conditions part by part, at their offsets (#232)', () => {
+    const text = 'x > 1 % y';
+    const names = highlightValue(
+      { type: 'assertion', resolves: ['variable'], separator: '%' },
+      text,
+    )
+      .filter((h) => h.style === 'variableName')
+      .map((h) => text.slice(h.from, h.to));
+    expect(names).to.deep.equal(['x', 'y']);
+  });
 });

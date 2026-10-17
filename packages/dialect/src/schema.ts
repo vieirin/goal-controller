@@ -172,6 +172,12 @@ export type ValueConfig =
        */
       declaresVariables?: boolean;
       /**
+       * a list of conditions, separated by it (goal-controller#232: GODA's
+       * `%` between its contexts, `addFulfillmentConditions`), each one as
+       * the rest of this config reads it; blank parts are none
+       */
+      separator?: string;
+      /**
        * the functions its comparisons may call (`previous(x) < 18`); with
        * them (even none), a comparison's sides are expressions (`0.9 * x >=
        * 1`), not a name and a number only
@@ -304,6 +310,26 @@ export const enumOptionOf = (
     ? (value: string) => value.toLowerCase() === written.toLowerCase()
     : (value: string) => value === written;
   return config.options.find((option) => same(option.value))?.value;
+};
+
+/**
+ * A value's parts, each with where it starts in the text: an assertion
+ * with a `separator` is one per non-blank part between them, any other
+ * value one, the whole text (goal-controller#232).
+ */
+export const valueParts = (
+  config: ValueConfig,
+  text: string,
+): { text: string; offset: number }[] => {
+  const separator = config.type === 'assertion' ? config.separator : undefined;
+  if (!separator) return [{ text, offset: 0 }];
+  const parts: { text: string; offset: number }[] = [];
+  let offset = 0;
+  for (const part of text.split(separator)) {
+    if (part.trim()) parts.push({ text: part, offset });
+    offset += part.length + separator.length;
+  }
+  return parts;
 };
 
 /** What a postfix operator means: it modifies its operand, with an argument. */

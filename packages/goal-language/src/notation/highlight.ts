@@ -6,6 +6,7 @@
  * give the same text the same colour.
  */
 import {
+  valueParts,
   hasIds,
   valueOf,
   type AnyDialect,
@@ -215,6 +216,15 @@ export const highlightValue = (
   text: string,
   offset = 0,
 ): Highlight[] => {
+  // a list of conditions (goal-controller#232): each part, as one
+  if (value.type === 'assertion' && value.separator)
+    return valueParts(value, text).flatMap((part) =>
+      highlightValue(
+        { ...value, separator: undefined },
+        part.text,
+        offset + part.offset,
+      ),
+    );
   const highlights = styled(tokensOf(START[value.type], text), offset);
   // an enum's value is one of a fixed few: an atom, as true and false are
   return value.type === 'enum'

@@ -5,6 +5,7 @@
  * dialect. What an engine maps from: it never parses a value's text itself.
  */
 import {
+  valueParts,
   actorPropertiesOf,
   enumOptionOf,
   linkPropertiesOf,
@@ -14,7 +15,12 @@ import {
   type PropertyDefinition,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { asPairList, type Pair, type PairList } from '../members.js';
+import {
+  asPairList,
+  type Assertion,
+  type Pair,
+  type PairList,
+} from '../members.js';
 import { parseValue, type ValueData } from '../parse.js';
 
 /**
@@ -30,15 +36,17 @@ export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
     ?
         | (O extends { value: infer V extends string } ? Exclude<V, ''> : never)
         | null
-    : C extends { type: 'pairList'; value: infer V }
-      ? PairList<V extends 'text' ? string : number>
-      : C extends { type: 'reference' | 'formula' }
-        ? string | null
-        : C extends { type: 'probability' }
-          ? number | null
-          : C extends { type: infer T extends keyof ValueData }
-            ? ValueData[T]
-            : never;
+    : C extends { type: 'assertion'; separator: string }
+      ? Assertion[]
+      : C extends { type: 'pairList'; value: infer V }
+        ? PairList<V extends 'text' ? string : number>
+        : C extends { type: 'reference' | 'formula' }
+          ? string | null
+          : C extends { type: 'probability' }
+            ? number | null
+            : C extends { type: infer T extends keyof ValueData }
+              ? ValueData[T]
+              : never;
 
 /** What a property reads into: a conditional one's, either of its configs'. */
 export type PropertyDataOf<V> = V extends ConditionalValue
@@ -152,6 +160,20 @@ const readValue = (
       if (config.min !== undefined && n < config.min) return undefined;
       if (config.max !== undefined && n > config.max) return undefined;
       return n;
+    }
+    case 'assertion': {
+      if (!config.separator) {
+        const read = parseValue('assertion', text);
+        return read.errors.length ? undefined : read.value;
+      }
+      // a list of conditions (goal-controller#232): each part one, or none
+      const conditions: Assertion[] = [];
+      for (const part of valueParts(config, text)) {
+        const read = parseValue('assertion', part.text);
+        if (read.errors.length || !read.value) return undefined;
+        conditions.push(read.value);
+      }
+      return conditions;
     }
     case 'pairList': {
       const read = parseValue('pairList', text);
