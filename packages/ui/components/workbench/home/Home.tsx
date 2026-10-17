@@ -41,6 +41,9 @@ const GROUP_ORDER = [
   'cgm',
   'sleec',
   'pistar-ext',
+  // the frameworks besides iStar 2.0 (goal-controller#171)
+  'kaos',
+  'nfr',
 ];
 
 const useExamplePreviews = () =>

@@ -1,6 +1,9 @@
 'use client';
 
-import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import {
+  MODELLING_LABEL,
+  isModellingMode,
+} from '@/lib/workbench/frameworkModes';
 import {
   ArrowRightLeft,
   ChevronDown,
@@ -317,21 +320,21 @@ export default function TopBar() {
             title={
               kind === 'pistar'
                 ? 'piStar model (no engine): change it in the model settings'
-                : isDialectMode(kind)
-                  ? `${DIALECT_LABEL[kind]} model (a modelling dialect, no engine): change it in the model settings`
+                : isModellingMode(kind)
+                  ? `${MODELLING_LABEL[kind]} model (a modelling dialect, no engine): change it in the model settings`
                   : `Target engine: ${ENGINE_LABEL[kind]} (change it in the model settings)`
             }
             className={cx(
               'shrink-0 rounded border px-1.5 py-0.5 text-2xs font-medium',
-              kind === 'pistar' || isDialectMode(kind)
+              kind === 'pistar' || isModellingMode(kind)
                 ? 'border-trace/30 text-trace hover:bg-trace-soft'
                 : 'border-line text-ink-soft hover:bg-panel',
             )}
           >
             {kind === 'pistar'
               ? 'piStar'
-              : isDialectMode(kind)
-                ? DIALECT_LABEL[kind]
+              : isModellingMode(kind)
+                ? MODELLING_LABEL[kind]
                 : ENGINE_LABEL[kind]}
           </button>
         )}

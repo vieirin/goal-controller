@@ -15,7 +15,7 @@ import {
 } from '../project';
 import { isOptionValue, type OptionDefinition } from '@goal-controller/dialect';
 import { isTransformEngine, type TransformEngine } from '../types';
-import { isDialectMode } from './dialects';
+import { isModellingMode } from './frameworkModes';
 import { ENGINE_LABEL, ENGINE_OPTIONS } from './engineDialects';
 import type { ModelMode } from './pistar';
 import {
@@ -162,6 +162,6 @@ export const openingSettings = (
     : {
         ...base,
         pistar: true,
-        dialect: recorded && isDialectMode(recorded) ? recorded : undefined,
+        dialect: recorded && isModellingMode(recorded) ? recorded : undefined,
       };
 };

@@ -34,6 +34,7 @@ import {
   isDialectMode,
   parseModel,
 } from '../../../../ui/lib/workbench/dialects';
+import { isFrameworkMode } from '../../../../ui/lib/workbench/frameworkModes';
 import { jsonProblem } from '../../../../ui/lib/workbench/localProblems';
 import {
   DEFAULT_OPTIONS,
@@ -68,7 +69,11 @@ const legacyOpening = (
     : {
         ...base,
         pistar: true,
-        dialect: isDialectMode(recorded) ? recorded : undefined,
+        // a framework's mode is a modelling dialect too (#171)
+        dialect:
+          isDialectMode(recorded) || isFrameworkMode(recorded)
+            ? recorded
+            : undefined,
       };
 };
 
@@ -92,6 +97,9 @@ const GROUP_MODE: Record<string, ModelMode> = {
   sleec: 'sleec',
   mutrose: 'mutrose',
   'pistar-ext': 'pistarext',
+  // DSM3's seeds (#171): their framework's mode, the framework beside it
+  kaos: 'kaos',
+  nfr: 'nfr',
 };
 const groupOf = (file: string) => file.split('/')[1] ?? '';
 /** every example as the Explorer opens it: its folder's mode recorded */
@@ -360,6 +368,7 @@ describe('ui Explorer: examples opened as projects', () => {
                 customProperties: {
                   ...model.diagram?.customProperties,
                   engine: mode,
+                  ...(isFrameworkMode(mode) && { framework: mode }),
                 },
               },
             },

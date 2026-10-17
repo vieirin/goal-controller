@@ -6,7 +6,10 @@ import {
   type ProjectIndexEntry,
 } from '../lib/project';
 import { isTransformEngine, type TransformEngine } from '../lib/types';
-import { isDialectMode, type DialectMode } from '../lib/workbench/dialects';
+import {
+  isModellingMode,
+  type ModellingMode,
+} from '../lib/workbench/frameworkModes';
 import { writeModelMode } from '../lib/workbench/pistar';
 import { declarationsOf } from '../lib/workbench/projectResources';
 import type { ModelSettings } from '../lib/workbench/types';
@@ -43,7 +46,7 @@ export const listExamplePreviews = async (): Promise<
 };
 
 /** examples/<group>/: the engine, or the dialect, its models are for */
-const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
+const EXAMPLE_ENGINES: Record<string, TransformEngine | ModellingMode> = {
   edge: 'edge',
   edgeV2: 'edgev2',
   sleec: 'sleec',
@@ -54,6 +57,9 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
   tropos4as: 'tropos4as',
   cgm: 'cgm',
   'pistar-ext': 'pistarext',
+  // DSM3-goals' own files, which record neither: their framework's mode
+  kaos: 'kaos',
+  nfr: 'nfr',
 };
 
 /**
@@ -63,9 +69,9 @@ const EXAMPLE_ENGINES: Record<string, TransformEngine | DialectMode> = {
  */
 export const exampleMode = (
   entry: ProjectIndexEntry,
-): TransformEngine | DialectMode | undefined => {
+): TransformEngine | ModellingMode | undefined => {
   const named = entry.dialect ?? EXAMPLE_ENGINES[entry.group];
-  return named && (isTransformEngine(named) || isDialectMode(named))
+  return named && (isTransformEngine(named) || isModellingMode(named))
     ? named
     : undefined;
 };
@@ -109,6 +115,6 @@ export const openExample = async (
     project: withModelText(read, model.path, text),
     fileName: model.path.split('/').pop() ?? model.path,
     text,
-    ...(engine && !isDialectMode(engine) && { settings: { engine } }),
+    ...(engine && !isModellingMode(engine) && { settings: { engine } }),
   };
 };

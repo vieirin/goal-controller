@@ -381,6 +381,20 @@ export type DialectDefinition<K extends string = ElementKind> = {
    */
   framework?: Framework;
   /**
+   * A non-iStar framework's links that refine, by link kind, and how
+   * (goal-controller#171): NFR's `nfr.AndRefinementLink` is an AND. An n-ary
+   * kind (KAOS's `kaos.RefinementLink`, drawn as a hub with legs) refines its
+   * end's target with its legs' sources. iStar's refinements are its own
+   * And/Or links, and a dialect of iStar names none.
+   */
+  refinements?: Readonly<Record<string, Relation>>;
+  /**
+   * The labels a non-iStar framework's link kinds take, by link kind: the
+   * values its changeable label is picked from (NFR's contributions, `++` …
+   * `unknown`). iStar's contribution value is istar-ts's (`make`, `help`, …).
+   */
+  linkLabels?: Readonly<Record<string, readonly string[]>>;
+  /**
    * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
    * have properties (`properties`, by kind id), be named by references
    * (`assertion.resolves`, `refList.kind`, …) and be listed (`elements`, by
@@ -1079,6 +1093,36 @@ const checkFrameworkDialect = (
 };
 
 /**
+ * A dialect's refinements and link labels (goal-controller#171): a non-iStar
+ * framework's, each naming one of its link kinds, a relation, and labels
+ * once each.
+ */
+const checkFrameworkLinks = (
+  definition: Pick<AnyDialect, 'framework' | 'refinements' | 'linkLabels'>,
+  fail: (why: string) => never,
+) => {
+  const framework = definition.framework ?? DEFAULT_FRAMEWORK;
+  const linkKinds: readonly string[] =
+    framework === 'istar-2.0' ? [] : FRAMEWORK_KINDS[framework].links;
+  for (const [field, entries] of [
+    ['refinements', definition.refinements],
+    ['linkLabels', definition.linkLabels],
+  ] as const) {
+    if (!entries) continue;
+    if (framework === 'istar-2.0') fail(`${field}: iStar's links are its own`);
+    for (const kind of Object.keys(entries))
+      if (!linkKinds.includes(kind))
+        fail(`${field}: ${kind} is not a link kind of ${framework}`);
+  }
+  for (const [kind, relation] of Object.entries(definition.refinements ?? {}))
+    if (relation !== 'and' && relation !== 'or')
+      fail(`refinements: ${kind} is an and or an or, not ${String(relation)}`);
+  for (const [kind, labels] of Object.entries(definition.linkLabels ?? {}))
+    if (!labels.length || new Set(labels).size !== labels.length)
+      fail(`linkLabels: ${kind}'s labels are some, each once`);
+};
+
+/**
  * Type-checks and freezes a definition, and checks what the types cannot:
  * every name it uses (constructs, languages, condition keys, the keys an
  * element line declares) is one it declares, and the property-line order lists
@@ -1283,6 +1327,7 @@ export const defineDialect = <const D extends AnyDialect>(
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
   checkNativeFiles(definition.nativeFiles ?? {}, fail);
+  checkFrameworkLinks(definition, fail);
   if (definition.model)
     for (const [part, count] of Object.entries(definition.model))
       if (count !== 'one' && count !== 'many')

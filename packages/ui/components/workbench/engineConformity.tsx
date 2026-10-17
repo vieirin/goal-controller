@@ -21,7 +21,10 @@ import {
 } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
-import { DIALECT_LABEL, isDialectMode } from '@/lib/workbench/dialects';
+import {
+  MODELLING_LABEL,
+  isModellingMode,
+} from '@/lib/workbench/frameworkModes';
 import {
   ENGINE_LABEL,
   ENGINES,
@@ -37,7 +40,7 @@ export const TARGETS: Array<{
   output: string | null;
 }> = [
   ...ENGINES.map(({ id, label, output }) => ({ id, label, output })),
-  ...Object.entries(DIALECT_LABEL).map(([id, label]) => ({
+  ...Object.entries(MODELLING_LABEL).map(([id, label]) => ({
     id: id as ConversionTarget,
     label,
     output: null,
@@ -123,7 +126,7 @@ export function useEngineConformity(
       const plan = plans[id];
       if (!plan || 'error' in plan || plan.blockers.length > 0) continue;
       // a dialect has no engine to check the model with: its conversion says it all
-      if (isDialectMode(id)) continue;
+      if (isModellingMode(id)) continue;
       setChecks((prev) => ({ ...prev, [id]: { state: 'checking' } }));
       try {
         const data: AnalyzeResponse = analyze(plan.text, id);
@@ -163,7 +166,7 @@ export function useEngineConformity(
   const statusOf = (id: ConversionTarget): Status => {
     const plan = plans[id];
     if (!plan || 'error' in plan || plan.blockers.length > 0) return 'blocked';
-    if (isDialectMode(id)) return 'ready';
+    if (isModellingMode(id)) return 'ready';
     const check = checks[id];
     if (!check || check.state === 'checking') return 'checking';
     if (check.errors.length > 0) return 'blocked';

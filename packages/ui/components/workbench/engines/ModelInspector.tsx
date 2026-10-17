@@ -12,14 +12,17 @@ import Tropos4asInspector from './tropos4as/Tropos4asInspector';
 import CgmInspector from './cgm/CgmInspector';
 
 /**
- * The inspector for the mode the model is in. piStar mode and piStar-ext have none here:
- * their diagrams carry their inspectors (engines/pistar/, engines/pistarExt/).
+ * The inspector for the mode the model is in. piStar mode, piStar-ext and the frameworks
+ * have none here: their diagrams carry their inspectors (engines/pistar/,
+ * engines/pistarExt/, engines/framework/).
  */
 export default function ModelInspector() {
   const wb = useWorkbench();
   switch (wb.mode) {
     case 'pistar':
     case 'pistarext':
+    case 'kaos':
+    case 'nfr':
       return null;
     case 'edge':
       return <EdgeInspector />;

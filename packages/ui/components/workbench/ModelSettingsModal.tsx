@@ -2,7 +2,10 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { DIALECT_LABEL, type DialectMode } from '@/lib/workbench/dialects';
+import {
+  MODELLING_LABEL,
+  type ModellingMode,
+} from '@/lib/workbench/frameworkModes';
 import { ENGINES, hasOptions } from '@/lib/workbench/engineDialects';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
@@ -21,11 +24,22 @@ const PISTAR = {
 };
 
 /** The modelling dialects: chosen like an engine, nothing generated. */
-const DIALECTS: Array<{ id: DialectMode; output: string; help: string }> = [
+const DIALECTS: Array<{ id: ModellingMode; output: string; help: string }> = [
   {
     id: 'pistarext',
     output: 'iStar4RationalAgents',
     help: "piStar-ext's dialect: Planning and Plan, stereotypes and tagged values; nothing is generated",
+  },
+  // the frameworks besides iStar 2.0 (goal-controller#171): their models only
+  {
+    id: 'kaos',
+    output: 'KAOS',
+    help: 'KAOS goal models as DSM3-goals draws them: goals, agents, domain properties, refinements and conflicts; nothing is generated',
+  },
+  {
+    id: 'nfr',
+    output: 'NFR Framework',
+    help: 'NFR softgoal interdependency graphs as DSM3-goals draws them: softgoals, operationalizations, claims and contributions; nothing is generated',
   },
 ];
 
@@ -235,7 +249,7 @@ export default function ModelSettingsModal() {
                       />
                       <span className='flex items-baseline justify-between gap-2'>
                         <span className='text-[13px] font-semibold text-ink'>
-                          {DIALECT_LABEL[dialect.id]}
+                          {MODELLING_LABEL[dialect.id]}
                         </span>
                         <span className='font-mono text-2xs text-ink-muted'>
                           {dialect.output}

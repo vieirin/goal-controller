@@ -54,6 +54,12 @@ import {
   FRAMEWORK_LABEL,
   frameworkOfModel,
 } from './frameworks';
+import {
+  FRAMEWORK_DIALECTS,
+  FRAMEWORK_MODE_LABEL,
+  isFrameworkMode,
+  type FrameworkMode,
+} from './frameworkModes';
 
 /** How a node refines its children: AND/OR refinement (Needed-By is not one) */
 export type Relation = 'and' | 'or';
@@ -313,10 +319,15 @@ export const jsonErrorPosition = (
 // ---------------------------------------------------------------------------
 
 /**
- * What a model is for: one of the engines, a modelling dialect (no engine), or free
+ * What a model is for: one of the engines, a modelling dialect (no engine:
+ * an iStar extension's, or a framework's, goal-controller#171), or free
  * iStar modelling in piStar mode.
  */
-export type ModelMode = TransformEngine | DialectMode | 'pistar';
+export type ModelMode =
+  | TransformEngine
+  | DialectMode
+  | FrameworkMode
+  | 'pistar';
 
 const MODES: readonly ModelMode[] = [
   'edgev2',
@@ -329,12 +340,14 @@ const MODES: readonly ModelMode[] = [
   'tropos4as',
   'cgm',
   'pistarext',
+  'kaos',
+  'nfr',
   'pistar',
 ];
 
 /** Whether a mode is an engine's (it generates): not piStar's nor a dialect's. */
 export const isEngineMode = (mode: ModelMode): mode is TransformEngine =>
-  mode !== 'pistar' && !isDialectMode(mode);
+  mode !== 'pistar' && !isDialectMode(mode) && !isFrameworkMode(mode);
 
 const isMode = (value: unknown): value is ModelMode =>
   MODES.includes(value as ModelMode);
@@ -356,10 +369,16 @@ export const readModelMode = (text: string): ModelMode | null => {
 
 /**
  * Record the mode in the model text; piStar mode is the absence of a record.
- * The rest of the file stays as it was.
+ * A framework's mode records its framework beside it (another mode leaves
+ * the framework recorded as it is). The rest of the file stays as it was.
  */
 export const writeModelMode = (text: string, mode: ModelMode): string =>
-  withModelSettings(text, { mode: mode === 'pistar' ? null : mode });
+  withModelSettings(text, {
+    mode: mode === 'pistar' ? null : mode,
+    ...(isFrameworkMode(mode) && {
+      framework: FRAMEWORK_DIALECTS[mode].framework,
+    }),
+  });
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
 const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
@@ -451,18 +470,22 @@ const KIND_LABEL = (kind: string): string =>
 const MODE_LABEL = (mode: ModelMode): string =>
   isDialectMode(mode)
     ? DIALECT_LABEL[mode]
-    : mode === 'pistar'
-      ? 'piStar'
-      : mode === 'edge' || mode === 'edgev2'
-        ? 'the Edge engines'
-        : ENGINE_LABEL[mode];
+    : isFrameworkMode(mode)
+      ? FRAMEWORK_MODE_LABEL[mode]
+      : mode === 'pistar'
+        ? 'piStar'
+        : mode === 'edge' || mode === 'edgev2'
+          ? 'the Edge engines'
+          : ENGINE_LABEL[mode];
 /** The framework a mode's models are in (goal-controller#171): its dialect's; piStar's is iStar 2.0. */
 export const frameworkOfMode = (mode: ModelMode): Framework =>
   (isDialectMode(mode)
     ? DIALECT_DEFINITIONS[mode]
-    : isEngineMode(mode)
-      ? dialectOf(mode)
-      : null
+    : isFrameworkMode(mode)
+      ? FRAMEWORK_DIALECTS[mode]
+      : isEngineMode(mode)
+        ? dialectOf(mode)
+        : null
   )?.framework ?? DEFAULT_FRAMEWORK;
 
 /**

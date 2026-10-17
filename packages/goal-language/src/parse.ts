@@ -417,15 +417,18 @@ const WORD_CHARACTER = /[A-Za-z\- ']/;
  * written so the grammar reads its name as a WORD: every other character of
  * the name (up to its bracket or declaration) made a letter, so the line
  * keeps its length and every span. `name` is the name as written.
+ * `brackets: false`: a bracket is the name's too (a framework's dialect,
+ * `nameReading`).
  */
 export const withWordName = (
   text: string,
   prefixes: readonly string[] = [],
+  { brackets = true }: { brackets?: boolean } = {},
 ): { text: string; name: { from: number; to: number } | null } => {
   const id = (prefixes.length ? elementIdOf(prefixes) : ELEMENT_ID).exec(text);
   if (!id) return { text, name: null };
   const from = id[0].length;
-  const end = text.slice(from).search(/[[{]/);
+  const end = text.slice(from).search(brackets ? /[[{]/ : /\{/);
   const to = end < 0 ? text.length : from + end;
   let masked = '';
   for (const ch of text.slice(from, to))
@@ -437,12 +440,31 @@ export const withWordName = (
 };
 
 /**
+ * How a dialect reads the name on a line with an id: as RTRegex.g4's WORD
+ * (null), as free text up to its bracket (`'text'`, `notation.names`), or,
+ * in a framework's dialect (KAOS, NFR: no notation, goal-controller#171), as
+ * the rest of its line, brackets, digits and commas too (`'line'`: KAOS's
+ * `G1: Achieve [Manual Backup]`).
+ */
+export const nameReading = (dialect: {
+  framework?: string;
+  notation?: Pick<NotationDefinition, 'names'> | undefined;
+}): 'text' | 'line' | null =>
+  dialect.framework !== undefined && dialect.framework !== 'istar-2.0'
+    ? 'line'
+    : dialect.notation?.names === 'text'
+      ? 'text'
+      : null;
+
+/**
  * One element line read in a dialect: as written, without the spaces in its
  * bracket where the dialect ignores them (`notation.whitespace`), its name
- * read as free text where the dialect's names are (`notation.names`).
+ * read as free text where the dialect's names are (`nameReading`).
  */
 export const parseElementLineIn = (
   dialect: {
+    /** its framework: another than iStar's reads names to the line's end */
+    framework?: string;
     notation?: Pick<NotationDefinition, 'whitespace' | 'names'> | undefined;
     /** its kinds' id prefixes: an extension's kinds' it lists are read too */
     elements?: Readonly<Record<string, { prefix?: string } | undefined>>;
@@ -450,10 +472,10 @@ export const parseElementLineIn = (
   text: string,
 ): Parsed<ElementLineData | null> => {
   const prefixes = idPrefixesOf(dialect);
-  const named =
-    dialect.notation?.names === 'text'
-      ? withWordName(text, prefixes)
-      : { text, name: null };
+  const reading = nameReading(dialect);
+  const named = reading
+    ? withWordName(text, prefixes, { brackets: reading === 'text' })
+    : { text, name: null };
   const read = parseElementLine(
     dialect.notation?.whitespace === 'ignore'
       ? withoutBracketSpaces(named.text).text

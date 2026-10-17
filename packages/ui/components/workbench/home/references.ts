@@ -29,6 +29,17 @@ const TAS = {
   url: 'https://doi.org/10.1109/SEAMS.2015.27',
 };
 
+/**
+ * DSM3-goals, the generic piStar editor KAOS's and NFR's seeds come from:
+ * its own welcome models, copied byte for byte (via istar-ts's
+ * fixtures/dsm3/, read on 2026-10-16). No licence is stated on the site or
+ * in its scripts; they are reproduced as data, with this attribution.
+ */
+const DSM3_GOALS = {
+  text: 'J. Pimentel. DSM3-goals: KAOS, the NFR Framework and iStar 2.0 in one piStar editor (its welcome models; no licence stated).',
+  url: 'https://www.cin.ufpe.br/~jhcp/dsm3goals/',
+};
+
 export const SECTION_REFERENCES: Readonly<
   Record<string, readonly Reference[]>
 > = {
@@ -146,5 +157,22 @@ export const SECTION_REFERENCES: Readonly<
       text: 'Gonçalves et al. iStar4RationalAgents. ER 2019.',
       examples: ['pistar-ext/iStar4RationalAgents.txt'],
     },
+  ],
+  kaos: [
+    {
+      text: 'A. Dardenne, A. van Lamsweerde, S. Fickas. Goal-directed requirements acquisition. Science of Computer Programming 20(1–2), 1993.',
+      url: 'https://doi.org/10.1016/0167-6423(93)90021-G',
+    },
+    {
+      text: 'A. van Lamsweerde. Requirements Engineering: From System Goals to UML Models to Software Specifications. Wiley, 2009.',
+    },
+    { ...DSM3_GOALS, examples: ['kaos/kaos-welcome.txt'] },
+  ],
+  nfr: [
+    {
+      text: 'L. Chung, B. A. Nixon, E. Yu, J. Mylopoulos. Non-Functional Requirements in Software Engineering. Kluwer, 2000.',
+      url: 'https://doi.org/10.1007/978-1-4615-5269-7',
+    },
+    { ...DSM3_GOALS, examples: ['nfr/nfr-welcome.txt'] },
   ],
 };
