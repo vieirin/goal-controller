@@ -5,7 +5,7 @@
  * their PRISM modules, as the producer at cc808b6 computes them.
  */
 import {
-  operandIds,
+  asNotation,
   type CostData,
   type RtTree,
 } from '@goal-controller/goal-language';
@@ -128,7 +128,7 @@ const decisionIds = (annotation: RtTree | null, uid: string): string[] => {
     if (!tree) return;
     if (tree.kind === 'call' && tree.name === 'DM')
       for (const arg of tree.args)
-        for (const id of operandIds(arg))
+        for (const id of arg ? asNotation(arg).operandIds() : [])
           ids.push(id.startsWith('T') ? `${uid.split('_')[0]}_${id}` : id);
     else if (
       tree.kind === 'group' ||

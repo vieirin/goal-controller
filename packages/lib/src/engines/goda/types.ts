@@ -2,7 +2,7 @@
  * GODA's typed properties: what its mapper reads of a goal model, for the
  * template (RTGoreProducer's containers).
  */
-import type { CostData, RtTree } from '@goal-controller/goal-language';
+import type { CostData, Notation } from '@goal-controller/goal-language';
 
 export type GodaGoalProps = {
   /** its text as written: GODA names (and tells apart) elements by it */
@@ -12,14 +12,14 @@ export type GodaGoalProps = {
   /** its context conditions (`creationProperty`), as written, `%`-separated in the model */
   contexts: string[];
   /** its RT regex, read in GODA's dialect (spaces in its bracket ignored) */
-  annotation: RtTree | null;
+  annotation: Notation | null;
 };
 
 export type GodaTaskProps = {
   text: string;
   contexts: string[];
   /** a refined task's RT regex */
-  annotation: RtTree | null;
+  annotation: Notation | null;
   /** a leaf's cost (`[W = 0.1x]`) */
   cost: CostData | null;
 };
