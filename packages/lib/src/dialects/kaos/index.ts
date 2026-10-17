@@ -14,6 +14,7 @@
  * sub-goals, is an AND: the sub-goals are listed under the goal they refine.
  */
 import {
+  KAOS_FILL,
   KAOS_REFINEMENT_HUB,
   behavioralGoalProperties,
   conflictProperties,
@@ -32,8 +33,8 @@ import {
   type PropertyDefinition,
 } from '@goal-controller/dialect';
 
-/** DSM3's fill for every KAOS node (`rgb(205,205,205)`, language_kaos_shapes.js). */
-const FILL = '#CDCDCD';
+/** DSM3's fill for every KAOS node (language_kaos_shapes.js), as istar-ts draws it. */
+const FILL = KAOS_FILL;
 
 /**
  * A schema's keys, in its order, each a free-text property with its help:

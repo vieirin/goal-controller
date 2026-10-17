@@ -14,6 +14,7 @@
  */
 import {
   NFR_CONTRIBUTION_LABELS,
+  NFR_FILL,
   type NfrElementKind,
 } from '@istar-ts/dsm3-nfr/metamodel';
 import {
@@ -23,8 +24,8 @@ import {
   type ElementDefinition,
 } from '@goal-controller/dialect';
 
-/** DSM3 draws NFR's clouds on white (language_nfr_shapes.js). */
-const FILL = '#FFFFFF';
+/** DSM3 draws NFR's clouds on white (language_nfr_shapes.js), as istar-ts does. */
+const FILL = NFR_FILL;
 
 const DESCRIPTION = [
   property.text('Description', { help: 'what it is, in words' }),
