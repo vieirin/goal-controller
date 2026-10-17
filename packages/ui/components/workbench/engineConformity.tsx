@@ -21,9 +21,12 @@ import {
 } from '@/lib/workbench/pistar';
 import type { AnalyzeResponse, Problem } from '@/lib/workbench/types';
 import { analyze, treeView } from '@/services';
+import { parseModel } from '@/lib/workbench/dialects';
+import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
 import {
   MODELLING_LABEL,
   isModellingMode,
+  frameworkEditorOf,
 } from '@/lib/workbench/frameworkModes';
 import {
   ENGINE_LABEL,
@@ -58,10 +61,15 @@ export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 
 /**
  * The workbench's own model checks, and a dialect engine's language on the
- * model's document, on the view read with the engine's grammar.
+ * model's document, on the view read with the engine's grammar; a
+ * framework engine's model, what its framework's dialect says of it
+ * (goal-controller#171: no iStar notation to check).
  */
 const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
+    const framework = frameworkEditorOf(engine);
+    if (framework)
+      return frameworkProblems(parseModel(text) as never, framework.definition);
     const tree = treeView(text, engine);
     return [
       ...treeProblems(tree, engine),

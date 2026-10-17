@@ -7,7 +7,9 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { useEngineConformity } from '@/components/workbench/engineConformity';
 import { kaos, nfrprop } from '@goal-controller/lib';
 import { recordedFramework, recordedMode } from '@/lib/project';
 import { parseModel } from '@/lib/workbench/dialects';
@@ -72,6 +74,21 @@ describe("the frameworks' engines (#171)", () => {
     ]);
     expect(analyze(KAOS_WELCOME, 'kaosdoc').problems).toEqual([]);
     expect(analyze(NFR_WELCOME, 'nfrprop').problems).toEqual([]);
+  });
+
+  it('accept their seeds, checked by their framework, not by iStar notations', async () => {
+    const { result } = renderHook(() =>
+      useEngineConformity(writeModelMode(KAOS_WELCOME, 'kaos'), ['kaosdoc']),
+    );
+    await waitFor(() =>
+      expect(result.current.statusOf('kaosdoc')).toBe('ready'),
+    );
+    const nfr = renderHook(() =>
+      useEngineConformity(writeModelMode(NFR_WELCOME, 'nfr'), ['nfrprop']),
+    );
+    await waitFor(() =>
+      expect(nfr.result.current.statusOf('nfrprop')).toBe('ready'),
+    );
   });
 
   it('kaosdoc generates the document committed next to the seed', () => {
