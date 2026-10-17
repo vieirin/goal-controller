@@ -194,76 +194,45 @@ export const characterizeEdgeMapper = (
       );
     });
 
-    it("keeps parseInt's leading digits of a space, and an empty name", () => {
-      // #187: invalid value
-      assert.deepStrictEqual(
-        goal('G1', { variables: 'x:1.5' }).decision.decisionVars,
-        [{ variable: 'x', space: 1 }],
-      );
-      // #187: invalid value
-      assert.deepStrictEqual(
-        goal('G1', { variables: 'x:3abc' }).decision.decisionVars,
-        [{ variable: 'x', space: 3 }],
-      );
-      // #187: invalid value
-      assert.deepStrictEqual(goal('G1', { variables: ':3' }).decision, {
-        decisionVars: [{ variable: '', space: 3 }],
-        hasDecision: true,
+    it('is no decision when blank: the dialect reads it as unset', () => {
+      // #187: changed (was the "[INVALID DECISION]: decision must be a
+      // variable and space: got  , …" throw)
+      assert.deepStrictEqual(goal('G1', { variables: ' ' }).decision, {
+        decisionVars: [],
+        hasDecision: false,
       });
     });
 
-    it('throws for a pair without exactly one colon, quoting the whole value', () => {
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x' } },
-        '[INVALID DECISION]: decision must be a variable and space: got x, expected format variable:space (node G1)',
-      );
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:3:4' } },
-        '[INVALID DECISION]: decision must be a variable and space: got x:3:4, expected format variable:space (node G1)',
-      );
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:3,' } },
-        '[INVALID DECISION]: decision must be a variable and space: got x:3,, expected format variable:space (node G1)',
-      );
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:3, y' } },
-        '[INVALID DECISION]: decision must be a variable and space: got x:3, y, expected format variable:space (node G1)',
-      );
+    it('is no decision when the dialect cannot read it (its value check says why)', () => {
+      // #187: invalid value; #187: changed: was parseInt's leading digits
+      // ('x:1.5' space 1, 'x:3abc' space 3) and an empty name (':3'); was the
+      // "[INVALID DECISION]: decision must be a variable and space: got …, …"
+      // throw ('x', 'x:3:4', 'x:3,', 'x:3, y'); was the "[INVALID DECISION]:
+      // space must be a number: got …" throw ('x:abc', 'x:3,y:b', 'x:')
+      for (const variables of [
+        'x:1.5',
+        'x:3abc',
+        ':3',
+        'x',
+        'x:3:4',
+        'x:3,',
+        'x:3, y',
+        'x:abc',
+        'x:3,y:b',
+        'x:',
+      ])
+        assert.deepStrictEqual(
+          goal('G1', { variables }).decision,
+          { decisionVars: [], hasDecision: false },
+          variables,
+        );
     });
 
-    it('throws for a blank value, which the dialect reads as unset', () => {
-      throws(
-        { G1: { variables: ' ' } },
-        '[INVALID DECISION]: decision must be a variable and space: got  , expected format variable:space (node G1)',
-      );
-    });
-
-    it('throws for a non-numeric space, quoting it', () => {
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:abc' } },
-        '[INVALID DECISION]: space must be a number: got abc (node G1)',
-      );
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:3,y:b' } },
-        '[INVALID DECISION]: space must be a number: got b (node G1)',
-      );
-      // #187: invalid value
-      throws(
-        { G1: { variables: 'x:' } },
-        '[INVALID DECISION]: space must be a number: got  (node G1)',
-      );
-    });
-
-    it('throws the variables error before maintain and maxRetries ones', () => {
+    it('throws the maintain error before the maxRetries one, whatever the variables', () => {
+      // #187: changed (was the variables error, thrown first)
       throws(
         { G7: { variables: 'x', type: 'maintain', maxRetries: '-1' } },
-        '[INVALID DECISION]: decision must be a variable and space: got x, expected format variable:space (node G7)',
+        "[INVALID MODEL]: Maintain condition for goal must have 'maintain' and 'assertion'; got maintain: none, assertion: 'empty condition' (node G7)",
       );
     });
   });

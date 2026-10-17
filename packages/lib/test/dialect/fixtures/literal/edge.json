@@ -124,8 +124,7 @@
         "input": {
           "placeholder": "decision variables, name:space, …"
         },
-        "help": "decision variables, `name:space` pairs separated by commas",
-        "check": "edge.goal.variables"
+        "help": "decision variables, `name:space` pairs separated by commas"
       },
       {
         "key": "root",

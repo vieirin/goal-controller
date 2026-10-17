@@ -86,7 +86,6 @@ export const edgeProperties = {
     pairList('variables', 'int', {
       input: { placeholder: 'decision variables, name:space, …' },
       help: HELP.variables,
-      check: 'edge.goal.variables',
     }),
     // set by the diagram's root, not edited as a field
     text('root', { help: HELP.root, inspector: false }),

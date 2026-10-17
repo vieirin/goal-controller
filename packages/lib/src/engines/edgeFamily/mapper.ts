@@ -55,20 +55,14 @@ const rewardOf = (
 ): string => (value == null ? '' : (written ?? ''));
 
 /**
- * The decision variables, `name:space` pairs: still parsed here (goal-controller#187),
- * as the dialect reads `x:abc` as a pair. edgeGoalChecks.variables has said what is
- * wrong with them before this runs.
+ * The decision variables, `name:space` pairs with an int space, as the dialect reads
+ * them: none when unset or unreadable (the dialect's value check says what is wrong).
  */
-const decisionOf = (variables: string | undefined): Decision => {
-  const decisionVars = variables
-    ? variables.split(',').map((pair) => {
-        const [variable, space] = pair.split(':');
-        return {
-          variable: variable?.trim() ?? '',
-          space: parseInt(space ?? '', 10),
-        };
-      })
-    : [];
+const decisionOf = (variables: EdgeValues<'goal'>['variables']): Decision => {
+  const decisionVars = (variables ?? []).map(({ name, value }) => ({
+    variable: name,
+    space: value,
+  }));
   return { decisionVars, hasDecision: decisionVars.length > 0 };
 };
 
@@ -99,7 +93,7 @@ export const edgeGoalProps = <TExecution, TGoalNode>({
             assertion: conditionOf(props.assertion, raw.assertion),
           }
         : assertionCondition(props, raw),
-    decision: decisionOf(raw.variables),
+    decision: decisionOf(props.variables),
     maxRetries: props.maxRetries ?? 0,
   };
 };

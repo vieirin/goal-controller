@@ -1,5 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { valueProblem } from '@goal-controller/goal-language';
+import { edge } from '../../src/engines/edge/definition';
 import {
   edgeGoalChecks,
   edgeTaskChecks,
@@ -38,26 +40,30 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
     });
   });
 
-  describe('variables (decision)', () => {
+  describe('variables (decision): the dialect’s pairList of int, no check of its own (#187)', () => {
+    const variables = edge.properties.goal.find((p) => p.key === 'variables')!;
+
+    it('has no engine check', () => {
+      assert.strictEqual('check' in variables, false);
+      assert.strictEqual('variables' in edgeGoalChecks, false);
+    });
+
     it('flags a pair with no space', () => {
       assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x' }, noDeps),
-        '[INVALID DECISION]: decision must be a variable and space: got x, expected format variable:space',
+        valueProblem(variables.value, 'x'),
+        'name:value pairs, comma-separated (x:3, y:2)',
       );
     });
 
     it('flags a non-numeric space', () => {
       assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x:abc' }, noDeps),
-        '[INVALID DECISION]: space must be a number: got abc',
+        valueProblem(variables.value, 'x:abc'),
+        'x: Not an integer: abc',
       );
     });
 
     it('is fine when valid', () => {
-      assert.strictEqual(
-        edgeGoalChecks.variables?.({ variables: 'x:3' }, noDeps),
-        null,
-      );
+      assert.strictEqual(valueProblem(variables.value, 'x:3'), null);
     });
   });
 

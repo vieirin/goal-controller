@@ -55,45 +55,16 @@ const messageOn = (
     : (issues.find((i) => i.key === key)?.message ?? null);
 
 /**
- * The decision variables' issues, in mapGoalProps's parseDecision order: the
- * first bad pair. Still the mapper's own parser (goal-controller#187): the
- * dialect reads `x:abc` as a pair (its value as written) where its value
- * check says `Not an integer`, so the reading cannot replace it yet.
- */
-const variablesIssues = (raw: Partial<Record<string, string>>): Issue[] => {
-  if (!raw.variables) return [];
-  const decision = raw.variables;
-  for (const part of decision.split(',').map((d) => d.split(':'))) {
-    if (part.length !== 2) {
-      return [
-        {
-          key: 'variables',
-          message: `[INVALID DECISION]: decision must be a variable and space: got ${decision}, expected format variable:space`,
-        },
-      ];
-    }
-    if (isNaN(parseInt(part[1] ?? ''))) {
-      return [
-        {
-          key: 'variables',
-          message: `[INVALID DECISION]: space must be a number: got ${part[1]}`,
-        },
-      ];
-    }
-  }
-  return [];
-};
-
-/**
- * goal/task issues, in mapGoalProps/mapTaskProps's own order (the decision, then the
- * maintain condition, then maxRetries): the first entry is the one the mapper throws.
+ * goal/task issues, in mapGoalProps/mapTaskProps's own order (the maintain condition,
+ * then maxRetries): the first entry is the one the mapper throws. The decision
+ * variables have none of their own: a pair the dialect can't read is its value check's.
  */
 const goalOrTaskIssues = (
   kind: 'goal' | 'task',
   values: EdgeValues<'goal'> | EdgeValues<'task'>,
   raw: Partial<Record<string, string>>,
 ): Issue[] => {
-  const issues: Issue[] = kind === 'goal' ? variablesIssues(raw) : [];
+  const issues: Issue[] = [];
 
   if (values.type === 'maintain') {
     // not a task key: a task can never have one
@@ -246,7 +217,6 @@ const resourceCheck =
   };
 
 export const edgeGoalChecks = checks({
-  variables: (raw) => variablesIssues(raw)[0]?.message ?? null,
   maintain: goalOrTaskCheck('goal', 'maintain'),
   assertion: goalOrTaskCheck('goal', 'assertion'),
   maxRetries: goalOrTaskCheck('goal', 'maxRetries'),
@@ -273,7 +243,6 @@ export const edgeResourceChecks = checks({
  * `specsFromDefinition` needs one for every name a definition gives.
  */
 export const edgeCheckRegistry = checks({
-  'edge.goal.variables': edgeGoalChecks.variables,
   'edge.goal.maintain': edgeGoalChecks.maintain,
   'edge.goal.assertion': edgeGoalChecks.assertion,
   'edge.goal.maxRetries': edgeGoalChecks.maxRetries,
