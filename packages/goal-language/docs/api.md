@@ -26,6 +26,7 @@ bundles.
 | `parseCondition` | `(text) => Parsed<{ prefix, tree }>` | `parseCondition('assertion trigger x > 1').value.prefix` → `'assertion trigger'` |
 | `parseDocument` | `(text, { ids? = true, prefixes?, keys? }) => Parsed<DocumentLine[]>` | `parseDocument(doc, { ids: false, keys: propertyKeysOf(d) })` for a plain document, its property lines read by its keys |
 | `parseValue` | `(type: ValueType, text) => Parsed<ValueData[type]>` | `parseValue('refList', 'G2, G5').value` → `['G2', 'G5']` |
+| `readProperties` | `(D, { element \| actor \| link: kind }, stored) => { values, text }` | a whole record read against a dialect (goal-controller#187): `readProperties(edgeV2, { element: 'task' }, { maxRetries: '3' })` → `{ values: { maxRetries: 3 }, text: { maxRetries: '3' } }`; only the keys the dialect gives the kind, a value with an error unset in `values` |
 | `readExpression` | `(text) => ExpressionTree \| null` | `readExpression('2 * R1')` → `{ kind: 'binary', operator: '*', left: { kind: 'number', value: '2' }, right: { kind: 'ref', id: 'R1' } }`; null when empty or not an expression |
 | `readAssertion` | `(text) => AssertionReading \| null` | an assertion (its prefix aside) whose comparisons are `{ kind: 'comparison', operator, left, right }`, both sides `ExpressionTree`s |
 | `assertionMembers` | `(tree) => { ref, member }[]` | the members a condition reads (`room.clean`, `tank.level < 3`, `room.clean = true`), in order (goal-controller#135); an `ExpressionTree`'s member is `{ kind: 'member', ref, member }` |
@@ -45,6 +46,17 @@ functions return plain data, with no Langium types:
   `postfix` (with `argument`) or `binary`;
 - `AssertionTree` is one of `and`, `or`, `not`, `paren`, `assign`,
   `compare`, `var` or `bool`;
+- `ValueData[type]` is what a value type reads into: `int` and `number` a
+  `number`, `bool` a `boolean`, `text` and `enum` a string, `refList` its
+  ids, `pairList` its `{ name, value }` pairs, `assertion` an
+  `AssertionTree`, `expression` an `ExpressionTree`, `annotatedName` an
+  `ElementLineData`, `ocl` its tokens; `null` (`[]` for a list) when empty.
+  `ValueDataOf<config>` is the same for a dialect's value config: an enum is
+  its options' values (when the definition keeps their literal types, as
+  `property.enum` does) or any word when it is `open`; a `reference` is the
+  id written, a `formula` its text, a `probability` its number in [0, 1].
+  `PropertyValues<properties>` is a record's (`readProperties`'s `values`):
+  a conditional value is either of its two configs' data.
 - `ElementLineData` is `{ id, name, annotations, notation, cost,
   declaration }`. `cost` is a leaf's bracket when it holds a cost
   (`[W = 0.5x]`: `{ value: '0.5', variable: 'x' }`), and `notation` is then

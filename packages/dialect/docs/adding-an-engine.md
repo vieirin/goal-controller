@@ -349,36 +349,32 @@ export type MissionGoalProps = { priority: 'normal' | 'high' | 'low'; deadline: 
 export type MissionTaskProps = { robot: string; duration: number };
 ```
 
-### 3.2 `mapper.ts`: strings → types, keys from the definition
+### 3.2 `mapper.ts`: the language's values → the engine's types, keys from the definition
 ```ts
-import { createEngineMapper, type RawProps } from '@goal-controller/goal-tree';
-import { propertyKeys } from '@goal-controller/dialect';
+import { createEngineMapper } from '@goal-controller/goal-tree';
 import { mission } from './definition';
-
-export const MISSION_GOAL_KEYS = propertyKeys(mission, 'goal');  // ['priority','deadline'], typed
-export const MISSION_TASK_KEYS = propertyKeys(mission, 'task');
 
 export const missionEngineMapper = createEngineMapper<
   MissionGoalProps,
   MissionTaskProps,
   never
 >()({
-  dialect: mission, // the definition: goal texts are read in it (no parser to write)
-  allowedGoalKeys: MISSION_GOAL_KEYS,
-  allowedTaskKeys: MISSION_TASK_KEYS,
-  skipResource: true,            // or allowedResourceKeys + mapResourceProps
-  mapGoalProps: ({ raw, id /*, executionDetail */ }) => ({
-    priority: (raw.priority || 'normal') as MissionGoalProps['priority'],
-    deadline: raw.deadline ? parseInt(raw.deadline, 10) : null,
+  dialect: mission, // the definition: goal texts and properties are read in it (no parser to write)
+  skipResource: true,            // or mapResourceProps
+  mapGoalProps: ({ props, id /*, raw, executionDetail */ }) => ({
+    priority: props.priority ?? 'normal', // 'high' | 'low' | null | undefined: the enum's options
+    deadline: props.deadline ?? null,     // number | null | undefined: an int
   }),
-  mapTaskProps: ({ raw, name, id }) => {
-    if (!raw.robot?.trim()) throw new Error(`Task "${name}" (${id}) needs a robot`);
-    return { robot: raw.robot, duration: raw.duration ? parseInt(raw.duration, 10) : 0 };
+  mapTaskProps: ({ props, name, id }) => {
+    if (!props.robot?.trim()) throw new Error(`Task "${name}" (${id}) needs a robot`);
+    return { robot: props.robot, duration: props.duration ?? 0 };
   },
-  // allowedQualityKeys: keys read on Qualities (SLEEC's NormPrinciple, Proxy), mapped with the goal's
+  // a Quality's properties (the definition's `quality`) are mapped with the goal's
   // afterCreationMapper: resolve cross-node refs (Edge's dependsOn) once all nodes exist
 });
 ```
+Each mapper is given the properties its element's kind has in the definition (`properties.goal`, …; a framework's kinds their own), twice: `props`, each value as the goal language reads its type (`int` a number, `bool` a boolean, `refList` its ids, `assertion` its tree, an enum one of its options; a conditional value either of its types; `null` when empty; unset when written with an error, which the definition's checks report), and `raw`, the strings as written. A key the definition doesn't give the kind doesn't compile. The mapper never parses a value's text (goal-controller#187).
+
 Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
@@ -387,7 +383,7 @@ Rules of thumb (from Edge's mapper):
 - Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
 - A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
 - Actors and links have mappers too (`mapActorProps`, `mapLinkProps`), and `afterCreationMapper` sees the whole model: see 3.8.
-- `mapGoalProps` and `mapTaskProps` are given the element's `kind`. `kindKeys` gives a kind keys of its own, over its type's (`{ 'kaos.DomainProperty': ['Description'] }`), where one node type holds several kinds (a framework's, §3.10).
+- `mapGoalProps` and `mapTaskProps` are given the element's `kind`, and the properties of that kind: a framework's goal node is given its kind's (a domain property its `Description` and `Kind`, §3.10).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -571,7 +567,7 @@ export const missionAnalyses = defineAnalyses(mission, {
   properties). An element's properties are as the piStar file has them. An
   actor's and a link's are what the mapper keeps: give it
   `mapActorProps: ({ raw }) => raw` and `mapLinkProps: ({ raw }) => raw`
-  over the definition's keys, as GRL's does. An engine with analyses reads
+  (the definition's keys, as written), as GRL's does. An engine with analyses reads
   every actor and tree, so declare `model: { actors: 'many', treesPerActor:
   'many' }`. `resource` is the `input` kind's files, path → text, as the
   tabs hold them (a `many` kind: all its files).
@@ -772,11 +768,11 @@ type GoalModel = {
   link. A tree's children are its refinements only. A contribution, a
   qualification or a dependency is one of the model's `links`, with its
   `relation` `null`. Every node knows its actor (`node.actor`, a piStar id).
-- **The mappers.** `mapActorProps({ raw, kind, id, name })` and
-  `mapLinkProps({ raw, kind, id })`, typed by `allowedActorKeys` and
-  `allowedLinkKeys` as `mapGoalProps` is by its keys. Both are optional: an
-  engine without them gets `{}`. Take the keys from the definition:
-  `actorPropertyKeys(mission)`, `linkPropertyKeys(mission)`.
+- **The mappers.** `mapActorProps({ props, raw, kind, id, name })` and
+  `mapLinkProps({ props, raw, kind, id })`: `props` are the definition's
+  `actors` properties for the actor's kind and its `links[kind]`, typed as
+  `mapGoalProps`'s are; `raw` has every actor's and every link kind's keys,
+  as written. Both are optional: an engine without them gets `{}`.
   `afterCreationMapper` gets `model`, the whole `GoalModel`.
 - **The shape your engine reads.** Declare it on the definition: `model: {
   actors: 'one' | 'many', treesPerActor: 'one' | 'many' }`. The default is
@@ -960,7 +956,7 @@ numbers (`examples/kaos/las/las.expected.csv`).
 | Where a property is written | property line · declaration on the element line · annotation before the id   | lines by default; declaration for a compact "type + bounds + initial"; annotations for stereotype-like tags           |
 | Output emitter              | string templates · AST + printer                                             | strings for flat text; AST for structured targets or when you'll emit two formats                                     |
 | Output files                | one (`singleFileOutput`) · several, one primary (`EngineOutput`)             | one unless the target is a set of files (a model and its properties, a runtime artefact and a readable one)            |
-| Resources                   | `skipResource: true` · `allowedResourceKeys` + `mapResourceProps`            | skip unless the output models state/variables                                                                         |
+| Resources                   | `skipResource: true` · `mapResourceProps`                                    | skip unless the output models state/variables                                                                         |
 | Engine options              | none · `defineOptions` (§3.8) + `TransformOptions`                           | only if the template has knobs                                                                                        |
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 

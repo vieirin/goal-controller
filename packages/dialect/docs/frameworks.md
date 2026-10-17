@@ -317,9 +317,10 @@ Each PR of #171 appends its decisions here.
 - **Ids.** A framework text without an id (DSM3's files) keeps its piStar id
   in the IR, its whole text as its name, and reports no syntax error. The
   Notation view still offers it an id.
-- **Keys by kind.** `createEngineMapper`'s `kindKeys` gives a kind its own
-  keys, overriding its type's (`allowedGoalKeys`, …), and the mappers get
-  the element's `kind`. The G/T/R triple stays as it is for iStar's engines.
+- **Keys by kind.** A mapper is given the properties its element's kind has
+  in the dialect (`properties[kind]`, goal-controller#187), and the
+  element's `kind`. iStar's engines read their kinds' (`goal`, `task`,
+  `resource`, `quality`).
 - **kaosdoc is properties-only, over the IR.** It reads lib's `kaos` dialect
   as it is and writes Markdown tables:
   - goals with their fit criteria, then the other details of the goals that

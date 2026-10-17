@@ -30,17 +30,54 @@ goalModel.elements;  // every element as written: { id, kind, name, actor?, prop
 
 ## The mapper
 
-`createEngineMapper<Goal, Task, Resource>()({ … })` maps the properties of
-each element kind (`mapGoalProps`, `mapTaskProps`, `mapResourceProps`). Each
-gets the raw values of its allowed keys, typed. Two more mappers are
+`createEngineMapper<Goal, Task, Resource>()({ dialect, … })` maps the
+properties of each element kind (`mapGoalProps`, `mapTaskProps`,
+`mapResourceProps`). The keys an element is given are the ones its kind has
+in the dialect (`properties[kind]`; an iStar node's kind is `goal`, `task`,
+`resource` or `quality`, a framework's its own, goal-controller#187), each in
+two forms:
+
+- `props`: the value as the goal language reads its type
+  (`readProperties` in `@goal-controller/goal-language`): an `int` or a
+  `number` is a number, a `bool` a boolean, a `refList` its ids, a
+  `pairList` its pairs, an `assertion` or an `expression` its tree, an
+  `enum` one of its options' values (any word when it is `open`). A
+  conditional value is either of its two types: narrow on the property it
+  depends on. Empty is `null` (`[]` for a list). A value written with an
+  error is unset: the dialect's checks report it, and the mapper never parses
+  it.
+- `raw`: the strings as written, for an engine that forwards a value
+  verbatim.
+
+```ts
+createEngineMapper<GoalProps, TaskProps, ResourceProps>()({
+  dialect: edgeV2,
+  mapGoalProps: ({ props, raw, executionDetail, id, text, kind }) => ({
+    retries: props.maxRetries ?? 0, // number | null | undefined
+    dependsOn: props.dependsOn ?? [], // string[] | undefined
+    utility: raw.utility ?? '', // as written
+  }),
+  mapTaskProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }),
+  mapResourceProps: ({ raw }) => ({ type: raw.type }),
+});
+```
+
+A key the dialect doesn't give the kind doesn't compile (`props.optional`
+on a goal whose dialect gives it to tasks only). Two more mappers are
 optional:
 
-- `mapActorProps({ raw, kind, id, name })` over `allowedActorKeys`;
-- `mapLinkProps({ raw, kind, id })` over `allowedLinkKeys`.
+- `mapActorProps({ props, raw, kind, id, name })`: the dialect's `actors`
+  properties, typed for the actor's kind;
+- `mapLinkProps({ props, raw, kind, id })`: its `links[kind]` properties,
+  typed.
 
-An engine without them gets `{}`. The keys come from the definition
-(`actorPropertyKeys`, `linkPropertyKeys` in `@goal-controller/dialect`).
-`afterCreationMapper` gets `model`, the whole `GoalModel`.
+An actor's and a link's `raw` holds every actor's and every link kind's
+keys, as written: a check reports one on a kind that hasn't it (cgm's
+`context` on a link kind without one).
+
+An engine without them gets `{}`. `afterCreationMapper` gets `model`, the
+whole `GoalModel`, and `rawProperties`, the node's `props` and `raw` with its
+`nodeType` (`goal`, `task`, `resource`) and `kind`.
 
 ## The shape an engine reads
 
