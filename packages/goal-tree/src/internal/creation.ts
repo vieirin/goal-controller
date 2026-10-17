@@ -2,7 +2,11 @@
  * Internal tree creation logic
  */
 import { childrenOf, isActor } from '@istar-ts/core';
-import { hasIds } from '@goal-controller/dialect';
+import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
+import {
+  readProperties,
+  type PropertyOwner,
+} from '@goal-controller/goal-language';
 import { getGoalDetail } from '../parsers/goalNameParser';
 import type {
   GoalExecutionDetail,
@@ -16,11 +20,14 @@ import type {
   Resource,
 } from '../types/';
 import type { BaseNode, Task, TreeNode } from '../types/goalTree';
-import type {
-  EngineMapper,
-  MapperDialect,
-  RawPropertiesUnion,
-  RawProps,
+import {
+  anyMapper,
+  type AnyEngineMapper,
+  type EngineMapper,
+  type MapperDialect,
+  type NodePropertiesUnion,
+  type PropsOf,
+  type ResourcePropsInput,
 } from './engineMapper';
 import {
   actorRoots,
@@ -34,42 +41,13 @@ import { allByType } from './traversal';
 
 // Re-export types from engineMapper for backwards compatibility
 export { createEngineMapper } from './engineMapper';
-export type {
-  EngineMapper,
-  RawPropertiesUnion,
-  RawProps,
-} from './engineMapper';
+export type { EngineMapper, NodePropertiesUnion } from './engineMapper';
 export type { GoalExecutionDetail };
 
-/** Omit over each member of a union (EngineMapper is one, on `skipResource`). */
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
-  ? Omit<T, K>
-  : never;
-
 /** What building a node reads of a mapper: its node mappers, not the actor, link or after-creation ones. */
-type NodeMapper<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
-> = DistributiveOmit<
-  EngineMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys
-  >,
-  | 'afterCreationMapper'
-  | 'allowedActorKeys'
-  | 'mapActorProps'
-  | 'allowedLinkKeys'
-  | 'mapLinkProps'
+type NodeMapper<TGoalEngine, TTaskEngine, TResourceEngine> = Omit<
+  AnyEngineMapper<TGoalEngine, TTaskEngine, TResourceEngine>,
+  'afterCreationMapper' | 'mapActorProps' | 'mapLinkProps'
 >;
 
 /**
@@ -97,52 +75,68 @@ const readText = (node: Node, dialect: MapperDialect) => {
   };
 };
 
+/** The dialect kind whose properties an element has: iStar's (`goal`, …) for its iStar kind, else its own (a framework's, an extension's). */
+const ISTAR_KINDS: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(ISTAR_KIND_OF).map(([kind, iStar]) => [iStar, kind]),
+);
+const dialectKindOf = (kind: string, dialect: MapperDialect): string =>
+  otherFrameworkOf(dialect) ? kind : (ISTAR_KINDS[kind] ?? kind);
+
 /**
- * Extract raw properties from customProperties based on allowed keys
- * Only includes keys that are in the allowedKeys array
+ * The keys an actor's or a link's `raw` holds: every actor's, every link
+ * kind's, whatever its kind (a check reports one on a kind without it, a
+ * `context` on a cgm link that has none).
  */
-function extractRawProps<TKeys extends string>(
-  customProperties: Record<string, string | undefined>,
-  allowedKeys: readonly TKeys[],
-): RawProps<TKeys> {
-  const result: Partial<Record<TKeys, string>> = {};
-  for (const key of allowedKeys) {
-    const value = customProperties[key];
-    if (value !== undefined) {
-      result[key] = value;
-    }
+const ownerKeys = (
+  dialect: MapperDialect,
+  owner: { actor: string } | { link: string },
+): string[] =>
+  'actor' in owner
+    ? (dialect.actors ?? []).map((property) => property.key)
+    : Object.values(dialect.links ?? {}).flatMap((list) =>
+        list.map((property) => property.key),
+      );
+
+/**
+ * An element's, an actor's or a link's properties as its mapper is given
+ * them (goal-controller#187): those the dialect gives its kind, read as their
+ * types (`props`), and as written (`raw`); an actor's and a link's `raw` has
+ * every actor's and every link kind's keys (`ownerKeys`).
+ */
+function propsOf(
+  dialect: MapperDialect,
+  owner: PropertyOwner,
+  customProperties: Readonly<Record<string, string | undefined>>,
+): PropsOf<never> {
+  const { values, text } = readProperties(dialect, owner, customProperties);
+  if ('element' in owner) return { props: values, raw: text } as PropsOf<never>;
+  const raw: Record<string, string> = {};
+  for (const key of ownerKeys(dialect, owner)) {
+    const written = customProperties[key];
+    if (written !== undefined) raw[key] = written;
   }
-  return result;
+  return { props: values, raw } as PropsOf<never>;
 }
 
 /**
  * Context object for tree creation - avoids module-level state
  * that could cause race conditions with concurrent calls
  */
-type CreationContext<
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-> = {
+type CreationContext = {
   /** Storage for raw properties with discriminated union, used by afterCreationMapper */
-  rawPropertiesMap: Map<
-    string,
-    RawPropertiesUnion<TGoalKeys, TTaskKeys, TResourceKeys>
-  >;
+  rawPropertiesMap: Map<string, NodePropertiesUnion>;
 };
 
-function createResource<TResourceEngine, TResourceKeys extends string>(
-  resource: BaseNode & { rawProps: RawProps<TResourceKeys> },
-  mapResourceProps: (props: {
-    raw: RawProps<TResourceKeys>;
-    id: string;
-  }) => TResourceEngine,
+function createResource<TResourceEngine>(
+  resource: BaseNode,
+  input: ResourcePropsInput,
+  mapResourceProps: (props: ResourcePropsInput) => TResourceEngine,
 ): Resource<TResourceEngine> {
   return {
     ...resource,
     type: 'resource',
     properties: {
-      engine: mapResourceProps({ raw: resource.rawProps, id: resource.id }),
+      engine: mapResourceProps(input),
     },
   };
 }
@@ -178,15 +172,7 @@ function convertNonGoalChildren<TGoalEngine, TTaskEngine, TResourceEngine>(
   );
 }
 
-function createNode<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
->({
+function createNode<TGoalEngine, TTaskEngine, TResourceEngine>({
   node,
   relation,
   children,
@@ -198,16 +184,8 @@ function createNode<
   node: Node;
   relation: Relation;
   children: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
-  mapper: NodeMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys
-  >;
-  context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
+  mapper: NodeMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
   /** True for the actor's structurally resolved root goal. */
   isRoot?: boolean;
   /** the actor it is in (none: a dependum) */
@@ -227,8 +205,8 @@ function createNode<
   const isQualityNode = node.kind === 'istar.Quality';
   // a framework's node says what it is (goal-controller#171): its type is how a tree holds it
   const kind = otherFrameworkOf(mapper.dialect) ? { kind: node.kind } : {};
-  // the keys its kind reads, where the mapper keys them by kind
-  const kindKeys = mapper.kindKeys?.[node.kind];
+  // the properties its kind has in the dialect (goal-controller#187)
+  const element = { element: dialectKindOf(node.kind, mapper.dialect) };
 
   if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
@@ -238,6 +216,7 @@ function createNode<
 
   const { root, uniqueChoice, ...customProperties } =
     node.customProperties || {};
+  const stored = { ...customProperties, root };
 
   const {
     resources,
@@ -278,20 +257,19 @@ function createNode<
       return null;
     }
 
-    // Extract raw props using allowed keys from mapper
-    const rawResourceProps = extractRawProps(
-      { ...customProperties, root },
-      (kindKeys as readonly TResourceKeys[] | undefined) ??
-        mapper.allowedResourceKeys,
-    );
+    const props = propsOf(mapper.dialect, element, stored);
 
-    // Store raw properties for afterCreationMapper
+    // Store properties for afterCreationMapper
     context.rawPropertiesMap.set(id, {
       nodeType: 'resource',
-      raw: rawResourceProps,
+      kind: node.kind,
+      ...props,
     });
 
-    const resourceNode: BaseNode & { rawProps: RawProps<TResourceKeys> } = {
+    // its strings stay on the node, as they always have
+    const resourceNode: BaseNode & {
+      rawProps: Readonly<Record<string, string>>;
+    } = {
       id,
       ...kind,
       name: goalName,
@@ -300,20 +278,24 @@ function createNode<
       ...(actor !== undefined && { actor }),
       relationToChildren: relation,
       type: 'resource',
-      rawProps: rawResourceProps,
+      rawProps: props.raw,
     };
-    return createResource(resourceNode, mapper.mapResourceProps);
+    return createResource(
+      resourceNode,
+      { ...props, id },
+      mapper.mapResourceProps!,
+    );
   }
 
   if (nodeType === 'task') {
-    // Extract raw props using allowed keys from mapper
-    const rawTaskProps = extractRawProps(
-      { ...customProperties, root },
-      (kindKeys as readonly TTaskKeys[] | undefined) ?? mapper.allowedTaskKeys,
-    );
+    const props = propsOf(mapper.dialect, element, stored);
 
-    // Store raw properties for afterCreationMapper
-    context.rawPropertiesMap.set(id, { nodeType: 'task', raw: rawTaskProps });
+    // Store properties for afterCreationMapper
+    context.rawPropertiesMap.set(id, {
+      nodeType: 'task',
+      kind: node.kind,
+      ...props,
+    });
 
     const taskNode: Task<TTaskEngine, TResourceEngine> = {
       id,
@@ -328,7 +310,7 @@ function createNode<
       resources,
       properties: {
         engine: mapper.mapTaskProps({
-          raw: rawTaskProps,
+          ...props,
           name: goalName,
           id,
           text: node.name,
@@ -340,21 +322,14 @@ function createNode<
   }
 
   if (nodeType === 'goal') {
-    // Qualities still map as goals (isQuality); only which raw keys are read differs
-    const allowedKeys: readonly (TGoalKeys | TQualityKeys)[] =
-      (kindKeys as readonly (TGoalKeys | TQualityKeys)[] | undefined) ??
-      (isQualityNode
-        ? (mapper.allowedQualityKeys ?? [])
-        : mapper.allowedGoalKeys);
-    const rawGoalProps = extractRawProps(
-      { ...customProperties, root },
-      allowedKeys,
-    );
+    // Qualities still map as goals (isQuality), with their kind's properties
+    const props = propsOf(mapper.dialect, element, stored);
 
-    // Store raw properties for afterCreationMapper
+    // Store properties for afterCreationMapper
     context.rawPropertiesMap.set(id, {
       nodeType: 'goal',
-      raw: rawGoalProps as RawProps<TGoalKeys>,
+      kind: node.kind,
+      ...props,
     });
 
     const goalNode: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> = {
@@ -371,7 +346,7 @@ function createNode<
         ...(isRoot && { root: true }),
         isQuality: isQualityNode,
         engine: mapper.mapGoalProps({
-          raw: rawGoalProps,
+          ...props,
           executionDetail,
           id,
           text: node.name,
@@ -388,15 +363,7 @@ function createNode<
   );
 }
 
-function nodeChildren<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
->({
+function nodeChildren<TGoalEngine, TTaskEngine, TResourceEngine>({
   nodes,
   id,
   refinements,
@@ -409,16 +376,8 @@ function nodeChildren<
   refinements: readonly Refinement[];
   id?: string;
   actor?: string;
-  mapper: NodeMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys
-  >;
-  context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
+  mapper: NodeMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
 }): [Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>, Relation] {
   if (!id) {
     return [[], 'none'];
@@ -480,15 +439,7 @@ function nodeChildren<
   return [children, relations[0] ?? 'none'];
 }
 
-function nodeToTree<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
->({
+function nodeToTree<TGoalEngine, TTaskEngine, TResourceEngine>({
   nodes,
   refinements,
   node,
@@ -500,16 +451,8 @@ function nodeToTree<
   nodes: readonly Node[];
   refinements: readonly Refinement[];
   node: Node;
-  mapper: NodeMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys
-  >;
-  context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>;
+  mapper: NodeMapper<TGoalEngine, TTaskEngine, TResourceEngine>;
+  context: CreationContext;
   isRoot?: boolean;
   actor?: string;
 }): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine> | null {
@@ -537,40 +480,22 @@ type FullMapper<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
   TActorEngine,
   TLinkEngine,
-  TActorKeys extends string,
-  TLinkKeys extends string,
-> = EngineMapper<
+> = AnyEngineMapper<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine,
-  TGoalKeys,
-  TTaskKeys,
-  TResourceKeys,
-  TQualityKeys,
   TActorEngine,
-  TLinkEngine,
-  TActorKeys,
-  TLinkKeys
+  TLinkEngine
 >;
 
 function runAfterCreationMapper<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine,
-  TGoalKeys extends string,
-  TTaskKeys extends string,
-  TResourceKeys extends string,
-  TQualityKeys extends string,
   TActorEngine,
   TLinkEngine,
-  TActorKeys extends string,
-  TLinkKeys extends string,
 >(
   model: GoalModel<
     TGoalEngine,
@@ -583,16 +508,10 @@ function runAfterCreationMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys,
     TActorEngine,
-    TLinkEngine,
-    TActorKeys,
-    TLinkKeys
+    TLinkEngine
   >,
-  context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys>,
+  context: CreationContext,
 ): GoalModel<
   TGoalEngine,
   TTaskEngine,
@@ -627,12 +546,10 @@ function runAfterCreationMapper<
     goal: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
   ): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> => {
     // Get raw properties - discriminated union with nodeType: 'goal' | 'task' | 'resource'
-    const defaultRawProperties: RawPropertiesUnion<
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys
-    > = {
+    const defaultRawProperties: NodePropertiesUnion = {
       nodeType: 'goal',
+      kind: goal.kind ?? 'istar.Goal',
+      props: {},
       raw: {},
     };
     const rawProperties =
@@ -706,28 +623,18 @@ export function buildGoalModel<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine,
-  TGoalKeys extends string = string,
-  TTaskKeys extends string = string,
-  TResourceKeys extends string = string,
-  TQualityKeys extends string = never,
+  TDialect extends MapperDialect = MapperDialect,
   TActorEngine = {},
   TLinkEngine = {},
-  TActorKeys extends string = never,
-  TLinkKeys extends string = never,
 >(
   model: Model,
-  mapper: FullMapper<
+  typed: EngineMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys,
+    TDialect,
     TActorEngine,
-    TLinkEngine,
-    TActorKeys,
-    TLinkKeys
+    TLinkEngine
   >,
   { dependums: withDependums = true }: { dependums?: boolean } = {},
 ): GoalModel<
@@ -737,8 +644,9 @@ export function buildGoalModel<
   TActorEngine,
   TLinkEngine
 > {
+  const mapper = anyMapper(typed);
   // Create per-call context to avoid race conditions with concurrent calls
-  const context: CreationContext<TGoalKeys, TTaskKeys, TResourceKeys> = {
+  const context: CreationContext = {
     rawPropertiesMap: new Map(),
   };
   const isTree = (
@@ -770,9 +678,10 @@ export function buildGoalModel<
       )
       .filter(isTree);
     const engine = mapper.mapActorProps?.({
-      raw: extractRawProps(
+      ...propsOf(
+        mapper.dialect,
+        { actor: actor.kind },
         actor.customProperties ?? {},
-        mapper.allowedActorKeys ?? [],
       ),
       kind: actor.kind,
       id: actor.id,
@@ -790,9 +699,10 @@ export function buildGoalModel<
 
   const links = iStarLinks.map((link): GoalModelLink<TLinkEngine> => {
     const engine = mapper.mapLinkProps?.({
-      raw: extractRawProps(
+      ...propsOf(
+        mapper.dialect,
+        { link: link.kind },
         link.customProperties ?? {},
-        mapper.allowedLinkKeys ?? [],
       ),
       kind: link.kind,
       id: link.id,
@@ -881,35 +791,26 @@ export function convertToTree<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine,
-  TGoalKeys extends string = string,
-  TTaskKeys extends string = string,
-  TResourceKeys extends string = string,
-  TQualityKeys extends string = never,
+  TDialect extends MapperDialect = MapperDialect,
   TActorEngine = {},
   TLinkEngine = {},
-  TActorKeys extends string = never,
-  TLinkKeys extends string = never,
 >(
   model: Model,
-  mapper: FullMapper<
+  typed: EngineMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys,
-    TTaskKeys,
-    TResourceKeys,
-    TQualityKeys,
+    TDialect,
     TActorEngine,
-    TLinkEngine,
-    TActorKeys,
-    TLinkKeys
+    TLinkEngine
   >,
 ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
+  const mapper = anyMapper(typed);
   const problem = modelShapeProblem(model, mapper.dialect);
   if (problem) {
     throw new Error(`[INVALID_MODEL]: ${problem}`);
   }
-  const { actors, paper } = buildGoalModel(model, mapper, {
+  const { actors, paper } = buildGoalModel(model, typed, {
     dependums: false,
   });
   return [...actors.flatMap((actor) => actor.trees), ...paper];

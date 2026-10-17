@@ -29,15 +29,13 @@
  * ```typescript
  * import { GoalTree, Node, Model, createEngineMapper } from '@goal-controller/goal-tree';
  *
- * // Define engine mapper with type inference
- * const myMapper = createEngineMapper({
- *   dialect: myDefinition, // goal texts are read in it
- *   allowedGoalKeys: ['utility', 'cost'] as const,
- *   allowedTaskKeys: ['maxRetries'] as const,
+ * // Define engine mapper with type inference: each node is given the
+ * // properties its kind has in the dialect, typed (`props`) and as written (`raw`)
+ * const myMapper = createEngineMapper<GoalProps, TaskProps>()({
+ *   dialect: myDefinition, // goal texts and properties are read in it
  *   skipResource: true,
- * })({
- *   mapGoalProps: ({ raw }) => ({ utility: raw.utility || '' }),
- *   mapTaskProps: ({ raw }) => ({ retries: parseInt(raw.maxRetries || '0') }),
+ *   mapGoalProps: ({ raw }) => ({ utility: raw.utility ?? '' }),
+ *   mapTaskProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }),
  * });
  *
  * // Create a tree from a file with your engine
@@ -122,22 +120,19 @@ export type {
 } from './types/';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Raw prop types for engine mappers
+// Property types for engine mappers
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type {
-  // Generic raw props type
-  RawProps,
-  // Discriminated union for afterCreationMapper
-  RawPropertiesUnion,
-  GoalExecutionDetail,
-} from './internal/creation';
+export type { GoalExecutionDetail } from './internal/creation';
 export type {
   ActorPropsInput,
   GoalPropsInput,
-  KindKeys,
   LinkPropsInput,
   MapperDialect,
+  // a node's properties in afterCreationMapper, by its node type
+  NodePropertiesUnion,
+  PropsOf,
+  ResourcePropsInput,
   TaskPropsInput,
 } from './internal/engineMapper';
 

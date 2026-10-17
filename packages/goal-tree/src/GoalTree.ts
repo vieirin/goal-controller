@@ -7,6 +7,7 @@ import {
   createEngineMapper,
   type EngineMapper,
 } from './internal/creation';
+import type { MapperDialect } from './internal/engineMapper';
 import {
   allByType as _allByType,
   allGoalsMap as _allGoalsMap,
@@ -90,28 +91,18 @@ export class GoalTree<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys extends string = string,
-    TTaskKeys extends string = string,
-    TResourceKeys extends string = string,
-    TQualityKeys extends string = never,
+    TDialect extends MapperDialect = MapperDialect,
     TActorEngine = {},
     TLinkEngine = {},
-    TActorKeys extends string = never,
-    TLinkKeys extends string = never,
   >(
     model: IStarModel,
     mapper: EngineMapper<
       TGoalEngine,
       TTaskEngine,
       TResourceEngine,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys,
-      TQualityKeys,
+      TDialect,
       TActorEngine,
-      TLinkEngine,
-      TActorKeys,
-      TLinkKeys
+      TLinkEngine
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const nodes = convertToTree(model, mapper);
@@ -129,28 +120,18 @@ export class GoalTree<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys extends string = string,
-    TTaskKeys extends string = string,
-    TResourceKeys extends string = string,
-    TQualityKeys extends string = never,
+    TDialect extends MapperDialect = MapperDialect,
     TActorEngine = {},
     TLinkEngine = {},
-    TActorKeys extends string = never,
-    TLinkKeys extends string = never,
   >(
     model: IStarModel,
     mapper: EngineMapper<
       TGoalEngine,
       TTaskEngine,
       TResourceEngine,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys,
-      TQualityKeys,
+      TDialect,
       TActorEngine,
-      TLinkEngine,
-      TActorKeys,
-      TLinkKeys
+      TLinkEngine
     >,
   ): GoalModel<
     TGoalEngine,
@@ -169,28 +150,18 @@ export class GoalTree<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys extends string = string,
-    TTaskKeys extends string = string,
-    TResourceKeys extends string = string,
-    TQualityKeys extends string = never,
+    TDialect extends MapperDialect = MapperDialect,
     TActorEngine = {},
     TLinkEngine = {},
-    TActorKeys extends string = never,
-    TLinkKeys extends string = never,
   >(
     filename: string,
     mapper: EngineMapper<
       TGoalEngine,
       TTaskEngine,
       TResourceEngine,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys,
-      TQualityKeys,
+      TDialect,
       TActorEngine,
-      TLinkEngine,
-      TActorKeys,
-      TLinkKeys
+      TLinkEngine
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.load(filename);
@@ -204,28 +175,18 @@ export class GoalTree<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
-    TGoalKeys extends string = string,
-    TTaskKeys extends string = string,
-    TResourceKeys extends string = string,
-    TQualityKeys extends string = never,
+    TDialect extends MapperDialect = MapperDialect,
     TActorEngine = {},
     TLinkEngine = {},
-    TActorKeys extends string = never,
-    TLinkKeys extends string = never,
   >(
     json: string,
     mapper: EngineMapper<
       TGoalEngine,
       TTaskEngine,
       TResourceEngine,
-      TGoalKeys,
-      TTaskKeys,
-      TResourceKeys,
-      TQualityKeys,
+      TDialect,
       TActorEngine,
-      TLinkEngine,
-      TActorKeys,
-      TLinkKeys
+      TLinkEngine
     >,
   ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
     const model = Model.parse(json);
