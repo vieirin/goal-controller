@@ -65,8 +65,16 @@ createEngineMapper({
 - **Every kind has an entry or is in `ignore`.** A kind without one doesn't
   compile (`'kinds without an entry': "istar.Resource"`), and neither does
   a kind the dialect doesn't have, a kind in two entries, or an entry for
-  an ignored kind. Every link kind the dialect gives properties needs an
-  entry in `links`; the other link kinds get `{}`.
+  an ignored kind.
+- **Every link kind the dialect gives properties needs an entry in
+  `links`.** A mapper without `links` doesn't compile for such a dialect,
+  and a link kind without an entry gets `{}`. One written per role mapped
+  every link with `mapLinkProps`.
+- **`ignore` never visits a kind.** An ignored kind has no node, and its
+  elements are in `elements` as written. Intentional change (#215): under
+  `skipResource` a Resource was checked as a node before it was left out,
+  so a Resource with children threw (`Resource node … can't have
+  children`). Ignored, it doesn't.
 - **`mapProps` is given its element's kind**, one member per kind. Narrowing
   on `kind` narrows `props`: in a Goal-and-Quality entry, a goal-only key
   doesn't compile until `kind === 'istar.Goal'`. Its output is the node's

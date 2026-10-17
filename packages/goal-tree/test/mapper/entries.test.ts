@@ -500,6 +500,19 @@ export const compileErrors = () => [
     ],
     ignore: ['istar.Resource'],
   }),
+  // an explicit empty list covers none (#259)
+  // @ts-expect-error 'link kinds without an entry': "istar.ContributionLink"
+  createEngineMapper({
+    dialect,
+    naming: useIstarDefaultNaming(),
+    elements: (entry) => [
+      entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+      entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+      entry({ kind: 'toy.Sensor', as: 'sensor', mapProps: () => ({}) }),
+    ],
+    ignore: ['istar.Resource'],
+    links: () => [],
+  }),
   createEngineMapper({
     dialect,
     naming: useIstarDefaultNaming(),
