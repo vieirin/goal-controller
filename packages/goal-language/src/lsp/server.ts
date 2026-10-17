@@ -74,6 +74,7 @@ import {
   type RunCheck,
 } from '../notation/diagnostics.js';
 import { definitionAt, fieldHover, hoverAt } from '../notation/navigation.js';
+import { START } from '../notation/highlight.js';
 import { fieldPropertyOf } from '../notation/values.js';
 import {
   readFieldUri,
@@ -116,7 +117,7 @@ const startOf = (
   const found =
     params &&
     fieldPropertyOf(params.dialect, params.context, field.id, field.key);
-  return found ? found.value.type : 'text';
+  return found ? START[found.value.type] : 'text';
 };
 
 const SEVERITY = {

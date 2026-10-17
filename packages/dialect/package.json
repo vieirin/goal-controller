@@ -10,7 +10,12 @@
     "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
+  "dependencies": {
+    "@istar-ts/dsm3-kaos": "^0.14.0",
+    "@istar-ts/dsm3-nfr": "^0.14.0"
+  },
   "devDependencies": {
+    "@istar-ts/core": "^0.14.0",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
     "@types/node": "^22.6.0",

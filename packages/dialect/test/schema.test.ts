@@ -4,6 +4,7 @@ import {
   defineDialect,
   defineExtension,
   hasIds,
+  probabilityOf,
   type AnyDialect,
   type CheckNameOf,
   type ConstructOf,
@@ -11,7 +12,7 @@ import {
   type ProjectResourceKindOf,
   type PropertyKeyOf,
 } from '../src';
-import { sensing, toy, toyDialect } from './support/toy';
+import { toy, toyDialect } from './support/toy';
 
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const same = <T extends true>(): T => true as T;
@@ -521,10 +522,7 @@ describe('defineDialect: frameworks besides iStar 2.0 (#171)', () => {
     );
   });
 
-  it("rejects iStar's extension, actors and notation, and prefixes no line can start with", () => {
-    expect(bad((d) => ({ ...d, extension: sensing }) as AnyDialect)).to.throw(
-      /extension: a kaos dialect has none/,
-    );
+  it("rejects iStar's actors and notation, and prefixes no line can start with", () => {
     expect(bad((d) => ({ ...d, actors: [] }))).to.throw(
       /actors: a kaos dialect has none/,
     );
@@ -548,6 +546,199 @@ describe('defineDialect: frameworks besides iStar 2.0 (#171)', () => {
         elements: { ...d.elements, 'kaos.Agent': { fill: '#fff' } },
       })),
     ).to.throw(/either every element has an id prefix, or none has/);
+  });
+});
+
+describe('defineDialect: a framework dialect’s extension, link and leg properties (#181)', () => {
+  /** a KAOS extension: a node kind, and an n-ary link joining goals to it */
+  const voting = {
+    name: 'vote',
+    label: 'Voting',
+    elements: [{ kind: 'vote.Ballot', category: 'node' }],
+    links: [
+      {
+        kind: 'vote.TallyLink',
+        arity: 'n',
+        rules: { sources: ['kaos.BehavioralGoal'], targets: ['vote.Ballot'] },
+      },
+      {
+        kind: 'vote.CastLink',
+        rules: { sources: ['kaos.Agent'], targets: ['vote.Ballot'] },
+      },
+    ],
+    groupers: {},
+    stereotypes: [],
+    taggedValues: [],
+    defaultTags: [],
+  } as const satisfies ExtensionDefinition;
+  const voted = {
+    id: 'voted',
+    name: 'Voted KAOS',
+    framework: 'kaos',
+    extension: voting,
+    elements: {
+      'kaos.BehavioralGoal': { prefix: 'G', fill: '#fff' },
+      'vote.Ballot': { prefix: 'B', fill: '#fff' },
+    },
+    defaultFill: '#fff',
+    properties: {
+      'kaos.BehavioralGoal': [
+        {
+          key: 'Anchor',
+          value: { type: 'reference', kinds: ['vote.Ballot'] },
+          help: 'its ballot',
+        },
+      ],
+      'vote.Ballot': [
+        {
+          key: 'Spec',
+          value: { type: 'formula', language: 'ltl' },
+          help: 'when it closes',
+        },
+      ],
+      // the hub of its n-ary link
+      'vote.TallyLinkHub': [{ key: 'Rule', value: { type: 'text' }, help: '' }],
+    },
+    links: {
+      // a leg of the root's n-ary refinement, and one of its own
+      'kaos.RefinementLinkStart': [
+        { key: 'P', value: { type: 'probability' }, help: 'its case' },
+      ],
+      'vote.TallyLinkStart': [
+        { key: 'Weight', value: { type: 'probability' }, help: '' },
+      ],
+      'vote.CastLink': [{ key: 'At', value: { type: 'text' }, help: '' }],
+    },
+    propertyLineOrder: ['Anchor', 'Spec'],
+    indent: '  ',
+    problems: {
+      notAChild: { severity: 'error', message: '' },
+      missingFromNotation: { severity: 'error', message: '' },
+      relationMismatch: { severity: 'error', message: '' },
+      notInDiagram: { severity: 'error', message: '' },
+    },
+  } as const satisfies AnyDialect;
+  const bad = (change: (d: AnyDialect) => AnyDialect) => () =>
+    defineDialect(change(structuredClone(voted) as unknown as AnyDialect));
+
+  it('extends its root with kinds, typed links, an n-ary link’s hub and legs', () => {
+    const defined = defineDialect(voted);
+    expect(defined.extension!.links[0]!.arity).to.equal('n');
+    same<Same<PropertyKeyOf<typeof voted, 'vote.TallyLinkHub'>, 'Rule'>>();
+    // an iStar dialect may declare an n-ary link too
+    expect(() =>
+      defineExtension({
+        ...voting,
+        links: [
+          {
+            kind: 'vote.TallyLink',
+            arity: 'n',
+            rules: { sources: ['istar.Goal'], targets: ['vote.Ballot'] },
+          },
+        ],
+      }),
+    ).not.to.throw();
+  });
+
+  it('lets its extension’s links refine and be leaf targets, as its root’s are', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        refinements: { 'vote.TallyLink': 'and' },
+        leafTargets: ['vote.CastLink'],
+      })),
+    ).not.to.throw();
+    expect(bad((d) => ({ ...d, leafTargets: ['vote.Urn'] }))).to.throw(
+      /leafTargets: vote\.Urn is not a link kind of kaos/,
+    );
+  });
+
+  it('rejects an extension in its root’s namespace, or naming iStar’s kinds', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        extension: {
+          ...voting,
+          name: 'kaos',
+          elements: [{ kind: 'kaos.Ballot', category: 'node' }],
+          links: [],
+        },
+      })),
+    ).to.throw(/extension: kaos: its namespace is kaos's root's/);
+    expect(
+      bad((d) => ({
+        ...d,
+        extension: {
+          ...voting,
+          elements: [{ kind: 'vote.Ballot', behavesLike: 'istar.Task' }],
+        },
+      })),
+    ).to.throw(
+      /extension: vote: vote\.Ballot behaves like unknown istar\.Task/,
+    );
+    expect(
+      bad((d) => ({
+        ...d,
+        extension: {
+          ...voting,
+          links: [
+            {
+              kind: 'vote.CastLink',
+              rules: { sources: ['istar.Actor'], targets: ['vote.Ballot'] },
+            },
+          ],
+        },
+      })),
+    ).to.throw(/extension: vote: vote\.CastLink joins unknown istar\.Actor/);
+  });
+
+  it('names its generated kinds only for n-ary links, and references known kinds', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        links: { ...d.links, 'vote.CastLinkStart': [] },
+      })),
+    ).to.throw(
+      /links: unknown link kind vote\.CastLinkStart \(not one of kaos's\)/,
+    );
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: { ...d.properties, 'vote.CastLinkHub': [] },
+      })),
+    ).to.throw(/properties: vote\.CastLinkHub is not a node kind of kaos/);
+    expect(
+      bad((d) => ({
+        ...d,
+        properties: {
+          ...d.properties,
+          'kaos.BehavioralGoal': [
+            {
+              key: 'Anchor',
+              value: { type: 'reference', kinds: ['vote.Urn'] },
+              help: '',
+            },
+          ],
+        },
+      })),
+    ).to.throw(/kaos\.BehavioralGoal\.Anchor names unknown kind vote\.Urn/);
+  });
+});
+
+describe('probabilityOf (#181)', () => {
+  it('reads a decimal or a percentage in [0, 1]', () => {
+    for (const [text, value] of [
+      ['0.8', 0.8],
+      ['.8', 0.8],
+      ['80%', 0.8],
+      ['20.00%', 0.2],
+      ['1', 1],
+      ['0', 0],
+      [' 95 % ', 0.95],
+    ] as const)
+      expect(probabilityOf(text), text).to.be.closeTo(value, 1e-12);
+    for (const text of ['', '1.5', '120%', '-0.1', 'high', '0.8.1', '%'])
+      expect(probabilityOf(text), text).to.equal(null);
   });
 });
 
@@ -608,6 +799,21 @@ describe('defineDialect: a framework’s refinements and link labels (#171)', ()
       expect(
         bad((d) => ({ ...d, linkLabels: { 'nfr.ContributionLink': labels } })),
       ).to.throw(/labels are some, each once/);
+  });
+
+  it('names the link kinds whose target is a leaf, of its root (#181)', () => {
+    expect(
+      bad((d) => ({ ...d, leafTargets: ['nfr.ContributionLink'] })),
+    ).not.to.throw();
+    expect(
+      defineDialect.bind(null, {
+        ...(structuredClone(toy) as AnyDialect),
+        leafTargets: ['istar.ContributionLink'],
+      }),
+    ).to.throw(/leafTargets: iStar's links are its own/);
+    expect(bad((d) => ({ ...d, leafTargets: ['nfr.Claim'] }))).to.throw(
+      /leafTargets: nfr\.Claim is not a link kind of nfr/,
+    );
   });
 });
 

@@ -132,6 +132,15 @@ value alone (`parseValue(type, text)`).
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
 | `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
 
+Three value types have no rule of their own (goal-controller#181): the
+grammar reads them as `text`, and the validator checks them.
+
+| Type          | Reads                                 | A dialect adds                                   |
+| ------------- | ------------------------------------- | ------------------------------------------------ |
+| `reference`   | one element id (`G1`)                 | `kinds`: the kinds the element may be            |
+| `formula`     | a sentence of a formal language       | `language`: its tag (`ltl`); nothing checks it yet |
+| `probability` | `0.8`, `.8`, `80%`, in [0, 1]         |                                                  |
+
 The **assertion language** works as follows:
 
 - `&` binds tighter than `|`.

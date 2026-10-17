@@ -500,6 +500,23 @@ x
 2x:1
 ```
 
+### `reference`, `formula`, `probability`
+
+These three have no grammar rule of their own (goal-controller#181). They
+are read as `text`, and the validator checks them. A value it rejects is a
+problem and stays as written.
+
+- `reference`: one element id, read as a `refList` reads its ids (`G1`), or
+  the piStar id of an element of the model, as an imported model writes it
+  (no grammar reads those). A dialect adds the `kinds` the element may be,
+  and the validator checks that the id names an element of one of them. A
+  KAOS resolution's `Anchor` is a reference.
+- `formula`: a sentence of a formal language, tagged with the language
+  (`ltl` for KAOS's `FormalSpec`). Nothing checks it yet.
+- `probability`: a decimal (`0.8`, `.8`, `1`) or a percentage (`80%`,
+  `20.00%`, as KAOSTools writes them), in [0, 1]. The dialect package's
+  `probabilityOf` reads it as a number. It is written back as read.
+
 ### `ocl`
 
 OCL as MutRoSe's goal models write it: declarations (`current : Room,

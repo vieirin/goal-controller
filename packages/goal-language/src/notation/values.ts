@@ -6,6 +6,7 @@
 import {
   actorPropertiesOf,
   linkPropertiesOf,
+  probabilityOf,
   propertyOf,
   valueOf,
   type AnyDialect,
@@ -397,7 +398,32 @@ export const valueProblem = (
       const [error] = parseValue('annotatedName', text).errors;
       return error ? error.message : null;
     }
+    case 'reference': {
+      const id = text.trim();
+      // an imported model names an element by its piStar id, which no
+      // grammar reads; any other reference is one id, as the grammar reads
+      // a refList's
+      let key = context?.iStarIds?.[id];
+      if (key === undefined) {
+        const read = parseValue('refList', id);
+        if (read.errors.length || read.value.length !== 1)
+          return `An element's id (G1), not ${id}`;
+        key = read.value[0]!;
+      }
+      if (!context) return null;
+      const kind =
+        kindOf(context, key) ?? kindOf(context, context.named?.[key] ?? '');
+      if (!kind) return `${id} is not an element of this model`;
+      return (value.kinds as readonly string[]).includes(kind)
+        ? null
+        : `${id} is a ${kind}, not a ${value.kinds.join(' or ')}`;
+    }
+    case 'probability':
+      return probabilityOf(text) === null
+        ? `A probability in [0, 1] (0.8, .8 or 80%), not ${text.trim()}`
+        : null;
     case 'text':
+    case 'formula':
       return null;
     case 'ocl': {
       // read leniently: only a character no OCL token matches is wrong

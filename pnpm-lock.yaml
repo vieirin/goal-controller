@@ -27,7 +27,17 @@ importers:
         version: 50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
 
   packages/dialect:
+    dependencies:
+      '@istar-ts/dsm3-kaos':
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr':
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
     devDependencies:
+      '@istar-ts/core':
+        specifier: ^0.14.0
+        version: 0.14.0
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -111,8 +121,8 @@ importers:
         specifier: workspace:*
         version: link:../goal-language
       '@istar-ts/core':
-        specifier: ^0.13.7
-        version: 0.13.7
+        specifier: ^0.14.0
+        version: 0.14.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -154,11 +164,11 @@ importers:
         specifier: workspace:*
         version: link:../goal-tree
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.13.7
-        version: 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.13.7
-        version: 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@rgrove/parse-xml':
         specifier: 4.2.3
         version: 4.2.3
@@ -188,8 +198,8 @@ importers:
         version: 4.6.7
     devDependencies:
       '@istar-ts/core':
-        specifier: ^0.13.7
-        version: 0.13.7
+        specifier: ^0.14.0
+        version: 0.14.0
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -314,17 +324,17 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.13.7
-        version: 0.13.7
+        specifier: ^0.14.0
+        version: 0.14.0
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.13.7
-        version: 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.13.7
-        version: 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/react':
-        specifier: ^0.13.7
-        version: 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -1736,17 +1746,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.13.7:
-    resolution: {integrity: sha512-exOGeauVDoHXzXVGyYt9zeikNb4+jMJSwGNYwiiNqM6LlHC4kf+PW+8vctRRMjE4cMaybBKv2gDR5wX0PfARzA==}
+  /@istar-ts/core@0.14.0:
+    resolution: {integrity: sha512-ZGBNm1E1IvZhpWNfk3QqoE/VCaS4bW/jZyS4w944XxMiNFVpBbBBhxqn2F026hlPQdoj7MH8Nq34QwsAvBhKGw==}
 
-  /@istar-ts/dsm3-kaos@0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-Z8DSlV2mQeO8u2ZfzFShzF9Z8HxjeMxNNRic+7DsebU9GqKzZBzQsJ7tVKIVfIaMX6NxpuMaudIZgxdHhSSAtA==}
+  /@istar-ts/dsm3-kaos@0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-u5MsnzOiMZbxM02skfiabnzmmNf6NIHTBETFPeFMdNDBrymO4pA1sOQsfaQoKS8dJu4tw5Zt7Jc8yj4YLrcKgg==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.7
-      '@istar-ts/react': 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.14.0
+      '@istar-ts/react': 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -1755,14 +1765,14 @@ packages:
       - immer
     dev: false
 
-  /@istar-ts/dsm3-nfr@0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-xmiFGDb9RfF28APRom0luBhZlYpGUaRbWm+O9TghofPLXx1E+zBGEc5wv76f+XhmCJx8COnXnmZk+zxtFllRaw==}
+  /@istar-ts/dsm3-nfr@0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-HWHvmfRNHOSiQ7100soqxXu8zao1QcS1RiTV+8FYHebgB5a8GQoCm2lmEvPjbimuuCkl5Jwn22JKM6k54QCleQ==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.7
-      '@istar-ts/react': 0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.14.0
+      '@istar-ts/react': 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -1771,13 +1781,13 @@ packages:
       - immer
     dev: false
 
-  /@istar-ts/react@0.13.7(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-d70SUpkah5n9SMO8I12NTuKyMiOefNf8fUZKebV2TA7q6kSGGDfZm9Vw16e6a5VEWBsvRrmwKQaUgcbk/eKF4A==}
+  /@istar-ts/react@0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-h7F0/ZLqoIjgdzahO5l9xNpG/8cHDv+RxJG6U+zXOB9VtvVkpLLPequKNZ2nDx6pr69EjLonYaZt/G1v+FRqWw==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.7
+      '@istar-ts/core': 0.14.0
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

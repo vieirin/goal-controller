@@ -23,7 +23,7 @@ projects or their files.
 
 | Where | What |
 | --- | --- |
-| `dialect/src/schema.ts` | `Framework`, `FRAMEWORKS`, `DEFAULT_FRAMEWORK`; `DialectDefinition.framework?`; `FRAMEWORK_KINDS`, the KAOS and NFR kinds a dialect may name; `defineDialect`'s checks per framework |
+| `dialect/src/schema.ts` | `Framework`, `FRAMEWORKS`, `DEFAULT_FRAMEWORK`; `DialectDefinition.framework?`; `FRAMEWORK_KINDS`, the KAOS and NFR kinds a dialect may name, read from istar-ts's roots; `defineDialect`'s checks per framework |
 | `ui/lib/project/manifest.ts` | `Manifest.framework?`, `ModelEntry.framework?`, `ManifestSettings.framework` |
 | `ui/lib/project/embedded.ts` | the framework record of a one-model project: `diagram.customProperties.framework`; `recordedFramework` |
 | `ui/lib/workbench/frameworks.ts` | `FRAMEWORK_ROOTS`, `hostFor`, `frameworkOfModel`, `emptyModelText` |
@@ -66,19 +66,21 @@ applies iStar's rules only when the framework is iStar 2.0:
 
 | Rule | iStar 2.0 | KAOS, NFR |
 | --- | --- | --- |
-| kinds named in `elements`, `properties` and references | `goal`, `task`, `resource`, `quality` and the extension's node kinds | the root's element kinds (`FRAMEWORK_KINDS[f].elements`), with the hub that an n-ary link generates (`kaos.RefinementLinkHub`) |
+| kinds named in `elements`, `properties` and references | `goal`, `task`, `resource`, `quality` and the extension's node kinds | the root's element kinds (`FRAMEWORK_KINDS[f].elements`), with the hub that an n-ary link generates (`kaos.RefinementLinkHub`), and the extension's node kinds and hubs |
 | id prefixes | `G`, `T`, `R`, `AT` for iStar's kinds; one or two capitals, unique, for an extension's | one or two capitals other than `X` and `W`; kinds may share a prefix (KAOS's two goal kinds both use `G`) |
-| `links` keys | iStar's link kinds or namespaced kinds | the root's link kinds (`FRAMEWORK_KINDS[f].links`) |
-| `extension`, `actors`, `notation` | allowed | none |
+| `links` keys | iStar's link kinds or namespaced kinds | the root's link kinds (`FRAMEWORK_KINDS[f].links`), legs and ends included, and the extension's |
+| `extension` | allowed | allowed, extending the root (#181) |
+| `actors`, `notation` | allowed | none |
 | every element has an id prefix, or none does | yes | yes |
 
 `PropertyKindOf` accepts the framework's kinds at the type level. A kind that
 has properties but no line in the text view (KAOS's refinement hub) therefore
 still compiles.
 
-`FRAMEWORK_KINDS` copies the kind lists of the istar-ts roots, so the dialect
-package keeps no dependencies. A UI test (`test/workbench/frameworks.test.ts`)
-pins it to `KAOS` / `NFR` and to `KAOS_ELEMENT_KINDS` / `NFR_ELEMENT_KINDS`.
+`FRAMEWORK_KINDS` is read from the istar-ts roots the workbench reads models
+with (`KAOS_OBSTACLES`, `NFR`; #181), from their React-free `/metamodel`
+subpaths. A UI test (`test/workbench/frameworks.test.ts`) checks it against
+the workbench's `FRAMEWORK_ROOTS`.
 
 ## Hosts
 
@@ -365,3 +367,146 @@ Each PR of #171 appends its decisions here.
   properties: the diagram's inspector is istar-ts's, so nfrprop's
   `initialLabel` is a property line in its Notation view, typed there by its
   dialect. More than one strategy per NFR model. KAOS's FormalSpec as LTL.
+
+## KAOS stress test (goal-controller#181)
+
+Cailliau's London Ambulance (KAOSTools) and the Brussels ambulance
+dispatching corpus (ADS) bring obstacle analysis, a textual KAOS and
+RE'12's quantities. The work is split into three layers: istar-ts owns the
+structure (istar-ts#20), the `kaos` dialect owns the vocabularies, and an
+engine's dialect (`kaosprop`) owns its quantities. Results and the attempts
+log are in #182.
+
+### PR E: framework dialects extend their root; the typed `kaos` dialect
+
+- **A framework dialect may declare `extension`.** PR A's rule forbade it.
+  Its kinds extend the root through `hostFor(framework, extension)`, which
+  already took an extension. `defineExtension(extension, base, framework)`
+  checks a framework's extension against that root's kinds: link ends and
+  `behavesLike` name the root's kinds or the extension's, never iStar's.
+  The root's namespace (`kaos.`) is the root's, as istar-ts's
+  `extendMetamodel` reserves it, so an extension's kinds are namespaced on
+  their own (`vote.Ballot`). `actors` and `notation` stay iStar's.
+- **An extension link may be n-ary** (`arity: 'n'`, passed to istar-ts
+  through `metamodelExtensionOf`). istar-ts generates its hub, legs and end
+  (`<kind>Hub`, `<kind>Start`, `<kind>End`). The dialect may give the hub
+  `properties`, and the legs and the end `links`, as it already could for
+  the root's `kaos.RefinementLinkStart`. `extensionHubKinds` and
+  `extensionLinkKinds` list them, and the type level knows the hub
+  (`ExtensionHubKindOf`).
+- **Every KAOS model is read with KAOS plus its obstacle analysis.**
+  `FRAMEWORK_ROOTS.kaos` is istar-ts 0.14.0's `KAOS_OBSTACLES`
+  (`extendMetamodel(KAOS, kaosObstacleAnalysis)`). Obstacles are
+  KAOS-the-language (istar-ts's layer), not one dialect's, so they are not
+  the `kaos` dialect's `extension`: every KAOS dialect, engine and importer
+  reads them. DSM3's files read as before, and an empty KAOS model is
+  written as before, byte for byte.
+- **`FRAMEWORK_KINDS` is derived, not copied.** It reads the kinds of
+  istar-ts's `KAOS_OBSTACLES` and `NFR` (their element and link maps, the
+  generated hubs, legs and ends included), and its types are istar-ts's
+  (`KaosElementKind | KaosObstacleElementKind`, …). This supersedes PR A's
+  "the dialect package stays free of dependencies": it now depends on
+  `@istar-ts/dsm3-kaos` and `@istar-ts/dsm3-nfr`, whose `/metamodel`
+  subpaths need no React. Their core is the one lib and the workbench
+  already load (the workbench aliases it to one copy, #177). A kind istar-ts
+  adds reaches every dialect check without an edit here. The ui test checks
+  the table against the workbench's own roots. The obstacle kinds are
+  `kaosObstacles.*` because core reserves the root's `kaos.` prefix. Files
+  write them as `kaos.*` (`pistarType`), so `detectFramework` still sees
+  KAOS.
+- **Three generic value types:**
+  - `reference`: one element id, of the given `kinds`;
+  - `formula`: text with a language tag, which nothing checks yet;
+  - `probability`: `0.8`, `.8` or `80%`, in [0, 1]; `probabilityOf` reads
+    it as a number.
+
+  None has a grammar rule. They lex as `text` (`highlight.ts`'s `START`
+  map, which the language server uses too), and `valueProblem` checks
+  them. The inspector edits `formula` as long text and the other two as
+  text. The `kaos` dialect uses `formula` (`FormalSpec`, tagged `ltl`).
+  `reference` is for `Anchor` and `probability` is for kaosprop. A
+  reference reads its id with the grammar, as a `refList` reads its ids. A
+  piStar id, which no grammar reads, is accepted only where the model has
+  it (`context.iStarIds`).
+- **Vocabularies, one source each** (`KAOS_VOCABULARIES` in lib's `kaos`
+  dialect):
+
+  | Key | On | Values | Source |
+  | --- | --- | --- | --- |
+  | `Type` | goals | Achieve, Cease, Maintain, Avoid, Optimize, softgoal | van Lamsweerde, *Requirements Engineering* (2009), ch. 7, the behavioural goal patterns and Optimize; `softgoal` is DSM3's preset on softgoals |
+  | `Category` | goals | Satisfaction, Information, Accuracy, Safety, Security | van Lamsweerde and Letier, TSE 26(10) 2000: the goal categories its obstacle categories (Non-satisfaction, Non-information, Inaccuracy, Hazard, Threat) come from |
+  | `Priority` | goals | high, medium, low | none: no KAOS source fixes the levels (the book's and DSM3's are free). An ordinal of three is our choice, and a source can replace it |
+  | `Tactic` | refinement hubs | milestone-driven, case-driven, guard-introduction, divide-and-conquer, uncontrollability, unmonitorability | Darimont and van Lamsweerde, FSE'96 (refinement patterns), as Cailliau and van Lamsweerde, RE'12, Table I propagate through them; no tactic reads as milestone-driven |
+  | `FormalSpec` | goals | a `formula`, `ltl` | KAOS's real-time linear temporal logic (the book, ch. 17); no checker (the deferred "FormalSpec → LTL") |
+
+  `Source`, `Issue`, `FitCriterion`, `Stability`, `SysRef`, `Status` and
+  `BoundaryCondition` stay free text. `SysRef`'s help now says what it is:
+  RE'11's system reference, the design option a refinement belongs to.
+- **A value outside a vocabulary is a Problem, not a parse error.** It is
+  the existing enum diagnostic (`One of …, not Achive`, an error on the
+  property line), and the Notation view writes the value back as read.
+  DSM3's welcome model has only empty values and `softgoal`, so it lints
+  clean and saves byte-identically. This supersedes PR C's "KAOS properties
+  are free text".
+- **Nothing quantitative on the plain `kaos` dialect.** `RSR`, `ESR` and
+  `Probability` are kaosprop's (PR G), and the plain mode keeps them as
+  unknown keys, untouched.
+- **A leg's properties in the text view are a `link` line under its
+  sub-goal, naming the goal its refinement refines** (`link G1 {Probability
+  = .6}`). goalView gives a leg's `target` as the hub's refined goal (the
+  `refinementsOf` parent), since a hub has no line (PR C). A hub's own keys
+  (`Tactic`) stay in the inspector. If a sub-goal is a leg of two hubs of
+  the same goal (two alternatives), the line is ambiguous, and the link
+  line's diagnostics say so as they do for two kinds.
+- **Obstacles in the `kaos` dialect.**
+  - `kaosObstacles.Obstacle` has prefix `O` (NFR's operationalizations take
+    `O` too, in another framework).
+  - Its keys are istar-ts's: `Description`, `FormalSpec` (an `ltl`
+    formula) and `Category`.
+  - An obstacle refinement is an AND, as a goal refinement is, so
+    sub-obstacles are listed under the obstacle they refine, and several
+    hubs on one obstacle (an OR) merge into one AND in the text (PR D's
+    rule). Its sources may be domain properties, as in LAS.
+  - An obstruction is not a refinement: an obstacle tree is a tree of its
+    own, a root in the text view.
+  - A resolution's `ResolutionType` and `Anchor` are a `link` line under
+    the resolving goal, naming the obstacle:
+    `link O5 {ResolutionType = mitigation} {Anchor = …}`.
+- **More vocabularies, one source each:**
+
+  | Key | On | Values | Source |
+  | --- | --- | --- | --- |
+  | `Category` | obstacles | Non-satisfaction, Non-information, Inaccuracy, Hazard, Threat | TSE'00: one per goal category it obstructs |
+  | `ResolutionType` | resolutions | goal substitution, agent substitution, obstacle prevention, goal deidealization, domain transformation, obstacle reduction, goal restoration, obstacle mitigation, do-nothing | TSE'00 §5's nine resolution strategies |
+  | `Kind` | domain properties | invariant, hypothesis | van Lamsweerde 2009: domain invariants and hypotheses (KAOSTools: `domainproperty`, `domainhypothesis`) |
+
+- **KAOSTools' names are values too, labelled with what they stand for.**
+  `Tactic`: `milestone` and `case`; `ResolutionType`: `prevention` and
+  `mitigation`. istar-ts's LAS fixture writes them as KAOSTools does
+  (`Tactic = case`, `ResolutionType = mitigation`). Accepting them keeps
+  such files clean as written, with nothing rewritten. An engine reads
+  each alias as its value (kaosprop: `case` is case-driven).
+- **`Anchor` is a `reference` to a goal** (behavioural or soft), as
+  istar-ts suggests. An imported model's anchor is a piStar id (LAS:
+  `achieve_ambulance_on_scene_when_ambulance_mobilized`), so a reference
+  resolves by its key, by the id its text gives it (`G1`), or by its piStar
+  id. The context carries `iStarIds` where a dialect has references.
+- **Obstruction Problems** (`frameworkProblems`):
+  - Istar-ts's link rules already make an obstruction run from an obstacle
+    to a goal or a domain property, and a resolution from a goal to an
+    obstacle.
+  - An obstruction of a *refined* goal is a warning (`not-a-leaf`):
+    obstacles obstruct leaf goals. This is declared, not coded for KAOS: a
+    dialect's `leafTargets` names the link kinds whose target must be a
+    leaf (`kaosObstacles.ObstructionLink`).
+  - It is a warning, not an error, since KAOSTools lets any goal be
+    obstructed.
+  - A `reference` value naming no element, or one of another kind, is an
+    error (`dangling-reference`) on the link or element that holds it.
+  - LAS has none.
+- **istar-ts 0.14.0.** `@istar-ts/core`, `react`, `dsm3-kaos` and
+  `dsm3-nfr` are bumped to `^0.14.0` (dependencies, not our versions), all
+  four at once. `dsm3-nfr` 0.13.7 pins core `<0.14`, so a partial bump
+  installs a second core (#177). dsm3-nfr 0.14.0 reached the registry
+  after the other three, and the bump waited for it rather than using an
+  override (#182).

@@ -1,7 +1,7 @@
 /**
  * The frameworks a model may be in (goal-controller#171): each read with an
  * istar-ts root, iStar 2.0's, KAOS's or NFR's; the dialect package's kind
- * table pinned to those roots.
+ * table read from those roots.
  */
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -13,17 +13,17 @@ import {
   toPistar,
 } from '@istar-ts/core';
 import {
-  KAOS,
-  KAOS_ELEMENT_KINDS,
-  KAOS_LINK_KINDS,
+  KAOS_OBSTACLES,
   KAOS_REFINEMENT_HUB,
 } from '@istar-ts/dsm3-kaos/metamodel';
+import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import {
-  NFR,
-  NFR_ELEMENT_KINDS,
-  NFR_LINK_KINDS,
-} from '@istar-ts/dsm3-nfr/metamodel';
-import { FRAMEWORK_KINDS, FRAMEWORKS } from '@goal-controller/dialect';
+  defineExtension,
+  extensionHubKinds,
+  extensionLinkKinds,
+  FRAMEWORK_KINDS,
+  FRAMEWORKS,
+} from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
 import { recordedFramework, withModelSettings } from '@/lib/project';
 import {
@@ -75,8 +75,6 @@ const KAOS_MODEL = JSON.stringify({
   diagram: { width: 800, height: 600 },
 });
 
-const sorted = (kinds: Iterable<string>) => [...kinds].sort();
-
 describe('frameworks', () => {
   it('has a root for each framework, whose framework it is', () => {
     for (const framework of FRAMEWORKS)
@@ -84,29 +82,22 @@ describe('frameworks', () => {
     expect(FRAMEWORK_ROOTS['istar-2.0']).toBe(ISTAR_2_0);
   });
 
-  it("pins the dialect's kind table to the KAOS and NFR roots", () => {
-    for (const [framework, root] of [
-      ['kaos', KAOS],
-      ['nfr', NFR],
-    ] as const) {
-      expect(sorted(FRAMEWORK_KINDS[framework].elements), framework).toEqual(
-        sorted(root.elements.keys()),
-      );
-      expect(sorted(FRAMEWORK_KINDS[framework].links), framework).toEqual(
-        sorted(root.links.keys()),
-      );
+  it("reads the dialect's kind table from the roots the workbench reads models with (#181)", () => {
+    for (const framework of ['kaos', 'nfr'] as const) {
+      const root = FRAMEWORK_ROOTS[framework];
+      expect(FRAMEWORK_KINDS[framework].elements, framework).toEqual([
+        ...root.elements.keys(),
+      ]);
+      expect(FRAMEWORK_KINDS[framework].links, framework).toEqual([
+        ...root.links.keys(),
+      ]);
     }
-    expect(FRAMEWORK_KINDS.kaos.elements).toEqual([
-      ...KAOS_ELEMENT_KINDS,
-      KAOS_REFINEMENT_HUB,
-    ]);
-    expect(FRAMEWORK_KINDS.kaos.links.slice(0, 3)).toEqual(KAOS_LINK_KINDS);
-    expect(FRAMEWORK_KINDS.nfr.elements).toEqual(NFR_ELEMENT_KINDS);
-    expect(FRAMEWORK_KINDS.nfr.links).toEqual(NFR_LINK_KINDS);
+    // KAOS's, with its obstacle analysis
+    expect(FRAMEWORK_KINDS.kaos.elements).toContain('kaosObstacles.Obstacle');
   });
 
   it("hosts a dialect on its framework's root", () => {
-    expect(hostFor('kaos')).toBe(KAOS);
+    expect(hostFor('kaos')).toBe(KAOS_OBSTACLES);
     const host = hostFor('istar-2.0', istar4RationalAgents);
     expect(host.framework).toBe('istar-2.0');
     expect(host.elements.has('istar.Goal')).toBe(true);
@@ -115,6 +106,41 @@ describe('frameworks', () => {
         host.elements.has(kind),
       ),
     ).toBe(true);
+  });
+
+  it("hosts a framework dialect's extension on its root: kinds, an n-ary link's hub and legs (#181)", () => {
+    const voting = defineExtension(
+      {
+        name: 'vote',
+        label: 'Voting',
+        elements: [{ kind: 'vote.Ballot', category: 'node' }],
+        links: [
+          {
+            kind: 'vote.TallyLink',
+            arity: 'n',
+            rules: {
+              sources: ['kaos.BehavioralGoal'],
+              targets: ['vote.Ballot'],
+            },
+          },
+        ],
+        groupers: {},
+        stereotypes: [],
+        taggedValues: [],
+        defaultTags: [],
+      },
+      undefined,
+      'kaos',
+    );
+    const host = hostFor('kaos', voting);
+    expect(host.framework).toBe('kaos');
+    expect(host.elements.has('kaos.BehavioralGoal')).toBe(true);
+    expect(host.elements.has('vote.Ballot')).toBe(true);
+    // the kinds istar-ts generates, by the names the dialect gives properties
+    expect(host.elements.has('vote.TallyLinkHub')).toBe(true);
+    for (const kind of extensionLinkKinds(voting))
+      expect(host.links.has(kind), kind).toBe(true);
+    expect(extensionHubKinds(voting)).toEqual(['vote.TallyLinkHub']);
   });
 
   it('writes a new iStar model as it always did, and records another framework', () => {
@@ -144,8 +170,8 @@ describe('frameworks', () => {
       expect(model.elements.get('g2')?.kind).toBe('kaos.BehavioralGoal');
       expect(model.elements.get('h')?.kind).toBe(KAOS_REFINEMENT_HUB);
     }
-    expect(metamodelOfMode(null, recorded)).toBe(KAOS);
-    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(KAOS);
+    expect(metamodelOfMode(null, recorded)).toBe(KAOS_OBSTACLES);
+    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(KAOS_OBSTACLES);
     expect(metamodelOfMode(null, KAOS_MODEL, 'nfr')).toBe(NFR);
     expect(metamodelOfMode(null, EMPTY_PISTAR_MODEL)).toBe(ISTAR_2_0);
   });

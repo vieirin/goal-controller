@@ -71,9 +71,12 @@ export const inputFor = (
     case 'assertion':
     case 'expression':
     case 'ocl':
+    case 'formula':
       return withPlaceholder({ kind: 'long' as const });
     case 'text':
     case 'refList':
+    case 'reference':
+    case 'probability':
     case 'pairList':
     case 'annotatedName':
       return withPlaceholder({ kind: 'text' as const });
