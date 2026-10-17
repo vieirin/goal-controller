@@ -29,6 +29,8 @@ const CONTEXT = assertion('creationProperty', {
   booleanInequality: true,
   // CtxRegex.g4's VARs are the context's meta-variables, declared by use (#34 D17)
   declaresVariables: true,
+  // several contexts are separated by `%` (addFulfillmentConditions, #232)
+  separator: '%',
   input: { placeholder: 'assertion trigger battery > 0.5' },
   help: 'the context it is pursued in: `assertion condition` or `assertion trigger`, then a condition on context variables',
 });
@@ -39,6 +41,8 @@ const goalProperties = [
     [
       ['', 'not selected'],
       ['true', 'true'],
+      // what GODA's own models write for not selected (#232)
+      ['false', 'not selected'],
     ],
     {
       help: 'the goal the model is generated from: exactly one goal is selected',

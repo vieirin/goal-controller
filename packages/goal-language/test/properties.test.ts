@@ -412,6 +412,44 @@ describe('readProperties (#187)', () => {
     expect(read('G9', false).values).to.deep.equal({ anchor: 'G9' });
   });
 
+  it('reads a list of conditions: each part a condition, or none (#232)', () => {
+    const contexts = {
+      type: 'assertion',
+      resolves: ['variable'],
+      prefixes: ['assertion condition', 'assertion trigger'],
+      declaresVariables: true,
+      separator: '%',
+    } as const;
+    const lists = {
+      properties: {
+        goal: [{ key: 'ctx', value: contexts, help: '' }],
+      },
+    } as const;
+    const read = (ctx: string) =>
+      readProperties(lists, { element: 'goal' }, { ctx }).values.ctx;
+    const both = read('assertion condition a = 1 % assertion trigger b');
+    expect(both?.map((condition) => condition.text())).to.deep.equal([
+      'a = 1',
+      'b',
+    ]);
+    same<Same<typeof both, Assertion[] | undefined>>();
+    // a part that isn't a condition: the value is unset, and reported
+    expect(read('assertion condition a = 1 % a = = 2')).to.equal(undefined);
+    expect(
+      valueProblem(contexts, 'assertion condition a = 1 % a = = 2'),
+    ).to.match(/^Not a condition: /);
+    expect(valueProblem(contexts, 'assertion condition a = 1 % b')).to.equal(
+      'Starts with assertion condition or assertion trigger',
+    );
+    expect(
+      valueProblem(
+        contexts,
+        'assertion condition a = 1 % assertion trigger b %',
+      ),
+    ).to.equal(null);
+    expect(read('')).to.deep.equal([]);
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();
