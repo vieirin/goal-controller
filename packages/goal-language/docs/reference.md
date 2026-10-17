@@ -508,8 +508,9 @@ problem and stays as written.
 
 - `reference`: one element id. A dialect adds the `kinds` the element may
   be, and the validator checks that the id names an element of one of them.
-  The id can be the piStar key or the id its text gives it. A KAOS
-  resolution's `Anchor` is a reference.
+  The id can be the element's key, the id its text gives it (`G1`), or its
+  piStar id, as an imported model writes it. A KAOS resolution's `Anchor`
+  is a reference.
 - `formula`: a sentence of a formal language, tagged with the language
   (`ltl` for KAOS's `FormalSpec`). Nothing checks it yet.
 - `probability`: a decimal (`0.8`, `.8`, `1`) or a percentage (`80%`,

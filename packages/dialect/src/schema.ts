@@ -35,11 +35,12 @@ export const FRAMEWORKS = [
 export const DEFAULT_FRAMEWORK: Framework = 'istar-2.0';
 
 /**
- * The kinds of the frameworks besides iStar 2.0, as their istar-ts root
- * metamodels have them (`@istar-ts/dsm3-kaos`'s KAOS, `@istar-ts/dsm3-nfr`'s
- * NFR; the UI's tests pin this table to them): the element kinds, with the
- * hub an n-ary link generates, and the link kinds, with its legs. A dialect
- * of one names these kinds, and no iStar kind.
+ * The kinds of the frameworks besides iStar 2.0, as the metamodels the
+ * workbench reads them with have them (`@istar-ts/dsm3-kaos`'s KAOS with its
+ * obstacle analysis, `KAOS_OBSTACLES`, goal-controller#181;
+ * `@istar-ts/dsm3-nfr`'s NFR; the UI's tests pin this table to them): the
+ * element kinds, with the hub an n-ary link generates, and the link kinds,
+ * with its legs. A dialect of one names these kinds, and no iStar kind.
  */
 export const FRAMEWORK_KINDS = {
   kaos: {
@@ -50,6 +51,10 @@ export const FRAMEWORK_KINDS = {
       'kaos.EnvironmentAgent',
       'kaos.DomainProperty',
       'kaos.RefinementLinkHub',
+      // the obstacle analysis (istar-ts's `kaosObstacleAnalysis`): its own
+      // namespace, as the root reserves `kaos.`; files write them `kaos.*`
+      'kaosObstacles.Obstacle',
+      'kaosObstacles.ObstacleRefinementLinkHub',
     ],
     links: [
       'kaos.RefinementLink',
@@ -57,6 +62,11 @@ export const FRAMEWORK_KINDS = {
       'kaos.Conflict',
       'kaos.RefinementLinkStart',
       'kaos.RefinementLinkEnd',
+      'kaosObstacles.ObstacleRefinementLink',
+      'kaosObstacles.ObstructionLink',
+      'kaosObstacles.ResolutionLink',
+      'kaosObstacles.ObstacleRefinementLinkStart',
+      'kaosObstacles.ObstacleRefinementLinkEnd',
     ],
   },
   nfr: {
@@ -421,6 +431,12 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * `unknown`). iStar's contribution value is istar-ts's (`make`, `help`, …).
    */
   linkLabels?: Readonly<Record<string, readonly string[]>>;
+  /**
+   * A non-iStar framework's link kinds whose target is a leaf: an element
+   * no refinement refines (goal-controller#181: a KAOS obstacle obstructs a
+   * leaf goal). A link onto a refined element is a Problem.
+   */
+  leafTargets?: readonly string[];
   /**
    * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
    * have properties (`properties`, by kind id), be named by references
@@ -821,6 +837,12 @@ export type DefinitionContext = {
   links?: Readonly<Record<string, DefinitionContextLink>>;
   /** the model's actors, by piStar id, as checks read them (`readActor`, goal-controller#107) */
   actors?: Readonly<Record<string, DefinitionContextActor>>;
+  /**
+   * the elements' keys by their piStar ids, where the dialect has
+   * `reference` values (goal-controller#181): a reference may name an
+   * element by either
+   */
+  iStarIds?: Readonly<Record<string, string>>;
 };
 
 /** A link as a check reads it: its kind, its ends' keys (null: not an element the view lists) and properties. */
@@ -1158,7 +1180,10 @@ const checkFrameworkDialect = (
  * once each.
  */
 const checkFrameworkLinks = (
-  definition: Pick<AnyDialect, 'framework' | 'refinements' | 'linkLabels'>,
+  definition: Pick<
+    AnyDialect,
+    'framework' | 'refinements' | 'linkLabels' | 'leafTargets'
+  >,
   fail: (why: string) => never,
 ) => {
   const framework = definition.framework ?? DEFAULT_FRAMEWORK;
@@ -1173,6 +1198,13 @@ const checkFrameworkLinks = (
     for (const kind of Object.keys(entries))
       if (!linkKinds.includes(kind))
         fail(`${field}: ${kind} is not a link kind of ${framework}`);
+  }
+  if (definition.leafTargets) {
+    if (framework === 'istar-2.0')
+      fail(`leafTargets: iStar's links are its own`);
+    for (const kind of definition.leafTargets)
+      if (!linkKinds.includes(kind))
+        fail(`leafTargets: ${kind} is not a link kind of ${framework}`);
   }
   for (const [kind, relation] of Object.entries(definition.refinements ?? {}))
     if (relation !== 'and' && relation !== 'or')

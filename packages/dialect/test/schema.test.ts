@@ -787,6 +787,21 @@ describe('defineDialect: a framework’s refinements and link labels (#171)', ()
         bad((d) => ({ ...d, linkLabels: { 'nfr.ContributionLink': labels } })),
       ).to.throw(/labels are some, each once/);
   });
+
+  it('names the link kinds whose target is a leaf, of its root (#181)', () => {
+    expect(
+      bad((d) => ({ ...d, leafTargets: ['nfr.ContributionLink'] })),
+    ).not.to.throw();
+    expect(
+      defineDialect.bind(null, {
+        ...(structuredClone(toy) as AnyDialect),
+        leafTargets: ['istar.ContributionLink'],
+      }),
+    ).to.throw(/leafTargets: iStar's links are its own/);
+    expect(bad((d) => ({ ...d, leafTargets: ['nfr.Claim'] }))).to.throw(
+      /leafTargets: nfr\.Claim is not a link kind of nfr/,
+    );
+  });
 });
 
 describe('defineExtension', () => {

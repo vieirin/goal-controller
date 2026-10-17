@@ -22,6 +22,8 @@ import { kaos, nfr } from '../../src';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 import { serializeModel } from '../../../ui/lib/workbench/pistar';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { models } from './support/models';
 
 const DIALECTS = { kaos, nfr } as const;
@@ -37,16 +39,18 @@ const seed = (mode: Mode) => SEEDS[mode][0]!.model;
 const viewOf = (mode: Mode, text: string): GoalView =>
   goalView(read(mode)(text) as never, DIALECTS[mode] as unknown as AnyDialect);
 
-/** A seed whose elements' names start with an id of their kind's prefix (G1, A1, DP1). */
+/** A seed whose elements' names start with an id of their kind's prefix (G1, A1, DP1, O1). */
 const withIds = (mode: Mode, text: string): string => {
   const json = JSON.parse(text);
   const elements = DIALECTS[mode].elements as Record<
     string,
     { prefix: string }
   >;
+  // by kind, not file type (an obstacle's file type is kaos.Obstacle)
+  const model = read(mode)(text);
   const count = new Map<string, number>();
   for (const element of json.orphans) {
-    const prefix = elements[element.type]!.prefix;
+    const prefix = elements[model.elements.get(element.id)!.kind]!.prefix;
     count.set(prefix, (count.get(prefix) ?? 0) + 1);
     element.text = `${prefix}${count.get(prefix)}: ${element.text}`;
   }
@@ -72,6 +76,7 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
       'kaos.Agent': 'A',
       'kaos.EnvironmentAgent': 'A',
       'kaos.DomainProperty': 'DP',
+      'kaosObstacles.Obstacle': 'O',
     });
     expect(
       Object.fromEntries(
@@ -159,6 +164,9 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
       'divide-and-conquer',
       'uncontrollability',
       'unmonitorability',
+      // KAOSTools' names, labelled with the values they stand for
+      'milestone',
+      'case',
     ]);
     // nothing quantitative: those are an engine's (kaosprop's, PR G)
     for (const list of [
@@ -317,7 +325,7 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
         .map((d) => d.message);
     // an iStar prefix: read as an id, of no KAOS kind
     expect(added('T1: A task')).to.deep.equal([
-      "T is no prefix of KAOS's: its elements are G…, A…, DP…",
+      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…",
     ]);
     // another framework's: no id at all in KAOS (a property line, here
     // under the agent above it)
@@ -399,6 +407,165 @@ describe('frameworks: KAOS vocabularies and leg properties in the Notation view 
         message: 'A probability in [0, 1] (0.8, .8 or 80%), not 120%',
       },
     ]);
+  });
+});
+
+/**
+ * KAOSTools' London Ambulance as istar-ts draws it (istar-ts#20's
+ * `fixtures/dsm3/kaos-las.txt`; the model is Cailliau's, MIT): obstacles,
+ * their refinements, an obstruction, a resolution with its anchor, a
+ * milestone and a case hub with leg probabilities, RSR and ESR, all strings.
+ */
+const LAS = readFileSync(join(__dirname, 'fixtures', 'kaos-las.txt'), 'utf8');
+
+describe('frameworks: the KAOS obstacle analysis (#181)', () => {
+  const definition = kaos as unknown as AnyDialect;
+  const lasWith = (change: (json: any) => void) => {
+    const json = JSON.parse(LAS);
+    change(json);
+    return read('kaos')(JSON.stringify(json, null, 2));
+  };
+  const resolution = (json: any) =>
+    json.links.find((l: any) => l.type === 'kaos.ResolutionLink');
+
+  it('reads LAS with the KAOS root and its obstacles, and writes it back byte for byte', () => {
+    const model = read('kaos')(LAS);
+    const kinds: string[] = [...model.elements.values()].map((e) => e.kind);
+    expect(kinds.filter((k) => k === 'kaosObstacles.Obstacle')).to.have.length(
+      6,
+    );
+    expect(serializeModel(model, LAS)).to.equal(LAS);
+  });
+
+  it('lists an obstacle tree of its own: sub-obstacles under the obstacle they refine', () => {
+    const view = viewOf('kaos', LAS);
+    const root = byName(view, 'Mobilized Ambulance Not On Scene in Time');
+    expect(view.roots).to.include(root.key);
+    // its three refinements (an OR) merged into one AND, as a goal's are
+    expect(namesOf(view, root.children)).to.have.members([
+      'Ambulance Stuck In Traffic Jam',
+      'Ambulance On Scene Not In Traffic Jam',
+      'Ambulance Lost',
+      'Ambulance On Scene Not Lost',
+      'Ambulance Broken Down',
+      'Ambulance On Scene Broken Down',
+    ]);
+    expect(
+      namesOf(view, byName(view, 'Ambulance Lost').children),
+    ).to.have.members([
+      'Ambulance Not In Familiar Area',
+      'GPS Not Working',
+      'Ambulance Lost Iff GPS Not Working And Not In Familiar Area',
+    ]);
+  });
+
+  it('writes obstacle lines and the resolution’s link line, and reads them back clean', () => {
+    const text = withIds('kaos', LAS);
+    const view = viewOf('kaos', text);
+    const doc = notationDocument(definition, view).text;
+    expect(doc).to.include('O1: Mobilized Ambulance Not On Scene in Time\n');
+    expect(doc).to.include('  O3: Ambulance Lost\n');
+    // the anchor is a piStar id, as imported: it resolves
+    expect(doc).to.match(
+      /G10: Avoid \[Ambulance Not In Familiar Area\][^]*?\n {2}link O5 \{ResolutionType = mitigation\} \{Anchor = achieve_ambulance_on_scene_when_ambulance_mobilized\}\n/,
+    );
+    expect(
+      documentDiagnostics(
+        definition,
+        doc,
+        contextFromView(definition, view, []),
+      ),
+    ).to.deep.equal([]);
+    expect(notationEdits(definition, doc, view)).to.deep.equal([]);
+  });
+
+  it('keeps the quantities as unknown keys, untouched', () => {
+    const model = read('kaos')(LAS);
+    const root = [...model.elements.values()].find((e) =>
+      e.name.startsWith('Achieve [Ambulance On Scene When Incident'),
+    )!;
+    expect(root.customProperties).to.include({ RSR: '0.95', ESR: '0.9277' });
+    for (const list of [
+      ...Object.values(kaos.properties),
+      ...Object.values(kaos.links),
+    ])
+      for (const p of list)
+        expect(['RSR', 'ESR', 'Probability']).not.to.include(p.key);
+  });
+
+  it('finds no Problem in LAS; an obstruction of a refined goal and a dangling anchor are', () => {
+    expect(frameworkProblems(read('kaos')(LAS), kaos)).to.deep.equal([]);
+    const problems = (model: ReturnType<ReturnType<typeof read>>) =>
+      frameworkProblems(model, kaos).map((p) => [
+        p.severity,
+        p.code,
+        p.message,
+      ]);
+    expect(
+      problems(
+        lasWith((json) => {
+          json.links.find(
+            (l: any) => l.type === 'kaos.ObstructionLink',
+          ).target = 'achieve_ambulance_on_scene_when_ambulance_allocated';
+        }),
+      ),
+    ).to.deep.equal([
+      [
+        'warning',
+        'not-a-leaf',
+        'A obstruction link targets a leaf, and "Achieve [Ambulance On Scene When Ambulance Allocated]" is refined: link its sub-elements instead',
+      ],
+    ]);
+    expect(
+      problems(
+        lasWith((json) => {
+          resolution(json).customProperties.Anchor = 'G99';
+        }),
+      ),
+    ).to.deep.equal([
+      [
+        'error',
+        'dangling-reference',
+        'Anchor: G99 is not an element of this model',
+      ],
+    ]);
+    expect(
+      problems(
+        lasWith((json) => {
+          resolution(json).customProperties.Anchor = 'ads';
+        }),
+      ),
+    ).to.deep.equal([
+      [
+        'error',
+        'dangling-reference',
+        'Anchor: ads is a kaos.Agent, not a kaos.BehavioralGoal or kaos.Softgoal',
+      ],
+    ]);
+  });
+
+  it('types an obstacle’s and a domain property’s keys, and a resolution’s', () => {
+    const view = viewOf('kaos', withIds('kaos', LAS));
+    const doc = notationDocument(definition, view)
+      .text.replace(
+        'O1: Mobilized Ambulance Not On Scene in Time\n',
+        'O1: Mobilized Ambulance Not On Scene in Time\n  Category Hazard\n',
+      )
+      .replace(
+        '  DP1: Ambulance On Scene Not In Traffic Jam\n',
+        '  DP1: Ambulance On Scene Not In Traffic Jam\n    Kind axiom\n',
+      )
+      .replace('{ResolutionType = mitigation}', '{ResolutionType = repair}');
+    const messages = documentDiagnostics(
+      definition,
+      doc,
+      contextFromView(definition, view, []),
+    ).map((d) => d.message);
+    expect(messages).to.have.length(2);
+    expect(messages).to.include('One of invariant, hypothesis, not axiom');
+    expect(
+      messages.find((m) => m.startsWith('One of goal substitution, ')),
+    ).to.match(/, prevention, mitigation, not repair$/);
   });
 });
 

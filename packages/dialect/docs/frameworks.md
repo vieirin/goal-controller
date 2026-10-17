@@ -393,12 +393,20 @@ log are in #182.
   the root's `kaos.RefinementLinkStart`. `extensionHubKinds` and
   `extensionLinkKinds` list them, and the type level knows the hub
   (`ExtensionHubKindOf`).
+- **Every KAOS model is read with KAOS plus its obstacle analysis.**
+  `FRAMEWORK_ROOTS.kaos` is istar-ts 0.14.0's `KAOS_OBSTACLES`
+  (`extendMetamodel(KAOS, kaosObstacleAnalysis)`). Obstacles are
+  KAOS-the-language (istar-ts's layer), not one dialect's, so they are not
+  the `kaos` dialect's `extension`: every KAOS dialect, engine and importer
+  reads them. DSM3's files read as before, and an empty KAOS model is
+  written as before, byte for byte.
 - **`FRAMEWORK_KINDS` stays data.** The dialect package keeps no
-  dependencies (PR A), and the ui test pins the table to the roots. The
-  obstacle-analysis kinds join it when istar-ts#20 ships. Agreed with red,
-  as a proposal only: goal-controller reads every KAOS model with KAOS plus
-  the obstacle analysis (`FRAMEWORK_ROOTS.kaos = KAOS_OBSTACLES`), since
-  obstacles are KAOS-the-language, not one dialect's.
+  dependencies (PR A). The table gains the obstacle analysis's kinds
+  (`kaosObstacles.Obstacle`, its refinement's hub, legs and end, obstruction
+  and resolution), and the ui test pins it to `KAOS_OBSTACLES`. The kinds
+  are `kaosObstacles.*` because core reserves the root's `kaos.` prefix.
+  Files write them as `kaos.*` (`pistarType`), so `detectFramework` still
+  sees KAOS.
 - **Three generic value types:**
   - `reference`: one element id, of the given `kinds`;
   - `formula`: text with a language tag, which nothing checks yet;
@@ -440,14 +448,54 @@ log are in #182.
   (`Tactic`) stay in the inspector. If a sub-goal is a leg of two hubs of
   the same goal (two alternatives), the line is ambiguous, and the link
   line's diagnostics say so as they do for two kinds.
-- **Not done, waiting for istar-ts#20** (no builder for now):
-  - `kaos.Obstacle` with prefix `O`;
-  - obstruction, resolution and obstacle refinement in `FRAMEWORK_KINDS`
-    and `FRAMEWORK_ROOTS.kaos`;
-  - obstacle `Category` (TSE'00's five);
-  - `ResolutionType` (TSE'00's strategies, with KAOSTools' `prevention`
-    and `mitigation` mapped onto them);
-  - `Anchor` as a `reference` to goals;
-  - `DomainProperty.Kind` (invariant, hypothesis);
-  - obstacle lines in the goal language;
-  - the obstruction Problems.
+- **Obstacles in the `kaos` dialect.**
+  - `kaosObstacles.Obstacle` has prefix `O` (NFR's operationalizations take
+    `O` too, in another framework).
+  - Its keys are istar-ts's: `Description`, `FormalSpec` (an `ltl`
+    formula) and `Category`.
+  - An obstacle refinement is an AND, as a goal refinement is, so
+    sub-obstacles are listed under the obstacle they refine, and several
+    hubs on one obstacle (an OR) merge into one AND in the text (PR D's
+    rule). Its sources may be domain properties, as in LAS.
+  - An obstruction is not a refinement: an obstacle tree is a tree of its
+    own, a root in the text view.
+  - A resolution's `ResolutionType` and `Anchor` are a `link` line under
+    the resolving goal, naming the obstacle:
+    `link O5 {ResolutionType = mitigation} {Anchor = …}`.
+- **More vocabularies, one source each:**
+
+  | Key | On | Values | Source |
+  | --- | --- | --- | --- |
+  | `Category` | obstacles | Non-satisfaction, Non-information, Inaccuracy, Hazard, Threat | TSE'00: one per goal category it obstructs |
+  | `ResolutionType` | resolutions | goal substitution, agent substitution, obstacle prevention, goal deidealization, domain transformation, obstacle reduction, goal restoration, obstacle mitigation, do-nothing | TSE'00 §5's nine resolution strategies |
+  | `Kind` | domain properties | invariant, hypothesis | van Lamsweerde 2009: domain invariants and hypotheses (KAOSTools: `domainproperty`, `domainhypothesis`) |
+
+- **KAOSTools' names are values too, labelled with what they stand for.**
+  `Tactic`: `milestone` and `case`; `ResolutionType`: `prevention` and
+  `mitigation`. istar-ts's LAS fixture writes them as KAOSTools does
+  (`Tactic = case`, `ResolutionType = mitigation`). Accepting them keeps
+  such files clean as written, with nothing rewritten. An engine reads
+  each alias as its value (kaosprop: `case` is case-driven).
+- **`Anchor` is a `reference` to a goal** (behavioural or soft), as
+  istar-ts suggests. An imported model's anchor is a piStar id (LAS:
+  `achieve_ambulance_on_scene_when_ambulance_mobilized`), so a reference
+  resolves by its key, by the id its text gives it (`G1`), or by its piStar
+  id. The context carries `iStarIds` where a dialect has references.
+- **Obstruction Problems** (`frameworkProblems`):
+  - Istar-ts's link rules already make an obstruction run from an obstacle
+    to a goal or a domain property, and a resolution from a goal to an
+    obstacle.
+  - An obstruction of a *refined* goal is a warning (`not-a-leaf`):
+    obstacles obstruct leaf goals. This is declared, not coded for KAOS: a
+    dialect's `leafTargets` names the link kinds whose target must be a
+    leaf (`kaosObstacles.ObstructionLink`).
+  - It is a warning, not an error, since KAOSTools lets any goal be
+    obstructed.
+  - A `reference` value naming no element, or one of another kind, is an
+    error (`dangling-reference`) on the link or element that holds it.
+  - LAS has none.
+- **istar-ts 0.14.0.** `@istar-ts/core`, `react` and `dsm3-kaos` are bumped
+  to `^0.14.0` (dependencies, not our versions). `@istar-ts/dsm3-nfr`
+  0.14.0 was logged as published by the release run but isn't on the
+  registry. Its 0.13.7 pins core `<0.14`, which would install a second
+  core, so the bump waits for it rather than using an override (#182).

@@ -10,21 +10,36 @@
  * (goal-controller#181): a value outside it is a Problem, written back as it
  * was. Decisions in packages/dialect/docs/frameworks.md.
  *
- * In the Notation view goals are `G`, agents `A` and domain properties `DP`;
- * there is no bracket notation (a KAOS goal's name keeps its brackets,
- * `Achieve [Manual Backup]`). A refinement, drawn as a hub joining several
- * sub-goals, is an AND: the sub-goals are listed under the goal they refine.
+ * Obstacle analysis (van Lamsweerde and Letier, TSE'00) is istar-ts's
+ * `kaosObstacleAnalysis` on the KAOS root, which the workbench reads every
+ * KAOS model with: obstacles, their refinements, obstructions and
+ * resolutions (goal-controller#181).
+ *
+ * In the Notation view goals are `G`, agents `A`, domain properties `DP` and
+ * obstacles `O`; there is no bracket notation (a KAOS goal's name keeps its
+ * brackets, `Achieve [Manual Backup]`). A refinement, drawn as a hub joining
+ * several sub-goals (or sub-obstacles), is an AND: they are listed under the
+ * goal (or obstacle) they refine. An obstacle obstructs a leaf goal or a
+ * domain property, which is not a refinement: an obstacle tree is a tree of
+ * its own.
  */
 import {
   KAOS_FILL,
   KAOS_REFINEMENT_HUB,
   behavioralGoalProperties,
   conflictProperties,
+  domainPropertyProperties,
+  obstacleProperties,
   refinementProperties,
+  resolutionProperties,
   type KaosConflictProperties,
   type KaosDeclaredElementKind,
+  type KaosDomainPropertyProperties,
   type KaosGoalProperties,
+  type KaosObstacleDeclaredElementKind,
+  type KaosObstacleProperties,
   type KaosRefinementProperties,
+  type KaosResolutionProperties,
 } from '@istar-ts/dsm3-kaos/metamodel';
 import {
   defineDialect,
@@ -32,6 +47,7 @@ import {
   links,
   property,
   type ElementDefinition,
+  type EnumOptionInput,
   type PropertyDefinition,
 } from '@goal-controller/dialect';
 
@@ -58,7 +74,9 @@ const DESCRIPTION = property.text('Description', {
 
 /**
  * The vocabularies, one source each (goal-controller#181; the log in
- * frameworks.md, "KAOS stress test"). `''` is "not set".
+ * frameworks.md, "KAOS stress test"). `''` is "not set". KAOSTools' own
+ * names for a value (`milestone`, `mitigation`) are values too, labelled
+ * with the one they stand for, so its models lint clean as written.
  */
 export const KAOS_VOCABULARIES = {
   /**
@@ -91,15 +109,54 @@ export const KAOS_VOCABULARIES = {
     'divide-and-conquer',
     'uncontrollability',
     'unmonitorability',
+    ['milestone', 'milestone (KAOSTools: milestone-driven)'],
+    ['case', 'case (KAOSTools: case-driven)'],
   ],
-} as const;
+  /**
+   * a domain property's kind: van Lamsweerde 2009, ch. 1 and 8, domain
+   * invariants (true whatever the system) and domain hypotheses (assumed);
+   * KAOSTools tells them apart by declaration
+   */
+  Kind: ['invariant', 'hypothesis'],
+  /**
+   * an obstacle's category: van Lamsweerde and Letier, TSE'00, one per goal
+   * category it obstructs (Satisfaction, Information, Accuracy, Safety,
+   * Security)
+   */
+  ObstacleCategory: [
+    'Non-satisfaction',
+    'Non-information',
+    'Inaccuracy',
+    'Hazard',
+    'Threat',
+  ],
+  /**
+   * a resolution's strategy: van Lamsweerde and Letier, TSE'00, §5's
+   * resolution strategies; KAOSTools' `prevention` and `mitigation` are
+   * obstacle prevention and obstacle mitigation
+   */
+  ResolutionType: [
+    'goal substitution',
+    'agent substitution',
+    'obstacle prevention',
+    'goal deidealization',
+    'domain transformation',
+    'obstacle reduction',
+    'goal restoration',
+    'obstacle mitigation',
+    'do-nothing',
+    ['prevention', 'prevention (KAOSTools: obstacle prevention)'],
+    ['mitigation', 'mitigation (KAOSTools: obstacle mitigation)'],
+  ],
+} as const satisfies Record<string, readonly EnumOptionInput[]>;
 
 /** A property whose values are a vocabulary's (`''`: not set). */
 const vocabulary = (
-  key: keyof typeof KAOS_VOCABULARIES,
+  vocabularyKey: keyof typeof KAOS_VOCABULARIES,
   help: string,
+  key: string = vocabularyKey,
 ): PropertyDefinition =>
-  property.enum(key, ['', ...KAOS_VOCABULARIES[key]], { help });
+  property.enum(key, ['', ...KAOS_VOCABULARIES[vocabularyKey]], { help });
 
 /**
  * KAOS's formal specifications, in real-time linear temporal logic (the
@@ -163,14 +220,66 @@ const CONFLICT = schemaProperties<KaosConflictProperties>(
   },
 );
 
-/** Every KAOS node kind, with its prefix: goals G, agents A, domain properties DP. */
+/** a domain property's: whether it is an invariant or a hypothesis, then piStar's description */
+const DOMAIN_PROPERTY = [
+  ...schemaProperties<KaosDomainPropertyProperties>(
+    domainPropertyProperties.shape,
+    {
+      Kind: vocabulary(
+        'Kind',
+        'whether it always holds (an invariant) or is assumed (a hypothesis)',
+      ),
+    },
+  ),
+  DESCRIPTION,
+];
+
+/** an obstacle's (TSE'00), in istar-ts's order */
+const OBSTACLE = schemaProperties<KaosObstacleProperties>(
+  obstacleProperties.shape,
+  {
+    Description: DESCRIPTION,
+    FormalSpec: formalSpec(
+      'its formal definition, in real-time linear temporal logic',
+    ),
+    Category: vocabulary(
+      'ObstacleCategory',
+      'its category: what kind of goal it obstructs (non-satisfaction, non-information, inaccuracy, hazard, threat)',
+      'Category',
+    ),
+  },
+);
+
+/** a resolution's: its strategy, and the goal a mitigation restores */
+const RESOLUTION = schemaProperties<KaosResolutionProperties>(
+  resolutionProperties.shape,
+  {
+    ResolutionType: vocabulary(
+      'ResolutionType',
+      'how the goal resolves the obstacle (TSE’00’s strategies)',
+    ),
+    Anchor: property.reference(
+      'Anchor',
+      ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+      {
+        help: 'the goal the resolution restores or weakens, by its id (a mitigation’s anchor)',
+      },
+    ),
+  },
+);
+
+/** Every KAOS node kind, with its prefix: goals G, agents A, domain properties DP, obstacles O. */
 const ELEMENTS = {
   'kaos.BehavioralGoal': element('G', { fill: FILL }),
   'kaos.Softgoal': element('G', { fill: FILL }),
   'kaos.Agent': element('A', { fill: FILL }),
   'kaos.EnvironmentAgent': element('A', { fill: FILL }),
   'kaos.DomainProperty': element('DP', { fill: FILL }),
-} as const satisfies Record<KaosDeclaredElementKind, ElementDefinition>;
+  'kaosObstacles.Obstacle': element('O', { fill: FILL }),
+} as const satisfies Record<
+  KaosDeclaredElementKind | KaosObstacleDeclaredElementKind,
+  ElementDefinition
+>;
 
 export const kaos = defineDialect({
   id: 'kaos',
@@ -183,13 +292,22 @@ export const kaos = defineDialect({
     'kaos.Softgoal': GOAL,
     'kaos.Agent': [DESCRIPTION],
     'kaos.EnvironmentAgent': [DESCRIPTION],
-    'kaos.DomainProperty': [DESCRIPTION],
+    'kaos.DomainProperty': DOMAIN_PROPERTY,
+    'kaosObstacles.Obstacle': OBSTACLE,
     [KAOS_REFINEMENT_HUB]: REFINEMENT,
   },
-  propertyLineOrder: GOAL.map((p) => p.key),
+  // a goal's, then a domain property's Kind (an obstacle's keys are a goal's)
+  propertyLineOrder: [...GOAL.map((p) => p.key), 'Kind'],
   indent: '  ',
-  refinements: { 'kaos.RefinementLink': 'and' },
-  links: links({ 'kaos.Conflict': CONFLICT }),
+  refinements: {
+    'kaos.RefinementLink': 'and',
+    'kaosObstacles.ObstacleRefinementLink': 'and',
+  },
+  leafTargets: ['kaosObstacles.ObstructionLink'],
+  links: links({
+    'kaos.Conflict': CONFLICT,
+    'kaosObstacles.ResolutionLink': RESOLUTION,
+  }),
   model: { actors: 'many', treesPerActor: 'many' },
   problems: {
     notAChild: { severity: 'error', message: 'Not a child of this element' },

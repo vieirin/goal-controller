@@ -402,8 +402,11 @@ export const valueProblem = (
       const id = text.trim();
       if (!/^[A-Za-z0-9_.:-]+$/.test(id)) return `An element's id, not ${id}`;
       if (!context) return null;
+      // its key, the id its text gives it, or its piStar id
       const kind =
-        kindOf(context, id) ?? kindOf(context, context.named?.[id] ?? '');
+        kindOf(context, id) ??
+        kindOf(context, context.named?.[id] ?? '') ??
+        kindOf(context, context.iStarIds?.[id] ?? '');
       if (!kind) return `${id} is not an element of this model`;
       return (value.kinds as readonly string[]).includes(kind)
         ? null

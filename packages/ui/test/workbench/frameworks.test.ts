@@ -13,9 +13,12 @@ import {
   toPistar,
 } from '@istar-ts/core';
 import {
-  KAOS,
   KAOS_ELEMENT_KINDS,
   KAOS_LINK_KINDS,
+  KAOS_OBSTACLE_ELEMENT_KINDS,
+  KAOS_OBSTACLE_LINK_KINDS,
+  KAOS_OBSTACLE_REFINEMENT_HUB,
+  KAOS_OBSTACLES,
   KAOS_REFINEMENT_HUB,
 } from '@istar-ts/dsm3-kaos/metamodel';
 import {
@@ -90,9 +93,9 @@ describe('frameworks', () => {
     expect(FRAMEWORK_ROOTS['istar-2.0']).toBe(ISTAR_2_0);
   });
 
-  it("pins the dialect's kind table to the KAOS and NFR roots", () => {
+  it("pins the dialect's kind table to the KAOS (with its obstacle analysis, #181) and NFR roots", () => {
     for (const [framework, root] of [
-      ['kaos', KAOS],
+      ['kaos', KAOS_OBSTACLES],
       ['nfr', NFR],
     ] as const) {
       expect(sorted(FRAMEWORK_KINDS[framework].elements), framework).toEqual(
@@ -105,14 +108,19 @@ describe('frameworks', () => {
     expect(FRAMEWORK_KINDS.kaos.elements).toEqual([
       ...KAOS_ELEMENT_KINDS,
       KAOS_REFINEMENT_HUB,
+      ...KAOS_OBSTACLE_ELEMENT_KINDS,
+      KAOS_OBSTACLE_REFINEMENT_HUB,
     ]);
     expect(FRAMEWORK_KINDS.kaos.links.slice(0, 3)).toEqual(KAOS_LINK_KINDS);
+    expect(FRAMEWORK_KINDS.kaos.links.slice(5, 8)).toEqual(
+      KAOS_OBSTACLE_LINK_KINDS,
+    );
     expect(FRAMEWORK_KINDS.nfr.elements).toEqual(NFR_ELEMENT_KINDS);
     expect(FRAMEWORK_KINDS.nfr.links).toEqual(NFR_LINK_KINDS);
   });
 
   it("hosts a dialect on its framework's root", () => {
-    expect(hostFor('kaos')).toBe(KAOS);
+    expect(hostFor('kaos')).toBe(KAOS_OBSTACLES);
     const host = hostFor('istar-2.0', istar4RationalAgents);
     expect(host.framework).toBe('istar-2.0');
     expect(host.elements.has('istar.Goal')).toBe(true);
@@ -185,8 +193,8 @@ describe('frameworks', () => {
       expect(model.elements.get('g2')?.kind).toBe('kaos.BehavioralGoal');
       expect(model.elements.get('h')?.kind).toBe(KAOS_REFINEMENT_HUB);
     }
-    expect(metamodelOfMode(null, recorded)).toBe(KAOS);
-    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(KAOS);
+    expect(metamodelOfMode(null, recorded)).toBe(KAOS_OBSTACLES);
+    expect(metamodelOfMode(null, KAOS_MODEL)).toBe(KAOS_OBSTACLES);
     expect(metamodelOfMode(null, KAOS_MODEL, 'nfr')).toBe(NFR);
     expect(metamodelOfMode(null, EMPTY_PISTAR_MODEL)).toBe(ISTAR_2_0);
   });

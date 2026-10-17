@@ -14,7 +14,7 @@ import {
   type AnyMetamodel,
   type IstarModel,
 } from '@istar-ts/core';
-import { KAOS } from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import {
   DEFAULT_FRAMEWORK,
@@ -25,10 +25,14 @@ import {
 } from '@goal-controller/dialect';
 import { recordedFramework, withModelSettings } from '../project';
 
-/** The root metamodel of each framework. */
+/**
+ * The root metamodel of each framework, as the workbench reads it: KAOS with
+ * its obstacle analysis (istar-ts's `KAOS_OBSTACLES`, goal-controller#181),
+ * which reads DSM3's files as KAOS does.
+ */
 export const FRAMEWORK_ROOTS: Readonly<Record<Framework, AnyMetamodel>> = {
   'istar-2.0': ISTAR_2_0,
-  kaos: KAOS,
+  kaos: KAOS_OBSTACLES,
   nfr: NFR,
 };
 

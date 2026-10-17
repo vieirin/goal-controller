@@ -15,6 +15,7 @@ import {
   type DefinitionContext,
   type DocumentNode,
   type DocumentTree,
+  type PropertyDefinition,
   linkLinesOf,
   actorPropertiesOf,
   extensionKindsRead,
@@ -579,5 +580,26 @@ export const contextFromView = (
           named: writtenIds(tree),
         }),
     ...(names && { names }),
+    // a dialect whose values reference elements (goal-controller#181): a
+    // reference may name one by its piStar id, as an imported model does
+    ...(hasReferences(definition) && {
+      iStarIds: Object.fromEntries(
+        [...tree.nodes].map(([key, node]) => [node.iStarId, key]),
+      ),
+    }),
   };
 };
+
+/** Whether a dialect has a `reference` value: an element's, a link's or an actor's. */
+const hasReferences = (definition: Document): boolean =>
+  [
+    ...Object.values(definition.properties ?? {}),
+    ...Object.values(definition.links ?? {}),
+    definition.actors ?? [],
+  ].some((list) =>
+    (list as readonly PropertyDefinition[]).some(({ value }) =>
+      ('when' in value ? [value.matching, value.otherwise] : [value]).some(
+        (config) => config.type === 'reference',
+      ),
+    ),
+  );
