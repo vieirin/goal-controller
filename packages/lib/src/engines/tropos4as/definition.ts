@@ -27,7 +27,7 @@ import {
 import type { Tropos4asCheckName } from './checks';
 import { tropos4asExtension } from './extension';
 import { taom4eNativeFile } from './taom4e/native';
-import { GOAL_TYPES, TROPOS4AS_KINDS } from './vocabulary';
+import { TROPOS4AS_KINDS, type GoalType } from './vocabulary';
 
 const {
   assertion,
@@ -95,11 +95,14 @@ export const tropos4as = defineDialect({
   },
   properties: {
     goal: [
+      // GOAL_TYPES, achieve the default (`''`), written as a tuple so that
+      // its reading is typed by its options (goal-controller#187)
       choice(
         'type',
-        GOAL_TYPES.map((type) =>
-          type === 'achieve' ? (['', 'achieve (default)'] as const) : type,
-        ),
+        [['', 'achieve (default)'], 'maintain', 'perform'] satisfies [
+          readonly ['', string],
+          ...Exclude<GoalType, 'achieve'>[],
+        ],
         {
           help: 'achieve: reach a state (its achievement condition); maintain: keep one, acting when it is violated; perform: pursue its children, no conditions (AAMAS 2009 §3)',
         },

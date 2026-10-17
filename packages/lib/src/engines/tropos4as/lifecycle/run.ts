@@ -24,7 +24,7 @@
 import type { Tropos4asElement, Tropos4asModel } from '../model';
 import { goalTypeOf, onFailureOf } from '../model';
 import type { Outcome, Scenario } from '../scenarios';
-import type { GoalState, RuleName } from '../vocabulary';
+import type { CONDITION_KEYS, GoalState, RuleName } from '../vocabulary';
 import {
   mayAdopt,
   nextTransition,
@@ -33,9 +33,9 @@ import {
   type Transition,
 } from './architecture';
 import {
+  conditionOf,
   failedOf,
   FALSE,
-  readCondition,
   successOf,
   type Condition,
 } from './conditions';
@@ -81,16 +81,15 @@ export type LifecycleRun = {
 /** How many rules a step may fire before the run is said not to settle. */
 const MAX_TRANSITIONS = 10_000;
 
+/** a goal's condition properties, and an error's */
+type ConditionKey = (typeof CONDITION_KEYS)[number] | 'condition';
+
 const condition = (
   goal: Tropos4asElement,
-  key: string,
+  key: ConditionKey,
   goals: ReadonlySet<string>,
-): Condition | null => {
-  const read = readCondition(goal.properties[key], goals);
-  if (read && 'error' in read)
-    throw new Error(`${goal.label}'s ${key}: ${read.error}`);
-  return read;
-};
+): Condition | null =>
+  conditionOf(goal.values[key], goal.properties[key], goals);
 
 /** A goal's instance of §4.3, from its type and conditions. */
 export const instantiationOf = (

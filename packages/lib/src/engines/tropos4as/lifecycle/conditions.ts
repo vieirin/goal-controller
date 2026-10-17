@@ -7,7 +7,8 @@
  * adds (§4.2.2).
  */
 import {
-  readAssertion,
+  parseValue,
+  type Assertion,
   type AssertionReading,
   type ExpressionTree,
 } from '@goal-controller/goal-language';
@@ -174,17 +175,30 @@ const evaluate = (
 };
 
 /**
- * A condition's text read; null when it is empty, an error when the goal
- * language can't read it. `goals` are the ids that read a goal's success.
+ * A condition as a property holds it: its assertion, as the dialect reads
+ * it (goal-controller#187; none when unset, blank or written with an
+ * error, which the dialect's checks report), shown as written (`text`,
+ * trimmed). `goals` are the ids that read a goal's success.
  */
+export const conditionOf = (
+  tree: Assertion | null | undefined,
+  text: string | undefined,
+  goals: ReadonlySet<string> = new Set(),
+): Condition | null => {
+  if (!tree) return null;
+  const reading = tree.asReading();
+  if (reading.kind === 'bool') return reading.value ? TRUE : FALSE;
+  return {
+    text: text?.trim() || tree.text(),
+    holds: (beliefs) => evaluate(reading, beliefs, goals),
+  };
+};
+
+/** A condition written outside a property (a test's): its text read as an assertion; null when it is empty or isn't one. */
 export const readCondition = (
   text: string | undefined,
   goals: ReadonlySet<string> = new Set(),
-): Condition | null | { error: string } => {
-  const written = text?.trim();
-  if (!written) return null;
-  const tree = readAssertion(written);
-  if (!tree) return { error: `"${written}" is no condition` };
-  if (tree.kind === 'bool') return tree.value ? TRUE : FALSE;
-  return { text: written, holds: (beliefs) => evaluate(tree, beliefs, goals) };
+): Condition | null => {
+  const read = parseValue('assertion', text ?? '');
+  return read.errors.length ? null : conditionOf(read.value, text, goals);
 };

@@ -113,8 +113,13 @@ describe('Tropos4AS: the definition', () => {
       null,
     );
     assert.match(
-      check({ attributes: 'clean:boolean, level' }, context) ?? '',
-      /not clean:boolean, level:/,
+      check({ attributes: 'clean:boolean, level:numbr' }, context) ?? '',
+      /not clean:boolean, level:numbr/,
+    );
+    // a pair without its type is no pairList: the value check's (#187)
+    assert.strictEqual(
+      check({ attributes: 'clean:boolean, level' }, context),
+      null,
     );
   });
 });
@@ -136,7 +141,9 @@ describe('Tropos4AS: the model as a whole', () => {
     );
   });
 
-  it('rejects a perform-goal with a condition, an unreadable one, a maintain-goal without m, an error without one', () => {
+  it('rejects a perform-goal with a condition, a maintain-goal without m, an error without one', () => {
+    // an unreadable condition is unset: the value check's (#187), so Q is
+    // none of these
     const found = problems([
       ['P', 'goal', { type: 'perform', failure: 'x' }],
       ['Q', 'goal', { achievement: 'a <' }],
@@ -145,7 +152,6 @@ describe('Tropos4AS: the model as a whole', () => {
     ]);
     const expected = [
       /^error: P: A perform-goal evaluates no condition/,
-      /^error: Q's achievement: "a <" is no condition$/,
       /^error: M is a maintain-goal without its maintain condition/,
       /^error: E has no condition/,
     ];
