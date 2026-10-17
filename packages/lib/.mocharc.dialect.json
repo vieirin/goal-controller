@@ -1,9 +1,5 @@
 {
-  "require": [
-    "ts-node/register",
-    "./test/support/langium.cjs",
-    "./test/support/istarEsm.cjs"
-  ],
+  "require": ["ts-node/register", "./test/support/langium.cjs"],
   "extensions": ["ts"],
   "spec": "test/dialect/**/*.test.ts",
   "recursive": true,

@@ -111,8 +111,8 @@ importers:
         specifier: workspace:*
         version: link:../goal-language
       '@istar-ts/core':
-        specifier: ^0.13.1
-        version: 0.13.1
+        specifier: ^0.13.2
+        version: 0.13.2
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -153,6 +153,12 @@ importers:
       '@goal-controller/goal-tree':
         specifier: workspace:*
         version: link:../goal-tree
+      '@istar-ts/dsm3-kaos':
+        specifier: ^0.13.2
+        version: 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr':
+        specifier: ^0.13.2
+        version: 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@rgrove/parse-xml':
         specifier: 4.2.3
         version: 4.2.3
@@ -182,8 +188,8 @@ importers:
         version: 4.6.7
     devDependencies:
       '@istar-ts/core':
-        specifier: ^0.13.1
-        version: 0.13.1
+        specifier: ^0.13.2
+        version: 0.13.2
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -308,17 +314,17 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/core':
-        specifier: ^0.13.1
-        version: 0.13.1
+        specifier: ^0.13.2
+        version: 0.13.2
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.13.1
-        version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.13.2
+        version: 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.13.1
-        version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.13.2
+        version: 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/react':
-        specifier: ^0.13.1
-        version: 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.13.2
+        version: 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -468,7 +474,7 @@ packages:
       '@babel/parser': 7.28.6
       '@babel/template': 7.28.6
       '@babel/types': 7.28.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -1146,7 +1152,7 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       '@eslint/object-schema': 2.1.7
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -1171,7 +1177,7 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -1188,7 +1194,7 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -1247,7 +1253,7 @@ packages:
     deprecated: Use @eslint/config-array instead
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -1730,17 +1736,17 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/core@0.13.1:
-    resolution: {integrity: sha512-qVEWr7ewvOo3VmiekEx0p+DjpROtDDLecIUqRydYp5hVhOB7chtGBc1T0rpIM1dSXmCo4L1fBFfIogMIRMaURg==}
+  /@istar-ts/core@0.13.2:
+    resolution: {integrity: sha512-0U/42koP+amqX3PfPGDvUjCgfLxwTfif9a6tAnKFyLtJdCTM2QYP+P5gcpc/UmwbwvOezs+K330EMNbtAo7AEw==}
 
-  /@istar-ts/dsm3-kaos@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-YWRJbaS6n4YSnUe1jb3L1kCA5bnKV6cDeU7/X5MgtGDggRH4SwU0heETcwXORP2wTqnSeuIZnORkjbasqnXe3g==}
+  /@istar-ts/dsm3-kaos@0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-/e9U1bvHrHMEzj3oW0hG0BA5FZLvlJOAmXak8guYvs087j9+55/7/S5k6os7uycVdxZNDv8osoUty4X9WTwG+w==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.1
-      '@istar-ts/react': 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.13.2
+      '@istar-ts/react': 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -1749,14 +1755,14 @@ packages:
       - immer
     dev: false
 
-  /@istar-ts/dsm3-nfr@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-pe8Lx/064zkfxGTFdFlihsY6vKh+fm/S8nqZTWCWwaztwlPi/UMVeg4oBi4pFHNUR3ApyN9Oa/4lJF4sKXspBQ==}
+  /@istar-ts/dsm3-nfr@0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-RJhMnE5oSLbHPl4T3KW5ati0TxQCh9ybRos/tmAjSJ+H7eCiKICCId0nT0c4H6KpHUpeWdgCOhiG/aVfbhcgAQ==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.1
-      '@istar-ts/react': 0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.13.2
+      '@istar-ts/react': 0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -1765,13 +1771,13 @@ packages:
       - immer
     dev: false
 
-  /@istar-ts/react@0.13.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-kdVehAP21v65ZF9LVzwIiOAYSRAKIQRA9wJMTf0tuq4vlYCa2ii5zeh6ts84fhnO5VwbjVJx1BtAyg8/A5FH5g==}
+  /@istar-ts/react@0.13.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-l8viYquqmIxifq2/IhJVPsylAnQPiWTv4yeXFuhN3/6YM+FylqNzb9GI0IK9mTa4yFQPF85gb4FpEORy/+I6gg==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/core': 0.13.1
+      '@istar-ts/core': 0.13.2
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -2862,7 +2868,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/type-utils': 5.62.0(eslint@8.57.1)(typescript@5.9.3)
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.9.3)
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.3.2
@@ -2890,7 +2896,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/type-utils': 5.62.0(eslint@9.39.2)(typescript@5.9.3)
       '@typescript-eslint/utils': 5.62.0(eslint@9.39.2)(typescript@5.9.3)
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 9.39.2
       graphemer: 1.4.0
       ignore: 5.3.2
@@ -2915,7 +2921,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.9.3)
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 8.57.1
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -2933,7 +2939,7 @@ packages:
       '@typescript-eslint/types': 8.53.1
       '@typescript-eslint/typescript-estree': 8.53.1(typescript@5.9.3)
       '@typescript-eslint/visitor-keys': 8.53.1
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 9.39.2
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -2948,7 +2954,7 @@ packages:
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.53.1(typescript@5.9.3)
       '@typescript-eslint/types': 8.53.1
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -2991,7 +2997,7 @@ packages:
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.9.3)
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.9.3)
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 8.57.1
       tsutils: 3.21.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -3011,7 +3017,7 @@ packages:
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.9.3)
       '@typescript-eslint/utils': 5.62.0(eslint@9.39.2)(typescript@5.9.3)
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 9.39.2
       tsutils: 3.21.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -3040,7 +3046,7 @@ packages:
     dependencies:
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/visitor-keys': 5.62.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.3
@@ -3060,7 +3066,7 @@ packages:
       '@typescript-eslint/tsconfig-utils': 8.53.1(typescript@5.9.3)
       '@typescript-eslint/types': 8.53.1
       '@typescript-eslint/visitor-keys': 8.53.1
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       minimatch: 9.0.5
       semver: 7.7.3
       tinyglobby: 0.2.15
@@ -4548,18 +4554,6 @@ packages:
       ms: 2.1.2
     dev: true
 
-  /debug@4.4.3:
-    resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.3
-    dev: true
-
   /debug@4.4.3(supports-color@5.5.0):
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
@@ -5061,7 +5055,7 @@ packages:
         optional: true
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       eslint: 9.39.2
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.53.1)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2)
       get-tsconfig: 4.13.0
@@ -5389,7 +5383,7 @@ packages:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -5445,7 +5439,7 @@ packages:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -6010,7 +6004,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -6020,7 +6014,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -8698,7 +8692,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.3.7(@types/node@22.19.7)
@@ -8806,7 +8800,7 @@ packages:
       '@vitest/spy': 3.2.7
       '@vitest/utils': 3.2.7
       chai: 5.3.3
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@5.5.0)
       expect-type: 1.4.0
       jsdom: 26.1.0
       magic-string: 0.30.21

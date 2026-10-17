@@ -15,8 +15,12 @@ import {
   KAOS_ELEMENT_KINDS,
   KAOS_LINK_KINDS,
   KAOS_REFINEMENT_HUB,
-} from '@istar-ts/dsm3-kaos';
-import { NFR, NFR_ELEMENT_KINDS, NFR_LINK_KINDS } from '@istar-ts/dsm3-nfr';
+} from '@istar-ts/dsm3-kaos/metamodel';
+import {
+  NFR,
+  NFR_ELEMENT_KINDS,
+  NFR_LINK_KINDS,
+} from '@istar-ts/dsm3-nfr/metamodel';
 import { FRAMEWORK_KINDS, FRAMEWORKS } from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
 import { recordedFramework, withModelSettings } from '@/lib/project';

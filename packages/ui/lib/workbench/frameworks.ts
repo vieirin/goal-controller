@@ -14,8 +14,8 @@ import {
   type AnyMetamodel,
   type IstarModel,
 } from '@istar-ts/core';
-import { KAOS } from '@istar-ts/dsm3-kaos';
-import { NFR } from '@istar-ts/dsm3-nfr';
+import { KAOS } from '@istar-ts/dsm3-kaos/metamodel';
+import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import {
   DEFAULT_FRAMEWORK,
   FRAMEWORKS,

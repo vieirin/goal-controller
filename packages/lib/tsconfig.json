@@ -18,9 +18,17 @@
     "alwaysStrict": true,
     // Langium is ESM-only and has no top-level types, which CommonJS's
     // resolution needs: its types are here (at run time, build.mjs bundles
-    // it, and the tests require test/support/langium.cjs's bundle)
+    // it, and the tests require test/support/langium.cjs's bundle). The
+    // istar-ts framework packages' /metamodel subpaths are in their exports
+    // only, which CommonJS's resolution doesn't read: their types are here
     "paths": {
-      "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"]
+      "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"],
+      "@istar-ts/dsm3-kaos/metamodel": [
+        "./node_modules/@istar-ts/dsm3-kaos/dist/metamodel.d.cts"
+      ],
+      "@istar-ts/dsm3-nfr/metamodel": [
+        "./node_modules/@istar-ts/dsm3-nfr/dist/metamodel.d.cts"
+      ]
     }
   },
   "include": ["src/**/*"],
