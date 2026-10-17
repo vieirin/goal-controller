@@ -8,6 +8,7 @@ import {
   actors,
   defineDialect,
   element,
+  enumOptionOf,
   extensionKind,
   extensionLink,
   links,
@@ -75,6 +76,25 @@ describe('property', () => {
       },
       help: 'h',
     }));
+
+  it('puts caseInsensitive in an enum value, and matches its options in any case (#227)', () => {
+    const flag = property.enum('flag', ['', 'true', ['false', 'no']], {
+      open: true,
+      caseInsensitive: true,
+      help: 'h',
+    });
+    expect(flag.value).to.deep.include({ open: true, caseInsensitive: true });
+    same<Same<(typeof flag)['value']['caseInsensitive'], true>>();
+    expect(enumOptionOf(flag.value, ' FALSE ')).to.equal('false');
+    expect(enumOptionOf(flag.value, 'True')).to.equal('true');
+    expect(enumOptionOf(flag.value, 'maybe')).to.equal(undefined);
+    const exact = property.enum('type', ['achieve'], { help: 'h' });
+    expect(exact.value).not.to.have.property('caseInsensitive');
+    expect(enumOptionOf(exact.value, ' achieve ')).to.equal('achieve');
+    expect(enumOptionOf(exact.value, 'Achieve')).to.equal(undefined);
+    // @ts-expect-error caseInsensitive is true or unset
+    property.enum('x', ['a'], { caseInsensitive: false, help: 'h' });
+  });
 
   it("puts an assertion's, an expression's and OCL's options in the value, the rest beside it", () => {
     const functions = [{ name: 'previous', arity: 1 }];

@@ -90,6 +90,7 @@ const build = (
   return { key, value, ...rest } as PropertyDefinition;
 };
 
+type EnumOptions = { open?: boolean; caseInsensitive?: true };
 const INT_KEYS = ['min', 'max'] as const;
 const ASSERTION_KEYS = [
   'resolves',
@@ -126,17 +127,20 @@ type OclOptions = {
 
 /** One constructor per value type, with `check` taking the names `C`. */
 const builders = <C extends string>() => ({
-  /** `''` stands for "not set"; `open`: values besides the options may be written */
+  /**
+   * `''` stands for "not set"; `open`: values besides the options may be
+   * written; `caseInsensitive`: an option is read in any case, as its value
+   */
   enum: <
     const K extends string,
     const O extends readonly EnumOptionInput[],
-    const P extends PropertyOptions<C> & { open?: boolean },
+    const P extends PropertyOptions<C> & EnumOptions,
   >(
     key: K,
     options: O,
-    rest: Exact<P, PropertyOptions<C> & { open?: boolean }>,
-  ): Built<K, 'enum', P, 'open', { options: EnumOptionsOf<O> }> =>
-    build(key, 'enum', rest, ['open'], {
+    rest: Exact<P, PropertyOptions<C> & EnumOptions>,
+  ): Built<K, 'enum', P, keyof EnumOptions, { options: EnumOptionsOf<O> }> =>
+    build(key, 'enum', rest, ['open', 'caseInsensitive'], {
       options: options.map((option) =>
         typeof option === 'string'
           ? { value: option, label: option }

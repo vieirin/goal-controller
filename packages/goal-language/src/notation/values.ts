@@ -5,6 +5,7 @@
  */
 import {
   actorPropertiesOf,
+  enumOptionOf,
   linkPropertiesOf,
   probabilityOf,
   propertyOf,
@@ -319,7 +320,7 @@ export const valueProblem = (
     case 'enum': {
       const options = value.options.map((o) => o.value).filter(Boolean);
       if (!value.open)
-        return options.includes(text.trim())
+        return enumOptionOf(value, text) !== undefined
           ? null
           : `One of ${options.join(', ')}, not ${text.trim()}`;
       // an open enum takes any value on one line

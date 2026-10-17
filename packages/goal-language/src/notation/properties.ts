@@ -6,6 +6,7 @@
  */
 import {
   actorPropertiesOf,
+  enumOptionOf,
   linkPropertiesOf,
   probabilityOf,
   valueOf,
@@ -120,12 +121,11 @@ const readValue = (config: ValueConfig, text: string): unknown => {
     case 'enum': {
       const read = parseValue('enum', text);
       if (read.errors.length) return undefined;
-      // a closed enum's value is one of its options, or isn't its type
-      return read.value === null ||
-        config.open ||
-        config.options.some((option) => option.value === read.value)
-        ? read.value
-        : undefined;
+      if (read.value === null) return null;
+      // an option as `options` writes it (in any case, where it is
+      // caseInsensitive); a closed enum's value is one, or isn't its type
+      const option = enumOptionOf(config, read.value);
+      return option ?? (config.open ? read.value : undefined);
     }
     default: {
       const read = parseValue(config.type, text);
