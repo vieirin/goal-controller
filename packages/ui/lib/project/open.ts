@@ -13,6 +13,7 @@ import {
 } from './manifest';
 import {
   readEmbeddedManifest,
+  recordedFramework,
   recordedMode,
   withEmbeddedManifest,
 } from './embedded';
@@ -94,10 +95,17 @@ const settingsOf = (
   text: string,
 ): ManifestSettings => {
   const settings = settingsInManifest(manifest, path);
-  // the manifest takes precedence; a model it says nothing about keeps its record
-  return settings.mode !== null
-    ? settings
-    : { ...settings, mode: recordedMode(text) };
+  const entry = manifest.models.find((model) => model.path === path);
+  // the manifest takes precedence; a model it says nothing about keeps its records
+  return {
+    ...settings,
+    mode: settings.mode ?? recordedMode(text),
+    framework:
+      entry?.framework ??
+      manifest.framework ??
+      recordedFramework(text) ??
+      settings.framework,
+  };
 };
 
 type Shape = {

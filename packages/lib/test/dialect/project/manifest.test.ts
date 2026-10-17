@@ -9,6 +9,7 @@ import {
   modelSettingsOf,
   needsProjectFile,
   parseManifest,
+  recordedFramework,
   recordedMode,
   serializeManifest,
   setSettingsInManifest,
@@ -112,10 +113,12 @@ describe('project manifest', () => {
   it("reads a model's settings over the project's, key by key", () => {
     expect(settingsInManifest(FULL, 'models/a.txt')).to.deep.equal({
       mode: 'edgev2',
+      framework: 'istar-2.0',
       options: { discretisation: 10, taskLayout: 'taskModules' },
     });
     expect(settingsInManifest(FULL, 'models/a-sleec.txt')).to.deep.equal({
       mode: 'sleec',
+      framework: 'istar-2.0',
       options: {
         discretisation: 10,
         taskLayout: 'taskModules',
@@ -152,6 +155,109 @@ describe('project manifest', () => {
   });
 });
 
+describe('project manifest: framework (#171)', () => {
+  const KAOS: Manifest = {
+    version: 1,
+    dialect: 'kaos',
+    framework: 'kaos',
+    models: [{ path: 'a.txt' }, { path: 'b.txt', framework: 'nfr' }],
+    projectResources: {},
+    outputs: [],
+  };
+
+  it('reads what it writes, with a framework and without', () => {
+    const text = serializeManifest(KAOS);
+    expect(JSON.parse(text)).to.include({ framework: 'kaos' });
+    expect(Object.keys(JSON.parse(text)).slice(0, 3)).to.deep.equal([
+      'version',
+      'dialect',
+      'framework',
+    ]);
+    expect(parseManifest(JSON.parse(text))).to.deep.equal(KAOS);
+    expect(serializeManifest(FULL)).not.to.include('framework');
+  });
+
+  it('resolves a model framework: its entry, the project, iStar 2.0', () => {
+    expect(settingsInManifest(KAOS, 'a.txt').framework).to.equal('kaos');
+    expect(settingsInManifest(KAOS, 'b.txt').framework).to.equal('nfr');
+    expect(settingsInManifest(FULL, 'models/a.txt').framework).to.equal(
+      'istar-2.0',
+    );
+  });
+
+  it('names a framework it does not know', () => {
+    expect(() =>
+      parseManifest({ version: 1, framework: 'tropos', models: [] }),
+    ).to.throw(ManifestError, /^framework: unknown framework "tropos"/);
+    expect(() =>
+      parseManifest({
+        version: 1,
+        models: [{ path: 'm', framework: 1 }],
+      }),
+    ).to.throw(ManifestError, /^models\[0\]\.framework:/);
+  });
+
+  it('sets a framework, leaving the one a model would have anyway implicit', () => {
+    const one = setSettingsInManifest(singleModelManifest('m.txt'), undefined, {
+      framework: 'kaos',
+    });
+    expect(one.framework).to.equal('kaos');
+    expect(
+      setSettingsInManifest(one, undefined, { framework: 'istar-2.0' }),
+    ).to.deep.equal(singleModelManifest('m.txt'));
+    // undefined keeps it
+    expect(setSettingsInManifest(one, undefined, { mode: 'x' })).to.include({
+      framework: 'kaos',
+    });
+    const b = setSettingsInManifest(KAOS, 'b.txt', { framework: 'kaos' });
+    expect(b.models[1]).to.deep.equal({ path: 'b.txt' });
+    const a = setSettingsInManifest(KAOS, 'a.txt', { framework: 'istar-2.0' });
+    expect(a.models[0]).to.deep.equal({
+      path: 'a.txt',
+      framework: 'istar-2.0',
+    });
+    expect(a.framework).to.equal('kaos');
+    expect(
+      singleModelManifest('m.txt', { framework: 'istar-2.0' }),
+    ).to.deep.equal(singleModelManifest('m.txt'));
+  });
+
+  it('records a non-iStar framework beside the mode, and removes it for iStar', () => {
+    const { model } = EXAMPLES.find(
+      ({ model }) => recordedModeOf(model) !== null,
+    )!;
+    expect(recordedFramework(model)).to.equal(null);
+    expect(modelSettingsOf(model).framework).to.equal('istar-2.0');
+    const kaos = withModelSettings(model, { framework: 'kaos' });
+    const properties = JSON.parse(kaos).diagram.customProperties;
+    expect(properties.framework).to.equal('kaos');
+    expect(properties.engine).to.equal(recordedModeOf(model));
+    expect(recordedFramework(kaos)).to.equal('kaos');
+    expect(manifestOfModel(kaos).framework).to.equal('kaos');
+    expect(modelSettingsOf(kaos).framework).to.equal('kaos');
+    // a mode change keeps it
+    expect(recordedFramework(withModelSettings(kaos, { mode: null }))).to.equal(
+      'kaos',
+    );
+    expect(withModelSettings(kaos, { framework: 'istar-2.0' })).to.equal(model);
+  });
+
+  it('refuses a framework record it does not know', () => {
+    const { model } = EXAMPLES[0]!;
+    const json = JSON.parse(model);
+    json.diagram = {
+      ...json.diagram,
+      customProperties: { ...json.diagram?.customProperties, framework: 'x' },
+    };
+    const text = JSON.stringify(json);
+    expect(() => manifestOfModel(text)).to.throw(
+      ManifestError,
+      /^diagram\.customProperties\.framework: unknown framework "x"/,
+    );
+    expect(recordedFramework(text)).to.equal(null);
+  });
+});
+
 describe('project manifest embedded in a model', () => {
   it('reads every example as a one-model project with the mode it records', () => {
     expect(EXAMPLES.length).to.be.greaterThan(20);
@@ -162,6 +268,7 @@ describe('project manifest embedded in a model', () => {
       expect(manifest.dialect ?? null, file).to.equal(recordedModeOf(model));
       expect(recordedMode(model), file).to.equal(recordedModeOf(model));
       expect(manifest.options, file).to.equal(undefined);
+      expect(manifest.framework, file).to.equal(undefined);
     }
   });
 
@@ -172,6 +279,10 @@ describe('project manifest embedded in a model', () => {
         file,
       ).to.equal(model);
       expect(withModelSettings(model, {}), file).to.equal(model);
+      expect(
+        withModelSettings(model, { framework: 'istar-2.0' }),
+        file,
+      ).to.equal(model);
     }
   });
 

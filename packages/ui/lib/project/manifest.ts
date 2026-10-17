@@ -2,7 +2,11 @@
  * The project manifest: what a project holds and how its models are read.
  * Data only; the package never interprets a dialect or its options.
  */
-import type { Framework } from '@goal-controller/dialect';
+import {
+  DEFAULT_FRAMEWORK,
+  FRAMEWORKS,
+  type Framework,
+} from '@goal-controller/dialect';
 
 /** An engine's options, opaque here: the workbench merges and validates them. */
 export type EngineOptions = Readonly<Record<string, string | number | boolean>>;
@@ -79,6 +83,22 @@ const str = (value: unknown, at: string): string => {
 const optionalStr = (value: unknown, at: string): string | undefined =>
   value === undefined ? undefined : str(value, at);
 
+export const isFramework = (value: unknown): value is Framework =>
+  (FRAMEWORKS as readonly unknown[]).includes(value);
+
+export const optionalFramework = (
+  value: unknown,
+  at: string,
+): Framework | undefined => {
+  if (value === undefined) return undefined;
+  if (!isFramework(value))
+    throw new ManifestError(
+      at,
+      `unknown framework ${JSON.stringify(value)} (one of ${FRAMEWORKS.join(', ')})`,
+    );
+  return value;
+};
+
 export const parseOptions = (
   value: unknown,
   at: string,
@@ -117,11 +137,13 @@ const parseNative = (
 const parseModelEntry = (value: unknown, at: string): ModelEntry => {
   if (!isRecord(value)) throw new ManifestError(at, 'expected an object');
   const dialect = optionalStr(value.dialect, `${at}.dialect`);
+  const framework = optionalFramework(value.framework, `${at}.framework`);
   const options = parseOptions(value.options, `${at}.options`);
   const native = parseNative(value.native, `${at}.native`);
   return {
     path: str(value.path, `${at}.path`),
     ...(dialect !== undefined && { dialect }),
+    ...(framework !== undefined && { framework }),
     ...(options !== undefined && { options }),
     ...(native !== undefined && { native }),
   };
@@ -174,6 +196,7 @@ const list = <T>(
 export const parseManifest = (value: unknown): Manifest => {
   if (!isRecord(value)) throw new ManifestError('', 'expected an object');
   const dialect = optionalStr(value.dialect, 'dialect');
+  const framework = optionalFramework(value.framework, 'framework');
   const options = parseOptions(value.options, 'options');
   const models = list(value.models, 'models', parseModelEntry);
   const paths = new Set<string>();
@@ -185,6 +208,7 @@ export const parseManifest = (value: unknown): Manifest => {
   return {
     version: parseVersion(value.version, 'version'),
     ...(dialect !== undefined && { dialect }),
+    ...(framework !== undefined && { framework }),
     ...(options !== undefined && { options }),
     models,
     projectResources: parseProjectResources(
@@ -210,6 +234,9 @@ export const serializeManifest = (manifest: Manifest): string =>
     {
       version: manifest.version,
       ...(manifest.dialect !== undefined && { dialect: manifest.dialect }),
+      ...(manifest.framework !== undefined && {
+        framework: manifest.framework,
+      }),
       ...(manifest.options !== undefined && { options: manifest.options }),
       models: manifest.models,
       projectResources: manifest.projectResources,
@@ -232,13 +259,19 @@ export const needsProjectFile = (manifest: Manifest): boolean =>
   ) ||
   manifest.outputs.length > 0;
 
-/** A one-model manifest. */
+/** A one-model manifest; iStar 2.0, the default framework, is left implicit. */
 export const singleModelManifest = (
   path: string,
-  { dialect, options }: { dialect?: string; options?: EngineOptions } = {},
+  {
+    dialect,
+    framework,
+    options,
+  }: { dialect?: string; framework?: Framework; options?: EngineOptions } = {},
 ): Manifest => ({
   version: MANIFEST_VERSION,
   ...(dialect !== undefined && { dialect }),
+  ...(framework !== undefined &&
+    framework !== DEFAULT_FRAMEWORK && { framework }),
   ...(options !== undefined && Object.keys(options).length > 0 && { options }),
   models: [{ path }],
   projectResources: {},
@@ -249,9 +282,13 @@ export const singleModelManifest = (
 // A model's settings (model entry over project defaults)
 // ---------------------------------------------------------------------------
 
-/** What a model is read with: its dialect (null: plain piStar) and engine options. */
+/**
+ * What a model is read with: its framework (goal-controller#171), its dialect
+ * (null: plain piStar) and engine options.
+ */
 export type ManifestSettings = {
   mode: string | null;
+  framework: Framework;
   options: EngineOptions;
 };
 
@@ -267,6 +304,7 @@ export const settingsInManifest = (
       : undefined;
   return {
     mode: entry?.dialect ?? manifest.dialect ?? null,
+    framework: entry?.framework ?? manifest.framework ?? DEFAULT_FRAMEWORK,
     options: { ...manifest.options, ...entry?.options },
   };
 };
@@ -278,31 +316,51 @@ const withoutEmpty = (
 
 /**
  * Set a model's settings: `mode` null clears it (plain piStar), undefined keeps
- * it; `options` replace the ones kept (none: the key goes). A one-model project
+ * it; `framework` undefined keeps it, and one that is what the model would
+ * have anyway (the project's, or iStar 2.0 for the project) is left implicit;
+ * `options` replace the ones kept (none: the key goes). A one-model project
  * keeps them at project level (the model and the project are the same); with
  * more models they become the model's override.
  */
 export const setSettingsInManifest = (
   manifest: Manifest,
   modelPath: string | undefined,
-  settings: { mode?: string | null; options?: EngineOptions },
+  settings: {
+    mode?: string | null;
+    framework?: Framework;
+    options?: EngineOptions;
+  },
 ): Manifest => {
   const shared = manifest.models.length <= 1;
-  const assign = <T extends { dialect?: string; options?: EngineOptions }>(
+  const assign = <
+    T extends {
+      dialect?: string;
+      framework?: Framework;
+      options?: EngineOptions;
+    },
+  >(
     target: T,
+    inherited: Framework,
   ): T => {
-    const { dialect, options, ...rest } = target;
+    const { dialect, framework, options, ...rest } = target;
     const nextDialect =
       settings.mode === undefined ? dialect : (settings.mode ?? undefined);
+    const nextFramework =
+      settings.framework === undefined
+        ? framework
+        : settings.framework === inherited
+          ? undefined
+          : settings.framework;
     const nextOptions =
       settings.options === undefined ? options : withoutEmpty(settings.options);
     return {
       ...rest,
       ...(nextDialect !== undefined && { dialect: nextDialect }),
+      ...(nextFramework !== undefined && { framework: nextFramework }),
       ...(nextOptions !== undefined && { options: nextOptions }),
     } as T;
   };
-  if (shared) return assign(manifest);
+  if (shared) return assign(manifest, DEFAULT_FRAMEWORK);
   if (!manifest.models.some((model) => model.path === modelPath))
     throw new ManifestError(
       'models',
@@ -311,7 +369,9 @@ export const setSettingsInManifest = (
   return {
     ...manifest,
     models: manifest.models.map((model) =>
-      model.path === modelPath ? assign(model) : model,
+      model.path === modelPath
+        ? assign(model, manifest.framework ?? DEFAULT_FRAMEWORK)
+        : model,
     ),
   };
 };

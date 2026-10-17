@@ -220,6 +220,7 @@ describe('ui model settings over the project manifest', () => {
     const plan = planConversion(text, 'sleec');
     expect(modelSettingsOf(plan.text)).to.deep.equal({
       mode: 'sleec',
+      framework: 'istar-2.0',
       options: { reduce: true },
     });
     expect(plan.changes).to.include(
