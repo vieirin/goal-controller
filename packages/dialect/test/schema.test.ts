@@ -640,6 +640,19 @@ describe('defineDialect: a framework dialect’s extension, link and leg propert
     ).not.to.throw();
   });
 
+  it('lets its extension’s links refine and be leaf targets, as its root’s are', () => {
+    expect(
+      bad((d) => ({
+        ...d,
+        refinements: { 'vote.TallyLink': 'and' },
+        leafTargets: ['vote.CastLink'],
+      })),
+    ).not.to.throw();
+    expect(bad((d) => ({ ...d, leafTargets: ['vote.Urn'] }))).to.throw(
+      /leafTargets: vote\.Urn is not a link kind of kaos/,
+    );
+  });
+
   it('rejects an extension in its root’s namespace, or naming iStar’s kinds', () => {
     expect(
       bad((d) => ({

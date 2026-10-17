@@ -1175,20 +1175,19 @@ const checkFrameworkDialect = (
 };
 
 /**
- * A dialect's refinements and link labels (goal-controller#171): a non-iStar
- * framework's, each naming one of its link kinds, a relation, and labels
- * once each.
+ * A dialect's refinements, link labels and leaf targets (goal-controller#171,
+ * #181): a non-iStar framework's, each naming one of its link kinds (its
+ * root's or its extension's, `linkKinds`), a relation, and labels once each.
  */
 const checkFrameworkLinks = (
   definition: Pick<
     AnyDialect,
     'framework' | 'refinements' | 'linkLabels' | 'leafTargets'
   >,
+  linkKinds: readonly string[],
   fail: (why: string) => never,
 ) => {
   const framework = definition.framework ?? DEFAULT_FRAMEWORK;
-  const linkKinds: readonly string[] =
-    framework === 'istar-2.0' ? [] : FRAMEWORK_KINDS[framework].links;
   for (const [field, entries] of [
     ['refinements', definition.refinements],
     ['linkLabels', definition.linkLabels],
@@ -1428,7 +1427,7 @@ export const defineDialect = <const D extends AnyDialect>(
         fail(`project resource ${kind}: ${extension} is not an extension`);
   }
   checkNativeFiles(definition.nativeFiles ?? {}, fail);
-  checkFrameworkLinks(definition, fail);
+  checkFrameworkLinks(definition, own?.links ?? [], fail);
   if (definition.model)
     for (const [part, count] of Object.entries(definition.model))
       if (count !== 'one' && count !== 'many')

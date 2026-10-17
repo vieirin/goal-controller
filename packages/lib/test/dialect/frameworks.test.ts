@@ -544,6 +544,41 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
     ]);
   });
 
+  it('checks a reference in a conditional value, and passes over values that are no text', () => {
+    // a dialect whose Anchor is a reference only for mitigations
+    const conditional = {
+      ...kaos,
+      links: {
+        ...kaos.links,
+        'kaosObstacles.ResolutionLink': [
+          kaos.links['kaosObstacles.ResolutionLink'][0]!,
+          {
+            key: 'Anchor',
+            value: {
+              when: { key: 'ResolutionType', equals: 'mitigation' },
+              matching: { type: 'reference', kinds: ['kaos.BehavioralGoal'] },
+              otherwise: { type: 'text' },
+            },
+            help: '',
+          },
+        ],
+      },
+    } as unknown as AnyDialect;
+    const anchored = (type: string, anchor: unknown) =>
+      frameworkProblems(
+        lasWith((json) => {
+          resolution(json).customProperties = {
+            ResolutionType: type,
+            Anchor: anchor,
+          };
+        }),
+        conditional,
+      ).map((p) => p.code);
+    expect(anchored('mitigation', 'G99')).to.deep.equal(['dangling-reference']);
+    expect(anchored('prevention', 'G99')).to.deep.equal([]);
+    expect(anchored('mitigation', 42)).to.deep.equal([]);
+  });
+
   it('types an obstacle’s and a domain property’s keys, and a resolution’s', () => {
     const view = viewOf('kaos', withIds('kaos', LAS));
     const doc = notationDocument(definition, view)

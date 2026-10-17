@@ -11,7 +11,11 @@
  */
 import { validateModel, type IstarModel } from '@istar-ts/core';
 import { refinementsOf } from '@goal-controller/goal-tree';
-import type { AnyDialect, PropertyDefinition } from '@goal-controller/dialect';
+import {
+  valueOf,
+  type AnyDialect,
+  type PropertyDefinition,
+} from '@goal-controller/dialect';
 import type { Problem } from './types';
 
 /** A link kind as people read it: `nfr.ContributionLink` is "Contribution link". */
@@ -92,13 +96,25 @@ const referenced = (model: IstarModel, value: string) =>
     element.name.startsWith(`${value}: `),
   );
 
-/** The `reference` properties of a list (an element kind's, a link kind's). */
-const referencesOf = (list: readonly PropertyDefinition[] | undefined) =>
-  (list ?? []).flatMap((property) =>
-    !('when' in property.value) && property.value.type === 'reference'
-      ? [{ key: property.key, kinds: property.value.kinds }]
-      : [],
+/** The texts of an owner's properties (a model may hold other values). */
+const textsOf = (properties: Readonly<Record<string, unknown>> | undefined) =>
+  Object.fromEntries(
+    Object.entries(properties ?? {}).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
   );
+
+/** The `reference` properties of a list (an element kind's, a link kind's), as an owner's properties make them. */
+const referencesOf = (
+  list: readonly PropertyDefinition[] | undefined,
+  properties: Readonly<Record<string, string>>,
+) =>
+  (list ?? []).flatMap((property) => {
+    const value = valueOf(property, properties);
+    return value.type === 'reference'
+      ? [{ key: property.key, kinds: value.kinds }]
+      : [];
+  });
 
 /** Each `reference` value, on an element or a link, that names no element of its kinds. */
 const referenceProblems = (
@@ -116,25 +132,28 @@ const referenceProblems = (
       list: definition.links?.[link.kind],
     })),
   ];
-  return owners.flatMap(({ owner, list }) =>
-    referencesOf(list).flatMap(({ key, kinds }): Problem[] => {
-      const value = owner.customProperties?.[key]?.trim();
-      if (!value) return [];
-      const element = referenced(model, value);
-      if (element && (kinds as readonly string[]).includes(element.kind))
-        return [];
-      return [
-        {
-          severity: 'error',
-          source: definition.name,
-          elementId: owner.id,
-          key,
-          code: 'dangling-reference',
-          message: element
-            ? `${key}: ${value} is a ${element.kind}, not a ${kinds.join(' or ')}`
-            : `${key}: ${value} is not an element of this model`,
-        },
-      ];
-    }),
-  );
+  return owners.flatMap(({ owner, list }) => {
+    const properties = textsOf(owner.customProperties);
+    return referencesOf(list, properties).flatMap(
+      ({ key, kinds }): Problem[] => {
+        const value = properties[key]?.trim();
+        if (!value) return [];
+        const element = referenced(model, value);
+        if (element && (kinds as readonly string[]).includes(element.kind))
+          return [];
+        return [
+          {
+            severity: 'error',
+            source: definition.name,
+            elementId: owner.id,
+            key,
+            code: 'dangling-reference',
+            message: element
+              ? `${key}: ${value} is a ${element.kind}, not a ${kinds.join(' or ')}`
+              : `${key}: ${value} is not an element of this model`,
+          },
+        ];
+      },
+    );
+  });
 };
