@@ -11,13 +11,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["../ui/*"],
-      "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"],
-      "@istar-ts/dsm3-kaos/metamodel": [
-        "./node_modules/@istar-ts/dsm3-kaos/dist/metamodel.d.cts"
-      ],
-      "@istar-ts/dsm3-nfr/metamodel": [
-        "./node_modules/@istar-ts/dsm3-nfr/dist/metamodel.d.cts"
-      ]
+      "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"]
     }
   },
   "include": ["src/**/*", "test/dialect/**/*"]

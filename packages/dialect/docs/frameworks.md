@@ -6,7 +6,7 @@ dialect. A dialect is a profile of one framework's metamodel, and an engine
 reads one dialect. A project's models are all in one framework, and nothing
 converts a model from one framework to another.
 
-Each framework is one of istar-ts's root metamodels (istar-ts 0.13.2,
+Each framework is one of istar-ts's root metamodels (istar-ts 0.13.3,
 [`docs/dsm3-goals.md`](https://github.com/vieirin/istar-ts/blob/main/docs/dsm3-goals.md)):
 
 | Framework | Root | Package | Kinds | File |
@@ -134,10 +134,9 @@ Each PR of #171 appends its decisions here.
 - **ui and lib use the React-free `/metamodel` subpaths.**
   `@istar-ts/dsm3-kaos/metamodel` and `@istar-ts/dsm3-nfr/metamodel`
   (istar-ts 0.13.2, istar-ts#14) have both ESM and CommonJS builds. The
-  package roots are ESM-only and pull in React. lib's CommonJS resolution
-  doesn't read `exports`, so `lib/tsconfig.json` and
-  `tsconfig.dialect-test.json` map the two subpaths' types with `paths`, as
-  they already do for Langium.
+  package roots are ESM-only and pull in React. Since 0.13.3 the subpaths
+  also declare `typesVersions`, so lib's CommonJS (node10) resolution finds
+  their types without any `paths` mapping.
 - **Kinds may share prefixes outside iStar.** The issue asks for KAOS `G`
   (both goal kinds), `A` (both agent kinds) and `DP`. Which kind a new `G`
   line creates is the goal language's decision (PR C).
