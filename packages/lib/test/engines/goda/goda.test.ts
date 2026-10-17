@@ -32,6 +32,7 @@ import {
   SEED,
   type EngineOutput,
 } from '../../../src';
+import { costTermOf } from '../../../src/engines/goda/template/containers';
 import { model } from './support';
 
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
@@ -274,6 +275,42 @@ describe('GODA: models', () => {
     assert.ok(nm.includes('sG1_T1_1 = 1 : 0.25*load;'));
     assert.ok(nm.includes('sG1_T1_2 = 1 : 3;'));
     assert.ok(nm.includes('const double load;\nrewards "cost"'));
+  });
+
+  it('weighs a leaf without a cost by its W_, in both generators: a bracket with errors is none (#231)', () => {
+    const text = twoTasks('And', ['T1.1: Pick [W = -1]', 'T1.2: Place [W=3]']);
+    for (const variant of GODA_IMPLEMENTED_VARIANTS) {
+      const output = godaOutput(modelOf(text), {
+        modelName: 'model.txt',
+        variant,
+      });
+      const nm = fileOf(output, 'model');
+      assert.ok(nm.includes('sG1_T1_1 = 1 : W_G1_T1_1;'), variant);
+      assert.ok(nm.includes('sG1_T1_2 = 1 : 3;'), variant);
+      assert.ok(
+        nm.includes('const double W_G1_T1_1;\nrewards "cost"'),
+        variant,
+      );
+      const cost = fileOf(output, 'cost');
+      assert.ok(cost.includes('//W_G1_T1_1 = cost of node G1_T1_1\n'), variant);
+      assert.ok(cost.includes('//3 = cost of node G1_T1_2\n'), variant);
+      assert.deepStrictEqual(
+        compileFormula(cost).variables.filter((name) => name.startsWith('W_')),
+        ['W_G1_T1_1'],
+        variant,
+      );
+    }
+  });
+
+  it('reads a cost term: a constant, a constant times a variable, else the weight W_', () => {
+    const term = (value: string | null, variable: string | null) =>
+      costTermOf({ value, variable }, 'T1');
+    assert.strictEqual(term('3', null), '3');
+    assert.strictEqual(term('0.5', 'x'), '0.5*x');
+    assert.strictEqual(term(null, 'x'), '1*x');
+    // a cost that holds neither (the grammar gives none since #231) is no cost
+    assert.strictEqual(term(null, null), 'W_T1');
+    assert.strictEqual(costTermOf(null, 'T1'), 'W_T1');
   });
 
   it('generates from exactly one selected goal', () => {

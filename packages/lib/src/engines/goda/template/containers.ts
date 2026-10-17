@@ -64,6 +64,17 @@ export const nodeIdOf = (c: Container): string =>
   c.kind === 'goal' ? clearUid(c) : clearElId(c);
 
 /**
+ * A leaf's cost term (`getCostFormula`, `CostParser`): its constant, or its
+ * constant times its variable (`W = x` is `1*x`). A leaf without a cost, or
+ * with one that holds neither (goal-controller#231), costs its weight `W_<id>`.
+ */
+export const costTermOf = (cost: CostData | null, id: string): string => {
+  if (cost && cost.variable !== null)
+    return `${cost.value ?? '1'}*${cost.variable}`;
+  return cost?.value ?? `W_${id}`;
+};
+
+/**
  * `getClearElName`: a module's name, the element's words capitalised and
  * joined (`G1_T1_1_Task`). Upstream strips only an RT regex's bracket; a
  * leaf's cost bracket would stay in the name, which PRISM can't read: it is

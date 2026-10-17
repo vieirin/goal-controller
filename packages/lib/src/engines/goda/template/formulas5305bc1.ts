@@ -8,7 +8,13 @@
  * and the order they come out in (comments, the eval script, the cost's
  * substitutions) is theirs: `javaHashMapOrder`.
  */
-import { clearElId, clearUid, nodeIdOf, type Container } from './containers';
+import {
+  clearElId,
+  clearUid,
+  costTermOf,
+  nodeIdOf,
+  type Container,
+} from './containers';
 import { clearCondition } from './contexts';
 import { javaHashMapOrder } from './javaHashMap';
 import type { GodaFormulas } from './formulas';
@@ -194,11 +200,7 @@ export const composeFormulas5305bc1 = (
           varReliability.set(id, `//OPT_${id} = optionality of node ${id}\n`);
         }
       } else {
-        form = node.cost
-          ? node.cost.variable === null
-            ? node.cost.value!
-            : `${node.cost.value ?? '1'}*${node.cost.variable}`
-          : `W_${id}`;
+        form = costTermOf(node.cost, id);
         varCost.set(id, `//${form} = cost of node ${id}\n`);
       }
     }
