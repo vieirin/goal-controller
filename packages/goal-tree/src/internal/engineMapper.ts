@@ -15,6 +15,22 @@ import type {
 } from '@goal-controller/goal-language';
 import type { ReadingDialect } from '../parsers/goalNameParser';
 import type { GoalExecutionDetail, GoalModel, TreeNode } from '../types/';
+import type { Naming, Shape } from '../types/kindTree';
+import {
+  kindMapper,
+  type ElementKindsOf,
+  type EntriesFor,
+  type Entry,
+  type KindEngineMapper,
+  type KindMapperConfig,
+  type LinkEntry,
+  type LinkKindsOf,
+  type LinkPropsOf,
+  type NamingOf,
+  type PropsByKind,
+  type WithLinks,
+  type WithoutLinks,
+} from './entries';
 
 /**
  * The engine's dialect as goal-tree reads it: its goal texts, the model shape
@@ -254,28 +270,78 @@ export function createEngineMapper<
   TGoalEngine,
   TTaskEngine,
   TResourceEngine = never,
->() {
-  return <
-    const TDialect extends MapperDialect,
-    TActorEngine = {},
-    TLinkEngine = {},
-  >(
-    config: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TDialect,
-      TActorEngine,
-      TLinkEngine
-    >,
-  ): EngineMapper<
+>(): <
+  const TDialect extends MapperDialect,
+  TActorEngine = {},
+  TLinkEngine = {},
+>(
+  config: EngineMapper<
     TGoalEngine,
     TTaskEngine,
     TResourceEngine,
     TDialect,
     TActorEngine,
     TLinkEngine
-  > => {
+  >,
+) => EngineMapper<
+  TGoalEngine,
+  TTaskEngine,
+  TResourceEngine,
+  TDialect,
+  TActorEngine,
+  TLinkEngine
+>;
+/**
+ * A mapper by kind (goal-controller#215): an entry per kind of the dialect,
+ * or per group (`entry({ kinds, as, mapProps })`), every kind covered or in
+ * `ignore`. With `naming: useIstarDefaultNaming()`, the iStar reading: `as`
+ * is the naming's for iStar's kinds, and the trees are today's (a goal's
+ * goals and tasks, a task's tasks and resources); without, every entry
+ * names its kinds (`as`), and a node holds every refinement child in
+ * `children`. Every link kind the dialect gives properties has an entry in
+ * `links`.
+ *
+ * @example
+ * createEngineMapper({
+ *   dialect: edgeV2,
+ *   naming: useIstarDefaultNaming(),
+ *   elements: (entry) => [
+ *     entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: ({ props }) => … }),
+ *     entry({ kind: 'istar.Task', mapProps: ({ props }) => … }),
+ *   ],
+ *   ignore: ['istar.Resource'],
+ * });
+ */
+export function createEngineMapper<
+  const D extends MapperDialect,
+  const E extends readonly Entry<ElementKindsOf<D>>[],
+  const LE extends readonly LinkEntry<LinkKindsOf<D>>[],
+  const N extends Naming = {},
+  const S extends Shape = 'kinds',
+  const I extends ElementKindsOf<D> = never,
+  A = {},
+>(
+  config: KindMapperConfig<D, N, E, I, A> & {
+    naming?: { names: N; shape: S; leafGoals: 'allow' | 'error' };
+  } & EntriesFor<D, E, I> &
+    WithLinks<D, LE>,
+): KindEngineMapper<D, PropsByKind<E>, NamingOf<E>, A, LinkPropsOf<LE>, S>;
+export function createEngineMapper<
+  const D extends MapperDialect,
+  const E extends readonly Entry<ElementKindsOf<D>>[],
+  const N extends Naming = {},
+  const S extends Shape = 'kinds',
+  const I extends ElementKindsOf<D> = never,
+  A = {},
+>(
+  config: KindMapperConfig<D, N, E, I, A> & {
+    naming?: { names: N; shape: S; leafGoals: 'allow' | 'error' };
+  } & EntriesFor<D, E, I> &
+    WithoutLinks<D>,
+): KindEngineMapper<D, PropsByKind<E>, NamingOf<E>, A, {}, S>;
+export function createEngineMapper(config?: object): unknown {
+  if (config) return kindMapper(config as Parameters<typeof kindMapper>[0]);
+  return (config: EngineMapper<unknown, unknown, unknown>) => {
     if (config.skipResource !== true && !config.mapResourceProps) {
       throw new Error(
         '[INVALID MAPPER]: mapResourceProps is missing. ' +

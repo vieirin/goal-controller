@@ -8,10 +8,14 @@ each element's properties with the engine's mapper. It names no engine.
 
 ```ts
 const goalModel = GoalTree.goalModel(model, mapper);
-goalModel.actors;    // { id, name, kind, properties: { engine }, trees, elements }[]
-goalModel.links;     // every link: { id, kind, source, target, relation, label?, properties: { engine } }
-goalModel.dependums; // the dependums, each a node
-goalModel.elements;  // every element as written: { id, kind, name, actor?, properties }
+goalModel.actors;      // { id, name, kind, properties: { engine }, roots, trees, elements }[]
+goalModel.paper;       // a framework's trees, outside every actor (KAOS, NFR)
+goalModel.dependums;   // the dependums, each a node
+goalModel.roots;       // every root's piStar id: the actors', then the paper's
+goalModel.links;       // every link: { id, kind, source, target, relation, label?, properties: { engine } }
+goalModel.refinements; // the refinement graph: { link, relation, parent, child }[], n-ary ones resolved
+goalModel.elements;    // every element as written: { id, kind, name, actor?, properties },
+                       // with a mapper by kind its `as`, and `engine` for a kind no tree holds
 ```
 
 - **Actors hold trees, one per root goal.** A root is an element of a tree
@@ -28,14 +32,86 @@ goalModel.elements;  // every element as written: { id, kind, name, actor?, prop
 - **A dialect without ids** (no element kind has a `prefix`): a node's id is
   its piStar id, and its name is its text, unparsed.
 
-## The mapper
+## The mapper: entries by kind (goal-controller#215)
 
-`createEngineMapper<Goal, Task, Resource>()({ dialect, … })` maps the
-properties of each element kind (`mapGoalProps`, `mapTaskProps`,
-`mapResourceProps`). The keys an element is given are the ones its kind has
-in the dialect (`properties[kind]`; an iStar node's kind is `goal`, `task`,
-`resource` or `quality`, a framework's its own, goal-controller#187), each in
-two forms:
+An engine declares one entry per kind of its dialect, or per group of
+kinds that map alike. Each entry says what its kinds are to the engine
+(`as`, the node's `type`) and maps their properties (`mapProps`):
+
+```ts
+createEngineMapper({
+  dialect: edgeV2,
+  naming: useIstarDefaultNaming(),
+  elements: (entry) => [
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'], // `as: 'goal'`, the naming's
+      mapProps: ({ kind, props, raw, executionDetail, id, name, text }) =>
+        kind === 'istar.Goal'
+          ? { retries: props.maxRetries ?? 0 } // number | null | undefined
+          : { retries: 0 },
+      afterCreation: ({ node, input, allNodes, model }) => node.properties.engine,
+    }),
+    entry({ kind: 'istar.Task', mapProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }) }),
+  ],
+  ignore: ['istar.Resource'], // no node; in `elements` as written
+  links: (entry) => [entry({ kind: 'istar.ContributionLink', mapProps: ({ props }) => props })],
+});
+```
+
+- **The kinds** (`ElementKindsOf<D>`) are, for an iStar dialect, iStar's
+  four, its extension's node kinds and any namespaced kind it gives
+  properties. For a KAOS or NFR dialect, they are the kinds it lists and
+  the kinds it gives properties (KAOS's refinement hub).
+- **Every kind has an entry or is in `ignore`.** A kind without one doesn't
+  compile (`'kinds without an entry': "istar.Resource"`), and neither does
+  a kind the dialect doesn't have, a kind in two entries, or an entry for
+  an ignored kind. Every link kind the dialect gives properties needs an
+  entry in `links`; the other link kinds get `{}`.
+- **`mapProps` is given its element's kind**, one member per kind. Narrowing
+  on `kind` narrows `props`: in a Goal-and-Quality entry, a goal-only key
+  doesn't compile until `kind === 'istar.Goal'`. Its output is the node's
+  `properties.engine`, typed by kind:
+  - `EngineProps<typeof mapper>['istar.Task']` is the task entry's output;
+  - `NodeOf<typeof mapper>` is a node, narrowed by `type` or `kind`;
+  - `ModelOf<typeof mapper>` is the IR.
+
+  An engine whose properties refer to its own nodes (Edge's `dependsOn`)
+  writes the node type with `KindNode<IstarProps<Goal, Task, Resource>, IstarNaming, 'istar'>`.
+- **`afterCreation`** runs once every node is built, children first. It is
+  given the node, its `input`, every node by id and the IR, and returns the
+  node's final engine properties, of the entry's type.
+- **`tree: false`** keeps a kind out of the trees, in `elements` only, with
+  its engine properties (an own naming's agents or hubs).
+
+### The naming
+
+`useIstarDefaultNaming(options?)` is the iStar reading:
+- **Names:** `istar.Goal` and `istar.Quality` are a `goal`, `istar.Task` a
+  `task`, `istar.Resource` a `resource`. An entry for one of those kinds may
+  leave `as` out, and can't give another.
+- **Trees:** a goal holds its goals (`children`) and its tasks; a task holds
+  its tasks and its resources (a NeededBy link's).
+- **Checks:** a resource has no children, only a task has resources, and a
+  task has no goals.
+- **Roots:** a Quality is never a root, nor is an element only a Quality
+  qualifies.
+- **Leaves:** a goal in an actor that nothing refines is an error, unless
+  `useIstarDefaultNaming({ leafGoals: 'allow' })` (MutRoSe's Query goals).
+
+An extension kind's entry (`{ kind: 'grl.Belief', as: 'belief' }`) puts its
+elements in `elements`, each with its `as` and `engine`, not in a tree. An
+entry naming one `goal`, `task` or `resource` puts it in the trees.
+
+Without a `naming`, the engine names every kind itself (kaosdoc's
+`goal`, `domainProperty`, `obstacle`). Each node holds every refinement child
+in `children`, roots are the tree kinds' elements that refine nothing, and
+there is no leaf rule.
+
+### `props` and `raw`
+
+The keys an element is given are the ones its kind has in the dialect
+(`properties[kind]`; an iStar node's kind is `goal`, `task`, `resource` or
+`quality`, a framework's its own, goal-controller#187), each in two forms:
 
 - `props`: the value as the goal language reads its type
   (`readProperties` in `@goal-controller/goal-language`): an `int` or a
@@ -49,35 +125,24 @@ two forms:
 - `raw`: the strings as written, for an engine that forwards a value
   verbatim.
 
-```ts
-createEngineMapper<GoalProps, TaskProps, ResourceProps>()({
-  dialect: edgeV2,
-  mapGoalProps: ({ props, raw, executionDetail, id, text, kind }) => ({
-    retries: props.maxRetries ?? 0, // number | null | undefined
-    dependsOn: props.dependsOn ?? [], // string[] | undefined
-    utility: raw.utility ?? '', // as written
-  }),
-  mapTaskProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }),
-  mapResourceProps: ({ raw }) => ({ type: raw.type }),
-});
-```
+`mapActorProps({ props, raw, kind, id, name })` maps the dialect's `actors`
+properties. An actor's and a link's `raw` holds every actor's and every
+link kind's keys, as written: a check reports one on a kind that hasn't it
+(cgm's `context` on a link kind without one).
 
-A key the dialect doesn't give the kind doesn't compile (`props.optional`
-on a goal whose dialect gives it to tasks only). Two more mappers are
-optional:
+### Per role (until the engines move to entries)
 
-- `mapActorProps({ props, raw, kind, id, name })`: the dialect's `actors`
-  properties, typed for the actor's kind;
-- `mapLinkProps({ props, raw, kind, id })`: its `links[kind]` properties,
-  typed.
+`createEngineMapper<Goal, Task, Resource>()({ dialect, mapGoalProps,
+mapTaskProps, mapResourceProps | skipResource, allowLeafGoals,
+afterCreationMapper, mapActorProps, mapLinkProps })` still works. It stands
+for the iStar reading's entries and builds the IR it always has:
+- goal nodes say `isQuality`;
+- an iStar node has no `kind`;
+- elements are as written;
+- `mapLinkProps` maps every link.
 
-An actor's and a link's `raw` holds every actor's and every link kind's
-keys, as written: a check reports one on a kind that hasn't it (cgm's
-`context` on a link kind without one).
-
-An engine without them gets `{}`. `afterCreationMapper` gets `model`, the
-whole `GoalModel`, and `rawProperties`, the node's `props` and `raw` with its
-`nodeType` (`goal`, `task`, `resource`) and `kind`.
+`TreeNode<G, T, R>`, `GoalNode`, `Task`, `Resource`, `GoalTreeType` and
+`GoalModel<…>` are its types. The per-role form and these types go once every engine writes entries.
 
 ## The shape an engine reads
 

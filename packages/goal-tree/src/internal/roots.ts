@@ -18,7 +18,6 @@ import {
   type Framework,
   type ModelShape,
 } from '@goal-controller/dialect';
-import type { Type } from '../types/goalTree';
 
 /**
  * How a link refines its parent, or null for a kind that is not a refinement. A
@@ -64,48 +63,6 @@ export const otherFrameworkOf = (
 ): Exclude<Framework, 'istar-2.0'> | null => {
   const framework = dialect?.framework ?? DEFAULT_FRAMEWORK;
   return framework === 'istar-2.0' ? null : framework;
-};
-
-/**
- * How the IR holds a framework's kinds (goal-controller#171): the node type of
- * each kind its refinements build trees of. `type` says only how a tree holds
- * it (a node's `kind` says what it is): KAOS's goals, domain properties and
- * obstacles, NFR's softgoals and operationalizations are goal nodes, which
- * may be leaves.
- * A kind not listed (KAOS's agents, NFR's claims, a hub) is in no tree: it is
- * in the model's elements, and its links in the model's links.
- */
-export const FRAMEWORK_NODE_TYPES: Readonly<
-  Record<Exclude<Framework, 'istar-2.0'>, Readonly<Record<string, Type>>>
-> = {
-  kaos: {
-    'kaos.BehavioralGoal': 'goal',
-    'kaos.Softgoal': 'goal',
-    'kaos.DomainProperty': 'goal',
-    // its obstacle analysis (goal-controller#181): obstacle trees
-    'kaosObstacles.Obstacle': 'goal',
-  },
-  nfr: { 'nfr.NFR': 'goal', 'nfr.Operationalization': 'goal' },
-};
-
-/** The node type a kind is held as in a tree, in a dialect's framework; null: in no tree. */
-export const nodeTypeOf = (
-  kind: string,
-  dialect?: Partial<Pick<AnyDialect, 'framework'>>,
-): Type | null => {
-  const framework = otherFrameworkOf(dialect);
-  if (framework) return FRAMEWORK_NODE_TYPES[framework][kind] ?? null;
-  switch (kind) {
-    case 'istar.Goal':
-    case 'istar.Quality':
-      return 'goal';
-    case 'istar.Task':
-      return 'task';
-    case 'istar.Resource':
-      return 'resource';
-    default:
-      return null;
-  }
 };
 
 /** A refinement: the relation it makes, its parent and its child (piStar ids). */
@@ -190,7 +147,7 @@ export function refinementsOf(
   return { byLink, hubs };
 }
 
-/** The kinds a tree holds (a Quality as a goal node). */
+/** The kinds an iStar tree holds (a Quality as a goal node), without a mapper's. */
 export const TREE_KINDS: ReadonlySet<string> = new Set([
   'istar.Goal',
   'istar.Task',
@@ -200,9 +157,10 @@ export const TREE_KINDS: ReadonlySet<string> = new Set([
 
 /**
  * An actor's roots (goal-controller#125), in the model's order: its elements
- * of the tree kinds, but Qualities, that refine nothing (no outgoing
- * refinement link, `linkRelation`). Excluded as today: an element only a
- * Quality qualifies and, in a dialect with `unlinkedResources: 'ignore'`, a
+ * of the tree kinds (iStar's, or a mapper's, goal-controller#215) that refine
+ * nothing (no outgoing refinement link, `linkRelation`). Under the iStar
+ * reading, as today, a Quality is none, nor an element only a Quality
+ * qualifies, nor, in a dialect with `unlinkedResources: 'ignore'`, a
  * Resource with no links at all. An element whose only outgoing links are
  * others (a contribution, a dependency) is a root: before, any outgoing link
  * kept it from being one, so it was in no tree.
@@ -211,12 +169,30 @@ export function actorRoots<EK extends string, LK extends string>(
   model: IstarModel<EK, LK>,
   actorId: string,
   dialect?: RootReading,
+  {
+    isTreeKind = (kind: string) => TREE_KINDS.has(kind),
+    shape = 'istar',
+  }: {
+    /** the kinds a tree holds (default iStar's four) */
+    isTreeKind?: (kind: string) => boolean;
+    /** the reading: iStar's rules, or a tree kind's element that refines nothing */
+    shape?: 'istar' | 'kinds';
+  } = {},
 ): IstarElement<EK>[] {
   const nodes = childrenOf(model, actorId);
   const byId = new Map(nodes.map((node) => [node.id, node]));
+  const refinesNothing = (node: IstarElement<EK>) =>
+    !linksOf(model, node.id).some(
+      (link) =>
+        link.source === node.id &&
+        linkRelation(link as IstarLink<string>) !== null,
+    );
+  if (shape === 'kinds')
+    return nodes.filter(
+      (node) => isTreeKind(node.kind) && refinesNothing(node),
+    );
   return nodes.filter((node) => {
-    if (!TREE_KINDS.has(node.kind) || node.kind === 'istar.Quality')
-      return false;
+    if (!isTreeKind(node.kind) || node.kind === 'istar.Quality') return false;
     const links = linksOf(model, node.id);
     if (
       links.some(
@@ -233,11 +209,7 @@ export function actorRoots<EK extends string, LK extends string>(
       links.length === 0
     )
       return false;
-    return !links.some(
-      (link) =>
-        link.source === node.id &&
-        linkRelation(link as IstarLink<string>) !== null,
-    );
+    return refinesNothing(node);
   });
 }
 

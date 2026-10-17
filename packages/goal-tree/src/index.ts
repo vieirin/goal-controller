@@ -69,14 +69,48 @@
 export {
   GoalTree,
   createEngineMapper,
+  type QueryOf,
   type TreeQuery,
   type EngineMapper,
 } from './GoalTree';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mappers by kind (goal-controller#215)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export {
+  useIstarDefaultNaming,
+  type AfterCreationInput,
+  type ElementInput,
+  type ElementKindsOf,
+  type EngineNaming,
+  type EngineProps,
+  type EntriesFor,
+  type EntryFn,
+  type KindEngineMapper,
+  type LinkEntryFn,
+  type LinkInput,
+  type LinkKindsOf,
+  type ModelOf,
+  type NamingReading,
+  type NodeOf,
+} from './internal/entries';
+export type {
+  IstarNaming,
+  IstarProps,
+  KindModel,
+  KindModelActor,
+  KindModelLink,
+  KindNode,
+  KindProps,
+  ModelElement,
+  ModelRefinement,
+  Naming,
+  Shape,
+} from './types/kindTree';
 export { Model, type ModelNamespace } from './Model';
 export {
-  FRAMEWORK_NODE_TYPES,
   modelShapeProblem,
-  nodeTypeOf,
   refinementsOf,
   type Refinement,
   type RootReading,
