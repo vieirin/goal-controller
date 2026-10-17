@@ -7,6 +7,7 @@ import { describe, it } from 'mocha';
 import { checkOnKey } from '../../support/checkOn';
 import { tropos4as as TROPOS4AS } from '../../../src/engines/tropos4as/definition';
 import { propertyKeys } from '@goal-controller/dialect';
+import { valueProblem } from '@goal-controller/goal-language';
 import {
   readTropos4asModel,
   tropos4as,
@@ -138,6 +139,13 @@ describe('Tropos4AS: the definition', () => {
       check({ attributes: 'clean:boolean, level' }, context),
       null,
     );
+    // #222: a pair without its name too: the check has no clause for it
+    // (the grammar's pair has a name), the value check says it
+    assert.strictEqual(check({ attributes: ':bool' }, context), null);
+    const attributes = TROPOS4AS.properties['tropos4as.Artifact'].find(
+      (p) => p.key === 'attributes',
+    )!;
+    assert.ok(valueProblem(attributes.value, ':bool'));
   });
 });
 
