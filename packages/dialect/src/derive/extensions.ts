@@ -202,7 +202,7 @@ export const extensionCatalog = (
 ];
 
 /** The iStar kind a definition's kind is (an engine's `task` is `istar.Task`). */
-const istarKindOf = (kind: string): string =>
+export const istarKindOf = (kind: string): string =>
   (ISTAR_KIND_OF as Record<string, string>)[kind] ?? kind;
 
 /**

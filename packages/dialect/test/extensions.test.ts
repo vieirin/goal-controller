@@ -4,6 +4,7 @@ import {
   dialectDefinition,
   extensionCatalog,
   hasIds,
+  istarKindOf,
   kindLabel,
   metamodelExtensionOf,
   profileOf,
@@ -129,5 +130,16 @@ describe('definitions with a dialect', () => {
     expect(
       specsFromDefinition(definition, {})['istar.Role']!.map((s) => s.key),
     ).to.deep.equal(['stereotype', 'tag', 'tagValue']);
+  });
+});
+
+describe('istarKindOf', () => {
+  it("is an engine kind's iStar kind, and any other kind as it is", () => {
+    expect(istarKindOf('goal')).to.equal('istar.Goal');
+    expect(istarKindOf('task')).to.equal('istar.Task');
+    expect(istarKindOf('resource')).to.equal('istar.Resource');
+    expect(istarKindOf('quality')).to.equal('istar.Quality');
+    expect(istarKindOf('istar.Goal')).to.equal('istar.Goal');
+    expect(istarKindOf('kaos.Agent')).to.equal('kaos.Agent');
   });
 });
