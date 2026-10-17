@@ -2,15 +2,9 @@
 
 import { kaosExtension } from '@istar-ts/dsm3-kaos';
 import { nfrExtension } from '@istar-ts/dsm3-nfr';
-import { fillOf, type AnyDialect } from '@goal-controller/dialect';
+import type { AnyDialect } from '@goal-controller/dialect';
 import type { IstarModel } from '@istar-ts/core';
-import {
-  DefaultElementComponent,
-  IstarInspector,
-  type ElementComponentProps,
-  type IstarExtension,
-} from '@istar-ts/react';
-import type { ReactElement } from 'react';
+import { IstarInspector, type IstarExtension } from '@istar-ts/react';
 import { nextFrameworkId } from '@/lib/workbench/frameworkOpen';
 import {
   FRAMEWORK_DIALECTS,
@@ -35,43 +29,32 @@ const labelOf = (kind: string): string =>
 
 /**
  * What the workbench adds to a framework's registry parts, from its dialect
- * (goal-controller#171): each listed kind drawn in the dialect's fill unless
- * a colour is saved, and a new one named with its next id (`G3: Behavioral
- * Goal`), so its Notation line names it; kinds sharing a prefix (KAOS's two
- * goals) share its numbering.
+ * (goal-controller#171): a new element named with its next id (`G3:
+ * Behavioral Goal`), so its Notation line names it; kinds sharing a prefix
+ * (KAOS's two goals) share its numbering. Each kind's fill is istar-ts's
+ * (its shape's `fill`, the dialect's too: KAOS_FILL, NFR_FILL).
  */
-export const dialectParts = (definition: AnyDialect): IstarExtension => {
-  function FilledElement(props: ElementComponentProps): ReactElement {
-    const { element } = props;
-    const drawn = element.display?.backgroundColor
-      ? element
-      : {
-          ...element,
-          display: {
-            ...element.display,
-            backgroundColor: fillOf(definition, element.kind),
-          },
-        };
-    return <DefaultElementComponent {...props} element={drawn} />;
-  }
-  return {
+export const dialectParts = (definition: AnyDialect): IstarExtension =>
+  ({
     name: `${definition.id}-dialect`,
     elements: Object.fromEntries(
-      Object.entries(definition.elements).map(([kind, element]) => [
-        kind,
-        {
-          component: FilledElement,
-          ...(element?.prefix && {
-            defaultName: ({ model }: { model: IstarModel }) =>
-              `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
-          }),
-        },
-      ]),
+      Object.entries(definition.elements).flatMap(([kind, element]) =>
+        element?.prefix
+          ? [
+              [
+                kind,
+                {
+                  defaultName: ({ model }: { model: IstarModel }) =>
+                    `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
+                },
+              ],
+            ]
+          : [],
+      ),
     ),
-  } as IstarExtension;
-};
+  }) as IstarExtension;
 
-/** Each framework's look and palette: istar-ts's registry parts for it, then its dialect's. */
+/** Each framework's look and palette: istar-ts's registry parts for it, then its dialect's ids. */
 const EXTENSIONS: Readonly<Record<FrameworkMode, readonly IstarExtension[]>> = {
   kaos: [forCanvas(kaosExtension), dialectParts(FRAMEWORK_DIALECTS.kaos)],
   nfr: [forCanvas(nfrExtension), dialectParts(FRAMEWORK_DIALECTS.nfr)],

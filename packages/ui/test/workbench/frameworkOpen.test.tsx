@@ -8,6 +8,7 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { KAOS_FILL } from '@istar-ts/dsm3-kaos/metamodel';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import ModelDiagram from '@/components/workbench/engines/ModelDiagram';
 import FrameworkNotationView from '@/components/workbench/engines/framework/FrameworkNotationView';
@@ -129,8 +130,8 @@ describe('a model file in its framework (#171)', () => {
     await waitFor(() =>
       expect(container.querySelectorAll('.istar-hub')).toHaveLength(4),
     );
-    // its nodes in the dialect's fill, DSM3's grey (none saves a colour)
-    expect(container.innerHTML.toUpperCase()).toContain('#CDCDCD');
+    // its nodes in KAOS's fill, DSM3's grey, as istar-ts draws it (none saves a colour)
+    expect(container.innerHTML).toContain(`fill: ${KAOS_FILL}`);
   });
 
   it('names a new element with its prefix’s next id, KAOS’s two goal kinds numbered together', () => {

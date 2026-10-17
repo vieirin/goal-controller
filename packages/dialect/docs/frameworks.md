@@ -250,13 +250,18 @@ Each PR of #171 appends its decisions here.
   framework's targets only. A KAOS or NFR model has no piStar toggle and no
   "Convert to…" (desktop and mobile): its framework's canvas is its editor,
   and nothing converts between frameworks.
-- **The canvas: istar-ts's parts, then the dialect's.** `FrameworkDiagram`
+- **The canvas: istar-ts's parts, then the dialect's ids.** `FrameworkDiagram`
   applies `kaosExtension`/`nfrExtension`, then `dialectParts(definition)`:
-  each listed kind in its dialect fill (DSM3's grey for KAOS, white for NFR)
-  unless a colour is saved, and a new element named with its prefix's next
-  id from 1 (`G3: Behavioral Goal`). KAOS's two goal kinds share `G`'s
-  numbering. This answers PR A's question of which kind a new `G` line
-  creates: the palette entry chosen, numbered in the shared sequence.
+  a new element named with its prefix's next id from 1 (`G3: Behavioral
+  Goal`). KAOS's two goal kinds share `G`'s numbering. This answers PR A's
+  question of which kind a new `G` line creates: the palette entry chosen,
+  numbered in the shared sequence. Fills are istar-ts's since 0.13.7: each
+  KAOS and NFR shape carries its `fill` (`KAOS_FILL`, DSM3's grey; `NFR_FILL`,
+  white), which the canvas draws for an element without a saved colour and
+  the palette's icons draw too. The kaos and nfr dialects import the same
+  constants as their `fill` from the `/metamodel` subpaths, so lib and the
+  canvas agree. This replaces PR B's own fill override, which coloured the
+  canvas but not the palette.
 - **Why the extensions are widened, in one place.** The workbench types
   every model, and so its store and `IstarProvider`, as an iStar 2.0 model.
   That is deliberate: a dialect's model keeps its own metamodel, which
