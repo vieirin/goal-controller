@@ -187,7 +187,7 @@ const intProblem = (
 ): string | null => {
   const read = parseValue('int', text);
   if (read.errors.length) return `Not an integer: ${text}`;
-  const n = parseInt(read.value ?? '', 10);
+  const n = read.value ?? NaN;
   if (min !== undefined && n < min) return `At least ${min}`;
   if (max !== undefined && n > max) return `At most ${max}`;
   return null;

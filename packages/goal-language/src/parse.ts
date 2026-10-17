@@ -743,12 +743,15 @@ export const assertionText = (tree: AssertionTree | null): string => {
   }
 };
 
-/** What each value type reads into. */
+/**
+ * What each value type reads into (null: empty). An enum is any word here;
+ * `ValueDataOf` narrows it to a config's options.
+ */
 export type ValueData = {
   assertion: AssertionTree | null;
   expression: ExpressionTree | null;
-  int: string | null;
-  number: string | null;
+  int: number | null;
+  number: number | null;
   bool: boolean | null;
   text: string | null;
   enum: string | null;
@@ -762,8 +765,8 @@ export type ValueData = {
 const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
   assertion: (root: AssertionValue) => toAssertionTree(root.expr),
   expression: (root: ExpressionValue) => toExpressionTree(root.expr),
-  int: (root: IntValue) => root.value ?? null,
-  number: (root: NumberValue) => root.value ?? null,
+  int: (root: IntValue) => (root.value ? Number(root.value) : null),
+  number: (root: NumberValue) => (root.value ? Number(root.value) : null),
   bool: (root: BoolValue) => (root.value ? root.value === 'true' : null),
   text: (root: TextValue) => root.value ?? null,
   enum: (root: EnumValue) => root.value ?? null,

@@ -419,8 +419,8 @@ describe('values', () => {
   });
 
   it('reads each predefined type', () => {
-    assert.deepEqual(parseValue('int', '-3').value, '-3');
-    assert.deepEqual(parseValue('number', '1.5').value, '1.5');
+    assert.deepEqual(parseValue('int', '-3').value, -3);
+    assert.deepEqual(parseValue('number', '1.5').value, 1.5);
     assert.deepEqual(parseValue('bool', 'false').value, false);
     assert.deepEqual(
       parseValue('text', ' any text, here ').value,
