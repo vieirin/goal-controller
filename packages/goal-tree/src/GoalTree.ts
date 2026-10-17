@@ -8,6 +8,8 @@ import {
   type EngineMapper,
 } from './internal/creation';
 import type { MapperDialect } from './internal/engineMapper';
+import type { KindEngineMapper } from './internal/entries';
+import type { KindModel, KindNode, Naming, Shape } from './types/kindTree';
 import {
   allByType as _allByType,
   allGoalsMap as _allGoalsMap,
@@ -30,25 +32,24 @@ import type {
 } from './types/';
 export { createEngineMapper };
 
+/** What a tree's queries need of a node. */
+type QueryNode = { id: string; type: string };
+
 /**
- * Query interface for tree operations
+ * Query interface for tree operations, typed by the tree's nodes: today's
+ * three types (`TreeQuery`), or a mapper by kind's (goal-controller#215).
  */
-export type TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine> = {
+export type QueryOf<TNode extends QueryNode> = {
   /** Get all nodes of a specific type */
-  allByType: ((
-    type: 'goal',
-  ) => Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>) &
-    ((type: 'task') => Array<Task<TTaskEngine, TResourceEngine>>) &
-    ((type: 'resource') => Array<Resource<TResourceEngine>>);
+  allByType: <K extends TNode['type']>(
+    type: K,
+  ) => Array<Extract<TNode, { type: K }>>;
 
   /** Get a map of all goals by their ID */
-  allGoalsMap: () => Map<
-    string,
-    GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-  >;
+  allGoalsMap: () => Map<string, Extract<TNode, { type: 'goal' }>>;
 
   /** Get all leaf goals (goals with tasks) */
-  leafGoals: () => Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  leafGoals: () => Array<Extract<TNode, { type: 'goal' }>>;
 
   /** Get all context variables from the tree (requires execCondition in engine) */
   contextVariables: () => string[];
@@ -57,6 +58,11 @@ export type TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine> = {
   taskAchievabilityVariables: () => string[];
 };
 
+/** Query interface for tree operations */
+export type TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine> = QueryOf<
+  TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
+>;
+
 /**
  * Main GoalTree class representing an iStar goal model
  */
@@ -64,16 +70,14 @@ export class GoalTree<
   TGoalEngine = unknown,
   TTaskEngine = unknown,
   TResourceEngine = unknown,
+  /** its nodes: today's three types, or a mapper by kind's (`KindNode`) */
+  TNode extends QueryNode = TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
 > {
-  private readonly _nodes: Array<
-    TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>
-  >;
+  private readonly _nodes: Array<TNode>;
 
-  public readonly query: TreeQuery<TGoalEngine, TTaskEngine, TResourceEngine>;
+  public readonly query: QueryOf<TNode>;
 
-  private constructor(
-    nodes: Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>,
-  ) {
+  private constructor(nodes: Array<TNode>) {
     this._nodes = nodes;
     this.query = this.createQueryInterface();
   }
@@ -104,9 +108,19 @@ export class GoalTree<
       TActorEngine,
       TLinkEngine
     >,
-  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
-    const nodes = convertToTree(model, mapper);
-    return new GoalTree(nodes);
+  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>;
+  /** The trees of a mapper by kind (goal-controller#215), its nodes typed by kind. */
+  static fromModel<D, P, N extends Naming, A, L, S extends Shape>(
+    model: IStarModel,
+    mapper: KindEngineMapper<D, P, N, A, L, S>,
+  ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode>;
+  static fromModel(
+    model: IStarModel,
+    mapper: EngineMapper<unknown, unknown, unknown> | KindEngineMapper,
+  ): GoalTree<unknown, unknown, unknown, QueryNode> {
+    return new GoalTree(
+      convertToTree(model, mapper as KindEngineMapper) as QueryNode[],
+    );
   }
 
   /**
@@ -139,8 +153,17 @@ export class GoalTree<
     TResourceEngine,
     TActorEngine,
     TLinkEngine
-  > {
-    return buildGoalModel(model, mapper);
+  >;
+  /** The typed IR of a mapper by kind (goal-controller#215): every node and element typed by kind. */
+  static goalModel<D, P, N, A, L, S extends Shape>(
+    model: IStarModel,
+    mapper: KindEngineMapper<D, P, N, A, L, S>,
+  ): KindModel<P, N, A, L, S>;
+  static goalModel(
+    model: IStarModel,
+    mapper: EngineMapper<unknown, unknown, unknown> | KindEngineMapper,
+  ): unknown {
+    return buildGoalModel(model, mapper as KindEngineMapper);
   }
 
   /**
@@ -207,15 +230,16 @@ export class GoalTree<
   // ─────────────────────────────────────────────────────────────────────────────
 
   /** Get all nodes in the tree */
-  get nodes(): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
+  get nodes(): Array<TNode> {
     return this._nodes;
   }
 
   /** Get the root goal node */
-  get root(): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> | undefined {
+  get root(): Extract<TNode, { type: 'goal' }> | undefined {
     return this._nodes.find(
-      (node): node is GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> =>
-        node.type === 'goal' && node.properties.root === true,
+      (node): node is Extract<TNode, { type: 'goal' }> =>
+        node.type === 'goal' &&
+        (node as { properties?: { root?: boolean } }).properties?.root === true,
     );
   }
 
@@ -261,8 +285,14 @@ export class GoalTree<
   static allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
     type: Type,
-  ): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
-    return _allByType(nodes, type);
+  ): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  /** A mapper by kind's nodes of a type (goal-controller#215): its `as`. */
+  static allByType<TNode extends QueryNode, K extends TNode['type']>(
+    nodes: readonly TNode[],
+    type: K,
+  ): Array<Extract<TNode, { type: K }>>;
+  static allByType(nodes: readonly QueryNode[], type: string): QueryNode[] {
+    return _allByType(nodes as never, type as Type);
   }
 
   /**
@@ -280,8 +310,12 @@ export class GoalTree<
    */
   static allGoalsMap<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
-    return _allGoalsMap(nodes);
+  ): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  static allGoalsMap<TNode extends QueryNode>(
+    nodes: readonly TNode[],
+  ): Map<string, Extract<TNode, { type: 'goal' }>>;
+  static allGoalsMap(nodes: readonly QueryNode[]): Map<string, QueryNode> {
+    return _allGoalsMap(nodes as never);
   }
 
   /**
@@ -299,8 +333,12 @@ export class GoalTree<
    */
   static leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
-    return _leafGoals(nodes);
+  ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
+  static leafGoals<TNode extends QueryNode>(
+    nodes: readonly TNode[],
+  ): Array<Extract<TNode, { type: 'goal' }>>;
+  static leafGoals(nodes: readonly QueryNode[]): QueryNode[] {
+    return _leafGoals(nodes as never);
   }
 
   /**
@@ -319,8 +357,10 @@ export class GoalTree<
    */
   static contextVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): string[] {
-    return getContextVariables(nodes);
+  ): string[];
+  static contextVariables(nodes: readonly QueryNode[]): string[];
+  static contextVariables(nodes: readonly QueryNode[]): string[] {
+    return getContextVariables(nodes as never);
   }
 
   /**
@@ -339,42 +379,23 @@ export class GoalTree<
    */
   static taskAchievabilityVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
     nodes: GoalTreeArray<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): string[] {
-    return getTaskAchievabilityVariables(nodes);
+  ): string[];
+  static taskAchievabilityVariables(nodes: readonly QueryNode[]): string[];
+  static taskAchievabilityVariables(nodes: readonly QueryNode[]): string[] {
+    return getTaskAchievabilityVariables(nodes as never);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Private Methods
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private createQueryInterface(): TreeQuery<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine
-  > {
-    const nodes = this._nodes;
-
-    // Create properly typed allByType function using overloads
-    function allByType(
-      type: 'goal',
-    ): Array<GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>>;
-    function allByType(type: 'task'): Array<Task<TTaskEngine, TResourceEngine>>;
-    function allByType(type: 'resource'): Array<Resource<TResourceEngine>>;
-    function allByType(
-      type: 'goal' | 'task' | 'resource',
-    ): Array<TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
-      return _allByType(nodes, type);
-    }
-
+  private createQueryInterface(): QueryOf<TNode> {
+    const nodes = this._nodes as never;
     return {
-      allByType,
-
-      allGoalsMap: () => _allGoalsMap(nodes),
-
-      leafGoals: () => _leafGoals(nodes),
-
+      allByType: (type) => _allByType(nodes, type as Type) as never,
+      allGoalsMap: () => _allGoalsMap(nodes) as never,
+      leafGoals: () => _leafGoals(nodes) as never,
       contextVariables: () => getContextVariables(nodes),
-
       taskAchievabilityVariables: () => getTaskAchievabilityVariables(nodes),
     };
   }
