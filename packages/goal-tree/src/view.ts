@@ -97,7 +97,8 @@ export type ViewLink = {
   kind: string;
   /**
    * its ends' keys (a target dependum's too: a dependency's link line names
-   * it); null: an end the view doesn't list (an actor, an extension's kind)
+   * it; an n-ary refinement's leg's, the goal its hub refines); null: an end
+   * the view doesn't list (an actor, an extension's kind)
    */
   source: string | null;
   target: string | null;
@@ -367,7 +368,11 @@ export function goalView(
     iStarId: link.id,
     kind: link.kind,
     source: keyOf(link.source) ?? null,
-    target: endKeyOf(link.target) ?? null,
+    // a leg's hub is no line: the goal its refinement refines is (#181)
+    target:
+      (refined.hubs.has(link.target)
+        ? keyOf(refined.byLink.get(link.id)?.parent)
+        : endKeyOf(link.target)) ?? null,
     ends: {
       source: {
         iStarId: link.source,

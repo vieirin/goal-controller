@@ -201,6 +201,21 @@ export type ValueConfig =
     }
   /** ids of elements of a kind, comma-separated */
   | { type: 'refList'; kind: DialectKind }
+  /**
+   * one element's id, of one of these kinds (a resolution's anchor goal):
+   * an id the model lacks, or another kind's, is a problem
+   */
+  | { type: 'reference'; kinds: readonly DialectKind[] }
+  /**
+   * a sentence of a formal language, tagged with it (`ltl`: KAOS's
+   * `FormalSpec`): read as text, which nothing checks yet
+   */
+  | { type: 'formula'; language: string }
+  /**
+   * a probability, in [0, 1]: a decimal (`0.8`, `.8`) or a percentage
+   * (`80%`), kept as written
+   */
+  | { type: 'probability' }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
   | { type: 'annotatedName' }
@@ -248,6 +263,18 @@ export type AssertionPrefix = 'assertion condition' | 'assertion trigger';
 export type ResourceCandidates = { resource: string; category: string };
 
 export type ValueType = ValueConfig['type'];
+
+/**
+ * A `probability` value as a number: a decimal (`0.8`, `.8`, `1`) or a
+ * percentage (`80%`, `20.00%`, as KAOSTools writes them); null when it is
+ * neither, or outside [0, 1].
+ */
+export const probabilityOf = (text: string): number | null => {
+  const read = /^\s*([0-9]+(?:\.[0-9]*)?|\.[0-9]+)\s*(%?)\s*$/.exec(text);
+  if (!read) return null;
+  const value = Number(read[1]) / (read[2] ? 100 : 1);
+  return value <= 1 ? value : null;
+};
 
 export type EnumOption = {
   value: string;
@@ -970,11 +997,22 @@ export type ExtensionNodeKindOf<E> = E extends {
       : never
   : never;
 
-/** The kinds a definition may give properties: iStar's, those it lists, its extension's nodes. */
+/** The hubs of an extension's n-ary links (`<kind>Hub`). */
+export type ExtensionHubKindOf<E> = E extends {
+  links: readonly (infer X)[];
+}
+  ? X extends { kind: infer N extends string; arity: 'n' }
+    ? `${N}Hub`
+    : never
+  : never;
+
+/** The kinds a definition may give properties: iStar's, those it lists, its extension's nodes and hubs. */
 export type PropertyKindOf<D> =
   | ElementKind
   | (D extends { elements: infer L } ? keyof L & string : never)
-  | (D extends { extension: infer E } ? ExtensionNodeKindOf<E> : never)
+  | (D extends { extension: infer E }
+      ? ExtensionNodeKindOf<E> | ExtensionHubKindOf<E>
+      : never)
   | (D extends { framework: infer F extends keyof typeof FRAMEWORK_KINDS }
       ? FrameworkElementKind<F>
       : never);
@@ -1060,20 +1098,42 @@ const checkNativeFiles = (
 };
 
 /**
+ * The kinds a dialect of a framework besides iStar 2.0 may name: its root's,
+ * and its extension's (goal-controller#181), its n-ary links' hubs, legs and
+ * ends included. Throws why the extension isn't one of the framework's
+ * (`defineExtension`'s checks, against the root's kinds).
+ */
+const frameworkKinds = (
+  framework: Exclude<Framework, 'istar-2.0'>,
+  extension: ExtensionDefinition | undefined,
+): { elements: readonly string[]; links: readonly string[] } => {
+  const root = FRAMEWORK_KINDS[framework];
+  if (!extension) return root;
+  defineExtension(extension, undefined, framework);
+  return {
+    elements: [
+      ...root.elements,
+      ...extensionNodeKinds(extension),
+      ...extensionHubKinds(extension),
+    ],
+    links: [...root.links, ...extensionLinkKinds(extension)],
+  };
+};
+
+/**
  * A dialect of a framework besides iStar 2.0 (goal-controller#171), as
- * iStar's rules don't check it: its elements are its root's node kinds, each
- * prefix one or two capitals (not `X` nor `W`; kinds may share one, as KAOS's
- * goals share `G`); it has no extension, actors or bracket notation, which
- * are iStar's.
+ * iStar's rules don't check it: its elements are its root's node kinds or its
+ * extension's, each prefix one or two capitals (not `X` nor `W`; kinds may
+ * share one, as KAOS's goals share `G`); it has no actors or bracket
+ * notation, which are iStar's.
  */
 const checkFrameworkDialect = (
   definition: AnyDialect,
   framework: string,
-  own: (typeof FRAMEWORK_KINDS)[keyof typeof FRAMEWORK_KINDS],
+  own: { elements: readonly string[] },
   fail: (why: string) => never,
 ) => {
   for (const [field, given] of [
-    ['extension', definition.extension],
     ['actors', definition.actors],
     ['notation', definition.notation],
   ] as const)
@@ -1163,13 +1223,24 @@ export const defineDialect = <const D extends AnyDialect>(
   const framework = definition.framework ?? DEFAULT_FRAMEWORK;
   if (!(FRAMEWORKS as readonly string[]).includes(framework))
     fail(`unknown framework ${String(framework)}`);
-  const own = framework === 'istar-2.0' ? null : FRAMEWORK_KINDS[framework];
-  if (own) checkFrameworkDialect(definition, framework, own, fail);
-  // the kinds it may name: iStar's, and its extension's nodes
-  const extensionKinds = extensionNodeKinds(definition.extension);
+  let own: { elements: readonly string[]; links: readonly string[] } | null =
+    null;
+  if (framework !== 'istar-2.0') {
+    try {
+      own = frameworkKinds(framework, definition.extension);
+    } catch (error) {
+      fail(`extension: ${(error as Error).message}`);
+    }
+    checkFrameworkDialect(definition, framework, own!, fail);
+  }
+  // the kinds it may name: iStar's, and its extension's nodes and hubs
+  const extensionKinds = [
+    ...extensionNodeKinds(definition.extension),
+    ...extensionHubKinds(definition.extension),
+  ];
   const isKind = (kind: string) =>
     own
-      ? (own.elements as readonly string[]).includes(kind)
+      ? own.elements.includes(kind)
       : kind in ISTAR_KIND_OF || extensionKinds.includes(kind);
   for (const [kind, element] of Object.entries(own ? {} : elements)) {
     // a namespaced kind (not a modelling dialect's `istar.Goal`) is its extension's
@@ -1276,9 +1347,7 @@ export const defineDialect = <const D extends AnyDialect>(
         if (list.some((p) => p.key === key))
           fail(`${kind}.${key}: the key ${what}`);
   for (const [kind, list] of Object.entries(definition.links ?? {})) {
-    if (
-      own ? !(own.links as readonly string[]).includes(kind) : !isLinkKind(kind)
-    )
+    if (own ? !own.links.includes(kind) : !isLinkKind(kind))
       fail(
         `links: unknown link kind ${kind}${own ? ` (not one of ${framework}'s)` : ''}`,
       );
@@ -1387,6 +1456,27 @@ export const extensionNodeKinds = (
     )
     .map((element) => element.kind);
 
+/** The hubs istar-ts generates for an extension's n-ary links (`<kind>Hub`). */
+export const extensionHubKinds = (
+  extension: Pick<ExtensionDefinition, 'links'> | undefined,
+): string[] =>
+  (extension?.links ?? [])
+    .filter((link) => link.arity === 'n')
+    .map((link) => `${link.kind}Hub`);
+
+/**
+ * The link kinds an extension's models have: its own, and for an n-ary one
+ * the legs and the end istar-ts generates (`<kind>Start`, `<kind>End`).
+ */
+export const extensionLinkKinds = (
+  extension: Pick<ExtensionDefinition, 'links'> | undefined,
+): string[] =>
+  (extension?.links ?? []).flatMap((link) =>
+    link.arity === 'n'
+      ? [link.kind, `${link.kind}Start`, `${link.kind}End`]
+      : [link.kind],
+  );
+
 /** The kinds a value names its elements by (an assertion's, an expression's, a refList's). */
 export const referencedKinds = (config: ValueConfig): readonly string[] =>
   config.type === 'assertion'
@@ -1395,7 +1485,9 @@ export const referencedKinds = (config: ValueConfig): readonly string[] =>
       ? (config.resolves ?? [])
       : config.type === 'refList'
         ? [config.kind]
-        : [];
+        : config.type === 'reference'
+          ? config.kinds
+          : [];
 
 /**
  * A link kind a dialect may give properties: iStar's, or an extension's (a
@@ -1459,6 +1551,13 @@ export type ExtensionLinkDefinition = {
   behavesLike?: string;
   rules?: LinkRulesDefinition;
   pistarType?: string;
+  /**
+   * `'n'`: an n-ary link, drawn as a hub with legs (KAOS's refinement):
+   * istar-ts generates its hub, leg and end kinds (`<kind>Hub`,
+   * `<kind>Start`, `<kind>End`), which a dialect's `properties` (the hub)
+   * and `links` (the legs and the end) may name
+   */
+  arity?: 'n';
   /** how it is drawn (presentation only): its dash and target marker (SVG path data) */
   line?: {
     dash: 'continuous' | 'dashed' | 'dotted';
@@ -1505,29 +1604,44 @@ const CATEGORIES = ['node', 'actor', '*'];
 /**
  * Type-checks and freezes a dialect, and checks what the types cannot: its
  * kinds are in its namespace, and every kind, grouper and link end it names is
- * one iStar 2.0, `base` (the dialect it extends, if any) or it declares.
+ * one its framework's root (iStar 2.0 by default; KAOS's or NFR's,
+ * goal-controller#181), `base` (the dialect it extends, if any) or it
+ * declares. The root's namespace is the root's (`kaos.`), as istar-ts's
+ * `extendMetamodel` reserves it.
  */
 export const defineExtension = <const E extends ExtensionDefinition>(
   extension: E,
   base?: ExtensionDefinition,
+  framework: Framework = DEFAULT_FRAMEWORK,
 ): DeepReadonly<E> => {
   const fail = (why: string) => {
     throw new Error(`${extension.name}: ${why}`);
   };
+  const root =
+    framework === 'istar-2.0'
+      ? {
+          elements: [...ISTAR_ACTOR_KINDS, ...ISTAR_NODE_KINDS],
+          links: ISTAR_LINK_KINDS,
+        }
+      : FRAMEWORK_KINDS[framework];
+  if (
+    framework !== 'istar-2.0' &&
+    root.elements.some((kind) => kind.startsWith(`${extension.name}.`))
+  )
+    fail(`its namespace is ${framework}'s root's`);
   const own = [...extension.elements, ...extension.links].map((k) => k.kind);
   for (const kind of own)
     if (!kind.startsWith(`${extension.name}.`))
       fail(`${kind} is not in the ${extension.name} namespace`);
   const elementKinds = [
-    ...ISTAR_ACTOR_KINDS,
-    ...ISTAR_NODE_KINDS,
+    ...root.elements,
     ...(base?.elements ?? []).map((e) => e.kind),
     ...extension.elements.map((e) => e.kind),
   ] as string[];
   const linkKinds = [
-    ...ISTAR_LINK_KINDS,
-    ...(base?.links ?? []).map((l) => l.kind),
-    ...extension.links.map((l) => l.kind),
+    ...root.links,
+    ...extensionLinkKinds(base),
+    ...extensionLinkKinds(extension),
   ] as string[];
   const groupers = { ...base?.groupers, ...extension.groupers };
   for (const element of extension.elements) {

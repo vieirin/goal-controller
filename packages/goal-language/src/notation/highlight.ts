@@ -190,7 +190,8 @@ const styled = (tokens: IToken[], offset = 0): Highlight[] => {
   return highlights;
 };
 
-const START: Record<ValueConfig['type'], LexerStart> = {
+/** Where a value of a type is lexed from (a type no grammar reads, as text). */
+export const START: Readonly<Record<ValueConfig['type'], LexerStart>> = {
   assertion: 'assertion',
   expression: 'expression',
   int: 'int',
@@ -200,6 +201,10 @@ const START: Record<ValueConfig['type'], LexerStart> = {
   enum: 'enum',
   refList: 'refList',
   pairList: 'pairList',
+  // read as text: their syntax is no grammar's (yet)
+  reference: 'text',
+  formula: 'text',
+  probability: 'text',
   annotatedName: 'annotatedName',
   ocl: 'ocl',
 };

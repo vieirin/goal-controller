@@ -197,6 +197,34 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C>>,
   ): Built<K, 'refList', P, never, { kind: E }> =>
     build(key, 'refList', rest, [], { kind }) as never,
+  /** one element's id, of one of these kinds (an anchor goal) */
+  reference: <
+    const K extends string,
+    const E extends readonly DialectKind[],
+    const P extends PropertyOptions<C>,
+  >(
+    key: K,
+    kinds: E,
+    rest: Exact<P, PropertyOptions<C>>,
+  ): Built<K, 'reference', P, never, { kinds: E }> =>
+    build(key, 'reference', rest, [], { kinds }) as never,
+  /** a sentence of a formal language, tagged with it (`ltl`); nothing checks it yet */
+  formula: <
+    const K extends string,
+    const L extends string,
+    const P extends PropertyOptions<C>,
+  >(
+    key: K,
+    language: L,
+    rest: Exact<P, PropertyOptions<C>>,
+  ): Built<K, 'formula', P, never, { language: L }> =>
+    build(key, 'formula', rest, [], { language }) as never,
+  /** a probability in [0, 1]: `0.8`, `.8` or `80%`, kept as written */
+  probability: <const K extends string, const P extends PropertyOptions<C>>(
+    key: K,
+    rest: Exact<P, PropertyOptions<C>>,
+  ): Built<K, 'probability', P, never> =>
+    build(key, 'probability', rest, []) as never,
   /** `name:value` pairs, comma-separated */
   pairList: <
     const K extends string,

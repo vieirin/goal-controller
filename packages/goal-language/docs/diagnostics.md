@@ -269,6 +269,9 @@ first.
 | `T1 is a task, not a goal` | error | `refList` naming another kind |
 | `name:value pairs, comma-separated (x:3, y:2)` | error | `pairList` that doesn't parse |
 | `t: Not an integer: x` | error | `pairList` value not of its type |
+| `An element's id, not G1, G2` | error | `reference` that is no single id |
+| `G9 is not an element of this model`, `A1 is a kaos.Agent, not a kaos.BehavioralGoal` | error | `reference` naming a missing element, or one of a kind it doesn't take |
+| `A probability in [0, 1] (0.8, .8 or 80%), not 120%` | error | `probability` that is neither a decimal nor a percentage in [0, 1] |
 
 ```goal-check edgeV2
 G1: Deliver

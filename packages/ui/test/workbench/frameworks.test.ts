@@ -23,7 +23,13 @@ import {
   NFR_ELEMENT_KINDS,
   NFR_LINK_KINDS,
 } from '@istar-ts/dsm3-nfr/metamodel';
-import { FRAMEWORK_KINDS, FRAMEWORKS } from '@goal-controller/dialect';
+import {
+  defineExtension,
+  extensionHubKinds,
+  extensionLinkKinds,
+  FRAMEWORK_KINDS,
+  FRAMEWORKS,
+} from '@goal-controller/dialect';
 import { istar4RationalAgents } from '@goal-controller/lib';
 import { recordedFramework, withModelSettings } from '@/lib/project';
 import {
@@ -115,6 +121,41 @@ describe('frameworks', () => {
         host.elements.has(kind),
       ),
     ).toBe(true);
+  });
+
+  it("hosts a framework dialect's extension on its root: kinds, an n-ary link's hub and legs (#181)", () => {
+    const voting = defineExtension(
+      {
+        name: 'vote',
+        label: 'Voting',
+        elements: [{ kind: 'vote.Ballot', category: 'node' }],
+        links: [
+          {
+            kind: 'vote.TallyLink',
+            arity: 'n',
+            rules: {
+              sources: ['kaos.BehavioralGoal'],
+              targets: ['vote.Ballot'],
+            },
+          },
+        ],
+        groupers: {},
+        stereotypes: [],
+        taggedValues: [],
+        defaultTags: [],
+      },
+      undefined,
+      'kaos',
+    );
+    const host = hostFor('kaos', voting);
+    expect(host.framework).toBe('kaos');
+    expect(host.elements.has('kaos.BehavioralGoal')).toBe(true);
+    expect(host.elements.has('vote.Ballot')).toBe(true);
+    // the kinds istar-ts generates, by the names the dialect gives properties
+    expect(host.elements.has('vote.TallyLinkHub')).toBe(true);
+    for (const kind of extensionLinkKinds(voting))
+      expect(host.links.has(kind), kind).toBe(true);
+    expect(extensionHubKinds(voting)).toEqual(['vote.TallyLinkHub']);
   });
 
   it('writes a new iStar model as it always did, and records another framework', () => {

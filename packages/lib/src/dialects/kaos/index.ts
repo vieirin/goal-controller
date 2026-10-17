@@ -5,8 +5,10 @@
  * kinds are the KAOS root metamodel's, every node on the paper (KAOS has no
  * actors). Goals carry DSM3's eight properties, a refinement its three (on
  * its hub, where DSM3 saves them) and a conflict its boundary condition, as
- * istar-ts's schemas declare them; all are free text, as DSM3 has them
- * (goal-controller#171, decisions in packages/dialect/docs/frameworks.md).
+ * istar-ts's schemas declare them (goal-controller#171). istar-ts keeps them
+ * as text; this dialect gives some a vocabulary, each from one source
+ * (goal-controller#181): a value outside it is a Problem, written back as it
+ * was. Decisions in packages/dialect/docs/frameworks.md.
  *
  * In the Notation view goals are `G`, agents `A` and domain properties `DP`;
  * there is no bracket notation (a KAOS goal's name keeps its brackets,
@@ -37,16 +39,17 @@ import {
 const FILL = KAOS_FILL;
 
 /**
- * A schema's keys, in its order, each a free-text property with its help:
- * a key the schema gains and this dialect doesn't explain doesn't compile.
+ * A schema's keys, in its order, each typed here: a key the schema gains and
+ * this dialect doesn't type doesn't compile.
  */
-const textProperties = <S extends object>(
+const schemaProperties = <S extends object>(
   shape: S,
-  help: { readonly [K in keyof S]: string },
+  typed: { readonly [K in keyof S]: PropertyDefinition },
 ): PropertyDefinition[] =>
-  (Object.keys(shape) as (keyof S & string)[]).map((key) =>
-    property.text(key, { help: help[key] }),
-  );
+  (Object.keys(shape) as (keyof S & string)[]).map((key) => typed[key]);
+
+/** A free-text property, as DSM3 has every one. */
+const text = (key: string, help: string) => property.text(key, { help });
 
 /** what piStar gives every element (DSM3 too): a description */
 const DESCRIPTION = property.text('Description', {
@@ -54,41 +57,109 @@ const DESCRIPTION = property.text('Description', {
 });
 
 /**
- * DSM3's eight goal properties (language_kaos_metamodel.js), in its order.
- * Neither DSM3 nor the KAOS literature fixes a vocabulary for any of them
- * (van Lamsweerde's goal attributes are free annotations), so none is an enum.
+ * The vocabularies, one source each (goal-controller#181; the log in
+ * frameworks.md, "KAOS stress test"). `''` is "not set".
  */
+export const KAOS_VOCABULARIES = {
+  /**
+   * a goal's type: van Lamsweerde, *Requirements Engineering* (Wiley 2009),
+   * ch. 7: the behavioural goals' patterns Achieve, Cease, Maintain, Avoid,
+   * and Optimize for soft goals; with DSM3's `softgoal`, which DSM3 presets
+   * on a softgoal
+   */
+  Type: ['Achieve', 'Cease', 'Maintain', 'Avoid', 'Optimize', 'softgoal'],
+  /**
+   * a goal's category: van Lamsweerde and Letier, TSE 26(10) 2000, the goal
+   * categories its obstacle categories come from (Non-satisfaction,
+   * Non-information, Inaccuracy, Hazard, Threat)
+   */
+  Category: ['Satisfaction', 'Information', 'Accuracy', 'Safety', 'Security'],
+  /**
+   * a goal's priority, an ordinal: no KAOS source fixes its levels (the
+   * book's and DSM3's are free), so three, highest first
+   */
+  Priority: ['high', 'medium', 'low'],
+  /**
+   * a refinement's tactic: the refinement patterns of Darimont and van
+   * Lamsweerde (FSE'96) as Cailliau and van Lamsweerde (RE'12, Table I)
+   * propagate probabilities through them
+   */
+  Tactic: [
+    'milestone-driven',
+    'case-driven',
+    'guard-introduction',
+    'divide-and-conquer',
+    'uncontrollability',
+    'unmonitorability',
+  ],
+} as const;
+
+/** A property whose values are a vocabulary's (`''`: not set). */
+const vocabulary = (
+  key: keyof typeof KAOS_VOCABULARIES,
+  help: string,
+): PropertyDefinition =>
+  property.enum(key, ['', ...KAOS_VOCABULARIES[key]], { help });
+
+/**
+ * KAOS's formal specifications, in real-time linear temporal logic (the
+ * book, ch. 17); a `formula` tagged `ltl`, which nothing checks yet
+ */
+const formalSpec = (help: string) =>
+  property.formula('FormalSpec', 'ltl', { help });
+
+/** DSM3's eight goal properties (language_kaos_metamodel.js), in its order. */
 const GOAL = [
-  ...textProperties<KaosGoalProperties>(behavioralGoalProperties.shape, {
-    Type: 'its type: a behavioural goal’s pattern (Achieve, Maintain, Avoid, …), or softgoal',
-    Category:
-      'its category (functional, or a quality: safety, security, performance, …)',
-    Source: 'where it comes from: a document, a stakeholder',
-    Priority: 'how much it matters, against the others',
-    Issue: 'what is still open about it',
-    FormalSpec:
-      'its formal specification (KAOS writes it in real-time temporal logic)',
-    FitCriterion: 'how to tell it is satisfied: a measurable criterion',
-    Stability: 'how likely it is to change',
+  ...schemaProperties<KaosGoalProperties>(behavioralGoalProperties.shape, {
+    Type: vocabulary(
+      'Type',
+      'its type: a behavioural goal’s pattern (Achieve, Cease, Maintain, Avoid), Optimize, or softgoal',
+    ),
+    Category: vocabulary(
+      'Category',
+      'its category: what it is about (satisfaction, information, accuracy, safety, security)',
+    ),
+    Source: text('Source', 'where it comes from: a document, a stakeholder'),
+    Priority: vocabulary(
+      'Priority',
+      'how much it matters, against the others: high, medium, low',
+    ),
+    Issue: text('Issue', 'what is still open about it'),
+    FormalSpec: formalSpec(
+      'its formal specification, in real-time linear temporal logic',
+    ),
+    FitCriterion: text(
+      'FitCriterion',
+      'how to tell it is satisfied: a measurable criterion',
+    ),
+    Stability: text('Stability', 'how likely it is to change'),
   }),
   DESCRIPTION,
 ];
 
 /** a refinement's, on its hub (no line: the inspector edits them) */
-const REFINEMENT = textProperties<KaosRefinementProperties>(
+const REFINEMENT = schemaProperties<KaosRefinementProperties>(
   refinementProperties.shape,
   {
-    SysRef: 'the system (version) the refinement is for',
-    Status: 'where the refinement stands',
-    Tactic: 'the refinement tactic it applies (by cases, by milestones, …)',
+    SysRef: text(
+      'SysRef',
+      'the system reference: the design option the refinement belongs to (Heaven and Letier, RE’11)',
+    ),
+    Status: text('Status', 'where the refinement stands'),
+    Tactic: vocabulary(
+      'Tactic',
+      'the refinement pattern it applies (milestone-driven, case-driven, …); none is milestone-driven',
+    ),
   },
 );
 
-const CONFLICT = textProperties<KaosConflictProperties>(
+const CONFLICT = schemaProperties<KaosConflictProperties>(
   conflictProperties.shape,
   {
-    BoundaryCondition:
+    BoundaryCondition: text(
+      'BoundaryCondition',
       'the condition under which the two can’t both be satisfied',
+    ),
   },
 );
 

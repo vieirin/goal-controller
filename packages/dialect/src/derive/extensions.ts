@@ -37,6 +37,7 @@ export type MetamodelExtensionData = {
     behavesLike?: string;
     rules?: LinkRulesDefinition;
     pistarType?: string;
+    arity?: 'n';
   }[];
 };
 
@@ -56,8 +57,8 @@ export const metamodelExtensionOf = (
       defined({ kind, label, category, behavesLike, pistarType, size }),
   ),
   links: extension.links.map(
-    ({ kind, label, behavesLike, rules, pistarType }) =>
-      defined({ kind, label, behavesLike, rules, pistarType }),
+    ({ kind, label, behavesLike, rules, pistarType, arity }) =>
+      defined({ kind, label, behavesLike, rules, pistarType, arity }),
   ),
 });
 

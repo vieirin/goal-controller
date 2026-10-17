@@ -66,10 +66,11 @@ applies iStar's rules only when the framework is iStar 2.0:
 
 | Rule | iStar 2.0 | KAOS, NFR |
 | --- | --- | --- |
-| kinds named in `elements`, `properties` and references | `goal`, `task`, `resource`, `quality` and the extension's node kinds | the root's element kinds (`FRAMEWORK_KINDS[f].elements`), with the hub that an n-ary link generates (`kaos.RefinementLinkHub`) |
+| kinds named in `elements`, `properties` and references | `goal`, `task`, `resource`, `quality` and the extension's node kinds | the root's element kinds (`FRAMEWORK_KINDS[f].elements`), with the hub that an n-ary link generates (`kaos.RefinementLinkHub`), and the extension's node kinds and hubs |
 | id prefixes | `G`, `T`, `R`, `AT` for iStar's kinds; one or two capitals, unique, for an extension's | one or two capitals other than `X` and `W`; kinds may share a prefix (KAOS's two goal kinds both use `G`) |
-| `links` keys | iStar's link kinds or namespaced kinds | the root's link kinds (`FRAMEWORK_KINDS[f].links`) |
-| `extension`, `actors`, `notation` | allowed | none |
+| `links` keys | iStar's link kinds or namespaced kinds | the root's link kinds (`FRAMEWORK_KINDS[f].links`), legs and ends included, and the extension's |
+| `extension` | allowed | allowed, extending the root (#181) |
+| `actors`, `notation` | allowed | none |
 | every element has an id prefix, or none does | yes | yes |
 
 `PropertyKindOf` accepts the framework's kinds at the type level. A kind that
@@ -365,3 +366,88 @@ Each PR of #171 appends its decisions here.
   properties: the diagram's inspector is istar-ts's, so nfrprop's
   `initialLabel` is a property line in its Notation view, typed there by its
   dialect. More than one strategy per NFR model. KAOS's FormalSpec as LTL.
+
+## KAOS stress test (goal-controller#181)
+
+Cailliau's London Ambulance (KAOSTools) and the Brussels ambulance
+dispatching corpus (ADS) bring obstacle analysis, a textual KAOS and
+RE'12's quantities. The work is split into three layers: istar-ts owns the
+structure (istar-ts#20), the `kaos` dialect owns the vocabularies, and an
+engine's dialect (`kaosprop`) owns its quantities. Results and the attempts
+log are in #182.
+
+### PR E: framework dialects extend their root; the typed `kaos` dialect
+
+- **A framework dialect may declare `extension`.** PR A's rule forbade it.
+  Its kinds extend the root through `hostFor(framework, extension)`, which
+  already took an extension. `defineExtension(extension, base, framework)`
+  checks a framework's extension against that root's kinds: link ends and
+  `behavesLike` name the root's kinds or the extension's, never iStar's.
+  The root's namespace (`kaos.`) is the root's, as istar-ts's
+  `extendMetamodel` reserves it, so an extension's kinds are namespaced on
+  their own (`vote.Ballot`). `actors` and `notation` stay iStar's.
+- **An extension link may be n-ary** (`arity: 'n'`, passed to istar-ts
+  through `metamodelExtensionOf`). istar-ts generates its hub, legs and end
+  (`<kind>Hub`, `<kind>Start`, `<kind>End`). The dialect may give the hub
+  `properties`, and the legs and the end `links`, as it already could for
+  the root's `kaos.RefinementLinkStart`. `extensionHubKinds` and
+  `extensionLinkKinds` list them, and the type level knows the hub
+  (`ExtensionHubKindOf`).
+- **`FRAMEWORK_KINDS` stays data.** The dialect package keeps no
+  dependencies (PR A), and the ui test pins the table to the roots. The
+  obstacle-analysis kinds join it when istar-ts#20 ships. Agreed with red,
+  as a proposal only: goal-controller reads every KAOS model with KAOS plus
+  the obstacle analysis (`FRAMEWORK_ROOTS.kaos = KAOS_OBSTACLES`), since
+  obstacles are KAOS-the-language, not one dialect's.
+- **Three generic value types:**
+  - `reference`: one element id, of the given `kinds`;
+  - `formula`: text with a language tag, which nothing checks yet;
+  - `probability`: `0.8`, `.8` or `80%`, in [0, 1]; `probabilityOf` reads
+    it as a number.
+
+  None has a grammar rule. They lex as `text` (`highlight.ts`'s `START`
+  map, which the language server uses too), and `valueProblem` checks
+  them. The inspector edits `formula` as long text and the other two as
+  text. The `kaos` dialect uses `formula` (`FormalSpec`, tagged `ltl`).
+  `reference` is for `Anchor` and `probability` is for kaosprop.
+- **Vocabularies, one source each** (`KAOS_VOCABULARIES` in lib's `kaos`
+  dialect):
+
+  | Key | On | Values | Source |
+  | --- | --- | --- | --- |
+  | `Type` | goals | Achieve, Cease, Maintain, Avoid, Optimize, softgoal | van Lamsweerde, *Requirements Engineering* (2009), ch. 7, the behavioural goal patterns and Optimize; `softgoal` is DSM3's preset on softgoals |
+  | `Category` | goals | Satisfaction, Information, Accuracy, Safety, Security | van Lamsweerde and Letier, TSE 26(10) 2000: the goal categories its obstacle categories (Non-satisfaction, Non-information, Inaccuracy, Hazard, Threat) come from |
+  | `Priority` | goals | high, medium, low | none: no KAOS source fixes the levels (the book's and DSM3's are free). An ordinal of three is our choice, and a source can replace it |
+  | `Tactic` | refinement hubs | milestone-driven, case-driven, guard-introduction, divide-and-conquer, uncontrollability, unmonitorability | Darimont and van Lamsweerde, FSE'96 (refinement patterns), as Cailliau and van Lamsweerde, RE'12, Table I propagate through them; no tactic reads as milestone-driven |
+  | `FormalSpec` | goals | a `formula`, `ltl` | KAOS's real-time linear temporal logic (the book, ch. 17); no checker (the deferred "FormalSpec → LTL") |
+
+  `Source`, `Issue`, `FitCriterion`, `Stability`, `SysRef`, `Status` and
+  `BoundaryCondition` stay free text. `SysRef`'s help now says what it is:
+  RE'11's system reference, the design option a refinement belongs to.
+- **A value outside a vocabulary is a Problem, not a parse error.** It is
+  the existing enum diagnostic (`One of …, not Achive`, an error on the
+  property line), and the Notation view writes the value back as read.
+  DSM3's welcome model has only empty values and `softgoal`, so it lints
+  clean and saves byte-identically. This supersedes PR C's "KAOS properties
+  are free text".
+- **Nothing quantitative on the plain `kaos` dialect.** `RSR`, `ESR` and
+  `Probability` are kaosprop's (PR G), and the plain mode keeps them as
+  unknown keys, untouched.
+- **A leg's properties in the text view are a `link` line under its
+  sub-goal, naming the goal its refinement refines** (`link G1 {Probability
+  = .6}`). goalView gives a leg's `target` as the hub's refined goal (the
+  `refinementsOf` parent), since a hub has no line (PR C). A hub's own keys
+  (`Tactic`) stay in the inspector. If a sub-goal is a leg of two hubs of
+  the same goal (two alternatives), the line is ambiguous, and the link
+  line's diagnostics say so as they do for two kinds.
+- **Not done, waiting for istar-ts#20** (no builder for now):
+  - `kaos.Obstacle` with prefix `O`;
+  - obstruction, resolution and obstacle refinement in `FRAMEWORK_KINDS`
+    and `FRAMEWORK_ROOTS.kaos`;
+  - obstacle `Category` (TSE'00's five);
+  - `ResolutionType` (TSE'00's strategies, with KAOSTools' `prevention`
+    and `mitigation` mapped onto them);
+  - `Anchor` as a `reference` to goals;
+  - `DomainProperty.Kind` (invariant, hypothesis);
+  - obstacle lines in the goal language;
+  - the obstruction Problems.

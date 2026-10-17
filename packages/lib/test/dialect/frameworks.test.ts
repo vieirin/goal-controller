@@ -12,7 +12,12 @@ import {
   notationDocument,
   notationEdits,
 } from '@goal-controller/goal-language';
-import type { AnyDialect } from '@goal-controller/dialect';
+import {
+  defineDialect,
+  property,
+  type AnyDialect,
+  type ValueConfig,
+} from '@goal-controller/dialect';
 import { kaos, nfr } from '../../src';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
@@ -101,9 +106,67 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
     expect(keys(kaos.links['kaos.Conflict'])).to.deep.equal([
       'BoundaryCondition',
     ]);
-    // free text: neither DSM3 nor the KAOS literature fixes a vocabulary
-    for (const property of kaos.properties['kaos.BehavioralGoal'])
-      expect(property.value, property.key).to.deep.equal({ type: 'text' });
+  });
+
+  it('types the keys with a vocabulary, one source each, and FormalSpec as a formula (#181)', () => {
+    // a vocabulary's values, or the value config
+    const typeOf = (value: unknown) => {
+      const config = value as ValueConfig;
+      return config.type === 'enum'
+        ? config.options.map((o) => o.value)
+        : config;
+    };
+    const types = Object.fromEntries(
+      kaos.properties['kaos.BehavioralGoal'].map((p) => [
+        p.key,
+        typeOf(p.value),
+      ]),
+    );
+    expect(types).to.deep.equal({
+      Type: [
+        '',
+        'Achieve',
+        'Cease',
+        'Maintain',
+        'Avoid',
+        'Optimize',
+        'softgoal',
+      ],
+      Category: [
+        '',
+        'Satisfaction',
+        'Information',
+        'Accuracy',
+        'Safety',
+        'Security',
+      ],
+      Source: { type: 'text' },
+      Priority: ['', 'high', 'medium', 'low'],
+      Issue: { type: 'text' },
+      FormalSpec: { type: 'formula', language: 'ltl' },
+      FitCriterion: { type: 'text' },
+      Stability: { type: 'text' },
+      Description: { type: 'text' },
+    });
+    const tactic = kaos.properties['kaos.RefinementLinkHub'].find(
+      (p) => p.key === 'Tactic',
+    )!.value;
+    expect(typeOf(tactic)).to.deep.equal([
+      '',
+      'milestone-driven',
+      'case-driven',
+      'guard-introduction',
+      'divide-and-conquer',
+      'uncontrollability',
+      'unmonitorability',
+    ]);
+    // nothing quantitative: those are an engine's (kaosprop's, PR G)
+    for (const list of [
+      ...Object.values(kaos.properties),
+      ...Object.values(kaos.links),
+    ])
+      for (const p of list)
+        expect(['RSR', 'ESR', 'Probability'], p.key).not.to.include(p.key);
   });
 });
 
@@ -264,6 +327,77 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
     // one of its own, of an element the diagram doesn't have
     expect(added('DP9: Power is on')).to.deep.equal([
       'Add this element in the diagram',
+    ]);
+  });
+});
+
+describe('frameworks: KAOS vocabularies and leg properties in the Notation view (#181)', () => {
+  const definition = kaos as unknown as AnyDialect;
+  const lines = (doc: string, view: GoalView, of: AnyDialect = definition) =>
+    documentDiagnostics(of, doc, contextFromView(of, view, [])).map((d) => ({
+      severity: d.severity,
+      message: d.message,
+    }));
+
+  it('reports a value outside a vocabulary, and writes it back as read', () => {
+    const view = viewOf('kaos', withIds('kaos', seed('kaos')));
+    const doc = notationDocument(definition, view).text.replace(
+      'G3: Achieve [Problem Notified if Problem]\n    Type\n',
+      'G3: Achieve [Problem Notified if Problem]\n    Type Achive\n',
+    );
+    expect(lines(doc, view)).to.deep.equal([
+      {
+        severity: 'error',
+        message:
+          'One of Achieve, Cease, Maintain, Avoid, Optimize, softgoal, not Achive',
+      },
+    ]);
+    // a Problem, not a parse error: the value is the element's, as written
+    expect(notationEdits(definition, doc, view)).to.deep.equal([
+      {
+        iStarId: byName(view, 'Achieve [Problem Notified if Problem]').iStarId,
+        key: 'Type',
+        value: 'Achive',
+      },
+    ]);
+  });
+
+  it('writes a leg’s properties as a link line under its sub-goal, naming the refined goal', () => {
+    // a dialect typing the legs of KAOS's refinement (as kaosprop's does, PR G)
+    const legs = defineDialect({
+      ...definition,
+      id: 'kaos-legs',
+      links: {
+        ...definition.links,
+        'kaos.RefinementLinkStart': [
+          property.probability('Probability', { help: 'its case’s' }),
+        ],
+      },
+    });
+    const json = JSON.parse(withIds('kaos', seed('kaos')));
+    // the leg from G3 (Achieve [Problem Notified if Problem]) to G1's hub
+    json.links[3].starts[0].customProperties = { Probability: '.6' };
+    const text = `${JSON.stringify(json, null, 2)}\n`;
+    const view = goalView(read('kaos')(text) as never, legs);
+    const doc = notationDocument(legs, view).text;
+    // under G3, after its property lines
+    const g3 = doc.slice(doc.indexOf('G3: '), doc.indexOf('G6: '));
+    expect(g3).to.match(
+      /\n {4}Description\n {4}link G1 \{Probability = \.6\}\n/,
+    );
+    expect(lines(doc, view, legs)).to.deep.equal([]);
+    expect(notationEdits(legs, doc, view)).to.deep.equal([]);
+    expect(
+      lines(
+        doc.replace('{Probability = .6}', '{Probability = 120%}'),
+        view,
+        legs,
+      ),
+    ).to.deep.equal([
+      {
+        severity: 'error',
+        message: 'A probability in [0, 1] (0.8, .8 or 80%), not 120%',
+      },
     ]);
   });
 });

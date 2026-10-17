@@ -6,6 +6,7 @@
 import {
   actorPropertiesOf,
   linkPropertiesOf,
+  probabilityOf,
   propertyOf,
   valueOf,
   type AnyDialect,
@@ -397,7 +398,23 @@ export const valueProblem = (
       const [error] = parseValue('annotatedName', text).errors;
       return error ? error.message : null;
     }
+    case 'reference': {
+      const id = text.trim();
+      if (!/^[A-Za-z0-9_.:-]+$/.test(id)) return `An element's id, not ${id}`;
+      if (!context) return null;
+      const kind =
+        kindOf(context, id) ?? kindOf(context, context.named?.[id] ?? '');
+      if (!kind) return `${id} is not an element of this model`;
+      return (value.kinds as readonly string[]).includes(kind)
+        ? null
+        : `${id} is a ${kind}, not a ${value.kinds.join(' or ')}`;
+    }
+    case 'probability':
+      return probabilityOf(text) === null
+        ? `A probability in [0, 1] (0.8, .8 or 80%), not ${text.trim()}`
+        : null;
     case 'text':
+    case 'formula':
       return null;
     case 'ocl': {
       // read leniently: only a character no OCL token matches is wrong
