@@ -3,11 +3,18 @@
  * contribution has there (#151 D10): the one rule §4's ranking and Code 3's
  * encoding share.
  */
+import type { AssertionTree } from '@goal-controller/goal-language';
 import type { AnalysisLink } from '../analysis';
-import { evaluate, formulaOf, holdsGivenFacts } from './formulas';
+import {
+  definitionOf,
+  evaluate,
+  holdsGivenFacts,
+  type Formula,
+} from './formulas';
 import { contextsOf, type CgmModel } from './model';
 import type { Situation } from './resources';
-import { CGM_KEYS, isPositiveLabel } from './vocabulary';
+import { linkValues } from './values';
+import { isPositiveLabel } from './vocabulary';
 
 /**
  * The contexts that hold in a situation: those it lists, and those whose
@@ -24,17 +31,15 @@ export const contextsHolding = (
     contextsOf(cgm).filter(
       (id) =>
         listed.has(id) ||
-        (!!cgm.lookup(id)?.properties[CGM_KEYS.formula]?.trim() &&
+        (!!definitionOf(cgm.lookup(id)) &&
           holdsGivenFacts(id, cgm.lookup, (name) => facts.has(name))),
     ),
   );
 };
 
 /** A formula's truth when the contexts in `holding` hold and no other does. */
-export const holdsIn = (
-  text: string | undefined,
-  holding: ReadonlySet<string>,
-) => evaluate(formulaOf(text), (name) => holding.has(name));
+export const holdsIn = (formula: Formula, holding: ReadonlySet<string>) =>
+  evaluate(formula, (name) => holding.has(name));
 
 /**
  * A contribution's sign where `holds` says which contexts hold (#151 D10):
@@ -43,13 +48,12 @@ export const holdsIn = (
  */
 export const contributionSign = (
   link: AnalysisLink,
-  holds: (formula: string) => boolean,
+  holds: (formula: AssertionTree) => boolean,
 ): 'pos' | 'neg' | null => {
   const positive = isPositiveLabel(link.label);
-  const context = link.properties[CGM_KEYS.context];
-  const opposite = link.properties[CGM_KEYS.opposite];
-  if (!context?.trim() && !opposite?.trim()) return positive ? 'pos' : 'neg';
-  if (context?.trim() && holds(context)) return positive ? 'pos' : 'neg';
-  if (opposite?.trim() && holds(opposite)) return positive ? 'neg' : 'pos';
+  const { context, opposite } = linkValues(link);
+  if (!context && !opposite) return positive ? 'pos' : 'neg';
+  if (context && holds(context)) return positive ? 'pos' : 'neg';
+  if (opposite && holds(opposite)) return positive ? 'neg' : 'pos';
   return null;
 };

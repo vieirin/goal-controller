@@ -8,11 +8,10 @@
  * BNF say, and marked unverified in `istardt.md`: a task's own `pre`, `npr`,
  * `turnsFalse`, `set` and variables, and a quality given by utility links.
  */
-import { readAssertion, readExpression } from '@goal-controller/goal-language';
+import { readExpression } from '@goal-controller/goal-language';
 import type { AnalysisModel } from '../../analysis';
 import { singleFileOutput, type EngineOutput } from '../../output';
 import {
-  pairItems,
   readIstardtModel,
   type IstardtElement,
   type IstardtModel,
@@ -78,8 +77,6 @@ const fluent = (name: string) => `${name}_fl`;
 const sat = (name: string) => `${name}_Sat`;
 const att = (name: string) => `${name}_Att`;
 
-const isTrue = (value: string | undefined) => value?.trim() === 'true';
-
 /** The model as DT-Golog: the file's text, or the problems that stop it. */
 export const istardtTemplate = (
   model: IstardtModel,
@@ -104,13 +101,13 @@ export const istardtTemplate = (
   const tasks = model.ofKind('task');
   const qualities = model.ofKind('quality');
   const conditions = model.ofKind('condition');
-  const root = goals.find((goal) => isTrue(goal.properties.root))!;
+  const root = goals.find((goal) => goal.values.root === true)!;
   const rootName = root.identifier;
 
   // `DecompositionElement.isRoot`: a goal's own `root`, a task's having no parent
   const isRoot = (element: IstardtElement) =>
     element.kind === 'goal'
-      ? isTrue(element.properties.root)
+      ? element.values.root === true
       : !model.parentOf(element);
 
   /** `getORSiblings`: the siblings under every OR ancestor, nearest first. */
@@ -154,7 +151,7 @@ export const istardtTemplate = (
     ':- multifile getInfeasiblePenalty/1.\n' +
     ':- multifile val/2.\n' +
     ':-dynamic(init/1).\n\n';
-  const numRuns = `getNumRuns(${Number.parseInt(root.properties.episodeLength ?? '1', 10) || 1}).`;
+  const numRuns = `getNumRuns(${root.values.episodeLength || 1}).`;
   const problemType = `getObsType(${continuous ? 'continuous' : 'discrete'}).\n`;
 
   // the exported set: goals and tasks by their satisfaction, predicates by
@@ -177,7 +174,7 @@ export const istardtTemplate = (
       discreteEmpty = false;
     } else if (element.kind === 'quality' || element.kind === 'variable') {
       const bound = (key: 'exportMin' | 'exportMax') =>
-        javaFloat(Number(element.properties[key] ?? '0') || 0);
+        javaFloat(element.values[key] || 0);
       continuousExportedSet += `[${id}(_),${bound('exportMin')},${bound('exportMax')}], `;
       continuousEmpty = false;
     }
@@ -262,9 +259,9 @@ export const istardtTemplate = (
       stochasticActionList += `${effectID},`;
       stochasticActions += `stochasticAction(${effectID}).\n`;
       nonDetActions += `${effectID},`;
-      probabilities += `prob(${effectID},${javaFloat(Number(model.probabilityOf(effect) ?? '1'))},_).\n`;
+      probabilities += `prob(${effectID},${javaFloat(model.probabilityValueOf(effect) ?? 1)},_).\n`;
       let effectSatFormula = `${effectID}_Sat(S) :- `;
-      const satisfying = effect.properties.satisfying?.trim() !== 'false';
+      const satisfying = effect.values.satisfying !== false;
 
       for (const pred of model.turnsTrue(effect)) {
         const kept = falsified(pred);
@@ -313,23 +310,19 @@ export const istardtTemplate = (
   for (const variable of model.ofKind('variable')) {
     const id = variable.identifier;
     const setters = tasks.flatMap((task) =>
-      model.effectsOf(task).flatMap((effect) =>
-        pairItems(effect.properties.set)
-          .filter(([name]) => name === id)
-          .map(([, value]) => ({ effect: effect.identifier, value })),
-      ),
+      model
+        .effectsOf(task)
+        .flatMap((effect) =>
+          (effect.values.set ?? [])
+            .filter(({ name }) => name === id)
+            .map(({ value }) => ({ effect: effect.identifier, value })),
+        ),
     );
     // the initializations write a variable as `<id>_fl(value)`, as dtx2dtg
     successorStateAxioms += `${id}(V,s0) :- getInitValue(${id}_fl,V),!.\n`;
-    for (const { effect, value } of setters) {
-      const term = readExpression(value);
-      const constant = term && termOf(term, resolve);
-      if (constant?.kind !== 'number') {
-        fail(variable, `an effect sets ${id} to a number, not ${value}`);
-        continue;
-      }
-      successorStateAxioms += `${id}(V,do(A,S)) :- A=${effect},!,V is ${constant.value}.\n`;
-    }
+    // a set's values are numbers (the dialect's pairList of number)
+    for (const { effect, value } of setters)
+      successorStateAxioms += `${id}(V,do(A,S)) :- A=${effect},!,V is ${javaFloat(value)}.\n`;
     successorStateAxioms += `${id}(V,do(_,S)) :- ${id}(V,S).\n`;
     restoreSitArg += `restoreSitArg(${id}(X),S,${id}(X,S)).\n`;
   }
@@ -394,7 +387,7 @@ export const istardtTemplate = (
       ? `${head}${name}(V,S) :-${name}(R_${name}_init,s0),\n${lookups}${indent}V is R_${name}_init +\n${value}.\n\n\n`
       : `${head}${name}(V,S) :- \n${lookups}${indent}V is \n${value}.\n\n\n`;
     restoreSitArg += `restoreSitArg(${name}(X),S,${name}(X,S)).\n`;
-    if (isTrue(quality.properties.root))
+    if (quality.values.root === true)
       rewardTotal = `rewardInst(R,S) :- ${name}(R,S).\n`;
   }
   rewardFormulae += `\n${rewardTotal}\n`;
@@ -405,7 +398,7 @@ export const istardtTemplate = (
     let body = '';
     try {
       body = conditionText(
-        readAssertion(condition.properties.formula ?? ''),
+        condition.values.formula?.asReading() ?? null,
         resolve,
       );
     } catch (error) {
@@ -487,22 +480,23 @@ const ancestorsOf = (model: IstardtModel, element: IstardtElement) => {
  * utility links are (#117 D3, mx2dtx's contribution links), in their order:
  * `weight × q` for a quality, `weight × p` for an effect that turns the
  * predicate `p` true (istardtProblems has checked it has one or the other).
+ * A weight is the number its link's text is (1 when unset), spliced as
+ * written.
  */
 const qualityFormula = (
   model: IstardtModel,
-  quality: IstardtElement,
+  quality: IstardtElement<'quality'>,
   resolve: Resolve,
   fail: (message: string) => void,
 ) => {
-  const text = quality.properties.formula?.trim() ?? '';
   const utilities = model.utilities(quality);
   // an effect weighs by the one predicate it turns true (checked)
   const terms = utilities.map(
-    ({ source, weight }) =>
-      `${weight || '1'} * ${source.kind === 'effect' ? model.turnsTrue(source)[0] : source.identifier}`,
+    ({ source, weight, factor }) =>
+      `${factor == null ? '1' : weight} * ${source.kind === 'effect' ? model.turnsTrue(source)[0] : source.identifier}`,
   );
-  const source = text || terms.join(' + ');
-  const tree = readExpression(source);
+  const source = terms.join(' + ');
+  const tree = quality.values.formula ?? readExpression(source);
   if (!tree) {
     fail(
       `${quality.id ?? quality.identifier}'s formula is not an expression: ${source}`,

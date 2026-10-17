@@ -1,13 +1,13 @@
 /**
  * Contextual goal models' properties as the mapper hands them on and the
- * analyses read them, today (goal-controller#187 phase 2 pre-work): the
- * mapper keeps a link's `context`, `opposite` and `amount` as written, an
- * element's `cost`, `activation`, `formula` and `supportedBy` are as
- * written, and the analyses parse them later (`intOf`'s `parseInt`,
- * `formulaOf`'s `readAssertion`, the checks' trimming). Each model is
- * museum-guide-costs (Fig. 13), one property edited, read through
- * `cgmAnalysisModel` (the mapper). A value the dialect flags is marked
- * `#187: invalid value`: after the migration the mapper sees `undefined`.
+ * analyses read them (goal-controller#187): the mapper keeps a link's
+ * `context`, `opposite` and `amount` as written, an element's `cost`,
+ * `activation`, `formula` and `supportedBy` are as written, and the
+ * analyses read them as the dialect does (./values: `viewValues`; before
+ * phase 2, `intOf`'s `parseInt`, `formulaOf`'s `readAssertion`, the checks'
+ * trimming). Each model is museum-guide-costs (Fig. 13), one property
+ * edited, read through `cgmAnalysisModel` (the mapper). A value the dialect
+ * flags is marked `#187: invalid value`: the analyses see it unset.
  */
 import * as assert from 'assert';
 import * as fs from 'fs';
@@ -158,12 +158,13 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
     assert.deepStrictEqual(['0', '-150'].map(amount), [0, -150]);
   });
 
-  it("reads parseInt's prefix of what isn't an int", () => {
-    // #187: invalid value: '1e2' is 1, '50%' is 50, '2.5' is 2
+  it("reads 0 for what isn't an int, though parseInt read its prefix", () => {
+    // #187: invalid value: unset (the dialect's int check reports it), so 0;
+    // parseInt read '1e2' as 1, '50%' as 50, '2.5' as 2
     for (const read of [costOf, amount])
       assert.deepStrictEqual(
         ['1.0', '1e2', '2.5', '50%', '+5'].map(read),
-        [1, 1, 2, 50, 5],
+        [0, 0, 0, 0, 0],
       );
   });
 
@@ -182,15 +183,15 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
         nodeOf(json, 'T1').customProperties = { cost: '1e2' };
       }),
     );
-    // #187: invalid value: T2 includes T1, '1e2' read as 1
+    // #187: invalid value: T2 includes T1, '1e2' unset, so 0 (parseInt read 1)
     assert.strictEqual(
       cgm.overlaps.find(({ a, b }) => a === PISTAR('T2') && b === PISTAR('T1'))!
         .amount,
-      1,
+      0,
     );
   });
 
-  it("writes Code 4 for a task whose cost isn't blank, at what intOf reads", () => {
+  it('writes Code 4 for a task whose cost is set, at its value', () => {
     /** T3's cost the only one; the cost relations' amounts cleared */
     const model = (value: string) =>
       viewOf((json) => {
@@ -210,13 +211,12 @@ describe('Contextual goal models (#187 characterization): cost and amount, `intO
     assert.ok(
       !reContextCosts(model('  '), [PISTAR('T3')]).includes('cost(r_t3,'),
     );
-    // #187: invalid value: a cost that isn't blank is a resource, at intOf's value
-    assert.deepStrictEqual(costLines('abc'), ['cost(r_t3,0) :- needed(r_t3).']);
-    assert.deepStrictEqual(costLines('1e2'), ['cost(r_t3,1) :- needed(r_t3).']);
+    // #187: invalid value: unset, as a blank one (it was a resource at
+    // intOf's value: 'abc' at 0, '1e2' at 1)
+    assert.ok(!reContextDlv(model('abc')).includes('% Code 4'));
+    assert.ok(!reContextDlv(model('1e2')).includes('% Code 4'));
     assert.ok(
-      reContextCosts(model('abc'), [PISTAR('T3')]).includes(
-        'todo(t3).\ncost(r_t3,0) :- needed(r_t3).\nneeded(r_t3) :- todo(t3).\n',
-      ),
+      !reContextCosts(model('abc'), [PISTAR('T3')]).includes('cost(r_t3,'),
     );
   });
 });
@@ -253,11 +253,9 @@ describe('Contextual goal models (#187 characterization): context, activation an
       ["G2 → G1's context names C99, which is no context"],
     ]);
     // #187: invalid value: unreadable, so no guard (the variant is always
-    // adoptable); only cgmProblems says so
-    assert.deepStrictEqual(read('C5 &'), [
-      null,
-      ["G2 → G1's context is not a formula: C5 &"],
-    ]);
+    // adoptable); the value check says so (cgmProblems said "G2 → G1's
+    // context is not a formula: C5 &")
+    assert.deepStrictEqual(read('C5 &'), [null, []]);
   });
 
   it("a root goal's activation: the same", () => {
@@ -276,11 +274,9 @@ describe('Contextual goal models (#187 characterization): context, activation an
     assert.deepStrictEqual(read(' C5 '), [VAR('C5'), []]);
     assert.deepStrictEqual(read(''), [null, []]);
     assert.deepStrictEqual(read('   '), [null, []]);
-    // #187: invalid value
-    assert.deepStrictEqual(read('C5 &'), [
-      null,
-      ["G1's activation is not a formula: C5 &"],
-    ]);
+    // #187: invalid value: the value check says so (cgmProblems said "G1's
+    // activation is not a formula: C5 &")
+    assert.deepStrictEqual(read('C5 &'), [null, []]);
   });
 
   it("a contribution's sign: context and opposite blank when only whitespace; its label's otherwise", () => {
@@ -334,7 +330,7 @@ describe('Contextual goal models (#187 characterization): the checks', () => {
   const SAME =
     'The opposite context is the contribution’s own: the two labels would apply together';
 
-  it('cgm.contribution.opposite: blank is unset; the two compared as text, whitespace removed', () => {
+  it('cgm.contribution.opposite: blank is unset; the two compared as the language writes them', () => {
     assert.strictEqual(opposite({ opposite: '   ' }, context), null);
     assert.strictEqual(
       opposite({ context: ' ', opposite: 'C14' }, context),
@@ -349,10 +345,11 @@ describe('Contextual goal models (#187 characterization): the checks', () => {
       opposite({ context: 'C1 & C2', opposite: 'C2 & C1' }, context),
       null,
     );
-    // #187: invalid value: `C 14` isn't an assertion, but is C14 without its space
+    // #187: invalid value: `C 14` isn't an assertion, so unset (it was C14
+    // without its space, the same)
     assert.strictEqual(
       opposite({ context: 'C14', opposite: 'C 14' }, context),
-      SAME,
+      null,
     );
   });
 

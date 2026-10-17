@@ -5,7 +5,10 @@
  * contributions and cost relations, and the roots variants start from.
  */
 import type { AnalysisElement, AnalysisLink, AnalysisModel } from '../analysis';
-import { formulaOf, type FormulaLookup } from './formulas';
+import { readProperties } from '@goal-controller/goal-language';
+import { cgm as cgmDialect } from './definition';
+import type { Formula, FormulaLookup } from './formulas';
+import { elementValues, linkValues } from './values';
 import { CGM_KEYS, CGM_KINDS, CGM_LINKS } from './vocabulary';
 
 /** an id as an element's text starts with it (`G3.1: …`) */
@@ -124,9 +127,10 @@ export const readCgmModel = (model: AnalysisModel): CgmModel => {
       );
     }),
   );
-  const intOf = (text: string | undefined) => {
-    const value = Number.parseInt(text ?? '', 10);
-    return Number.isFinite(value) ? value : 0;
+  /** a task's cost: its value, 0 when it has none */
+  const costOf = (id: string) => {
+    const element = elements.get(id);
+    return (element && elementValues(element).cost) ?? 0;
   };
   return {
     model,
@@ -143,7 +147,7 @@ export const readCgmModel = (model: AnalysisModel): CgmModel => {
     contributions: model.links.filter(
       (link) => link.kind === 'istar.ContributionLink',
     ),
-    costOf: (id) => intOf(elements.get(id)?.properties[CGM_KEYS.cost]),
+    costOf,
     overlaps: model.links.flatMap((link) =>
       link.kind === CGM_LINKS.includes
         ? [
@@ -151,9 +155,7 @@ export const readCgmModel = (model: AnalysisModel): CgmModel => {
               link,
               a: link.source,
               b: link.target,
-              amount: intOf(
-                elements.get(link.target)?.properties[CGM_KEYS.cost],
-              ),
+              amount: costOf(link.target),
             },
           ]
         : link.kind === CGM_LINKS.intersects
@@ -162,7 +164,7 @@ export const readCgmModel = (model: AnalysisModel): CgmModel => {
                 link,
                 a: link.source,
                 b: link.target,
-                amount: intOf(link.properties[CGM_KEYS.amount]),
+                amount: linkValues(link).amount ?? 0,
               },
             ]
           : [],
@@ -180,11 +182,20 @@ export const contextsOf = (cgm: CgmModel): string[] =>
     .filter((element) => element.kind === CGM_KINDS.context)
     .map((element) => cgm.idOf(element.id));
 
-/** A link's or element's context tree (`context`, `activation`); none when it has none. */
+/**
+ * A link's or element's context tree (`context`, `activation`) in its
+ * properties as written: the dialect's reading of that key (an assertion);
+ * none when it has none, or it isn't one.
+ */
 export const contextAt = (
   properties: Readonly<Record<string, string>>,
-  key: string = CGM_KEYS.context,
-) => formulaOf(properties[key]);
+  key: typeof CGM_KEYS.context | typeof CGM_KEYS.activation = CGM_KEYS.context,
+): Formula =>
+  (key === CGM_KEYS.activation
+    ? readProperties(cgmDialect, { element: 'goal' }, properties).values
+        .activation
+    : readProperties(cgmDialect, { link: 'istar.ContributionLink' }, properties)
+        .values.context) ?? null;
 
 /**
  * A set of tasks' development cost (REJ 2010 §5.3, #151 D11): their costs,

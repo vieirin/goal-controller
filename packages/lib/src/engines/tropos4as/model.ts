@@ -10,9 +10,13 @@
  *   refining a goal is a means-end), in the links' order; sequence links
  *   reorder them (./lifecycle).
  * - A root is a goal that refines nothing.
+ * - An element's properties are read as the dialect reads them
+ *   (goal-controller#187, `values`): a value written with an error is
+ *   unset, the dialect's checks report it.
  */
-import type { AnalysisModel } from '../analysis';
-import { pairItems, splitText } from '../elementText';
+import { viewValues, type AnalysisModel, type ViewValues } from '../analysis';
+import { splitText } from '../elementText';
+import { tropos4as } from './definition';
 import {
   TROPOS4AS_KINDS,
   TROPOS4AS_LINKS,
@@ -34,6 +38,9 @@ const KIND_OF_PISTAR = {
 export type Tropos4asKind =
   (typeof KIND_OF_PISTAR)[keyof typeof KIND_OF_PISTAR];
 
+/** An element's properties as the dialect reads them: a goal's `type` an option, its conditions assertions, an artifact's `attributes` pairs. */
+export type Tropos4asValues = ViewValues<typeof tropos4as>;
+
 export type Tropos4asElement = {
   /** its piStar id */
   pistarId: string;
@@ -46,7 +53,10 @@ export type Tropos4asElement = {
   label: string;
   /** its actor's piStar id (none: outside every actor) */
   actor?: string;
+  /** its properties as written */
   properties: Readonly<Record<string, string>>;
+  /** its properties as the dialect reads them (goal-controller#187) */
+  values: Tropos4asValues;
 };
 
 export type Tropos4asProblem = {
@@ -89,21 +99,19 @@ export type Tropos4asModel = {
   contributionOf: (element: Tropos4asElement) => number;
   /** the failures a goal's failing is (its failure links) */
   failuresOf: (goal: Tropos4asElement) => Tropos4asElement[];
-  /** an artifact's attributes: `name:type`, in order */
+  /** an artifact's attributes: `name:type`, in order (none when written with an error) */
   attributesOf: (artifact: Tropos4asElement) => [string, string][];
   /** the problems reading it found */
   problems: readonly Tropos4asProblem[];
 };
 
 /** A goal's type: achieve unless it says maintain or perform (#134 D4). */
-export const goalTypeOf = (goal: Tropos4asElement): GoalType => {
-  const type = goal.properties.type?.trim();
-  return type === 'maintain' || type === 'perform' ? type : 'achieve';
-};
+export const goalTypeOf = (goal: Tropos4asElement): GoalType =>
+  goal.values.type ?? 'achieve';
 
 /** An achieve-goal's behaviour after its subgoals, a) or b) of §4.3.2. */
 export const onFailureOf = (goal: Tropos4asElement): OnFailure =>
-  goal.properties.onFailure?.trim() === 'drop' ? 'drop' : 'restart';
+  goal.values.onFailure ?? 'restart';
 
 /** iStar's contribution values, as `contributionOf` weighs them */
 const CONTRIBUTION_VALUE: Readonly<Record<string, number>> = {
@@ -133,6 +141,7 @@ export const readTropos4asModel = (model: AnalysisModel): Tropos4asModel => {
         label: id ?? element.id,
         ...(element.actor !== undefined && { actor: element.actor }),
         properties: element.properties,
+        values: viewValues(tropos4as, 'element', element),
       },
     ];
   });
@@ -226,7 +235,10 @@ export const readTropos4asModel = (model: AnalysisModel): Tropos4asModel => {
       failureLinks
         .filter((l) => l.source === goal.pistarId)
         .map((l) => byPistarId.get(l.target)!),
-    attributesOf: (artifact) => pairItems(artifact.properties.attributes),
+    attributesOf: (artifact) =>
+      (artifact.values.attributes ?? []).map(
+        ({ name, value }): [string, string] => [name, value],
+      ),
     problems,
   };
 };

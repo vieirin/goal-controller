@@ -129,11 +129,8 @@ describe('GRL in the Notation view', () => {
         d.message,
       ]),
       [
-        [
-          '500',
-          'grl.link.quantitativeContribution',
-          'A quantitative contribution is an integer, −100..100, not 500',
-        ],
+        // its int's bounds (#187: GRL's check that said so went)
+        ['500', undefined, 'At most 100'],
       ],
     );
   });

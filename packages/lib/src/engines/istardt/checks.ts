@@ -3,20 +3,18 @@
  * them); `istardtProblems` checks the model as a whole, as the writer needs
  * it: the effects, conditions, predicates and variables are extension kinds
  * no property check sees (#117 D7), so what crosses them is said here, and
- * the writer stops on its errors.
+ * the writer stops on its errors. Each reads the properties as the dialect
+ * does (goal-controller#187): a value written with an error is unset, the
+ * dialect's value check reports it.
  */
-import { readAssertion, readExpression } from '@goal-controller/goal-language';
-import type {
-  AssertionReading,
-  ExpressionTree,
-} from '@goal-controller/goal-language';
-import { checks } from '../checks';
 import {
-  pairItems,
-  type IstardtElement,
-  type IstardtModel,
-  type IstardtProblem,
-} from './model';
+  readProperties,
+  type AssertionReading,
+  type ExpressionTree,
+} from '@goal-controller/goal-language';
+import type { Check } from '../checks';
+import { istardt } from './definition';
+import type { IstardtElement, IstardtModel, IstardtProblem } from './model';
 import type { IstardtKind } from './vocabulary';
 
 /** How far an effect group's probabilities may be from 1. */
@@ -25,35 +23,43 @@ export const PROBABILITY_TOLERANCE = 1e-9;
 /** `a goal`, `an effect` */
 const a = (kind: string) => `${/^[aeiou]/.test(kind) ? 'an' : 'a'} ${kind}`;
 
-const number = (text: string | undefined) =>
-  text?.trim() ? Number(text) : undefined;
+/** A goal's `root`, as the dialect reads it. */
+const isRoot = (raw: Partial<Record<string, string>>) =>
+  readProperties(istardt, { element: 'goal' }, raw).values.root === true;
 
-export const istardtCheckRegistry = checks({
+/**
+ * The names of iStar-DT's checks: what a property's `check` may be (listed,
+ * not derived from the registry: the checks read the dialect's values,
+ * whose types are the dialect's own).
+ */
+export type IstardtCheckName = 'istardt.goal.root' | 'istardt.export.bounds';
+
+export const istardtCheckRegistry: Readonly<Record<IstardtCheckName, Check>> = {
   /** one root goal: the episode's (ER 2024 §3.2) */
   'istardt.goal.root': (raw, context) => {
-    if (raw.root?.trim() !== 'true' || !context.elements) return null;
+    if (!isRoot(raw) || !context.elements) return null;
     const others = Object.entries(context.elements).filter(
       ([id, element]) =>
         id !== context.self &&
         element.kind === 'goal' &&
-        element.properties.root?.trim() === 'true',
+        isRoot(element.properties),
     );
     return others.length
       ? `One goal is the root: ${others.map(([id]) => id).join(', ')} is too`
       : null;
   },
-  /** a continuous export's range */
+  /** a continuous export's range (a quality's, a predicate's, a variable's: the same bounds) */
   'istardt.export.bounds': (raw) => {
-    const min = number(raw.exportMin);
-    const max = number(raw.exportMax);
-    return min !== undefined && max !== undefined && !(min < max)
+    const { exportMin: min, exportMax: max } = readProperties(
+      istardt,
+      { element: 'quality' },
+      raw,
+    ).values;
+    return min != null && max != null && !(min < max)
       ? `An export's minimum is below its maximum: ${min} is not below ${max}`
       : null;
   },
-});
-
-/** The names of iStar-DT's checks: what a property's `check` may be. */
-export type IstardtCheckName = keyof typeof istardtCheckRegistry;
+};
 
 /** The kinds a quality's formula may read (the BNF's numeric atoms). */
 const QUALITY_READS: readonly IstardtKind[] = [
@@ -163,9 +169,7 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
 
   // one root goal, one root quality (the reward)
   for (const kind of ['goal', 'quality'] as const) {
-    const roots = model
-      .ofKind(kind)
-      .filter((e) => e.properties.root?.trim() === 'true');
+    const roots = model.ofKind(kind).filter((e) => e.values.root === true);
     if (roots.length !== 1)
       say(
         'error',
@@ -190,22 +194,17 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
           : `${label(effect)} is no task's effect: link a task to it`,
       );
     const written = model.probabilityOf(effect);
-    const probability = number(written);
+    const probability = model.probabilityValueOf(effect);
     if (
       tasks.length &&
-      (probability === undefined || !(probability >= 0 && probability <= 1))
+      (probability == null || !(probability >= 0 && probability <= 1))
     )
       say(
         'error',
         effect,
         `${label(effect)}'s probability (on its effect group link) is a number in 0..1, not ${written ?? 'unset'}`,
       );
-    names(
-      effect,
-      'set',
-      pairItems(effect.properties.set).map(([name]) => name),
-      ['variable'],
-    );
+    names(effect, 'set', effect.values.set?.names() ?? [], ['variable']);
   }
   // effect groups: each of one task, one per task
   for (const group of model.effectGroups)
@@ -235,7 +234,7 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       continue;
     }
     const sum = effects.reduce(
-      (total, e) => total + (number(model.probabilityOf(e)) ?? 0),
+      (total, e) => total + (model.probabilityValueOf(e) ?? 0),
       0,
     );
     if (Math.abs(sum - 1) > PROBABILITY_TOLERANCE)
@@ -246,9 +245,7 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       );
     if (
       !effects.some(
-        (e) =>
-          e.properties.satisfying?.trim() !== 'false' &&
-          model.turnsTrue(e).length,
+        (e) => e.values.satisfying !== false && model.turnsTrue(e).length,
       )
     )
       say(
@@ -262,13 +259,13 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
   // an effect weighs on it by the one predicate it turns true
   for (const quality of model.ofKind('quality')) {
     const utilities = model.utilities(quality);
-    if (utilities.length && quality.properties.formula?.trim())
+    if (utilities.length && quality.values.formula)
       say(
         'error',
         quality,
         `${label(quality)} has a formula and utility links: give it one or the other`,
       );
-    if (!utilities.length && !quality.properties.formula?.trim())
+    if (!utilities.length && !quality.values.formula)
       say(
         'error',
         quality,
@@ -283,22 +280,14 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
         );
   }
 
-  // formulas name elements of the kinds they read
+  // formulas name elements of the kinds they read (their presence and
+  // syntax are their value types', #133; the names, ours)
   for (const quality of model.ofKind('quality')) {
-    const text = quality.properties.formula?.trim();
-    if (!text) continue;
-    const tree = readExpression(text);
-    if (!tree)
-      say(
-        'error',
-        quality,
-        `${label(quality)}'s formula is not an expression: ${text}`,
-      );
-    else names(quality, 'formula', expressionNames(tree), QUALITY_READS);
+    const tree = quality.values.formula;
+    if (tree) names(quality, 'formula', expressionNames(tree), QUALITY_READS);
   }
   for (const condition of model.ofKind('condition')) {
-    // its presence and syntax are its value type's (#133); the names, ours
-    const tree = readAssertion(condition.properties.formula?.trim() ?? '');
+    const tree = condition.values.formula?.asReading();
     if (tree)
       names(condition, 'formula', assertionNames(tree), CONDITION_READS);
   }
@@ -328,11 +317,11 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       );
   };
   for (const quality of model.ofKind('quality')) {
-    const tree = readExpression(quality.properties.formula?.trim() ?? '');
+    const tree = quality.values.formula;
     if (tree) shown(quality, expressionNames(tree));
   }
   for (const condition of model.ofKind('condition')) {
-    const tree = readAssertion(condition.properties.formula?.trim() ?? '');
+    const tree = condition.values.formula?.asReading();
     if (tree) shown(condition, assertionNames(tree));
   }
 
@@ -386,9 +375,8 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       element &&
       (element.kind === 'quality' || element.kind === 'variable')
     ) {
-      const min = number(element.properties.exportMin);
-      const max = number(element.properties.exportMax);
-      if (min === undefined || max === undefined)
+      const { exportMin: min, exportMax: max } = element.values;
+      if (min == null || max == null)
         say(
           'warning',
           element,

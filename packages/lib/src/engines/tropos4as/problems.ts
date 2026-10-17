@@ -10,18 +10,19 @@
  *   "decomposition of achieve- and perform-goals to maintain-goals is not
  *   allowed", #134 D4: it never returns to its parent);
  * - an inhibition or sequence cycle, or one across actors (errors);
- * - a condition the goal language can't read, a maintain-goal without its
- *   maintain condition, an error without its condition (errors).
+ * - a maintain-goal without its maintain condition, an error without its
+ *   condition (errors).
+ *
+ * A condition is the dialect's reading (goal-controller#187): one written
+ * with an error is unset, the dialect's value check reports it.
  */
 import { tropos4asCheckRegistry } from './checks';
-import { readCondition } from './lifecycle/conditions';
 import {
   goalTypeOf,
   type Tropos4asElement,
   type Tropos4asModel,
   type Tropos4asProblem,
 } from './model';
-import { CONDITION_KEYS } from './vocabulary';
 
 export const tropos4asProblems = (
   model: Tropos4asModel,
@@ -37,7 +38,6 @@ export const tropos4asProblems = (
       message,
       ...(element && { element: element.pistarId }),
     });
-  const goalIds = new Set(model.goals.map((goal) => goal.label));
   const context = (element: Tropos4asElement) => ({
     self: element.label,
     kindOf: () => undefined,
@@ -54,20 +54,15 @@ export const tropos4asProblems = (
       );
       if (message) say('error', goal, `${goal.label}: ${message}`);
     }
-    for (const key of CONDITION_KEYS) {
-      const read = readCondition(goal.properties[key], goalIds);
-      if (read && 'error' in read)
-        say('error', goal, `${goal.label}'s ${key}: ${read.error}`);
-    }
     const type = goalTypeOf(goal);
-    if (type === 'maintain' && !goal.properties.maintain?.trim())
+    if (type === 'maintain' && !goal.values.maintain)
       say(
         'error',
         goal,
         `${goal.label} is a maintain-goal without its maintain condition (M(m, d), AAMAS 2009 §4.3.3)`,
       );
     const parent = model.parentOf(goal);
-    if (parent && goal.properties.creation?.trim())
+    if (parent && goal.values.creation)
       say(
         'warning',
         goal,
@@ -87,15 +82,12 @@ export const tropos4asProblems = (
   }
 
   for (const error of model.ofKind('error')) {
-    const read = readCondition(error.properties.condition, goalIds);
-    if (!read)
+    if (!error.values.condition)
       say(
         'error',
         error,
         `${error.label} has no condition: an error is adopted when its condition holds (#134 D7)`,
       );
-    else if ('error' in read)
-      say('error', error, `${error.label}'s condition: ${read.error}`);
   }
 
   for (const artifact of model.ofKind('artifact')) {

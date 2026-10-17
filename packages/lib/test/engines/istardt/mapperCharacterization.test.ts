@@ -1,14 +1,15 @@
 /**
  * iStar-DT's properties as the mapper hands them on and the checks and the
- * DT-Golog writer read them, today (goal-controller#187 phase 2 pre-work):
- * the mapper keeps the actor's sets and the links' probabilities and
- * weights as written, an element's properties are as written, and
- * `readIstardtModel`, `istardtProblems` and `istardtTemplate` parse them
- * (`=== 'true'`, `Number`, `parseInt`, `listItems`, `pairItems`,
- * `readExpression`, `readAssertion`). Each model is a seed (Order, Heating,
- * istardt-own), one property edited, read through `istardtAnalysisModel`
- * (the mapper). A value the dialect flags is marked `#187: invalid value`:
- * after the migration the mapper sees `undefined` for it.
+ * DT-Golog writer read them (goal-controller#187): the mapper keeps the
+ * actor's sets and the links' probabilities and weights as written, an
+ * element's properties are as written, and `readIstardtModel` reads them as
+ * the dialect does, for `istardtProblems` and `istardtTemplate` (before
+ * phase 2 they parsed them: `=== 'true'`, `Number`, `parseInt`, `pairItems`,
+ * `readExpression`, `readAssertion`; the actor's `crossRun` and `exported`
+ * are texts, still split by `listItems`). Each model is a seed (Order,
+ * Heating, istardt-own), one property edited, read through
+ * `istardtAnalysisModel` (the mapper). A value the dialect flags is marked
+ * `#187: invalid value`: the readers see it unset.
  */
 import * as assert from 'assert';
 import * as fs from 'fs';
@@ -168,14 +169,16 @@ describe("iStar-DT (#187 characterization): a goal's root and episodeLength", ()
       ['getNumRuns(1)'],
       ['getNumRuns(1)'],
     ]);
-    // #187: invalid value (min 1; not an int): parseInt's prefix, `|| 1`;
-    // istardtProblems says nothing of any of them
+    // #187: invalid value (min 1; not an int): what isn't an int is unset,
+    // 1 (parseInt read '2.5' as 2, '10x' as 10); 0 is 1 (`|| 1`); -3 the
+    // int reads (its value check says "At least 1"); istardtProblems says
+    // nothing of any of them
     assert.deepStrictEqual(['0', '-3', '2.5', '1e2', '10x', 'abc'].map(read), [
       ['getNumRuns(1)'],
       ['getNumRuns(-3)'],
-      ['getNumRuns(2)'],
       ['getNumRuns(1)'],
-      ['getNumRuns(10)'],
+      ['getNumRuns(1)'],
+      ['getNumRuns(1)'],
       ['getNumRuns(1)'],
     ]);
     assert.deepStrictEqual(
@@ -240,18 +243,16 @@ describe("iStar-DT (#187 characterization): a quality's root, formula and export
       ],
       "IstardtWriteError: Q2 (waterCost)'s formula names nowhere, which is no element",
     ]);
-    // #187: invalid value
+    // #187: invalid value: unset, as a blank one (it was "Q2 (waterCost)'s
+    // formula is not an expression: …"; the value check says so)
     for (const value of ['1 +', '1e2 * moisture', '.5 * moisture'])
       assert.deepStrictEqual(read(value), [
-        [
-          `error: Q2 (waterCost)'s formula is not an expression: ${value}`,
-          OWN_INFO,
-        ],
-        `IstardtWriteError: Q2 (waterCost)'s formula is not an expression: ${value}`,
+        ['error: Q2 (waterCost) has no formula and no utility links', OWN_INFO],
+        'IstardtWriteError: Q2 (waterCost) has no formula and no utility links',
       ]);
   });
 
-  it("istardt.export.bounds: Number's, trimmed; blank is unset", () => {
+  it('istardt.export.bounds: the numbers, trimmed; blank is unset', () => {
     const check = istardtCheckRegistry['istardt.export.bounds'];
     const read = (exportMin: string, exportMax: string) =>
       check({ exportMin, exportMax }, { self: 'Q', kindOf: () => undefined });
@@ -266,14 +267,14 @@ describe("iStar-DT (#187 characterization): a quality's root, formula and export
       ],
       [null, null, NOT('0', '0'), NOT('-10', '-10')],
     );
-    // #187: invalid value: Number's reading
+    // #187: invalid value: unset (Number read '1e2' as 100, 'abc' as NaN)
     assert.deepStrictEqual(
       [read('.5', '1'), read('1e2', '1'), read('abc', '1')],
-      [null, NOT('100', '1'), NOT('NaN', '1')],
+      [null, null, null],
     );
   });
 
-  it("an export's bounds as the writer reads them: Number's, `|| 0`", () => {
+  it("an export's bounds as the writer reads them: the numbers, `|| 0`", () => {
     const read = (exportMin: string, exportMax: string) => {
       const model = modelOf('heating', (m) => {
         Object.assign(node(m, 'Q4').customProperties, { exportMin, exportMax });
@@ -299,21 +300,21 @@ describe("iStar-DT (#187 characterization): a quality's root, formula and export
       ],
       set('0.0,50.0'),
     ]);
-    // #187: invalid value: Number's reading
+    // #187: invalid value: unset, as a blank one (Number read '1e2' as 100,
+    // '.5' as 0.5, 'abc' as NaN, an error)
+    const UNBOUNDED =
+      'warning: Q4 (roomTemperature) is exported continuous without exportMin and exportMax: written as 0.0..0.0';
     assert.deepStrictEqual(read('1e2', '1e3'), [
-      [HEATING_WARNING],
-      set('100.0,1000.0'),
+      [HEATING_WARNING, UNBOUNDED],
+      set('0.0,0.0'),
     ]);
     assert.deepStrictEqual(read('.5', '2.25'), [
-      [HEATING_WARNING],
-      set('0.5,2.25'),
+      [HEATING_WARNING, UNBOUNDED],
+      set('0.0,2.25'),
     ]);
     assert.deepStrictEqual(read('abc', '1'), [
-      [
-        HEATING_WARNING,
-        "error: Q4 (roomTemperature): An export's minimum is below its maximum: NaN is not below 1",
-      ],
-      "IstardtWriteError: Q4 (roomTemperature): An export's minimum is below its maximum: NaN is not below 1",
+      [HEATING_WARNING, UNBOUNDED],
+      set('0.0,1.0'),
     ]);
   });
 });
@@ -370,29 +371,21 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
       ]);
   });
 
-  it("probability: Number's reading of what the dialect's number isn't", () => {
-    // #187: invalid value: '.75', exponents and hex read as numbers
-    assert.deepStrictEqual(probability('.75'), [
-      '.75',
-      [],
-      ['prob(deliveredInTimeA_Eff,0.75,_).'],
-    ]);
-    assert.deepStrictEqual(probability('7.5e-1'), [
-      '7.5e-1',
-      [],
-      ['prob(deliveredInTimeA_Eff,0.75,_).'],
-    ]);
-    assert.deepStrictEqual(probability('0x1'), [
-      '0x1',
-      [`error: ${SUM(1.25)}`],
-      `IstardtWriteError: ${SUM(1.25)}`,
-    ]);
-    // #187: invalid value: no number
+  it("probability: unset where the dialect's number isn't one", () => {
+    // #187: invalid value: '.75', exponents and hex are unset (Number read
+    // '.75' and '7.5e-1' as 0.75, '0x1' as 1); the text is as written
+    for (const value of ['.75', '7.5e-1', '0x1'])
+      assert.deepStrictEqual(probability(value), [
+        value,
+        [`error: ${NOT_A_NUMBER(value)}`, `error: ${SUM(0.25)}`],
+        `IstardtWriteError: ${NOT_A_NUMBER(value)}\n${SUM(0.25)}`,
+      ]);
+    // #187: invalid value: no number (the sum was NaN, unreported)
     for (const value of ['abc', '75%'])
       assert.deepStrictEqual(probability(value), [
         value,
-        [`error: ${NOT_A_NUMBER(value)}`],
-        `IstardtWriteError: ${NOT_A_NUMBER(value)}`,
+        [`error: ${NOT_A_NUMBER(value)}`, `error: ${SUM(0.25)}`],
+        `IstardtWriteError: ${NOT_A_NUMBER(value)}\n${SUM(0.25)}`,
       ]);
   });
 
@@ -418,7 +411,7 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
     assert.deepStrictEqual(['FALSE', 'no'].map(read), [SATISFYING, SATISFYING]);
   });
 
-  it("set: pairItems' pairs, each value a number term for the writer", () => {
+  it('set: its pairs, each value a number term for the writer', () => {
     const read = (value: string) => {
       const model = modelOf('own', (m) => {
         node(m, 'E1').customProperties.set = value;
@@ -445,23 +438,20 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
       ],
       "IstardtWriteError: E1 (readDry)'s set names nowhere, which is no element",
     ]);
-    // #187: invalid value: istardtProblems says nothing; the writer stops
-    for (const [value, text] of [
-      ['moisture:1e2', '1e2'],
-      ['moisture:.5', '.5'],
-      ['moisture:1+1', '1+1'],
-      ['moisture', ''],
-    ] as const)
-      assert.deepStrictEqual(read(value), [
-        [OWN_INFO],
-        `IstardtWriteError: an effect sets moisture to a number, not ${text}`,
-      ]);
-    // #187: invalid value: a word as the value escapes as the formula's own
-    // error, not an IstardtWriteError
-    assert.deepStrictEqual(read('moisture:abc'), [
-      [OWN_INFO],
-      'FormulaError: abc names no element',
-    ]);
+    // #187: invalid value: a member that is no number unsets the whole set
+    // (#246); the dialect's value check reports it. Was: the writer stopped
+    // (IstardtWriteError "an effect sets moisture to a number, not 1e2", and
+    // for a word a bare "FormulaError: abc names no element")
+    for (const value of [
+      'moisture:1e2',
+      'moisture:.5',
+      'moisture:1+1',
+      'moisture:abc',
+    ])
+      assert.deepStrictEqual(read(value), [[OWN_INFO], []]);
+    // #187: invalid value: a pair without its value is no pairList, unset
+    // (pairItems read it as moisture set to '', and the writer stopped)
+    assert.deepStrictEqual(read('moisture'), [[OWN_INFO], []]);
   });
 });
 
@@ -524,8 +514,6 @@ describe("iStar-DT (#187 characterization): a utility link's weight", () => {
   const SUM = (first: string) => [
     `V is R_cost_init +\n((((((${first}) * (R_deliveredInTimeA_fl)) + ((0.5) * (R_deliveredLateA_fl))) + ((0.5) * (R_neverDeliveredA_fl))) + ((1.0) * (R_deliveredInTimeB_fl))) + ((1.0) * (R_deliveredLateB_fl))) + ((1.0) * (R_neverDeliveredB_fl)).`,
   ];
-  const TERMS =
-    ' * deliveredInTimeA + 0.5 * deliveredLateA + 0.5 * neverDeliveredA + 1.0 * deliveredInTimeB + 1.0 * deliveredLateB + 1.0 * neverDeliveredB';
 
   it('trimmed, spliced into the weighted sum as text; blank or unset is 1', () => {
     assert.deepStrictEqual(read(' 0.5 '), ['0.5', [], SUM('0.5')]);
@@ -535,25 +523,17 @@ describe("iStar-DT (#187 characterization): a utility link's weight", () => {
     assert.deepStrictEqual(read(undefined), ['', [], SUM('1.0')]);
   });
 
-  it('what the expression grammar can’t read stops the writer, not istardtProblems', () => {
-    // #187: invalid value
-    for (const value of ['.5', '5e-1', '50%'])
-      assert.deepStrictEqual(read(value), [
-        value,
-        [],
-        `IstardtWriteError: Q1's formula is not an expression: ${value}${TERMS}`,
-      ]);
-    // #187: invalid value: a word is read as a name
-    assert.deepStrictEqual(read('abc'), [
-      'abc',
-      [],
-      "IstardtWriteError: Q1's formula: abc names no element",
-    ]);
+  it('what the dialect’s number can’t read is unset, 1', () => {
+    // #187: invalid value (spliced as text, the writer stopped: "Q1's formula
+    // is not an expression: .5 * deliveredInTimeA + …"; a word was a name,
+    // "abc names no element")
+    for (const value of ['.5', '5e-1', '50%', 'abc'])
+      assert.deepStrictEqual(read(value), [value, [], SUM('1.0')]);
   });
 });
 
 describe("iStar-DT (#187 characterization): the actor's sets and identifiers", () => {
-  it('crossRun and exported: listItems, trimmed, the empty ones dropped; initializations: pairItems', () => {
+  it('crossRun and exported: listItems, trimmed, the empty ones dropped; initializations: its pairs', () => {
     const model = modelOf('order', (m) => {
       m.actors[0].customProperties = {
         crossRun: ' cost ,, happyCustomer, ',
@@ -563,19 +543,17 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
     });
     assert.deepStrictEqual(model.crossRun, ['cost', 'happyCustomer']);
     assert.deepStrictEqual(model.exported, []);
-    // #187: invalid value: a pair without its value, one with two colons
-    assert.deepStrictEqual(model.initializations, [
-      ['cost', '5'],
-      ['happyCustomer', ''],
-      ['overallQuality', 'x:y'],
-    ]);
+    // #187: invalid value: a pair without its value, one with two colons:
+    // no pairList, unset (pairItems read cost:5, happyCustomer:'',
+    // overallQuality:'x:y', written init([cost(5),happyCustomer(),overallQuality(x:y)]))
+    assert.deepStrictEqual(model.initializations, []);
     assert.deepStrictEqual(problemsOf(model), []);
     assert.deepStrictEqual(
       written(model, /^(transStateStructure|discreteExportedSet|init)\(.*$/gm),
       [
         'transStateStructure([cost(_),happyCustomer(_)]).',
         'discreteExportedSet([]).',
-        'init([cost(5),happyCustomer(),overallQuality(x:y)]).',
+        'init([]).',
       ],
     );
   });
@@ -611,11 +589,9 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
       [OWN_INFO],
       ['init([moisture_fl(abc)]).'],
     ]);
-    // #187: invalid value: no value
-    assert.deepStrictEqual(read('moisture'), [
-      [OWN_INFO],
-      ['init([moisture_fl()]).'],
-    ]);
+    // #187: invalid value: no value, so no pairList: unset (it was
+    // init([moisture_fl()]))
+    assert.deepStrictEqual(read('moisture'), [[OWN_INFO], ['init([]).']]);
   });
 
   it("identifier: trimmed; blank is the name's camelCase", () => {

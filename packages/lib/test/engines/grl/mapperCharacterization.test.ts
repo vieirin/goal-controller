@@ -1,21 +1,22 @@
 /**
  * GRL's properties as the mapper hands them on and the evaluation graph
- * reads them, today (goal-controller#187 phase 2 pre-work): what each
- * value of an actor's, an element's and a contribution's property becomes,
- * so that moving the parsing (`pick`, `integer`, the check's `Number`) into
- * the typed mapper shows nothing changed. Every model is grl-own's, one
- * property edited, read through `grlAnalysisModel` (the mapper) and
- * `grlGraph`. A value the dialect flags is marked `#187: invalid value`:
- * after the migration the mapper sees `undefined` for it.
+ * reads them (goal-controller#187): what each value of an actor's, an
+ * element's and a contribution's property becomes, now that the graph reads
+ * them as the dialect does (`viewValues`; before phase 2, `pick`, `integer`
+ * and the check's `Number`). Every model is grl-own's, one property
+ * edited, read through `grlAnalysisModel` (the mapper) and `grlGraph`. A
+ * value the dialect flags is marked `#187: invalid value`: the graph sees
+ * it unset.
  */
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
-import type { CheckContext } from '../../../src/engines/checks';
+import { linkPropertiesOf, type ValueConfig } from '@goal-controller/dialect';
+import { valueProblem } from '@goal-controller/goal-language';
 import {
+  grl,
   grlAnalysisModel,
-  grlCheckRegistry,
   grlGraph,
   type GrlGraph,
 } from '../../../src/engines/grl';
@@ -57,8 +58,6 @@ const contributionFrom = (graph: GrlGraph, source: string) => {
     .find((e) => e.kind === 'contribution' && e.src === source);
   return edge?.kind === 'contribution' ? edge : undefined;
 };
-
-const context: CheckContext = { self: 'l', kindOf: () => undefined };
 
 describe('GRL (#187 characterization): what the mapper keeps', () => {
   it("keeps an actor's and a link's declared keys as written, any link kind's on any link, and drops the rest", () => {
@@ -126,11 +125,14 @@ describe('GRL (#187 characterization): importanceQuantitative and quantitativeCo
       ['50', ' 50 ', '-0', '0', '-150', '150', '', '  '].map(read),
       [50, 50, -0, 0, -150, 150, fallback, fallback],
     );
-    // #187: invalid value (not an integer to the dialect): Number's reading
-    assert.deepStrictEqual(
-      ['1.0', '1e2', '0x10', '+5'].map(read),
-      [1, 100, 16, 5],
-    );
+    // #187: invalid value (not an integer to the dialect): unset, the
+    // default (Number read them as 1, 100, 16, 5)
+    assert.deepStrictEqual(['1.0', '1e2', '0x10', '+5'].map(read), [
+      fallback,
+      fallback,
+      fallback,
+      fallback,
+    ]);
     // #187: invalid value: not an integer to Number either, the default
     assert.deepStrictEqual(
       ['.5', '2.5', '50%', 'abc', 'Infinity', '５'].map(read),
@@ -205,8 +207,10 @@ describe('GRL (#187 characterization): importanceQuantitative and quantitativeCo
 
 describe('GRL (#187 characterization): importance, decompositionType and contribution, `pick`', () => {
   const IMPORTANCE = ['High', 'Medium', 'Low', 'None', ''];
-  // #187: invalid value: the literals are matched as written
+  // #187: invalid value: the literals were matched as written; the enum
+  // reads its value trimmed (' High' is High), and no other case
   const IMPORTANCE_INVALID = ['high', 'HIGH', ' High', 'High ', 'Bogus'];
+  const IMPORTANCE_READ = ['None', 'None', 'High', 'High', 'None'];
 
   it("an element's importance: its literal, exactly; None otherwise", () => {
     const read = (value: string) =>
@@ -224,13 +228,7 @@ describe('GRL (#187 characterization): importance, decompositionType and contrib
       'None',
     ]);
     // #187: invalid value
-    assert.deepStrictEqual(IMPORTANCE_INVALID.map(read), [
-      'None',
-      'None',
-      'None',
-      'None',
-      'None',
-    ]);
+    assert.deepStrictEqual(IMPORTANCE_INVALID.map(read), IMPORTANCE_READ);
   });
 
   it("an actor's importance: the same, through the mapper", () => {
@@ -246,13 +244,7 @@ describe('GRL (#187 characterization): importance, decompositionType and contrib
       'None',
     ]);
     // #187: invalid value
-    assert.deepStrictEqual(IMPORTANCE_INVALID.map(read), [
-      'None',
-      'None',
-      'None',
-      'None',
-      'None',
-    ]);
+    assert.deepStrictEqual(IMPORTANCE_INVALID.map(read), IMPORTANCE_READ);
   });
 
   it("a decomposition type: its literal, exactly; else its refinement links' (Or for goal 3), else And", () => {
@@ -271,10 +263,10 @@ describe('GRL (#187 characterization): importance, decompositionType and contrib
     assert.strictEqual(read('3'), 'Or');
     // a task refined by nothing
     assert.strictEqual(read('4'), 'And');
-    // #187: invalid value
+    // #187: invalid value: unset, the links' (' Xor' is Xor, trimmed)
     assert.deepStrictEqual(
       ['xor', 'XOR', ' Xor', 'Bogus'].map((value) => read('3', value)),
-      ['Or', 'Or', 'Or', 'Or'],
+      ['Or', 'Or', 'Xor', 'Or'],
     );
   });
 
@@ -322,10 +314,10 @@ describe('GRL (#187 characterization): importance, decompositionType and contrib
     );
     // a label piStar doesn't have: Help
     assert.strictEqual(read(undefined, 'unknown'), 'Help');
-    // #187: invalid value: the label's
+    // #187: invalid value: unset, the label's (' Make' is Make, trimmed)
     assert.deepStrictEqual(
       ['make', 'MAKE', ' Make', 'Bogus'].map((value) => read(value)),
-      ['Break', 'Break', 'Break', 'Break'],
+      ['Break', 'Break', 'Make', 'Break'],
     );
   });
 
@@ -349,15 +341,15 @@ describe('GRL (#187 characterization): importance, decompositionType and contrib
   });
 });
 
-describe('GRL (#187 characterization): grl.link.quantitativeContribution', () => {
-  const check = grlCheckRegistry['grl.link.quantitativeContribution'];
+describe('GRL (#187 characterization): a quantitative contribution, its int check', () => {
+  // grl.link.quantitativeContribution went (#187): it agreed with `integer`,
+  // and its range is the int's bounds; the dialect's value check says it
+  const config = linkPropertiesOf(grl, 'istar.ContributionLink').find(
+    (p) => p.key === 'quantitativeContribution',
+  )!.value as ValueConfig;
+  /** an unset value isn't checked */
   const read = (value: string | undefined) =>
-    check(
-      value === undefined ? {} : { quantitativeContribution: value },
-      context,
-    );
-  const not = (text: string) =>
-    `A quantitative contribution is an integer, −100..100, not ${text}`;
+    value === undefined ? null : valueProblem(config, value);
 
   it('accepts an integer in −100..100, trimmed, and says nothing of an unset one', () => {
     assert.deepStrictEqual(
@@ -366,36 +358,37 @@ describe('GRL (#187 characterization): grl.link.quantitativeContribution', () =>
     );
   });
 
-  it('rejects one out of range, its text trimmed', () => {
-    // #187: invalid value (out of range)
+  it('rejects one out of range', () => {
+    // #187: invalid value (out of range): the int's bounds (the check said
+    // "A quantitative contribution is an integer, −100..100, not 150")
     assert.deepStrictEqual(['150', ' -101 '].map(read), [
-      not('150'),
-      not('-101'),
+      'At most 100',
+      'At least -100',
     ]);
   });
 
-  it("accepts what Number reads as an integer, though the dialect's int doesn't", () => {
-    // #187: invalid value (the value's own parse flags them; this check agrees with `integer`)
+  it('rejects what the int type reads as no integer, though Number did', () => {
+    // #187: invalid value (the check accepted them, as `integer` read them)
     assert.deepStrictEqual(['1.0', '1e2', '0x10', '+5'].map(read), [
-      null,
-      null,
-      null,
-      null,
+      'Not an integer: 1.0',
+      'Not an integer: 1e2',
+      'Not an integer: 0x10',
+      'Not an integer: +5',
     ]);
   });
 
-  it('rejects what Number reads as no integer, as written (trimmed)', () => {
-    // #187: invalid value
+  it('rejects what Number reads as no integer, as written', () => {
+    // #187: invalid value (the check's message was "… not 2.5", trimmed)
     assert.deepStrictEqual(
       ['2.5', '.5', '50%', 'abc', 'Infinity', '５', ' 2.5 '].map(read),
       [
-        not('2.5'),
-        not('.5'),
-        not('50%'),
-        not('abc'),
-        not('Infinity'),
-        not('５'),
-        not('2.5'),
+        'Not an integer: 2.5',
+        'Not an integer: .5',
+        'Not an integer: 50%',
+        'Not an integer: abc',
+        'Not an integer: Infinity',
+        'Not an integer: ５',
+        'Not an integer:  2.5 ',
       ],
     );
   });

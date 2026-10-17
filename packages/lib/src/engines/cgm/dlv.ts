@@ -28,11 +28,10 @@
  */
 import type { AssertionTree } from '@goal-controller/goal-language';
 import type { AnalysisModel } from '../analysis';
-import { formulaOf } from './formulas';
 import { readCgmModel, type CgmModel } from './model';
 import type { Situation } from './resources';
 import { contextsHolding, contributionSign } from './situation';
-import { CGM_KEYS } from './vocabulary';
+import { elementValues, linkValues } from './values';
 
 /** A DLV constant for an id: lower case, `.` as `_` (`G3.1` → `g3_1`). */
 export const dlvConstant = (id: string): string =>
@@ -120,7 +119,7 @@ const treeRules = (cgm: CgmModel): string[] => {
     `${cgm.element(id)?.kind === 'istar.Task' ? 'todo' : 'ach'}(${dlvConstant(cgm.idOf(id))})`;
   const seen = new Set<string>();
   const guard = (
-    tree: AssertionTree | null,
+    tree: AssertionTree | null | undefined,
     body: string,
     dropped?: string,
   ) => {
@@ -137,11 +136,10 @@ const treeRules = (cgm: CgmModel): string[] => {
     const or = refinements.filter((r) => r.relation === 'or');
     if (or.length) {
       lines.push(rule(or.map((r) => head(r.child)).join(' | '), [here]));
-      for (const r of or)
-        guard(formulaOf(r.link.properties[CGM_KEYS.context]), head(r.child));
+      for (const r of or) guard(linkValues(r.link).context, head(r.child));
     }
     for (const r of refinements.filter((r) => r.relation === 'and')) {
-      const condition = formulaOf(r.link.properties[CGM_KEYS.context]);
+      const condition = linkValues(r.link).context;
       if (condition) {
         const drop = `drop(${dlvConstant(cgm.idOf(r.child))})`;
         lines.push(rule(`${head(r.child)} | ${drop}`, [here]));
@@ -151,7 +149,7 @@ const treeRules = (cgm: CgmModel): string[] => {
     for (const dependency of cgm.dependenciesOf(id)) {
       const dependum = `ach(${dlvConstant(cgm.idOf(dependency.dependum))})`;
       lines.push(rule(dependum, [here]));
-      guard(formulaOf(dependency.link.properties[CGM_KEYS.context]), dependum);
+      guard(linkValues(dependency.link).context, dependum);
       if (dependency.dependee) {
         lines.push(rule(head(dependency.dependee), [dependum]));
         walk(dependency.dependee);
@@ -161,10 +159,8 @@ const treeRules = (cgm: CgmModel): string[] => {
   };
   for (const root of cgm.roots) {
     lines.push(rule(head(root), []));
-    guard(
-      formulaOf(cgm.element(root)?.properties[CGM_KEYS.activation]),
-      head(root),
-    );
+    const element = cgm.element(root);
+    guard(element && elementValues(element).activation, head(root));
     walk(root);
   }
   return lines;
@@ -181,17 +177,16 @@ const situationRules = (cgm: CgmModel, situation: Situation): string[] => {
     const head = (sign: string) =>
       `contrib(${dlvConstant(cgm.idOf(link.source))},${dlvConstant(cgm.idOf(link.target))},${sign})`;
     const always = contributionSign(link, () => false);
-    const context = link.properties[CGM_KEYS.context];
-    const opposite = link.properties[CGM_KEYS.opposite];
-    if (!context?.trim() && !opposite?.trim()) {
+    const { context, opposite } = linkValues(link);
+    if (!context && !opposite) {
       lines.push(rule(head(always!), []));
       continue;
     }
     const sign = contributionSign(link, () => true);
     const other = sign === 'pos' ? 'neg' : 'pos';
-    for (const body of context?.trim() ? phiBodies(formulaOf(context)) : [])
+    for (const body of context ? phiBodies(context) : [])
       lines.push(rule(head(sign!), body));
-    for (const body of opposite?.trim() ? phiBodies(formulaOf(opposite)) : [])
+    for (const body of opposite ? phiBodies(opposite) : [])
       lines.push(rule(head(other), body));
   }
   return lines;
@@ -202,8 +197,7 @@ const costRules = (cgm: CgmModel): string[] => {
   const lines: string[] = [];
   const tasks = cgm.model.elements.filter(
     (element) =>
-      element.kind === 'istar.Task' &&
-      element.properties[CGM_KEYS.cost]?.trim(),
+      element.kind === 'istar.Task' && elementValues(element).cost != null,
   );
   for (const task of tasks) {
     const shared = cgm.overlaps
@@ -243,7 +237,7 @@ export const reContextDlv = (
   const cgm = readCgmModel(model);
   const costs =
     options.costs ??
-    model.elements.some((element) => element.properties[CGM_KEYS.cost]?.trim());
+    model.elements.some((element) => elementValues(element).cost != null);
   return [
     '% RE-Context (REJ 2010 Code 2): the goal model and its contexts',
     ...treeRules(cgm),

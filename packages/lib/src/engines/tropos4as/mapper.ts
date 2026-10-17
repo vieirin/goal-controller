@@ -3,7 +3,8 @@
  * trees, the inspector's unread keys, and its `GoalModel`, goal-controller
  * #125). The lifecycle reads the model as a graph (`readTropos4asModel`)
  * over that `GoalModel`'s view, so the mapper keeps the properties as
- * written.
+ * written, and the reader reads them as the dialect does
+ * (goal-controller#187).
  */
 import {
   createEngineMapper,

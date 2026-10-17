@@ -196,7 +196,7 @@ describe('Contextual goal models: the model’s problems', () => {
       assert.deepStrictEqual(cgmProblems(seedModel(seed)), []);
     });
 
-  it('reports an unreadable formula, a name of the wrong kind, a context off the variation points', () => {
+  it('reports a name of the wrong kind, a context off the variation points (an unreadable formula is unset, #187)', () => {
     const model = toy(
       [
         ['G1', 'goal', { activation: 'C1 &' }],
@@ -214,7 +214,6 @@ describe('Contextual goal models: the model’s problems', () => {
     assert.deepStrictEqual(
       cgmProblems(model).map((p) => p.message),
       [
-        "G1's activation is not a formula: C1 &",
         "C1's formula names G2, which is no statement or fact",
         'C1: Not monitorable (REJ 2010 Defs. 6–7): G2 is neither a statement nor a fact',
         'ST1: a statement is supported by a formula (REJ 2010 Def. 6)',

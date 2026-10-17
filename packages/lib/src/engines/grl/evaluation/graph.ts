@@ -7,11 +7,9 @@
  * properties), and a dependency link from depender to dependee is GRL's from
  * the dependee to the depender.
  */
-import type { AnalysisModel } from '../../analysis';
+import { viewValues, type AnalysisModel } from '../../analysis';
+import { elementProperties, grl } from '../definition';
 import {
-  GRL_CONTRIBUTIONS,
-  GRL_DECOMPOSITIONS,
-  GRL_IMPORTANCES,
   type GrlContribution,
   type GrlDecomposition,
   type GrlImportance,
@@ -71,14 +69,34 @@ export const CONTRIBUTION_OF_LABEL: Readonly<Record<string, GrlContribution>> =
     break: 'Break',
   };
 
-/** an enum property: its value, or the metamodel's default */
+const readingOf = () => ({
+  properties: {
+    goal: elementProperties,
+    task: elementProperties,
+    resource: elementProperties,
+    quality: elementProperties,
+    'grl.Indicator': elementProperties,
+  },
+  links: grl.links,
+  actors: grl.actors,
+});
+let reading: ReturnType<typeof readingOf> | undefined;
+/**
+ * GRL as the evaluation reads a model's properties (goal-controller#187):
+ * an intentional element's are `elementProperties` (what GRL would declare,
+ * #105), its actors' and links' the dialect's. Made on first use: the
+ * dialect's module imports the jUCM writer, which imports this one.
+ */
+const grlReading = () => (reading ??= readingOf());
+
+/** an enum property: its value, or the metamodel's default (the jUCM writer's, which reads its texts) */
 export const pick = <T extends string>(
   value: string | undefined,
   literals: readonly T[],
   fallback: T,
 ): T => (literals.includes(value as T) ? (value as T) : fallback);
 
-/** an int property: its value, or the metamodel's default */
+/** an int property: its value, or the metamodel's default (the jUCM writer's) */
 export const integer = (
   value: string | undefined,
   fallback: number,
@@ -102,21 +120,22 @@ export const grlGraph = (model: AnalysisModel): GrlGraph => {
         return [{ kind: 'decomposition', src: link.source, dest: link.target }];
       case 'istar.DependencyLink':
         return [{ kind: 'dependency', src: link.target, dest: link.source }];
-      case 'istar.ContributionLink':
+      case 'istar.ContributionLink': {
+        const values = viewValues(grlReading(), 'link', link);
         return [
           {
             kind: 'contribution',
             src: link.source,
             dest: link.target,
-            contribution: pick(
-              link.properties.contribution,
-              GRL_CONTRIBUTIONS,
-              CONTRIBUTION_OF_LABEL[link.label ?? ''] ?? 'Help',
-            ),
+            contribution:
+              values.contribution ??
+              CONTRIBUTION_OF_LABEL[link.label ?? ''] ??
+              'Help',
             // EMF's default, as jUCMNav: a contribution's label doesn't set it
-            quantitative: integer(link.properties.quantitativeContribution, 25),
+            quantitative: values.quantitativeContribution ?? 25,
           },
         ];
+      }
       default:
         return [];
     }
@@ -135,24 +154,24 @@ export const grlGraph = (model: AnalysisModel): GrlGraph => {
         refinementKind.set(link.target, 'And');
       else if (link.kind === 'istar.OrRefinementLink')
         refinementKind.set(link.target, 'Or');
-  const elements = intentional.map((element): GrlNode => ({
-    id: element.id,
-    decompositionType: pick(
-      element.properties.decompositionType,
-      GRL_DECOMPOSITIONS,
-      refinementKind.get(element.id) ?? 'And',
-    ),
-    importance: pick(element.properties.importance, GRL_IMPORTANCES, 'None'),
-    importanceQuantitative: integer(
-      element.properties.importanceQuantitative,
-      0,
-    ),
-  }));
-  const actors = model.actors.map((actor): GrlActorNode => ({
-    id: actor.id,
-    importance: pick(actor.properties.importance, GRL_IMPORTANCES, 'None'),
-    importanceQuantitative: integer(actor.properties.importanceQuantitative, 0),
-    elements: actor.elements.filter((id) => ids.has(id)),
-  }));
+  const elements = intentional.map((element): GrlNode => {
+    const values = viewValues(grlReading(), 'element', element);
+    return {
+      id: element.id,
+      decompositionType:
+        values.decompositionType ?? refinementKind.get(element.id) ?? 'And',
+      importance: values.importance ?? 'None',
+      importanceQuantitative: values.importanceQuantitative ?? 0,
+    };
+  });
+  const actors = model.actors.map((actor): GrlActorNode => {
+    const values = viewValues(grlReading(), 'actor', actor);
+    return {
+      id: actor.id,
+      importance: values.importance ?? 'None',
+      importanceQuantitative: values.importanceQuantitative ?? 0,
+      elements: actor.elements.filter((id) => ids.has(id)),
+    };
+  });
   return { elements, actors, incoming, outgoing };
 };

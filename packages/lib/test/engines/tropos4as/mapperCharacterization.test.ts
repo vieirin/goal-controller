@@ -1,13 +1,14 @@
 /**
  * Tropos4AS's properties as the mapper hands them on and the lifecycle and
- * the checks read them, today (goal-controller#187 phase 2 pre-work): the
- * mapper keeps no actor or link property (it maps none), an element's
- * properties are as written, and `goalTypeOf`, `onFailureOf`,
- * `readCondition`, `pairItems` and the checks parse them. Each model is a
- * seed (the Cleaner Agent, patient monitoring), one property edited, read
- * through `tropos4asAnalysisModel` (the mapper). A value the dialect flags
- * is marked `#187: invalid value`: after the migration the mapper sees
- * `undefined` for it.
+ * the checks read them (goal-controller#187): the mapper keeps no actor or
+ * link property (it maps none), an element's properties are as written, and
+ * `readTropos4asModel` reads them as the dialect does, for `goalTypeOf`,
+ * `onFailureOf`, the lifecycle's conditions (`conditionOf`) and the checks
+ * (before phase 2 they parsed them: trimming, `readCondition`'s
+ * `readAssertion`, `pairItems`). Each model is a seed (the Cleaner Agent,
+ * patient monitoring), one property edited, read through
+ * `tropos4asAnalysisModel` (the mapper). A value the dialect flags is
+ * marked `#187: invalid value`: the readers see it unset.
  */
 import * as assert from 'assert';
 import * as fs from 'fs';
@@ -216,7 +217,7 @@ describe("Tropos4AS (#187 characterization): a goal's type and onFailure", () =>
   });
 });
 
-describe("Tropos4AS (#187 characterization): a goal's conditions, `readCondition`", () => {
+describe("Tropos4AS (#187 characterization): a goal's conditions", () => {
   /** RoomClean's instance and the model's problems, its achievement `value` */
   const read = (achievement: string) => {
     const model = modelOf('cleaner-agent', (json) => {
@@ -237,13 +238,11 @@ describe("Tropos4AS (#187 characterization): a goal's conditions, `readCondition
     assert.deepStrictEqual(read('TRUE'), [achieve('TRUE'), []]);
   });
 
-  it("what the goal language can't read: the run throws, the problems say so", () => {
-    // #187: invalid value
+  it("what the goal language can't read: unset, as a blank one", () => {
+    // #187: invalid value (the run threw, and the problems said, `RC's
+    // achievement: "a <" is no condition`; the value check says so)
     for (const achievement of ['a <', 'x > .5', 'x > 1e2'])
-      assert.deepStrictEqual(read(achievement), [
-        `RC's achievement: "${achievement}" is no condition`,
-        [`error: RC's achievement: "${achievement}" is no condition`],
-      ]);
+      assert.deepStrictEqual(read(achievement), [PERFORM, []]);
   });
 
   it("a maintain-goal's maintain: blank is none, an error, and the run throws", () => {
@@ -287,11 +286,9 @@ describe("Tropos4AS (#187 characterization): a goal's conditions, `readCondition
         'error: MBL is a maintain-goal without its maintain condition (M(m, d), AAMAS 2009 §4.3.3)',
       ],
     ]);
-    // #187: invalid value
-    assert.deepStrictEqual(maintained('a <'), [
-      'MBL\'s maintain: "a <" is no condition',
-      ['error: MBL\'s maintain: "a <" is no condition'],
-    ]);
+    // #187: invalid value: unset, as a blank one (it was `MBL's maintain:
+    // "a <" is no condition`, thrown and reported)
+    assert.deepStrictEqual(maintained('a <'), maintained('  '));
   });
 
   it('a creation condition below a root: warned of unless blank', () => {
@@ -324,11 +321,9 @@ describe("Tropos4AS (#187 characterization): a goal's conditions, `readCondition
     assert.deepStrictEqual(read(' !x '), [SEED_WARNING]);
     for (const condition of [undefined, '', '  '])
       assert.deepStrictEqual(read(condition), [SEED_WARNING, NONE]);
-    // #187: invalid value
-    assert.deepStrictEqual(read('a <'), [
-      SEED_WARNING,
-      'error: errorNotEat\'s condition: "a <" is no condition',
-    ]);
+    // #187: invalid value: unset, no condition (it was `errorNotEat's
+    // condition: "a <" is no condition`)
+    assert.deepStrictEqual(read('a <'), [SEED_WARNING, NONE]);
   });
 });
 
@@ -374,7 +369,7 @@ describe('Tropos4AS (#187 characterization): the goal checks', () => {
   });
 });
 
-describe("Tropos4AS (#187 characterization): an artifact's attributes, `pairItems`", () => {
+describe("Tropos4AS (#187 characterization): an artifact's attributes", () => {
   const read = (attributes: string) => {
     const model = modelOf('patient-monitoring', (json) => {
       node(json, 'medicineSensor').customProperties = { attributes };
@@ -387,18 +382,15 @@ describe("Tropos4AS (#187 characterization): an artifact's attributes, `pairItem
   const NOT = (text: string) =>
     `error: medicineSensor: An attribute is name:type, the type bool, int, number or its options (mode:wet|dry): not ${text}`;
 
-  it('name:type pairs, trimmed, the empty ones dropped', () => {
+  it('name:type pairs, trimmed', () => {
     assert.deepStrictEqual(read(' taken : bool '), [
       [['taken', 'bool']],
       [SEED_WARNING],
     ]);
-    assert.deepStrictEqual(read('a:bool,,b:int'), [
-      [
-        ['a', 'bool'],
-        ['b', 'int'],
-      ],
-      [SEED_WARNING],
-    ]);
+    // #187: an empty pair is no pairList to the dialect (its value check
+    // says "name:value pairs, comma-separated"), so unset; pairItems
+    // dropped it, a:bool and b:int (unmarked before phase 2)
+    assert.deepStrictEqual(read('a:bool,,b:int'), [[], [SEED_WARNING]]);
     assert.deepStrictEqual(read('n:number, mode:wet|dry, x:a|b|c'), [
       [
         ['n', 'number'],
@@ -424,18 +416,9 @@ describe("Tropos4AS (#187 characterization): an artifact's attributes, `pairItem
       [['x', 'a | b']],
       [SEED_WARNING, NOT('x:a | b')],
     ]);
-    // #187: invalid value (no name:value pair to the dialect)
-    assert.deepStrictEqual(read('taken'), [
-      [['taken', '']],
-      [SEED_WARNING, NOT('taken:')],
-    ]);
-    assert.deepStrictEqual(read(':bool'), [
-      [['', 'bool']],
-      [SEED_WARNING, NOT(':bool')],
-    ]);
-    assert.deepStrictEqual(read('a:b:c'), [
-      [['a', 'b:c']],
-      [SEED_WARNING, NOT('a:b:c')],
-    ]);
+    // #187: invalid value (no name:value pair to the dialect): unset (pairItems
+    // read taken:'', '':bool, a:'b:c', and the check reported them)
+    for (const attributes of ['taken', ':bool', 'a:b:c'])
+      assert.deepStrictEqual(read(attributes), [[], [SEED_WARNING]]);
   });
 });
