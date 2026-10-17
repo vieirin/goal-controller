@@ -128,7 +128,7 @@ Each value type is a rule of the goal language that reads a value on its own; th
 | `bool`                                           | true/false select               | `true` or `false`                                                                                                             |
 | `assertion` `{resolves, functions?, members?}`   | one-line editor with completion | the assertion language (`battery > 20 & !charging`); completion offers the elements of the `resolves` kinds, the variables and the `functions`. With `functions` (`[{ name: 'previous', arity: 1 }]`, even `[]`), a comparison's sides are expressions (`previous(t) < 18`), and a call is a condition on its own (`previous(on) & !off`); a call to another function, or with another number of arguments, is an error. With `members` (below), a reference may be followed by `.member` (`room.clean`, `tank.level < 10`) |
 | `expression` `{resolves?, functions?, members?}` | one-line editor with completion | a numeric expression (`0.5 + 0.9 * previous(t)`): numbers, `+ - * /`, a negation, parentheses, ids of elements of the `resolves` kinds, variables (declared by their use), members (`tank.level`, with `members`) and calls to the `functions`, each with its arity; completion offers those, hover shows the element an id names. Read it with `readExpression(value)`: a tree (`number`, `ref`, `var`, `member`, `call`, `binary`, `unary`) the engine walks, never the text |
-| `refList` `{kind}`                               | editor with id completion       | ids, comma-separated, of elements of that kind (Edge's `dependsOn: G2, G5`)                                                   |
+| `refList` `{kind}` or `{kinds}`                  | editor with id completion       | ids, comma-separated, of elements of that kind, or of any of those kinds (Edge's `dependsOn: G2, G5`)                         |
 | `pairList` `{value}`                             | editor                          | `name:value` pairs, comma-separated, values of that type (Edge's `variables: speed:3, mode:2`)                                |
 | `annotatedName`                                  | editor                          | a line without an id                                                                                                          |
 | `ConditionalValue` `{when, matching, otherwise}` | depends on another property     | e.g. a resource's `initialValue` is an int or a bool depending on `type`                                                      |
@@ -156,7 +156,7 @@ checked. Read a condition with `readAssertion` (`{ kind: 'member', ref,
 member }`, and an `assign` with a `member`) and its members with
 `assertionMembers(tree)`; never split the text.
 
-Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
+Each row has a helper of the same name: `property.enum(key, options, { open? })`, `property.int(key, { min?, max? })`, `property.number`, `property.text`, `property.bool`, `property.annotatedName`, `property.assertion(key, { resolves, prefixes?, functions?, … })`, `property.expression(key, { resolves?, functions? })`, `property.refList(key, kind | kinds)`, `property.pairList(key, valueType)`, `property.ocl(key, { declaredBy?, candidates?, memberCandidates? })` and `property.conditional(key, { when, matching, otherwise })`. Each takes the per-property options below in the same object (`help` is required).
 
 Per property:
 - `applies` / `required`: `'always'`, `{ when: {key, equals} }`, or `{ not: {...} }`. `applies=false` greys the row and shows `notApplying` (with `{key}` placeholders). `required` shows the row even when unset.
@@ -286,7 +286,7 @@ export const mission = defineDialect({
   actor kinds take `actors`' properties (§2.5). `defineDialect` rejects the
   same at run time. A kind without an entry has no properties.
 - **References.** `assertion.resolves`, `expression.resolves`,
-  `refList.kind` and `notation.operand.kinds` take the extension's kind ids
+  `refList.kind` (or `kinds`) and `notation.operand.kinds` take the extension's kind ids
   too; `defineDialect` rejects one its extension doesn't have. The editors
   resolve, complete and hover them as goals: an element is named by the id
   its text starts with (`V1: Panel`), or by its piStar id. In an

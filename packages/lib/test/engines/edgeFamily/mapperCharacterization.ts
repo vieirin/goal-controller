@@ -565,23 +565,16 @@ export const characterizeEdgeMapper = (
       assert.deepStrictEqual(dependsOn('G12'), ['G12']);
     });
 
-    it('throws for an id that is no node, or no goal (without a node suffix)', () => {
-      throws(
-        { G12: { dependsOn: 'G99' } },
-        '[INVALID MODEL]: Dependency G99 not found for node G12',
-      );
-      throws(
-        { G12: { dependsOn: 'G13,G99' } },
-        '[INVALID MODEL]: Dependency G99 not found for node G12',
-      );
-      throws(
-        { G12: { dependsOn: 'T8' } },
-        '[INVALID MODEL]: Dependency T8 for node G12 must be a goal, got task',
-      );
-      throws(
-        { G12: { dependsOn: 'R0' } },
-        '[INVALID MODEL]: Dependency R0 for node G12 must be a goal, got resource',
-      );
+    it('reads an id that is no node, or no goal, as unset: []', () => {
+      // #270: changed (each was a throw: "Dependency G99 not found for node
+      // G12", "Dependency T8 for node G12 must be a goal, got task"): the
+      // refList resolves against the model, and one naming no element, or
+      // another kind, is unset, as the dialect reports it ("G99 is not an
+      // element of this model", "T8 is a task, not a goal")
+      assert.deepStrictEqual(dependsOn('G99'), []);
+      assert.deepStrictEqual(dependsOn('G13,G99'), []);
+      assert.deepStrictEqual(dependsOn('T8'), []);
+      assert.deepStrictEqual(dependsOn('R0'), []);
     });
 
     it('reads ids without commas as unset: []', () => {

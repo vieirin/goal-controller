@@ -4,6 +4,7 @@
  * elements of the model of the kind it refers to.
  */
 import {
+  refListKinds,
   valueParts,
   actorPropertiesOf,
   enumOptionOf,
@@ -389,8 +390,9 @@ export const valueProblem = (
       for (const id of read.value) {
         const kind = kindOf(context, id);
         if (!kind) return `${id} is not an element of this model`;
-        if (kind !== value.kind)
-          return `${id} is a ${kind}, not a ${value.kind}`;
+        const kinds: readonly string[] = refListKinds(value);
+        if (!kinds.includes(kind))
+          return `${id} is a ${kind}, not a ${kinds.join(' or ')}`;
       }
       return null;
     }

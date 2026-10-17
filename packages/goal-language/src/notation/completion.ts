@@ -7,6 +7,7 @@
  * field, its enum's options, or the ids or names its value refers to.
  */
 import {
+  refListKinds,
   actorPropertiesOf,
   constructDefinition,
   hasIds,
@@ -514,7 +515,8 @@ export const fieldCompletionsAt = (
         type: 'variable' as const,
         detail: element.kind,
       }));
-  if (value.type === 'refList') return { from, options: ids([value.kind]) };
+  if (value.type === 'refList')
+    return { from, options: ids(refListKinds(value)) };
   if (value.type === 'enum')
     return {
       from: text.length - text.trimStart().length,

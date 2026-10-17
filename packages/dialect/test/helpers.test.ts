@@ -16,6 +16,7 @@ import {
   property,
   type CheckNameOf,
   type PropertyKeyOf,
+  refListKinds,
   valueParts,
 } from '../src';
 
@@ -95,6 +96,26 @@ describe('property', () => {
     expect(enumOptionOf(exact.value, 'Achieve')).to.equal(undefined);
     // @ts-expect-error caseInsensitive is true or unset
     property.enum('x', ['a'], { caseInsensitive: false, help: 'h' });
+  });
+
+  it('builds a refList of one kind, or of several (#270)', () => {
+    expect(
+      property.refList('dependsOn', 'goal', { help: 'h' }).value,
+    ).to.deep.equal({ type: 'refList', kind: 'goal' });
+    const after = property.refList('after', ['goal', 'istar.Predicate'], {
+      help: 'h',
+    });
+    expect(after.value).to.deep.equal({
+      type: 'refList',
+      kinds: ['goal', 'istar.Predicate'],
+    });
+    expect(refListKinds(after.value)).to.deep.equal([
+      'goal',
+      'istar.Predicate',
+    ]);
+    expect(refListKinds({ type: 'refList', kind: 'task' })).to.deep.equal([
+      'task',
+    ]);
   });
 
   it("puts an assertion's separator in its value; splits a value into its parts (#232)", () => {

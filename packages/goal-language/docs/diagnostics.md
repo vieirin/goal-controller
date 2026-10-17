@@ -266,7 +266,7 @@ first.
 | `x is not a resource of this model or a known variable` | info | `assertion` naming neither an element of a kind it `resolves` nor a workbench variable (with `declaresVariables`, any name that isn't an element is a variable) |
 | `Element ids, comma-separated (G2, G5)` | error | `refList` that doesn't parse |
 | `G9 is not an element of this model` | error | `refList` naming a missing element |
-| `T1 is a task, not a goal` | error | `refList` naming another kind |
+| `T1 is a task, not a goal` (`… not a goal or task` for several kinds) | error | `refList` naming another kind |
 | `name:value pairs, comma-separated (x:3, y:2)` | error | `pairList` that doesn't parse |
 | `t: Not an integer: x` | error | `pairList` value not of its type |
 | `An element's id (G1), not G1, G2` | error | `reference` that is neither one id, as a `refList` reads them, nor the piStar id of an element of the model |
