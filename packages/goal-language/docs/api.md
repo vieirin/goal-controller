@@ -52,7 +52,10 @@ functions return plain data, with no Langium types:
   `ValueDataOf<config>` is the same for a dialect's value config: an enum is
   its options' values (when the definition keeps their literal types, as
   `property.enum` does) or any word when it is `open`; a `reference` is the
-  id written, a `formula` its text, a `probability` its number in [0, 1].
+  id written, a `formula` its text, a `probability` its number in [0, 1],
+  and a `pairList` a `PairList` of its value type (`PairList<number>` for
+  `int` and `number`, `PairList<string>` for `text`; a member that isn't
+  of its type leaves the whole value unset, goal-controller#235).
   `PropertyValues<properties>` is a record's (`readProperties`'s `values`):
   a conditional value is either of its two configs' data.
 - `ElementLineData` is `{ id, name, annotations, notation, cost,
@@ -114,13 +117,17 @@ members (once: a value that has them is returned as it is).
 | `text()` | `G2, G5` |
 | `refs()` | its ids |
 
-### `PairList` (`{ name, value }[]` and its members)
+### `PairList<V>` (`{ name, value: V }[]` and its members)
+
+`V` is its value type's: a number for an `int` or a `number` list read
+against its config (`readProperties`), a string for a `text` list and for
+one parsed without a config (`parseValue('pairList', …)`).
 
 | Member | Gives |
 | --- | --- |
 | `pairs` | the data: the pairs themselves |
 | `text()` | `x:3, y:2` |
-| `get(name)` | the first pair of that name's value, or `undefined` |
+| `get(name)` | the first pair of that name's value (a `V`), or `undefined` |
 | `names()` | its pairs' names, in order |
 
 ### `Notation` (`RtTree` and its members)

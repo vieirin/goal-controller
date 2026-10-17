@@ -14,6 +14,7 @@ import {
   type PropertyDefinition,
   type ValueConfig,
 } from '@goal-controller/dialect';
+import { asPairList, type Pair, type PairList } from '../members.js';
 import { parseValue, type ValueData } from '../parse.js';
 
 /**
@@ -29,13 +30,15 @@ export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
     ?
         | (O extends { value: infer V extends string } ? Exclude<V, ''> : never)
         | null
-    : C extends { type: 'reference' | 'formula' }
-      ? string | null
-      : C extends { type: 'probability' }
-        ? number | null
-        : C extends { type: infer T extends keyof ValueData }
-          ? ValueData[T]
-          : never;
+    : C extends { type: 'pairList'; value: infer V }
+      ? PairList<V extends 'text' ? string : number>
+      : C extends { type: 'reference' | 'formula' }
+        ? string | null
+        : C extends { type: 'probability' }
+          ? number | null
+          : C extends { type: infer T extends keyof ValueData }
+            ? ValueData[T]
+            : never;
 
 /** What a property reads into: a conditional one's, either of its configs'. */
 export type PropertyDataOf<V> = V extends ConditionalValue
@@ -117,6 +120,20 @@ const readValue = (config: ValueConfig, text: string): unknown => {
     case 'probability': {
       if (!text.trim()) return null;
       return probabilityOf(text) ?? undefined;
+    }
+    case 'pairList': {
+      const read = parseValue('pairList', text);
+      if (read.errors.length) return undefined;
+      if (config.value === 'text') return read.value;
+      // each member as its value type: one that isn't makes the value
+      // unset, as any value written with an error is (goal-controller#235)
+      const pairs: Pair<number>[] = [];
+      for (const pair of read.value) {
+        const value = parseValue(config.value, pair.value);
+        if (value.errors.length || value.value === null) return undefined;
+        pairs.push({ name: pair.name, value: value.value });
+      }
+      return asPairList(pairs);
     }
     case 'enum': {
       const read = parseValue('enum', text);
