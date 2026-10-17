@@ -17,10 +17,17 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       );
     });
 
-    it('flags a non-numeric value on a task', () => {
+    it('flags a negative value on a task', () => {
+      assert.strictEqual(
+        edgeTaskChecks.maxRetries?.({ maxRetries: '-1' }, noDeps),
+        '[INVALID TASK]: maxRetries must be a non-negative integer: got "-1"',
+      );
+    });
+
+    it("says nothing of a non-numeric value: the dialect's value check does (#187)", () => {
       assert.strictEqual(
         edgeTaskChecks.maxRetries?.({ maxRetries: 'abc' }, noDeps),
-        '[INVALID TASK]: maxRetries must be a non-negative integer: got "abc"',
+        null,
       );
     });
 
@@ -135,13 +142,23 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
   });
 
   describe('resource', () => {
-    it('bool: rejects anything but true/false', () => {
+    it('bool: rejects an empty initial value', () => {
+      assert.strictEqual(
+        edgeResourceChecks.initialValue?.(
+          { type: 'bool', initialValue: '' },
+          noDeps,
+        ),
+        "[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: \"\"",
+      );
+    });
+
+    it("bool: says nothing of anything else but true/false: the dialect's value check does (#187)", () => {
       assert.strictEqual(
         edgeResourceChecks.initialValue?.(
           { type: 'bool', initialValue: 'yes' },
           noDeps,
         ),
-        "[INVALID RESOURCE]: Boolean resource must have initialValue of 'true' or 'false', got: \"yes\"",
+        null,
       );
     });
 
@@ -157,17 +174,14 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
     });
 
-    it('int: flags non-numeric bounds, only on the bad one', () => {
+    it("int: says nothing of a non-numeric bound: the dialect's value check does (#187)", () => {
       const raw = {
         type: 'int',
         initialValue: '1',
         lowerBound: 'a',
         upperBound: '5',
       };
-      assert.strictEqual(
-        edgeResourceChecks.lowerBound?.(raw, noDeps),
-        '[INVALID RESOURCE]: Resource must have valid numeric lower and upper bounds',
-      );
+      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
       assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
     });
 
@@ -184,17 +198,14 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
     });
 
-    it('int: flags a non-numeric initial value', () => {
+    it("int: says nothing of a non-numeric initial value: the dialect's value check does (#187)", () => {
       const raw = {
         type: 'int',
         initialValue: 'x',
         lowerBound: '0',
         upperBound: '5',
       };
-      assert.strictEqual(
-        edgeResourceChecks.initialValue?.(raw, noDeps),
-        '[INVALID RESOURCE]: Resource must have a valid numeric initial value, got: "x"',
-      );
+      assert.strictEqual(edgeResourceChecks.initialValue?.(raw, noDeps), null);
     });
 
     it('int: flags an out-of-bounds initial value, attached to initialValue', () => {
@@ -223,10 +234,17 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
     });
 
-    it('rejects an unsupported type', () => {
+    it('rejects an unset type', () => {
+      assert.strictEqual(
+        edgeResourceChecks.type?.({ type: '' }, noDeps),
+        '[INVALID RESOURCE]: Unsupported resource type: ',
+      );
+    });
+
+    it("says nothing of a type not among its options: the dialect's value check does (#187)", () => {
       assert.strictEqual(
         edgeResourceChecks.type?.({ type: 'string' }, noDeps),
-        '[INVALID RESOURCE]: Unsupported resource type: string',
+        null,
       );
     });
   });
