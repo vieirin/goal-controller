@@ -21,25 +21,6 @@ const isModel = (text: string) => {
 };
 const EXAMPLES = models('examples', isModel);
 
-/**
- * Examples the generic piStar path doesn't write back byte for byte on main
- * already, before #171 (a link's label beside its custom properties, an
- * actor without x/y, no saveDate): their engines' own paths are tested
- * elsewhere.
- */
-const LOSSY_BEFORE = new Set([
-  'examples/cgm/museum-guide/museum-guide.txt',
-  'examples/cgm/museum-guide-costs/museum-guide-costs.txt',
-  'examples/cgm/smart-home/smart-home.txt',
-  'examples/grl/grl-own/grl-own.txt',
-  'examples/grl/grl-smart-home/SmartHome2.txt',
-  'examples/istardt/istardt-heating/Heating.txt',
-  'examples/istardt/istardt-order/Order.txt',
-  'examples/istardt/istardt-own/istardt-own.txt',
-  'examples/tropos4as/cleaner-agent/cleaner-agent.txt',
-  'examples/tropos4as/patient-monitoring/patient-monitoring.txt',
-]);
-
 /** The framework an example is in: its folder's, for the KAOS and NFR seeds. */
 const frameworkOf = (file: string) =>
   /^examples\/(kaos|nfr)\//.exec(file)?.[1] ?? 'istar-2.0';
@@ -66,8 +47,7 @@ describe('frameworks: the examples (#171)', () => {
           return null; // a model its mode can't read is another test's
         }
       })();
-      if (read && !LOSSY_BEFORE.has(file))
-        expect(serializeModel(read, model), file).to.equal(model);
+      if (read) expect(serializeModel(read, model), file).to.equal(model);
       expect(
         withModelSettings(model, { framework: 'istar-2.0' }),
         file,
