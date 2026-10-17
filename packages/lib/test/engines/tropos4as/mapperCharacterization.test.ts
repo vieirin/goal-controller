@@ -14,6 +14,8 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { tropos4as as TROPOS4AS } from '../../../src/engines/tropos4as/definition';
 import {
   goalTypeOf,
   instantiationOf,
@@ -329,8 +331,18 @@ describe("Tropos4AS (#187 characterization): a goal's conditions", () => {
 
 describe('Tropos4AS (#187 characterization): the goal checks', () => {
   const context = { self: 'G', kindOf: () => undefined };
-  const perform = tropos4asCheckRegistry['tropos4as.goal.perform'];
-  const target = tropos4asCheckRegistry['tropos4as.goal.target'];
+  const perform = checkOnKey(
+    TROPOS4AS,
+    { element: 'goal' },
+    'achievement',
+    tropos4asCheckRegistry['tropos4as.goal.perform'],
+  );
+  const target = checkOnKey(
+    TROPOS4AS,
+    { element: 'goal' },
+    'target',
+    tropos4asCheckRegistry['tropos4as.goal.target'],
+  );
 
   it('tropos4as.goal.perform: type perform, trimmed; blank conditions unset; creation and precondition allowed', () => {
     assert.strictEqual(

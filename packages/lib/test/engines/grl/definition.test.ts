@@ -3,6 +3,8 @@
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { grl as GRL } from '../../../src/engines/grl/definition';
 import {
   linkPropertiesOf,
   actorPropertiesOf,
@@ -62,7 +64,12 @@ describe('the GRL definition', () => {
   });
 
   it('rejects a contribution to a belief', () => {
-    const check = grlCheckRegistry['grl.link.contribution'];
+    const check = checkOnKey(
+      GRL,
+      { link: 'istar.ContributionLink' },
+      'contribution',
+      grlCheckRegistry['grl.link.contribution'],
+    );
     assert.strictEqual(check({}, context('istar.Quality')), null);
     assert.strictEqual(
       check({}, context('grl.Belief')),

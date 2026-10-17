@@ -3,18 +3,24 @@
  * them); `istardtProblems` checks the model as a whole, as the writer needs
  * it: the effects, conditions, predicates and variables are extension kinds
  * no property check sees (#117 D7), so what crosses them is said here, and
- * the writer stops on its errors. Each reads the properties as the dialect
- * does (goal-controller#187): a value written with an error is unset, the
- * dialect's value check reports it.
+ * the writer stops on its errors. Each reads the values the dialect read
+ * (goal-controller#187, #222: `props`): no check is run on a value written
+ * with an error, the dialect's value check reports it.
  */
+import { istarKindOf } from '@goal-controller/dialect';
 import {
   readProperties,
   type AssertionReading,
   type ExpressionTree,
 } from '@goal-controller/goal-language';
-import type { Check } from '../checks';
+import { checkOn, type Check } from '../checks';
 import { istardt } from './definition';
-import type { IstardtElement, IstardtModel, IstardtProblem } from './model';
+import {
+  ISTARDT_DIALECT_KIND,
+  type IstardtElement,
+  type IstardtModel,
+  type IstardtProblem,
+} from './model';
 import type { IstardtKind } from './vocabulary';
 
 /** How far an effect group's probabilities may be from 1. */
@@ -23,9 +29,9 @@ export const PROBABILITY_TOLERANCE = 1e-9;
 /** `a goal`, `an effect` */
 const a = (kind: string) => `${/^[aeiou]/.test(kind) ? 'an' : 'a'} ${kind}`;
 
-/** A goal's `root`, as the dialect reads it. */
-const isRoot = (raw: Partial<Record<string, string>>) =>
-  readProperties(istardt, { element: 'goal' }, raw).values.root === true;
+/** Another goal's `root`, its stored properties read as the dialect reads them. */
+const isRoot = (properties: Readonly<Record<string, string>>) =>
+  readProperties(istardt, { element: 'goal' }, properties).values.root === true;
 
 /**
  * The names of iStar-DT's checks: what a property's `check` may be (listed,
@@ -36,29 +42,30 @@ export type IstardtCheckName = 'istardt.goal.root' | 'istardt.export.bounds';
 
 export const istardtCheckRegistry: Readonly<Record<IstardtCheckName, Check>> = {
   /** one root goal: the episode's (ER 2024 §3.2) */
-  'istardt.goal.root': (raw, context) => {
-    if (!isRoot(raw) || !context.elements) return null;
-    const others = Object.entries(context.elements).filter(
-      ([id, element]) =>
-        id !== context.self &&
-        element.kind === 'goal' &&
-        isRoot(element.properties),
-    );
-    return others.length
-      ? `One goal is the root: ${others.map(([id]) => id).join(', ')} is too`
-      : null;
-  },
-  /** a continuous export's range (a quality's, a predicate's, a variable's: the same bounds) */
-  'istardt.export.bounds': (raw) => {
-    const { exportMin: min, exportMax: max } = readProperties(
-      istardt,
-      { element: 'quality' },
-      raw,
-    ).values;
-    return min != null && max != null && !(min < max)
-      ? `An export's minimum is below its maximum: ${min} is not below ${max}`
-      : null;
-  },
+  'istardt.goal.root': checkOn(istardt, { element: 'goal' })(
+    ({ props }, context) => {
+      if (props.root !== true || !context.elements) return null;
+      const others = Object.entries(context.elements).filter(
+        ([id, element]) =>
+          id !== context.self &&
+          element.kind === 'goal' &&
+          isRoot(element.properties),
+      );
+      return others.length
+        ? `One goal is the root: ${others.map(([id]) => id).join(', ')} is too`
+        : null;
+    },
+  ),
+  /**
+   * a continuous export's range (a quality's, a predicate's, a variable's:
+   * the same bounds, typed by the quality's)
+   */
+  'istardt.export.bounds': checkOn(istardt, { element: 'quality' })(
+    ({ props: { exportMin: min, exportMax: max } }) =>
+      min != null && max != null && !(min < max)
+        ? `An export's minimum is below its maximum: ${min} is not below ${max}`
+        : null,
+  ),
 };
 
 /** The kinds a quality's formula may read (the BNF's numeric atoms). */
@@ -384,7 +391,11 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
         );
       else {
         const empty = istardtCheckRegistry['istardt.export.bounds'](
-          element.properties,
+          {
+            props: element.values,
+            raw: element.properties,
+            kind: istarKindOf(ISTARDT_DIALECT_KIND[element.kind]),
+          },
           { self: element.id ?? element.pistarId, kindOf: () => undefined },
         );
         if (empty) say('error', element, `${label(element)}: ${empty}`);

@@ -3,8 +3,10 @@ import { describe, it } from 'mocha';
 import { GoalTree, Model, type IStarModel } from '@goal-controller/goal-tree';
 import {
   checkContextOf,
+  checkInputOf,
   contextFromView,
 } from '@goal-controller/goal-language';
+import { runCheck, type CheckContext } from '../../../src/engines/checks';
 import { goalView } from '@goal-controller/goal-tree';
 import {
   mutrose,
@@ -216,6 +218,42 @@ describe('mutroseRuntimeAnnotation', () => {
   });
 });
 
+type CheckName = keyof typeof mutroseCheckRegistry;
+/** The kind and key a check is on, as the definition names it. */
+const propertyOf = (name: CheckName) => {
+  const kind = name.startsWith('mutrose.task.') ? 'task' : 'goal';
+  const { key } = (
+    mutrose.properties[kind] as readonly { key: string; check?: string }[]
+  ).find((p) => p.check === name)!;
+  return { kind, key };
+};
+/** A check run as the editors run it (#222): on the record the dialect reads, when its key's value reads. */
+const editorCheck = (
+  name: CheckName,
+  raw: Readonly<Record<string, string>>,
+  context: CheckContext,
+) => {
+  const { kind, key } = propertyOf(name);
+  return runCheck(
+    mutrose,
+    { element: kind },
+    key,
+    raw,
+    mutroseCheckRegistry[name],
+    context,
+  );
+};
+/** A check run as the mapper runs it: on every value written, the decomposer's reading. */
+const mapperCheck = (
+  name: CheckName,
+  raw: Readonly<Record<string, string>>,
+  context: CheckContext,
+) =>
+  mutroseCheckRegistry[name](
+    checkInputOf(mutrose, { element: propertyOf(name).kind }, raw),
+    context,
+  );
+
 describe('mutroseCheckRegistry in a model', () => {
   // what an editor has: the model as the view reads it
   const contextOf = (model: IStarModel) =>
@@ -226,7 +264,8 @@ describe('mutroseCheckRegistry in a model', () => {
     id: string,
   ) => {
     const context = contextOf(model);
-    return mutroseCheckRegistry[name](
+    return editorCheck(
+      name,
       context.elements[id]!.properties,
       checkContextOf(context, id),
     );
@@ -273,8 +312,10 @@ describe('mutroseCheckRegistry in a model', () => {
       };
       const found: string[] = [];
       for (const [id, element] of Object.entries(context.elements))
-        for (const [name, check] of Object.entries(mutroseCheckRegistry)) {
-          const problem = check(
+        for (const name of Object.keys(mutroseCheckRegistry) as CheckName[]) {
+          if (propertyOf(name).kind !== element.kind) continue;
+          const problem = editorCheck(
+            name,
             element.properties,
             checkContextOf(context, id),
           );
@@ -325,7 +366,8 @@ describe('mutroseCheckRegistry in a model', () => {
 
   it('says nothing of the model without it (the mapper’s run)', () => {
     assert.strictEqual(
-      mutroseCheckRegistry['mutrose.goal.monitors'](
+      mapperCheck(
+        'mutrose.goal.monitors',
         { Monitors: 'nobody' },
         { self: 'G3', kindOf: () => undefined },
       ),
@@ -335,10 +377,9 @@ describe('mutroseCheckRegistry in a model', () => {
 });
 
 describe('mutroseCheckRegistry', () => {
-  const check = (
-    name: keyof typeof mutroseCheckRegistry,
-    raw: Record<string, string>,
-  ) => mutroseCheckRegistry[name](raw, { self: 'G1', kindOf: () => undefined });
+  // the decomposer's messages: the mapper's run
+  const check = (name: CheckName, raw: Record<string, string>) =>
+    mapperCheck(name, raw, { self: 'G1', kindOf: () => undefined });
 
   it('rejects what the decomposer’s readers reject, with their messages', () => {
     assert.strictEqual(

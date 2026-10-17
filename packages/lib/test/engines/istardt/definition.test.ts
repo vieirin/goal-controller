@@ -8,6 +8,8 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { istardt as ISTARDT } from '../../../src/engines/istardt/definition';
 import { parsePistar } from '@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
 import {
@@ -78,23 +80,36 @@ describe('the iStar-DT definition', () => {
   });
 
   it('checks one root goal, with the model', () => {
-    const check = istardtCheckRegistry['istardt.goal.root'];
+    const check = checkOnKey(
+      ISTARDT,
+      { element: 'goal' },
+      'root',
+      istardtCheckRegistry['istardt.goal.root'],
+    );
     const elements = {
       G1: { kind: 'goal', properties: { root: 'true' } },
       G2: { kind: 'goal', properties: { root: 'true' } },
     } as any;
     assert.strictEqual(
-      check({ root: 'true' }, { self: 'G1', kindOf: () => 'goal', elements }),
+      check(
+        { root: 'true' },
+        { self: 'G1', kindOf: () => 'istar.Goal', elements },
+      ),
       'One goal is the root: G2 is too',
     );
     assert.strictEqual(
-      check({ root: 'true' }, { self: 'G1', kindOf: () => 'goal' }),
+      check({ root: 'true' }, { self: 'G1', kindOf: () => 'istar.Goal' }),
       null,
     );
   });
 
   it('checks an export’s range', () => {
-    const check = istardtCheckRegistry['istardt.export.bounds'];
+    const check = checkOnKey(
+      ISTARDT,
+      { element: 'quality' },
+      'exportMin',
+      istardtCheckRegistry['istardt.export.bounds'],
+    );
     const context = { self: 'Q1', kindOf: () => undefined };
     assert.strictEqual(
       check({ exportMin: '0', exportMax: '100' }, context),

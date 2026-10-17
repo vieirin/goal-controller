@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { runCheck, type CheckContext } from '../../src/engines/checks';
 import { valueProblem } from '@goal-controller/goal-language';
 import { edge } from '../../src/engines/edge/definition';
 import {
@@ -9,6 +10,30 @@ import {
 } from '../../src/engines/edgeFamily/checks';
 
 const noDeps = { self: '', kindOf: () => undefined };
+
+/**
+ * A check run as the editors run it (#222): given the record the dialect reads, and
+ * only when its key's value reads as its type.
+ */
+const goalCheck = (
+  key: keyof typeof edgeGoalChecks,
+  raw: Record<string, string>,
+  context: CheckContext,
+) =>
+  runCheck(edge, { element: 'goal' }, key, raw, edgeGoalChecks[key], context);
+const resourceCheck = (
+  key: keyof typeof edgeResourceChecks,
+  raw: Record<string, string>,
+  context: CheckContext,
+) =>
+  runCheck(
+    edge,
+    { element: 'resource' },
+    key,
+    raw,
+    edgeResourceChecks[key],
+    context,
+  );
 
 describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('maxRetries: the dialect’s int with a min, no check of its own (#251)', () => {
@@ -75,7 +100,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('maintain', () => {
     it('flags type: maintain with no maintain property', () => {
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
+        goalCheck(
+          'maintain',
           { type: 'maintain', assertion: 'battery > 20' },
           noDeps,
         ),
@@ -85,7 +111,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it('flags type: maintain with a blank maintain value', () => {
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
+        goalCheck(
+          'maintain',
           { type: 'maintain', maintain: '  ', assertion: 'battery > 20' },
           noDeps,
         ),
@@ -95,7 +122,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it('flags type: maintain with maintain set but assertion blank', () => {
       assert.strictEqual(
-        edgeGoalChecks.assertion?.(
+        goalCheck(
+          'assertion',
           { type: 'maintain', maintain: 'battery > 0', assertion: '' },
           noDeps,
         ),
@@ -105,7 +133,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it('is fine once maintain and assertion are present', () => {
       assert.strictEqual(
-        edgeGoalChecks.maintain?.(
+        goalCheck(
+          'maintain',
           {
             type: 'maintain',
             maintain: 'battery > 0',
@@ -125,7 +154,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('dependsOn', () => {
     it('flags a missing id with the mapper\'s "not found" message', () => {
       assert.strictEqual(
-        edgeGoalChecks.dependsOn?.(
+        goalCheck(
+          'dependsOn',
           { dependsOn: 'G9' },
           { self: 'G1', kindOf: () => undefined },
         ),
@@ -135,9 +165,10 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it('flags a non-goal id with the mapper\'s "must be a goal" message', () => {
       assert.strictEqual(
-        edgeGoalChecks.dependsOn?.(
+        goalCheck(
+          'dependsOn',
           { dependsOn: 'T1' },
-          { self: 'G1', kindOf: () => 'task' },
+          { self: 'G1', kindOf: () => 'istar.Task' },
         ),
         '[INVALID MODEL]: Dependency T1 for node G1 must be a goal, got task',
       );
@@ -145,9 +176,10 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it('is fine when every id is a goal', () => {
       assert.strictEqual(
-        edgeGoalChecks.dependsOn?.(
+        goalCheck(
+          'dependsOn',
           { dependsOn: 'G2, G3' },
-          { self: 'G1', kindOf: () => 'goal' },
+          { self: 'G1', kindOf: () => 'istar.Goal' },
         ),
         null,
       );
@@ -157,7 +189,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
   describe('resource', () => {
     it('bool: rejects an empty initial value', () => {
       assert.strictEqual(
-        edgeResourceChecks.initialValue?.(
+        resourceCheck(
+          'initialValue',
           { type: 'bool', initialValue: '' },
           noDeps,
         ),
@@ -167,7 +200,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
 
     it("bool: says nothing of anything else but true/false: the dialect's value check does (#187)", () => {
       assert.strictEqual(
-        edgeResourceChecks.initialValue?.(
+        resourceCheck(
+          'initialValue',
           { type: 'bool', initialValue: 'yes' },
           noDeps,
         ),
@@ -179,12 +213,9 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       const message =
         '[INVALID RESOURCE]: Integer resource must have an initial value, lower bound, and upper bound';
       const raw = { type: 'int' };
-      assert.strictEqual(
-        edgeResourceChecks.initialValue?.(raw, noDeps),
-        message,
-      );
-      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), message);
-      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
+      assert.strictEqual(resourceCheck('initialValue', raw, noDeps), message);
+      assert.strictEqual(resourceCheck('lowerBound', raw, noDeps), message);
+      assert.strictEqual(resourceCheck('upperBound', raw, noDeps), message);
     });
 
     it("int: says nothing of a non-numeric bound: the dialect's value check does (#187)", () => {
@@ -194,8 +225,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
         lowerBound: 'a',
         upperBound: '5',
       };
-      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
-      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
+      assert.strictEqual(resourceCheck('lowerBound', raw, noDeps), null);
+      assert.strictEqual(resourceCheck('upperBound', raw, noDeps), null);
     });
 
     it('int: attaches the bounds error to both lowerBound and upperBound', () => {
@@ -207,8 +238,8 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
       };
       const message =
         '[INVALID RESOURCE]: Resource lower bound (5) must be less than or equal to upper bound (2)';
-      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), message);
-      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), message);
+      assert.strictEqual(resourceCheck('lowerBound', raw, noDeps), message);
+      assert.strictEqual(resourceCheck('upperBound', raw, noDeps), message);
     });
 
     it("int: says nothing of a non-numeric initial value: the dialect's value check does (#187)", () => {
@@ -218,7 +249,7 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
         lowerBound: '0',
         upperBound: '5',
       };
-      assert.strictEqual(edgeResourceChecks.initialValue?.(raw, noDeps), null);
+      assert.strictEqual(resourceCheck('initialValue', raw, noDeps), null);
     });
 
     it('int: flags an out-of-bounds initial value, attached to initialValue', () => {
@@ -229,10 +260,10 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
         upperBound: '5',
       };
       assert.strictEqual(
-        edgeResourceChecks.initialValue?.(raw, noDeps),
+        resourceCheck('initialValue', raw, noDeps),
         '[INVALID RESOURCE]: Initial value (9) must be within bounds [0, 5]',
       );
-      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
+      assert.strictEqual(resourceCheck('lowerBound', raw, noDeps), null);
     });
 
     it('is fine for a valid int resource', () => {
@@ -242,21 +273,21 @@ describe('edgeChecks (shared by edge and edgeV2)', () => {
         lowerBound: '0',
         upperBound: '5',
       };
-      assert.strictEqual(edgeResourceChecks.initialValue?.(raw, noDeps), null);
-      assert.strictEqual(edgeResourceChecks.lowerBound?.(raw, noDeps), null);
-      assert.strictEqual(edgeResourceChecks.upperBound?.(raw, noDeps), null);
+      assert.strictEqual(resourceCheck('initialValue', raw, noDeps), null);
+      assert.strictEqual(resourceCheck('lowerBound', raw, noDeps), null);
+      assert.strictEqual(resourceCheck('upperBound', raw, noDeps), null);
     });
 
     it('rejects an unset type', () => {
       assert.strictEqual(
-        edgeResourceChecks.type?.({ type: '' }, noDeps),
+        resourceCheck('type', { type: '' }, noDeps),
         '[INVALID RESOURCE]: Unsupported resource type: ',
       );
     });
 
     it("says nothing of a type not among its options: the dialect's value check does (#187)", () => {
       assert.strictEqual(
-        edgeResourceChecks.type?.({ type: 'string' }, noDeps),
+        resourceCheck('type', { type: 'string' }, noDeps),
         null,
       );
     });

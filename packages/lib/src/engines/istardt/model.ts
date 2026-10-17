@@ -34,7 +34,7 @@ import {
 import { listItems, splitText } from '../elementText';
 
 /** The dialect kind each kind's properties are declared on. */
-const DIALECT_KIND = {
+export const ISTARDT_DIALECT_KIND = {
   goal: 'goal',
   task: 'task',
   quality: 'quality',
@@ -46,7 +46,7 @@ const DIALECT_KIND = {
 
 /** A kind's properties as the dialect reads them: a goal's `root` a boolean, a quality's `formula` its expression, … */
 export type IstardtValues<K extends IstardtKind = IstardtKind> = PropertyValues<
-  ElementPropertiesOf<typeof istardt, (typeof DIALECT_KIND)[K]>
+  ElementPropertiesOf<typeof istardt, (typeof ISTARDT_DIALECT_KIND)[K]>
 >;
 
 /** An element of a kind; `IstardtElement` is any kind's, its `values` typed by its `kind`. */
@@ -155,7 +155,7 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
     const { id, name } = splitText(element.name);
     const values = readProperties(
       istardt,
-      { element: DIALECT_KIND[kind] },
+      { element: ISTARDT_DIALECT_KIND[kind] },
       element.properties,
     ).values;
     elements.push({

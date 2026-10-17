@@ -113,6 +113,15 @@ export type OwnerPropertiesOf<D, O> = O extends { element: infer K }
       ? LinkPropertiesOf<D, K>
       : [];
 
+/** A dialect as `readProperties` reads it: its element kinds', actors' and link kinds' properties. */
+export type PropertyDialect = {
+  properties?: Readonly<Record<string, PropertyList>>;
+  actors?: readonly (PropertyList[number] & {
+    kinds?: readonly string[];
+  })[];
+  links?: Readonly<Record<string, PropertyList>>;
+};
+
 /** A record read: its typed values, and its texts as written. */
 export type PropertyRecord<L extends PropertyList> = {
   values: PropertyValues<L>;
@@ -216,13 +225,7 @@ const readValue = (
  * a value (goal-controller#243); without, it is the id as written.
  */
 export const readProperties = <
-  const D extends {
-    properties?: Readonly<Record<string, PropertyList>>;
-    actors?: readonly (PropertyList[number] & {
-      kinds?: readonly string[];
-    })[];
-    links?: Readonly<Record<string, PropertyList>>;
-  },
+  const D extends PropertyDialect,
   const O extends PropertyOwner,
 >(
   definition: D,

@@ -4,6 +4,7 @@
  * with its own dialect and goal type. They read the values as the dialect reads them
  * (goal-controller#187); the texts as written are what the templates write.
  */
+import { ISTAR_KIND_OF } from '@goal-controller/dialect';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
@@ -77,7 +78,7 @@ export const edgeGoalProps = <TExecution, TGoalNode>({
   executionDetail,
 }: Input<'goal'> & { executionDetail: TExecution | null }) => {
   // dependsOn needs the whole tree: checked later, in afterCreationMapper
-  const issue = firstGoalOrTaskIssue('goal', raw, props);
+  const issue = firstGoalOrTaskIssue('goal', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 
   return {
@@ -104,7 +105,7 @@ export const edgeTaskProps = ({
   id,
 }: Input<'task'>): EdgeTaskProps => {
   // a task of type maintain is one of these (maintain is no task key)
-  const issue = firstGoalOrTaskIssue('task', raw, props);
+  const issue = firstGoalOrTaskIssue('task', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 
   return {
@@ -137,10 +138,16 @@ export const edgeDependsOn = <
   { props, raw }: Omit<Input<'goal'>, 'id'>,
   allNodes: Map<string, TNode>,
 ): TNode[] => {
-  const message = edgeGoalChecks.dependsOn?.(raw, {
-    self,
-    kindOf: (id) => allNodes.get(id)?.type,
-  });
+  const message = edgeGoalChecks.dependsOn?.(
+    { props, raw, kind: ISTAR_KIND_OF.goal },
+    {
+      self,
+      kindOf: (id) => {
+        const type = allNodes.get(id)?.type;
+        return type && ISTAR_KIND_OF[type];
+      },
+    },
+  );
   if (message) throw new Error(message);
   return (props.dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
 };

@@ -3,16 +3,16 @@
  * of each other): a shared module, since the checks are identical today. Split it if the
  * two engines' rules ever diverge.
  *
- * They read the values as the dialect does (goal-controller#187): a value the dialect
- * cannot read is its own diagnostic (the dialect's value check says it), so a check says
- * nothing of it, and the mapper reads it as unset.
+ * They read the values the dialect read (goal-controller#187, #222: `props`): a value
+ * the dialect cannot read is its own diagnostic (the dialect's value check says it), so
+ * no check is run on it, and the mapper reads it as unset.
  */
-import type { DECLARATION_KEYS } from '@goal-controller/dialect';
+import { ISTAR_KIND_OF, type DECLARATION_KEYS } from '@goal-controller/dialect';
 import {
   readProperties,
-  type PropertyRecord,
+  type PropertyValues,
 } from '@goal-controller/goal-language';
-import { checks, type Check } from '../checks';
+import { checkOn, checks, type Check } from '../checks';
 import { edgeProperties } from './properties';
 import type { EdgeResourceVariable } from './types';
 
@@ -23,36 +23,21 @@ type Issue = { key: string; message: string };
 
 type EdgeKind = 'goal' | 'task' | 'resource';
 
-/** An element's properties as the Edge dialects read them: its values, and their texts. */
-export type EdgeRecord<K extends EdgeKind> = PropertyRecord<
+/** An element's values as the Edge dialects read them (unset: absent). */
+export type EdgeValues<K extends EdgeKind> = PropertyValues<
   (typeof edgeProperties)[K]
 >;
 
-/** An element's values as the Edge dialects read them (unset: absent). */
-export type EdgeValues<K extends EdgeKind> = EdgeRecord<K>['values'];
+/** The Edge dialects' properties, as `readProperties` and `checkOn` read them. */
+const EDGE = { properties: edgeProperties };
 
-/** An element's properties (the strings stored), read as the Edge dialects read them. */
-const read = <K extends EdgeKind>(
-  kind: K,
-  raw: Partial<Record<string, string>>,
-): EdgeRecord<K> =>
-  readProperties({ properties: edgeProperties }, { element: kind }, raw);
+/** A check on a goal's properties, on a resource's. */
+const onGoal = checkOn(EDGE, { element: 'goal' });
+const onResource = checkOn(EDGE, { element: 'resource' });
 
-/** Written, but not as its type: the dialect's value check reports it. */
-const unreadable = (
-  { values, text }: { values: object; text: object },
-  key: string,
-): boolean => key in text && !(key in values);
-
-/** The message of the first issue on this key, unless its value is unreadable. */
-const messageOn = (
-  issues: Issue[],
-  record: { values: object; text: object },
-  key: string,
-): string | null =>
-  unreadable(record, key)
-    ? null
-    : (issues.find((i) => i.key === key)?.message ?? null);
+/** The message of the first issue on this key. */
+const messageOn = (issues: Issue[], key: string): string | null =>
+  issues.find((i) => i.key === key)?.message ?? null;
 
 /**
  * goal/task issues, the maintain condition's: the first entry is the one the mapper
@@ -86,19 +71,24 @@ const goalOrTaskIssues = (
   return issues;
 };
 
+/** An iStar kind by the name the Edge dialects give it (`istar.Task`: `task`). */
+const EDGE_KIND_NAME: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(ISTAR_KIND_OF).map(([name, kind]) => [kind, name]),
+);
+
 /** afterCreationMapper's dependsOn resolution, word for word (existence, then goal-ness). */
-const dependsOnCheck: Check = (raw, { self, kindOf }) => {
-  for (const id of read('goal', raw).values.dependsOn ?? []) {
+const dependsOnCheck = onGoal(({ props }, { self, kindOf }) => {
+  for (const id of props.dependsOn ?? []) {
     const kind = kindOf(id);
     if (!kind) {
       return `[INVALID MODEL]: Dependency ${id} not found for node ${self}`;
     }
-    if (kind !== 'goal') {
-      return `[INVALID MODEL]: Dependency ${id} for node ${self} must be a goal, got ${kind}`;
+    if (kind !== ISTAR_KIND_OF.goal) {
+      return `[INVALID MODEL]: Dependency ${id} for node ${self} must be a goal, got ${EDGE_KIND_NAME[kind] ?? kind}`;
     }
   }
   return null;
-};
+});
 
 /**
  * A resource's variable, or its issues (in mapResourceProps's order, one branch per
@@ -177,41 +167,37 @@ export const resourceReading = (
   }
 };
 
-/**
- * The first issue mapGoalProps/mapTaskProps throws, if any: of the values the mapper
- * is given (by default, the strings read as the dialect reads them).
- */
+/** The first issue mapGoalProps/mapTaskProps throws, if any: of the values the mapper is given. */
 export const firstGoalOrTaskIssue = (
   kind: 'goal' | 'task',
+  values: EdgeValues<'goal'> | EdgeValues<'task'>,
   raw: Partial<Record<string, string>>,
-  values: EdgeValues<'goal'> | EdgeValues<'task'> = read(kind, raw).values,
 ): string | null => goalOrTaskIssues(kind, values, raw)[0]?.message ?? null;
 
-/** The first issue mapResourceProps throws, if any. */
+/** The first issue mapResourceProps throws, if any: of the strings, read as the dialect reads them. */
 export const firstResourceIssue = (
   raw: Partial<Record<string, string>>,
 ): string | null =>
-  resourceReading(read('resource', raw).values, raw).issues[0]?.message ?? null;
+  resourceReading(
+    readProperties(EDGE, { element: 'resource' }, raw).values,
+    raw,
+  ).issues[0]?.message ?? null;
 
-/** The check of a goal's or a task's key: its first issue, unless the dialect can't read it. */
-const goalOrTaskCheck =
-  (kind: 'goal' | 'task', key: string): Check =>
-  (raw) => {
-    const record = read(kind, raw);
-    return messageOn(goalOrTaskIssues(kind, record.values, raw), record, key);
-  };
+/** The check of a goal's key: its first issue. */
+const goalCheck = (key: string): Check =>
+  onGoal(({ props, raw }) =>
+    messageOn(goalOrTaskIssues('goal', props, raw), key),
+  );
 
-/** The check of a resource's key: its first issue, unless the dialect can't read it. */
-const resourceCheck =
-  (key: string): Check =>
-  (raw) => {
-    const record = read('resource', raw);
-    return messageOn(resourceReading(record.values, raw).issues, record, key);
-  };
+/** The check of a resource's key: its first issue. */
+const resourceCheck = (key: string): Check =>
+  onResource(({ props, raw }) =>
+    messageOn(resourceReading(props, raw).issues, key),
+  );
 
 export const edgeGoalChecks = checks({
-  maintain: goalOrTaskCheck('goal', 'maintain'),
-  assertion: goalOrTaskCheck('goal', 'assertion'),
+  maintain: goalCheck('maintain'),
+  assertion: goalCheck('assertion'),
   dependsOn: dependsOnCheck,
 });
 
@@ -229,11 +215,26 @@ export const edgeResourceChecks = checks({
 });
 
 /**
- * The checks the Edge definitions name, by name: the one place the names are
- * written. A property's `check` is typed with them (`EdgeCheckName`), and
- * `specsFromDefinition` needs one for every name a definition gives.
+ * The names of the Edge engines' checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
  */
-export const edgeCheckRegistry = checks({
+export type EdgeCheckName =
+  | 'edge.goal.maintain'
+  | 'edge.goal.assertion'
+  | 'edge.goal.dependsOn'
+  | 'edge.resource.type'
+  | 'edge.resource.initialValue'
+  | 'edge.resource.lowerBound'
+  | 'edge.resource.upperBound';
+
+/**
+ * The checks the Edge definitions name, by name: one for each name (a
+ * missing or an unknown one doesn't compile). A property's `check` is typed
+ * with them (`EdgeCheckName`), and `specsFromDefinition` needs one for every
+ * name a definition gives.
+ */
+export const edgeCheckRegistry = checks<EdgeCheckName>({
   'edge.goal.maintain': edgeGoalChecks.maintain,
   'edge.goal.assertion': edgeGoalChecks.assertion,
   'edge.goal.dependsOn': edgeGoalChecks.dependsOn,
@@ -242,6 +243,3 @@ export const edgeCheckRegistry = checks({
   'edge.resource.lowerBound': edgeResourceChecks.lowerBound,
   'edge.resource.upperBound': edgeResourceChecks.upperBound,
 });
-
-/** The names of the Edge engines' checks: what a property's `check` may be. */
-export type EdgeCheckName = keyof typeof edgeCheckRegistry;

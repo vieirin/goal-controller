@@ -28,6 +28,8 @@ import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
+import { checkInputOf, parses, type AnyCheckInput } from './checks.js';
+import type { PropertyOwner } from './properties.js';
 import { kindOfId, lineScope, scopedKey } from './scope.js';
 import {
   fieldPropertyOf,
@@ -168,10 +170,13 @@ export type Diagnostic = {
   check?: string;
 };
 
-/** Runs the engine check a definition names on an element's properties. */
+/**
+ * Runs the engine check a definition names on an element's (an actor's, a
+ * link's) properties, read once for every check on it (`checkInputOf`).
+ */
 export type RunCheck = (
   check: string,
-  properties: Readonly<Record<string, string>>,
+  input: AnyCheckInput,
   self: string,
 ) => string | null;
 
@@ -268,6 +273,8 @@ const propertyDiagnostics = (
   context: DefinitionContext | undefined,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
+  // what every check on the element is given, read once
+  const input = checkInputOf(definition, { element: kind }, properties);
   for (const key of keys) {
     const property = propertyOf(definition, kind, key);
     if (!property || properties[key] === undefined) continue;
@@ -285,10 +292,13 @@ const propertyDiagnostics = (
     }
     // an engine-owned server serves the value: nothing said of it here
     if (property.servedBy === 'engine') continue;
-    // the engine's own message first: it says more than the type does
+    // the engine's own message first: it says more than the type does; a
+    // value that doesn't read as its type is only the type's to say
     const value = valueOf(property, properties);
     const checked =
-      property.check && runCheck?.(property.check, properties, self);
+      property.check &&
+      parses(input, key) &&
+      runCheck?.(property.check, input, self);
     if (checked) {
       diagnostics.push({
         ...where,
@@ -363,18 +373,22 @@ const actorNamesOf = (context: DefinitionContext) =>
  * its kind declares: each key's and value's problems, and the engine's named
  * check on a property, its message first, as an element's. `self` is the
  * link's or actor's piStar id (its context's readLink or readActor reads it).
+ * The checks are given `stored` (default: what the line writes), read once.
  */
 const writtenPropertyDiagnostics = (
   declared: readonly PropertyDefinition[],
-  kind: string,
+  owner: { actor: string } | { link: string },
   read: LinkLineReading,
   self: string,
   runCheck: RunCheck | undefined,
   at: (span: { from: number; to: number }) => { from: number; to: number },
   context: DefinitionContext,
-  definition: Pick<AnyDialect, 'properties'>,
+  definition: Pick<AnyDialect, 'properties'> &
+    Partial<Pick<AnyDialect, 'links' | 'actors'>>,
+  stored?: Readonly<Record<string, string>>,
 ): Diagnostic[] => {
   const found: Diagnostic[] = [];
+  const kind = 'actor' in owner ? owner.actor : owner.link;
   const problems = writtenPropertyProblems(
     declared,
     kind,
@@ -385,13 +399,20 @@ const writtenPropertyDiagnostics = (
   const written = Object.fromEntries(
     read.properties.map(({ key, value }) => [key, value]),
   );
+  // what every check on the link or actor is given, read once
+  const input = checkInputOf(
+    definition,
+    owner as PropertyOwner,
+    stored ?? written,
+  );
   for (const [index, property] of read.properties.entries()) {
     const check = declared.find(({ key }) => key === property.key)?.check;
     const own = problems.filter((p) => p.index === index);
     const checked =
       check &&
       !own.some((p) => p.on === 'key') &&
-      runCheck?.(check, written, self);
+      parses(input, property.key) &&
+      runCheck?.(check, input, self);
     if (checked) {
       found.push({
         ...at(property.valueSpan),
@@ -745,7 +766,7 @@ export const documentDiagnostics = (
         push(
           ...writtenPropertyDiagnostics(
             actorPropertiesOf(definition, found.kind),
-            found.kind,
+            { actor: found.kind },
             actor.value,
             named.key,
             runCheck,
@@ -847,7 +868,7 @@ export const documentDiagnostics = (
         push(
           ...writtenPropertyDiagnostics(
             linkPropertiesOf(definition, kind),
-            kind,
+            { link: kind },
             link.value,
             iStarId,
             runCheck,
@@ -885,13 +906,14 @@ export const fieldDiagnostics = (
 ): Diagnostic[] => {
   const element = context.elements[self];
   if (!element) {
-    // a link's or an actor's field (goal-controller#152): as its line reads it
+    // a link's or an actor's field (goal-controller#152): as its line reads
+    // it, its checks given its other properties too (goal-controller#257)
     const field = fieldPropertyOf(definition, context, self, key);
     if (!field) return [];
     const span = { from: 0, to: value.length };
     return writtenPropertyDiagnostics(
       [field.property],
-      field.kind,
+      field.on === 'actor' ? { actor: field.kind } : { link: field.kind },
       {
         target: '',
         targetSpan: { from: 0, to: 0 },
@@ -902,6 +924,7 @@ export const fieldDiagnostics = (
       (at) => at,
       context,
       definition,
+      { ...field.properties, [key]: value },
     );
   }
   return propertyDiagnostics(

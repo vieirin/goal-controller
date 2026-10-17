@@ -17,6 +17,7 @@
  * with an error is unset, the dialect's value check reports it.
  */
 import { tropos4asCheckRegistry } from './checks';
+import { TROPOS4AS_KINDS } from './vocabulary';
 import {
   goalTypeOf,
   type Tropos4asElement,
@@ -49,7 +50,7 @@ export const tropos4asProblems = (
       'tropos4as.goal.target',
     ] as const) {
       const message = tropos4asCheckRegistry[name](
-        goal.properties,
+        { props: goal.values, raw: goal.properties, kind: 'istar.Goal' },
         context(goal),
       );
       if (message) say('error', goal, `${goal.label}: ${message}`);
@@ -92,7 +93,11 @@ export const tropos4asProblems = (
 
   for (const artifact of model.ofKind('artifact')) {
     const message = tropos4asCheckRegistry['tropos4as.artifact.attributes'](
-      artifact.properties,
+      {
+        props: artifact.values,
+        raw: artifact.properties,
+        kind: TROPOS4AS_KINDS.artifact,
+      },
       context(artifact),
     );
     if (message) say('error', artifact, `${artifact.label}: ${message}`);

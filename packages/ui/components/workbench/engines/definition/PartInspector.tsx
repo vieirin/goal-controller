@@ -19,7 +19,7 @@ import {
   checkContextOf,
   fieldPropertyOf,
 } from '@goal-controller/goal-language';
-import type { Check } from '@goal-controller/lib';
+import { runCheck, type Check } from '@goal-controller/lib';
 import { useMemo } from 'react';
 import {
   ENGINE_CHECKS,
@@ -152,8 +152,14 @@ export default function PartInspector({
                 validate={
                   applies(key) && spec?.validate
                     ? (value) =>
-                        spec.validate!(
+                        runCheck(
+                          definition,
+                          part.type === 'link'
+                            ? { link: found.kind }
+                            : { actor: found.kind },
+                          key,
                           { ...properties, [key]: value },
+                          spec.validate,
                           checkContext,
                         )
                     : undefined

@@ -29,6 +29,7 @@ import {
   stepped,
   type AnalysisRun,
 } from '../../../ui/lib/workbench/analysis';
+import { runCheck } from '../../src/engines/checks';
 import { envChecks, envy } from './support/envToy';
 
 const node = (
@@ -132,12 +133,17 @@ describe('members: a condition reads an artifact’s attributes (#135)', () => {
   });
 
   it('runs a check that reads member nodes', () => {
-    const check = envChecks['env.goal.when'];
-    const context = { self: 'G1', kindOf: () => undefined };
-    expect(check({ when: 'E1.clean' }, context)).to.equal(null);
-    expect(check({ when: 'x > 3' }, context)).to.equal(
-      'Reads no artifact’s member',
-    );
+    const check = (when: string) =>
+      runCheck(
+        envy,
+        { element: 'goal' },
+        'when',
+        { when },
+        envChecks['env.goal.when'],
+        { self: 'G1', kindOf: () => undefined },
+      );
+    expect(check('E1.clean')).to.equal(null);
+    expect(check('x > 3')).to.equal('Reads no artifact’s member');
   });
 
   it('completes an element’s members after the dot, with their types', () => {

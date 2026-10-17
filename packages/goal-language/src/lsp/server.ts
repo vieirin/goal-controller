@@ -156,8 +156,8 @@ export const createGoalLspServices = (
     model: DefinitionContext,
   ): RunCheck => {
     const registry = checks[dialect.id] ?? {};
-    return (name, properties, self) =>
-      registry[name]?.(properties, checkContextOf(model, self)) ?? null;
+    return (name, input, self) =>
+      registry[name]?.(input, checkContextOf(model, self)) ?? null;
   };
 
   class GoalDocumentFactory extends DefaultLangiumDocumentFactory {

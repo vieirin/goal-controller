@@ -4,8 +4,7 @@
  * MutRoSe's language (./language), whose shapes accept what the decomposer's
  * regexes do; the mapper reads the values with the same functions.
  */
-import { readProperties } from '@goal-controller/goal-language';
-import { checks, type Check, type CheckContext } from '../checks';
+import { checkOn, checks, type Check, type CheckContext } from '../checks';
 import { mutrose } from './definition';
 import {
   readCreationCondition,
@@ -17,7 +16,6 @@ import {
   classOfType,
 } from './language';
 import type { MutroseConfiguration } from './projectResources/configuration';
-import type { MutroseGoalType } from './types';
 import type { WorldKnowledge } from './projectResources/world';
 import {
   depthFirst,
@@ -135,7 +133,7 @@ const declaredType = (
  */
 const varsCheck =
   (key: 'Controls' | 'Monitors'): Check =>
-  (raw, context) => {
+  ({ raw }, context) => {
     const text = raw[key] ?? '';
     if (!text.trim()) return null;
     // the decomposer quotes the item as written, between its commas
@@ -214,54 +212,65 @@ export const parseCreationCondition = (
 };
 
 /**
- * A goal's GoalType as MutRoSe's dialect reads it (the mapper's
- * `props.GoalType`): one of its options, or unset.
+ * A check on a goal's properties: its GoalType the dialect's reading (the
+ * mapper's `props.GoalType`). The values written in MutRoSe's own languages
+ * (its OCL, its creation conditions, its robot numbers) are read from `raw`
+ * by its readers, which accept what the decomposer's regexes do.
  */
-const goalTypeOf = (
-  raw: Partial<Record<string, string>>,
-): MutroseGoalType | null | undefined =>
-  raw.GoalType === undefined
-    ? undefined
-    : readProperties(mutrose, { element: 'goal' }, { GoalType: raw.GoalType })
-        .values.GoalType;
+const onGoal = checkOn(mutrose, { element: 'goal' });
 
 /**
- * The checks the MutRoSe definition names, by name: the one place the names
- * are written.
+ * The names of MutRoSe's checks: what a property's `check` may be
+ * (listed, not derived from the registry: the checks read the dialect's
+ * values, typed by the definition, which names them).
  */
-export const mutroseCheckRegistry = checks({
+export type MutroseCheckName =
+  | 'mutrose.goal.controls'
+  | 'mutrose.goal.monitors'
+  | 'mutrose.goal.achieveCondition'
+  | 'mutrose.goal.queriedProperty'
+  | 'mutrose.goal.creationCondition'
+  | 'mutrose.task.location'
+  | 'mutrose.task.params'
+  | 'mutrose.task.robotNumber';
+
+/**
+ * The checks the MutRoSe definition names, by name: one for each name (a
+ * missing or an unknown one doesn't compile).
+ */
+export const mutroseCheckRegistry = checks<MutroseCheckName>({
   'mutrose.goal.controls': varsCheck('Controls'),
   'mutrose.goal.monitors': varsCheck('Monitors'),
-  'mutrose.goal.achieveCondition': (raw, { self }) => {
+  'mutrose.goal.achieveCondition': onGoal(({ props, raw }, { self }) => {
     const text = raw.AchieveCondition ?? '';
     // the decomposer reads a forAll by the word, then requires its shape
     if (!text.includes('forAll')) return null;
     const forAll = parseForAll(text);
     if (!forAll) return `Invalid forAll statement ${text} in GM.`;
-    return goalTypeOf(raw) === 'Achieve'
+    return props.GoalType === 'Achieve'
       ? forAllProblem(self, forAll, vars(raw.Monitors), vars(raw.Controls))
       : null;
-  },
-  'mutrose.goal.queriedProperty': (raw, context) => {
+  }),
+  'mutrose.goal.queriedProperty': onGoal(({ props, raw }, context) => {
     const { self } = context;
     const text = raw.QueriedProperty ?? '';
     if (!text) return null;
     const query = parseSelect(text);
     if (!query) return `Invalid select statement ${text} in GM.`;
     return (
-      (goalTypeOf(raw) === 'Query'
+      (props.GoalType === 'Query'
         ? queryProblem(self, query, vars(raw.Controls))
         : null) ?? typeProblem(query.type, context)
     );
-  },
+  }),
   // the decomposer ignores any other text; the editors say what it reads
-  'mutrose.goal.creationCondition': (raw) => {
+  'mutrose.goal.creationCondition': ({ raw }) => {
     const text = raw.CreationCondition ?? '';
     return text.trim() && !parseCreationCondition(text)
       ? 'A CreationCondition is assertion condition "expr" or assertion trigger "Event"'
       : null;
   },
-  'mutrose.task.location': (raw, context) => {
+  'mutrose.task.location': ({ raw }, context) => {
     const text = raw.Location ?? '';
     if (!text.trim()) return null;
     const [location, ...more] = readNames(text).value;
@@ -275,7 +284,7 @@ export const mutroseCheckRegistry = checks({
       ? `${name} is a ${typeClass}: a Location is one of the configuration's location types (${locations.join(', ')})`
       : null;
   },
-  'mutrose.task.params': (raw, context) => {
+  'mutrose.task.params': ({ raw }, context) => {
     const text = raw.Params ?? '';
     if (!text.trim()) return null;
     const bad = readNames(text).value.find(({ name }) => !name);
@@ -283,13 +292,10 @@ export const mutroseCheckRegistry = checks({
       ? `Params are variable names, comma-separated: not ${bad.item.text || 'an empty name'}`
       : scopeProblem(context, 'Params');
   },
-  'mutrose.task.robotNumber': (raw) => {
+  'mutrose.task.robotNumber': ({ raw }) => {
     const text = raw.RobotNumber ?? '';
     return text && parseRobotNumber(text) === null
       ? `Invalid declaration of robot number: ${text}`
       : null;
   },
 });
-
-/** The names of MutRoSe's checks: what a property's `check` may be. */
-export type MutroseCheckName = keyof typeof mutroseCheckRegistry;

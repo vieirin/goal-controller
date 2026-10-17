@@ -94,8 +94,8 @@ export const runCheckIn =
     checks: Readonly<Record<string, Check | undefined>>,
     model: () => DefinitionContext,
   ): RunCheck =>
-  (name, properties, self) =>
-    checks[name]?.(properties, checkContextOf(model(), self)) ?? null;
+  (name, input, self) =>
+    checks[name]?.(input, checkContextOf(model(), self)) ?? null;
 
 /**
  * The language support an engine's definition gives without a server: its document

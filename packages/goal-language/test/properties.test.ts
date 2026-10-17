@@ -143,6 +143,44 @@ describe('readProperties (#187)', () => {
     });
   });
 
+  it("reads '' of each value type as empty, so a check on it still runs (#222)", () => {
+    // the Inspector checks a value while it is typed: `maintain` blank still
+    // has its check say it is needed
+    const everyType = [
+      ...dialect.properties.goal,
+      property.expression('reward', { help: '' }),
+      property.ocl('query', { help: '' }),
+      property.formula('ltl', 'ltl', { help: '' }),
+      property.pairList('names', 'text', { help: '' }),
+      property.enum('closed', ['a', 'b'], { help: '' }),
+    ];
+    const blank = Object.fromEntries(everyType.map(({ key }) => [key, '']));
+    const { values } = readProperties(
+      { properties: { goal: everyType } },
+      { element: 'goal' },
+      blank,
+    );
+    expect(values).to.deep.equal({
+      maxRetries: null,
+      utility: null,
+      maintain: null,
+      type: null,
+      mode: null,
+      dependsOn: [],
+      variables: [],
+      assertion: null,
+      note: null,
+      chance: null,
+      anchor: null,
+      bound: null,
+      reward: null,
+      query: [],
+      ltl: null,
+      names: [],
+      closed: null,
+    });
+  });
+
   it('reads a conditional value as the other properties make it', () => {
     const maintained = readProperties(
       dialect,

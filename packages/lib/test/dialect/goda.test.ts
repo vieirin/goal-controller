@@ -17,6 +17,7 @@ import {
   notationEdits,
   parseElementLine,
   readLine,
+  type RunCheck,
 } from '@goal-controller/goal-language';
 import { goalView, Model } from '@goal-controller/goal-tree';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
@@ -70,13 +71,9 @@ describe('GODA: its models in the editors', () => {
       const { text } = notationDocument(goda, view);
       expect(notationEdits(goda, text, view)).to.deep.equal([]);
       const context = contextFromView(goda, view, []);
-      const runCheck = (
-        check: string,
-        properties: Readonly<Record<string, string>>,
-        self: string,
-      ) =>
+      const runCheck: RunCheck = (check, input, self) =>
         godaCheckRegistry[check as GodaCheckName](
-          properties,
+          input,
           checkContextOf(context, self),
         );
       expect(

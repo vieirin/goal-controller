@@ -21,6 +21,7 @@ import {
   parseSelect,
   parseVars,
 } from './checks';
+import type { CheckInput } from '../checks';
 import { readNames } from './language';
 import { mutrose } from './definition';
 import type { MutroseGoalProps, MutroseTaskProps } from './types';
@@ -34,12 +35,16 @@ export const MUTROSE_TASK_KEYS = propertyKeys(mutrose, 'task');
  */
 const firstIssue = (
   kind: 'goal' | 'task',
-  raw: Partial<Record<string, string>>,
+  input: CheckInput,
   id: string,
 ): string | null => {
   for (const property of mutrose.properties[kind]) {
-    if (!('check' in property) || raw[property.key] === undefined) continue;
-    const message = mutroseCheckRegistry[property.check](raw, {
+    if (!('check' in property) || input.raw[property.key] === undefined)
+      continue;
+    // run on every value written, read by the dialect or not: the mapper
+    // reads the texts with MutRoSe's own language, and its checks say what
+    // the decomposer would stop at
+    const message = mutroseCheckRegistry[property.check](input, {
       self: id,
       kindOf: () => undefined,
     });
@@ -61,8 +66,8 @@ export const mutroseEngineMapper = createEngineMapper<
   skipResource: true,
   // a Query goal fetches; it needs no children
   allowLeafGoals: true,
-  mapGoalProps: ({ props, raw, id, text }) => {
-    const issue = firstIssue('goal', raw, id);
+  mapGoalProps: ({ props, raw, id, text, kind }) => {
+    const issue = firstIssue('goal', { props, raw, kind }, id);
     if (issue) throw new Error(issue);
     const achieve = raw.AchieveCondition?.trim();
     // its check rejects a padded or a blank one
@@ -86,8 +91,8 @@ export const mutroseEngineMapper = createEngineMapper<
       annotation: parseElementLine(text).value?.notation ?? null,
     };
   },
-  mapTaskProps: ({ raw, id }) => {
-    const issue = firstIssue('task', raw, id);
+  mapTaskProps: ({ props, raw, id, kind }) => {
+    const issue = firstIssue('task', { props, raw, kind }, id);
     if (issue) throw new Error(issue);
     // its check rejects a padded or a blank one
     const robots = raw.RobotNumber;

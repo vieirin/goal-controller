@@ -15,6 +15,8 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
+import { checkOnKey } from '../../support/checkOn';
+import { istardt as ISTARDT } from '../../../src/engines/istardt/definition';
 import { parsePistar } from '@istar-ts/core';
 import {
   istardtAnalysisModel,
@@ -135,10 +137,15 @@ describe("iStar-DT (#187 characterization): a goal's root and episodeLength", ()
   });
 
   it("istardt.goal.root: another goal's root, trimmed, is a second root", () => {
-    const check = istardtCheckRegistry['istardt.goal.root'];
+    const check = checkOnKey(
+      ISTARDT,
+      { element: 'goal' },
+      'root',
+      istardtCheckRegistry['istardt.goal.root'],
+    );
     const context = (root: string) => ({
       self: 'G1',
-      kindOf: () => 'goal' as const,
+      kindOf: () => 'istar.Goal',
       elements: {
         G1: { kind: 'goal', properties: { root: 'true' } },
         G2: { kind: 'goal', properties: { root } },
@@ -253,7 +260,12 @@ describe("iStar-DT (#187 characterization): a quality's root, formula and export
   });
 
   it('istardt.export.bounds: the numbers, trimmed; blank is unset', () => {
-    const check = istardtCheckRegistry['istardt.export.bounds'];
+    const check = checkOnKey(
+      ISTARDT,
+      { element: 'quality' },
+      'exportMin',
+      istardtCheckRegistry['istardt.export.bounds'],
+    );
     const read = (exportMin: string, exportMax: string) =>
       check({ exportMin, exportMax }, { self: 'Q', kindOf: () => undefined });
     const NOT = (min: string, max: string) =>

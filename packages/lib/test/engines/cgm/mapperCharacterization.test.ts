@@ -15,7 +15,9 @@ import * as path from 'path';
 import { describe, it } from 'mocha';
 import { parsePistar } from '../../../../goal-tree/node_modules/@istar-ts/core';
 import type { AnalysisModel } from '../../../src/engines/analysis';
+import { runCheck, type CheckContext } from '../../../src/engines/checks';
 import {
+  cgm,
   cgmAnalysisModel,
   cgmCheckRegistry,
   cgmProblems,
@@ -333,8 +335,25 @@ describe('Contextual goal models (#187 characterization): context, activation an
 });
 
 describe('Contextual goal models (#187 characterization): the checks', () => {
-  const opposite = cgmCheckRegistry['cgm.contribution.opposite'];
-  const activation = cgmCheckRegistry['cgm.goal.activation'];
+  // run as the editors run them (#222)
+  const opposite = (raw: Record<string, string>, ctx: CheckContext) =>
+    runCheck(
+      cgm,
+      { link: 'istar.ContributionLink' },
+      'opposite',
+      raw,
+      cgmCheckRegistry['cgm.contribution.opposite'],
+      ctx,
+    );
+  const activation = (raw: Record<string, string>, ctx: CheckContext) =>
+    runCheck(
+      cgm,
+      { element: 'goal' },
+      'activation',
+      raw,
+      cgmCheckRegistry['cgm.goal.activation'],
+      ctx,
+    );
   const context = { self: 'l', kindOf: () => undefined };
   const SAME =
     'The opposite context is the contribution’s own: the two labels would apply together';
