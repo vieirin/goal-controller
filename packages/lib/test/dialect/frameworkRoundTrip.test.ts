@@ -1,7 +1,9 @@
 /**
  * The framework axis changes nothing for iStar models (goal-controller#171):
  * every example is in iStar 2.0, by its content and by its (absent) record,
- * and reads and writes back byte for byte through the framework's host.
+ * and reads and writes back byte for byte through the framework's host; but
+ * the KAOS and NFR seeds (examples/kaos, examples/nfr: DSM3's own files),
+ * which are their framework's by their content and record none either.
  */
 import { expect } from 'chai';
 import {
@@ -38,11 +40,18 @@ const LOSSY_BEFORE = new Set([
   'examples/tropos4as/patient-monitoring/patient-monitoring.txt',
 ]);
 
+/** The framework an example is in: its folder's, for the KAOS and NFR seeds. */
+const frameworkOf = (file: string) =>
+  /^examples\/(kaos|nfr)\//.exec(file)?.[1] ?? 'istar-2.0';
+
 describe('frameworks: the examples (#171)', () => {
-  it('are all iStar 2.0, and record no framework', () => {
+  it('are all iStar 2.0 but the KAOS and NFR seeds, and record no framework', () => {
     expect(EXAMPLES.length).to.be.greaterThan(20);
+    expect(
+      EXAMPLES.filter(({ file }) => frameworkOf(file) !== 'istar-2.0'),
+    ).to.have.length(2);
     for (const { file, model } of EXAMPLES) {
-      expect(frameworkOfModel(model), file).to.equal('istar-2.0');
+      expect(frameworkOfModel(model), file).to.equal(frameworkOf(file));
       expect(recordedFramework(model), file).to.equal(null);
       expect(modelSettingsOf(model).framework, file).to.equal('istar-2.0');
     }
