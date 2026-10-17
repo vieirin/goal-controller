@@ -27,7 +27,17 @@ importers:
         version: 50.4.11(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.3)
 
   packages/dialect:
+    dependencies:
+      '@istar-ts/dsm3-kaos':
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr':
+        specifier: ^0.14.0
+        version: 0.14.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
     devDependencies:
+      '@istar-ts/core':
+        specifier: ^0.14.0
+        version: 0.14.0
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20

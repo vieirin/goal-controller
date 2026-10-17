@@ -1,7 +1,7 @@
 /**
  * The frameworks a model may be in (goal-controller#171): each read with an
  * istar-ts root, iStar 2.0's, KAOS's or NFR's; the dialect package's kind
- * table pinned to those roots.
+ * table read from those roots.
  */
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -13,19 +13,10 @@ import {
   toPistar,
 } from '@istar-ts/core';
 import {
-  KAOS_ELEMENT_KINDS,
-  KAOS_LINK_KINDS,
-  KAOS_OBSTACLE_ELEMENT_KINDS,
-  KAOS_OBSTACLE_LINK_KINDS,
-  KAOS_OBSTACLE_REFINEMENT_HUB,
   KAOS_OBSTACLES,
   KAOS_REFINEMENT_HUB,
 } from '@istar-ts/dsm3-kaos/metamodel';
-import {
-  NFR,
-  NFR_ELEMENT_KINDS,
-  NFR_LINK_KINDS,
-} from '@istar-ts/dsm3-nfr/metamodel';
+import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import {
   defineExtension,
   extensionHubKinds,
@@ -84,8 +75,6 @@ const KAOS_MODEL = JSON.stringify({
   diagram: { width: 800, height: 600 },
 });
 
-const sorted = (kinds: Iterable<string>) => [...kinds].sort();
-
 describe('frameworks', () => {
   it('has a root for each framework, whose framework it is', () => {
     for (const framework of FRAMEWORKS)
@@ -93,30 +82,18 @@ describe('frameworks', () => {
     expect(FRAMEWORK_ROOTS['istar-2.0']).toBe(ISTAR_2_0);
   });
 
-  it("pins the dialect's kind table to the KAOS (with its obstacle analysis, #181) and NFR roots", () => {
-    for (const [framework, root] of [
-      ['kaos', KAOS_OBSTACLES],
-      ['nfr', NFR],
-    ] as const) {
-      expect(sorted(FRAMEWORK_KINDS[framework].elements), framework).toEqual(
-        sorted(root.elements.keys()),
-      );
-      expect(sorted(FRAMEWORK_KINDS[framework].links), framework).toEqual(
-        sorted(root.links.keys()),
-      );
+  it("reads the dialect's kind table from the roots the workbench reads models with (#181)", () => {
+    for (const framework of ['kaos', 'nfr'] as const) {
+      const root = FRAMEWORK_ROOTS[framework];
+      expect(FRAMEWORK_KINDS[framework].elements, framework).toEqual([
+        ...root.elements.keys(),
+      ]);
+      expect(FRAMEWORK_KINDS[framework].links, framework).toEqual([
+        ...root.links.keys(),
+      ]);
     }
-    expect(FRAMEWORK_KINDS.kaos.elements).toEqual([
-      ...KAOS_ELEMENT_KINDS,
-      KAOS_REFINEMENT_HUB,
-      ...KAOS_OBSTACLE_ELEMENT_KINDS,
-      KAOS_OBSTACLE_REFINEMENT_HUB,
-    ]);
-    expect(FRAMEWORK_KINDS.kaos.links.slice(0, 3)).toEqual(KAOS_LINK_KINDS);
-    expect(FRAMEWORK_KINDS.kaos.links.slice(5, 8)).toEqual(
-      KAOS_OBSTACLE_LINK_KINDS,
-    );
-    expect(FRAMEWORK_KINDS.nfr.elements).toEqual(NFR_ELEMENT_KINDS);
-    expect(FRAMEWORK_KINDS.nfr.links).toEqual(NFR_LINK_KINDS);
+    // KAOS's, with its obstacle analysis
+    expect(FRAMEWORK_KINDS.kaos.elements).toContain('kaosObstacles.Obstacle');
   });
 
   it("hosts a dialect on its framework's root", () => {

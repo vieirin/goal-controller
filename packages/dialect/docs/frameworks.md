@@ -23,7 +23,7 @@ projects or their files.
 
 | Where | What |
 | --- | --- |
-| `dialect/src/schema.ts` | `Framework`, `FRAMEWORKS`, `DEFAULT_FRAMEWORK`; `DialectDefinition.framework?`; `FRAMEWORK_KINDS`, the KAOS and NFR kinds a dialect may name; `defineDialect`'s checks per framework |
+| `dialect/src/schema.ts` | `Framework`, `FRAMEWORKS`, `DEFAULT_FRAMEWORK`; `DialectDefinition.framework?`; `FRAMEWORK_KINDS`, the KAOS and NFR kinds a dialect may name, read from istar-ts's roots; `defineDialect`'s checks per framework |
 | `ui/lib/project/manifest.ts` | `Manifest.framework?`, `ModelEntry.framework?`, `ManifestSettings.framework` |
 | `ui/lib/project/embedded.ts` | the framework record of a one-model project: `diagram.customProperties.framework`; `recordedFramework` |
 | `ui/lib/workbench/frameworks.ts` | `FRAMEWORK_ROOTS`, `hostFor`, `frameworkOfModel`, `emptyModelText` |
@@ -77,9 +77,10 @@ applies iStar's rules only when the framework is iStar 2.0:
 has properties but no line in the text view (KAOS's refinement hub) therefore
 still compiles.
 
-`FRAMEWORK_KINDS` copies the kind lists of the istar-ts roots, so the dialect
-package keeps no dependencies. A UI test (`test/workbench/frameworks.test.ts`)
-pins it to `KAOS` / `NFR` and to `KAOS_ELEMENT_KINDS` / `NFR_ELEMENT_KINDS`.
+`FRAMEWORK_KINDS` is read from the istar-ts roots the workbench reads models
+with (`KAOS_OBSTACLES`, `NFR`; #181), from their React-free `/metamodel`
+subpaths. A UI test (`test/workbench/frameworks.test.ts`) checks it against
+the workbench's `FRAMEWORK_ROOTS`.
 
 ## Hosts
 
@@ -400,13 +401,19 @@ log are in #182.
   the `kaos` dialect's `extension`: every KAOS dialect, engine and importer
   reads them. DSM3's files read as before, and an empty KAOS model is
   written as before, byte for byte.
-- **`FRAMEWORK_KINDS` stays data.** The dialect package keeps no
-  dependencies (PR A). The table gains the obstacle analysis's kinds
-  (`kaosObstacles.Obstacle`, its refinement's hub, legs and end, obstruction
-  and resolution), and the ui test pins it to `KAOS_OBSTACLES`. The kinds
-  are `kaosObstacles.*` because core reserves the root's `kaos.` prefix.
-  Files write them as `kaos.*` (`pistarType`), so `detectFramework` still
-  sees KAOS.
+- **`FRAMEWORK_KINDS` is derived, not copied.** It reads the kinds of
+  istar-ts's `KAOS_OBSTACLES` and `NFR` (their element and link maps, the
+  generated hubs, legs and ends included), and its types are istar-ts's
+  (`KaosElementKind | KaosObstacleElementKind`, …). This supersedes PR A's
+  "the dialect package stays free of dependencies": it now depends on
+  `@istar-ts/dsm3-kaos` and `@istar-ts/dsm3-nfr`, whose `/metamodel`
+  subpaths need no React. Their core is the one lib and the workbench
+  already load (the workbench aliases it to one copy, #177). A kind istar-ts
+  adds reaches every dialect check without an edit here. The ui test checks
+  the table against the workbench's own roots. The obstacle kinds are
+  `kaosObstacles.*` because core reserves the root's `kaos.` prefix. Files
+  write them as `kaos.*` (`pistarType`), so `detectFramework` still sees
+  KAOS.
 - **Three generic value types:**
   - `reference`: one element id, of the given `kinds`;
   - `formula`: text with a language tag, which nothing checks yet;
@@ -417,7 +424,10 @@ log are in #182.
   map, which the language server uses too), and `valueProblem` checks
   them. The inspector edits `formula` as long text and the other two as
   text. The `kaos` dialect uses `formula` (`FormalSpec`, tagged `ltl`).
-  `reference` is for `Anchor` and `probability` is for kaosprop.
+  `reference` is for `Anchor` and `probability` is for kaosprop. A
+  reference reads its id with the grammar, as a `refList` reads its ids. A
+  piStar id, which no grammar reads, is accepted only where the model has
+  it (`context.iStarIds`).
 - **Vocabularies, one source each** (`KAOS_VOCABULARIES` in lib's `kaos`
   dialect):
 

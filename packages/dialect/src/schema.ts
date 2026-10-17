@@ -6,6 +6,18 @@
  * only picks from what it offers. Nothing here knows any engine; checks are
  * named (the engine's library implements them).
  */
+import {
+  KAOS_OBSTACLES,
+  type KaosElementKind,
+  type KaosLinkKind,
+  type KaosObstacleElementKind,
+  type KaosObstacleLinkKind,
+} from '@istar-ts/dsm3-kaos/metamodel';
+import {
+  NFR,
+  type NfrElementKind,
+  type NfrLinkKind,
+} from '@istar-ts/dsm3-nfr/metamodel';
 
 /** The iStar element kinds a model has (what an engine may read). */
 export type ElementKind = 'goal' | 'task' | 'resource' | 'quality';
@@ -35,54 +47,28 @@ export const FRAMEWORKS = [
 export const DEFAULT_FRAMEWORK: Framework = 'istar-2.0';
 
 /**
- * The kinds of the frameworks besides iStar 2.0, as the metamodels the
- * workbench reads them with have them (`@istar-ts/dsm3-kaos`'s KAOS with its
- * obstacle analysis, `KAOS_OBSTACLES`, goal-controller#181;
- * `@istar-ts/dsm3-nfr`'s NFR; the UI's tests pin this table to them): the
- * element kinds, with the hub an n-ary link generates, and the link kinds,
- * with its legs. A dialect of one names these kinds, and no iStar kind.
+ * The kinds of the frameworks besides iStar 2.0, read from the roots the
+ * workbench reads their models with (istar-ts's `KAOS_OBSTACLES`, KAOS with
+ * its obstacle analysis, goal-controller#181; `NFR`): the element kinds,
+ * with the hub an n-ary link generates, and the link kinds, with its legs
+ * and end. A dialect of one names these kinds, and no iStar kind.
  */
-export const FRAMEWORK_KINDS = {
+export const FRAMEWORK_KINDS: {
+  readonly kaos: {
+    readonly elements: readonly (KaosElementKind | KaosObstacleElementKind)[];
+    readonly links: readonly (KaosLinkKind | KaosObstacleLinkKind)[];
+  };
+  readonly nfr: {
+    readonly elements: readonly NfrElementKind[];
+    readonly links: readonly NfrLinkKind[];
+  };
+} = {
   kaos: {
-    elements: [
-      'kaos.BehavioralGoal',
-      'kaos.Softgoal',
-      'kaos.Agent',
-      'kaos.EnvironmentAgent',
-      'kaos.DomainProperty',
-      'kaos.RefinementLinkHub',
-      // the obstacle analysis (istar-ts's `kaosObstacleAnalysis`): its own
-      // namespace, as the root reserves `kaos.`; files write them `kaos.*`
-      'kaosObstacles.Obstacle',
-      'kaosObstacles.ObstacleRefinementLinkHub',
-    ],
-    links: [
-      'kaos.RefinementLink',
-      'kaos.ResponsibilityAssignment',
-      'kaos.Conflict',
-      'kaos.RefinementLinkStart',
-      'kaos.RefinementLinkEnd',
-      'kaosObstacles.ObstacleRefinementLink',
-      'kaosObstacles.ObstructionLink',
-      'kaosObstacles.ResolutionLink',
-      'kaosObstacles.ObstacleRefinementLinkStart',
-      'kaosObstacles.ObstacleRefinementLinkEnd',
-    ],
+    elements: [...KAOS_OBSTACLES.elements.keys()],
+    links: [...KAOS_OBSTACLES.links.keys()],
   },
-  nfr: {
-    elements: ['nfr.NFR', 'nfr.Operationalization', 'nfr.Claim'],
-    links: [
-      'nfr.AndRefinementLink',
-      'nfr.OrRefinementLink',
-      'nfr.ContributionLink',
-      'nfr.CorrelationLink',
-      'nfr.ArgumentLink',
-    ],
-  },
-} as const satisfies Record<
-  Exclude<Framework, 'istar-2.0'>,
-  { elements: readonly string[]; links: readonly string[] }
->;
+  nfr: { elements: [...NFR.elements.keys()], links: [...NFR.links.keys()] },
+};
 
 /** An element kind of a framework besides iStar 2.0 (`kaos.Agent`). */
 export type FrameworkElementKind<F extends keyof typeof FRAMEWORK_KINDS> =
