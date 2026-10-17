@@ -2,14 +2,12 @@
  * Contexts as formulas (REJ 2010 §3.4, goal-controller#151 D2–D3): what a
  * formula names, whether a context is monitorable (Defs. 6–7: every
  * statement it names supported, transitively, down to facts, with no
- * cycle), and a formula's truth in a situation. Formulas are read with the
- * goal language's `readAssertion`, never split as text.
+ * cycle), and a formula's truth in a situation. Formulas are the dialect's
+ * reading of their properties (./values: assertions), never split as text.
  */
-import {
-  readAssertion,
-  type AssertionTree,
-} from '@goal-controller/goal-language';
-import { CGM_KEYS, CGM_KINDS } from './vocabulary';
+import type { AssertionTree } from '@goal-controller/goal-language';
+import { elementValues } from './values';
+import { CGM_KINDS } from './vocabulary';
 
 /** An element as these rules read it: its kind and properties, by id. */
 export type FormulaElement = {
@@ -18,14 +16,13 @@ export type FormulaElement = {
 };
 export type FormulaLookup = (id: string) => FormulaElement | undefined;
 
-/** A formula's tree; none when it is empty or isn't an assertion. */
-export const formulaOf = (text: string | undefined): AssertionTree | null =>
-  text?.trim() ? readAssertion(text) : null;
+/** A formula as a property holds it: its tree; none (null, undefined) when it is unset, blank or isn't an assertion. */
+export type Formula = AssertionTree | null | undefined;
 
 /** The names a formula reads, in the order written, each once. */
-export const namesOf = (tree: AssertionTree | null): string[] => {
+export const namesOf = (tree: Formula): string[] => {
   const names: string[] = [];
-  const walk = (node: AssertionTree | null): void => {
+  const walk = (node: Formula): void => {
     switch (node?.kind) {
       case 'and':
       case 'or':
@@ -49,11 +46,11 @@ export const namesOf = (tree: AssertionTree | null): string[] => {
 };
 
 /** The formula an element is specified or supported by: a context's `formula`, a statement's `supportedBy`. */
-const definitionOf = (element: FormulaElement): string | undefined =>
-  element.kind === CGM_KINDS.context
-    ? element.properties[CGM_KEYS.formula]
-    : element.kind === CGM_KINDS.statement
-      ? element.properties[CGM_KEYS.supportedBy]
+export const definitionOf = (element: FormulaElement | undefined): Formula =>
+  element?.kind === CGM_KINDS.context
+    ? elementValues(element).formula
+    : element?.kind === CGM_KINDS.statement
+      ? elementValues(element).supportedBy
       : undefined;
 
 /**
@@ -63,7 +60,7 @@ const definitionOf = (element: FormulaElement): string | undefined =>
  * is supported, transitively, down to facts.
  */
 export const monitorabilityProblem = (
-  text: string | undefined,
+  formula: Formula,
   lookup: FormulaLookup,
 ): string | null => {
   const problems: string[] = [];
@@ -84,15 +81,14 @@ export const monitorabilityProblem = (
       problems.push(`${name} is neither a statement nor a fact`);
       return;
     }
-    const support = element.properties[CGM_KEYS.supportedBy];
-    if (!support?.trim()) {
+    const support = definitionOf(element);
+    if (!support) {
       problems.push(`statement ${name} is supported by no formula`);
       return;
     }
-    for (const next of namesOf(formulaOf(support)))
-      visit(next, [...path, name]);
+    for (const next of namesOf(support)) visit(next, [...path, name]);
   };
-  for (const name of namesOf(formulaOf(text))) visit(name, []);
+  for (const name of namesOf(formula)) visit(name, []);
   return problems.length
     ? `Not monitorable (REJ 2010 Defs. 6–7): ${problems.join('; ')}`
     : null;
@@ -106,7 +102,7 @@ export const monitorabilityProblem = (
  * reached again through a cycle.
  */
 export const expandToFacts = (
-  tree: AssertionTree | null,
+  tree: Formula,
   lookup: FormulaLookup,
   through: readonly string[] = [],
 ): AssertionTree | null => {
@@ -126,9 +122,7 @@ export const expandToFacts = (
         expr: expandToFacts(tree.expr, lookup, through),
       };
     case 'var': {
-      const element = lookup(tree.variable);
-      const definition = element && definitionOf(element);
-      const read = definition?.trim() ? formulaOf(definition) : null;
+      const read = definitionOf(lookup(tree.variable));
       if (!read || through.includes(tree.variable)) return tree;
       return {
         kind: 'paren',
@@ -142,7 +136,7 @@ export const expandToFacts = (
 
 /** A formula's value under an assignment of its names. */
 export const evaluate = (
-  tree: AssertionTree | null,
+  tree: Formula,
   value: (name: string) => boolean,
 ): boolean => {
   if (!tree) return true;
@@ -182,16 +176,9 @@ export const holdsGivenFacts = (
   holds: (id: string) => boolean,
   through: readonly string[] = [],
 ): boolean => {
-  const element = lookup(id);
-  const definition = element && definitionOf(element);
-  if (
-    !element ||
-    element.kind === CGM_KINDS.fact ||
-    !definition?.trim() ||
-    through.includes(id)
-  )
-    return holds(id);
-  return evaluate(formulaOf(definition), (name) =>
+  const definition = definitionOf(lookup(id));
+  if (!definition || through.includes(id)) return holds(id);
+  return evaluate(definition, (name) =>
     holdsGivenFacts(name, lookup, holds, [...through, id]),
   );
 };

@@ -27,7 +27,10 @@
  * hold everywhere; an environment's hold with them in that environment
  * (`Env → …`).
  */
-import type { AssertionTree } from '@goal-controller/goal-language';
+import {
+  readAssertion,
+  type AssertionTree,
+} from '@goal-controller/goal-language';
 import {
   keyRange,
   readJson,
@@ -36,7 +39,6 @@ import {
   type ResourceDiagnostic,
   type ResourceFile,
 } from '../projectResources';
-import { formulaOf } from './formulas';
 
 export type Situation = {
   /** its file's path */
@@ -136,7 +138,7 @@ const readRelations = (
     return [];
   }
   return list.flatMap((text): Relation[] => {
-    const tree = typeof text === 'string' ? formulaOf(text) : null;
+    const tree = typeof text === 'string' ? readAssertion(text) : null;
     if (!tree || typeof text !== 'string') {
       problem(
         typeof text === 'string' ? text : key,

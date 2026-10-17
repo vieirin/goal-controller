@@ -1,15 +1,18 @@
 /**
  * What is wrong with a contextual goal model as a whole, for its analyses
  * (goal-controller#153): the named checks' rules (./checks), said of every
- * element and link, and what they can't say alone: a formula the goal
- * language can't read, or one naming what the model doesn't have.
+ * element and link, and what they can't say alone: a formula naming what
+ * the model doesn't have, a context on a link kind without one. A formula
+ * is the dialect's reading (./values): one written with an error is unset,
+ * the dialect's value check reports it.
  */
 import type { CheckContext } from '../checks';
 import type { AnalysisModel } from '../analysis';
 import { cgmCheckRegistry } from './checks';
 import { cgm as cgmDialect } from './definition';
-import { formulaOf, namesOf } from './formulas';
+import { namesOf } from './formulas';
 import { readCgmModel } from './model';
+import { elementValues, linkValues, type CgmValues } from './values';
 import { CGM_KEYS, CGM_KINDS } from './vocabulary';
 
 export type CgmProblem = {
@@ -20,13 +23,13 @@ export type CgmProblem = {
 };
 
 /** The keys holding formulas, and the kinds their names must be. */
-const FORMULAS: Readonly<Record<string, readonly string[]>> = {
-  [CGM_KEYS.activation]: [CGM_KINDS.context],
-  [CGM_KEYS.context]: [CGM_KINDS.context],
-  [CGM_KEYS.opposite]: [CGM_KINDS.context],
-  [CGM_KEYS.formula]: [CGM_KINDS.statement, CGM_KINDS.fact],
-  [CGM_KEYS.supportedBy]: [CGM_KINDS.statement, CGM_KINDS.fact],
-};
+const FORMULAS = [
+  [CGM_KEYS.activation, [CGM_KINDS.context]],
+  [CGM_KEYS.context, [CGM_KINDS.context]],
+  [CGM_KEYS.opposite, [CGM_KINDS.context]],
+  [CGM_KEYS.formula, [CGM_KINDS.statement, CGM_KINDS.fact]],
+  [CGM_KEYS.supportedBy, [CGM_KINDS.statement, CGM_KINDS.fact]],
+] as const satisfies readonly (readonly [keyof CgmValues, readonly string[]])[];
 
 /** The properties a link kind declares. */
 const propertyKeysOfLink = (kind: string): string[] =>
@@ -59,26 +62,11 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
       ]),
     ),
   });
-  const formulas = (
-    at: string,
-    name: string,
-    properties: Readonly<Record<string, string>>,
-  ) => {
-    for (const [key, kinds] of Object.entries(FORMULAS)) {
-      const text = properties[key];
-      if (!text?.trim()) continue;
-      const tree = formulaOf(text);
-      if (!tree) {
-        problems.push({
-          severity: 'error',
-          at,
-          message: `${name}'s ${key} is not a formula: ${text}`,
-        });
-        continue;
-      }
-      for (const named of namesOf(tree)) {
+  const formulas = (at: string, name: string, values: CgmValues) => {
+    for (const [key, kinds] of FORMULAS) {
+      for (const named of namesOf(values[key])) {
         const element = cgm.byId(named);
-        if (!element || !kinds.includes(element.kind))
+        if (!element || !(kinds as readonly string[]).includes(element.kind))
           problems.push({
             severity: 'error',
             at,
@@ -89,7 +77,7 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   };
   for (const element of model.elements) {
     const id = cgm.idOf(element.id);
-    formulas(element.id, id, element.properties);
+    formulas(element.id, id, elementValues(element));
     for (const [key, check] of [
       [CGM_KEYS.activation, 'cgm.goal.activation'],
       [CGM_KEYS.formula, 'cgm.context.monitorable'],
@@ -106,7 +94,7 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
     }
     if (
       element.kind === CGM_KINDS.statement &&
-      !element.properties[CGM_KEYS.supportedBy]?.trim()
+      !elementValues(element).supportedBy
     )
       problems.push({
         severity: 'error',
@@ -116,7 +104,7 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   }
   for (const link of model.links) {
     const name = `${cgm.idOf(link.source)} → ${cgm.idOf(link.target)}`;
-    formulas(link.id, name, link.properties);
+    formulas(link.id, name, linkValues(link));
     for (const key of [CGM_KEYS.context, CGM_KEYS.opposite])
       if (
         link.properties[key]?.trim() &&

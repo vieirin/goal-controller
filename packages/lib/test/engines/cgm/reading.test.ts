@@ -189,8 +189,7 @@ describe('Contextual goal models: situations, contributions and costs', () => {
         cgm.contributions.find(
           (l) => `${cgm.idOf(l.source)} ${cgm.idOf(l.target)}` === ends,
         )!,
-        (formula) =>
-          evaluate(readAssertion(formula), (n) => holding.includes(n)),
+        (formula) => evaluate(formula, (n) => holding.includes(n)),
       );
     assert.deepStrictEqual(
       ['G10 SG1', 'G10 SG2', 'G11 SG1', 'G11 SG2'].map((id) => [

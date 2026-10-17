@@ -25,7 +25,7 @@ import {
   type Variant,
   type VariationPoint,
 } from '../variants';
-import { evaluate, expandToFacts, formulaOf } from './formulas';
+import { evaluate, expandToFacts } from './formulas';
 import { costOfTasks, readCgmModel, type CgmModel } from './model';
 import {
   readRelationSets,
@@ -34,7 +34,7 @@ import {
   type RelationSet,
 } from './resources';
 import { contextsHolding, contributionSign } from './situation';
-import { CGM_KEYS } from './vocabulary';
+import { elementValues, linkValues } from './values';
 
 /** at most this many variants per root (REJ 2010's own case had 324,000) */
 export const VARIANT_LIMIT = 20_000;
@@ -42,8 +42,8 @@ export const VARIANT_LIMIT = 20_000;
 /** Where the walk asks for a guard: a root's activation, a link's context (#151 D13). */
 export const cgmGuard = (at: VariationPoint): AssertionTree | null =>
   at.point === 'root'
-    ? formulaOf(at.element.properties[CGM_KEYS.activation])
-    : formulaOf(at.link.properties[CGM_KEYS.context]);
+    ? (elementValues(at.element).activation ?? null)
+    : (linkValues(at.link).context ?? null);
 
 /**
  * How a link joins its parent: iStar's refinements as iStar's (AND and
@@ -145,7 +145,7 @@ export const variantScore = (
   for (const link of cgm.contributions) {
     if (!inVariant.has(link.source)) continue;
     const sign = contributionSign(link, (formula) =>
-      evaluate(formulaOf(formula), (name) => holding.has(name)),
+      evaluate(formula, (name) => holding.has(name)),
     );
     if (!sign) continue;
     const softgoal = cgm.idOf(link.target);

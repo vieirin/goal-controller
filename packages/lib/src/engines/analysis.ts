@@ -13,7 +13,12 @@
  * `satisfiable`, `implies`, `equivalent` (./propositional). Nothing here
  * names an engine.
  */
-import type { AnyDialect } from '@goal-controller/dialect';
+import { ISTAR_KIND_OF, type AnyDialect } from '@goal-controller/dialect';
+import {
+  readProperties,
+  type PropertyList,
+  type PropertyValues,
+} from '@goal-controller/goal-language';
 import type { GoalModel } from '@goal-controller/goal-tree';
 
 /** A value on an element or actor: a number or a word, its label, how to show it. */
@@ -143,6 +148,75 @@ export const analysisViewOf = (
     }),
   ),
 });
+
+/** A dialect as `readProperties` reads it: its element kinds', link kinds' and actors' properties. */
+type PropertyDialect = {
+  properties?: Readonly<Record<string, PropertyList>>;
+  links?: Readonly<Record<string, PropertyList>>;
+  actors?: readonly (PropertyList[number] & { kinds?: readonly string[] })[];
+};
+
+/** Every property a dialect declares: its element kinds', its link kinds', its actors'. */
+type DeclaredPropertiesOf<D> =
+  | (D extends { properties: infer P } ? P[keyof P] : never)
+  | (D extends { links?: infer L }
+      ? NonNullable<L>[keyof NonNullable<L>]
+      : never)
+  | (D extends { actors?: infer A } ? NonNullable<A> : never);
+
+/**
+ * A view's actor's, element's or link's properties as its dialect reads
+ * them (`viewValues`): every key the dialect declares, typed (a key two
+ * kinds declare, either's type); those its kind has are set.
+ */
+export type ViewValues<D> = PropertyValues<
+  Extract<DeclaredPropertiesOf<D>, PropertyList>
+>;
+
+/** The dialect kind an element's properties are declared on: iStar's (`goal`) for its iStar kind, else its own (an extension's). */
+const DIALECT_KIND_OF: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(ISTAR_KIND_OF).map(([kind, iStar]) => [iStar, kind]),
+);
+
+/** A view's item as `viewValues` reads it: its kind (piStar's, or the dialect's) and its properties as written. */
+type ViewItem = {
+  kind: string;
+  properties: Readonly<Partial<Record<string, string>>>;
+};
+
+const valuesRead = new WeakMap<object, WeakMap<object, unknown>>();
+
+/**
+ * An actor's, an element's or a link's properties in a view (its texts) as
+ * its dialect reads them (goal-controller#187): what an engine's mapper is
+ * given as `props`, by the same `readProperties`, for the view's items the
+ * mapper doesn't see (an extension's kinds, every link): only the keys the
+ * dialect gives its kind, each its value type's data (with its members),
+ * a value written with an error unset (the dialect's checks report it).
+ * Read once per item and dialect.
+ */
+export const viewValues = <const D extends PropertyDialect>(
+  dialect: D,
+  owner: 'actor' | 'element' | 'link',
+  item: ViewItem,
+): ViewValues<D> => {
+  let read = valuesRead.get(dialect);
+  if (!read) valuesRead.set(dialect, (read = new WeakMap()));
+  if (!read.has(item))
+    read.set(
+      item,
+      readProperties(
+        dialect,
+        owner === 'element'
+          ? { element: DIALECT_KIND_OF[item.kind] ?? item.kind }
+          : owner === 'actor'
+            ? { actor: item.kind }
+            : { link: item.kind },
+        item.properties,
+      ).values,
+    );
+  return read.get(item) as ViewValues<D>;
+};
 
 type PistarNode = {
   id?: unknown;

@@ -3,7 +3,8 @@
  * (its trees, the inspector's unread keys, and its `GoalModel`,
  * goal-controller#125). The analyses read the model as a graph, the view
  * of that `GoalModel`, so the mapper keeps a link's properties as written
- * (its `context`, `opposite`, `amount`).
+ * (its `context`, `opposite`, `amount`); the analyses read the view's
+ * elements and links as the dialect does (./values, goal-controller#187).
  */
 import {
   createEngineMapper,
