@@ -38,7 +38,10 @@ const visit = (tree: AssertionTree | null): string => {
   }
 };
 
-/** `PrismWriter.getContextsInfo`: an element's conditions, each as CtxParser prints it, joined with ` & `. */
+/**
+ * `PrismWriter.getContextsInfo`: an element's conditions, each as CtxParser
+ * prints it, joined with ` & `. The mapper stores each as written (#232).
+ */
 export const contextsInfo = (conditions: readonly string[]): string =>
   conditions
     .map((condition) => {

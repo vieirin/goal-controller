@@ -8,8 +8,8 @@
 import {
   GoalTree,
   modelShapeProblem,
-  type GoalModel,
   type IStarModel,
+  type ModelOf,
 } from '@goal-controller/goal-tree';
 import {
   outputBaseName,
@@ -17,7 +17,6 @@ import {
   type EngineOutputFile,
 } from '../../output';
 import { godaEngineMapper, type GodaGoalNode } from '../mapper';
-import type { GodaGoalProps, GodaTaskProps } from '../types';
 import { adjustName, type Container } from './containers';
 import { sortRoots, writePrism } from './prism';
 import { composeRuntimeFormulas } from './runtime';
@@ -92,7 +91,7 @@ const runtimeFiles = (root: Container): EngineOutputFile[] => {
 };
 
 /** The typed IR GODA reads (goal-controller#125): its actors, each with one tree. */
-export type GodaGoalModel = GoalModel<GodaGoalProps, GodaTaskProps, never>;
+export type GodaGoalModel = ModelOf<typeof godaEngineMapper>;
 
 /**
  * A model (goal-tree's validated model) as GODA reads it: its `GoalModel`.
