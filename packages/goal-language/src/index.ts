@@ -9,6 +9,8 @@ export {
   asNotation,
   asPairList,
   asRefList,
+  assertionEquals,
+  assertionNormalized,
   isElementId,
   type Assertion,
   type AssertionMembers,

@@ -23,6 +23,7 @@ import {
   variantContext,
   variantsOf,
   type Variant,
+  type VariantGuard,
   type VariationPoint,
 } from '../variants';
 import { evaluate, expandToFacts } from './formulas';
@@ -39,11 +40,23 @@ import { elementValues, linkValues } from './values';
 /** at most this many variants per root (REJ 2010's own case had 324,000) */
 export const VARIANT_LIMIT = 20_000;
 
-/** Where the walk asks for a guard: a root's activation, a link's context (#151 D13). */
-export const cgmGuard = (at: VariationPoint): AssertionTree | null =>
-  at.point === 'root'
-    ? (elementValues(at.element).activation ?? null)
-    : (linkValues(at.link).context ?? null);
+/**
+ * Where the walk asks for a guard: a root's activation, a link's context
+ * (#151 D13). Written but unreadable → `'unreadable'` (goal-controller#238:
+ * that variant is excluded; the dialect's diagnostic is what the user sees).
+ */
+export const cgmGuard = (at: VariationPoint): VariantGuard => {
+  if (at.point === 'root') {
+    const raw = at.element.properties.activation;
+    const value = elementValues(at.element).activation;
+    if (raw?.trim() && value === undefined) return 'unreadable';
+    return value ?? null;
+  }
+  const raw = at.link.properties.context;
+  const value = linkValues(at.link).context;
+  if (raw?.trim() && value === undefined) return 'unreadable';
+  return value ?? null;
+};
 
 /**
  * How a link joins its parent: iStar's refinements as iStar's (AND and

@@ -75,7 +75,8 @@ describe('GRL (#187 characterization): what the mapper keeps', () => {
         importance: 'High',
         other: 'x',
       };
-      // a contribution's key on an OR refinement: the keys are every link kind's
+      // a contribution's key on an OR refinement: with entries (#215) only a
+      // ContributionLink's entry maps it; an unmapped kind keeps `{}`
       link(json, '20').customProperties = { contribution: 'Make' };
     });
     assert.deepStrictEqual(view.actors[0]!.properties, {
@@ -88,7 +89,7 @@ describe('GRL (#187 characterization): what the mapper keeps', () => {
       correlation: 'TRUE',
     });
     assert.deepStrictEqual(view.links.find((l) => l.id === '20')!.properties, {
-      contribution: 'Make',
+      // #215: no entry for OrRefinementLink → {}
     });
   });
 

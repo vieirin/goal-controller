@@ -68,7 +68,8 @@ export const cgmCheckRegistry: Readonly<Record<CgmCheckName, Check>> = {
     if (!opposite) return null;
     if (!context)
       return 'An opposite context needs the contribution’s own context (REJ 2010 Table 1: positively iff Ci, negatively iff Cj)';
-    return opposite.text() === context.text()
+    // #238: compare structurally (& / | commute), not by text
+    return opposite.equals(context)
       ? 'The opposite context is the contribution’s own: the two labels would apply together'
       : null;
   }),

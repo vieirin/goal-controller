@@ -236,8 +236,9 @@ describe("Tropos4AS (#187 characterization): a goal's conditions", () => {
     assert.deepStrictEqual(read('false'), [achieve('false'), []]);
     assert.deepStrictEqual(read(''), [PERFORM, []]);
     assert.deepStrictEqual(read('   '), [PERFORM, []]);
-    // TRUE is a name, a belief, not the constant
-    assert.deepStrictEqual(read('TRUE'), [achieve('TRUE'), []]);
+    // #240: TRUE / FALSE in any case are the constant, not a belief
+    assert.deepStrictEqual(read('TRUE'), [achieve('true'), []]);
+    assert.deepStrictEqual(read('FALSE'), [achieve('false'), []]);
   });
 
   it("what the goal language can't read: unset, as a blank one", () => {

@@ -72,6 +72,16 @@ describe('value members (#188)', () => {
     expect(readAssertion('x > 3')!.comparisons()).to.have.length(1);
   });
 
+  it('an assertion equals another structurally: & and | commute (#238)', () => {
+    expect(assertion('C1 & C2').equals(assertion('C2 & C1'))).to.equal(true);
+    expect(assertion('C1 | C2').equals(assertion('C2 | C1'))).to.equal(true);
+    expect(assertion('C1 & C2').equals(assertion('C1 | C2'))).to.equal(false);
+    expect(
+      assertion('(C1 | C2) & C3').equals(assertion('C3 & (C2 | C1)')),
+    ).to.equal(true);
+    expect(assertion('C1').equals(null)).to.equal(false);
+  });
+
   it('an expression: its text, nodes, calls and refs', () => {
     const value = expression('0.5 + 0.9 * previous(G2) - room.level + R1.2.x');
     expect(value.text()).to.equal(

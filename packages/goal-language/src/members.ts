@@ -542,6 +542,68 @@ type Written = { text(): string };
 /** What a value naming elements has: the ids it names, in the order written. */
 type Naming = { refs(): string[] };
 
+/**
+ * An `&` or `|`'s operands, associative (`a & b & c`), through groupings;
+ * any other node is itself.
+ */
+const assertionOperands = (
+  kind: 'and' | 'or',
+  tree: AssertionTree | null,
+): AssertionTree[] => {
+  if (!tree) return [];
+  if (tree.kind === 'paren') return assertionOperands(kind, tree.expr);
+  if (tree.kind === kind)
+    return [
+      ...assertionOperands(kind, tree.left),
+      ...assertionOperands(kind, tree.right),
+    ];
+  return [tree];
+};
+
+/**
+ * An assertion with `&` / `|` operands in canonical order (goal-controller
+ * #238): groupings dropped, each operand normalised, then sorted by its
+ * text, so `C2 & C1` and `C1 & C2` compare equal.
+ */
+export const assertionNormalized = (
+  tree: AssertionTree | null,
+): AssertionTree | null => {
+  if (!tree) return null;
+  if (tree.kind === 'paren') return assertionNormalized(tree.expr);
+  if (tree.kind === 'and' || tree.kind === 'or') {
+    const operands = assertionOperands(tree.kind, tree)
+      .map(assertionNormalized)
+      .filter((operand): operand is AssertionTree => operand !== null)
+      .sort((a, b) =>
+        assertionTextOf(a).localeCompare(assertionTextOf(b), 'en'),
+      );
+    if (!operands.length) return null;
+    return operands.reduce((left, right) => ({
+      kind: tree.kind,
+      left,
+      right,
+    }));
+  }
+  if (tree.kind === 'not')
+    return { kind: 'not', expr: assertionNormalized(tree.expr) };
+  return tree;
+};
+
+/**
+ * Whether two assertions are the same formula structurally
+ * (goal-controller#238): `&` and `|` commute, groupings don't count.
+ */
+export const assertionEquals = (
+  a: AssertionTree | null | undefined,
+  b: AssertionTree | null | undefined,
+): boolean => {
+  if (a == null || b == null) return a == null && b == null;
+  return (
+    JSON.stringify(assertionNormalized(a)) ===
+    JSON.stringify(assertionNormalized(b))
+  );
+};
+
 /** An assertion's members. */
 export type AssertionMembers = Written &
   Naming & {
@@ -555,6 +617,11 @@ export type AssertionMembers = Written &
     expressions(): ExpressionTree[];
     /** every comparison's sides as expressions (`x > 3`: a `var` and a `number`) */
     asReading(): Assertion<AssertionReading>;
+    /**
+     * whether another assertion is the same formula structurally
+     * (goal-controller#238): `&` and `|` commute
+     */
+    equals(other: AssertionTree | null | undefined): boolean;
   };
 
 /** An assertion (`x > 3 & !on`): its tree, with its operations. */
@@ -660,6 +727,8 @@ export const asAssertion = <T extends AssertionTree>(tree: T): Assertion<T> =>
     expressions: () => assertionExpressionsOf(data),
     asReading: () => asAssertion(assertionReading(data)!),
     refs: () => assertionIds(data),
+    equals: (other: AssertionTree | null | undefined) =>
+      assertionEquals(data, other),
   }));
 
 /** An expression's tree with its operations. */
