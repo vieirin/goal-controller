@@ -198,6 +198,25 @@ export const parseRobotNumber = (
 ): number | [number, number] | null => readRobotNumber(text).value;
 
 /**
+ * What MutRoSe can't run in a robot number that reads (goal-controller#237):
+ * no robot (`0`, `[0,2]`), more than a safe integer counts, or a range whose
+ * low end is past its high one (`[3,1]`). Null: one it runs.
+ */
+export const robotNumberProblem = (
+  robots: number | [number, number],
+  text: string,
+): string | null => {
+  const counts = typeof robots === 'number' ? [robots] : robots;
+  if (counts.some((count) => !Number.isSafeInteger(count)))
+    return `A RobotNumber is at most ${Number.MAX_SAFE_INTEGER} robots, not ${text}`;
+  if (counts.some((count) => count < 1))
+    return `A RobotNumber is one robot at least, not ${text}`;
+  return Array.isArray(robots) && robots[0] > robots[1]
+    ? `A RobotNumber range is [low,high], its low end first: not ${text}`
+    : null;
+};
+
+/**
  * `CreationCondition`: `assertion condition "expr"` or `assertion trigger
  * "Event"`, its words in any case. The decomposer does not read the
  * condition's OCL here: neither does the check.
@@ -215,7 +234,8 @@ export const parseCreationCondition = (
  * A check on a goal's properties: its GoalType the dialect's reading (the
  * mapper's `props.GoalType`). The values written in MutRoSe's own languages
  * (its OCL, its creation conditions, its robot numbers) are read from `raw`
- * by its readers, which accept what the decomposer's regexes do.
+ * by its readers, which accept what the decomposer's regexes do, trimmed as
+ * the mapper reads them: a blank one is unset (goal-controller#237).
  */
 const onGoal = checkOn(mutrose, { element: 'goal' });
 
@@ -242,7 +262,7 @@ export const mutroseCheckRegistry = checks<MutroseCheckName>({
   'mutrose.goal.controls': varsCheck('Controls'),
   'mutrose.goal.monitors': varsCheck('Monitors'),
   'mutrose.goal.achieveCondition': onGoal(({ props, raw }, { self }) => {
-    const text = raw.AchieveCondition ?? '';
+    const text = raw.AchieveCondition?.trim() ?? '';
     // the decomposer reads a forAll by the word, then requires its shape
     if (!text.includes('forAll')) return null;
     const forAll = parseForAll(text);
@@ -253,7 +273,7 @@ export const mutroseCheckRegistry = checks<MutroseCheckName>({
   }),
   'mutrose.goal.queriedProperty': onGoal(({ props, raw }, context) => {
     const { self } = context;
-    const text = raw.QueriedProperty ?? '';
+    const text = raw.QueriedProperty?.trim() ?? '';
     if (!text) return null;
     const query = parseSelect(text);
     if (!query) return `Invalid select statement ${text} in GM.`;
@@ -265,8 +285,8 @@ export const mutroseCheckRegistry = checks<MutroseCheckName>({
   }),
   // the decomposer ignores any other text; the editors say what it reads
   'mutrose.goal.creationCondition': ({ raw }) => {
-    const text = raw.CreationCondition ?? '';
-    return text.trim() && !parseCreationCondition(text)
+    const text = raw.CreationCondition?.trim() ?? '';
+    return text && !parseCreationCondition(text)
       ? 'A CreationCondition is assertion condition "expr" or assertion trigger "Event"'
       : null;
   },
@@ -293,9 +313,11 @@ export const mutroseCheckRegistry = checks<MutroseCheckName>({
       : scopeProblem(context, 'Params');
   },
   'mutrose.task.robotNumber': ({ raw }) => {
-    const text = raw.RobotNumber ?? '';
-    return text && parseRobotNumber(text) === null
+    const text = raw.RobotNumber?.trim() ?? '';
+    if (!text) return null;
+    const robots = parseRobotNumber(text);
+    return robots === null
       ? `Invalid declaration of robot number: ${text}`
-      : null;
+      : robotNumberProblem(robots, text);
   },
 });
