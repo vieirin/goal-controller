@@ -3,7 +3,9 @@
   "compilerOptions": {
     "noEmit": true,
     "rootDir": "..",
+    "composite": false,
     "declaration": false,
+    "declarationMap": false,
     "sourceMap": false
   },
   "include": ["src/**/*", "test/**/*"]

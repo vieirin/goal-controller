@@ -9,6 +9,8 @@
     "sourceMap": true,
     "composite": true
   },
+  // prefer workspace sources over a stale packages/*/out *.d.ts (#187, #222)
+  "references": [{ "path": "../dialect" }, { "path": "../goal-language" }],
   "include": ["src/**/*"],
   "exclude": ["test/**/*", "out"]
 }

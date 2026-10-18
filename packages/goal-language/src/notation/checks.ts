@@ -10,6 +10,7 @@
 import { istarKindOf, type DefinitionContext } from '@goal-controller/dialect';
 import {
   readProperties,
+  type OwnerPropertiesOf,
   type PropertyDialect,
   type PropertyList,
   type PropertyOwner,
@@ -94,13 +95,17 @@ export type NamedCheck = {
 /**
  * The input of the checks on an element's (`{ element: 'goal' }`), an
  * actor's or a link's properties: its stored strings read against the
- * dialect once, for every check on it.
+ * dialect once, for every check on it. Typed by that owner's properties
+ * (goal-controller#222); assignable to `AnyCheckInput` for a registry.
  */
-export const checkInputOf = (
-  definition: PropertyDialect,
-  owner: PropertyOwner,
+export const checkInputOf = <
+  const D extends PropertyDialect,
+  const O extends PropertyOwner,
+>(
+  definition: D,
+  owner: O,
   stored: Readonly<Record<string, string | undefined>>,
-): AnyCheckInput => {
+): CheckInput<OwnerPropertiesOf<D, O>> => {
   const { values, text } = readProperties(definition, owner, stored);
   return {
     props: values,
