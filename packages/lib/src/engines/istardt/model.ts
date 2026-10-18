@@ -11,7 +11,8 @@
  *   numbers them in the file's order), effects and children by their links'
  *   order (#117 D5).
  * - The cross-run, exported and initialized sets are the actor's ordered
- *   lists of identifiers (#117 D4).
+ *   lists of identifiers (#117 D4), as the dialect reads them: a `nameList`
+ *   (goal-controller#286), none when written with an error.
  * - Properties are read as the dialect reads them (goal-controller#187): an
  *   element's `values`, a link's probability and weight, the actor's
  *   initializations; a value written with an error is unset (the dialect's
@@ -31,7 +32,7 @@ import {
   KIND_OF_PISTAR,
   type IstardtKind,
 } from './vocabulary';
-import { listItems, splitText } from '../elementText';
+import { splitText } from '../elementText';
 
 /** The dialect kind each kind's properties are declared on. */
 export const ISTARDT_DIALECT_KIND = {
@@ -130,7 +131,7 @@ export type IstardtModel = {
     factor: number | null | undefined;
     link: AnalysisLink;
   }[];
-  /** the actor's `crossRun`: a text, its identifiers comma-separated */
+  /** the actor's `crossRun`: its identifiers, none when written with an error */
   crossRun: readonly string[];
   /** the actor's `exported`: the same */
   exported: readonly string[];
@@ -141,7 +142,7 @@ export type IstardtModel = {
   problems: readonly IstardtProblem[];
 };
 
-export { listItems, splitText } from '../elementText';
+export { splitText } from '../elementText';
 
 const numberOf = (id: string | null) =>
   id ? Number(/\d+$/.exec(id)?.[0] ?? Infinity) : Infinity;
@@ -295,7 +296,6 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
       element: actors[1]!.id,
     });
   const actor = actors[0];
-  const actorProperties = actor?.properties ?? {};
   const actorValues = actor && viewValues(istardt, 'actor', actor);
 
   return {
@@ -318,8 +318,8 @@ export const readIstardtModel = (model: AnalysisModel): IstardtModel => {
       ...sourcesOf(ISTARDT_LINKS.readsPrevious)(element),
     ],
     utilities,
-    crossRun: listItems(actorProperties[SET_KEYS.crossRun]),
-    exported: listItems(actorProperties[SET_KEYS.exported]),
+    crossRun: [...(actorValues?.crossRun ?? [])],
+    exported: [...(actorValues?.exported ?? [])],
     initializations: (actorValues?.initializations ?? []).map(
       ({ name, value }) => [name, value] as const,
     ),

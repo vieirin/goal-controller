@@ -220,13 +220,15 @@ export const istardt = defineDialect({
   actors: [
     {
       key: SET_KEYS.crossRun,
-      value: { type: 'text' },
+      // DT-Golog identifiers, not element ids (goal-controller#286): the
+      // checks resolve each one
+      value: { type: 'nameList' },
       input: { placeholder: 'cost, roomTemperature, hvacOn' },
       help: 'the predicates, conditions, variables and qualities carried to the next run: identifiers, in order',
     },
     {
       key: SET_KEYS.exported,
-      value: { type: 'text' },
+      value: { type: 'nameList' },
       input: { placeholder: 'deliveredInTimeA, roomTemperature' },
       help: 'what the RL agent observes: goals, tasks and predicates (discrete), qualities and variables (continuous, with their exportMin and exportMax): identifiers, in order',
     },
