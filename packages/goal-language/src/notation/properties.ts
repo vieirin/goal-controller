@@ -160,11 +160,12 @@ const readValue = (
       if (!text.trim()) return null;
       return probabilityOf(text) ?? undefined;
     }
-    case 'int': {
-      const read = parseValue('int', text);
+    case 'int':
+    case 'number': {
+      const read = parseValue(config.type, text);
       if (read.errors.length) return undefined;
       // outside its bounds it isn't its type, as valueProblem reports
-      // (goal-controller#249)
+      // (goal-controller#249; number: #236)
       const n = read.value;
       if (n === null) return null;
       if (config.min !== undefined && n < config.min) return undefined;

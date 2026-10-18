@@ -184,17 +184,24 @@ const numberMemberProblem = (
     : null;
 };
 
-const intProblem = (
+const numericProblem = (
+  kind: 'int' | 'number',
   text: string,
   { min, max }: { min?: number; max?: number },
 ): string | null => {
-  const read = parseValue('int', text);
-  if (read.errors.length) return `Not an integer: ${text}`;
+  const read = parseValue(kind, text);
+  if (read.errors.length)
+    return kind === 'int' ? `Not an integer: ${text}` : `Not a number: ${text}`;
   const n = read.value ?? NaN;
   if (min !== undefined && n < min) return `At least ${min}`;
   if (max !== undefined && n > max) return `At most ${max}`;
   return null;
 };
+
+const intProblem = (
+  text: string,
+  bounds: { min?: number; max?: number },
+): string | null => numericProblem('int', text, bounds);
 
 /** The first boolean a condition compares with `!=` (`x != false`), as written, if any. */
 const negatedOf = (tree: AssertionTree | null): string | null => {
@@ -321,9 +328,7 @@ export const valueProblem = (
     case 'int':
       return intProblem(text, value);
     case 'number':
-      return parseValue('number', text).errors.length
-        ? `Not a number: ${text}`
-        : null;
+      return numericProblem('number', text, value);
     case 'bool':
       return parseValue('bool', text).errors.length
         ? `true or false, not ${text}`

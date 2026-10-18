@@ -41,6 +41,13 @@ describe('property', () => {
     expect(property.number('cost', { help: 'h' }).value).to.deep.equal({
       type: 'number',
     });
+    expect(
+      property.number('utility', { min: 0, max: 1, help: 'h' }),
+    ).to.deep.equal({
+      key: 'utility',
+      value: { type: 'number', min: 0, max: 1 },
+      help: 'h',
+    });
     expect(property.bool('on', { help: 'h' }).value).to.deep.equal({
       type: 'bool',
     });
@@ -214,6 +221,8 @@ describe('property', () => {
   it("doesn't compile a misspelt option, a check not among the names, or a missing help", () => {
     // @ts-expect-error `mn` is no option of an int
     property.int('a', { mn: 1, help: 'h' });
+    // @ts-expect-error `mn` is no option of a number
+    property.number('a', { mn: 0, help: 'h' });
     // @ts-expect-error a check outside the engine's names
     property.for<'toy.weight'>().int('a', { help: 'h', check: 'toy.wieght' });
     // @ts-expect-error help is required

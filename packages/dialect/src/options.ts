@@ -60,7 +60,12 @@ export const isOptionValue = (
     case 'bool':
       return typeof value === 'boolean';
     case 'number':
-      return typeof value === 'number' && Number.isFinite(value);
+      return (
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        (config.min === undefined || value >= config.min) &&
+        (config.max === undefined || value <= config.max)
+      );
     case 'int':
       return (
         Number.isInteger(value) &&
