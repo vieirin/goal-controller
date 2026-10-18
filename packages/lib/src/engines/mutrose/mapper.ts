@@ -83,11 +83,12 @@ export const mutroseEngineMapper = createEngineMapper({
         const issue = firstIssue('goal', { props, raw, kind }, id);
         if (issue) throw new Error(issue);
         const achieve = raw.AchieveCondition?.trim();
-        // its check rejects a padded or a blank one
-        const query = raw.QueriedProperty;
+        // trimmed as its check reads it: a blank one is none (#237)
+        const query = raw.QueriedProperty?.trim();
         const creation = raw.CreationCondition?.trim();
         return {
-          // the decomposer warns and reads Perform for an unknown type
+          // unset is Perform; an unknown type is unset too, and the
+          // dialect's error on it stops generation (#274)
           goalType: props.GoalType ?? 'Perform',
           ...(raw.Description && { description: raw.Description }),
           controls: vars(raw.Controls),
@@ -112,8 +113,8 @@ export const mutroseEngineMapper = createEngineMapper({
       mapProps: ({ props, raw, id, kind }): MutroseTaskProps => {
         const issue = firstIssue('task', { props, raw, kind }, id);
         if (issue) throw new Error(issue);
-        // its check rejects a padded or a blank one
-        const robots = raw.RobotNumber;
+        // trimmed as its check reads it: a blank one is none (#237)
+        const robots = raw.RobotNumber?.trim();
         return {
           ...(raw.Description && { description: raw.Description }),
           ...(raw.Location?.trim() && { location: raw.Location.trim() }),

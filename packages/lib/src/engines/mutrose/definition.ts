@@ -126,7 +126,7 @@ const taskProperties = [
   }),
   text('RobotNumber', {
     input: { placeholder: '2, or [1,3]' },
-    help: 'how many robots: a number or a range `[lo,hi]` (default: from the HDDL task)',
+    help: 'how many robots, one at least: a number or a range `[lo,hi]`, lo ≤ hi (default: from the HDDL task)',
     check: 'mutrose.task.robotNumber',
   }),
 ];

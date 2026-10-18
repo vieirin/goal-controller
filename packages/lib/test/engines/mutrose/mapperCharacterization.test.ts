@@ -103,7 +103,7 @@ describe('mutroseEngineMapper today (#187): a goal', () => {
       assert.strictEqual(goalOf({ GoalType: '   ' }).goalType, 'Perform');
     });
 
-    it('reads Perform, silently, for another case or another word', () => {
+    it('reads Perform for another case or another word: the dialect reports it, and generation refuses it (#274)', () => {
       // #187: invalid value
       assert.strictEqual(goalOf({ GoalType: 'achieve' }).goalType, 'Perform');
       // #187: invalid value
@@ -230,10 +230,11 @@ describe('mutroseEngineMapper today (#187): a goal', () => {
         thrown({ AchieveCondition: 'forAll' }),
         'Invalid forAll statement forAll in GM. (node G1)',
       );
-      // the check reads it untrimmed, the mapper trimmed: a padded forAll throws
-      assert.strictEqual(
-        thrown({ AchieveCondition: '  rooms->forAll(r | r.clean)  ' }),
-        'Invalid forAll statement   rooms->forAll(r | r.clean)   in GM. (node G1)',
+      // #237: the check reads it trimmed, as the mapper does: a padded forAll reads
+      assert.deepStrictEqual(
+        goalOf({ AchieveCondition: '  rooms->forAll(r | r.clean)  ' })
+          .achieveCondition?.text,
+        'rooms->forAll(r | r.clean)',
       );
     });
 
@@ -309,21 +310,18 @@ describe('mutroseEngineMapper today (#187): a goal', () => {
       });
     });
 
-    it('throws for a text not of its shape: blank or padded too', () => {
+    it('throws for a text not of its shape; padded reads, blank is none (#237)', () => {
       assert.strictEqual(
         thrown({ QueriedProperty: 'world_db->select(r | r.dirty)' }),
         'Invalid select statement world_db->select(r | r.dirty) in GM. (node G1)',
       );
-      // the check reads it untrimmed, the mapper trimmed
-      assert.strictEqual(
-        thrown({ QueriedProperty: ` ${QUERY} ` }),
-        `Invalid select statement  ${QUERY}  in GM. (node G1)`,
+      // #237: the check reads it trimmed, as the mapper does
+      assert.deepStrictEqual(
+        goalOf({ QueriedProperty: ` ${QUERY} ` }).queriedProperty,
+        goalOf({ QueriedProperty: QUERY }).queriedProperty,
       );
-      // blank is no select (an empty AchieveCondition or CreationCondition is none)
-      assert.strictEqual(
-        thrown({ QueriedProperty: '   ' }),
-        'Invalid select statement     in GM. (node G1)',
-      );
+      // #237: blank is none, as an empty AchieveCondition or CreationCondition is
+      assert.ok(!('queriedProperty' in goalOf({ QueriedProperty: '   ' })));
     });
 
     it('on a Query goal, throws without a controlled variable, or one of another type', () => {
@@ -523,42 +521,56 @@ describe('mutroseEngineMapper today (#187): an abstract task', () => {
   });
 
   describe('RobotNumber', () => {
-    it('reads a number of digits: 0, a leading zero, past the safe integers', () => {
+    it('reads a number of digits, a leading zero too, padded (#237)', () => {
       assert.strictEqual(taskOf({ RobotNumber: '2' }).robotNumber, 2);
-      assert.strictEqual(taskOf({ RobotNumber: '0' }).robotNumber, 0);
       assert.strictEqual(taskOf({ RobotNumber: '02' }).robotNumber, 2);
-      assert.strictEqual(
-        taskOf({ RobotNumber: '99999999999999999999' }).robotNumber,
-        1e20,
-      );
+      // #237: trimmed, as its check reads it
+      assert.strictEqual(taskOf({ RobotNumber: ' 2 ' }).robotNumber, 2);
     });
 
-    it('reads a range `[lo,hi]`, in either order', () => {
+    it('reads a range `[lo,hi]`, low end first, padded (#237)', () => {
       assert.deepStrictEqual(
         taskOf({ RobotNumber: '[1,3]' }).robotNumber,
         [1, 3],
       );
       assert.deepStrictEqual(
-        taskOf({ RobotNumber: '[3,1]' }).robotNumber,
-        [3, 1],
+        taskOf({ RobotNumber: '[2,2]' }).robotNumber,
+        [2, 2],
+      );
+      assert.deepStrictEqual(
+        taskOf({ RobotNumber: ' [1,3] ' }).robotNumber,
+        [1, 3],
       );
     });
 
-    it('leaves it out when empty', () => {
-      assert.deepStrictEqual(taskOf({ RobotNumber: '' }), { params: [] });
+    it('throws for no robot, past the safe integers, or a reversed range (#237)', () => {
+      // #237: each read before, as 0, 1e20 and [3,1]
+      for (const [text, message] of [
+        ['0', 'A RobotNumber is one robot at least, not 0'],
+        ['[0,2]', 'A RobotNumber is one robot at least, not [0,2]'],
+        [
+          '99999999999999999999',
+          `A RobotNumber is at most ${Number.MAX_SAFE_INTEGER} robots, not 99999999999999999999`,
+        ],
+        [
+          '[3,1]',
+          'A RobotNumber range is [low,high], its low end first: not [3,1]',
+        ],
+      ] as const)
+        assert.strictEqual(
+          thrown({}, { RobotNumber: text }),
+          `${message} (node AT1)`,
+        );
     });
 
-    it('throws for anything else, spaces included: blank, padded, signed, decimal, exponent', () => {
-      for (const text of [
-        '  ',
-        ' 2 ',
-        ' [1,3] ',
-        '[1, 3]',
-        '-1',
-        '1.5',
-        '1e3',
-        'abc',
-      ])
+    it('leaves it out when empty or blank (#237)', () => {
+      assert.deepStrictEqual(taskOf({ RobotNumber: '' }), { params: [] });
+      // #237: blank is none, as its check reads it
+      assert.deepStrictEqual(taskOf({ RobotNumber: '  ' }), { params: [] });
+    });
+
+    it('throws for anything else, spaces inside included: signed, decimal, exponent', () => {
+      for (const text of ['[1, 3]', '-1', '1.5', '1e3', 'abc'])
         assert.strictEqual(
           thrown({}, { RobotNumber: text }),
           `Invalid declaration of robot number: ${text} (node AT1)`,
