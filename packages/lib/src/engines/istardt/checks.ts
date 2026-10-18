@@ -9,6 +9,7 @@
  */
 import { istarKindOf } from '@goal-controller/dialect';
 import {
+  parseValue,
   readProperties,
   type AssertionReading,
   type ExpressionTree,
@@ -209,7 +210,8 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
       say(
         'error',
         effect,
-        `${label(effect)}'s probability (on its effect group link) is a number in 0..1, not ${written ?? 'unset'}`,
+        // goal-controller#239: a blank one named as blank, not as nothing
+        `${label(effect)}'s probability (on its effect group link) is a number in 0..1, not ${written === undefined ? 'unset' : written || 'blank'}`,
       );
     names(effect, 'set', effect.values.set?.names() ?? [], ['variable']);
   }
@@ -370,6 +372,27 @@ export const istardtProblems = (model: IstardtModel): IstardtProblem[] => {
     model.initializations.map(([name]) => name),
     ['predicate', 'condition', 'variable', 'quality'],
   );
+  // each value as its element's kind starts (goal-controller#239): a
+  // variable or a quality a number, a predicate or a condition true or
+  // false (the dialect reads them as text: what they name is the model's)
+  for (const [name, value] of model.initializations) {
+    const element = resolve(name);
+    if (!element) continue;
+    const numeric = element.kind === 'variable' || element.kind === 'quality';
+    const boolean =
+      element.kind === 'predicate' || element.kind === 'condition';
+    const read = numeric
+      ? parseValue('number', value)
+      : boolean
+        ? parseValue('bool', value)
+        : null;
+    if (read && (read.errors.length || read.value === null))
+      say(
+        'error',
+        actor,
+        `the initializations give ${name} ${value || 'no value'}: ${a(element.kind)} starts at ${numeric ? 'a number' : 'true or false'}`,
+      );
+  }
   for (const name of model.exported) {
     const element = resolve(name);
     if (element?.kind === 'condition')

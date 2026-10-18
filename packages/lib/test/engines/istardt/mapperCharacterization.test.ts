@@ -369,17 +369,18 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
     ]);
   });
 
-  it('probability unset: "unset" when absent, nothing when blank', () => {
+  it('probability unset: "unset" when absent, "blank" when blank (#239)', () => {
     assert.deepStrictEqual(probability(undefined), [
       undefined,
       [`error: ${NOT_A_NUMBER('unset')}`, `error: ${SUM(0.25)}`],
       `IstardtWriteError: ${NOT_A_NUMBER('unset')}\n${SUM(0.25)}`,
     ]);
+    // #239: a blank one is named (it read "…, not " with nothing after it)
     for (const value of ['', '   '])
       assert.deepStrictEqual(probability(value), [
         '',
-        [`error: ${NOT_A_NUMBER('')}`, `error: ${SUM(0.25)}`],
-        `IstardtWriteError: ${NOT_A_NUMBER('')}\n${SUM(0.25)}`,
+        [`error: ${NOT_A_NUMBER('blank')}`, `error: ${SUM(0.25)}`],
+        `IstardtWriteError: ${NOT_A_NUMBER('blank')}\n${SUM(0.25)}`,
       ]);
   });
 
@@ -468,7 +469,7 @@ describe("iStar-DT (#187 characterization): an effect's probability, satisfying 
 });
 
 describe("iStar-DT (#187 characterization): a condition's formula", () => {
-  it('an assertion, trimmed; what the goal language can’t read is an empty condition to the writer', () => {
+  it('an assertion, trimmed; what the goal language can’t read the writer says it can’t read (#239)', () => {
     const read = (value: string) => {
       const model = modelOf('own', (m) => {
         node(m, 'C2').customProperties.formula = value;
@@ -498,11 +499,12 @@ describe("iStar-DT (#187 characterization): a condition's formula", () => {
       [OWN_INFO],
       "IstardtWriteError: C2's formula: an empty condition",
     ]);
-    // #187: invalid value: the same
+    // #239: invalid value (the dialect reports why): can't be read, not
+    // empty (it was "C2's formula: an empty condition", as a blank one)
     for (const value of ['(soilDry |', 'moisture > .5', 'moisture > 1e2'])
       assert.deepStrictEqual(read(value), [
         [OWN_INFO],
-        "IstardtWriteError: C2's formula: an empty condition",
+        "IstardtWriteError: C2's formula can't be read",
       ]);
   });
 });
@@ -579,7 +581,7 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
     assert.deepStrictEqual(padded.crossRun, ['cost', 'happyCustomer']);
   });
 
-  it("initializations: each value written as it is, unchecked; a predicate's dropped", () => {
+  it("initializations: each value checked against its element's kind (#239); a predicate's dropped", () => {
     const read = (value: string) => {
       const model = modelOf('own', (m) => {
         m.actors[0].customProperties.initializations = value;
@@ -601,14 +603,24 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
       ],
       'IstardtWriteError: the initializations names nowhere, which is no element',
     ]);
-    // the dialect's pairList of text takes these; the writer writes them as text
-    assert.deepStrictEqual(read('moisture:4e1'), [
+    // #239: the dialect's pairList of text takes these; the checks don't
+    // (they were written as text: init([moisture_fl(4e1)]), moisture_fl(abc))
+    const NOT_A_NUMBER = (value: string) =>
+      `the initializations give moisture ${value}: a variable starts at a number`;
+    for (const value of ['4e1', 'abc'])
+      assert.deepStrictEqual(read(`moisture:${value}`), [
+        [`error: ${NOT_A_NUMBER(value)}`, OWN_INFO],
+        `IstardtWriteError: ${NOT_A_NUMBER(value)}`,
+      ]);
+    // #296: false is written as true is
+    assert.deepStrictEqual(read('soilDry:false'), [
       [OWN_INFO],
-      ['init([moisture_fl(4e1)]).'],
+      ['init([soilDry_fl]).'],
     ]);
-    assert.deepStrictEqual(read('moisture:abc'), [
-      [OWN_INFO],
-      ['init([moisture_fl(abc)]).'],
+    const NOT_A_BOOL = `the initializations give soilDry maybe: a predicate starts at true or false`;
+    assert.deepStrictEqual(read('soilDry:maybe'), [
+      [`error: ${NOT_A_BOOL}`, OWN_INFO],
+      `IstardtWriteError: ${NOT_A_BOOL}`,
     ]);
     // #187: invalid value: no value, so no pairList: unset (it was
     // init([moisture_fl()]))

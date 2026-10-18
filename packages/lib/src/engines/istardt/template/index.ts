@@ -396,6 +396,15 @@ export const istardtTemplate = (
   for (const condition of conditions) {
     const name = condition.identifier;
     let body = '';
+    // goal-controller#239: written, but no condition the dialect reads (it
+    // reports why): not "an empty condition", which a blank one is
+    if (
+      condition.properties.formula?.trim() &&
+      condition.values.formula === undefined
+    ) {
+      fail(condition, `${condition.id ?? name}'s formula can't be read`);
+      continue;
+    }
     try {
       body = conditionText(
         condition.values.formula?.asReading() ?? null,
