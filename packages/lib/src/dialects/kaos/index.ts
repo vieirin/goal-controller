@@ -48,24 +48,29 @@ import {
   property,
   type ElementDefinition,
   type EnumOptionInput,
-  type PropertyDefinition,
 } from '@goal-controller/dialect';
 
 /** DSM3's fill for every KAOS node (language_kaos_shapes.js), as istar-ts draws it. */
 const FILL = KAOS_FILL;
 
 /**
- * A schema's keys, in its order, each typed here: a key the schema gains and
- * this dialect doesn't type doesn't compile.
+ * A schema's keys, each typed here (goal-controller#229): a key the schema
+ * gains and this dialect doesn't type doesn't compile. Returns the typed
+ * record (not constrained to `PropertyDefinition`, which would widen keys);
+ * callers list its values in the schema's order as a `as const` tuple so a
+ * mapper's `props` / `raw` keep each key's type.
  */
-const schemaProperties = <S extends object>(
-  shape: S,
-  typed: { readonly [K in keyof S]: PropertyDefinition },
-): PropertyDefinition[] =>
-  (Object.keys(shape) as (keyof S & string)[]).map((key) => typed[key]);
+const schemaProperties = <
+  S extends object,
+  const T extends { readonly [K in keyof S]: { readonly key: K & string } },
+>(
+  _shape: S,
+  typed: T,
+): T => typed;
 
 /** A free-text property, as DSM3 has every one. */
-const text = (key: string, help: string) => property.text(key, { help });
+const text = <const K extends string>(key: K, help: string) =>
+  property.text(key, { help });
 
 /** what piStar gives every element (DSM3 too): a description */
 const DESCRIPTION = property.text('Description', {
@@ -151,12 +156,11 @@ export const KAOS_VOCABULARIES = {
 } as const satisfies Record<string, readonly EnumOptionInput[]>;
 
 /** A property whose values are a vocabulary's (`''`: not set). */
-const vocabulary = (
+const vocabulary = <const K extends string>(
   vocabularyKey: keyof typeof KAOS_VOCABULARIES,
   help: string,
-  key: string = vocabularyKey,
-): PropertyDefinition =>
-  property.enum(key, ['', ...KAOS_VOCABULARIES[vocabularyKey]], { help });
+  key: K = vocabularyKey as K,
+) => property.enum(key, ['', ...KAOS_VOCABULARIES[vocabularyKey]], { help });
 
 /**
  * KAOS's formal specifications, in real-time linear temporal logic (the
@@ -166,8 +170,9 @@ const formalSpec = (help: string) =>
   property.formula('FormalSpec', 'ltl', { help });
 
 /** DSM3's eight goal properties (language_kaos_metamodel.js), in its order. */
-const GOAL = [
-  ...schemaProperties<KaosGoalProperties>(behavioralGoalProperties.shape, {
+const GOAL_FIELDS = schemaProperties(
+  behavioralGoalProperties.shape as KaosGoalProperties,
+  {
     Type: vocabulary(
       'Type',
       'its type: a behavioural goal’s pattern (Achieve, Cease, Maintain, Avoid), Optimize, or softgoal',
@@ -190,13 +195,23 @@ const GOAL = [
       'how to tell it is satisfied: a measurable criterion',
     ),
     Stability: text('Stability', 'how likely it is to change'),
-  }),
+  },
+);
+const GOAL = [
+  GOAL_FIELDS.Type,
+  GOAL_FIELDS.Category,
+  GOAL_FIELDS.Source,
+  GOAL_FIELDS.Priority,
+  GOAL_FIELDS.Issue,
+  GOAL_FIELDS.FormalSpec,
+  GOAL_FIELDS.FitCriterion,
+  GOAL_FIELDS.Stability,
   DESCRIPTION,
-];
+] as const;
 
 /** a refinement's, on its hub (no line: the inspector edits them) */
-const REFINEMENT = schemaProperties<KaosRefinementProperties>(
-  refinementProperties.shape,
+const REFINEMENT_FIELDS = schemaProperties(
+  refinementProperties.shape as KaosRefinementProperties,
   {
     SysRef: text(
       'SysRef',
@@ -209,9 +224,14 @@ const REFINEMENT = schemaProperties<KaosRefinementProperties>(
     ),
   },
 );
+const REFINEMENT = [
+  REFINEMENT_FIELDS.SysRef,
+  REFINEMENT_FIELDS.Status,
+  REFINEMENT_FIELDS.Tactic,
+] as const;
 
-const CONFLICT = schemaProperties<KaosConflictProperties>(
-  conflictProperties.shape,
+const CONFLICT_FIELDS = schemaProperties(
+  conflictProperties.shape as KaosConflictProperties,
   {
     BoundaryCondition: text(
       'BoundaryCondition',
@@ -219,24 +239,23 @@ const CONFLICT = schemaProperties<KaosConflictProperties>(
     ),
   },
 );
+const CONFLICT = [CONFLICT_FIELDS.BoundaryCondition] as const;
 
 /** a domain property's: whether it is an invariant or a hypothesis, then piStar's description */
-const DOMAIN_PROPERTY = [
-  ...schemaProperties<KaosDomainPropertyProperties>(
-    domainPropertyProperties.shape,
-    {
-      Kind: vocabulary(
-        'Kind',
-        'whether it always holds (an invariant) or is assumed (a hypothesis)',
-      ),
-    },
-  ),
-  DESCRIPTION,
-];
+const DOMAIN_PROPERTY_FIELDS = schemaProperties(
+  domainPropertyProperties.shape as KaosDomainPropertyProperties,
+  {
+    Kind: vocabulary(
+      'Kind',
+      'whether it always holds (an invariant) or is assumed (a hypothesis)',
+    ),
+  },
+);
+const DOMAIN_PROPERTY = [DOMAIN_PROPERTY_FIELDS.Kind, DESCRIPTION] as const;
 
 /** an obstacle's (TSE'00), in istar-ts's order */
-const OBSTACLE = schemaProperties<KaosObstacleProperties>(
-  obstacleProperties.shape,
+const OBSTACLE_FIELDS = schemaProperties(
+  obstacleProperties.shape as KaosObstacleProperties,
   {
     Description: DESCRIPTION,
     FormalSpec: formalSpec(
@@ -249,10 +268,15 @@ const OBSTACLE = schemaProperties<KaosObstacleProperties>(
     ),
   },
 );
+const OBSTACLE = [
+  OBSTACLE_FIELDS.Description,
+  OBSTACLE_FIELDS.FormalSpec,
+  OBSTACLE_FIELDS.Category,
+] as const;
 
 /** a resolution's: its strategy, and the goal a mitigation restores */
-const RESOLUTION = schemaProperties<KaosResolutionProperties>(
-  resolutionProperties.shape,
+const RESOLUTION_FIELDS = schemaProperties(
+  resolutionProperties.shape as KaosResolutionProperties,
   {
     ResolutionType: vocabulary(
       'ResolutionType',
@@ -267,6 +291,10 @@ const RESOLUTION = schemaProperties<KaosResolutionProperties>(
     ),
   },
 );
+const RESOLUTION = [
+  RESOLUTION_FIELDS.ResolutionType,
+  RESOLUTION_FIELDS.Anchor,
+] as const;
 
 /** Every KAOS node kind, with its prefix: goals G, agents A, domain properties DP, obstacles O. */
 const ELEMENTS = {

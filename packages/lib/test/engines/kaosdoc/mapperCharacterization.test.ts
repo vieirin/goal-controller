@@ -1,18 +1,14 @@
 /**
- * kaosdocEngineMapper, characterized (goal-controller#187 phase 2 pre-work):
- * what its IR holds for every property a KAOS element or link carries, so
- * the migration to typed values can show nothing changed. Goal nodes and
- * links keep the properties their kind has, as the dialect reads them
- * (trimmed, empty ones left out); the model's elements (a refinement's hub,
- * an obstacle's Category in the document) keep theirs as written. A value
- * outside a vocabulary was kept as text before #187: now the mapper is
- * given `undefined` for it and leaves it out, and the dialect's checks
- * report it (`#187: invalid value`); a link keeps its own kind's keys only.
+ * kaosdocEngineMapper, characterized (goal-controller#187 / #215): what its
+ * IR holds for every property a KAOS element or link carries. Goal, domain
+ * property and obstacle nodes keep the properties their kind has, as the
+ * dialect reads them; agents and refinement hubs are `tree: false` entries
+ * (goal-controller#226). A value outside a vocabulary is left out
+ * (`#187: invalid value`); a link keeps its own kind's keys only.
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
-import type { GoalNode, TreeNode } from '@goal-controller/goal-tree';
 import {
   KAOSDOC_DOMAIN_PROPERTY_KEYS,
   KAOSDOC_GOAL_KEYS,
@@ -20,7 +16,9 @@ import {
   kaosdocDocument,
   kaosdocGoalModel,
   readKaosModel,
+  type KaosdocNode,
   type KaosdocNodeProps,
+  type KaosdocProperties,
 } from '../../../src/engines/kaosdoc';
 
 const SEED = readFileSync('../../examples/kaos/kaos-welcome.txt', 'utf8');
@@ -63,13 +61,10 @@ const withProperties = (
 
 const modelOf = (text: string) => kaosdocGoalModel(readKaosModel(text));
 
-/** A goal node's engine properties, found in the paper's trees. */
+/** A tree node's engine properties, found in the paper's trees. */
 const nodeEngine = (text: string, id: string): KaosdocNodeProps => {
-  const find = (
-    nodes: readonly TreeNode<KaosdocNodeProps>[],
-  ): GoalNode<KaosdocNodeProps> | undefined => {
+  const find = (nodes: readonly KaosdocNode[]): KaosdocNode | undefined => {
     for (const node of nodes) {
-      if (node.type !== 'goal') continue;
       if (node.iStarId === id) return node;
       const found = find(node.children ?? []);
       if (found) return found;
@@ -77,8 +72,14 @@ const nodeEngine = (text: string, id: string): KaosdocNodeProps => {
     return undefined;
   };
   const node = find(modelOf(text).paper);
-  if (!node) throw new Error(`${id} is no goal node`);
-  return node.properties.engine;
+  if (!node) throw new Error(`${id} is no tree node`);
+  return node.properties.engine as KaosdocNodeProps;
+};
+
+const elementEngine = (text: string, id: string) => {
+  const element = modelOf(text).elements.find((e) => e.id === id);
+  if (!element) throw new Error(`${id} is no element`);
+  return element.engine;
 };
 
 const linkEngine = (text: string, id: string) => {
@@ -319,7 +320,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('the Obstacles table reads Category from the element, the cell trimmed, any value written', () => {
+    it('the Obstacles table reads Category from the obstacle’s entry', () => {
       const row = (Category: string) =>
         sectionOf(
           withProperties(LAS, { [OBSTACLE]: { Category } }),
@@ -331,11 +332,8 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
         row(' Hazard '),
         '| Ambulance Lost | Hazard |  |  |  |',
       );
-      // #187: invalid value
-      assert.strictEqual(
-        row('Satisfaction'),
-        '| Ambulance Lost | Satisfaction |  |  |  |',
-      );
+      // #226: changed (was kept from the element as written); #187: invalid value
+      assert.strictEqual(row('Satisfaction'), '| Ambulance Lost |  |  |  |  |');
     });
   });
 
@@ -473,11 +471,16 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
     });
   });
 
-  describe('elements the mapper does not map', () => {
-    it('a refinement hub keeps its properties as written, a value outside its vocabulary too', () => {
+  describe('entries held out of the trees (goal-controller#226)', () => {
+    it('a refinement hub’s Tactic, Status and SysRef through its entry', () => {
       const text = withProperties(SEED, {
         [HUB]: { Tactic: ' case-driven ', Status: '', SysRef: 'S1' },
       });
+      assert.deepStrictEqual(elementEngine(text, HUB), {
+        Tactic: 'case-driven',
+        SysRef: 'S1',
+      } satisfies KaosdocProperties);
+      // as-written properties remain on the element
       assert.deepStrictEqual(elementProperties(text, HUB), {
         Tactic: ' case-driven ',
         Status: '',
@@ -488,25 +491,30 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
           '| Maintain [Minimal Interval Between Automatic Backups] | Internet connection available |  | case-driven |  | S1 |',
         ),
       );
-      // #187: invalid value
+      // #226: changed (was kept as written on the element); #187: invalid value
       assert.ok(
-        sectionOf(
+        !sectionOf(
           withProperties(SEED, { [HUB]: { Tactic: 'by cases' } }),
           'Refinements',
         )!.includes('| by cases |'),
       );
     });
 
-    it('an agent is no goal node; its element keeps its properties as written', () => {
+    it('an agent is no tree node; its entry keeps its Description', () => {
       const text = withProperties(SEED, {
         [AGENT]: { Description: ' a person ', Type: 'x' },
+      });
+      // User is an EnvironmentAgent in the seed
+      assert.deepStrictEqual(elementEngine(text, AGENT), {
+        kind: 'kaos.EnvironmentAgent',
+        properties: { Description: 'a person' },
       });
       assert.deepStrictEqual(elementProperties(text, AGENT), {
         Description: ' a person ',
         Type: 'x',
       });
       assert.throws(() => nodeEngine(text, AGENT), {
-        message: `${AGENT} is no goal node`,
+        message: `${AGENT} is no tree node`,
       });
     });
   });

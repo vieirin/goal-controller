@@ -26,7 +26,7 @@ describe('sleecEngineMapper', () => {
       sleecEngineMapper,
     );
     const quality = GoalTree.allByType(tree.nodes, 'goal').find(
-      (node) => node.properties.isQuality,
+      (node) => node.kind === 'istar.Quality',
     );
     if (!quality) throw new Error('Quality not found in the tree');
 

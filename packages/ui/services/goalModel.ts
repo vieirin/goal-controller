@@ -1,7 +1,8 @@
 import {
   GoalTree,
   Model,
-  type MapperDialect,
+  type KindEngineMapper,
+  type NodeOf,
   type RootReading,
 } from '@goal-controller/goal-tree';
 import { parsePistar, type IstarModel } from '@istar-ts/core';
@@ -35,6 +36,14 @@ export interface ParseOptions {
   /** the framework it is read in (goal-controller#171); by default, the model's (frameworkOfModel) */
   framework?: Framework;
 }
+
+/** The tree an engine's mapper reads a model into: written per role, or by kind (goal-controller#215). */
+type TreeOf<M> =
+  M extends KindEngineMapper<any, any, any, any, any, any>
+    ? NodeOf<M>[]
+    : M extends EngineMapper<infer G, infer T, infer R, any>
+      ? GoalTreeType<G, T, R>
+      : never;
 
 /** A model parsed, validated and read by an engine's mapper into its tree. */
 export type ParseModelResult<TTree> =
@@ -90,15 +99,16 @@ export const GoalModel = {
   },
 
   /** Parse model JSON, validate it, and read it into an engine's tree. */
-  parseWith<TGoal, TTask, TResource, TDialect extends MapperDialect>(
+  parseWith<M extends { dialect?: RootReading }>(
     modelJson: string,
-    mapper: EngineMapper<TGoal, TTask, TResource, TDialect>,
+    mapper: M,
     options: ParseOptions = {},
-  ): ParseModelResult<GoalTreeType<TGoal, TTask, TResource>> {
+  ): ParseModelResult<TreeOf<M>> {
     const parseResult = this.parseModel(modelJson, options, mapper.dialect);
     if (!parseResult.success) return parseResult;
     try {
-      const tree = GoalTree.fromModel(parseResult.model, mapper).nodes;
+      const tree = GoalTree.fromModel(parseResult.model, mapper as never)
+        .nodes as TreeOf<M>;
       return { success: true, model: parseResult.model, tree };
     } catch (error) {
       return {

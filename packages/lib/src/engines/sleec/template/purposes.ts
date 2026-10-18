@@ -1,9 +1,5 @@
-import type { GoalTreeType, GoalNode } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
-import type { SleecGoalProps, SleecTaskProps } from '../types';
-
-type SleecGoalNode = GoalNode<SleecGoalProps, SleecTaskProps>;
-type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps>;
+import type { SleecGoalNode, SleecGoalTree } from '../mapper';
 
 export const generatePurposes = (tree: SleecGoalTree): string => {
   const goals = GoalTree.allByType(tree, 'goal');

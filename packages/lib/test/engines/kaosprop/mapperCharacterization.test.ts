@@ -1,15 +1,15 @@
 /**
- * kaospropEngineMapper, characterized (goal-controller#187 phase 2): what
- * its IR holds of a KAOS model's links, and what the propagation makes of
- * it, so the migration to typed values can show nothing changed. The mapper
- * keeps each goal node's text and, of a link, the keys its kind has that
- * the dialect reads as set, as written; the propagation reads a link's
+ * kaospropEngineMapper, characterized (goal-controller#187 / #215): what
+ * its IR holds of a KAOS model's links and element quantities, and what
+ * the propagation makes of them. The mapper keeps each goal node's text
+ * and, of a link, the keys its kind has that the dialect reads as set, as
+ * written; ESR, RSR and an obstacle's or hub's Probability arrive through
+ * entries (goal-controller#244). The propagation reads a link's
  * `Probability` (an obstruction's P(¬G|O), a case-driven leg's P(CS)), a
- * value that is no probability as unset. Elements' quantities (`ESR`, an
- * obstacle's `Probability`, a hub's) are read off the model's elements,
- * outside the mapper. Where the IR changed with the dialect's reading of a
- * link (until #187 a link kept every link key as written): `#187: invalid
- * value` (no probability, blank) and `#187: link keys on the wrong kind`.
+ * value that is no probability as unset. Where the IR changed with the
+ * dialect's reading of a link (until #187 a link kept every link key as
+ * written): `#187: invalid value` (no probability, blank) and `#187: link
+ * keys on the wrong kind`.
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
@@ -30,9 +30,16 @@ const OTHER_LEG = 'case-mobilized-leg-2';
 const CASES = 'achieve_ambulance_mobilized_when_ambulance_allocated';
 const ASSIGNMENT =
   'assignment-achieve_ambulance_on_scene_when_ambulance_mobilized';
+const ROOT = 'achieve_ambulance_on_scene_when_incident_reported';
+const LEAF_ALLOCATED = 'achieve_ambulance_allocated_when_incident_reported';
+const LEAF_OBSTACLE = 'ambulance_stuck_in_traffic_jam';
 
 type Link = { id?: string; customProperties?: Record<string, string> };
-type Json = { links: (Link & { starts?: Link[]; end?: Link })[] };
+type Element = { id?: string; customProperties?: Record<string, string> };
+type Json = {
+  orphans?: Element[];
+  links: (Link & { starts?: Link[]; end?: Link })[];
+};
 
 /** LAS with custom properties replaced, by link id (a refinement's legs' too); `null` removes them. */
 const withLinks = (
@@ -52,6 +59,23 @@ const withLinks = (
   return JSON.stringify(json);
 };
 
+/** LAS with an orphan's custom properties replaced (merged) or removed (`null`). */
+const withElement = (
+  id: string,
+  properties: Record<string, string> | null,
+): string => {
+  const json = JSON.parse(LAS) as Json;
+  const element = json.orphans?.find((e) => e.id === id);
+  if (!element) throw new Error(`${id} is no orphan`);
+  if (properties === null) delete element.customProperties;
+  else
+    element.customProperties = {
+      ...element.customProperties,
+      ...properties,
+    };
+  return JSON.stringify(json);
+};
+
 const modelOf = (text: string) =>
   kaospropAnalysisModel(readKaosObstacleModel(text));
 
@@ -61,6 +85,12 @@ const linkProperties = (text: string, id: string) => {
   return link.properties;
 };
 
+const elementProperties = (text: string, id: string) => {
+  const element = modelOf(text).elements.find((e) => e.id === id);
+  if (!element) throw new Error(`${id} is no element`);
+  return element.properties;
+};
+
 const probabilityOf = (text: string, id: string) =>
   propagateProbabilities(modelOf(text)).probabilities.get(id)!;
 
@@ -68,6 +98,41 @@ const whyOf = (text: string, id: string) =>
   propagateProbabilities(modelOf(text)).steps.find((s) => s.id === id)!.why;
 
 describe('kaospropEngineMapper: characterization (#187)', () => {
+  describe('element quantities through entries (goal-controller#244)', () => {
+    it('a goal’s RSR and ESR as the dialect reads them', () => {
+      assert.strictEqual(elementProperties(LAS, ROOT).RSR, '0.95');
+      assert.strictEqual(elementProperties(LAS, LEAF_ALLOCATED).ESR, '0.98');
+      // kept as written; blank or no probability unset (the dialect reports it)
+      assert.strictEqual(
+        elementProperties(withElement(ROOT, { RSR: ' 0.9 ' }), ROOT).RSR,
+        ' 0.9 ',
+      );
+      assert.strictEqual(
+        elementProperties(withElement(ROOT, { RSR: '  ' }), ROOT).RSR,
+        undefined,
+      );
+      // #244: changed (was kept as written on the element); #187: invalid value
+      assert.strictEqual(
+        elementProperties(withElement(ROOT, { RSR: 'often' }), ROOT).RSR,
+        undefined,
+      );
+    });
+
+    it('a leaf obstacle’s Probability through its entry', () => {
+      assert.strictEqual(
+        elementProperties(LAS, LEAF_OBSTACLE).Probability,
+        '0.02',
+      );
+      assert.strictEqual(
+        elementProperties(
+          withElement(LEAF_OBSTACLE, { Probability: 'often' }),
+          LEAF_OBSTACLE,
+        ).Probability,
+        undefined,
+      );
+    });
+  });
+
   describe('a link’s Probability', () => {
     it('a leg’s, kept; the propagation reads 0.4, .4 and 40% alike', () => {
       assert.deepStrictEqual(linkProperties(LAS, LEG), { Probability: '0.4' });

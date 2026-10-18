@@ -1,8 +1,5 @@
-import type { Task } from '@goal-controller/goal-tree';
-import type { SleecTaskProps } from '../types';
+import type { SleecTask } from '../mapper';
 import { renameTaskId, taskFluentName } from './shared';
-
-type SleecTask = Task<SleecTaskProps>;
 
 /** Every task's rules: the mapper gives each task its four required properties (or throws). */
 export const generateTaskRules = (tasks: SleecTask[]): string => {
@@ -38,11 +35,11 @@ export const generateTaskRules = (tasks: SleecTask[]): string => {
       )}
         
       ${
-        engine.Obstacle
+        engine.ObstacleEvent
           ? `Rule${renameTaskId(task.id)}_5 when ${taskFluentName(
               task,
               'Pursuing',
-            )} and ${engine.Obstacle} then ${taskFluentName(task, 'Stop')}
+            )} and ${engine.ObstacleEvent} then ${taskFluentName(task, 'Stop')}
       `
           : ''
       }`.trim();

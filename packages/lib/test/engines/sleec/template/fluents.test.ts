@@ -1,18 +1,18 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { generateFluents } from '../../../../src/engines/sleec/template/fluents';
-import type { Task } from '@goal-controller/goal-tree';
+import type { SleecTask } from '../../../../src/engines/sleec/mapper';
 
 /**
  * Helper to create a minimal Task node with only the properties needed for testing
  */
-const createTaskNode = (id: string, name: string): Task =>
+const createTaskNode = (id: string, name: string): SleecTask =>
   ({
     id,
     name,
     type: 'task',
     properties: {},
-  }) as Task;
+  }) as unknown as SleecTask;
 
 describe('sleecTemplateEngine', () => {
   describe('generateFluents', () => {
@@ -71,13 +71,13 @@ describe('sleecTemplateEngine', () => {
           name: null,
           type: 'task',
           properties: {},
-        } as unknown as Task,
+        } as unknown as SleecTask,
         {
           id: 'T3',
           name: undefined,
           type: 'task',
           properties: {},
-        } as unknown as Task,
+        } as unknown as SleecTask,
       ];
 
       const fluents = generateFluents(tasks);

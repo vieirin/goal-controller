@@ -1,22 +1,21 @@
 /**
- * nfrpropEngineMapper, characterized (goal-controller#187 phase 2 pre-work):
- * what it and the propagation read of an NFR model's properties today, so
- * the migration to typed values can show nothing changed. The mapper keeps
- * each goal node's text and no property; the propagation reads an element's
- * `initialLabel` from the model's elements, as written, trimming it and
- * taking it only when it is one of the labels. A value outside them is
- * propagated today: after the migration it arrives as `undefined`
+ * nfrpropEngineMapper, characterized (goal-controller#187 / #215): what it
+ * and the propagation read of an NFR model's properties. Softgoals and
+ * operationalizations are tree nodes; claims are `tree: false`. Each
+ * element's `initialLabel` arrives through its entry when the dialect reads
+ * it as a label (goal-controller#226); a value outside them is unset
  * (`#187: invalid value`).
  */
 import * as assert from 'assert';
 import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
-import { GoalTree, type TreeNode } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import {
   nfrpropAnalysisModel,
   nfrpropEngineMapper,
   propagateLabels,
   readNfrModel,
+  type NfrpropNode,
 } from '../../../src/engines/nfrprop';
 
 const SEED = readFileSync('../../examples/nfr/nfr-welcome.txt', 'utf8');
@@ -60,17 +59,15 @@ const stepOf = (text: string, id: string) =>
 const goalModelOf = (text: string) =>
   GoalTree.goalModel(readNfrModel(text), nfrpropEngineMapper);
 
-const flatten = (
-  nodes: readonly TreeNode<{ text: string }>[],
-): TreeNode<{ text: string }>[] =>
+const flatten = (nodes: readonly NfrpropNode[]): NfrpropNode[] =>
   nodes.flatMap((node) => [
     node,
-    ...flatten(node.type === 'goal' ? (node.children ?? []) : []),
+    ...('children' in node ? flatten(node.children ?? []) : []),
   ]);
 
 describe('nfrpropEngineMapper: characterization (#187)', () => {
   describe('the mapper', () => {
-    it('keeps each goal node’s text as written, and none of its properties', () => {
+    it('keeps each tree node’s text and its initialLabel when typed', () => {
       const text = edit((json) => {
         const security = json.orphans.find((e) => e.id === SECURITY)!;
         security.text = '  Security ';
@@ -83,6 +80,7 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
       const security = nodes.find((node) => node.iStarId === SECURITY)!;
       assert.deepStrictEqual(security.properties.engine, {
         text: '  Security ',
+        initialLabel: 'denied',
       });
       const operationalization = nodes.find(
         (node) => node.iStarId === RSA_260,
@@ -90,13 +88,12 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
       assert.deepStrictEqual(operationalization.properties.engine, {
         text: 'Encrypt with RSA 260 bits',
       });
-      // a claim argues a link: it is in no tree
-      assert.strictEqual(nodes.length, 8);
+      // a claim argues a link: it is in no tree (tree: false)
       assert.ok(!nodes.some((node) => node.iStarId === CLAIM));
-      for (const node of nodes)
-        assert.deepStrictEqual(Object.keys(node.properties.engine as object), [
-          'text',
-        ]);
+      assert.deepStrictEqual(
+        goalModelOf(text).elements.find((e) => e.id === CLAIM)?.engine,
+        { text: 'Can be broken quickly' },
+      );
     });
 
     it('maps no link property; a link keeps its label', () => {
@@ -109,16 +106,17 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
       );
     });
 
-    it('the model’s elements keep their properties as written', () => {
+    it('the analysis view reads initialLabel through the entry (#226)', () => {
       const text = withProperties(RSA_260, {
-        initialLabel: ' Denied ',
+        initialLabel: ' denied ',
         Description: '',
       });
-      assert.deepStrictEqual(
+      // enum trims; the analysis overlay keeps the typed label
+      assert.strictEqual(
         nfrpropAnalysisModel(readNfrModel(text)).elements.find(
           (e) => e.id === RSA_260,
-        )!.properties,
-        { initialLabel: ' Denied ', Description: '' },
+        )!.properties.initialLabel,
+        'denied',
       );
     });
   });
@@ -132,7 +130,7 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
         'weakly-denied',
         'denied',
         'conflict',
-      ]) {
+      ] as const) {
         const text = withProperties(USABILITY, { initialLabel: label });
         assert.deepStrictEqual(stepOf(text, USABILITY), {
           id: USABILITY,
@@ -142,15 +140,19 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
       }
     });
 
-    it('trims it', () => {
+    it('trims the written label before taking it', () => {
       for (const initialLabel of [' denied', 'denied ', '\n denied \t'])
         assert.deepStrictEqual(
           stepOf(withProperties(RSA_260, { initialLabel }), RSA_260),
-          { id: RSA_260, label: 'denied', why: 'its initial label' },
+          {
+            id: RSA_260,
+            label: 'denied',
+            why: 'its initial label',
+          },
         );
     });
 
-    it('reads it on a softgoal, an operationalization and a claim', () => {
+    it('applies to softgoals, operationalizations and claims', () => {
       assert.strictEqual(
         labelOf(withProperties(SECURITY, { initialLabel: 'denied' }), SECURITY),
         'denied',

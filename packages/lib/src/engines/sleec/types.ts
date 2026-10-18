@@ -21,5 +21,6 @@ export type SleecTaskProps = {
   TriggeringEvent: string;
   TemporalConstraint: string;
   PostCond: string;
-  Obstacle?: string;
+  /** the event that stops the task (goal-controller#230: key as the seeds write it) */
+  ObstacleEvent?: string;
 };

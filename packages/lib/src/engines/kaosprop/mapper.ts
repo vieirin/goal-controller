@@ -1,47 +1,107 @@
 /**
- * kaosprop's mapper (goal-controller#181): how goal-tree reads a KAOS model
- * for its analyses. It generates nothing, so the IR keeps every element's
- * properties as written (the analyses read the quantities there), and a
- * link's its kind has (an obstruction's, a leg's `Probability`), each as
- * written when the dialect reads it as set (goal-controller#187: a value
- * that is no probability is unset, and the dialect's checks report it);
- * goals and obstacles may be leaves.
+ * kaosprop's mapper (goal-controller#181, #215): how goal-tree reads a KAOS
+ * model for its analyses. Its own naming matches kaosdoc's; goals, obstacles
+ * and hubs carry ESR / RSR / Probability through their entries
+ * (goal-controller#244), and a link keeps the keys its kind has that the
+ * dialect reads as set, as written (goal-controller#187).
  */
 import { parsePistar } from '@istar-ts/core';
-import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import {
+  KAOS_OBSTACLES,
+  KAOS_REFINEMENT_HUB,
+} from '@istar-ts/dsm3-kaos/metamodel';
 import { linkPropertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
   type IStarModel,
+  type ModelOf,
+  type NodeOf,
 } from '@goal-controller/goal-tree';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
 import { kaosprop } from './definition';
 
 export const kaospropLinkKeys = linkPropertyKeys(kaosprop);
 
-export const kaospropEngineMapper = createEngineMapper<
-  { text: string },
-  never
->()({
-  dialect: kaosprop,
-  allowLeafGoals: true,
-  skipResource: true,
-  // the analyses read a link's properties as text: its kind's the dialect
-  // reads as set (a probability, not blank), each as written
-  mapLinkProps: ({ props, raw }): Readonly<Record<string, string>> =>
-    Object.fromEntries(
-      Object.entries(raw).flatMap(([key, written]) =>
-        written !== undefined && props[key as keyof typeof props] != null
-          ? [[key, written]]
-          : [],
-      ),
+const OBSTACLE_HUB = 'kaosObstacles.ObstacleRefinementLinkHub';
+
+/** Strings the analyses read: set dialect values, as written. */
+const written = ({
+  props,
+  raw,
+}: {
+  props: Readonly<Record<string, unknown>>;
+  raw: Readonly<Record<string, string | undefined>>;
+}): Readonly<Record<string, string>> =>
+  Object.fromEntries(
+    Object.entries(raw).flatMap(([key, text]) =>
+      text !== undefined && props[key] != null ? [[key, text]] : [],
     ),
-  mapGoalProps: ({ text }) => ({ text }),
-  mapTaskProps: ({ id }) => {
-    throw new Error(`[INVALID_MODEL]: ${id}: a KAOS model has no tasks`);
-  },
+  );
+
+/** A tree node's text, plus its quantities when the dialect reads them. */
+const elementEngine = ({
+  text,
+  props,
+  raw,
+}: {
+  text: string;
+  props: Readonly<Record<string, unknown>>;
+  raw: Readonly<Record<string, string | undefined>>;
+}) => ({ text, ...written({ props, raw }) });
+
+export const kaospropEngineMapper = createEngineMapper({
+  dialect: kaosprop,
+  elements: (entry) => [
+    entry({
+      kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+      as: 'goal',
+      mapProps: elementEngine,
+    }),
+    entry({
+      kind: 'kaos.DomainProperty',
+      as: 'domainProperty',
+      mapProps: elementEngine,
+    }),
+    entry({
+      kind: 'kaosObstacles.Obstacle',
+      as: 'obstacle',
+      mapProps: elementEngine,
+    }),
+    entry({
+      kinds: ['kaos.Agent', 'kaos.EnvironmentAgent'],
+      as: 'agent',
+      tree: false,
+      mapProps: elementEngine,
+    }),
+    entry({
+      kind: KAOS_REFINEMENT_HUB,
+      as: 'refinement',
+      tree: false,
+      mapProps: ({ props, raw }) => written({ props, raw }),
+    }),
+    entry({
+      kind: OBSTACLE_HUB,
+      as: 'obstacleRefinement',
+      tree: false,
+      mapProps: ({ props, raw }) => written({ props, raw }),
+    }),
+  ],
+  links: (entry) => [
+    entry({
+      kinds: [
+        'kaos.Conflict',
+        'kaosObstacles.ResolutionLink',
+        'kaos.RefinementLinkStart',
+        'kaosObstacles.ObstructionLink',
+      ],
+      mapProps: ({ props, raw }) => written({ props, raw }),
+    }),
+  ],
 });
+
+export type KaospropGoalModel = ModelOf<typeof kaospropEngineMapper>;
+export type KaospropNode = NodeOf<typeof kaospropEngineMapper>;
 
 /** A KAOS model as kaosprop's analyses read it: the view of its `GoalModel`. */
 export const kaospropAnalysisModel = (model: IStarModel): AnalysisModel =>

@@ -1,8 +1,8 @@
-import type { Task } from '@goal-controller/goal-tree';
+import type { SleecTask } from '../mapper';
 
 export const renameTaskId = (id: string): string => id.replace('.', '_');
 
-export const getFluentName = (task: Task): string | undefined =>
+export const getFluentName = (task: SleecTask): string | undefined =>
   task.name?.replaceAll(' ', '');
 
 export const fluentOperations = [
@@ -15,7 +15,10 @@ export const fluentOperations = [
 
 type FluentOperation = (typeof fluentOperations)[number];
 
-export const taskFluentName = (task: Task, op: FluentOperation): string => {
+export const taskFluentName = (
+  task: SleecTask,
+  op: FluentOperation,
+): string => {
   return `${op}${getFluentName(task)}`;
 };
 

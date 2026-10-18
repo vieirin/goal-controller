@@ -13,6 +13,7 @@ export {
   KAOSDOC_DOMAIN_PROPERTY_KEYS,
   KAOSDOC_LINK_KEYS,
   type KaosdocGoalModel,
+  type KaosdocNode,
   type KaosdocNodeProps,
   type KaosdocProperties,
 } from './mapper';

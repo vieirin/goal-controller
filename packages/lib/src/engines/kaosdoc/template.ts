@@ -11,13 +11,15 @@
  * Goals are in the order of their refinement trees (depth first, a goal
  * refining several parents once); every element is named by its text as
  * written. A goal's FormalSpec is listed as text: typing it as LTL is later
- * work (#58's typed assertions are the pattern).
+ * work (#58's typed assertions are the pattern). Hubs and obstacle Category
+ * are read through their entries (goal-controller#226); an unset Anchor is
+ * not written as "anchored on nowhere" (goal-controller#243).
  */
-import type { GoalNode, TreeNode } from '@goal-controller/goal-tree';
 import { KAOS_REFINEMENT_HUB } from '@istar-ts/dsm3-kaos/metamodel';
 import { singleFileOutput, type EngineOutput } from '../output';
 import type {
   KaosdocGoalModel,
+  KaosdocNode,
   KaosdocNodeProps,
   KaosdocProperties,
 } from './mapper';
@@ -50,19 +52,26 @@ const table = (head: readonly string[], rows: readonly string[][]): string =>
         ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`),
       ].join('\n');
 
-/** The goal nodes of the trees, depth first, each once. */
-const inTreeOrder = (
-  trees: readonly TreeNode<KaosdocNodeProps>[],
-): GoalNode<KaosdocNodeProps>[] => {
+/** Whether a node carries kaosdoc's `{ kind, properties }` engine. */
+const isKaosdocNode = (
+  engine: KaosdocNode['properties']['engine'],
+): engine is KaosdocNodeProps =>
+  typeof engine === 'object' &&
+  engine !== null &&
+  'kind' in engine &&
+  'properties' in engine;
+
+/** The tree nodes, depth first, each once. */
+const inTreeOrder = (trees: readonly KaosdocNode[]): KaosdocNode[] => {
   const seen = new Set<string>();
-  const order: GoalNode<KaosdocNodeProps>[] = [];
-  const visit = (node: GoalNode<KaosdocNodeProps>) => {
+  const order: KaosdocNode[] = [];
+  const visit = (node: KaosdocNode) => {
     if (seen.has(node.iStarId)) return;
     seen.add(node.iStarId);
     order.push(node);
     node.children?.forEach(visit);
   };
-  for (const tree of trees) if (tree.type === 'goal') visit(tree);
+  for (const tree of trees) visit(tree);
   return order;
 };
 
@@ -74,8 +83,10 @@ export const kaosdocDocument = (
   const elements = new Map(model.elements.map((e) => [e.id, e]));
   const nameOf = (id: string) => elements.get(id)?.name.trim() ?? id;
   const nodes = inTreeOrder(model.paper);
-  const goals = nodes.filter((node) =>
-    GOAL_KINDS.has(node.properties.engine.kind),
+  const goals = nodes.filter(
+    (node) =>
+      isKaosdocNode(node.properties.engine) &&
+      GOAL_KINDS.has(node.properties.engine.kind),
   );
   const rank = new Map(nodes.map((node, i) => [node.iStarId, i]));
   const linksOf = (kind: string) =>
@@ -84,6 +95,7 @@ export const kaosdocDocument = (
     properties[key] ?? '';
 
   // each refinement, by its hub: what it refines, into what, its properties
+  // from the hub's entry (goal-controller#226)
   const ends = new Map(linksOf(END).map((link) => [link.source, link.target]));
   const refinements = model.elements
     .filter((e) => e.kind === KAOS_REFINEMENT_HUB && ends.has(e.id))
@@ -93,6 +105,7 @@ export const kaosdocDocument = (
       children: linksOf(LEG)
         .filter((link) => link.target === hub.id)
         .map((link) => link.source),
+      properties: (hub.engine as KaosdocProperties | undefined) ?? {},
     }))
     .sort((a, b) => (rank.get(a.parent) ?? 0) - (rank.get(b.parent) ?? 0));
   const alternatives = (parent: string) =>
@@ -104,17 +117,18 @@ export const kaosdocDocument = (
     assignments.filter((a) => a.target === goal).map((a) => a.source);
   const leaves = goals.filter(
     (goal) =>
+      isKaosdocNode(goal.properties.engine) &&
       goal.properties.engine.kind === 'kaos.BehavioralGoal' &&
       !refinements.some((r) => r.parent === goal.iStarId),
   );
-  const domainProperties = model.elements.filter(
-    (e) => e.kind === 'kaos.DomainProperty',
+  const domainProperties = nodes.filter(
+    (node) => node.type === 'domainProperty',
   );
   const agents = model.elements.filter((e) => AGENT_KINDS.has(e.kind));
   // obstacles in their trees' order, then any no tree holds
   const obstacles = [
     ...nodes
-      .filter((node) => node.properties.engine.kind === OBSTACLE)
+      .filter((node) => node.type === 'obstacle')
       .map((node) => node.iStarId),
     ...model.elements
       .filter((e) => e.kind === OBSTACLE && !rank.has(e.id))
@@ -132,14 +146,17 @@ export const kaosdocDocument = (
       'Goals',
       table(
         ['Goal', 'Kind', 'Type', 'Category', 'Priority', 'Fit criterion'],
-        goals.map(({ iStarId, properties: { engine } }) => [
-          nameOf(iStarId),
-          KIND_LABEL[engine.kind]!,
-          prop(engine.properties, 'Type'),
-          prop(engine.properties, 'Category'),
-          prop(engine.properties, 'Priority'),
-          prop(engine.properties, 'FitCriterion'),
-        ]),
+        goals.map(({ iStarId, properties: { engine } }) => {
+          const { kind, properties } = engine as KaosdocNodeProps;
+          return [
+            nameOf(iStarId),
+            KIND_LABEL[kind]!,
+            prop(properties, 'Type'),
+            prop(properties, 'Category'),
+            prop(properties, 'Priority'),
+            prop(properties, 'FitCriterion'),
+          ];
+        }),
       ),
     ],
     [
@@ -150,7 +167,7 @@ export const kaosdocDocument = (
           .map(({ iStarId, properties: { engine } }) => [
             nameOf(iStarId),
             ...['Source', 'Stability', 'FormalSpec', 'Issue'].map((key) =>
-              prop(engine.properties, key),
+              prop((engine as KaosdocNodeProps).properties, key),
             ),
           ])
           .filter(([, ...details]) => details.some(Boolean)),
@@ -160,7 +177,7 @@ export const kaosdocDocument = (
       'Refinements',
       table(
         ['Goal', 'Refined into', 'Alternative', 'Tactic', 'Status', 'System'],
-        refinements.map(({ hub, parent, children }) => {
+        refinements.map(({ parent, children, properties }) => {
           const n = (nth.get(parent) ?? 0) + 1;
           nth.set(parent, n);
           const of = alternatives(parent);
@@ -168,9 +185,9 @@ export const kaosdocDocument = (
             nameOf(parent),
             children.map(nameOf).join(', '),
             of > 1 ? `${n} of ${of}` : '',
-            prop(hub.properties, 'Tactic'),
-            prop(hub.properties, 'Status'),
-            prop(hub.properties, 'SysRef'),
+            prop(properties, 'Tactic'),
+            prop(properties, 'Status'),
+            prop(properties, 'SysRef'),
           ];
         }),
       ),
@@ -180,10 +197,13 @@ export const kaosdocDocument = (
       table(
         ['Domain property', 'Description', 'In the refinement of'],
         domainProperties.map((property) => [
-          property.name,
-          prop(property.properties, 'Description'),
+          nameOf(property.iStarId),
+          prop(
+            (property.properties.engine as KaosdocNodeProps).properties,
+            'Description',
+          ),
           refinements
-            .filter((r) => r.children.includes(property.id))
+            .filter((r) => r.children.includes(property.iStarId))
             .map((r) => nameOf(r.parent))
             .join(', '),
         ]),
@@ -248,9 +268,16 @@ export const kaosdocDocument = (
           const resolutions = linksOf('kaosObstacles.ResolutionLink').filter(
             (link) => link.target === id,
           );
+          const obstacleNode = nodes.find((node) => node.iStarId === id);
+          const category = obstacleNode
+            ? prop(
+                (obstacleNode.properties.engine as KaosdocNodeProps).properties,
+                'Category',
+              )
+            : '';
           return [
             nameOf(id),
-            prop(elements.get(id)?.properties ?? {}, 'Category'),
+            category,
             linksOf('kaosObstacles.ObstructionLink')
               .filter((link) => link.source === id)
               .map((link) => nameOf(link.target))
@@ -260,6 +287,7 @@ export const kaosdocDocument = (
               .map(({ properties: { engine } }) => {
                 const type = prop(engine, 'ResolutionType');
                 const anchor = prop(engine, 'Anchor');
+                // #243: an unset Anchor writes only the type (no "anchored on nowhere")
                 return anchor
                   ? `${type || 'unspecified'}, anchored on ${anchorName(anchor)}`
                   : type;

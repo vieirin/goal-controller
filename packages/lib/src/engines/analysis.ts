@@ -117,37 +117,126 @@ const texts = (properties: PropertyTexts): Record<string, string> =>
     ),
   );
 
+/** An engine object's values as property texts (strings; numbers as written). */
+const engineTexts = (engine: unknown): Record<string, string> => {
+  if (engine === null || typeof engine !== 'object') return {};
+  return Object.fromEntries(
+    Object.entries(engine as Record<string, unknown>).flatMap(([key, value]) =>
+      value === undefined || value === null
+        ? []
+        : [[key, typeof value === 'string' ? value : String(value)]],
+    ),
+  );
+};
+
+/** A tree node as analyses walk it for engine properties. */
+type AnalysisTreeNode = {
+  iStarId: string;
+  properties: { engine: unknown };
+  children?: readonly AnalysisTreeNode[];
+  tasks?: readonly AnalysisTreeNode[];
+  resources?: readonly AnalysisTreeNode[];
+};
+
+/** Collect each tree node's engine properties, by piStar id. */
+const enginesOfTrees = (
+  trees: readonly AnalysisTreeNode[] | undefined,
+  into: Map<string, Record<string, string>>,
+): void => {
+  if (!trees) return;
+  for (const node of trees) {
+    into.set(node.iStarId, engineTexts(node.properties.engine));
+    enginesOfTrees(node.children, into);
+    enginesOfTrees(node.tasks, into);
+    enginesOfTrees(node.resources, into);
+  }
+};
+
+/**
+ * A GoalModel or KindModel as `analysisViewOf` reads it: actors, paper
+ * trees, elements (with optional `engine` for `tree: false`) and links.
+ */
+type AnalysisSource = {
+  actors: readonly {
+    id: string;
+    kind: string;
+    name: string;
+    properties: { engine: unknown };
+    elements: readonly string[];
+    trees?: readonly AnalysisTreeNode[];
+  }[];
+  paper?: readonly AnalysisTreeNode[];
+  elements: readonly {
+    id: string;
+    kind: string;
+    name: string;
+    actor?: string;
+    properties: Readonly<Partial<Record<string, string>>>;
+    engine?: unknown;
+  }[];
+  links: readonly {
+    id: string;
+    kind: string;
+    source: string;
+    target: string;
+    label?: string;
+    properties: { engine: unknown };
+  }[];
+};
+
 /**
  * The model as analyses read it: a view of the engine's `GoalModel`
  * (goal-controller#125), its actors, elements and links in the file's
  * order. An actor's and a link's properties are what the engine's mapper
- * keeps of them (`mapActorProps`, `mapLinkProps`: their texts), an
- * element's are as written.
+ * keeps of them. An element's are its entry's engine properties when the
+ * mapper has one (a tree node's, or `tree: false`'s; goal-controller#215,
+ * #226, #244), else as written.
  */
 export const analysisViewOf = (
-  goalModel: GoalModel<unknown, unknown, unknown, PropertyTexts, PropertyTexts>,
-): AnalysisModel => ({
-  actors: goalModel.actors.map(
-    ({ id, kind, name, properties, elements }): AnalysisActor => ({
-      id,
-      kind,
-      name,
-      properties: texts(properties.engine),
-      elements,
+  goalModel:
+    | GoalModel<unknown, unknown, unknown, PropertyTexts, PropertyTexts>
+    | AnalysisSource,
+): AnalysisModel => {
+  const source = goalModel as AnalysisSource;
+  const fromTrees = new Map<string, Record<string, string>>();
+  for (const actor of source.actors) enginesOfTrees(actor.trees, fromTrees);
+  enginesOfTrees(source.paper, fromTrees);
+
+  return {
+    actors: source.actors.map(
+      ({ id, kind, name, properties, elements }): AnalysisActor => ({
+        id,
+        kind,
+        name,
+        properties: engineTexts(properties.engine),
+        elements,
+      }),
+    ),
+    elements: source.elements.map((element) => {
+      const fromEntry =
+        element.engine !== undefined
+          ? engineTexts(element.engine)
+          : fromTrees.get(element.id);
+      return {
+        id: element.id,
+        kind: element.kind,
+        name: element.name,
+        ...(element.actor !== undefined && { actor: element.actor }),
+        properties: fromEntry ?? texts(element.properties),
+      };
     }),
-  ),
-  elements: goalModel.elements,
-  links: goalModel.links.map(
-    ({ id, kind, source, target, label, properties }): AnalysisLink => ({
-      id,
-      kind,
-      source,
-      target,
-      ...(label !== undefined && { label }),
-      properties: texts(properties.engine),
-    }),
-  ),
-});
+    links: source.links.map(
+      ({ id, kind, source: src, target, label, properties }): AnalysisLink => ({
+        id,
+        kind,
+        source: src,
+        target,
+        ...(label !== undefined && { label }),
+        properties: engineTexts(properties.engine),
+      }),
+    ),
+  };
+};
 
 /** A dialect as `readProperties` reads it: its element kinds', link kinds' and actors' properties. */
 type PropertyDialect = {

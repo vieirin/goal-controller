@@ -1,5 +1,4 @@
-import type { Task } from '@goal-controller/goal-tree';
-import type { SleecTaskProps } from '../types';
+import type { SleecTask } from '../mapper';
 import { generateFluents } from './fluents';
 import {
   fluentOperations,
@@ -8,8 +7,6 @@ import {
   type Measure,
   type MeasureType,
 } from './shared';
-
-type SleecTask = Task<SleecTaskProps>;
 
 /**
  * Sorts scale values semantically based on common patterns (low → moderate → high).
@@ -155,15 +152,15 @@ const extractFluentNames = (tasks: SleecTask[]): string[] =>
     .sort();
 
 /**
- * Extracts events that other tasks avoid (from ObstacleEvent property)
- * The ObstacleEvent value already includes the full event name (e.g., AchievedObtainConsentPartialTracking)
+ * Events other tasks avoid: each task's ObstacleEvent as written
+ * (goal-controller#230; already the full event name, e.g.
+ * AchievedObtainConsentPartialTracking)
  */
 const extractObstacleEvents = (tasks: SleecTask[]): Set<string> =>
   new Set(
     tasks
-      .map((task) => task.properties.engine?.Obstacle)
-      .filter((event): event is string => !!event)
-      .map((event) => `Achieved${event}`),
+      .map((task) => task.properties.engine?.ObstacleEvent)
+      .filter((event): event is string => !!event),
   );
 
 const eventLine = (event: string): string => `    event ${event}`;
