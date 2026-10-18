@@ -122,6 +122,7 @@ describe('iStar-DT: iStarDT-X, the seeds through it', () => {
   // its default, or nothing, never its text
   for (const [key, unreadable] of [
     ['probability', 'likely'],
+    ['probability', ''],
     ['weight', 'heavy'],
     ['set', 'moisture:wet'],
     ['episodeLength', '0'],
