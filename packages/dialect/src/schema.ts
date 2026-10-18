@@ -147,7 +147,7 @@ export type ValueConfig =
       caseInsensitive?: true;
     }
   | { type: 'int'; min?: number; max?: number }
-  | { type: 'number' }
+  | { type: 'number'; min?: number; max?: number }
   | { type: 'text' }
   | { type: 'bool' }
   /** a condition; its identifiers name elements of these kinds, or variables */

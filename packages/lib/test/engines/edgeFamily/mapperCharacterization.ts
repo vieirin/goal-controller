@@ -12,18 +12,10 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import type { EdgeGoalPropsResolved } from '../../../src/engines/edge/mapper';
-import type {
-  EdgeResourceProps,
-  EdgeTaskProps,
-} from '../../../src/engines/edge/types';
 
 type IStarModel = ReturnType<typeof Model.load>;
-type EdgeTree = GoalTree<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
->;
+/** Entries mapper trees (KindNode); engine props stay Edge's. */
+type EdgeTree = GoalTree<any, any, any, any>;
 
 /** G1 [T1#T2], G7 maintain [T4], G12 and G13 under G4's degradation, T8 needing R0. */
 const MODEL = (engine: 'edge' | 'edgeV2') =>
@@ -487,18 +479,18 @@ export const characterizeEdgeMapper = (
     });
   });
 
-  describe('utility and cost (number)', () => {
+  describe('utility and cost (number, min 0)', () => {
     it("are the goal's texts as written, '' when absent or empty", () => {
       const g12 = goal('G12', {});
       assert.deepStrictEqual([g12.utility, g12.cost], ['', '']);
-      for (const value of ['', '5', ' 5 ', '-1.5', '007']) {
+      for (const value of ['', '5', ' 5 ', '007']) {
         const engine = goal('G12', { utility: value, cost: value });
         assert.deepStrictEqual([engine.utility, engine.cost], [value, value]);
       }
     });
 
     it("are the task's texts as written", () => {
-      for (const value of [' 5 ', '-1.5', '007']) {
+      for (const value of [' 5 ', '007']) {
         const engine = task('T8', { utility: value, cost: value });
         assert.deepStrictEqual([engine.utility, engine.cost], [value, value]);
       }
@@ -514,11 +506,24 @@ export const characterizeEdgeMapper = (
         assert.deepStrictEqual([t.utility, t.cost], ['', '']);
       }
     });
+
+    it("read a negative value as unset: ''", () => {
+      // #236: invalid value, changed (was passed through): below its min,
+      // which the dialect reports ("At least 0"). -0 is not below 0.
+      for (const value of ['-1.5', '-2']) {
+        const g = goal('G12', { utility: value, cost: value });
+        assert.deepStrictEqual([g.utility, g.cost], ['', ''], value);
+        const t = task('T8', { utility: value, cost: value });
+        assert.deepStrictEqual([t.utility, t.cost], ['', ''], value);
+      }
+    });
   });
 
   describe('goal dependsOn (refList of goals)', () => {
     const dependsOn = (value: string) =>
-      goal('G12', { dependsOn: value }).dependsOn.map((node) => node.id);
+      goal('G12', { dependsOn: value }).dependsOn.map(
+        (node: { id: string }) => node.id,
+      );
 
     it('is [] when absent, empty or blank', () => {
       assert.deepStrictEqual(goal('G12', {}).dependsOn, []);
@@ -532,13 +537,12 @@ export const characterizeEdgeMapper = (
       const tree = treeWith({ G12: { dependsOn: 'G13' } });
       const goals = GoalTree.allByType(tree.nodes, 'goal');
       const g12 = goals.find((n) => n.id === 'G12');
-      // the node as allNodes held it, not the tree's own object
+      // #233: the tree's own node, not a stale copy
       const g13 = goals.find((n) => n.id === 'G13');
-      assert.notStrictEqual(g12?.properties.engine.dependsOn[0], g13);
-      assert.deepStrictEqual(g12?.properties.engine.dependsOn[0], g13);
+      assert.strictEqual(g12?.properties.engine.dependsOn[0], g13);
     });
 
-    it('gives a dependency as it was before afterCreationMapper: its own dependsOn unresolved', () => {
+    it('gives a dependency as the tree holds it: its own dependsOn resolved (#233)', () => {
       const goals = GoalTree.allByType(
         treeWith({ G12: { dependsOn: 'G13' }, G13: { dependsOn: 'G6' } }).nodes,
         'goal',
@@ -546,12 +550,15 @@ export const characterizeEdgeMapper = (
       const g12 = goals.find((n) => n.id === 'G12');
       const g13 = goals.find((n) => n.id === 'G13');
       assert.deepStrictEqual(
-        g13?.properties.engine.dependsOn.map((n) => n.id),
+        g13?.properties.engine.dependsOn.map((n: { id: string }) => n.id),
         ['G6'],
       );
+      assert.strictEqual(g12?.properties.engine.dependsOn[0], g13);
       assert.deepStrictEqual(
-        g12?.properties.engine.dependsOn[0]?.properties.engine.dependsOn,
-        [],
+        g12?.properties.engine.dependsOn[0]?.properties.engine.dependsOn.map(
+          (n: { id: string }) => n.id,
+        ),
+        ['G6'],
       );
     });
 

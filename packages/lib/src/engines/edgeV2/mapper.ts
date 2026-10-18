@@ -4,10 +4,10 @@
  */
 import {
   createEngineMapper,
-  type GoalNode,
-  type GoalTreeType,
-  type Resource,
-  type Task,
+  useIstarDefaultNaming,
+  type IstarNaming,
+  type IstarProps,
+  type KindNode,
 } from '@goal-controller/goal-tree';
 import { propertyKeys } from '@goal-controller/dialect';
 import { edgeV2 } from './definition';
@@ -49,53 +49,51 @@ export interface EdgeGoalPropsResolved {
 }
 
 /**
- * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees
- * Engine types are explicit, property types are inferred from the dialect;
- * what it makes of them is edgeFamily's (edge and edgeV2 read them the same)
+ * Edge Engine Mapper for creating EDGE/PRISM-compatible goal trees: the iStar
+ * reading, an entry per kind. What it makes of the properties is edgeFamily's
+ * (edge and edgeV2 read them the same).
  */
-export const edgeEngineMapper = createEngineMapper<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
->()({
+export const edgeEngineMapper = createEngineMapper({
   // goal texts are read in the definition's dialect (goal-tree derives the reader)
   dialect: edgeV2,
-  mapGoalProps: edgeGoalProps,
-
-  mapTaskProps: edgeTaskProps,
-
-  mapResourceProps: edgeResourceProps,
-
-  afterCreationMapper: ({ node, allNodes, rawProperties }) => {
-    // Only process goal nodes for dependsOn resolution
-    if (rawProperties.nodeType !== 'goal' || node.type !== 'goal') {
-      // For non-goal nodes, return the existing engine props
-      return node.properties.engine;
-    }
-
-    return {
-      ...node.properties.engine,
-      dependsOn: edgeDependsOn(
-        node.id,
-        rawProperties,
-        allNodes as Map<string, EdgeGoalNode>,
-      ),
-    };
-  },
+  naming: useIstarDefaultNaming(),
+  elements: (entry) => [
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'],
+      mapProps: (input): EdgeGoalPropsResolved =>
+        input.kind === 'istar.Goal'
+          ? edgeGoalProps<GoalExecutionDetail, EdgeGoalNode>(input)
+          : edgeGoalProps<GoalExecutionDetail, EdgeGoalNode>({
+              id: input.id,
+              props: {},
+              raw: {},
+              executionDetail: input.executionDetail,
+            }),
+      // dependsOn names other goals: resolved once every node is built
+      afterCreation: ({ node, input, allNodes }): EdgeGoalPropsResolved =>
+        input.kind === 'istar.Goal'
+          ? {
+              ...node.properties.engine,
+              dependsOn: edgeDependsOn<EdgeGoalNode>(node.id, input, allNodes),
+            }
+          : { ...node.properties.engine, dependsOn: [] },
+    }),
+    entry({ kind: 'istar.Task', mapProps: edgeTaskProps }),
+    entry({ kind: 'istar.Resource', mapProps: edgeResourceProps }),
+  ],
 });
 
 /**
- * Type aliases for Edge-specific tree types
+ * Edge-specific tree types. A goal's dependsOn holds goal nodes, so the node
+ * type is written out rather than taken from the mapper (`NodeOf` would be
+ * circular).
  */
-export type EdgeGoalNode = GoalNode<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
+export type EdgeNode = KindNode<
+  IstarProps<EdgeGoalPropsResolved, EdgeTaskProps, EdgeResourceProps>,
+  IstarNaming,
+  'istar'
 >;
-export type EdgeTask = Task<EdgeTaskProps, EdgeResourceProps>;
-export type EdgeResource = Resource<EdgeResourceProps>;
-export type EdgeGoalTree = GoalTreeType<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
->;
+export type EdgeGoalNode = Extract<EdgeNode, { type: 'goal' }>;
+export type EdgeTask = Extract<EdgeNode, { type: 'task' }>;
+export type EdgeResource = Extract<EdgeNode, { type: 'resource' }>;
+export type EdgeGoalTree = EdgeNode[];

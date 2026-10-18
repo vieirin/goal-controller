@@ -30,7 +30,7 @@ export type PropertyInput =
   | { kind: 'text'; placeholder?: string }
   | { kind: 'long'; placeholder?: string }
   | { kind: 'integer'; min?: number }
-  | { kind: 'number' }
+  | { kind: 'number'; min?: number }
   /** `''` stands for "not set" (the property is removed) */
   | {
       kind: 'select';
@@ -86,10 +86,10 @@ const GOAL_TYPE: PropertyInput = {
   ],
 };
 
-/** utility, cost: the same key set on both goals and tasks, both engines, no engine check. */
+/** utility, cost: the same key set on both goals and tasks, both engines, non-negative (goal-controller#236). */
 const SHARED: readonly PropertySpec<'utility' | 'cost'>[] = [
-  { key: 'utility', input: { kind: 'number' } },
-  { key: 'cost', input: { kind: 'number' } },
+  { key: 'utility', input: { kind: 'number', min: 0 } },
+  { key: 'cost', input: { kind: 'number', min: 0 } },
 ];
 
 const GOAL_SPECS: readonly PropertySpec<EdgeKeys['goal']>[] = [

@@ -67,7 +67,7 @@ TS
 # no longer have (goal-controller#187): its KeysOf reads them from its dialect.
 # Its variables and maxRetries checks are gone too (#187, #251): a pairList of
 # int, an int with a min, are the dialect's, and its value check says what it
-# can't read
+# can't read. utility/cost take min: 0 (#236), as the Edge dialect does.
 {
   header packages/ui/lib/workbench/edgeProperties.ts
   show packages/ui/lib/workbench/edgeProperties.ts | sed \
@@ -75,7 +75,10 @@ TS
     -e "/validate: edgeGoalChecks.variables,/d" \
     -e "/validate: edgeGoalChecks.maxRetries,/d" \
     -e "/validate: edgeTaskChecks.maxRetries,/d" \
-    -e "/^  edgeTaskChecks,$/d" | perl -0pe '
+    -e "/^  edgeTaskChecks,$/d" \
+    -e "s/| { kind: 'number' }/| { kind: 'number'; min?: number }/" \
+    -e "s/no engine check\./non-negative (goal-controller#236)./" \
+    -e "s/input: { kind: 'number' }/input: { kind: 'number', min: 0 }/g" | perl -0pe '
     s{/\*\* The keys an engine mapper reads, per node kind\. \*/\ntype KeysOf<M> = .*?\n  : never;\n}{/** The keys an engine mapper reads, per node kind: its dialect\x27s. */
 type KeysOf<M> = M extends {
   dialect: {

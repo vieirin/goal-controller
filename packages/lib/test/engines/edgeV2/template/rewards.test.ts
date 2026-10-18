@@ -60,19 +60,15 @@ describe('edgeV2 rewards', () => {
     );
   });
 
-  it('rejects values that are not non-negative numbers', () => {
+  it('writes no line when the mapper left cost empty (dialect rejected it)', () => {
+    // #236: the template no longer parses; a bad value never reaches it
     const nodes = nodesOf(WITH_REWARDS);
     const t1 = GoalTree.allByType(nodes, 'task').find(
       (task) => task.id === 'T1',
     );
     assert.ok(t1);
-    t1.properties.engine.cost = 'high';
-    assert.throws(
-      () => rewardsTemplate({ gm: nodes }),
-      /T1 has cost "high"; it must be a non-negative number/,
-    );
-    t1.properties.engine.cost = '-2';
-    assert.throws(() => rewardsTemplate({ gm: nodes }), /T1 has cost "-2"/);
+    t1.properties.engine.cost = '';
+    assert.doesNotMatch(rewardsTemplate({ gm: nodes }), /pursue_T1/);
   });
 });
 
@@ -146,12 +142,11 @@ describe('edgeV2 rewards: the texts it accepts (#236 characterization)', () => {
         assert.strictEqual(rewardOf(key, text), 'none', JSON.stringify(text));
     });
 
-    it(`${key}: throws for a negative number, -0 included`, () => {
+    it(`${key}: writes no line for a negative number (dialect min: 0, #236)`, () => {
+      // #236: changed (was a throw from the template's regex): below min the
+      // mapper gives '', and -0 is a zero reward
       for (const text of ['-2', '-0'])
-        assert.strictEqual(
-          rewardOf(key, text),
-          `throws [INVALID MODEL]: ${id} has ${key} "${text}"; it must be a non-negative number`,
-        );
+        assert.strictEqual(rewardOf(key, text), 'none', JSON.stringify(text));
     });
   }
 });

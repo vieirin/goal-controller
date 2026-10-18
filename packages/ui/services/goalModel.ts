@@ -17,6 +17,8 @@ import {
   kaosdocGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
+  type EdgeGoalTree,
+  type EdgeV2GoalTree,
   type EngineMapper,
   type KaosdocGoalModel,
   type GoalTreeType,
@@ -109,12 +111,54 @@ export const GoalModel = {
     }
   },
 
-  parseForEdge(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeEngineMapper, options);
+  /**
+   * Edge onto entries (goal-controller#215): KindNode tree; EdgeGoalTree is
+   * written out because dependsOn is self-referential.
+   */
+  parseForEdge(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): ParseModelResult<EdgeGoalTree> {
+    const parseResult = this.parseModel(
+      modelJson,
+      options,
+      edgeEngineMapper.dialect,
+    );
+    if (!parseResult.success) return parseResult;
+    try {
+      const tree = GoalTree.fromModel(parseResult.model, edgeEngineMapper)
+        .nodes as EdgeGoalTree;
+      return { success: true, model: parseResult.model, tree };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
   },
 
-  parseForEdgeV2(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeV2EngineMapper, options);
+  parseForEdgeV2(
+    modelJson: string,
+    options: ParseOptions = {},
+  ): ParseModelResult<EdgeV2GoalTree> {
+    const parseResult = this.parseModel(
+      modelJson,
+      options,
+      edgeV2EngineMapper.dialect,
+    );
+    if (!parseResult.success) return parseResult;
+    try {
+      const tree = GoalTree.fromModel(parseResult.model, edgeV2EngineMapper)
+        .nodes as EdgeV2GoalTree;
+      return { success: true, model: parseResult.model, tree };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
   },
 
   parseForSleec(modelJson: string, options: ParseOptions = {}) {

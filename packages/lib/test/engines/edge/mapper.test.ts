@@ -89,11 +89,37 @@ describe('edgeEngineMapper', () => {
       edgeEngineMapper,
     );
     const quality = GoalTree.allByType(tree.nodes, 'goal').find(
-      (node) => node.properties.isQuality,
+      (node) => node.kind === 'istar.Quality',
     );
     if (!quality) throw new Error('Quality not found in the tree');
 
     assert.strictEqual(quality.properties.engine.utility, '');
     assert.strictEqual(quality.properties.engine.cost, '');
+  });
+
+  it('rejects a dependsOn that names a quality, as the check does (#266)', () => {
+    const original = Model.load(
+      '../../examples/edge/experiments/1-minimal/1-minimal.txt',
+    );
+    const goal = [...original.elements.values()].find((element) =>
+      element.name.startsWith('G2:'),
+    );
+    const root = [...original.elements.values()].find((element) =>
+      element.name.startsWith('G1:'),
+    );
+    if (!goal || !root) throw new Error('G1/G2 not found in the model');
+    const elements = new Map(original.elements);
+    elements.set(goal.id, { ...goal, kind: 'istar.Quality' });
+    elements.set(root.id, {
+      ...root,
+      customProperties: { ...root.customProperties, dependsOn: 'G2' },
+    });
+    assert.throws(
+      () => GoalTree.fromModel({ ...original, elements }, edgeEngineMapper),
+      {
+        message:
+          '[INVALID MODEL]: Dependency G2 for node G1 must be a goal, got quality',
+      },
+    );
   });
 });

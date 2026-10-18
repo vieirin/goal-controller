@@ -91,14 +91,16 @@
       {
         "key": "utility",
         "value": {
-          "type": "number"
+          "type": "number",
+          "min": 0
         },
         "help": "the utility reward of achieving it"
       },
       {
         "key": "cost",
         "value": {
-          "type": "number"
+          "type": "number",
+          "min": 0
         },
         "help": "the cost reward of pursuing it"
       },
@@ -164,14 +166,16 @@
       {
         "key": "utility",
         "value": {
-          "type": "number"
+          "type": "number",
+          "min": 0
         },
         "help": "the utility reward of achieving it"
       },
       {
         "key": "cost",
         "value": {
-          "type": "number"
+          "type": "number",
+          "min": 0
         },
         "help": "the cost reward of pursuing it"
       }

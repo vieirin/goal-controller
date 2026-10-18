@@ -1,12 +1,15 @@
 /**
- * Node namespace - Utilities for working with individual tree nodes
+ * Node namespace - Utilities for working with individual tree nodes.
+ * Accepts both the per-role TreeNode shapes and KindNode (goal-controller#215).
  */
-import {
-  childrenWithMaxRetries as _childrenWithMaxRetries,
-  childrenWithTasksAndResources,
-} from './internal/traversal';
 import { goalRootId as _goalRootId } from './internal/utils';
-import type { GoalNode, Resource, Task, TreeNode } from './types/';
+
+/** What Node's helpers need of a child: its type and id. */
+export type NodeChild = { type: string; id: string };
+
+type WithEngineRetries = NodeChild & {
+  properties: { engine: { maxRetries: number } };
+};
 
 /**
  * Node namespace containing type guards and node utilities
@@ -16,30 +19,20 @@ export const Node = {
   // Type Guards
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Check if a node is a GoalNode
-   */
-  isGoal<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> {
+  /** Whether the node is named a goal (includes Qualities under the iStar reading). */
+  isGoal<T extends { type: string }>(node: T): node is T & { type: 'goal' } {
     return node.type === 'goal';
   },
 
-  /**
-   * Check if a node is a Task
-   */
-  isTask<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is Task<TTaskEngine, TResourceEngine> {
+  /** Whether the node is a task. */
+  isTask<T extends { type: string }>(node: T): node is T & { type: 'task' } {
     return node.type === 'task';
   },
 
-  /**
-   * Check if a node is a Resource
-   */
-  isResource<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is Resource<TResourceEngine> {
+  /** Whether the node is a resource. */
+  isResource<T extends { type: string }>(
+    node: T,
+  ): node is T & { type: 'resource' } {
     return node.type === 'resource';
   },
 
@@ -48,31 +41,33 @@ export const Node = {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Get all children of a node (including tasks and resources)
+   * All children of a node (goals, tasks and resources under the iStar reading).
    */
-  children<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node:
-      | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-      | Task<TTaskEngine, TResourceEngine>,
-  ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
-    return childrenWithTasksAndResources(node);
+  children(node: {
+    children?: readonly NodeChild[];
+    tasks?: readonly NodeChild[];
+    resources?: readonly NodeChild[];
+  }): NodeChild[] {
+    return [
+      ...(node.children ?? []),
+      ...(node.tasks ?? []),
+      ...(node.resources ?? []),
+    ];
   },
 
   /**
-   * Get children that have retry configuration (maxRetries > 0)
-   * Requires engine props to have maxRetries field
+   * Children that have retry configuration (maxRetries > 0).
    */
-  childrenWithRetries<
-    TGoalEngine extends { maxRetries: number },
-    TTaskEngine extends { maxRetries: number },
-    TResourceEngine,
-  >(
-    node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): Array<
-    | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-    | Task<TTaskEngine, TResourceEngine>
-  > {
-    return _childrenWithMaxRetries(node);
+  childrenWithRetries(node: {
+    children?: readonly WithEngineRetries[];
+    tasks?: readonly WithEngineRetries[];
+  }): WithEngineRetries[] {
+    return Node.children(node).filter(
+      (child): child is WithEngineRetries =>
+        child.type !== 'resource' &&
+        'properties' in child &&
+        (child as WithEngineRetries).properties.engine.maxRetries > 0,
+    );
   },
 
   /**

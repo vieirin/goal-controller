@@ -171,6 +171,17 @@ const readValue = (
       if (config.max !== undefined && n > config.max) return undefined;
       return n;
     }
+    case 'number': {
+      const read = parseValue('number', text);
+      if (read.errors.length) return undefined;
+      // outside its bounds it isn't its type, as valueProblem reports
+      // (goal-controller#236)
+      const n = read.value;
+      if (n === null) return null;
+      if (config.min !== undefined && n < config.min) return undefined;
+      if (config.max !== undefined && n > config.max) return undefined;
+      return n;
+    }
     case 'assertion': {
       if (!config.separator) {
         const read = parseValue('assertion', text);
