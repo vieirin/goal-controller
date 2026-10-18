@@ -545,7 +545,7 @@ describe("iStar-DT (#187 characterization): a utility link's weight", () => {
 });
 
 describe("iStar-DT (#187 characterization): the actor's sets and identifiers", () => {
-  it('crossRun and exported: listItems, trimmed, the empty ones dropped; initializations: its pairs', () => {
+  it('crossRun and exported: a nameList, unset when written with an error (#286); initializations: its pairs', () => {
     const model = modelOf('order', (m) => {
       m.actors[0].customProperties = {
         crossRun: ' cost ,, happyCustomer, ',
@@ -553,7 +553,10 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
         initializations: ' cost : 5 , happyCustomer, overallQuality:x:y,,',
       };
     });
-    assert.deepStrictEqual(model.crossRun, ['cost', 'happyCustomer']);
+    // #286: an empty name and a trailing comma: no nameList, unset (the
+    // dialect reports it; listItems dropped them, read cost, happyCustomer,
+    // written transStateStructure([cost(_),happyCustomer(_)]))
+    assert.deepStrictEqual(model.crossRun, []);
     assert.deepStrictEqual(model.exported, []);
     // #187: invalid value: a pair without its value, one with two colons:
     // no pairList, unset (pairItems read cost:5, happyCustomer:'',
@@ -563,11 +566,17 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
     assert.deepStrictEqual(
       written(model, /^(transStateStructure|discreteExportedSet|init)\(.*$/gm),
       [
-        'transStateStructure([cost(_),happyCustomer(_)]).',
+        // #286: no cross-run set; #294: an empty one is written broken
+        'transStateStructure(]).',
         'discreteExportedSet([]).',
         'init([]).',
       ],
     );
+    // spaces around the names are not an error (#286)
+    const padded = modelOf('order', (m) => {
+      m.actors[0].customProperties.crossRun = ' cost , happyCustomer ';
+    });
+    assert.deepStrictEqual(padded.crossRun, ['cost', 'happyCustomer']);
   });
 
   it("initializations: each value written as it is, unchecked; a predicate's dropped", () => {

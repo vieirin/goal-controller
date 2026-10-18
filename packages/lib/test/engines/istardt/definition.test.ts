@@ -216,6 +216,24 @@ describe('iStar-DT in the Notation view', () => {
       assert.deepStrictEqual(notationEdits(istardt, text, view), []);
     });
 
+  it('reports a cross-run set that is no list of names (#286)', () => {
+    const view = goalView(
+      parsePistar(json('istardt-order/Order.txt'), { fileMetamodel: true }),
+      istardt,
+    );
+    const { text } = notationDocument(istardt, view);
+    const broken = text.replace(
+      '{crossRun = cost, happyCustomer}',
+      '{crossRun = cost,, happyCustomer}',
+    );
+    assert.notStrictEqual(broken, text);
+    const context = contextFromView(istardt, view, []);
+    assert.deepStrictEqual(
+      documentDiagnostics(istardt, broken, context).map((d) => d.message),
+      ['Names, comma-separated (cost, roomTemperature)'],
+    );
+  });
+
   it('writes the actor’s sets as its actor line, goals and tasks with their properties', () => {
     const view = goalView(
       parsePistar(json('istardt-order/Order.txt'), { fileMetamodel: true }),

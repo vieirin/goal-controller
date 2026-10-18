@@ -1,7 +1,7 @@
 /**
  * How engines that read a model as a graph (iStar-DT, Tropos4AS) read an
- * element's text and their list properties: the id its text starts with
- * and its name, a comma-separated list, a `name:value` list.
+ * element's text: the id its text starts with and its name. Their list
+ * properties are the dialect's values (goal-controller#217, #286).
  */
 
 const ID = /^([A-Z]+)(\d+)\s*:\s*/;
@@ -15,19 +15,3 @@ export const splitText = (
     ? { id: `${match[1]}${match[2]}`, name: text.slice(match[0].length) }
     : { id: null, name: text };
 };
-
-/** A comma-separated list's items, trimmed, without the empty ones. */
-export const listItems = (text: string | undefined): string[] =>
-  (text ?? '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-/** A `name:value` list's pairs, in order. */
-export const pairItems = (text: string | undefined): [string, string][] =>
-  listItems(text).map((item) => {
-    const colon = item.indexOf(':');
-    return colon < 0
-      ? [item, '']
-      : [item.slice(0, colon).trim(), item.slice(colon + 1).trim()];
-  });
