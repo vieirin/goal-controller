@@ -18,9 +18,11 @@ import {
   mutroseEngineMapper,
   sleecEngineMapper,
   type EngineMapper,
+  type GodaGoalTree,
   type KaosdocGoalModel,
   type GoalTreeType,
   type IStarModel,
+  type MutroseGoalTree,
 } from '@goal-controller/lib';
 
 export interface ParseError {
@@ -109,6 +111,32 @@ export const GoalModel = {
     }
   },
 
+  /**
+   * A mapper by kind (goal-controller#215): same as `parseWith`, its tree
+   * typed by the caller (`NodeOf` / the engine's tree alias).
+   */
+  parseWithEntries<TTree>(
+    modelJson: string,
+    mapper: { dialect: MapperDialect },
+    options: ParseOptions = {},
+  ): ParseModelResult<TTree> {
+    const parseResult = this.parseModel(modelJson, options, mapper.dialect);
+    if (!parseResult.success) return parseResult;
+    try {
+      const tree = GoalTree.fromModel(
+        parseResult.model,
+        mapper as Parameters<typeof GoalTree.fromModel>[1],
+      ).nodes as TTree;
+      return { success: true, model: parseResult.model, tree };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
+  },
+
   parseForEdge(modelJson: string, options: ParseOptions = {}) {
     return this.parseWith(modelJson, edgeEngineMapper, options);
   },
@@ -122,7 +150,11 @@ export const GoalModel = {
   },
 
   parseForMutrose(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, mutroseEngineMapper, options);
+    return this.parseWithEntries<MutroseGoalTree>(
+      modelJson,
+      mutroseEngineMapper,
+      options,
+    );
   },
 
   /**
@@ -181,6 +213,10 @@ export const GoalModel = {
   },
 
   parseForGoda(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, godaEngineMapper, options);
+    return this.parseWithEntries<GodaGoalTree>(
+      modelJson,
+      godaEngineMapper,
+      options,
+    );
   },
 };
