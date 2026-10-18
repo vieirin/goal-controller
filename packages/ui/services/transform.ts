@@ -10,11 +10,14 @@ import {
   initLogger,
   initEdgeV2Logger,
   mutroseOutput,
+  refuseOnPropertyErrors,
   sleecOutput,
   type EngineOutputFile,
   type LoggerReport,
 } from '@goal-controller/lib';
 import { GoalModel } from './goalModel';
+import { parseModel } from '../lib/workbench/dialects';
+import { ENGINE_LIST } from '../lib/workbench/engineDialects';
 import type {
   EdgeV2TaskLayout,
   GodaVariant,
@@ -44,9 +47,19 @@ export type TransformOptions = {
   previousOutput?: string;
 };
 
+/** The model as its dialect reads it, or null when it doesn't parse (the engine's parse says why). */
+const readModel = (modelJson: string) => {
+  try {
+    return parseModel(modelJson);
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Runs the lib generator for the chosen engine: its files (one primary).
- * Throws on parse or generation failure.
+ * Throws on parse or generation failure, and on an error the dialect reports
+ * on a property the engine reads (goal-controller#274).
  */
 export const transform = (
   options: TransformOptions,
@@ -76,6 +89,10 @@ export const transform = (
 
   try {
     const modelName = fileName || 'model';
+    // what the dialect reports wrong on a property the engine reads stops it (#274)
+    const istar = readModel(modelJson);
+    const definition = ENGINE_LIST.find(({ id }) => id === engine);
+    if (istar && definition) refuseOnPropertyErrors(definition, istar);
     let files: EngineOutputFile[];
     if (engine === 'edge') {
       const parseResult = GoalModel.parseForEdge(modelJson, { reduce });

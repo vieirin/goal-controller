@@ -8,10 +8,22 @@
 import type {
   AnyDialect,
   CheckNameOf,
+  DefinitionContext,
   OptionDefinition,
   ProjectResourceKindOf,
 } from '@goal-controller/dialect';
-import type { EngineMapper, IStarModel } from '@goal-controller/goal-tree';
+import {
+  checkContextOf,
+  contextFromView,
+  documentDiagnostics,
+  notationDocument,
+  type Diagnostic,
+} from '@goal-controller/goal-language';
+import {
+  goalView,
+  type EngineMapper,
+  type IStarModel,
+} from '@goal-controller/goal-tree';
 import {
   analysesProblems,
   type Analyses,
@@ -66,6 +78,12 @@ export type EngineDefinition = {
   pool?: PoolRegistration;
   /** its models declare its dialect's extension's kinds in their file (the `"metamodel"` block) */
   fileKinds?: true;
+  /**
+   * the properties (`goal.maxRetries`, `istar.ContributionLink.context`,
+   * `actor.key`) whose value it reads as unset when the dialect reports an
+   * error on it, on purpose: generation goes on for these (goal-controller#274)
+   */
+  intendedDefaults?: readonly string[];
 };
 
 /**
@@ -134,7 +152,24 @@ const engineProblems = (engine: EngineDefinition): string[] => {
     ...(engine.fileKinds && !dialect?.extension
       ? ['fileKinds without an extension (its dialect declares none)']
       : []),
+    ...(engine.intendedDefaults ?? []).flatMap((where) =>
+      dialect && declaredProperties(dialect).has(where)
+        ? []
+        : [`intendedDefaults names ${where}, not a property of its dialect`],
+    ),
   ];
+};
+
+/** Every property a dialect declares, with its owner (`goal.maxRetries`). */
+const declaredProperties = (dialect: AnyDialect): Set<string> => {
+  const lists: [string, readonly { key: string }[]][] = [
+    ...Object.entries(dialect.properties),
+    ...Object.entries(dialect.links ?? {}),
+    ['actor', dialect.actors ?? []],
+  ];
+  return new Set(
+    lists.flatMap(([owner, list]) => list.map(({ key }) => `${owner}.${key}`)),
+  );
 };
 
 /**
@@ -168,4 +203,84 @@ export const registerEngines = <const L extends readonly Engine[]>(
       throw new Error(`engine ${id} is registered twice`);
   });
   return Object.freeze(engines) as L;
+};
+
+/** What the gate refuses on: a dialect error on a property, where it is. */
+export type PropertyError = Diagnostic & { key: string };
+
+/**
+ * The errors the dialect reports on the properties an engine reads
+ * (goal-controller#274), as the Problems panel shows them: the model's
+ * Notation document read in the engine's dialect, its named checks run with
+ * the model in scope. A value the dialect can't read is unset in `props`, so
+ * an engine would generate as if it weren't written. Warnings, and the
+ * properties it lists in `intendedDefaults`, are not errors here; an engine
+ * without a dialect, or of another framework (whose models the panel reads
+ * through the framework's own checks), has none.
+ */
+export const propertyErrors = (
+  engine: Engine,
+  model: IStarModel,
+  /** the project's resources, parsed: checks that read them (a MutRoSe world) run */
+  projectResources?: DefinitionContext['projectResources'],
+): PropertyError[] => {
+  const { dialect, checks = {} } = engine;
+  if (!dialect || (dialect.framework ?? 'istar-2.0') !== 'istar-2.0') return [];
+  const tree = goalView(model, dialect);
+  const context: DefinitionContext = {
+    ...contextFromView(dialect, tree, []),
+    ...(projectResources &&
+      Object.keys(projectResources).length > 0 && { projectResources }),
+  };
+  const intended = new Set(engine.intendedDefaults ?? []);
+  // a link's or an actor's diagnostic: its owner is any link kind, or `actor`
+  const ownersOf = (elementId: string | undefined): string[] => {
+    const kind = elementId ? context.elements[elementId]?.kind : undefined;
+    return kind !== undefined
+      ? [kind]
+      : [...Object.keys(dialect.links ?? {}), 'actor'];
+  };
+  return documentDiagnostics(
+    dialect,
+    notationDocument(dialect, tree).text,
+    context,
+    {
+      runCheck: (name, input, self) =>
+        checks[name]?.(input, checkContextOf(context, self)) ?? null,
+    },
+  ).filter(
+    (diagnostic): diagnostic is PropertyError =>
+      diagnostic.severity === 'error' &&
+      diagnostic.key !== undefined &&
+      !ownersOf(diagnostic.elementId).some((owner) =>
+        intended.has(`${owner}.${diagnostic.key}`),
+      ),
+  );
+};
+
+/** An error as one line: `G3 maxRetries: …`. */
+const errorLine = ({ elementId, key, message }: PropertyError): string =>
+  `${elementId ? `${elementId} ` : ''}${key}: ${message}`;
+
+/**
+ * Refuses to generate from a model with an error on a property the engine
+ * reads (goal-controller#274, `propertyErrors`): throws, naming the first
+ * (its element as `(node G3)`, as Problems marks it) and listing every one.
+ */
+export const refuseOnPropertyErrors = (
+  engine: Engine,
+  model: IStarModel,
+  projectResources?: DefinitionContext['projectResources'],
+): void => {
+  const errors = propertyErrors(engine, model, projectResources);
+  const [first] = errors;
+  if (!first) return;
+  const more =
+    errors.length > 1 ? ` (and ${errors.length - 1} more, in Problems)` : '';
+  throw new Error(
+    [
+      `${engineLabel(engine)} does not generate from a model with an error on a property it reads: ${errorLine(first)}${first.elementId ? ` (node ${first.elementId})` : ''}${more}`,
+      ...errors.map((error) => `- ${errorLine(error)}`),
+    ].join('\n'),
+  );
 };
