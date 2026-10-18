@@ -44,9 +44,10 @@ const SOURCES = [
 ];
 
 const get = async (url, as) => {
-  const response = await fetch(url, {
-    headers: { 'User-Agent': 'goal-controller-grl-stress' },
-  });
+  const headers = { 'User-Agent': 'goal-controller-grl-stress' };
+  if (process.env.GITHUB_TOKEN)
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const response = await fetch(url, { headers });
   if (!response.ok)
     throw new Error(`${url}: ${response.status} ${response.statusText}`);
   return as === 'json' ? response.json() : response.text();

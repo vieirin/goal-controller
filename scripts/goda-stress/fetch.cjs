@@ -27,9 +27,10 @@ const CACHE = path.join(ROOT, '.cache', 'goda', COMMIT);
 const EXAMPLES = path.join(CACHE, 'examples');
 
 const get = async (url, as) => {
-  const response = await fetch(url, {
-    headers: { 'User-Agent': 'goal-controller-goda-stress' },
-  });
+  const headers = { 'User-Agent': 'goal-controller-goda-stress' };
+  if (process.env.GITHUB_TOKEN)
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const response = await fetch(url, { headers });
   if (!response.ok)
     throw new Error(`${url}: ${response.status} ${response.statusText}`);
   if (as === 'json') return response.json();

@@ -51,6 +51,8 @@ jobs:
         run: pnpm run build:lib
 
       - name: Run the stress test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/${{ matrix.engine }}-stress/run.cjs ${{ matrix.args }}
 
       - name: Keep the results
