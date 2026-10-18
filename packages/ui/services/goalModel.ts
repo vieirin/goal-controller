@@ -2,6 +2,7 @@ import {
   GoalTree,
   Model,
   type KindEngineMapper,
+  type MapperDialect,
   type NodeOf,
   type RootReading,
 } from '@goal-controller/goal-tree';
@@ -18,6 +19,8 @@ import {
   kaosdocGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
+  type EdgeGoalTree,
+  type EdgeV2GoalTree,
   type EngineMapper,
   type GodaGoalTree,
   type KaosdocGoalModel,
@@ -147,12 +150,21 @@ export const GoalModel = {
     }
   },
 
+  /** Edge onto entries (#215): EdgeGoalTree written out (circular dependsOn). */
   parseForEdge(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeEngineMapper, options);
+    return this.parseWithEntries<EdgeGoalTree>(
+      modelJson,
+      edgeEngineMapper,
+      options,
+    );
   },
 
   parseForEdgeV2(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeV2EngineMapper, options);
+    return this.parseWithEntries<EdgeV2GoalTree>(
+      modelJson,
+      edgeV2EngineMapper,
+      options,
+    );
   },
 
   parseForSleec(modelJson: string, options: ParseOptions = {}) {

@@ -92,6 +92,7 @@ const build = (
 
 type EnumOptions = { open?: boolean; caseInsensitive?: true };
 const INT_KEYS = ['min', 'max'] as const;
+const NUMBER_KEYS = ['min', 'max'] as const;
 const ASSERTION_KEYS = [
   'resolves',
   'prefixes',
@@ -106,6 +107,7 @@ const EXPRESSION_KEYS = ['resolves', 'functions', 'members'] as const;
 const OCL_KEYS = ['declaredBy', 'candidates', 'memberCandidates'] as const;
 
 type IntOptions = { min?: number; max?: number };
+type NumberOptions = { min?: number; max?: number };
 type AssertionOptions = {
   resolves: readonly (DialectKind | 'variable')[];
   prefixes?: readonly AssertionPrefix[];
@@ -157,10 +159,14 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C> & IntOptions>,
   ): Built<K, 'int', P, (typeof INT_KEYS)[number]> =>
     build(key, 'int', rest, INT_KEYS) as never,
-  number: <const K extends string, const P extends PropertyOptions<C>>(
+  number: <
+    const K extends string,
+    const P extends PropertyOptions<C> & NumberOptions,
+  >(
     key: K,
-    rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'number', P, never> => build(key, 'number', rest, []) as never,
+    rest: Exact<P, PropertyOptions<C> & NumberOptions>,
+  ): Built<K, 'number', P, (typeof NUMBER_KEYS)[number]> =>
+    build(key, 'number', rest, NUMBER_KEYS) as never,
   text: <const K extends string, const P extends PropertyOptions<C>>(
     key: K,
     rest: Exact<P, PropertyOptions<C>>,

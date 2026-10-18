@@ -23,7 +23,7 @@ export type PropertyInput =
   | { kind: 'text'; placeholder?: string }
   | { kind: 'long'; placeholder?: string }
   | { kind: 'integer'; min?: number }
-  | { kind: 'number' }
+  | { kind: 'number'; min?: number }
   /** `''` stands for "not set" (the property is removed) */
   | {
       kind: 'select';
@@ -67,7 +67,9 @@ export const inputFor = (
         ? { kind: 'integer' }
         : { kind: 'integer', min: value.min };
     case 'number':
-      return { kind: 'number' };
+      return value.min === undefined
+        ? { kind: 'number' }
+        : { kind: 'number', min: value.min };
     case 'assertion':
     case 'expression':
     case 'ocl':

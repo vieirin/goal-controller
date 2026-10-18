@@ -196,6 +196,18 @@ const intProblem = (
   return null;
 };
 
+const numberProblem = (
+  text: string,
+  { min, max }: { min?: number; max?: number },
+): string | null => {
+  const read = parseValue('number', text);
+  if (read.errors.length) return `Not a number: ${text}`;
+  const n = read.value ?? NaN;
+  if (min !== undefined && n < min) return `At least ${min}`;
+  if (max !== undefined && n > max) return `At most ${max}`;
+  return null;
+};
+
 /** The first boolean a condition compares with `!=` (`x != false`), as written, if any. */
 const negatedOf = (tree: AssertionTree | null): string | null => {
   switch (tree?.kind) {
@@ -321,9 +333,7 @@ export const valueProblem = (
     case 'int':
       return intProblem(text, value);
     case 'number':
-      return parseValue('number', text).errors.length
-        ? `Not a number: ${text}`
-        : null;
+      return numberProblem(text, value);
     case 'bool':
       return parseValue('bool', text).errors.length
         ? `true or false, not ${text}`

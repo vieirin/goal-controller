@@ -89,7 +89,8 @@ export const decisionVariableName = (
 
 // Check if a goal has decision variables or children for achievability discretization
 const hasDecisionSpace = (goal: EdgeGoalNode): boolean => {
-  const hasDecisionVars = goal.properties.engine.decision.decisionVars.length > 0;
+  const hasDecisionVars =
+    goal.properties.engine.decision.decisionVars.length > 0;
   const hasChildren = (goal.children?.length ?? 0) > 0;
   return hasDecisionVars || hasChildren;
 };

@@ -70,7 +70,7 @@ const decisionOf = (variables: EdgeValues<'goal'>['variables']): Decision => {
 
 /**
  * A goal's properties, its execution detail (in the engine's dialect) among them; its
- * dependencies are afterCreationMapper's (edgeDependsOn).
+ * dependencies are the entry's afterCreation's (edgeGoalWithDependencies).
  */
 export const edgeGoalProps = <TExecution, TGoalNode>({
   props,
@@ -78,7 +78,7 @@ export const edgeGoalProps = <TExecution, TGoalNode>({
   id,
   executionDetail,
 }: Input<'goal'> & { executionDetail: TExecution | null }) => {
-  // dependsOn needs the whole tree: checked later, in afterCreationMapper
+  // dependsOn needs the whole tree: checked later, in the entry's afterCreation
   const issue = firstGoalOrTaskIssue('goal', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 
@@ -127,6 +127,14 @@ export const edgeResourceProps = ({
   return { variable };
 };
 
+/** A node as edgeDependsOn looks it up: its type, and its kind when entries set one. */
+type DependsOnNode = {
+  type: string;
+  kind?: string;
+  // open: per-role nodes have isQuality; entries have engine (goal-controller#266)
+  properties?: object;
+};
+
 /**
  * A goal's dependencies, the nodes its dependsOn names (as allNodes holds them), once
  * the tree is built: throws edgeGoalChecks.dependsOn's message for an id that is no
@@ -134,12 +142,10 @@ export const edgeResourceProps = ({
  * names no goal of the model (goal-controller#270) still refuses when the text is a
  * readable list — dropping it would change generation.
  */
-export const edgeDependsOn = <
-  TNode extends { type: 'goal' | 'task' | 'resource' },
->(
+export const edgeDependsOn = <TNode = DependsOnNode>(
   self: string,
   { props, raw }: Omit<Input<'goal'>, 'id'>,
-  allNodes: Map<string, TNode>,
+  allNodes: { get(id: string): unknown },
 ): TNode[] => {
   // #270: raw keeps the text; props is unset when an id names no element, or no
   // goal. Re-read the ids so edgeGoalChecks.dependsOn still throws as before.
@@ -158,8 +164,18 @@ export const edgeDependsOn = <
     {
       self,
       kindOf: (id) => {
-        const type = allNodes.get(id)?.type;
-        return type && ISTAR_KIND_OF[type];
+        const node = allNodes.get(id) as DependsOnNode | undefined | null;
+        if (!node) return undefined;
+        // entries: kind is on the node; per-role sugar: Quality is a goal with
+        // isQuality (goal-controller#266)
+        if (node.kind) return node.kind;
+        const isQuality =
+          node.properties != null &&
+          'isQuality' in node.properties &&
+          Boolean((node.properties as { isQuality?: boolean }).isQuality);
+        if (node.type === 'goal' && isQuality) return ISTAR_KIND_OF.quality;
+        const type = node.type as keyof typeof ISTAR_KIND_OF;
+        return ISTAR_KIND_OF[type];
       },
     },
   );

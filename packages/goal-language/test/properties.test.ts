@@ -420,6 +420,44 @@ describe('readProperties (#187)', () => {
     });
   });
 
+  it('leaves a number outside its bounds unset, as valueProblem reports it (#236)', () => {
+    const bounded = {
+      properties: {
+        goal: [
+          property.number('utility', { min: 0, help: '' }),
+          property.number('cost', { min: 0, max: 10, help: '' }),
+        ],
+      },
+    };
+    const read = (stored: Record<string, string>) =>
+      readProperties(bounded, { element: 'goal' }, stored);
+    expect(read({ utility: '0', cost: '10' }).values).to.deep.equal({
+      utility: 0,
+      cost: 10,
+    });
+    expect(read({ utility: '1.5', cost: '0.25' }).values).to.deep.equal({
+      utility: 1.5,
+      cost: 0.25,
+    });
+    for (const [key, text, problem] of [
+      ['utility', '-1.5', 'At least 0'],
+      ['utility', '-0.01', 'At least 0'],
+      ['cost', '10.1', 'At most 10'],
+      ['cost', '-2', 'At least 0'],
+    ] as const) {
+      const record = read({ [key]: text });
+      expect(record.values, text).to.deep.equal({});
+      expect(record.text, text).to.deep.equal({ [key]: text });
+      const config = {
+        type: 'number',
+        min: 0,
+        ...(key === 'cost' && { max: 10 }),
+      } as const;
+      expect(valueProblem(config, text), text).to.equal(problem);
+    }
+    expect(read({ utility: '' }).values).to.deep.equal({ utility: null });
+  });
+
   it('reads a conditional value by its property trimmed, as the enum reads it (#234)', () => {
     // `bound` is an assertion when type is maintain, an int otherwise
     const { values } = readProperties(

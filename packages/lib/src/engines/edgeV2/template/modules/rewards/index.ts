@@ -6,27 +6,23 @@ import { goalNumberId } from '../goalModule/goalModules';
 type RewardNode = EdgeGoalNode | EdgeTask;
 
 /**
- * Reward value from a goal/task custom property. Empty or 0 means "no reward"
- * (no line is emitted); anything else must be a non-negative number.
+ * Reward value from a goal/task custom property. The mapper hands the text as
+ * written when the dialect reads a non-negative number, '' otherwise (#236);
+ * empty or 0 means "no reward" (no line is emitted).
  */
 const rewardValue = (
   node: RewardNode,
   property: 'utility' | 'cost',
 ): string | null => {
   const text = node.properties.engine[property].trim();
-  if (!text) {
-    return null;
-  }
-  if (!/^\d+(\.\d+)?$/.test(text)) {
-    throw new Error(
-      `[INVALID MODEL]: ${node.id} has ${property} "${text}"; it must be a non-negative number`,
-    );
-  }
+  if (!text) return null;
   return Number(text) === 0 ? null : text;
 };
 
 const rewardStructure = (name: string, lines: string[]): string =>
-  lines.length === 0 ? '' : `rewards "${name}"\n  ${lines.join('\n  ')}\nendrewards`;
+  lines.length === 0
+    ? ''
+    : `rewards "${name}"\n  ${lines.join('\n  ')}\nendrewards`;
 
 /**
  * Reward structures from the goal model's `cost` and `utility` properties

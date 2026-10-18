@@ -1,4 +1,3 @@
-import type { TreeNode } from '@goal-controller/goal-tree';
 import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
@@ -25,7 +24,7 @@ export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
-  children: TreeNode[],
+  children: Array<{ type: string; id: string }>,
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(

@@ -444,28 +444,25 @@ function runAfterCreation(
   trees.forEach(collect);
 
   // children first, as afterCreationMapper always ran: a node is given its
-  // children as built
+  // children as built. Mutate in place so a dependsOn (or any other) lookup
+  // in allNodes is the tree's own node, not a stale copy (goal-controller#233).
   const processed = (node: BuiltNode): BuiltNode => {
-    const children = node.children?.map(processed);
-    const tasks = node.tasks?.map(processed);
-    const resources = node.resources?.map(processed);
+    if (node.children) node.children = node.children.map(processed);
+    if (node.tasks) node.tasks = node.tasks.map(processed);
+    if (node.resources) node.resources = node.resources.map(processed);
     const after =
       mapper.entries.get(node.kind ?? '')?.afterCreation ??
       (node.type === 'goal' && mapper.legacy
         ? mapper.entries.get('istar.Goal')?.afterCreation
         : undefined);
     const input = context.inputs.get(node.id);
-    const engine =
-      after && input
-        ? after({ node, input, allNodes: allNodes as never, model })
-        : node.properties.engine;
-    return {
-      ...node,
-      ...(children && { children }),
-      ...(tasks && { tasks }),
-      ...(resources && { resources }),
-      properties: { ...node.properties, engine },
-    };
+    if (after && input) {
+      node.properties = {
+        ...node.properties,
+        engine: after({ node, input, allNodes: allNodes as never, model }),
+      };
+    }
+    return node;
   };
   const processTrees = (nodes: readonly unknown[]) =>
     (nodes as BuiltNode[]).map(processed) as never;
