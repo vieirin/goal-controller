@@ -1,9 +1,12 @@
-import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import { pursued, separator } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../../template/common';
 import { hasFailedAtLeastNTimes, hasFailedAtMostNTimes } from './common';
+import {
+  edgeChildren,
+  edgeIsResource,
+} from '../../../../../../edgeFamily/nodeAccess';
 
 /*
 G1: Goal[T1|T2]
@@ -100,11 +103,11 @@ export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
   currentChildId: string,
 ): string => {
-  const children = Node.children(goal);
+  const children = edgeChildren(goal);
   // Filter out resources - they don't have pursued state
   type PursueableNode = EdgeGoalNode | EdgeTask;
   const pursueableChildren = children.filter(
-    (child): child is PursueableNode => !Node.isResource(child),
+    (child): child is PursueableNode => !edgeIsResource(child),
   );
   const otherGoals = pursueableChildren.filter(
     (child: PursueableNode) => child.id !== currentChildId,

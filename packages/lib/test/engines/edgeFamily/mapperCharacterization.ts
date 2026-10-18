@@ -12,18 +12,11 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
-import type { EdgeGoalPropsResolved } from '../../../src/engines/edge/mapper';
-import type {
-  EdgeResourceProps,
-  EdgeTaskProps,
-} from '../../../src/engines/edge/types';
+import type { EdgeGoalTree } from '../../../src/engines/edge/mapper';
 
 type IStarModel = ReturnType<typeof Model.load>;
-type EdgeTree = GoalTree<
-  EdgeGoalPropsResolved,
-  EdgeTaskProps,
-  EdgeResourceProps
->;
+/** A GoalTree instance whose `.nodes` are an Edge kind-entries tree. */
+type EdgeTree = { nodes: EdgeGoalTree };
 
 /** G1 [T1#T2], G7 maintain [T4], G12 and G13 under G4's degradation, T8 needing R0. */
 const MODEL = (engine: 'edge' | 'edgeV2') =>
@@ -491,17 +484,23 @@ export const characterizeEdgeMapper = (
     it("are the goal's texts as written, '' when absent or empty", () => {
       const g12 = goal('G12', {});
       assert.deepStrictEqual([g12.utility, g12.cost], ['', '']);
-      for (const value of ['', '5', ' 5 ', '-1.5', '007']) {
+      for (const value of ['', '5', ' 5 ', '007']) {
         const engine = goal('G12', { utility: value, cost: value });
         assert.deepStrictEqual([engine.utility, engine.cost], [value, value]);
       }
+      // #236: below min 0 is unset (was passed through as '-1.5')
+      const negative = goal('G12', { utility: '-1.5', cost: '-1.5' });
+      assert.deepStrictEqual([negative.utility, negative.cost], ['', '']);
     });
 
     it("are the task's texts as written", () => {
-      for (const value of [' 5 ', '-1.5', '007']) {
+      for (const value of [' 5 ', '007']) {
         const engine = task('T8', { utility: value, cost: value });
         assert.deepStrictEqual([engine.utility, engine.cost], [value, value]);
       }
+      // #236: below min 0 is unset (was passed through as '-1.5')
+      const negative = task('T8', { utility: '-1.5', cost: '-1.5' });
+      assert.deepStrictEqual([negative.utility, negative.cost], ['', '']);
     });
 
     it("read a non-number as unset: ''", () => {
@@ -585,6 +584,28 @@ export const characterizeEdgeMapper = (
         { G12: { dependsOn: 'R0' } },
         '[INVALID MODEL]: Dependency R0 for node G12 must be a goal, got resource',
       );
+    });
+
+    it('throws for a dependsOn naming a quality, as the check does (#266)', () => {
+      // turn G13 into a Quality; G12 depends on it
+      const elements = new Map(original.elements);
+      const g13 = [...original.elements.values()].find((e) =>
+        e.name.startsWith('G13:'),
+      );
+      if (!g13) throw new Error('G13 not found in the model');
+      elements.set(g13.id, { ...g13, kind: 'istar.Quality' });
+      const g12 = [...original.elements.values()].find((e) =>
+        e.name.startsWith('G12:'),
+      );
+      if (!g12) throw new Error('G12 not found in the model');
+      elements.set(g12.id, {
+        ...g12,
+        customProperties: { ...g12.customProperties, dependsOn: 'G13' },
+      });
+      assert.throws(() => build({ ...original, elements }), {
+        message:
+          '[INVALID MODEL]: Dependency G13 for node G12 must be a goal, got quality',
+      });
     });
 
     it('reads ids without commas as unset: []', () => {

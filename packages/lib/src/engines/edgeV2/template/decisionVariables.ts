@@ -1,10 +1,7 @@
 import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree } from '../types';
 import { getLogger } from '../logger/logger';
-import {
-  DEFAULT_DISCRETISATION,
-  DISCRETISATION_CONSTANT,
-} from './common';
+import { DEFAULT_DISCRETISATION, DISCRETISATION_CONSTANT } from './common';
 import { usesChildSelection } from './modules/goalModule/template/children';
 
 // Kept for template API compatibility; edgeV2 uses `discretisation` (N) instead
@@ -54,7 +51,9 @@ export const decisionVariablesTemplate = ({
   const logger = getLogger();
   const names = [
     ...GoalTree.allByType(gm, 'goal').flatMap(decisionVariableNamesForGoal),
-    ...GoalTree.allByType(gm, 'task').map((task) => decisionVariableName(task.id)),
+    ...GoalTree.allByType(gm, 'task').map((task) =>
+      decisionVariableName(task.id),
+    ),
   ];
   names.forEach((name) => {
     logger.decisionVariable([name, discretisation]);

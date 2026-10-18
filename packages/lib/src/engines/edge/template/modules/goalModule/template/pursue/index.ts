@@ -1,4 +1,3 @@
-import { Node, type GoalNode } from '@goal-controller/goal-tree';
 import { getLogger } from '../../../../../logger/logger';
 import {
   achieved,
@@ -9,6 +8,11 @@ import {
 } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
+import {
+  edgeChildren,
+  edgeIsResource,
+  edgeIsTask,
+} from '../../../../../../edgeFamily/nodeAccess';
 import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
@@ -23,20 +27,17 @@ type PursueableNode = EdgeGoalNode | EdgeTask;
 
 /**
  * Type guard to check if a node from dependsOn is a valid EdgeGoalNode.
- * The dependsOn array is resolved in afterCreationMapper to contain actual goal nodes,
- * but the generic type doesn't fully capture this - this guard narrows the type safely.
+ * The dependsOn array is resolved in afterCreation to contain actual goal nodes.
  */
-const isEdgeGoalNode = (
-  node: GoalNode<unknown, unknown, unknown>,
-): node is EdgeGoalNode => {
+const isEdgeGoalNode = (node: unknown): node is EdgeGoalNode => {
   return (
     node !== null &&
     typeof node === 'object' &&
     'id' in node &&
     'properties' in node &&
-    typeof node.properties === 'object' &&
-    node.properties !== null &&
-    'engine' in node.properties
+    typeof (node as { properties: unknown }).properties === 'object' &&
+    (node as { properties: unknown }).properties !== null &&
+    'engine' in (node as { properties: object }).properties
   );
 };
 
@@ -63,9 +64,9 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const pursueLogger = logger.pursue;
 
   // Filter out resources - they cannot be pursued
-  const allChildren = Node.children(goal);
+  const allChildren = edgeChildren(goal);
   const pursueableChildren = allChildren.filter(
-    (child): child is PursueableNode => !Node.isResource(child),
+    (child): child is PursueableNode => !edgeIsResource(child),
   );
   const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren];
 
@@ -167,9 +168,9 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = Node.children(goal)
+                const children = edgeChildren(goal)
                   .filter(
-                    (child): child is PursueableNode => !Node.isResource(child),
+                    (child): child is PursueableNode => !edgeIsResource(child),
                   )
                   .map((child) => child.id);
                 if (children.length === 0) {
@@ -245,7 +246,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   goal,
                   goal.properties.engine.executionDetail.ids,
                   child.id,
-                  Node.children(goal),
+                  edgeChildren(goal),
                 );
                 return [
                   child,
@@ -321,7 +322,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
 
         // parent goals have activation context independently of the maintain condition
         const activationContextCondition =
-          ((isItself(child) || Node.isTask(child)) &&
+          ((isItself(child) || edgeIsTask(child)) &&
             child.properties.engine.execCondition?.assertion?.sentence) ||
           '';
 

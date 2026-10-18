@@ -132,14 +132,16 @@ export const edgeResourceProps = ({
  * the tree is built: throws edgeGoalChecks.dependsOn's message for an id that is no
  * goal of it. Unreadable: none. A dependsOn the dialect left unset because an id
  * names no goal of the model (goal-controller#270) still refuses when the text is a
- * readable list — dropping it would change generation.
+ * readable list — dropping it would change generation. #266: a Quality is answered
+ * by its `kind` (under the iStar naming its `type` is also `goal`).
+ *
+ * `allNodes` is a getter (not `Map`) so kind-entry maps type-check without Map
+ * invariance fighting `KindNode`.
  */
-export const edgeDependsOn = <
-  TNode extends { type: 'goal' | 'task' | 'resource' },
->(
+export const edgeDependsOn = <TNode extends { type: string; kind?: string }>(
   self: string,
   { props, raw }: Omit<Input<'goal'>, 'id'>,
-  allNodes: Map<string, TNode>,
+  allNodes: { get(id: string): TNode | undefined },
 ): TNode[] => {
   // #270: raw keeps the text; props is unset when an id names no element, or no
   // goal. Re-read the ids so edgeGoalChecks.dependsOn still throws as before.
@@ -158,11 +160,22 @@ export const edgeDependsOn = <
     {
       self,
       kindOf: (id) => {
-        const type = allNodes.get(id)?.type;
-        return type && ISTAR_KIND_OF[type];
+        const node = allNodes.get(id);
+        if (!node) return undefined;
+        // #266: entries put istar.Quality on the node; type alone is still 'goal'
+        if (node.kind) return node.kind;
+        if (
+          node.type === 'goal' ||
+          node.type === 'task' ||
+          node.type === 'resource'
+        ) {
+          return ISTAR_KIND_OF[node.type];
+        }
+        return undefined;
       },
     },
   );
   if (message) throw new Error(message);
+  // #233: allNodes holds the tree's own nodes (afterCreation updates in place)
   return (dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
 };

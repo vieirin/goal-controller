@@ -42,7 +42,9 @@ export const pursueAndSequentialGoal = (
   const { sequence: sequenceLogger } = getLogger().pursue.executionDetail;
   sequenceLogger(goal.id, childId, leftGoals, []);
 
-  const priors = leftGoals.map((id) => achievedFormula(id)).join(separator('and'));
+  const priors = leftGoals
+    .map((id) => achievedFormula(id))
+    .join(separator('and'));
 
   return joinGuards(
     parentShouldPursue(goal.id),

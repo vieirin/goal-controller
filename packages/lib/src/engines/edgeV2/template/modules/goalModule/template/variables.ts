@@ -32,11 +32,17 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const maxRetriesVariableStatement =
     retries.length > 0
       ? retries
-          .map(({ id, retries: max }) => defineVariable(goalFailedVariable(id), max))
+          .map(({ id, retries: max }) =>
+            defineVariable(goalFailedVariable(id), max),
+          )
           .join('\n  ')
       : null;
 
-  return [stateVariableStatement, chosenVariableStatement, maxRetriesVariableStatement]
+  return [
+    stateVariableStatement,
+    chosenVariableStatement,
+    maxRetriesVariableStatement,
+  ]
     .filter(Boolean)
     .join('\n  ');
 };

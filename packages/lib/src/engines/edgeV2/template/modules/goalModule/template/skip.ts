@@ -54,7 +54,12 @@ export const skipLines = (goal: EdgeGoalNode): string[] => {
         // The reference guards this line with `g0_state=1 & g0_state=0`, which
         // can never hold; the committed child being idle is what is meant.
         ...childIds.map((id, index) =>
-          joinGuards(...base, `${stateVariable(id)}=0`, `${chosen}=${index + 1}`, shouldSkip(id)),
+          joinGuards(
+            ...base,
+            `${stateVariable(id)}=0`,
+            `${chosen}=${index + 1}`,
+            shouldSkip(id),
+          ),
         ),
       ];
     }
@@ -70,7 +75,12 @@ export const skipLines = (goal: EdgeGoalNode): string[] => {
             shouldSkip(id),
           ),
         ),
-        joinGuards(retriesExhausted(goal), ...base, allIdle, parentShouldSkip(goal.id)),
+        joinGuards(
+          retriesExhausted(goal),
+          ...base,
+          allIdle,
+          parentShouldSkip(goal.id),
+        ),
       ];
     }
   }

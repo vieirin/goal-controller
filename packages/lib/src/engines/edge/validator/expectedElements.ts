@@ -1,6 +1,11 @@
 import type { Resource } from '@goal-controller/goal-tree';
-import { GoalTree, Node } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
+import {
+  edgeChildrenWithRetries,
+  edgeChildren,
+  edgeIsResource,
+} from '../../edgeFamily/nodeAccess';
 
 // Type aliases for this file
 type GoalNode = EdgeGoalNode;
@@ -35,8 +40,8 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
   // Has chosen if choice execution detail
   if (goal.properties.engine.executionDetail?.type === 'choice') {
     // Filter out resources - only goals and tasks can be chosen
-    const pursueableChildren = Node.children(goal).filter(
-      (child) => !Node.isResource(child),
+    const pursueableChildren = edgeChildren(goal).filter(
+      (child) => !edgeIsResource(child),
     );
     if (pursueableChildren.length > 0) {
       variables.push(chosenVariable(goal.id));
@@ -44,7 +49,7 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
   }
 
   // Has failed variables for children with maxRetries
-  const childrenWithRetries = Node.childrenWithRetries(goal);
+  const childrenWithRetries = edgeChildrenWithRetries(goal);
   childrenWithRetries.forEach((child) => {
     variables.push(failed(child.id));
   });
@@ -58,8 +63,8 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
   // Always has pursue transitions: one for itself + one for each pursueable child
   transitions.push(pursueTransition(goal.id));
   // Filter out resources - only goals and tasks can be pursued
-  const pursueableChildren = Node.children(goal).filter(
-    (child) => !Node.isResource(child),
+  const pursueableChildren = edgeChildren(goal).filter(
+    (child) => !edgeIsResource(child),
   );
   pursueableChildren.forEach((child) => {
     transitions.push(pursueTransition(child.id));

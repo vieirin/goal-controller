@@ -23,13 +23,13 @@ const childGoal = (id: string): EdgeGoalNode => {
   const goal: EdgeGoalNode = {
     iStarId: id,
     id,
+    kind: 'istar.Goal',
     type: 'goal',
     name: id,
     relationToChildren: null,
     children: [],
     tasks: [],
     properties: {
-      isQuality: false,
       engine: {
         utility: '',
         cost: '',
@@ -50,13 +50,13 @@ const andParent = (
   const goal: EdgeGoalNode = {
     iStarId: 'G0',
     id: 'G0',
+    kind: 'istar.Goal',
     type: 'goal',
     name: 'Parent',
     relationToChildren: 'and',
     children: childIds.map(childGoal),
     tasks: [],
     properties: {
-      isQuality: false,
       engine: {
         utility: '',
         cost: '',

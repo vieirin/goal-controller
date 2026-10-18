@@ -61,13 +61,17 @@ export const achievedGoalFormula = (goal: EdgeGoalNode): string => {
     terms = childIds.map((id, index) => {
       const gate = chain
         .filter((entry) => childIds.indexOf(entry.id) < index)
-        .map(({ id: retried, retries }) => hasFailedExactlyNTimes(retried, retries));
+        .map(({ id: retried, retries }) =>
+          hasFailedExactlyNTimes(retried, retries),
+        );
       return gate.length > 0
         ? parenthesis([...gate, achievedFormula(id)].join(separator('and')))
         : achievedFormula(id);
     });
   }
-  const sentence = parenthesis(terms.join(separator(isAnd(goal) ? 'and' : 'or')));
+  const sentence = parenthesis(
+    terms.join(separator(isAnd(goal) ? 'and' : 'or')),
+  );
   return `formula ${achievedFormula(goal.id)} = ${sentence};`;
 };
 
@@ -95,7 +99,10 @@ export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
   if (isAnd(goal)) {
     type = 'AND';
     const remaining = childIds
-      .map((id) => `(!${achievedFormula(id)} ? ${achievableFormulaVariable(id)} : 1)`)
+      .map(
+        (id) =>
+          `(!${achievedFormula(id)} ? ${achievableFormulaVariable(id)} : 1)`,
+      )
       .join(' * ');
     value = `${achievedFormula(goal.id)} ? 0 : ${remaining}`;
   } else {
@@ -108,13 +115,20 @@ export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
     if (construct(goal) === 'choice') {
       const chosen = chosenVariable(goal.id);
       value =
-        achievables.map((a, index) => `${chosen}=${index + 1} ? ${a} : `).join('') +
-        parenthesis(orValue);
+        achievables
+          .map((a, index) => `${chosen}=${index + 1} ? ${a} : `)
+          .join('') + parenthesis(orValue);
     }
   }
 
   const formula = `formula ${formulaName} = ${value};`;
-  logger.achievabilityFormulaDefinition(goal.id, formulaName, type, value, formula);
+  logger.achievabilityFormulaDefinition(
+    goal.id,
+    formulaName,
+    type,
+    value,
+    formula,
+  );
   return formula;
 };
 
@@ -131,7 +145,10 @@ export const relativeFormulas = (goal: EdgeGoalNode): string => {
     .map((id) => {
       const others = childIds
         .filter((other) => other !== id)
-        .map((other) => ` + (${achievedFormula(other)} ? 0 : ${achievableFormulaVariable(other)})`)
+        .map(
+          (other) =>
+            ` + (${achievedFormula(other)} ? 0 : ${achievableFormulaVariable(other)})`,
+        )
         .join('');
       return `formula ${relativeFormulaVariable(id)} = ${achievedFormula(id)} ? 0 : ${achievableFormulaVariable(id)}/(${achievableFormulaVariable(id)}${others});`;
     })

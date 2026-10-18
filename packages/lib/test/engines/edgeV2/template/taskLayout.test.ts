@@ -11,7 +11,11 @@ const MODEL = '../../examples/edgeV2/simpleChoice.txt';
 
 const generate = (taskLayout: TaskLayout): string => {
   const tree = GoalTree.fromModel(Model.load(MODEL), edgeEngineMapper);
-  return generateValidatedPrismModel({ gm: tree.nodes, fileName: 'simpleChoice', taskLayout });
+  return generateValidatedPrismModel({
+    gm: tree.nodes,
+    fileName: 'simpleChoice',
+    taskLayout,
+  });
 };
 
 const moduleNames = (prism: string): string[] =>
@@ -22,7 +26,12 @@ const behaviour = (prism: string): string[] =>
   prism
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.startsWith('[') || line.startsWith('formula ') || line.startsWith('const '))
+    .filter(
+      (line) =>
+        line.startsWith('[') ||
+        line.startsWith('formula ') ||
+        line.startsWith('const '),
+    )
     .sort();
 
 describe('edgeV2 task layout', () => {
@@ -57,7 +66,10 @@ describe('edgeV2 task layout', () => {
   });
 
   it('emits the same commands, formulas and constants in both layouts', () => {
-    assert.deepStrictEqual(behaviour(generate('taskModules')), behaviour(generate('changeManager')));
+    assert.deepStrictEqual(
+      behaviour(generate('taskModules')),
+      behaviour(generate('changeManager')),
+    );
   });
 
   it('declares each task module with its achievability and achieved formula', () => {

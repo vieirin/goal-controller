@@ -1,11 +1,15 @@
 import type { Relation } from '@goal-controller/goal-tree';
-import { Node } from '@goal-controller/goal-tree';
+
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
 import { achieved, pursued, separator } from '../../../../mdp/common';
 import { achievedVariable } from '../../../../template/common';
 import { achievedMaintain } from './formulas';
 import { hasBeenPursued } from './pursue/common';
+import {
+  edgeChildren,
+  edgeIsResource,
+} from '../../../../../edgeFamily/nodeAccess';
 
 const isValidSeparator = (
   relation: Relation | null,
@@ -16,8 +20,8 @@ const isValidSeparator = (
 export const achieveCondition = (goal: EdgeGoalNode): string => {
   if (isValidSeparator(goal.relationToChildren)) {
     // Filter out resources first, then check if there are any pursueable children
-    const pursueableChildren = Node.children(goal).filter(
-      (child) => !Node.isResource(child),
+    const pursueableChildren = edgeChildren(goal).filter(
+      (child) => !edgeIsResource(child),
     );
     if (pursueableChildren.length) {
       return `(${pursueableChildren

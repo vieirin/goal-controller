@@ -36,10 +36,10 @@ const HELP = {
 /** a condition over resources and the workbench's variables (`battery > 20 & !charging`) */
 const CONDITION = { resolves: ['resource', 'variable'] } as const;
 
-/** utility, cost: the same on goals and tasks, no engine check */
+/** utility, cost: the same on goals and tasks; min 0 so a negative is a diagnostic (#236) */
 const REWARDS = [
-  number('utility', { help: HELP.utility }),
-  number('cost', { help: HELP.cost }),
+  number('utility', { min: 0, help: HELP.utility }),
+  number('cost', { min: 0, help: HELP.cost }),
 ];
 
 const BOUNDS_NOT_APPLYING =

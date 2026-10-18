@@ -1,8 +1,8 @@
-import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
 import { parenthesis } from '../../../../mdp/common';
 import { achievableFormulaVariable } from '../../../../template/common';
+import { edgeChildren } from '../../../../../edgeFamily/nodeAccess';
 
 export const achievedMaintain = (goalId: string): string => {
   return `${goalId}_achieved_maintain`;
@@ -30,7 +30,7 @@ export const maintainConditionFormula = (goal: EdgeGoalNode): string => {
 };
 
 export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
-  const children = Node.children(goal);
+  const children = edgeChildren(goal);
   const formulaName = `${achievableFormulaVariable(goal.id)}`;
   const logger = getLogger();
   if (children.length === 1) {

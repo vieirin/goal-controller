@@ -1,7 +1,7 @@
 import type { Resource } from '@goal-controller/goal-tree';
-import { GoalTree, Node } from '@goal-controller/goal-tree';
+import { GoalTree } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
-
+import { edgeChildren, edgeIsResource } from '../../edgeFamily/nodeAccess';
 import {
   achievableFormulaVariable,
   achievedFormula,
@@ -70,15 +70,17 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
 
   // AND anyOrder: each child's relative share (named after the child)
   if (construct(goal) === 'anyOrder') {
-    orderedChildIds(goal).forEach((id) => formulas.push(relativeFormulaVariable(id)));
+    orderedChildIds(goal).forEach((id) =>
+      formulas.push(relativeFormulaVariable(id)),
+    );
   }
 
   // Achieved formula (EDGEV2): children composition, or maintain sentence
   if (goal.properties.engine.execCondition?.maintain) {
     formulas.push(achievedFormula(goal.id));
   } else {
-    const hasPursueableChildren = Node.children(goal).some(
-      (child) => !Node.isResource(child),
+    const hasPursueableChildren = edgeChildren(goal).some(
+      (child) => !edgeIsResource(child),
     );
     if (hasPursueableChildren) {
       formulas.push(achievedFormula(goal.id));

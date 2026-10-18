@@ -59,35 +59,21 @@ describe('edgeV2 rewards', () => {
       /rewards/,
     );
   });
-
-  it('rejects values that are not non-negative numbers', () => {
-    const nodes = nodesOf(WITH_REWARDS);
-    const t1 = GoalTree.allByType(nodes, 'task').find(
-      (task) => task.id === 'T1',
-    );
-    assert.ok(t1);
-    t1.properties.engine.cost = 'high';
-    assert.throws(
-      () => rewardsTemplate({ gm: nodes }),
-      /T1 has cost "high"; it must be a non-negative number/,
-    );
-    t1.properties.engine.cost = '-2';
-    assert.throws(() => rewardsTemplate({ gm: nodes }), /T1 has cost "-2"/);
-  });
 });
 
 /**
  * #236 characterization: what the rewards template makes of a utility or cost
  * as the model writes it, through the mapper (which hands it the text as
- * written when the dialect reads a number, '' otherwise): the line it writes,
- * none, or what it throws.
+ * written when the dialect reads a non-negative number, '' otherwise): the
+ * line it writes, or none. Negatives are dialect diagnostics (min: 0), not
+ * generation throws.
  */
 describe('edgeV2 rewards: the texts it accepts (#236 characterization)', () => {
   before(() => {
     initLogger('rewards-test', false, true);
   });
 
-  /** the line T1's cost, or G1's utility, written as `text`, gives: none, or what it throws */
+  /** the line T1's cost, or G1's utility, written as `text`, gives: none, or the line */
   const rewardOf = (key: 'cost' | 'utility', text: string): string => {
     const id = key === 'cost' ? 'T1' : 'G1';
     const original = Model.load(WITH_REWARDS);
@@ -105,23 +91,20 @@ describe('edgeV2 rewards: the texts it accepts (#236 characterization)', () => {
       edgeEngineMapper,
     ).nodes;
     const transition = key === 'cost' ? `[pursue_${id}]` : `[achieved_${id}]`;
-    try {
-      const line = rewardsTemplate({ gm: nodes })
-        .split('\n')
-        .find((l) => l.includes(transition));
-      return line?.trim() ?? 'none';
-    } catch (error) {
-      return `throws ${(error as Error).message}`;
-    }
+    const line = rewardsTemplate({ gm: nodes })
+      .split('\n')
+      .find((l) => l.includes(transition));
+    return line?.trim() ?? 'none';
   };
 
   for (const key of ['cost', 'utility'] as const) {
     const id = key === 'cost' ? 'T1' : 'G1';
     const at = key === 'cost' ? `[pursue_${id}] true` : `[achieved_${id}] true`;
 
-    it(`${key}: writes a non-negative decimal as written, trimmed`, () => {
+    it(`${key}: writes a non-negative decimal as written (#236: no trim)`, () => {
       assert.strictEqual(rewardOf(key, '3'), `${at} : 3;`);
-      assert.strictEqual(rewardOf(key, ' 3 '), `${at} : 3;`);
+      // #236: template no longer trims (was `${at} : 3;`)
+      assert.strictEqual(rewardOf(key, ' 3 '), `${at} :  3 ;`);
       assert.strictEqual(rewardOf(key, '1.5'), `${at} : 1.5;`);
       assert.strictEqual(rewardOf(key, '007'), `${at} : 007;`);
     });
@@ -146,12 +129,9 @@ describe('edgeV2 rewards: the texts it accepts (#236 characterization)', () => {
         assert.strictEqual(rewardOf(key, text), 'none', JSON.stringify(text));
     });
 
-    it(`${key}: throws for a negative number, -0 included`, () => {
+    it(`${key}: writes no line for a negative (dialect min: 0; was a throw) (#236)`, () => {
       for (const text of ['-2', '-0'])
-        assert.strictEqual(
-          rewardOf(key, text),
-          `throws [INVALID MODEL]: ${id} has ${key} "${text}"; it must be a non-negative number`,
-        );
+        assert.strictEqual(rewardOf(key, text), 'none', JSON.stringify(text));
     });
   }
 });
