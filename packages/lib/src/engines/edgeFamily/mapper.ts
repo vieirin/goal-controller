@@ -5,6 +5,7 @@
  * (goal-controller#187); the texts as written are what the templates write.
  */
 import { ISTAR_KIND_OF } from '@goal-controller/dialect';
+import { parseValue } from '@goal-controller/goal-language';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
@@ -129,7 +130,9 @@ export const edgeResourceProps = ({
 /**
  * A goal's dependencies, the nodes its dependsOn names (as allNodes holds them), once
  * the tree is built: throws edgeGoalChecks.dependsOn's message for an id that is no
- * goal of it. Unreadable: none.
+ * goal of it. Unreadable: none. A dependsOn the dialect left unset because an id
+ * names no goal of the model (goal-controller#270) still refuses when the text is a
+ * readable list — dropping it would change generation.
  */
 export const edgeDependsOn = <
   TNode extends { type: 'goal' | 'task' | 'resource' },
@@ -138,8 +141,20 @@ export const edgeDependsOn = <
   { props, raw }: Omit<Input<'goal'>, 'id'>,
   allNodes: Map<string, TNode>,
 ): TNode[] => {
+  // #270: raw keeps the text; props is unset when an id names no element, or no
+  // goal. Re-read the ids so edgeGoalChecks.dependsOn still throws as before.
+  const dependsOn =
+    props.dependsOn ??
+    (() => {
+      const text = raw.dependsOn;
+      if (!text?.trim()) return undefined;
+      const read = parseValue('refList', text);
+      if (read.errors.length || read.value == null) return undefined;
+      return [...read.value];
+    })();
+
   const message = edgeGoalChecks.dependsOn?.(
-    { props, raw, kind: ISTAR_KIND_OF.goal },
+    { props: { ...props, dependsOn }, raw, kind: ISTAR_KIND_OF.goal },
     {
       self,
       kindOf: (id) => {
@@ -149,5 +164,5 @@ export const edgeDependsOn = <
     },
   );
   if (message) throw new Error(message);
-  return (props.dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
+  return (dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
 };

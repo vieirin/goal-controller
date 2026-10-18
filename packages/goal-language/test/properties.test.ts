@@ -488,6 +488,43 @@ describe('readProperties (#187)', () => {
     expect(read('')).to.deep.equal([]);
   });
 
+  it('reads a refList of several kinds, each id resolved against a context (#270)', () => {
+    const after = { type: 'refList', kinds: ['goal', 'task'] } as const;
+    const lists = {
+      properties: { goal: [{ key: 'after', value: after, help: '' }] },
+    } as const;
+    const kinds: Record<string, string> = {
+      G1: 'goal',
+      T1: 'task',
+      R1: 'resource',
+    };
+    const context = { kindOf: (id: string) => kinds[id] };
+    const read = (text: string, withContext = true) =>
+      readProperties(
+        lists,
+        { element: 'goal' },
+        { after: text },
+        withContext ? context : undefined,
+      ).values.after;
+    expect(read('G1, T1')).to.deep.equal(['G1', 'T1']);
+    // one id of no element, or of a kind it doesn't name: unset
+    expect(read('G1, G9')).to.equal(undefined);
+    expect(read('G1, R1')).to.equal(undefined);
+    // without a context, the ids as written
+    expect(read('G1, G9', false)).to.deep.equal(['G1', 'G9']);
+    const elements = {
+      G1: { kind: 'goal', children: [], properties: {} },
+      T1: { kind: 'task', children: [], properties: {} },
+      R1: { kind: 'resource', children: [], properties: {} },
+    };
+    expect(valueProblem(after, 'G1, T1', { elements, variables: [] })).to.equal(
+      null,
+    );
+    expect(valueProblem(after, 'G1, R1', { elements, variables: [] })).to.equal(
+      'R1 is a resource, not a goal or task',
+    );
+  });
+
   it('types the values by the dialect', () => {
     type Goal = PropertyValues<typeof dialect.properties.goal>;
     same<Same<Goal['maxRetries'], number | null | undefined>>();

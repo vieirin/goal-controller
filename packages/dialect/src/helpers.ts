@@ -192,17 +192,32 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C> & ExpressionOptions>,
   ): Built<K, 'expression', P, (typeof EXPRESSION_KEYS)[number]> =>
     build(key, 'expression', rest, EXPRESSION_KEYS) as never,
-  /** ids of elements of a kind (iStar's, or an extension's), comma-separated */
+  /**
+   * ids of elements of a kind (iStar's, or an extension's), or of one of
+   * several kinds (goal-controller#270), comma-separated
+   */
   refList: <
     const K extends string,
-    const E extends DialectKind,
+    const E extends DialectKind | readonly DialectKind[],
     const P extends PropertyOptions<C>,
   >(
     key: K,
     kind: E,
     rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'refList', P, never, { kind: E }> =>
-    build(key, 'refList', rest, [], { kind }) as never,
+  ): Built<
+    K,
+    'refList',
+    P,
+    never,
+    E extends readonly DialectKind[] ? { kinds: E } : { kind: E }
+  > =>
+    build(
+      key,
+      'refList',
+      rest,
+      [],
+      typeof kind === 'string' ? { kind } : { kinds: kind },
+    ) as never,
   /** one element's id, of one of these kinds (an anchor goal) */
   reference: <
     const K extends string,

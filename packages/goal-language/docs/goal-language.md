@@ -127,7 +127,7 @@ value alone (`parseValue(type, text)`).
 | `bool`          | `BoolValue`      | `true`, `false`                    |                                                           |
 | `text`          | `TextValue`      | anything on one line               |                                                           |
 | `enum`          | `EnumValue`      | words (`model-based reflex`)       | `options`, `open`                                         |
-| `refList`       | `RefListValue`   | `G2, G5`, `V1` (any prefix)        | `kind`: of the elements it refers to (an extension's too) |
+| `refList`       | `RefListValue`   | `G2, G5`, `V1` (any prefix)        | `kind`, or `kinds`: of the elements it refers to (an extension's too) |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
 | `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |

@@ -160,16 +160,18 @@ describe('mapper props (#187)', () => {
   before(() => GoalTree.goalModel(MODEL, mapper));
 
   it("gives a goal its kind's properties, a value with an error unset", () => {
+    // #270: changed (dependsOn was ['G2']): the model has no G2, so the
+    // refList names no element and is unset, as the dialect reports it
     assert.deepStrictEqual(seen['istar.Goal'], {
-      props: { maxRetries: 3, dependsOn: ['G2'] },
+      props: { maxRetries: 3 },
       raw: { maxRetries: '3', type: 'perform', dependsOn: 'G2' },
       retries: 3,
       type: undefined,
-      dependsOn: ['G2'],
+      dependsOn: undefined,
     });
     assert.deepStrictEqual(seen.after, {
       kind: 'istar.Goal',
-      props: { maxRetries: 3, dependsOn: ['G2'] },
+      props: { maxRetries: 3 },
     });
   });
 

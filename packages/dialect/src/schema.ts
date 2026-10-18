@@ -211,7 +211,9 @@ export type ValueConfig =
       members?: MemberSource;
     }
   /** ids of elements of a kind, comma-separated */
+  /** ids of elements of a kind, or of one of several kinds (goal-controller#270) */
   | { type: 'refList'; kind: DialectKind }
+  | { type: 'refList'; kinds: readonly DialectKind[] }
   /**
    * one element's id, of one of these kinds (a resolution's anchor goal):
    * an id the model lacks, or another kind's, is a problem
@@ -1547,6 +1549,11 @@ export const extensionLinkKinds = (
       : [link.kind],
   );
 
+/** The kinds a refList's ids name: its one `kind`, or its `kinds`. */
+export const refListKinds = (
+  config: Extract<ValueConfig, { type: 'refList' }>,
+): readonly DialectKind[] => ('kinds' in config ? config.kinds : [config.kind]);
+
 /** The kinds a value names its elements by (an assertion's, an expression's, a refList's). */
 export const referencedKinds = (config: ValueConfig): readonly string[] =>
   config.type === 'assertion'
@@ -1554,7 +1561,7 @@ export const referencedKinds = (config: ValueConfig): readonly string[] =>
     : config.type === 'expression'
       ? (config.resolves ?? [])
       : config.type === 'refList'
-        ? [config.kind]
+        ? refListKinds(config)
         : config.type === 'reference'
           ? config.kinds
           : [];

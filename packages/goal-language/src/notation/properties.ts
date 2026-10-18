@@ -5,6 +5,7 @@
  * dialect. What an engine maps from: it never parses a value's text itself.
  */
 import {
+  refListKinds,
   valueParts,
   actorPropertiesOf,
   enumOptionOf,
@@ -183,6 +184,20 @@ const readValue = (
         conditions.push(read.value);
       }
       return conditions;
+    }
+    case 'refList': {
+      const read = parseValue('refList', text);
+      if (read.errors.length) return undefined;
+      if (!context) return read.value;
+      // an id of no element, or of a kind it doesn't name, makes it not
+      // its type, as valueProblem reports (goal-controller#270)
+      const kinds: readonly string[] = refListKinds(config);
+      return read.value.every((id) => {
+        const kind = context.kindOf(id);
+        return kind !== undefined && kinds.includes(kind);
+      })
+        ? read.value
+        : undefined;
     }
     case 'pairList': {
       const read = parseValue('pairList', text);
