@@ -12,8 +12,6 @@ import type {
   ElementPropertiesOf,
   ExecutionDetailOf,
   LinkPropertiesOf,
-  PropertyTexts,
-  PropertyValues,
 } from '@goal-controller/goal-language';
 import type {
   KindModel,
