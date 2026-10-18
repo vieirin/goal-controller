@@ -19,7 +19,12 @@ const toyOptions = defineOptions([
     default: 3,
     summary: 'depth {value}',
   },
-  { key: 'weight', label: 'Weight', value: { type: 'number' }, default: 0.5 },
+  {
+    key: 'weight',
+    label: 'Weight',
+    value: { type: 'number', min: 0, max: 1 },
+    default: 0.5,
+  },
   {
     key: 'shape',
     label: 'Shape',
@@ -86,8 +91,10 @@ describe('isOptionValue', () => {
       [1, 9, 0, 10, 2.5, '3'].map((v) => isOptionValue(depth, v)),
     ).to.deep.equal([true, true, false, false, false, false]);
     expect(
-      [0.1, 7, Number.NaN, '1'].map((v) => isOptionValue(weight, v)),
-    ).to.deep.equal([true, true, false, false]);
+      [0, 1, 0.1, -0.1, 1.1, 7, Number.NaN, '1'].map((v) =>
+        isOptionValue(weight, v),
+      ),
+    ).to.deep.equal([true, true, true, false, false, false, false, false]);
     expect(
       ['deep', 'round', 1].map((v) => isOptionValue(shape, v)),
     ).to.deep.equal([true, false, false]);
