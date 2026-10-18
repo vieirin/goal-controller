@@ -117,6 +117,37 @@ describe('iStar-DT: iStarDT-X, the seeds through it', () => {
     assert.strictEqual(writeIstardtx(model).text, writeIstardtx(model).text);
   });
 
+  // goal-controller#217: the writer takes the dialect's values, so one it
+  // can't read (the dialect's checks report it) is written as if unset:
+  // its default, or nothing, never its text
+  for (const [key, unreadable] of [
+    ['probability', 'likely'],
+    ['probability', ''],
+    ['weight', 'heavy'],
+    ['set', 'moisture:wet'],
+    ['episodeLength', '0'],
+    ['exportMin', 'low'],
+  ] as const)
+    it(`writes an unreadable ${key} ("${unreadable}") as if it were unset`, () => {
+      const source = read('istardt-own', 'istardt-own.txt');
+      const withValue = (value: string | undefined) => {
+        const model: Json = JSON.parse(source);
+        const items: Json[] = [
+          ...model.actors.flatMap((actor: Json) => actor.nodes),
+          ...model.links,
+        ];
+        const item = items.find(
+          (i) => i.customProperties?.[key] !== undefined,
+        )!;
+        if (value === undefined) delete item.customProperties[key];
+        else item.customProperties[key] = value;
+        return writeIstardtx(model).text;
+      };
+      const unset = withValue(undefined);
+      assert.notStrictEqual(unset, writeIstardtx(JSON.parse(source)).text);
+      assert.strictEqual(withValue(unreadable), unset);
+    });
+
   it('compares what the importer reads: a changed probability differs, comments and defaults don’t', () => {
     const source = read('istardt-order', '1.Order.istardtx');
     assert.strictEqual(

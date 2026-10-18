@@ -29,9 +29,10 @@ import type {
   PistarJson,
 } from '@goal-controller/dialect';
 import {
-  readAssertion,
-  readExpression,
+  parseValue,
+  type Assertion,
   type AssertionReading,
+  type Expression,
   type ExpressionTree,
 } from '@goal-controller/goal-language';
 import {
@@ -41,7 +42,6 @@ import {
   type XmlTree,
 } from '@goal-controller/goal-language/formats';
 import { pistarAnalysisModel } from '../analysis';
-import { pairItems } from '../elementText';
 import {
   readIstardtModel,
   type IstardtElement,
@@ -49,6 +49,41 @@ import {
 } from './model';
 import { DEFAULT_INFEASIBLE_PENALTY } from './options';
 import type { IstardtKind } from './vocabulary';
+
+/**
+ * A number as the file writes it (goal-controller#217): when the dialect
+ * reads it, as written (`1.0` stays `1.0`: the round trip keeps numbers as
+ * written); else, blank or written with an error the dialect's checks
+ * report, the format's default, as the DT-Golog template reads it.
+ */
+const numberText = (
+  text: string | undefined,
+  value: number | null | undefined,
+  fallback: string,
+) => (typeof value === 'number' ? text?.trim() || String(value) : fallback);
+
+/**
+ * An effect's `set` as the file writes it: its pairs when the dialect reads
+ * them (each value a number), their values as written; none otherwise.
+ */
+const setPairs = (effect: IstardtElement<'effect'>) =>
+  effect.values.set
+    ? parseValue('pairList', effect.properties.set ?? '').value
+    : [];
+
+/** A quality's or a condition's formula: its text, and its tree as the dialect reads it. */
+const formulaOf = (
+  e: IstardtElement,
+): { text?: string; value: Expression | Assertion | null | undefined } => ({
+  text: e.properties.formula,
+  value: (e.values as { formula?: Expression | Assertion | null }).formula,
+});
+
+/** A quality's or a variable's export bounds as the dialect reads them; none for other kinds. */
+const boundsOf = (
+  e: IstardtElement | undefined,
+): { exportMin?: number | null; exportMax?: number | null } =>
+  e?.kind === 'quality' || e?.kind === 'variable' ? e.values : {};
 
 /**
  * What iStarDT-X can't carry, as piStar paths: positions (the format has
@@ -251,22 +286,24 @@ export const writeIstardtx = (
         );
     }
   };
-  /** A formula's element, or none (and a warning) when it can't be written. */
+  /**
+   * A formula's element, or none (and a warning) when it can't be written:
+   * its tree as the dialect reads it (goal-controller#217), unset when its
+   * text (said in the warning) is no formula.
+   */
   const formula = (
-    text: string | undefined,
+    { text, value }: ReturnType<typeof formulaOf>,
     kind: 'expression' | 'assertion',
     what: string,
   ): XmlTree | null => {
     if (!text?.trim()) return null;
     try {
       if (kind === 'expression') {
-        const tree = readExpression(text);
-        if (!tree) throw new Unwritable(`${what}: "${text}" is no expression`);
-        return numeric(tree, what);
+        if (!value) throw new Unwritable(`${what}: "${text}" is no expression`);
+        return numeric(value as Expression, what);
       }
-      const tree = readAssertion(text);
-      if (!tree) throw new Unwritable(`${what}: "${text}" is no condition`);
-      return boolean(tree, what);
+      if (!value) throw new Unwritable(`${what}: "${text}" is no condition`);
+      return boolean((value as Assertion).asReading(), what);
     } catch (error) {
       if (!(error instanceof Unwritable)) throw error;
       warn(`${error.message}: its formula is not written`);
@@ -293,7 +330,7 @@ export const writeIstardtx = (
         source.name === source.identifier;
       if (made) {
         const written = formula(
-          source.properties.formula,
+          formulaOf(source),
           'assertion',
           `${holder.identifier}'s ${which}`,
         );
@@ -318,7 +355,8 @@ export const writeIstardtx = (
 
   const goals = model.ofKind('goal').map((goal) => {
     const { relation, children } = model.refinement(goal);
-    const root = goal.properties.root === 'true';
+    const { values } = goal as IstardtElement<'goal'>;
+    const root = values.root === true;
     if (children.length && !relation)
       warn(
         `goal ${goal.identifier}'s refinement is neither AND nor OR: written as OR`,
@@ -328,9 +366,18 @@ export const writeIstardtx = (
       [
         ...named(goal),
         root && ['root', 'true'],
-        goal.properties.terminal === 'true' && ['terminal', 'true'],
+        values.terminal === true && ['terminal', 'true'],
         // every goal's, as the Schematron requires (a root's is read)
-        ['episodeLength', (root && goal.properties.episodeLength) || '1'],
+        [
+          'episodeLength',
+          root
+            ? numberText(
+                goal.properties.episodeLength,
+                values.episodeLength,
+                '1',
+              )
+            : '1',
+        ],
       ],
       [
         ...(children.length
@@ -367,11 +414,18 @@ export const writeIstardtx = (
                   'effect',
                   [
                     ...named(effect),
-                    effect.properties.satisfying === 'false' && [
+                    effect.values.satisfying === false && [
                       'satisfying',
                       'false',
                     ],
-                    ['probability', model.probabilityOf(effect) ?? '1.0'],
+                    [
+                      'probability',
+                      numberText(
+                        model.probabilityOf(effect),
+                        model.probabilityValueOf(effect),
+                        '1.0',
+                      ),
+                    ],
                   ],
                   [
                     ...model
@@ -380,16 +434,15 @@ export const writeIstardtx = (
                     ...model
                       .turnsFalse(effect)
                       .map((p) => element('turnsFalse', [], [], p)),
-                    ...pairItems(effect.properties.set).map(
-                      ([variable, value]) =>
-                        element(
-                          'set',
-                          [],
-                          [
-                            element('variableID', [], [], variable),
-                            element('numConst', [], [], value),
-                          ],
-                        ),
+                    ...setPairs(effect).map(({ name, value }) =>
+                      element(
+                        'set',
+                        [],
+                        [
+                          element('variableID', [], [], name),
+                          element('numConst', [], [], value),
+                        ],
+                      ),
                     ),
                     ...precedences(effect),
                   ],
@@ -406,7 +459,7 @@ export const writeIstardtx = (
 
   const qualities = model.ofKind('quality').flatMap((quality) => {
     const utilities = model.utilities(quality);
-    const terms = utilities.flatMap(({ source, weight }) => {
+    const terms = utilities.flatMap(({ source, weight, factor }) => {
       const target =
         source.kind === 'effect'
           ? model.turnsTrue(source)[0]
@@ -422,7 +475,7 @@ export const writeIstardtx = (
           'multiply',
           [],
           [
-            element('numConst', [], [], weight),
+            element('numConst', [], [], numberText(weight, factor, '1')),
             element(
               source.kind === 'effect'
                 ? 'predicateID'
@@ -436,7 +489,7 @@ export const writeIstardtx = (
       ];
     });
     const written = quality.properties.formula
-      ? formula(quality.properties.formula, 'expression', quality.identifier)
+      ? formula(formulaOf(quality), 'expression', quality.identifier)
       : terms.length > 1
         ? element('add', [], terms)
         : (terms[0] ?? null);
@@ -449,7 +502,10 @@ export const writeIstardtx = (
         'quality',
         [
           ...named(quality),
-          quality.properties.root === 'true' && ['root', 'true'],
+          (quality as IstardtElement<'quality'>).values.root === true && [
+            'root',
+            'true',
+          ],
         ],
         [written],
       ),
@@ -459,7 +515,7 @@ export const writeIstardtx = (
   const conditions = model.ofKind('condition').flatMap((condition) => {
     if (inlined.has(condition)) return [];
     const written = formula(
-      condition.properties.formula,
+      formulaOf(condition),
       'assertion',
       condition.identifier,
     );
@@ -539,15 +595,24 @@ export const writeIstardtx = (
                 [],
                 model.exported.map((ref) => {
                   const e = resolve(ref);
-                  const min = e?.properties.exportMin;
-                  const max = e?.properties.exportMax;
-                  const isContinuous = min !== undefined || max !== undefined;
+                  const { exportMin, exportMax } = boundsOf(e);
+                  const isContinuous = exportMin != null || exportMax != null;
+                  const min = numberText(
+                    e?.properties.exportMin,
+                    exportMin,
+                    '0',
+                  );
+                  const max = numberText(
+                    e?.properties.exportMax,
+                    exportMax,
+                    '0',
+                  );
                   return element(
                     'export',
                     [
                       ['continuous', String(isContinuous)],
-                      isContinuous && ['minVal', min ?? '0'],
-                      isContinuous && ['maxVal', max ?? '0'],
+                      isContinuous && ['minVal', min],
+                      isContinuous && ['maxVal', max],
                     ],
                     [element(tagOf(ref), [], [], ref)],
                   );

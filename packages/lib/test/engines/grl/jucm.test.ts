@@ -181,3 +181,65 @@ describe('writeJucm: a model drawn in the workbench', () => {
     );
   });
 });
+
+// goal-controller#217, #269: the writer reads the values the evaluation
+// reads, so a value outside the dialect's range is unset there too and its
+// default is written (jUCMNav evaluates the file as the model evaluates)
+describe('writeJucm: values as the evaluation reads them', () => {
+  const node = (id: string, type: string, importance: string) => ({
+    id,
+    text: id,
+    type,
+    x: 0,
+    y: 0,
+    customProperties: { importanceQuantitative: importance },
+  });
+  const contribution = (id: string, source: string, weight: string) => ({
+    id,
+    type: 'istar.ContributionLink',
+    source,
+    target: '3',
+    label: 'help',
+    customProperties: { quantitativeContribution: weight },
+  });
+  const { text } = writeJucm(
+    {
+      actors: [
+        {
+          id: '9',
+          text: 'Owner',
+          type: 'istar.Actor',
+          x: 0,
+          y: 0,
+          customProperties: { importanceQuantitative: '150' },
+          nodes: [
+            node('1', 'istar.Goal', '150'),
+            node('2', 'istar.Task', '40'),
+            node('3', 'istar.Quality', '0'),
+          ],
+        },
+      ],
+      orphans: [],
+      dependencies: [],
+      links: [contribution('7', '1', '300'), contribution('8', '2', '-50')],
+      display: {},
+      diagram: { name: 'Ranges', customProperties: { engine: 'grl' } },
+    },
+    { projectResources: {} },
+  );
+  const tagOf = (name: string, id: string) =>
+    text.match(new RegExp(`<${name} [^>]*\\bid="${id}"[^>]*>`))?.[0] ?? '';
+
+  it('writes an importance of 150 as the default (none), and keeps 40', () => {
+    assert.ok(tagOf('intElements', '1'), text);
+    assert.doesNotMatch(tagOf('intElements', '1'), /importanceQuantitative=/);
+    assert.doesNotMatch(tagOf('actors', '9'), /importanceQuantitative=/);
+    assert.match(tagOf('intElements', '2'), /importanceQuantitative="40"/);
+  });
+
+  it('writes a contribution of 300 as the default (none: 25), and keeps -50', () => {
+    assert.ok(tagOf('links', '7'), text);
+    assert.doesNotMatch(tagOf('links', '7'), /quantitativeContribution=/);
+    assert.match(tagOf('links', '8'), /quantitativeContribution="-50"/);
+  });
+});

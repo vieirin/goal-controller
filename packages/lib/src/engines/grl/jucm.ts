@@ -25,14 +25,10 @@ import {
 } from '@goal-controller/goal-language/formats';
 import { STRATEGIES_RESOURCE } from '../../importers/jucm';
 import type { GrlElementType } from '../../importers/jucm/xmi';
-import { CONTRIBUTION_OF_LABEL, integer, pick } from './evaluation/graph';
+import { pistarAnalysisModel, viewValues } from '../analysis';
+import { CONTRIBUTION_OF_LABEL, grlReading } from './evaluation/graph';
 import { readStrategyGroups } from './strategies';
-import {
-  GRL_CONTRIBUTIONS,
-  GRL_DECOMPOSITIONS,
-  GRL_IMPORTANCES,
-  type GrlDecomposition,
-} from './vocabulary';
+import type { GrlDecomposition } from './vocabulary';
 
 /**
  * What the format can't carry, as piStar paths (#143's `lossy`): the
@@ -136,6 +132,24 @@ export const writeJucm = (
     return false;
   });
   const intentional = elements.filter((node) => node.type !== BELIEF);
+
+  // each actor's, element's and link's properties as the evaluation reads
+  // them (goal-controller#217): typed by the dialect, a value written with an
+  // error (out of range, not a literal) unset, so its default is written
+  // (#269). The view lists them in the file's order, as `actors`, `nodes`
+  // and the model's links (an id may repeat: they're paired by position).
+  const view = pistarAnalysisModel(model);
+  const viewItem = new Map<
+    Json,
+    { kind: string; properties: Readonly<Partial<Record<string, string>>> }
+  >();
+  nodes.forEach((node, i) => viewItem.set(node, view.elements[i]!));
+  actors.forEach((actor, i) => viewItem.set(actor, view.actors[i]!));
+  (model.links ?? []).forEach((link: Json, i: number) =>
+    viewItem.set(link, view.links[i]!),
+  );
+  const valuesOf = (owner: 'actor' | 'element' | 'link', item: Json) =>
+    viewValues(grlReading(), owner, viewItem.get(item)!);
   const beliefs = elements.filter((node) => node.type === BELIEF);
   const written = new Set(elements.map((node) => node.id as string));
 
@@ -260,11 +274,9 @@ export const writeJucm = (
     for (const key of Object.keys(properties))
       if (!GRL_PROPERTIES.has(key)) unkept.add(key);
     const type = TYPE_OF_KIND[node.type]!;
-    const decomposition = pick(
-      properties.decompositionType,
-      GRL_DECOMPOSITIONS,
-      refinementKind.get(node.id) ?? 'And',
-    );
+    const values = valuesOf('element', node);
+    const decomposition =
+      values.decompositionType ?? refinementKind.get(node.id) ?? 'And';
     return tag('intElements', [
       ['xsi:type', type === 'Indicator' ? 'grl.kpimodel:Indicator' : undefined],
       ['name', node.text ?? ''],
@@ -275,16 +287,10 @@ export const writeJucm = (
       ['type', unlessDefault(type, 'Softgoal')],
       ['refs', nodeRefId.get(node.id)],
       ['decompositionType', unlessDefault(decomposition, 'And')],
-      [
-        'importance',
-        unlessDefault(
-          pick(properties.importance, GRL_IMPORTANCES, 'None'),
-          'None',
-        ),
-      ],
+      ['importance', unlessDefault(values.importance ?? 'None', 'None')],
       [
         'importanceQuantitative',
-        unlessDefault(integer(properties.importanceQuantitative, 0), 0),
+        unlessDefault(values.importanceQuantitative ?? 0, 0),
       ],
     ]);
   });
@@ -298,21 +304,15 @@ export const writeJucm = (
       info(
         `actor ${actor.id} is a ${ACTOR_KINDS.has(actor.type) ? actor.type : 'node'}: written as a GRL actor`,
       );
-    const properties: Json = actor.customProperties ?? {};
+    const values = valuesOf('actor', actor);
     return tag('actors', [
       ['name', actor.text ?? ''],
       ['id', actorId.get(actor.id)],
       ['contRefs', actorRefId.get(actor.id)],
-      [
-        'importance',
-        unlessDefault(
-          pick(properties.importance, GRL_IMPORTANCES, 'None'),
-          'None',
-        ),
-      ],
+      ['importance', unlessDefault(values.importance ?? 'None', 'None')],
       [
         'importanceQuantitative',
-        unlessDefault(integer(properties.importanceQuantitative, 0), 0),
+        unlessDefault(values.importanceQuantitative ?? 0, 0),
       ],
     ]);
   });
@@ -334,7 +334,7 @@ export const writeJucm = (
         ...common,
       ]);
     }
-    const properties: Json = link.customProperties ?? {};
+    const values = valuesOf('link', link);
     return tag('links', [
       ['xsi:type', 'grl:Contribution'],
       ['name', `Contribution${id}`],
@@ -342,19 +342,17 @@ export const writeJucm = (
       [
         'contribution',
         unlessDefault(
-          pick(
-            properties.contribution,
-            GRL_CONTRIBUTIONS,
-            CONTRIBUTION_OF_LABEL[link.label ?? ''] ?? 'Help',
-          ),
+          values.contribution ??
+            CONTRIBUTION_OF_LABEL[link.label ?? ''] ??
+            'Help',
           'Help',
         ),
       ],
       [
         'quantitativeContribution',
-        unlessDefault(integer(properties.quantitativeContribution, 25), 25),
+        unlessDefault(values.quantitativeContribution ?? 25, 25),
       ],
-      ['correlation', properties.correlation === 'true' ? 'true' : undefined],
+      ['correlation', values.correlation === true ? 'true' : undefined],
     ]);
   });
 

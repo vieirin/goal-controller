@@ -82,30 +82,13 @@ const readingOf = () => ({
 });
 let reading: ReturnType<typeof readingOf> | undefined;
 /**
- * GRL as the evaluation reads a model's properties (goal-controller#187):
- * an intentional element's are `elementProperties` (what GRL would declare,
- * #105), its actors' and links' the dialect's. Made on first use: the
- * dialect's module imports the jUCM writer, which imports this one.
+ * GRL as the evaluation reads a model's properties (goal-controller#187),
+ * and the jUCM writer too (#217): an intentional element's are
+ * `elementProperties` (what GRL would declare, #105), its actors' and
+ * links' the dialect's. Made on first use: the dialect's module imports the
+ * jUCM writer, which imports this one.
  */
-const grlReading = () => (reading ??= readingOf());
-
-/** an enum property: its value, or the metamodel's default (the jUCM writer's, which reads its texts) */
-export const pick = <T extends string>(
-  value: string | undefined,
-  literals: readonly T[],
-  fallback: T,
-): T => (literals.includes(value as T) ? (value as T) : fallback);
-
-/** an int property: its value, or the metamodel's default (the jUCM writer's) */
-export const integer = (
-  value: string | undefined,
-  fallback: number,
-): number => {
-  const read = Number(value);
-  return value !== undefined && value.trim() !== '' && Number.isInteger(read)
-    ? read
-    : fallback;
-};
+export const grlReading = () => (reading ??= readingOf());
 
 export const grlGraph = (model: AnalysisModel): GrlGraph => {
   const intentional = model.elements.filter((e) =>
