@@ -186,7 +186,10 @@ export const istardtTemplate = (
     ? `${continuousExportedSet}]).\n`
     : `${chop(continuousExportedSet, 2)}]).\n`;
 
+  // empty: `[]`, as the exported sets (dtx2dtg's getCrossRunState chops
+  // the `[` too: goal-controller#294)
   let crossRunSet = '%\n% C R O S S   S T A T E \n%\ntransStateStructure([';
+  let crossRunEmpty = true;
   for (const name of model.crossRun) {
     const element = named(name);
     if (!element) continue;
@@ -194,21 +197,30 @@ export const istardtTemplate = (
       crossRunSet += `${element.identifier}_fl,`;
     else if (element.kind === 'variable' || element.kind === 'quality')
       crossRunSet += `${element.identifier}(_),`;
+    else continue;
+    crossRunEmpty = false;
   }
-  crossRunSet = `${chop(crossRunSet)}]).\n`;
+  crossRunSet = crossRunEmpty
+    ? `${crossRunSet}]).\n`
+    : `${chop(crossRunSet)}]).\n`;
 
+  // a predicate/condition in `init` is initially true (shim.pl's
+  // initiallyTrue); false is left out (dtx2dtg writes `_fl` for both:
+  // goal-controller#296)
   let initList = 'init([';
-  if (model.initializations.length) {
-    for (const [name, value] of model.initializations) {
-      const element = named(name);
-      if (!element) continue;
-      if (element.kind === 'predicate' || element.kind === 'condition')
-        initList += `${name}_fl,`;
-      else if (element.kind === 'variable') initList += `${name}_fl(${value}),`;
-      else if (element.kind === 'quality') initList += `${name}(${value}),`;
-    }
-    initList = `${chop(initList)}]).\n`;
-  } else initList += ']).\n';
+  let initEmpty = true;
+  for (const [name, value] of model.initializations) {
+    const element = named(name);
+    if (!element) continue;
+    if (element.kind === 'predicate' || element.kind === 'condition') {
+      if (value !== 'true') continue;
+      initList += `${name}_fl,`;
+    } else if (element.kind === 'variable') initList += `${name}_fl(${value}),`;
+    else if (element.kind === 'quality') initList += `${name}(${value}),`;
+    else continue;
+    initEmpty = false;
+  }
+  initList = initEmpty ? `${initList}]).\n` : `${chop(initList)}]).\n`;
 
   /* Tasks */
   let agentActionList = 'agentActionList([';
