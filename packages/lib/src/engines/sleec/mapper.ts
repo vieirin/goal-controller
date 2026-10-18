@@ -4,9 +4,8 @@
  */
 import {
   createEngineMapper,
-  type GoalNode,
-  type GoalTreeType,
-  type Task,
+  useIstarDefaultNaming,
+  type NodeOf,
 } from '@goal-controller/goal-tree';
 import type { SleecGoalProps, SleecTaskProps } from './types';
 
@@ -26,14 +25,15 @@ export const SLEEC_GOAL_KEYS = [
 ] as const;
 
 /**
- * Allowed keys for SLEEC task custom properties
+ * Allowed keys for SLEEC task custom properties. The seeds write
+ * `ObstacleEvent` (goal-controller#230); `FluentName` is documentation only.
  */
 export const SLEEC_TASK_KEYS = [
   'PreCond',
   'TriggeringEvent',
   'TemporalConstraint',
   'PostCond',
-  'Obstacle',
+  'ObstacleEvent',
 ] as const;
 
 /**
@@ -104,29 +104,24 @@ const extractSleecTaskProps = (
     );
   }
 
-  // an Obstacle is set as every other key is: a blank one is unset, and no
-  // rule _5 is written for it (#225)
-  const { Obstacle } = written(record, ['Obstacle'] as const);
+  // an ObstacleEvent is set as every other key is: a blank one is unset, and
+  // no rule _5 is written for it (#225, #230)
+  const { ObstacleEvent } = written(record, ['ObstacleEvent'] as const);
   return {
     PreCond,
     TriggeringEvent,
     PostCond,
     TemporalConstraint,
-    ...(Obstacle && { Obstacle }),
+    ...(ObstacleEvent && { ObstacleEvent }),
   };
 };
 
 /**
- * SLEEC Engine Mapper for creating SLEEC-compatible goal trees
- * Note: SLEEC doesn't use dependsOn, so no afterCreationMapper is needed
- * Note: SLEEC doesn't use resources, so skipResource is set to true
- * Engine types are explicit, property types are inferred from the dialect
+ * SLEEC Engine Mapper for creating SLEEC-compatible goal trees: the iStar
+ * reading (goal-controller#215), goals' (and Qualities') and tasks' keys as
+ * written; SLEEC reads no resource
  */
-export const sleecEngineMapper = createEngineMapper<
-  SleecGoalProps,
-  SleecTaskProps,
-  never
->()({
+export const sleecEngineMapper = createEngineMapper({
   // no definition, no notation: goal texts give their ids and names only;
   // its properties are its keys, as text
   dialect: {
@@ -137,17 +132,25 @@ export const sleecEngineMapper = createEngineMapper<
       quality: texts(SLEEC_QUALITY_KEYS),
     },
   },
-  skipResource: true,
-  // a quality is given its kind's keys only (NormPrinciple, Proxy)
-  mapGoalProps: ({ props, raw }) => written({ props, raw }, SLEEC_GOAL_KEYS),
-  mapTaskProps: ({ props, raw, name }) =>
-    extractSleecTaskProps({ props, raw }, name),
+  naming: useIstarDefaultNaming(),
+  elements: (entry) => [
+    // a quality is given its kind's keys only (NormPrinciple, Proxy)
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'],
+      mapProps: ({ props, raw }): SleecGoalProps =>
+        written({ props, raw }, SLEEC_GOAL_KEYS),
+    }),
+    entry({
+      kind: 'istar.Task',
+      mapProps: ({ props, raw, name }) =>
+        extractSleecTaskProps({ props, raw }, name),
+    }),
+  ],
+  ignore: ['istar.Resource'],
 });
 
-/**
- * Type aliases for SLEEC-specific tree types
- * Note: TResourceEngine is `never` because SLEEC skips resources
- */
-export type SleecGoalNode = GoalNode<SleecGoalProps, SleecTaskProps, never>;
-export type SleecTask = Task<SleecTaskProps, never>;
-export type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps, never>;
+/** SLEEC's tree nodes, by kind: goals (and Qualities) and tasks. */
+export type SleecNode = NodeOf<typeof sleecEngineMapper>;
+export type SleecGoalNode = Extract<SleecNode, { type: 'goal' }>;
+export type SleecTask = Extract<SleecNode, { type: 'task' }>;
+export type SleecGoalTree = SleecNode[];

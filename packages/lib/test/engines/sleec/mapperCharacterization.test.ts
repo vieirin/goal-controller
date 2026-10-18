@@ -86,7 +86,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
       'TriggeringEvent',
       'TemporalConstraint',
       'PostCond',
-      'Obstacle',
+      'ObstacleEvent',
     ]);
     assert.deepStrictEqual(SLEEC_QUALITY_KEYS, ['NormPrinciple', 'Proxy']);
   });
@@ -207,7 +207,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
   });
 
   describe('task properties', () => {
-    it('keeps the four required keys and Obstacle as written: not trimmed', () => {
+    it('keeps the four required keys and ObstacleEvent as written: not trimmed', () => {
       const engine = taskEngine(
         seedWith({
           'T1:': {
@@ -216,7 +216,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
               TriggeringEvent: 'MeetingUser ',
               TemporalConstraint: ' 120 seconds',
               PostCond: '{purposeProtocolInformed}\n',
-              Obstacle: ' ObtainConsentPartialTracking ',
+              ObstacleEvent: ' AchievedObtainConsentPartialTracking ',
             },
           },
         }),
@@ -227,7 +227,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
         TriggeringEvent: 'MeetingUser ',
         TemporalConstraint: ' 120 seconds',
         PostCond: '{purposeProtocolInformed}\n',
-        Obstacle: ' ObtainConsentPartialTracking ',
+        ObstacleEvent: ' AchievedObtainConsentPartialTracking ',
       });
     });
 
@@ -256,10 +256,12 @@ describe('sleecEngineMapper: characterization (#187)', () => {
     });
 
     // #225: changed (a blank Obstacle was kept: truthy, not trimmed)
-    it('leaves out an empty or a blank Obstacle, as every other key', () => {
-      const obstacle = (Obstacle: string) =>
+    it('leaves out an empty or a blank ObstacleEvent, as every other key', () => {
+      const obstacle = (ObstacleEvent: string) =>
         taskEngine(
-          seedWith({ 'T1:': { customProperties: { ...REQUIRED, Obstacle } } }),
+          seedWith({
+            'T1:': { customProperties: { ...REQUIRED, ObstacleEvent } },
+          }),
           'T1',
         );
       assert.deepStrictEqual(obstacle(''), REQUIRED);
@@ -269,18 +271,21 @@ describe('sleecEngineMapper: characterization (#187)', () => {
     // #225: changed (a blank Obstacle wrote 'RuleT1_5 when
     // PursuingInformSystemPurposeandProtocol and     then
     // StopInformSystemPurposeandProtocol')
-    it('a blank Obstacle writes no rule _5', () => {
+    it('a blank ObstacleEvent writes no rule _5', () => {
       const rules = sleecTemplateEngine(
         treeOf(
           seedWith({
-            'T1:': { customProperties: { ...REQUIRED, Obstacle: '   ' } },
+            'T1:': {
+              customProperties: { ...REQUIRED, ObstacleEvent: '   ' },
+            },
           }),
         ),
       );
       assert.ok(!rules.includes('RuleT1_5'));
     });
 
-    it('reads Obstacle, not the ObstacleEvent or FluentName the seed writes', () => {
+    // #230: changed (read Obstacle; the seeds' ObstacleEvent was ignored)
+    it('reads ObstacleEvent, not Obstacle or FluentName', () => {
       assert.deepStrictEqual(
         taskEngine(
           seedWith({
@@ -288,6 +293,7 @@ describe('sleecEngineMapper: characterization (#187)', () => {
               customProperties: {
                 ...REQUIRED,
                 ObstacleEvent: 'AchievedObtainConsentPartialTracking',
+                Obstacle: 'ignored',
                 FluentName: 'InformPurposeAndProtocol',
                 Description: 'not read',
                 Type: 'a goal key',
@@ -296,15 +302,19 @@ describe('sleecEngineMapper: characterization (#187)', () => {
           }),
           'T1',
         ),
-        REQUIRED,
+        {
+          ...REQUIRED,
+          ObstacleEvent: 'AchievedObtainConsentPartialTracking',
+        },
       );
-      // the seed's T6 has an ObstacleEvent: the tree has no Obstacle for it
+      // the seed's T6 has an ObstacleEvent
       assert.deepStrictEqual(taskEngine(Model.load(SEED), 'T6'), {
         PreCond:
           '(({userConsentsFullVitalsTracking} and (not {patientIsHome}))',
         TriggeringEvent: 'PatientOutdoors',
         TemporalConstraint: '300 seconds',
         PostCond: '{dataCollected}',
+        ObstacleEvent: 'AchievedObtainConsentPartialTracking',
       });
     });
 

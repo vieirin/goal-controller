@@ -75,9 +75,11 @@ describe('kaosdoc: a requirements document from a KAOS model', () => {
       document,
       /## Goal details\n\n\| Goal \| Source \| Stability \| Formal specification \| Issue \|\n\| --- .*\n\| Achieve \[Manual Backup\] \|  \|  \| BackupRequested => <>_\{≤1w\} BackedUp \| who \\\| when \|\n\n/,
     );
+    // #226: changed (was '| by cases |'): a Tactic outside its vocabulary is
+    // unset on the hub’s entry, so the cell is empty
     assert.match(
       document,
-      /\| Maintain \[Minimal Interval Between Automatic Backups\] \| Internet connection available \|  \| by cases \|/,
+      /\| Maintain \[Minimal Interval Between Automatic Backups\] \| Internet connection available \|  \|  \|/,
     );
   });
 

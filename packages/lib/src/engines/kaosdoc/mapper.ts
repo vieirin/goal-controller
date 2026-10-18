@@ -1,20 +1,24 @@
 /**
- * kaosdoc's mapper (goal-controller#171): how goal-tree reads a KAOS model
- * for it. Goals and domain properties are the IR's goal nodes, each with its
- * kind and the properties its kind declares in the `kaos` dialect, as it
- * reads them (goal-controller#187: trimmed; empty ones, and a value outside
- * its vocabulary, left out); conflicts keep their boundary condition, and
- * resolutions their type and anchor. Obstacles are goal nodes too, in their
- * own trees. A refinement's properties are its hub's, an element of the
- * model.
+ * kaosdoc's mapper (goal-controller#171, #215): how goal-tree reads a KAOS
+ * model for it. Its own naming: goals, domain properties and obstacles are
+ * tree nodes; agents and refinement hubs are not (`tree: false`). Each
+ * element's properties are what its kind declares in the `kaos` dialect, as
+ * it reads them (goal-controller#187: trimmed; empty ones, and a value
+ * outside its vocabulary, left out). Conflicts keep their boundary
+ * condition, and resolutions their type and anchor. A hub's Tactic, Status
+ * and SysRef arrive through its entry (goal-controller#226).
  */
 import { parsePistar } from '@istar-ts/core';
-import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import {
+  KAOS_OBSTACLES,
+  KAOS_REFINEMENT_HUB,
+} from '@istar-ts/dsm3-kaos/metamodel';
 import { linkPropertyKeys, propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
-  type GoalModel,
+  type ModelOf,
+  type NodeOf,
   type IStarModel,
 } from '@goal-controller/goal-tree';
 import { kaos } from '../../dialects/kaos';
@@ -32,15 +36,17 @@ export const KAOSDOC_LINK_KEYS = linkPropertyKeys(kaos);
 /** Properties as the document reads them: the ones set, as the dialect reads them (trimmed). */
 export type KaosdocProperties = Readonly<Record<string, string>>;
 
-/** A goal node's: its kind (`kaos.BehavioralGoal`, `kaos.DomainProperty`, …) and properties. */
-export type KaosdocNodeProps = { kind: string; properties: KaosdocProperties };
+/** A node's: its kind and the properties its kind declares. */
+export type KaosdocNodeProps = {
+  kind: string;
+  properties: KaosdocProperties;
+};
 
 /**
  * The properties set, in the dialect's order: every KAOS value reads as a
  * string (text, a vocabulary's word, a formula, an anchor's id); unset,
  * blank or outside its vocabulary, it is absent (the dialect's checks
- * report the last). (The dialect lists its properties as `PropertyDefinition`s,
- * so their values aren't narrowed to string here.)
+ * report the last).
  */
 const set = (props: Readonly<Record<string, unknown>>): KaosdocProperties =>
   Object.fromEntries(
@@ -49,30 +55,60 @@ const set = (props: Readonly<Record<string, unknown>>): KaosdocProperties =>
     ),
   );
 
-export const kaosdocEngineMapper = createEngineMapper<
-  KaosdocNodeProps,
-  never
->()({
+const nodeProps =
+  (kind: string) =>
+  ({
+    props,
+  }: {
+    props: Readonly<Record<string, unknown>>;
+  }): KaosdocNodeProps => ({
+    kind,
+    properties: set(props),
+  });
+
+export const kaosdocEngineMapper = createEngineMapper({
   dialect: kaos,
-  // a KAOS goal may be a leaf: a requirement, an expectation
-  allowLeafGoals: true,
-  skipResource: true,
-  // a link's, its kind's (`links[kind]`): a conflict's, a resolution's
-  mapLinkProps: ({ props }) => set(props),
-  mapGoalProps: ({ props, kind }) => ({ kind, properties: set(props) }),
-  mapTaskProps: ({ id }) => {
-    throw new Error(`[INVALID_MODEL]: ${id}: a KAOS model has no tasks`);
-  },
+  elements: (entry) => [
+    entry({
+      kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+      as: 'goal',
+      mapProps: ({ kind, props }) => ({ kind, properties: set(props) }),
+    }),
+    entry({
+      kind: 'kaos.DomainProperty',
+      as: 'domainProperty',
+      mapProps: nodeProps('kaos.DomainProperty'),
+    }),
+    entry({
+      kind: 'kaosObstacles.Obstacle',
+      as: 'obstacle',
+      mapProps: nodeProps('kaosObstacles.Obstacle'),
+    }),
+    entry({
+      kinds: ['kaos.Agent', 'kaos.EnvironmentAgent'],
+      as: 'agent',
+      tree: false,
+      mapProps: ({ kind, props }) => ({ kind, properties: set(props) }),
+    }),
+    // a refinement's properties are its hub's (goal-controller#226)
+    entry({
+      kind: KAOS_REFINEMENT_HUB,
+      as: 'refinement',
+      tree: false,
+      mapProps: ({ props }) => set(props),
+    }),
+  ],
+  links: (entry) => [
+    entry({
+      kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
+      mapProps: ({ props }) => set(props),
+    }),
+  ],
 });
 
 /** kaosdoc's IR of a KAOS model: its trees on the paper, its links and elements. */
-export type KaosdocGoalModel = GoalModel<
-  KaosdocNodeProps,
-  never,
-  never,
-  {},
-  KaosdocProperties
->;
+export type KaosdocGoalModel = ModelOf<typeof kaosdocEngineMapper>;
+export type KaosdocNode = NodeOf<typeof kaosdocEngineMapper>;
 
 /** A KAOS model's IR, as kaosdoc reads it. */
 export const kaosdocGoalModel = (model: IStarModel): KaosdocGoalModel =>

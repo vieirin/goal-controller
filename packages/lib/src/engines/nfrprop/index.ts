@@ -31,4 +31,7 @@ export {
   nfrpropAnalysisModel,
   nfrpropEngineMapper,
   readNfrModel,
+  type NfrpropElementProps,
+  type NfrpropGoalModel,
+  type NfrpropNode,
 } from './mapper';

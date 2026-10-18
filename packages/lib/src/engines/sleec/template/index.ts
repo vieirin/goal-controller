@@ -1,10 +1,9 @@
-import type { GoalTreeType } from '@goal-controller/goal-tree';
 import { GoalTree } from '@goal-controller/goal-tree';
 import { singleFileOutput, type EngineOutput } from '../../output';
 import { generateDefinitions } from './definitions';
 import { generatePurposes } from './purposes';
 import { generateTaskRules } from './rules';
-import type { SleecGoalProps, SleecTaskProps } from '../types';
+import type { SleecGoalTree } from '../mapper';
 
 // Re-export types and utilities
 export { extractMeasures } from './definitions';
@@ -16,7 +15,7 @@ export type SleecTemplateOptions = {
 };
 
 export const sleecTemplateEngine = (
-  tree: GoalTreeType<SleecGoalProps, SleecTaskProps>,
+  tree: SleecGoalTree,
   options: SleecTemplateOptions = {},
 ): string => {
   const { generateFluents = true } = options;
@@ -33,7 +32,7 @@ ${purposes}`;
 
 /** The SLEEC specification as an engine output: one primary file, `<model>.sleec`. */
 export const sleecOutput = (
-  tree: GoalTreeType<SleecGoalProps, SleecTaskProps>,
+  tree: SleecGoalTree,
   { modelName, ...options }: SleecTemplateOptions & { modelName: string },
 ): EngineOutput =>
   singleFileOutput({
