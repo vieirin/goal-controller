@@ -319,6 +319,7 @@ export const OCL_OPERATIONS = [
  * - `enum`: one or more words (`maintain`, `goal-based`)
  * - `refList`: element ids, comma-separated (`G2, G5`)
  * - `pairList`: `name:value` pairs, comma-separated (`x:3, y:2`)
+ * - `nameList`: names, comma-separated (`cost, roomTemperature`)
  * - `annotatedName`: `<<stereotype>> {tag = value} Name [RT]`, a line
  *   without an id
  * - `ocl`: OCL as MutRoSe writes it (`world_db->select(r:Room | r.dirty)`),
@@ -334,6 +335,7 @@ export const VALUE_TYPES = [
   'enum',
   'refList',
   'pairList',
+  'nameList',
   'annotatedName',
   'ocl',
 ] as const;

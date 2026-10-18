@@ -192,6 +192,11 @@ RefListValue:
 PairListValue:
     {infer PairListValue} (pairs+=Pair (',' pairs+=Pair)*)?;
 
+// names, comma-separated (`cost, roomTemperature`, goal-controller#286):
+// what names them (an element's identifier, a variable) is the dialect's
+NameListValue:
+    {infer NameListValue} (names+=IDENT (',' names+=IDENT)*)?;
+
 // OCL as MutRoSe's goal models write it (`world_db->select(r:Room | r.dirty)`,
 // `rooms->forAll(r | r.clean)`, `current : Room, rooms : Sequence(Room)`): read
 // as its tokens, leniently; an engine's checks read its structure
@@ -218,7 +223,8 @@ Reach:
     REACH plain=PlainDocument REACH assertion=AssertionValue REACH int=IntValue
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
     REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
-    REACH ocl=OclValue REACH expression=ExpressionValue;
+    REACH ocl=OclValue REACH expression=ExpressionValue
+    REACH nameList=NameListValue;
 
 // ---------------------------------------------------------------------------
 // The vocabulary (GoalLexer makes the tokens)

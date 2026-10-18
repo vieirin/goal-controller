@@ -105,6 +105,15 @@ describe('value members (#188)', () => {
     expect(pairs.text()).to.equal('x:3, y:2');
   });
 
+  it('a nameList: its names and text, no refs (#286)', () => {
+    const names = parseValue('nameList', 'cost,  roomTemperature').value;
+    expect(names).to.deep.equal(['cost', 'roomTemperature']);
+    expect(names.names).to.equal(names);
+    expect(names.text()).to.equal('cost, roomTemperature');
+    expect('refs' in names).to.equal(false);
+    expect(parseValue('nameList', '').value).to.deep.equal([]);
+  });
+
   it('a notation: its text, operand ids, refs and execution in a dialect', () => {
     const dialect = {
       notation: {

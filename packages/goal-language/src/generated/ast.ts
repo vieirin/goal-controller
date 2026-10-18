@@ -622,6 +622,21 @@ export function isLine(item: unknown): item is Line {
     return reflection.isInstance(item, Line.$type);
 }
 
+export interface NameListValue extends langium.AstNode {
+    readonly $container: Reach;
+    readonly $type: 'NameListValue';
+    names: Array<string>;
+}
+
+export const NameListValue = {
+    $type: 'NameListValue',
+    names: 'names'
+} as const;
+
+export function isNameListValue(item: unknown): item is NameListValue {
+    return reflection.isInstance(item, NameListValue.$type);
+}
+
 export interface NumberValue extends langium.AstNode {
     readonly $container: Reach;
     readonly $type: 'NumberValue';
@@ -746,6 +761,7 @@ export interface Reach extends langium.AstNode {
     enum: EnumValue;
     expression: ExpressionValue;
     int: IntValue;
+    nameList: NameListValue;
     number: NumberValue;
     ocl: OclValue;
     pairList: PairListValue;
@@ -761,6 +777,7 @@ export const Reach = {
     enum: 'enum',
     expression: 'expression',
     int: 'int',
+    nameList: 'nameList',
     number: 'number',
     ocl: 'ocl',
     pairList: 'pairList',
@@ -1030,6 +1047,7 @@ export type GoalAstType = {
     ExpressionValue: ExpressionValue
     IntValue: IntValue
     Line: Line
+    NameListValue: NameListValue
     NumberValue: NumberValue
     OclValue: OclValue
     Pair: Pair
@@ -1440,6 +1458,17 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        NameListValue: {
+            name: NameListValue.$type,
+            properties: {
+                names: {
+                    name: NameListValue.names,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         NumberValue: {
             name: NumberValue.$type,
             properties: {
@@ -1531,6 +1560,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 int: {
                     name: Reach.int
+                },
+                nameList: {
+                    name: Reach.nameList
                 },
                 number: {
                     name: Reach.number

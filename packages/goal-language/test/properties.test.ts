@@ -10,6 +10,7 @@ import {
   readProperties,
   valueProblem,
   type Assertion,
+  type NameList,
   type PairList,
   type AssertionTree,
   type PropertyValues,
@@ -334,6 +335,27 @@ describe('readProperties (#187)', () => {
         'Achieve',
       ),
     ).to.equal('One of achieve, maintain, not Achieve');
+  });
+
+  it('reads a nameList as its names, or leaves it unset and reports it (#286)', () => {
+    const lists = {
+      properties: { goal: [property.nameList('crossRun', { help: '' })] },
+    };
+    const read = (crossRun: string) =>
+      readProperties(lists, { element: 'goal' }, { crossRun });
+    const { values } = read(' cost, roomTemperature ');
+    expect(values.crossRun).to.deep.equal(['cost', 'roomTemperature']);
+    expect(values.crossRun?.text()).to.equal('cost, roomTemperature');
+    same<Same<NonNullable<typeof values.crossRun>, NameList>>();
+    for (const crossRun of ['cost roomTemperature', 'cost,', '2x', 'G1.2']) {
+      const record = read(crossRun);
+      expect(record.values, crossRun).to.deep.equal({});
+      expect(record.text, crossRun).to.deep.equal({ crossRun });
+      expect(valueProblem({ type: 'nameList' }, crossRun), crossRun).to.equal(
+        'Names, comma-separated (cost, roomTemperature)',
+      );
+    }
+    expect(valueProblem({ type: 'nameList' }, 'cost, x_1')).to.equal(null);
   });
 
   it("reads a pairList's members as its value type, or leaves it unset (#235)", () => {

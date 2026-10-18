@@ -129,6 +129,7 @@ value alone (`parseValue(type, text)`).
 | `enum`          | `EnumValue`      | words (`model-based reflex`)       | `options`, `open`                                         |
 | `refList`       | `RefListValue`   | `G2, G5`, `V1` (any prefix)        | `kind`, or `kinds`: of the elements it refers to (an extension's too) |
 | `pairList`      | `PairListValue`  | `t:9, loc:3`                       | `value`: `int`, `number` or `text`                        |
+| `nameList`      | `NameListValue`  | `cost, roomTemperature`            | none: the dialect's checks resolve the names              |
 | `annotatedName` | `AnnotatedName`  | `<<s>> {tag = v} Name [RT]`        |                                                           |
 | `ocl`           | `OclValue`       | `world_db->select(r:Room \| r.dirty)` |                                                       |
 

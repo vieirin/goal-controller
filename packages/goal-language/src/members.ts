@@ -652,6 +652,15 @@ export type RefListMembers = Written &
 /** A refList (`G2, G5`): its ids, with their operations. */
 export type RefList = string[] & RefListMembers;
 
+/** A nameList's members. */
+export type NameListMembers = Written & {
+  /** the data: the names themselves */
+  readonly names: readonly string[];
+};
+
+/** A nameList (`cost, roomTemperature`, goal-controller#286): its names, with their operations. */
+export type NameList = string[] & NameListMembers;
+
 /**
  * A pair of a pairList (`x:3`): its name, and its value as the list's value
  * type reads it (goal-controller#235: an `int` or a `number` list's a
@@ -747,6 +756,13 @@ export const asRefList = (ids: string[]): RefList =>
     ids: data,
     text: () => data.join(', '),
     refs: () => [...data],
+  }));
+
+/** A nameList's names with their operations. */
+export const asNameList = (names: string[]): NameList =>
+  withMembers(names, (data) => ({
+    names: data,
+    text: () => data.join(', '),
   }));
 
 /** A pairList's pairs with their operations. */

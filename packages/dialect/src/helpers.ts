@@ -263,6 +263,15 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C>>,
   ): Built<K, 'pairList', P, never, { value: V }> =>
     build(key, 'pairList', rest, [], { value }) as never,
+  /**
+   * names, comma-separated (`cost, roomTemperature`, goal-controller#286):
+   * the dialect's checks say what each must name
+   */
+  nameList: <const K extends string, const P extends PropertyOptions<C>>(
+    key: K,
+    rest: Exact<P, PropertyOptions<C>>,
+  ): Built<K, 'nameList', P, never> =>
+    build(key, 'nameList', rest, []) as never,
   /** OCL as MutRoSe writes it */
   ocl: <
     const K extends string,
