@@ -66,7 +66,9 @@ export type NfrpropNode = NodeOf<typeof nfrpropEngineMapper>;
 
 /** An NFR model as nfrprop's analysis reads it: the view of its `GoalModel`. */
 export const nfrpropAnalysisModel = (model: IStarModel): AnalysisModel =>
-  analysisViewOf(GoalTree.goalModel(model, nfrpropEngineMapper));
+  analysisViewOf(GoalTree.goalModel(model, nfrpropEngineMapper), {
+    fromEntries: true,
+  });
 
 /** An NFR model's piStar text (DSM3's), read with the NFR root. */
 export const readNfrModel = (text: string): IStarModel =>

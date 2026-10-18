@@ -188,19 +188,24 @@ type AnalysisSource = {
  * The model as analyses read it: a view of the engine's `GoalModel`
  * (goal-controller#125), its actors, elements and links in the file's
  * order. An actor's and a link's properties are what the engine's mapper
- * keeps of them. An element's are its entry's engine properties when the
- * mapper has one (a tree node's, or `tree: false`'s; goal-controller#215,
- * #226, #244), else as written.
+ * keeps of them. An element's are as written, unless `fromEntries` is set:
+ * then they are its entry's engine properties when the mapper has one (a
+ * tree node's, or `tree: false`'s; goal-controller#215, #226, #244). Only
+ * engines whose analyses read their entries' values set it; engines still
+ * on role mappers read the texts as written.
  */
 export const analysisViewOf = (
   goalModel:
     | GoalModel<unknown, unknown, unknown, PropertyTexts, PropertyTexts>
     | AnalysisSource,
+  { fromEntries = false }: { fromEntries?: boolean } = {},
 ): AnalysisModel => {
   const source = goalModel as AnalysisSource;
   const fromTrees = new Map<string, Record<string, string>>();
-  for (const actor of source.actors) enginesOfTrees(actor.trees, fromTrees);
-  enginesOfTrees(source.paper, fromTrees);
+  if (fromEntries) {
+    for (const actor of source.actors) enginesOfTrees(actor.trees, fromTrees);
+    enginesOfTrees(source.paper, fromTrees);
+  }
 
   return {
     actors: source.actors.map(
@@ -213,8 +218,9 @@ export const analysisViewOf = (
       }),
     ),
     elements: source.elements.map((element) => {
-      const fromEntry =
-        element.engine !== undefined
+      const fromEntry = !fromEntries
+        ? undefined
+        : element.engine !== undefined
           ? engineTexts(element.engine)
           : fromTrees.get(element.id);
       return {

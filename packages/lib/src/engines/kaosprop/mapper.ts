@@ -105,7 +105,9 @@ export type KaospropNode = NodeOf<typeof kaospropEngineMapper>;
 
 /** A KAOS model as kaosprop's analyses read it: the view of its `GoalModel`. */
 export const kaospropAnalysisModel = (model: IStarModel): AnalysisModel =>
-  analysisViewOf(GoalTree.goalModel(model, kaospropEngineMapper));
+  analysisViewOf(GoalTree.goalModel(model, kaospropEngineMapper), {
+    fromEntries: true,
+  });
 
 /** A KAOS model's piStar text, read with KAOS and its obstacle analysis. */
 export const readKaosObstacleModel = (text: string): IStarModel =>
