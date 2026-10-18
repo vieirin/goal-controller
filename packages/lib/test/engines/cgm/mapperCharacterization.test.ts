@@ -263,9 +263,9 @@ describe('Contextual goal models (#187 characterization): context, activation an
       VAR('C99'),
       ["G2 → G1's context names C99, which is no context"],
     ]);
-    // #187: invalid value: unreadable, so no guard (the variant is always
-    // adoptable); the value check says so (cgmProblems said "G2 → G1's
-    // context is not a formula: C5 &")
+    // #187: invalid value: unreadable (unset); #238: analyses exclude a
+    // variant whose context is unreadable (see analyses.test); the dialect's
+    // diagnostic is what the user sees
     assert.deepStrictEqual(read('C5 &'), [null, []]);
   });
 
@@ -358,7 +358,7 @@ describe('Contextual goal models (#187 characterization): the checks', () => {
   const SAME =
     'The opposite context is the contribution’s own: the two labels would apply together';
 
-  it('cgm.contribution.opposite: blank is unset; the two compared as the language writes them', () => {
+  it('cgm.contribution.opposite: blank is unset; the two compared structurally (#238)', () => {
     assert.strictEqual(opposite({ opposite: '   ' }, context), null);
     assert.strictEqual(
       opposite({ context: ' ', opposite: 'C14' }, context),
@@ -368,10 +368,10 @@ describe('Contextual goal models (#187 characterization): the checks', () => {
       opposite({ context: 'C1&C2', opposite: 'C1 & C2' }, context),
       SAME,
     );
-    // the same formula written otherwise is not the same text
+    // #238: & / | commute — the same formula with operands reordered
     assert.strictEqual(
       opposite({ context: 'C1 & C2', opposite: 'C2 & C1' }, context),
-      null,
+      SAME,
     );
     // #187: invalid value: `C 14` isn't an assertion, so unset (it was C14
     // without its space, the same)

@@ -140,6 +140,9 @@ const evaluate = (
     case 'bool':
       return tree.value;
     case 'var':
+      // #240: TRUE / FALSE in any case are the constants, not beliefs
+      if (/^true$/i.test(tree.variable)) return true;
+      if (/^false$/i.test(tree.variable)) return false;
       return belief(tree.variable, beliefs, goals) === true;
     case 'member':
       return beliefs.get(memberOf(tree.ref, tree.member)) === true;
@@ -188,6 +191,9 @@ export const conditionOf = (
   if (!tree) return null;
   const reading = tree.asReading();
   if (reading.kind === 'bool') return reading.value ? TRUE : FALSE;
+  // #240: TRUE / FALSE in any case are the constant, not a belief
+  if (reading.kind === 'var' && /^true$/i.test(reading.variable)) return TRUE;
+  if (reading.kind === 'var' && /^false$/i.test(reading.variable)) return FALSE;
   return {
     text: text?.trim() || tree.text(),
     holds: (beliefs) => evaluate(reading, beliefs, goals),

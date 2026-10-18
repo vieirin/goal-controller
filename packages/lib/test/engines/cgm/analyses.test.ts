@@ -66,6 +66,31 @@ describe('Contextual goal models: the variants (#152, #151 D13, D16)', () => {
     );
   });
 
+  it('excludes a variant whose context is unreadable (#238)', () => {
+    const base = seedModel('museum-guide-costs');
+    const readable = cgmVariants(readCgmModel(base)).flatMap((r) => r.variants);
+    // G2 → G1 is an OR refinement with a context on museum-guide-costs
+    const link = base.links.find(
+      (l) =>
+        l.kind === 'istar.OrRefinementLink' &&
+        l.properties.context !== undefined,
+    );
+    assert.ok(link, 'expected an OR refinement with a context');
+    const broken: typeof base = {
+      ...base,
+      links: base.links.map((l) =>
+        l.id === link.id
+          ? { ...l, properties: { ...l.properties, context: 'C5 &' } }
+          : l,
+      ),
+    };
+    const after = cgmVariants(readCgmModel(broken)).flatMap((r) => r.variants);
+    assert.ok(
+      after.length < readable.length,
+      `expected fewer variants after unreadable context (${after.length} vs ${readable.length})`,
+    );
+  });
+
   it("writes Fig. 3's variant's context as the figure does", () => {
     const { cgm, all } = variantsOf('museum-guide');
     const fig3 = all.filter(

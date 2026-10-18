@@ -46,9 +46,17 @@ export type VariationPoint =
       dependency?: VariantDependency;
     };
 
+/**
+ * A guard at a variation point: its assertion, none (always taken), or
+ * `'unreadable'` when the dialect couldn't read what was written
+ * (goal-controller#238: that branch yields no variant; the dialect's
+ * diagnostic is what the user sees).
+ */
+export type VariantGuard = AssertionTree | null | undefined | 'unreadable';
+
 export type VariantOptions = {
-  /** the condition at a point (an assertion tree), or none */
-  guard: (at: VariationPoint) => AssertionTree | null | undefined;
+  /** the condition at a point (an assertion tree), none, or unreadable */
+  guard: (at: VariationPoint) => VariantGuard;
   /**
    * how a link joins its parent (its target for a refinement, its source
    * for a dependency): default iStar's, AND refinement and NeededBy `and`,
@@ -123,7 +131,11 @@ const join = (a: Piece, b: Piece): Piece => ({
  * into an element it has no link to), its guard, and the child's subtree.
  */
 type Subtree = { element: string; and: Part[]; or: Part[] };
-type Part = { link?: string; guard: AssertionTree | null; child: Subtree };
+type Part = {
+  link?: string;
+  guard: AssertionTree | null | 'unreadable';
+  child: Subtree;
+};
 
 /** The subtree of `root`, its guards asked as the walk reaches them. */
 const subtreeOf = (
@@ -161,7 +173,7 @@ const subtreeOf = (
         const guard = options.guard({ point: relation, link, from: id, to });
         subtree[relation].push({
           link: link.id,
-          guard: guard ?? null,
+          guard: guard === 'unreadable' ? 'unreadable' : (guard ?? null),
           child: walk(to, on),
         });
         continue;
@@ -207,7 +219,7 @@ const subtreeOf = (
       };
       subtree[relation].push({
         link: link.id,
-        guard: guard ?? null,
+        guard: guard === 'unreadable' ? 'unreadable' : (guard ?? null),
         child: dependum,
       });
     }
@@ -218,27 +230,40 @@ const subtreeOf = (
   return walk(root, new Set());
 };
 
-/** How many variants a subtree has. */
-const countOf = (subtree: Subtree): number =>
-  subtree.and.reduce(
-    (product, part) => product * (countOf(part.child) + (part.guard ? 1 : 0)),
+/** How many variants a subtree has (an unreadable guard yields none, #238). */
+const countOf = (subtree: Subtree): number => {
+  if (subtree.and.some((part) => part.guard === 'unreadable')) return 0;
+  const and = subtree.and.reduce(
+    (product, part) =>
+      product *
+      (part.guard === 'unreadable'
+        ? 0
+        : countOf(part.child) + (part.guard ? 1 : 0)),
     1,
-  ) *
-  (subtree.or.length
-    ? subtree.or.reduce((sum, part) => sum + countOf(part.child), 0)
-    : 1);
+  );
+  if (!subtree.or.length) return and;
+  const or = subtree.or.reduce(
+    (sum, part) =>
+      sum + (part.guard === 'unreadable' ? 0 : countOf(part.child)),
+    0,
+  );
+  return and * or;
+};
 
 /** A part's variants: taken (its guard true), then, for a guarded `and` part, dropped. */
 function* partVariants(part: Part, droppable: boolean): Generator<Piece> {
+  // unreadable: no variant through this branch (goal-controller#238)
+  if (part.guard === 'unreadable') return;
+  const condition = part.guard;
   const literal = (holds: boolean): GuardLiteral[] =>
-    part.guard ? [{ at: part.link!, condition: part.guard, holds }] : [];
+    condition ? [{ at: part.link!, condition, holds }] : [];
   const taken: Piece = {
     ...EMPTY,
     links: part.link ? [part.link] : [],
     literals: literal(true),
   };
   for (const below of subtreeVariants(part.child)) yield join(taken, below);
-  if (droppable && part.guard) yield { ...EMPTY, literals: literal(false) };
+  if (droppable && condition) yield { ...EMPTY, literals: literal(false) };
 }
 
 /** The product of the parts' variants, the first part's slowest. */
@@ -256,6 +281,8 @@ function* product(
 
 /** A subtree's variants: its element, every `and` part, one `or` part. */
 function* subtreeVariants(subtree: Subtree): Generator<Piece> {
+  // an unreadable AND child: no variant of this parent (#238)
+  if (subtree.and.some((part) => part.guard === 'unreadable')) return;
   const parts: (() => Iterable<Piece>)[] = subtree.and.map(
     (part) => () => partVariants(part, true),
   );
@@ -274,14 +301,18 @@ function* subtreeVariants(subtree: Subtree): Generator<Piece> {
     );
 }
 
-/** The root's guard, as the literal every variant starts with. */
+/**
+ * The root's guard: its literals, or `null` when the activation is
+ * unreadable (no variant of this root, goal-controller#238).
+ */
 const rootLiterals = (
   model: AnalysisModel,
   root: string,
   options: Omit<VariantOptions, 'limit'>,
-): GuardLiteral[] => {
+): GuardLiteral[] | null => {
   const element = model.elements.find((e) => e.id === root)!;
   const guard = options.guard({ point: 'root', element });
+  if (guard === 'unreadable') return null;
   return guard ? [{ at: root, condition: guard, holds: true }] : [];
 };
 
@@ -291,8 +322,10 @@ export function* eachVariant(
   root: string,
   options: Omit<VariantOptions, 'limit'>,
 ): Generator<Variant> {
+  // subtree first: a missing root throws `variants: no element …`
   const subtree = subtreeOf(model, root, options);
   const literals = rootLiterals(model, root, options);
+  if (!literals) return;
   for (const variant of subtreeVariants(subtree))
     yield { ...variant, literals: [...literals, ...variant.literals] };
 }
@@ -305,6 +338,7 @@ export const variantsOf = (
 ): Variants => {
   const subtree = subtreeOf(model, root, options);
   const literals = rootLiterals(model, root, options);
+  if (!literals) return { variants: [], truncated: false, total: 0 };
   const total = countOf(subtree);
   const variants: Variant[] = [];
   for (const variant of subtreeVariants(subtree)) {

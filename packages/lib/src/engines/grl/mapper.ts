@@ -1,7 +1,8 @@
 /**
  * GRL's engine mapper: how goal-tree reads a GRL model for the workbench.
+ * Entries by kind (goal-controller#215): iStar's plus Belief and Indicator.
  * GRL generates nothing (its analyses evaluate the model, ./evaluation), so
- * the mapper keeps an element's, an actor's and a link's GRL properties as
+ * an element's, an actor's and a link's entries keep GRL properties as
  * written, and the evaluation graph reads them as the dialect does
  * (`viewValues`, goal-controller#187); a goal may be a leaf (a strategy
  * evaluates it).
@@ -9,7 +10,9 @@
 import {
   createEngineMapper,
   GoalTree,
+  useIstarDefaultNaming,
   type IStarModel,
+  type ModelOf,
 } from '@goal-controller/goal-tree';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
 import { grl } from './definition';
@@ -27,17 +30,44 @@ export const GRL_ELEMENT_KEYS = [
 
 type GrlProps = { text: string };
 
-export const grlEngineMapper = createEngineMapper<GrlProps, GrlProps, never>()({
+/** raw texts as written: what analysisViewOf keeps on a link or actor */
+const asWritten = ({
+  raw,
+}: {
+  raw: Readonly<Partial<Record<string, string | undefined>>>;
+}) => raw;
+
+export const grlEngineMapper = createEngineMapper({
   dialect: grl,
-  // a resource is an element the evaluation reads, not one goal-tree maps
-  skipResource: true,
-  allowLeafGoals: true,
-  mapGoalProps: ({ text }) => ({ text }),
-  mapTaskProps: ({ text }) => ({ text }),
-  // an actor's importance, a contribution's type and weight (goal-controller#125)
-  mapActorProps: ({ raw }) => raw,
-  mapLinkProps: ({ raw }) => raw,
+  naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+  elements: (entry) => [
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'],
+      mapProps: ({ text }) => ({ text }) satisfies GrlProps,
+    }),
+    entry({
+      kind: 'istar.Task',
+      mapProps: ({ text }) => ({ text }) satisfies GrlProps,
+    }),
+    entry({
+      kind: 'grl.Belief',
+      as: 'belief',
+      mapProps: ({ text }) => ({ text }),
+    }),
+    entry({
+      kind: 'grl.Indicator',
+      as: 'indicator',
+      mapProps: ({ text }) => ({ text }),
+    }),
+  ],
+  ignore: ['istar.Resource'],
+  mapActorProps: asWritten,
+  links: (entry) => [
+    entry({ kind: 'istar.ContributionLink', mapProps: asWritten }),
+  ],
 });
+
+export type GrlGoalModel = ModelOf<typeof grlEngineMapper>;
 
 /** A GRL model as its analyses read it: the view of its `GoalModel`. */
 export const grlAnalysisModel = (model: IStarModel): AnalysisModel =>
