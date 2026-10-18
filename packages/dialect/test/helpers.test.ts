@@ -65,6 +65,9 @@ describe('property', () => {
     expect(property.pairList('vars', 'int', { help: 'h' }).value).to.deep.equal(
       { type: 'pairList', value: 'int' },
     );
+    expect(property.nameList('crossRun', { help: 'h' }).value).to.deep.equal({
+      type: 'nameList',
+    });
   });
 
   it('writes an enum option as its own label, or as [value, label]', () =>

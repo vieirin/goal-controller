@@ -6,6 +6,7 @@ export * from './parse.js';
 export {
   asAssertion,
   asExpression,
+  asNameList,
   asNotation,
   asPairList,
   asRefList,
@@ -18,6 +19,8 @@ export {
   type Expression,
   type ExpressionCall,
   type ExpressionMembers,
+  type NameList,
+  type NameListMembers,
   type Notation,
   type NotationMembers,
   type Pair,

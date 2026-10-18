@@ -46,7 +46,7 @@ functions return plain data, with no Langium types:
 - `ValueData[type]` is what a value type reads into: `int` and `number` a
   `number`, `bool` a `boolean`, `text` and `enum` a string, `refList` a
   `RefList` (its ids), `pairList` a `PairList` (its `{ name, value }`
-  pairs), `assertion` an `Assertion`, `expression` an `Expression` (each its
+  pairs), `nameList` a `NameList` (its names), `assertion` an `Assertion`, `expression` an `Expression` (each its
   tree, with its [members](#value-types)), `annotatedName` an
   `ElementLineData`, `ocl` its tokens; `null` (`[]` for a list) when empty.
   `ValueDataOf<config>` is the same for a dialect's value config: an enum is
@@ -84,7 +84,7 @@ only, and the snapshot script snapshots it. An operation takes the value,
 never its text; one that needs the dialect takes it as an argument. Every
 type has `text()`, its value as the language writes it (it reads back as the
 same value), and `refs()` where it can name elements. `asAssertion(tree)`,
-`asExpression`, `asNotation`, `asRefList` and `asPairList` give stored data its
+`asExpression`, `asNotation`, `asRefList`, `asNameList` and `asPairList` give stored data its
 members (once: a value that has them is returned as it is).
 
 ### `Assertion` (`AssertionTree` and its members)
@@ -116,6 +116,15 @@ members (once: a value that has them is returned as it is).
 | `ids` | the data: the ids themselves |
 | `text()` | `G2, G5` |
 | `refs()` | its ids |
+
+### `NameList` (`string[]` and its members)
+
+Names that aren't element ids (goal-controller#286): it has no `refs()`.
+
+| Member | Gives |
+| --- | --- |
+| `names` | the data: the names themselves |
+| `text()` | `cost, roomTemperature` |
 
 ### `PairList<V>` (`{ name, value: V }[]` and its members)
 

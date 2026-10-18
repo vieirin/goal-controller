@@ -202,6 +202,7 @@ export const START: Readonly<Record<ValueConfig['type'], LexerStart>> = {
   enum: 'enum',
   refList: 'refList',
   pairList: 'pairList',
+  nameList: 'nameList',
   // read as text: their syntax is no grammar's (yet)
   reference: 'text',
   formula: 'text',

@@ -36,6 +36,7 @@ import type {
   PairListValue,
   PlainDocument,
   RefListValue,
+  NameListValue,
   RtExpr,
   TextValue,
 } from './generated/ast.js';
@@ -46,6 +47,7 @@ import {
   asNotation,
   asPairList,
   asRefList,
+  asNameList,
   assertionComparisons,
   assertionExpressionsOf,
   assertionTextOf,
@@ -58,6 +60,7 @@ import {
   type Notation,
   type PairList,
   type RefList,
+  type NameList,
 } from './members.js';
 import {
   createGoalCoreServices,
@@ -684,6 +687,7 @@ export type ValueData = {
   enum: string | null;
   refList: RefList;
   pairList: PairList;
+  nameList: NameList;
   annotatedName: ElementLineData | null;
   /** its tokens, as written */
   ocl: string[];
@@ -708,6 +712,7 @@ const READ: { [T in ValueType]: (root: never) => ValueData[T] } = {
     asPairList(
       root.pairs.map((pair) => ({ name: pair.name, value: pair.value })),
     ),
+  nameList: (root: NameListValue) => asNameList([...root.names]),
   annotatedName: (root: AnnotatedName) => (root ? toElementLine(root) : null),
   ocl: (root: OclValue) => [...root.parts],
 };

@@ -212,6 +212,11 @@ const VALUES = {
     ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
     SPACE,
   ]),
+  nameList: rules([
+    ...literal(','),
+    ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
+    SPACE,
+  ]),
   // longest match: `->` before `-`, `<>` and `<=` before `<`; a keyword ties
   // with an IDENT of its length and wins, a longer word (`index`) is an IDENT
   ocl: rules([

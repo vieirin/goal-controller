@@ -231,6 +231,12 @@ export type ValueConfig =
   | { type: 'probability' }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
+  /**
+   * names, comma-separated (`cost, roomTemperature`, goal-controller#286):
+   * what each names (an element's identifier, a variable) is the dialect's
+   * checks' to say
+   */
+  | { type: 'nameList' }
   | { type: 'annotatedName' }
   /** OCL as MutRoSe writes it: variables, `: Type`, `->select(...)`, `->forAll(...)` */
   | {

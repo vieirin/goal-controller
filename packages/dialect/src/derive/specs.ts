@@ -80,6 +80,7 @@ export const inputFor = (
     case 'reference':
     case 'probability':
     case 'pairList':
+    case 'nameList':
     case 'annotatedName':
       return withPlaceholder({ kind: 'text' as const });
   }

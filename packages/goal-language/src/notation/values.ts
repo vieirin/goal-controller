@@ -417,6 +417,10 @@ export const valueProblem = (
       }
       return null;
     }
+    case 'nameList':
+      return parseValue('nameList', text).errors.length
+        ? 'Names, comma-separated (cost, roomTemperature)'
+        : null;
     case 'annotatedName': {
       const [error] = parseValue('annotatedName', text).errors;
       return error ? error.message : null;

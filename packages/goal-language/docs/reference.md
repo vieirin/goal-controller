@@ -500,6 +500,25 @@ x
 2x:1
 ```
 
+### `nameList`
+
+Names, separated by commas, with optional spaces (goal-controller#286). A
+name is an identifier, as a `pairList`'s. What each name must name is the
+dialect's: iStar-DT's `crossRun` and `exported` name elements by their
+DT-Golog identifiers, which its checks resolve.
+
+```goal-value nameList accept
+cost, roomTemperature
+hvacOn,runningTime
+deliveredInTimeA
+```
+
+```goal-value nameList reject
+cost roomTemperature
+cost,
+2x
+```
+
 ### `reference`, `formula`, `probability`
 
 These three have no grammar rule of their own (goal-controller#181). They
