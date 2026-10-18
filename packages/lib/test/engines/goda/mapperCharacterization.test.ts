@@ -1,11 +1,10 @@
 /**
- * What GODA's mapper produces today for every property it reads
- * (goal-controller#187 phase 2 pre-work): `selected` (`isSelected`),
- * `creationProperty` (`contextsOf`, split at `%`), and the element's line (its
- * RT regex, a leaf's cost bracket), for representative inputs, so the
- * migration to typed values can show nothing changed. A test marked `#187:
- * invalid value` feeds a value the dialect flags: after the migration the
- * mapper sees `undefined` for it instead of the text.
+ * What GODA's mapper produces for every property it reads
+ * (goal-controller#187 / #215 / #232): `selected`, `creationProperty`
+ * (gated on `props` as `Assertion[]`; strings are the value's parts as
+ * written, for the writers), and the element's line. A test marked
+ * `#187: invalid value` feeds a value the dialect flags. `#232` marks pins
+ * that moved with the typed list.
  */
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
@@ -110,7 +109,7 @@ describe('godaEngineMapper today (#187): a goal', () => {
       assert.strictEqual(goalOf({ selected: 'True' }).selected, false);
       // #187: invalid value
       assert.strictEqual(goalOf({ selected: 'TRUE' }).selected, false);
-      // #187: invalid value
+      // #232: GODA's models write `false` for not selected
       assert.strictEqual(goalOf({ selected: 'false' }).selected, false);
       // #187: invalid value
       assert.strictEqual(goalOf({ selected: '1' }).selected, false);
@@ -217,7 +216,7 @@ describe('godaEngineMapper today (#187): a goal', () => {
     });
   });
 
-  describe('creationProperty (contextsOf)', () => {
+  describe('creationProperty (props gate, as written, #232)', () => {
     it('reads one condition as written', () => {
       assert.deepStrictEqual(
         goalOf({ creationProperty: 'assertion condition a = 1' }).contexts,
@@ -230,8 +229,8 @@ describe('godaEngineMapper today (#187): a goal', () => {
       assert.deepStrictEqual(goalOf({ creationProperty: '   ' }).contexts, []);
     });
 
-    it('splits at `%`, each part untrimmed, blank parts dropped', () => {
-      // #187: invalid value
+    it('reads each `%`-separated part as written; blank parts none', () => {
+      // #232: changed (was a hand split; now valueParts when props read)
       assert.deepStrictEqual(
         goalOf({
           creationProperty:
@@ -239,7 +238,7 @@ describe('godaEngineMapper today (#187): a goal', () => {
         }).contexts,
         ['assertion condition a = 1', 'assertion condition b = 2'],
       );
-      // #187: invalid value
+      // #232: changed (valueParts keeps each part's padding)
       assert.deepStrictEqual(
         goalOf({
           creationProperty:
@@ -247,25 +246,25 @@ describe('godaEngineMapper today (#187): a goal', () => {
         }).contexts,
         ['  assertion condition a = 1 ', '  assertion trigger b = 2  '],
       );
-      // #187: invalid value
+      // #232: changed (blank parts none)
       assert.deepStrictEqual(
         goalOf({ creationProperty: '%assertion condition a = 1%%  %' })
           .contexts,
         ['assertion condition a = 1'],
       );
-      // #187: invalid value
       assert.deepStrictEqual(goalOf({ creationProperty: '%%' }).contexts, []);
     });
 
-    it('keeps a condition as written whatever it says', () => {
-      // #187: invalid value
+    it('reads a part that parses, and none when props is unset', () => {
+      // The list reader accepts a part that parses as an assertion;
+      // valueProblem still reports a missing prefix
       assert.deepStrictEqual(goalOf({ creationProperty: 'a = 1' }).contexts, [
         'a = 1',
       ]);
-      // #187: invalid value
+      // #232: changed (was the incomplete text as written): props unset
       assert.deepStrictEqual(
         goalOf({ creationProperty: 'assertion trigger' }).contexts,
-        ['assertion trigger'],
+        [],
       );
     });
   });
@@ -321,7 +320,7 @@ describe('godaEngineMapper today (#187): a task', () => {
   });
 
   it('reads creationProperty as a goal does', () => {
-    // #187: invalid value
+    // #232: changed (trailing blank part dropped by valueParts)
     assert.deepStrictEqual(
       taskOf({ creationProperty: ' assertion trigger x > 0.5 % ' }).contexts,
       [' assertion trigger x > 0.5 '],

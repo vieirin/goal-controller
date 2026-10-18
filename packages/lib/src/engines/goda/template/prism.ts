@@ -6,7 +6,12 @@
  * a formula per goal; the `success` label on each root; a `cost` reward per
  * leaf.
  */
-import { clearElId, clearElName, type Container } from './containers';
+import {
+  clearElId,
+  clearElName,
+  costTermOf,
+  type Container,
+} from './containers';
 import { contextsInfo } from './contexts';
 import type { GodaGenerator } from './variants';
 
@@ -34,14 +39,6 @@ const linesOwned = (text: string, owned: readonly Owned[]): string[][] => {
 /** Java's `String.replace`: every occurrence, literally. */
 const replace = (text: string, target: string, value: string): string =>
   text.split(target).join(value);
-
-/** `CostParser`: a leaf's cost as a constant and an optional variable (`W = x` is `1*x`). */
-const costOf = (
-  cost: NonNullable<Container['cost']>,
-): { value: string; variable: string | null } => ({
-  value: cost.value ?? '1',
-  variable: cost.variable,
-});
 
 /**
  * The root goals in the order the writer sorts them (`Collections.sort`, by
@@ -114,16 +111,11 @@ export const writePrism = (
 
   const writeReward = (plan: Container) => {
     const id = clearElId(plan);
-    let cost: string;
-    if (plan.cost) {
-      const { value, variable } = costOf(plan.cost);
-      cost = variable === null ? value : `${value}*${variable}`;
-      if (variable !== null && !rewardVariables.includes(variable))
-        rewardVariables.push(variable);
-    } else {
-      cost = `W_${id}`;
-      if (!rewardVariables.includes(cost)) rewardVariables.push(cost);
-    }
+    const cost = costTermOf(plan.cost, id);
+    // the constant it declares: its cost's variable, or its weight W_
+    const variable = plan.cost?.variable ?? (cost === `W_${id}` ? cost : null);
+    if (variable !== null && !rewardVariables.includes(variable))
+      rewardVariables.push(variable);
     rewardOwners.push({ from: rewardModule.length, owner: plan.iStarId });
     rewardModule += replace(
       replace(templates.rewardEntry, '$GID$', id),

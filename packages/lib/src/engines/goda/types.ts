@@ -9,7 +9,10 @@ export type GodaGoalProps = {
   text: string;
   /** `selected: true`: the goal generated from */
   selected: boolean;
-  /** its context conditions (`creationProperty`), as written, `%`-separated in the model */
+  /**
+   * its context conditions (`creationProperty`): each part as written when
+   * `props` read the list (#232), or none when the dialect left it unset
+   */
   contexts: string[];
   /** its RT regex, read in GODA's dialect (spaces in its bracket ignored) */
   annotation: Notation | null;
@@ -17,6 +20,7 @@ export type GodaGoalProps = {
 
 export type GodaTaskProps = {
   text: string;
+  /** as on a goal: each part as written when `props` read the list (#232) */
   contexts: string[];
   /** a refined task's RT regex */
   annotation: Notation | null;

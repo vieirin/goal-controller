@@ -13,7 +13,13 @@
  * `cleanMultipleContexts`) are ported as they are, since they change what
  * the cost formula computes.
  */
-import { clearElId, clearUid, nodeIdOf, type Container } from './containers';
+import {
+  clearElId,
+  clearUid,
+  costTermOf,
+  nodeIdOf,
+  type Container,
+} from './containers';
 import { clearCondition } from './contexts';
 import { javaHashMapOrder } from './javaHashMap';
 
@@ -168,11 +174,7 @@ export const composeFormulas = (
         }
       } else {
         // `getCostFormula`: a leaf's cost, or its weight W_
-        form = node.cost
-          ? node.cost.variable === null
-            ? node.cost.value!
-            : `${node.cost.value ?? '1'}*${node.cost.variable}`
-          : `W_${id}`;
+        form = costTermOf(node.cost, id);
         costComments.push(`//${form} = cost of node ${id}\n`);
       }
       // insertCtxAnnotation: times its context's parameter

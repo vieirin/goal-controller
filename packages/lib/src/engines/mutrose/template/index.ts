@@ -50,7 +50,7 @@ const ordered = (goal: MutroseGoalNode): readonly Child[] => {
 const rootsOf = (tree: MutroseGoalTree): MutroseGoalNode[] =>
   tree.filter(
     (node): node is MutroseGoalNode =>
-      node.type === 'goal' && !node.properties.isQuality,
+      node.type === 'goal' && node.kind !== 'istar.Quality',
   );
 
 /**
