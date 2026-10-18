@@ -532,13 +532,13 @@ export const characterizeEdgeMapper = (
       const tree = treeWith({ G12: { dependsOn: 'G13' } });
       const goals = GoalTree.allByType(tree.nodes, 'goal');
       const g12 = goals.find((n) => n.id === 'G12');
-      // the node as allNodes held it, not the tree's own object
+      // #233: allNodes.get(id) is the tree's own node (was a pre-afterCreation copy)
       const g13 = goals.find((n) => n.id === 'G13');
-      assert.notStrictEqual(g12?.properties.engine.dependsOn[0], g13);
+      assert.strictEqual(g12?.properties.engine.dependsOn[0], g13);
       assert.deepStrictEqual(g12?.properties.engine.dependsOn[0], g13);
     });
 
-    it('gives a dependency as it was before afterCreationMapper: its own dependsOn unresolved', () => {
+    it('gives a dependency as the tree holds it: its own dependsOn already resolved', () => {
       const goals = GoalTree.allByType(
         treeWith({ G12: { dependsOn: 'G13' }, G13: { dependsOn: 'G6' } }).nodes,
         'goal',
@@ -549,9 +549,12 @@ export const characterizeEdgeMapper = (
         g13?.properties.engine.dependsOn.map((n) => n.id),
         ['G6'],
       );
+      // #233: was [] (stale copy); dependency is the tree's G13, already afterCreation'd
       assert.deepStrictEqual(
-        g12?.properties.engine.dependsOn[0]?.properties.engine.dependsOn,
-        [],
+        g12?.properties.engine.dependsOn[0]?.properties.engine.dependsOn.map(
+          (n) => n.id,
+        ),
+        ['G6'],
       );
     });
 

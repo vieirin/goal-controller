@@ -305,6 +305,37 @@ describe('a mapper by kind (#215)', () => {
     assert.deepStrictEqual(order, ['G2', 'G3', 'G1']);
   });
 
+  it('keeps the tree node and allNodes.get(id) the same object after afterCreation (#233)', () => {
+    const fromAllNodes = new Map<string, unknown>();
+    const mapper = createEngineMapper({
+      dialect,
+      naming: useIstarDefaultNaming(),
+      elements: (entry) => [
+        entry({
+          kinds: ['istar.Goal', 'istar.Quality'],
+          mapProps: () => ({ tagged: false }),
+          afterCreation: ({ node, allNodes }) => {
+            fromAllNodes.set(node.id, allNodes.get(node.id));
+            return { tagged: true };
+          },
+        }),
+        entry({ kind: 'istar.Task', mapProps: task }),
+        entry({ kind: 'istar.Resource', mapProps: resource }),
+        entry({ kind: 'toy.Sensor', as: 'sensor', mapProps: () => ({}) }),
+      ],
+      links: LINKS,
+    });
+    const goals = GoalTree.allByType(
+      GoalTree.fromModel(MODEL, mapper).nodes,
+      'goal',
+    );
+    assert.ok(goals.length > 0);
+    for (const goal of goals) {
+      assert.strictEqual(goal, fromAllNodes.get(goal.id));
+      assert.deepStrictEqual(goal.properties.engine, { tagged: true });
+    }
+  });
+
   it('applies the leaf-goal rule of the iStar reading, unless leaf goals are allowed', () => {
     const leaf = modelWith([node('g1', 'G1: Alone', 'istar.Goal')], []);
     const mapper = (leafGoals?: 'allow') =>
