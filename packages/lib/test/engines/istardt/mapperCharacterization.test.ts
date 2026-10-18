@@ -568,8 +568,8 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
     assert.deepStrictEqual(
       written(model, /^(transStateStructure|discreteExportedSet|init)\(.*$/gm),
       [
-        // #286: no cross-run set; #294: an empty one is written broken
-        'transStateStructure(]).',
+        // #286: no cross-run set; #294: an empty one is written []
+        'transStateStructure([]).',
         'discreteExportedSet([]).',
         'init([]).',
       ],
@@ -612,11 +612,8 @@ describe("iStar-DT (#187 characterization): the actor's sets and identifiers", (
         [`error: ${NOT_A_NUMBER(value)}`, OWN_INFO],
         `IstardtWriteError: ${NOT_A_NUMBER(value)}`,
       ]);
-    // #296: false is written as true is
-    assert.deepStrictEqual(read('soilDry:false'), [
-      [OWN_INFO],
-      ['init([soilDry_fl]).'],
-    ]);
+    // #296: false is left out (presence in init is initially true)
+    assert.deepStrictEqual(read('soilDry:false'), [[OWN_INFO], ['init([]).']]);
     const NOT_A_BOOL = `the initializations give soilDry maybe: a predicate starts at true or false`;
     assert.deepStrictEqual(read('soilDry:maybe'), [
       [`error: ${NOT_A_BOOL}`, OWN_INFO],
