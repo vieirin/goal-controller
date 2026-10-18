@@ -1,6 +1,8 @@
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import path from 'path';
 import { edgeEngineMapper, edgeOutput } from '../../engines/edge';
+import { edgeEngine } from '../../engines/edge/engine';
+import { refuseOnPropertyErrors } from '../../engines/engine';
 import { initLogger } from '../../engines/edge/logger/logger';
 import { DEFAULT_ACHIEVABILITY_SPACE } from '../../engines/edge/template/decisionVariables';
 import { writeOutputFiles } from '../outputFiles';
@@ -27,6 +29,8 @@ export const runModel = async (
   const logger = initLogger(filePath);
   try {
     const model = Model.load(filePath);
+    // what the dialect reports wrong on a property Edge reads stops it (#274)
+    refuseOnPropertyErrors(edgeEngine, model);
     const tree = GoalTree.fromModel(model, edgeEngineMapper);
     // last part of the path
     const fileName = filePath.split('/').pop();

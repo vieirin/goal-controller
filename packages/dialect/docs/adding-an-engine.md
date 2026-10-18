@@ -746,6 +746,7 @@ export const missionEngine = defineEngine({
   // analysisModel: missionAnalysisModel, how it reads a model for them (§3.7)
   // pool: missionPool,                   its files share one definition pool (definition-pool.md)
   // fileKinds: true,                    its models declare its dialect's extension's kinds (importers.md)
+  // intendedDefaults: ['goal.priority'], generates on despite an error there: the default is meant (below)
 });
 ```
 
@@ -756,9 +757,12 @@ export const missionEngine = defineEngine({
 - analyses without an `analysisModel`, or an `analysisModel` without analyses;
 - an output id declared twice;
 - `fileKinds` on an engine whose dialect names no `extension` (§2.6);
-- checks or parsers on an engine without a dialect (SLEEC's case).
+- checks or parsers on an engine without a dialect (SLEEC's case);
+- an `intendedDefaults` entry that is not `<owner>.<key>` of a property its dialect declares.
 
 Each message starts with the engine's id. Check `outputs` against what the engine really writes in its tests (`test/engines/output.test.ts` does it for every engine).
+
+**Generation refuses a model with a property error (goal-controller#274).** A value the dialect can't read (syntax, bounds, a reference to no element or the wrong kind) is unset in `props`, so the mapper would fall back to its default and the output would silently differ from what the model says. Before an engine generates, `refuseOnPropertyErrors(engine, model)` runs the diagnostics Problems shows (the model's Notation document in the engine's dialect, its named checks included) and throws on any **error** that names a property, the first one marked `(node G3)` and every one listed. Warnings don't stop it. The workbench's `transform` and the Edge CLI call it; `propertyErrors` gives the list without throwing. An engine of another framework, or one without a dialect, has none. List a property in `intendedDefaults` only when reading its unreadable value as unset is what the engine means; don't add a guard of your own in the mapper for what the dialect already reports.
 
 ### 3.10 The IR: actors, trees, links and the model shape
 
