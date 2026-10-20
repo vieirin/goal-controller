@@ -405,6 +405,37 @@ Each PR of #171 appends its decisions here.
   cases) is complete and tested directly, resource maps built by hand; the
   UI wiring is goal-controller#334.
 
+### goal-controller#334: project resources for a framework engine
+
+- **`declarationsOf` reads a framework engine's dialect too.**
+  `dialectOf(mode)` (`engineDialects.ts`, already there for the inspector,
+  goal-controller#327) gives either map's dialect, `ENGINE_DIALECTS`'s or
+  `FRAMEWORK_ENGINE_DIALECTS`'s; `declarationsOf` reads its
+  `projectResources` through it, instead of `ENGINE_DIALECTS[mode]` alone.
+  Every call site (`WorkbenchContext`'s `resourceSlotsNow`,
+  `resourceProblemsNow`, `addResource`; `Home.tsx`; `services/examples.ts`)
+  goes through this one function, so nothing else changes.
+- **`FRAMEWORK_ENGINE_PROJECT_RESOURCES`, `ENGINE_PROJECT_RESOURCES`'s
+  counterpart.** Built the same way (`byEngine`, `ofFramework` the other
+  way), so `parseResources` picks a framework engine's parser from it
+  instead of returning `{}` outright (nfrprop's `strategies`, kaosdoc's and
+  kaosprop's for when they declare one). `ENGINE_CHECKS` and the notation
+  gates (`isDialectEngine`'s other callers: `notationDefinitionOf`,
+  `pistar.ts`, `goalWorker.ts`, `languageServices.ts`) are untouched: those
+  assume iStar notation, which a framework engine genuinely has none of.
+- **`analysisResource`/`runAnalysisNow` needed no change.** They read
+  `resourceSlotsNow` and `resourceTexts` directly, not
+  `ENGINE_PROJECT_RESOURCES`, so fixing `declarationsOf` alone already let
+  a framework engine's analysis read its resource's files; the parser
+  widening is for the Problems panel and the language's symbols/data, not
+  the analysis's own input.
+- **Tested through the real pipeline**
+  (`test/workbench/frameworkEngineResources.test.tsx`): a `WorkbenchProvider`
+  opens an NFR project with `strategies/*.json` present (one with a bad
+  label), `declarationsOf`/`parseResources` as units, then
+  `workbench.runAnalysis` end to end — the case picker's cases, and the
+  Problems panel's diagnostic for the bad label.
+
 ## KAOS stress test (goal-controller#181)
 
 Cailliau's London Ambulance (KAOSTools) and the Brussels ambulance

@@ -376,6 +376,7 @@ export {
   nfrpropAnalyses,
   nfrpropAnalysisModel,
   nfrpropEngineMapper,
+  nfrpropProjectResourceParsers,
   propagateLabels,
   readNfrModel,
   NFR_LABELS,

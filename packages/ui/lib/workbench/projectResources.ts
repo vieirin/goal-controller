@@ -17,22 +17,29 @@ import type {
 import type { ProjectResourceDeclarations, ResourceSlot } from '../project';
 import { isTransformEngine, type TransformEngine } from '../types';
 import {
-  ENGINE_DIALECTS,
+  dialectOf,
   ENGINE_PROJECT_RESOURCES,
+  FRAMEWORK_ENGINE_PROJECT_RESOURCES,
   isDialectEngine,
+  isFrameworkEngine,
 } from './engineDialects';
 import type { Problem } from './types';
 
-/** The project resources a mode reads (an engine's definition's; none for the others). */
+/**
+ * The project resources a mode reads (an engine's definition's; none for
+ * the others). A framework engine's dialect too (goal-controller#334:
+ * nfrprop's `strategies`, goal-controller#328), not only an iStar dialect
+ * engine's.
+ */
 export const declarationsOf = (
   mode: string | null,
 ): ProjectResourceDeclarations | undefined =>
-  isTransformEngine(mode) && isDialectEngine(mode)
+  isTransformEngine(mode)
     ? (
-        ENGINE_DIALECTS[mode] as {
+        dialectOf(mode) as {
           projectResources?: ProjectResourceDeclarations;
-        }
-      ).projectResources
+        } | null
+      )?.projectResources
     : undefined;
 
 /** A resource's files, as the workbench holds their text. */
@@ -46,11 +53,15 @@ export const parseResources = (
   slots: readonly ResourceSlot[],
   texts: ResourceTexts,
 ): ParsedResources => {
-  if (!isDialectEngine(engine)) return {};
+  const parsers = (
+    isDialectEngine(engine)
+      ? ENGINE_PROJECT_RESOURCES[engine]
+      : isFrameworkEngine(engine)
+        ? FRAMEWORK_ENGINE_PROJECT_RESOURCES[engine]
+        : undefined
+  ) as Readonly<Record<string, ProjectResourceParser>> | undefined;
+  if (!parsers) return {};
   // by kind: the slots are the definition's kinds, each of which has its parser
-  const parsers = ENGINE_PROJECT_RESOURCES[engine] as Readonly<
-    Record<string, ProjectResourceParser>
-  >;
   const parsed: Record<string, ParsedResource> = {};
   for (const slot of slots) {
     const parse = parsers[slot.kind];

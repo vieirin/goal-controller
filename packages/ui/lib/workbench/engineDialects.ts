@@ -138,6 +138,23 @@ export const ENGINE_PROJECT_RESOURCES = byEngine((engine) =>
 };
 
 /**
+ * The other frameworks' engines' parsers for their project resources
+ * (goal-controller#334): `ENGINE_PROJECT_RESOURCES`'s counterpart, since a
+ * framework engine's dialect is kept out of `ENGINE_DIALECTS`
+ * (`FRAMEWORK_ENGINE_DIALECTS` instead), but may still declare resources of
+ * its own (nfrprop's `strategies`, goal-controller#328).
+ */
+export const FRAMEWORK_ENGINE_PROJECT_RESOURCES = byEngine((engine) =>
+  engine.dialect && ofFramework(engine.dialect)
+    ? (engine.projectResources ?? {})
+    : undefined,
+) as {
+  readonly [E in FrameworkEngine]: ProjectResourceParsers<
+    (typeof FRAMEWORK_ENGINE_DIALECTS)[E]
+  >;
+};
+
+/**
  * The engines whose project's files share one definition pool
  * (goal-controller#59): its providers and the checks across them.
  */
