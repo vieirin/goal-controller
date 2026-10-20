@@ -165,7 +165,7 @@ export const analysisResource = (
   );
 };
 
-/** Runs an analysis on a model text, read as its engine reads it (`readModel`: the view of its `GoalModel`). */
+/** Runs an analysis on a model text, read as its engine reads it (`readModel`: the view of its `KindModel`). */
 export const analyse = (
   id: string,
   analysis: Analysis,

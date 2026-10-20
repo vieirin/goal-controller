@@ -1,9 +1,9 @@
 /**
  * Tropos4AS's engine mapper: how goal-tree reads a Tropos4AS model (its
- * trees, the inspector's unread keys, and its `GoalModel`, goal-controller
+ * trees, the inspector's unread keys, and its `KindModel`, goal-controller
  * #125). Entries by kind (goal-controller#215): iStar's plus Artifact,
  * Error, Failure and Symptom. The lifecycle reads the model as a graph
- * (`readTropos4asModel`) over that `GoalModel`'s view; a link's entry keeps
+ * (`readTropos4asModel`) over that `KindModel`'s view; a link's entry keeps
  * nothing (the dialect gives those kinds no properties).
  */
 import {
@@ -76,7 +76,7 @@ export type Tropos4asGoalModel = ModelOf<typeof tropos4asEngineMapper>;
 
 /**
  * A Tropos4AS model as the lifecycle and the checks read it: the view of
- * its `GoalModel`, with the extension's kinds (parsed with its metamodel
+ * its `KindModel`, with the extension's kinds (parsed with its metamodel
  * block).
  */
 export const tropos4asAnalysisModel = <EK extends string, LK extends string>(

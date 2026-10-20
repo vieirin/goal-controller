@@ -8,7 +8,7 @@ import type {
 import type { SleecGoalProps } from '../../../../src/engines/sleec/types';
 
 /**
- * Helper to create a minimal GoalNode with sleec props
+ * Helper to create a minimal goal node (an `istar.Goal`) with sleec props
  */
 const createGoalNode = (
   id: string,
@@ -18,6 +18,7 @@ const createGoalNode = (
   ({
     id,
     name,
+    kind: 'istar.Goal',
     type: 'goal',
     properties: {
       engine: sleec,

@@ -64,7 +64,7 @@ export const nfrpropEngineMapper = createEngineMapper({
 export type NfrpropGoalModel = ModelOf<typeof nfrpropEngineMapper>;
 export type NfrpropNode = NodeOf<typeof nfrpropEngineMapper>;
 
-/** An NFR model as nfrprop's analysis reads it: the view of its `GoalModel`. */
+/** An NFR model as nfrprop's analysis reads it: the view of its `KindModel`. */
 export const nfrpropAnalysisModel = <EK extends string, LK extends string>(
   model: ModelFor<typeof nfrprop, EK, LK>,
 ): AnalysisModel =>

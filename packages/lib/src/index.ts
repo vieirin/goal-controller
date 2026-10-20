@@ -23,8 +23,6 @@ import { sleecOutput, sleecTemplateEngine } from './engines/sleec';
 
 export type {
   AnyModel,
-  GoalNode,
-  GoalTreeType,
   IStarModel,
   ModelFor,
   Relation,

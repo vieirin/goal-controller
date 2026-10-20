@@ -66,7 +66,7 @@ export type EngineDefinition = {
   output: EngineOutputInfo;
   /** an analysis engine's analyses: its values are drawn on the model, no file */
   analyses?: Analyses;
-  /** how it reads a model for its analyses (the view of its `GoalModel`, goal-controller#125) */
+  /** how it reads a model for its analyses (the view of its `KindModel`, goal-controller#125) */
   analysisModel?: (model: AnyModel) => AnalysisModel;
   /** the files it writes, by id */
   outputs?: readonly EngineOutputDeclaration[];

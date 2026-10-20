@@ -76,7 +76,7 @@ The relevant files are `integration/Controller.java` (the piStar reader),
 | `template/index.ts` | `godaGoalModel(model)`; `godaOutput(goalModel, { modelName, variant, runtimeFormulas })` |
 | `formula.ts` | The formulas as numbers: `compileFormula`, `evaluate`, `evalFormulaValues`, `compareFormulas`, shared with the stress test (#35) |
 
-`godaOutput` takes the model's `GoalModel`, goal-tree's typed IR
+`godaOutput` takes the model's `KindModel`, goal-tree's typed IR
 (goal-controller#125), not the tree. GODA names the MDP after the actor that
 holds the selected goal (D16). Before #125 the tree didn't keep actors, so
 `godaOutput` took the validated model. Now the IR's actors hold their trees,
@@ -252,7 +252,7 @@ The same test file checks the module on models of our own: three contexts, which
 | Context variables nobody declares | `declaresVariables` on an `assertion` value (#34 D17). The names a condition compares are known variables because the condition uses them, as upstream turns each into a `CTX_` parameter. Without it, every `ctx`, `ms` or `SaO2_sensor` was a "not a known variable" note (58 across the examples). |
 | Several contexts on one element (`a = 1 % b = 2`, #232) | `separator` on an `assertion` value: the value is a list of conditions separated by it (upstream `addFulfillmentConditions` joins them with `%`), each read and checked as the rest of the config says, blank parts none. `props` is an `Assertion[]`. GODA's `selected` also takes `false`, which its own models write for not selected. |
 | A task's bracket in its mapper | The task entry's `mapProps` gets the task's text, as the goal entry's does. |
-| An engine named after the model's actor | `godaOutput` takes the `GoalModel`, whose actors hold their trees (D16, closed by goal-controller#125). |
+| An engine named after the model's actor | `godaOutput` takes the `KindModel`, whose actors hold their trees (D16, closed by goal-controller#125). |
 | Names with digits (`medical service 1`, `Collect SaO2 data`) | `notation.names: 'text'` (#34 D17): a name on a line with an id may hold any character, as GODA's producer splits a line at its colon. The reader masks the name to a WORD of the same length, so every span stays, and gives the name as written. Edge keeps RTRegex.g4's WORD. |
 | Resources without ids (TAS) | GODA's definition sets `unlinkedResources: 'ignore'`: a Resource linked to nothing is no root of the engines' tree (`actorRootCandidates`), so the model validates when it's read with GODA's dialect (`Model.validate(model, goda)`). It sets `idlessElements: 'unlisted'` too: an element whose text writes no id gets no Notation line (`isListed`), since it can't be named. Edge sets neither: a stray Resource is a second root, and an element without an id is listed by its piStar id. |
 | A line that reads as nothing, unindented | `Not an element line`, owned by no element; before, `Not a property line` on the element above (T6.3). |

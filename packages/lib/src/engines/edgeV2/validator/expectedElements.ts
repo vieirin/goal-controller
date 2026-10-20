@@ -1,5 +1,10 @@
-import { GoalTree, Node, type Resource } from '@goal-controller/goal-tree';
-import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
+import { GoalTree, Node } from '@goal-controller/goal-tree';
+import type {
+  EdgeGoalNode,
+  EdgeGoalTree,
+  EdgeResource,
+  EdgeTask,
+} from '../types';
 import {
   achievableFormulaVariable,
   achievedFormula,
@@ -18,12 +23,7 @@ import {
 } from '../template/modules/goalModule/template/children';
 import type { ExpectedElements } from './types';
 
-// Type aliases for this file
-type GoalNode = EdgeGoalNode;
-type Task = EdgeTask;
-type GoalTreeType = EdgeGoalTree;
-
-const calculateGoalVariables = (goal: GoalNode): string[] => {
+const calculateGoalVariables = (goal: EdgeGoalNode): string[] => {
   const variables: string[] = [];
 
   // Always has state (pursued / not pursued)
@@ -42,7 +42,7 @@ const calculateGoalVariables = (goal: GoalNode): string[] => {
   return variables;
 };
 
-const calculateGoalTransitions = (goal: GoalNode): string[] => {
+const calculateGoalTransitions = (goal: EdgeGoalNode): string[] => {
   const transitions: string[] = [];
 
   // Always has pursue transitions: one for itself + one for each pursueable child
@@ -60,7 +60,7 @@ const calculateGoalTransitions = (goal: GoalNode): string[] => {
   return transitions;
 };
 
-const calculateGoalFormulas = (goal: GoalNode): string[] => {
+const calculateGoalFormulas = (goal: EdgeGoalNode): string[] => {
   const formulas: string[] = [];
 
   // Always has achievability formula
@@ -88,7 +88,7 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
   return formulas;
 };
 
-const calculateGoalContextVariables = (goal: GoalNode): string[] => {
+const calculateGoalContextVariables = (goal: EdgeGoalNode): string[] => {
   const variables: string[] = [];
 
   // Only count context variables from the goal's own assertion
@@ -107,11 +107,11 @@ const calculateGoalContextVariables = (goal: GoalNode): string[] => {
 };
 
 const calculateChangeManagerTaskVariables = (
-  tasks: Task[],
+  tasks: EdgeTask[],
 ): Map<string, string[]> => {
   const taskVariables = new Map<string, string[]>();
 
-  tasks.forEach((task: Task) => {
+  tasks.forEach((task: EdgeTask) => {
     const variables: string[] = [];
     variables.push(stateVariable(task.id));
     variables.push(taskAchievedVariable(task.id));
@@ -123,11 +123,11 @@ const calculateChangeManagerTaskVariables = (
 };
 
 const calculateChangeManagerTaskTransitions = (
-  tasks: Task[],
+  tasks: EdgeTask[],
 ): Map<string, string[]> => {
   const taskTransitions = new Map<string, string[]>();
 
-  tasks.forEach((task: Task) => {
+  tasks.forEach((task: EdgeTask) => {
     const transitions: string[] = [];
     transitions.push(pursueTransition(task.id));
     transitions.push(`try_${task.id}`);
@@ -139,7 +139,7 @@ const calculateChangeManagerTaskTransitions = (
 };
 
 export const calculateExpectedElements = (
-  goalTree: GoalTreeType,
+  goalTree: EdgeGoalTree,
 ): ExpectedElements => {
   const goals = GoalTree.allByType(goalTree, 'goal');
   const tasks = GoalTree.allByType(goalTree, 'task');
@@ -156,7 +156,7 @@ export const calculateExpectedElements = (
   >();
 
   // Calculate expected elements for each goal
-  goals.forEach((goal: GoalNode) => {
+  goals.forEach((goal: EdgeGoalNode) => {
     goalElements.set(goal.id, {
       variables: calculateGoalVariables(goal),
       transitions: calculateGoalTransitions(goal),
@@ -176,7 +176,7 @@ export const calculateExpectedElements = (
 
   // Also collect context variables from tasks
   const taskContextVariables = new Set<string>();
-  tasks.forEach((task: Task) => {
+  tasks.forEach((task: EdgeTask) => {
     if (task.properties.engine.execCondition?.assertion) {
       task.properties.engine.execCondition.assertion.variables.forEach(
         (v: { name: string }) => {
@@ -195,7 +195,7 @@ export const calculateExpectedElements = (
 
   // Resource IDs to exclude from context variables (resources are separate)
   const resourceIds = new Set(
-    resources.map((resource: Resource) => resource.id),
+    resources.map((resource: EdgeResource) => resource.id),
   );
 
   // Combine goal and task context variables, but exclude resource IDs
@@ -206,7 +206,9 @@ export const calculateExpectedElements = (
   const contextVariables = Array.from(allContextVars).filter(
     (varName) => !resourceIds.has(varName),
   );
-  const resourceVariables = resources.map((resource: Resource) => resource.id);
+  const resourceVariables = resources.map(
+    (resource: EdgeResource) => resource.id,
+  );
 
   return {
     goals: goalElements,

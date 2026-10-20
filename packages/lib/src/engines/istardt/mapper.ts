@@ -1,9 +1,9 @@
 /**
  * iStar-DT's engine mapper: how goal-tree reads an iStar-DT model (its
- * tree, the inspector's unread keys, and its `GoalModel`, goal-controller
+ * tree, the inspector's unread keys, and its `KindModel`, goal-controller
  * #125). Entries by kind (goal-controller#215): iStar's plus Condition,
  * Effect, EffectGroup, Predicate and Variable. The writer reads the model
- * as a graph (`readIstardtModel`) over that `GoalModel`'s view, so a link's
+ * as a graph (`readIstardtModel`) over that `KindModel`'s view, so a link's
  * and an actor's entries keep their properties as written.
  */
 import {
@@ -77,7 +77,7 @@ export type IstardtGoalModel = ModelOf<typeof istardtEngineMapper>;
 
 /**
  * An iStar-DT model as the writer and the checks read it: the view of its
- * `GoalModel`. It has the extension's kinds (parsed with its metamodel
+ * `KindModel`. It has the extension's kinds (parsed with its metamodel
  * block), which goal-tree reads as it reads GRL's; its types name iStar's.
  */
 export const istardtAnalysisModel = <EK extends string, LK extends string>(

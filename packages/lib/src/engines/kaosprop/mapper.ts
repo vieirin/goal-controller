@@ -103,7 +103,7 @@ export const kaospropEngineMapper = createEngineMapper({
 export type KaospropGoalModel = ModelOf<typeof kaospropEngineMapper>;
 export type KaospropNode = NodeOf<typeof kaospropEngineMapper>;
 
-/** A KAOS model as kaosprop's analyses read it: the view of its `GoalModel`. */
+/** A KAOS model as kaosprop's analyses read it: the view of its `KindModel`. */
 export const kaospropAnalysisModel = <EK extends string, LK extends string>(
   model: ModelFor<typeof kaosprop, EK, LK>,
 ): AnalysisModel =>

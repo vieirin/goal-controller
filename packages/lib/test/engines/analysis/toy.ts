@@ -55,7 +55,7 @@ export const toyMapper = createEngineMapper({
   ],
 });
 
-/** A toy model as its analyses read it: the view of its GoalModel. */
+/** A toy model as its analyses read it: the view of its KindModel. */
 export const toyAnalysisModel = (model: IStarModel): AnalysisModel =>
   analysisViewOf(GoalTree.goalModel(model, toyMapper));
 

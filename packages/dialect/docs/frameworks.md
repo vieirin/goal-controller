@@ -303,7 +303,7 @@ Each PR of #171 appends its decisions here.
   iStar's IR is the same as before. Agents, claims and hubs are in no tree:
   their links say what they do.
 - **Trees on the paper.** A framework without actors has its trees in a new
-  `GoalModel.paper`, one tree per element of a tree kind that no refinement
+  `KindModel.paper`, one tree per element of a tree kind that no refinement
   makes a child. `fromModel` returns the actors' trees and then the paper's.
 - **Refinements by kind name, in one place.** `refinementsOf(model,
   dialect)` (goal-tree's `roots.ts`) reads iStar's refinement links, or a

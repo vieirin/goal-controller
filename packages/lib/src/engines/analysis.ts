@@ -2,7 +2,7 @@
  * Analysis engines (goal-controller#107): an engine whose output is a value
  * per element and actor, drawn on the model, not a file. An engine declares
  * its analyses by id; each runs on the model (as `AnalysisModel`, a view of
- * its `GoalModel`: its actors, elements and links with their properties) and,
+ * its `KindModel`: its actors, elements and links with their properties) and,
  * when it reads one, a
  * project resource. A result has one or more cases (one evaluation each: a
  * strategy, a scenario; a single-case analysis has one), each a value per
@@ -19,7 +19,6 @@ import {
   type PropertyList,
   type PropertyValues,
 } from '@goal-controller/goal-language';
-import type { GoalModel } from '@goal-controller/goal-tree';
 
 /** A value on an element or actor: a number or a word, its label, how to show it. */
 export type AnalysisValue = {
@@ -153,7 +152,7 @@ const enginesOfTrees = (
 };
 
 /**
- * A GoalModel or KindModel as `analysisViewOf` reads it: actors, paper
+ * A KindModel as `analysisViewOf` reads it: actors, paper
  * trees, elements (with optional `engine` for `tree: false`) and links.
  */
 type AnalysisSource = {
@@ -185,7 +184,7 @@ type AnalysisSource = {
 };
 
 /**
- * The model as analyses read it: a view of the engine's `GoalModel`
+ * The model as analyses read it: a view of the engine's `KindModel`
  * (goal-controller#125), its actors, elements and links in the file's
  * order. An actor's and a link's properties are what the engine's mapper
  * keeps of them. An element's are as written, unless `fromEntries` is set:
@@ -195,12 +194,9 @@ type AnalysisSource = {
  * on role mappers read the texts as written.
  */
 export const analysisViewOf = (
-  goalModel:
-    | GoalModel<unknown, unknown, unknown, PropertyTexts, PropertyTexts>
-    | AnalysisSource,
+  source: AnalysisSource,
   { fromEntries = false }: { fromEntries?: boolean } = {},
 ): AnalysisModel => {
-  const source = goalModel as AnalysisSource;
   const fromTrees = new Map<string, Record<string, string>>();
   if (fromEntries) {
     for (const actor of source.actors) enginesOfTrees(actor.trees, fromTrees);
@@ -330,7 +326,7 @@ const textsOf = (properties: Record<string, unknown> | undefined) =>
  * A piStar model's JSON as analyses read it, without the engine's mapper:
  * every actor, element (an actor's, an orphan, a dependum) and link as the
  * file has them, their properties' texts. For what reads a model's file
- * itself (a native file's writer), where the workbench's `GoalModel` isn't
+ * itself (a native file's writer), where the engine's `KindModel` isn't
  * at hand.
  */
 export const pistarAnalysisModel = (

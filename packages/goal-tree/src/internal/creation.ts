@@ -648,7 +648,7 @@ export function buildGoalModel(
 
 /**
  * Convert an iStar model to a GoalTree with engine-specific properties: the
- * trees of its `GoalModel`, flat. Throws when the model is outside the shape
+ * trees of its `KindModel`, flat. Throws when the model is outside the shape
  * the engine reads (`model` on its dialect; default one actor, one root).
  */
 export function convertToTree<D, P, N, A, L, S extends Shape>(

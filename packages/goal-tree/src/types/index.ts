@@ -25,17 +25,7 @@ export type {
 export type {
   Relation,
   Type,
-  BaseNode,
-  GoalNode,
-  Task,
-  Resource,
-  TreeNode,
   TraversalNode,
   TraversalParent,
-  GoalTree,
   GoalExecutionDetail,
-  GoalModel,
-  GoalModelActor,
-  GoalModelElement,
-  GoalModelLink,
 } from './goalTree';

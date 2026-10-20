@@ -208,10 +208,13 @@ describe('a mapper by kind (#215)', () => {
       kinds.links.find((link) => link.id === 'l1')?.properties,
       { engine: {} },
     );
-    // every node says its kind; no isQuality
+    // every node says its kind; its properties are the root flag and the engine's, no flag besides
     const [root] = kinds.actors[0]!.trees;
     assert.strictEqual(root?.kind, 'istar.Goal');
-    assert.ok(!('isQuality' in root!.properties));
+    assert.deepStrictEqual(Object.keys(root!.properties).sort(), [
+      'engine',
+      'root',
+    ]);
     assert.deepStrictEqual(
       GoalTree.fromModel(MODEL, byKind)
         .query.allByType('goal')

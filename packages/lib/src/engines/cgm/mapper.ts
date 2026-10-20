@@ -1,9 +1,9 @@
 /**
  * The contextual goal models' engine mapper: how goal-tree reads a model
- * (its trees, the inspector's unread keys, and its `GoalModel`,
+ * (its trees, the inspector's unread keys, and its `KindModel`,
  * goal-controller#125). Entries by kind (goal-controller#215): iStar's
  * plus the extension's Context, Fact and Statement. The analyses read the
- * model as a graph, the view of that `GoalModel`, so a link's entry keeps
+ * model as a graph, the view of that `KindModel`, so a link's entry keeps
  * its properties as written (its `context`, `opposite`, `amount`); the
  * analyses read the view's elements and links as the dialect does
  * (./values, goal-controller#187).
@@ -69,7 +69,7 @@ export const cgmEngineMapper = createEngineMapper({
 
 export type CgmGoalModel = ModelOf<typeof cgmEngineMapper>;
 
-/** A contextual goal model as its analyses read it: the view of its `GoalModel`, its extension's kinds too. */
+/** A contextual goal model as its analyses read it: the view of its `KindModel`, its extension's kinds too. */
 export const cgmAnalysisModel = <EK extends string, LK extends string>(
   model: ModelFor<typeof cgm, EK, LK>,
 ): AnalysisModel => analysisViewOf(GoalTree.goalModel(model, cgmEngineMapper));

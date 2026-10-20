@@ -234,7 +234,7 @@ describe('the typed IR (#125)', () => {
     ]);
   });
 
-  it('afterCreation sees the whole GoalModel', () => {
+  it('afterCreation sees the whole KindModel', () => {
     const actorsSeen: number[] = [];
     const mapper = createEngineMapper({
       dialect: toyGraph,

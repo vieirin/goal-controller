@@ -436,8 +436,9 @@ would make the types circular.
 
 ### 3.4 `template/`: query the tree, emit the output
 ```ts
-import { GoalTree, type GoalTreeType } from '@goal-controller/goal-tree';
-export const missionTemplateEngine = (tree: GoalTreeType<MissionGoalProps, MissionTaskProps>, options = {}): string => {
+import { GoalTree, type NodeOf } from '@goal-controller/goal-tree';
+import type { missionEngineMapper } from '../mapper';
+export const missionTemplateEngine = (tree: NodeOf<typeof missionEngineMapper>[], options = {}): string => {
   const goals = GoalTree.allByType(tree, 'goal');
   const tasks = GoalTree.allByType(tree, 'task');
   return ['mission:', ...goals.map(g => `  - goal: ${g.id} # ${g.name}\n    priority: ${g.properties.engine.priority}`),
@@ -470,7 +471,7 @@ type EngineOutput = { files: EngineOutputFile[] };
 - **Several files** (a PRISM model and its property files, a runtime artefact and a readable one): return them all, the primary one marked, in the order the workbench should show them. Their ids must stay the same from run to run: a project keeps one entry per id and a later run replaces it. `engineOutputProblems(output)` says what is wrong (not exactly one primary, an id or a file name used twice). Run it in your engine's tests, as `test/engines/output.test.ts` does for every engine. That file also has a fixture engine of three files (`test/support/threeFileEngine.ts`).
 - **Trace.** The primary file is traced to the model by the ids its identifiers embed (`g3_state`, `module G3`), as before. Any file can carry `owners` instead: for each line, the ids of the elements it belongs to. A file with neither is plain text.
 - Keep the string-returning function exported. The CLI and external callers may use it, and the output function is a wrapper around it.
-- **What an output function takes.** The tree (`missionOutput(tree, { modelName })`) is enough for most engines. An engine that needs more of the model, its actors or links (GODA names its MDP after the actor of the selected goal), takes the `GoalModel` (3.8): `godaOutput(godaGoalModel(model), { modelName })`, where `godaGoalModel` checks GODA's shape and builds the IR with its mapper.
+- **What an output function takes.** The tree (`missionOutput(tree, { modelName })`) is enough for most engines. An engine that needs more of the model, its actors or links (GODA names its MDP after the actor of the selected goal), takes the `KindModel` (3.8): `godaOutput(godaGoalModel(model), { modelName })`, where `godaGoalModel` checks GODA's shape and builds the IR with its mapper.
 - **Versions of a target.** When the references an engine is proved against come from several versions of the original generator, make each version a strategy object (its templates and the rules that differ) and let the output function take a `variant`. A version not implemented yet throws an error that names its issue, so a harness reports it as an expected failure (GODA's `GODA_GENERATORS`, `GodaUnsupported`).
 
 ### 3.5 Exports
@@ -580,7 +581,7 @@ export const missionAnalyses = defineAnalyses(mission, {
 });
 ```
 
-- **Input:** `AnalysisModel`, the view of the engine's `GoalModel` (3.8):
+- **Input:** `AnalysisModel`, the view of the engine's `KindModel` (3.8):
   `analysisViewOf(GoalTree.goalModel(model, missionEngineMapper))`. It has
   every actor (kind, name, properties, its elements), every element (kind,
   name, properties, its actor) and every link (kind, ends, label,
@@ -777,13 +778,13 @@ Each message starts with the engine's id. Check `outputs` against what the engin
 
 ### 3.10 The IR: actors, trees, links and the model shape
 
-goal-tree reads a model into a typed IR, the `GoalModel` (goal-controller#125):
+goal-tree reads a model into a typed IR, the `KindModel` (goal-controller#125; `ModelOf<typeof mapper>`):
 
 ```ts
-type GoalModel = {
-  actors: { id; name; kind; properties: { engine: TActorEngine }; trees: TreeNode[]; elements: id[] }[];
+type KindModel = {
+  actors: { id; name; kind; properties: { engine: TActorEngine }; roots: id[]; trees: KindNode[]; elements: id[] }[];
   links: { id; kind; source; target; relation: 'and' | 'or' | 'neededBy' | null; label?; properties: { engine: TLinkEngine } }[];
-  dependums: TreeNode[];   // outside every actor, each a node
+  dependums: KindNode[];   // outside every actor, each a node
   elements: { id; kind; name; actor?; properties }[]; // every element as written, an extension's kinds too
 };
 ```
@@ -963,7 +964,7 @@ Already done on this branch; use it as the worked example. An engine author touc
 
 `lib/src/engines/kaosdoc/` and `lib/src/engines/nfrprop/` (goal-controller#171).
 kaosdoc writes a requirements document from a KAOS model: a template over
-the IR's `GoalModel` (its paper trees, hubs, agents and conflicts), proved
+the IR's `KindModel` (its paper trees, hubs, agents and conflicts), proved
 byte for byte against the document committed next to DSM3's seed. nfrprop
 is the NFR Framework's label propagation, Chung et al.'s rules as data
 (`labels.ts`). Its case runs as steps, its report. The oracle is DSM3's NFR

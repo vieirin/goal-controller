@@ -151,7 +151,7 @@ export type MyEngineGoalProps = {
   deadline: number | null;               // Number from string "300"
   decision: Decision;                    // Parsed from "var:3,other:5"
   execCondition?: ExecCondition;         // Parsed from assertion syntax
-  dependsOn: GoalNode[];                 // Resolved node references
+  dependsOn: MyEngineGoalNode[];         // Resolved goal nodes: Extract<NodeOf<typeof myEngineMapper>, { type: 'goal' }>
 };
 
 export type MyEngineTaskProps = {
@@ -399,10 +399,11 @@ rule_end`;
 This function generates purpose statements from goal properties:
 
 ```typescript
-import { GoalTree, type GoalTreeType } from '@goal-controller/goal-tree';
-import type { SleecGoalProps, SleecTaskProps } from './types';
+import { GoalTree, type NodeOf } from '@goal-controller/goal-tree';
+import type { sleecEngineMapper } from './mapper';
 
-type SleecGoalTree = GoalTreeType<SleecGoalProps, SleecTaskProps>;
+// the tree's nodes, typed by kind from the mapper's entries
+type SleecGoalTree = NodeOf<typeof sleecEngineMapper>[];
 
 const generatePurposes = (tree: SleecGoalTree): string => {
   const goals = GoalTree.allByType(tree, 'goal');
@@ -443,12 +444,10 @@ purpose_end`;
 Combine all generators into the final template engine:
 
 ```typescript
-import { GoalTree, type GoalTreeType } from '@goal-controller/goal-tree';
-import type { SleecGoalProps, SleecTaskProps } from './types';
+import { GoalTree } from '@goal-controller/goal-tree';
+import type { SleecGoalTree } from './mapper';
 
-export const sleecTemplateEngine = (
-  tree: GoalTreeType<SleecGoalProps, SleecTaskProps>
-): string => {
+export const sleecTemplateEngine = (tree: SleecGoalTree): string => {
   const tasks = GoalTree.allByType(tree, 'task');
   
   const definitions = generateDefinitions(tasks);

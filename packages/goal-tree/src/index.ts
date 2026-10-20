@@ -80,12 +80,7 @@
 // Main SDK Classes
 // ─────────────────────────────────────────────────────────────────────────────
 
-export {
-  GoalTree,
-  createEngineMapper,
-  type QueryOf,
-  type TreeQuery,
-} from './GoalTree';
+export { GoalTree, createEngineMapper, type QueryOf } from './GoalTree';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mappers by kind (goal-controller#215)
@@ -147,13 +142,6 @@ export {
 export type {
   // iStar types
   Actor,
-  // Goal Tree types
-  GoalModel,
-  GoalModelActor,
-  GoalModelElement,
-  GoalModelLink,
-  GoalNode,
-  GoalTree as GoalTreeType,
   Model as IStarModel,
   AnyModel,
   ForeignElementKind,
@@ -162,14 +150,11 @@ export type {
   Node as IStarNode,
   Link,
   NodeType,
+  // Goal Tree types
   Relation,
-  Resource,
-  Task,
-  TreeNode,
   TraversalNode,
   TraversalParent,
   Type,
-  BaseNode,
 } from './types/';
 
 // ─────────────────────────────────────────────────────────────────────────────

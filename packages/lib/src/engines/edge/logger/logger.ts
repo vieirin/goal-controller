@@ -1,11 +1,11 @@
-import type { Resource } from '@goal-controller/goal-tree';
 import fs from 'fs';
-import type { EdgeGoalNode, EdgeTask, GoalExecutionDetail } from '../types';
+import type {
+  EdgeGoalNode,
+  EdgeResource,
+  EdgeTask,
+  GoalExecutionDetail,
+} from '../types';
 import { ensureLogFileDirectory } from './filePath';
-
-// Type aliases for backwards compatibility
-type GoalNode = EdgeGoalNode;
-type Task = EdgeTask;
 
 type LoggerStore = {
   goalModules: number;
@@ -180,7 +180,7 @@ const createLogger = (
         `[DECISION VARIABLES]: ${decisionVariable[0]}: space ${decisionVariable[1]}\n`,
       );
     },
-    initGoal: (goal: GoalNode) => {
+    initGoal: (goal: EdgeGoalNode) => {
       store.goalModules++;
       store.totalGoals++;
 
@@ -209,12 +209,12 @@ const createLogger = (
       write(
         `\tChildren: ${
           goal.children?.length && goal.children.length > 0
-            ? goal.children.map((child: GoalNode) => child.id).join(', ')
+            ? goal.children.map((child: EdgeGoalNode) => child.id).join(', ')
             : 'none'
         }\n`,
       );
       write(
-        `\tTasks: ${goal.tasks?.map((task: Task) => task.id).join(', ') ?? 'none'}\n`,
+        `\tTasks: ${goal.tasks?.map((task: EdgeTask) => task.id).join(', ') ?? 'none'}\n`,
       );
       write(
         `\tType: ${
@@ -229,7 +229,7 @@ const createLogger = (
       );
       write(`\t[TRACE]: [${goal.id}] Emits module: ${goal.id}\n`);
     },
-    initTask: (task: Task) => {
+    initTask: (task: EdgeTask) => {
       store.totalTasks++;
 
       // Count resources for this task
@@ -241,7 +241,9 @@ const createLogger = (
       write(
         `\tResources: ${
           task.resources?.length && task.resources.length > 0
-            ? task.resources.map((resource: Resource) => resource.id).join(', ')
+            ? task.resources
+                .map((resource: EdgeResource) => resource.id)
+                .join(', ')
             : 'none'
         }\n`,
       );
@@ -325,7 +327,7 @@ const createLogger = (
       },
     },
     pursue: {
-      pursue: (node: GoalNode | Task, step: number) => {
+      pursue: (node: EdgeGoalNode | EdgeTask, step: number) => {
         write(`\t[PURSUE GENERATION] ${node.id} - STEP ${step}\n`);
       },
       defaultPursueCondition: (pursueCondition: string) => {

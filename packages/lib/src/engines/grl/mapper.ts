@@ -69,7 +69,7 @@ export const grlEngineMapper = createEngineMapper({
 
 export type GrlGoalModel = ModelOf<typeof grlEngineMapper>;
 
-/** A GRL model as its analyses read it: the view of its `GoalModel`. */
+/** A GRL model as its analyses read it: the view of its `KindModel`. */
 export const grlAnalysisModel = <EK extends string, LK extends string>(
   model: ModelFor<typeof grl, EK, LK>,
 ): AnalysisModel => analysisViewOf(GoalTree.goalModel(model, grlEngineMapper));

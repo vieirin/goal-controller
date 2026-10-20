@@ -17,7 +17,7 @@ export const Node = {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Check if a node is a GoalNode
+   * Check if a node is a goal
    */
   isGoal<N extends TraversalNode>(
     node: N,
@@ -26,7 +26,7 @@ export const Node = {
   },
 
   /**
-   * Check if a node is a Task
+   * Check if a node is a task
    */
   isTask<N extends TraversalNode>(
     node: N,
@@ -35,7 +35,7 @@ export const Node = {
   },
 
   /**
-   * Check if a node is a Resource
+   * Check if a node is a resource
    */
   isResource<N extends TraversalNode>(
     node: N,
