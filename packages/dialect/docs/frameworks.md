@@ -364,10 +364,8 @@ Each PR of #171 appends its decisions here.
   its canvas, its Notation tab in the engine's dialect, `frameworkProblems`,
   and no piStar mode. Settings offer each framework's engines under it, and
   recording an engine's mode records its framework beside it.
-- **Deferred.** Typed inspector fields for a framework engine's own
-  properties: the diagram's inspector is istar-ts's, so nfrprop's
-  `initialLabel` is a property line in its Notation view, typed there by its
-  dialect. More than one strategy per NFR model. KAOS's FormalSpec as LTL.
+- **Deferred.** More than one strategy per NFR model. KAOS's FormalSpec as
+  LTL.
 
 ## KAOS stress test (goal-controller#181)
 
@@ -634,3 +632,32 @@ log are in #182.
 - **The workbench's own model plumbing** (`dialects.ts`, `frameworks.ts`,
   `pistar.ts`, the canvas and its store) still types every model as iStar
   2.0's, with its own casts: goal-controller#316.
+
+### Typed inspector fields for a framework engine's own properties (goal-controller#327)
+
+- **`frameworkProperties.ts`'s `schemaOf`/`linkSchemaOf`** map a dialect's
+  `PropertyDefinition`s of a kind to istar-ts's `prop.*` (`enum` → a select
+  (`''` stays unset), `int`/`number` → a number field, `bool` → a checkbox,
+  `text` → a text field), skipping value types istar-ts has no field for (a
+  `reference`, an `assertion`, a conditional value, …): those stay property
+  lines in the Notation view only, as before.
+- **`FrameworkDiagram` takes the editor's dialect**, not the framework
+  mode's: `ModelDiagram` passes `frameworkEditorOf(wb.mode)!` straight
+  through (`{ mode, definition }`), so nfrprop's diagram types `initialLabel`
+  while a plain `kaos`/`nfr` model types only its modelling dialect's own.
+- **A dialect's properties are added to a kind's, not replacing them.**
+  istar-ts's `applyExtensions` overwrites a kind's whole `properties` when a
+  later extension sets one, so `dialectParts`'s schema and the kind's own
+  (KAOS's `kaosExtension`, which types `kaos.BehavioralGoal` with
+  `behavioralGoalProperties`) are merged in `FrameworkDiagram`
+  (`withOwnProperties`) before either is applied. KAOS's dialect types every
+  key istar-ts's own schema does, plus `Description`
+  (goal-controller#229's `schemaProperties` guarantees the former), and
+  NFR's own extension types none, so nothing changes visibly today; the
+  merge is what keeps istar-ts's keys in that case.
+- **A value outside a dialect's enum is a Problem.** `frameworkProblems`
+  reports it with `unknown-property-value`, the way `unknown-label` does for
+  a link's label outside `linkLabels`: istar-ts keeps the value as written
+  (not every value outside a schema's `enum` is rejected: `open` enums and
+  free text aren't), so a typo (`initialLabel propagated`, not one of
+  `NFR_LABELS`) is flagged rather than silently kept.

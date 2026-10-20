@@ -1,15 +1,19 @@
 'use client';
 
+import { useMemo } from 'react';
 import { kaosExtension } from '@istar-ts/dsm3-kaos';
 import { nfrExtension } from '@istar-ts/dsm3-nfr';
 import type { AnyDialect } from '@goal-controller/dialect';
-import type { IstarModel } from '@istar-ts/core';
+import {
+  defineProperties,
+  type IstarModel,
+  type PropertySchema,
+  type PropertyShape,
+} from '@istar-ts/core';
 import { IstarInspector, type IstarExtension } from '@istar-ts/react';
 import { nextFrameworkId } from '@/lib/workbench/frameworkOpen';
-import {
-  FRAMEWORK_DIALECTS,
-  type FrameworkMode,
-} from '@/lib/workbench/frameworkModes';
+import { linkSchemaOf, schemaOf } from '@/lib/workbench/frameworkProperties';
+import type { FrameworkMode } from '@/lib/workbench/frameworkModes';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 /**
@@ -32,43 +36,122 @@ const labelOf = (kind: string): string =>
  * (goal-controller#171): a new element named with its next id (`G3:
  * Behavioral Goal`), so its Notation line names it; kinds sharing a prefix
  * (KAOS's two goals) share its numbering. Each kind's fill is istar-ts's
- * (its shape's `fill`, the dialect's too: KAOS_FILL, NFR_FILL).
+ * (its shape's `fill`, the dialect's too: KAOS_FILL, NFR_FILL). Properties a
+ * kind's definition declares (nfrprop's `initialLabel`, goal-controller#327)
+ * are typed here too, element kinds and link kinds alike.
  */
 export const dialectParts = (definition: AnyDialect): IstarExtension =>
   ({
     name: `${definition.id}-dialect`,
     elements: Object.fromEntries(
-      Object.entries(definition.elements).flatMap(([kind, element]) =>
-        element?.prefix
-          ? [
-              [
-                kind,
-                {
-                  defaultName: ({ model }: { model: IstarModel }) =>
-                    `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
-                },
-              ],
-            ]
-          : [],
-      ),
+      [
+        ...new Set([
+          ...Object.keys(definition.elements),
+          ...Object.keys(definition.properties),
+        ]),
+      ].flatMap((kind) => {
+        const element = (definition.elements as AnyDialect['elements'])[kind];
+        const properties = schemaOf(definition, kind);
+        if (!element?.prefix && !properties) return [];
+        return [
+          [
+            kind,
+            {
+              ...(element?.prefix && {
+                defaultName: ({ model }: { model: IstarModel }) =>
+                  `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
+              }),
+              ...(properties && { properties }),
+            },
+          ],
+        ];
+      }),
+    ),
+    links: Object.fromEntries(
+      Object.keys(definition.links ?? {}).flatMap((kind) => {
+        const properties = linkSchemaOf(definition, kind);
+        return properties ? [[kind, { properties }]] : [];
+      }),
     ),
   }) as IstarExtension;
 
-/** Each framework's look and palette: istar-ts's registry parts for it, then its dialect's ids. */
-const EXTENSIONS: Readonly<Record<FrameworkMode, readonly IstarExtension[]>> = {
-  kaos: [forCanvas(kaosExtension), dialectParts(FRAMEWORK_DIALECTS.kaos)],
-  nfr: [forCanvas(nfrExtension), dialectParts(FRAMEWORK_DIALECTS.nfr)],
+/**
+ * A kind's registry part, with its own `properties` kept alongside the
+ * dialect's added ones (goal-controller#327): `applyExtensions` replaces a
+ * kind's `properties` whole when a later extension sets one (istar-ts's
+ * `IstarExtension`), so a kind both istar-ts's extension and the dialect
+ * type (KAOS's goals: istar-ts's `behavioralGoalProperties`, the dialect's
+ * same keys) would lose whichever typed it first. Merged here before either
+ * is applied; the dialect's own value wins a key both give (there is none
+ * today: the dialect types exactly istar-ts's keys, goal-controller#229).
+ */
+export const withOwnProperties = (
+  dialect: IstarExtension,
+  own: IstarExtension,
+): IstarExtension => ({
+  ...dialect,
+  elements: mergedProperties(dialect.elements, own.elements),
+  links: mergedProperties(dialect.links, own.links),
+});
+
+type PropertyOwners =
+  | Readonly<
+      Record<string, { properties?: PropertySchema<PropertyShape, string> }>
+    >
+  | undefined;
+
+const mergedProperties = (
+  dialectKinds: PropertyOwners,
+  ownKinds: PropertyOwners,
+): PropertyOwners =>
+  dialectKinds &&
+  Object.fromEntries(
+    Object.entries(dialectKinds).map(([kind, config]) => {
+      const ownSchema = ownKinds?.[kind]?.properties;
+      const { properties } = config;
+      if (!ownSchema || !properties) return [kind, config];
+      return [
+        kind,
+        {
+          ...config,
+          properties: defineProperties<PropertyShape, string>(kind, {
+            ...ownSchema.shape,
+            ...properties.shape,
+          }),
+        },
+      ];
+    }),
+  );
+
+/** Each framework's look: istar-ts's registry parts for it. */
+const BASE_EXTENSIONS: Readonly<Record<FrameworkMode, IstarExtension>> = {
+  kaos: forCanvas(kaosExtension),
+  nfr: forCanvas(nfrExtension),
 };
 
 /**
  * A KAOS or NFR model (goal-controller#171): the canvas with its framework's
  * shapes and palette (hubs, link-anchored links and nodes on the paper are
- * istar-ts's), and istar-ts's inspector beside it.
+ * istar-ts's), and istar-ts's inspector beside it. `definition` is the
+ * dialect whose properties it types (goal-controller#327): the framework's
+ * modelling dialect for a `kaos`/`nfr` model, a framework engine's own
+ * (nfrprop's `initialLabel`) for one of its models.
  */
-export default function FrameworkDiagram({ mode }: { mode: FrameworkMode }) {
+export default function FrameworkDiagram({
+  mode,
+  definition,
+}: {
+  mode: FrameworkMode;
+  definition: AnyDialect;
+}) {
+  const base = BASE_EXTENSIONS[mode];
+  const extensions = useMemo(
+    () => [base, withOwnProperties(dialectParts(definition), base)],
+    [base, definition],
+  );
   return (
     <WorkbenchCanvas
-      extensions={EXTENSIONS[mode]}
+      extensions={extensions}
       aside={<IstarInspector />}
       paletteOnTop
       fitKey={mode}

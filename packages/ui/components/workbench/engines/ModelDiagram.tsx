@@ -23,14 +23,14 @@ export default function ModelDiagram() {
       return <PistarDiagram />;
     case 'pistarext':
       return <PistarExtDiagram />;
+    // the frameworks' engines draw their framework's model, typed with the
+    // engine's own dialect (nfrprop's `initialLabel`, goal-controller#327)
     case 'kaos':
     case 'nfr':
-      return <FrameworkDiagram mode={wb.mode} />;
-    // the frameworks' engines draw their framework's model (goal-controller#171)
     case 'kaosdoc':
     case 'kaosprop':
     case 'nfrprop':
-      return <FrameworkDiagram mode={frameworkEditorOf(wb.mode)!.mode} />;
+      return <FrameworkDiagram {...frameworkEditorOf(wb.mode)!} />;
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':
