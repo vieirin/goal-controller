@@ -29,17 +29,23 @@
  * critical combinations of leaf obstacles (RE'12 §V): the singletons and
  * pairs that, occurring alone (every other leaf obstacle at 0), leave a
  * goal with an RSR under it.
+ *
+ * Every quantity and tactic is read as kaosprop's dialect reads it
+ * (`viewValues`, goal-controller#244): a value written with an error is
+ * unset, so it counts as its default, and the dialect's checks report it.
  */
-import { probabilityOf } from '@goal-controller/dialect';
-import type {
-  AnalysisCase,
-  AnalysisElement,
-  AnalysisModel,
-  AnalysisResult,
-  AnalysisStep,
-  AnalysisValue,
+import {
+  viewValues,
+  type AnalysisCase,
+  type AnalysisElement,
+  type AnalysisLink,
+  type AnalysisModel,
+  type AnalysisResult,
+  type AnalysisStep,
+  type AnalysisValue,
+  type ViewValues,
 } from '../analysis';
-import { KAOS_VOCABULARIES } from '../../dialects/kaos';
+import { kaosprop } from './definition';
 
 const GOAL_KINDS = new Set(['kaos.BehavioralGoal', 'kaos.Softgoal']);
 const OBSTACLE = 'kaosObstacles.Obstacle';
@@ -49,11 +55,14 @@ const OBSTRUCTION = 'kaosObstacles.ObstructionLink';
 
 /** A refinement's tactic, KAOSTools' names read as the ones they stand for. */
 const CASE_DRIVEN = new Set(['case-driven', 'case']);
-/** the tactics whose rule is the product of the sub-goals' (Table I), and none */
-const PRODUCT_TACTICS = new Set<string>([
-  '',
-  ...KAOS_VOCABULARIES.Tactic.map((t) => (typeof t === 'string' ? t : t[0])),
-]);
+
+type KaospropValues = ViewValues<typeof kaosprop>;
+/** An element's values, as its kind's in kaosprop's dialect. */
+const valuesOf = (element: AnalysisElement): KaospropValues =>
+  viewValues(kaosprop, 'element', element);
+/** A link's values, as its kind's in kaosprop's dialect. */
+const linkValuesOf = (link: AnalysisLink): KaospropValues =>
+  viewValues(kaosprop, 'link', link);
 
 /** A probability as people read it: `92.77%`. */
 export const percent = (p: number): string =>
@@ -74,8 +83,8 @@ type Hub = {
   id: string;
   kind: string;
   parent: string;
-  legs: { child: string; probability: string | undefined }[];
-  properties: Readonly<Record<string, string>>;
+  legs: { child: string; probability: number | null | undefined }[];
+  values: KaospropValues;
 };
 
 /** The model's refinements, by the element they refine (KAOS's goals', obstacles'). */
@@ -90,7 +99,7 @@ const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
           kind,
           parent: '',
           legs: [],
-          properties: element.properties,
+          values: valuesOf(element),
         });
     for (const link of model.links) {
       const hub = hubs.get(
@@ -101,7 +110,7 @@ const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
       else if (link.kind === `${kind}Start`)
         hub.legs.push({
           child: link.source,
-          probability: link.properties.Probability,
+          probability: linkValuesOf(link).Probability,
         });
     }
     for (const hub of hubs.values())
@@ -109,18 +118,6 @@ const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
         byParent.set(hub.parent, [...(byParent.get(hub.parent) ?? []), hub]);
   }
   return byParent;
-};
-
-/** A property's probability, or why it isn't one (unset: the default). */
-const read = (
-  text: string | undefined,
-  fallback: number,
-): { value: number; note?: string } => {
-  if (!text?.trim()) return { value: fallback };
-  const value = probabilityOf(text);
-  return value === null
-    ? { value: fallback, note: `${text.trim()} is no probability: ${fallback}` }
-    : { value };
 };
 
 /** `1 − Π(1 − pᵢ)`: any of independent events. */
@@ -140,12 +137,15 @@ export const propagateProbabilities = (
   const elements = new Map(model.elements.map((e) => [e.id, e]));
   const nameOf = (id: string) => elements.get(id)?.name.trim() ?? id;
   const hubs = hubsOf(model);
-  const obstructions = new Map<string, { obstacle: string; p: string }[]>();
+  const obstructions = new Map<
+    string,
+    { obstacle: string; p: number | null | undefined }[]
+  >();
   for (const link of model.links)
     if (link.kind === OBSTRUCTION)
       obstructions.set(link.target, [
         ...(obstructions.get(link.target) ?? []),
-        { obstacle: link.source, p: link.properties.Probability ?? '' },
+        { obstacle: link.source, p: linkValuesOf(link).Probability },
       ]);
   const probabilities = new Map<string, number>();
   const steps: KaosStep[] = [];
@@ -163,20 +163,19 @@ export const propagateProbabilities = (
   /** a refinement's probability, and its reason */
   const hubProbability = (hub: Hub): [number, string] => {
     if (hub.kind === OBSTACLE_REFINEMENT) {
-      const given = read(hub.properties.Probability, 1);
+      const given = hub.values.Probability ?? 1;
       const p =
-        all(hub.legs.map((leg) => probabilityOfElement(leg.child))) *
-        given.value;
+        all(hub.legs.map((leg) => probabilityOfElement(leg.child))) * given;
       return [
         p,
         `AND of ${hub.legs.map((leg) => named(leg.child)).join(', ')}${
-          given.value !== 1 ? ` × P(O|SO) ${given.value}` : ''
-        }${given.note ? ` (${given.note})` : ''}`,
+          given !== 1 ? ` × P(O|SO) ${given}` : ''
+        }`,
       ];
     }
-    const tactic = (hub.properties.Tactic ?? '').trim();
+    const tactic = hub.values.Tactic ?? '';
     if (CASE_DRIVEN.has(tactic)) {
-      const cases = hub.legs.map((leg) => read(leg.probability, NaN).value);
+      const cases = hub.legs.map((leg) => leg.probability ?? NaN);
       // two cases, one given: the other is its complement
       if (cases.length === 2 && cases.filter(Number.isNaN).length === 1)
         cases[cases.findIndex(Number.isNaN)] =
@@ -196,9 +195,8 @@ export const propagateProbabilities = (
           )}${total === 1 ? '' : ` (the cases sum to ${total}, not 1)`}`,
       ];
     }
-    const rule = PRODUCT_TACTICS.has(tactic)
-      ? tactic || 'no tactic, milestone-driven'
-      : `${tactic}, not a tactic: milestone-driven`;
+    // any other tactic's rule is the product of the sub-goals' (Table I)
+    const rule = tactic || 'no tactic, milestone-driven';
     return [
       all(hub.legs.map((leg) => probabilityOfElement(leg.child))),
       `${rule}: ${hub.legs.map((leg) => named(leg.child)).join(' × ')}`,
@@ -233,14 +231,11 @@ export const propagateProbabilities = (
             ? 'its estimate, in this combination'
             : 'not in this combination',
         );
-      const given = read(element.properties.Probability, 0);
+      const given = valuesOf(element).Probability;
       return settle(
         element.id,
-        given.value,
-        given.note ??
-          (element.properties.Probability?.trim()
-            ? 'its estimate'
-            : 'no estimate: 0'),
+        given ?? 0,
+        given != null ? 'its estimate' : 'no estimate: 0',
       );
     }
     const parts = refinements.map(hubProbability);
@@ -257,10 +252,10 @@ export const propagateProbabilities = (
     const refinements = hubs.get(element.id) ?? [];
     const obstructing = obstructions.get(element.id) ?? [];
     const factors = obstructing.map(({ obstacle: o, p }) => {
-      const given = read(p, 1);
+      const given = p ?? 1;
       return {
-        p: 1 - probabilityOfElement(o) * given.value,
-        why: `${named(o)}${given.value !== 1 ? ` × P(¬G|O) ${given.value}` : ''}`,
+        p: 1 - probabilityOfElement(o) * given,
+        why: `${named(o)}${given !== 1 ? ` × P(¬G|O) ${given}` : ''}`,
       };
     });
     const obstructed = factors.length
@@ -273,14 +268,13 @@ export const propagateProbabilities = (
           all(factors.map((f) => f.p)),
           `leaf, ${obstructed}`,
         );
-      const given = read(element.properties.ESR, 1);
+      const given = valuesOf(element).ESR;
       return settle(
         element.id,
-        given.value,
-        given.note ??
-          (element.properties.ESR?.trim()
-            ? 'leaf, nothing obstructs it: its ESR'
-            : 'leaf, nothing obstructs it'),
+        given ?? 1,
+        given != null
+          ? 'leaf, nothing obstructs it: its ESR'
+          : 'leaf, nothing obstructs it',
       );
     }
     const parts = refinements.map(hubProbability);
@@ -308,7 +302,7 @@ export const propagateProbabilities = (
 
 /** A goal's RSR, when it has one. */
 const rsrOf = (element: AnalysisElement | undefined): number | null =>
-  element ? probabilityOf(element.properties.RSR ?? '') : null;
+  (element && valuesOf(element).RSR) ?? null;
 
 /** An element's value on the model: an obstacle's P, a goal's EPS (and SV, a warning when positive). */
 export const probabilityValue = (
@@ -377,8 +371,7 @@ export const criticalCombinations = (
   const leaves = model.elements.filter(
     (e) => e.kind === OBSTACLE && !(hubs.get(e.id)?.length ?? 0),
   );
-  const estimate = (e: AnalysisElement) =>
-    read(e.properties.Probability, 0).value;
+  const estimate = (e: AnalysisElement) => valuesOf(e).Probability ?? 0;
   const goals = model.elements.filter(
     (e) => GOAL_KINDS.has(e.kind) && rsrOf(e) !== null,
   );
@@ -427,9 +420,7 @@ export const runCriticalCombinations = (
         const overrides = new Map(
           leaves.map((leaf) => [
             leaf.id,
-            obstacles.includes(leaf.id)
-              ? read(leaf.properties.Probability, 0).value
-              : 0,
+            obstacles.includes(leaf.id) ? (valuesOf(leaf).Probability ?? 0) : 0,
           ]),
         );
         const { probabilities } = propagateProbabilities(model, overrides);
