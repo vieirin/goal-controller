@@ -30,10 +30,18 @@ const DIALECTS = { kaos, nfr } as const;
 type Mode = keyof typeof DIALECTS;
 
 const read = (mode: Mode) => (text: string) => parseModel(text, mode, mode);
-const SEEDS = {
+// every KAOS and NFR model of examples/; DSM3's welcome models are the files
+// directly in the framework's folder (KAOS's stress-test projects, #181, are
+// in folders of their own)
+const MODELS = {
   kaos: models('examples/kaos', read('kaos')),
   nfr: models('examples/nfr', read('nfr')),
 };
+const welcome = (mode: Mode) =>
+  MODELS[mode].filter(
+    (s) => !s.file.slice(`examples/${mode}/`.length).includes('/'),
+  );
+const SEEDS = { kaos: welcome('kaos'), nfr: welcome('nfr') };
 const seed = (mode: Mode) => SEEDS[mode][0]!.model;
 
 const viewOf = (mode: Mode, text: string): GoalView =>
@@ -188,9 +196,15 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
     ]);
   });
 
-  it('read with their frameworks’ roots, and write back byte for byte', () => {
+  it('read with their frameworks’ roots, and write back byte for byte, as every KAOS and NFR example does (#181’s too)', () => {
+    expect(MODELS.kaos.map((s) => s.file)).to.deep.equal([
+      'examples/kaos/ambulance/ambulance.txt',
+      'examples/kaos/carpooling/carpooling.txt',
+      'examples/kaos/kaos-welcome.txt',
+      'examples/kaos/las/las.txt',
+    ]);
     for (const mode of ['kaos', 'nfr'] as const)
-      for (const { file, model } of SEEDS[mode])
+      for (const { file, model } of MODELS[mode])
         expect(serializeModel(read(mode)(model), model), file).to.equal(model);
   });
 

@@ -1,3 +1,5 @@
+# The oracle of RE'12's hand-drawn London Ambulance model (packages/lib/test/engines/kaosprop/fixtures/re12-las.txt), Fig. 1–2 with the paper's estimates;
+# not KAOSTools' las.kaos beside it, whose legs and refinements differ (goal-controller#182): kaosprop gives that file other numbers.
 id,element,probability,paper,derivation
 ambulance_not_in_familiar_area,Ambulance Not In Familiar Area,0.200000,20%,its estimate (RE'12 §IV.A)
 gps_not_working,GPS Not Working,0.100000,10%,its estimate

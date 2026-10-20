@@ -142,8 +142,9 @@ describe('readKaos: the corpus, counted', () => {
         engine: 'kaosprop',
         projectResources: {},
       });
-      assert.strictEqual(model.diagram.customProperties.engine, 'kaosprop');
-      assert.strictEqual(model.diagram.customProperties.framework, 'kaos');
+      // the mode is the project's (the native file's dialect, kaosprop), the framework the kinds'
+      assert.strictEqual(model.diagram.customProperties.engine, undefined);
+      assert.strictEqual(model.diagram.customProperties.framework, undefined);
     });
 
   it('reads ADS’s las.kaos with the files it imports: one model of the three', () => {
@@ -658,5 +659,89 @@ declare agent [ e ] type environment end`);
         "achieve_new: its FormalSpec is no KAOSTools formula, written as a string (KAOSTools won't read it)",
       ],
     );
+  });
+});
+
+describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
+  const EXAMPLES = join(__dirname, '../../../../examples/kaos');
+  const seed = (name: string) => ({
+    kaos: readFileSync(join(EXAMPLES, name, `${name}.kaos`), 'utf8'),
+    model: readFileSync(join(EXAMPLES, name, `${name}.txt`), 'utf8'),
+  });
+  for (const name of ['las', 'ambulance', 'carpooling'])
+    it(`${name}: ${name}.txt is ${name}.kaos read, byte for byte; it validates; the native file is in sync`, () => {
+      const { kaos, model } = seed(name);
+      const read = kaosNativeFile.read(kaos, { modelName: name });
+      assert.strictEqual(`${JSON.stringify(read.model, null, 2)}\n`, model);
+      assert.deepStrictEqual(
+        validateModel(parsePistar(model, { metamodel: KAOS_OBSTACLES })),
+        [],
+      );
+      assert.ok(
+        modelRoundTrip(kaosNativeFile, read.model!, { modelName: name }).ok,
+      );
+    });
+
+  it('ambulance is ADS’s las.kaos and obstacles.kaos: 41 goals, 8 agents, 76 obstacles', () => {
+    const model = JSON.parse(seed('ambulance').model);
+    assert.deepStrictEqual(census(model), {
+      'kaos.BehavioralGoal': 41,
+      'kaos.Agent': 8,
+      'kaos.Obstacle': 76,
+      'kaos.RefinementLinkHub': 19,
+      'kaos.ObstacleRefinementLinkHub': 67,
+      'kaos.ObstructionLink': 11,
+      'kaos.ResponsibilityAssignment': 18,
+    });
+    // its obstacles' estimates are per expert, kept as written: none is read, every goal holds
+    const analysis = kaospropAnalysisModel(
+      readKaosObstacleModel(seed('ambulance').model),
+    );
+    assert.strictEqual(
+      propagateProbabilities(analysis).probabilities.get(
+        'achieve_incident_resolved',
+      ),
+      1,
+    );
+  });
+
+  it('carpooling: kaosprop reproduces REJ’13’s chain, 0.015 → … → 0.28 against an RSR of 95%', () => {
+    const analysis = kaospropAnalysisModel(
+      readKaosObstacleModel(seed('carpooling').model),
+    );
+    const { probabilities } = propagateProbabilities(analysis);
+    const chain: [string, number][] = [
+      ['driver_at_other_drop_point', 0.015],
+      ['drop_point_never_reached', 0.08],
+      ['drop_point_not_reached_in_time', 0.12],
+      ['drop_point_not_reached_when_passenger_in_car', 0.19],
+      ['drop_point_from_instructions_reached_when_passenger_in_car', 0.81],
+      ['drop_point_reached_when_passenger_in_car', 0.81],
+      ['passenger_at_destination_when_in_car', 0.81],
+      ['passenger_at_destination_when_instructions_known', 0.526],
+      ['passenger_at_destination_when_ride_planned', 0.425],
+      ['ride_request_served', 0.28],
+    ];
+    for (const [id, printed] of chain)
+      assert.ok(
+        Math.abs(probabilities.get(id)! - printed) <= 0.0013,
+        `${id}: ${probabilities.get(id)} is not ${printed}`,
+      );
+    // the same numbers as the hand-drawn fixture, to the last digit
+    const drawn = propagateProbabilities(
+      kaospropAnalysisModel(
+        readKaosObstacleModel(
+          readFileSync(
+            join(
+              __dirname,
+              '../engines/kaosprop/fixtures/rej13-carpooling.txt',
+            ),
+            'utf8',
+          ),
+        ),
+      ),
+    ).probabilities;
+    for (const [id] of chain)
+      assert.strictEqual(probabilities.get(id), drawn.get(id), id);
   });
 });

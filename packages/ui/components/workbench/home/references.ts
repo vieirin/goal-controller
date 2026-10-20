@@ -167,6 +167,37 @@ export const SECTION_REFERENCES: Readonly<
       text: 'A. van Lamsweerde. Requirements Engineering: From System Goals to UML Models to Software Specifications. Wiley, 2009.',
     },
     { ...DSM3_GOALS, examples: ['kaos/kaos-welcome.txt'] },
+    // the KAOS stress test's seeds (goal-controller#181)
+    {
+      text: 'A. Cailliau, A. van Lamsweerde. A probabilistic framework for goal-oriented risk analysis. RE 2012.',
+      url: 'https://doi.org/10.1109/RE.2012.6345805',
+      examples: ['kaos/las', 'kaos/ambulance'],
+    },
+    {
+      text: 'A. Cailliau, A. van Lamsweerde. Assessing requirements-related risks through probabilistic goals and obstacles. Requirements Engineering 18(2):129–146, 2013 (§6.3, re-keyed from its figures).',
+      url: 'https://doi.org/10.1007/s00766-013-0168-5',
+      examples: ['kaos/carpooling'],
+    },
+    {
+      text: 'A. Cailliau, A. van Lamsweerde. Handling knowledge uncertainty in risk-based requirements engineering. RE 2015.',
+      url: 'https://doi.org/10.1109/RE.2015.7320413',
+      examples: ['kaos/ambulance'],
+    },
+    {
+      text: 'A. Cailliau, A. van Lamsweerde. Runtime monitoring and resolution of probabilistic obstacles to system goals. SEAMS 2017.',
+      url: 'https://doi.org/10.1109/SEAMS.2017.5',
+      examples: ['kaos/ambulance'],
+    },
+    {
+      text: 'ancailliau/KAOSTools: KAOSTools and its London Ambulance model, las.kaos (MIT).',
+      url: 'https://github.com/ancailliau/KAOSTools',
+      examples: ['kaos/las'],
+    },
+    {
+      text: 'ancailliau/ADS: the ambulance dispatching system and its KAOS models, las.kaos and obstacles.kaos (MIT).',
+      url: 'https://github.com/ancailliau/ADS',
+      examples: ['kaos/ambulance'],
+    },
   ],
   nfr: [
     {

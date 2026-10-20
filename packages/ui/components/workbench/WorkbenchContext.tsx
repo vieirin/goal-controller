@@ -143,6 +143,11 @@ export type FrameworkSwitch = {
   framework: Framework;
   project: Framework;
   message: string;
+  /**
+   * how it opens once confirmed, when not as a model file in its framework:
+   * a native file's project (`.kaos`, goal-controller#181)
+   */
+  open?: () => Promise<void>;
 };
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
@@ -363,7 +368,11 @@ export type Workbench = {
   regenerateNative: (path: string) => void;
   /** the model read again from a native file (an edit, undoable) */
   reimportModel: (path: string) => void;
-  /** a native file opened: the project of it and its model, in the browser */
+  /**
+   * a native file opened: the project of it and its model, in the browser; a
+   * model of another framework than the open one's (a `.kaos` over an iStar
+   * model, goal-controller#181) waits in `frameworkSwitch` as a model file does
+   */
   openNativeFile: (fileName: string, text: string) => Promise<void>;
 
   // structure
@@ -1045,36 +1054,46 @@ function WorkbenchState({
   // a model file in its framework, or the switch to it waiting for a yes (#171)
   const [frameworkSwitch, setFrameworkSwitch] =
     useState<FrameworkSwitch | null>(null);
+  /** the open model's own framework (its entry's: a project's models may be of several, goal-controller#329); none when nothing is open */
+  const openFramework = useCallback((): Framework | undefined => {
+    const current = textRef.current;
+    const open = projectRef.current;
+    return !current.trim()
+      ? undefined
+      : open
+        ? frameworkOfEntry(open.manifest, openPathIn(open), current)
+        : frameworkOfModel(current);
+  }, [openPathIn]);
+  /** Whether a model text may replace the open one; when not, the switch waits for a yes (and then `open`). */
+  const mismatched = useCallback(
+    (fileName: string, text: string, open?: () => Promise<void>): boolean => {
+      const project = openFramework();
+      const message = openingMismatch(text, project);
+      if (!message) return false;
+      setFrameworkSwitch({
+        fileName,
+        text,
+        framework: frameworkOfModel(text),
+        project: project!,
+        message,
+        ...(open && { open }),
+      });
+      return true;
+    },
+    [openFramework],
+  );
   const openModelFile = useCallback(
     async (fileName: string, text: string) => {
-      // the open model's own framework (its entry's: a project's models may
-      // be of several, goal-controller#329)
-      const current = textRef.current;
-      const open = projectRef.current;
-      const project = !current.trim()
-        ? undefined
-        : open
-          ? frameworkOfEntry(open.manifest, openPathIn(open), current)
-          : frameworkOfModel(current);
-      const message = openingMismatch(text, project);
-      if (message) {
-        setFrameworkSwitch({
-          fileName,
-          text,
-          framework: frameworkOfModel(text),
-          project: project!,
-          message,
-        });
-        return;
-      }
+      if (mismatched(fileName, text)) return;
       await openFile(fileName, inItsFramework(text), { setup: true });
     },
-    [openFile, openPathIn],
+    [openFile, mismatched],
   );
   const confirmFrameworkSwitch = useCallback(async () => {
     const pending = frameworkSwitch;
     setFrameworkSwitch(null);
-    if (pending)
+    if (pending?.open) await pending.open();
+    else if (pending)
       await openFile(pending.fileName, inItsFramework(pending.text), {
         setup: true,
       });
@@ -1105,14 +1124,21 @@ function WorkbenchState({
               .join('; ') || 'no reason given'
           }`,
         );
-      const { files } = nativeProjectFiles(fileName, text, found, read);
-      // kept in the browser; where it has no private file system, in memory
-      const store = await opfsProjects()
-        .then((taken) => importFiles(files, freeName(found.baseName, taken)))
-        .catch(() => memoryStore(files, { kind: 'file', name: fileName }));
-      openProject(await readProject(store, PROJECT_OPTIONS), { setup: true });
+      const { files, model } = nativeProjectFiles(fileName, text, found, read);
+      const open = async () => {
+        // kept in the browser; where it has no private file system, in memory
+        const store = await opfsProjects()
+          .then((taken) => importFiles(files, freeName(found.baseName, taken)))
+          .catch(() => memoryStore(files, { kind: 'file', name: fileName }));
+        openProject(await readProject(store, PROJECT_OPTIONS), {
+          setup: true,
+        });
+      };
+      // a model of another framework than the open one's waits for a yes (#171, #181)
+      if (mismatched(fileName, files[model]!, open)) return;
+      await open();
     },
-    [openProject],
+    [openProject, mismatched],
   );
   const openRecent = useCallback(
     async (entry: RecentFile) => {

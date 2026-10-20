@@ -1,0 +1,148 @@
+@title "COOL carpooling (REJ'13, §6.3)"
+
+# Cailliau and van Lamsweerde, "Assessing requirements-related risks
+# through probabilistic goals and obstacles", Requirements Engineering
+# 18(2):129–146, 2013, §6.3, re-keyed from the paper's figures: Fig. 4's
+# goal chain to Achieve [RideRequestServed], Fig. 6's obstacle tree, and
+# Table 3's estimates. The three sibling subtrees the paper gives as
+# results only (0.66, 0.808, 0.65) are their goals' esr. KAOSTools' syntax;
+# kaosprop propagates 0.015 → 0.08 → 0.12 → 0.19 → 0.81 → 0.526 → 0.425 →
+# 0.28 against the root's rsr of 95%. See README.md.
+
+# Goals (Fig. 4): each a milestone refinement into the next
+
+declare goal [ ride_request_served ]
+  name "Achieve [RideRequestServed]"
+  rsr 95%
+  refinedby [milestone] ride_planned_when_request_encoded,
+                        passenger_at_destination_when_ride_planned
+end
+
+declare goal [ ride_planned_when_request_encoded ]
+  name "Achieve [RidePlannedWhenRequestEncoded]"
+  esr 0.66
+end
+
+declare goal [ passenger_at_destination_when_ride_planned ]
+  name "Achieve [PassengerAtDestinationWhenRidePlanned]"
+  refinedby [milestone] ride_instructions_known_by_riders_when_ride_planned,
+                        passenger_at_destination_when_instructions_known
+end
+
+declare goal [ ride_instructions_known_by_riders_when_ride_planned ]
+  name "Achieve [RideInstructionsKnownByRidersWhenRidePlanned]"
+  esr 0.808
+end
+
+declare goal [ passenger_at_destination_when_instructions_known ]
+  name "Achieve [PassengerAtDestinationWhenInstructionsKnown]"
+  refinedby [milestone] passenger_in_drivers_car_when_instructions_known,
+                        passenger_at_destination_when_in_car
+end
+
+declare goal [ passenger_in_drivers_car_when_instructions_known ]
+  name "Achieve [PassengerInDriver'sCarWhenInstructionsKnown]"
+  esr 0.65
+end
+
+declare goal [ passenger_at_destination_when_in_car ]
+  name "Achieve [PassengerAtDestinationWhenInCar]"
+  refinedby [milestone] drop_point_reached_when_passenger_in_car,
+                        passenger_at_destination_when_drop_point_reached
+end
+
+declare goal [ drop_point_reached_when_passenger_in_car ]
+  name "Achieve [DropPointReachedWhenPassengerInCar]"
+  refinedby [unmonitorability] drop_point_from_instructions_reached_when_passenger_in_car,
+                               instructions_known_when_passenger_in_car
+end
+
+declare goal [ passenger_at_destination_when_drop_point_reached ]
+  name "Achieve [PassengerAtDestinationWhenDropPointReached]"
+end
+
+declare goal [ drop_point_from_instructions_reached_when_passenger_in_car ]
+  name "Achieve [DropPointFromInstructionsReachedWhenPassengerInCar]"
+  obstructedby drop_point_not_reached_when_passenger_in_car
+end
+
+declare goal [ instructions_known_when_passenger_in_car ]
+  name "Maintain [InstructionsKnownWhenPassengerInCar]"
+end
+
+# Obstacles (Fig. 6): each `refinedby` one alternative (an OR); the leaves'
+# probabilities are Table 3's
+
+declare obstacle [ drop_point_not_reached_when_passenger_in_car ]
+  name "Drop Point Not Reached When Passenger In Car"
+  refinedby drop_point_never_reached
+  refinedby drop_point_not_reached_in_time
+end
+
+declare obstacle [ drop_point_never_reached ]
+  name "Drop Point Never Reached"
+  refinedby driver_got_lost
+  refinedby car_broken_down
+  refinedby wrong_instructions_sent
+  refinedby driver_at_other_drop_point
+  refinedby drop_point_inaccessible
+end
+
+declare obstacle [ drop_point_not_reached_in_time ]
+  name "Drop Point Not Reached In Time"
+  refinedby wrong_instructions_sent
+  refinedby stuck_in_traffic_jam
+  refinedby detour_on_planned_road
+  refinedby other_passenger_late
+end
+
+declare obstacle [ driver_at_other_drop_point ]
+  name "Driver At Other Drop Point"
+  refinedby drop_point_confused
+  refinedby unclear_instructions
+end
+
+declare obstacle [ driver_got_lost ]
+  name "Driver Got Lost"
+  probability 6%
+end
+
+declare obstacle [ car_broken_down ]
+  name "Car Broken Down"
+  probability 0.5%
+end
+
+declare obstacle [ wrong_instructions_sent ]
+  name "Wrong Instructions Sent"
+  probability 0.1%
+end
+
+declare obstacle [ drop_point_inaccessible ]
+  name "Drop Point Inaccessible"
+  probability 0.1%
+end
+
+declare obstacle [ drop_point_confused ]
+  name "Drop Point Confused"
+  probability 1%
+end
+
+declare obstacle [ unclear_instructions ]
+  name "Unclear Instructions"
+  probability 0.5%
+end
+
+declare obstacle [ stuck_in_traffic_jam ]
+  name "Stuck In Traffic Jam"
+  probability 10%
+end
+
+declare obstacle [ detour_on_planned_road ]
+  name "Detour On Planned Road"
+  probability 1.5%
+end
+
+declare obstacle [ other_passenger_late ]
+  name "Other Passenger Late"
+  probability 0.5%
+end
