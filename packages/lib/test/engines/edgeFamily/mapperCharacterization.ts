@@ -567,26 +567,19 @@ export const characterizeEdgeMapper = (
       assert.deepStrictEqual(dependsOn('G12'), ['G12']);
     });
 
-    it('throws for an id that is no node, or no goal (without a node suffix)', () => {
-      throws(
-        { G12: { dependsOn: 'G99' } },
-        '[INVALID MODEL]: Dependency G99 not found for node G12',
-      );
-      throws(
-        { G12: { dependsOn: 'G13,G99' } },
-        '[INVALID MODEL]: Dependency G99 not found for node G12',
-      );
-      throws(
-        { G12: { dependsOn: 'T8' } },
-        '[INVALID MODEL]: Dependency T8 for node G12 must be a goal, got task',
-      );
-      throws(
-        { G12: { dependsOn: 'R0' } },
-        '[INVALID MODEL]: Dependency R0 for node G12 must be a goal, got resource',
-      );
+    it('reads an id that is no node, or no goal, as unset: []', () => {
+      // #290: changed (was a throw: '[INVALID MODEL]: Dependency G99 not found
+      // for node G12'); the dialect reports it and generation refuses the model
+      assert.deepStrictEqual(dependsOn('G99'), []);
+      // #290: changed (was the same throw, for G99)
+      assert.deepStrictEqual(dependsOn('G13,G99'), []);
+      // #290: changed (was a throw: '… Dependency T8 for node G12 must be a goal, got task')
+      assert.deepStrictEqual(dependsOn('T8'), []);
+      // #290: changed (was a throw: '… must be a goal, got resource')
+      assert.deepStrictEqual(dependsOn('R0'), []);
     });
 
-    it('throws for a dependsOn naming a quality, as the check does (#266)', () => {
+    it('reads a dependsOn naming a quality as unset: [] (#266)', () => {
       // turn G13 into a Quality; G12 depends on it
       const elements = new Map(original.elements);
       const g13 = [...original.elements.values()].find((e) =>
@@ -602,10 +595,13 @@ export const characterizeEdgeMapper = (
         ...g12,
         customProperties: { ...g12.customProperties, dependsOn: 'G13' },
       });
-      assert.throws(() => build({ ...original, elements }), {
-        message:
-          '[INVALID MODEL]: Dependency G13 for node G12 must be a goal, got quality',
-      });
+      const g12Node = GoalTree.allByType(
+        build({ ...original, elements }).nodes,
+        'goal',
+      ).find((n) => n.id === 'G12');
+      // #290: changed (was a throw: '[INVALID MODEL]: Dependency G13 for node
+      // G12 must be a goal, got quality')
+      assert.deepStrictEqual(g12Node?.properties.engine.dependsOn, []);
     });
 
     it('reads ids without commas as unset: []', () => {

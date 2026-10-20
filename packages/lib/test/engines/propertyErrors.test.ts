@@ -12,7 +12,12 @@ import {
   propertyErrors,
   refuseOnPropertyErrors,
 } from '../../src/engines/engine';
-import { edgeEngine, kaosdocEngine, sleecEngine } from '../../src';
+import {
+  edgeEngine,
+  edgeV2Engine,
+  kaosdocEngine,
+  sleecEngine,
+} from '../../src';
 
 type El = {
   id: string;
@@ -102,6 +107,19 @@ describe('the generation gate (#274)', () => {
       propertyErrors(edgeEngine, dangling).map((error) => error.key),
       ['dependsOn'],
     );
+  });
+
+  it('refuses a dependsOn the mapper reads as none: no element, a task (#290)', () => {
+    // the Edge mappers no longer throw on these (#290): the gate refuses first
+    for (const engine of [edgeEngine, edgeV2Engine]) {
+      for (const dependsOn of ['G99', 'T1', 'G1, G99']) {
+        assert.throws(
+          () => refuseOnPropertyErrors(engine, edgeModel({ dependsOn })),
+          /does not generate from a model with an error on a property it reads: G1 dependsOn: .*\(node G1\)/,
+          `${engine.id} ${dependsOn}`,
+        );
+      }
+    }
   });
 
   it('lists every error, and says how many more than the first', () => {
