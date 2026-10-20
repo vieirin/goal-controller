@@ -79,7 +79,7 @@ export type KaosPropagation = {
 };
 
 /** A refinement: its hub, the element it refines, and its legs (child, P(CS)). */
-type Hub = {
+export type Hub = {
   id: string;
   kind: string;
   parent: string;
@@ -87,8 +87,12 @@ type Hub = {
   values: KaospropValues;
 };
 
-/** The model's refinements, by the element they refine (KAOS's goals', obstacles'). */
-const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
+/**
+ * The model's refinements, by the element they refine (KAOS's goals',
+ * obstacles'); kaosexpert reads them too (its dialect's hubs and legs are
+ * kaosprop's).
+ */
+export const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
   const byParent = new Map<string, Hub[]>();
   for (const kind of [GOAL_REFINEMENT, OBSTACLE_REFINEMENT]) {
     const hubs = new Map<string, Hub>();
@@ -120,6 +124,23 @@ const hubsOf = (model: AnalysisModel): Map<string, Hub[]> => {
   return byParent;
 };
 
+/** The model's obstructions, by the goal they obstruct: the obstacle and P(¬G|O) as written. */
+export const obstructionsOf = (
+  model: AnalysisModel,
+): Map<string, { obstacle: string; p: number | null | undefined }[]> => {
+  const obstructions = new Map<
+    string,
+    { obstacle: string; p: number | null | undefined }[]
+  >();
+  for (const link of model.links)
+    if (link.kind === OBSTRUCTION)
+      obstructions.set(link.target, [
+        ...(obstructions.get(link.target) ?? []),
+        { obstacle: link.source, p: linkValuesOf(link).Probability },
+      ]);
+  return obstructions;
+};
+
 /** `1 − Π(1 − pᵢ)`: any of independent events. */
 const any = (ps: readonly number[]) => 1 - ps.reduce((a, p) => a * (1 - p), 1);
 const all = (ps: readonly number[]) => ps.reduce((a, p) => a * p, 1);
@@ -137,16 +158,7 @@ export const propagateProbabilities = (
   const elements = new Map(model.elements.map((e) => [e.id, e]));
   const nameOf = (id: string) => elements.get(id)?.name.trim() ?? id;
   const hubs = hubsOf(model);
-  const obstructions = new Map<
-    string,
-    { obstacle: string; p: number | null | undefined }[]
-  >();
-  for (const link of model.links)
-    if (link.kind === OBSTRUCTION)
-      obstructions.set(link.target, [
-        ...(obstructions.get(link.target) ?? []),
-        { obstacle: link.source, p: linkValuesOf(link).Probability },
-      ]);
+  const obstructions = obstructionsOf(model);
   const probabilities = new Map<string, number>();
   const steps: KaosStep[] = [];
   const visiting = new Set<string>();

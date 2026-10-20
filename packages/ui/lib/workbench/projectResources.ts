@@ -73,6 +73,17 @@ export const parseResources = (
   return parsed;
 };
 
+/** Each parsed resource kind's names: its symbols', every category's (a keyed property's names, goal-controller#190). */
+export const resourceNames = (
+  parsed: ParsedResources,
+): Record<string, string[]> =>
+  Object.fromEntries(
+    Object.entries(parsed).map(([kind, { symbols }]) => [
+      kind,
+      Object.values(symbols).flatMap((list) => list.map((s) => s.name)),
+    ]),
+  );
+
 /** What the language gets of the parsed resources: symbols and data, by kind. */
 export const resourcesContext = (
   parsed: ParsedResources,

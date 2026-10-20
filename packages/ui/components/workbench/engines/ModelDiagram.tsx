@@ -14,6 +14,7 @@ import Tropos4asDiagram from './tropos4as/Tropos4asDiagram';
 import CgmDiagram from './cgm/CgmDiagram';
 import FrameworkDiagram from './framework/FrameworkDiagram';
 import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
+import { resourceNames } from '@/lib/workbench/projectResources';
 
 /** The goal model's diagram for the mode the model is in. */
 export default function ModelDiagram() {
@@ -29,8 +30,14 @@ export default function ModelDiagram() {
     case 'nfr':
     case 'kaosdoc':
     case 'kaosprop':
+    case 'kaosexpert':
     case 'nfrprop':
-      return <FrameworkDiagram {...frameworkEditorOf(wb.mode)!} />;
+      return (
+        <FrameworkDiagram
+          {...frameworkEditorOf(wb.mode)!}
+          names={resourceNames(wb.parsedResources)}
+        />
+      );
     case 'edge':
       return <EdgeDiagram />;
     case 'edgev2':

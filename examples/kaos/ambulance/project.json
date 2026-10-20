@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "dialect": "kaosprop",
+  "dialect": "kaosexpert",
   "framework": "kaos",
   "models": [
     {
@@ -10,6 +10,9 @@
       }
     }
   ],
-  "projectResources": {},
+  "projectResources": {
+    "calibration": "calibrations.json",
+    "expert": "experts.json"
+  },
   "outputs": []
 }

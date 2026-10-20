@@ -541,6 +541,34 @@ problem and stays as written.
   `20.00%`, as KAOSTools writes them), in [0, 1]. The dialect package's
   `probabilityOf` reads it as a number. It is written back as read.
 
+### `distribution`, and keyed properties
+
+A `distribution` (goal-controller#190) has no grammar rule either: it is
+read as `text` and checked by the dialect package's `readDistribution`
+(`distributionOf` reads it). Its forms are RE'15's tooling's:
+
+- `beta[α, β]`, both shapes above 0;
+- `uniform[min, max]`;
+- `triangular[min, mode, max]` and `pert[min, mode, max]` (`PERT`), with
+  min ≤ mode ≤ max;
+- `quantile[q1, …, qn]` (`quantiles`), or a tuple `(q1, …, qn)` (ADS's
+  form): values at quantile levels the reader knows (a model's
+  `@experts.quantiles`), never decreasing;
+- with `point`, a single value too (`2.7%`): the degenerate case.
+
+Over probabilities (the default `range`), each parameter but Beta's shapes
+is a decimal or a percentage in [0, 1]; over the reals (`range: 'real'`),
+any decimal. It is written back as read; a value it rejects (ADS's `(30%,
+10%, 50%)`, falling quantiles) is a problem and stays as written.
+
+A property may be **keyed** by a project resource's names (`keyed:
+'expert'`): besides its own value (`Probability`), it has one per name,
+stored as `Probability[e1]` (`keyedKey`, `keyedKeyOf`), each of its value
+type. `propertyOf` resolves `Probability[e1]` to the keyed property, so
+the checks read it; `readProperties` reads each name's value by its key.
+The Notation view writes no line for them (its keys are words); the
+inspector shows a row per name (goal-controller#190, D2).
+
 ### `ocl`
 
 OCL as MutRoSe's goal models write it: declarations (`current : Room,

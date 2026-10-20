@@ -17,10 +17,18 @@
  * - quantities (kaosprop's dialect): `rsr` (`rds`) a goal's `RSR`, `esr`
  *   (`eps`, `probability`) a goal's `ESR` or an obstacle's `Probability`,
  *   a refinee's `[p]` its leg's `Probability`, an obstructor's `[p]` the
- *   obstruction's, each a string as written (`95%`, `.8`).
+ *   obstruction's, each a string as written (`95%`, `.8`);
+ * - kaosexpert's (goal-controller#190): an obstacle's or a domain
+ *   property's `probability` as a distribution (`beta[2, 3]`, `(2.4%,
+ *   2.7%, 3%)`) its `Probability`, an expert's `probability[e1] …` its
+ *   `Probability[e1]`, each as written; `declare expert`, `declare
+ *   calibration` and `@experts.quantiles` the project resources
+ *   `experts.json` and `calibrations.json` (engines/kaosexpert/resources).
+ *   A file with any of these opens in kaosexpert's mode, any other in
+ *   kaosprop's.
  *
- * Nothing is dropped: what has no place (an `expert`, a `calibration`, a
- * per-expert `probability[e4] (…)`, a custom `$attribute`, an import not
+ * Nothing is dropped: what has no place (a per-expert or distribution
+ * `esr` on a goal, an `entity`, a custom `$attribute`, an import not
  * given) is kept as written, in file order, in the diagram's
  * `kaosUnsupported` (an attribute of a placed element as an `override` of
  * it), and said. The writer (./write.ts) writes it back. Positions are
@@ -30,7 +38,16 @@
  */
 import { parsePistar, toPistarObject } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import { readDistribution } from '@goal-controller/dialect';
 import type { ImportDiagnostic, ImportResult } from '../types';
+import {
+  CALIBRATIONS_PATH,
+  calibrationsText,
+  EXPERTS_PATH,
+  expertsText,
+  type CalibrationEntry,
+  type ExpertEntry,
+} from '../../engines/kaosexpert/resources';
 import { layOut } from '../layout';
 import {
   kaosFormulaText as formulaText,
@@ -60,6 +77,12 @@ export const KAOS_UNSUPPORTED_KEY = 'kaosUnsupported';
 
 /** The engine a `.kaos` model is for: its quantities are kaosprop's. */
 export const KAOS_ENGINE = 'kaosprop';
+
+/** The engine a `.kaos` model with experts, calibrations or distributions is for (goal-controller#190). */
+export const KAOS_EXPERT_ENGINE = 'kaosexpert';
+
+/** A value's text as written, on one line: `(2.4%, 2.7%, 3%)`. */
+const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 export type KaosReadOptions = {
   /** the model's name when the file has no `@title` */
@@ -195,6 +218,11 @@ export const readKaos = (
   const raw: (string | Element)[] = [];
   let title: string | null = null;
   let anonymous = 0;
+  // kaosexpert's: the experts, the calibration variables, the quantile levels
+  const experts: ExpertEntry[] = [];
+  const calibrations: CalibrationEntry[] = [];
+  let quantiles: string | null = null;
+  let expertForms = false;
 
   // diagnostics: where in the file read first; an imported file's are named by it
   type Where = { file: string | null };
@@ -241,6 +269,10 @@ export const readKaos = (
         headAt(declaration),
       );
     const word = declaration.kind;
+    if (word === 'expert' || word === 'calibration') {
+      resource(declaration, where);
+      return null;
+    }
     if (!isKaosDeclaration(word)) {
       raw.push(sourceOf(declaration));
       say(
@@ -394,6 +426,22 @@ export const readKaos = (
           );
           return;
         }
+        // kaosexpert's: an obstacle's or a domain property's estimate, a
+        // distribution or an expert's (`probability[e1] (…)`)
+        if (word === 'obstacle' || isDomain(word)) {
+          const estimate = estimateOf(attribute);
+          if (estimate) {
+            element.props.set(estimate.key, estimate.text);
+            // only kaosexpert reads these (kaosprop: a point on an obstacle)
+            if (
+              estimate.key !== 'Probability' ||
+              estimate.distribution ||
+              isDomain(word)
+            )
+              expertForms = true;
+            return;
+          }
+        }
         break;
       default:
         if (
@@ -436,6 +484,110 @@ export const readKaos = (
               ].includes(name)
             ? `not in this form on a ${word}`
             : `no place in the model for ${name}`;
+
+  /**
+   * `probability X` (a value or a distribution) or `probability[e1] X` as
+   * kaosexpert's key and the value as written; null in any other form.
+   */
+  const estimateOf = (
+    attribute: Attribute,
+  ): { key: string; text: string; distribution: boolean } | null => {
+    if (attribute.values.length !== 1 || attribute.params.length > 1)
+      return null;
+    const [param] = attribute.params;
+    if (
+      param &&
+      (param.atom.$type !== 'NameAtom' || param.op || param.bracket.length)
+    )
+      return null;
+    const value = attribute.values[0]!;
+    const text = oneLine(sourceOf(value));
+    const read = readDistribution(text, { point: true });
+    // a distribution's form with a wrong value (ADS's (30%, 10%, 50%)) is
+    // read as written too: the dialect reports it, as any value outside its type
+    const shaped =
+      !value.op &&
+      (value.atom.$type === 'TupleAtom'
+        ? !value.bracket.length
+        : value.atom.$type === 'NameAtom' && value.bracket.length > 0);
+    if ('error' in read && !shaped) return null;
+    const key = param
+      ? `Probability[${(param.atom as { value: string }).value}]`
+      : 'Probability';
+    return {
+      key,
+      text,
+      distribution:
+        !('distribution' in read) || read.distribution.kind !== 'point',
+    };
+  };
+
+  /** `declare expert`, `declare calibration`: an entry of kaosexpert's project resources. */
+  const resource = (declaration: Declaration, where: Where) => {
+    expertForms = true;
+    const kept: string[] = [];
+    let name: string | undefined;
+    let value: string | undefined;
+    const estimates: Record<string, string> = {};
+    for (const attribute of declaration.attributes) {
+      const single1 = single(attribute);
+      const lower = attribute.name.toLowerCase();
+      if (lower === 'name' && single1?.atom.$type === 'StringAtom') {
+        name = unquote(sourceOf(single1.atom));
+        continue;
+      }
+      if (
+        declaration.kind === 'calibration' &&
+        (lower === 'probability' || lower === 'esr')
+      ) {
+        const estimate = estimateOf(attribute);
+        if (estimate && estimate.key !== 'Probability') {
+          estimates[estimate.key.slice('Probability['.length, -1)] =
+            estimate.text;
+          continue;
+        }
+        if (estimate && !estimate.distribution) {
+          value = estimate.text;
+          continue;
+        }
+      }
+      kept.push(oneLine(sourceOf(attribute)));
+      say(
+        where,
+        'warning',
+        `${attribute.name} of ${declaration.kind} ${declaration.id ?? name ?? ''}: kept as written, not read`.replace(
+          /  +/g,
+          ' ',
+        ),
+        at(attribute),
+      );
+    }
+    if (declaration.kind === 'expert') {
+      if (!declaration.id) {
+        raw.push(sourceOf(declaration));
+        say(
+          where,
+          'warning',
+          `${headOf(declaration)}: an expert without an identifier, kept as written (an estimate names its expert by it)`,
+          headAt(declaration),
+        );
+        return;
+      }
+      experts.push({
+        id: declaration.id,
+        ...(name !== undefined && { name }),
+        ...(kept.length && { kept }),
+      });
+      return;
+    }
+    calibrations.push({
+      ...(declaration.id && { id: declaration.id }),
+      ...(name !== undefined && { name }),
+      ...(value !== undefined && { value }),
+      estimates,
+      ...(kept.length && { kept }),
+    });
+  };
 
   /** A list of references, each with a `[p]` when `decorated` allows one; null when it is another list. */
   const refs = (attribute: Attribute, decorated: boolean) => {
@@ -540,7 +692,10 @@ export const readKaos = (
       if (item.$type === 'ModelAttribute') {
         if (item.name === '@title')
           title = unquote(sourceOf(item).slice(item.name.length).trim());
-        else {
+        else if (item.name === '@experts.quantiles') {
+          quantiles = unquote(sourceOf(item).slice(item.name.length).trim());
+          expertForms = true;
+        } else {
           raw.push(sourceOf(item));
           say(
             where,
@@ -862,9 +1017,25 @@ export const readKaos = (
   const model = toPistarObject(
     parsePistar(json, { metamodel: KAOS_OBSTACLES }),
   ) as unknown as Record<string, unknown>;
+  // kaosexpert's resources, when the file declares any
+  const projectResources: Record<string, Record<string, string>> = {};
+  if (experts.length || quantiles !== null)
+    projectResources.expert = {
+      [EXPERTS_PATH]: expertsText({
+        ...(quantiles !== null && { quantiles }),
+        experts,
+      }),
+    };
+  if (calibrations.length)
+    projectResources.calibration = {
+      [CALIBRATIONS_PATH]: calibrationsText({ calibrations }),
+    };
   return {
     model,
-    dialectRecord: { engine: KAOS_ENGINE, projectResources: {} },
+    dialectRecord: {
+      engine: expertForms ? KAOS_EXPERT_ENGINE : KAOS_ENGINE,
+      projectResources,
+    },
     diagnostics,
   };
 };

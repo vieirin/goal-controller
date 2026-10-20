@@ -27,6 +27,7 @@ import {
   type ResourceCandidates,
   type Severity,
 } from './schema';
+import type { DistributionOptions } from './distribution';
 
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
@@ -40,6 +41,8 @@ export type PropertyOptions<C extends string = string> = {
   check?: C;
   inspector?: boolean;
   servedBy?: 'engine';
+  /** keyed by a project resource's names (`Probability[e1]`, goal-controller#190) */
+  keyed?: string;
   /** an actor property's actor kinds (`actors`) */
   kinds?: readonly string[];
 };
@@ -252,6 +255,18 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C>>,
   ): Built<K, 'probability', P, never> =>
     build(key, 'probability', rest, []) as never,
+  /**
+   * a distribution, in its text forms (`pert[1%, 2%, 5%]`, `(2.4%, 2.7%, 3%)`),
+   * kept as written; `point`: a single value too; `range`: probabilities (default) or reals
+   */
+  distribution: <
+    const K extends string,
+    const P extends PropertyOptions<C> & DistributionOptions,
+  >(
+    key: K,
+    rest: Exact<P, PropertyOptions<C> & DistributionOptions>,
+  ): Built<K, 'distribution', P, keyof DistributionOptions> =>
+    build(key, 'distribution', rest, ['point', 'range']) as never,
   /** `name:value` pairs, comma-separated */
   pairList: <
     const K extends string,

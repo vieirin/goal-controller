@@ -10,17 +10,32 @@
  *   written in this one (the round trip is structural, not textual).
  * - The `kaos` dialect's text keys `.kaos` has no attribute for are custom
  *   attributes (`$Priority "high"`), which the reader reads back.
+ * - kaosexpert's (goal-controller#190): an obstacle's or a domain
+ *   property's distribution `probability X`, an expert's `probability[e1]
+ *   X`, each as written; the experts and calibration variables of the
+ *   project's resources (`experts.json`, `calibrations.json`) as `declare
+ *   expert` and `declare calibration`, after the elements, and their
+ *   quantile levels as `@experts.quantiles`.
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
  *   was.
  * - Not written, and said: a refinement's `SysRef` and `Status`, an
  *   obstacle refinement's `Probability`, a conflict, a key no dialect
  *   declares; nor positions (`KAOS_LOSSY`).
  */
-import type {
-  NativeDiagnostic,
-  NativeWriteResult,
-  PistarJson,
+import {
+  keyedKeyOf,
+  numberOf,
+  readDistribution,
+  type NativeDiagnostic,
+  type NativeFileContext,
+  type NativeWriteResult,
+  type PistarJson,
 } from '@goal-controller/dialect';
+import { readJson } from '../../engines/projectResources';
+import type {
+  CalibrationsFile,
+  ExpertsFile,
+} from '../../engines/kaosexpert/resources';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
 import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';
 import {
@@ -97,15 +112,48 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
   [KAOS_TYPES.goal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
   [KAOS_TYPES.softgoal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
   [KAOS_TYPES.obstacle]: ['Description', 'FormalSpec', 'Probability'],
-  [KAOS_TYPES.domainProperty]: ['Kind', 'Description', 'FormalSpec'],
+  [KAOS_TYPES.domainProperty]: [
+    'Kind',
+    'Description',
+    'FormalSpec',
+    'Probability',
+  ],
   [KAOS_TYPES.agent]: ['Description'],
   [KAOS_TYPES.environmentAgent]: ['Description'],
 };
 
+/**
+ * A distribution, or a value, as written (kaosexpert's `Probability`,
+ * goal-controller#190): one the dialect reports (falling quantiles) is written
+ * as it is, when it has a distribution's form and numbers.
+ */
+const isEstimate = (text: string) => {
+  if ('distribution' in readDistribution(text, { point: true })) return true;
+  const inner = /^\s*(?:\((.*)\)|[A-Za-z]+\s*\[(.*)\])\s*$/s.exec(text);
+  return (
+    !!inner &&
+    (inner[1] ?? inner[2]!).split(',').every((part) => numberOf(part) !== null)
+  );
+};
+
+/** A project resource kind's JSON files' values, in path order. */
+const resourceValues = (
+  files: Readonly<Record<string, string>> | undefined,
+): unknown[] =>
+  Object.keys(files ?? {})
+    .sort()
+    .flatMap((path) => {
+      const { value } = readJson({ path, text: files![path]! });
+      return value === undefined ? [] : [value];
+    });
+
 /** A model as a `.kaos` text, with what it doesn't write. */
 export const writeKaos = (
   pistar: PistarJson,
-  { modelName = 'model' }: { modelName?: string } = {},
+  {
+    modelName = 'model',
+    projectResources = {},
+  }: Pick<NativeFileContext, 'projectResources'> & { modelName?: string } = {},
 ): NativeWriteResult => {
   const diagnostics: NativeDiagnostic[] = [];
   const say = (
@@ -183,6 +231,14 @@ export const writeKaos = (
   const lines: string[] = [
     `@title ${quoted(String(json.diagram?.name ?? modelName))}`,
   ];
+  // kaosexpert's resources (goal-controller#190)
+  const expertFiles = resourceValues(projectResources.expert) as ExpertsFile[];
+  const calibrationFiles = resourceValues(
+    projectResources.calibration,
+  ) as CalibrationsFile[];
+  for (const file of expertFiles)
+    if (typeof file?.quantiles === 'string')
+      lines.push(`@experts.quantiles ${quoted(file.quantiles)}`);
   for (const node of nodes) {
     const id = String(node.id);
     const name = ref(id)!;
@@ -229,13 +285,27 @@ export const writeKaos = (
       const value = text(key).trim();
       if (!value) return;
       if (isNumber(value)) body.push(`${attribute} ${value}`);
+      else if (key === 'Probability' && isEstimate(value))
+        body.push(`${attribute} ${value}`);
       else say(`${name}: its ${key} ${value} is no number, not written`);
     };
     if (type === KAOS_TYPES.goal || type === KAOS_TYPES.softgoal) {
       quantity('RSR', 'rsr');
       quantity('ESR', 'esr');
     }
-    if (type === KAOS_TYPES.obstacle) quantity('Probability', 'probability');
+    if (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty)
+      quantity('Probability', 'probability');
+    // an expert's estimate: `probability[e1] (…)` (kaosexpert's, goal-controller#190)
+    const keyed = (key: string) =>
+      (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty) &&
+      keyedKeyOf(key)?.key === 'Probability';
+    for (const [key, value] of Object.entries(props)) {
+      if (!keyed(key) || typeof value !== 'string' || !value.trim()) continue;
+      const expert = keyedKeyOf(key)!.name;
+      if (isEstimate(value))
+        body.push(`probability[${expert}] ${value.trim()}`);
+      else say(`${name}: its ${key} ${value} is no estimate, not written`);
+    }
     for (const key of CUSTOM_KEYS[type] ?? [])
       if (
         text(key) &&
@@ -249,6 +319,7 @@ export const writeKaos = (
     for (const [key, value] of Object.entries(props))
       if (
         value !== '' &&
+        !keyed(key) &&
         !(WRITTEN[type] ?? []).includes(key) &&
         !(CUSTOM_KEYS[type] ?? []).includes(key)
       )
@@ -346,6 +417,34 @@ export const writeKaos = (
       'end',
     );
   }
+  for (const file of expertFiles)
+    for (const expert of Array.isArray(file?.experts) ? file.experts : [])
+      lines.push(
+        '',
+        `declare expert [ ${expert.id} ]`,
+        ...(expert.name !== undefined ? [`  name ${quoted(expert.name)}`] : []),
+        ...(expert.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
+  for (const file of calibrationFiles)
+    for (const calibration of Array.isArray(file?.calibrations)
+      ? file.calibrations
+      : [])
+      lines.push(
+        '',
+        `declare calibration${calibration.id ? ` [ ${calibration.id} ]` : ''}`,
+        ...(calibration.name !== undefined
+          ? [`  name ${quoted(calibration.name)}`]
+          : []),
+        ...(calibration.value !== undefined
+          ? [`  probability ${calibration.value}`]
+          : []),
+        ...Object.entries(calibration.estimates ?? {}).map(
+          ([expert, estimate]) => `  probability[${expert}] ${estimate}`,
+        ),
+        ...(calibration.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
   const kept = json.diagram?.customProperties?.[KAOS_UNSUPPORTED_KEY];
   if (typeof kept === 'string' && kept) lines.push('', kept);
   return { text: `${lines.join('\n')}\n`, diagnostics };

@@ -79,6 +79,7 @@ export const inputFor = (
     case 'refList':
     case 'reference':
     case 'probability':
+    case 'distribution':
     case 'pairList':
     case 'nameList':
     case 'annotatedName':

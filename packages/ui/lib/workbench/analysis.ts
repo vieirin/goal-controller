@@ -14,6 +14,7 @@ import {
   type AnyModel,
   type Analysis,
   type AnalysisCase,
+  type AnalysisContext,
   type AnalysisModel,
   type AnalysisResult,
 } from '@goal-controller/lib';
@@ -165,6 +166,26 @@ export const analysisResource = (
   );
 };
 
+/**
+ * What else an analysis reads (goal-controller#190): each kind of its
+ * `inputs`' files (path → text), as the tabs hold them, and the engine's
+ * options as the project sets them.
+ */
+export const analysisContext = (
+  analysis: Pick<Analysis, 'inputs'>,
+  slots: readonly ResourceSlot[],
+  texts: Readonly<Record<string, string>>,
+  options: Readonly<Record<string, boolean | number | string>>,
+): AnalysisContext => ({
+  resources: Object.fromEntries(
+    (analysis.inputs ?? []).map((kind) => [
+      kind,
+      analysisResource({ input: kind }, slots, texts) ?? {},
+    ]),
+  ),
+  options,
+});
+
 /** Runs an analysis on a model text, read as its engine reads it (`readModel`: the view of its `KindModel`). */
 export const analyse = (
   id: string,
@@ -172,6 +193,7 @@ export const analyse = (
   text: string,
   readModel: (model: AnyModel) => AnalysisModel,
   resource?: Readonly<Record<string, string>>,
+  context?: AnalysisContext,
 ): AnalysisRun => {
   const base = {
     analysis: id,
@@ -189,5 +211,5 @@ export const analyse = (
       error: error instanceof Error ? error.message : String(error),
     };
   }
-  return { ...base, ...runAnalysis(analysis, model, resource) };
+  return { ...base, ...runAnalysis(analysis, model, resource, context) };
 };

@@ -1,0 +1,25 @@
+{
+  "calibrations": [
+    {
+      "name": "Calibration [Allocated Ambulance Not At Station]",
+      "value": "50%",
+      "estimates": {
+        "e4": "(30.00%, 10.00%, 50.00%)"
+      }
+    },
+    {
+      "name": "Calibration [Mobilization Cancelled]",
+      "value": "13%",
+      "estimates": {
+        "e4": "(15.00%, 20.00%, 20.00%)"
+      }
+    },
+    {
+      "name": "Calibration [MDT Turned Off]",
+      "value": "33.3%",
+      "estimates": {
+        "e4": "(1.00%, 1.00%, 1.00%)"
+      }
+    }
+  ]
+}

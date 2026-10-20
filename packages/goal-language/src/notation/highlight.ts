@@ -207,6 +207,7 @@ export const START: Readonly<Record<ValueConfig['type'], LexerStart>> = {
   reference: 'text',
   formula: 'text',
   probability: 'text',
+  distribution: 'text',
   annotatedName: 'annotatedName',
   ocl: 'ocl',
 };

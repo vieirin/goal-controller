@@ -868,11 +868,21 @@
     "group": "kaos",
     "name": "ambulance",
     "form": "file",
-    "dialect": "kaosprop",
+    "dialect": "kaosexpert",
     "root": "kaos/ambulance",
-    "files": ["README.md", "ambulance.kaos", "ambulance.txt", "project.json"],
+    "files": [
+      "README.md",
+      "ambulance.kaos",
+      "ambulance.txt",
+      "calibrations.json",
+      "experts.json",
+      "project.json"
+    ],
     "models": ["ambulance.txt"],
-    "projectResources": {},
+    "projectResources": {
+      "calibration": "calibrations.json",
+      "expert": "experts.json"
+    },
     "outputs": []
   },
   {

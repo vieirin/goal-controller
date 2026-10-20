@@ -327,9 +327,16 @@ describe('native files as data (#143)', () => {
     expect(
       sharedNativeExtensions([
         ...dialects,
-        { id: 'third', nativeFiles: { x: other.nativeFiles.both } },
+        { id: 'third', nativeFiles: { x: { ...other.nativeFiles.both } } },
       ]),
     ).to.deep.equal([{ extension: '.xmi', dialects: ['other', 'third'] }]);
+    // a dialect over another, with its native file (the same definition), shares it (#190)
+    expect(
+      sharedNativeExtensions([
+        ...dialects,
+        { id: 'over', nativeFiles: { x: other.nativeFiles.both } },
+      ]),
+    ).to.deep.equal([]);
   });
 
   it('compares models but for the lossy paths, keys sorted, the links and dependencies as sets, the rest in order', () => {

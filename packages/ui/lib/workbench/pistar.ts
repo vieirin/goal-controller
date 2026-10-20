@@ -344,6 +344,7 @@ const MODES: readonly ModelMode[] = [
   'nfr',
   'kaosdoc',
   'kaosprop',
+  'kaosexpert',
   'nfrprop',
   'pistar',
 ];

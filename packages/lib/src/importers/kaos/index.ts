@@ -8,6 +8,7 @@ export { kaosLanguage } from '@goal-controller/goal-language/formats';
 export {
   identifierOf,
   KAOS_ENGINE,
+  KAOS_EXPERT_ENGINE,
   KAOS_UNSUPPORTED_KEY,
   readKaos,
   type KaosReadOptions,

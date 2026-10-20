@@ -20,12 +20,28 @@ import {
   type PropertyValues,
 } from '@goal-controller/goal-language';
 
+/**
+ * A value's uncertainty (goal-controller#190): the distribution a sampled
+ * analysis gives it (a goal's probability of satisfaction under RE'15's
+ * Monte Carlo), as its quantiles (`p` its cumulative probability,
+ * ascending), its mean, and a histogram (equal-width bins from `min` to
+ * `max`, each its share of the samples).
+ */
+export type AnalysisDistribution = {
+  quantiles: readonly { p: number; value: number }[];
+  mean: number;
+  samples: number;
+  histogram?: { min: number; max: number; shares: readonly number[] };
+};
+
 /** A value on an element or actor: a number or a word, its label, how to show it. */
 export type AnalysisValue = {
   value: number | string;
   /** shown instead of the value (`Satisfied`, `75`) */
   label?: string;
   severity?: 'info' | 'warning';
+  /** its distribution, when it is uncertain (a sampled analysis's) */
+  distribution?: AnalysisDistribution;
 };
 
 /** Values by element or actor id (the piStar ids). */
@@ -91,16 +107,30 @@ export type AnalysisModel = {
 };
 
 /**
+ * What an analysis is given besides the model and its `input`
+ * (goal-controller#190): each project resource kind it reads (`inputs`)
+ * as the workbench reads it (its texts, by path), and the engine's options
+ * the project sets (a sampled analysis's sample count and seed).
+ */
+export type AnalysisContext = {
+  resources?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  options?: Readonly<Record<string, boolean | number | string>>;
+};
+
+/**
  * An analysis: its label, the project resource kind it reads (`input`, one
- * of the dialect's `projectResources`), and what it computes. `resource` is
- * that kind's content as the workbench reads it (its texts, by path).
+ * of the dialect's `projectResources`), or the kinds (`inputs`, several),
+ * and what it computes. `resource` is `input`'s content as the workbench
+ * reads it (its texts, by path); `context` has `inputs`' and the options.
  */
 export type Analysis = {
   label: string;
   input?: string;
+  inputs?: readonly string[];
   run: (
     model: AnalysisModel,
     resource?: Readonly<Record<string, string>>,
+    context?: AnalysisContext,
   ) => AnalysisResult;
 };
 
@@ -385,10 +415,14 @@ export const analysesProblems = (
   Object.entries(analyses).flatMap(([id, analysis]) =>
     !id || !analysis.label
       ? [`analysis ${id}: needs an id and a label`]
-      : analysis.input !== undefined &&
-          !(analysis.input in (definition?.projectResources ?? {}))
-        ? [`analysis ${id} reads unknown project resource ${analysis.input}`]
-        : [],
+      : [
+          ...(analysis.input === undefined ? [] : [analysis.input]),
+          ...(analysis.inputs ?? []),
+        ].flatMap((kind) =>
+          kind in (definition?.projectResources ?? {})
+            ? []
+            : [`analysis ${id} reads unknown project resource ${kind}`],
+        ),
   );
 
 /**
@@ -410,17 +444,31 @@ export const runAnalysis = (
   analysis: Analysis,
   model: AnalysisModel,
   resource?: Readonly<Record<string, string>>,
+  context?: AnalysisContext,
 ): { result: AnalysisResult } | { error: string } => {
   try {
-    return { result: analysis.run(model, resource) };
+    return { result: analysis.run(model, resource, context) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
 };
 
-/** A value as text: its label, or the value. */
+/** A number as the report prints it: four decimals at most. */
+const decimals = (n: number) => String(Math.round(n * 10000) / 10000);
+
+/** A distribution as text: its quantiles and its mean (goal-controller#190). */
+export const distributionText = (distribution: AnalysisDistribution): string =>
+  `${distribution.quantiles
+    .map(({ p, value }) => `q${decimals(p * 100)} ${decimals(value)}`)
+    .join(
+      ', ',
+    )}; mean ${decimals(distribution.mean)} (${distribution.samples} samples)`;
+
+/** A value as text: its label, or the value; its distribution after it, when it has one. */
 const valueText = (value: AnalysisValue): string =>
-  value.label ?? String(value.value);
+  `${value.label ?? String(value.value)}${
+    value.distribution ? ` [${distributionText(value.distribution)}]` : ''
+  }`;
 
 /**
  * A result as text (goal-controller#135): each case, its summary and

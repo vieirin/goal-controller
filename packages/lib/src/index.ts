@@ -404,6 +404,35 @@ export {
   type CriticalCombination,
 } from './engines/kaosprop';
 export { kaospropEngine } from './engines/kaosprop/engine';
+export {
+  cooke,
+  criticalObstacles,
+  distributionOfSamples,
+  expertAnalysis,
+  kaosexpert,
+  kaosexpertAnalyses,
+  kaosexpertAnalysisModel,
+  kaosexpertOptions,
+  readCalibrations,
+  readExperts,
+  satisfactionUncertainty,
+  simulate,
+  uncertaintySpread,
+  type CookeResult,
+  type CriticalObstacle,
+  type ExpertAnalysis,
+  type Weighting,
+} from './engines/kaosexpert';
+export { kaosexpertEngine } from './engines/kaosexpert/engine';
+// the numeric back-end (goal-controller#190): distributions, BDDs, a seeded generator
+export { Bdd } from './numeric/bdd';
+export {
+  continuousOf,
+  mixture,
+  piecewise,
+  type Continuous,
+} from './numeric/distributions';
+export { seededRandom, type Random } from './numeric/random';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

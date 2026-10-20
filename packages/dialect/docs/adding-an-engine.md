@@ -336,8 +336,12 @@ more (`{ ...nfr, id: 'nfrprop', properties: { …, initialLabel } }`).
 - an `extension` extends the root (goal-controller#181): its kinds are in a
   namespace of its own, its links join the root's kinds, and an n-ary one
   (`arity: 'n'`) gets a hub that `properties` and legs that `links` may name;
-- the value types `reference`, `formula` and `probability` type a
-  framework's keys (an anchor goal, a formal spec, an engine's quantities);
+- the value types `reference`, `formula`, `probability` and
+  `distribution` type a framework's keys (an anchor goal, a formal spec, an
+  engine's quantities, an uncertain estimate);
+- a property may be `keyed` by a project resource's names (kaosexpert's
+  `Probability[e1]`, one per expert, goal-controller#190): the resource
+  kind is one the dialect declares;
 - there is no `actors` or `notation`.
 
 ## 3. Step 2: write the engine library (`packages/lib`)
@@ -593,10 +597,25 @@ export const missionAnalyses = defineAnalyses(mission, {
   every actor and tree, so declare `model: { actors: 'many', treesPerActor:
   'many' }`. `resource` is the `input` kind's files, path → text, as the
   tabs hold them (a `many` kind: all its files).
+- **Several inputs, and options** (goal-controller#190): an analysis that
+  reads more than one project resource kind lists them as `inputs`
+  (kaosexpert's `['expert', 'calibration']`). `run` gets a third argument,
+  `context: { resources, options }`: each `inputs` kind's files (path →
+  text) and the engine's options as the project sets them (`defineOptions`,
+  §3.8: kaosexpert's sample count and seed). `defineAnalyses` checks every
+  kind is declared.
 - **Output:** `AnalysisResult = { cases: { id, label, values, steps? }[] }`, where
   `values` maps an element's or actor's piStar id to `{ value: number | string;
-  label?; severity?: 'info' | 'warning' }`. A case is one evaluation (a
+  label?; severity?: 'info' | 'warning'; distribution? }`. A case is one evaluation (a
   strategy); a single-case analysis has one.
+- **A value's distribution** (goal-controller#190): a sampled analysis
+  (kaosexpert's Monte Carlo) gives a value its uncertainty as
+  `distribution: { quantiles: { p, value }[]; mean; samples; histogram?:
+  { min, max, shares } }`: its quantiles (`p` the cumulative probability,
+  ascending), its mean, the sample count and an equal-width histogram. The
+  value is the number drawn (the mean), the label what the badge says.
+  `analysisText` prints `[q5 …, q50 …, q95 …; mean … (n samples)]` after
+  such a value (`distributionText`); a value without one prints as before.
 - **A step series** (goal-controller#135): a case run as a sequence (a
   scenario's steps, a lifecycle's states) gives `steps: [{ label, values }]`
   in order, each step's values as a case's, and its outcome (its last
@@ -973,6 +992,12 @@ example labelled by hand (`examples/nfr/nfr-welcome.labels.csv`).
 Cailliau and van Lamsweerde's probabilistic obstacle analysis: its dialect is
 `kaos` with the analysis's quantities, its oracles RE'12's and REJ'13's own
 numbers (`examples/kaos/las/las.expected.csv`).
+`lib/src/engines/kaosexpert/` (goal-controller#190) is its sibling over the
+same file: RE'15's expert combination (Cooke's model, as RE'15's tool
+scores it) and Monte Carlo over the obstacles' BDD, its values
+distributions (§3.7), its experts and calibration variables project
+resources. Its numerics are generic, in `lib/src/numeric/` (special
+functions, distributions, a seeded generator, BDDs, Brent's minimiser).
 [frameworks.md](frameworks.md) lists the decisions.
 
 ## 8. Options summary

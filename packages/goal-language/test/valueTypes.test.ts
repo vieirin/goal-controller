@@ -7,7 +7,7 @@
  */
 import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
 import { expect } from 'chai';
-import { highlightValue, valueProblem } from '../src/index.js';
+import { highlightValue, readProperties, valueProblem } from '../src/index.js';
 
 const context: DefinitionContext = {
   elements: {
@@ -69,5 +69,85 @@ describe('value types: reference, formula, probability (#181)', () => {
       expect(valueProblem(p, text), text).to.equal(
         `A probability in [0, 1] (0.8, .8 or 80%), not ${text}`,
       );
+  });
+});
+
+describe('value types: distribution, and keyed properties (#190)', () => {
+  const estimate: ValueConfig = { type: 'distribution', point: true };
+
+  it('a distribution is one of its named forms or quantiles; with `point`, a value too', () => {
+    for (const text of [
+      'beta[2, 98]',
+      'uniform[1%, 3%]',
+      'triangular[1%, 2%, 5%]',
+      'pert[1%, 2%, 5%]',
+      'PERT[.01, .02, .05]',
+      'quantile[2.46%, 2.76%, 3.07%]',
+      'quantiles[.1, .2]',
+      '(2.4%, 2.7%, 3%)',
+      '2.7%',
+    ])
+      expect(valueProblem(estimate, text), text).to.equal(null);
+    expect(valueProblem({ type: 'distribution' }, '2.7%')).to.equal(
+      'A distribution, not the single value 2.7%',
+    );
+    expect(valueProblem(estimate, '(30%, 10%, 50%)')).to.equal(
+      "Quantiles don't decrease: 0.1 after 0.3",
+    );
+    expect(valueProblem(estimate, 'gamma[1, 2]')).to.equal(
+      'No distribution gamma: beta, uniform, triangular, pert or quantile',
+    );
+    expect(valueProblem(estimate, 'pert[5%, 2%, 1%]')).to.equal(
+      'pert[min, mode, max]: min ≤ mode ≤ max, not 0.05, 0.02, 0.01',
+    );
+    expect(valueProblem(estimate, 'beta[0, 2]')).to.equal(
+      'beta[α, β]: both shapes above 0, not 0 and 2',
+    );
+    expect(valueProblem(estimate, 'uniform[1%]')).to.equal(
+      'uniform[…] takes 2 parameters, not 1',
+    );
+    expect(valueProblem(estimate, '(2%, 120%)')).to.equal(
+      '1.2 is not a probability in [0, 1]',
+    );
+    // over the reals, any number
+    expect(
+      valueProblem(
+        { type: 'distribution', range: 'real' },
+        'triangular[-3, 0, 12]',
+      ),
+    ).to.equal(null);
+    expect(highlightValue(estimate, 'beta[2, 3]')).to.have.length(1);
+  });
+
+  it('a keyed property reads each name’s value by its key on disk (`Probability[e1]`)', () => {
+    const dialect = {
+      properties: {
+        obstacle: [{ key: 'Probability', value: estimate, keyed: 'expert' }],
+      },
+    } as const;
+    const { values, text } = readProperties(
+      dialect,
+      { element: 'obstacle' },
+      {
+        Probability: '2%',
+        'Probability[e1]': '(1%, 2%, 3%)',
+        'Probability[e2]': '(3%, 1%, 2%)',
+        'Other[e1]': '1',
+      },
+    );
+    expect(values).to.deep.equal({
+      Probability: { kind: 'point', value: 0.02 },
+      'Probability[e1]': {
+        kind: 'quantiles',
+        values: [0.01, 0.02, 0.03],
+        form: 'tuple',
+      },
+    });
+    // a value written with an error is unset, kept as written
+    expect(Object.keys(text)).to.deep.equal([
+      'Probability',
+      'Probability[e1]',
+      'Probability[e2]',
+    ]);
   });
 });
