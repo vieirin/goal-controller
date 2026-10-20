@@ -1,0 +1,31 @@
+{
+  "calibrations": [
+    {
+      "id": "push_button_broken",
+      "name": "PushButtonBroken",
+      "value": "4.37%",
+      "estimates": {
+        "expert1": "(3.812%, 4.285%, 4.759%)",
+        "expert2": "(3.961%, 4.453%, 4.945%)"
+      }
+    },
+    {
+      "id": "temperature_sensor_broken",
+      "name": "TemperatureSensorBroken",
+      "value": "4.37%",
+      "estimates": {
+        "expert1": "(2.307%, 2.594%, 2.881%)",
+        "expert2": "(4.184%, 4.704%, 5.224%)"
+      }
+    },
+    {
+      "id": "fire_sprinkler_broken",
+      "name": "FireSprinklerBroken",
+      "value": "0.02%",
+      "estimates": {
+        "expert1": "(0%, 0.1%, 0.3%)",
+        "expert2": "(0%, 0.1%, 0.2%)"
+      }
+    }
+  ]
+}

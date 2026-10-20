@@ -108,7 +108,10 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
     const after = folders.indexOf('pistar-ext/');
     expect(folders.slice(after + 1, after + 3)).toEqual(['kaos/', 'nfr/']);
     for (const [folder, names] of [
-      ['kaos', ['ambulance', 'carpooling', 'kaos-welcome.txt', 'las']],
+      [
+        'kaos',
+        ['ambulance', 'carpooling', 'fire-alarm', 'kaos-welcome.txt', 'las'],
+      ],
       ['nfr', ['nfr-welcome.txt']],
     ] as const) {
       const buttons = within(await section(folder)).getAllByRole('button', {
@@ -157,6 +160,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
     ).toEqual([
       expect.stringContaining('ambulance'),
       expect.stringContaining('carpooling'),
+      expect.stringContaining('fire-alarm'),
       expect.stringContaining('kaos-welcome.txt'),
       expect.stringContaining('las'),
     ]);
@@ -174,6 +178,8 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       'https://doi.org/10.1109/SEAMS.2017.5',
       'https://github.com/ancailliau/KAOSTools',
       'https://github.com/ancailliau/ADS',
+      // the fire alarm's model beside RE'15's tables (#197)
+      'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-examples-others/firesystem.kaos',
     ])
       expect(links).toContain(url);
   });

@@ -903,18 +903,47 @@ and uncertainty spread (US). Results and the attempts log are in #343.
   "Critical obstacles" (§VII) is one case per leaf obstacle and goal it
   violates (VU > 0): the obstacle alone, every other leaf at 0, ranked by
   VU then US, as Table III.
-- **The fire alarm.** RE'15 prints too little to re-key the model whole:
+- **The fire alarm (#197), from the paper and the author's model.** RE'15
+  prints too little to re-key the model whole:
   - Fig. 2 has the obstacle trees of three leaf goals;
   - Table I has two of the three calibration variables;
   - Table II has 3 of the 13 leaf obstacles' estimates.
 
-  The calibration scores need only Table I's bins and N, and are
-  reproduced exactly. The information scores (0.4216, 0.4740), so the
-  weights, VU 1, US 0.1645 and Table III, depend on the estimates the paper
-  doesn't print. The seed and its oracle are part A's second PR.
+  The owner's first call was the paper only; it was then reversed, by the
+  owner's call, to use Cailliau's own `firesystem.kaos`
+  (ancailliau/phd-thesis at 6a9f5fd), "used with the owner's approval; the
+  repository states no licence". That departs from the precedent of
+  re-keying from papers only an unlicensed source (#189). The seed
+  (`examples/kaos/fire-alarm`) has Fig. 1's goals and Fig. 2's trees. Its
+  estimates are the thesis model's, but for two rows where the paper prints
+  other values, which keep the paper's: Table I's FireSprinklerBroken, and
+  Table II's BatteryOutofService for Expert2 (Fig. 5(b) plots it over
+  0–0.2 %). Elsewhere the tables print the thesis's values truncated.
+  `fire-alarm.expected.csv` has two kinds of rows:
+  - "RE'15" rows, reproduced exactly from the paper's inputs:
+    - calibration 0.9305 / 1;
+    - the weights from the printed scores;
+    - §VI.B's chain.
+  - "thesis" rows, the seed's own numbers, each beside the printed one with
+    the reason for any difference:
+    - information 0.4348 / 0.5552 (printed 0.4216 / 0.4740, unexplained);
+    - VU 1;
+    - US 0.1586 (printed 0.1645 and 0.1529);
+    - SU(0.84) 0.85 (printed 0.78);
+    - Table III's seven obstacles, BatteryOutofService's VU 0.41 (printed
+      1).
+- **`stress:kaos`** (`scripts/kaos-stress`) checks every KAOS seed:
+  - import, validation and round trip with its resources;
+  - kaosprop's and kaosexpert's analyses;
+  - its expected CSV: kaosprop's `las` and `carpooling`
+    (`carpooling.expected.csv` is new), kaosexpert's `fire-alarm`.
+
+  It is in the stress workflow's matrix, strict. The repository ruleset's
+  required checks are the owner's to change.
 - **Paper findings** (#343):
   - US is 0.1645 in §III and 0.1529 in §VII, for the same goal;
-  - the weights are truncated, not rounded (0.45285 is printed 0.4528);
+  - Expert2's weight is truncated, not rounded (0.547155 is printed
+    0.5471);
   - so is §VI.B's 98.2199 % (98.21 %);
   - SU's prose contradicts its formula;
   - §V mentions three calibration variables, Table I gives two.

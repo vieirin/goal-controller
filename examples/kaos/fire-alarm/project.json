@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "dialect": "kaosexpert",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "fire-alarm.txt",
+      "native": {
+        "kaos": "fire-alarm.kaos"
+      }
+    }
+  ],
+  "projectResources": {
+    "calibration": "calibrations.json",
+    "expert": "experts.json"
+  },
+  "outputs": []
+}

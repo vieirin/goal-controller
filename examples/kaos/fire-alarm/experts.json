@@ -1,0 +1,13 @@
+{
+  "quantiles": "(.1, .5, .9)",
+  "experts": [
+    {
+      "id": "expert1",
+      "name": "Expert1"
+    },
+    {
+      "id": "expert2",
+      "name": "Expert2"
+    }
+  ]
+}

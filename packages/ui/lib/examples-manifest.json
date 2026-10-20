@@ -892,9 +892,38 @@
     "form": "file",
     "dialect": "kaosprop",
     "root": "kaos/carpooling",
-    "files": ["README.md", "carpooling.kaos", "carpooling.txt", "project.json"],
+    "files": [
+      "README.md",
+      "carpooling.expected.csv",
+      "carpooling.kaos",
+      "carpooling.txt",
+      "project.json"
+    ],
     "models": ["carpooling.txt"],
     "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/fire-alarm",
+    "group": "kaos",
+    "name": "fire-alarm",
+    "form": "file",
+    "dialect": "kaosexpert",
+    "root": "kaos/fire-alarm",
+    "files": [
+      "README.md",
+      "calibrations.json",
+      "experts.json",
+      "fire-alarm.expected.csv",
+      "fire-alarm.kaos",
+      "fire-alarm.txt",
+      "project.json"
+    ],
+    "models": ["fire-alarm.txt"],
+    "projectResources": {
+      "calibration": "calibrations.json",
+      "expert": "experts.json"
+    },
     "outputs": []
   },
   {

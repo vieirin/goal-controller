@@ -1,0 +1,1155 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "building_evacuated_when_fire",
+      "text": "Achieve [BuildingEvacuatedWhenFire]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "RSR": "98%"
+      },
+      "x": 1480,
+      "y": 80
+    },
+    {
+      "id": "fire_detected_in_time",
+      "text": "Achieve [FireDetectedInTime]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 180
+    },
+    {
+      "id": "fire_noticed_in_time_when_smoke",
+      "text": "Achieve [FireNoticedInTimeWhenSmoke]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 40,
+      "y": 280
+    },
+    {
+      "id": "fire_noticed_in_time_when_heat",
+      "text": "Achieve [FireNoticedInTimeWhenHeat]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 280
+    },
+    {
+      "id": "fire_detected_when_noticed_in_time",
+      "text": "Maintain [FireDetectedWhenNoticedInTime]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 280
+    },
+    {
+      "id": "building_evacuated_when_fire_detected",
+      "text": "Achieve [BuildingEvacuatedWhenFireDetected]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 180
+    },
+    {
+      "id": "building_evacuated_when_alarm_raised",
+      "text": "Achieve [BuildingEvacuatedWhenAlarmRaised]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2760,
+      "y": 280
+    },
+    {
+      "id": "alarm_raised_when_fire_detected",
+      "text": "Achieve [AlarmRaisedWhenFireDetected]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 280
+    },
+    {
+      "id": "alarm_beep_30_seconds_unless_disabled",
+      "text": "Achieve [AlarmBeep30SecondsUnlessDisabled]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 380
+    },
+    {
+      "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled",
+      "text": "Achieve [AlarmRaisedAfter30SecondsWhenFireDetectedUnlessDisabled]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1960,
+      "y": 380
+    },
+    {
+      "id": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+      "text": "Achieve [AlarmSignalAfter30SecondsWhenFireDetectedUnlessDisabled]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 480
+    },
+    {
+      "id": "alarm_activated_when_signal",
+      "text": "Achieve [AlarmActivatedWhenSignal]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 480
+    },
+    {
+      "id": "fire_central_notified_when_signal",
+      "text": "Achieve [FireCentralNotifiedWhenSignal]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 480
+    },
+    {
+      "id": "no_heat_detection",
+      "text": "NoHeatDetection",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 680,
+      "y": 380
+    },
+    {
+      "id": "no_smoke_detection",
+      "text": "NoSmokeDetection",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 200,
+      "y": 380
+    },
+    {
+      "id": "fire_noticed_in_time_and_not_detected",
+      "text": "FireNoticedInTimeAndNotDetected",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1320,
+      "y": 380
+    },
+    {
+      "id": "no_alarm_signal",
+      "text": "NoAlarmSignalAndFireDetected",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1640,
+      "y": 580
+    },
+    {
+      "id": "alarm_not_activated",
+      "text": "AlarmNotActivatedAndSignal",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1800,
+      "y": 580
+    },
+    {
+      "id": "fire_central_not_notified",
+      "text": "FireCentralNotNotifiedAndSignal",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 2120,
+      "y": 580
+    },
+    {
+      "id": "no_detection_when_heat_detector_broken",
+      "text": "NoDetectionWhenHeatDetectorBroken",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "hypothesis",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 480
+    },
+    {
+      "id": "no_detection_when_smoke_detector_broken",
+      "text": "NoDetectionWhenSmokeDetectorBroken",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "hypothesis",
+        "Description": ""
+      },
+      "x": 360,
+      "y": 480
+    },
+    {
+      "id": "smoke_detector_broken",
+      "text": "SmokeDetectorBroken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "The smoke detector does not detect fire within 25 sec.",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(2.46%, 2.76%, 3.07%)",
+        "Probability[expert2]": "(2.16%, 2.42%, 2.69%)"
+      },
+      "x": 200,
+      "y": 480
+    },
+    {
+      "id": "fire_noticed_too_late_by_smoke",
+      "text": "FireNoticedTooLateBySmoke",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(1.46%, 1.83%, 2.04%)",
+        "Probability[expert2]": "(1.26%, 1.42%, 2.24%)"
+      },
+      "x": 40,
+      "y": 480
+    },
+    {
+      "id": "heat_detector_broken",
+      "text": "HeatDetectorBroken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.41%, 0.46%, 0.51%)",
+        "Probability[expert2]": "(0.50%, 0.56%, 0.62%)"
+      },
+      "x": 840,
+      "y": 480
+    },
+    {
+      "id": "fire_noticed_too_late_by_heat",
+      "text": "FireNoticedTooLateByHeat",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.38%, 0.56%, 0.78%)",
+        "Probability[expert2]": "(0.89%, 0.92%, 0.99%)"
+      },
+      "x": 520,
+      "y": 480
+    },
+    {
+      "id": "fire_too_distant_from_detector",
+      "text": "FireTooDistantFromDetector",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.41%, 0.46%, 0.51%)",
+        "Probability[expert2]": "(0.50%, 0.56%, 0.62%)"
+      },
+      "x": 680,
+      "y": 480
+    },
+    {
+      "id": "fire_detection_delayed",
+      "text": "FireDetectionDelayed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(1.29%, 2.48%, 3.20%)",
+        "Probability[expert2]": "(1.30%, 2.98%, 3.48%)"
+      },
+      "x": 1480,
+      "y": 480
+    },
+    {
+      "id": "wrong_smoke_notification",
+      "text": "WrongSmokeNotification",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(3.49%, 3.92%, 4.35%)",
+        "Probability[expert2]": "(3.91%, 4.40%, 4.89%)"
+      },
+      "x": 1320,
+      "y": 480
+    },
+    {
+      "id": "wrong_heat_notification",
+      "text": "WrongHeatNotification",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.47%, 0.53%, 0.59%)",
+        "Probability[expert2]": "(0.38%, 0.43%, 0.48%)"
+      },
+      "x": 1160,
+      "y": 480
+    },
+    {
+      "id": "battery_out_of_service",
+      "text": "BatteryOutofService",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(2.31%, 2.59%, 2.88%)",
+        "Probability[expert2]": "(0%, 0.1%, 0.2%)"
+      },
+      "x": 1640,
+      "y": 680
+    },
+    {
+      "id": "light_strobe_broken",
+      "text": "LightStrobeBroken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.93%, 1.05%, 1.16%)",
+        "Probability[expert2]": "(0.85%, 0.96%, 1.06%)"
+      },
+      "x": 1800,
+      "y": 680
+    },
+    {
+      "id": "bell_broken",
+      "text": "BellBroken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(1.47%, 1.65%, 1.83%)",
+        "Probability[expert2]": "(1.70%, 1.91%, 2.12%)"
+      },
+      "x": 1960,
+      "y": 680
+    },
+    {
+      "id": "network_down",
+      "text": "NetworkDown",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(0.95%, 2.31%, 3.67%)",
+        "Probability[expert2]": "(1.46%, 2.39%, 3.31%)"
+      },
+      "x": 2120,
+      "y": 680
+    },
+    {
+      "id": "fire_central_notification_delayed",
+      "text": "FireCentralNotificationDelayed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": "",
+        "Probability[expert1]": "(1.29%, 2.48%, 3.20%)",
+        "Probability[expert2]": "(1.30%, 2.98%, 3.48%)"
+      },
+      "x": 2280,
+      "y": 680
+    },
+    {
+      "id": "smoke_sensor",
+      "text": "SmokeSensor",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 200,
+      "y": 280
+    },
+    {
+      "id": "heat_sensor",
+      "text": "HeatSensor",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 840,
+      "y": 280
+    },
+    {
+      "id": "detection_system",
+      "text": "DetectionSystem",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 280
+    },
+    {
+      "id": "occupants",
+      "text": "Occupants",
+      "type": "kaos.EnvironmentAgent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2920,
+      "y": 280
+    },
+    {
+      "id": "fire_control_unit",
+      "text": "FireControlUnit",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2600,
+      "y": 380
+    },
+    {
+      "id": "notification_system",
+      "text": "NotificationSystem",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 480
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "building_evacuated_when_fire-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "milestone-driven"
+        },
+        "x": 1538,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "building_evacuated_when_fire-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_detected_in_time",
+          "target": "building_evacuated_when_fire-refinement-1"
+        },
+        {
+          "id": "building_evacuated_when_fire-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "building_evacuated_when_fire_detected",
+          "target": "building_evacuated_when_fire-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "building_evacuated_when_fire-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "building_evacuated_when_fire-refinement-1",
+        "target": "building_evacuated_when_fire"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_detected_in_time-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 711,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "fire_detected_in_time-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_noticed_in_time_when_smoke",
+          "target": "fire_detected_in_time-refinement-1"
+        },
+        {
+          "id": "fire_detected_in_time-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_noticed_in_time_when_heat",
+          "target": "fire_detected_in_time-refinement-1"
+        },
+        {
+          "id": "fire_detected_in_time-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_detected_when_noticed_in_time",
+          "target": "fire_detected_in_time-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "fire_detected_in_time-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "fire_detected_in_time-refinement-1",
+        "target": "fire_detected_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "building_evacuated_when_fire_detected-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2418,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "building_evacuated_when_fire_detected-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "alarm_raised_when_fire_detected",
+          "target": "building_evacuated_when_fire_detected-refinement-1"
+        },
+        {
+          "id": "building_evacuated_when_fire_detected-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "building_evacuated_when_alarm_raised",
+          "target": "building_evacuated_when_fire_detected-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "building_evacuated_when_fire_detected-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "building_evacuated_when_fire_detected-refinement-1",
+        "target": "building_evacuated_when_fire_detected"
+      }
+    },
+    {
+      "hub": {
+        "id": "alarm_raised_when_fire_detected-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2218,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "alarm_raised_when_fire_detected-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled",
+          "target": "alarm_raised_when_fire_detected-refinement-1"
+        },
+        {
+          "id": "alarm_raised_when_fire_detected-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "alarm_beep_30_seconds_unless_disabled",
+          "target": "alarm_raised_when_fire_detected-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "alarm_raised_when_fire_detected-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "alarm_raised_when_fire_detected-refinement-1",
+        "target": "alarm_raised_when_fire_detected"
+      }
+    },
+    {
+      "hub": {
+        "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1964,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+          "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
+        },
+        {
+          "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "alarm_activated_when_signal",
+          "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
+        },
+        {
+          "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_central_notified_when_signal",
+          "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1",
+        "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_heat_detection-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 658,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_heat_detection-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_noticed_too_late_by_heat",
+          "target": "no_heat_detection-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "no_heat_detection-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_heat_detection-refinement-1",
+        "target": "no_heat_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_heat_detection-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 738,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_heat_detection-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_too_distant_from_detector",
+          "target": "no_heat_detection-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "no_heat_detection-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_heat_detection-refinement-2",
+        "target": "no_heat_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_heat_detection-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 858,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_heat_detection-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "heat_detector_broken",
+          "target": "no_heat_detection-refinement-3"
+        },
+        {
+          "id": "no_heat_detection-refinement-3-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "no_detection_when_heat_detector_broken",
+          "target": "no_heat_detection-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "no_heat_detection-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_heat_detection-refinement-3",
+        "target": "no_heat_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_smoke_detection-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 178,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_smoke_detection-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_noticed_too_late_by_smoke",
+          "target": "no_smoke_detection-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "no_smoke_detection-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_smoke_detection-refinement-1",
+        "target": "no_smoke_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_smoke_detection-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 498,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_smoke_detection-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_too_distant_from_detector",
+          "target": "no_smoke_detection-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "no_smoke_detection-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_smoke_detection-refinement-2",
+        "target": "no_smoke_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_smoke_detection-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 298,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "no_smoke_detection-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "smoke_detector_broken",
+          "target": "no_smoke_detection-refinement-3"
+        },
+        {
+          "id": "no_smoke_detection-refinement-3-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "no_detection_when_smoke_detector_broken",
+          "target": "no_smoke_detection-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "no_smoke_detection-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_smoke_detection-refinement-3",
+        "target": "no_smoke_detection"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1298,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "fire_noticed_in_time_and_not_detected-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_heat_notification",
+          "target": "fire_noticed_in_time_and_not_detected-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "fire_noticed_in_time_and_not_detected-refinement-1",
+        "target": "fire_noticed_in_time_and_not_detected"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1378,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "fire_noticed_in_time_and_not_detected-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_smoke_notification",
+          "target": "fire_noticed_in_time_and_not_detected-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "fire_noticed_in_time_and_not_detected-refinement-2",
+        "target": "fire_noticed_in_time_and_not_detected"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1458,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "fire_noticed_in_time_and_not_detected-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_detection_delayed",
+          "target": "fire_noticed_in_time_and_not_detected-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "fire_noticed_in_time_and_not_detected-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "fire_noticed_in_time_and_not_detected-refinement-3",
+        "target": "fire_noticed_in_time_and_not_detected"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_alarm_signal-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1698,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "no_alarm_signal-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "battery_out_of_service",
+          "target": "no_alarm_signal-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "no_alarm_signal-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_alarm_signal-refinement-1",
+        "target": "no_alarm_signal"
+      }
+    },
+    {
+      "hub": {
+        "id": "alarm_not_activated-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1898,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "alarm_not_activated-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "light_strobe_broken",
+          "target": "alarm_not_activated-refinement-1"
+        },
+        {
+          "id": "alarm_not_activated-refinement-1-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "bell_broken",
+          "target": "alarm_not_activated-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "alarm_not_activated-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "alarm_not_activated-refinement-1",
+        "target": "alarm_not_activated"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_central_not_notified-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2178,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "fire_central_not_notified-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "network_down",
+          "target": "fire_central_not_notified-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "fire_central_not_notified-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "fire_central_not_notified-refinement-1",
+        "target": "fire_central_not_notified"
+      }
+    },
+    {
+      "hub": {
+        "id": "fire_central_not_notified-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2258,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "fire_central_not_notified-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_central_notification_delayed",
+          "target": "fire_central_not_notified-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "fire_central_not_notified-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "fire_central_not_notified-refinement-2",
+        "target": "fire_central_not_notified"
+      }
+    },
+    {
+      "id": "no_smoke_detection-obstructs-fire_noticed_in_time_when_smoke",
+      "type": "kaos.ObstructionLink",
+      "source": "no_smoke_detection",
+      "target": "fire_noticed_in_time_when_smoke"
+    },
+    {
+      "id": "no_heat_detection-obstructs-fire_noticed_in_time_when_heat",
+      "type": "kaos.ObstructionLink",
+      "source": "no_heat_detection",
+      "target": "fire_noticed_in_time_when_heat"
+    },
+    {
+      "id": "fire_noticed_in_time_and_not_detected-obstructs-fire_detected_when_noticed_in_time",
+      "type": "kaos.ObstructionLink",
+      "source": "fire_noticed_in_time_and_not_detected",
+      "target": "fire_detected_when_noticed_in_time"
+    },
+    {
+      "id": "no_alarm_signal-obstructs-alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+      "type": "kaos.ObstructionLink",
+      "source": "no_alarm_signal",
+      "target": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled"
+    },
+    {
+      "id": "alarm_not_activated-obstructs-alarm_activated_when_signal",
+      "type": "kaos.ObstructionLink",
+      "source": "alarm_not_activated",
+      "target": "alarm_activated_when_signal"
+    },
+    {
+      "id": "fire_central_not_notified-obstructs-fire_central_notified_when_signal",
+      "type": "kaos.ObstructionLink",
+      "source": "fire_central_not_notified",
+      "target": "fire_central_notified_when_signal"
+    },
+    {
+      "id": "smoke_sensor-assigned-fire_noticed_in_time_when_smoke",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "smoke_sensor",
+      "target": "fire_noticed_in_time_when_smoke"
+    },
+    {
+      "id": "heat_sensor-assigned-fire_noticed_in_time_when_heat",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "heat_sensor",
+      "target": "fire_noticed_in_time_when_heat"
+    },
+    {
+      "id": "detection_system-assigned-fire_detected_when_noticed_in_time",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "detection_system",
+      "target": "fire_detected_when_noticed_in_time"
+    },
+    {
+      "id": "occupants-assigned-building_evacuated_when_alarm_raised",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "occupants",
+      "target": "building_evacuated_when_alarm_raised"
+    },
+    {
+      "id": "fire_control_unit-assigned-alarm_beep_30_seconds_unless_disabled",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "fire_control_unit",
+      "target": "alarm_beep_30_seconds_unless_disabled"
+    },
+    {
+      "id": "fire_control_unit-assigned-alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "fire_control_unit",
+      "target": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled"
+    },
+    {
+      "id": "fire_control_unit-assigned-alarm_activated_when_signal",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "fire_control_unit",
+      "target": "alarm_activated_when_signal"
+    },
+    {
+      "id": "notification_system-assigned-fire_central_notified_when_signal",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "notification_system",
+      "target": "fire_central_notified_when_signal"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 3215,
+    "height": 816,
+    "name": "Fire alarm (RE'15)",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

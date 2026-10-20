@@ -213,6 +213,7 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
     expect(MODELS.kaos.map((s) => s.file)).to.deep.equal([
       'examples/kaos/ambulance/ambulance.txt',
       'examples/kaos/carpooling/carpooling.txt',
+      'examples/kaos/fire-alarm/fire-alarm.txt',
       'examples/kaos/kaos-welcome.txt',
       'examples/kaos/las/las.txt',
     ]);
