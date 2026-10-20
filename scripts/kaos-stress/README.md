@@ -36,7 +36,9 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
   - `quantity,id,expected,tolerance,source,derivation` (kaosexpert's):
     - a quantity of an expert (`information`, `calibration`, `weight`);
     - a quantity of an element: `probability` (one sample's), `mean`, `VU`,
-      `US`, `SU@<p>` or `q<pct>` of its distribution;
+      `US`, `SU@<p>` or `q<pct>` of its distribution; with `given`
+      `experts=e1`, of a run on those experts' estimates only (RE'15's
+      one-expert run, `ambulance.expected.csv`);
     - a leaf obstacle alone against the goal in `source` (`VU alone`,
       `US alone`).
 

@@ -151,4 +151,32 @@ describe('kaosexpert: Cooke as RE’15 applies it', () => {
     close(dm.cdf(0.0276), w1! * 0.5 + w2! * e2At, 1e-12);
     close(dm.quantile(dm.cdf(0.025)), 0.025, 1e-9);
   });
+
+  it('leaves a variable every expert estimates at one value out of the information scores, not out of N (ADS, #198)', () => {
+    // ADS's AVLS Out of Service: (0%, 0%, 0%) from all five experts. Its
+    // range is a point, its masses per bin 0/0: RE'15's tool averages the
+    // NaN in, and every weight is NaN
+    const none = variable('avls_out_of_service', [0, 0, 0], [0, 0, 0]);
+    const without = run(TABLE_I);
+    const withIt = run([...TABLE_I, none]);
+    withIt.scores.forEach((score, i) => {
+      assert.ok(
+        Number.isFinite(score.weight),
+        `${score.expert}: ${score.weight}`,
+      );
+      close(score.information, without.scores[i]!.information, 1e-12);
+      // N is 17 now: Expert1's tail realisation weighs 1/17
+      assert.strictEqual(score.variables, 17);
+    });
+    close(
+      withIt.scores[0]!.statistic,
+      2 * 17 * (1 / 17) * Math.log(1 / 17 / 0.05),
+      1e-12,
+    );
+    // its decision maker is the point
+    assert.strictEqual(
+      withIt.decisionMaker('avls_out_of_service')!.quantile(0.7),
+      0,
+    );
+  });
 });

@@ -1,7 +1,10 @@
 # ADS's London Ambulance System, its core: las.kaos followed by obstacles.kaos
 # (ancailliau/ADS da3241f, UCLouvain.AmbulanceSystem.Monitoring/Models, MIT),
-# byte for byte but for las.kaos's two imports, left out below (resolutions.kaos
-# is not part of this seed). See README.md.
+# byte for byte but for two edits: las.kaos's two imports are left out below
+# (resolutions.kaos is not part of this seed), and the '#' before experts e1,
+# e2, e3 and e5's estimates is removed, so all five experts are read, as RE'15
+# combines them (ADS comments out all but e4's: one run's selection). See
+# README.md.
 
 
 @title "London Ambulance System"
@@ -339,38 +342,38 @@ declare obstacle [ moborder_not_printed ]
   refinedby 
 		declare obstacle 
 			name "Paper Jam"
-			#probability[e1] (13.33%, 20.00%, 33.33%)
-			#probability[e2] (0.00%, 5.00%, 50.00%)
-			#probability[e3] (0.00%, 1.00%, 1.00%)
+			probability[e1] (13.33%, 20.00%, 33.33%)
+			probability[e2] (0.00%, 5.00%, 50.00%)
+			probability[e3] (0.00%, 1.00%, 1.00%)
 			probability[e4] (20.00%, 20.00%, 40.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)		
+			probability[e5] (0.00%, 0.00%, 0.00%)		
 		end
   refinedby 
 		declare obstacle 
 			name "Out Of Paper"
-			#probability[e1] (33.33%, 40.00%, 46.67%)
-			#probability[e2] (0.00%, 0.00%, 0.00%)
-			#probability[e3] (0.00%, 1.00%, 1.00%)
+			probability[e1] (33.33%, 40.00%, 46.67%)
+			probability[e2] (0.00%, 0.00%, 0.00%)
+			probability[e3] (0.00%, 1.00%, 1.00%)
 			probability[e4] (5.00%, 5.00%, 10.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby 
 		declare obstacle 
 			name "Data Lost"
-			#probability[e1] (13.33%, 13.33%, 13.33%)
-			#probability[e2] (0.00%, 25.00%, 50.00%)
-			#probability[e3] (60.00%, 80.00%, 100.00%)
+			probability[e1] (13.33%, 13.33%, 13.33%)
+			probability[e2] (0.00%, 25.00%, 50.00%)
+			probability[e3] (60.00%, 80.00%, 100.00%)
 			probability[e4] (1.00%, 10.00%, 15.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby 
 		declare obstacle 
 			name "Printer Off"
-			#probability[e1] (0.00%, 6.67%, 6.67%)
-			#probability[e2] (0.00%, 0.00%, 0.00%)
-			#probability[e3] (0.00%, 0.00%, 0.00%)
+			probability[e1] (0.00%, 6.67%, 6.67%)
+			probability[e2] (0.00%, 0.00%, 0.00%)
+			probability[e3] (0.00%, 0.00%, 0.00%)
 			probability[e4] (1.00%, 1.00%, 1.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
 end
 
@@ -386,11 +389,11 @@ declare obstacle [ moborder_not_displayed ]
   refinedby
 		declare obstacle
 			name "MDT Turned Off"
-			#probability[e1] (53.33%, 66.67%, 80.00%)
-			#probability[e2] (0.00%, 0.00%, 0.00%)
-			#probability[e3] (0.00%, 0.00%, 0.00%)
+			probability[e1] (53.33%, 66.67%, 80.00%)
+			probability[e2] (0.00%, 0.00%, 0.00%)
+			probability[e3] (0.00%, 0.00%, 0.00%)
 			probability[e4] (1.00%, 1.00%, 1.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
 end
 
@@ -406,29 +409,29 @@ declare obstacle [ location_known_not_info_known ]
   refinedby
 		declare obstacle 
 			name "AVLS Out of Service"
-  		#probability[e1] (0.00%, 0.00%, 0.00%)
-  		#probability[e2] (0.00%, 0.00%, 0.00%)
-  		#probability[e3] (0.00%, 0.00%, 0.00%)
+  		probability[e1] (0.00%, 0.00%, 0.00%)
+  		probability[e2] (0.00%, 0.00%, 0.00%)
+  		probability[e3] (0.00%, 0.00%, 0.00%)
   		probability[e4] (0.00%, 0.00%, 0.00%)
-  		#probability[e5] (0.00%, 0.00%, 0.00%)
+  		probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby 
 		declare obstacle 
 			name "GPS lost connection" 
-			#probability[e1] (20.00%, 26.67%, 33.33%)
-			#probability[e2] (0.00%, 0.00%, 0.00%)
-			#probability[e3] (8.00%, 15.00%, 20.00%)
+			probability[e1] (20.00%, 26.67%, 33.33%)
+			probability[e2] (0.00%, 0.00%, 0.00%)
+			probability[e3] (8.00%, 15.00%, 20.00%)
 			probability[e4] (30.00%, 40.00%, 50.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby 
   	declare obstacle 
 	  name "Location Innaccurate"
-	  #probability[e1] (6.67%, 13.33%, 26.67%)
-	  #probability[e2] (0.00%, 5.00%, 15.00%)
-	  #probability[e3] (5.00%, 15.00%, 25.00%)
+	  probability[e1] (6.67%, 13.33%, 26.67%)
+	  probability[e2] (0.00%, 5.00%, 15.00%)
+	  probability[e3] (5.00%, 15.00%, 25.00%)
 	  probability[e4] (25.00%, 30.00%, 30.00%)
-	  #probability[e5] (0.00%, 0.00%, 0.00%)
+	  probability[e5] (0.00%, 0.00%, 0.00%)
 	end
 end
 
@@ -444,20 +447,20 @@ declare obstacle [ accurate_availability_information_not_encoded ]
   refinedby 
 		declare obstacle 
 			name "Forget To Encode Status"
-			#probability[e1] (13.33%, 20.00%, 26.67%)
-			#probability[e2] (0.00%, 0.00%, 10.00%)
-			#probability[e3] (6.00%, 10.00%, 18.00%)
+			probability[e1] (13.33%, 20.00%, 26.67%)
+			probability[e2] (0.00%, 0.00%, 10.00%)
+			probability[e3] (6.00%, 10.00%, 18.00%)
 			probability[e4] (20.00%, 25.00%, 40.00%)
-			#probability[e5] (10.00%, 12.00%, 16.00%)
+			probability[e5] (10.00%, 12.00%, 16.00%)
 		end
   refinedby 
 		declare obstacle 
 			name "Wrong Button Pressed"
-			#probability[e1] (0.00%, 0.00%, 6.67%)
-			#probability[e2] (0.00%, 0.00%, 5.00%)
-			#probability[e3] (0.00%, 0.00%, 0.00%)
+			probability[e1] (0.00%, 0.00%, 6.67%)
+			probability[e2] (0.00%, 0.00%, 5.00%)
+			probability[e3] (0.00%, 0.00%, 0.00%)
 			probability[e4] (10.00%, 10.00%, 10.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
 end
 
@@ -477,11 +480,11 @@ end
 
 declare obstacle [ service_end ] 
   name "Service End Before Intervention"
-	#probability[e1] (46.67%, 53.33%, 66.67%)
-	#probability[e2] (0.00%, 5.00%, 15.00%)
-	#probability[e3] (4.00%, 8.00%, 12.00%)
+	probability[e1] (46.67%, 53.33%, 66.67%)
+	probability[e2] (0.00%, 5.00%, 15.00%)
+	probability[e3] (4.00%, 8.00%, 12.00%)
 	probability[e4] (10.00%, 15.00%, 20.00%)
-	#probability[e5] (10.00%, 10.00%, 20.00%)
+	probability[e5] (10.00%, 10.00%, 20.00%)
 end
 
 declare obstacle [ mobilization_retracted ] 
@@ -493,29 +496,29 @@ end
 
 declare obstacle [ destination_changed ]
   name "Destination Changed"
-  #probability[e1] (0.00%, 6.67%, 13.33%)
-  #probability[e2] (0.00%, 0.00%, 5.00%)
-  #probability[e3] (0.00%, 0.00%, 1.00%)
+  probability[e1] (0.00%, 6.67%, 13.33%)
+  probability[e2] (0.00%, 0.00%, 5.00%)
+  probability[e3] (0.00%, 0.00%, 1.00%)
   probability[e4] (5.00%, 5.00%, 10.00%)
-  #probability[e5] (0.00%, 0.00%, 0.00%)
+  probability[e5] (0.00%, 0.00%, 0.00%)
 end
   
 declare obstacle [ destination_forgotten ]
   name "Destination Forgotten"
-  #probability[e1] (0.00%, 0.00%, 6.67%)
-  #probability[e2] (0.00%, 0.00%, 0.00%)
-  #probability[e3] (20.00%, 35.00%, 50.00%)
+  probability[e1] (0.00%, 0.00%, 6.67%)
+  probability[e2] (0.00%, 0.00%, 0.00%)
+  probability[e3] (20.00%, 35.00%, 50.00%)
   probability[e4] (10.00%, 15.00%, 20.00%)
-  #probability[e5] (0.00%, 0.00%, 0.00%)
+  probability[e5] (0.00%, 0.00%, 0.00%)
 end
   
 declare obstacle [ mobilization_cancelled ]
   name "Mobilization Cancelled"
-  #probability[e1] (13.33%, 20.00%, 33.33%)
-  #probability[e2] (0.00%, 25.00%, 40.00%)
-  #probability[e3] (1.00%, 1.00%, 2.00%)
+  probability[e1] (13.33%, 20.00%, 33.33%)
+  probability[e2] (0.00%, 25.00%, 40.00%)
+  probability[e3] (1.00%, 1.00%, 2.00%)
   probability[e4] (15.00%, 20.00%, 20.00%)
-  #probability[e5] (4.00%, 6.00%, 10.00%)
+  probability[e5] (4.00%, 6.00%, 10.00%)
 end
 
 declare obstacle [ ambulance_stopped_or_in_wrong_direction ] 
@@ -529,20 +532,20 @@ declare obstacle [ ambulance_stopped ]
   refinedby 
 		declare obstacle [ ambulance_broken ] 
 			name "Ambulance Broken Down Or Accident"
-			#probability[e1] (0.00%, 0.00%, 6.67%)
-			#probability[e2] (0.00%, 0.00%, 5.00%)
-			#probability[e3] (0.00%, 1.00%, 1.00%)
+			probability[e1] (0.00%, 0.00%, 6.67%)
+			probability[e2] (0.00%, 0.00%, 5.00%)
+			probability[e3] (0.00%, 1.00%, 1.00%)
 			probability[e4] (5.00%, 5.00%, 5.00%)
-			#probability[e5] (4.00%, 6.00%, 10.00%)
+			probability[e5] (4.00%, 6.00%, 10.00%)
 		end
   refinedby 
 		declare obstacle
 			name "Ambulance Stopped In Traffic"
-			#probability[e1] (6.67%, 20.00%, 33.33%)
-			#probability[e2] (15.00%, 50.00%, 75.00%)
-			#probability[e3] (30.00%, 50.00%, 65.00%)
+			probability[e1] (6.67%, 20.00%, 33.33%)
+			probability[e2] (15.00%, 50.00%, 75.00%)
+			probability[e3] (30.00%, 50.00%, 65.00%)
 			probability[e4] (40.00%, 50.00%, 70.00%)
-			#probability[e5] (20.00%, 30.00%, 40.00%)
+			probability[e5] (20.00%, 30.00%, 40.00%)
 		end
 end
 
@@ -553,11 +556,11 @@ declare obstacle [ ambulance_in_wrong_direction ]
               refinedby ambulance_in_unfamiliar_area,
                         declare obstacle 
 													name "GPS Broken"
-													#probability[e1] (0.00%, 6.67%, 6.67%)
-													#probability[e2] (0.00%, 0.00%, 0.00%)
-													#probability[e3] (10.00%, 20.00%, 25.00%)
+													probability[e1] (0.00%, 6.67%, 6.67%)
+													probability[e2] (0.00%, 0.00%, 0.00%)
+													probability[e3] (10.00%, 20.00%, 25.00%)
 													probability[e4] (0.00%, 0.00%, 0.00%)
-													#probability[e5] (0.00%, 0.00%, 0.00%)
+													probability[e5] (0.00%, 0.00%, 0.00%)
 												end
             end
   refinedby ambulance_traffic_deviation
@@ -565,20 +568,20 @@ end
 
 declare obstacle [ ambulance_in_unfamiliar_area ]
   name "Ambulance In Unfamiliar Area"
-	#probability[e1] (6.67%, 13.33%, 20.00%)
-	#probability[e2] (15.00%, 30.00%, 50.00%)
-	#probability[e3] (15.00%, 18.00%, 25.00%)
+	probability[e1] (6.67%, 13.33%, 20.00%)
+	probability[e2] (15.00%, 30.00%, 50.00%)
+	probability[e3] (15.00%, 18.00%, 25.00%)
 	probability[e4] (20.00%, 20.00%, 30.00%)
-	#probability[e5] (20.00%, 24.00%, 30.00%)
+	probability[e5] (20.00%, 24.00%, 30.00%)
 end
 
 declare obstacle [ ambulance_traffic_deviation ]
   name "Ambulance In Traffic Deviation"
-	#probability[e1] (6.67%, 20.00%, 33.33%)
-	#probability[e2] (15.00%, 50.00%, 75.00%)
-	#probability[e3] (30.00%, 50.00%, 65.00%)
+	probability[e1] (6.67%, 20.00%, 33.33%)
+	probability[e2] (15.00%, 50.00%, 75.00%)
+	probability[e3] (30.00%, 50.00%, 65.00%)
 	probability[e4] (40.00%, 50.00%, 70.00%)
-	#probability[e5] (20.00%, 30.00%, 40.00%)
+	probability[e5] (20.00%, 30.00%, 40.00%)
 end
 
 # Obstacles for achieve_incident_resolved_by_intervention
@@ -609,29 +612,29 @@ end
 
 declare obstacle [ fire_environment ] 
   name "Fire Environment" 
-	#probability[e1] (0.00%, 0.00%, 6.67%)
-	#probability[e2] (0.00%, 0.00%, 5.00%)
-	#probability[e3] (0.00%, 3.00%, 5.00%)
+	probability[e1] (0.00%, 0.00%, 6.67%)
+	probability[e2] (0.00%, 0.00%, 5.00%)
+	probability[e3] (0.00%, 3.00%, 5.00%)
 	probability[e4] (7.00%, 7.00%, 7.00%)
-	#probability[e5] (0.00%, 2.00%, 2.00%)
+	probability[e5] (0.00%, 2.00%, 2.00%)
 end
 
 declare obstacle [ hazardous_environment ] 
   name "Hazardous Environment" 
-	#probability[e1] (0.00%, 6.67%, 13.33%)
-	#probability[e2] (0.00%, 0.00%, 10.00%)
-	#probability[e3] (0.00%, 5.00%, 10.00%)
+	probability[e1] (0.00%, 6.67%, 13.33%)
+	probability[e2] (0.00%, 0.00%, 10.00%)
+	probability[e3] (0.00%, 5.00%, 10.00%)
 	probability[e4] (25.00%, 30.00%, 65.00%)
-	#probability[e5] (2.00%, 4.00%, 6.00%)
+	probability[e5] (2.00%, 4.00%, 6.00%)
 end
 
 declare obstacle [ unreachable_patient ] 
   name "Unreachable Patient" 
-	#probability[e1] (0.00%, 6.67%, 6.67%)
-	#probability[e2] (0.00%, 0.00%, 10.00%)
-	#probability[e3] (0.00%, 3.00%, 5.00%)
+	probability[e1] (0.00%, 6.67%, 6.67%)
+	probability[e2] (0.00%, 0.00%, 10.00%)
+	probability[e3] (0.00%, 3.00%, 5.00%)
 	probability[e4] (15.00%, 20.00%, 35.00%)
-	#probability[e5] (0.00%, 0.00%, 0.00%)
+	probability[e5] (0.00%, 0.00%, 0.00%)
 end
 
 declare obstacle [ critical_care_not_given ]
@@ -643,20 +646,20 @@ declare obstacle [ critical_care_not_given ]
               refinedby 
 								declare obstacle
 									name "Ressource Out Of Order"
-									#probability[e1] (0.00%, 6.67%, 13.33%)
-									#probability[e2] (0.00%, 0.00%, 5.00%)
-									#probability[e3] (0.00%, 0.00%, 0.00%)
+									probability[e1] (0.00%, 6.67%, 13.33%)
+									probability[e2] (0.00%, 0.00%, 5.00%)
+									probability[e3] (0.00%, 0.00%, 0.00%)
 									probability[e4] (25.00%, 40.00%, 45.00%)
-									#probability[e5] (0.00%, 0.00%, 0.00%)
+									probability[e5] (0.00%, 0.00%, 0.00%)
 								end
               refinedby 
 								declare obstacle 
 									name "Qualification Missing For Ressource"
-									#probability[e1] (0.00%, 26.67%, 40.00%)
-									#probability[e2] (0.00%, 0.00%, 5.00%)
-									#probability[e3] (10.00%, 15.00%, 20.00%)
+									probability[e1] (0.00%, 26.67%, 40.00%)
+									probability[e2] (0.00%, 0.00%, 5.00%)
+									probability[e3] (10.00%, 15.00%, 20.00%)
 									probability[e4] (20.00%, 30.00%, 40.00%)
-									#probability[e5] (2.00%, 2.00%, 4.00%)
+									probability[e5] (2.00%, 2.00%, 4.00%)
 								end
             end
 end
@@ -666,20 +669,20 @@ declare obstacle [ insufficient_ressource ]
   refinedby 
 		declare obstacle 
 			name "Ressource Confusion"
-		  #probability[e1] (0.00%, 0.00%, 0.00%)
-		  #probability[e2] (0.00%, 0.00%, 0.00%)
-		  #probability[e3] (0.00%, 0.00%, 0.00%)
+		  probability[e1] (0.00%, 0.00%, 0.00%)
+		  probability[e2] (0.00%, 0.00%, 0.00%)
+		  probability[e3] (0.00%, 0.00%, 0.00%)
 		  probability[e4] (0.00%, 0.00%, 0.00%)
-		  #probability[e5] (0.00%, 0.00%, 0.00%)
+		  probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby 
 		declare obstacle
 			name "Ressource Not Available"
-			#probability[e1] (0.00%, 26.67%, 40.00%)
-			#probability[e2] (0.00%, 0.00%, 0.00%)
-			#probability[e3] (0.00%, 0.00%, 0.00%)
+			probability[e1] (0.00%, 26.67%, 40.00%)
+			probability[e2] (0.00%, 0.00%, 0.00%)
+			probability[e3] (0.00%, 0.00%, 0.00%)
 			probability[e4] (10.00%, 15.00%, 20.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
   refinedby wrong_info_about_patient
 end
@@ -692,11 +695,11 @@ end
 
 declare obstacle [ wrong_info_about_patient ]
   name "Wrong Info About Patient"
-  #probability[e1] (33.33%, 66.67%, 100.00%)
-  #probability[e2] (75.00%, 100.00%, 100.00%)
-  #probability[e3] (5.00%, 7.00%, 15.00%)
+  probability[e1] (33.33%, 66.67%, 100.00%)
+  probability[e2] (75.00%, 100.00%, 100.00%)
+  probability[e3] (5.00%, 7.00%, 15.00%)
   probability[e4] (25.00%, 30.00%, 30.00%)
-  #probability[e5] (2.00%, 6.00%, 10.00%)
+  probability[e5] (2.00%, 6.00%, 10.00%)
 end
 
 declare obstacle [ patient_not_transported ]
@@ -712,40 +715,40 @@ declare obstacle [ patient_not_transported ]
               refinedby 
 								declare obstacle
 									name "Patient Not Transportable"
-									#probability[e1] (0.00%, 13.33%, 20.00%)
-									#probability[e2] (0.00%, 0.00%, 0.00%)
-									#probability[e3] (10.00%, 15.00%, 20.00%)
+									probability[e1] (0.00%, 13.33%, 20.00%)
+									probability[e2] (0.00%, 0.00%, 0.00%)
+									probability[e3] (10.00%, 15.00%, 20.00%)
 									probability[e4] (5.00%, 5.00%, 5.00%)
-									#probability[e5] (2.00%, 2.00%, 4.00%)
+									probability[e5] (2.00%, 2.00%, 4.00%)
 								end
             end
 end
 
 declare obstacle [ insufficient_capacity ]
   name "Insufficient Capacity"
-	#probability[e1] (0.00%, 6.67%, 6.67%)
-	#probability[e2] (0.00%, 0.00%, 0.00%)
-	#probability[e3] (0.00%, 0.00%, 0.00%)
+	probability[e1] (0.00%, 6.67%, 6.67%)
+	probability[e2] (0.00%, 0.00%, 0.00%)
+	probability[e3] (0.00%, 0.00%, 0.00%)
 	probability[e4] (5.00%, 5.00%, 5.00%)
-	#probability[e5] (0.00%, 0.00%, 0.00%)
+	probability[e5] (0.00%, 0.00%, 0.00%)
 end
 
 declare obstacle [ overweight_patient ]
   name "Overweight Patient"
-	#probability[e1] (0.00%, 0.00%, 6.67%)
-	#probability[e2] (0.00%, 0.00%, 5.00%)
-	#probability[e3] (0.00%, 0.00%, 0.00%)
+	probability[e1] (0.00%, 0.00%, 6.67%)
+	probability[e2] (0.00%, 0.00%, 5.00%)
+	probability[e3] (0.00%, 0.00%, 0.00%)
 	probability[e4] (3.00%, 5.00%, 10.00%)
-	#probability[e5] (2.00%, 2.00%, 2.00%)
+	probability[e5] (2.00%, 2.00%, 2.00%)
 end
 
 declare obstacle [ patient_cannot_reach_ambulance ]
   name "Patient Cannot Reach Ambulance"
-	#probability[e1] (0.00%, 13.33%, 20.00%)
-	#probability[e2] (0.00%, 10.00%, 25.00%)
-	#probability[e3] (0.00%, 3.00%, 5.00%)
+	probability[e1] (0.00%, 13.33%, 20.00%)
+	probability[e2] (0.00%, 10.00%, 25.00%)
+	probability[e3] (0.00%, 3.00%, 5.00%)
 	probability[e4] (5.00%, 10.00%, 25.00%)
-	#probability[e5] (2.00%, 4.00%, 6.00%)
+	probability[e5] (2.00%, 4.00%, 6.00%)
 end
 
 declare obstacle [ patient_not_admitted ]
@@ -753,30 +756,30 @@ declare obstacle [ patient_not_admitted ]
   refinedby 
 		declare obstacle 
 			name "Available Bed Not Assigned"
-			#probability[e1] (0.00%, 0.00%, 0.00%)
-			#probability[e2] (0.00%, 0.00%, 5.00%)
-			#probability[e3] (0.00%, 0.00%, 0.00%)
+			probability[e1] (0.00%, 0.00%, 0.00%)
+			probability[e2] (0.00%, 0.00%, 5.00%)
+			probability[e3] (0.00%, 0.00%, 0.00%)
 			probability[e4] (5.00%, 7.00%, 10.00%)
-			#probability[e5] (2.00%, 4.00%, 6.00%)
+			probability[e5] (2.00%, 4.00%, 6.00%)
 		end
   refinedby 
 		declare obstacle
 			name "Special Unit Required"
-			#probability[e1] (0.00%, 13.33%, 20.00%)
-			#probability[e2] (20.00%, 35.00%, 75.00%)
-			#probability[e3] (3.00%, 5.00%, 8.00%)
+			probability[e1] (0.00%, 13.33%, 20.00%)
+			probability[e2] (20.00%, 35.00%, 75.00%)
+			probability[e3] (3.00%, 5.00%, 8.00%)
 			probability[e4] (20.00%, 25.00%, 40.00%)
-			#probability[e5] (6.00%, 8.00%, 10.00%)
+			probability[e5] (6.00%, 8.00%, 10.00%)
 		end
 end
 
 declare obstacle [ no_bed ]
   name "No Bed Available"
-	#probability[e1] (0.00%, 0.00%, 0.00%)
-	#probability[e2] (0.00%, 0.00%, 5.00%)
-	#probability[e3] (3.00%, 5.00%, 10.00%)
+	probability[e1] (0.00%, 0.00%, 0.00%)
+	probability[e2] (0.00%, 0.00%, 5.00%)
+	probability[e3] (3.00%, 5.00%, 10.00%)
 	probability[e4] (10.00%, 15.00%, 25.00%)
-	#probability[e5] (0.00%, 0.00%, 0.00%)
+	probability[e5] (0.00%, 0.00%, 0.00%)
 end
 
 # Obstacles for achieve_allocation_when_moborder_printed
@@ -797,20 +800,20 @@ end
 
 declare obstacle [ ambulance_not_at_station ]
   name "Allocated Ambulance Not At Station"
-  #probability[e1] (13.33%, 33.33%, 53.33%)
-  #probability[e2] (15.00%, 40.00%, 75.00%)
-  #probability[e3] (10.00%, 15.00%, 25.00%)
+  probability[e1] (13.33%, 33.33%, 53.33%)
+  probability[e2] (15.00%, 40.00%, 75.00%)
+  probability[e3] (10.00%, 15.00%, 25.00%)
   probability[e4] (30.00%, 10.00%, 50.00%)
-  #probability[e5] (2.00%, 4.00%, 10.00%)
+  probability[e5] (2.00%, 4.00%, 10.00%)
 end
 
 declare obstacle [ allocated_ambulance_not_available ]
   name "Allocated Ambulance Not Available"
-  #probability[e1] (0.00%, 0.00%, 6.67%)
-  #probability[e2] (0.00%, 0.00%, 5.00%)
-  #probability[e3] (2.00%, 3.00%, 5.00%)
+  probability[e1] (0.00%, 0.00%, 6.67%)
+  probability[e2] (0.00%, 0.00%, 5.00%)
+  probability[e3] (2.00%, 3.00%, 5.00%)
   probability[e4] (10.00%, 20.00%, 30.00%)
-  #probability[e5] (20.00%, 30.00%, 40.00%)
+  probability[e5] (20.00%, 30.00%, 40.00%)
 end
 
 declare obstacle [ printed_mobilization_order_ignored ]
@@ -818,30 +821,30 @@ declare obstacle [ printed_mobilization_order_ignored ]
   refinedby 
 		declare obstacle 
 			name "Crew Not Near Printer"
-		  #probability[e1] (0.00%, 6.67%, 6.67%)
-		  #probability[e2] (0.00%, 0.00%, 0.00%)
-		  #probability[e3] (1.00%, 1.00%, 2.00%)
+		  probability[e1] (0.00%, 6.67%, 6.67%)
+		  probability[e2] (0.00%, 0.00%, 0.00%)
+		  probability[e3] (1.00%, 1.00%, 2.00%)
 			probability[e4] (5.00%, 5.00%, 5.00%)
-			#probability[e5] (0.00%, 2.00%, 4.00%)
+			probability[e5] (0.00%, 2.00%, 4.00%)
 		end
 end
 
 declare obstacle [ mobilization_taken_by_other_ambulance ]
   name "Mobilization Taken By Other Ambulance"
-  #probability[e1] (0.00%, 0.00%, 0.00%)
-  #probability[e2] (0.00%, 0.00%, 0.00%)
-  #probability[e3] (0.00%, 0.00%, 0.00%)
+  probability[e1] (0.00%, 0.00%, 0.00%)
+  probability[e2] (0.00%, 0.00%, 0.00%)
+  probability[e3] (0.00%, 0.00%, 0.00%)
   probability[e4] (0.00%, 0.00%, 0.00%)
-  #probability[e5] (0.00%, 0.00%, 0.00%)
+  probability[e5] (0.00%, 0.00%, 0.00%)
 end
 
 declare obstacle [ mobilized_to_wrong_destination ]
   name "Mobilization For Wrong Destination"
-  #probability[e1] (0.00%, 6.67%, 13.33%)
-  #probability[e2] (0.00%, 0.00%, 5.00%)
-  #probability[e3] (0.00%, 2.00%, 10.00%)
+  probability[e1] (0.00%, 6.67%, 13.33%)
+  probability[e2] (0.00%, 0.00%, 5.00%)
+  probability[e3] (0.00%, 2.00%, 10.00%)
   probability[e4] (5.00%, 5.00%, 10.00%)
-  #probability[e5] (2.00%, 4.00%, 6.00%)
+  probability[e5] (2.00%, 4.00%, 6.00%)
 end
 
 # Obstacles for moborder_sent_to_mdt_based_on_am
@@ -856,11 +859,11 @@ declare obstacle [ moborder_not_sent_to_mdt_based_on_am ]
   refinedby 
 		declare obstacle 
 			name "No Line Free"
-		  #probability[e1] (0.00%, 0.00, 0.00%)
-		  #probability[e2] (0.00%, 0.00, 0.00%)
-		  #probability[e3] (0.00%, 0.00, 0.00%)
+		  probability[e1] (0.00%, 0.00, 0.00%)
+		  probability[e2] (0.00%, 0.00, 0.00%)
+		  probability[e3] (0.00%, 0.00, 0.00%)
 		  probability[e4] (0.00%, 0.00, 0.00%)
-		  #probability[e5] (0.00%, 0.00, 0.00%)
+		  probability[e5] (0.00%, 0.00, 0.00%)
 		end
 end
 
@@ -889,29 +892,29 @@ declare obstacle [ moborder_not_transmitted_to_mdt ]
   refinedby 
 		declare obstacle 
 			name "Congestion"
-		  #probability[e1] (0.00%, 0.00, 0.00%)
-		  #probability[e2] (0.00%, 0.00, 0.00%)
-		  #probability[e3] (0.00%, 0.00, 0.00%)
+		  probability[e1] (0.00%, 0.00, 0.00%)
+		  probability[e2] (0.00%, 0.00, 0.00%)
+		  probability[e3] (0.00%, 0.00, 0.00%)
 		  probability[e4] (0.00%, 0.00, 0.00%)
-		  #probability[e5] (0.00%, 0.00, 0.00%)
+		  probability[e5] (0.00%, 0.00, 0.00%)
 		end
   refinedby 
 		declare obstacle
 			name "Blackspot" 
-			#probability[e1] (33.33%, 40.00%, 46.67%)
-			#probability[e2] (5.00%, 20.00%, 40.00%)
-			#probability[e3] (12.00%, 14.00%, 16.00%)
+			probability[e1] (33.33%, 40.00%, 46.67%)
+			probability[e2] (5.00%, 20.00%, 40.00%)
+			probability[e3] (12.00%, 14.00%, 16.00%)
 			probability[e4] (10.00%, 15.00%, 20.00%)
-			#probability[e5] (2.00%, 2.00%, 4.00%)
+			probability[e5] (2.00%, 2.00%, 4.00%)
 		end
   refinedby 
 		declare obstacle
 			name "Corrupted Mobilization Order"
-		  #probability[e1] (0.00%, 0.00, 0.00%)
-		  #probability[e2] (0.00%, 0.00, 0.00%)
-		  #probability[e3] (0.00%, 0.00, 0.00%)
+		  probability[e1] (0.00%, 0.00, 0.00%)
+		  probability[e2] (0.00%, 0.00, 0.00%)
+		  probability[e3] (0.00%, 0.00, 0.00%)
 		  probability[e4] (0.00%, 0.00, 0.00%)
-		  #probability[e5] (0.00%, 0.00, 0.00%)
+		  probability[e5] (0.00%, 0.00, 0.00%)
 		end
 end
 
@@ -931,11 +934,11 @@ end
 
 declare obstacle [ ambulance_not_available_when_moborder_displayed ]
   name "Ambulance Not Available And Mobilization Order Displayed"
-  #probability[e1] (0.00%, 0.00%, 0.00%)
-  #probability[e2] (0.00%, 0.00%, 0.00%)
-  #probability[e3] (0.00%, 0.00%, 1.00%)
+  probability[e1] (0.00%, 0.00%, 0.00%)
+  probability[e2] (0.00%, 0.00%, 0.00%)
+  probability[e3] (0.00%, 0.00%, 1.00%)
   probability[e4] (10.00%, 20.00%, 30.00%)
-  #probability[e5] (20.00%, 30.00%, 40.00%)
+  probability[e5] (20.00%, 30.00%, 40.00%)
 end
 
 declare obstacle [ mobilized_to_wrong_destination_when_displayed ]
@@ -943,11 +946,11 @@ declare obstacle [ mobilized_to_wrong_destination_when_displayed ]
   refinedby 
 		declare obstacle 
 			name "Destination Confused" 
-			#probability[e1] (0.00%, 6.67%, 6.67%)
-			#probability[e2] (0.00%, 0.00%, 5.00%)
-			#probability[e3] (3.00%, 5.00%, 8.00%)
+			probability[e1] (0.00%, 6.67%, 6.67%)
+			probability[e2] (0.00%, 0.00%, 5.00%)
+			probability[e3] (3.00%, 5.00%, 8.00%)
 			probability[e4] (5.00%, 5.00%, 7.00%)
-			#probability[e5] (2.00%, 2.00%, 4.00%)
+			probability[e5] (2.00%, 2.00%, 4.00%)
 		end
 end
 
@@ -957,21 +960,21 @@ declare obstacle [ displayed_mobilization_order_ignored ]
   refinedby 
 		declare obstacle
 			name "Crew Not In Ambulance"
-			#probability[e1] (6.67%, 13.33%, 13.33%)
-			#probability[e2] (0.00%, 0.00%, 5.00%)
-			#probability[e3] (5.00%, 8.00%, 10.00%)
+			probability[e1] (6.67%, 13.33%, 13.33%)
+			probability[e2] (0.00%, 0.00%, 5.00%)
+			probability[e3] (5.00%, 8.00%, 10.00%)
 			probability[e4] (10.00%, 15.00%, 20.00%)
-			#probability[e5] (0.00%, 0.00%, 0.00%)
+			probability[e5] (0.00%, 0.00%, 0.00%)
 		end
 end
 
 declare obstacle [ crew_distracted ]
   name "Crew Distracted"
-  #probability[e1] (0.00%, 6.67%, 6.67%)
-  #probability[e2] (0.00%, 0.00%, 0.00%)
-  #probability[e3] (1.00%, 1.00%, 2.00%)
+  probability[e1] (0.00%, 6.67%, 6.67%)
+  probability[e2] (0.00%, 0.00%, 0.00%)
+  probability[e3] (1.00%, 1.00%, 2.00%)
   probability[e4] (5.00%, 5.00%, 5.00%)
-  #probability[e5] (0.00%, 2.00%, 4.00%)
+  probability[e5] (0.00%, 2.00%, 4.00%)
 end
 
 #### Calibrations
@@ -999,29 +1002,29 @@ end
 declare calibration
 	name "Calibration [Allocated Ambulance Not At Station]"
 	probability 50%
-	#probability[e1] (13.33%, 33.33%, 53.33%)
-	#probability[e2] (15.00%, 40.00%, 75.00%)
-	#probability[e3] (10.00%, 15.00%, 25.00%)
+	probability[e1] (13.33%, 33.33%, 53.33%)
+	probability[e2] (15.00%, 40.00%, 75.00%)
+	probability[e3] (10.00%, 15.00%, 25.00%)
 	probability[e4] (30.00%, 10.00%, 50.00%)
-	#probability[e5] (2.00%, 4.00%, 10.00%)
+	probability[e5] (2.00%, 4.00%, 10.00%)
 end
 
 declare calibration
 	name "Calibration [Mobilization Cancelled]"
 	probability 13%
-	#probability[e1] (13.33%, 20.00%, 33.33%)
-	#probability[e2] (0.00%, 25.00%, 40.00%)
-	#probability[e3] (1.00%, 1.00%, 2.00%)
+	probability[e1] (13.33%, 20.00%, 33.33%)
+	probability[e2] (0.00%, 25.00%, 40.00%)
+	probability[e3] (1.00%, 1.00%, 2.00%)
 	probability[e4] (15.00%, 20.00%, 20.00%)
-	#probability[e5] (4.00%, 6.00%, 10.00%)
+	probability[e5] (4.00%, 6.00%, 10.00%)
 end
 
 declare calibration
 	name "Calibration [MDT Turned Off]"
 	probability 33.3%
-	#probability[e1] (53.33%, 66.67%, 80.00%)
-	#probability[e2] (0.00%, 0.00%, 0.00%)
-	#probability[e3] (0.00%, 0.00%, 0.00%)
+	probability[e1] (53.33%, 66.67%, 80.00%)
+	probability[e2] (0.00%, 0.00%, 0.00%)
+	probability[e3] (0.00%, 0.00%, 0.00%)
 	probability[e4] (1.00%, 1.00%, 1.00%)
-	#probability[e5] (0.00%, 0.00%, 0.00%)
+	probability[e5] (0.00%, 0.00%, 0.00%)
 end

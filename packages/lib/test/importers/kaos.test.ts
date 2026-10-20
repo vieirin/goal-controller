@@ -786,6 +786,51 @@ describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
     );
   });
 
+  it('ambulance reads ADS’s five experts, every estimate typed, and writes them back (#198)', () => {
+    const { kaos, model } = seed('ambulance');
+    const read = kaosNativeFile.read(kaos, { modelName: 'ambulance' });
+    // nothing kept raw but the two model attributes the model has no place for
+    assert.deepStrictEqual(
+      read.diagnostics.map((d) => `${d.severity} ${d.message}`),
+      [
+        'info @author: kept as written (the model has no place for it)',
+        'info @version: kept as written (the model has no place for it)',
+      ],
+    );
+    // 47 leaf obstacles × 5 experts, and 3 calibrations × 5
+    const estimates = JSON.parse(model).orphans.flatMap((n: Json) =>
+      Object.keys(n.customProperties).filter((k) =>
+        k.startsWith('Probability['),
+      ),
+    );
+    assert.strictEqual(estimates.length, 47 * 5);
+    const projectResources = read.dialectRecord!.projectResources;
+    const { calibrations } = JSON.parse(
+      projectResources.calibration!['calibrations.json']!,
+    );
+    assert.deepStrictEqual(
+      calibrations.map((c: Json) => Object.keys(c.estimates)),
+      Array(3).fill(['e1', 'e2', 'e3', 'e4', 'e5']),
+    );
+    // written back and read again: the same model, experts, calibrations
+    // and estimates (structurally: the writer orders the text)
+    const written = kaosNativeFile.write!(read.model!, {
+      modelName: 'ambulance',
+      projectResources,
+    });
+    assert.deepStrictEqual(written.diagnostics, []);
+    const again = kaosNativeFile.read(written.text!, {
+      modelName: 'ambulance',
+    });
+    assert.deepStrictEqual(again.dialectRecord, read.dialectRecord);
+    assert.ok(
+      modelRoundTrip(kaosNativeFile, read.model!, {
+        modelName: 'ambulance',
+        projectResources,
+      }).ok,
+    );
+  });
+
   it('carpooling: kaosprop reproduces REJ’13’s chain, 0.015 → … → 0.28 against an RSR of 95%', () => {
     const analysis = kaospropAnalysisModel(
       readKaosObstacleModel(seed('carpooling').model),

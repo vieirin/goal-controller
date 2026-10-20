@@ -313,3 +313,59 @@ describe('kaosexpert: the fire-alarm seed (RE’15’s running example, #197)', 
     ]);
   });
 });
+
+describe('kaosexpert: the ambulance seed (ADS, RE’15’s field validation, #198)', () => {
+  const dir = join(__dirname, '../../../../../examples/kaos/ambulance');
+  const file = (name: string) => readFileSync(join(dir, name), 'utf8');
+  const seed = (samples: number) => ({
+    model: kaosexpertAnalysisModel(
+      readKaosObstacleModel(file('ambulance.txt')),
+    ),
+    context: {
+      resources: {
+        expert: { 'experts.json': file('experts.json') },
+        calibration: { 'calibrations.json': file('calibrations.json') },
+      },
+      options: { samples, seed: 1 },
+    } as AnalysisContext,
+  });
+
+  it('weighs its five experts over 50 variables (47 leaves, 3 calibrations), every weight finite', () => {
+    const { model, context } = seed(10);
+    const analysis = expertAnalysis(model, context);
+    assert.strictEqual(analysis.leaves.size, 47);
+    const scores = analysis.weights!.scores;
+    assert.deepStrictEqual(
+      scores.map((s) => s.expert),
+      ['e1', 'e2', 'e3', 'e4', 'e5'],
+    );
+    // e4's (30%, 10%, 50%) for Allocated Ambulance Not At Station, the
+    // leaf and the calibration variable, is a Problem: left out, both
+    assert.deepStrictEqual(
+      scores.map((s) => [s.variables, s.calibrationVariables]),
+      [
+        [50, 3],
+        [50, 3],
+        [50, 3],
+        [48, 2],
+        [50, 3],
+      ],
+    );
+    const weights = [0.144099, 0.271883, 0.143218, 0.217959, 0.222841];
+    scores.forEach((s, i) => close(s.weight, weights[i]!, 1e-6));
+  });
+
+  it('violates Achieve [Incident Resolved] for certain (VU 1, as RE’15), US 0.946; two obstacles alone more than 90 % certain to', () => {
+    const { model, context } = seed(2000);
+    const root = runUncertainty(model, undefined, context).cases[0]!.values
+      .achieve_incident_resolved!;
+    assert.match(root.label!, /· VU 1 · US 0\.946/);
+    const critical = runCriticalObstacles(model, undefined, context)
+      .cases.filter((c) => /VU (0\.9|1)/.test(c.label))
+      .map((c) => c.id.split(':')[1]);
+    assert.deepStrictEqual(critical, [
+      'ambulance_stopped_in_traffic',
+      'ambulance_traffic_deviation',
+    ]);
+  });
+});

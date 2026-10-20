@@ -33,7 +33,8 @@
  *   (kaosexpert's): each row a quantity, within its tolerance:
  *   - of an expert: `calibration`, `information`, `weight`;
  *   - of an element's distribution: `mean`, `VU`, `US`, `SU@<p>`,
- *     `q<pct>`;
+ *     `q<pct>`; with `given` `experts=e1`, of a run on those experts'
+ *     estimates only (RE'15's one-expert run);
  *   - of a leaf obstacle alone against `goal` (§VII): `VU alone`, `US
  *     alone`;
  *   - `probability given`: an element's probability with the point
@@ -190,6 +191,44 @@ const expertOracle = (modelText, resources, rows) => {
       alone.set(obstacle, lib.simulate(analysis, ids, { only: obstacle }));
     return alone.get(obstacle);
   };
+  /** a run on some experts' estimates only (`given`: `experts=e1,e2`), RE'15's one-expert run */
+  const subsets = new Map();
+  const runsOf = (given) => {
+    const subset = /^experts=(.+)$/.exec(given ?? '');
+    if (!subset) return runs;
+    if (!subsets.has(given)) {
+      const keep = new Set(subset[1].split(',').map((e) => e.trim()));
+      const kept = (key) => {
+        const expert = /^Probability\[(.+)\]$/.exec(key)?.[1];
+        return expert === undefined || keep.has(expert);
+      };
+      const only = {
+        ...model,
+        elements: model.elements.map((e) => ({
+          ...e,
+          properties: Object.fromEntries(
+            Object.entries(e.properties).filter(([key]) => kept(key)),
+          ),
+        })),
+      };
+      const calibrations = Object.fromEntries(
+        Object.entries(resources.calibration ?? {}).map(([p, text]) => {
+          const file = JSON.parse(text);
+          for (const c of file.calibrations)
+            c.estimates = Object.fromEntries(
+              Object.entries(c.estimates ?? {}).filter(([e]) => keep.has(e)),
+            );
+          return [p, JSON.stringify(file)];
+        }),
+      );
+      const one = lib.expertAnalysis(only, {
+        resources: { ...resources, calibration: calibrations },
+        options: RUN,
+      });
+      subsets.set(given, lib.simulate(one, ids));
+    }
+    return subsets.get(given);
+  };
   const score = (expert) =>
     analysis.weights?.scores.find((s) => s.expert === expert);
   /** an element's probability with point estimates in place of some elements' own */
@@ -235,11 +274,11 @@ const expertOracle = (modelText, resources, rows) => {
       case 'probability':
         return runs.get(id)?.[0];
       case 'mean':
-        return lib.distributionOfSamples(runs.get(id)).mean;
+        return lib.distributionOfSamples(runsOf(given).get(id)).mean;
       case 'VU':
-        return lib.satisfactionUncertainty(runs.get(id), rsrOf(id));
+        return lib.satisfactionUncertainty(runsOf(given).get(id), rsrOf(id));
       case 'US':
-        return lib.uncertaintySpread(runs.get(id), rsrOf(id));
+        return lib.uncertaintySpread(runsOf(given).get(id), rsrOf(id));
       case 'VU alone':
         return lib.satisfactionUncertainty(
           aloneRun(id).get(source),
@@ -249,10 +288,14 @@ const expertOracle = (modelText, resources, rows) => {
         return lib.uncertaintySpread(aloneRun(id).get(source), rsrOf(source));
       default: {
         const su = /^SU@([0-9.]+)$/.exec(quantity);
-        if (su) return lib.satisfactionUncertainty(runs.get(id), Number(su[1]));
+        if (su)
+          return lib.satisfactionUncertainty(
+            runsOf(given).get(id),
+            Number(su[1]),
+          );
         const q = /^q([0-9.]+)$/.exec(quantity);
         if (q) {
-          const sorted = Float64Array.from(runs.get(id)).sort();
+          const sorted = Float64Array.from(runsOf(given).get(id)).sort();
           const p = Number(q[1]) / 100;
           return sorted[
             Math.min(
