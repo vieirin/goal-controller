@@ -50,14 +50,8 @@ const lineOf = (kind: string): ThumbnailLine =>
 /** A model's thumbnail; null when it draws nothing. */
 export const thumbnailOf = (model: AnyModel): Thumbnail | null => {
   // a dialect's kinds too: the registry istar-ts builds for the model's metamodel
-  const registry = registryForMetamodel(
-    metamodelOf(model),
-  ) as unknown as Parameters<typeof modelToFlow>[1];
-  // modelToFlow isn't generic over kinds like registryForMetamodel is (goal-controller#323)
-  const flow = modelToFlow(
-    model as unknown as Parameters<typeof modelToFlow>[0],
-    registry,
-  );
+  const registry = registryForMetamodel(metamodelOf(model));
+  const flow = modelToFlow(model, registry);
   const boxes = new Map<string, ThumbnailBox>();
   const actors: ThumbnailBox[] = [];
   const elements: Thumbnail['elements'] = [];
