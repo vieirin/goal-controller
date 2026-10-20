@@ -11,13 +11,19 @@ Brazil.
 
 ## What you may do
 
-Anyone may, free of charge:
+Anyone may, free of charge and only under the conditions below (in
+particular: attribution, third-party assets keeping their own licenses,
+publication reserved to the authors, and derived works staying public, with
+private instances only by agreement):
 
 - read, use and run this repository, in whole or in part, for any purpose,
   including research, teaching and commercial use;
 - fork it, extend it, modify it and build derived works from it;
 - reapply its ideas, designs and code to other areas, domains and tools;
 - redistribute it and derived works, in source or compiled form.
+
+These permissions are conditional. A use that does not meet every condition
+below is not licensed; for such a use, contact the authors first.
 
 ## Conditions
 
