@@ -3,8 +3,9 @@
  * ends, laid out by istar-ts as the canvas lays them out (modelToFlow), with
  * no text. Pure, so a card computes it once from a model or a preview.
  */
-import { metamodelOf, type IstarModel } from '@istar-ts/core';
+import { metamodelOf } from '@istar-ts/core';
 import { modelToFlow, registryForMetamodel } from '@istar-ts/react';
+import type { AnyModel } from '@goal-controller/lib';
 import { parseModel } from './dialects';
 
 /** What a card draws an element as. */
@@ -47,12 +48,16 @@ const lineOf = (kind: string): ThumbnailLine =>
       : 'other';
 
 /** A model's thumbnail; null when it draws nothing. */
-export const thumbnailOf = (model: IstarModel): Thumbnail | null => {
+export const thumbnailOf = (model: AnyModel): Thumbnail | null => {
   // a dialect's kinds too: the registry istar-ts builds for the model's metamodel
   const registry = registryForMetamodel(
     metamodelOf(model),
   ) as unknown as Parameters<typeof modelToFlow>[1];
-  const flow = modelToFlow(model, registry);
+  // modelToFlow isn't generic over kinds like registryForMetamodel is (goal-controller#323)
+  const flow = modelToFlow(
+    model as unknown as Parameters<typeof modelToFlow>[0],
+    registry,
+  );
   const boxes = new Map<string, ThumbnailBox>();
   const actors: ThumbnailBox[] = [];
   const elements: Thumbnail['elements'] = [];

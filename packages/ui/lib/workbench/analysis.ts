@@ -11,6 +11,7 @@
 import type { GoalDiagnostic } from '@istar-ts/core';
 import {
   runAnalysis,
+  type AnyModel,
   type Analysis,
   type AnalysisCase,
   type AnalysisModel,
@@ -18,7 +19,6 @@ import {
 } from '@goal-controller/lib';
 import type { ResourceSlot } from '@/lib/project';
 import { parseModel } from './dialects';
-import type { IStarModel } from '@goal-controller/goal-tree';
 
 /** Where the canvas's analysis diagnostics come from (one source, replaced as a whole). */
 export const ANALYSIS_SOURCE = 'analysis';
@@ -170,7 +170,7 @@ export const analyse = (
   id: string,
   analysis: Analysis,
   text: string,
-  readModel: (model: IStarModel) => AnalysisModel,
+  readModel: (model: AnyModel) => AnalysisModel,
   resource?: Readonly<Record<string, string>>,
 ): AnalysisRun => {
   const base = {

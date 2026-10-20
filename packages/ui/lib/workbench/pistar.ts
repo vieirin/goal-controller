@@ -13,7 +13,6 @@ import {
   withFileMetamodel,
   type IstarElement,
   type IstarLink,
-  type IstarModel,
   type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
@@ -26,6 +25,7 @@ import {
   type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
+import type { AnyModel } from '@goal-controller/lib';
 import type { TransformEngine } from '@/lib/types';
 import {
   modelSettingsOf,
@@ -104,7 +104,7 @@ const detectIndent = (text: string): number | string => {
  * of `like` (the text it was read from). `toPistar` keeps piStar's key order.
  */
 export const serializeModel = (
-  model: IstarModel,
+  model: AnyModel,
   like: string,
   options?: ToPistarOptions,
 ): string => {
@@ -124,7 +124,7 @@ export const serializeModel = (
 /** `mode`: read for it (a dialect a file does not record yet); default, what the file records. */
 const rewrite = (
   text: string,
-  edit: (model: IstarModel) => IstarModel,
+  edit: (model: AnyModel) => AnyModel,
   mode?: ModelMode,
 ): string => serializeModel(edit(parseModel(text, mode)), text);
 
@@ -146,13 +146,13 @@ export const writeModelExtension = (
       return withFileMetamodel(
         read,
         isEmptyModelExtension(model) ? null : model,
-      ) as unknown as IstarModel;
+      );
     },
     mode,
   );
 
 /** The element an edit is for (any kind: a dialect's, an actor). */
-const findNode = (model: IstarModel, iStarId: string): IstarElement => {
+const findNode = (model: AnyModel, iStarId: string): IstarElement<string> => {
   const node = model.elements.get(iStarId);
   if (!node) {
     throw new Error(`element ${iStarId} not found`);
@@ -228,8 +228,8 @@ export const setRefinement = (
     const kind: LinkKind =
       relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
     // a link's kind can't be patched, so the links are rebuilt in place (same ids and order)
-    const links = new Map<string, IstarLink>(
-      [...model.links].map(([id, link]): [string, IstarLink] =>
+    const links = new Map<string, IstarLink<string>>(
+      [...model.links].map(([id, link]): [string, IstarLink<string>] =>
         link.target === iStarId &&
         (link.kind === 'istar.AndRefinementLink' ||
           link.kind === 'istar.OrRefinementLink')
@@ -386,7 +386,7 @@ export const writeModelMode = (text: string, mode: ModelMode): string => {
 };
 
 const RT_ID = /^\s*([A-Za-z]+)(\d+)\s*:/;
-const PREFIX: Partial<Record<IstarElement['kind'], string>> = {
+const PREFIX: Partial<Record<string, string>> = {
   'istar.Goal': 'G',
   // the engines read qualities as goals
   'istar.Quality': 'G',
@@ -401,8 +401,8 @@ const FIRST: Record<string, number> = { G: 0, T: 1, R: 1 };
  * engine's definition's: MutRoSe's tasks are `AT3`).
  */
 export const nextRtId = (
-  model: IstarModel,
-  kind: IstarElement['kind'],
+  model: AnyModel,
+  kind: string,
   prefix: string | undefined = PREFIX[kind],
 ): string | null => {
   if (!prefix) return null;
@@ -459,10 +459,7 @@ const ENGINE_READS: Partial<Record<TransformEngine, Reads>> = {
 };
 
 /** The id prefix a target gives a kind: its definition's, else the Edge engines'. */
-const prefixIn = (
-  target: ModelMode,
-  kind: IstarElement['kind'],
-): string | undefined => {
+const prefixIn = (target: ModelMode, kind: string): string | undefined => {
   if (!isEngineMode(target) || !isDialectEngine(target)) return PREFIX[kind];
   const elements = ENGINE_DIALECTS[target].elements as Readonly<
     Record<string, { prefix?: string } | undefined>

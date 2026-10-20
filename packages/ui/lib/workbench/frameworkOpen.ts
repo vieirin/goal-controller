@@ -7,7 +7,8 @@
  * open project's is refused unless the project is switched.
  */
 import type { AnyDialect, Framework } from '@goal-controller/dialect';
-import { updateElement, type IstarModel } from '@istar-ts/core';
+import type { AnyModel } from '@goal-controller/lib';
+import { updateElement } from '@istar-ts/core';
 import { parseModel } from './dialects';
 import {
   FRAMEWORK_DIALECTS,
@@ -75,7 +76,7 @@ const ID_OF_NAME = /^\s*([A-Z]+)(\d+)\s*:/;
 
 /** The next id of a prefix in a model (`G4`), from 1: ids its elements' names start with. */
 export const nextFrameworkId = (
-  model: Pick<IstarModel, 'elements'>,
+  model: Pick<AnyModel, 'elements'>,
   prefix: string,
 ): string => {
   let max = 0;
@@ -97,7 +98,7 @@ export const withFrameworkIds = (
   text: string,
   definition: Pick<AnyDialect, 'elements'>,
 ): string | null => {
-  let model: IstarModel;
+  let model: AnyModel;
   try {
     model = parseModel(text);
   } catch {

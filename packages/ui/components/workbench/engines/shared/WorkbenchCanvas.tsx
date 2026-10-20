@@ -2,7 +2,8 @@
 
 import { serializeModel } from '@/lib/workbench/pistar';
 import { emptyModel, parseModel } from '@/lib/workbench/dialects';
-import type { IstarModel, ModelChangeEvent } from '@istar-ts/core';
+import type { AnyModel } from '@goal-controller/lib';
+import type { ModelChangeEvent } from '@istar-ts/core';
 import {
   IstarCanvas,
   IstarPalette,
@@ -43,10 +44,12 @@ import { useShell } from '../../shell';
  */
 
 /** Why an edit is taken back out (shown as an error notice), or null to keep it. */
-export type RejectEdit = (event: ModelChangeEvent) => string | null;
+export type RejectEdit = (
+  event: ModelChangeEvent<string, string>,
+) => string | null;
 
 /** The model, read with the dialect it records (if any). */
-const tryParse = (text: string): IstarModel | null => {
+const tryParse = (text: string): AnyModel | null => {
   if (!text.trim()) return emptyModel();
   try {
     return parseModel(text);
@@ -225,7 +228,7 @@ export default function WorkbenchCanvas({
   fitKey = '',
 }: {
   /** a module-level constant: the provider rebuilds its registry when it changes */
-  extensions: readonly IstarExtension[];
+  extensions: readonly IstarExtension<string, string>[];
   /** beside the canvas (piStar mode: the editor's own inspector) */
   aside?: ReactNode;
   /** edits the mode does not allow are undone right away, with this notice */

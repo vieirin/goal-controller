@@ -18,7 +18,6 @@ import {
   parsePistar,
   validateFileMetamodel,
   type AnyMetamodel,
-  type IstarModel,
 } from '@istar-ts/core';
 import {
   DEFAULT_FRAMEWORK,
@@ -32,7 +31,7 @@ import {
   type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
-import { istar4RationalAgents } from '@goal-controller/lib';
+import { istar4RationalAgents, type AnyModel } from '@goal-controller/lib';
 // the mode a model records: read by the project module, the one place that knows where
 import { recordedMode } from '../project';
 import { ENGINE_FILE_KINDS } from './engineDialects';
@@ -144,30 +143,30 @@ export const parseModel = (
   text: string,
   mode: string | null = recordedMode(text),
   framework: Framework = frameworkOfModel(text),
-): IstarModel => {
+): AnyModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, {
       metamodel: FRAMEWORK_ROOTS[framework],
       // an engine whose models declare kinds of their own: their block applied
       fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
-    }) as unknown as IstarModel;
+    });
   const model = parsePistar(text, {
     metamodel: HOSTS[mode],
     fileMetamodel: true,
   });
   const block = fileMetamodelOf(model);
   if (block) withModelEntries(DIALECTS[mode], block as ModelExtension);
-  return model as unknown as IstarModel;
+  return model;
 };
 
 /** An empty model for a mode (a dialect's may use its kinds), in a framework. */
 export const emptyModel = (
   mode: string | null = null,
   framework: Framework = DEFAULT_FRAMEWORK,
-): IstarModel =>
+): AnyModel =>
   createEmptyModel(undefined, {
     metamodel: isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework],
-  }) as unknown as IstarModel;
+  });
 
 /** The dialect that reads a model its recorded mode cannot (its kinds are the dialect's), if any. */
 export const dialectThatReads = (text: string): DialectMode | null => {
@@ -187,7 +186,7 @@ export const dialectThatReads = (text: string): DialectMode | null => {
  * id (a dialect's names carry no ids), each actor's elements under it, then the
  * elements outside any actor.
  */
-export const dialectTree = (model: IstarModel): DocumentTree => {
+export const dialectTree = (model: AnyModel): DocumentTree => {
   const isActor = isActorIn(metamodelOf(model));
   const nodes = new Map<string, DocumentNode>();
   const roots: string[] = [];

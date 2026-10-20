@@ -4,7 +4,7 @@ import {
   createEngineMapper,
   GoalTree,
   useIstarDefaultNaming,
-  type IStarModel,
+  type AnyModel,
 } from '@goal-controller/goal-tree';
 import {
   analysisViewOf,
@@ -56,7 +56,7 @@ export const toyMapper = createEngineMapper({
 });
 
 /** A toy model as its analyses read it: the view of its KindModel. */
-export const toyAnalysisModel = (model: IStarModel): AnalysisModel =>
+export const toyAnalysisModel = (model: AnyModel): AnalysisModel =>
   analysisViewOf(GoalTree.goalModel(model, toyMapper));
 
 /** Each actor: the weights of the contributions from its elements, summed. */
