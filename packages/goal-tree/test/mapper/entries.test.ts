@@ -309,6 +309,13 @@ describe('a mapper by kind (#215)', () => {
         properties: { initial: '0.5' },
       },
     );
+    // an ignored kind's elements compare against `kind: string` (#315)
+    assert.deepStrictEqual(
+      GoalTree.goalModel(MODEL, ignoring).elements.filter(
+        (e) => e.kind === 'istar.Resource',
+      ).length,
+      1,
+    );
   });
 
   it("runs an entry's afterCreation once every node is built, children first", () => {
