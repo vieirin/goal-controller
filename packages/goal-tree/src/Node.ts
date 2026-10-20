@@ -6,7 +6,7 @@ import {
   childrenWithTasksAndResources,
 } from './internal/traversal';
 import { goalRootId as _goalRootId } from './internal/utils';
-import type { GoalNode, Resource, Task, TreeNode } from './types/';
+import type { TraversalNode, TraversalParent } from './types/';
 
 /**
  * Node namespace containing type guards and node utilities
@@ -19,27 +19,27 @@ export const Node = {
   /**
    * Check if a node is a GoalNode
    */
-  isGoal<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is GoalNode<TGoalEngine, TTaskEngine, TResourceEngine> {
+  isGoal<N extends TraversalNode>(
+    node: N,
+  ): node is Extract<N, { type: 'goal' }> {
     return node.type === 'goal';
   },
 
   /**
    * Check if a node is a Task
    */
-  isTask<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is Task<TTaskEngine, TResourceEngine> {
+  isTask<N extends TraversalNode>(
+    node: N,
+  ): node is Extract<N, { type: 'task' }> {
     return node.type === 'task';
   },
 
   /**
    * Check if a node is a Resource
    */
-  isResource<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): node is Resource<TResourceEngine> {
+  isResource<N extends TraversalNode>(
+    node: N,
+  ): node is Extract<N, { type: 'resource' }> {
     return node.type === 'resource';
   },
 
@@ -50,11 +50,7 @@ export const Node = {
   /**
    * Get all children of a node (including tasks and resources)
    */
-  children<TGoalEngine, TTaskEngine, TResourceEngine>(
-    node:
-      | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-      | Task<TTaskEngine, TResourceEngine>,
-  ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
+  children(node: TraversalParent): TraversalNode[] {
     return childrenWithTasksAndResources(node);
   },
 
@@ -62,16 +58,12 @@ export const Node = {
    * Get children that have retry configuration (maxRetries > 0)
    * Requires engine props to have maxRetries field
    */
-  childrenWithRetries<
-    TGoalEngine extends { maxRetries: number },
-    TTaskEngine extends { maxRetries: number },
-    TResourceEngine,
-  >(
-    node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-  ): Array<
-    | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-    | Task<TTaskEngine, TResourceEngine>
-  > {
+  childrenWithRetries<TGoalEngine extends { maxRetries: number }>(
+    node: TraversalParent & {
+      type: 'goal';
+      properties: { engine: TGoalEngine };
+    },
+  ): TraversalNode[] {
     return _childrenWithMaxRetries(node);
   },
 

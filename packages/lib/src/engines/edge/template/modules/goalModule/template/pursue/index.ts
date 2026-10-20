@@ -8,11 +8,7 @@ import {
 } from '../../../../../mdp/common';
 import { chosenVariable } from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import {
-  edgeChildren,
-  edgeIsResource,
-  edgeIsTask,
-} from '../../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 import { achievedMaintain } from '../formulas';
 import { pursueAndSequentialGoal } from './andGoal';
 import { hasBeenAchieved } from './common';
@@ -64,10 +60,10 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
   const pursueLogger = logger.pursue;
 
   // Filter out resources - they cannot be pursued
-  const allChildren = edgeChildren(goal);
+  const allChildren = Node.children(goal);
   const pursueableChildren = allChildren.filter(
-    (child): child is PursueableNode => !edgeIsResource(child),
-  );
+    (child) => !Node.isResource(child),
+  ) as PursueableNode[];
   const goalsToPursue: PursueableNode[] = [goal, ...pursueableChildren];
 
   const isItself = (child: PursueableNode): boolean => child.id === goal.id;
@@ -168,10 +164,8 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                 );
               }
               case 'choice': {
-                const children = edgeChildren(goal)
-                  .filter(
-                    (child): child is PursueableNode => !edgeIsResource(child),
-                  )
+                const children = Node.children(goal)
+                  .filter((child) => !Node.isResource(child))
                   .map((child) => child.id);
                 if (children.length === 0) {
                   logger.error(
@@ -246,7 +240,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
                   goal,
                   goal.properties.engine.executionDetail.ids,
                   child.id,
-                  edgeChildren(goal),
+                  Node.children(goal),
                 );
                 return [
                   child,
@@ -322,7 +316,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
 
         // parent goals have activation context independently of the maintain condition
         const activationContextCondition =
-          ((isItself(child) || edgeIsTask(child)) &&
+          ((isItself(child) || Node.isTask(child)) &&
             child.properties.engine.execCondition?.assertion?.sentence) ||
           '';
 

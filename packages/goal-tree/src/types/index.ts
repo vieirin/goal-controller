@@ -26,6 +26,8 @@ export type {
   Task,
   Resource,
   TreeNode,
+  TraversalNode,
+  TraversalParent,
   GoalTree,
   GoalExecutionDetail,
   GoalModel,

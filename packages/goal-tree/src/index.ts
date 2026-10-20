@@ -149,6 +149,8 @@ export type {
   Resource,
   Task,
   TreeNode,
+  TraversalNode,
+  TraversalParent,
   Type,
   BaseNode,
 } from './types/';

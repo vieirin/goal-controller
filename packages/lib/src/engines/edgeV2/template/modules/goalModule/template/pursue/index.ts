@@ -2,7 +2,7 @@ import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { achievedFormula, stateVariable } from '../../../../../template/common';
 import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
-import { edgeIsTask } from '../../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 import { pursueAndAnyOrderGoal, pursueAndSequentialGoal } from './andGoal';
 import { construct, orderedChildIds, orderedChildren } from '../children';
 import { hasBeenAchieved } from './common';
@@ -175,7 +175,7 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
     .map(([child, statement]): [PursueableNode, PursueStatement] => {
       // third map — activation / maintain context guards
       const activationContextCondition =
-        ((isItself(child) || edgeIsTask(child)) &&
+        ((isItself(child) || Node.isTask(child)) &&
           child.properties.engine.execCondition?.assertion?.sentence) ||
         '';
 

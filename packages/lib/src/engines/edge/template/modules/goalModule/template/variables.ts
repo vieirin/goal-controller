@@ -6,10 +6,7 @@ import {
   chosenVariable,
   pursuedVariable,
 } from '../../../../template/common';
-import {
-  edgeChildren,
-  edgeChildrenWithRetries,
-} from '../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
@@ -29,13 +26,13 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
-  const children = edgeChildren(goal);
+  const children = Node.children(goal);
   const chosenVariableStatement =
     goal.properties.engine.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 
-  const childrenWithMaxRetries = edgeChildrenWithRetries(goal);
+  const childrenWithMaxRetries = Node.childrenWithRetries(goal);
   const maxRetriesVariableStatement =
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries

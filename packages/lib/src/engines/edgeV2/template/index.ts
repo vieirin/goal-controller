@@ -1,7 +1,6 @@
 import { singleFileOutput, type EngineOutput } from '../../output';
 import { validate, formatValidationReport } from '../validator';
-import { GoalTree } from '@goal-controller/goal-tree';
-import { edgeChildren, edgeIsTask } from '../../edgeFamily/nodeAccess';
+import { GoalTree, Node } from '@goal-controller/goal-tree';
 import {
   DEFAULT_DISCRETISATION,
   DEFAULT_TASK_LAYOUT,
@@ -34,10 +33,10 @@ const treeOrderModules = (
       return;
     }
     emitted.add(node.id);
-    if (edgeIsTask(node)) {
-      edgeChildren(node)
-        .filter((child): child is EdgeTask => edgeIsTask(child))
-        .forEach(visit);
+    if (Node.isTask(node)) {
+      Node.children(node)
+        .filter((child) => Node.isTask(child))
+        .forEach((child) => visit(child as EdgeTask));
       modules.push(taskModule(node, variables));
       return;
     }

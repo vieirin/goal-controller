@@ -80,6 +80,25 @@ export type TreeNode<
   | Task<TTaskEngine, TResourceEngine>
   | Resource<TResourceEngine>;
 
+/**
+ * A node shape that traversal and `Node` helpers accept: per-role trees
+ * (`GoalNode`, with `isQuality`) and kind-entry trees (`KindNode`, without).
+ */
+export type TraversalNode = {
+  type: string;
+  id: string;
+  kind?: string;
+  children?: TraversalNode[];
+  tasks?: TraversalNode[];
+  resources?: TraversalNode[];
+  properties?: { engine?: unknown };
+};
+
+/** A goal or task node that may hold refinement children. */
+export type TraversalParent = TraversalNode & {
+  type: 'goal' | 'task';
+};
+
 export type GoalTree<
   TGoalEngine = unknown,
   TTaskEngine = unknown,

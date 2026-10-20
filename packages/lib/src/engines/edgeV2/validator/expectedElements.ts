@@ -1,7 +1,5 @@
-import type { Resource } from '@goal-controller/goal-tree';
-import { GoalTree } from '@goal-controller/goal-tree';
+import { GoalTree, Node, type Resource } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeGoalTree, EdgeTask } from '../types';
-import { edgeChildren, edgeIsResource } from '../../edgeFamily/nodeAccess';
 import {
   achievableFormulaVariable,
   achievedFormula,
@@ -79,8 +77,8 @@ const calculateGoalFormulas = (goal: GoalNode): string[] => {
   if (goal.properties.engine.execCondition?.maintain) {
     formulas.push(achievedFormula(goal.id));
   } else {
-    const hasPursueableChildren = edgeChildren(goal).some(
-      (child) => !edgeIsResource(child),
+    const hasPursueableChildren = Node.children(goal).some(
+      (child) => !Node.isResource(child),
     );
     if (hasPursueableChildren) {
       formulas.push(achievedFormula(goal.id));

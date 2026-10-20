@@ -2,7 +2,7 @@ import type { EdgeGoalNode, EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import { separator } from '../../../../../mdp/common';
 import { hasBeenAchieved } from './common';
-import { edgeIsResource } from '../../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 
 // Type for nodes that can be achieved (goals and tasks, but not resources)
 type AchievableNode = EdgeGoalNode | EdgeTask;
@@ -40,7 +40,7 @@ export const pursueAndSequentialGoal = (
 
   // Filter out resources - they cannot be achieved
   const achievableChildren = children.filter(
-    (child): child is AchievableNode => !edgeIsResource(child),
+    (child): child is AchievableNode => !Node.isResource(child),
   ) as AchievableNode[];
 
   const childrenMap = new Map<string, AchievableNode>(
