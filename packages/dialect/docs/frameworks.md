@@ -710,7 +710,7 @@ log are in #182.
   - an import the reader isn't given;
   - a domain property's `probability`.
 
-  Since #190 part A, experts, calibrations, `@experts.quantiles`, an obstacle's per-expert and distribution `probability`, and a domain property's `probability` are read (kaosexpert's keys and resources, "Step 3 part A" below); a goal's per-expert or distribution `esr`/`rsr` is still kept.
+  Since #190 part A, experts, calibrations, `@experts.quantiles`, an obstacle's per-expert and distribution `probability`, and a domain property's `probability` are read (kaosexpert's keys and resources, "Step 3 part A" below); since #199, a goal's distribution `esr`/`eps` and an obstacle's `beta` are too ("Step 3 part C" below). A goal's per-expert `esr`/`rsr` is still kept (no per-expert form for either, so nothing in the corpus would ever write one).
 
   An attribute of a placed element is kept as `override <kind> [ <id> ] … end`, so reading it back keeps it in the same place. Each item gets a diagnostic: a warning, or an info for a model attribute. The key is on the diagram, a model-level record; it adds nothing to either dialect's element keys.
 - **Domain properties carry `FormalSpec`** (the book, ch. 17), from KAOSTools' `formalspec`, same as a goal's and an obstacle's: istar-ts's domain-property schema gained the optional key (istar-ts#24), and the `kaos` dialect types it as the same `ltl` formula (goal-controller#338).
@@ -814,8 +814,9 @@ and uncertainty spread (US). Results and the attempts log are in #343.
   - `@experts.quantiles "…"` is `experts.json`'s `quantiles`, as written.
 
   Nothing of these is kept raw any more (ADS's `obstacles.kaos` reads with
-  no diagnostic at all); a goal's per-expert or distribution `esr` still
-  is, since no engine reads it. The writer writes them back after the
+  no diagnostic at all); a goal's per-expert `esr` still is (no engine has
+  a per-expert goal estimate; #199 adds the plain distribution form,
+  "Step 3 part C" below). The writer writes them back after the
   elements, from the project's resources (`NativeFileContext`), and a read
   of what it wrote gives the same model and resources, byte for byte.
 - **Cooke's model as RE'15 applies it (D3).** RE'15 gives its numbers, not
@@ -936,7 +937,12 @@ and uncertainty spread (US). Results and the attempts log are in #343.
   - import, validation and round trip with its resources;
   - kaosprop's and kaosexpert's analyses;
   - its expected CSV: kaosprop's `las` and `carpooling`
-    (`carpooling.expected.csv` is new), kaosexpert's `fire-alarm`.
+    (`carpooling.expected.csv` is new), kaosexpert's `fire-alarm`,
+    `ambulance` (#198, "Step 3 part B" above) and `mooring` (#199, "Step 3
+    part C" below), a `triangular a`/`triangular b` quantity kind for the
+    latter's oracle (`lib.extendTriangular`), and a row whose `expected`
+    is `-` reported, never a failure (the first seed to need it: Table
+    II's Spearman correlations, whose inputs HASE'11 withholds).
 
   It is in the stress workflow's matrix, strict. The repository ruleset's
   required checks are the owner's to change.
@@ -1049,6 +1055,114 @@ experts. Results and attempts are on #343.
   5 %: 0.17 for e4's `(5%, 5%, 5%)`, 0.08 for `(5%, 5%, 10%)`. Patient
   Not Transportable's US falls to 0.086, and KAOSTools counts 25 with
   US > 0.10.
+
+### Step 3 part C: fibre-rope mooring (goal-controller#199)
+
+Sabetzadeh, Falessi, Briand, Di Alesio, McGeorge, Åhjem, Borg, HASE'11
+(DOI 10.1109/HASE.2011.25): the simplest sibling of expert combination
+kaosexpert handles — one distribution kind (triangular, with 5 % tails),
+no experts, evidence on the leaves instead. Results in #343.
+
+- **The seed (`examples/kaos/mooring`)** re-keys Figure 2, "Simplified
+  goal model for fiber rope mooring", in full: the top goal GL1, its
+  obstruction tree OB1–OB7, the mitigating goal GL2 and its subtree
+  GL3–GL11, the eleven evidence items and the assumption AP1.
+  Decomposition completeness (filled or empty circles in the figure) does
+  not survive PDF text extraction reliably past the three the paper
+  states explicitly in prose (GL2 OR, full; GL3, GL5, GL8 AND, partial);
+  every other refinement is left at the default, noted in the seed.
+- **What the paper withholds.** Section V states twice that every
+  elicited quantity is unpublished ("For privacy, we do not report the
+  elicited quantities"; Figure 6(b) "report[s] the curve shape but not
+  the actual numbers"): the five leaf goals' ESR, α for GL3/GL5/GL8, and
+  any propagated satisfaction result. The seed leaves all of it unset
+  (the fire-alarm precedent: re-key what is printed, nothing invented),
+  each marked in `mooring.kaos` with a comment saying so. Unset reads as
+  kaosexpert's documented default (a leaf with no `ESR` holds, 1; a hub
+  with no `Probability`, α = 0), so the `uncertainty` analysis still runs
+  end to end, at EPS 1 throughout: the engine's behaviour for a model
+  with nothing elicited, not a claim about the real technology.
+- **The one printed number, Figure 3 and §III-B2.** The paper's only
+  fully worked numeric example, standalone (not tied to any one element):
+  an elicited triangular (a₀, m, b₀) = (0.85, 0.90, 0.96), extended by
+  distributing 5 % of the mass before a₀ and after b₀, giving (a, m, b) =
+  (0.82548, 0.90, 0.9863). `lib.extendTriangular` (`numeric/
+  distributions.ts`) solves the two equations exactly by 2D Newton
+  (`CDF(a₀) = tail` on the left branch, `CDF(b₀) = 1 − tail` on the
+  right); its exact solve, (0.825529, 0.90, 0.986351), is close to the
+  paper's printed digits but not identical (~5e-5, ~1e-4) — both of the
+  paper's own values solve the same two equations to within 5e-4 of
+  0.05/0.95, not exactly, so this reads as the paper's rounding or a
+  lower-precision solver, not a different formula.
+  `examples/kaos/mooring/mooring.expected.csv` checks the exact solve;
+  Table II's Spearman correlations depend on the withheld leaf estimates
+  and α, so they are listed as not reproducible (`expected = -`), not fit
+  with placeholder numbers — `scripts/kaos-stress/run.cjs` reports such a
+  row, never fails on it (the README already documented this; mooring is
+  the first seed to need it).
+- **Evidence, a new project resource kind (gap 5).** `evidence.json`:
+  items with an `id`, an optional `name` and `kind`, no numeric content
+  of their own — what a leaf goal's `ESR` or a leaf obstacle's
+  `Probability` is based on. A leaf's new `Evidence` key (`nameList`)
+  names them by id, written and read the same generic way `Category` and
+  `Priority` already are (`vocabulary.ts`'s `CUSTOM_KEYS`). `declare
+  evidence [ id ] name "…" kind "…" end` round-trips it through `.kaos`,
+  the same shape as `declare expert`/`declare calibration`. Using
+  `Evidence` is itself what opens a file in kaosexpert's mode (the same
+  rule as a distribution or a per-expert estimate): it is a kaosexpert-only
+  key, so a file that uses it needs that dialect even when nothing
+  numeric is elicited.
+- **A leaf goal's `ESR` is a `distribution` too.** The same `distribution`
+  value type RE'15's `Probability` already uses, with `point: true` (a
+  plain value, kaosprop's degenerate case), no `keyed` (HASE'11 elicits no
+  per-expert estimate of a goal). kaosexpert's `obstructed()` reads a
+  distribution `ESR` by its complement, `1 − ESR`: `numeric/
+  distributions.ts`'s new `complementOf` mirrors any `Continuous` (`min:
+  1 − max, max: 1 − min, quantile: u => 1 − quantile(1 − u)`), so the
+  Monte Carlo draws it exactly like any other distribution event — no
+  closed-form transform of the distribution's own parameters is needed.
+  `.kaos`'s `esr`/`eps` reads a goal's distribution the same way an
+  obstacle's `probability` already does (`read.ts`'s `estimateOf`,
+  generalised to take the target key, `ESR` or `Probability`).
+- **α and β: do they fold into kaosprop's existing hub `Probability`
+  slot?** (#189's question, #199's acceptance criterion.) Figure 4's
+  rules, against kaosprop's propagation (`kaosprop/propagation.ts`,
+  `hubProbability` and `obstacle`):
+  - **Goals, complete AND:** `P(G) = Π P(Gᵢ)`, kaosprop's "any other
+    tactic" rule, unchanged.
+  - **Goals, partial AND (b):** `P(G) = (1 − α) · Π P(Gᵢ)`. kaosprop's
+    goal refinement hub gains the same `Probability` slot the obstacle
+    refinement hub already has (`P(O | SO1..n)`, RE'12's own conditional):
+    set to `1 − α`, it multiplies the exact product the rule needs — the
+    same mathematical form, just not previously declared on a goal hub.
+    **α folds in exactly, no new key.** (β = 0 for goals always, per the
+    paper; the goal hub's rule has no OR term for it to replace, so this
+    is consistent, not a gap.)
+  - **Obstacles, complete OR:** `P(O) = 1 − Π(1 − P(Oᵢ))`, kaosprop's
+    `any` across an obstacle's several refinement hubs, unchanged.
+  - **Obstacles, partial OR (d):** `P(O) = 1 − (1 − β) · Π(1 − P(Oᵢ))`.
+    This multiplies `Π(1 − P(Oᵢ))`, the product of *complements* across
+    an obstacle's several refinement hubs — a different mathematical
+    object than any one hub's own product (`Π P(SOᵢ)`, what the existing
+    `Probability` slot multiplies), and a property of the *obstacle*
+    (one β however many refinement hubs it has), not of any one hub.
+    kaosprop's existing hub slot has no such product in its scope: **β
+    does not fold in.** It is `Beta`, its own key on the obstacle
+    (`kaosprop/definition.ts`), read only when the obstacle has more than
+    one refinement (the only case a partial OR's risk is meaningful in);
+    default 0, the complete-decomposition case, unchanged.
+
+  Both rules are point-value propagation's (kaosprop), and the BDD's
+  (kaosexpert, an extra independent event OR'd in for each): α as
+  `event(1 − Probability)` inside the hub's own alternative, β as
+  `event(Beta)` alongside the obstacle's refinement branches, both only
+  when the corresponding slot is set — unset leaves every existing model
+  byte-for-byte the same result (the defaults are the rules' complete
+  cases). `kaosprop.test.ts` and `kaosexpert.test.ts` have both rules on
+  small synthetic models, hand-derived, including the "one refinement
+  only: β not read" and "α unset: the complete default" edge cases; this
+  model sets neither (§III-A's explicit examples, GL3/GL5/GL8's α, are
+  withheld).
 
 ### Models typed by their framework (goal-controller#185)
 
