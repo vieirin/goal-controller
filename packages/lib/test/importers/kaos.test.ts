@@ -1,0 +1,662 @@
+/**
+ * KAOSTools' textual KAOS (goal-controller#181): the reader's placement of
+ * each attribute by layer, what it keeps as written, its layout, and the
+ * writer's round trip. The grammar's own tests are goal-language's
+ * (test/kaos.test.ts), and so is the corpus (its test/fixtures/kaos: ADS's
+ * six models and KAOSTools' LAS, MIT, each with its licence), read here
+ * from there.
+ */
+import * as assert from 'assert';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { describe, it } from 'mocha';
+import { parsePistar, validateModel } from '@istar-ts/core';
+import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import {
+  KAOS_UNSUPPORTED_KEY,
+  kaosNativeFile,
+  readKaos,
+  writeKaos,
+} from '../../src/importers/kaos';
+import { modelRoundTrip } from '../../src/importers/native';
+import {
+  kaospropAnalysisModel,
+  propagateProbabilities,
+  readKaosObstacleModel,
+} from '../../src/engines/kaosprop';
+
+const fixture = (path: string) =>
+  readFileSync(
+    join(__dirname, '../../../goal-language/test/fixtures/kaos', path),
+    'utf8',
+  );
+const ADS = [
+  'las.kaos',
+  'obstacles.kaos',
+  'resolutions.kaos',
+  'simple.kaos',
+  'simple_new_syntax.kaos',
+  'validation-model.kaos',
+].map((name) => `ads/${name}`);
+const CORPUS = [...ADS, 'kaostools/las.kaos'];
+
+type Json = Record<string, any>;
+const read = (path: string, files?: Record<string, string>) => {
+  const result = readKaos(fixture(path), { modelName: 'm', files });
+  assert.ok(result.model, JSON.stringify(result.diagnostics.slice(0, 3)));
+  return result as typeof result & { model: Json };
+};
+/** A text read, its model as JSON (null when it doesn't read). */
+const readText = (text: string) => {
+  const { model, diagnostics } = readKaos(text);
+  return { model: model as Json, diagnostics };
+};
+/** How many of each kind: elements by type, links by type (a refinement by its hub's). */
+const census = (model: Json) => {
+  const count: Record<string, number> = {};
+  for (const node of model.orphans)
+    count[node.type] = (count[node.type] ?? 0) + 1;
+  for (const link of model.links) {
+    const type = link.hub ? link.hub.type : link.type;
+    count[type] = (count[type] ?? 0) + 1;
+  }
+  return count;
+};
+const nodeOf = (model: Json, id: string) =>
+  model.orphans.find((n: Json) => n.id === id);
+const hubsOf = (model: Json, parent: string) =>
+  model.links.filter((l: Json) => l.hub && l.end.target === parent);
+
+describe('readKaos: the corpus, counted', () => {
+  // #181 gives 41 goals and 8 agents for las.kaos, 76 obstacles for
+  // obstacles.kaos and 185 for simple.kaos: 185 counts its two `declare
+  // obstacle` blocks that are commented out (o2, o4), 183 are read
+  const EXPECTED: Record<string, Record<string, number>> = {
+    'ads/las.kaos': {
+      'kaos.BehavioralGoal': 41,
+      'kaos.Agent': 8,
+      'kaos.RefinementLinkHub': 19,
+      'kaos.ResponsibilityAssignment': 18,
+    },
+    'ads/obstacles.kaos': {
+      'kaos.BehavioralGoal': 11,
+      'kaos.Obstacle': 76,
+      'kaos.ObstacleRefinementLinkHub': 67,
+      'kaos.ObstructionLink': 11,
+    },
+    'ads/resolutions.kaos': {
+      'kaos.Obstacle': 25,
+      'kaos.BehavioralGoal': 30,
+      'kaos.ResolutionLink': 33,
+    },
+    'ads/simple.kaos': {
+      'kaos.BehavioralGoal': 19,
+      'kaos.Obstacle': 183,
+      'kaos.RefinementLinkHub': 4,
+      'kaos.ObstacleRefinementLinkHub': 171,
+      'kaos.ObstructionLink': 12,
+      'kaos.ResolutionLink': 3,
+    },
+    'ads/simple_new_syntax.kaos': {
+      'kaos.BehavioralGoal': 19,
+      'kaos.Obstacle': 183,
+      'kaos.RefinementLinkHub': 4,
+      'kaos.ObstacleRefinementLinkHub': 171,
+      'kaos.ObstructionLink': 12,
+      'kaos.ResolutionLink': 3,
+    },
+    'ads/validation-model.kaos': {
+      'kaos.BehavioralGoal': 44,
+      'kaos.Obstacle': 15,
+      'kaos.Agent': 6,
+      'kaos.RefinementLinkHub': 18,
+      'kaos.ObstacleRefinementLinkHub': 7,
+      'kaos.ObstructionLink': 8,
+      'kaos.ResponsibilityAssignment': 26,
+    },
+    'kaostools/las.kaos': {
+      'kaos.BehavioralGoal': 10,
+      'kaos.Obstacle': 6,
+      'kaos.DomainProperty': 5,
+      'kaos.Agent': 3,
+      'kaos.RefinementLinkHub': 4,
+      'kaos.ObstacleRefinementLinkHub': 4,
+      'kaos.ObstructionLink': 1,
+      'kaos.ResolutionLink': 1,
+      'kaos.ResponsibilityAssignment': 5,
+    },
+  };
+  for (const path of CORPUS)
+    it(`reads ${path} as a KAOS model istar-ts validates: ${Object.entries(
+      EXPECTED[path]!,
+    )
+      .map(([kind, n]) => `${n} ${kind.slice(5)}`)
+      .join(', ')}`, () => {
+      const { model, dialectRecord } = read(path);
+      assert.deepStrictEqual(census(model), EXPECTED[path]);
+      assert.deepStrictEqual(
+        validateModel(parsePistar(model, { metamodel: KAOS_OBSTACLES })),
+        [],
+      );
+      assert.deepStrictEqual(dialectRecord, {
+        engine: 'kaosprop',
+        projectResources: {},
+      });
+      assert.strictEqual(model.diagram.customProperties.engine, 'kaosprop');
+      assert.strictEqual(model.diagram.customProperties.framework, 'kaos');
+    });
+
+  it('reads ADS’s las.kaos with the files it imports: one model of the three', () => {
+    const { model, diagnostics } = read('ads/las.kaos', {
+      'obstacles.kaos': fixture('ads/obstacles.kaos'),
+      'resolutions.kaos': fixture('ads/resolutions.kaos'),
+    });
+    assert.deepStrictEqual(census(model), {
+      'kaos.BehavioralGoal': 71,
+      'kaos.Agent': 8,
+      'kaos.Obstacle': 76,
+      'kaos.RefinementLinkHub': 19,
+      'kaos.ObstacleRefinementLinkHub': 67,
+      'kaos.ObstructionLink': 11,
+      'kaos.ResolutionLink': 33,
+      'kaos.ResponsibilityAssignment': 18,
+    });
+    // an imported file's diagnostics are named by it
+    assert.ok(
+      diagnostics.some((d) =>
+        d.message.startsWith('obstacles.kaos: declare expert [ e1 ]'),
+      ),
+    );
+    assert.ok(
+      !/^import /m.test(model.diagram.customProperties[KAOS_UNSUPPORTED_KEY]),
+    );
+  });
+});
+
+describe('readKaos: where each attribute goes, by layer (#181’s table)', () => {
+  const las = read('kaostools/las.kaos').model;
+
+  it('a declaration’s name is its text, `definition` its Description, `formalspec` its FormalSpec', () => {
+    const goal = nodeOf(
+      las,
+      'achieve_ambulance_on_scene_when_incident_reported',
+    );
+    assert.strictEqual(goal.type, 'kaos.BehavioralGoal');
+    assert.strictEqual(
+      goal.text,
+      'Achieve [Ambulance On Scene When Incident Reported]',
+    );
+    assert.deepStrictEqual(goal.customProperties, {
+      Type: '',
+      Category: '',
+      Source: '',
+      Priority: '',
+      Issue: '',
+      FormalSpec:
+        'when incidentReported() then sooner-or-later ambulanceOnScene()',
+      FitCriterion: '',
+      Stability: '',
+      Description:
+        'Sooner-or-later, ambulance shall be on scene when incident is reported.',
+    });
+    // a string over two lines is kept as written
+    assert.strictEqual(
+      nodeOf(las, 'despatcher').customProperties.Description,
+      'Despatcher is the person at the call center dealing \n                with urgent calls and ambulance mobilization.',
+    );
+  });
+
+  it('a domain property is a DomainProperty with its Kind; an agent’s type its kind', () => {
+    assert.deepStrictEqual(
+      nodeOf(las, 'by_fax_or_by_phone_mobilization').customProperties,
+      {
+        Kind: 'invariant',
+        Description:
+          'An ambulance mobilized by fax or by phone is considered as mobilized.',
+        FormalSpec:
+          'always (if (ambulanceMobilizedByFax() or ambulanceMobilizedByPhone()) then ambulanceMobilized())',
+      },
+    );
+    assert.strictEqual(nodeOf(las, 'ads').type, 'kaos.Agent');
+    const { model, diagnostics } = readText(`declare domainhypothesis [ h ] end
+declare agent [ e ] type environment end
+declare agent [ m ] type malicious end`);
+    assert.strictEqual(nodeOf(model, 'h').customProperties.Kind, 'hypothesis');
+    assert.strictEqual(nodeOf(model, 'e').type, 'kaos.EnvironmentAgent');
+    assert.strictEqual(nodeOf(model, 'm').type, 'kaos.Agent');
+    assert.deepStrictEqual(
+      diagnostics.map((d) => [d.severity, d.message]),
+      [
+        [
+          'info',
+          "m: a malicious agent, read as an agent (KAOS's anti-models have no kind of their own)",
+        ],
+      ],
+    );
+  });
+
+  it('`refinedby [milestone|case]` is a hub with the canonical Tactic; a refinee’s [p] its leg’s Probability, as written', () => {
+    const [milestone] = hubsOf(
+      las,
+      'achieve_ambulance_on_scene_when_incident_reported',
+    );
+    assert.strictEqual(
+      milestone.hub.customProperties.Tactic,
+      'milestone-driven',
+    );
+    const [cases] = hubsOf(
+      las,
+      'achieve_ambulance_mobilized_when_ambulance_allocated',
+    );
+    assert.strictEqual(cases.hub.customProperties.Tactic, 'case-driven');
+    assert.deepStrictEqual(
+      cases.starts.map((leg: Json) => [leg.source, leg.customProperties]),
+      [
+        [
+          'achieve_ambulance_mobilized_when_ambulance_allocated_on_road',
+          { Probability: '.8' },
+        ],
+        [
+          'achieve_ambulance_mobilized_when_ambulance_allocated_at_station',
+          { Probability: '.2' },
+        ],
+      ],
+    );
+    // no pattern: no tactic; each `refinedby` of an obstacle a hub of its own (an OR)
+    const [plain] = hubsOf(
+      las,
+      'achieve_ambulance_mobilized_when_ambulance_allocated_at_station',
+    );
+    assert.strictEqual(plain.hub.customProperties.Tactic, '');
+    assert.strictEqual(
+      hubsOf(las, 'mobilized_ambulance_not_on_scene_in_time').length,
+      3,
+    );
+  });
+
+  it('`obstructedby` is an obstruction, `resolvedby` a resolution, `assignedto` an assignment', () => {
+    const link = (type: string) =>
+      las.links
+        .filter((l: Json) => l.type === type)
+        .map(
+          (l: Json) =>
+            `${l.source} → ${l.target}${l.customProperties ? ' ' + JSON.stringify(l.customProperties) : ''}`,
+        );
+    assert.deepStrictEqual(link('kaos.ObstructionLink'), [
+      'mobilized_ambulance_not_on_scene_in_time → achieve_ambulance_on_scene_when_ambulance_mobilized',
+    ]);
+    assert.deepStrictEqual(link('kaos.ResolutionLink'), [
+      'avoid_ambulance_not_in_familiar_area → ambulance_not_in_familiar_area {"ResolutionType":"","Anchor":""}',
+    ]);
+    assert.ok(
+      link('kaos.ResponsibilityAssignment').includes(
+        'ads → achieve_ambulance_mobilized_by_fax',
+      ),
+    );
+  });
+
+  it('`resolvedby(prevention|mitigation[g])` is a ResolutionType by TSE’00’s name, and its Anchor; so are the older patterns', () => {
+    const { model } = read('ads/resolutions.kaos');
+    const of = (goal: string) =>
+      model.links.find(
+        (l: Json) => l.type === 'kaos.ResolutionLink' && l.source === goal,
+      ).customProperties;
+    assert.deepStrictEqual(of('mobilization_known_by_other'), {
+      ResolutionType: 'obstacle mitigation',
+      Anchor: 'achieve_ambulance_mobilization',
+    });
+    assert.deepStrictEqual(of('avoid_mobilization_without_order'), {
+      ResolutionType: 'obstacle prevention',
+      Anchor: '',
+    });
+    const simple = read('ads/simple.kaos').model;
+    assert.deepStrictEqual(
+      simple.links.find(
+        (l: Json) =>
+          l.source === 'automated_onscene_detection' &&
+          l.type === 'kaos.ResolutionLink',
+      ).customProperties,
+      { ResolutionType: 'goal substitution', Anchor: 'sg4scene' },
+    );
+    const newer = read('ads/simple_new_syntax.kaos').model;
+    assert.deepStrictEqual(
+      newer.links.find(
+        (l: Json) =>
+          l.source === 'automated_onscene_detection' &&
+          l.type === 'kaos.ResolutionLink',
+      ).customProperties,
+      { ResolutionType: 'goal substitution', Anchor: 'sg4scene' },
+    );
+  });
+
+  it('the quantities are kaosprop’s keys, strings as written: `rsr` (`rds`) RSR, `esr` (`eps`, `probability`) ESR or Probability', () => {
+    const ads = read('ads/las.kaos').model;
+    assert.strictEqual(
+      nodeOf(ads, 'achieve_incident_resolved').customProperties.RSR,
+      '95%',
+    );
+    const simple = read('ads/simple.kaos').model;
+    assert.strictEqual(
+      nodeOf(simple, 'avoid_ambulance_mobilized_on_road').customProperties.RSR,
+      '.8',
+    );
+    assert.strictEqual(
+      nodeOf(simple, 'false_station_detection').customProperties.Probability,
+      '.02',
+    );
+    const { model } = readText(`declare goal [ g ] esr 0.9 refinedby a end
+declare goal [ a ] obstructedby o [.5] end
+declare obstacle [ o ] probability 2% end`);
+    assert.strictEqual(nodeOf(model, 'g').customProperties.ESR, '0.9');
+    assert.strictEqual(nodeOf(model, 'o').customProperties.Probability, '2%');
+    assert.deepStrictEqual(
+      model.links.find((l: Json) => l.type === 'kaos.ObstructionLink')
+        .customProperties,
+      { Probability: '.5' },
+    );
+  });
+
+  it('kaosprop reads them: KAOSTools’ LAS, its .8/.2 legs, propagates', () => {
+    const { model } = read('ads/las.kaos');
+    const analysis = kaospropAnalysisModel(
+      readKaosObstacleModel(JSON.stringify(model)),
+    );
+    const { probabilities } = propagateProbabilities(analysis);
+    // nothing obstructs las.kaos's leaves: every goal is satisfied, its RSR 95% met
+    assert.strictEqual(probabilities.get('achieve_incident_resolved'), 1);
+  });
+
+  it('an anonymous declaration is named by its name; a reference by a quoted name resolves to it', () => {
+    const { model } = read('ads/obstacles.kaos');
+    const [paperJam] = hubsOf(model, 'moborder_not_printed');
+    assert.strictEqual(paperJam.starts[0].source, 'paper_jam');
+    assert.strictEqual(nodeOf(model, 'paper_jam').text, 'Paper Jam');
+    // `refinedby "No Line Free"`: the anonymous obstacle declared before
+    const [byName] = hubsOf(model, 'moborder_not_sent_to_printer_based_on_am');
+    assert.strictEqual(byName.starts[0].source, 'no_line_free');
+  });
+
+  it('what nothing declares is made, of the kind its reference says, and said', () => {
+    const { model, diagnostics } = read('ads/validation-model.kaos');
+    assert.strictEqual(nodeOf(model, 'ads').type, 'kaos.Agent');
+    assert.ok(
+      diagnostics.some(
+        (d) =>
+          d.severity === 'warning' &&
+          d.message === 'ads is not declared: read as an agent',
+      ),
+    );
+    // a goal with no identifier at all is named by its name
+    assert.ok(nodeOf(model, 'achieve_at_hospital_when_incident_reported'));
+  });
+});
+
+describe('readKaos: nothing silently dropped', () => {
+  it('keeps experts, calibrations and per-expert estimates as written, in file order, and says each', () => {
+    const { model, diagnostics } = read('ads/obstacles.kaos');
+    const kept: string = model.diagram.customProperties[KAOS_UNSUPPORTED_KEY];
+    assert.ok(
+      kept.startsWith(
+        'override obstacle [ paper_jam ]\n  probability[e4] (20.00%, 20.00%, 40.00%)\nend\n\n',
+      ),
+    );
+    assert.ok(kept.includes('declare expert [ e1 ]\n\tname "Expert 1"\nend'));
+    assert.ok(
+      kept.includes(
+        'declare calibration\n\tname "Calibration [Allocated Ambulance Not At Station]"\n\tprobability 50%',
+      ),
+    );
+    assert.strictEqual(
+      diagnostics.filter((d) => /per-expert estimate/.test(d.message)).length,
+      47,
+    );
+    assert.strictEqual(
+      diagnostics.filter((d) => /^declare (expert|calibration)/.test(d.message))
+        .length,
+      8,
+    );
+    // each a warning with its range in the file
+    const expert = diagnostics.find((d) =>
+      d.message.startsWith('declare expert [ e1 ]'),
+    )!;
+    assert.strictEqual(expert.severity, 'warning');
+    assert.strictEqual(
+      fixture('ads/obstacles.kaos').slice(expert.from, expert.to),
+      'declare expert',
+    );
+  });
+
+  it('keeps the model attributes but `@title`, custom attributes, and an import it isn’t given', () => {
+    const { model, diagnostics } = read('ads/las.kaos');
+    assert.strictEqual(model.diagram.name, 'London Ambulance System');
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      [
+        '@author "Antoine Cailliau, Axel van Lamsweerde"',
+        '@version "0.2"',
+        '@experts.quantiles "(.1, .5, .9)"',
+        'import "obstacles.kaos"',
+        'import "resolutions.kaos"',
+      ].join('\n\n'),
+    );
+    assert.deepStrictEqual(
+      diagnostics.map((d) => d.severity),
+      ['info', 'info', 'info', 'warning', 'warning'],
+    );
+    const simple = read('ads/simple.kaos');
+    assert.ok(
+      simple.model.diagram.customProperties[KAOS_UNSUPPORTED_KEY].startsWith(
+        'override goal [ goal1 ]\n  $log_cps "TRUE"\nend',
+      ),
+    );
+    assert.ok(
+      simple.diagnostics.every((d) => /custom attribute/.test(d.message)),
+    );
+  });
+
+  it('reads a custom attribute the `kaos` dialect has a key for into it (`$Priority "high"`)', () => {
+    const { model, diagnostics } = readText(
+      'declare goal [ g ] $Priority "high" $Owner "x" end',
+    );
+    assert.strictEqual(nodeOf(model, 'g').customProperties.Priority, 'high');
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      'override goal [ g ]\n  $Owner "x"\nend',
+    );
+    assert.strictEqual(diagnostics.length, 1);
+  });
+
+  it('keeps KAOS’s other declarations and attributes (#181’s list) as written, each said', () => {
+    const text = `declare entity [ ambulance ]
+  name "Ambulance"
+  attribute available : boolean
+end
+declare association [ allocated ]
+  link [ a ] ambulance
+end
+declare predicate [ allocated_p ]
+  argument a : ambulance
+  formalspec (a) in allocated
+end
+declare type [ boolean ] end
+declare goal [ g ]
+  refinedby [context=night] a, b
+  provided x() and y()
+  except z()
+  relaxedTo w
+  replaces h
+  esr beta [ 1, 2 ]
+end
+declare domainproperty [ d ] probability 90% end`;
+    const { model, diagnostics } = readText(text);
+    assert.ok(model, JSON.stringify(diagnostics));
+    const kept: string = model.diagram.customProperties[KAOS_UNSUPPORTED_KEY];
+    assert.deepStrictEqual(
+      kept.split('\n\n').map((entry) => entry.split('\n')[0]),
+      [
+        'declare entity [ ambulance ]',
+        'declare association [ allocated ]',
+        'declare predicate [ allocated_p ]',
+        'declare type [ boolean ] end',
+        'override goal [ g ]',
+        'override domainproperty [ d ]',
+      ],
+    );
+    assert.ok(
+      kept.includes(
+        'override goal [ g ]\n  refinedby [context=night] a, b\n  provided x() and y()\n  except z()\n  relaxedTo w\n  replaces h\n  esr beta [ 1, 2 ]\nend',
+      ),
+    );
+    assert.strictEqual(diagnostics.length, 11);
+    // the refinement in a context isn't read: g refines into nothing
+    assert.strictEqual(hubsOf(model, 'g').length, 0);
+  });
+
+  it('says a top-level declaration without its `end`, and reads it', () => {
+    const text = 'declare goal [ a ]\n  name "A"\ndeclare goal [ b ]\nend';
+    const { model, diagnostics } = readText(text);
+    assert.deepStrictEqual(
+      model.orphans.map((n: Json) => n.text),
+      ['A', 'b'],
+    );
+    assert.deepStrictEqual(diagnostics, [
+      {
+        severity: 'warning',
+        message:
+          'declare goal [ a ] has no "end": it ends where the next declaration starts',
+        from: 0,
+        to: 'declare goal'.length,
+      },
+    ]);
+  });
+
+  it('refuses a text that isn’t KAOSTools’ syntax, with where', () => {
+    const result = readText('declare goal [ g ]\n  name "unclosed\nend');
+    assert.strictEqual(result.model, null);
+    assert.ok(
+      result.diagnostics.length &&
+        result.diagnostics.every((d) => d.severity === 'error'),
+    );
+  });
+});
+
+describe('readKaos: the layout (#118’s)', () => {
+  for (const path of CORPUS)
+    it(`places every node of ${path}, an obstacle below what it obstructs, a hub between its goal and its children`, () => {
+      const { model } = read(path);
+      for (const node of model.orphans)
+        assert.ok(Number.isFinite(node.x) && Number.isFinite(node.y), node.id);
+      const node = (id: string) => nodeOf(model, id);
+      for (const link of model.links) {
+        if (
+          link.type === 'kaos.ObstructionLink' &&
+          node(link.source).y !== undefined
+        )
+          assert.ok(
+            node(link.source).y > node(link.target).y ||
+              model.links.some(
+                (l: Json) =>
+                  l.hub && l.starts.some((s: Json) => s.source === link.source),
+              ),
+            `${link.source} below ${link.target}`,
+          );
+        if (link.hub) {
+          assert.ok(link.hub.y > node(link.end.target).y, link.hub.id);
+        }
+      }
+      assert.ok(model.diagram.width > 0 && model.diagram.height > 0);
+    });
+});
+
+describe('writeKaos: back to .kaos', () => {
+  for (const path of CORPUS)
+    it(`round-trips ${path}: .kaos → model → .kaos reads to the same model (structurally; the text’s order is the writer’s)`, () => {
+      const { model } = read(path);
+      const trip = modelRoundTrip(kaosNativeFile, model, { modelName: 'm' });
+      assert.ok(trip.ok, trip.problem ?? '');
+      // written again, the text is the same: the writer's form is a fixed point
+      const again = kaosNativeFile.read(trip.written!, { modelName: 'm' });
+      assert.strictEqual(
+        writeKaos(again.model!, { modelName: 'm' }).text,
+        trip.written,
+      );
+    });
+
+  it('writes the syntax KAOSTools’ PEG reads: patterns by KAOSTools’ names, quantities as read', () => {
+    const { text } = writeKaos(read('kaostools/las.kaos').model, {
+      modelName: 'm',
+    });
+    assert.ok(
+      text!.startsWith(
+        '@title "m"\n\ndeclare goal [ achieve_ambulance_on_scene_when_incident_reported ]\n',
+      ),
+    );
+    assert.ok(
+      text!.includes(
+        '  refinedby [case] achieve_ambulance_mobilized_when_ambulance_allocated_on_road [.8], achieve_ambulance_mobilized_when_ambulance_allocated_at_station [.2]\n',
+      ),
+    );
+    const resolutions = writeKaos(read('ads/resolutions.kaos').model, {
+      modelName: 'm',
+    }).text!;
+    assert.ok(
+      resolutions.includes(
+        '  resolvedby [mitigation:achieve_ambulance_mobilization] mobilization_known_by_other\n',
+      ),
+    );
+    assert.ok(
+      resolutions.includes(
+        '  resolvedby [prevention] avoid_mobilization_without_order\n',
+      ),
+    );
+  });
+
+  it('writes the `kaos` dialect’s keys .kaos lacks as custom attributes, and says what it can’t write', () => {
+    const { model } = readText(`declare goal [ g ] refinedby a end
+declare goal [ a ] end
+declare agent [ e ] type environment end`);
+    const goal = nodeOf(model, 'g');
+    goal.customProperties.Priority = 'high';
+    goal.customProperties.Owner = 'someone';
+    goal.customProperties.RSR = 'most';
+    model.links[0].hub.customProperties.SysRef = 'option A';
+    model.links[0].hub.customProperties.Tactic = 'guard-introduction';
+    model.orphans.push({
+      id: '3f2a-uuid',
+      text: 'Achieve [New]',
+      type: 'kaos.BehavioralGoal',
+      x: 0,
+      y: 0,
+      customProperties: { FormalSpec: 'sooner or later it' },
+    });
+    model.links.push({
+      id: 'c',
+      type: 'kaos.Conflict',
+      source: 'g',
+      target: 'a',
+    });
+    const { text, diagnostics } = writeKaos(model, { modelName: 'm' });
+    assert.ok(
+      text!.includes(
+        'declare goal [ g ]\n  $Priority "high"\n  refinedby [introduce_guard] a\nend',
+      ),
+    );
+    assert.ok(text!.includes('declare agent [ e ]\n  type environment\nend'));
+    assert.ok(
+      text!.includes(
+        'declare goal [ achieve_new ]\n  name "Achieve [New]"\n  formalspec "sooner or later it"\nend',
+      ),
+    );
+    assert.deepStrictEqual(
+      diagnostics.map((d) => d.message),
+      [
+        'Achieve [New]: its id 3f2a-uuid is no KAOSTools identifier, written as achieve_new',
+        'kaos.Conflict g → a: no .kaos attribute for it, not written',
+        'g: its RSR most is no number, not written',
+        'g: its Owner has no .kaos attribute, not written',
+        "g: a refinement's SysRef has no .kaos attribute, not written",
+        "achieve_new: its FormalSpec is no KAOSTools formula, written as a string (KAOSTools won't read it)",
+      ],
+    );
+  });
+});

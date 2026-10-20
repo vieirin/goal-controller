@@ -105,6 +105,8 @@ import(text) → {
 
 Nodes that have a position keep it. The others are laid out as a model of their own from `origin`: links to positioned nodes are not followed. It returns how far they reach (`{ right, bottom }`) to size the diagram, or `null` when there was nothing to place.
 
+The layers are iStar's refinements by default. An importer of another framework names its own link types as the third argument, `layOut(model, origin, refinements)`. `.kaos` passes edges it derives itself: a refinement's children, an obstacle under what it obstructs, a resolving goal under its obstacle (#181).
+
 ## EMF XMI: `formats/xmi.ts` (`@goal-controller/goal-language/formats`), the reader every XMI importer starts from
 
 `readXmi(text, { idAttribute?, fileName? })` reads an EMF XMI document for
@@ -203,3 +205,24 @@ iStar-DT dialect ([istardt.md](istardt.md), #119):
 
 **Not in scope:**
 - the Tropos4AS extension's metamodel (artifacts, failures, errors), which TAOM4E's plug-ins wrote: it is in REJ 2017's figures only ([tropos4as.md](tropos4as.md)).
+
+## `.kaos` (KAOSTools' textual KAOS, kaosprop): `importers/kaos`
+
+`readKaos(text, { modelName, files })` reads KAOSTools' textual KAOS into a KAOS model for kaosprop (#181). `writeKaos(model)` writes it back. Together they make kaosprop's native file, `nativeFiles.kaos`.
+
+- **Grammar.** The goal language serves the parser: `@goal-controller/goal-language/formats` exports `kaosLanguage` (its grammar, `src/formats/kaos/kaos.langium`, made a language with `defineLanguage`) and `parseKaos(text)`.
+  - The grammar follows KAOSTools' PEG, plus the older forms ADS's corpus uses: an `id` attribute, nested anonymous declarations, `resolvedby(pattern[anchor])`, quoted-name references and tuples.
+  - A declaration of any kind parses. The reader places the kinds it knows and keeps the others as written.
+- **Placement.** Each attribute goes to the layer #181's table names. The table as implemented is in [frameworks.md](frameworks.md), "KAOS stress test", PR F.
+- **What has no place** is kept as written, in file order, in the diagram's `kaosUnsupported`, and a diagnostic names each item. The writer writes it back. This covers:
+  - `expert` and `calibration` declarations;
+  - per-expert estimates and distributions;
+  - custom `$attributes`;
+  - model attributes other than `@title`;
+  - an import the reader isn't given.
+- **Imports.** An `import` reads the project's file of that name (the context's project resources), else it is kept as written.
+- **Layout:** `layOut` with KAOS's edges. A hub is placed between its goal and its children.
+- **Round trip.** `.kaos → model → .kaos` is structural: `modelRoundTrip` holds on the whole corpus, but the writer puts attributes in its own order. Writing a written file again gives the same text.
+  - `KAOS_LOSSY` lists what `.kaos` doesn't carry: positions and sizes, the links' ids (the reader makes them from the structure), and the diagram's description, mode and framework.
+- **Corpus:** `packages/goal-language/test/fixtures/kaos`. It holds ADS's six models and KAOSTools' LAS, each with its MIT licence. The grammar's tests are there, and lib's reader tests read the same files.
+

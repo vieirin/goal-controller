@@ -51,7 +51,7 @@
     }
   },
   "scripts": {
-    "generate": "langium generate",
+    "generate": "langium generate && langium generate --file src/formats/kaos/langium-config.json",
     "build": "rm -rf out && tsc && node build.mjs",
     "watch": "tsc --watch",
     "typecheck": "tsc -p tsconfig.test.json",

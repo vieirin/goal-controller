@@ -666,6 +666,84 @@ log are in #182.
   RE'12 model, read by the workbench's own parser.
 
 
+### PR F: the `.kaos` importer and writer
+
+- **The goal language serves the parser.** The grammar is `packages/goal-language/src/formats/kaos/kaos.langium`, generated into its own `generated/` (its own `langium-config.json`, beside the goal grammar's `src/generated`, which is untouched; goal-language's `generate` runs both). `defineLanguage` turns it into `kaosLanguage`, a `NativeLanguage`: the parse with ranged diagnostics, and the `.kaos` tab's highlighting and completions. `@goal-controller/goal-language/formats` exports it with `parseKaos(text)`, which returns the AST and its diagnostics. The CommonJS `formats.cjs` bundles it on the package's one Langium copy. lib's `importers/kaos` holds only the reader (AST → model) and the writer. This is the owner's decision, after a hand parser in lib and then a grammar in lib: a parser for another tool's format lives with the formats. #189's core-package gate (no engine names in goal-language) therefore gains `.kaos`'s format here, a file format of the KAOS framework rather than an engine.
+  - The grammar follows KAOSTools' PEG (`Parsing/Parsers/GoalModelParser.peg`, MIT). It adds the older forms ADS's files use:
+    - `declare goal` with an `id` attribute;
+    - anonymous `declare obstacle … end` inside `refinedby`;
+    - `resolvedby(mitigation[g])`;
+    - a reference by its quoted name;
+    - a tuple value (`probability[e4] (20%, 20%, 40%)`).
+  - A declaration of any kind parses as one rule, so nothing fails to parse for being unknown. The reader decides what it places.
+  - Formulas are datatype rules, used to find where a formula ends. The reader keeps a formula's text from the CST (`kaosFormulaText`), its tokens joined by one space wherever the file had a space, a line break or a comment.
+  - A top-level declaration may lack its `end`; the reader warns. No corpus file needs this. It was asked for on a wrong report of mine that `simple.kaos` had such a declaration, and is kept as leniency, with a synthetic test.
+  - The grammar's tests and the corpus (ADS's six models and KAOSTools' LAS, each with its MIT licence) are goal-language's (`test/kaos.test.ts`, `test/fixtures/kaos`). lib's importer tests read the same files from there.
+- **Where each attribute goes** (#181's table, as implemented):
+
+  | `.kaos` | Model | Layer |
+  | --- | --- | --- |
+  | `declare goal` / `softgoal` / `obstacle` / `agent` | `kaos.BehavioralGoal` / `kaos.Softgoal` / `kaos.Obstacle` / `kaos.Agent` | structure |
+  | `declare domainproperty` / `domainhypothesis` | `kaos.DomainProperty`, `Kind` `invariant` / `hypothesis` | structure, vocabulary |
+  | agent `type software` / `environment` / `malicious` / none | `kaos.Agent` / `kaos.EnvironmentAgent` / `kaos.Agent` with an info diagnostic / `kaos.Agent` | structure |
+  | `name` | the element's text (its identifier when it has none) | structure |
+  | `definition` | `Description` | structure |
+  | `formalspec` | `FormalSpec` (also on a domain property, see below) | structure |
+  | `refinedby [p] a, b` | one refinement hub per `refinedby`: a goal's, or an obstacle's (several on one obstacle are an OR) | structure |
+  | its pattern | the hub's `Tactic`: `milestone` → `milestone-driven`, `case` → `case-driven`, `introduce_guard` → `guard-introduction`, `divide_and_conquer` → `divide-and-conquer`, `uncontrollability`, `unmonitorability`; another one as written | vocabulary |
+  | a refinee's `[p]` | its leg's `Probability`, as written | quantity |
+  | `obstructedby o` (`o [p]`) | an obstruction (its `Probability`) | structure (quantity) |
+  | `resolvedby [pattern:anchor] g`, `resolvedby(pattern[anchor]) g` | a resolution, `ResolutionType`: `prevention` → `obstacle prevention`, `mitigation` → `obstacle mitigation`, `substitution` → `goal substitution`, `restoration` → `goal restoration`, `weakening` → `goal deidealization`, `obstacle_reduction` → `obstacle reduction`; another one as written. `Anchor` is the anchor's identifier | structure, vocabulary |
+  | `assignedto a, b` | one responsibility assignment each | structure |
+  | `rsr` (older `rds`) on a goal | `RSR`, as written | quantity |
+  | `esr` / `eps` / `probability`, a single number | a goal's `ESR`, an obstacle's `Probability`, as written | quantity |
+  | `$Type`, `$Priority`, … (a `kaos` key `.kaos` has no attribute for) | that key | vocabulary |
+  | `@title` | the diagram's name | — |
+
+- **Kept as written, never dropped.** The following are kept in the diagram's `kaosUnsupported`, in file order and separated by blank lines, and the writer writes them back:
+  - `expert`, `calibration`, `entity`, `association`, `predicate` and `type` declarations, and any other unknown declaration;
+  - per-expert and distribution forms of `probability`/`esr`/`rsr`;
+  - `provided`, `except`, `relaxedTo` and `replaces`;
+  - a refinement's `context`;
+  - custom `$attributes` with no `kaos` key;
+  - `@author`, `@version` and other model attributes;
+  - an import the reader isn't given;
+  - a domain property's `probability`.
+
+  An attribute of a placed element is kept as `override <kind> [ <id> ] … end`, so reading it back keeps it in the same place. Each item gets a diagnostic: a warning, or an info for a model attribute. The key is on the diagram, a model-level record; it adds nothing to either dialect's element keys.
+- **One key outside its declared kinds:** `FormalSpec` on a domain property, from KAOSTools' `formalspec`. The `kaos` dialect declares `FormalSpec` on goals and obstacles only, and istar-ts's domain-property schema has only `Kind`. The plain `kaos` mode keeps it as an unknown key. Follow-up: #338.
+- **References.** A reference resolves by identifier, and by name when the reference is a quoted name (ADS). An element that nothing declares is created with the kind its reference implies (a refinee of a goal is a goal, of an obstacle an obstacle; `obstructedby` an obstacle; `resolvedby` a goal; `assignedto` an agent), with a warning. An anonymous element's identifier is made from its name (`Paper Jam` → `paper_jam`). An `override` of an element not yet seen creates it. A second `declare` of one adds its attributes, with an info diagnostic.
+- **Imports** resolve against the files the reader is given: the native file's project resources, matched by path and then by file name. Otherwise the import is kept as written, with a warning.
+- **The model** is written as istar-ts writes a KAOS model (`toPistarObject(parsePistar(…, KAOS_OBSTACLES))`), with DSM3's keys present and empty, as DSM3 creates them. It records `engine: kaosprop` and `framework: kaos`. Ids:
+  - an element's id is its KAOSTools identifier, as in istar-ts's LAS fixture, so `Anchor` names it;
+  - a link's id is made from its structure (`<goal>-refinement-<n>`, `<obstacle>-obstructs-<goal>`).
+- **Layout.** `layOut` gains a third argument, the link types to layer by. Its default is iStar's refinements, so other importers are unchanged. `.kaos` lays out:
+  - a refinement's children below it;
+  - an obstacle below the goal it obstructs;
+  - a resolving goal below its obstacle;
+  - an agent beside its goal.
+
+  A hub sits between its goal and its children.
+- **The writer** writes in KAOSTools' current syntax:
+  - patterns by KAOSTools' names;
+  - quantities as written;
+  - an environment agent as `type environment`;
+  - a `kaos` key without a `.kaos` attribute as a custom attribute;
+  - the kept text at the end.
+
+  An identifier that isn't a KAOSTools one (a workbench UUID) is written as its name's identifier, with an info diagnostic. The writer says what it can't write:
+  - a refinement's `SysRef` and `Status`;
+  - an obstacle refinement's `Probability`;
+  - a conflict;
+  - an unknown key;
+  - a non-numeric quantity.
+
+  A `FormalSpec` that isn't a KAOSTools formula is written as a string, with a warning. An obstruction's `[p]` is written, but KAOSTools doesn't read it (only goal-controller does).
+  - `type software` and an untyped agent both read as `kaos.Agent`, and the writer writes no `type` for one: an untyped agent is KAOSTools' default.
+  - A domain property whose `Kind` is unset is written as a `domainproperty`.
+- **Round trip.** `.kaos → model → .kaos` is structural, not textual: the writer chooses the order and the keywords (`rds` is written `rsr`, `eps` is written `esr` or `probability`, the older resolution syntax the PEG's). `modelRoundTrip` holds for all seven corpus files, and writing a written file again gives the same text. `KAOS_LOSSY` lists positions and sizes, link ids, `display`, `saveDate`, and the diagram's `Description`, `engine` and `framework`.
+- **Counts.** #181's figures: `las.kaos` 41 goals and 8 agents, `obstacles.kaos` 76 obstacles. For `simple.kaos`, 183 obstacles are read. #181's 185 also counts the two `declare obstacle` blocks that are commented out (o2, o4). Every corpus model validates in istar-ts (`validateModel`: none).
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's
