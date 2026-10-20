@@ -334,4 +334,34 @@ describe('Add to project in the workbench (#329)', () => {
     expect(wb().text).toBe(edited);
     expect(wb().dirty).toBe(true);
   });
+
+  it('opens a Recent entry of a project’s second model as that model, with its edits', async () => {
+    window.localStorage.clear();
+    const first = workbench();
+    await act(() => first.wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(first.wb().fileName).toBe('simpleChoice.txt'));
+    await act(() => first.wb().addModelFile('kaos.txt', KAOS_WELCOME));
+    await waitFor(() => expect(first.wb().mode).toBe('kaos'));
+    const saved = first.wb().text;
+    const edited = saved.replace('Reliability', 'Availability');
+    act(() => first.wb().setText(edited, 'source'));
+    // left for the first model: Recent keeps the KAOS model with its edits
+    act(() => first.wb().openProjectModel('simpleChoice.txt'));
+    await waitFor(() => expect(first.wb().fileName).toBe('simpleChoice.txt'));
+    // reloaded: a fresh workbench, the KAOS model's entry clicked in Recent
+    cleanup();
+    const { wb } = workbench();
+    const entry = wb().recent.find((r) => r.fileName === 'kaos.txt')!;
+    expect(entry.source?.kind).toBe('opfs');
+    await act(() => wb().openRecent(entry));
+    await waitFor(() => expect(wb().fileName).toBe('kaos.txt'));
+    expect(wb().modelPath).toBe('kaos.txt');
+    expect(wb().mode).toBe('kaos');
+    expect(wb().text).toBe(edited);
+    expect(wb().dirty).toBe(true);
+    // its project's other model as the project keeps it
+    expect(
+      wb().project!.models.find((m) => m.path === 'simpleChoice.txt')!.text,
+    ).toBe(ISTAR);
+  });
 });

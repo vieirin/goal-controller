@@ -1140,6 +1140,8 @@ function WorkbenchState({
       openProject(
         model ? withModelText(project, model.path, entry.text) : project,
         {
+          // the entry's model of the project, not its first (#329)
+          ...(model && { model: model.path }),
           savedText: entry.savedText,
           settings: entry.settings,
           ...(entry.aside && { aside: entry.aside }),
