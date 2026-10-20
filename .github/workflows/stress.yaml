@@ -4,6 +4,9 @@ name: Stress tests
 # committed seed fails the job. Contextual goal models also run their oracle
 # (docker/dlv: DLV 2.1.2 and z3, built on the runner, never pushed). The
 # other engines' oracles (jUCMNav, DT-Golog) run locally with --oracle.
+# Each job runs only when the shared libraries or its own engine changed
+# (.github/ci/affected.sh); otherwise it skips its steps and still passes,
+# since the jobs are required checks on main.
 on:
   push:
     branches: [main, develop]
@@ -32,31 +35,46 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Anything to check?
+        id: affected
+        env:
+          CI_EVENT: ${{ github.event_name }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: .github/ci/affected.sh stress:${{ matrix.engine }}
 
       - name: Install pnpm
+        if: steps.affected.outputs.run == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 8.15.0
 
       - name: Set up Node.js
+        if: steps.affected.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: steps.affected.outputs.run == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build lib
+        if: steps.affected.outputs.run == 'true'
         run: pnpm run build:lib
 
       - name: Run the stress test
+        if: steps.affected.outputs.run == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/${{ matrix.engine }}-stress/run.cjs ${{ matrix.args }}
 
       - name: Keep the results
-        if: always()
+        if: always() && steps.affected.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: stress-${{ matrix.engine }}
